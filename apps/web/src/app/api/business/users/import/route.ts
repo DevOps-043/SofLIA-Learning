@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       for (let i = 0; i < line.length; i++) {
         const char = line[i]
         const nextChar = line[i + 1]
-        
+
         if (char === '"') {
           if (inQuotes && nextChar === '"') {
             // Comillas dobles escapadas
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     // Obtener headers
     const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim())
     const requiredFields = ['username', 'email']
-    
+
     // Validar headers
     const missingFields = requiredFields.filter(field => !headers.includes(field))
     if (missingFields.length > 0) {
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 
       try {
         const values = parseCSVLine(line)
-        
+
         // Crear objeto con los valores
         const userData: any = {}
         headers.forEach((header, index) => {
@@ -182,9 +182,18 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Crear usuario (password es obligatorio)
+        // Validar contraseña
         const password = userData.password.trim()
-        
+
+        if (password === '****************') {
+          result.errors.push({
+            row: i + 1,
+            error: 'La contraseña es un placeholder. Por favor ingrese una contraseña real.',
+            data: userData
+          })
+          continue
+        }
+
         if (password.length < 6) {
           result.errors.push({
             row: i + 1,
@@ -239,7 +248,7 @@ export async function POST(request: NextRequest) {
         if (orgUserError) {
           // Si falla la inserción en organization_users, intentar eliminar el usuario creado
           await supabase.from('users').delete().eq('id', newUser.id)
-          
+
           result.errors.push({
             row: i + 1,
             error: orgUserError.message || 'Error al agregar usuario a la organización',
@@ -270,7 +279,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logger.error('Error in /api/business/users/import:', error)
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: 'Error al importar usuarios'
       },

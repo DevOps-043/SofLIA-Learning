@@ -70,7 +70,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
 
       {/* Background Image with Overlay */}
       {backgroundImage && (
-        <div 
+        <div
           className="absolute inset-0 z-0"
           style={{
             willChange: 'transform',
@@ -92,7 +92,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
             unoptimized={false}
             priority={false}
           />
-          <div 
+          <div
             className="absolute inset-0 bg-gradient-to-br from-[var(--org-card-background,#1E2329)]/70 via-[var(--org-card-background,#1E2329)]/40 to-transparent"
             style={{
               willChange: 'auto',
@@ -100,7 +100,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
               backfaceVisibility: 'hidden'
             }}
           />
-          <div 
+          <div
             className="absolute inset-0 bg-gradient-to-t from-[var(--org-card-background,#1E2329)]/80 via-transparent to-transparent"
             style={{
               willChange: 'auto',
@@ -112,7 +112,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
       )}
 
       {/* Content Container */}
-      <div 
+      <div
         className="relative z-10 p-5 h-full flex flex-col justify-between"
         style={{
           willChange: 'auto',
@@ -126,7 +126,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
           {/* Visual Indicator */}
           <div
             className="p-2.5 rounded-xl"
-            style={{ 
+            style={{
               backgroundColor: `${theme?.text || '#FFFFFF'}0D`,
               border: `1px solid ${theme?.borderColor || '#FFFFFF'}1A`,
               backdropFilter: 'blur(8px)',
@@ -224,7 +224,7 @@ function getLuminance(color: string): number {
     const r = parseInt(hex.substring(0, 2), 16)
     const g = parseInt(hex.substring(2, 4), 16)
     const b = parseInt(hex.substring(4, 6), 16)
-    
+
     // Calcular luminosidad relativa usando la fórmula estándar
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
     return luminance
@@ -249,14 +249,14 @@ interface QuickActionProps {
 function QuickAction({ title, description, icon: Icon, href, color, delay }: QuickActionProps) {
   const { resolvedTheme } = useThemeStore()
   const isLightMode = resolvedTheme === 'light'
-  
+
   // Calcular luminosidad del color de fondo
   const luminance = getLuminance(color)
   const isLightColor = luminance > 0.5
-  
+
   // El icono siempre será blanco (según lo solicitado por el usuario)
   const iconColor = '#FFFFFF'
-  
+
   // Ajustar el color de fondo en modo claro para asegurar contraste con el icono blanco
   // Si el color es claro en modo claro, oscurecerlo para que el icono blanco se vea bien
   let backgroundColor = color
@@ -268,7 +268,7 @@ function QuickAction({ title, description, icon: Icon, href, color, delay }: Qui
     const b = Math.max(0, parseInt(hex.substring(4, 6), 16) - 60)
     backgroundColor = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
   }
-  
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -10 }}
@@ -277,10 +277,9 @@ function QuickAction({ title, description, icon: Icon, href, color, delay }: Qui
     >
       <Link href={href}>
         <div
-          className="flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 hover:scale-[1.01] hover:brightness-110 group cursor-pointer"
+          className="flex items-center gap-4 p-4 rounded-xl transition-all duration-200 hover:scale-[1.01] hover:brightness-110 group cursor-pointer"
           style={{
-            backgroundColor: 'rgba(var(--org-card-background-rgb, 30, 35, 41), 0.5)',
-            borderColor: 'var(--org-border-color, #6C757D)33'
+            backgroundColor: 'rgba(var(--org-card-background-rgb, 30, 35, 41), 0.5)'
           }}
         >
           <div
@@ -505,9 +504,9 @@ export function BusinessPanelDashboard() {
             description: activity.action || 'Sin descripción',
             user: activity.user || 'Usuario',
             timestamp: activity.time || 'Hace un momento', // La API ya devuelve el tiempo formateado
-            type: activity.icon === 'CheckCircle' ? 'certificate' : 
-                  activity.icon === 'Users' ? 'user' : 
-                  activity.icon === 'BookOpen' ? 'course' : 'progress'
+            type: activity.icon === 'CheckCircle' ? 'certificate' :
+              activity.icon === 'Users' ? 'user' :
+                activity.icon === 'BookOpen' ? 'course' : 'progress'
           }))
           setActivities(mappedActivities)
         }
@@ -727,13 +726,13 @@ export function BusinessPanelDashboard() {
             <div className="flex items-center gap-2 text-white/60 text-sm">
               <ClockIcon className="h-4 w-4" />
               <span style={{ color: '#FFFFFF' }} className="opacity-90">
-                  {currentTime.toLocaleDateString('es-MX', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </span>
+                {currentTime.toLocaleDateString('es-MX', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#00D4B3' }} />
@@ -884,10 +883,7 @@ export function BusinessPanelDashboard() {
               transition={{ delay: 1 }}
               className="mt-6 p-6 rounded-2xl"
               style={{
-                backgroundColor: 'var(--org-card-background, #1E2329)',
-                borderColor: 'var(--org-border-color, #6C757D)',
-                borderWidth: 1,
-                borderStyle: 'solid'
+                backgroundColor: 'var(--org-card-background, #1E2329)'
               }}
             >
               <div className="flex items-center gap-3 mb-4">
