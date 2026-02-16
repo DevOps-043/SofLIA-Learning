@@ -58,6 +58,14 @@ function formatPlan(plan?: string | null) {
 }
 
 function getStatusInfo(company: AdminCompany) {
+  if (company.subscription_status?.toLowerCase() === 'pending' && !company.is_active) {
+    return {
+      label: 'Pendiente',
+      color: '#F97316',
+      bgColor: '#F9731620',
+      icon: ArrowPathIcon
+    }
+  }
   if (!company.is_active) {
     return {
       label: 'Pausada',
@@ -165,10 +173,11 @@ interface CompanyCardProps {
   onView: () => void
   onEdit: () => void
   onToggle: () => void
+  onActivate?: () => void
   isUpdating: boolean
 }
 
-function CompanyCard({ company, onView, onEdit, onToggle, isUpdating }: CompanyCardProps) {
+function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating }: CompanyCardProps) {
   const statusInfo = getStatusInfo(company)
   const planInfo = formatPlan(company.subscription_plan)
   const StatusIcon = statusInfo.icon
@@ -327,39 +336,64 @@ function CompanyCard({ company, onView, onEdit, onToggle, isUpdating }: CompanyC
             Ver
           </motion.button>
 
-          <motion.button
-            onClick={(e) => { e.stopPropagation(); onEdit() }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: `${colors.accent}20`,
-              color: colors.accent
-            }}
-          >
-            <PencilSquareIcon className="h-4 w-4" />
-            Editar
-          </motion.button>
+          {company.subscription_status?.toLowerCase() === 'pending' && !company.is_active && onActivate ? (
+            <motion.button
+              onClick={(e) => { e.stopPropagation(); onActivate() }}
+              disabled={isUpdating}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+              style={{
+                backgroundColor: `${colors.success}20`,
+                color: colors.success
+              }}
+            >
+              {isUpdating ? (
+                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  <CheckCircleIcon className="h-4 w-4" />
+                  Activar
+                </>
+              )}
+            </motion.button>
+          ) : (
+            <>
+              <motion.button
+                onClick={(e) => { e.stopPropagation(); onEdit() }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: `${colors.accent}20`,
+                  color: colors.accent
+                }}
+              >
+                <PencilSquareIcon className="h-4 w-4" />
+                Editar
+              </motion.button>
 
-          <motion.button
-            onClick={(e) => { e.stopPropagation(); onToggle() }}
-            disabled={isUpdating}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
-            style={{
-              backgroundColor: company.is_active ? `${colors.warning}20` : `${colors.success}20`,
-              color: company.is_active ? colors.warning : colors.success
-            }}
-          >
-            {isUpdating ? (
-              <ArrowPathIcon className="h-4 w-4 animate-spin" />
-            ) : company.is_active ? (
-              <PauseCircleIcon className="h-4 w-4" />
-            ) : (
-              <CheckCircleIcon className="h-4 w-4" />
-            )}
-          </motion.button>
+              <motion.button
+                onClick={(e) => { e.stopPropagation(); onToggle() }}
+                disabled={isUpdating}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                style={{
+                  backgroundColor: company.is_active ? `${colors.warning}20` : `${colors.success}20`,
+                  color: company.is_active ? colors.warning : colors.success
+                }}
+              >
+                {isUpdating ? (
+                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                ) : company.is_active ? (
+                  <PauseCircleIcon className="h-4 w-4" />
+                ) : (
+                  <CheckCircleIcon className="h-4 w-4" />
+                )}
+              </motion.button>
+            </>
+          )}
         </div>
       </div>
     </motion.div>
@@ -728,7 +762,8 @@ export function AdminCompaniesPage() {
         statusFilter === 'all' ||
         (statusFilter === 'active' && company.is_active && normalizedStatus !== 'trial') ||
         (statusFilter === 'trial' && normalizedStatus === 'trial') ||
-        (statusFilter === 'paused' && !company.is_active) ||
+        (statusFilter === 'pending' && normalizedStatus === 'pending' && !company.is_active) ||
+        (statusFilter === 'paused' && !company.is_active && normalizedStatus !== 'pending') ||
         (statusFilter === 'expired' && normalizedStatus === 'expired')
 
       return matchesSearch && matchesPlan && matchesStatus
@@ -737,6 +772,10 @@ export function AdminCompaniesPage() {
 
   const handleToggle = async (company: AdminCompany) => {
     await updateCompany(company.id, { is_active: !company.is_active })
+  }
+
+  const handleActivatePending = async (company: AdminCompany) => {
+    await updateCompany(company.id, { is_active: true, subscription_status: 'active' })
   }
 
   const handleSaveEdit = async (updates: Partial<AdminCompany>) => {
@@ -877,7 +916,7 @@ export function AdminCompaniesPage() {
       )}
 
       {/* Stats */}
-      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+      <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
         <StatCard
           title="Empresas Activas"
           value={stats?.activeCompanies ?? 0}
@@ -887,12 +926,20 @@ export function AdminCompaniesPage() {
           delay={0}
         />
         <StatCard
+          title="Pendientes"
+          value={stats?.pendingCompanies ?? 0}
+          subtitle="Requieren activación"
+          icon={ArrowPathIcon}
+          color="#F97316"
+          delay={1}
+        />
+        <StatCard
           title="En Trial"
           value={stats?.trialCompanies ?? 0}
           subtitle="Conversiones prioritarias"
           icon={BoltIcon}
           color={colors.purple}
-          delay={1}
+          delay={2}
         />
         <StatCard
           title="Pausadas"
@@ -900,7 +947,7 @@ export function AdminCompaniesPage() {
           subtitle="Revisar facturación"
           icon={PauseCircleIcon}
           color={colors.warning}
-          delay={2}
+          delay={3}
         />
         <StatCard
           title="Uso Promedio"
@@ -908,7 +955,7 @@ export function AdminCompaniesPage() {
           subtitle={`${stats?.usedSeats ?? 0} / ${stats?.totalSeats ?? 0} licencias`}
           icon={ChartBarIcon}
           color={colors.accent}
-          delay={3}
+          delay={4}
         />
       </section>
 
@@ -970,6 +1017,7 @@ export function AdminCompaniesPage() {
             >
               <option value="all">Todos los estados</option>
               <option value="active">Activas</option>
+              <option value="pending">Pendientes</option>
               <option value="trial">En trial</option>
               <option value="paused">Pausadas</option>
               <option value="expired">Expiradas</option>
@@ -1013,6 +1061,7 @@ export function AdminCompaniesPage() {
                   onView={() => setViewCompany(company)}
                   onEdit={() => setEditCompany(company)}
                   onToggle={() => handleToggle(company)}
+                  onActivate={() => handleActivatePending(company)}
                   isUpdating={updatingId === company.id}
                 />
               </motion.div>

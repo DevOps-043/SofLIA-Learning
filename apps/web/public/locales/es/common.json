@@ -588,6 +588,44 @@
         "contact": "Contacto"
       }
     }
+  },
+  "orgOnboarding": {
+    "title": "Bienvenido a SofLIA",
+    "subtitle": "Para comenzar, elige una opción",
+    "createCompany": "Crear empresa",
+    "createCompanyDesc": "Registra tu organización en la plataforma y gestiona tu equipo",
+    "joinCompany": "Unirse a empresa",
+    "joinCompanyDesc": "Únete a una organización existente con su código",
+    "companyName": "Nombre de la empresa",
+    "contactEmail": "Email de contacto",
+    "contactPhone": "Teléfono de contacto",
+    "description": "Descripción",
+    "website": "Sitio web (opcional)",
+    "companyCode": "Código de empresa",
+    "companyCodeHint": "Pide el código de tu empresa a tu administrador",
+    "message": "Mensaje (opcional)",
+    "jobTitle": "Tu cargo / puesto",
+    "submit": "Enviar solicitud",
+    "creating": "Creando empresa...",
+    "joining": "Enviando solicitud...",
+    "back": "Volver",
+    "pendingCompany": "Tu empresa está pendiente de activación",
+    "pendingCompanyDesc": "El equipo de SofLIA revisará tu solicitud y se pondrá en contacto contigo pronto. Este proceso puede tomar entre 24-48 horas.",
+    "pendingJoin": "Tu solicitud está pendiente",
+    "pendingJoinDesc": "El administrador de la empresa revisará tu solicitud de ingreso.",
+    "approved": "¡Solicitud aprobada!",
+    "approvedDesc": "Tu solicitud ha sido aprobada. Serás redirigido en unos segundos...",
+    "rejected": "Solicitud rechazada",
+    "rejectedDesc": "Tu solicitud para unirte a {{company}} fue rechazada. Puedes intentar con otra empresa.",
+    "tryAgain": "Intentar de nuevo",
+    "companyCreated": "Empresa registrada exitosamente",
+    "joinRequestSent": "Solicitud enviada exitosamente",
+    "errors": {
+      "nameRequired": "El nombre de la empresa es requerido",
+      "emailRequired": "El email de contacto es requerido",
+      "codeRequired": "El código de empresa es requerido",
+      "generic": "Ocurrió un error. Intenta nuevamente."
+    }
   }
 }
 

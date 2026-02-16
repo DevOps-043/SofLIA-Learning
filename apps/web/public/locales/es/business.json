@@ -10,7 +10,8 @@
     "pinned": "Panel Fijado",
     "unpinned": "Panel Desfijado",
     "pinMenu": "Fijar menú",
-    "collapseMenu": "Colapsar menú"
+    "collapseMenu": "Colapsar menú",
+    "joinRequests": "Solicitudes"
   },
   "header": {
     "myOrganization": "Mi Organización",

@@ -24,7 +24,8 @@ import {
   Sparkles,
   MapPin,
   Network,
-  ClipboardCheck
+  ClipboardCheck,
+  UserPlus
 } from 'lucide-react'
 
 interface BusinessPanelSidebarProps {
@@ -75,6 +76,7 @@ export function BusinessPanelSidebar({
     { name: t('sidebar.reports'), href: `/${orgSlug}/business-panel/reports`, icon: FileText },
     { name: t('sidebar.analytics'), href: `/${orgSlug}/business-panel/analytics`, icon: BarChart3 },
     { name: t('sidebar.reviews', 'Revisiones'), href: `/${orgSlug}/business-panel/reviews`, icon: ClipboardCheck },
+    { name: t('sidebar.joinRequests', 'Solicitudes'), href: `/${orgSlug}/business-panel/join-requests`, icon: UserPlus },
     { name: t('sidebar.settings'), href: `/${orgSlug}/business-panel/settings`, icon: Settings },
   ], [t, orgSlug])
 

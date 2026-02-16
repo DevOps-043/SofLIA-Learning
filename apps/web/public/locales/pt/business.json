@@ -10,7 +10,8 @@
     "pinned": "Painel Fixado",
     "unpinned": "Painel Desafixado",
     "pinMenu": "Fixar menu",
-    "collapseMenu": "Recolher menu"
+    "collapseMenu": "Recolher menu",
+    "joinRequests": "Solicitações"
   },
   "header": {
     "myOrganization": "Minha Organização",

@@ -529,6 +529,44 @@
         "contact": "Contact"
       }
     }
+  },
+  "orgOnboarding": {
+    "title": "Welcome to SofLIA",
+    "subtitle": "To get started, choose an option",
+    "createCompany": "Create company",
+    "createCompanyDesc": "Register your organization on the platform and manage your team",
+    "joinCompany": "Join a company",
+    "joinCompanyDesc": "Join an existing organization with their code",
+    "companyName": "Company name",
+    "contactEmail": "Contact email",
+    "contactPhone": "Contact phone",
+    "description": "Description",
+    "website": "Website (optional)",
+    "companyCode": "Company code",
+    "companyCodeHint": "Ask your administrator for your company code",
+    "message": "Message (optional)",
+    "jobTitle": "Your job title / position",
+    "submit": "Submit request",
+    "creating": "Creating company...",
+    "joining": "Sending request...",
+    "back": "Back",
+    "pendingCompany": "Your company is pending activation",
+    "pendingCompanyDesc": "The SofLIA team will review your request and contact you soon. This process may take 24-48 hours.",
+    "pendingJoin": "Your request is pending",
+    "pendingJoinDesc": "The company administrator will review your join request.",
+    "approved": "Request approved!",
+    "approvedDesc": "Your request has been approved. You will be redirected in a few seconds...",
+    "rejected": "Request rejected",
+    "rejectedDesc": "Your request to join {{company}} was rejected. You can try with another company.",
+    "tryAgain": "Try again",
+    "companyCreated": "Company registered successfully",
+    "joinRequestSent": "Request sent successfully",
+    "errors": {
+      "nameRequired": "Company name is required",
+      "emailRequired": "Contact email is required",
+      "codeRequired": "Company code is required",
+      "generic": "An error occurred. Please try again."
+    }
   }
 }
 

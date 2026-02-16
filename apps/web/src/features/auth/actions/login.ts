@@ -321,6 +321,34 @@ export async function loginAction(formData: FormData) {
     // Esto evita problemas de "redirect count exceeded" en Next.js
     let redirectTo = '/dashboard'; // Default
 
+    // Edge case: Si es 'usuario' pero ya tiene org activa (empresa aprobada/unión aprobada),
+    // actualizar cargo_rol y redirigir correctamente
+    if (normalizedRole === 'usuario') {
+      const { data: activeOrg } = await supabase
+        .from('organization_users')
+        .select('organization_id, role, organizations!inner(id, slug, is_active)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .eq('organizations.is_active', true)
+        .limit(1)
+        .maybeSingle()
+
+      if (activeOrg) {
+        // Promote user to Business
+        await supabase
+          .from('users')
+          .update({ cargo_rol: 'Business' })
+          .eq('id', user.id)
+
+        const orgSlug = (activeOrg.organizations as any)?.slug
+        if (orgSlug) {
+          redirectTo = `/${orgSlug}/dashboard`
+        }
+
+        return { success: true, redirectTo }
+      }
+    }
+
     if (normalizedRole === 'administrador') {
       redirectTo = '/admin/dashboard';
     } else if (normalizedRole === 'instructor') {

@@ -60,6 +60,7 @@ export interface CompanyStats {
   activeCompanies: number
   trialCompanies: number
   pausedCompanies: number
+  pendingCompanies: number
   totalSeats: number
   usedSeats: number
   averageUtilization: number
@@ -310,11 +311,19 @@ export class AdminCompaniesService {
     const stats = companies.reduce(
       (acc, company) => {
         acc.totalCompanies += 1
-        if (company.is_active) acc.activeCompanies += 1
-        else acc.pausedCompanies += 1
+
+        const normalizedStatus = company.subscription_status?.toLowerCase()
+
+        if (normalizedStatus === 'pending' && !company.is_active) {
+          acc.pendingCompanies += 1
+        } else if (company.is_active) {
+          acc.activeCompanies += 1
+        } else {
+          acc.pausedCompanies += 1
+        }
 
         if (
-          (company.subscription_status && company.subscription_status.toLowerCase() === 'trial') ||
+          normalizedStatus === 'trial' ||
           (company.subscription_plan && company.subscription_plan.toLowerCase() === 'trial')
         ) {
           acc.trialCompanies += 1
@@ -329,6 +338,7 @@ export class AdminCompaniesService {
         activeCompanies: 0,
         trialCompanies: 0,
         pausedCompanies: 0,
+        pendingCompanies: 0,
         totalSeats: 0,
         usedSeats: 0
       }
@@ -493,6 +503,25 @@ export class AdminCompaniesService {
       throw new Error('No hay campos para actualizar')
     }
 
+    // Check if this is a pending company being activated
+    // We need to know the current state before updating
+    let wasPendingActivation = false
+    if (updates.is_active === true) {
+      const { data: currentOrg } = await supabase
+        .from('organizations')
+        .select('is_active, subscription_status')
+        .eq('id', id)
+        .single()
+
+      if (currentOrg && !currentOrg.is_active && currentOrg.subscription_status === 'pending') {
+        wasPendingActivation = true
+        // Also set subscription_status to 'active' if not explicitly set
+        if (!updates.subscription_status) {
+          updateData.subscription_status = 'active'
+        }
+      }
+    }
+
     const { error } = await supabase
       .from('organizations')
       .update(updateData)
@@ -501,6 +530,33 @@ export class AdminCompaniesService {
     if (error) {
       logger.error('❌ Error updating organization:', error)
       throw error
+    }
+
+    // If a pending company was just activated, promote the owner's cargo_rol
+    if (wasPendingActivation) {
+      const { data: ownerMembership } = await supabase
+        .from('organization_users')
+        .select('user_id')
+        .eq('organization_id', id)
+        .eq('role', 'owner')
+        .maybeSingle()
+
+      if (ownerMembership) {
+        const { error: roleError } = await supabase
+          .from('users')
+          .update({ cargo_rol: 'Business' })
+          .eq('id', ownerMembership.user_id)
+          .eq('cargo_rol', 'Usuario')
+
+        if (roleError) {
+          logger.error('Error promoting owner cargo_rol:', roleError)
+        } else {
+          logger.info('Owner cargo_rol promoted to Business', {
+            userId: ownerMembership.user_id,
+            organizationId: id,
+          })
+        }
+      }
     }
 
     const updatedCompany = await this.getCompanyById(id)

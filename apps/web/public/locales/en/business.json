@@ -10,7 +10,8 @@
     "pinned": "Pinned Panel",
     "unpinned": "Unpinned Panel",
     "pinMenu": "Pin menu",
-    "collapseMenu": "Collapse menu"
+    "collapseMenu": "Collapse menu",
+    "joinRequests": "Requests"
   },
   "header": {
     "myOrganization": "My Organization",
