@@ -32,7 +32,22 @@ export async function GET(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
+    // Inicializar cliente de Supabase
+    // PREFERENCIA: Usar Service Role (Admin) para ignorar RLS y ver todos los datos de la org
+    let supabase
+    try {
+      const { createAdminClient } = await import('@/lib/supabase/admin')
+      // Verificar si existe la key antes de intentar crear el cliente para evitar excepciones
+      if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        supabase = createAdminClient()
+      } else {
+        throw new Error('Service Role Key missing')
+      }
+    } catch (e) {
+      logger.warn('⚠️ Analytics: Usando cliente estándar (posible limitación por RLS)', e)
+      supabase = await createClient()
+    }
+
     const organizationId = auth.organizationId
 
     // 1. Obtener usuarios activos de la organización
@@ -128,20 +143,21 @@ export async function GET(
       .select('id, user_id, course_id, issued_at')
       .in('user_id', userIds)
 
-    // 5. Obtener equipos de la organización
-    const { data: teams } = await supabase
-      .from('work_teams')
+    // 5. Obtener equipos de la organización (Nueva estructura: Nodos)
+    // Se buscan nodos de tipo 'team' (o que se comporten como equipos)
+    const { data: nodes } = await supabase
+      .from('organization_nodes')
       .select(`
-        team_id,
+        id,
         name,
-        description,
-        image_url,
-        work_team_members (
+        type,
+        properties,
+        organization_node_users (
           user_id
         )
       `)
       .eq('organization_id', organizationId)
-      .eq('status', 'active')
+      .eq('type', 'team') // Filtrar solo los nodos que son equipos
 
     // Calcular métricas generales
     const totalUsers = orgUsers.length
@@ -185,17 +201,24 @@ export async function GET(
       }
     })
 
-    // Team analytics
-    const teamAnalytics = teams?.map(team => {
-      const memberIds = team.work_team_members?.map((m: any) => m.user_id) || []
+    // Team analytics (Basado en Nodos)
+    const teamAnalytics = nodes?.map(node => {
+      // Obtener IDs de usuarios asignados a este nodo
+      const memberIds = node.organization_node_users?.map((m: any) => m.user_id) || []
+
+      // Filtrar enrollments y tiempo para estos miembros
       const teamEnrollments = enrollments?.filter(e => memberIds.includes(e.user_id)) || []
       const teamTime = learningTime?.filter(lt => memberIds.includes(lt.user_id)) || []
 
+      // Extraer propiedades del JSONB
+      // @ts-ignore
+      const props = node.properties || {}
+
       return {
-        team_id: team.team_id,
-        name: team.name,
-        description: team.description,
-        image_url: team.image_url,
+        team_id: node.id,
+        name: node.name,
+        description: props.description || null,
+        image_url: props.image_url || null,
         member_count: memberIds.length,
         stats: {
           average_progress: teamEnrollments.length > 0
@@ -204,7 +227,7 @@ export async function GET(
           courses_completed: teamEnrollments.filter(e => e.status === 'completed').length,
           total_enrollments: teamEnrollments.length,
           total_time_hours: teamTime.reduce((sum, lt) => sum + (lt.total_minutes || 0), 0) / 60,
-          lia_conversations: 0
+          lia_conversations: 0 // TODO: Implementar conteo de conversaciones por nodo si es necesario
         }
       }
     }) || []
@@ -243,9 +266,9 @@ export async function GET(
         top_by_time: []
       },
       teams: {
-        total_teams: teams?.length || 0,
+        total_teams: nodes?.length || 0,
         teams: teamAnalytics,
-        ranking: teamAnalytics.sort((a, b) => b.stats.average_progress - a.stats.average_progress)
+        ranking: teamAnalytics.sort((a: any, b: any) => b.stats.average_progress - a.stats.average_progress)
       }
     })
   } catch (error) {

@@ -7,7 +7,7 @@ import { useThemeStore } from '@/core/stores/themeStore';
 
 // Solo loguear en desarrollo
 const isDev = process.env.NODE_ENV === 'development';
-const log = isDev ? console.log : () => {};
+const log = isDev ? console.log : () => { };
 
 export interface StyleConfig {
   background_type: 'image' | 'color' | 'gradient';
@@ -86,8 +86,22 @@ export function OrganizationStylesProvider({ children }: { children: ReactNode }
       } else {
         result = styles;
       }
+    } else if (resolvedTheme === 'light') {
+      // Si no soporta modo dual pero estamos en modo claro,
+      // usar el lightMode del tema por defecto como fallback
+      const defaultLightStyles = getThemeStylesForMode(DEFAULT_THEME, 'light');
+      if (defaultLightStyles) {
+        result = {
+          ...styles,
+          panel: defaultLightStyles.panel,
+          userDashboard: defaultLightStyles.userDashboard,
+          login: defaultLightStyles.login,
+        };
+      } else {
+        result = styles;
+      }
     } else {
-      // Si no soporta modo dual, retornar los estilos tal cual
+      // Modo oscuro sin tema dual: retornar los estilos tal cual
       result = styles;
     }
 

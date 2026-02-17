@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
 import { useAuth } from '../../auth/hooks/useAuth'
+import { useThemeStore } from '@/core/stores/themeStore'
 import Image from 'next/image'
 import {
   LayoutDashboard,
@@ -61,6 +62,7 @@ export function BusinessPanelSidebar({
   const { logout } = useAuth()
   const [imageError, setImageError] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
 
   const { t } = useTranslation('business')
 
@@ -161,6 +163,9 @@ export function BusinessPanelSidebar({
 
   const primaryColor = panelStyles?.primary_button_color || '#3b82f6'
   const accentColor = panelStyles?.accent_color || '#10b981'
+  const textColor = panelStyles?.text_color || (resolvedTheme === 'light' ? '#1E293B' : '#FFFFFF')
+  const borderColor = panelStyles?.border_color || (resolvedTheme === 'light' ? '#E2E8F0' : 'rgba(255,255,255,0.1)')
+  const hoverBg = resolvedTheme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)'
 
   // Determine X position: 
   // - Desktop (not mobile): Always 0 (visible)
@@ -201,12 +206,13 @@ export function BusinessPanelSidebar({
         }}
         className={`
           fixed inset-y-0 left-0 z-[110] h-full flex flex-col
-          border-r border-white/10 shadow-2xl overflow-hidden
+          shadow-2xl overflow-hidden
           lg:translate-x-0 lg:relative lg:z-0 lg:shadow-none
         `}
         style={{
           ...sidebarStyle,
-          backdropFilter: 'blur(20px)'
+          backdropFilter: 'blur(20px)',
+          borderRight: `1px solid ${borderColor}`
         }}
         onHoverStart={() => {
           if (!isMobile && isCollapsed && !isPinned) setIsHovered(true)
@@ -238,7 +244,10 @@ export function BusinessPanelSidebar({
         <div className="relative flex-shrink-0 flex items-center justify-end px-4 pt-4 pb-2 lg:hidden">
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: textColor, opacity: 0.5 }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.backgroundColor = hoverBg; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.5'; e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -251,7 +260,8 @@ export function BusinessPanelSidebar({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="px-4 py-1 bg-white/5 border-b border-white/5 overflow-hidden"
+              className="px-4 py-1 border-b overflow-hidden"
+              style={{ backgroundColor: resolvedTheme === 'light' ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)', borderColor }}
             >
               <p className="text-[10px] text-accent font-medium flex items-center gap-1.5 justify-center py-1" style={{ color: accentColor }}>
                 <MapPin className="w-3 h-3" />
@@ -293,10 +303,12 @@ export function BusinessPanelSidebar({
                     `}
                     style={{
                       backgroundColor: isActive ? primaryColor : undefined,
-                      color: isActive ? '#FFFFFF' : (panelStyles?.text_color || '#FFFFFF'),
+                      color: isActive ? '#FFFFFF' : textColor,
                       opacity: isActive ? 1 : 0.7,
                       boxShadow: isActive ? `0 4px 20px -5px ${primaryColor}60` : undefined
                     }}
+                    onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = hoverBg; e.currentTarget.style.opacity = '1'; } }}
+                    onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.opacity = '0.7'; } }}
                     title={(isCollapsed && !shouldExpand && !isMobile) ? item.name : undefined}
                   >
                     <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
@@ -334,8 +346,15 @@ export function BusinessPanelSidebar({
             <div className={`flex ${(!isCollapsed || shouldExpand) ? 'justify-end' : 'justify-center'} mb-4`}>
               <button
                 onClick={onToggleCollapse}
-                className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105 active:scale-95"
-                style={{ color: panelStyles?.text_color || '#FFFFFF', opacity: 0.7 }}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
+                style={{
+                  color: textColor,
+                  opacity: 0.7,
+                  border: `1px solid ${borderColor}`,
+                  backgroundColor: resolvedTheme === 'light' ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBg; e.currentTarget.style.borderColor = resolvedTheme === 'light' ? '#CBD5E1' : 'rgba(255,255,255,0.2)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = resolvedTheme === 'light' ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = borderColor; }}
                 title={isCollapsed ? t('sidebar.pinMenu') : t('sidebar.collapseMenu')}
               >
                 {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

@@ -57,10 +57,12 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
     const panelStyles = effectiveStyles?.panel || styles?.panel
 
     if (!panelStyles) {
+      const isDark = resolvedTheme === 'dark'
       return {
-        backgroundColor: 'rgba(15, 23, 42, 0.85)',
-        borderColor: 'rgba(71, 85, 105, 0.3)',
-        color: undefined as string | undefined
+        backgroundColor: isDark ? 'rgba(15, 23, 42, 0.85)' : 'rgba(255, 255, 255, 0.85)',
+        borderColor: isDark ? 'rgba(71, 85, 105, 0.3)' : 'rgba(226, 232, 240, 0.8)',
+        color: isDark ? '#f8fafc' : '#1E293B',
+        hoverBg: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
       }
     }
 
@@ -92,9 +94,10 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
     return {
       backgroundColor,
       borderColor,
-      color: textColor
+      color: textColor,
+      hoverBg: resolvedTheme === 'light' ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)'
     }
-  }, [styles, effectiveStyles])
+  }, [styles, effectiveStyles, resolvedTheme])
 
   const getDisplayName = () => {
     return userProfile?.display_name ||
@@ -150,7 +153,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
             <button
               onClick={onMenuClick}
               className="lg:hidden p-2 rounded-lg transition-colors hover:opacity-80"
-              style={{ color: navbarStyle.color || 'rgba(255, 255, 255, 0.8)' }}
+              style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -186,7 +189,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                 <h1
                   className="hidden sm:block text-sm font-semibold truncate max-w-[200px]"
                   style={{
-                    color: navbarStyle.color || 'rgba(255, 255, 255, 0.95)'
+                    color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.95)')
                   }}
                 >
                   {organization?.name || t('business:header.myOrganization')}
@@ -201,15 +204,16 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="flex items-center justify-center p-1 rounded-full transition-all duration-200"
               style={{
-                backgroundColor: userDropdownOpen ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                backgroundColor: userDropdownOpen ? navbarStyle.hoverBg : 'transparent'
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <div
-                className="h-9 w-9 rounded-full flex items-center justify-center ring-2 ring-white/20 transition-all shadow-sm"
+                className="h-9 w-9 rounded-full flex items-center justify-center transition-all shadow-sm"
                 style={{
                   background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))',
+                  boxShadow: resolvedTheme === 'light' ? '0 0 0 2px rgba(0,0,0,0.1)' : '0 0 0 2px rgba(255,255,255,0.2)'
                 }}
               >
                 {userProfile?.profile_picture_url || user?.profile_picture_url ? (
@@ -305,9 +309,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           router.push(`/${orgSlug}/business-user/dashboard`)
                           setUserDropdownOpen(false)
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
-                        style={{ color: navbarStyle.color || 'rgba(255, 255, 255, 0.8)' }}
-                        whileHover={{ x: 2 }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
+                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                       >
                         <LayoutDashboard className="h-4 w-4 opacity-70" />
                         <span>{t('business:header.userPanel')}</span>
@@ -318,9 +322,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           router.push('/auth/select-organization')
                           setUserDropdownOpen(false)
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
-                        style={{ color: navbarStyle.color || 'rgba(255, 255, 255, 0.8)' }}
-                        whileHover={{ x: 2 }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
+                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                       >
                         <Building2 className="h-4 w-4 opacity-70" />
                         <span>Mis organizaciones</span>
@@ -331,9 +335,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           router.push('/profile')
                           setUserDropdownOpen(false)
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
-                        style={{ color: navbarStyle.color || 'rgba(255, 255, 255, 0.8)' }}
-                        whileHover={{ x: 2 }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
+                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                       >
                         <User className="h-4 w-4 opacity-70" />
                         <span>{t('business:header.editProfile')}</span>
@@ -343,9 +347,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         onClick={() => {
                           setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
-                        style={{ color: navbarStyle.color || 'rgba(255, 255, 255, 0.8)' }}
-                        whileHover={{ x: 2 }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
+                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                       >
                         {resolvedTheme === 'dark' ? (
                           <Sun className="h-4 w-4 opacity-70" />
@@ -382,9 +386,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           <span className="flex-1 text-left">{t('common:language')}</span>
                           <div className="flex items-center gap-1">
                             <span className="text-xs">{languageOptions.find(l => l.value === language)?.flag}</span>
-                            <ChevronRight 
+                            <ChevronRight
                               className={`h-3.5 w-3.5 transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`}
-                              style={{ opacity: 0.7 }} 
+                              style={{ opacity: 0.7 }}
                             />
                           </div>
                         </motion.button>
@@ -395,19 +399,24 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden bg-black/5"
+                              className="overflow-hidden"
+                              style={{ backgroundColor: navbarStyle.hoverBg }}
                             >
                               {languageOptions.map((opt) => {
                                 const isActive = language === opt.value
                                 return (
                                   <button
                                     key={opt.value}
-                                    onClick={() => { 
+                                    onClick={() => {
                                       setLanguage(opt.value)
                                       setActiveSubmenu(null)
                                     }}
-                                    className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors hover:bg-white/5"
-                                    style={{ color: isActive ? '#00D4B3' : (navbarStyle.color || 'rgba(255, 255, 255, 0.7)') }}
+                                    className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
+                                    style={{
+                                      color: isActive ? '#00D4B3' : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = navbarStyle.hoverBg}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                   >
                                     <span>{opt.flag}</span>
                                     <span>{opt.label}</span>
@@ -420,10 +429,11 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         </AnimatePresence>
                       </div>
 
-                      <div className="my-1 border-t border-white/10" />
+                      <div className="my-1 border-t" style={{ borderColor: navbarStyle.borderColor }} />
                       <motion.button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:opacity-80 transition-colors"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:opacity-80 transition-colors"
+                        style={{ color: resolvedTheme === 'light' ? '#dc2626' : '#f87171' }}
                         whileHover={{ x: 2 }}
                       >
                         <LogOut className="h-4 w-4" />

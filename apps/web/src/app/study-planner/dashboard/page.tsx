@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
+import {
   ChevronRight,
   Mic,
   MicOff,
@@ -80,7 +80,7 @@ export default function StudyPlannerDashboardPage() {
   const [isRecreatingPlan, setIsRecreatingPlan] = useState(false);
   const settingsMenuRef = useRef<HTMLDivElement>(null);
   const [showOnlyPlanEvents, setShowOnlyPlanEvents] = useState(false);
-  
+
   // Estado para notificaciones toast
   const [toast, setToast] = useState<{
     isOpen: boolean;
@@ -91,7 +91,7 @@ export default function StudyPlannerDashboardPage() {
     message: '',
     type: 'error',
   });
-  
+
   // Estado para modal de confirmación
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -101,8 +101,8 @@ export default function StudyPlannerDashboardPage() {
   }>({
     isOpen: false,
     message: '',
-    onConfirm: () => {},
-    onCancel: () => {},
+    onConfirm: () => { },
+    onCancel: () => { },
   });
 
   // Verificar estado de conexión al cargar
@@ -142,26 +142,26 @@ export default function StudyPlannerDashboardPage() {
     setConnectingProvider(provider);
     setIsConnecting(true);
     setCalendarError(null);
-    
+
     try {
       const response = await fetch('/api/study-planner/calendar/connect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.data?.authUrl) {
           // Construir URL con usePopup en el state
           const baseUrl = window.location.origin;
           let authUrl = data.data.authUrl;
-          
+
           // Modificar el state para incluir usePopup
           try {
             const url = new URL(authUrl);
             const stateParam = url.searchParams.get('state');
-            
+
             let stateData: any;
             if (stateParam) {
               // Intentar decodificar el state (puede estar codificado)
@@ -187,11 +187,11 @@ export default function StudyPlannerDashboardPage() {
               // Si no hay state, crear uno nuevo
               stateData = { provider };
             }
-            
+
             // Agregar usePopup y returnUrl (sobrescribir si ya existen)
             stateData.usePopup = true;
             stateData.returnUrl = window.location.href;
-            
+
             // Codificar el state actualizado (sin doble codificación)
             url.searchParams.set('state', JSON.stringify(stateData));
             authUrl = url.toString();
@@ -208,14 +208,14 @@ export default function StudyPlannerDashboardPage() {
             authUrl = `${authUrl}${separator}state=${encodeURIComponent(JSON.stringify(stateData))}`;
 
           }
-          
+
           // Abrir popup
           const popup = window.open(
             authUrl,
             `${provider}-calendar-auth`,
             'width=600,height=700,scrollbars=yes,resizable=yes,status=yes,location=yes,toolbar=no,menubar=no'
           );
-          
+
           if (!popup) {
             setToast({
               isOpen: true,
@@ -226,30 +226,30 @@ export default function StudyPlannerDashboardPage() {
             setConnectingProvider(null);
             return;
           }
-          
+
           // Bandera para evitar procesar el mismo mensaje múltiples veces
           let messageProcessed = false;
           let checkClosed: NodeJS.Timeout | null = null;
-          
+
           // Escuchar mensajes del popup
           const messageListener = (event: MessageEvent) => {
             // Verificar origen para seguridad
-            const isSameOrigin = event.origin === baseUrl || 
-                                event.origin === window.location.origin ||
-                                event.origin.includes(window.location.hostname);
-            
+            const isSameOrigin = event.origin === baseUrl ||
+              event.origin === window.location.origin ||
+              event.origin.includes(window.location.hostname);
+
             if (!isSameOrigin) {
               console.warn('Mensaje rechazado por origen diferente:', event.origin);
               return;
             }
-            
+
             if (event.data && event.data.type === 'calendar-connected') {
               if (messageProcessed) {
 
                 return;
               }
               messageProcessed = true;
-              
+
               const connectedProvider = event.data.provider || provider;
 
               // Limpiar listeners
@@ -258,7 +258,7 @@ export default function StudyPlannerDashboardPage() {
                 clearInterval(checkClosed);
                 checkClosed = null;
               }
-              
+
               // Cerrar popup si aún está abierto
               if (popup && !popup.closed) {
                 try {
@@ -267,24 +267,24 @@ export default function StudyPlannerDashboardPage() {
                   console.warn('No se pudo cerrar el popup:', e);
                 }
               }
-              
+
               // Actualizar estado
               setIsConnecting(false);
               setConnectingProvider(null);
               setIsGoogleConnected(true);
               setConnectedProvider(connectedProvider as 'google' | 'microsoft');
               setIsCalendarModalOpen(false);
-              
+
             } else if (event.data && event.data.type === 'calendar-error') {
               console.error('Error al conectar calendario:', event.data.error);
-              
+
               // Limpiar listeners
               window.removeEventListener('message', messageListener);
               if (checkClosed) {
                 clearInterval(checkClosed);
                 checkClosed = null;
               }
-              
+
               // Intentar cerrar popup
               if (popup) {
                 try {
@@ -295,16 +295,16 @@ export default function StudyPlannerDashboardPage() {
 
                 }
               }
-              
+
               setIsConnecting(false);
               setConnectingProvider(null);
               setCalendarError(event.data.error || 'Error desconocido al conectar el calendario');
             }
           };
-          
+
           // Agregar listener
           window.addEventListener('message', messageListener);
-          
+
           // Verificar si el popup se cerró manualmente
           checkClosed = setInterval(() => {
             if (popup.closed) {
@@ -319,7 +319,7 @@ export default function StudyPlannerDashboardPage() {
               }
             }
           }, 500);
-          
+
         } else {
           setCalendarError('Error al iniciar la conexión');
           setIsConnecting(false);
@@ -340,14 +340,14 @@ export default function StudyPlannerDashboardPage() {
 
   const handleDisconnect = async () => {
     if (!connectedProvider) return;
-    
+
     try {
       const response = await fetch('/api/study-planner/calendar/disconnect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ provider: connectedProvider }),
       });
-      
+
       if (response.ok) {
         setIsGoogleConnected(false);
         setConnectedProvider(null);
@@ -483,7 +483,7 @@ export default function StudyPlannerDashboardPage() {
   // Renderizar mensaje del chat
   const renderMessage = (msg: DashboardMessage) => {
     const isUser = msg.role === 'user';
-    
+
     return (
       <motion.div
         key={msg.id}
@@ -503,11 +503,10 @@ export default function StudyPlannerDashboardPage() {
           </div>
         )}
         <div
-          className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-            isUser
+          className={`max-w-[80%] rounded-2xl px-4 py-3 ${isUser
               ? 'bg-blue-500 text-white rounded-br-sm'
               : 'bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 shadow-sm rounded-bl-sm'
-          }`}
+            }`}
         >
           {isUser ? (
             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
@@ -579,11 +578,10 @@ export default function StudyPlannerDashboardPage() {
   return (
     <div className="min-h-screen flex overflow-hidden bg-white dark:bg-[#0F1419]">
       {/* Panel Central - Calendario */}
-      <div 
+      <div
         id="dashboard-calendar-container"
-        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
-          isLiaPanelOpen && !isLiaCollapsed ? 'mr-[520px]' : ''
-        }`}
+        className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isLiaPanelOpen && !isLiaCollapsed ? 'mr-[520px]' : ''
+          }`}
       >
         {/* Barra superior con iconos de acción */}
         <div className="flex items-center justify-start gap-3 px-6 pt-6 pb-2">
@@ -592,8 +590,8 @@ export default function StudyPlannerDashboardPage() {
             <motion.button
               id="dashboard-back-button"
               layout
-              onClick={() => {
-                router.push('/business-user/dashboard');
+              onClick={async () => {
+                await redirectToDashboard();
               }}
               onMouseEnter={() => setHoveredButton('dashboard')}
               onMouseLeave={() => setHoveredButton(null)}
@@ -602,7 +600,7 @@ export default function StudyPlannerDashboardPage() {
               title="Ir al Dashboard"
               aria-label="Ir al Dashboard"
             >
-              <motion.div 
+              <motion.div
                 className="p-2.5 flex-shrink-0 flex items-center justify-center"
                 animate={hoveredButton === 'dashboard' ? {
                   scale: [1, 1.1, 1],
@@ -644,7 +642,7 @@ export default function StudyPlannerDashboardPage() {
               className="rounded-lg bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30 transition-colors flex items-center overflow-hidden"
               title="Ver Tour"
             >
-              <motion.div 
+              <motion.div
                 className="p-2.5 flex-shrink-0 flex items-center justify-center"
                 animate={hoveredButton === 'tour' ? {
                   scale: [1, 1.1, 1],
@@ -695,7 +693,7 @@ export default function StudyPlannerDashboardPage() {
                 }
               `}
             >
-              <motion.div 
+              <motion.div
                 className="p-2.5 flex-shrink-0 flex items-center justify-center"
                 animate={hoveredButton === 'calendar' ? {
                   scale: [1, 1.1, 1],
@@ -710,17 +708,17 @@ export default function StudyPlannerDashboardPage() {
               >
                 {isGoogleConnected ? (
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                 ) : (
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                   </svg>
                 )}
               </motion.div>
@@ -753,7 +751,7 @@ export default function StudyPlannerDashboardPage() {
               whileTap={{ scale: 0.95 }}
               className="rounded-lg bg-[#0A2540] dark:bg-[#0A2540] text-white hover:bg-[#0d2f4d] dark:hover:bg-[#0d2f4d] border border-[#0A2540] dark:border-[#0A2540] transition-colors flex items-center overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <motion.div 
+              <motion.div
                 className="p-2.5 flex-shrink-0 flex items-center justify-center"
                 animate={isRecreatingPlan ? {
                   rotate: 360,
@@ -800,7 +798,7 @@ export default function StudyPlannerDashboardPage() {
               whileTap={{ scale: 0.95 }}
               className="rounded-lg bg-red-500 dark:bg-red-600 text-white hover:bg-red-600 dark:hover:bg-red-700 border border-red-600 dark:border-red-700 transition-colors flex items-center overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <motion.div 
+              <motion.div
                 className="p-2.5 flex-shrink-0 flex items-center justify-center"
                 animate={isDeletingPlan ? {
                   rotate: 360,
@@ -849,7 +847,7 @@ export default function StudyPlannerDashboardPage() {
               whileTap={{ scale: 0.95 }}
               className="rounded-lg bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30 transition-colors flex items-center overflow-hidden"
             >
-              <motion.div 
+              <motion.div
                 className="p-2.5 flex-shrink-0"
                 animate={hoveredButton === 'settings' ? {
                   rotate: 360,
@@ -900,8 +898,8 @@ export default function StudyPlannerDashboardPage() {
                         }}
                         className={`
                           relative inline-flex h-6 w-11 items-center rounded-full focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:ring-offset-2 cursor-pointer
-                          ${showOnlyPlanEvents 
-                            ? 'bg-[#0A2540] dark:bg-[#0A2540]' 
+                          ${showOnlyPlanEvents
+                            ? 'bg-[#0A2540] dark:bg-[#0A2540]'
                             : 'bg-[#E9ECEF] dark:bg-[#6C757D]'
                           }
                         `}
@@ -995,7 +993,7 @@ export default function StudyPlannerDashboardPage() {
                     }}
                   />
                 </div>
-                
+
                 <div>
                   <h2 className="text-gray-900 dark:text-white text-base font-semibold m-0 leading-[1.2]">
                     LIA
@@ -1005,11 +1003,11 @@ export default function StudyPlannerDashboardPage() {
                   </p>
                 </div>
               </div>
-              
+
               {/* Botones de acción (Limpiar + Cerrar) */}
               <div className="flex gap-2">
                 <button
-                  onClick={() => {/* TODO: clearMessages */}}
+                  onClick={() => {/* TODO: clearMessages */ }}
                   title="Limpiar conversación"
                   className={`
                     w-8 h-8 rounded-lg bg-transparent border-none flex items-center justify-center transition-colors
@@ -1058,7 +1056,7 @@ export default function StudyPlannerDashboardPage() {
                       opacity: 0.2,
                       zIndex: 0
                     }} />
-                    
+
                     <Image
                       src="/lia-avatar.png"
                       alt="LIA"
@@ -1110,8 +1108,8 @@ export default function StudyPlannerDashboardPage() {
                       <div
                         className={`
                           max-w-[85%] px-4 py-3 
-                          ${msg.role === 'user' 
-                            ? 'bg-[#0A2540] dark:bg-[#0A2540] text-white rounded-[16px_16px_4px_16px]' 
+                          ${msg.role === 'user'
+                            ? 'bg-[#0A2540] dark:bg-[#0A2540] text-white rounded-[16px_16px_4px_16px]'
                             : 'bg-gray-100 dark:bg-[#1e2a35] text-gray-900 dark:text-white rounded-[16px_16px_16px_4px]'}
                         `}
                       >
@@ -1150,7 +1148,7 @@ export default function StudyPlannerDashboardPage() {
                   <div ref={messagesEndRef} />
                 </>
               )}
-              
+
               {/* Loading indicator */}
               {isSending && (
                 <div className="flex justify-start">
@@ -1204,14 +1202,14 @@ export default function StudyPlannerDashboardPage() {
                   placeholder="Escribe un mensaje a LIA..."
                   className="flex-1 bg-transparent border-none outline-none text-gray-900 dark:text-white text-sm placeholder:text-gray-400"
                 />
-                
+
                 <button
                   onClick={handleSendMessage}
                   disabled={!message.trim() || isSending}
                   className={`
                     w-9 h-9 rounded-full flex items-center justify-center transition-colors
-                    ${message.trim() && !isSending 
-                      ? 'bg-[#00D4B3] hover:bg-[#00c0a3] cursor-pointer' 
+                    ${message.trim() && !isSending
+                      ? 'bg-[#00D4B3] hover:bg-[#00c0a3] cursor-pointer'
                       : 'bg-gray-200 dark:bg-[#374151] cursor-not-allowed'}
                   `}
                 >
@@ -1223,7 +1221,7 @@ export default function StudyPlannerDashboardPage() {
                 </button>
               </div>
             </div>
-            
+
             <style>{`
               @keyframes liaPulse {
                 0%, 100% { opacity: 0.4; transform: scale(1); }
@@ -1292,7 +1290,7 @@ export default function StudyPlannerDashboardPage() {
               onClick={() => setIsCalendarModalOpen(false)}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
             />
-            
+
             {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1303,7 +1301,7 @@ export default function StudyPlannerDashboardPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-white dark:bg-[#1E2329] rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-[#E9ECEF] dark:border-[#6C757D]/30">
-        {/* Header */}
+                {/* Header */}
                 <div className="flex items-center justify-between p-5 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
                   <h2 className="text-lg font-semibold text-[#0A2540] dark:text-white">
                     Conectar Calendario
@@ -1321,14 +1319,13 @@ export default function StudyPlannerDashboardPage() {
                   <p className="text-xs text-[#6C757D] dark:text-gray-400 text-center mb-4">
                     {isGoogleConnected ? 'Gestiona tus calendarios conectados:' : 'Selecciona tu proveedor de calendario:'}
                   </p>
-                  
+
                   <div className="grid grid-cols-2 gap-3">
                     {/* Google Calendar */}
-                    <div className={`relative flex flex-col items-center gap-3 p-4 rounded-xl transition-all ${
-                      connectedProvider === 'google'
+                    <div className={`relative flex flex-col items-center gap-3 p-4 rounded-xl transition-all ${connectedProvider === 'google'
                         ? 'bg-[#10B981]/10 dark:bg-[#10B981]/20 border-2 border-[#10B981]/30 shadow-sm'
                         : 'bg-white dark:bg-[#1E2329] border-2 border-[#E9ECEF] dark:border-[#6C757D]/30 hover:border-[#0A2540] dark:hover:border-[#00D4B3]'
-                    }`}>
+                      }`}>
                       {connectedProvider === 'google' && (
                         <button
                           onClick={handleDisconnect}
@@ -1338,7 +1335,7 @@ export default function StudyPlannerDashboardPage() {
                           <X className="w-4 h-4 text-red-600 dark:text-red-400 group-hover:text-red-700 dark:group-hover:text-red-300" />
                         </button>
                       )}
-                      
+
                       <motion.button
                         onClick={() => connectedProvider !== 'google' && handleConnect('google')}
                         disabled={isConnecting || connectedProvider === 'google'}
@@ -1351,18 +1348,17 @@ export default function StudyPlannerDashboardPage() {
                         ) : (
                           <div className="w-8 h-8 flex items-center justify-center">
                             <svg viewBox="0 0 24 24" className="w-8 h-8">
-                              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                             </svg>
                           </div>
                         )}
-                        <span className={`text-xs font-medium ${
-                          connectedProvider === 'google'
+                        <span className={`text-xs font-medium ${connectedProvider === 'google'
                             ? 'text-[#10B981] dark:text-[#10B981]'
                             : 'text-[#0A2540] dark:text-white'
-                        }`}>
+                          }`}>
                           Google Calendar
                         </span>
                         {connectedProvider === 'google' && (
@@ -1372,13 +1368,12 @@ export default function StudyPlannerDashboardPage() {
                         )}
                       </motion.button>
                     </div>
-                    
+
                     {/* Microsoft Calendar */}
-                    <div className={`relative flex flex-col items-center gap-3 p-4 rounded-xl transition-all ${
-                      connectedProvider === 'microsoft'
+                    <div className={`relative flex flex-col items-center gap-3 p-4 rounded-xl transition-all ${connectedProvider === 'microsoft'
                         ? 'bg-[#10B981]/10 dark:bg-[#10B981]/20 border-2 border-[#10B981]/30 shadow-sm'
                         : 'bg-white dark:bg-[#1E2329] border-2 border-[#E9ECEF] dark:border-[#6C757D]/30 hover:border-[#0A2540] dark:hover:border-[#00D4B3]'
-                    }`}>
+                      }`}>
                       {connectedProvider === 'microsoft' && (
                         <button
                           onClick={handleDisconnect}
@@ -1388,7 +1383,7 @@ export default function StudyPlannerDashboardPage() {
                           <X className="w-4 h-4 text-red-600 dark:text-red-400 group-hover:text-red-700 dark:group-hover:text-red-300" />
                         </button>
                       )}
-                      
+
                       <motion.button
                         onClick={() => connectedProvider !== 'microsoft' && handleConnect('microsoft')}
                         disabled={isConnecting || connectedProvider === 'microsoft'}
@@ -1401,18 +1396,17 @@ export default function StudyPlannerDashboardPage() {
                         ) : (
                           <div className="w-8 h-8 flex items-center justify-center">
                             <svg viewBox="0 0 24 24" className="w-8 h-8">
-                              <path fill="#F25022" d="M1 1h10v10H1z"/>
-                              <path fill="#00A4EF" d="M1 13h10v10H1z"/>
-                              <path fill="#7FBA00" d="M13 1h10v10H13z"/>
-                              <path fill="#FFB900" d="M13 13h10v10H13z"/>
+                              <path fill="#F25022" d="M1 1h10v10H1z" />
+                              <path fill="#00A4EF" d="M1 13h10v10H1z" />
+                              <path fill="#7FBA00" d="M13 1h10v10H13z" />
+                              <path fill="#FFB900" d="M13 13h10v10H13z" />
                             </svg>
                           </div>
                         )}
-                        <span className={`text-xs font-medium ${
-                          connectedProvider === 'microsoft'
+                        <span className={`text-xs font-medium ${connectedProvider === 'microsoft'
                             ? 'text-[#10B981] dark:text-[#10B981]'
                             : 'text-[#0A2540] dark:text-white'
-                        }`}>
+                          }`}>
                           Microsoft
                         </span>
                         {connectedProvider === 'microsoft' && (
@@ -1423,7 +1417,7 @@ export default function StudyPlannerDashboardPage() {
                       </motion.button>
                     </div>
                   </div>
-                  
+
                   {!isGoogleConnected && (
                     <p className="text-xs text-center text-[#6C757D] dark:text-gray-400 mt-4">
                       Conecta tu calendario para sincronizar tus eventos
@@ -1439,9 +1433,9 @@ export default function StudyPlannerDashboardPage() {
                     >
                       <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                       <p className="text-xs text-red-600 dark:text-red-400">{calendarError}</p>
-        </motion.div>
+                    </motion.div>
                   )}
-      </div>
+                </div>
               </div>
             </motion.div>
           </>
@@ -1456,7 +1450,7 @@ export default function StudyPlannerDashboardPage() {
         type={toast.type}
         duration={toast.type === 'error' ? 6000 : 4000}
       />
-      
+
       {/* Modal de Confirmación */}
       <AnimatePresence>
         {confirmDialog.isOpen && (

@@ -53,7 +53,10 @@ export function FeatureLock({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="absolute inset-0 flex flex-col items-center justify-center bg-carbon-900/90 backdrop-blur-sm rounded-lg"
+        className="absolute inset-0 flex flex-col items-center justify-center backdrop-blur-sm rounded-lg"
+        style={{
+          backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.9)'
+        }}
       >
         <div className="flex flex-col items-center gap-3 p-6 text-center max-w-md">
           <motion.div
@@ -63,14 +66,20 @@ export function FeatureLock({
           >
             <Lock className="w-8 h-8 text-primary" />
           </motion.div>
-          
+
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3
+              className="text-lg font-semibold flex items-center gap-2"
+              style={{ color: 'var(--org-text-color, #FFFFFF)' }}
+            >
               <AlertCircle className="w-5 h-5 text-yellow-400" />
               Función No Disponible
             </h3>
             {showMessage && (
-              <p className="text-sm text-carbon-300 leading-relaxed">
+              <p
+                className="text-sm leading-relaxed"
+                style={{ color: 'var(--org-text-color, #94a3b8)', opacity: 0.8 }}
+              >
                 {message}
               </p>
             )}

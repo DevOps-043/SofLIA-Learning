@@ -12,54 +12,55 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
-  
+
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: rgba(156, 163, 175, 0.3);
     border-radius: 3px;
     transition: background-color 0.2s;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgba(156, 163, 175, 0.5);
   }
-  
+
   .scrollbar-thin-dark {
     scrollbar-width: thin;
     scrollbar-color: rgba(75, 85, 99, 0.5) transparent;
   }
-  
+
   .scrollbar-thin-dark::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin-dark::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thin-dark::-webkit-scrollbar-thumb {
     background-color: rgba(75, 85, 99, 0.5);
     border-radius: 3px;
     transition: background-color 0.2s;
   }
-  
+
   .scrollbar-thin-dark::-webkit-scrollbar-thumb:hover {
     background-color: rgba(75, 85, 99, 0.7);
   }
@@ -67,103 +68,150 @@
 
 :root {
   /* Nueva Paleta SOFLIA - Colores Principales */
-  --color-primary: #0A2540; /* Azul Profundo - Tecnología + confianza */
-  --color-accent: #00D4B3; /* Aqua/Verde Azulado - Aprendizaje + IA viva */
-  --color-bg-dark: #0F1419; /* Fondo oscuro base - Gris azulado oscuro */
-  --color-bg-light: #FFFFFF; /* Fondo claro para cards */
+  --color-primary: #0A2540;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: #00D4B3;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: #0F1419;
+  /* Fondo oscuro base - Gris azulado oscuro */
+  --color-bg-light: #FFFFFF;
+  /* Fondo claro para cards */
   --color-contrast: #f8fafc;
-  
+
   /* Colores Secundarios */
-  --color-success: #10B981; /* Verde Suave - Logro y progreso */
-  --color-warning: #F59E0B; /* Amarillo Ãmbar Suave - Alerta y foco */
+  --color-success: #10B981;
+  /* Verde Suave - Logro y progreso */
+  --color-warning: #F59E0B;
+  /* Amarillo Ãmbar Suave - Alerta y foco */
   --color-error: #ef4444;
-  --color-secondary: #8b5cf6; /* Mantener para compatibilidad */
-  
+  --color-secondary: #8b5cf6;
+  /* Mantener para compatibilidad */
+
   /* Variables específicas para LIA y Progreso */
-  --color-lia: #00D4B3; /* Específico para elementos de LIA */
-  --color-progress: #00D4B3; /* Barras de progreso */
-  --color-card-bg: #FFFFFF; /* Fondo de cards principales */
-  
+  --color-lia: #00D4B3;
+  /* Específico para elementos de LIA */
+  --color-progress: #00D4B3;
+  /* Barras de progreso */
+  --color-card-bg: #FFFFFF;
+  /* Fondo de cards principales */
+
   /* Escala de Grises Neutros - Nueva base */
   --color-gray-50: #f8fafc;
   --color-gray-100: #f1f5f9;
-  --color-gray-200: #E9ECEF; /* Light gray - Estructura */
+  --color-gray-200: #E9ECEF;
+  /* Light gray - Estructura */
   --color-gray-300: #dee2e6;
   --color-gray-400: #ced4da;
-  --color-gray-500: #6C757D; /* Dark gray - Tipografía y bordes */
+  --color-gray-500: #6C757D;
+  /* Dark gray - Tipografía y bordes */
   --color-gray-600: #495057;
   --color-gray-700: #343a40;
-  --color-gray-800: #1E2329; /* Gris oscuro con tinte azulado */
-  --color-gray-900: #0F1419; /* Fondo oscuro principal */
-  --color-gray-950: #0A0D12; /* Fondo más oscuro */
+  --color-gray-800: #1E2329;
+  /* Gris oscuro con tinte azulado */
+  --color-gray-900: #0F1419;
+  /* Fondo oscuro principal */
+  --color-gray-950: #0A0D12;
+  /* Fondo más oscuro */
 }
 
 /* Light mode variables */
 .light {
-  /* Nueva Paleta SOFLIA - Modo Claro */
-  --color-primary: #0A2540; /* Azul Profundo - Tecnología + confianza */
-  --color-accent: #00D4B3; /* Aqua/Verde Azulado - Aprendizaje + IA viva */
-  --color-bg-dark: #ffffff; /* Fondo claro en modo light */
-  --color-bg-light: #FFFFFF; /* Fondo de cards (blanco) */
-  --color-contrast: #0A2540; /* Texto oscuro sobre fondo claro */
-  
+  /* Nueva Paleta SOFLIA - Modo Claro (alineada con preset-themes.ts lightMode) */
+  --color-primary: #0A2540;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: #00D4B3;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: #F8FAFC;
+  /* Fondo claro principal (slate-50) */
+  --color-bg-light: #FFFFFF;
+  /* Fondo de cards (blanco) */
+  --color-contrast: #1E293B;
+  /* Texto oscuro sobre fondo claro (slate-800) */
+
   /* Colores Secundarios */
-  --color-success: #10B981; /* Verde Suave */
-  --color-warning: #F59E0B; /* Amarillo Ãmbar Suave */
+  --color-success: #10B981;
+  /* Verde Suave */
+  --color-warning: #F59E0B;
+  /* Amarillo Ámbar Suave */
   --color-error: #ef4444;
   --color-secondary: #8b5cf6;
-  
+
   /* Variables específicas */
-  --color-lia: #00D4B3;
+  --color-lia: #009987;
+  /* LIA con más contraste en fondo claro */
   --color-progress: #00D4B3;
   --color-card-bg: #FFFFFF;
-  
-  /* Escala de Grises Neutros */
-  --color-gray-50: #f8fafc;
-  --color-gray-100: #f1f5f9;
-  --color-gray-200: #E9ECEF; /* Light gray - Estructura */
-  --color-gray-300: #dee2e6;
-  --color-gray-400: #ced4da;
-  --color-gray-500: #6C757D; /* Dark gray - Tipografía y bordes */
-  --color-gray-600: #495057;
-  --color-gray-700: #343a40;
-  --color-gray-800: #1E2329; /* Gris oscuro con tinte azulado */
-  --color-gray-900: #0F1419; /* Fondo oscuro principal */
-  --color-gray-950: #0A0D12; /* Fondo más oscuro */
+
+  /* Escala de Grises - Invertida semánticamente para modo claro */
+  /* Los componentes usan gray-800/900/950 como fondos oscuros, que en light mode deben ser claros */
+  --color-gray-50: #0F1419;
+  /* Más oscuro (invertido) - para textos enfatizados */
+  --color-gray-100: #1E293B;
+  /* Oscuro (invertido) - para textos principales */
+  --color-gray-200: #E2E8F0;
+  /* Bordes claros */
+  --color-gray-300: #CBD5E1;
+  /* Bordes y divisores */
+  --color-gray-400: #94A3B8;
+  /* Texto placeholder/terciario */
+  --color-gray-500: #64748B;
+  /* Texto secundario */
+  --color-gray-600: #475569;
+  /* Texto medio */
+  --color-gray-700: #F1F5F9;
+  /* Fondos sutiles (invertido) */
+  --color-gray-800: #F8FAFC;
+  /* Fondos de cards (invertido) */
+  --color-gray-900: #FFFFFF;
+  /* Fondo principal (invertido) */
+  --color-gray-950: #FFFFFF;
+  /* Fondo de página (invertido) */
 }
 
 /* Dark mode variables (explicit) */
 .dark {
   /* Nueva Paleta SOFLIA - Modo Oscuro */
-  --color-primary: #0A2540; /* Azul Profundo - Tecnología + confianza */
-  --color-accent: #00D4B3; /* Aqua/Verde Azulado - Aprendizaje + IA viva */
-  --color-bg-dark: #0F1419; /* Fondo oscuro base - Gris azulado oscuro */
-  --color-bg-light: #FFFFFF; /* Fondo de cards (blanco sobre oscuro) */
-  --color-contrast: #f8fafc; /* Texto claro sobre fondo oscuro */
-  
+  --color-primary: #0A2540;
+  /* Azul Profundo - Tecnología + confianza */
+  --color-accent: #00D4B3;
+  /* Aqua/Verde Azulado - Aprendizaje + IA viva */
+  --color-bg-dark: #0F1419;
+  /* Fondo oscuro base - Gris azulado oscuro */
+  --color-bg-light: #FFFFFF;
+  /* Fondo de cards (blanco sobre oscuro) */
+  --color-contrast: #f8fafc;
+  /* Texto claro sobre fondo oscuro */
+
   /* Colores Secundarios */
-  --color-success: #10B981; /* Verde Suave */
-  --color-warning: #F59E0B; /* Amarillo Ãmbar Suave */
+  --color-success: #10B981;
+  /* Verde Suave */
+  --color-warning: #F59E0B;
+  /* Amarillo Ámbar Suave */
   --color-error: #ef4444;
   --color-secondary: #8b5cf6;
-  
+
   /* Variables específicas */
   --color-lia: #00D4B3;
   --color-progress: #00D4B3;
   --color-card-bg: #FFFFFF;
-  
+
   /* Escala de Grises Neutros */
   --color-gray-50: #f8fafc;
   --color-gray-100: #f1f5f9;
-  --color-gray-200: #E9ECEF; /* Light gray - Estructura */
+  --color-gray-200: #E9ECEF;
+  /* Light gray - Estructura */
   --color-gray-300: #dee2e6;
   --color-gray-400: #ced4da;
-  --color-gray-500: #6C757D; /* Dark gray - Tipografía y bordes */
+  --color-gray-500: #6C757D;
+  /* Dark gray - Tipografía y bordes */
   --color-gray-600: #495057;
   --color-gray-700: #343a40;
-  --color-gray-800: #1E2329; /* Gris oscuro con tinte azulado */
-  --color-gray-900: #0F1419; /* Fondo oscuro principal */
-  --color-gray-950: #0A0D12; /* Fondo más oscuro */
+  --color-gray-800: #1E2329;
+  /* Gris oscuro con tinte azulado */
+  --color-gray-900: #0F1419;
+  /* Fondo oscuro principal */
+  --color-gray-950: #0A0D12;
+  /* Fondo más oscuro */
 }
 
 * {
@@ -271,26 +319,31 @@ a {
 
 /* Navbar styles */
 .dark .navbar-scrolled {
-  background: rgba(15, 20, 25, 0.8); /* #0F1419 con opacidad */
+  background: rgba(15, 20, 25, 0.8);
+  /* #0F1419 con opacidad */
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(108, 117, 125, 0.3); /* #6C757D con opacidad */
+  border-bottom: 1px solid rgba(108, 117, 125, 0.3);
+  /* #6C757D con opacidad */
 }
 
 .light .navbar-scrolled {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(233, 236, 239, 0.8); /* #E9ECEF con opacidad */
+  border-bottom: 1px solid rgba(233, 236, 239, 0.8);
+  /* #E9ECEF con opacidad */
 }
 
 .navbar-logo-text {
-  background: linear-gradient(135deg, #0A2540 0%, #0A2540 100%); /* SOFLIA Deep Blue */
+  background: linear-gradient(135deg, #0A2540 0%, #0A2540 100%);
+  /* SOFLIA Deep Blue */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .dark .navbar-logo-text {
-  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%); /* Blanco en modo oscuro */
+  background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+  /* Blanco en modo oscuro */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -330,6 +383,7 @@ a {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -341,6 +395,7 @@ a {
     opacity: 0;
     transform: translateY(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -352,6 +407,7 @@ a {
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -363,6 +419,7 @@ a {
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -374,6 +431,7 @@ a {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -381,9 +439,12 @@ a {
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -393,24 +454,31 @@ a {
   0% {
     background-position: -200px 0;
   }
+
   100% {
     background-position: calc(200px + 100%) 0;
   }
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
 }
 
 @keyframes glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
   }
+
   50% {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
   }
@@ -456,9 +524,12 @@ a {
 }
 
 @keyframes rainbow-shift {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
@@ -466,21 +537,24 @@ a {
 
 /* Gradient text - Nueva Paleta SOFLIA */
 .gradient-text {
-  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 50%, #00D4B3 100%); /* Azul Profundo a Aqua */
+  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 50%, #00D4B3 100%);
+  /* Azul Profundo a Aqua */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-purple {
-  background: linear-gradient(135deg, #0A2540 0%, #8b5cf6 100%); /* Azul Profundo a Purple (mantener para compatibilidad) */
+  background: linear-gradient(135deg, #0A2540 0%, #8b5cf6 100%);
+  /* Azul Profundo a Purple (mantener para compatibilidad) */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-text-blue {
-  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 100%); /* Azul Profundo a Aqua */
+  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 100%);
+  /* Azul Profundo a Aqua */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -665,11 +739,13 @@ a {
 }
 
 .dark .auth-input:focus {
-  @apply bg-slate-700/50 border-[#00D4B3]/50 shadow-lg shadow-[#00D4B3]/10; /* Aqua para focus */
+  @apply bg-slate-700/50 border-[#00D4B3]/50 shadow-lg shadow-[#00D4B3]/10;
+  /* Aqua para focus */
 }
 
 .light .auth-input:focus {
-  @apply bg-white border-[#0A2540]/50 shadow-lg shadow-[#0A2540]/10; /* Azul Profundo para focus */
+  @apply bg-white border-[#0A2540]/50 shadow-lg shadow-[#0A2540]/10;
+  /* Azul Profundo para focus */
 }
 
 .dark .auth-input::placeholder {
@@ -705,10 +781,12 @@ a {
 }
 
 .dark .bg-glass-enhanced {
-  background: rgba(30, 35, 41, 0.8); /* #1E2329 con opacidad */
+  background: rgba(30, 35, 41, 0.8);
+  /* #1E2329 con opacidad */
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(10, 37, 64, 0.3); /* #0A2540 con opacidad */
+  border: 1px solid rgba(10, 37, 64, 0.3);
+  /* #0A2540 con opacidad */
 }
 
 .light .bg-glass-enhanced {
@@ -1072,7 +1150,8 @@ a {
 
 /* Attachment type styles */
 .attachment-link {
-  @apply bg-gradient-to-r from-[#0A2540]/30 to-[#00D4B3]/30 border border-[#0A2540]/30; /* Azul Profundo a Aqua */
+  @apply bg-gradient-to-r from-[#0A2540]/30 to-[#00D4B3]/30 border border-[#0A2540]/30;
+  /* Azul Profundo a Aqua */
 }
 
 .attachment-link:hover {
@@ -1088,7 +1167,8 @@ a {
 }
 
 .attachment-link-icon {
-  @apply bg-[#0A2540]/20 text-[#00D4B3] border border-[#0A2540]/30; /* Azul Profundo con texto Aqua */
+  @apply bg-[#0A2540]/20 text-[#00D4B3] border border-[#0A2540]/30;
+  /* Azul Profundo con texto Aqua */
 }
 
 .attachment-document-icon {
@@ -1100,7 +1180,8 @@ a {
 }
 
 .community-post-avatar {
-  @apply w-10 h-10 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center overflow-hidden; /* Azul Profundo a Aqua */
+  @apply w-10 h-10 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center overflow-hidden;
+  /* Azul Profundo a Aqua */
 }
 
 .community-post-content {
@@ -1151,6 +1232,7 @@ a {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1162,6 +1244,7 @@ a {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1173,6 +1256,7 @@ a {
     opacity: 0;
     transform: scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -1196,6 +1280,7 @@ a {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -1206,6 +1291,7 @@ a {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -1234,7 +1320,8 @@ a {
 
 /* Button enhancements - Nueva Paleta SOFLIA */
 .btn-primary {
-  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300; /* Azul Profundo */
+  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+  /* Azul Profundo */
 }
 
 .btn-secondary {
@@ -1246,33 +1333,38 @@ a {
 }
 
 .btn-accent {
-  @apply bg-[#00D4B3] hover:bg-[#00b89a] text-white shadow-lg shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300; /* Aqua */
+  @apply bg-[#00D4B3] hover:bg-[#00b89a] text-white shadow-lg shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+  /* Aqua */
 }
 
 /* Text gradients - Nueva Paleta SOFLIA */
 .text-gradient-blue {
-  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 100%); /* Azul Profundo a Aqua */
+  background: linear-gradient(135deg, #0A2540 0%, #00D4B3 100%);
+  /* Azul Profundo a Aqua */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-purple {
-  background: linear-gradient(135deg, #0A2540 0%, #8b5cf6 100%); /* Azul Profundo a Purple (compatibilidad) */
+  background: linear-gradient(135deg, #0A2540 0%, #8b5cf6 100%);
+  /* Azul Profundo a Purple (compatibilidad) */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-green {
-  background: linear-gradient(135deg, #10B981 0%, #00D4B3 100%); /* Verde Suave a Aqua */
+  background: linear-gradient(135deg, #10B981 0%, #00D4B3 100%);
+  /* Verde Suave a Aqua */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-aqua {
-  background: linear-gradient(135deg, #00D4B3 0%, #00b89a 100%); /* Aqua gradient */
+  background: linear-gradient(135deg, #00D4B3 0%, #00b89a 100%);
+  /* Aqua gradient */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1280,12 +1372,15 @@ a {
 
 /* Scrollbar invisible para elementos específicos */
 .scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
 
 /* Hero Section Text Styles - Theme Aware */
@@ -1318,6 +1413,7 @@ a {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -1335,11 +1431,15 @@ a {
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* Asegurar que las tarjetas respeten la opacidad personalizada */
-.business-panel-content .bg-carbon-900:not(.no-theme),
-.business-panel-content .bg-carbon-800:not(.no-theme),
-.bg-carbon-900.business-card,
-.bg-carbon-800.business-card {
+/* ========================================
+   BUSINESS PANEL - DARK MODE (default)
+   ======================================== */
+
+/* Aplicar a tarjetas FUERA del flujo del sidebar y header */
+.dark .business-panel-content .bg-carbon-900:not(.no-theme),
+.dark .business-panel-content .bg-carbon-800:not(.no-theme),
+.dark .bg-carbon-900.business-card,
+.dark .bg-carbon-800.business-card {
   background-color: rgba(var(--org-card-background-rgb, 15, 23, 42), var(--org-card-opacity, 1)) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -1347,91 +1447,195 @@ a {
 }
 
 /* Aplicar a TODAS las tarjetas del business panel - REGLA GLOBAL AMPLIA */
-.business-panel-layout .bg-carbon-900:not(.sidebar):not(.header),
-.business-panel-layout .bg-carbon-800:not(.sidebar):not(.header),
-.business-panel-layout .from-carbon-700,
-.business-panel-layout .to-carbon-800,
-.business-panel-layout .bg-gradient-to-br {
+.dark .business-panel-layout .bg-carbon-900:not(.sidebar):not(.header),
+.dark .business-panel-layout .bg-carbon-800:not(.sidebar):not(.header),
+.dark .business-panel-layout .from-carbon-700,
+.dark .business-panel-layout .to-carbon-800,
+.dark .business-panel-layout .bg-gradient-to-br {
   background: rgba(var(--org-card-background-rgb, 15, 23, 42), var(--org-card-opacity, 1)) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
 /* Regla específica para tarjetas con bg-gradient-to-br */
-.business-panel-layout .bg-gradient-to-br.from-carbon-700.to-carbon-800,
-.business-panel-layout [class*="bg-gradient-to-br"][class*="from-carbon"] {
+.dark .business-panel-layout .bg-gradient-to-br.from-carbon-700.to-carbon-800,
+.dark .business-panel-layout [class*="bg-gradient-to-br"][class*="from-carbon"] {
   background: rgba(var(--org-card-background-rgb, 15, 23, 42), var(--org-card-opacity, 1)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Aplicar color de texto a todos los elementos dentro del panel business */
-.business-panel-content h1,
-.business-panel-content h2, 
-.business-panel-content h3,
-.business-panel-content h4,
-.business-panel-content label,
-.business-panel-content p,
-.business-panel-layout h1,
-.business-panel-layout h2,
-.business-panel-layout h3,
-.business-panel-layout h4,
-.business-panel-layout label {
+.dark .business-panel-content h1,
+.dark .business-panel-content h2,
+.dark .business-panel-content h3,
+.dark .business-panel-content h4,
+.dark .business-panel-content label,
+.dark .business-panel-content p,
+.dark .business-panel-layout h1,
+.dark .business-panel-layout h2,
+.dark .business-panel-layout h3,
+.dark .business-panel-layout h4,
+.dark .business-panel-layout label {
   color: var(--org-text-color, #f8fafc);
 }
 
 /* Textos de placeholder y secundarios */
-.business-panel-content .text-carbon-300,
-.business-panel-content .text-carbon-400 {
+.dark .business-panel-content .text-carbon-300,
+.dark .business-panel-content .text-carbon-400 {
   color: var(--org-text-color, #94a3b8) !important;
   opacity: 0.7;
 }
 
 /* Inputs y textareas */
-.business-panel-content input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-.business-panel-content textarea,
-.business-panel-content select {
+.dark .business-panel-content input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+.dark .business-panel-content textarea,
+.dark .business-panel-content select {
   color: var(--org-text-color, #ffffff) !important;
 }
 
 /* Selects y dropdowns - Fondo personalizado */
-.business-panel-layout select,
-.business-panel-layout option {
+.dark .business-panel-layout select,
+.dark .business-panel-layout option {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1)) !important;
   color: var(--org-text-color, #ffffff) !important;
   border-color: var(--org-border-color, #334155) !important;
 }
 
 /* Inputs de búsqueda y texto */
-.business-panel-layout input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
+.dark .business-panel-layout input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1)) !important;
   color: var(--org-text-color, #ffffff) !important;
   border-color: var(--org-border-color, #334155) !important;
 }
 
-.business-panel-layout textarea {
+.dark .business-panel-layout textarea {
   background-color: rgba(var(--org-card-background-rgb, 30, 41, 59), var(--org-card-opacity, 1)) !important;
   color: var(--org-text-color, #ffffff) !important;
   border-color: var(--org-border-color, #334155) !important;
 }
 
 /* Placeholder text */
-.business-panel-content input::placeholder,
-.business-panel-content textarea::placeholder,
-.business-panel-layout input::placeholder,
-.business-panel-layout textarea::placeholder {
+.dark .business-panel-content input::placeholder,
+.dark .business-panel-content textarea::placeholder,
+.dark .business-panel-layout input::placeholder,
+.dark .business-panel-layout textarea::placeholder {
   color: var(--org-text-color, #94a3b8) !important;
   opacity: 0.5;
 }
 
 /* Textos dentro de tarjetas */
-.business-panel-layout .text-white,
-.business-panel-layout .text-carbon-200,
-.business-panel-layout .text-carbon-300 {
+.dark .business-panel-layout [class~="text-white"],
+.dark .business-panel-layout .text-carbon-200,
+.dark .business-panel-layout .text-carbon-300 {
   color: var(--org-text-color, #f8fafc) !important;
 }
 
-.business-panel-layout .text-carbon-400 {
+.dark .business-panel-layout .text-carbon-400 {
   color: var(--org-text-color, #94a3b8) !important;
   opacity: 0.8;
+}
+
+/* ========================================
+   BUSINESS PANEL - LIGHT MODE
+   Usa colores de preset-themes.ts lightMode:
+   bg: #F8FAFC, card: #FFFFFF, text: #1E293B, border: #E2E8F0
+   ======================================== */
+
+/* Tarjetas en modo claro */
+.light .business-panel-content .bg-carbon-900:not(.no-theme),
+.light .business-panel-content .bg-carbon-800:not(.no-theme),
+.light .bg-carbon-900.business-card,
+.light .bg-carbon-800.business-card {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--org-text-color, #1E293B);
+  border: 1px solid var(--org-border-color, #E2E8F0);
+}
+
+/* Todas las tarjetas del business panel - modo claro */
+.light .business-panel-layout .bg-carbon-900:not(.sidebar):not(.header),
+.light .business-panel-layout .bg-carbon-800:not(.sidebar):not(.header),
+.light .business-panel-layout .from-carbon-700,
+.light .business-panel-layout .to-carbon-800,
+.light .business-panel-layout .bg-gradient-to-br {
+  background: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--org-border-color, #E2E8F0);
+}
+
+.light .business-panel-layout .bg-gradient-to-br.from-carbon-700.to-carbon-800,
+.light .business-panel-layout [class*="bg-gradient-to-br"][class*="from-carbon"] {
+  background: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+}
+
+/* Texto en modo claro */
+.light .business-panel-content h1,
+.light .business-panel-content h2,
+.light .business-panel-content h3,
+.light .business-panel-content h4,
+.light .business-panel-content label,
+.light .business-panel-content p,
+.light .business-panel-layout h1,
+.light .business-panel-layout h2,
+.light .business-panel-layout h3,
+.light .business-panel-layout h4,
+.light .business-panel-layout label {
+  color: var(--org-text-color, #1E293B);
+}
+
+.light .business-panel-content .text-carbon-300,
+.light .business-panel-content .text-carbon-400 {
+  color: var(--org-text-color, #64748B) !important;
+  opacity: 0.8;
+}
+
+/* Inputs - modo claro */
+.light .business-panel-content input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+.light .business-panel-content textarea,
+.light .business-panel-content select {
+  color: var(--org-text-color, #1E293B) !important;
+}
+
+.light .business-panel-layout select,
+.light .business-panel-layout option {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  color: var(--org-text-color, #1E293B) !important;
+  border-color: var(--org-border-color, #E2E8F0) !important;
+}
+
+.light .business-panel-layout input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]) {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  color: var(--org-text-color, #1E293B) !important;
+  border-color: var(--org-border-color, #E2E8F0) !important;
+}
+
+.light .business-panel-layout textarea {
+  background-color: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
+  color: var(--org-text-color, #1E293B) !important;
+  border-color: var(--org-border-color, #E2E8F0) !important;
+}
+
+.light .business-panel-content input::placeholder,
+.light .business-panel-content textarea::placeholder,
+.light .business-panel-layout input::placeholder,
+.light .business-panel-layout textarea::placeholder {
+  color: #94A3B8 !important;
+  opacity: 0.7;
+}
+
+/* Textos dentro de tarjetas - modo claro */
+.light .business-panel-layout [class~="text-white"],
+.light .business-panel-layout .text-carbon-200,
+.light .business-panel-layout .text-carbon-300 {
+  color: var(--org-text-color, #1E293B) !important;
+}
+
+.light .business-panel-layout .text-carbon-400 {
+  color: var(--org-text-color, #64748B) !important;
+  opacity: 0.9;
 }
 
 /* Estilos para inputs de auth (login/register) - Respetan el tema */
@@ -1519,37 +1723,71 @@ select {
   background-image: none !important;
 }
 
-select option {
+/* Select options - Dark mode */
+.dark select option {
   background-color: rgb(15, 23, 42) !important;
   color: rgb(255, 255, 255) !important;
   padding: 0.75rem 1rem !important;
   font-family: var(--font-inter), sans-serif !important;
 }
 
-select option:hover,
-select option:focus,
-select option:checked {
+.dark select option:hover,
+.dark select option:focus,
+.dark select option:checked {
   background-color: rgba(59, 130, 246, 0.15) !important;
   color: rgb(255, 255, 255) !important;
 }
 
+/* Select options - Light mode */
+.light select option {
+  background-color: #FFFFFF !important;
+  color: #1E293B !important;
+  padding: 0.75rem 1rem !important;
+  font-family: var(--font-inter), sans-serif !important;
+}
+
+.light select option:hover,
+.light select option:focus,
+.light select option:checked {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #0A2540 !important;
+}
+
 /* Mejorar el scrollbar del select en navegadores que lo soporten */
-select::-webkit-scrollbar {
+.dark select::-webkit-scrollbar {
   width: 6px;
 }
 
-select::-webkit-scrollbar-track {
+.dark select::-webkit-scrollbar-track {
   background: rgb(15, 23, 42);
   border-radius: 3px;
 }
 
-select::-webkit-scrollbar-thumb {
+.dark select::-webkit-scrollbar-thumb {
   background: rgb(51, 65, 85);
   border-radius: 3px;
 }
 
-select::-webkit-scrollbar-thumb:hover {
+.dark select::-webkit-scrollbar-thumb:hover {
   background: rgb(71, 85, 105);
+}
+
+.light select::-webkit-scrollbar {
+  width: 6px;
+}
+
+.light select::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 3px;
+}
+
+.light select::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+
+.light select::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
 }
 
 /* Estilos para el editor de notas - Listas */
@@ -1692,6 +1930,7 @@ select::-webkit-scrollbar-thumb:hover {
     opacity: 0;
     transform: translateY(-10px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
