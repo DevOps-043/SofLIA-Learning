@@ -416,14 +416,14 @@ export class AdminUsersService {
         .from('user_course_enrollments')
         .select('enrollment_id')
         .eq('user_id', userId)
-      
+
       const enrollmentIds = enrollments?.map(e => e.enrollment_id) || []
       console.log(`📋 Encontrados ${enrollmentIds.length} enrollments para eliminar`)
 
       // 3. Eliminar tablas que dependen de enrollment_id PRIMERO
       if (enrollmentIds.length > 0) {
         console.log('🔄 Eliminando dependencias de enrollments...')
-        
+
         // user_lesson_progress tiene FK a enrollment_id
         const { error: progErr } = await adminSupabase
           .from('user_lesson_progress')
@@ -446,7 +446,7 @@ export class AdminUsersService {
           .from('user_course_certificates')
           .delete()
           .in('enrollment_id', enrollmentIds)
-        
+
         if (certErr) {
           console.warn('⚠️ Error inicial en user_course_certificates:', certErr.message)
           // Si falla, intentar por user_id
@@ -464,7 +464,7 @@ export class AdminUsersService {
       // 4. También eliminar certificados, quiz submissions y progress por user_id (por si acaso)
       console.log('🔄 Eliminando certificados por user_id...')
       await deleteFromTable('user_course_certificates')
-      
+
       console.log('🔄 Eliminando quiz submissions por user_id...')
       await deleteFromTable('user_quiz_submissions')
 
@@ -496,7 +496,7 @@ export class AdminUsersService {
         .from('user_course_enrollments')
         .delete()
         .eq('user_id', userId)
-      
+
       if (enrollError) {
         console.error('❌ Error crítico eliminando enrollments:', enrollError)
         // Intentar de nuevo después de limpiar más dependencias
@@ -507,7 +507,7 @@ export class AdminUsersService {
         .from('user_course_enrollments')
         .select('enrollment_id')
         .eq('user_id', userId)
-      
+
       if (remainingEnrollments && remainingEnrollments.length > 0) {
         console.error(`❌ Aún quedan ${remainingEnrollments.length} enrollments sin eliminar`)
         // Forzar eliminación
@@ -566,7 +566,7 @@ export class AdminUsersService {
         .from('scorm_attempts')
         .select('id')
         .eq('user_id', userId)
-      
+
       if (scormAttempts && scormAttempts.length > 0) {
         const attemptIds = scormAttempts.map(a => a.id)
         await adminSupabase.from('scorm_interactions').delete().in('attempt_id', attemptIds)
@@ -605,7 +605,7 @@ export class AdminUsersService {
         .from('user_perfil')
         .select('id')
         .eq('user_id', userId)
-      
+
       if (userPerfil && userPerfil.length > 0) {
         const perfilIds = userPerfil.map(p => p.id)
         await adminSupabase.from('respuestas').delete().in('user_perfil_id', perfilIds)
@@ -676,7 +676,12 @@ export class AdminUsersService {
       await deleteFromTable('community_access_requests', 'requester_id')
       await adminSupabase.from('community_access_requests').update({ reviewed_by: null }).eq('reviewed_by', userId)
 
-      // 28. Organization users
+      // 28. Organization hierarchy nodes
+      console.log('🔄 Eliminando datos de nodos jerárquicos...')
+      await deleteFromTable('organization_node_users')
+      await adminSupabase.from('organization_nodes').update({ manager_id: null }).eq('manager_id', userId)
+
+      // 29. Organization users
       console.log('🔄 Eliminando de organization_users...')
       await adminSupabase.from('organization_users').update({ invited_by: null }).eq('invited_by', userId)
       await deleteFromTable('organization_users')

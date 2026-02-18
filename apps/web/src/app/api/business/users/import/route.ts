@@ -119,6 +119,36 @@ export async function POST(request: NextRequest) {
     const organizationId = auth.organizationId
     const createdBy = auth.userId
 
+    // Pre-cargar config de jerarquía para auto-asignación
+    let autoAssignEnabled = false
+    let defaultTeamId: string | null = null
+
+    try {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('hierarchy_enabled, hierarchy_config')
+        .eq('id', organizationId)
+        .single()
+
+      const config = org?.hierarchy_config as Record<string, unknown> | null
+      if (org?.hierarchy_enabled && config?.auto_assign_new_users) {
+        autoAssignEnabled = true
+        const { data: defaultTeam } = await supabase
+          .from('organization_nodes')
+          .select('id')
+          .eq('organization_id', organizationId)
+          .eq('type', 'team')
+          .eq('is_active', true)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .single()
+
+        defaultTeamId = defaultTeam?.id || null
+      }
+    } catch (configError) {
+      console.warn('⚠️ [import] Could not load hierarchy config:', configError)
+    }
+
     // Procesar cada fila (empezando desde la línea 2, ya que la 1 es el header)
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim()
@@ -255,6 +285,22 @@ export async function POST(request: NextRequest) {
             data: userData
           })
           continue
+        }
+
+        // Auto-asignar al equipo predeterminado si corresponde
+        if (autoAssignEnabled && defaultTeamId && orgRole === 'member') {
+          try {
+            await supabase
+              .from('organization_node_users')
+              .insert({
+                node_id: defaultTeamId,
+                user_id: newUser.id,
+                role: 'member',
+                is_primary: true
+              })
+          } catch (autoAssignError) {
+            console.warn(`⚠️ [import] Auto-assign failed for user ${newUser.id}:`, autoAssignError)
+          }
         }
 
         result.success++

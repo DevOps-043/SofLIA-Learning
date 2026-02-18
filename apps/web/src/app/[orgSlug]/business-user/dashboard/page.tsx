@@ -25,6 +25,7 @@ import { useBusinessUserJoyride } from '@/features/tours/hooks/useBusinessUserJo
 import Joyride from 'react-joyride'
 
 import { useTranslation } from 'react-i18next'
+import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
 
 // Lazy load components - Removed heavy 3D/Particles backgrounds for performance
 const ModernNavbar = lazy(() =>
@@ -405,6 +406,9 @@ export default function BusinessUserDashboardPage() {
         />
 
         <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-20 py-8">
+
+          {/* Banner de equipo requerido */}
+          <TeamRequiredBanner orgSlug={orgSlug} />
 
           {/* ============================================ */}
           {/* HERO SECTION - Premium Design */}

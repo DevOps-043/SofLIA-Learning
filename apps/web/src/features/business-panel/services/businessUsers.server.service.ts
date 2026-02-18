@@ -226,8 +226,49 @@ export class BusinessUsersServerService {
         throw orgUserError
       }
 
+      // Paso 6: Auto-asignar al equipo predeterminado si está habilitado
+      const orgRole = userData.org_role || 'member'
+      if (orgRole === 'member') {
+        try {
+          const { data: org } = await supabase
+            .from('organizations')
+            .select('hierarchy_enabled, hierarchy_config')
+            .eq('id', organizationId)
+            .single()
+
+          const config = org?.hierarchy_config as Record<string, unknown> | null
+          if (org?.hierarchy_enabled && config?.auto_assign_new_users) {
+            // Buscar el primer nodo de tipo 'team' activo
+            const { data: defaultTeam } = await supabase
+              .from('organization_nodes')
+              .select('id')
+              .eq('organization_id', organizationId)
+              .eq('type', 'team')
+              .eq('is_active', true)
+              .order('created_at', { ascending: true })
+              .limit(1)
+              .single()
+
+            if (defaultTeam) {
+              await supabase
+                .from('organization_node_users')
+                .insert({
+                  node_id: defaultTeam.id,
+                  user_id: newUser.id,
+                  role: 'member',
+                  is_primary: true
+                })
+              console.log(`✅ [createOrganizationUser] Auto-assigned user ${newUser.id} to team ${defaultTeam.id}`)
+            }
+          }
+        } catch (autoAssignError) {
+          // No bloquear la creación si falla la auto-asignación
+          console.warn('⚠️ [createOrganizationUser] Auto-assign failed:', autoAssignError)
+        }
+      }
+
       // 
-      // Paso 4: Si es invitación, enviar email (placeholder)
+      // Paso 7: Si es invitación, enviar email (placeholder)
       if (userData.send_invitation && !userData.password) {
         // TODO: Implementar servicio de email
       }
@@ -438,7 +479,7 @@ export class BusinessUsersServerService {
         .from('user_course_certificates')
         .select('certificate_id')
         .eq('user_id', userId)
-      
+
       if (certs && certs.length > 0) {
         const certIds = certs.map(c => c.certificate_id)
         await supabase.from('certificate_ledger').delete().in('cert_id', certIds)
@@ -509,7 +550,7 @@ export class BusinessUsersServerService {
         .from('scorm_attempts')
         .select('id')
         .eq('user_id', userId)
-      
+
       if (scormAttempts && scormAttempts.length > 0) {
         const attemptIds = scormAttempts.map(a => a.id)
         await supabase.from('scorm_interactions').delete().in('attempt_id', attemptIds)
@@ -550,7 +591,7 @@ export class BusinessUsersServerService {
         .from('user_perfil')
         .select('id')
         .eq('user_id', userId)
-      
+
       if (userPerfil && userPerfil.length > 0) {
         const perfilIds = userPerfil.map(p => p.id)
         await supabase.from('respuestas').delete().in('user_perfil_id', perfilIds)
@@ -602,13 +643,20 @@ export class BusinessUsersServerService {
       console.log('✅ [deleteOrganizationUser] Todos los datos relacionados eliminados exitosamente')
 
       // ============================================
+      // PASO 1.5: Eliminar datos de nodos jerárquicos
+      // ============================================
+      console.log('🔄 Eliminando datos de nodos jerárquicos...')
+      await deleteFromTable('organization_node_users')
+      await supabase.from('organization_nodes').update({ manager_id: null }).eq('manager_id', userId)
+
+      // ============================================
       // PASO 2: Eliminar de organization_users
       // ============================================
       console.log('🔄 Eliminando de organization_users...')
-      
+
       // Eliminar también donde el usuario invitó a otros
       await supabase.from('organization_users').update({ invited_by: null }).eq('invited_by', userId)
-      
+
       const { error: deleteError } = await supabase
         .from('organization_users')
         .delete()

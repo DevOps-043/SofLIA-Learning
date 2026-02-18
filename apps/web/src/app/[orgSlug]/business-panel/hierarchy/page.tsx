@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
+import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 
 export default function BusinessPanelHierarchyPage() {
   const params = useParams();
@@ -21,8 +22,8 @@ export default function BusinessPanelHierarchyPage() {
           <button
             onClick={() => setActiveTab('tree')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'tree'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
           >
             Vista de Árbol
@@ -30,8 +31,8 @@ export default function BusinessPanelHierarchyPage() {
           <button
             onClick={() => setActiveTab('settings')}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'settings'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+              : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
               }`}
           >
             Configuración
@@ -41,9 +42,7 @@ export default function BusinessPanelHierarchyPage() {
 
       {/* Contenido según tab activo */}
       {activeTab === 'settings' ? (
-        <div className="p-8 text-center text-gray-500 bg-white dark:bg-neutral-800 rounded-lg">
-          <p>Configuración de Jerarquías (Próximamente)</p>
-        </div>
+        <HierarchySettings />
       ) : (
         <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
