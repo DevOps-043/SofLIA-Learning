@@ -242,7 +242,7 @@ export async function POST(request: Request) {
                         course_id: newCourse.id,
                         module_title: mod.title,
                         module_description: mod.description,
-                        module_order_index: mod.order_index,
+                        module_order_index: mod.order_index + 1, // DB constraint requires >= 1
                         is_published: false,
                         module_duration_minutes: 0,
                     })
@@ -265,7 +265,7 @@ export async function POST(request: Request) {
                             module_id: newModule.module_id,
                             instructor_id: instructorId,
                             lesson_title: lesson.title,
-                            lesson_order_index: lesson.order_index,
+                            lesson_order_index: lesson.order_index + 1, // DB constraint requires >= 1
                             video_provider: videoInfo.provider,
                             video_provider_id: videoInfo.id,
                             duration_seconds: durationToInsert,
