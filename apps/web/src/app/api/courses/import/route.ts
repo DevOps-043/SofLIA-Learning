@@ -1,4 +1,6 @@
 
+declare const process: any;
+
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -35,6 +37,55 @@ function extractVideoInfo(url: string): { provider: 'youtube' | 'vimeo' | 'custo
     }
 
     return { provider: 'custom', id: url }
+}
+
+/**
+ * Normaliza la estructura de datos de un Quiz que viene de CourseForge
+ * para que sea compatible con los componentes de SofLIA-Learning.
+ * Maneja field names como 'questions' vs 'items', y mapea índices de respuesta correcta a texto.
+ */
+function normalizeQuizData(data: any) {
+    if (!data) return null;
+
+    // 1. Obtener lista de preguntas (soporta 'questions' o 'items')
+    const rawItems = Array.isArray(data.questions) ? data.questions : (Array.isArray(data.items) ? data.items : []);
+    
+    // 2. Mapear preguntas al formato estándar
+    const normalizedQuestions = rawItems.map((q: any) => {
+        // Normalizar tipo de pregunta (MULTIPLE_CHOICE -> multiple_choice)
+        let qType = (q.questionType || q.type || 'multiple_choice').toLowerCase();
+        
+        // Asegurar que las opciones sean un array de strings
+        const options = Array.isArray(q.options) 
+            ? q.options.map((opt: any) => typeof opt === 'string' ? opt : String(opt))
+            : [];
+
+        // Manejar respuesta correcta (CourseForge a veces envía el índice como número)
+        let correctAnswer = q.correctAnswer !== undefined ? q.correctAnswer : (q.correct_answer !== undefined ? q.correct_answer : '');
+        if (typeof correctAnswer === 'number' && options[correctAnswer]) {
+            correctAnswer = options[correctAnswer];
+        } else if (typeof correctAnswer !== 'string') {
+            correctAnswer = String(correctAnswer);
+        }
+
+        return {
+            id: q.id || `q-${Math.random().toString(36).substr(2, 9)}`,
+            question: q.question || q.questionText || '',
+            questionType: qType,
+            options: options,
+            correctAnswer: correctAnswer,
+            explanation: q.explanation || '',
+            points: Number(q.points) || 1
+        };
+    });
+
+    return {
+        ...data,
+        questions: normalizedQuestions,
+        // Remover 'items' para evitar confusión y duplicidad
+        items: undefined,
+        passing_score: Number(data.passing_score) || 80
+    };
 }
 
 // Nuevos Esquemas de Validación (Zod) basados en el JSON proporcionado
@@ -295,7 +346,7 @@ export async function POST(request: Request) {
                                 file_url: mat.type === 'download' ? mat.url : null, // Si es descarga directa quizas file_url
                                 material_order_index: idx + 1,
                                 material_description: mat.description || null,
-                                content_data: mat.type === 'quiz' ? mat.data : null,
+                                content_data: mat.type === 'quiz' ? normalizeQuizData(mat.data) : null,
                             }
                         })
 
@@ -318,7 +369,9 @@ export async function POST(request: Request) {
                                 lesson_id: newLesson.lesson_id,
                                 activity_title: act.title,
                                 activity_type: actType,
-                                activity_content: JSON.stringify(act.data), // Guardamos la data como string JSON
+                                activity_content: act.type === 'quiz' 
+                                    ? JSON.stringify(normalizeQuizData(act.data))
+                                    : JSON.stringify(act.data), // Guardamos la data como string JSON
                                 activity_order_index: idx + 1,
                                 is_required: false
                             }
