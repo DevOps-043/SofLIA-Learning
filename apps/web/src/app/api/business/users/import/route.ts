@@ -93,13 +93,35 @@ export async function POST(request: NextRequest) {
       return result
     }
 
-    // Obtener headers
+    // Obtener headers y normalizar
     const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().trim())
-    const requiredFields = ['username', 'email']
+
+    // Mapeo de alias para job_title
+    const jobTitleAliases = ['job_title', 'cargo', 'puesto', 'rol', 'role']
+    const jobTitleHeaderIndex = headers.findIndex(h => jobTitleAliases.includes(h))
+
+    // Si encontramos un alias, normalizamos el header para facilitar el acceso luego
+    if (jobTitleHeaderIndex !== -1) {
+      headers[jobTitleHeaderIndex] = 'job_title'
+    }
+
+    const requiredFields = ['username', 'email', 'job_title'] // Agregamos job_title como requerido
 
     // Validar headers
     const missingFields = requiredFields.filter(field => !headers.includes(field))
+
     if (missingFields.length > 0) {
+      // Mensaje personalizado si falta job_title para explicar los alias permitidos
+      if (missingFields.includes('job_title')) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Falta la columna requerida: "job_title" (también se permiten: "cargo", "puesto", "rol")`
+          },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json(
         {
           success: false,
@@ -173,6 +195,16 @@ export async function POST(request: NextRequest) {
           continue
         }
 
+        // Validar job_title
+        if (!userData.job_title || !userData.job_title.trim()) {
+          result.errors.push({
+            row: i + 1,
+            error: 'El campo "job_title" (o cargo/puesto) es obligatorio',
+            data: userData
+          })
+          continue
+        }
+
         // Validar email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         if (!emailRegex.test(userData.email)) {
@@ -196,19 +228,42 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        // Verificar si el usuario ya existe
+        // Verificar si el usuario ya existe y su estado en la organización
         const { data: existingUser } = await supabase
           .from('users')
-          .select('id, email, username')
+          .select(`
+            id, 
+            email, 
+            username
+          `)
           .or(`email.eq.${userData.email},username.eq.${userData.username}`)
           .maybeSingle()
 
         if (existingUser) {
-          result.errors.push({
-            row: i + 1,
-            error: `Usuario ya existe: ${existingUser.email === userData.email ? 'email' : 'username'}`,
-            data: userData
-          })
+          // Verificar si ya está en la organización
+          const { data: existingOrgUser } = await supabase
+            .from('organization_users')
+            .select('role')
+            .eq('organization_id', organizationId)
+            .eq('user_id', existingUser.id)
+            .maybeSingle()
+
+          if (existingOrgUser) {
+            result.errors.push({
+              row: i + 1,
+              error: `Este usuario ya es miembro de tu organización (Rol: ${existingOrgUser.role}).`,
+              data: {
+                ...userData,
+                existing_role: existingOrgUser.role
+              }
+            })
+          } else {
+            result.errors.push({
+              row: i + 1,
+              error: `Este correo ya está registrado en la plataforma pero NO en tu organización. Por favor utiliza la opción "Invitar" para agregarlo a tu equipo.`,
+              data: userData
+            })
+          }
           continue
         }
 
@@ -269,6 +324,7 @@ export async function POST(request: NextRequest) {
             organization_id: organizationId,
             user_id: newUser.id,
             role: orgRole as 'owner' | 'admin' | 'member',
+            job_title: userData.job_title.trim(), // Guardamos el job_title
             status: 'active',
             invited_by: createdBy,
             invited_at: new Date().toISOString(),

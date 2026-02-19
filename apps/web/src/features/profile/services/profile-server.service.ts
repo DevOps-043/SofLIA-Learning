@@ -47,7 +47,7 @@ export class ProfileServerService {
   static async getProfile(userId: string): Promise<UserProfile> {
     try {
       const supabase = await createClient()
-      
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -95,18 +95,46 @@ export class ProfileServerService {
   static async updateProfile(userId: string, updates: UpdateProfileRequest): Promise<UserProfile> {
     try {
       const supabase = await createClient()
-      
+
       // Obtener datos anteriores para comparar
       const { data: oldData } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single()
-      
+
+      // Filtrar solo los campos permitidos para actualización
+      const allowedFields: (keyof UpdateProfileRequest)[] = [
+        'username', 'first_name', 'last_name', 'display_name',
+        'phone', 'bio', 'location', 'cargo_rol', 'type_rol',
+        'profile_picture_url', 'curriculum_url', 'linkedin_url',
+        'github_url', 'website_url', 'country_code'
+        // Nota: 'email' se excluye por defecto aquí ya que el cambio de email 
+        // suele requerir confirmación o flujo de auth. Si se desea permitir, agregarlo.
+        // Por seguridad, evitamos actualizar 'email' directamente en la tabla users
+        // si no estamos seguros de la sincronización con auth.users.
+      ]
+
+      const safeUpdates: any = {}
+
+      // Solo copiar campos definidos y permitidos
+      allowedFields.forEach(field => {
+        if (updates[field] !== undefined) {
+          safeUpdates[field] = updates[field]
+        }
+      })
+
+      // Si también queremos permitir actualizar el email (con cuidado)
+      if (updates.email && updates.email !== oldData?.email) {
+        // Por ahora lo permitimos si la lógica de negocio lo soporta, 
+        // pero idealmente esto debería ir por supabase.auth.updateUser()
+        // safeUpdates.email = updates.email
+      }
+
       const { data, error } = await supabase
         .from('users')
         .update({
-          ...updates,
+          ...safeUpdates,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId)
@@ -126,7 +154,7 @@ export class ProfileServerService {
       // Solo incluir campos que realmente cambiaron (comparar valores anteriores vs nuevos)
       try {
         const { AutoNotificationsService } = await import('@/features/notifications/services/auto-notifications.service')
-        
+
         // Comparar valores anteriores vs nuevos para detectar cambios reales
         const actualChanges: string[] = []
         if (oldData) {
@@ -141,7 +169,7 @@ export class ProfileServerService {
           // Si no hay datos anteriores, usar todas las claves de updates
           actualChanges.push(...Object.keys(updates))
         }
-        
+
         await AutoNotificationsService.notifyProfileUpdated(userId, actualChanges, {
           timestamp: new Date().toISOString()
         })

@@ -15,6 +15,7 @@ export async function GET() {
       .from('organization_users')
       .select(`
         role,
+        job_title,
         users:users!organization_users_user_id_fkey (
           username,
           email,
@@ -43,6 +44,7 @@ export async function GET() {
       'first_name',
       'last_name',
       'display_name',
+      'job_title',
       'org_role',
       'password'
     ]
@@ -59,6 +61,7 @@ export async function GET() {
       const firstName = userData?.first_name || ''
       const lastName = userData?.last_name || ''
       const displayName = userData?.display_name || ''
+      const jobTitle = orgUser.job_title || ''
       const role = orgUser.role || 'member'
 
       // Placeholder para la contraseña (cifrada/protegida)
@@ -79,12 +82,13 @@ export async function GET() {
         escapeCsv(firstName),
         escapeCsv(lastName),
         escapeCsv(displayName),
+        escapeCsv(jobTitle),
         role,
         password
       ].join(',')
     })
 
-    const csvContent = [csvHeaders.join(','), ...csvRows].join('\n')
+    const csvContent = '\uFEFF' + [csvHeaders.join(','), ...csvRows].join('\n')
 
     return new NextResponse(csvContent, {
       headers: {

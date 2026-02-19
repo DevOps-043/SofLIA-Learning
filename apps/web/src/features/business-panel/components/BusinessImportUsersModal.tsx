@@ -268,7 +268,7 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                       </div>
                     </div>
                   ) : (
-                    <div 
+                    <div
                       className="w-full p-4 rounded-xl border-2 border-dashed text-center"
                       style={{
                         borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#6C757D'
@@ -464,13 +464,14 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                             { field: 'username', desc: t('users.modals.import.format.username'), required: true },
                             { field: 'email', desc: t('users.modals.import.format.email'), required: true },
                             { field: 'password', desc: t('users.modals.import.format.password'), required: true },
+                            { field: 'job_title', desc: 'Cargo/Puesto', required: true },
                             { field: 'org_role', desc: t('users.modals.import.format.role'), required: false },
                           ].map((item) => (
                             <div key={item.field} className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">
                                 <code
                                   className="px-2 py-0.5 rounded text-xs font-mono border font-semibold"
-                                  style={{ 
+                                  style={{
                                     backgroundColor: isDark ? `${primaryColor}30` : `${primaryColor}15`,
                                     color: isDark ? '#FFFFFF' : '#0A2540',
                                     borderColor: isDark ? `${primaryColor}60` : '#6C757D'
@@ -481,7 +482,7 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                                 <span style={{ color: isDark ? 'rgba(255, 255, 255, 0.7)' : '#6C757D' }}>{item.desc}</span>
                               </div>
                               {item.required && (
-                                <span 
+                                <span
                                   className="text-xs px-2 py-0.5 rounded-full"
                                   style={{
                                     backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)',
