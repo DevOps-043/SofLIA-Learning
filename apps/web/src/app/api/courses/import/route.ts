@@ -100,6 +100,17 @@ export async function POST(request: Request) {
 
         // 2. Parsear y Validar Payload
         const body = await request.json()
+
+        // CHEQUEO DE CONEXIÓN (PING)
+        // Permite probar conectividad y API Key sin enviar un curso completo
+        if (body.type === 'ping') {
+            return NextResponse.json({ 
+                message: 'Pong: Connection Successful', 
+                timestamp: new Date().toISOString(),
+                environment: process.env.NODE_ENV // Optional: confirm env
+            }, { status: 200 })
+        }
+
         const validation = CourseImportPayloadSchema.safeParse(body)
 
         if (!validation.success) {
