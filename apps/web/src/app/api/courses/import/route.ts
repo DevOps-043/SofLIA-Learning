@@ -49,14 +49,14 @@ function normalizeQuizData(data: any) {
 
     // 1. Obtener lista de preguntas (soporta 'questions' o 'items')
     const rawItems = Array.isArray(data.questions) ? data.questions : (Array.isArray(data.items) ? data.items : []);
-    
+
     // 2. Mapear preguntas al formato estándar
     const normalizedQuestions = rawItems.map((q: any) => {
         // Normalizar tipo de pregunta (MULTIPLE_CHOICE -> multiple_choice)
         let qType = (q.questionType || q.type || 'multiple_choice').toLowerCase();
-        
+
         // Asegurar que las opciones sean un array de strings
-        const options = Array.isArray(q.options) 
+        const options = Array.isArray(q.options)
             ? q.options.map((opt: any) => typeof opt === 'string' ? opt : String(opt))
             : [];
 
@@ -149,6 +149,22 @@ const CourseImportPayloadSchema = z.object({
     modules: z.array(NewModuleSchema),
 })
 
+// ✅ NEW: GET Endpoint for Health Check & Diagnostics
+export async function GET(request: Request) {
+    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const hasCourseForgeKey = !!process.env.COURSEFORGE_API_KEY;
+
+    return NextResponse.json({
+        status: 'active',
+        service: 'soflia-learning-import-api',
+        timestamp: new Date().toISOString(),
+        config: {
+            auth_configured: hasCourseForgeKey,
+            db_configured: hasServiceKey
+        }
+    }, { status: 200 });
+}
+
 export async function POST(request: Request) {
     console.log('[IMPORT API] ========== REQUEST RECEIVED ==========')
     console.log('[IMPORT API] Timestamp:', new Date().toISOString())
@@ -164,14 +180,11 @@ export async function POST(request: Request) {
         const apiKey = request.headers.get('x-api-key')
         const validApiKey = process.env.COURSEFORGE_API_KEY
 
-        console.log('[IMPORT API] API Key validation:', {
-            receivedKeyPrefix: apiKey ? apiKey.substring(0, 8) + '...' : 'NONE',
-            expectedKeyPrefix: validApiKey ? validApiKey.substring(0, 8) + '...' : 'NOT_SET',
-            match: apiKey === validApiKey
-        })
+        const debugKey = apiKey ? `${apiKey.substring(0, 4)}...` : 'NONE';
+        console.log(`[IMPORT API] Header 'x-api-key': ${debugKey}`);
 
         if (!validApiKey || apiKey !== validApiKey) {
-            console.log('[IMPORT API] ❌ Unauthorized - API key mismatch')
+            console.warn('[IMPORT API] ❌ Unauthorized - API key mismatch')
             return NextResponse.json(
                 { error: 'Unauthorized: Invalid or missing API Key' },
                 { status: 401 }
@@ -179,13 +192,19 @@ export async function POST(request: Request) {
         }
 
         // 2. Parsear y Validar Payload
-        const body = await request.json()
+        let body;
+        try {
+            body = await request.json()
+        } catch (e) {
+            console.error('[IMPORT API] JSON Parse Error:', e)
+            return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+        }
 
         // CHEQUEO DE CONEXIÓN (PING)
         // Permite probar conectividad y API Key sin enviar un curso completo
         if (body.type === 'ping') {
-            return NextResponse.json({ 
-                message: 'Pong: Connection Successful', 
+            return NextResponse.json({
+                message: 'Pong: Connection Successful',
                 timestamp: new Date().toISOString(),
                 environment: process.env.NODE_ENV // Optional: confirm env
             }, { status: 200 })
@@ -194,6 +213,7 @@ export async function POST(request: Request) {
         const validation = CourseImportPayloadSchema.safeParse(body)
 
         if (!validation.success) {
+            console.error('[IMPORT API] Validation Error:', JSON.stringify(validation.error.format(), null, 2))
             return NextResponse.json(
                 { error: 'Validation Error', details: validation.error.format() },
                 { status: 400 }
@@ -260,6 +280,7 @@ export async function POST(request: Request) {
         // 5. Inserción Transaccional (Secuencial simulada)
 
         // A. Crear Curso
+        console.log('[IMPORT API] Inserting Course...');
         const { data: newCourse, error: createError } = await supabase
             .from('courses')
             .insert({
@@ -279,12 +300,13 @@ export async function POST(request: Request) {
             .single()
 
         if (createError) {
-            console.error('Error creating course:', createError)
+            console.error('[IMPORT API] Error creating course:', createError)
             return NextResponse.json({ error: 'Failed to create course', details: createError.message }, { status: 500 })
         }
 
         // B. Crear Módulos y Lecciones
         try {
+            console.log('[IMPORT API] Inserting Modules and Lessons...');
             for (const mod of modules) {
                 // Crear Módulo
                 const { data: newModule, error: modError } = await supabase
@@ -369,7 +391,7 @@ export async function POST(request: Request) {
                                 lesson_id: newLesson.lesson_id,
                                 activity_title: act.title,
                                 activity_type: actType,
-                                activity_content: act.type === 'quiz' 
+                                activity_content: act.type === 'quiz'
                                     ? JSON.stringify(normalizeQuizData(act.data))
                                     : JSON.stringify(act.data), // Guardamos la data como string JSON
                                 activity_order_index: idx + 1,
@@ -386,6 +408,7 @@ export async function POST(request: Request) {
                 }
             }
 
+            console.log('[IMPORT API] ✅ Import Successful');
             return NextResponse.json({
                 success: true,
                 course_id: newCourse.id,
@@ -393,7 +416,7 @@ export async function POST(request: Request) {
             })
 
         } catch (insertError: any) {
-            console.error('Error inserting modules/lessons:', insertError)
+            console.error('[IMPORT API] Error inserting modules/lessons:', insertError)
             // Rollback manual
             await supabase.from('courses').delete().eq('id', newCourse.id)
 
@@ -404,7 +427,7 @@ export async function POST(request: Request) {
         }
 
     } catch (error: any) {
-        console.error('Unexpected error:', error)
+        console.error('[IMPORT API] Unexpected error:', error)
         return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 })
     }
 }
