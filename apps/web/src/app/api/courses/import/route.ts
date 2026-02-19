@@ -1,7 +1,20 @@
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+
+// ✅ Cliente administrativo para API routes externas (sin cookies)
+// Usa Service Role Key en vez de cookies de sesión del navegador
+function createServiceClient() {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!url || !serviceKey) {
+        throw new Error('[IMPORT API] Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+    }
+
+    return createSupabaseClient(url, serviceKey)
+}
 
 // Helper para extraer info de video
 function extractVideoInfo(url: string): { provider: 'youtube' | 'vimeo' | 'custom', id: string } {
@@ -86,12 +99,28 @@ const CourseImportPayloadSchema = z.object({
 })
 
 export async function POST(request: Request) {
+    console.log('[IMPORT API] ========== REQUEST RECEIVED ==========')
+    console.log('[IMPORT API] Timestamp:', new Date().toISOString())
+    console.log('[IMPORT API] ENV Check:', {
+        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        hasCourseforgeKey: !!process.env.COURSEFORGE_API_KEY,
+        nodeEnv: process.env.NODE_ENV
+    })
+
     try {
         // 1. Validar API Key
         const apiKey = request.headers.get('x-api-key')
         const validApiKey = process.env.COURSEFORGE_API_KEY
 
+        console.log('[IMPORT API] API Key validation:', {
+            receivedKeyPrefix: apiKey ? apiKey.substring(0, 8) + '...' : 'NONE',
+            expectedKeyPrefix: validApiKey ? validApiKey.substring(0, 8) + '...' : 'NOT_SET',
+            match: apiKey === validApiKey
+        })
+
         if (!validApiKey || apiKey !== validApiKey) {
+            console.log('[IMPORT API] ❌ Unauthorized - API key mismatch')
             return NextResponse.json(
                 { error: 'Unauthorized: Invalid or missing API Key' },
                 { status: 401 }
@@ -121,7 +150,8 @@ export async function POST(request: Request) {
         }
 
         const { course: courseData, modules } = validation.data
-        const supabase = await createClient()
+        console.log('[IMPORT API] ✅ Validation passed. Course:', courseData.title, '| Modules:', modules.length)
+        const supabase = createServiceClient()
 
         // 3. Obtener Usuario Admin/Instructor por defecto (Para evitar fallos si no viene email)
         // En este caso, usaremos el primer usuario admin o un fallback.
