@@ -1,6 +1,23 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.activity_logs (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  session_id uuid,
+  user_id uuid NOT NULL,
+  timestamp timestamp with time zone NOT NULL DEFAULT now(),
+  window_title text NOT NULL,
+  process_name text NOT NULL,
+  url text,
+  category text DEFAULT 'uncategorized'::text,
+  duration_seconds integer DEFAULT 30,
+  idle boolean DEFAULT false,
+  idle_seconds integer DEFAULT 0,
+  ocr_text text,
+  metadata jsonb DEFAULT '{}'::jsonb,
+  CONSTRAINT activity_logs_pkey PRIMARY KEY (id),
+  CONSTRAINT activity_logs_session_id_fkey FOREIGN KEY (session_id) REFERENCES public.monitoring_sessions(id)
+);
 CREATE TABLE public.ai_moderation_config (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   config_key text NOT NULL UNIQUE,
@@ -73,6 +90,20 @@ CREATE TABLE public.bulk_invite_registrations (
   CONSTRAINT bulk_invite_registrations_pkey PRIMARY KEY (id),
   CONSTRAINT bulk_invite_registrations_bulk_invite_link_id_fkey FOREIGN KEY (bulk_invite_link_id) REFERENCES public.bulk_invite_links(id),
   CONSTRAINT bulk_invite_registrations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.calendar_connections (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  provider text NOT NULL,
+  email text,
+  access_token text NOT NULL,
+  refresh_token text NOT NULL,
+  token_expiry timestamp with time zone,
+  calendar_id text,
+  is_active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT calendar_connections_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.calendar_integrations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -353,6 +384,20 @@ CREATE TABLE public.daily_progress (
   CONSTRAINT daily_progress_pkey PRIMARY KEY (id),
   CONSTRAINT daily_progress_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
   CONSTRAINT daily_progress_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
+);
+CREATE TABLE public.daily_summaries (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  date date NOT NULL,
+  total_time_seconds integer DEFAULT 0,
+  productive_time_seconds integer DEFAULT 0,
+  idle_time_seconds integer DEFAULT 0,
+  top_apps jsonb DEFAULT '[]'::jsonb,
+  top_websites jsonb DEFAULT '[]'::jsonb,
+  ai_summary text,
+  projects_detected jsonb DEFAULT '[]'::jsonb,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT daily_summaries_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.dashboard_layouts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -702,6 +747,20 @@ CREATE TABLE public.lia_user_feedback (
   CONSTRAINT lia_user_feedback_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.lia_conversations(conversation_id),
   CONSTRAINT lia_user_feedback_message_id_fkey FOREIGN KEY (message_id) REFERENCES public.lia_messages(message_id),
   CONSTRAINT lia_user_feedback_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id)
+);
+CREATE TABLE public.monitoring_sessions (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  started_at timestamp with time zone NOT NULL DEFAULT now(),
+  ended_at timestamp with time zone,
+  trigger_type text NOT NULL DEFAULT 'manual'::text,
+  calendar_event_title text,
+  total_active_seconds integer DEFAULT 0,
+  total_idle_seconds integer DEFAULT 0,
+  summary_text text,
+  status text NOT NULL DEFAULT 'active'::text,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT monitoring_sessions_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.niveles (
   id integer GENERATED ALWAYS AS IDENTITY NOT NULL,

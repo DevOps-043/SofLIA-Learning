@@ -144,7 +144,7 @@ export async function POST(
       .in('user_id', user_ids)
       .in('status', ['assigned', 'in_progress'])
 
-    const existingUserIds = existingAssignments?.map(a => a.user_id) || []
+    const existingUserIds = existingAssignments?.map((a: any) => a.user_id) || []
     const newUserIds = user_ids.filter(id => !existingUserIds.includes(id))
 
     if (newUserIds.length === 0) {
@@ -154,6 +154,14 @@ export async function POST(
       }, { status: 400 })
     }
 
+    // Recuperar la Política de Cumplimiento General (V3 Write-Compatible Phase)
+    const { data: defaultPolicy } = await supabase
+      .from('planner_policies')
+      .select('active_version_id')
+      .eq('organization_id', organizationId)
+      .eq('name', 'Política de Cumplimiento General')
+      .maybeSingle()
+
     // Crear asignaciones para los usuarios que no tienen el curso
     const assignments = newUserIds.map(userId => ({
       organization_id: organizationId,
@@ -161,12 +169,18 @@ export async function POST(
       course_id: courseId,
       assigned_by: currentUser.id,
       assigned_at: new Date().toISOString(),
+      
+      // Legacy V1/V2 Fields
       due_date: due_date || null,
       start_date: start_date || null,
       approach: approach || null,
       message: message && message.trim() ? message.trim() : null,
       status: 'assigned',
-      completion_percentage: 0
+      completion_percentage: 0,
+      
+      // V3 Write-Compatible Fields (Fase 2)
+      hard_due_date: due_date || null,
+      policy_version_id: defaultPolicy?.active_version_id || null
     }))
 
     const { data: createdAssignments, error: assignError } = await supabase
@@ -225,7 +239,7 @@ export async function POST(
         course_title: course.title,
         assigned_count: createdAssignments.length,
         already_assigned_count: existingUserIds.length,
-        assignments: createdAssignments.map(a => ({
+        assignments: createdAssignments.map((a: any) => ({
           assignment_id: a.id,
           user_id: a.user_id
         }))

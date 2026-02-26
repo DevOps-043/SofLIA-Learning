@@ -143,6 +143,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Recuperar la Política de Cumplimiento General (V3 Write-Compatible Phase)
+    const { data: defaultPolicy } = await supabase
+      .from('planner_policies')
+      .select('active_version_id')
+      .eq('organization_id', organizationId)
+      .eq('name', 'Política de Cumplimiento General')
+      .maybeSingle()
+
     const results = []
 
     for (const courseId of course_ids) {
@@ -182,7 +190,11 @@ export async function POST(request: NextRequest) {
           approach: approach || null,
           message: message || null,
           status: 'assigned',
-          completion_percentage: 0
+          completion_percentage: 0,
+          
+          // V3 Write-Compatible Fields (Fase 2)
+          hard_due_date: due_date || null,
+          policy_version_id: defaultPolicy?.active_version_id || null
         }))
 
         // TODO: Esto escribe en organization_course_assignments (legacy pero usado por el LMS core?)
