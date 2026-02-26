@@ -24,11 +24,13 @@ import { useBusinessAnalytics } from '../hooks/useBusinessAnalytics'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
 import { EngagementAnalytics } from './EngagementAnalytics'
 import Image from 'next/image'
+import { useTranslation } from 'react-i18next'
 
 // ============================================
 // COMPONENTE PRINCIPAL - SOLO KPIs
 // ============================================
 export function BusinessAnalytics() {
+    const { t } = useTranslation('business')
     const { data, isLoading, error, refetch } = useBusinessAnalytics()
     const { styles } = useOrganizationStylesContext()
     const panelStyles = styles?.panel
@@ -51,7 +53,7 @@ export function BusinessAnalytics() {
                         className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4"
                         style={{ borderColor: `${accentColor}30`, borderTopColor: accentColor }}
                     />
-                    <p className="opacity-70" style={{ color: textColor }}>Cargando analíticas...</p>
+                    <p className="opacity-70" style={{ color: textColor }}>{t('analytics.loading')}</p>
                 </div>
             </div>
         )
@@ -68,7 +70,7 @@ export function BusinessAnalytics() {
                     className="px-6 py-2 rounded-xl transition-all"
                     style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
                 >
-                    Reintentar
+                    {t('analytics.retry')}
                 </button>
             </div>
         )
@@ -77,7 +79,7 @@ export function BusinessAnalytics() {
     if (!data) {
         return (
             <div className="text-center py-20">
-                <p className="opacity-70" style={{ color: textColor }}>No hay datos disponibles</p>
+                <p className="opacity-70" style={{ color: textColor }}>{t('analytics.noData')}</p>
             </div>
         )
     }
@@ -132,7 +134,7 @@ export function BusinessAnalytics() {
                             className="text-sm font-bold tracking-widest uppercase drop-shadow-sm"
                             style={{ color: 'rgba(219, 234, 254, 0.9)' }}
                         >
-                            Centro de Analytics
+                            {t('analytics.center')}
                         </span>
                     </div>
 
@@ -140,14 +142,14 @@ export function BusinessAnalytics() {
                         className="text-3xl md:text-4xl font-bold mb-3 tracking-tight drop-shadow-md"
                         style={{ color: '#FFFFFF' }}
                     >
-                        Analytics y Rendimiento
+                        {t('analytics.headerTitle')}
                     </h1>
 
                     <p
                         className="text-base max-w-2xl leading-relaxed drop-shadow-sm"
                         style={{ color: '#EFF6FF' }}
                     >
-                        Resumen de métricas clave del equipo de trabajo. Monitorea el progreso y rendimiento.
+                        {t('analytics.headerSubtitle')}
                     </p>
                 </div>
             </motion.div>
@@ -157,7 +159,7 @@ export function BusinessAnalytics() {
                 <TabButton
                     isActive={activeTab === 'overview'}
                     onClick={() => setActiveTab('overview')}
-                    label="Visión General"
+                    label={t('analytics.tabs.overview')}
                     icon={Target}
                     accentColor={accentColor}
                     textColor={textColor}
@@ -165,7 +167,7 @@ export function BusinessAnalytics() {
                 <TabButton
                     isActive={activeTab === 'users'}
                     onClick={() => setActiveTab('users')}
-                    label="Lista de Usuarios"
+                    label={t('analytics.tabs.users')}
                     icon={UserCheck}
                     accentColor={accentColor}
                     textColor={textColor}
@@ -173,7 +175,7 @@ export function BusinessAnalytics() {
                 <TabButton
                     isActive={activeTab === 'engagement'}
                     onClick={() => setActiveTab('engagement')}
-                    label="Engagement & Comportamiento"
+                    label={t('analytics.tabs.engagement')}
                     icon={Users}
                     accentColor={accentColor}
                     textColor={textColor}
@@ -181,7 +183,7 @@ export function BusinessAnalytics() {
                 <TabButton
                     isActive={activeTab === 'teams'}
                     onClick={() => setActiveTab('teams')}
-                    label="Equipos"
+                    label={t('analytics.tabs.teams')}
                     icon={UsersRound}
                     accentColor={accentColor}
                     textColor={textColor}
@@ -202,7 +204,7 @@ export function BusinessAnalytics() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <KPICard
                                 icon={Users}
-                                label="Total Usuarios"
+                                label={t('analytics.kpis.totalUsers')}
                                 value={data.general_metrics.total_users}
                                 color={accentColor}
                                 cardBg={cardBg}
@@ -210,7 +212,7 @@ export function BusinessAnalytics() {
                             />
                             <KPICard
                                 icon={BookOpen}
-                                label="Cursos Asignados"
+                                label={t('analytics.kpis.assignedCourses')}
                                 value={data.general_metrics.total_courses_assigned}
                                 color="#8b5cf6"
                                 cardBg={cardBg}
@@ -218,7 +220,7 @@ export function BusinessAnalytics() {
                             />
                             <KPICard
                                 icon={CheckCircle}
-                                label="Completados"
+                                label={t('analytics.kpis.completed')}
                                 value={data.general_metrics.completed_courses}
                                 color="#10b981"
                                 cardBg={cardBg}
@@ -226,7 +228,7 @@ export function BusinessAnalytics() {
                             />
                             <KPICard
                                 icon={TrendingUp}
-                                label="Progreso Promedio"
+                                label={t('analytics.kpis.avgProgress')}
                                 value={`${data.general_metrics.average_progress}%`}
                                 color="#f59e0b"
                                 cardBg={cardBg}
@@ -238,7 +240,7 @@ export function BusinessAnalytics() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <SmallMetricCard
                                 icon={Clock}
-                                label="Tiempo Total"
+                                label={t('analytics.kpis.totalTime')}
                                 value={`${data.general_metrics.total_time_hours}h`}
                                 color={accentColor}
                                 cardBg={cardBg}
@@ -246,7 +248,7 @@ export function BusinessAnalytics() {
                             />
                             <SmallMetricCard
                                 icon={Award}
-                                label="Certificados"
+                                label={t('analytics.kpis.certificates')}
                                 value={data.general_metrics.total_certificates}
                                 color="#8b5cf6"
                                 cardBg={cardBg}
@@ -254,7 +256,7 @@ export function BusinessAnalytics() {
                             />
                             <SmallMetricCard
                                 icon={UserCheck}
-                                label="Usuarios Activos"
+                                label={t('analytics.kpis.activeUsers')}
                                 value={data.general_metrics.active_users}
                                 color="#10b981"
                                 cardBg={cardBg}
@@ -262,7 +264,7 @@ export function BusinessAnalytics() {
                             />
                             <SmallMetricCard
                                 icon={Target}
-                                label="Tasa Retención"
+                                label={t('analytics.kpis.retentionRate')}
                                 value={`${data.general_metrics.retention_rate}%`}
                                 color="#f59e0b"
                                 cardBg={cardBg}
@@ -281,19 +283,19 @@ export function BusinessAnalytics() {
                         className="rounded-3xl border overflow-hidden backdrop-blur-sm bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30"
                     >
                         <div className="p-6 border-b border-gray-200 dark:border-slate-700/30">
-                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Detalle de Usuarios</h3>
-                            <p className="text-sm opacity-60">Rendimiento individual por empleado</p>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white">{t('analytics.usersTable.title')}</h3>
+                            <p className="text-sm opacity-60">{t('analytics.usersTable.subtitle')}</p>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
-                                        <th className="p-4 font-medium">Usuario</th>
-                                        <th className="p-4 font-medium">Rol</th>
-                                        <th className="p-4 font-medium">Progreso General</th>
-                                        <th className="p-4 font-medium text-center">Cursos</th>
-                                        <th className="p-4 font-medium">Tiempo</th>
-                                        <th className="p-4 font-medium">Última Actividad</th>
+                                        <th className="p-4 font-medium">{t('analytics.usersTable.columns.user')}</th>
+                                        <th className="p-4 font-medium">{t('analytics.usersTable.columns.role')}</th>
+                                        <th className="p-4 font-medium">{t('analytics.usersTable.columns.progress')}</th>
+                                        <th className="p-4 font-medium text-center">{t('analytics.usersTable.columns.courses')}</th>
+                                        <th className="p-4 font-medium">{t('analytics.usersTable.columns.time')}</th>
+                                        <th className="p-4 font-medium">{t('analytics.usersTable.columns.lastActivity')}</th>
                                         <th className="p-4 w-10"></th>
                                     </tr>
                                 </thead>
@@ -307,8 +309,8 @@ export function BusinessAnalytics() {
                                                 user.first_name ||
                                                 user.username ||
                                                 user.email?.split('@')[0] ||
-                                                'Sin nombre'
-                                            const initials = displayName && displayName !== 'Sin nombre'
+                                                t('analytics.usersTable.noName')
+                                            const initials = displayName && displayName !== t('analytics.usersTable.noName')
                                                 ? displayName.charAt(0).toUpperCase()
                                                 : user.email?.charAt(0).toUpperCase() || '?'
 
@@ -353,7 +355,7 @@ export function BusinessAnalytics() {
                                                                 user.role?.toLowerCase().includes('instructor') ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20' :
                                                                     'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'}
                                             `}>
-                                                            {user.role || 'Estudiante'}
+                                                            {user.role || t('analytics.usersTable.student')}
                                                         </span>
                                                     </td>
                                                     <td className="p-4">
@@ -385,7 +387,7 @@ export function BusinessAnalytics() {
                                                     </td>
                                                     <td className="p-4 text-sm">
                                                         <div className="inline-flex items-center text-sm bg-gray-100 dark:bg-white/5 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 font-medium">
-                                                            {user.last_active ? new Date(user.last_active).toLocaleDateString() : 'Nunca'}
+                                                            {user.last_active ? new Date(user.last_active).toLocaleDateString() : t('analytics.usersTable.never')}
                                                         </div>
                                                     </td>
                                                     <td className="p-4">
@@ -402,7 +404,7 @@ export function BusinessAnalytics() {
                                     ) : (
                                         <tr>
                                             <td colSpan={7} className="p-8 text-center opacity-50">
-                                                No se encontraron usuarios.
+                                                {t('analytics.usersTable.noUsers')}
                                             </td>
                                         </tr>
                                     )}
@@ -482,7 +484,7 @@ export function BusinessAnalytics() {
                         <div className="p-6 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
                             <h3 className="font-semibold mb-6 flex items-center gap-2">
                                 <BarChart3 className="w-5 h-5" style={{ color: accentColor }} />
-                                Comparativa de Progreso por Equipo
+                                {t('analytics.teams.progressComparison')}
                             </h3>
 
                             {data?.teams?.ranking?.length > 0 ? (
@@ -504,7 +506,7 @@ export function BusinessAnalytics() {
                                                 <div className="flex-1">
                                                     <div className="flex justify-between items-center mb-1">
                                                         <span className="font-medium text-sm text-gray-900 dark:text-white">{team.name}</span>
-                                                        <span className="text-sm text-gray-500 dark:text-gray-400">{team.member_count} miembros</span>
+                                                        <span className="text-sm text-gray-500 dark:text-gray-400">{team.member_count} {t('analytics.teams.members')}</span>
                                                     </div>
                                                     <div className="relative h-6 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
                                                         <motion.div
@@ -528,7 +530,7 @@ export function BusinessAnalytics() {
                             ) : (
                                 <div className="text-center py-12 opacity-50">
                                     <UsersRound className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                                    <p>No hay equipos registrados</p>
+                                    <p>{t('analytics.teams.noTeams')}</p>
                                 </div>
                             )}
                         </div>
@@ -547,7 +549,7 @@ export function BusinessAnalytics() {
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="font-semibold text-lg">{team.name}</h4>
-                                            <p className="text-sm opacity-50 line-clamp-1">{team.description || 'Sin descripción'}</p>
+                                            <p className="text-sm opacity-50 line-clamp-1">{team.description || t('analytics.teams.noDescription')}</p>
                                         </div>
                                     </div>
 
@@ -568,7 +570,7 @@ export function BusinessAnalytics() {
 
                                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-gray-500 dark:text-gray-400">Cursos Completados</span>
+                                            <span className="text-gray-500 dark:text-gray-400">{t('analytics.teams.coursesCompleted')}</span>
                                             <span className="font-medium text-gray-900 dark:text-white">{team.stats?.courses_completed || 0} / {team.stats?.total_enrollments || 0}</span>
                                         </div>
                                         <div className="h-2 bg-gray-200 dark:bg-white/10 rounded-full mt-2 overflow-hidden">
@@ -601,6 +603,7 @@ export function BusinessAnalytics() {
 }
 
 function UserDetailModal({ user, onClose, theme }: any) {
+    const { t } = useTranslation('business');
     const [subTab, setSubTab] = useState<'activity' | 'planner' | 'courses'>('activity');
 
     // Obtener el nombre del usuario con múltiples fallbacks (igual que en la tabla)
@@ -610,9 +613,9 @@ function UserDetailModal({ user, onClose, theme }: any) {
         user.first_name ||
         user.username ||
         user.email?.split('@')[0] ||
-        'Sin nombre'
+        t('analytics.usersTable.noName')
 
-    const initials = displayName && displayName !== 'Sin nombre'
+    const initials = displayName && displayName !== t('analytics.usersTable.noName')
         ? displayName.charAt(0).toUpperCase()
         : user.email?.charAt(0).toUpperCase() || '?'
 
@@ -655,7 +658,7 @@ function UserDetailModal({ user, onClose, theme }: any) {
                                 <div className="relative w-20 h-20 rounded-2xl overflow-hidden border-4 shadow-xl shrink-0" style={{ borderColor: theme.cardBg }}>
                                     <Image
                                         src={user.profile_picture_url}
-                                        alt={user.name || 'Usuario'}
+                                        alt={user.name || t('analytics.usersTable.userDefault')}
                                         fill
                                         className="object-cover"
                                         sizes="80px"
@@ -671,7 +674,7 @@ function UserDetailModal({ user, onClose, theme }: any) {
                                 <div className="flex items-center gap-3 text-sm flex-wrap">
                                     <span className="text-gray-600 dark:text-gray-300">{user.email}</span>
                                     <span className="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-500" />
-                                    <span className="capitalize text-gray-600 dark:text-gray-300">{user.role || 'Usuario'}</span>
+                                    <span className="capitalize text-gray-600 dark:text-gray-300">{user.role || t('analytics.usersTable.userDefault')}</span>
                                 </div>
                             </div>
                         </div>
@@ -681,21 +684,21 @@ function UserDetailModal({ user, onClose, theme }: any) {
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/60 dark:bg-black/30 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-sm">
                                 <Zap className="w-4 h-4 text-amber-500 dark:text-amber-400" />
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-60 text-gray-700 dark:text-white">Racha</p>
-                                    <p className="font-bold text-sm leading-none text-gray-900 dark:text-white">{user.stats?.current_streak || 0} días</p>
+                                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-60 text-gray-700 dark:text-white">{t('analytics.userDetail.streak')}</p>
+                                    <p className="font-bold text-sm leading-none text-gray-900 dark:text-white">{user.stats?.current_streak || 0} {t('analytics.userDetail.days')}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/60 dark:bg-black/30 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-sm">
                                 <Target className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-60 text-gray-700 dark:text-white">Adherencia</p>
+                                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-60 text-gray-700 dark:text-white">{t('analytics.userDetail.adherence')}</p>
                                     <p className="font-bold text-sm leading-none text-gray-900 dark:text-white">{user.stats?.planner?.adherence || 0}%</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/60 dark:bg-black/30 backdrop-blur-sm border border-gray-200 dark:border-white/10 shadow-sm">
                                 <Clock className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                                 <div>
-                                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-60 text-gray-700 dark:text-white">Tiempo Total</p>
+                                    <p className="text-[10px] uppercase font-bold tracking-wider opacity-60 text-gray-700 dark:text-white">{t('analytics.userDetail.totalTime')}</p>
                                     <p className="font-bold text-sm leading-none text-gray-900 dark:text-white">{Math.round((user.total_time_minutes || 0) / 60)}h</p>
                                 </div>
                             </div>
@@ -714,7 +717,7 @@ function UserDetailModal({ user, onClose, theme }: any) {
                                 onClick={() => setSubTab(tab as any)}
                                 className={`pb-4 text-sm font-medium transition-all relative ${subTab === tab ? 'text-blue-500 dark:text-blue-400 opacity-100' : 'text-gray-500 dark:text-gray-400 opacity-60 hover:opacity-100'}`}
                             >
-                                <span className="capitalize">{tab === 'activity' ? 'Actividad y Hábitos' : tab === 'planner' ? 'Planificador de Estudio' : 'Progreso de Cursos'}</span>
+                                <span className="capitalize">{tab === 'activity' ? t('analytics.userDetail.tabs.activity') : tab === 'planner' ? t('analytics.userDetail.tabs.planner') : t('analytics.userDetail.tabs.courses')}</span>
                                 {subTab === tab && (
                                     <motion.div layoutId="modalTab" className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-blue-500" />
                                 )}
@@ -736,8 +739,8 @@ function UserDetailModal({ user, onClose, theme }: any) {
                                     <div className="flex items-center justify-between mb-6">
                                         <h3 className="flex items-center gap-2 text-lg font-semibold">
                                             <Calendar className="w-5 h-5 text-blue-400" />
-                                            Historial de Actividad
-                                            <span className="ml-2 text-xs font-normal opacity-50">(Últimos 6 meses)</span>
+                                            {t('analytics.userDetail.history')}
+                                            <span className="ml-2 text-xs font-normal opacity-50">{t('analytics.userDetail.last6Months')}</span>
                                         </h3>
                                     </div>
 
@@ -789,12 +792,12 @@ function UserDetailModal({ user, onClose, theme }: any) {
                                     </div>
 
                                     <div className="flex items-center justify-end gap-2 mt-4 text-xs opacity-40">
-                                        <span>Menos</span>
+                                        <span>{t('analytics.userDetail.less')}</span>
                                         <div className="w-3 h-3 rounded-sm bg-gray-200 dark:bg-white/5" />
                                         <div className="w-3 h-3 rounded-sm bg-emerald-500/20" />
                                         <div className="w-3 h-3 rounded-sm bg-emerald-500/60" />
                                         <div className="w-3 h-3 rounded-sm bg-emerald-500" />
-                                        <span>Más</span>
+                                        <span>{t('analytics.userDetail.more')}</span>
                                     </div>
                                 </div>
 

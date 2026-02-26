@@ -181,12 +181,6 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
     bio: '',
     location: '',
     profile_picture_url: '',
-    curriculum_url: '',
-    linkedin_url: '',
-    github_url: '',
-    website_url: '',
-    role_zoom: '',
-    points: 0,
     country_code: ''
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -208,12 +202,6 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
         bio: user.bio || '',
         location: user.location || '',
         profile_picture_url: user.profile_picture_url || '',
-        curriculum_url: user.curriculum_url || '',
-        linkedin_url: user.linkedin_url || '',
-        github_url: user.github_url || '',
-        website_url: user.website_url || '',
-        role_zoom: user.role_zoom || '',
-        points: user.points || 0,
         country_code: user.country_code || ''
       })
     }
@@ -246,8 +234,7 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
 
   const tabs: { id: TabType; label: string; icon: typeof UserIcon }[] = [
     { id: 'personal', label: 'Personal', icon: UserIcon },
-    { id: 'account', label: 'Cuenta', icon: ShieldCheckIcon },
-    { id: 'links', label: 'Enlaces', icon: LinkIcon }
+    { id: 'account', label: 'Cuenta', icon: ShieldCheckIcon }
   ]
 
   return (
@@ -532,20 +519,6 @@ export function EditUserModal({ user, isOpen, onClose, onSave }: EditUserModalPr
                                 type="text"
                                 name="type_rol"
                                 value={formData.type_rol}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                              />
-                            </div>
-
-                            {/* Role Zoom */}
-                            <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Rol Zoom
-                              </label>
-                              <input
-                                type="text"
-                                name="role_zoom"
-                                value={formData.role_zoom}
                                 onChange={handleChange}
                                 className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
                               />

@@ -99,7 +99,8 @@ Thumbs.db
 logs
 *.log
 
-
+# SQL
+*.sql
   
 # Backups  
 Backup*.sql  

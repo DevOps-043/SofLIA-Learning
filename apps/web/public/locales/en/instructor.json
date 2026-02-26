@@ -1,0 +1,63 @@
+{
+  "dashboard": {
+    "title": "Instructor Panel",
+    "subtitle": "Manage your courses, students, and educational content efficiently",
+    "loading": "Loading statistics...",
+    "error": "Error loading statistics",
+    "retry": "Retry",
+    "stats": {
+      "title": "General Statistics",
+      "subtitle": "Summary of your activity as an instructor",
+      "courses": "Created Courses",
+      "students": "Students",
+      "reels": "Reels",
+      "rating": "Average Rating",
+      "hours": "Hours Taught",
+      "thisMonth": "+{{count}} this month",
+      "noChanges": "No changes this month",
+      "overallAverage": "Overall average",
+      "totalAccumulated": "Total accumulated"
+    },
+    "actions": {
+      "title": "Quick Actions",
+      "subtitle": "Quickly access the most used functions",
+      "createCourse": {
+        "title": "Create New Course",
+        "desc": "Create and publish a new educational course"
+      },
+      "manageWorkshops": {
+        "title": "Manage Workshops",
+        "desc": "Organize and manage your workshops"
+      },
+      "uploadReel": {
+        "title": "Upload New Reel",
+        "desc": "Share reel-format content"
+      }
+    }
+  },
+  "sidebar": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "workshops": "Workshops",
+      "communities": "Communities",
+      "aiApps": "AI Apps",
+      "skills": "Skills",
+      "news": "News",
+      "reels": "Reels",
+      "stats": "Statistics",
+      "companies": "Companies",
+      "reports": "Reports"
+    },
+    "pin": {
+      "pinPanel": "Pin panel",
+      "unpinPanel": "Unpin panel",
+      "doubleClickToPin": "Double click to pin",
+      "panelPinned": "Panel pinned",
+      "panelUnpinned": "Panel unpinned"
+    },
+    "user": {
+      "role": "Instructor",
+      "panel": "Panel"
+    }
+  }
+}

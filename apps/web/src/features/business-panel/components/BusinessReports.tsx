@@ -45,11 +45,13 @@ import {
 } from 'recharts'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslation } from 'react-i18next'
 
 // ============================================
 // REPORTE DE ANÃLISIS LIA (NUEVO)
 // ============================================
 function LiaAnalysisReport({ data }: { data: any }) {
+  const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const { user } = useAuth()
@@ -247,14 +249,14 @@ function LiaAnalysisReport({ data }: { data: any }) {
                     <img src="/Logo.png" alt="Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain' }} />
                 </div>
                 <div>
-                     <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0A2540', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>Reporte LIA</h1>
-                     <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0', fontWeight: '500' }}>Análisis Predictivo & Inteligencia Artificial</p>
+                     <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0A2540', margin: 0, textTransform: 'uppercase', letterSpacing: '1px' }}>{t('reports.liaAnalysis.pdfHeader')}</h1>
+                     <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0 0 0', fontWeight: '500' }}>{t('reports.liaAnalysis.pdfSubheader')}</p>
                 </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b', lineHeight: '1.5' }}>
-                <p style={{ margin: 0 }}><strong>Organización:</strong> {orgName}</p>
-                <p style={{ margin: 0 }}><strong>Generado por:</strong> {user?.display_name || 'Sistema SOFLIA'}</p>
-                <p style={{ margin: 0 }}><strong>Fecha de Emisión:</strong> {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                <p style={{ margin: 0 }}><strong>{t('reports.liaAnalysis.organization')}</strong> {orgName}</p>
+                <p style={{ margin: 0 }}><strong>{t('reports.liaAnalysis.generatedByLabel')}</strong> {user?.display_name || t('reports.liaAnalysis.systemName')}</p>
+                <p style={{ margin: 0 }}><strong>{t('reports.liaAnalysis.issueDate')}</strong> {new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
         </div>
 
@@ -280,7 +282,7 @@ function LiaAnalysisReport({ data }: { data: any }) {
 
         {/* Footer */}
         <div style={{ marginTop: 'auto', borderTop: '1px solid #e2e8f0', paddingTop: '15px', fontSize: '10px', color: '#94a3b8', textAlign: 'center', display: 'flex', justifyContent: 'space-between' }}>
-            <span>Confidencial - Uso exclusivo de {orgName}</span>
+            <span>{t('reports.liaAnalysis.confidential')} {orgName}</span>
             <span>SOFLIA | {new Date().getFullYear()}</span>
         </div>
       </div>
@@ -306,10 +308,10 @@ function LiaAnalysisReport({ data }: { data: any }) {
                         </div>
                         <div>
                             <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">
-                                Análisis Predictivo SOFLIA LIA
+                                {t('reports.liaAnalysis.title')}
                             </h2>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Reporte ejecutivo generado con Inteligencia Artificial
+                                {t('reports.liaAnalysis.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -329,7 +331,7 @@ function LiaAnalysisReport({ data }: { data: any }) {
                         ) : (
                             <Download className="w-4 h-4" />
                         )}
-                        {isDownloading ? 'Generando...' : 'Descargar PDF'}
+                        {isDownloading ? t('reports.actions.generating') : t('reports.actions.downloadPdf')}
                     </button>
                 </div>
 
@@ -358,7 +360,7 @@ function LiaAnalysisReport({ data }: { data: any }) {
                 </div>
                 
                 <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-400">
-                    <span>Generado por SOFLIA AI Engine</span>
+                    <span>{t('reports.liaAnalysis.generatedBy')}</span>
                     <span>{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
             </div>
@@ -368,19 +370,19 @@ function LiaAnalysisReport({ data }: { data: any }) {
       {/* Columna Lateral - Métricas Clave (Visible) */}
       <div className="space-y-4">
          <StatCard 
-            label="Total Usuarios" 
+            label={t('reports.liaMetrics.totalUsers')} 
             value={data.raw_data?.users?.total_users || 0} 
             icon={Users} 
             color={accentColor} 
          />
          <StatCard 
-            label="Cursos Activos" 
+            label={t('reports.liaMetrics.activeCourses')} 
             value={data.raw_data?.courses?.total_courses || 0} 
             icon={BarChart3} 
             color="#8b5cf6" 
          />
          <StatCard 
-            label="Certificados" 
+            label={t('reports.liaMetrics.certificates')} 
             value={data.raw_data?.certificates?.total_certificates || 0} 
             icon={Award} 
             color="#ec4899" 
@@ -389,23 +391,23 @@ function LiaAnalysisReport({ data }: { data: any }) {
          <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
             <h3 className="font-semibold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-gray-500">
                 <TrendingUp className="w-4 h-4" style={{ color: accentColor }} />
-                Actividad Reciente
+                {t('reports.liaMetrics.recentActivity')}
             </h3>
             <div className="h-40 w-full">
                 <ChartComponent />
             </div>
-            <p className="text-xs text-center mt-4 text-gray-400">Interracciones últimos 6 meses</p>
+            <p className="text-xs text-center mt-4 text-gray-400">{t('reports.liaMetrics.last6Months')}</p>
          </div>
       </div>
     </div>
   )
 }
 // Los colores se definirán dinámicamente basados en el accent color de la organización
-const getReportTypes = (accentColor: string) => [
-  { value: 'lia-analysis' as ReportType, label: 'Análisis LIA', icon: Sparkles, description: 'Análisis predictivo con IA', color: '#0EA5E9' },
-  { value: 'users' as ReportType, label: 'Usuarios', icon: Users, description: 'Información detallada de usuarios', color: accentColor },
-  { value: 'activity' as ReportType, label: 'Actividad', icon: Activity, description: 'Seguimiento de actividad reciente', color: '#10b981' },
-  { value: 'certificates' as ReportType, label: 'Certificados', icon: Award, description: 'Certificados emitidos', color: '#8b5cf6' }
+const getReportTypes = (accentColor: string, t: any) => [
+  { value: 'lia-analysis' as ReportType, label: t('reports.types.liaAnalysis.label'), icon: Sparkles, description: t('reports.types.liaAnalysis.description'), color: '#0EA5E9' },
+  { value: 'users' as ReportType, label: t('reports.types.users.label'), icon: Users, description: t('reports.types.users.description'), color: accentColor },
+  { value: 'activity' as ReportType, label: t('reports.types.activity.label'), icon: Activity, description: t('reports.types.activity.description'), color: '#10b981' },
+  { value: 'certificates' as ReportType, label: t('reports.types.certificates.label'), icon: Award, description: t('reports.types.certificates.description'), color: '#8b5cf6' }
 ]
 
 const getChartColors = (accentColor: string) => [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']
@@ -414,6 +416,7 @@ const getChartColors = (accentColor: string) => [accentColor, '#8b5cf6', '#10b98
 // COMPONENTE PRINCIPAL
 // ============================================
 export function BusinessReports() {
+  const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
@@ -428,7 +431,7 @@ export function BusinessReports() {
   const secondaryColor = panelStyles?.secondary_button_color || '#10b981'
 
   // Colores dinámicos basados en el accent de la organización
-  const REPORT_TYPES = getReportTypes(accentColor)
+  const REPORT_TYPES = getReportTypes(accentColor, t)
   const CHART_COLORS = getChartColors(accentColor)
 
   const {
@@ -472,7 +475,7 @@ export function BusinessReports() {
   // Exportar a Excel
   const handleExportExcel = async () => {
     if (!reportData?.data) {
-      alert('No hay datos para exportar.')
+      alert(t('reports.export.noData'))
       return
     }
     try {
@@ -540,7 +543,7 @@ export function BusinessReports() {
       XLSX.writeFile(workbook, filename)
     } catch (err) {
       console.error('Error al exportar Excel:', err)
-      alert('Error al exportar el reporte.')
+      alert(t('reports.export.error'))
     }
   }
 
@@ -592,7 +595,7 @@ export function BusinessReports() {
               className="text-sm font-bold tracking-widest uppercase drop-shadow-sm"
               style={{ color: 'rgba(219, 234, 254, 0.9)' }}
             >
-              Centro de Reportes
+              {t('reports.subtitle')}
             </span>
           </div>
           
@@ -600,15 +603,14 @@ export function BusinessReports() {
             className="text-3xl md:text-4xl font-bold mb-3 tracking-tight drop-shadow-md"
             style={{ color: '#FFFFFF' }}
           >
-            Reportes y Análisis
+            {t('reports.title')}
           </h1>
           
           <p 
             className="text-base max-w-2xl leading-relaxed drop-shadow-sm"
             style={{ color: '#EFF6FF' }}
           >
-            Genera reportes detallados de usuarios, actividad y certificados. 
-            Exporta los datos en formato Excel para un análisis más profundo.
+            {t('reports.description')}
           </p>
         </div>
       </motion.div>
@@ -688,7 +690,7 @@ export function BusinessReports() {
             } : {}}
           >
             <Filter className="w-4 h-4" />
-            Filtros
+            {t('reports.actions.filters')}
             {showFilters && <X className="w-4 h-4" />}
           </button>
           <button
@@ -697,7 +699,7 @@ export function BusinessReports() {
             className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50 bg-transparent border-gray-200 dark:border-slate-700/30 text-gray-700 dark:text-gray-300"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            {isLoading ? 'Generando...' : 'Actualizar'}
+            {isLoading ? t('reports.actions.generating') : t('reports.actions.update')}
           </button>
         </div>
         <div className="flex items-center gap-2">
@@ -711,7 +713,7 @@ export function BusinessReports() {
               }}
             >
               <FileSpreadsheet className="w-4 h-4 text-white" />
-              Exportar Excel
+              {t('reports.actions.exportExcel')}
             </button>
           )}
         </div>
@@ -731,11 +733,11 @@ export function BusinessReports() {
             >
               <h3 className="font-semibold flex items-center gap-2">
                 <Calendar className="w-4 h-4" style={{ color: accentColor }} />
-                Filtros de Fecha y Estado
+                {t('reports.filters.title')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">Fecha Inicio</label>
+                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.startDate')}</label>
                   <input
                     type="date"
                     value={localStartDate}
@@ -749,7 +751,7 @@ export function BusinessReports() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">Fecha Fin</label>
+                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.endDate')}</label>
                   <input
                     type="date"
                     value={localEndDate}
@@ -763,30 +765,30 @@ export function BusinessReports() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">Rol</label>
+                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.role')}</label>
                   <PremiumSelect
                     value={filters.role || 'all'}
                     onValueChange={(value) => setFilters({ ...filters, role: value as any })}
-                    placeholder="Seleccionar rol..."
+                    placeholder={t('reports.filters.selectRole')}
                     options={[
-                      { value: 'all', label: 'Todos' },
-                      { value: 'owner', label: 'Owner' },
-                      { value: 'admin', label: 'Admin' },
-                      { value: 'member', label: 'Miembro' }
+                      { value: 'all', label: t('reports.status.all') },
+                      { value: 'owner', label: t('reports.status.owner') },
+                      { value: 'admin', label: t('reports.status.admin') },
+                      { value: 'member', label: t('reports.status.member') }
                     ]}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">Estado</label>
+                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.status')}</label>
                   <PremiumSelect
                     value={filters.status || 'all'}
                     onValueChange={(value) => setFilters({ ...filters, status: value as any })}
-                    placeholder="Seleccionar estado..."
+                    placeholder={t('reports.filters.selectStatus')}
                     options={[
-                      { value: 'all', label: 'Todos' },
-                      { value: 'active', label: 'Activo' },
-                      { value: 'invited', label: 'Invitado' },
-                      { value: 'suspended', label: 'Suspendido' }
+                      { value: 'all', label: t('reports.status.all') },
+                      { value: 'active', label: t('reports.status.active') },
+                      { value: 'invited', label: t('reports.status.invited') },
+                      { value: 'suspended', label: t('reports.status.suspended') }
                     ]}
                   />
                 </div>
@@ -798,14 +800,14 @@ export function BusinessReports() {
                   className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-90 text-white disabled:opacity-50"
                   style={{ background: `linear-gradient(135deg, ${accentColor} 0%, ${secondaryColor} 100%)` }}
                 >
-                  Aplicar Filtros
+                  {t('reports.actions.applyFilters')}
                 </button>
                 <button
                   onClick={() => { resetFilters(); setLocalStartDate(''); setLocalEndDate('') }}
                   className="px-4 py-2 rounded-xl border text-sm font-medium transition-all hover:opacity-80"
                   style={{ borderColor: cardBorder, color: textColor }}
                 >
-                  Limpiar
+                  {t('reports.actions.clear')}
                 </button>
               </div>
             </div>
@@ -822,7 +824,7 @@ export function BusinessReports() {
         >
           <div className="inline-flex items-center gap-3">
             <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: primaryColor, borderTopColor: 'transparent' }} />
-            <span className="text-gray-500 dark:text-gray-400">Generando reporte...</span>
+            <span className="text-gray-500 dark:text-gray-400">{t('reports.messages.loading')}</span>
           </div>
         </motion.div>
       )}
@@ -856,6 +858,7 @@ export function BusinessReports() {
 // COMPONENTE DE CONTENIDO DEL REPORTE
 // ============================================
 function ReportContent({ reportType, data }: { reportType: ReportType; data: any }) {
+  const { t } = useTranslation('business')
   switch (reportType) {
     case 'users':
       return <UsersReport data={data} />
@@ -866,7 +869,7 @@ function ReportContent({ reportType, data }: { reportType: ReportType; data: any
     case 'lia-analysis':
       return <LiaAnalysisReport data={data} />
     default:
-      return <div className="opacity-70">Tipo de reporte no disponible</div>
+      return <div className="opacity-70">{t('reports.messages.unavailable')}</div>
   }
 }
 
@@ -874,6 +877,7 @@ function ReportContent({ reportType, data }: { reportType: ReportType; data: any
 // REPORTE DE USUARIOS
 // ============================================
 function UsersReport({ data }: { data: any }) {
+  const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
@@ -886,12 +890,12 @@ function UsersReport({ data }: { data: any }) {
   const CHART_COLORS = [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']
 
   const roleData = Object.entries(data.summary?.by_job_title || {}).map(([name, value]) => ({
-    name: name || 'Sin especificar',
+    name: name || t('reports.messages.unspecified'),
     value: value as number
   }))
 
   const statusData = Object.entries(data.summary?.by_status || {}).map(([name, value]) => ({
-    name: name === 'active' ? 'Activos' : name === 'invited' ? 'Invitados' : name === 'suspended' ? 'Suspendidos' : name,
+    name: name === 'active' ? t('reports.status.actives') : name === 'invited' ? t('reports.status.invitedPlural') : name === 'suspended' ? t('reports.status.suspendedPlural') : name,
     value: value as number
   }))
 
@@ -927,40 +931,40 @@ function UsersReport({ data }: { data: any }) {
   }
 
   const columns: ColumnDef<any>[] = [
-    { accessorKey: 'username', header: 'Username' },
-    { accessorKey: 'email', header: 'Email' },
-    { accessorKey: 'display_name', header: 'Nombre' },
-    { accessorKey: 'job_title', header: 'Cargo', cell: (info) => (
+    { accessorKey: 'username', header: t('reports.usersReport.columns.username') },
+    { accessorKey: 'email', header: t('reports.usersReport.columns.email') },
+    { accessorKey: 'display_name', header: t('reports.usersReport.columns.name') },
+    { accessorKey: 'job_title', header: t('reports.usersReport.columns.role'), cell: (info) => (
       <span className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
-        {(info.getValue() as string) || 'No especificado'}
+        {(info.getValue() as string) || t('reports.messages.unspecified')}
       </span>
     )},
-    { accessorKey: 'status', header: 'Estado', cell: (info) => {
+    { accessorKey: 'status', header: t('reports.usersReport.columns.status'), cell: (info) => {
       const status = info.getValue() as string
       const colors: Record<string, string> = { active: '#10b981', invited: '#f59e0b', suspended: '#ef4444' }
       return (
         <span className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: `${colors[status] || '#6b7280'}20`, color: colors[status] || '#6b7280' }}>
-          {status}
+          {status === 'active' ? t('reports.status.active') : status === 'invited' ? t('reports.status.invited') : status === 'suspended' ? t('reports.status.suspended') : status}
         </span>
       )
     }},
-    { accessorKey: 'joined_at', header: 'Ingreso', cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' }
+    { accessorKey: 'joined_at', header: t('reports.usersReport.columns.joinedAt'), cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' }
   ]
 
   return (
     <div className="space-y-6">
       {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label="Total Usuarios" value={data.total_users || 0} icon={Users} color={accentColor} />
-        <StatCard label="Usuarios Activos" value={data.summary?.by_status?.active || 0} icon={TrendingUp} color="#10b981" />
-        <StatCard label="Cargos Diferentes" value={Object.keys(data.summary?.by_job_title || {}).length} icon={Award} color="#8b5cf6" />
+        <StatCard label={t('reports.usersReport.stats.totalUsers')} value={data.total_users || 0} icon={Users} color={accentColor} />
+        <StatCard label={t('reports.usersReport.stats.activeUsers')} value={data.summary?.by_status?.active || 0} icon={TrendingUp} color="#10b981" />
+        <StatCard label={t('reports.usersReport.stats.differentRoles')} value={Object.keys(data.summary?.by_job_title || {}).length} icon={Award} color="#8b5cf6" />
       </div>
 
       {/* Gráficos */}
       {(roleData.length > 0 || statusData.length > 0) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {roleData.length > 0 && (
-            <ChartCard title="Distribución por Rol">
+            <ChartCard title={t('reports.usersReport.charts.roleDistribution')}>
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie data={roleData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
@@ -972,7 +976,7 @@ function UsersReport({ data }: { data: any }) {
             </ChartCard>
           )}
           {statusData.length > 0 && (
-            <ChartCard title="Distribución por Estado">
+            <ChartCard title={t('reports.usersReport.charts.statusDistribution')}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={statusData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} opacity={0.3} />
@@ -1006,6 +1010,7 @@ function UsersReport({ data }: { data: any }) {
 // REPORTE DE ACTIVIDAD
 // ============================================
 function ActivityReport({ data }: { data: any }) {
+  const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
@@ -1018,9 +1023,9 @@ function ActivityReport({ data }: { data: any }) {
   const CHART_COLORS = [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
 
   const statusData = [
-    { name: 'Activos', value: data.active_count || 0 },
-    { name: 'Completados', value: data.completed_count || 0 },
-    { name: 'Inactivos', value: data.inactive_count || 0 }
+    { name: t('reports.status.actives'), value: data.active_count || 0 },
+    { name: t('reports.status.completedPlural'), value: data.completed_count || 0 },
+    { name: t('reports.status.inactives'), value: data.inactive_count || 0 }
   ].filter(s => s.value > 0)
 
   // CustomTooltip para gráficos de pastel
@@ -1039,7 +1044,7 @@ function ActivityReport({ data }: { data: any }) {
           }}
         >
           <p style={{ color: textColor, margin: 0, fontWeight: 600 }}>
-            {data.name || 'Valor'}
+            {data.name || t('reports.messages.value')}
           </p>
           <p style={{ color: textColor, margin: '4px 0 0 0', fontWeight: 500 }}>
             {typeof data.value === 'number' 
@@ -1055,32 +1060,32 @@ function ActivityReport({ data }: { data: any }) {
   }
 
   const columns: ColumnDef<any>[] = [
-    { accessorKey: 'user_name', header: 'Usuario' },
-    { accessorKey: 'course_title', header: 'Curso' },
-    { accessorKey: 'enrollment_status', header: 'Estado', cell: (info) => {
+    { accessorKey: 'user_name', header: t('reports.activityReport.columns.user') },
+    { accessorKey: 'course_title', header: t('reports.activityReport.columns.course') },
+    { accessorKey: 'enrollment_status', header: t('reports.activityReport.columns.status'), cell: (info) => {
       const status = info.getValue() as string
       const colors: Record<string, string> = { active: '#10b981', completed: accentColor, inactive: '#6b7280' }
       return (
         <span className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: `${colors[status] || '#6b7280'}20`, color: colors[status] || '#6b7280' }}>
-          {status === 'active' ? 'Activo' : status === 'completed' ? 'Completado' : 'Inactivo'}
+          {status === 'active' ? t('reports.status.active') : status === 'completed' ? t('reports.status.completed') : t('reports.status.inactive')}
         </span>
       )
     }},
-    { accessorKey: 'enrolled_at', header: 'Inscripción', cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' },
-    { accessorKey: 'last_accessed_at', header: 'Último Acceso', cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' }
+    { accessorKey: 'enrolled_at', header: t('reports.activityReport.columns.enrolledAt'), cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' },
+    { accessorKey: 'last_accessed_at', header: t('reports.activityReport.columns.lastAccess'), cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' }
   ]
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard label="Total Actividades" value={data.total_activities || 0} icon={Activity} color={accentColor} />
-        <StatCard label="Usuarios" value={data.total_users || 0} icon={Users} color="#8b5cf6" />
-        <StatCard label="Activos" value={data.active_count || 0} icon={TrendingUp} color="#10b981" />
-        <StatCard label="Completados" value={data.completed_count || 0} icon={Award} color="#f59e0b" />
+        <StatCard label={t('reports.activityReport.stats.totalActivities')} value={data.total_activities || 0} icon={Activity} color={accentColor} />
+        <StatCard label={t('reports.activityReport.stats.users')} value={data.total_users || 0} icon={Users} color="#8b5cf6" />
+        <StatCard label={t('reports.activityReport.stats.actives')} value={data.active_count || 0} icon={TrendingUp} color="#10b981" />
+        <StatCard label={t('reports.activityReport.stats.completed')} value={data.completed_count || 0} icon={Award} color="#f59e0b" />
       </div>
 
       {statusData.length > 0 && (
-        <ChartCard title="Estado de Actividades">
+        <ChartCard title={t('reports.activityReport.charts.status')}>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={statusData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
@@ -1102,6 +1107,7 @@ function ActivityReport({ data }: { data: any }) {
 // REPORTE DE CERTIFICADOS
 // ============================================
 function CertificatesReport({ data }: { data: any }) {
+  const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
@@ -1112,16 +1118,16 @@ function CertificatesReport({ data }: { data: any }) {
   const cardBorder = isDark ? (panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)') : '#E2E8F0'
 
   const courseCertData = (data.certificates_by_course || []).slice(0, 8).map((c: any) => ({
-    name: (c.course_title || 'Curso').substring(0, 15),
+    name: (c.course_title || t('reports.certificatesReport.courseFallback')).substring(0, 15),
     certificados: c.count || 0
   }))
 
   const columns: ColumnDef<any>[] = [
-    { accessorKey: 'user_name', header: 'Usuario' },
-    { accessorKey: 'course_title', header: 'Curso' },
-    { accessorKey: 'course_category', header: 'Categoría', cell: (info) => info.getValue() || '-' },
-    { accessorKey: 'issued_at', header: 'Fecha Emisión', cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' },
-    { id: 'actions', header: 'Ver', cell: (info) => {
+    { accessorKey: 'user_name', header: t('reports.certificatesReport.columns.user') },
+    { accessorKey: 'course_title', header: t('reports.certificatesReport.columns.course') },
+    { accessorKey: 'course_category', header: t('reports.certificatesReport.columns.category'), cell: (info) => info.getValue() || '-' },
+    { accessorKey: 'issued_at', header: t('reports.certificatesReport.columns.issuedAt'), cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' },
+    { id: 'actions', header: t('reports.certificatesReport.columns.view'), cell: (info) => {
       const url = info.row.original.certificate_url
       return url ? (
         <button onClick={() => window.open(url, '_blank')} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
@@ -1134,13 +1140,13 @@ function CertificatesReport({ data }: { data: any }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label="Total Certificados" value={data.total_certificates || 0} icon={Award} color="#8b5cf6" />
-        <StatCard label="Usuarios Certificados" value={data.total_users_with_certificates || 0} icon={Users} color={accentColor} />
-        <StatCard label="Promedio por Usuario" value={data.total_users_with_certificates > 0 ? (data.total_certificates / data.total_users_with_certificates).toFixed(1) : '0'} icon={TrendingUp} color="#10b981" />
+        <StatCard label={t('reports.certificatesReport.stats.totalCertificates')} value={data.total_certificates || 0} icon={Award} color="#8b5cf6" />
+        <StatCard label={t('reports.certificatesReport.stats.certifiedUsers')} value={data.total_users_with_certificates || 0} icon={Users} color={accentColor} />
+        <StatCard label={t('reports.certificatesReport.stats.averagePerUser')} value={data.total_users_with_certificates > 0 ? (data.total_certificates / data.total_users_with_certificates).toFixed(1) : '0'} icon={TrendingUp} color="#10b981" />
       </div>
 
       {courseCertData.length > 0 && (
-        <ChartCard title="Certificados por Curso">
+        <ChartCard title={t('reports.certificatesReport.charts.byCourse')}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={courseCertData}>
               <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} opacity={0.3} />

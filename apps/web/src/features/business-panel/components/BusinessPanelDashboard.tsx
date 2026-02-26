@@ -20,9 +20,9 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useAuth } from '../../auth/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useThemeStore } from '../../../core/stores/themeStore'
 
 // ============================================
 // COMPONENTE: StatCard Premium
@@ -329,6 +329,7 @@ interface ActivityItemProps {
 }
 
 function ActivityItem({ title, description, user, timestamp, type, delay }: ActivityItemProps) {
+  const { t } = useTranslation('business')
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'user': return 'var(--org-primary-button-color, #0A2540)'
@@ -418,9 +419,9 @@ export function BusinessPanelDashboard() {
   // Funciones auxiliares
   const getGreeting = () => {
     const hour = currentTime.getHours()
-    if (hour < 12) return 'Buenos días'
-    if (hour < 18) return 'Buenas tardes'
-    return 'Buenas noches'
+    if (hour < 12) return t('dashboard.greetings.morning')
+    if (hour < 18) return t('dashboard.greetings.afternoon')
+    return t('dashboard.greetings.evening')
   }
 
   const getUserName = () => {
@@ -436,7 +437,7 @@ export function BusinessPanelDashboard() {
     if (user?.username) {
       return user.username
     }
-    return 'Usuario'
+    return t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' })
   }
 
   const formatTimestamp = (dateString: string): string => {
@@ -447,13 +448,13 @@ export function BusinessPanelDashboard() {
     const diffHours = Math.floor(diffMs / 3600000)
     const diffDays = Math.floor(diffMs / 86400000)
 
-    if (diffMins < 1) return 'Ahora'
-    if (diffMins < 60) return `Hace ${diffMins} minuto${diffMins > 1 ? 's' : ''}`
-    if (diffHours < 24) return `Hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`
-    if (diffDays === 1) return 'Ayer'
-    if (diffDays < 7) return `Hace ${diffDays} días`
+    if (diffMins < 1) return t('dashboard.recentActivity.time.justNow')
+    if (diffMins < 60) return t('dashboard.recentActivity.time.minsAgo', { time: diffMins })
+    if (diffHours < 24) return t('dashboard.recentActivity.time.hoursAgo', { time: diffHours })
+    if (diffDays === 1) return t('dashboard.recentActivity.time.daysAgo', { time: 1 })
+    if (diffDays < 7) return t('dashboard.recentActivity.time.daysAgo', { time: diffDays })
 
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    return date.toLocaleDateString(t('dashboard.recentActivity.time.locale', { defaultValue: 'es-ES' }), { day: 'numeric', month: 'short' })
   }
 
   // Cargar estadísticas del dashboard
@@ -500,10 +501,10 @@ export function BusinessPanelDashboard() {
         if (data.success && data.activities) {
           // Mapear el formato de la API al formato esperado por el componente
           const mappedActivities = data.activities.map((activity: any) => ({
-            title: activity.action || 'Actividad',
-            description: activity.action || 'Sin descripción',
-            user: activity.user || 'Usuario',
-            timestamp: activity.time || 'Hace un momento', // La API ya devuelve el tiempo formateado
+            title: activity.action || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
+            description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' }),
+            user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
+            timestamp: activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }), // La API ya devuelve el tiempo formateado
             type: activity.icon === 'CheckCircle' ? 'certificate' :
               activity.icon === 'Users' ? 'user' :
                 activity.icon === 'BookOpen' ? 'course' : 'progress'
@@ -832,10 +833,10 @@ export function BusinessPanelDashboard() {
                   {activities.map((activity, index) => (
                     <div key={index} style={{ borderBottom: index < activities.length - 1 ? `1px solid ${themeColors.borderColor}1A` : 'none' }}>
                       <ActivityItem
-                        title={activity.title || 'Actividad'}
-                        description={activity.description || 'Sin descripción'}
-                        user={activity.user || 'Usuario'}
-                        timestamp={activity.timestamp || 'Hace un momento'}
+                        title={activity.title || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' })}
+                        description={activity.description || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' })}
+                        user={activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' })}
+                        timestamp={activity.timestamp || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' })}
                         type={activity.type || 'system'}
                         delay={index}
                       />
@@ -909,14 +910,14 @@ export function BusinessPanelDashboard() {
                 <div className="flex justify-between text-sm">
                   <span style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.8 }}>{t('dashboard.systemHealth.courses')}</span>
                   <span className="font-medium" style={{ color: '#00D4B3' }}>
-                    {typeof stats?.assignedCourses === 'object' ? stats.assignedCourses.value : (stats?.assignedCourses || 0)} asignados
+                    {typeof stats?.assignedCourses === 'object' ? stats.assignedCourses.value : (stats?.assignedCourses || 0)} {t('dashboard.systemHealth.coursesAssigned', { defaultValue: 'asignados' })}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm items-center">
-                  <span style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.8 }}>Sistema</span>
+                  <span style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.8 }}>{t('dashboard.systemHealth.systemLabel', { defaultValue: 'Sistema' })}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#00D4B3' }} />
-                    <span className="font-medium" style={{ color: '#00D4B3' }}>Operativo</span>
+                    <span className="font-medium" style={{ color: '#00D4B3' }}>{t('dashboard.systemHealth.operationalLabel', { defaultValue: 'Operativo' })}</span>
                   </div>
                 </div>
               </div>

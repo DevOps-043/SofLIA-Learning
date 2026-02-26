@@ -265,10 +265,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2"
+                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-white/20"
                           style={{
-                            background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))',
-                            ringColor: 'rgba(255, 255, 255, 0.2)'
+                            background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))'
                           }}
                         >
                           {userProfile?.profile_picture_url || user?.profile_picture_url ? (
@@ -296,7 +295,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                             className="text-xs truncate opacity-70"
                             style={{ color: navbarStyle.color || undefined }}
                           >
-                            Administrador
+                            {t('business:header.administratorRole', { defaultValue: 'Administrador' })}
                           </p>
                         </div>
                       </div>
@@ -327,7 +326,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                       >
                         <Building2 className="h-4 w-4 opacity-70" />
-                        <span>Mis organizaciones</span>
+                        <span>{t('business:header.myOrganizations', { defaultValue: 'Mis organizaciones' })}</span>
                       </motion.button>
 
                       <motion.button
