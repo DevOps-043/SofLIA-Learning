@@ -266,42 +266,34 @@ export async function POST(request: Request) {
             slug = courseData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now().toString().slice(-4)
         }
 
-        // Verificar duplicado
-        const { data: existingSlug } = await supabase
-            .from('courses')
-            .select('id')
-            .eq('slug', slug)
-            .single()
+        // 5. Upsert Transaccional (Secuencial simulada)
 
-        if (existingSlug) {
-            slug = slug + '-' + Math.floor(Math.random() * 1000)
-        }
-
-        // 5. Inserción Transaccional (Secuencial simulada)
-
-        // A. Crear Curso
-        console.log('[IMPORT API] Inserting Course...');
+        // A. Upsert Curso (idempotente por slug — soporta re-publicaciones)
+        console.log('[IMPORT API] Upserting Course...');
         const { data: newCourse, error: createError } = await supabase
             .from('courses')
-            .insert({
-                title: courseData.title,
-                description: courseData.description,
-                category: courseData.category,
-                level: courseData.level,
-                instructor_id: instructorId,
-                thumbnail_url: courseData.thumbnail_url,
-                slug: slug,
-                price: 0,
-                is_active: false,
-                approval_status: 'pending',
-                learning_objectives: [],
-            })
+            .upsert(
+                {
+                    title: courseData.title,
+                    description: courseData.description,
+                    category: courseData.category,
+                    level: courseData.level,
+                    instructor_id: instructorId,
+                    thumbnail_url: courseData.thumbnail_url,
+                    slug: slug,
+                    price: 0,
+                    is_active: false,
+                    approval_status: 'pending',
+                    learning_objectives: [],
+                },
+                { onConflict: 'slug' }
+            )
             .select()
             .single()
 
         if (createError) {
-            console.error('[IMPORT API] Error creating course:', createError)
-            return NextResponse.json({ error: 'Failed to create course', details: createError.message }, { status: 500 })
+            console.error('[IMPORT API] Error upserting course:', createError)
+            return NextResponse.json({ error: 'Failed to upsert course', details: createError.message }, { status: 500 })
         }
 
         // B. Crear Módulos y Lecciones
