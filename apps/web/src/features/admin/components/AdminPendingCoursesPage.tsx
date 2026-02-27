@@ -183,7 +183,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                             >
                                 <div className="h-48 relative bg-gray-200 dark:bg-gray-800">
                                     <CourseThumbnail thumbnailUrl={course.thumbnail_url} title={course.title} />
-                                    <div className="absolute top-4 right-4">
+                                    <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
                                         {course.approval_status === 'rejected' ? (
                                             <span className="bg-[#EF4444]/10 text-[#EF4444] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/20">
                                                 Rechazado
@@ -191,6 +191,15 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                         ) : (
                                             <span className="bg-[#F59E0B]/10 text-[#F59E0B] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/20">
                                                 Pendiente
+                                            </span>
+                                        )}
+                                        {course.is_update ? (
+                                            <span className="bg-[#3B82F6]/10 text-[#3B82F6] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/20">
+                                                Actualización
+                                            </span>
+                                        ) : (
+                                            <span className="bg-[#10B981]/10 text-[#10B981] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/20">
+                                                Nuevo
                                             </span>
                                         )}
                                     </div>

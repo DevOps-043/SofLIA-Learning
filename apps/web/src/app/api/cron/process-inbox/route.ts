@@ -147,6 +147,7 @@ async function processInboxItem(
     const slug = courseData.slug || item.course_slug
 
     // UPSERT curso (por slug)
+    // approval_status siempre se resetea a 'pending' para que aparezca en Revisiones
     const { data: course, error: courseError } = await supabase
         .from('courses')
         .upsert(
@@ -160,6 +161,8 @@ async function processInboxItem(
                 slug,
                 price: 0,
                 is_active: false,
+                approval_status: 'pending',
+                updated_at: new Date().toISOString(),
             },
             { onConflict: 'slug' }
         )

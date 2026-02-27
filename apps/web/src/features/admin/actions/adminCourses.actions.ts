@@ -24,6 +24,7 @@ export interface AdminCourse {
     instructor_name?: string
     duration_hours?: number
     approval_status?: 'pending' | 'approved' | 'rejected'
+    is_update?: boolean
 }
 
 export async function getPendingCourses(): Promise<AdminCourse[]> {
@@ -61,13 +62,36 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
         throw new Error(error.message)
     }
 
-    const formattedCourses = data?.map((course: any) => ({
-        ...course,
-        instructor_name: course.users
-            ? `${(course.users as any).first_name} ${(course.users as any).last_name}`
-            : 'Desconocido',
-        duration_hours: course.duration_total_minutes ? Math.round((course.duration_total_minutes / 60) * 10) / 10 : 0
-    })) as AdminCourse[]
+    // Fetch inbox entries to determine new vs update
+    const slugs = data?.map((c: any) => c.slug).filter(Boolean) ?? []
+    let inboxMap: Record<string, { created_at: string; updated_at: string }> = {}
+
+    if (slugs.length > 0) {
+        const { data: inboxRows } = await supabase
+            .from('courseengine_inbox')
+            .select('course_slug, created_at, updated_at')
+            .in('course_slug', slugs)
+
+        inboxRows?.forEach((row: any) => {
+            inboxMap[row.course_slug] = { created_at: row.created_at, updated_at: row.updated_at }
+        })
+    }
+
+    const formattedCourses = data?.map((course: any) => {
+        const inbox = inboxMap[course.slug]
+        const isUpdate = inbox
+            ? Math.abs(new Date(inbox.updated_at).getTime() - new Date(inbox.created_at).getTime()) > 60_000
+            : false
+
+        return {
+            ...course,
+            instructor_name: course.users
+                ? `${(course.users as any).first_name} ${(course.users as any).last_name}`
+                : 'Desconocido',
+            duration_hours: course.duration_total_minutes ? Math.round((course.duration_total_minutes / 60) * 10) / 10 : 0,
+            is_update: isUpdate
+        }
+    }) as AdminCourse[]
 
     return formattedCourses
 }
@@ -191,12 +215,36 @@ export async function approveCourse(courseId: string, adminId: string): Promise<
 export async function rejectCourse(courseId: string, reason: string): Promise<boolean> {
     const supabase = await createClient()
 
+    // Check if this is an update (course previously published) by looking at the inbox
+    const { data: courseRow } = await supabase
+        .from('courses')
+        .select('slug')
+        .eq('id', courseId)
+        .single()
+
+    let isUpdate = false
+    if (courseRow?.slug) {
+        const { data: inboxRow } = await supabase
+            .from('courseengine_inbox')
+            .select('created_at, updated_at')
+            .eq('course_slug', courseRow.slug)
+            .single()
+
+        if (inboxRow) {
+            isUpdate = Math.abs(
+                new Date(inboxRow.updated_at).getTime() - new Date(inboxRow.created_at).getTime()
+            ) > 60_000
+        }
+    }
+
+    // For updates: keep course published (don't take it offline), just log the rejection note
+    // For new courses: normal rejection (offline + rejected status)
     const { error } = await supabase
         .from('courses')
         .update({
-            approval_status: 'rejected',
+            approval_status: isUpdate ? 'approved' : 'rejected',
+            is_active: isUpdate ? true : false,
             rejection_reason: reason,
-            is_active: false
         })
         .eq('id', courseId)
 
