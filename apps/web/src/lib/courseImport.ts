@@ -76,7 +76,7 @@ export async function applyPayloadToCourse(
     const modules: any[] = payload.modules ?? []
 
     for (const mod of modules) {
-        const moduleOrderIndex = mod.order_index + 1
+        const moduleOrderIndex = mod.order_index;
 
         const { data: newModule, error: modError } = await supabase
             .from('course_modules')
@@ -97,7 +97,7 @@ export async function applyPayloadToCourse(
         if (modError) throw new Error(`Module upsert failed (order ${moduleOrderIndex}): ${modError.message}`)
 
         for (const lesson of (mod.lessons ?? [])) {
-            const lessonOrderIndex = lesson.order_index + 1
+            const lessonOrderIndex = lesson.order_index;
             const videoInfo = extractVideoInfo(lesson.video_url ?? '')
 
             const { data: newLesson, error: lessonError } = await supabase
@@ -259,14 +259,14 @@ export function buildCoursePreviewFromPayload(staging: any) {
         modules: modules.map((mod: any, modIdx: number) => ({
             module_id: `staging-mod-${modIdx}`,
             module_title: mod.title,
-            module_order_index: mod.order_index + 1,
+            module_order_index: mod.order_index,
             is_published: false,
             lessons: (mod.lessons ?? []).map((lesson: any, lesIdx: number) => {
                 const videoInfo = extractVideoInfo(lesson.video_url ?? '')
                 return {
                     lesson_id: `staging-les-${modIdx}-${lesIdx}`,
                     lesson_title: lesson.title,
-                    lesson_order_index: lesson.order_index + 1,
+                    lesson_order_index: lesson.order_index,
                     duration_seconds: lesson.duration || 60,
                     video_provider: videoInfo.provider,
                     video_provider_id: videoInfo.id || null,

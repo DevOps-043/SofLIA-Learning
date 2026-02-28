@@ -324,12 +324,7 @@ function LessonItem({ lesson }: { lesson: any }) {
                 <div className="bg-gray-50 dark:bg-gray-800/30 p-4 border-t border-gray-100 dark:border-gray-800">
                     {/* Video Preview */}
                     <div className="mb-6 bg-black rounded-lg overflow-hidden aspect-video max-w-2xl mx-auto">
-                        <iframe
-                            src={`https://www.youtube.com/embed/${getYouTubeID(lesson.video_provider_id || '')}`}
-                            className="w-full h-full"
-                            frameBorder="0"
-                            allowFullScreen
-                        />
+                        <VideoPlayer provider={lesson.video_provider} providerId={lesson.video_provider_id} />
                     </div>
 
                     {/* Tabs */}
@@ -381,6 +376,50 @@ function getYouTubeID(url: string) {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : url;
+}
+
+function getVimeoID(url: string) {
+    if (!url) return ''
+    const match = url.match(/(?:www\.|player\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^\/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)(?:[a-zA-Z0-9_\-]+)?/i);
+    return match ? match[1] : url;
+}
+
+function VideoPlayer({ provider, providerId }: { provider: string, providerId: string }) {
+    const id = providerId || '';
+    if (!id) return <div className="w-full h-full flex items-center justify-center bg-gray-900 text-gray-500">Video no disponible</div>
+
+    if (provider === 'youtube') {
+        return (
+            <iframe
+                src={`https://www.youtube.com/embed/${getYouTubeID(id)}`}
+                className="w-full h-full"
+                frameBorder="0"
+                allowFullScreen
+            />
+        )
+    }
+
+    if (provider === 'vimeo') {
+        return (
+            <iframe
+                src={`https://player.vimeo.com/video/${getVimeoID(id)}`}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowFullScreen
+            />
+        )
+    }
+
+    // fallback for direct, custom, or any mp4
+    return (
+        <video
+            src={id}
+            className="w-full h-full object-contain"
+            controls
+            controlsList="nodownload"
+        />
+    )
 }
 
 function ActivityItem({ activity }: { activity: any }) {
@@ -775,12 +814,7 @@ function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
 
                     {/* Video Preview */}
                     <div className="mb-6 bg-black rounded-lg overflow-hidden aspect-video max-w-2xl mx-auto">
-                        <iframe
-                            src={`https://www.youtube.com/embed/${getYouTubeID(displayLesson.video_provider_id || '')}`}
-                            className="w-full h-full"
-                            frameBorder="0"
-                            allowFullScreen
-                        />
+                        <VideoPlayer provider={displayLesson.video_provider} providerId={displayLesson.video_provider_id} />
                     </div>
 
                     {/* Tabs */}

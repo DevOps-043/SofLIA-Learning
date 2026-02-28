@@ -55,6 +55,10 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'drive.google.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'r2cdn.perplexity.ai',
       },
     ],
