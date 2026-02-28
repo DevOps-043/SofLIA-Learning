@@ -14,11 +14,17 @@ import {
     QuestionMarkCircleIcon,
     ClockIcon,
     TrashIcon,
-    ArrowPathIcon
+    ArrowPathIcon,
+    PlusCircleIcon,
+    MinusCircleIcon,
+    ArrowsRightLeftIcon,
+    EyeIcon,
+    EyeSlashIcon,
 } from '@heroicons/react/24/outline'
 import { useAdminCourseDetail } from '../hooks/useAdminCourseDetail'
 import { ConfirmationModal } from './ConfirmationModal'
 import { createClient } from '../../../lib/supabase/client'
+import type { DiffStatus, CourseDiff, DiffModule, DiffLesson, FieldChange } from '../../../lib/courseDiff'
 
 interface AdminPendingCourseDetailPageProps {
     courseId: string
@@ -34,6 +40,7 @@ export function AdminPendingCourseDetailPage({
     const [showApproveModal, setShowApproveModal] = useState(false)
     const [showRejectModal, setShowRejectModal] = useState(false)
     const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showDiffView, setShowDiffView] = useState(true)
 
     const handleApprove = async () => {
         // La validación de usuario se hace ahora en el server action para mayor robustez
@@ -80,6 +87,8 @@ export function AdminPendingCourseDetailPage({
     if (!course) return <div className="p-8">Curso no encontrado</div>
 
     const isRejected = course.approval_status === 'rejected'
+    const hasDiff = !!course.diff
+    const diff: CourseDiff | undefined = course.diff
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
@@ -99,8 +108,25 @@ export function AdminPendingCourseDetailPage({
                         {course.thumbnail_url && (
                             <img src={course.thumbnail_url} alt="Portada" className="w-full h-full object-cover" />
                         )}
-                        <div className={`absolute top-2 right-2 px-2 py-1 text-xs font-bold rounded ${isRejected ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-800'}`}>
-                            {course.approval_status?.toUpperCase()}
+                        <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
+                            {course.approval_status === 'rejected' ? (
+                                <span className="backdrop-blur-md bg-[#EF4444]/20 dark:bg-[#EF4444]/30 text-[#EF4444] dark:text-[#FCA5A5] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/30 dark:border-[#EF4444]/40 uppercase tracking-widest">
+                                    Rechazado
+                                </span>
+                            ) : (
+                                <span className="backdrop-blur-md bg-[#F59E0B]/20 dark:bg-[#F59E0B]/30 text-[#F59E0B] dark:text-[#FCD34D] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/30 dark:border-[#F59E0B]/40 uppercase tracking-widest">
+                                    Pendiente
+                                </span>
+                            )}
+                            {course.is_update ? (
+                                <span className="backdrop-blur-md bg-[#3B82F6]/20 dark:bg-[#3B82F6]/30 text-[#3B82F6] dark:text-[#93C5FD] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/30 dark:border-[#3B82F6]/40 uppercase tracking-widest">
+                                    Actualización
+                                </span>
+                            ) : (
+                                <span className="backdrop-blur-md bg-[#10B981]/20 dark:bg-[#10B981]/30 text-[#10B981] dark:text-[#6EE7B7] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/30 dark:border-[#10B981]/40 uppercase tracking-widest">
+                                    Nuevo
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className="flex-1">
@@ -143,6 +169,26 @@ export function AdminPendingCourseDetailPage({
                 </div>
             </div>
 
+            {/* Diff Summary Banner */}
+            {hasDiff && diff && (
+                <DiffSummaryBanner diff={diff} showDiffView={showDiffView} onToggle={() => setShowDiffView(!showDiffView)} />
+            )}
+
+            {/* Course-level field changes */}
+            {hasDiff && diff && showDiffView && diff.courseChanges.length > 0 && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-6">
+                    <h3 className="text-sm font-semibold text-yellow-800 dark:text-yellow-300 mb-2 flex items-center gap-2">
+                        <ArrowsRightLeftIcon className="h-4 w-4" />
+                        Cambios en datos generales del curso
+                    </h3>
+                    <div className="space-y-1">
+                        {diff.courseChanges.map((change) => (
+                            <FieldChangeRow key={change.field} change={change} />
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Contenido (Syllabus) */}
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 <BookOpenIcon className="h-6 w-6 text-blue-500" />
@@ -150,20 +196,28 @@ export function AdminPendingCourseDetailPage({
             </h2>
 
             <div className="space-y-4 mb-8">
-                {course.modules?.map((mod: any) => (
-                    <div key={mod.module_id} className="bg-white dark:bg-[#1E2329] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                        <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                            <h3 className="font-semibold text-gray-800 dark:text-gray-200">
-                                Módulo {mod.module_order_index}: {mod.module_title}
-                            </h3>
+                {hasDiff && diff && showDiffView ? (
+                    // ── Diff-aware rendering ─────────────────────────────
+                    diff.modules.map((dm, idx) => (
+                        <DiffModuleItem key={`diff-mod-${idx}`} diffModule={dm} />
+                    ))
+                ) : (
+                    // ── Normal rendering (no diff or final-version view) ─
+                    course.modules?.map((mod: any) => (
+                        <div key={mod.module_id} className="bg-white dark:bg-[#1E2329] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                            <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                                <h3 className="font-semibold text-gray-800 dark:text-gray-200">
+                                    Módulo {mod.module_order_index}: {mod.module_title}
+                                </h3>
+                            </div>
+                            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                                {mod.lessons?.map((lesson: any) => (
+                                    <LessonItem key={lesson.lesson_id} lesson={lesson} />
+                                ))}
+                            </div>
                         </div>
-                        <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                            {mod.lessons?.map((lesson: any) => (
-                                <LessonItem key={lesson.lesson_id} lesson={lesson} />
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                    ))
+                )}
             </div>
 
             {/* Barra de Acciones Fija (o al final) */}
@@ -517,6 +571,255 @@ function MaterialItem({ material }: { material: any }) {
                     </div>
                 )}
             </div>
+        </div>
+    )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DIFF COMPONENTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const diffColors: Record<DiffStatus, { bg: string; text: string; border: string; label: string }> = {
+    added:     { bg: 'bg-green-100 dark:bg-green-900/20', text: 'text-green-700 dark:text-green-400', border: 'border-green-400 dark:border-green-600', label: 'Nuevo' },
+    removed:   { bg: 'bg-red-100 dark:bg-red-900/20',     text: 'text-red-700 dark:text-red-400',     border: 'border-red-400 dark:border-red-600',   label: 'Eliminado' },
+    modified:  { bg: 'bg-yellow-100 dark:bg-yellow-900/20', text: 'text-yellow-700 dark:text-yellow-400', border: 'border-yellow-400 dark:border-yellow-600', label: 'Modificado' },
+    unchanged: { bg: '', text: 'text-gray-400', border: 'border-transparent', label: '' },
+}
+
+function DiffBadge({ status }: { status: DiffStatus }) {
+    if (status === 'unchanged') return null
+    const c = diffColors[status]
+    const Icon = status === 'added' ? PlusCircleIcon : status === 'removed' ? MinusCircleIcon : ArrowsRightLeftIcon
+    return (
+        <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded ${c.bg} ${c.text}`}>
+            <Icon className="h-3 w-3" />
+            {c.label}
+        </span>
+    )
+}
+
+function DiffSummaryBanner({ diff, showDiffView, onToggle }: { diff: CourseDiff; showDiffView: boolean; onToggle: () => void }) {
+    const { summary } = diff
+    const totalChanges = summary.modulesAdded + summary.modulesRemoved + summary.modulesModified +
+                         summary.lessonsAdded + summary.lessonsRemoved + summary.lessonsModified
+
+    return (
+        <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2">
+                    <ArrowsRightLeftIcon className="h-5 w-5" />
+                    Resumen de Cambios ({totalChanges} {totalChanges === 1 ? 'cambio' : 'cambios'})
+                </h3>
+                <button
+                    onClick={onToggle}
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-800/50 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                >
+                    {showDiffView ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
+                    {showDiffView ? 'Ver Versión Final' : 'Ver Cambios'}
+                </button>
+            </div>
+            <div className="flex flex-wrap gap-3 text-xs">
+                {summary.modulesAdded > 0 && (
+                    <span className="flex items-center gap-1 text-green-700 dark:text-green-400">
+                        <PlusCircleIcon className="h-4 w-4" /> {summary.modulesAdded} {summary.modulesAdded === 1 ? 'módulo nuevo' : 'módulos nuevos'}
+                    </span>
+                )}
+                {summary.modulesRemoved > 0 && (
+                    <span className="flex items-center gap-1 text-red-700 dark:text-red-400">
+                        <MinusCircleIcon className="h-4 w-4" /> {summary.modulesRemoved} {summary.modulesRemoved === 1 ? 'módulo eliminado' : 'módulos eliminados'}
+                    </span>
+                )}
+                {summary.modulesModified > 0 && (
+                    <span className="flex items-center gap-1 text-yellow-700 dark:text-yellow-400">
+                        <ArrowsRightLeftIcon className="h-4 w-4" /> {summary.modulesModified} {summary.modulesModified === 1 ? 'módulo modificado' : 'módulos modificados'}
+                    </span>
+                )}
+                {summary.lessonsAdded > 0 && (
+                    <span className="flex items-center gap-1 text-green-700 dark:text-green-400">
+                        <PlusCircleIcon className="h-4 w-4" /> {summary.lessonsAdded} {summary.lessonsAdded === 1 ? 'lección nueva' : 'lecciones nuevas'}
+                    </span>
+                )}
+                {summary.lessonsRemoved > 0 && (
+                    <span className="flex items-center gap-1 text-red-700 dark:text-red-400">
+                        <MinusCircleIcon className="h-4 w-4" /> {summary.lessonsRemoved} {summary.lessonsRemoved === 1 ? 'lección eliminada' : 'lecciones eliminadas'}
+                    </span>
+                )}
+                {summary.lessonsModified > 0 && (
+                    <span className="flex items-center gap-1 text-yellow-700 dark:text-yellow-400">
+                        <ArrowsRightLeftIcon className="h-4 w-4" /> {summary.lessonsModified} {summary.lessonsModified === 1 ? 'lección modificada' : 'lecciones modificadas'}
+                    </span>
+                )}
+                {totalChanges === 0 && (
+                    <span className="text-gray-500">Sin cambios detectados en la estructura del curso.</span>
+                )}
+            </div>
+        </div>
+    )
+}
+
+const fieldLabels: Record<string, string> = {
+    title: 'Título',
+    description: 'Descripción',
+    level: 'Nivel',
+    category: 'Categoría',
+    thumbnail_url: 'Imagen',
+    module_title: 'Título del módulo',
+    lesson_title: 'Título de la lección',
+    video_provider_id: 'Video',
+    duration_seconds: 'Duración (seg)',
+    transcript_content: 'Transcripción',
+    summary_content: 'Resumen',
+}
+
+function FieldChangeRow({ change }: { change: FieldChange }) {
+    const label = fieldLabels[change.field] || change.field
+    const isLongText = (typeof change.oldValue === 'string' && change.oldValue.length > 80) ||
+                       (typeof change.newValue === 'string' && change.newValue.length > 80)
+
+    const truncate = (val: any) => {
+        if (val === null || val === undefined) return '(vacío)'
+        const str = String(val)
+        return str.length > 100 ? str.substring(0, 100) + '…' : str
+    }
+
+    return (
+        <div className="flex items-start gap-2 text-xs">
+            <span className="font-medium text-gray-600 dark:text-gray-400 min-w-[100px] shrink-0">{label}:</span>
+            <span className="line-through text-red-500 dark:text-red-400">{truncate(change.oldValue)}</span>
+            <span className="text-gray-400">→</span>
+            <span className="text-green-600 dark:text-green-400 font-medium">{truncate(change.newValue)}</span>
+        </div>
+    )
+}
+
+function DiffModuleItem({ diffModule }: { diffModule: DiffModule }) {
+    const c = diffColors[diffModule.status]
+    const isRemoved = diffModule.status === 'removed'
+
+    return (
+        <div className={`rounded-xl border-l-4 ${c.border} overflow-hidden ${isRemoved ? 'opacity-60' : ''}`}>
+            <div className={`bg-white dark:bg-[#1E2329] rounded-r-xl border border-l-0 border-gray-200 dark:border-gray-700 overflow-hidden`}>
+                <div className={`bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between`}>
+                    <div className="flex items-center gap-3">
+                        <h3 className={`font-semibold ${isRemoved ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                            {diffModule.module_title}
+                        </h3>
+                        <DiffBadge status={diffModule.status} />
+                    </div>
+                    {diffModule.original_title && (
+                        <span className="text-xs text-gray-400 italic">antes: {diffModule.original_title}</span>
+                    )}
+                </div>
+
+                {/* Module-level field changes */}
+                {diffModule.changes.length > 0 && (
+                    <div className="px-6 py-2 bg-yellow-50/50 dark:bg-yellow-900/5 border-b border-gray-100 dark:border-gray-800">
+                        {diffModule.changes.map((ch) => (
+                            <FieldChangeRow key={ch.field} change={ch} />
+                        ))}
+                    </div>
+                )}
+
+                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {diffModule.lessons.map((dl, idx) => (
+                        <DiffLessonItem key={`diff-les-${idx}`} diffLesson={dl} />
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+
+function DiffLessonItem({ diffLesson }: { diffLesson: DiffLesson }) {
+    const [isExpanded, setIsExpanded] = useState(false)
+    const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'activities' | 'materials'>('summary')
+    const c = diffColors[diffLesson.status]
+    const isRemoved = diffLesson.status === 'removed'
+    const displayLesson = diffLesson.proposed ?? diffLesson.original
+
+    if (!displayLesson) return null
+
+    return (
+        <div className={`border-b border-gray-100 dark:border-gray-800 last:border-0 ${isRemoved ? 'opacity-60' : ''}`}>
+            <div
+                onClick={() => setIsExpanded(!isExpanded)}
+                className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer flex items-center gap-3 ${c.bg}`}
+            >
+                <div className={`p-2 rounded-lg ${diffLesson.status === 'added' ? 'bg-green-100 dark:bg-green-900/30' : diffLesson.status === 'removed' ? 'bg-red-100 dark:bg-red-900/30' : 'bg-blue-100 dark:bg-blue-900/30'}`}>
+                    <PlayCircleIcon className={`h-5 w-5 ${diffLesson.status === 'added' ? 'text-green-600 dark:text-green-400' : diffLesson.status === 'removed' ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`} />
+                </div>
+                <div className="flex-1">
+                    <h4 className={`font-medium ${isRemoved ? 'line-through text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                        {diffLesson.lesson_title}
+                    </h4>
+                    {diffLesson.original_title && (
+                        <p className="text-[10px] text-gray-400 italic">antes: {diffLesson.original_title}</p>
+                    )}
+                    <p className="text-xs text-gray-500">{displayLesson.duration_seconds} seg • {displayLesson.video_provider}</p>
+                </div>
+                <DiffBadge status={diffLesson.status} />
+                <ChevronLeftIcon className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
+            </div>
+
+            {isExpanded && !isRemoved && (
+                <div className="bg-gray-50 dark:bg-gray-800/30 p-4 border-t border-gray-100 dark:border-gray-800">
+                    {/* Field-level changes for this lesson */}
+                    {diffLesson.changes.length > 0 && (
+                        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                            <p className="text-xs font-semibold text-yellow-700 dark:text-yellow-400 mb-1">Cambios en esta lección:</p>
+                            {diffLesson.changes.map((ch) => (
+                                <FieldChangeRow key={ch.field} change={ch} />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Video Preview */}
+                    <div className="mb-6 bg-black rounded-lg overflow-hidden aspect-video max-w-2xl mx-auto">
+                        <iframe
+                            src={`https://www.youtube.com/embed/${getYouTubeID(displayLesson.video_provider_id || '')}`}
+                            className="w-full h-full"
+                            frameBorder="0"
+                            allowFullScreen
+                        />
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
+                        <button onClick={() => setActiveTab('summary')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'summary' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Resumen</button>
+                        <button onClick={() => setActiveTab('transcript')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'transcript' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Transcripción</button>
+                        <button onClick={() => setActiveTab('activities')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'activities' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Actividades ({displayLesson.activities?.length || 0})</button>
+                        <button onClick={() => setActiveTab('materials')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'materials' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Materiales ({displayLesson.materials?.length || 0})</button>
+                    </div>
+
+                    {/* Tab Content */}
+                    <div className="bg-white dark:bg-[#1E2329] p-4 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[150px]">
+                        {activeTab === 'summary' && (
+                            <div className="prose dark:prose-invert max-w-none text-sm">
+                                {displayLesson.summary_content ? displayLesson.summary_content : <p className="text-gray-400 italic">No hay resumen disponible.</p>}
+                            </div>
+                        )}
+                        {activeTab === 'transcript' && (
+                            <div className="h-64 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900 rounded text-sm font-mono text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                                {displayLesson.transcript_content || 'No hay transcripción disponible.'}
+                            </div>
+                        )}
+                        {activeTab === 'activities' && (
+                            <div className="space-y-4">
+                                {displayLesson.activities?.length > 0 ? displayLesson.activities.map((act: any) => (
+                                    <ActivityItem key={act.activity_id} activity={act} />
+                                )) : <p className="text-gray-400 italic">No hay actividades creadas.</p>}
+                            </div>
+                        )}
+                        {activeTab === 'materials' && (
+                            <div className="space-y-2">
+                                {displayLesson.materials?.length > 0 ? displayLesson.materials.map((mat: any) => (
+                                    <MaterialItem key={mat.material_id} material={mat} />
+                                )) : <p className="text-gray-400 italic">No hay materiales adicionales.</p>}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

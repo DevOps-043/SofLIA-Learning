@@ -185,20 +185,20 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                     <CourseThumbnail thumbnailUrl={course.thumbnail_url} title={course.title} />
                                     <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
                                         {course.approval_status === 'rejected' ? (
-                                            <span className="bg-[#EF4444]/10 text-[#EF4444] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/20">
+                                            <span className="backdrop-blur-md bg-[#EF4444]/20 dark:bg-[#EF4444]/30 text-[#EF4444] dark:text-[#FCA5A5] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/30 dark:border-[#EF4444]/40">
                                                 Rechazado
                                             </span>
                                         ) : (
-                                            <span className="bg-[#F59E0B]/10 text-[#F59E0B] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/20">
+                                            <span className="backdrop-blur-md bg-[#F59E0B]/20 dark:bg-[#F59E0B]/30 text-[#F59E0B] dark:text-[#FCD34D] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/30 dark:border-[#F59E0B]/40">
                                                 Pendiente
                                             </span>
                                         )}
                                         {course.is_update ? (
-                                            <span className="bg-[#3B82F6]/10 text-[#3B82F6] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/20">
+                                            <span className="backdrop-blur-md bg-[#3B82F6]/20 dark:bg-[#3B82F6]/30 text-[#3B82F6] dark:text-[#93C5FD] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/30 dark:border-[#3B82F6]/40">
                                                 Actualización
                                             </span>
                                         ) : (
-                                            <span className="bg-[#10B981]/10 text-[#10B981] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/20">
+                                            <span className="backdrop-blur-md bg-[#10B981]/20 dark:bg-[#10B981]/30 text-[#10B981] dark:text-[#6EE7B7] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/30 dark:border-[#10B981]/40">
                                                 Nuevo
                                             </span>
                                         )}

@@ -246,9 +246,9 @@ export function buildCoursePreviewFromPayload(staging: any) {
         is_update: staging.is_update,
         thumbnail_url: courseData.thumbnail_url ?? null,
         title: courseData.title ?? 'Sin título',
-        description: courseData.description ?? '',
-        level: courseData.level ?? 'beginner',
-        category: courseData.category ?? 'General',
+        description: courseData.description || courseData.title || '',
+        level: courseData.level || 'beginner',
+        category: courseData.category || 'General',
         duration_total_minutes: 0,
         instructor: staging.course?.instructor ?? {
             first_name: '',
@@ -259,17 +259,17 @@ export function buildCoursePreviewFromPayload(staging: any) {
         modules: modules.map((mod: any, modIdx: number) => ({
             module_id: `staging-mod-${modIdx}`,
             module_title: mod.title,
-            module_order_index: mod.order_index,
+            module_order_index: mod.order_index + 1,
             is_published: false,
             lessons: (mod.lessons ?? []).map((lesson: any, lesIdx: number) => {
                 const videoInfo = extractVideoInfo(lesson.video_url ?? '')
                 return {
                     lesson_id: `staging-les-${modIdx}-${lesIdx}`,
                     lesson_title: lesson.title,
-                    lesson_order_index: lesson.order_index,
-                    duration_seconds: lesson.duration ?? 0,
+                    lesson_order_index: lesson.order_index + 1,
+                    duration_seconds: lesson.duration || 60,
                     video_provider: videoInfo.provider,
-                    video_provider_id: videoInfo.id,
+                    video_provider_id: videoInfo.id || null,
                     transcript_content: lesson.transcription ?? null,
                     summary_content: lesson.summary ?? null,
                     materials: (lesson.materials ?? []).map((mat: any, matIdx: number) => ({

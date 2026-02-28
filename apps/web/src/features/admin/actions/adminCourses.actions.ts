@@ -9,6 +9,7 @@ import {
     buildCoursePreviewFromPayload,
     resolveInstructor,
 } from '../../../lib/courseImport'
+import { buildCourseDiff } from '../../../lib/courseDiff'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,6 +105,74 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
     })
 }
 
+// ─── Obtener estructura actual del curso publicado (para comparación) ────────
+
+async function getCurrentCourseStructure(
+    supabase: ReturnType<typeof createAdminSupabase>,
+    courseId: string
+): Promise<any> {
+    const { data: course, error: courseError } = await supabase
+        .from('courses')
+        .select(`
+            title, description, level, category, thumbnail_url, slug,
+            instructor:users!fk_courses_instructor(first_name, last_name, email, display_name, profile_picture_url)
+        `)
+        .eq('id', courseId)
+        .single()
+
+    if (courseError || !course) return null
+
+    const { data: modules } = await supabase
+        .from('course_modules')
+        .select('module_id, module_title, module_order_index, is_published')
+        .eq('course_id', courseId)
+        .order('module_order_index', { ascending: true })
+
+    const modulesWithLessons = []
+    for (const mod of (modules ?? [])) {
+        const { data: lessons } = await supabase
+            .from('course_lessons')
+            .select(`
+                lesson_id, lesson_title, lesson_order_index,
+                duration_seconds, video_provider, video_provider_id,
+                transcript_content, summary_content
+            `)
+            .eq('module_id', mod.module_id)
+            .order('lesson_order_index', { ascending: true })
+
+        const lessonsWithContent = []
+        for (const lesson of (lessons ?? [])) {
+            const { data: materials } = await supabase
+                .from('lesson_materials')
+                .select('material_id, material_title, material_type, external_url, file_url, content_data')
+                .eq('lesson_id', lesson.lesson_id)
+                .order('material_order_index', { ascending: true })
+
+            const { data: activities } = await supabase
+                .from('lesson_activities')
+                .select('activity_id, activity_title, activity_type, activity_content, activity_order_index')
+                .eq('lesson_id', lesson.lesson_id)
+                .order('activity_order_index', { ascending: true })
+
+            lessonsWithContent.push({
+                ...lesson,
+                materials: materials ?? [],
+                activities: activities ?? [],
+            })
+        }
+
+        modulesWithLessons.push({
+            ...mod,
+            lessons: lessonsWithContent,
+        })
+    }
+
+    return {
+        ...course,
+        modules: modulesWithLessons,
+    }
+}
+
 // ─── Detalle de un staging row (para la vista de revisión) ───────────────────
 
 export async function getStagingDetails(stagingId: string): Promise<any> {
@@ -125,7 +194,22 @@ export async function getStagingDetails(stagingId: string): Promise<any> {
         throw new Error(error?.message ?? 'Staging row no encontrado')
     }
 
-    return buildCoursePreviewFromPayload(staging)
+    const preview = buildCoursePreviewFromPayload(staging)
+
+    // If it's an update and the original course exists, build comparison
+    if (staging.is_update && staging.course_id) {
+        const originalCourse = await getCurrentCourseStructure(supabase, staging.course_id)
+        if (originalCourse) {
+            const diff = buildCourseDiff(originalCourse, preview)
+            return {
+                ...preview,
+                original_course: originalCourse,
+                diff,
+            }
+        }
+    }
+
+    return preview
 }
 
 // ─── Aprobar ─────────────────────────────────────────────────────────────────
