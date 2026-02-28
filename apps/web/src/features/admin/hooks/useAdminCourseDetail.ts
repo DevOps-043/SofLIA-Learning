@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react'
-import { getCourseFullDetails, approveCourse as approveCourseAction, rejectCourse as rejectCourseAction, deleteCourse as deleteCourseAction, reconsiderCourse as reconsiderCourseAction } from '../actions/adminCourses.actions'
+import { getStagingDetails, approveCourse as approveCourseAction, rejectCourse as rejectCourseAction, deleteCourse as deleteCourseAction, reconsiderCourse as reconsiderCourseAction } from '../actions/adminCourses.actions'
 
 export function useAdminCourseDetail(courseId: string) {
     const [course, setCourse] = useState<any>(null)
@@ -12,7 +12,7 @@ export function useAdminCourseDetail(courseId: string) {
         try {
             setIsLoading(true)
             setError(null)
-            const data = await getCourseFullDetails(courseId)
+            const data = await getStagingDetails(courseId)
             if (!data) throw new Error('Curso no encontrado')
             setCourse(data)
         } catch (err) {
