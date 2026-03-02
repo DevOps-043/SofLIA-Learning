@@ -387,7 +387,7 @@ export function BusinessAnalytics() {
                                                     </td>
                                                     <td className="p-4 text-sm">
                                                         <div className="inline-flex items-center text-sm bg-gray-100 dark:bg-white/5 px-2 py-1 rounded-lg border border-gray-200 dark:border-white/5 text-gray-700 dark:text-gray-300 font-medium">
-                                                            {user.last_active ? new Date(user.last_active).toLocaleDateString() : t('analytics.usersTable.never')}
+                                                            {user.last_active ? new Date(user.last_active).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }) : t('analytics.usersTable.never')}
                                                         </div>
                                                     </td>
                                                     <td className="p-4">

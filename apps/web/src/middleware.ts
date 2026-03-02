@@ -246,6 +246,41 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url))
   }
 
+  // =====================================================
+  // VERIFICACIÓN DE SUSPENSIÓN
+  // Para rutas con orgSlug (business-user/*, business-panel/*, courses via org)
+  // Si el usuario está suspendido en la organización, redirigir a /suspended
+  // =====================================================
+  const pathParts = request.nextUrl.pathname.split('/').filter(Boolean)
+  // Detectar rutas con orgSlug: /{orgSlug}/business-user/*, /{orgSlug}/business-panel/*
+  const hasBizRoute = pathParts.length >= 2 && (
+    pathParts[1] === 'business-user' || pathParts[1] === 'business-panel'
+  )
+
+  if (hasBizRoute && userId) {
+    const orgSlug = pathParts[0]
+
+    // No bloquear la propia página de suspensión
+    if (!request.nextUrl.pathname.includes('/suspended')) {
+      try {
+        const { data: orgMembership } = await supabase
+          .from('organization_users')
+          .select('status, organizations!inner(slug)')
+          .eq('user_id', userId)
+          .eq('organizations.slug', orgSlug)
+          .single()
+
+        if (orgMembership && orgMembership.status === 'suspended') {
+          logger.log('[AUTH] ⛔ Usuario suspendido en organización:', orgSlug)
+          return NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url))
+        }
+      } catch (error) {
+        logger.error('[ERROR] Error verificando suspensión:', error)
+        // En caso de error, permitir continuar (la API también verifica)
+      }
+    }
+  }
+
   // Para rutas de admin, verificar rol
   if (request.nextUrl.pathname.startsWith('/admin')) {
     logger.log('[AUTH] Verificando acceso de administrador...')
