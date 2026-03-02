@@ -70,7 +70,21 @@ export function useOrganizationStyles() {
       return null;
     }
 
-    // Si no soporta modo dual, retornar los estilos tal cual
+    // Si no soporta modo dual pero estamos en modo claro,
+    // usar el lightMode del tema por defecto como fallback para los fondos
+    if (resolvedTheme === 'light') {
+      const defaultLightStyles = getThemeStylesForMode('SOFLIA', 'light');
+      if (defaultLightStyles) {
+        return {
+          ...styles,
+          panel: defaultLightStyles.panel,
+          userDashboard: defaultLightStyles.userDashboard,
+          login: defaultLightStyles.login,
+        };
+      }
+    }
+
+    // Si no soporta modo dual (y está en modo oscuro), retornar los estilos tal cual
     return styles;
   }, [styles, resolvedTheme]);
 

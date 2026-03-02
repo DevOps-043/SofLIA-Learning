@@ -6221,13 +6221,13 @@ function QuizRenderer({
                       key={optIndex}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all ${showResults
                         ? isCorrectOption
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                           : isSelected && !isCorrectOption
-                            ? "bg-red-500/10 text-red-600 dark:text-red-400"
-                            : "bg-transparent text-gray-400 dark:text-white/50"
+                            ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400"
+                            : "bg-transparent text-gray-500 dark:text-white/50"
                         : isSelected
-                          ? "bg-gray-200 dark:bg-white/10 text-gray-900 dark:text-white"
-                          : "bg-transparent text-gray-600 dark:text-white/60 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white/80"
+                          ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
+                          : "bg-transparent text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white/80"
                         }`}
                     >
                       <div
@@ -6260,15 +6260,15 @@ function QuizRenderer({
                         disabled={showResults}
                         className="hidden"
                       />
-                      <span className="text-xs font-medium opacity-50 mr-1">
+                      <span className="text-xs font-medium opacity-60 dark:opacity-50 mr-1">
                         ({optionLetter})
                       </span>
                       <span className="text-sm flex-1">{option}</span>
                       {showResults && isCorrectOption && (
-                        <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0" />
                       )}
                       {showResults && isSelected && !isCorrectOption && (
-                        <X className="w-4 h-4 text-red-400 flex-shrink-0" />
+                        <X className="w-4 h-4 text-red-500 dark:text-red-400 flex-shrink-0" />
                       )}
                     </label>
                   );
@@ -6279,16 +6279,16 @@ function QuizRenderer({
               {showExplanation && question.explanation && (
                 <div
                   className={`mx-3 mb-3 px-3 py-2 rounded-md text-xs ${isCorrect
-                    ? "bg-emerald-500/10 border border-emerald-500/20"
-                    : "bg-red-500/10 border border-red-500/20"
+                    ? "bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20"
+                    : "bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20"
                     }`}
                 >
                   <span
-                    className={`font-medium ${isCorrect ? "text-emerald-400" : "text-red-400"}`}
+                    className={`font-medium ${isCorrect ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}`}
                   >
                     {isCorrect ? "✓ Correcto" : "✗ Incorrecto"}
                   </span>
-                  <p className="text-white/60 mt-1 leading-relaxed">
+                  <p className="text-gray-700 dark:text-white/60 mt-1 leading-relaxed">
                     {parseExplanation(question, selectedAnswer)}
                   </p>
                 </div>
@@ -6338,26 +6338,26 @@ function QuizRenderer({
         >
           {/* Mensaje del servidor */}
           {serverMessage && (
-            <div className="mb-4 px-3 py-2 rounded-md bg-white/5 border border-white/10">
-              <p className="text-white/60 text-xs">{serverMessage}</p>
+            <div className="mb-4 px-3 py-2 rounded-md bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+              <p className="text-gray-600 dark:text-white/60 text-xs">{serverMessage}</p>
             </div>
           )}
 
           <div className="text-center">
             <p
-              className={`text-lg font-semibold mb-1 ${passed ? "text-emerald-400" : "text-red-400"}`}
+              className={`text-lg font-semibold mb-1 ${passed ? "text-emerald-500 font-bold dark:text-emerald-400" : "text-red-500 font-bold dark:text-red-400"}`}
             >
               {passed ? "✓ Aprobado" : "✗ No aprobado"}
             </p>
-            <p className="text-white text-sm mb-1">
+            <p className="text-gray-800 dark:text-white text-sm mb-1 font-medium">
               {score} de {totalQuestions} correctas
             </p>
             {totalPoints !== undefined && (
-              <p className="text-white/60 text-xs mb-1">
+              <p className="text-gray-500 dark:text-white/60 text-xs mb-1">
                 {pointsEarned} de {totalPoints} puntos
               </p>
             )}
-            <p className="text-white/40 text-xs">
+            <p className="text-gray-400 dark:text-white/40 text-xs">
               {percentage}% | Requerido: {passingThreshold}%
             </p>
           </div>
@@ -6373,7 +6373,7 @@ function QuizRenderer({
                 setSubmitError(null);
                 setServerMessage(null);
               }}
-              className="px-4 py-2 rounded-md text-xs font-medium bg-white/10 hover:bg-white/15 text-white/70 transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-md text-xs font-medium bg-gray-200 hover:bg-gray-300 dark:bg-white/10 dark:hover:bg-white/15 text-gray-700 dark:text-white/70 transition-colors flex items-center gap-2"
             >
               <RefreshCw className="w-3.5 h-3.5" />
               Reintentar
@@ -6520,7 +6520,21 @@ function ReadingContentRenderer({ content }: { content: any }) {
     readingContent = String(readingContent);
   }
 
-  // Dividir por saltos de línea
+  // Mejorar el formato: detectar si es HTML o texto plano
+  if (/<[a-z][\s\S]*>/i.test(readingContent)) {
+    // Si contiene etiquetas HTML, renderizar directamente
+    return (
+      <div className="py-2">
+        <article
+          className="prose prose-slate dark:prose-invert max-w-none text-[#0A2540] dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3"
+          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          dangerouslySetInnerHTML={{ __html: readingContent }}
+        />
+      </div>
+    );
+  }
+
+  // Dividir por saltos de línea para el parseo por texto plano
   const lines = readingContent.split("\n");
 
   // Agrupar líneas en secciones para mejor renderizado
@@ -6817,7 +6831,21 @@ function FormattedContentRenderer({
     readingContent = String(readingContent);
   }
 
-  // Mejorar el formato: detectar secciones, títulos, párrafos, listas, ejemplos, etc.
+  // Mejorar el formato: detectar si es HTML o texto plano
+  if (/<[a-z][\s\S]*>/i.test(readingContent)) {
+    // Si contiene etiquetas HTML, renderizar directamente
+    return (
+      <div className="bg-white dark:bg-[#1E2329] rounded-lg p-8 md:p-10 border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-lg">
+        <article
+          className="prose prose-slate dark:prose-invert max-w-none text-[#0A2540] dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3"
+          style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
+          dangerouslySetInnerHTML={{ __html: readingContent }}
+        />
+      </div>
+    );
+  }
+
+  // Si es texto plano, usar el formateador personalizado
   const lines = readingContent
     .split("\n")
     .map((line: string) => line.trim())

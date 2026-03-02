@@ -75,6 +75,9 @@ export async function applyPayloadToCourse(
 ): Promise<void> {
     const modules: any[] = payload.modules ?? []
 
+    const validModuleIds: string[] = []
+    const validLessonIds: string[] = []
+
     for (const mod of modules) {
         const moduleOrderIndex = mod.order_index;
 
@@ -95,6 +98,8 @@ export async function applyPayloadToCourse(
             .single()
 
         if (modError) throw new Error(`Module upsert failed (order ${moduleOrderIndex}): ${modError.message}`)
+        
+        validModuleIds.push(newModule.module_id)
 
         for (const lesson of (mod.lessons ?? [])) {
             const lessonOrderIndex = lesson.order_index;
@@ -123,6 +128,7 @@ export async function applyPayloadToCourse(
             if (lessonError) throw new Error(`Lesson upsert failed (order ${lessonOrderIndex}): ${lessonError.message}`)
 
             const lessonId = newLesson.lesson_id
+            validLessonIds.push(lessonId)
 
             // Materials: delete + reinsert
             await supabase.from('lesson_materials').delete().eq('lesson_id', lessonId)
@@ -161,6 +167,25 @@ export async function applyPayloadToCourse(
             }
         }
     }
+
+    // --- Cleanup phase ---
+    // Remove lessons that belong to this course but are no longer in the payload
+    if (validModuleIds.length > 0) {
+        let lessonDeleteQuery = supabase.from('course_lessons').delete().in('module_id', validModuleIds);
+        if (validLessonIds.length > 0) {
+            lessonDeleteQuery = lessonDeleteQuery.not('lesson_id', 'in', `(${validLessonIds.join(',')})`);
+        }
+        const { error: cleanupLessonError } = await lessonDeleteQuery;
+        if (cleanupLessonError) console.error(`Failed to cleanup obsolete lessons: ${cleanupLessonError.message}`);
+    }
+
+    // Remove modules that belong to this course but are no longer in the payload
+    let moduleDeleteQuery = supabase.from('course_modules').delete().eq('course_id', courseId);
+    if (validModuleIds.length > 0) {
+        moduleDeleteQuery = moduleDeleteQuery.not('module_id', 'in', `(${validModuleIds.join(',')})`);
+    }
+    const { error: cleanupModuleError } = await moduleDeleteQuery;
+    if (cleanupModuleError) console.error(`Failed to cleanup obsolete modules: ${cleanupModuleError.message}`);
 }
 
 // ─── Create brand-new course from payload (used when approving a new course) ─
