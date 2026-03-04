@@ -40,7 +40,9 @@ export interface CourseLessonContext {
   courseDescription?: string;
 
   // Módulo y lección actual
+  moduleId?: string;
   moduleTitle?: string;
+  lessonId?: string;
   lessonTitle?: string;
   lessonDescription?: string;
 

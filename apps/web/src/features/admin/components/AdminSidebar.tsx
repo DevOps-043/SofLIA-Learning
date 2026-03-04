@@ -36,7 +36,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: HomeIcon },
   { name: 'Usuarios', href: '/admin/users', icon: UsersIcon },
   { name: 'Talleres', href: '/admin/workshops', icon: BookOpenIcon },
-  { name: 'LIA Analytics', href: '/admin/lia-analytics', icon: ChartBarIcon },
+  { name: 'SofLIA Analytics', href: '/admin/lia-analytics', icon: ChartBarIcon },
   { name: 'Estadísticas de Usuarios', href: '/admin/user-stats', icon: MapPinIcon },
   { name: 'Empresas', href: '/admin/companies', icon: BuildingOffice2Icon },
   { name: 'Reportes', href: '/admin/reportes', icon: DocumentTextIcon },

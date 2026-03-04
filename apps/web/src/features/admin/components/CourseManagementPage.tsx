@@ -2577,14 +2577,14 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                         </div>
                       </div>
 
-                      {/* Estadísticas de Interacción con LIA */}
+                      {/* Estadísticas de Interacción con SofLIA */}
                       <div className="bg-gradient-to-br from-[#0A2540]/5 to-[#00D4B3]/5 dark:from-[#0A2540]/10 dark:to-[#00D4B3]/10 rounded-xl p-6 border-2 border-[#00D4B3]/30 mb-6">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center shadow-lg">
                             <Lightbulb className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold text-[#0A2540] dark:text-white">Interacción con LIA</h3>
+                            <h3 className="text-xl font-bold text-[#0A2540] dark:text-white">Interacción con SofLIA</h3>
                             <p className="text-xs text-[#6C757D] dark:text-white/60">Análisis de conversaciones y asistencia personalizada</p>
                           </div>
                         </div>
@@ -2643,7 +2643,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                           })}
                         </div>
 
-                        {/* Gráfica de Conversaciones con LIA */}
+                        {/* Gráfica de Conversaciones con SofLIA */}
                         <div className="bg-white dark:bg-[#1E2329] rounded-xl p-5 border border-[#E9ECEF] dark:border-[#6C757D]/30">
                           <div className="flex items-center gap-2 mb-4">
                             <Rocket className="w-5 h-5 text-[#00D4B3]" />
@@ -2853,7 +2853,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                         </div>
                       </div>
 
-                      {/* Insights de LIA */}
+                      {/* Insights de SofLIA */}
                       {studentDetailsData.studySessions && (
                         <div className="mt-4 bg-white dark:bg-[#1E2329] rounded-xl p-4 border-l-4 border-[#00D4B3]">
                           <div className="flex items-start gap-3">
@@ -2861,7 +2861,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                               <Lightbulb className="w-4 h-4 text-white" />
                             </div>
                             <div>
-                              <h5 className="text-sm font-bold text-[#0A2540] dark:text-white mb-1">Insights de LIA</h5>
+                              <h5 className="text-sm font-bold text-[#0A2540] dark:text-white mb-1">Insights de SofLIA</h5>
                               <p className="text-xs text-[#6C757D] dark:text-white/70 leading-relaxed">
                                 {studentDetailsData.studySessions.preferredTimeSlots && studentDetailsData.studySessions.preferredTimeSlots.length > 0 ? (
                                   <>

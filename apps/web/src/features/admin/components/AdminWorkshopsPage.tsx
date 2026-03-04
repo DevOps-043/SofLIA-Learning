@@ -41,7 +41,7 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.4,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: "easeOut"
     }
   }
 }
@@ -299,7 +299,7 @@ export function AdminWorkshopsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-[#F8FAFC] dark:bg-transparent min-h-[calc(100vh-4rem)]">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -335,54 +335,54 @@ export function AdminWorkshopsPage() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"
         >
-          <motion.div variants={itemVariants} className="p-4 bg-gradient-to-br from-[#0A2540] to-[#0A2540]/80 dark:from-[#0A2540] dark:to-[#0A2540]/60 rounded-xl border border-[#0A2540]/20 shadow-lg">
+          <motion.div variants={itemVariants} className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#0A2540] dark:to-[#0A2540]/60 rounded-xl border border-[#E9ECEF] dark:border-[#0A2540]/20 shadow-sm dark:shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#00D4B3]/20 rounded-lg">
+              <div className="p-2 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-lg">
                 <BookOpenIcon className="h-5 w-5 text-[#00D4B3]" />
               </div>
               <div>
-                <p className="text-xs font-medium text-white/70 uppercase tracking-wide">Total Talleres</p>
-                <p className="text-2xl font-bold text-white">{stats?.totalWorkshops || 0}</p>
+                <p className="text-xs font-medium text-[#6C757D] dark:text-white/70 uppercase tracking-wide">Total Talleres</p>
+                <p className="text-2xl font-bold text-[#0A2540] dark:text-white">{stats?.totalWorkshops || 0}</p>
               </div>
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="p-4 bg-gradient-to-br from-[#10B981] to-[#10B981]/80 dark:from-[#10B981]/20 dark:to-[#10B981]/10 rounded-xl border border-[#10B981]/20 shadow-lg">
+          <motion.div variants={itemVariants} className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#10B981]/20 dark:to-[#10B981]/10 rounded-xl border border-[#E9ECEF] dark:border-[#10B981]/20 shadow-sm dark:shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 dark:bg-[#10B981]/20 rounded-lg">
-                <PlayIcon className="h-5 w-5 text-white dark:text-[#10B981]" />
+              <div className="p-2 bg-[#10B981]/10 dark:bg-[#10B981]/20 rounded-lg">
+                <PlayIcon className="h-5 w-5 text-[#10B981] dark:text-[#10B981]" />
               </div>
               <div>
-                <p className="text-xs font-medium text-white/80 dark:text-[#10B981] uppercase tracking-wide">Activos</p>
-                <p className="text-2xl font-bold text-white dark:text-white">
+                <p className="text-xs font-medium text-[#6C757D] dark:text-[#10B981] uppercase tracking-wide">Activos</p>
+                <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
                   {stats?.activeWorkshops || 0}
                 </p>
               </div>
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="p-4 bg-gradient-to-br from-[#00D4B3] to-[#00D4B3]/80 dark:from-[#00D4B3]/20 dark:to-[#00D4B3]/10 rounded-xl border border-[#00D4B3]/20 shadow-lg">
+          <motion.div variants={itemVariants} className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#00D4B3]/20 dark:to-[#00D4B3]/10 rounded-xl border border-[#E9ECEF] dark:border-[#00D4B3]/20 shadow-sm dark:shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 dark:bg-[#00D4B3]/20 rounded-lg">
-                <UserCircleIcon className="h-5 w-5 text-white dark:text-[#00D4B3]" />
+              <div className="p-2 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-lg">
+                <UserCircleIcon className="h-5 w-5 text-[#00D4B3]" />
               </div>
               <div>
-                <p className="text-xs font-medium text-white/80 dark:text-[#00D4B3] uppercase tracking-wide">Total Estudiantes</p>
-                <p className="text-2xl font-bold text-white dark:text-white">
+                <p className="text-xs font-medium text-[#6C757D] dark:text-[#00D4B3] uppercase tracking-wide">Total Estudiantes</p>
+                <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
                   {stats?.totalStudents || 0}
                 </p>
               </div>
             </div>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="p-4 bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80 dark:from-[#F59E0B]/20 dark:to-[#F59E0B]/10 rounded-xl border border-[#F59E0B]/20 shadow-lg">
+          <motion.div variants={itemVariants} className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#F59E0B]/20 dark:to-[#F59E0B]/10 rounded-xl border border-[#E9ECEF] dark:border-[#F59E0B]/20 shadow-sm dark:shadow-lg">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 dark:bg-[#F59E0B]/20 rounded-lg">
-                <ClockIcon className="h-5 w-5 text-white dark:text-[#F59E0B]" />
+              <div className="p-2 bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20 rounded-lg">
+                <ClockIcon className="h-5 w-5 text-[#F59E0B]" />
               </div>
               <div>
-                <p className="text-xs font-medium text-white/80 dark:text-[#F59E0B] uppercase tracking-wide">Duración Promedio</p>
-                <p className="text-2xl font-bold text-white dark:text-white">
+                <p className="text-xs font-medium text-[#6C757D] dark:text-[#F59E0B] uppercase tracking-wide">Duración Promedio</p>
+                <p className="text-2xl font-bold text-[#0A2540] dark:text-white">
                   {stats?.averageDuration || 0} min
                 </p>
               </div>

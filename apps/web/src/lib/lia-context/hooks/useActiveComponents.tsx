@@ -238,7 +238,7 @@ export function useActiveComponents(options: UseActiveComponentsOptions = {}) {
     getComponentNames,
     /** Obtiene solo componentes visibles */
     getVisibleComponents,
-    /** Obtiene componentes en formato para LIA */
+    /** Obtiene componentes en formato para SofLIA */
     getComponentsForLia,
     /** Busca un componente por nombre */
     findComponent,
@@ -254,7 +254,7 @@ export default useActiveComponents;
 // ============================================================================
 
 /**
- * Props helper para agregar data-attributes de LIA a un componente
+ * Props helper para agregar data-attributes de SofLIA a un componente
  * 
  * @example
  * <div {...liaComponentProps('MyModal', { isOpen: true })}>

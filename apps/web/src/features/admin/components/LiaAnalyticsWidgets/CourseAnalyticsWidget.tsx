@@ -123,7 +123,7 @@ export function CourseAnalyticsWidget({ period }: CourseAnalyticsWidgetProps) {
             Rendimiento por Curso
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Analiza el consumo y engagement de LIA en cada curso
+            Analiza el consumo y engagement de SofLIA en cada curso
           </p>
         </div>
         

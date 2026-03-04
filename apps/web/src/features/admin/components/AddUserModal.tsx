@@ -265,18 +265,17 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[150] bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             onClick={onClose}
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 z-[150] overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}

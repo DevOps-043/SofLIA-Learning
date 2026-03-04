@@ -83,8 +83,8 @@ export class AdminWorkshopsService {
       }
 
       // 🚀 PASO 2: Recopilar IDs únicos para batch queries
-      const courseIds = courses.map(c => c.id)
-      const instructorIds = [...new Set(courses.map(c => c.instructor_id).filter(Boolean))]
+      const courseIds = courses.map((c: any) => c.id)
+      const instructorIds = [...new Set(courses.map((c: any) => c.instructor_id).filter(Boolean))]
 
       // 🚀 PASO 3: Ejecutar queries en paralelo (no secuenciales)
       const [instructorsResult, modulesResult, assignmentsResult] = await Promise.all([
@@ -112,7 +112,7 @@ export class AdminWorkshopsService {
       ])
 
       // 🚀 PASO 4: Crear mapas para búsqueda O(1)
-      const instructorsMap = new Map((instructorsResult.data || []).map(instructor => [
+      const instructorsMap = new Map<string, {name: string, picture: string | null}>((instructorsResult.data || []).map((instructor: any) => [
         instructor.id,
         {
           name: instructor.display_name ||
@@ -138,7 +138,7 @@ export class AdminWorkshopsService {
       }
 
       // 🚀 PASO 5: Enriquecer cursos sin queries adicionales
-      const workshopsWithData = courses.map((workshop): AdminWorkshop => {
+      const workshopsWithData = courses.map((workshop: any): AdminWorkshop => {
         const instructor = workshop.instructor_id ? instructorsMap.get(workshop.instructor_id) : null
         const calculatedDuration = durationMap.get(workshop.id) || 0
 
@@ -318,7 +318,7 @@ export class AdminWorkshopsService {
         action: 'CREATE',
         table_name: 'courses',
         record_id: data.id,
-        old_values: null,
+        old_values: undefined,
         new_values: workshopData,
         ip_address: requestInfo?.ip,
         user_agent: requestInfo?.userAgent
@@ -332,7 +332,7 @@ export class AdminWorkshopsService {
 
       try {
 
-        const translationModule = await import('@/core/services/courseTranslation.service');
+        const translationModule = await import('../../../core/services/courseTranslation.service');
         const { translateCourseOnCreate } = translationModule;
 
         const courseDataForTranslation = {
@@ -511,7 +511,7 @@ export class AdminWorkshopsService {
         .select('module_id')
         .eq('course_id', workshopId)
 
-      const moduleIds = modules?.map(m => m.module_id) || []
+      const moduleIds = modules?.map((m: any) => m.module_id) || []
 
       if (moduleIds.length > 0) {
         // 3. Obtener todas las lecciones de estos módulos
@@ -520,7 +520,7 @@ export class AdminWorkshopsService {
           .select('lesson_id')
           .in('module_id', moduleIds)
 
-        const lessonIds = lessons?.map(l => l.lesson_id) || []
+        const lessonIds = lessons?.map((l: any) => l.lesson_id) || []
 
         if (lessonIds.length > 0) {
           // 4. ELIMINAR DEPENDENCIAS DE LECCIONES
@@ -579,7 +579,14 @@ export class AdminWorkshopsService {
         // Eliminar traducciones asociadas al curso
         supabase.from('content_translations').delete().eq('entity_id', workshopId).eq('entity_type', 'course'),
         // Eliminar progreso del curso
-        supabase.from('user_course_progress').delete().eq('course_id', workshopId)
+        supabase.from('user_course_progress').delete().eq('course_id', workshopId),
+        
+        // ✅ Nuevas dependencias de estudiantes agragadas para evitar el error de foreign key constraint
+        supabase.from('organization_course_purchases').delete().eq('course_id', workshopId),
+        supabase.from('organization_course_assignments').delete().eq('course_id', workshopId),
+        supabase.from('user_course_enrollments').delete().eq('course_id', workshopId),
+        supabase.from('user_course_certificates').delete().eq('course_id', workshopId),
+        supabase.from('course_certificates').delete().eq('course_id', workshopId)
       ])
 
       // 9. Finalmente eliminar el taller
@@ -601,7 +608,7 @@ export class AdminWorkshopsService {
         table_name: 'courses',
         record_id: workshopId,
         old_values: workshopData,
-        new_values: null,
+        new_values: undefined,
         ip_address: requestInfo?.ip,
         user_agent: requestInfo?.userAgent
       })
@@ -626,7 +633,7 @@ export class AdminWorkshopsService {
         throw error
       }
 
-      return (data || []).map(user => ({
+      return (data || []).map((user: any) => ({
         id: user.id,
         name: user.display_name ||
           `${user.first_name || ''} ${user.last_name || ''}`.trim() ||

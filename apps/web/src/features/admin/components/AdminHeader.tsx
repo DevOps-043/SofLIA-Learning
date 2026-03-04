@@ -26,9 +26,9 @@ export function AdminHeader({ onMenuClick, title, isCollapsed, isPinned, isHover
   
   // Colores del tema
   const themeColors = {
-    // Usar transparency para efecto blur
-    background: isLightTheme ? 'rgba(255, 255, 255, 0.95)' : 'rgba(15, 20, 25, 0.8)',
-    borderColor: isLightTheme ? '#E2E8F0' : '#334155', // Más visible en modo oscuro
+    // Fondo sólido sin transparencia/blur
+    background: isLightTheme ? '#FFFFFF' : '#0F1419',
+    borderColor: isLightTheme ? '#E2E8F0' : '#334155',
     textPrimary: isLightTheme ? '#0A2540' : '#FFFFFF',
     textSecondary: isLightTheme ? '#6C757D' : '#9CA3AF',
     hoverBg: isLightTheme ? '#F1F5F9' : 'rgba(10, 37, 64, 0.2)',
@@ -44,7 +44,7 @@ export function AdminHeader({ onMenuClick, title, isCollapsed, isPinned, isHover
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className={`fixed top-0 right-0 z-[120] backdrop-blur-md shadow-sm border-b transition-all duration-300 ${sidebarWidth} left-0`}
+      className={`fixed top-0 right-0 z-[40] shadow-sm border-b transition-all duration-300 ${sidebarWidth} left-0`}
       style={{ 
         backgroundColor: themeColors.background,
         borderColor: themeColors.borderColor

@@ -2,6 +2,8 @@ import { createClient } from '../../../lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Database } from '../../../lib/supabase/types'
 import { AuditLogService } from './auditLog.service'
+import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 
 // Función helper para crear cliente con service role key (bypass RLS)
 function createAdminClient() {
@@ -267,16 +269,23 @@ export class AdminUsersService {
   }
 
   static async createUser(userData: any, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminUser> {
-    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
     try {
+      // Hash password
+      const passwordHash = await bcrypt.hash(userData.password, 12)
+
+      // Generar ID único
+      const userId = crypto.randomUUID()
+
       // Crear el usuario
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('users')
         .insert({
+          id: userId,
           username: userData.username,
           email: userData.email,
-          password_hash: userData.password, // En producción, esto debería estar hasheado
+          password_hash: passwordHash,
           first_name: userData.first_name || null,
           last_name: userData.last_name || null,
           display_name: userData.display_name || null,

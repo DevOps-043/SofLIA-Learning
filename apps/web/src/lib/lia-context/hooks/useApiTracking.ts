@@ -43,7 +43,7 @@ const DEFAULT_OPTIONS: UseApiTrackingOptions = {
   maxCalls: 50,
   includePatterns: [/\/api\//], // Solo rastrear llamadas a /api/
   excludePatterns: [
-    /\/api\/lia\/chat/, // No rastrear llamadas al chat de LIA (evitar recursión)
+    /\/api\/lia\/chat/, // No rastrear llamadas al chat de SofLIA (evitar recursión)
     /\/_next\//, // No rastrear recursos de Next.js
     /\/favicon/, // No rastrear favicon
   ],
@@ -253,9 +253,9 @@ export function useApiTracking(options: UseApiTrackingOptions = {}) {
     getErrorCalls,
     /** Obtiene llamadas recientes */
     getRecentCalls,
-    /** Obtiene resumen para LIA */
+    /** Obtiene resumen para SofLIA */
     getApiSummary,
-    /** Obtiene llamadas en formato para LIA */
+    /** Obtiene llamadas en formato para SofLIA */
     getCallsForLia,
     /** Agrega una llamada manualmente */
     addApiCall,

@@ -32,7 +32,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   
   // Colores del tema
   const themeColors = {
-    background: isLightTheme ? (panelStyles?.background_value || '#F8FAFC') : '#0F1419',
+    background: isLightTheme ? '#F8FAFC' : '#0F1419',
     cardBackground: isLightTheme ? (panelStyles?.card_background || '#FFFFFF') : '#0F1419',
   }
   

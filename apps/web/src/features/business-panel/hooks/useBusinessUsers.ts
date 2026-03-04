@@ -59,22 +59,25 @@ export function useBusinessUsers() {
     first_name?: string
     last_name?: string
     display_name?: string
-    type_rol: string
+    job_title: string
     org_role?: 'owner' | 'admin' | 'member'
     send_invitation?: boolean
   }) => {
     try {
-      const newUser = await BusinessUsersService.createUser(userData)
+      const newUser = await BusinessUsersService.createUser(userData as any)
 
       // Actualización optimista: agregar usuario y actualizar stats localmente
       setUsers(prev => [...prev, newUser])
-      setStats(prev => ({
-        ...prev,
-        total: prev.total + 1,
-        [newUser.org_status]: prev[newUser.org_status] + 1,
-        [newUser.org_role === 'owner' || newUser.org_role === 'admin' ? 'admins' : 'members']:
-          prev[newUser.org_role === 'owner' || newUser.org_role === 'admin' ? 'admins' : 'members'] + 1
-      }))
+      setStats(prev => {
+        const statusKey = newUser.org_status && newUser.org_status !== 'removed' ? newUser.org_status as 'active' | 'invited' | 'suspended' : null;
+        const roleKey = newUser.org_role === 'owner' || newUser.org_role === 'admin' ? 'admins' : 'members';
+        return {
+          ...prev,
+          total: prev.total + 1,
+          ...(statusKey ? { [statusKey]: prev[statusKey] + 1 } : {}),
+          [roleKey]: prev[roleKey] + 1
+        }
+      })
 
       return newUser
     } catch (err) {
@@ -104,8 +107,15 @@ export function useBusinessUsers() {
 
             // Actualizar contadores de status
             if (userData.org_status && oldUser.org_status !== userData.org_status) {
-              newStats[oldUser.org_status] = Math.max(0, newStats[oldUser.org_status] - 1)
-              newStats[userData.org_status] = newStats[userData.org_status] + 1
+              const oldStatus = oldUser.org_status as 'active' | 'invited' | 'suspended' | 'removed' | undefined;
+              const newStatus = userData.org_status as 'active' | 'invited' | 'suspended' | 'removed' | undefined;
+              
+              if (oldStatus && oldStatus !== 'removed') {
+                newStats[oldStatus] = Math.max(0, newStats[oldStatus] - 1)
+              }
+              if (newStatus && newStatus !== 'removed') {
+                newStats[newStatus] = newStats[newStatus] + 1
+              }
             }
 
             // Actualizar contadores de role
@@ -140,14 +150,20 @@ export function useBusinessUsers() {
       setUsers(prev => prev.filter(user => user.id !== userId))
 
       if (userToDelete) {
-        setStats(prev => ({
-          ...prev,
-          total: Math.max(0, prev.total - 1),
-          [userToDelete.org_status]: Math.max(0, prev[userToDelete.org_status] - 1),
-          [userToDelete.org_role === 'owner' || userToDelete.org_role === 'admin' ? 'admins' : 'members']:
-            Math.max(0, prev[userToDelete.org_role === 'owner' || userToDelete.org_role === 'admin' ? 'admins' : 'members'] - 1)
-        }))
+        setStats(prev => {
+          const statusKey = userToDelete.org_status && userToDelete.org_status !== 'removed' ? userToDelete.org_status as 'active' | 'invited' | 'suspended' : null;
+          const roleKey = userToDelete.org_role === 'owner' || userToDelete.org_role === 'admin' ? 'admins' : 'members';
+          return {
+            ...prev,
+            total: Math.max(0, prev.total - 1),
+            ...(statusKey ? { [statusKey]: Math.max(0, prev[statusKey] - 1) } : {}),
+            [roleKey]: Math.max(0, prev[roleKey] - 1)
+          }
+        })
       }
+
+      // Refetch forzarndo actualización real desde DB
+      await fetchUsers()
     } catch (err) {
       throw err
     }

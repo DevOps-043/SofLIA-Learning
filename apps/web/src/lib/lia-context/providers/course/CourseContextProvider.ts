@@ -133,7 +133,7 @@ export class CourseContextProvider extends BaseContextProvider {
     }
 
     // Agregar instrucciones para LIA
-    sections.push('\n### Instrucciones para LIA en contexto de curso:');
+    sections.push('\n### Instrucciones para SofLIA en contexto de curso:');
     sections.push('- El usuario está en una página de aprendizaje');
     sections.push('- Responde preguntas relacionadas con el contenido del curso');
     sections.push('- Si hay transcripción disponible, úsala para dar respuestas precisas');

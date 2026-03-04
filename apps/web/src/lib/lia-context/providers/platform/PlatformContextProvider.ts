@@ -1,7 +1,7 @@
 /**
  * PlatformContextProvider
  * 
- * Provee contexto general sobre la plataforma SOFLIA a LIA.
+ * Provee contexto general sobre la plataforma SofLIA a SofLIA.
  * Incluye información de funcionalidades, módulos activos y capacidades.
  */
 
@@ -38,7 +38,7 @@ const PLATFORM_MODULES = {
     features: ['Apps de IA', 'Prompts', 'Categorías', 'Favoritos']
   },
   lia: {
-    name: 'LIA - Asistente de IA',
+    name: 'SofLIA - Asistente de IA',
     description: 'Asistente inteligente integrado en toda la plataforma',
     features: ['Chat contextual', 'Ayuda en cursos', 'Planificación de estudio', 'Reporte de bugs']
   },
