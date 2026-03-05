@@ -11,12 +11,7 @@ import { useLanguage } from "@/core/providers/I18nProvider";
 import type { SupportedLanguage } from "@/core/i18n/i18n";
 
 const navLinks = [
-  { key: "platform", href: "#platform" },
-  { key: "capabilities", href: "#capabilities" },
-  { key: "useCases", href: "#use-cases" },
-  { key: "lia", href: "#integrations" },
-  { key: "security", href: "#security" },
-  { key: "faq", href: "#faq" },
+  { key: "home", href: "/" },
 ];
 
 export function LandingHeader() {
@@ -33,9 +28,9 @@ export function LandingHeader() {
   const { language, setLanguage } = useLanguage();
 
   const languageOptions: { value: SupportedLanguage; label: string; flag: string }[] = [
-    { value: 'es', label: 'Español', flag: 'ðŸ‡ªðŸ‡¸' },
-    { value: 'en', label: 'English', flag: 'ðŸ‡ºðŸ‡¸' },
-    { value: 'pt', label: 'PortuguÃªs', flag: 'ðŸ‡§ðŸ‡·' },
+    { value: 'es', label: 'Español', flag: '🇪🇸' },
+    { value: 'en', label: 'English', flag: '🇺🇸' },
+    { value: 'pt', label: 'Português', flag: '🇧🇷' },
   ];
 
   useEffect(() => {
@@ -75,42 +70,78 @@ export function LandingHeader() {
     >
       <div className="container mx-auto px-4 lg:px-8">
         <nav className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative w-10 h-10 lg:w-12 lg:h-12"
-            >
-              <Image
-                src="/Logo.png"
-                alt="SOFLIA"
-                fill
-                className="object-contain"
-                priority
-              />
-            </motion.div>
-            <div className="text-xl lg:text-2xl font-bold text-[#0A2540] dark:text-white flex items-center gap-2">
-              <span>SOFLIA</span>
-              <span className="px-1.5 py-0.5 text-xs font-bold text-white bg-[#00D4B3] rounded-md tracking-wide uppercase">
-                Learning
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <motion.a
-                key={link.key}
-                href={link.href}
-                whileHover={{ scale: 1.02 }}
-                className="px-4 py-2 text-sm font-medium text-[#6C757D] hover:text-[#0A2540] dark:text-white/70 dark:hover:text-white transition-colors rounded-lg hover:bg-[#E9ECEF]/50 dark:hover:bg-white/5"
+          {/* Logo + Nav Links Group */}
+          <div className="flex items-center gap-1 lg:gap-2">
+            <Link href="/" className="flex items-center gap-3 group">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="relative w-10 h-10 lg:w-12 lg:h-12"
               >
-                {t(`landing.nav.${link.key}`, link.key)}
-              </motion.a>
-            ))}
+                <Image
+                  src="/Logo.png"
+                  alt="SOFLIA"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </motion.div>
+              <div className="text-xl lg:text-2xl font-bold text-[#0A2540] dark:text-white flex items-center gap-2">
+                <span>SOFLIA</span>
+                <span className="px-1.5 py-0.5 text-xs font-bold text-white bg-[#00D4B3] rounded-md tracking-wide uppercase">
+                  Learning
+                </span>
+              </div>
+            </Link>
+
+            {/* Inline Nav Links next to logo */}
+            <div className="hidden lg:flex items-center gap-1 ml-2">
+              {navLinks.map((link) => {
+                const isInternal = link.href.startsWith("/") && link.href.length > 1;
+
+                if (isInternal) {
+                  return (
+                    <Link
+                      key={link.key}
+                      href={link.href}
+                      className="px-4 py-2 text-sm font-medium text-[#6C757D] hover:text-[#0A2540] dark:text-white/70 dark:hover:text-white transition-colors rounded-lg hover:bg-[#E9ECEF]/50 dark:hover:bg-white/5"
+                    >
+                      <motion.span whileHover={{ scale: 1.02 }}>
+                        {t(`landing.nav.${link.key}`, link.key)}
+                      </motion.span>
+                    </Link>
+                  );
+                }
+
+                return (
+                  <motion.a
+                    key={link.key}
+                    href={link.href}
+                    whileHover={{ scale: 1.02 }}
+                    className="px-4 py-2 text-sm font-medium text-[#6C757D] hover:text-[#0A2540] dark:text-white/70 dark:hover:text-white transition-colors rounded-lg hover:bg-[#E9ECEF]/50 dark:hover:bg-white/5"
+                  >
+                    {t(`landing.nav.${link.key}`, link.key)}
+                  </motion.a>
+                );
+              })}
+
+              {/* Download Hub - next to Inicio */}
+              <Link href="/downloads">
+                <motion.span
+                  whileHover={{
+                    scale: 1.03,
+                    boxShadow: "0 8px 30px rgba(0, 212, 179, 0.3)",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-block px-4 py-2 text-sm font-medium text-[#00D4B3] hover:text-[#00bda0] transition-colors rounded-lg hover:bg-[#00D4B3]/10 cursor-pointer"
+                >
+                  {t("landing.nav.downloadHub", "Descargar Hub")}
+                </motion.span>
+              </Link>
+            </div>
           </div>
+
+
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-2">
@@ -235,6 +266,8 @@ export function LandingHeader() {
               </motion.span>
             </Link>
 
+
+
             {/* Demo CTA */}
             <a href="#contact">
               <motion.span
@@ -274,19 +307,42 @@ export function LandingHeader() {
           >
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col gap-2">
-                {navLinks.map((link, index) => (
-                  <motion.a
-                    key={link.key}
-                    href={link.href}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="px-4 py-3 text-base font-medium text-[#0A2540] dark:text-white rounded-xl hover:bg-[#E9ECEF] dark:hover:bg-white/5 transition-colors"
-                  >
-                    {t(`landing.nav.${link.key}`, link.key)}
-                  </motion.a>
-                ))}
+                {navLinks.map((link, index) => {
+                  const isInternal = link.href.startsWith("/");
+                  
+                  if (isInternal) {
+                    return (
+                      <Link
+                        key={link.key}
+                        href={link.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="px-4 py-3 text-base font-medium text-[#0A2540] dark:text-white rounded-xl hover:bg-[#E9ECEF] dark:hover:bg-white/5 transition-colors"
+                      >
+                        <motion.span
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                        >
+                          {t(`landing.nav.${link.key}`, link.key)}
+                        </motion.span>
+                      </Link>
+                    );
+                  }
+                  
+                  return (
+                    <motion.a
+                      key={link.key}
+                      href={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-4 py-3 text-base font-medium text-[#0A2540] dark:text-white rounded-xl hover:bg-[#E9ECEF] dark:hover:bg-white/5 transition-colors"
+                    >
+                      {t(`landing.nav.${link.key}`, link.key)}
+                    </motion.a>
+                  );
+                })}
 
                 <div className="h-px bg-[#E9ECEF] dark:bg-white/10 my-2" />
 
@@ -350,6 +406,14 @@ export function LandingHeader() {
                   className="px-4 py-3 text-base font-medium text-[#6C757D] dark:text-white/70 rounded-xl hover:bg-[#E9ECEF] dark:hover:bg-white/5 transition-colors"
                 >
                   {t("landing.nav.clientAccess", "Acceso clientes")}
+                </Link>
+
+                <Link
+                  href="/downloads"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-4 py-3 text-base font-medium text-[#00D4B3] rounded-xl hover:bg-[#00D4B3]/10 transition-colors"
+                >
+                  {t("landing.nav.downloadHub", "Descargar Hub")}
                 </Link>
 
                 <a href="#contact" onClick={() => setIsMobileMenuOpen(false)}>

@@ -18,6 +18,7 @@ const footerSections = [
       { key: 'lia', href: '#platform' },
       { key: 'studyPlanner', href: '#platform' },
       { key: 'analytics', href: '#platform' },
+      { key: 'downloads', href: '/downloads' },
       { key: 'certificates', href: '#platform' },
     ],
   },
@@ -84,16 +85,28 @@ export function LandingFooter() {
                 {t(`landing.footer.sections.${section.titleKey}`, section.titleKey)}
               </h4>
               <ul className="space-y-3">
-                {section.links.map((link) => (
-                  <li key={link.key}>
-                    <a
-                      href={link.href}
-                      className="text-sm text-white/60 hover:text-[#00D4B3] transition-colors duration-200"
-                    >
-                      {t(`landing.footer.links.${link.key}`, link.key)}
-                    </a>
-                  </li>
-                ))}
+                {section.links.map((link) => {
+                  const isInternal = link.href.startsWith("/");
+                  return (
+                    <li key={link.key}>
+                      {isInternal ? (
+                        <Link
+                          href={link.href}
+                          className="text-sm text-white/60 hover:text-[#00D4B3] transition-colors duration-200"
+                        >
+                          {t(`landing.footer.links.${link.key}`, link.key)}
+                        </Link>
+                      ) : (
+                        <a
+                          href={link.href}
+                          className="text-sm text-white/60 hover:text-[#00D4B3] transition-colors duration-200"
+                        >
+                          {t(`landing.footer.links.${link.key}`, link.key)}
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

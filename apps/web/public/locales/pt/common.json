@@ -180,10 +180,12 @@
   },
   "landing": {
     "nav": {
+      "home": "Início",
       "platform": "Plataforma",
       "capabilities": "Capacidades",
       "useCases": "Casos de Uso",
       "integrations": "IntegraÃ§Ãµes",
+      "downloads": "Downloads",
       "security": "SeguranÃ§a",
       "faq": "FAQ",
       "clientAccess": "Acesso Clientes",
@@ -510,6 +512,7 @@
         "studyPlanner": "Study Planner",
         "analytics": "Analytics",
         "certificates": "Certificados",
+        "downloads": "Soflia Hub",
         "upskilling": "Upskilling IA",
         "onboarding": "Onboarding",
         "sales": "Vendas",

@@ -180,14 +180,17 @@
   },
   "landing": {
     "nav": {
+      "home": "Inicio",
       "platform": "Plataforma",
       "capabilities": "Capacidades",
       "useCases": "Casos de Uso",
       "integrations": "Integraciones",
+      "downloads": "Descargas",
       "lia": "LIA",
       "security": "Seguridad",
       "faq": "FAQ",
       "clientAccess": "Acceso clientes",
+      "downloadHub": "Descargar Hub",
       "scheduleDemo": "Agendar demo"
     },
     "hero": {
@@ -568,6 +571,7 @@
         "studyPlanner": "Study Planner",
         "analytics": "Analytics",
         "certificates": "Certificados",
+        "downloads": "Soflia Hub",
         "upskilling": "Upskilling IA",
         "onboarding": "Onboarding",
         "sales": "Ventas",
