@@ -55,12 +55,14 @@ interface ReleaseData {
 
 export default function DownloadsPage() {
   const [release, setRelease] = useState<ReleaseData | null>(null);
+  const [changelogs, setChangelogs] = useState<{ version: string; notes: string; date: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  const toggleSection = (key: string) => {
-    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleSection = (version: string, key: string) => {
+    const sectionKey = `${version}-${key}`;
+    setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
   };
 
   const fetchRelease = () => {
@@ -77,12 +79,21 @@ export default function DownloadsPage() {
         return res.json();
       })
       .then(data => {
-        if (!data || !data.assets || !Array.isArray(data.assets)) {
+        let releases: any[] = [];
+        if (Array.isArray(data)) {
+          releases = data;
+        } else if (data && typeof data === 'object' && data.tag_name) {
+          releases = [data]; // handle single release object fallback
+        }
+
+        if (releases.length === 0) {
           throw new Error('invalid_response');
         }
 
+        const latest = releases[0];
+
         const assets: { windows?: Asset; mac?: Asset } = {};
-        for (const asset of data.assets) {
+        for (const asset of latest.assets || []) {
           if (asset.name.includes('Windows') && asset.name.endsWith('.exe')) {
             assets.windows = {
               url: asset.browser_download_url,
@@ -100,15 +111,27 @@ export default function DownloadsPage() {
         }
 
         setRelease({
-          version: data.tag_name,
-          notes: data.body || '',
-          date: new Date(data.published_at).toLocaleDateString('es-ES', {
+          version: latest.tag_name,
+          notes: latest.body || '',
+          date: new Date(latest.published_at || latest.created_at).toLocaleDateString('es-ES', {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
           }),
           assets,
         });
+
+        const parsedChangelogs = releases.map((rel: any) => ({
+          version: rel.tag_name,
+          notes: rel.body || '',
+          date: new Date(rel.published_at || rel.created_at).toLocaleDateString('es-ES', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          })
+        }));
+
+        setChangelogs(parsedChangelogs);
         setLoading(false);
       })
       .catch((err) => {
@@ -428,131 +451,135 @@ export default function DownloadsPage() {
             </div>
 
             {/* Changelog — Antigravity-style */}
-            {!loading && release?.notes && (() => {
-              const { releaseTitle, sections } = parseReleaseNotes(release.notes);
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4, duration: 0.6 }}
-                  className="mt-16 max-w-4xl mx-auto"
-                >
-                  {/* Section Header */}
-                  <div className="text-center mb-8">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A2540]/5 dark:bg-white/5 border border-[#0A2540]/10 dark:border-white/10 mb-4">
-                      <FileText className="w-4 h-4 text-[#00D4B3]" />
-                      <span className="text-sm font-medium text-[#0A2540]/60 dark:text-white/60">Changelog</span>
-                    </div>
+            {!loading && changelogs.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+                className="mt-16 max-w-4xl mx-auto"
+              >
+                {/* Section Header */}
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0A2540]/5 dark:bg-white/5 border border-[#0A2540]/10 dark:border-white/10 mb-4">
+                    <FileText className="w-4 h-4 text-[#00D4B3]" />
+                    <span className="text-sm font-medium text-[#0A2540]/60 dark:text-white/60">Changelog</span>
                   </div>
+                </div>
 
-                  {/* Changelog Entry Card */}
-                  <div className="bg-white dark:bg-white/[0.03] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] overflow-hidden">
-                    {/* Entry Header */}
-                    <div className="flex flex-col md:flex-row md:items-start gap-6 p-8 pb-6">
-                      {/* Version & Date */}
-                      <div className="shrink-0 md:w-36">
-                        <div className="text-2xl font-bold text-[#0A2540] dark:text-white tracking-tight">
-                          {release.version}
-                        </div>
-                        <div className="text-sm text-[#0A2540]/40 dark:text-white/40 mt-1">
-                          {release.date}
-                        </div>
-                      </div>
-
-                      {/* Title & Description */}
-                      <div className="flex-1 min-w-0">
-                        {releaseTitle && (
-                          <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-2 leading-snug">
-                            {releaseTitle}
-                          </h3>
-                        )}
-                        <p className="text-sm text-[#0A2540]/50 dark:text-white/50 leading-relaxed">
-                          Novedades y mejoras incluidas en esta version de SofLIA Hub.
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="mx-8 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
-
-                    {/* Collapsible Sections */}
-                    <div className="px-8 py-2">
-                      {sections.map((section, idx) => {
-                        const isExpanded = expandedSections[section.key] ?? false;
-                        const SectionIcon = section.icon;
-                        const hasItems = section.items.length > 0;
-
-                        return (
-                          <div key={section.key}>
-                            <button
-                              onClick={() => hasItems && toggleSection(section.key)}
-                              className={`w-full flex items-center justify-between py-4 group transition-colors ${
-                                hasItems ? 'cursor-pointer' : 'cursor-default'
-                              }`}
-                            >
-                              <div className="flex items-center gap-3">
-                                <SectionIcon size={16} className={section.color} />
-                                <span className={`text-sm font-medium ${
-                                  hasItems
-                                    ? 'text-[#0A2540] dark:text-white'
-                                    : 'text-[#0A2540]/30 dark:text-white/30'
-                                }`}>
-                                  {section.label}
-                                </span>
-                                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                                  hasItems
-                                    ? 'bg-[#0A2540]/5 dark:bg-white/10 text-[#0A2540]/60 dark:text-white/60'
-                                    : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#0A2540]/25 dark:text-white/25'
-                                }`}>
-                                  {section.items.length}
-                                </span>
-                              </div>
-                              {hasItems && (
-                                <ChevronDown
-                                  size={16}
-                                  className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
-                                    isExpanded ? 'rotate-180' : ''
-                                  }`}
-                                />
-                              )}
-                            </button>
-
-                            {/* Expanded Items */}
-                            <AnimatePresence>
-                              {isExpanded && hasItems && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="pb-4 pl-8 space-y-2.5">
-                                    {section.items.map((item, j) => (
-                                      <div key={j} className="flex items-start gap-3 group/item">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${section.dotColor} mt-2 shrink-0 opacity-60`} />
-                                        <span className="text-sm text-[#0A2540]/70 dark:text-white/70 leading-relaxed">
-                                          {item}
-                                        </span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Section Divider */}
-                            {idx < sections.length - 1 && (
-                              <div className="h-px bg-black/[0.04] dark:bg-white/[0.04]" />
-                            )}
+                <div className="space-y-8">
+                  {changelogs.map((clog, i) => {
+                    const { releaseTitle, sections } = parseReleaseNotes(clog.notes);
+                    return (
+                      <div key={clog.version} className="bg-white dark:bg-white/[0.03] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-sm shadow-black/5">
+                        {/* Entry Header */}
+                        <div className="flex flex-col md:flex-row md:items-start gap-6 p-8 pb-6">
+                          {/* Version & Date */}
+                          <div className="shrink-0 md:w-36">
+                            <div className="text-2xl font-bold text-[#0A2540] dark:text-white tracking-tight">
+                              {clog.version}
+                            </div>
+                            <div className="text-sm text-[#0A2540]/40 dark:text-white/40 mt-1">
+                              {clog.date}
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })()}
+
+                          {/* Title & Description */}
+                          <div className="flex-1 min-w-0">
+                            {releaseTitle && (
+                              <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-2 leading-snug">
+                                {releaseTitle}
+                              </h3>
+                            )}
+                            <p className="text-sm text-[#0A2540]/50 dark:text-white/50 leading-relaxed">
+                              Novedades y mejoras incluidas en esta version de SofLIA Hub.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="mx-8 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
+
+                        {/* Collapsible Sections */}
+                        <div className="px-8 py-2">
+                          {sections.map((section, idx) => {
+                            const sectionKey = `${clog.version}-${section.key}`;
+                            const isExpanded = expandedSections[sectionKey] ?? false;
+                            const SectionIcon = section.icon;
+                            const hasItems = section.items.length > 0;
+
+                            return (
+                              <div key={section.key}>
+                                <button
+                                  onClick={() => hasItems && toggleSection(clog.version, section.key)}
+                                  className={`w-full flex items-center justify-between py-4 group transition-colors ${
+                                    hasItems ? 'cursor-pointer' : 'cursor-default'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <SectionIcon size={16} className={section.color} />
+                                    <span className={`text-sm font-medium ${
+                                      hasItems
+                                        ? 'text-[#0A2540] dark:text-white'
+                                        : 'text-[#0A2540]/30 dark:text-white/30'
+                                    }`}>
+                                      {section.label}
+                                    </span>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                      hasItems
+                                        ? 'bg-[#0A2540]/5 dark:bg-white/10 text-[#0A2540]/60 dark:text-white/60'
+                                        : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#0A2540]/25 dark:text-white/25'
+                                    }`}>
+                                      {section.items.length}
+                                    </span>
+                                  </div>
+                                  {hasItems && (
+                                    <ChevronDown
+                                      size={16}
+                                      className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
+                                        isExpanded ? 'rotate-180' : ''
+                                      }`}
+                                    />
+                                  )}
+                                </button>
+
+                                {/* Expanded Items */}
+                                <AnimatePresence>
+                                  {isExpanded && hasItems && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: 'auto', opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                                      className="overflow-hidden"
+                                    >
+                                      <div className="pb-4 pl-8 space-y-2.5">
+                                        {section.items.map((item, j) => (
+                                          <div key={j} className="flex items-start gap-3 group/item">
+                                            <div className={`w-1.5 h-1.5 rounded-full ${section.dotColor} mt-2 shrink-0 opacity-60`} />
+                                            <span className="text-sm text-[#0A2540]/70 dark:text-white/70 leading-relaxed">
+                                              {item}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+
+                                {/* Section Divider */}
+                                {idx < sections.length - 1 && (
+                                  <div className="h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
           </section>
 
           {/* What is SofLIA Hub? */}

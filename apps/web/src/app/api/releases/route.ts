@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 
-const RELEASES_API = 'https://api.github.com/repos/DevOps-043/PulseHub-SofLIA-releases/releases/latest';
+const RELEASES_API = 'https://api.github.com/repos/DevOps-043/PulseHub-SofLIA-releases/releases';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -8,7 +10,7 @@ export async function GET() {
       headers: {
         'Accept': 'application/vnd.github.v3+json',
       },
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      cache: 'no-store',
     });
 
     if (!res.ok) {
