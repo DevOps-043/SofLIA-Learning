@@ -59,10 +59,15 @@ export default function DownloadsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [expandedVersions, setExpandedVersions] = useState<Record<string, boolean>>({});
 
   const toggleSection = (version: string, key: string) => {
     const sectionKey = `${version}-${key}`;
     setExpandedSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }));
+  };
+
+  const toggleVersion = (version: string) => {
+    setExpandedVersions(prev => ({ ...prev, [version]: !prev[version] }));
   };
 
   const fetchRelease = () => {
@@ -466,114 +471,152 @@ export default function DownloadsPage() {
                   </div>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-4">
                   {changelogs.map((clog, i) => {
                     const { releaseTitle, sections } = parseReleaseNotes(clog.notes);
+                    const isVersionExpanded = expandedVersions[clog.version] ?? (i === 0);
+                    const totalItems = sections.reduce((sum, s) => sum + s.items.length, 0);
+
                     return (
                       <div key={clog.version} className="bg-white dark:bg-white/[0.03] rounded-3xl border border-black/[0.06] dark:border-white/[0.08] overflow-hidden shadow-sm shadow-black/5">
-                        {/* Entry Header */}
-                        <div className="flex flex-col md:flex-row md:items-start gap-6 p-8 pb-6">
-                          {/* Version & Date */}
-                          <div className="shrink-0 md:w-36">
-                            <div className="text-2xl font-bold text-[#0A2540] dark:text-white tracking-tight">
-                              {clog.version}
-                            </div>
-                            <div className="text-sm text-[#0A2540]/40 dark:text-white/40 mt-1">
-                              {clog.date}
-                            </div>
-                          </div>
-
-                          {/* Title & Description */}
-                          <div className="flex-1 min-w-0">
-                            {releaseTitle && (
-                              <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-2 leading-snug">
-                                {releaseTitle}
-                              </h3>
-                            )}
-                            <p className="text-sm text-[#0A2540]/50 dark:text-white/50 leading-relaxed">
-                              Novedades y mejoras incluidas en esta version de SofLIA Hub.
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Divider */}
-                        <div className="mx-8 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
-
-                        {/* Collapsible Sections */}
-                        <div className="px-8 py-2">
-                          {sections.map((section, idx) => {
-                            const sectionKey = `${clog.version}-${section.key}`;
-                            const isExpanded = expandedSections[sectionKey] ?? false;
-                            const SectionIcon = section.icon;
-                            const hasItems = section.items.length > 0;
-
-                            return (
-                              <div key={section.key}>
-                                <button
-                                  onClick={() => hasItems && toggleSection(clog.version, section.key)}
-                                  className={`w-full flex items-center justify-between py-4 group transition-colors ${
-                                    hasItems ? 'cursor-pointer' : 'cursor-default'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <SectionIcon size={16} className={section.color} />
-                                    <span className={`text-sm font-medium ${
-                                      hasItems
-                                        ? 'text-[#0A2540] dark:text-white'
-                                        : 'text-[#0A2540]/30 dark:text-white/30'
-                                    }`}>
-                                      {section.label}
-                                    </span>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                                      hasItems
-                                        ? 'bg-[#0A2540]/5 dark:bg-white/10 text-[#0A2540]/60 dark:text-white/60'
-                                        : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#0A2540]/25 dark:text-white/25'
-                                    }`}>
-                                      {section.items.length}
-                                    </span>
-                                  </div>
-                                  {hasItems && (
-                                    <ChevronDown
-                                      size={16}
-                                      className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
-                                        isExpanded ? 'rotate-180' : ''
-                                      }`}
-                                    />
-                                  )}
-                                </button>
-
-                                {/* Expanded Items */}
-                                <AnimatePresence>
-                                  {isExpanded && hasItems && (
-                                    <motion.div
-                                      initial={{ height: 0, opacity: 0 }}
-                                      animate={{ height: 'auto', opacity: 1 }}
-                                      exit={{ height: 0, opacity: 0 }}
-                                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                                      className="overflow-hidden"
-                                    >
-                                      <div className="pb-4 pl-8 space-y-2.5">
-                                        {section.items.map((item, j) => (
-                                          <div key={j} className="flex items-start gap-3 group/item">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${section.dotColor} mt-2 shrink-0 opacity-60`} />
-                                            <span className="text-sm text-[#0A2540]/70 dark:text-white/70 leading-relaxed">
-                                              {item}
-                                            </span>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-
-                                {/* Section Divider */}
-                                {idx < sections.length - 1 && (
-                                  <div className="h-px bg-black/[0.04] dark:bg-white/[0.04]" />
-                                )}
+                        {/* Clickable Version Header */}
+                        <button
+                          onClick={() => toggleVersion(clog.version)}
+                          className="w-full flex items-center justify-between p-6 md:p-8 cursor-pointer hover:bg-black/[0.01] dark:hover:bg-white/[0.02] transition-colors"
+                        >
+                          <div className="flex items-center gap-5">
+                            {/* Version badge */}
+                            <div className="shrink-0">
+                              <div className="text-xl md:text-2xl font-bold text-[#0A2540] dark:text-white tracking-tight">
+                                {clog.version}
                               </div>
-                            );
-                          })}
-                        </div>
+                              <div className="text-xs text-[#0A2540]/40 dark:text-white/40 mt-0.5">
+                                {clog.date}
+                              </div>
+                            </div>
+
+                            {/* Title */}
+                            <div className="hidden md:block text-left">
+                              {releaseTitle && (
+                                <span className="text-sm font-medium text-[#0A2540]/70 dark:text-white/70">
+                                  {releaseTitle}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {/* Items count badge */}
+                            <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-[#00D4B3]/10 text-[#00D4B3]">
+                              {totalItems} {totalItems === 1 ? 'cambio' : 'cambios'}
+                            </span>
+                            <ChevronDown
+                              size={18}
+                              className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
+                                isVersionExpanded ? 'rotate-180' : ''
+                              }`}
+                            />
+                          </div>
+                        </button>
+
+                        {/* Expandable Content */}
+                        <AnimatePresence>
+                          {isVersionExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                              className="overflow-hidden"
+                            >
+                              {/* Divider */}
+                              <div className="mx-8 h-px bg-black/[0.06] dark:bg-white/[0.06]" />
+
+                              {/* Description */}
+                              <div className="px-8 pt-4 pb-2">
+                                <p className="text-sm text-[#0A2540]/50 dark:text-white/50 leading-relaxed">
+                                  Novedades y mejoras incluidas en esta version de SofLIA Hub.
+                                </p>
+                              </div>
+
+                              {/* Collapsible Category Sections */}
+                              <div className="px-8 py-2">
+                                {sections.map((section, idx) => {
+                                  const sectionKey = `${clog.version}-${section.key}`;
+                                  const isExpanded = expandedSections[sectionKey] ?? false;
+                                  const SectionIcon = section.icon;
+                                  const hasItems = section.items.length > 0;
+
+                                  return (
+                                    <div key={section.key}>
+                                      <button
+                                        onClick={() => hasItems && toggleSection(clog.version, section.key)}
+                                        className={`w-full flex items-center justify-between py-4 group transition-colors ${
+                                          hasItems ? 'cursor-pointer' : 'cursor-default'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-3">
+                                          <SectionIcon size={16} className={section.color} />
+                                          <span className={`text-sm font-medium ${
+                                            hasItems
+                                              ? 'text-[#0A2540] dark:text-white'
+                                              : 'text-[#0A2540]/30 dark:text-white/30'
+                                          }`}>
+                                            {section.label}
+                                          </span>
+                                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                                            hasItems
+                                              ? 'bg-[#0A2540]/5 dark:bg-white/10 text-[#0A2540]/60 dark:text-white/60'
+                                              : 'bg-black/[0.03] dark:bg-white/[0.04] text-[#0A2540]/25 dark:text-white/25'
+                                          }`}>
+                                            {section.items.length}
+                                          </span>
+                                        </div>
+                                        {hasItems && (
+                                          <ChevronDown
+                                            size={16}
+                                            className={`text-[#0A2540]/30 dark:text-white/30 transition-transform duration-300 ${
+                                              isExpanded ? 'rotate-180' : ''
+                                            }`}
+                                          />
+                                        )}
+                                      </button>
+
+                                      {/* Expanded Items */}
+                                      <AnimatePresence>
+                                        {isExpanded && hasItems && (
+                                          <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                                            className="overflow-hidden"
+                                          >
+                                            <div className="pb-4 pl-8 space-y-2.5">
+                                              {section.items.map((item, j) => (
+                                                <div key={j} className="flex items-start gap-3 group/item">
+                                                  <div className={`w-1.5 h-1.5 rounded-full ${section.dotColor} mt-2 shrink-0 opacity-60`} />
+                                                  <span className="text-sm text-[#0A2540]/70 dark:text-white/70 leading-relaxed">
+                                                    {item}
+                                                  </span>
+                                                </div>
+                                              ))}
+                                            </div>
+                                          </motion.div>
+                                        )}
+                                      </AnimatePresence>
+
+                                      {/* Section Divider */}
+                                      {idx < sections.length - 1 && (
+                                        <div className="h-px bg-black/[0.04] dark:bg-white/[0.04]" />
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
                     );
                   })}
