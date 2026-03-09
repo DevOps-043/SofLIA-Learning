@@ -11,9 +11,9 @@ import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useOrganizationStylesContext } from '../../../features/business-panel/contexts/OrganizationStylesContext';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useTranslation } from 'react-i18next';
-import { LiaPersonalizationSettings } from '../../../features/lia/components/LiaPersonalizationSettings';
+import { SofLIAPersonalizationSettings } from '../../../features/lia/components/SofLIAPersonalizationSettings';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLiaPersonalization } from '../../hooks/useLiaPersonalization';
+import { useSofLIAPersonalization } from '../../hooks/useSofLIAPersonalization';
 import { useLanguage } from '../../providers/I18nProvider';
 
 // Función para parsear Markdown completo y convertirlo a elementos React
@@ -165,7 +165,7 @@ function LiaSidePanelContent() {
   const { messages, isLoading, sendMessage, clearHistory, loadConversation, currentConversationId } = useLiaGeneralChat();
   
   // ðŸŽ™ï¸ Configuración de personalización de LIA para voz
-  const { settings: liaSettings } = useLiaPersonalization();
+  const { settings: liaSettings } = useSofLIAPersonalization();
   const isVoiceEnabled = liaSettings?.voice_enabled ?? true; // Por defecto activado
   const isDictationEnabled = liaSettings?.dictation_enabled ?? false; // Por defecto desactivado
   const { language } = useLanguage();
@@ -2062,7 +2062,7 @@ function LiaSidePanelContent() {
       </AnimatePresence>
       {/* Modal de Personalización */}
       {isPersonalizationOpen && (
-        <LiaPersonalizationSettings
+        <SofLIAPersonalizationSettings
           isOpen={isPersonalizationOpen}
           onClose={() => setIsPersonalizationOpen(false)}
         />

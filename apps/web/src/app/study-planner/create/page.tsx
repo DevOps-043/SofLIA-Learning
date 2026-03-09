@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { StudyPlannerLIA } from '../../../features/study-planner/components/StudyPlannerLIA';
+import { StudyPlannerSofLIA } from '../../../features/study-planner/components/StudyPlannerSofLIA';
 
 export default function CreateStudyPlanPage() {
   return (
     <div className="min-h-screen" suppressHydrationWarning>
-      <StudyPlannerLIA />
+      <StudyPlannerSofLIA />
     </div>
   );
 }

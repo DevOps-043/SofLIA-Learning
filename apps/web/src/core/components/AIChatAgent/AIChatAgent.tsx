@@ -36,9 +36,9 @@ import { IntentDetectionService } from '../../services/intent-detection.service'
 import { PromptPreviewPanel, type PromptDraft } from './PromptPreviewPanel';
 import { NanoBananaPreviewPanel } from './NanoBananaPreviewPanel';
 import type { NanoBananaSchema, NanoBananaDomain, OutputFormat } from '../../../lib/nanobana/templates';
-import { LiaPersonalizationSettings } from '../../../features/lia/components/LiaPersonalizationSettings';
+import { SofLIAPersonalizationSettings } from '../../../features/lia/components/SofLIAPersonalizationSettings';
 import { useThemeStore } from '../../stores/themeStore';
-import { useLiaPersonalization } from '../../hooks/useLiaPersonalization';
+import { useSofLIAPersonalization } from '../../hooks/useSofLIAPersonalization';
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../utils/tts-voice-settings';
 
 interface Message {
@@ -655,7 +655,7 @@ export function AIChatAgent({
   const { user } = useAuth();
   
   // ðŸŽ™ï¸ Configuración de personalización de LIA para voz
-  const { settings: liaSettings, loading: liaSettingsLoading } = useLiaPersonalization();
+  const { settings: liaSettings, loading: liaSettingsLoading } = useSofLIAPersonalization();
   const isVoiceEnabled = liaSettings?.voice_enabled ?? true; // Por defecto activado
   
   // Debug: Log de configuración de voz
@@ -3204,7 +3204,7 @@ Fecha: ${new Date().toLocaleString()}
       )}
 
       {/* Modal de Personalización */}
-      <LiaPersonalizationSettings
+      <SofLIAPersonalizationSettings
         isOpen={isPersonalizationOpen}
         onClose={() => setIsPersonalizationOpen(false)}
       />
