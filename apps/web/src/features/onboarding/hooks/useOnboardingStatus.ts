@@ -29,6 +29,7 @@ export function useOnboardingStatus() {
     type: data?.type,
     organizationSlug: data?.organizationSlug,
     organizationName: data?.organizationName,
+    banReason: data?.banReason,
     isLoading,
     error,
     refetch: mutate,

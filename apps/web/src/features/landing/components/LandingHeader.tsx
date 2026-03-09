@@ -87,7 +87,7 @@ export function LandingHeader() {
                 />
               </motion.div>
               <div className="text-xl lg:text-2xl font-bold text-[#0A2540] dark:text-white flex items-center gap-2">
-                <span>SOFLIA</span>
+                <span>SofLIA</span>
                 <span className="px-1.5 py-0.5 text-xs font-bold text-white bg-[#00D4B3] rounded-md tracking-wide uppercase">
                   Learning
                 </span>

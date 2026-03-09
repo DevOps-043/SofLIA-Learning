@@ -1,15 +1,15 @@
 /**
- * LiaPersonalizationService
+ * SofLIAPersonalizationService
  * 
- * Servicio para gestionar la configuración de personalización de LIA
+ * Servicio para gestionar la configuración de personalización de SofLIA
  * Similar a las opciones de personalización de ChatGPT
  */
 
 import { createClient } from '../../lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type {
-  LiaPersonalizationSettings,
-  LiaPersonalizationSettingsInput,
+  SofLIAPersonalizationSettings,
+  SofLIAPersonalizationSettingsInput,
   BaseStyle,
 } from '../types/lia-personalization.types';
 
@@ -37,12 +37,12 @@ function createAdminClient() {
 // CLASE PRINCIPAL: LiaPersonalizationService
 // ============================================================================
 
-export class LiaPersonalizationService {
+export class SofLIAPersonalizationService {
   /**
    * Obtiene la configuración de personalización del usuario
    * Si no existe, retorna null
    */
-  static async getSettings(userId: string): Promise<LiaPersonalizationSettings | null> {
+  static async getSettings(userId: string): Promise<SofLIAPersonalizationSettings | null> {
     // Usar cliente admin para bypass de RLS, pero validamos manualmente el userId
     const adminSupabase = createAdminClient();
 
@@ -61,13 +61,13 @@ export class LiaPersonalizationService {
       throw new Error(`Error al obtener configuración: ${error.message}`);
     }
 
-    return data as LiaPersonalizationSettings;
+    return data as SofLIAPersonalizationSettings;
   }
 
   /**
    * Obtiene la configuración de personalización del usuario o crea una con valores por defecto
    */
-  static async getSettingsOrCreate(userId: string): Promise<LiaPersonalizationSettings> {
+  static async getSettingsOrCreate(userId: string): Promise<SofLIAPersonalizationSettings> {
     let settings = await this.getSettings(userId);
 
     if (!settings) {
@@ -81,11 +81,11 @@ export class LiaPersonalizationService {
   /**
    * Crea una configuración de personalización con valores por defecto
    */
-  static async createDefaultSettings(userId: string): Promise<LiaPersonalizationSettings> {
+  static async createDefaultSettings(userId: string): Promise<SofLIAPersonalizationSettings> {
     // Usar cliente admin para bypass de RLS, pero validamos manualmente el userId
     const adminSupabase = createAdminClient();
 
-    const defaultSettings: Partial<LiaPersonalizationSettings> = {
+    const defaultSettings: Partial<SofLIAPersonalizationSettings> = {
       user_id: userId,
       base_style: 'professional',
       is_friendly: true,
@@ -107,7 +107,7 @@ export class LiaPersonalizationService {
       throw new Error(`Error al crear configuración: ${error.message}`);
     }
 
-    return data as LiaPersonalizationSettings;
+    return data as SofLIAPersonalizationSettings;
   }
 
   /**
@@ -116,8 +116,8 @@ export class LiaPersonalizationService {
    */
   static async updateSettings(
     userId: string,
-    settings: LiaPersonalizationSettingsInput
-  ): Promise<LiaPersonalizationSettings> {
+    settings: SofLIAPersonalizationSettingsInput
+  ): Promise<SofLIAPersonalizationSettings> {
     // Usar cliente admin para bypass de RLS, pero validamos manualmente el userId
     const adminSupabase = createAdminClient();
 
@@ -167,14 +167,14 @@ export class LiaPersonalizationService {
           throw new Error(`Error al crear configuración: ${createError.message}`);
         }
 
-        return createdData as LiaPersonalizationSettings;
+        return createdData as SofLIAPersonalizationSettings;
       }
 
       console.error('Error actualizando configuración:', updateError);
       throw new Error(`Error al actualizar configuración: ${updateError.message}`);
     }
 
-    return updatedData as LiaPersonalizationSettings;
+    return updatedData as SofLIAPersonalizationSettings;
   }
 
   /**
@@ -200,7 +200,7 @@ export class LiaPersonalizationService {
    * Construye el prompt de personalización basado en la configuración
    * Este método se usa para inyectar las preferencias en el system prompt
    */
-  static buildPersonalizationPrompt(settings: LiaPersonalizationSettings): string {
+  static buildPersonalizationPrompt(settings: SofLIAPersonalizationSettings): string {
     let prompt = '';
 
     // Estilo y Tono Base
@@ -244,22 +244,22 @@ export class LiaPersonalizationService {
     prompt += `✅ LO QUE SÃ PUEDES HACER CON LA PERSONALIZACIÓN:\n`;
     prompt += `- Adaptar tu estilo de comunicación según las instrucciones personalizadas (ej: si dice "actúa como un nerd de comics", usa un tono entusiasta y conocimiento sobre comics SOLO cuando hables de contenido de la plataforma relacionado con ese tema)\n`;
     prompt += `- Usar terminología, ejemplos y referencias del tema de personalización cuando expliques contenido de la plataforma\n`;
-    prompt += `- Mantener el estilo personalizado al responder sobre funcionalidades, cursos, y contenido de SOFLIA\n\n`;
+    prompt += `- Mantener el estilo personalizado al responder sobre funcionalidades, cursos, y contenido de SofLIA\n\n`;
     prompt += `âŒ LO QUE NUNCA DEBES HACER:\n`;
     prompt += `- Responder preguntas generales sobre el tema de personalización que NO estén relacionadas con la plataforma (ej: si la personalización es sobre comics, NO respondas "¿Cuál fue el primer comic de Spiderman?" a menos que sea contenido de un curso de la plataforma)\n`;
     prompt += `- Convertirte en un asistente general sobre el tema de personalización\n`;
     prompt += `- Usar la personalización como excusa para responder sobre temas fuera del alcance de la plataforma\n\n`;
     prompt += `ðŸ“‹ REGLA DE ORO:\n`;
-    prompt += `Si el usuario pregunta algo que NO está relacionado con contenido de la plataforma SOFLIA (cursos, funcionalidades, navegación, etc.), debes:\n`;
+    prompt += `Si el usuario pregunta algo que NO está relacionado con contenido de la plataforma SofLIA (cursos, funcionalidades, navegación, etc.), debes:\n`;
     prompt += `1. Mantener tu estilo personalizado en la respuesta\n`;
     prompt += `2. Amablemente redirigir al usuario hacia el contenido de la plataforma\n`;
     prompt += `3. NO responder la pregunta general, incluso si conoces la respuesta\n`;
-    prompt += `4. Ejemplo: "Entiendo tu interés en [tema], pero mi función es ayudarte específicamente con el contenido y funcionalidades de SOFLIA. ¿Hay algo sobre la plataforma en lo que pueda ayudarte?"\n\n`;
+    prompt += `4. Ejemplo: "Entiendo tu interés en [tema], pero mi función es ayudarte específicamente con el contenido y funcionalidades de SofLIA. ¿Hay algo sobre la plataforma en lo que pueda ayudarte?"\n\n`;
     prompt += `ðŸŽ¯ EJEMPLO PRÃCTICO:\n`;
     prompt += `Si la personalización dice "actúa como un nerd de comics de Marvel":\n`;
-    prompt += `✅ CORRECTO: Usar referencias a Marvel cuando expliques funcionalidades de la plataforma, usar un tono entusiasta sobre comics, pero SOLO responder sobre contenido de SOFLIA\n`;
+    prompt += `✅ CORRECTO: Usar referencias a Marvel cuando expliques funcionalidades de la plataforma, usar un tono entusiasta sobre comics, pero SOLO responder sobre contenido de SofLIA\n`;
     prompt += `âŒ INCORRECTO: Responder "El primer comic de Spiderman fue Amazing Fantasy #15" cuando el usuario pregunta directamente sobre comics sin relación con la plataforma\n\n`;
-    prompt += `🔒 RECUERDA: Tu función principal es ser un asistente de SOFLIA. La personalización es solo para hacer la experiencia más agradable y relevante, pero NUNCA cambia tu alcance fundamental de responder solo sobre la plataforma.\n`;
+    prompt += `🔒 RECUERDA: Tu función principal es ser un asistente de SofLIA. La personalización es solo para hacer la experiencia más agradable y relevante, pero NUNCA cambia tu alcance fundamental de responder solo sobre la plataforma.\n`;
 
     return prompt;
   }

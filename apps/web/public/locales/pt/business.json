@@ -89,6 +89,10 @@
       "users": "Usuários",
       "courses": "Cursos",
       "active": "ativos"
+    },
+    "emptyCourses": {
+      "title": "Você ainda não tem cursos atribuídos",
+      "description": "Sua organização atribuirá cursos em breve. Enquanto isso, explore o que preparamos para você."
     }
   },
   "users": {

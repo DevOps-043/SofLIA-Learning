@@ -101,7 +101,7 @@ export function CTASection() {
             >
               <Image
                 src="/Logo.png"
-                alt="SOFLIA Logo"
+                alt="SofLIA Logo"
                 width={80}
                 height={80}
                 className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
@@ -328,7 +328,7 @@ export function CTASection() {
         >
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 text-sm">
             <p className="text-[#6C757D] dark:text-white/60">
-              © {new Date().getFullYear()} SOFLIA. Todos los derechos reservados.
+              © {new Date().getFullYear()} SofLIA. Todos los derechos reservados.
             </p>
             <div className="flex items-center gap-4">
               <Link

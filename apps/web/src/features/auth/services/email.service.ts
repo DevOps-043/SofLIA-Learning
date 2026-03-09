@@ -114,9 +114,9 @@ class EmailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from: `"SOFLIA" <noreply@soflia.com>`,
+        from: `"SofLIA" <noreply@soflia.com>`,
         to,
-        subject: 'Recuperación de Contraseña - SOFLIA',
+        subject: 'Recuperación de Contraseña - SofLIA',
         text: textContent,
         html: htmlContent,
       });
@@ -363,7 +363,7 @@ Este es un email automático, por favor no respondas a este mensaje.
     organizationLogoUrl?: string
   ): string {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const SOFLIALogoUrl = `${appUrl}/Logo.png`;
+    const SofLIALogoUrl = `${appUrl}/Logo.png`;
 
     return `
       <!DOCTYPE html>
@@ -393,7 +393,7 @@ Este es un email automático, por favor no respondas a este mensaje.
             padding: 28px 40px;
             text-align: center;
           }
-          .SOFLIA-logo {
+          .SofLIA-logo {
             height: 60px;
             width: auto;
             margin-bottom: 0;
@@ -527,7 +527,7 @@ Este es un email automático, por favor no respondas a este mensaje.
       <body>
         <div class="container">
           <div class="header">
-            <img src="${SOFLIALogoUrl}" alt="SOFLIA" class="SOFLIA-logo" />
+            <img src="${SofLIALogoUrl}" alt="SofLIA" class="SofLIA-logo" />
           </div>
 
           <div class="org-section">
@@ -570,9 +570,9 @@ Este es un email automático, por favor no respondas a este mensaje.
           </div>
 
           <div class="footer">
-            <img src="${SOFLIALogoUrl}" alt="SOFLIA" class="footer-logo" />
+            <img src="${SofLIALogoUrl}" alt="SofLIA" class="footer-logo" />
             <p class="footer-text">Este es un mensaje automático. Por favor, no responda a este correo.</p>
-            <p class="footer-copyright">&copy; ${new Date().getFullYear()} SOFLIA. Todos los derechos reservados.</p>
+            <p class="footer-copyright">&copy; ${new Date().getFullYear()} SofLIA. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>

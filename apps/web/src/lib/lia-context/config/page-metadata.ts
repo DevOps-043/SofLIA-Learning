@@ -1,10 +1,10 @@
 /**
- * Metadata de Páginas para el Sistema de Contexto Dinámico de LIA
+ * Metadata de Páginas para el Sistema de Contexto Dinámico de SofLIA
  * 
  * Este archivo contiene información técnica sobre cada página de la plataforma,
  * incluyendo componentes, APIs, flujos de usuario y problemas comunes.
  * 
- * LIA usa esta información para:
+ * SofLIA usa esta información para:
  * - Identificar componentes cuando hay problemas
  * - Entender flujos de usuario
  * - Sugerir soluciones basadas en problemas conocidos
@@ -49,7 +49,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
         ]
       },
       {
-        name: 'LiaDeadlineSuggestionModal',
+        name: 'SofLIADeadlineSuggestionModal',
         path: 'apps/web/src/features/business-panel/components/LiaDeadlineSuggestionModal.tsx',
         description: 'Modal de sugerencias de fechas límite con IA',
         props: ['courseId', 'courseDuration', 'onSelectDate', 'onClose'],
@@ -430,7 +430,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
         ]
       },
       {
-        name: 'EmbeddedLiaPanel',
+        name: 'EmbeddedSofLIAPanel',
         path: 'apps/web/src/core/components/EmbeddedLiaPanel/EmbeddedLiaPanel.tsx',
         description: 'Panel de SofLIA integrado para ayuda contextual',
         props: ['lessonContext', 'transcript'],
@@ -586,7 +586,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
         ]
       },
       {
-        name: 'StudyPlannerLIA',
+        name: 'StudyPlannerSofLIA',
         path: 'apps/web/src/features/study-planner/components/StudyPlannerLIA.tsx',
         description: 'Componente de SofLIA especializado para el planificador',
         props: ['userId', 'pendingLessons', 'connectedCalendar'],

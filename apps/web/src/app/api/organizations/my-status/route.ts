@@ -4,13 +4,28 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 
 export async function GET() {
-  const auth = await requireUser()
+  const auth = await requireUser({ allowBanned: true })
   if (auth instanceof NextResponse) return auth
 
   try {
     const supabase = await createClient()
 
-    // Check if user is owner of an organization (pending or active)
+    // ⛔ 1. Verificar si el usuario está baneado globalmente
+    const { data: userData } = await supabase
+      .from('users')
+      .select('is_banned, ban_reason')
+      .eq('id', auth.userId)
+      .single()
+
+    if (userData?.is_banned) {
+      return NextResponse.json({
+        success: true,
+        status: 'banned',
+        banReason: userData.ban_reason || undefined,
+      })
+    }
+
+    // 2. Check if user is owner of an organization (pending or active)
     const { data: ownershipData } = await supabase
       .from('organization_users')
       .select('organization_id, role, organizations!inner(id, name, slug, is_active, subscription_status)')
@@ -38,7 +53,7 @@ export async function GET() {
       })
     }
 
-    // Check if user is already a member of an active org (join was approved)
+    // 3. Check if user is already a member of an active org (join was approved)
     const { data: membershipData } = await supabase
       .from('organization_users')
       .select('organization_id, role, organizations!inner(id, name, slug, is_active)')
@@ -58,7 +73,25 @@ export async function GET() {
       })
     }
 
-    // Check for pending/rejected join requests
+    // 4. ⛔ Check if user has a SUSPENDED membership (no active ones found above)
+    const { data: suspendedMembership } = await supabase
+      .from('organization_users')
+      .select('organization_id, status, organizations!inner(id, name, slug)')
+      .eq('user_id', auth.userId)
+      .eq('status', 'suspended')
+      .maybeSingle()
+
+    if (suspendedMembership) {
+      const org = suspendedMembership.organizations as any
+      return NextResponse.json({
+        success: true,
+        status: 'suspended',
+        organizationName: org.name,
+        organizationSlug: org.slug,
+      })
+    }
+
+    // 5. Check for pending/rejected join requests
     const { data: joinRequest } = await supabase
       .from('organization_join_requests')
       .select('id, status, organization_id, organizations!inner(name, slug)')

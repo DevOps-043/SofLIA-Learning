@@ -35,7 +35,7 @@ export function ModernStatsCard({
   const isSystemLight = resolvedTheme === 'light'
 
   const primaryColor = styles?.primary_button_color || '#0A2540'
-  const accentColor = styles?.accent_color || '#00D4B3' // Aqua from SOFLIA Design System
+  const accentColor = styles?.accent_color || '#00D4B3' // Aqua from SofLIA Design System
 
   // Defaults adaptativos basados en el tema del sistema
   const defaultCardBg = isSystemLight ? '#FFFFFF' : '#1E2329'
@@ -53,7 +53,7 @@ export function ModernStatsCard({
     cardBackground.startsWith('rgb(255') ||
     cardBackground.startsWith('rgba(255')
 
-  // En modo oscuro, usar aqua para iconos (mejor visibilidad según SOFLIA Design System)
+  // En modo oscuro, usar aqua para iconos (mejor visibilidad según SofLIA Design System)
   const iconColor = isLightMode ? primaryColor : accentColor
 
   // Calcular RGB para opacidad

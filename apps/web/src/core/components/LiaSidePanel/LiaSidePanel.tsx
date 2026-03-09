@@ -1068,7 +1068,7 @@ function LiaSidePanelContent() {
                 <motion.img
                   layoutId="lia-avatar-header"
                   src="/lia-avatar.png"
-                  alt="LIA"
+                  alt="SofLIA"
                   onClick={() => setIsAvatarExpanded(true)}
                   whileHover={{ scale: 1.05 }}
                   style={{
@@ -1334,7 +1334,7 @@ function LiaSidePanelContent() {
                    
                    <img
                     src="/lia-avatar.png"
-                    alt="LIA"
+                    alt="SofLIA"
                     style={{
                       width: '80px',
                       height: '80px',
@@ -1360,7 +1360,7 @@ function LiaSidePanelContent() {
                      fontWeight: 600, 
                      marginBottom: '8px' 
                    }}>
-                     LIA
+                     SofLIA
                    </h3>
                    <p style={{ 
                      color: themeColors.textSecondary, 
@@ -2034,7 +2034,7 @@ function LiaSidePanelContent() {
                     <motion.img
                       layoutId="lia-avatar-header"
                       src="/lia-avatar.png"
-                      alt="LIA Expanded"
+                      alt="SofLIA Expanded"
                       style={{
                         width: 'min(80vw, 400px)',
                         height: 'min(80vw, 400px)',
@@ -2049,7 +2049,7 @@ function LiaSidePanelContent() {
                       textAlign: 'center',
                       color: 'white'
                     }}>
-                      <h3 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>LIA</h3>
+                      <h3 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>SofLIA</h3>
                       <p style={{ opacity: 0.8, margin: 0 }}>Learning Intelligence Assistant</p>
                     </div>
                 </motion.div>

@@ -80,7 +80,7 @@ export function Navbar() {
                 letterSpacing: '-0.02em'
               }}
             >
-              SOFLIA
+              SofLIA
               <span className="ml-2 px-1.5 py-0.5 text-xs font-bold text-white bg-[#00D4B3] rounded-md tracking-wide uppercase">
                 Learning
               </span>

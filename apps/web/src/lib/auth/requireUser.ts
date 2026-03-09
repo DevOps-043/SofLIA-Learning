@@ -32,7 +32,8 @@ export interface UserAuth {
 /**
  * Verifica que el usuario esté autenticado (cualquier rol)
  */
-export async function requireUser(): Promise<UserAuth | NextResponse> {
+export async function requireUser(options: { allowBanned?: boolean } = {}): Promise<UserAuth | NextResponse> {
+  const { allowBanned = false } = options;
   try {
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get('aprende-y-aplica-session');
@@ -78,7 +79,7 @@ export async function requireUser(): Promise<UserAuth | NextResponse> {
 
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email, cargo_rol')
+      .select('id, email, cargo_rol, is_banned')
       .eq('id', session.user_id)
       .single();
 
@@ -86,6 +87,14 @@ export async function requireUser(): Promise<UserAuth | NextResponse> {
       return NextResponse.json(
         { success: false, error: 'Usuario no encontrado.' },
         { status: 401 }
+      );
+    }
+
+    // ⛔ Verificar si el usuario está baneado globalmente
+    if (user.is_banned && !allowBanned) {
+      return NextResponse.json(
+        { success: false, error: 'Tu cuenta ha sido suspendida. Contacta a soporte para más información.' },
+        { status: 403 }
       );
     }
 

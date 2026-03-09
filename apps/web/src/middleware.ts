@@ -93,7 +93,7 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.redirect(new URL(`/${userOrg.organizations.slug}/business-user/dashboard`, request.url))
               }
             } else {
-              // Usuario normal (cargo_rol === 'usuario' o cualquier otro) → Tour SOFLIA + Planes
+              // Usuario normal (cargo_rol === 'usuario' o cualquier otro) → Tour SofLIA + Planes
               return NextResponse.redirect(new URL('/dashboard', request.url))
             }
           }

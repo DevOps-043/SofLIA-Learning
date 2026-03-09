@@ -1,10 +1,10 @@
 /**
- * Types for LIA Personalization System
+ * Types for SofLIA Personalization System
  */
 
 export type BaseStyle = 'professional' | 'casual' | 'technical' | 'friendly' | 'formal';
 
-export interface LiaPersonalizationSettings {
+export interface SofLIAPersonalizationSettings {
   id: string;
   user_id: string;
   base_style: BaseStyle;
@@ -18,7 +18,7 @@ export interface LiaPersonalizationSettings {
   updated_at: string;
 }
 
-export interface LiaPersonalizationSettingsInput {
+export interface SofLIAPersonalizationSettingsInput {
   base_style?: BaseStyle;
   is_friendly?: boolean;
   is_enthusiastic?: boolean;
@@ -28,9 +28,8 @@ export interface LiaPersonalizationSettingsInput {
   dictation_enabled?: boolean;
 }
 
-export interface LiaPersonalizationResponse {
-  settings: LiaPersonalizationSettings | null;
+export interface SofLIAPersonalizationResponse {
+  settings: SofLIAPersonalizationSettings | null;
   success: boolean;
   message?: string;
 }
-

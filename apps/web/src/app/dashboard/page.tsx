@@ -12,6 +12,7 @@ import {
   PendingJoinScreen,
   RejectedScreen,
   ApprovedRedirect,
+  SuspendedScreen,
   useOnboardingStatus,
 } from '../../features/onboarding'
 
@@ -19,7 +20,7 @@ type View = 'choice' | 'create' | 'join'
 
 export default function DashboardPage() {
   const { user, loading, logout } = useAuth()
-  const { status, organizationSlug, organizationName, isLoading: statusLoading, refetch } = useOnboardingStatus()
+  const { status, organizationSlug, organizationName, banReason, isLoading: statusLoading, refetch } = useOnboardingStatus()
   const [view, setView] = useState<View>('choice')
   const [dismissedRejection, setDismissedRejection] = useState(false)
 
@@ -53,6 +54,12 @@ export default function DashboardPage() {
 
   const renderContent = () => {
     // Check status from API first
+    if (status === 'banned') {
+      return <SuspendedScreen type="banned" banReason={banReason} />
+    }
+    if (status === 'suspended') {
+      return <SuspendedScreen type="suspended" organizationName={organizationName} />
+    }
     if (status === 'pending_company') {
       return <PendingCompanyScreen organizationName={organizationName} />
     }

@@ -1,9 +1,9 @@
 /**
- * Configuración de comportamiento para Lia - Generador de Prompts
+ * Configuración de comportamiento para SofLIA - Generador de Prompts
  * Este archivo define las pautas de comportamiento y límites para la IA
  */
 
-export const LIA_CONFIG = {
+export const SofLIA_CONFIG = {
   // Identidad
   name: "Lia",
   role: "Especialista en Creación de Prompts de IA",
@@ -72,7 +72,7 @@ export const LIA_CONFIG = {
   // Respuestas estándar
   responses: {
     offTopic: "Mi especialidad es la creación de prompts de IA. ¿En qué tipo de prompt te gustaría trabajar hoy?",
-    greeting: "Hola, soy Lia, tu especialista en creación de prompts de IA. ¿Qué tipo de prompt necesitas crear?",
+    greeting: "Hola, soy SofLIA, tu especialista en creación de prompts de IA. ¿Qué tipo de prompt necesitas crear?",
     clarification: "Para crear el mejor prompt para ti, necesito más detalles específicos sobre: [área específica]",
     redirect: "Me enfoco exclusivamente en la creación de prompts. ¿Podrías contarme qué tipo de prompt necesitas?",
     professionalClose: "¿Hay algo más específico sobre tu prompt que te gustaría ajustar?",
@@ -127,12 +127,9 @@ export const LIA_CONFIG = {
   }
 };
 
-/**
- * Función para verificar si un mensaje está fuera de tema
- */
 export function isOffTopic(message: string): boolean {
   const lowerMessage = message.toLowerCase();
-  return LIA_CONFIG.detection.offTopic.some(pattern => 
+  return SofLIA_CONFIG.detection.offTopic.some(pattern => 
     lowerMessage.includes(pattern)
   );
 }
@@ -142,7 +139,7 @@ export function isOffTopic(message: string): boolean {
  */
 export function hasPromptInjection(message: string): boolean {
   const lowerMessage = message.toLowerCase();
-  return LIA_CONFIG.detection.promptInjection.some(pattern => 
+  return SofLIA_CONFIG.detection.promptInjection.some(pattern => 
     lowerMessage.includes(pattern)
   );
 }
@@ -152,12 +149,12 @@ export function hasPromptInjection(message: string): boolean {
  */
 export function getAppropriateResponse(message: string): string {
   if (hasPromptInjection(message)) {
-    return LIA_CONFIG.responses.injectionDetected;
+    return SofLIA_CONFIG.responses.injectionDetected;
   }
   
   if (isOffTopic(message)) {
-    return LIA_CONFIG.responses.offTopic;
+    return SofLIA_CONFIG.responses.offTopic;
   }
   
-  return LIA_CONFIG.responses.redirect;
+  return SofLIA_CONFIG.responses.redirect;
 }

@@ -173,7 +173,7 @@ async function generateLiaAnalysisReport(supabase: any, organizationId: string, 
   const model = genAI.getGenerativeModel({ model: modelName })
 
   const prompt = `
-    Actúa como LIA, la experta en análisis de datos y recursos humanos de la plataforma SOFLIA.
+    Actúa como LIA, la experta en análisis de datos y recursos humanos de la plataforma SofLIA.
 
     Tu tarea es generar un "Reporte Ejecutivo de Análisis Predictivo y Rendimiento" para el administrador de la organización.
     Debes analizar los datos proporcionados y generar un informe profesional, detallado y útil para la toma de decisiones.
@@ -232,11 +232,11 @@ async function generateLiaAnalysisReport(supabase: any, organizationId: string, 
 
       <div style="text-align: center; margin-top: 40px;">
         Atentamente,<br><br>
-        <strong>LIA</strong><br>
+        <strong>SofLIA</strong><br>
         <span style="color: #64748b; font-size: 14px;">Sistema Operativo de Formación de Inteligencia Aplicada</span>
       </div>
 
-    - **PROHIBIDO**: No pongas "Sistema de Analítica", "Plataforma SOFLIA" ni "Estrategia de Talento" en la firma. Usa solo el texto indicado arriba.
+    - **PROHIBIDO**: No pongas "Sistema de Analítica", "Plataforma SofLIA" ni "Estrategia de Talento" en la firma. Usa solo el texto indicado arriba.
   `
 
   try {

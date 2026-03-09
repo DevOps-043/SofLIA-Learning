@@ -1,6 +1,6 @@
 import type { NanoBananaSchema, NanoBananaDomain, OutputFormat } from '../../lib/nanobana/templates';
 
-// Tipos compartidos para LIA
+// Tipos compartidos para SofLIA
 
 /**
  * Información de módulo para contexto
@@ -42,7 +42,7 @@ export interface CourseLessonContext {
   // Módulo y lección actual
   moduleId?: string;
   moduleTitle?: string;
-  lessonId?: string;
+  lessonId?: string; // Hacer preguntas a SofLIA sobre el contenido
   lessonTitle?: string;
   lessonDescription?: string;
 
@@ -112,7 +112,7 @@ export interface GeneratedNanoBananaData {
   outputFormat: OutputFormat;
 }
 
-export interface LiaMessage {
+export interface SofLIAMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;

@@ -3,8 +3,8 @@ import { LandingPageContent, BusinessPageContent } from '@aprende-y-aplica/share
 // Mock data - En el futuro esto vendrá de una API
 const mockLandingPageContent: LandingPageContent = {
   hero: {
-    tag: "âž¤ SOFLIA",
-    title: "SOFLIA: Domina la IA que transformará tu",
+    tag: "➤ SofLIA",
+    title: "SofLIA: Domina la IA que transformará tu",
     highlightWord: "futuro",
     description: "Conviértete en experto aplicado: fundamentos claros, herramientas que importan, y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.",
     ctaText: "Iniciar Sesión",
@@ -84,7 +84,7 @@ const mockLandingPageContent: LandingPageContent = {
 // Mock data para Business Page
 const mockBusinessPageContent: BusinessPageContent = {
   hero: {
-    tag: "🚀 SOFLIA Business",
+    tag: "🚀 SofLIA Business",
     title: "Soluciones IA para",
     highlightWord: "tu organización",
     description: "Ya seas una empresa buscando capacitar a tu equipo o un instructor profesional, tenemos la plataforma perfecta para ti.",

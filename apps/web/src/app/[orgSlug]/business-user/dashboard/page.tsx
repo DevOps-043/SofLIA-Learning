@@ -76,7 +76,7 @@ export default function BusinessUserDashboardPage() {
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
   const { user, logout } = useAuth()
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStyles()
 
   const [loading, setLoading] = useState(true)
@@ -541,7 +541,7 @@ export default function BusinessUserDashboardPage() {
                     style={{ color: 'rgba(255,255,255,0.7)' }}
                   >
                     <Clock className="w-4 h-4" />
-                    {currentTime.toLocaleDateString('es-MX', {
+                    {currentTime.toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'pt' ? 'pt-BR' : 'es-MX'), {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -698,9 +698,9 @@ export default function BusinessUserDashboardPage() {
                   >
                     <BookOpen className="w-10 h-10" style={{ color: orgColors.iconColor }} />
                   </div>
-                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>No tienes cursos asignados aún</h3>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>{t('dashboard.emptyCourses.title', 'No tienes cursos asignados aún')}</h3>
                   <p className="max-w-md mx-auto" style={{ color: orgColors.textSecondary }}>
-                    Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti.
+                    {t('dashboard.emptyCourses.description', 'Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti.')}
                   </p>
 
                   {/* Decorative elements - static */}

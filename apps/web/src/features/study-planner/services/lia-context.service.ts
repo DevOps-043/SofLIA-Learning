@@ -1,8 +1,8 @@
 /**
- * LiaContextService
+ * SofLIAContextService
  * 
  * Servicio para construir y formatear el contexto completo del usuario
- * para LIA en el planificador de estudios.
+ * para SofLIA en el planificador de estudios.
  */
 
 import { UserContextService } from './user-context.service';
@@ -19,9 +19,9 @@ import type {
 } from '../types/user-context.types';
 
 /**
- * Contexto completo para LIA del planificador
+ * Contexto completo para SofLIA del planificador
  */
-export interface StudyPlannerLIAContext {
+export interface StudyPlannerContext {
   // Información del usuario
   userType: 'b2b' | 'b2c';
   userProfile: {
@@ -123,18 +123,18 @@ export interface StudyPlannerLIAContext {
   phaseData?: Record<string, any>;
 }
 
-export class LiaContextService {
+export class SofLIAContextService {
   /**
-   * Construye el contexto completo para LIA del planificador
+   * Construye el contexto completo para SofLIA del planificador
    */
-  static async buildStudyPlannerContext(userId: string): Promise<StudyPlannerLIAContext> {
+  static async buildStudyPlannerContext(userId: string): Promise<StudyPlannerContext> {
     // Obtener contexto del usuario
     const userContext = await UserContextService.getFullUserContext(userId);
 
-    console.log(`[LiaContextService] buildStudyPlannerContext - userType recibido: ${userContext.userType} para userId: ${userId}`);
+    console.log(`[SofLIAContextService] buildStudyPlannerContext - userType recibido: ${userContext.userType} para userId: ${userId}`);
 
     // Construir contexto base
-    const context: StudyPlannerLIAContext = {
+    const context: StudyPlannerContext = {
       userType: userContext.userType,
       userProfile: this.formatUserProfile(userContext),
       courses: await this.formatCourses(userId, userContext),
@@ -142,7 +142,7 @@ export class LiaContextService {
       calendarProvider: userContext.calendarIntegration?.provider,
     };
 
-    console.log(`[LiaContextService] buildStudyPlannerContext - Contexto construido con userType: ${context.userType}`);
+    console.log(`[SofLIAContextService] buildStudyPlannerContext - Contexto construido con userType: ${context.userType}`);
 
     // Agregar información de organización para B2B
     if (userContext.userType === 'b2b' && userContext.organization) {
@@ -233,9 +233,9 @@ export class LiaContextService {
   }
 
   /**
-   * Formatea el perfil del usuario para LIA
+   * Formatea el perfil del usuario para SofLIA
    */
-  private static formatUserProfile(userContext: UserContext): StudyPlannerLIAContext['userProfile'] {
+  private static formatUserProfile(userContext: UserContext): StudyPlannerContext['userProfile'] {
     return {
       nombre: userContext.user.displayName ||
         (userContext.user.firstName && userContext.user.lastName
@@ -252,13 +252,13 @@ export class LiaContextService {
   }
 
   /**
-   * Formatea los cursos para LIA
+   * Formatea los cursos para SofLIA
    */
   private static async formatCourses(
     userId: string,
     userContext: UserContext
-  ): Promise<StudyPlannerLIAContext['courses']> {
-    const formattedCourses: StudyPlannerLIAContext['courses'] = [];
+  ): Promise<StudyPlannerContext['courses']> {
+    const formattedCourses: StudyPlannerContext['courses'] = [];
     const supabase = await createClient();
 
     for (const courseAssignment of userContext.courses) {
@@ -316,12 +316,12 @@ export class LiaContextService {
   }
 
   /**
-   * Analiza los cursos para LIA - Incluyendo análisis inteligente para sugerir duraciones de sesión
+   * Analiza los cursos para SofLIA - Incluyendo análisis inteligente para sugerir duraciones de sesión
    */
   private static async analyzeCourses(
     userId: string,
-    courses: StudyPlannerLIAContext['courses']
-  ): Promise<StudyPlannerLIAContext['courseAnalysis']> {
+    courses: StudyPlannerContext['courses']
+  ): Promise<StudyPlannerContext['courseAnalysis']> {
     let totalMinutes = 0;
     let totalLessons = 0;
     let totalComplexity = 0;
@@ -503,7 +503,7 @@ export class LiaContextService {
   /**
    * Formatea el contexto como string para incluir en el prompt de LIA
    */
-  static formatContextForPrompt(context: StudyPlannerLIAContext): string {
+  static formatContextForPrompt(context: StudyPlannerContext): string {
     let prompt = '';
 
     // Tipo de usuario
@@ -589,7 +589,7 @@ export class LiaContextService {
           }
         }
 
-        // IMPORTANTE: Solo mostrar lecciones PENDIENTES a LIA
+        // IMPORTANTE: Solo mostrar lecciones PENDIENTES a SofLIA
         // Las lecciones completadas no deben incluirse en el plan de estudios
         if (pendingLessons > 0) {
           prompt += `  \n  📚 LECCIONES PENDIENTES - USA ESTOS DATOS EXACTOS (nombres, números y duraciones):\n`;
@@ -645,7 +645,7 @@ export class LiaContextService {
       prompt += `- 🔴 Sesión LARGA: ${context.courseAnalysis.suggestedSessionDurations.long} minutos\n`;
       prompt += `\n💡 **Razonamiento:** ${context.courseAnalysis.suggestedSessionDurations.reasoning}\n`;
 
-      prompt += `\n⚠️ INSTRUCCIÓN PARA LIA: Cuando el usuario seleccione el tipo de sesión, usa las duraciones sugeridas arriba, NO uses valores fijos genéricos como 25/45/60.\n`;
+      prompt += `\n⚠️ INSTRUCCIÓN PARA SofLIA: Cuando el usuario seleccione el tipo de sesión, usa las duraciones sugeridas arriba, NO uses valores fijos genéricos como 25/45/60.\n`;
     }
 
     // Calendario
@@ -696,10 +696,10 @@ export class LiaContextService {
   }
 
   /**
-   * Genera las instrucciones específicas para LIA según el tipo de usuario y fase
+   * Genera las instrucciones específicas para SofLIA según el tipo de usuario y fase
    */
   static generatePhaseInstructions(
-    context: StudyPlannerLIAContext,
+    context: StudyPlannerContext,
     phase: number
   ): string {
     let instructions = '';

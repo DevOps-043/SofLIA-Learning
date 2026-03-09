@@ -59,7 +59,7 @@ function createAdminClient() {
 }
 
 // Nombre del calendario secundario de la plataforma
-const PLATFORM_CALENDAR_NAME = 'SOFLIA - Sesiones de Estudio';
+const PLATFORM_CALENDAR_NAME = 'SofLIA - Sesiones de Estudio';
 
 export class CalendarIntegrationService {
   /**

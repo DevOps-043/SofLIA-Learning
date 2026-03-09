@@ -167,7 +167,7 @@ function LiaMobileButton() {
           className="w-full h-full object-cover"
         />
       </div>
-      <span className="text-xs font-medium">LIA</span>
+      <span className="text-xs font-medium">SofLIA</span>
       {/* Indicador de activo */}
       <div className="absolute top-1 right-2 w-2 h-2 bg-[#22c55e] rounded-full border border-white dark:border-[#1E2329]" />
     </button>

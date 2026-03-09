@@ -254,7 +254,7 @@ function createEventDescription(lessons: LessonItem[], planName?: string): strin
     lines.push(`⏱️ Duración total: ${totalDuration} minutos`);
     lines.push('');
     lines.push('---');
-    lines.push('Creado automáticamente por SOFLIA - Planificador de Estudios');
+    lines.push('Creado automáticamente por SofLIA - Planificador de Estudios');
 
     return lines.join('\n');
 }

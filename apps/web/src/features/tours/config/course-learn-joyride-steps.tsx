@@ -117,7 +117,7 @@ export const courseLearnJoyrideSteps: Step[] = [
     content: (
       <TourContent>
         <p>
-          <Highlight color="accent">LIA</Highlight> es tu asistente IA. Resuelve dudas,
+          <Highlight color="accent">SofLIA</Highlight> es tu asistente IA. Resuelve dudas,
           explica conceptos y te guía en reflexiones.
         </p>
         <p className="text-gray-600 dark:text-white/70 text-xs mt-2">

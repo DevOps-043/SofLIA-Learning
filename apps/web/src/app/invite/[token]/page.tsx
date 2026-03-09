@@ -396,7 +396,7 @@ export default function InvitePage() {
         <div className="mt-6 text-center">
           <div className="inline-flex items-center gap-1.5 text-gray-600 text-xs">
             <Sparkles className="w-3 h-3" />
-            Powered by SOFLIA
+            Powered by SofLIA
           </div>
         </div>
       </motion.div>

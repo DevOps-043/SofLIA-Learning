@@ -30,10 +30,10 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'SOFLIA',
+  title: 'SofLIA',
   description: 'Plataforma educativa de inteligencia artificial con asistente virtual LIA. Capacitación, comunidad y adopción de IA en el entorno laboral.',
   keywords: ['educación', 'inteligencia artificial', 'chatbot', 'capacitación', 'IA', 'LIA'],
-  authors: [{ name: 'Equipo SOFLIA' }],
+  authors: [{ name: 'Equipo SofLIA' }],
   robots: 'index, follow',
   icons: {
     icon: '/icono.ico',
@@ -43,10 +43,10 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'SOFLIA',
+    title: 'SofLIA',
   },
   openGraph: {
-    title: 'SOFLIA',
+    title: 'SofLIA',
     description: 'Plataforma educativa de inteligencia artificial con asistente virtual LIA',
     type: 'website',
     locale: 'es_ES',
@@ -194,10 +194,10 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://odbxqmhbnkfledqcqujl.supabase.co" />
 
         {/* 📱 PWA Meta Tags */}
-        <meta name="application-name" content="SOFLIA" />
+        <meta name="application-name" content="SofLIA" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SOFLIA" />
+        <meta name="apple-mobile-web-app-title" content="SofLIA" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3b82f6" />
