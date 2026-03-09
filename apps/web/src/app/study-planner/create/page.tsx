@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { StudyPlannerSofLIA } from '../../../features/study-planner/components/StudyPlannerSofLIA';
+import { StudyPlannerSofLIA } from '../../../features/study-planner/components/StudyPlannerLIA';
 
 export default function CreateStudyPlanPage() {
   return (
