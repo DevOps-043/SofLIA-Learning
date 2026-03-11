@@ -62,10 +62,10 @@ export function UserProgressModal({ user, isOpen, onClose }: UserProgressModalPr
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-5xl transform overflow-hidden rounded-2xl bg-gray-800 border border-gray-700 shadow-2xl transition-all">
+              <Dialog.Panel className="w-full max-w-5xl transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-2xl transition-all">
                 <div className="flex flex-col md:flex-row max-h-[85vh]">
                   {/* Left Panel - User Info */}
-                  <div className="w-full md:w-80 flex-shrink-0 bg-gray-900 p-6 border-b md:border-b-0 md:border-r border-gray-700">
+                  <div className="w-full md:w-80 flex-shrink-0 bg-gray-50 dark:bg-gray-900 p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-gray-700">
                     {/* Close button (mobile) */}
                     <div className="flex justify-end md:hidden mb-2">
                       <button onClick={onClose} className="p-1 text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors">
@@ -82,17 +82,17 @@ export function UserProgressModal({ user, isOpen, onClose }: UserProgressModalPr
                           <UserCheck className="w-8 h-8 text-white" />
                         </div>
                       )}
-                      <h3 className="text-lg font-bold text-white">{user.displayName || user.username}</h3>
-                      <p className="text-sm text-gray-400">{user.email}</p>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">{user.displayName || user.username}</h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                     </div>
 
                     {/* Org info */}
                     {user.organization && (
-                      <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-gray-800 rounded-lg">
-                        <Building className="w-4 h-4 text-gray-400" />
+                      <div className="flex items-center gap-2 mb-4 px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-100 dark:border-none">
+                        <Building className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         <div>
-                          <p className="text-sm text-white">{user.organization}</p>
-                          {user.orgRole && <p className="text-xs text-gray-400">{user.orgRole}</p>}
+                          <p className="text-sm text-gray-900 dark:text-white">{user.organization}</p>
+                          {user.orgRole && <p className="text-xs text-gray-500 dark:text-gray-400">{user.orgRole}</p>}
                         </div>
                       </div>
                     )}
@@ -110,10 +110,10 @@ export function UserProgressModal({ user, isOpen, onClose }: UserProgressModalPr
                   {/* Right Panel - Course Progress */}
                   <div className="flex-1 flex flex-col min-w-0">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                       <div>
-                        <h2 className="text-lg font-bold text-white">Progreso por Curso</h2>
-                        <p className="text-sm text-gray-400">
+                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Progreso por Curso</h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {data?.courses?.length ?? 0} curso{(data?.courses?.length ?? 0) !== 1 ? 's' : ''} inscrito{(data?.courses?.length ?? 0) !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -133,7 +133,7 @@ export function UserProgressModal({ user, isOpen, onClose }: UserProgressModalPr
                           <CourseCard key={course.enrollmentId} course={course} formatDate={formatDate} />
                         ))
                       ) : (
-                        <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                        <div className="flex flex-col items-center justify-center h-48 text-gray-500 dark:text-gray-400">
                           <BookOpen className="w-12 h-12 mb-3 opacity-50" />
                           <p>Este usuario no tiene cursos inscritos</p>
                         </div>
@@ -152,12 +152,12 @@ export function UserProgressModal({ user, isOpen, onClose }: UserProgressModalPr
 
 function SidebarStat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between px-3 py-2 bg-gray-800 rounded-lg">
+    <div className="flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-100 dark:border-none">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-gray-400" />
-        <span className="text-sm text-gray-300">{label}</span>
+        <Icon className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+        <span className="text-sm text-gray-600 dark:text-gray-300">{label}</span>
       </div>
-      <span className="text-sm font-semibold text-white">{value}</span>
+      <span className="text-sm font-semibold text-gray-900 dark:text-white">{value}</span>
     </div>
   )
 }
@@ -182,11 +182,11 @@ function CourseCard({ course, formatDate }: { course: UserCourseProgress; format
   const completedLessons = course.lessons.filter(l => l.status === 'completed').length
 
   return (
-    <div className="bg-gray-700/50 rounded-xl border border-gray-600 overflow-hidden">
+    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600 overflow-hidden">
       {/* Course Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left p-4 hover:bg-gray-700/80 transition-colors"
+        className="w-full text-left p-4 hover:bg-gray-100 dark:hover:bg-gray-700/80 transition-colors"
       >
         <div className="flex items-start gap-4">
           {/* Thumbnail */}
@@ -201,16 +201,16 @@ function CourseCard({ course, formatDate }: { course: UserCourseProgress; format
           <div className="flex-1 min-w-0">
             {/* Title & badges */}
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h4 className="text-sm font-semibold text-white truncate">{course.courseTitle}</h4>
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">{course.courseTitle}</h4>
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
                 {status.label}
               </span>
-              <span className="text-xs text-gray-400">{LEVEL_LABELS[course.courseLevel] || course.courseLevel}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{LEVEL_LABELS[course.courseLevel] || course.courseLevel}</span>
             </div>
 
             {/* Progress bar */}
             <div className="flex items-center gap-3 mb-2">
-              <div className="flex-1 bg-gray-600 rounded-full h-2">
+              <div className="flex-1 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(course.overallProgress, 100)}%` }}
@@ -218,11 +218,11 @@ function CourseCard({ course, formatDate }: { course: UserCourseProgress; format
                   className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-green-500"
                 />
               </div>
-              <span className="text-xs font-semibold text-white w-10 text-right">{course.overallProgress}%</span>
+              <span className="text-xs font-semibold text-gray-900 dark:text-white w-10 text-right">{course.overallProgress}%</span>
             </div>
 
             {/* Meta row */}
-            <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap">
+            <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
               <span className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 Inscrito: {formatDate(course.enrolledAt)}
@@ -271,7 +271,7 @@ function CourseCard({ course, formatDate }: { course: UserCourseProgress; format
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="border-t border-gray-600 px-4 py-3 space-y-2">
+            <div className="border-t border-gray-200 dark:border-gray-600 px-4 py-3 space-y-2">
               {course.lessons.map((lesson, idx) => (
                 <LessonRow key={lesson.lessonId} lesson={lesson} index={idx + 1} />
               ))}
@@ -282,7 +282,7 @@ function CourseCard({ course, formatDate }: { course: UserCourseProgress; format
 
       {/* Empty lessons state */}
       {expanded && course.lessons.length === 0 && (
-        <div className="border-t border-gray-600 px-4 py-4 text-center text-sm text-gray-400">
+        <div className="border-t border-gray-200 dark:border-gray-600 px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
           Sin datos de lecciones disponibles
         </div>
       )}
@@ -302,20 +302,20 @@ function LessonRow({ lesson, index }: { lesson: UserLessonDetail; index: number 
   const StatusIcon = statusCfg.icon
 
   return (
-    <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-600/30 transition-colors">
+    <div className="flex items-center gap-3 py-2 px-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600/30 transition-colors">
       {/* Status icon */}
       <StatusIcon className={`w-4 h-4 flex-shrink-0 ${statusCfg.color}`} />
 
       {/* Lesson info */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-white truncate">
-          <span className="text-gray-500 mr-1">{index}.</span>
+        <p className="text-sm text-gray-900 dark:text-white truncate">
+          <span className="text-gray-400 dark:text-gray-500 mr-1">{index}.</span>
           {lesson.lessonTitle}
         </p>
       </div>
 
       {/* Video progress */}
-      <div className="flex items-center gap-1 text-xs text-gray-400 w-20">
+      <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 w-20">
         <Video className="w-3 h-3" />
         <span>{lesson.videoProgress}%</span>
       </div>
@@ -336,7 +336,7 @@ function LessonRow({ lesson, index }: { lesson: UserLessonDetail; index: number 
       </div>
 
       {/* Time */}
-      <div className="text-xs text-gray-400 w-14 text-right">
+      <div className="text-xs text-gray-500 dark:text-gray-400 w-14 text-right">
         {lesson.timeSpentMinutes > 0 ? `${lesson.timeSpentMinutes}m` : '—'}
       </div>
     </div>

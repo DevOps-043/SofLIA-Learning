@@ -12,8 +12,8 @@ import { cookies, headers } from 'next/headers'
 import { logger } from '../../../lib/logger'
 
 const loginSchema = z.object({
-  emailOrUsername: z.string().min(1, 'El correo o usuario es requerido'),
-  password: z.string().min(1, 'La contraseña es requerida'),
+  emailOrUsername: z.string().min(1, 'El correo o usuario es requerido').regex(/^\S+$/, 'No se permiten espacios'),
+  password: z.string().min(1, 'La contraseña es requerida').regex(/^\S+$/, 'No se permiten espacios'),
   rememberMe: z.boolean().default(false),
 })
 
