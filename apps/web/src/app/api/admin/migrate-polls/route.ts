@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '../../../../lib/utils/logger';
 import { createClient } from '../../../../lib/supabase/server';
-import { requireAdmin } from '@/lib/auth/requireAdmin';
+import { requireAdmin } from '../../../../lib/auth/requireAdmin';
+
+export const dynamic = 'force-dynamic'
 
 /**
  * Endpoint para migrar encuestas antiguas sin estructura votes/userVotes

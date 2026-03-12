@@ -64,6 +64,13 @@ export async function requireAdmin(): Promise<AdminAuth | NextResponse> {
     };
 
   } catch (error) {
+    if (
+      (error as any)?.digest === 'DYNAMIC_SERVER_USAGE' || 
+      (error as any)?.message?.includes('Dynamic server usage')
+    ) {
+      throw error;
+    }
+
     logger.error('Error in requireAdmin middleware', error instanceof Error ? error : undefined);
     return NextResponse.json(
       { 
@@ -124,6 +131,13 @@ export async function requireInstructor(): Promise<AdminAuth | NextResponse> {
     };
 
   } catch (error) {
+    if (
+      (error as any)?.digest === 'DYNAMIC_SERVER_USAGE' || 
+      (error as any)?.message?.includes('Dynamic server usage')
+    ) {
+      throw error;
+    }
+
     logger.error('Error in requireInstructor middleware', error instanceof Error ? error : undefined);
     return NextResponse.json(
       { 
