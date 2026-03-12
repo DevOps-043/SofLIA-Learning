@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTheme } from '../../../../../core/hooks/useTheme'
 import { AdminUnifiedInviteModal } from '@/features/admin/components/AdminUnifiedInviteModal'
 import { AdminMemberManageModal } from '@/features/admin/components/AdminMemberManageModal'
-import { CoursesSection as CompanyCoursesSection } from '@/features/admin/components/CoursesSection'
 import {
     ArrowLeftIcon,
     BuildingOffice2Icon,
@@ -17,21 +17,14 @@ import {
     PaintBrushIcon,
     BellIcon,
     DocumentTextIcon,
-    CreditCardIcon,
     Cog6ToothIcon,
     ExclamationTriangleIcon,
-    PlusIcon,
-    MagnifyingGlassIcon,
     EnvelopeIcon,
     PhoneIcon,
     GlobeAltIcon,
     PhotoIcon,
-    SwatchIcon,
-    CheckIcon,
-    XMarkIcon,
     PencilSquareIcon,
     TrashIcon,
-    EyeIcon,
     UsersIcon,
     SparklesIcon
 } from '@heroicons/react/24/outline'
@@ -95,6 +88,7 @@ interface CompanyData {
     invited_users: number
     suspended_users: number
     members: CompanyMember[]
+    assigned_courses?: AssignedCourse[]
 }
 
 interface CompanyMember {
@@ -112,6 +106,38 @@ interface CompanyMember {
         display_name: string | null
         profile_picture_url: string | null
     }
+}
+
+interface AssignedCourse {
+    id: string
+    title: string | null
+    assigned_at: string
+}
+
+interface CourseProgress {
+    id: string
+    title: string
+    enrolledCount: number
+    completedCount: number
+    averageProgress: number
+}
+
+interface StatsData {
+    overview: {
+        totalUsers: number
+        engagementRate: number
+        assignedCourses: number
+        avgSatisfaction: number
+        totalEnrolled: number
+        totalGraduated: number
+        activeInLast30Days: number
+        averageCourseProgress: number
+        totalSessions: number
+        totalLearningHours: number
+    }
+    activityMonthly: any[]
+    courseProgress: CourseProgress[]
+    teamDistribution: any[]
 }
 
 // ============================================
@@ -374,7 +400,7 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
     const [searchTerm, setSearchTerm] = useState('')
     const [roleFilter, setRoleFilter] = useState('all')
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-    const [manageMember, setManageMember] = useState<any>(null)
+    const [manageMember, setManageMember] = useState<CompanyMember | null>(null)
     const [manageMode, setManageMode] = useState<'edit' | 'delete' | null>(null)
 
     const filteredMembers = company.members?.filter(member => {
@@ -619,8 +645,8 @@ function CoursesSection({ company }: { company: CompanyData }) {
                 iconColor={colors.accent}
             >
                 <div className="mt-4 space-y-3">
-                    {company.assigned_courses?.length > 0 ? (
-                        company.assigned_courses.map((course: any) => (
+                    {company.assigned_courses && company.assigned_courses.length > 0 ? (
+                        company.assigned_courses.map((course: AssignedCourse) => (
                             <div
                                 key={course.id}
                                 className="flex items-center justify-between p-4 rounded-xl border bg-gray-50/50 dark:bg-white/5 border-gray-100 dark:border-white/5 hover:border-accent/30 transition-colors group"
@@ -669,7 +695,7 @@ function CoursesSection({ company }: { company: CompanyData }) {
 // STATS SECTION
 // ============================================
 function StatsSection({ company }: { company: CompanyData }) {
-    const [stats, setStats] = useState<any>(null)
+    const [stats, setStats] = useState<StatsData | null>(null)
     const [loading, setLoading] = useState(true)
     const { isDark } = useTheme() // Assuming useTheme() provides isDark
 
@@ -857,7 +883,7 @@ function StatsSection({ company }: { company: CompanyData }) {
                     iconColor={colors.purple}
                 >
                     <div className="space-y-6 mt-4">
-                        {courseProgress.map((course: any, idx: number) => (
+                        {courseProgress.map((course: CourseProgress, idx: number) => (
                             <div key={course.id} className="group">
                                 <div className="flex justify-between items-end mb-2">
                                     <div className="flex-1 min-w-0 pr-4">
@@ -1153,7 +1179,7 @@ export default function EditCompanyPage() {
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
 
     // Cargar datos de la empresa
-    const loadCompany = async () => {
+    const loadCompany = useCallback(async () => {
         setLoading(true)
         try {
             const res = await fetch(`/api/admin/companies/${companyId}`)
@@ -1169,13 +1195,13 @@ export default function EditCompanyPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [companyId])
 
     useEffect(() => {
         if (companyId) {
             loadCompany()
         }
-    }, [companyId])
+    }, [companyId, loadCompany])
 
     const handleSave = async () => {
         if (!company) return
@@ -1334,12 +1360,11 @@ export default function EditCompanyPage() {
                     })}
                 </div>
 
-                    {/* Main Content */}
-                    <div className="flex-1 min-w-0">
-                        <AnimatePresence mode="wait">
-                            {renderSection()}
-                        </AnimatePresence>
-                    </div>
+                {/* Main Content */}
+                <div className="flex-1 min-w-0">
+                    <AnimatePresence mode="wait">
+                        {renderSection()}
+                    </AnimatePresence>
                 </div>
             </div>
         </div>

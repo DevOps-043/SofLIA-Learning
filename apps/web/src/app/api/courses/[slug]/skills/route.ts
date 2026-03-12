@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '../../../../../../lib/supabase/server'
-import { logger } from '../../../../../../lib/logger'
-import { SessionService } from '../../../../../../features/auth/services/session.service'
+import { createClient } from '../../../../../lib/supabase/server'
+import { logger } from '../../../../../lib/logger'
+import { SessionService } from '../../../../../features/auth/services/session.service'
 
 /**
  * Función helper para detectar si un string es UUID
