@@ -41,20 +41,27 @@ class EmailService {
       this.transporter = nodemailer.createTransport({
         host: config.host,
         port: config.port,
-        secure: config.port === 465, // true para puerto 465, false para otros
+        secure: config.port === 465,
         auth: {
           user: config.user,
           pass: config.pass,
         },
         tls: {
-          // ✅ Seguridad mejorada: solo permite certs inválidos en desarrollo
           rejectUnauthorized: process.env.NODE_ENV === 'production',
-          minVersion: 'TLSv1.2', // Forzar TLS 1.2 o superior
-          ciphers: 'HIGH:!aNULL:!MD5', // Solo ciphers seguros
+          minVersion: 'TLSv1.2',
+          ciphers: 'HIGH:!aNULL:!MD5',
         },
       });
 
-      logger.info('Email service initialized');
+      // Verificar conexión SMTP al inicializar
+      this.transporter.verify((verifyError) => {
+        if (verifyError) {
+          logger.error('SMTP connection verification failed', verifyError);
+          this.transporter = null;
+        } else {
+          logger.info('SMTP connection verified OK - ready to send emails');
+        }
+      });
     } catch (error) {
       logger.error('Error initializing email service', error);
       this.transporter = null;

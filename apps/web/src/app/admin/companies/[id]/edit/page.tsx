@@ -31,7 +31,9 @@ import {
     XMarkIcon,
     PencilSquareIcon,
     TrashIcon,
-    EyeIcon
+    EyeIcon,
+    UsersIcon,
+    SparklesIcon
 } from '@heroicons/react/24/outline'
 import { 
     BarChart, 
@@ -54,16 +56,13 @@ import {
 const colors = {
     primary: '#0A2540',
     accent: '#00D4B3',
-    bgPrimary: '#0A0D12',
-    bgSecondary: '#1E2329',
-    bgTertiary: '#0F1419',
-    grayMedium: '#8899A6',
     success: '#10B981',
     warning: '#F59E0B',
     error: '#EF4444',
     blue: '#3B82F6',
     purple: '#8B5CF6',
-    pink: '#EC4899'
+    pink: '#EC4899',
+    grayMedium: '#8899A6',
 }
 
 // ============================================
@@ -159,8 +158,8 @@ interface CardProps {
 
 function Card({ title, description, icon: Icon, iconColor = colors.accent, children, actions }: CardProps) {
     return (
-        <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: colors.bgSecondary }}>
-            <div className="p-5 border-b flex items-center justify-between" style={{ borderColor: `${colors.grayMedium}15` }}>
+        <div className="rounded-2xl overflow-hidden bg-white dark:bg-[#1E2329] border border-gray-100 dark:border-white/5 shadow-sm">
+            <div className="p-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     {Icon && (
                         <div className="p-3 rounded-xl" style={{ backgroundColor: `${iconColor}15` }}>
@@ -168,8 +167,8 @@ function Card({ title, description, icon: Icon, iconColor = colors.accent, child
                         </div>
                     )}
                     <div>
-                        <h3 className="text-base font-semibold text-white">{title}</h3>
-                        {description && <p className="text-sm" style={{ color: colors.grayMedium }}>{description}</p>}
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
+                        {description && <p className="text-sm text-gray-500 dark:text-[#8899A6]">{description}</p>}
                     </div>
                 </div>
                 {actions && <div>{actions}</div>}
@@ -194,11 +193,11 @@ interface InputFieldProps {
 function InputField({ label, value, onChange, type = 'text', placeholder, icon: Icon }: InputFieldProps) {
     return (
         <div>
-            <label className="block text-xs font-medium text-white/70 mb-1.5">{label}</label>
+            <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-1.5">{label}</label>
             <div className="relative">
                 {Icon && (
                     <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                        <Icon className="h-4 w-4" style={{ color: colors.grayMedium }} />
+                        <Icon className="h-4 w-4 text-gray-400 dark:text-[#8899A6]" />
                     </div>
                 )}
                 <input
@@ -206,8 +205,7 @@ function InputField({ label, value, onChange, type = 'text', placeholder, icon: 
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-2.5 rounded-xl border text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] transition-colors`}
-                    style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                    className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3] dark:focus:border-[#00D4B3] transition-colors`}
                 />
             </div>
         </div>
@@ -236,13 +234,12 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                     />
                 </div>
                 <div className="mt-4">
-                    <label className="block text-xs font-medium text-white/70 mb-1.5">Descripción</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-1.5">Descripción</label>
                     <textarea
                         value={company.description || ''}
                         onChange={(e) => setCompany({ ...company, description: e.target.value })}
                         rows={3}
-                        className="w-full px-4 py-3 rounded-xl border text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] transition-colors resize-none"
-                        style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                        className="w-full px-4 py-3 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3] dark:focus:border-[#00D4B3] transition-colors resize-none"
                         placeholder="Descripción de la empresa..."
                     />
                 </div>
@@ -305,12 +302,11 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
 
                 {/* Preview */}
                 {(company.brand_banner_url || company.brand_logo_url || company.logo_url) && (
-                    <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-xs font-medium text-white/50 mb-3 uppercase">Vista previa</p>
+                    <div className="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419]">
+                        <p className="text-xs font-medium text-gray-500 dark:text-white/50 mb-3 uppercase">Vista previa</p>
                         <div
-                            className="h-24 rounded-lg relative overflow-hidden"
+                            className="h-24 rounded-lg relative overflow-hidden bg-gray-200 dark:bg-white/10"
                             style={{
-                                backgroundColor: `${colors.grayMedium}20`,
                                 backgroundImage: company.brand_banner_url ? `url(${company.brand_banner_url})` : undefined,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center'
@@ -318,13 +314,13 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                         >
                             <div className="absolute -bottom-5 left-4">
                                 <div
-                                    className="h-14 w-14 rounded-xl overflow-hidden border-3 flex items-center justify-center"
-                                    style={{ backgroundColor: colors.bgSecondary, borderColor: colors.bgSecondary, borderWidth: '3px' }}
+                                    className="h-14 w-14 rounded-xl overflow-hidden border-3 flex items-center justify-center bg-white dark:bg-[#1E2329] border-white dark:border-[#1E2329]"
+                                    style={{ borderWidth: '3px' }}
                                 >
                                     {(company.brand_logo_url || company.logo_url) ? (
                                         <img src={company.brand_logo_url || company.logo_url || ''} alt="Logo" className="h-full w-full object-contain" />
                                     ) : (
-                                        <BuildingOffice2Icon className="h-7 w-7" style={{ color: colors.grayMedium }} />
+                                        <BuildingOffice2Icon className="h-7 w-7 text-gray-400 dark:text-[#8899A6]" />
                                     )}
                                 </div>
                             </div>
@@ -337,23 +333,22 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
             <Card title="Estado y Límites" description="Configuración de estado de la empresa" icon={Cog6ToothIcon} iconColor={colors.warning}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-xs font-medium text-white/70 mb-1.5">Máximo de usuarios</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-1.5">Máximo de usuarios</label>
                         <input
                             type="number"
                             min="1"
                             value={company.max_users || ''}
                             onChange={(e) => setCompany({ ...company, max_users: parseInt(e.target.value) || null })}
-                            className="w-full px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3]"
-                            style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                            className="w-full px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3] dark:focus:border-[#00D4B3]"
                         />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-white/70 mb-1.5">Estado de la empresa</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-1.5">Estado de la empresa</label>
                         <div className="flex items-center gap-3 h-[42px]">
                             <button
                                 onClick={() => setCompany({ ...company, is_active: !company.is_active })}
                                 className="relative w-12 h-6 rounded-full transition-colors"
-                                style={{ backgroundColor: company.is_active ? colors.success : `${colors.grayMedium}40` }}
+                                style={{ backgroundColor: company.is_active ? colors.success : 'rgba(136, 153, 166, 0.4)' }}
                             >
                                 <motion.div
                                     className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
@@ -361,7 +356,7 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                                 />
                             </button>
-                            <span className="text-sm text-white">
+                            <span className="text-sm text-gray-900 dark:text-white">
                                 {company.is_active ? 'Empresa activa' : 'Empresa pausada'}
                             </span>
                         </div>
@@ -427,19 +422,19 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
         <SectionWrapper>
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-xl" style={{ backgroundColor: colors.bgSecondary }}>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
                     <p className="text-2xl font-bold text-white">{company.total_users}</p>
                     <p className="text-xs" style={{ color: colors.grayMedium }}>Total usuarios</p>
                 </div>
-                <div className="p-4 rounded-xl" style={{ backgroundColor: colors.bgSecondary }}>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
                     <p className="text-2xl font-bold" style={{ color: colors.success }}>{company.active_users}</p>
                     <p className="text-xs" style={{ color: colors.grayMedium }}>Activos</p>
                 </div>
-                <div className="p-4 rounded-xl" style={{ backgroundColor: colors.bgSecondary }}>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
                     <p className="text-2xl font-bold" style={{ color: colors.warning }}>{company.invited_users}</p>
                     <p className="text-xs" style={{ color: colors.grayMedium }}>Invitados</p>
                 </div>
-                <div className="p-4 rounded-xl" style={{ backgroundColor: colors.bgSecondary }}>
+                <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
                     <p className="text-2xl font-bold" style={{ color: colors.accent }}>{company.max_users || '∞'}</p>
                     <p className="text-xs" style={{ color: colors.grayMedium }}>Máximo permitido</p>
                 </div>
@@ -473,15 +468,13 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                             placeholder="Buscar por nombre o email..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3]"
-                            style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
                         />
                     </div>
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3]"
-                        style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                        className="px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
                     >
                         <option value="all">Todos los roles</option>
                         <option value="owner">Owner</option>
@@ -551,7 +544,7 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                                         </td>
                                         <td className="py-3">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button 
+                                                <button
                                                     onClick={() => {
                                                         setManageMember(member)
                                                         setManageMode('edit')
@@ -560,7 +553,7 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                                                 >
                                                     <PencilSquareIcon className="h-4 w-4" style={{ color: colors.grayMedium }} />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => {
                                                         setManageMember(member)
                                                         setManageMode('delete')
@@ -619,16 +612,55 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
 function CoursesSection({ company }: { company: CompanyData }) {
     return (
         <SectionWrapper>
-            <div className="space-y-6">
-                <Card
-                    title="Cursos de la Organización"
-                    description="Gestiona los cursos disponibles para todos los miembros"
-                    icon={AcademicCapIcon}
-                    iconColor={colors.purple}
-                >
-                    <CompanyCoursesSection companyId={company.id} />
-                </Card>
-            </div>
+            <Card
+                title="Cursos Asignados"
+                description="Listado de programas de formación activos para la empresa"
+                icon={AcademicCapIcon}
+                iconColor={colors.accent}
+            >
+                <div className="mt-4 space-y-3">
+                    {company.assigned_courses?.length > 0 ? (
+                        company.assigned_courses.map((course: any) => (
+                            <div
+                                key={course.id}
+                                className="flex items-center justify-between p-4 rounded-xl border bg-gray-50/50 dark:bg-white/5 border-gray-100 dark:border-white/5 hover:border-accent/30 transition-colors group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-lg bg-accent/20 flex items-center justify-center p-2">
+                                        <AcademicCapIcon className="text-accent" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-accent transition-colors">
+                                            {course.title || 'Curso sin título'}
+                                        </h4>
+                                        <p className="text-xs text-gray-400 dark:text-[#8899A6]">
+                                            Adquirido el {new Date(course.assigned_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white">{course.active_users || 0}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-[#8899A6]">Alumnos</p>
+                                    </div>
+                                    <ChevronRightIcon className="h-5 w-5 text-gray-300 dark:text-white/10 group-hover:text-accent transition-colors" />
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="py-12 text-center border-2 border-dashed border-gray-100 dark:border-white/5 rounded-2xl">
+                            <AcademicCapIcon className="h-12 w-12 text-gray-200 dark:text-white/5 mx-auto mb-4" />
+                            <p className="text-gray-400 dark:text-white/20 font-medium">No hay cursos asignados actualmente</p>
+                        </div>
+                    )}
+
+                    <button
+                        className="w-full mt-4 py-3 rounded-xl border border-dashed border-accent/20 text-accent hover:bg-accent/5 transition-colors font-bold text-sm"
+                    >
+                        + Explorar Catálogo de Cursos
+                    </button>
+                </div>
+            </Card>
         </SectionWrapper>
     )
 }
@@ -639,6 +671,7 @@ function CoursesSection({ company }: { company: CompanyData }) {
 function StatsSection({ company }: { company: CompanyData }) {
     const [stats, setStats] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const { isDark } = useTheme() // Assuming useTheme() provides isDark
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -683,54 +716,50 @@ function StatsSection({ company }: { company: CompanyData }) {
         <SectionWrapper>
             {/* Cards de Resumen */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <motion.div 
+                <motion.div
                     whileHover={{ y: -5 }}
-                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
-                    style={{ backgroundColor: colors.bgSecondary }}
+                    className="p-5 rounded-2xl shadow-lg border bg-gray-50 dark:bg-[#0F1419] border-gray-100 dark:border-white/5"
                 >
-                    <p className="text-3xl font-black text-white">{overview.totalUsers}</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Usuarios Totales</p>
-                </motion.div>
-                
-                <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
-                    style={{ backgroundColor: colors.bgSecondary }}
-                >
-                    <div className="flex items-center gap-2">
-                        <p className="text-3xl font-black" style={{ color: colors.success }}>{overview.engagementRate}%</p>
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Compromiso Semanal</p>
+                    <p className="text-3xl font-black text-black dark:text-white">{overview.totalUsers}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-gray-500 dark:text-[#8899A6]">Usuarios Totales</p>
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                     whileHover={{ y: -5 }}
-                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
-                    style={{ backgroundColor: colors.bgSecondary }}
-                >
-                    <p className="text-3xl font-black" style={{ color: colors.accent }}>{overview.assignedCourses}</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Cursos Adquiridos</p>
-                </motion.div>
-
-                <motion.div 
-                    whileHover={{ y: -5 }}
-                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
-                    style={{ backgroundColor: colors.bgSecondary }}
+                    className="p-5 rounded-2xl shadow-lg border bg-gray-50 dark:bg-[#0F1419] border-gray-100 dark:border-white/5"
                 >
                     <div className="flex items-center gap-2">
-                        <p className="text-3xl font-black" style={{ color: colors.purple }}>{overview.avgSatisfaction}</p>
-                        <span className="text-sm font-bold opacity-40">/ 5</span>
+                        <p className="text-3xl font-black text-green-500">{overview.engagementRate}%</p>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Satisfacción (LIA NPS)</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-gray-500 dark:text-[#8899A6]">Compromiso Semanal</p>
+                </motion.div>
+
+                <motion.div
+                    whileHover={{ y: -5 }}
+                    className="p-5 rounded-2xl shadow-lg border bg-gray-50 dark:bg-[#0F1419] border-gray-100 dark:border-white/5"
+                >
+                    <p className="text-3xl font-black text-accent">{overview.assignedCourses}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-gray-500 dark:text-[#8899A6]">Cursos Adquiridos</p>
+                </motion.div>
+
+                <motion.div
+                    whileHover={{ y: -5 }}
+                    className="p-5 rounded-2xl shadow-lg border bg-gray-50 dark:bg-[#0F1419] border-gray-100 dark:border-white/5"
+                >
+                    <div className="flex items-center gap-2">
+                        <p className="text-3xl font-black text-purple-500">{overview.avgSatisfaction}</p>
+                        <span className="text-sm font-bold text-gray-400 dark:opacity-40">/ 5</span>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2 text-gray-500 dark:text-[#8899A6]">Satisfacción (LIA NPS)</p>
                 </motion.div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Gráfico de Actividad */}
-                <Card 
-                    title="Engagement Temporal" 
-                    description="Evolución de horas de aprendizaje (últimos 6 meses)" 
-                    icon={ChartBarIcon} 
+                <Card
+                    title="Engagement Temporal"
+                    description="Evolución de horas de aprendizaje (últimos 6 meses)"
+                    icon={ChartBarIcon}
                     iconColor={colors.blue}
                 >
                     <div className="h-64 w-full mt-4">
@@ -743,33 +772,34 @@ function StatsSection({ company }: { company: CompanyData }) {
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                                <XAxis 
-                                    dataKey="month" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }} 
+                                <XAxis
+                                    dataKey="month"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }}
                                 />
-                                <YAxis 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }} 
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }}
                                 />
-                                <Tooltip 
-                                    contentStyle={{ 
-                                        backgroundColor: '#1E2329', 
-                                        borderRadius: '16px', 
-                                        border: '1px solid rgba(255,255,255,0.1)',
-                                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)'
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: isDark ? '#1E2329' : '#FFFFFF',
+                                        borderRadius: '16px',
+                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                                        boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                                        color: isDark ? '#FFFFFF' : '#1A1D21'
                                     }}
                                     itemStyle={{ color: colors.accent, fontWeight: 'bold' }}
                                 />
-                                <Area 
-                                    type="monotone" 
-                                    dataKey="hours" 
-                                    stroke={colors.blue} 
-                                    strokeWidth={4} 
-                                    fillOpacity={1} 
-                                    fill="url(#colorHours)" 
+                                <Area
+                                    type="monotone"
+                                    dataKey="hours"
+                                    stroke={colors.blue}
+                                    strokeWidth={4}
+                                    fillOpacity={1}
+                                    fill="url(#colorHours)"
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
@@ -777,13 +807,13 @@ function StatsSection({ company }: { company: CompanyData }) {
                 </Card>
 
                 {/* Distribución por Equipo */}
-                <Card 
-                    title="Distribución por Equipos" 
-                    description="Participación según departamento o zona" 
-                    icon={UsersIcon} 
+                <Card
+                    title="Distribución por Equipos"
+                    description="Participación según departamento o zona"
+                    icon={UsersIcon}
                     iconColor={colors.success}
                 >
-                    <div className="h-64 w-full mt-4 flex items-center">
+                    <div className="h-64 w-full mt-4">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -799,23 +829,21 @@ function StatsSection({ company }: { company: CompanyData }) {
                                         <Cell key={`cell-${index}`} fill={COLORS_CHART[index % COLORS_CHART.length]} />
                                     ))}
                                 </Pie>
-                                <Tooltip 
-                                    contentStyle={{ 
-                                        backgroundColor: '#1E2329', 
-                                        borderRadius: '16px', 
-                                        border: '1px solid rgba(255,255,255,0.1)',
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: isDark ? '#1E2329' : '#FFFFFF',
+                                        borderRadius: '16px',
+                                        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)',
+                                        color: isDark ? '#FFFFFF' : '#1A1D21'
                                     }}
+                                />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    formatter={(value) => <span className="text-gray-500 dark:text-white/60 text-[10px] font-bold uppercase">{value}</span>}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
-                        <div className="w-1/3 space-y-2 pr-4">
-                            {teamDistribution.slice(0, 4).map((team: any, idx: number) => (
-                                <div key={team.name} className="flex items-center gap-2">
-                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS_CHART[idx % COLORS_CHART.length] }} />
-                                    <p className="text-[10px] font-bold text-white/60 truncate">{team.name}</p>
-                                </div>
-                            ))}
-                        </div>
                     </div>
                 </Card>
             </div>
@@ -860,6 +888,24 @@ function StatsSection({ company }: { company: CompanyData }) {
                     icon={SparklesIcon} 
                     iconColor={colors.warning}
                 >
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5 flex flex-col justify-center text-center">
+                            <p className="text-2xl font-black text-blue-500">{overview.totalEnrolled}</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] mt-1 text-gray-500 dark:text-white/40">Total Alumnos</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5 flex flex-col justify-center text-center">
+                            <p className="text-2xl font-black text-green-500">{overview.totalGraduated}</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] mt-1 text-gray-500 dark:text-white/40">Graduados</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5 flex flex-col justify-center text-center">
+                            <p className="text-2xl font-black text-purple-500">{overview.activeInLast30Days}</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] mt-1 text-gray-500 dark:text-white/40">Activos (30d)</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5 flex flex-col justify-center text-center">
+                            <p className="text-2xl font-black text-orange-500">{overview.averageCourseProgress}%</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] mt-1 text-gray-500 dark:text-white/40">Progreso Prom.</p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-2 gap-4 mt-4 h-full">
                         <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-center text-center">
                             <p className="text-2xl font-black" style={{ color: colors.blue }}>{overview.totalSessions}</p>
@@ -920,13 +966,12 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
                                 type="text"
                                 value={primaryColor}
                                 onChange={(e) => setCompany({ ...company, brand_color_primary: e.target.value })}
-                                className="flex-1 px-3 py-2 rounded-lg border text-sm text-white"
-                                style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                                className="flex-1 px-3 py-2 rounded-lg border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-white/70 mb-2">Color Secundario</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-2">Color Secundario</label>
                         <div className="flex items-center gap-3">
                             <input
                                 type="color"
@@ -939,13 +984,12 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
                                 type="text"
                                 value={secondaryColor}
                                 onChange={(e) => setCompany({ ...company, brand_color_secondary: e.target.value })}
-                                className="flex-1 px-3 py-2 rounded-lg border text-sm text-white"
-                                style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                                className="flex-1 px-3 py-2 rounded-lg border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none"
                             />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-white/70 mb-2">Color de Acento</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-2">Color de Acento</label>
                         <div className="flex items-center gap-3">
                             <input
                                 type="color"
@@ -958,16 +1002,15 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
                                 type="text"
                                 value={accentColor}
                                 onChange={(e) => setCompany({ ...company, brand_color_accent: e.target.value })}
-                                className="flex-1 px-3 py-2 rounded-lg border text-sm text-white"
-                                style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                                className="flex-1 px-3 py-2 rounded-lg border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Preview */}
-                <div className="mt-6 p-4 rounded-xl" style={{ backgroundColor: colors.bgTertiary }}>
-                    <p className="text-xs font-medium text-white/50 mb-3 uppercase">Vista previa</p>
+                <div className="mt-6 p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419]">
+                    <p className="text-xs font-medium text-gray-500 dark:text-white/50 mb-3 uppercase">Vista previa</p>
                     <div className="flex gap-3">
                         <div className="h-10 flex-1 rounded-lg" style={{ backgroundColor: primaryColor }} />
                         <div className="h-10 flex-1 rounded-lg" style={{ backgroundColor: secondaryColor }} />
@@ -983,12 +1026,11 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
                 iconColor={colors.purple}
             >
                 <div>
-                    <label className="block text-xs font-medium text-white/70 mb-2">Fuente principal</label>
+                    <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-2">Fuente principal</label>
                     <select
                         value={fontFamily}
                         onChange={(e) => setCompany({ ...company, brand_font_family: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3]"
-                        style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                        className="w-full px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3]"
                     >
                         {validFonts.map((font) => (
                             <option key={font} value={font}>{font}</option>
@@ -997,12 +1039,12 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
                 </div>
 
                 {/* Font Preview */}
-                <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: colors.bgTertiary }}>
-                    <p className="text-xs font-medium text-white/50 mb-3 uppercase">Vista previa</p>
-                    <p className="text-2xl font-bold text-white" style={{ fontFamily }}>
+                <div className="mt-4 p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419]">
+                    <p className="text-xs font-medium text-gray-500 dark:text-white/50 mb-3 uppercase">Vista previa</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white" style={{ fontFamily }}>
                         Vista previa de texto
                     </p>
-                    <p className="text-base text-white/70 mt-1" style={{ fontFamily }}>
+                    <p className="text-base text-gray-600 dark:text-white/70 mt-1" style={{ fontFamily }}>
                         Así se verá el texto con la fuente seleccionada
                     </p>
                 </div>
@@ -1094,17 +1136,25 @@ export default function EditCompanyPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const companyId = params.id as string
-
-    const [isLoading, setIsLoading] = useState(true)
-    const [isSaving, setIsSaving] = useState(false)
+    const initialTab = searchParams.get('tab') || 'general'
+    
+    // Theme Hook
+    const { isDark } = useTheme()
+    
+    // State
+    const [activeTab, setActiveTab] = useState(initialTab)
+    const [company, setCompany] = useState<CompanyData | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [saveSuccess, setSaveSuccess] = useState(false)
-    const [activeSection, setActiveSection] = useState(searchParams.get('tab') || 'general')
-    const [company, setCompany] = useState<CompanyData | null>(null)
+    
+    // Modals
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
 
     // Cargar datos de la empresa
     const loadCompany = async () => {
-        setIsLoading(true)
+        setLoading(true)
         try {
             const res = await fetch(`/api/admin/companies/${companyId}`)
             const data = await res.json()
@@ -1117,7 +1167,7 @@ export default function EditCompanyPage() {
         } catch (err) {
             setError('Error al cargar la empresa')
         } finally {
-            setIsLoading(false)
+            setLoading(false)
         }
     }
 
@@ -1130,7 +1180,7 @@ export default function EditCompanyPage() {
     const handleSave = async () => {
         if (!company) return
 
-        setIsSaving(true)
+        setSaving(true)
         setSaveSuccess(false)
 
         try {
@@ -1151,16 +1201,16 @@ export default function EditCompanyPage() {
         } catch (err) {
             setError('Error al guardar los cambios')
         } finally {
-            setIsSaving(false)
+            setSaving(false)
         }
     }
 
-    if (isLoading) {
+    if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bgPrimary }}>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0A0D12]">
                 <div className="text-center">
-                    <ArrowPathIcon className="h-8 w-8 animate-spin mx-auto" style={{ color: colors.accent }} />
-                    <p className="mt-4 text-white">Cargando empresa...</p>
+                    <ArrowPathIcon className="h-8 w-8 animate-spin mx-auto text-[#00D4B3]" />
+                    <p className="mt-4 text-gray-500 dark:text-white/70">Cargando empresa...</p>
                 </div>
             </div>
         )
@@ -1168,14 +1218,13 @@ export default function EditCompanyPage() {
 
     if (error && !company) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bgPrimary }}>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0A0D12]">
                 <div className="text-center">
-                    <ExclamationTriangleIcon className="h-12 w-12 mx-auto" style={{ color: colors.error }} />
-                    <p className="mt-4 text-white">{error}</p>
+                    <ExclamationTriangleIcon className="h-12 w-12 mx-auto text-red-500" />
+                    <p className="mt-4 text-gray-900 dark:text-white">{error}</p>
                     <button
                         onClick={() => router.push('/admin/companies')}
-                        className="mt-4 px-4 py-2 rounded-xl text-sm font-medium"
-                        style={{ backgroundColor: colors.accent, color: colors.primary }}
+                        className="mt-4 px-4 py-2 rounded-xl text-sm font-medium bg-[#00D4B3] text-[#0A2540]"
                     >
                         Volver a empresas
                     </button>
@@ -1187,7 +1236,7 @@ export default function EditCompanyPage() {
     if (!company) return null
 
     const renderSection = () => {
-        switch (activeSection) {
+        switch (activeTab) {
             case 'general':
                 return <GeneralSection company={company} setCompany={setCompany} />
             case 'users':
@@ -1208,108 +1257,82 @@ export default function EditCompanyPage() {
     }
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
-            {/* Header */}
-            <div
-                className="sticky top-0 z-40 border-b backdrop-blur-lg"
-                style={{ backgroundColor: `${colors.bgPrimary}95`, borderColor: `${colors.grayMedium}15` }}
-            >
-                <div className="max-w-7xl mx-auto px-6 py-4">
-                    <div className="flex items-center justify-between">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0A0D12] text-gray-900 dark:text-white font-inter">
+            {/* Header / Nav */}
+            <div className="bg-white dark:bg-[#1E2329] border-b border-gray-100 dark:border-white/5 sticky top-0 z-30 shadow-sm">
+                <div className="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-6">
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => router.back()}
+                            className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-[#8899A6] transition-colors"
+                        >
+                            <ArrowLeftIcon className="h-6 w-6" />
+                        </motion.button>
                         <div className="flex items-center gap-4">
-                            <motion.button
-                                onClick={() => router.push('/admin/companies')}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="p-2 rounded-xl transition-colors"
-                                style={{ backgroundColor: `${colors.grayMedium}15`, color: colors.grayMedium }}
-                            >
-                                <ArrowLeftIcon className="h-5 w-5" />
-                            </motion.button>
-                            <div className="flex items-center gap-3">
-                                <div
-                                    className="h-10 w-10 rounded-xl flex items-center justify-center overflow-hidden"
-                                    style={{ backgroundColor: `${colors.accent}15` }}
-                                >
-                                    {company.brand_logo_url || company.logo_url ? (
-                                        <img src={company.brand_logo_url || company.logo_url || ''} alt="" className="h-full w-full object-contain" />
-                                    ) : (
-                                        <BuildingOffice2Icon className="h-5 w-5" style={{ color: colors.accent }} />
-                                    )}
-                                </div>
-                                <div>
-                                    <h1 className="text-lg font-bold text-white">{company.name}</h1>
-                                    <p className="text-xs" style={{ color: colors.grayMedium }}>Gestión de empresa</p>
-                                </div>
+                            <div className="w-12 h-12 rounded-2xl bg-[#00D4B3]/10 flex items-center justify-center border border-[#00D4B3]/20">
+                                {company.brand_logo_url ? (
+                                    <img src={company.brand_logo_url} alt="" className="w-full h-full object-contain p-2" />
+                                ) : (
+                                    <BuildingOffice2Icon className="h-6 w-6 text-[#00D4B3]" />
+                                )}
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{company.name}</h1>
+                                <p className="text-xs text-gray-500 dark:text-[#8899A6]">Gestión de empresa</p>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="flex items-center gap-3">
-                            <AnimatePresence>
-                                {saveSuccess && (
-                                    <motion.div
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-xl"
-                                        style={{ backgroundColor: `${colors.success}20`, color: colors.success }}
-                                    >
-                                        <CheckCircleIcon className="h-4 w-4" />
-                                        <span className="text-sm font-medium">Guardado</span>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                            <motion.button
-                                onClick={handleSave}
-                                disabled={isSaving}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-50"
-                                style={{ backgroundColor: colors.accent, color: colors.primary }}
-                            >
-                                {isSaving ? (
-                                    <>
-                                        <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                                        Guardando...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircleIcon className="h-4 w-4" />
-                                        Guardar cambios
-                                    </>
-                                )}
-                            </motion.button>
-                        </div>
+                    <div className="flex items-center gap-4">
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="px-6 py-2.5 rounded-xl bg-[#00D4B3] text-[#0A2540] font-bold text-sm shadow-lg shadow-[#00D4B3]/20 flex items-center gap-2 hover:bg-[#00E5C4] disabled:opacity-50 transition-all"
+                        >
+                            {saving ? (
+                                <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <CheckCircleIcon className="h-4 w-4" />
+                            )}
+                            {saving ? 'Guardando...' : 'Guardar cambios'}
+                        </motion.button>
                     </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <div className="max-w-7xl mx-auto px-6 py-6">
-                <div className="flex gap-6">
-                    {/* Sidebar Navigation */}
-                    <div className="w-56 flex-shrink-0">
-                        <nav className="sticky top-24 space-y-1">
-                            {NAV_ITEMS.map((item) => {
-                                const isActive = activeSection === item.id
-                                return (
-                                    <button
-                                        key={item.id}
-                                        onClick={() => setActiveSection(item.id)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${isActive ? 'bg-opacity-100' : 'opacity-60 hover:opacity-100'
-                                            }`}
-                                        style={{
-                                            backgroundColor: isActive ? `${item.color}15` : 'transparent',
-                                            color: isActive ? item.color : 'white'
-                                        }}
-                                    >
-                                        <item.icon className="h-5 w-5" style={{ color: isActive ? item.color : colors.grayMedium }} />
-                                        <span className="text-sm font-medium">{item.label}</span>
-                                    </button>
-                                )
-                            })}
-                        </nav>
-                    </div>
+            <div className="max-w-[1600px] mx-auto flex min-h-[calc(100vh-5rem)]">
+                {/* Sidebar */}
+                <div className="w-80 border-r border-gray-100 dark:border-white/5 p-6 space-y-2 shrink-0 hidden lg:block bg-white dark:bg-[#0A0D12]">
+                    {NAV_ITEMS.map((item) => {
+                        const isActive = activeTab === item.id
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => {
+                                    setActiveTab(item.id)
+                                    window.history.pushState(null, '', `?tab=${item.id}`)
+                                }}
+                                className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left relative group ${isActive ? 'bg-[#00D4B3]/5' : 'hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                            >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute left-0 w-1.5 h-8 bg-[#00D4B3] rounded-r-full"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+                                <item.icon className={`h-5 w-5 transition-colors ${isActive ? 'text-[#00D4B3]' : 'text-gray-400 dark:text-[#8899A6] group-hover:text-gray-900 dark:group-hover:text-white'}`} />
+                                <span className={`text-sm font-semibold transition-colors ${isActive ? 'text-[#00D4B3]' : 'text-gray-500 dark:text-[#8899A6] group-hover:text-gray-900 dark:group-hover:text-white'}`}>
+                                    {item.label}
+                                </span>
+                            </button>
+                        )
+                    })}
+                </div>
 
                     {/* Main Content */}
                     <div className="flex-1 min-w-0">

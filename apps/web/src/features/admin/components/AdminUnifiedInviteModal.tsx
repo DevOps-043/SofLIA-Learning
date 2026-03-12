@@ -382,15 +382,15 @@ export function AdminUnifiedInviteModal({
           onClick={(e) => e.stopPropagation()}
         >
           <div
-            className="rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-full"
-            style={{ backgroundColor: isDark ? '#1a1f2e' : '#FFFFFF', borderColor }}
+            className="rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-full bg-white dark:bg-[#1a1f2e] border-gray-100 dark:border-white/10"
           >
             {/* Header */}
             <div
-              className="p-6 border-b shrink-0"
+              className="p-6 border-b shrink-0 border-gray-100 dark:border-white/10"
               style={{
-                background: `linear-gradient(135deg, ${primaryColor}20, ${accentColor}10)`,
-                borderColor
+                background: isDark 
+                    ? `linear-gradient(135deg, ${primaryColor}40, ${accentColor}20)` 
+                    : `linear-gradient(135deg, ${primaryColor}10, ${accentColor}05)`,
               }}
             >
               <div className="flex items-center justify-between mb-4">
@@ -398,8 +398,7 @@ export function AdminUnifiedInviteModal({
                   <motion.div
                     animate={{ rotate: [0, 360] }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="p-2 rounded-xl"
-                    style={{ backgroundColor: `${accentColor}20` }}
+                    className="p-2 rounded-xl bg-accent/20"
                   >
                     {mode === 'individual' ? (
                       <Mail className="w-6 h-6" style={{ color: accentColor }} />
@@ -410,10 +409,10 @@ export function AdminUnifiedInviteModal({
                     )}
                   </motion.div>
                   <div>
-                    <h3 className="text-lg font-semibold" style={{ color: textColor }}>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {t('users.modals.unified.title', 'Invitar Usuarios')}
                     </h3>
-                    <p className="text-sm" style={{ color: mutedText }}>
+                    <p className="text-sm text-gray-500 dark:text-[#8899A6]">
                       {mode === 'manage' 
                         ? t('users.modals.unified.subtitleManage', 'Gestiona tus enlaces de invitación')
                         : t('users.modals.unified.subtitle', 'Elige cómo quieres invitar')}
@@ -424,7 +423,7 @@ export function AdminUnifiedInviteModal({
                   onClick={onClose}
                   className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                 >
-                  <X className="w-5 h-5" style={{ color: mutedText }} />
+                  <X className="w-5 h-5 text-gray-400 dark:text-[#8899A6]" />
                 </button>
               </div>
 
@@ -433,14 +432,14 @@ export function AdminUnifiedInviteModal({
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setMode('individual'); setError(null); setStatus('idle') }}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all"
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all border-2 ${
+                      mode === 'individual'
+                        ? 'bg-primary/10 dark:bg-primary/30 border-primary text-primary dark:text-white'
+                        : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-[#8899A6]'
+                    }`}
                     style={{
-                      backgroundColor: mode === 'individual' 
-                        ? (isDark ? `${primaryColor}30` : `${primaryColor}15`) 
-                        : inputBg,
                       borderColor: mode === 'individual' ? primaryColor : 'transparent',
-                      border: mode === 'individual' ? `2px solid ${primaryColor}` : '2px solid transparent',
-                      color: mode === 'individual' ? (isDark ? '#FFFFFF' : primaryColor) : mutedText
+                      color: mode === 'individual' ? (isDark ? '#FFFFFF' : primaryColor) : undefined
                     }}
                   >
                     <Mail className="w-4 h-4" />
@@ -449,14 +448,14 @@ export function AdminUnifiedInviteModal({
                   </button>
                   <button
                     onClick={() => { setMode('bulk'); setError(null); setStatus('idle') }}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all"
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all border-2 ${
+                      mode === 'bulk'
+                        ? 'bg-primary/10 dark:bg-primary/30 border-primary text-primary dark:text-white'
+                        : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-[#8899A6]'
+                    }`}
                     style={{
-                      backgroundColor: mode === 'bulk' 
-                        ? (isDark ? `${primaryColor}30` : `${primaryColor}15`) 
-                        : inputBg,
                       borderColor: mode === 'bulk' ? primaryColor : 'transparent',
-                      border: mode === 'bulk' ? `2px solid ${primaryColor}` : '2px solid transparent',
-                      color: mode === 'bulk' ? (isDark ? '#FFFFFF' : primaryColor) : mutedText
+                      color: mode === 'bulk' ? (isDark ? '#FFFFFF' : primaryColor) : undefined
                     }}
                   >
                     <Link2 className="w-4 h-4" />
@@ -465,14 +464,14 @@ export function AdminUnifiedInviteModal({
                   </button>
                   <button
                     onClick={() => { setMode('manage'); setError(null); setStatus('idle') }}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all"
+                    className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all border-2 ${
+                      mode === 'manage'
+                        ? 'bg-primary/10 dark:bg-primary/30 border-primary text-primary dark:text-white'
+                        : 'bg-gray-50 dark:bg-white/5 border-transparent text-gray-500 dark:text-[#8899A6]'
+                    }`}
                     style={{
-                      backgroundColor: mode === 'manage' 
-                        ? (isDark ? `${primaryColor}30` : `${primaryColor}15`) 
-                        : inputBg,
                       borderColor: mode === 'manage' ? primaryColor : 'transparent',
-                      border: mode === 'manage' ? `2px solid ${primaryColor}` : '2px solid transparent',
-                      color: mode === 'manage' ? (isDark ? '#FFFFFF' : primaryColor) : mutedText
+                      color: mode === 'manage' ? (isDark ? '#FFFFFF' : primaryColor) : undefined
                     }}
                   >
                     <List className="w-4 h-4" />
@@ -560,28 +559,28 @@ export function AdminUnifiedInviteModal({
                   {/* Link Details */}
                   {createdLink && (
                     <div className="grid grid-cols-3 gap-3">
-                      <div className="p-3 rounded-xl text-center" style={{ backgroundColor: inputBg }}>
-                        <Users className="w-5 h-5 mx-auto mb-1" style={{ color: accentColor }} />
-                        <p className="text-lg font-bold" style={{ color: textColor }}>{createdLink.max_uses}</p>
-                        <p className="text-xs" style={{ color: mutedText }}>
+                      <div className="p-3 rounded-xl text-center bg-gray-50 dark:bg-white/5">
+                        <Users className="w-5 h-5 mx-auto mb-1 text-accent" />
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{createdLink.max_uses}</p>
+                        <p className="text-xs text-gray-500 dark:text-[#8899A6]">
                           {t('users.modals.bulkInvite.success.maxUsers', 'Máx. usuarios')}
                         </p>
                       </div>
-                      <div className="p-3 rounded-xl text-center" style={{ backgroundColor: inputBg }}>
-                        <Shield className="w-5 h-5 mx-auto mb-1" style={{ color: accentColor }} />
-                        <p className="text-lg font-bold capitalize" style={{ color: textColor }}>
+                      <div className="p-3 rounded-xl text-center bg-gray-50 dark:bg-white/5">
+                        <Shield className="w-5 h-5 mx-auto mb-1 text-accent" />
+                        <p className="text-lg font-bold capitalize text-gray-900 dark:text-white">
                           {roleLabels[createdLink.role as keyof typeof roleLabels]?.label || createdLink.role}
                         </p>
-                        <p className="text-xs" style={{ color: mutedText }}>
+                        <p className="text-xs text-gray-500 dark:text-[#8899A6]">
                           {t('users.modals.bulkInvite.success.role', 'Rol')}
                         </p>
                       </div>
-                      <div className="p-3 rounded-xl text-center" style={{ backgroundColor: inputBg }}>
-                        <Calendar className="w-5 h-5 mx-auto mb-1" style={{ color: accentColor }} />
-                        <p className="text-lg font-bold" style={{ color: textColor }}>
+                      <div className="p-3 rounded-xl text-center bg-gray-50 dark:bg-white/5">
+                        <Calendar className="w-5 h-5 mx-auto mb-1 text-accent" />
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">
                           {new Date(createdLink.expires_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                         </p>
-                        <p className="text-xs" style={{ color: mutedText }}>
+                        <p className="text-xs text-gray-500 dark:text-[#8899A6]">
                           {t('users.modals.bulkInvite.success.expires', 'Expira')}
                         </p>
                       </div>
@@ -589,11 +588,10 @@ export function AdminUnifiedInviteModal({
                   )}
 
                   {/* Actions */}
-                  <div className="flex items-center justify-end gap-3 pt-4 border-t" style={{ borderColor }}>
+                  <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
                     <button
                       onClick={handleCreateAnother}
-                      className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                      style={{ color: mutedText }}
+                      className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 dark:text-[#8899A6]"
                     >
                       {t('users.buttons.createAnother', 'Crear otro')}
                     </button>
@@ -601,7 +599,7 @@ export function AdminUnifiedInviteModal({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={onClose}
-                      className="px-5 py-2.5 rounded-xl text-sm font-medium text-white"
+                      className="px-5 py-2.5 rounded-xl text-sm font-medium text-white shadow-lg"
                       style={{
                         backgroundColor: primaryColor,
                         boxShadow: `0 4px 15px ${primaryColor}40`
@@ -633,19 +631,18 @@ export function AdminUnifiedInviteModal({
 
                   {/* Email */}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: mutedText }}>
+                    <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-white/70">
                       {t('users.modals.invite.fields.email', 'Correo electrónico')} <span className="text-red-400">*</span>
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: mutedText }} />
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#8899A6]" />
                       <input
                         type="email"
                         value={individualForm.email}
                         onChange={(e) => setIndividualForm(prev => ({ ...prev, email: e.target.value }))}
                         required
                         disabled={status === 'loading'}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50"
-                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder={t('users.modals.invite.placeholders.email', 'usuario@empresa.com')}
                       />
                     </div>
@@ -691,19 +688,18 @@ export function AdminUnifiedInviteModal({
 
                   {/* Position */}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: mutedText }}>
+                    <label className="block text-sm font-medium mb-2 text-gray-500 dark:text-[#8899A6]">
                       {t('users.modals.invite.fields.position', 'Cargo / Posición')}
-                      <span className="ml-1" style={{ color: mutedText }}>({t('common.optional', 'Opcional')})</span>
+                      <span className="ml-1 text-gray-400 dark:text-white/40">({t('common.optional', 'Opcional')})</span>
                     </label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: mutedText }} />
+                      <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#8899A6]" />
                       <input
                         type="text"
                         value={individualForm.position}
                         onChange={(e) => setIndividualForm(prev => ({ ...prev, position: e.target.value }))}
                         disabled={status === 'loading'}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50"
-                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder={t('users.modals.invite.placeholders.position', 'Ej: Gerente de Ventas')}
                         maxLength={100}
                       />
@@ -712,33 +708,32 @@ export function AdminUnifiedInviteModal({
 
                   {/* Custom Message */}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: mutedText }}>
+                    <label className="block text-sm font-medium mb-2 text-gray-500 dark:text-[#8899A6]">
                       {t('users.modals.invite.fields.message', 'Mensaje personalizado')}
-                      <span className="ml-1" style={{ color: mutedText }}>({t('common.optional', 'Opcional')})</span>
+                      <span className="ml-1 text-gray-400 dark:text-white/40">({t('common.optional', 'Opcional')})</span>
                     </label>
                     <div className="relative">
-                      <MessageSquare className="absolute left-3 top-3 w-4 h-4" style={{ color: mutedText }} />
+                      <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-gray-400 dark:text-[#8899A6]" />
                       <textarea
                         value={individualForm.customMessage}
                         onChange={(e) => setIndividualForm(prev => ({ ...prev, customMessage: e.target.value }))}
                         disabled={status === 'loading'}
                         rows={3}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors resize-none disabled:opacity-50"
-                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors resize-none disabled:opacity-50 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                         placeholder={t('users.modals.invite.placeholders.message', 'Agrega un mensaje personalizado...')}
                         maxLength={500}
                       />
                     </div>
-                    <p className="text-xs mt-1 text-right" style={{ color: mutedText }}>
+                    <p className="text-xs mt-1 text-right text-gray-400 dark:text-[#8899A6]">
                       {individualForm.customMessage.length}/500
                     </p>
                   </div>
 
                   {/* Info */}
-                  <div className="p-4 rounded-xl border" style={{ backgroundColor: inputBg, borderColor }}>
+                  <div className="p-4 rounded-xl border bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10">
                     <div className="flex items-start gap-3">
-                      <Sparkles className="w-5 h-5 flex-shrink-0" style={{ color: accentColor }} />
-                      <div className="text-sm" style={{ color: mutedText }}>
+                      <Sparkles className="w-5 h-5 flex-shrink-0 text-accent" />
+                      <div className="text-sm text-gray-500 dark:text-[#8899A6]">
                         <p>{t('users.modals.invite.hints.info', 'El usuario recibirá un correo con un enlace para completar su registro. La invitación expira en 7 días.')}</p>
                       </div>
                     </div>
@@ -802,17 +797,16 @@ export function AdminUnifiedInviteModal({
 
                   {/* Name */}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: mutedText }}>
+                    <label className="block text-sm font-medium mb-2 text-gray-500 dark:text-[#8899A6]">
                       {t('users.modals.bulkInvite.fields.name', 'Nombre del enlace')}
-                      <span className="ml-1" style={{ color: mutedText }}>({t('common.optional', 'Opcional')})</span>
+                      <span className="ml-1 text-gray-400 dark:text-white/40">({t('common.optional', 'Opcional')})</span>
                     </label>
                     <input
                       type="text"
                       value={bulkForm.name}
                       onChange={(e) => setBulkForm(prev => ({ ...prev, name: e.target.value }))}
                       disabled={status === 'loading'}
-                      className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50"
-                      style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                      className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder={t('users.modals.bulkInvite.placeholders.name', 'Ej: Invitación Equipo de Ventas')}
                       maxLength={100}
                     />
@@ -820,11 +814,11 @@ export function AdminUnifiedInviteModal({
 
                   {/* Max Uses */}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: mutedText }}>
+                    <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-white/70">
                       {t('users.modals.bulkInvite.fields.maxUses', 'Número máximo de registros')} <span className="text-red-400">*</span>
                     </label>
                     <div className="relative">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: mutedText }} />
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#8899A6]" />
                       <input
                         type="number"
                         value={bulkForm.maxUses}
@@ -833,11 +827,10 @@ export function AdminUnifiedInviteModal({
                         min={1}
                         max={10000}
                         disabled={status === 'loading'}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50"
-                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white"
                       />
                     </div>
-                    <p className="text-xs mt-1" style={{ color: mutedText }}>
+                    <p className="text-xs mt-1 text-gray-400 dark:text-[#8899A6]">
                       {t('users.modals.bulkInvite.hints.maxUses', 'Máximo de usuarios que pueden registrarse (1-10,000)')}
                     </p>
                   </div>
@@ -882,29 +875,28 @@ export function AdminUnifiedInviteModal({
 
                   {/* Expiration */}
                   <div>
-                    <label className="block text-sm font-medium mb-2" style={{ color: mutedText }}>
+                    <label className="block text-sm font-medium mb-2 text-gray-600 dark:text-white/70">
                       {t('users.modals.bulkInvite.fields.expiresAt', 'Fecha de expiración')} <span className="text-red-400">*</span>
                     </label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: mutedText }} />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-[#8899A6]" />
                       <input
                         type="datetime-local"
                         value={bulkForm.expiresAt}
                         onChange={(e) => setBulkForm(prev => ({ ...prev, expiresAt: e.target.value }))}
                         required
                         disabled={status === 'loading'}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50"
-                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-colors disabled:opacity-50 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white"
                         min={new Date().toISOString().slice(0, 16)}
                       />
                     </div>
                   </div>
 
                   {/* Info */}
-                  <div className="p-4 rounded-xl border" style={{ backgroundColor: inputBg, borderColor }}>
+                  <div className="p-4 rounded-xl border bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10">
                     <div className="flex items-start gap-3">
-                      <Sparkles className="w-5 h-5 flex-shrink-0" style={{ color: accentColor }} />
-                      <div className="text-sm" style={{ color: mutedText }}>
+                      <Sparkles className="w-5 h-5 flex-shrink-0 text-accent" />
+                      <div className="text-sm text-gray-500 dark:text-[#8899A6]">
                         <p>{t('users.modals.bulkInvite.hints.info', 'El enlace permitirá que cualquier persona se registre en tu organización con el rol especificado.')}</p>
                       </div>
                     </div>
@@ -973,8 +965,7 @@ export function AdminUnifiedInviteModal({
                       {[1, 2, 3].map((i) => (
                         <div
                           key={i}
-                          className="p-4 rounded-xl border animate-pulse"
-                          style={{ backgroundColor: inputBg, borderColor }}
+                          className="p-4 rounded-xl border animate-pulse bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10"
                         >
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-lg bg-gray-300 dark:bg-gray-700" />
@@ -989,22 +980,21 @@ export function AdminUnifiedInviteModal({
                   ) : links.length === 0 ? (
                     <div className="text-center py-12">
                       <div
-                        className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-                        style={{ backgroundColor: inputBg }}
+                        className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-50 dark:bg-white/5"
                       >
-                        <Link2 className="w-8 h-8" style={{ color: mutedText }} />
+                        <Link2 className="w-8 h-8 text-gray-400 dark:text-[#8899A6]" />
                       </div>
-                      <h4 className="text-lg font-semibold mb-2" style={{ color: textColor }}>
+                      <h4 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
                         {t('users.modals.manageLinks.empty.title', 'No hay enlaces')}
                       </h4>
-                      <p className="mb-6" style={{ color: mutedText }}>
+                      <p className="mb-6 text-gray-500 dark:text-[#8899A6]">
                         {t('users.modals.manageLinks.empty.subtitle', 'Crea tu primer enlace de invitación')}
                       </p>
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setMode('bulk')}
-                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2"
+                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2 shadow-lg"
                         style={{
                           backgroundColor: primaryColor,
                           boxShadow: `0 4px 15px ${primaryColor}40`
@@ -1026,12 +1016,7 @@ export function AdminUnifiedInviteModal({
                             key={link.id}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-4 rounded-xl border transition-colors"
-                            style={{
-                              backgroundColor: inputBg,
-                              borderColor,
-                              opacity: isExpiredOrExhausted ? 0.7 : 1
-                            }}
+                            className={`p-4 rounded-xl border transition-colors bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 ${isExpiredOrExhausted ? 'opacity-70' : ''}`}
                           >
                             <div className="flex items-start gap-3">
                               {/* Icon */}
@@ -1045,7 +1030,7 @@ export function AdminUnifiedInviteModal({
                               {/* Info */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium truncate text-sm" style={{ color: textColor }}>
+                                  <h4 className="font-medium truncate text-sm text-gray-900 dark:text-white">
                                     {link.name || t('users.modals.manageLinks.unnamed', 'Sin nombre')}
                                   </h4>
                                   <span
@@ -1059,7 +1044,7 @@ export function AdminUnifiedInviteModal({
 
                                 {/* URL */}
                                 <div className="flex items-center gap-2 mb-2">
-                                  <p className="text-xs font-mono truncate flex-1" style={{ color: mutedText }}>
+                                  <p className="text-xs font-mono truncate flex-1 text-gray-500 dark:text-[#8899A6]">
                                     {getInviteUrl(link.token)}
                                   </p>
                                   <button
@@ -1067,30 +1052,30 @@ export function AdminUnifiedInviteModal({
                                     className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/5 transition-colors shrink-0"
                                   >
                                     {copiedId === link.id ? (
-                                      <Check className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                                      <Check className="w-3.5 h-3.5 text-accent" />
                                     ) : (
-                                      <Copy className="w-3.5 h-3.5" style={{ color: mutedText }} />
+                                      <Copy className="w-3.5 h-3.5 text-gray-400 dark:text-[#8899A6]" />
                                     )}
                                   </button>
                                 </div>
 
                                 {/* Stats */}
-                                <div className="flex items-center gap-4 text-xs">
+                                <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-[#8899A6]">
                                   <div className="flex items-center gap-1">
-                                    <Users className="w-3 h-3" style={{ color: mutedText }} />
-                                    <span style={{ color: mutedText }}>
+                                    <Users className="w-3 h-3" />
+                                    <span>
                                       {link.current_uses}/{link.max_uses}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Shield className="w-3 h-3" style={{ color: mutedText }} />
-                                    <span style={{ color: mutedText }}>
+                                    <Shield className="w-3 h-3" />
+                                    <span>
                                       {roleLabels[link.role as keyof typeof roleLabels]?.label || link.role}
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" style={{ color: mutedText }} />
-                                    <span style={{ color: mutedText }}>
+                                    <Calendar className="w-3 h-3" />
+                                    <span>
                                       {new Date(link.expires_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
                                     </span>
                                   </div>
@@ -1102,12 +1087,12 @@ export function AdminUnifiedInviteModal({
                                 <button
                                   onClick={() => setOpenMenuId(openMenuId === link.id ? null : link.id)}
                                   disabled={actionLoading === link.id}
-                                  className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
+                                  className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50 text-gray-500 dark:text-[#8899A6]"
                                 >
                                   {actionLoading === link.id ? (
                                     <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
                                   ) : (
-                                    <MoreVertical className="w-4 h-4" style={{ color: mutedText }} />
+                                    <MoreVertical className="w-4 h-4" />
                                   )}
                                 </button>
 
@@ -1117,28 +1102,26 @@ export function AdminUnifiedInviteModal({
                                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                       animate={{ opacity: 1, scale: 1, y: 0 }}
                                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                      className="absolute right-0 top-full mt-1 w-36 rounded-xl border shadow-lg overflow-hidden"
-                                      style={{ backgroundColor: isDark ? '#252b3b' : '#FFFFFF', borderColor, zIndex: 10 }}
+                                      className="absolute right-0 top-full mt-1 w-36 rounded-xl border shadow-lg overflow-hidden bg-white dark:bg-[#1a1f2e] border-gray-100 dark:border-white/10"
+                                      style={{ zIndex: 10 }}
                                     >
                                       {link.status === 'active' && (
-                                        <button
-                                          onClick={() => handleLinkAction(link.id, 'pause')}
-                                          className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                          style={{ color: textColor }}
-                                        >
-                                          <Pause className="w-4 h-4" style={{ color: '#F59E0B' }} />
-                                          {t('users.modals.manageLinks.actions.pause', 'Pausar')}
-                                        </button>
+                                          <button
+                                            onClick={() => handleLinkAction(link.id, 'pause')}
+                                            className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-gray-900 dark:text-white"
+                                          >
+                                            <Pause className="w-4 h-4 text-orange-500" />
+                                            {t('users.modals.manageLinks.actions.pause', 'Pausar')}
+                                          </button>
                                       )}
                                       {link.status === 'paused' && (
-                                        <button
-                                          onClick={() => handleLinkAction(link.id, 'resume')}
-                                          className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                          style={{ color: textColor }}
-                                        >
-                                          <Play className="w-4 h-4" style={{ color: '#22C55E' }} />
-                                          {t('users.modals.manageLinks.actions.resume', 'Reanudar')}
-                                        </button>
+                                          <button
+                                            onClick={() => handleLinkAction(link.id, 'resume')}
+                                            className="w-full px-3 py-2 text-left text-sm flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-gray-900 dark:text-white"
+                                          >
+                                            <Play className="w-4 h-4 text-green-500" />
+                                            {t('users.modals.manageLinks.actions.resume', 'Reanudar')}
+                                          </button>
                                       )}
                                       <button
                                         onClick={() => handleLinkAction(link.id, 'delete')}
@@ -1160,24 +1143,23 @@ export function AdminUnifiedInviteModal({
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t flex items-center justify-between shrink-0" style={{ borderColor }}>
+                <div className="p-6 border-t flex items-center justify-between shrink-0 border-gray-100 dark:border-white/10">
                   <div className="flex items-center gap-2">
                     <button
                       onClick={fetchLinks}
                       disabled={isLoadingLinks}
                       className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors disabled:opacity-50"
                     >
-                      <RefreshCw className={`w-4 h-4 ${isLoadingLinks ? 'animate-spin' : ''}`} style={{ color: mutedText }} />
+                      <RefreshCw className={`w-4 h-4 ${isLoadingLinks ? 'animate-spin' : ''}`} style={{ color: '#8899A6' }} />
                     </button>
-                    <span className="text-sm" style={{ color: mutedText }}>
+                    <span className="text-sm text-gray-500 dark:text-[#8899A6]">
                       {links.length} {links.length === 1 ? 'enlace' : 'enlaces'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button
                       onClick={onClose}
-                      className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                      style={{ color: mutedText }}
+                      className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-gray-500 dark:text-[#8899A6]"
                     >
                       {t('users.buttons.close', 'Cerrar')}
                     </button>
@@ -1185,7 +1167,7 @@ export function AdminUnifiedInviteModal({
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setMode('bulk')}
-                      className="px-4 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2"
+                      className="px-4 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2 shadow-lg"
                       style={{
                         backgroundColor: primaryColor,
                         boxShadow: `0 4px 15px ${primaryColor}40`
