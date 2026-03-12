@@ -133,7 +133,7 @@ export async function requestPasswordResetAction(
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, email, username, first_name')
-      .eq('email', email.toLowerCase())
+      .ilike('email', email)
       .single();
 
     // POR SEGURIDAD: Siempre retornar el mismo mensaje
@@ -141,9 +141,11 @@ export async function requestPasswordResetAction(
       'Si el correo está registrado, recibirás un enlace de recuperación.';
 
     if (userError || !user) {
-      // Usuario no existe, pero no lo revelamos
+      logger.error('User not found or DB error', { email, userError });
       return { success: true, message: successMessage };
     }
+
+    logger.info('User found, proceeding with reset', { userId: user.id });
 
     // 6. GENERAR TOKEN SEGURO
     const resetToken = crypto.randomBytes(32).toString('hex'); // 64 caracteres hex
@@ -159,11 +161,13 @@ export async function requestPasswordResetAction(
       });
 
     if (insertError) {
-      // console.error('Error guardando token:', insertError);
+      logger.error('Error inserting reset token', insertError);
       return {
         error: 'Error procesando solicitud. Inténtalo más tarde.',
       };
     }
+
+    logger.info('Reset token saved, sending email');
 
     // 8. ENVIAR EMAIL
     try {

@@ -225,7 +225,7 @@ class EmailService {
       <body>
         <div class="container">
           <div class="header">
-            <div class="logo">ðŸ” Aprende y Aplica</div>
+            <div class="logo">SofLIA</div>
             <h1>Recuperación de Contraseña</h1>
           </div>
 
@@ -235,7 +235,7 @@ class EmailService {
 
           <div style="text-align: center; margin: 30px 0;">
             <a href="${resetUrl}" class="button">
-              ðŸ”“ Restablecer mi contraseña
+              Restablecer mi contraseña
             </a>
           </div>
 
@@ -248,7 +248,7 @@ class EmailService {
           </div>
 
           <div class="warning">
-            <strong>âš ï¸ Importante:</strong>
+            <strong>Importante:</strong>
             <ul>
               <li>Este enlace expira en <strong>1 hora</strong></li>
               <li>Solo puedes usar este enlace una vez</li>
@@ -265,7 +265,7 @@ class EmailService {
           <div class="footer">
             <p>Este es un email automático, por favor no respondas a este mensaje.</p>
             <p>Si tienes problemas, contacta a nuestro equipo de soporte.</p>
-            <p>&copy; 2025 Aprende y Aplica. Todos los derechos reservados.</p>
+            <p>&copy; ${new Date().getFullYear()} SofLIA. Todos los derechos reservados.</p>
           </div>
         </div>
       </body>
@@ -278,7 +278,7 @@ class EmailService {
    */
   private generatePasswordResetText(resetUrl: string, username: string): string {
     return `
-Recuperación de Contraseña - Aprende y Aplica
+Recuperación de Contraseña - SofLIA
 
 Hola ${username},
 
@@ -295,7 +295,7 @@ IMPORTANTE:
 Si tienes problemas con el enlace, copia y pega la URL completa en tu navegador.
 
 Saludos,
-Equipo Aprende y Aplica
+Equipo SofLIA
 
 ---
 Este es un email automático, por favor no respondas a este mensaje.

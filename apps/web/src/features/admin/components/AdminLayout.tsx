@@ -7,7 +7,7 @@ import { AdminSidebar } from './AdminSidebar'
 import { AdminHeader } from './AdminHeader'
 import { useLiaPanel } from '../../../core/contexts/LiaPanelContext'
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useThemeStore } from '../../../core/stores/themeStore'
 import { LiaSidePanel } from '../../../core/components/LiaSidePanel'
 import { LiaFloatingButton } from '../../../core/components/LiaSidePanel/LiaFloatingButton'
 
@@ -83,7 +83,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         return
       }
       
-      if (user.cargo_rol !== 'Administrador') {
+      const normalizedRole = user.cargo_rol?.toLowerCase().trim()
+      if (normalizedRole !== 'administrador') {
         setIsRedirecting(true)
         // Usar window.location como fallback si router falla
         try {
@@ -135,7 +136,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   // Si loading es false, y el usuario es administrador, renderizar children
-  if (!user || user.cargo_rol !== 'Administrador') {
+  const normalizedRole = user?.cargo_rol?.toLowerCase().trim()
+  if (!user || normalizedRole !== 'administrador') {
     return null
   }
 

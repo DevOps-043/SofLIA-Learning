@@ -1,5 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/logger'
+import { createClient } from '../supabase/server'
+import { logger } from '../logger'
 
 /**
  * Verifica si un usuario puede gestionar solicitudes de acceso a una comunidad.
@@ -33,12 +33,13 @@ export async function canManageCommunityAccessRequests(
     }
 
     // 2. Si es Administrador, puede gestionar cualquier comunidad
-    if (user.cargo_rol === 'Administrador') {
+    const normalizedRole = user.cargo_rol?.toLowerCase().trim();
+    if (normalizedRole === 'administrador') {
       return true
     }
 
     // 3. Si es Instructor, verificar si es admin de la comunidad o creador
-    if (user.cargo_rol === 'Instructor') {
+    if (normalizedRole === 'instructor') {
       // Obtener información de la comunidad
       const { data: community, error: communityError } = await supabase
         .from('communities')
@@ -105,12 +106,15 @@ export async function getUsersToNotifyForAccessRequest(
     // 1. Obtener todos los Administradores
     const { data: admins, error: adminsError } = await supabase
       .from('users')
-      .select('id')
-      .eq('cargo_rol', 'Administrador')
+      .select('id, cargo_rol')
       .eq('is_banned', false)
 
     if (!adminsError && admins) {
-      userIds.push(...admins.map(admin => admin.id))
+      // Filtrar administradores de forma insensible a mayúsculas
+      const adminIds = admins
+        .filter((u: { cargo_rol: string | null }) => u.cargo_rol?.toLowerCase().trim() === 'administrador')
+        .map((u: { id: string }) => u.id);
+      userIds.push(...adminIds)
     }
 
     // 2. Obtener información de la comunidad (creator_id)
@@ -133,7 +137,7 @@ export async function getUsersToNotifyForAccessRequest(
         .eq('id', community.creator_id)
         .single()
 
-      if (!creatorError && creator && creator.cargo_rol === 'Instructor') {
+      if (!creatorError && creator && creator.cargo_rol?.toLowerCase().trim() === 'instructor') {
         // Solo agregar si no está ya en la lista (por si es admin)
         if (!userIds.includes(creator.id)) {
           userIds.push(creator.id)
@@ -158,7 +162,7 @@ export async function getUsersToNotifyForAccessRequest(
           .eq('id', member.user_id)
           .single()
 
-        if (!memberUserError && memberUser && memberUser.cargo_rol === 'Instructor') {
+        if (!memberUserError && memberUser && memberUser.cargo_rol?.toLowerCase().trim() === 'instructor') {
           // Solo agregar si no está ya en la lista
           if (!userIds.includes(memberUser.id)) {
             userIds.push(memberUser.id)
@@ -207,7 +211,8 @@ export async function canModerateCommunity(
     }
 
     // 2. Si es Administrador, puede moderar cualquier comunidad
-    if (user.cargo_rol === 'Administrador') {
+    const normalizedRole = user.cargo_rol?.toLowerCase().trim();
+    if (normalizedRole === 'administrador') {
       return true
     }
 
