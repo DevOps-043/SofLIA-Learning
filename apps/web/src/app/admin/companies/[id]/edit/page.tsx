@@ -3,6 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { AdminUnifiedInviteModal } from '@/features/admin/components/AdminUnifiedInviteModal'
+import { AdminMemberManageModal } from '@/features/admin/components/AdminMemberManageModal'
+import { CoursesSection as CompanyCoursesSection } from '@/features/admin/components/CoursesSection'
 import {
     ArrowLeftIcon,
     BuildingOffice2Icon,
@@ -30,6 +33,17 @@ import {
     TrashIcon,
     EyeIcon
 } from '@heroicons/react/24/outline'
+import { 
+    BarChart, 
+    Bar, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    ResponsiveContainer, 
+    AreaChart, 
+    Area,
+} from 'recharts'
 
 // ============================================
 // DESIGN SYSTEM - SOFLIA COLORS
@@ -108,8 +122,7 @@ const NAV_ITEMS = [
     { id: 'stats', label: 'Estadísticas', icon: ChartBarIcon, color: colors.success },
     { id: 'customization', label: 'Personalización', icon: PaintBrushIcon, color: colors.pink },
     { id: 'notifications', label: 'Notificaciones', icon: BellIcon, color: colors.warning },
-    { id: 'certificates', label: 'Certificados', icon: DocumentTextIcon, color: '#06B6D4' },
-    { id: 'subscription', label: 'Suscripción', icon: CreditCardIcon, color: '#F97316' }
+    { id: 'certificates', label: 'Certificados', icon: DocumentTextIcon, color: '#06B6D4' }
 ]
 
 // ============================================
@@ -316,6 +329,42 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                     </div>
                 )}
             </Card>
+
+            {/* Estado y Límites */}
+            <Card title="Estado y Límites" description="Configuración de estado de la empresa" icon={Cog6ToothIcon} iconColor={colors.warning}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1.5">Máximo de usuarios</label>
+                        <input
+                            type="number"
+                            min="1"
+                            value={company.max_users || ''}
+                            onChange={(e) => setCompany({ ...company, max_users: parseInt(e.target.value) || null })}
+                            className="w-full px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3]"
+                            style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-medium text-white/70 mb-1.5">Estado de la empresa</label>
+                        <div className="flex items-center gap-3 h-[42px]">
+                            <button
+                                onClick={() => setCompany({ ...company, is_active: !company.is_active })}
+                                className="relative w-12 h-6 rounded-full transition-colors"
+                                style={{ backgroundColor: company.is_active ? colors.success : `${colors.grayMedium}40` }}
+                            >
+                                <motion.div
+                                    className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                                    animate={{ left: company.is_active ? '1.75rem' : '0.25rem' }}
+                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                                />
+                            </button>
+                            <span className="text-sm text-white">
+                                {company.is_active ? 'Empresa activa' : 'Empresa pausada'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </Card>
         </SectionWrapper>
     )
 }
@@ -323,9 +372,12 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
 // ============================================
 // USERS SECTION
 // ============================================
-function UsersSection({ company }: { company: CompanyData }) {
+function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: () => void }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [roleFilter, setRoleFilter] = useState('all')
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+    const [manageMember, setManageMember] = useState<any>(null)
+    const [manageMode, setManageMode] = useState<'edit' | 'delete' | null>(null)
 
     const filteredMembers = company.members?.filter(member => {
         const matchesSearch = !searchTerm ||
@@ -398,6 +450,7 @@ function UsersSection({ company }: { company: CompanyData }) {
                 iconColor={colors.blue}
                 actions={
                     <motion.button
+                        onClick={() => setIsInviteModalOpen(true)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
@@ -495,10 +548,22 @@ function UsersSection({ company }: { company: CompanyData }) {
                                         </td>
                                         <td className="py-3">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                                                <button 
+                                                    onClick={() => {
+                                                        setManageMember(member)
+                                                        setManageMode('edit')
+                                                    }}
+                                                    className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                                                >
                                                     <PencilSquareIcon className="h-4 w-4" style={{ color: colors.grayMedium }} />
                                                 </button>
-                                                <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+                                                <button 
+                                                    onClick={() => {
+                                                        setManageMember(member)
+                                                        setManageMode('delete')
+                                                    }}
+                                                    className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                                                >
                                                     <TrashIcon className="h-4 w-4" style={{ color: colors.error }} />
                                                 </button>
                                             </div>
@@ -516,6 +581,31 @@ function UsersSection({ company }: { company: CompanyData }) {
                     )}
                 </div>
             </Card>
+
+            <AdminUnifiedInviteModal
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+                organizationId={company.id}
+                organizationSlug={company.slug || undefined}
+                onInviteSent={onUpdate}
+                onLinkCreated={onUpdate}
+                primaryColor={colors.primary}
+                accentColor={colors.accent}
+            />
+
+            <AdminMemberManageModal
+                isOpen={manageMode !== null}
+                onClose={() => {
+                    setManageMode(null)
+                    setManageMember(null)
+                }}
+                onUpdate={onUpdate}
+                member={manageMember}
+                companyId={company.id}
+                mode={manageMode}
+                primaryColor={colors.primary}
+                accentColor={colors.accent}
+            />
         </SectionWrapper>
     )
 }
@@ -526,46 +616,16 @@ function UsersSection({ company }: { company: CompanyData }) {
 function CoursesSection({ company }: { company: CompanyData }) {
     return (
         <SectionWrapper>
-            <Card
-                title="Cursos Adquiridos"
-                description="Cursos que la empresa ha comprado o tiene acceso"
-                icon={AcademicCapIcon}
-                iconColor={colors.purple}
-                actions={
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
-                        style={{ backgroundColor: colors.accent, color: colors.primary }}
-                    >
-                        <PlusIcon className="h-4 w-4" />
-                        Agregar curso
-                    </motion.button>
-                }
-            >
-                <div className="text-center py-12">
-                    <AcademicCapIcon className="h-16 w-16 mx-auto mb-4" style={{ color: colors.grayMedium }} />
-                    <p className="text-lg font-medium text-white mb-2">Próximamente</p>
-                    <p className="text-sm" style={{ color: colors.grayMedium }}>
-                        Aquí podrás gestionar los cursos adquiridos y asignados
-                    </p>
-                </div>
-            </Card>
-
-            <Card
-                title="Asignación de Cursos"
-                description="Asigna cursos a usuarios específicos"
-                icon={UserGroupIcon}
-                iconColor={colors.blue}
-            >
-                <div className="text-center py-12">
-                    <UserGroupIcon className="h-16 w-16 mx-auto mb-4" style={{ color: colors.grayMedium }} />
-                    <p className="text-lg font-medium text-white mb-2">Próximamente</p>
-                    <p className="text-sm" style={{ color: colors.grayMedium }}>
-                        Aquí podrás asignar cursos a los miembros de la empresa
-                    </p>
-                </div>
-            </Card>
+            <div className="space-y-6">
+                <Card
+                    title="Cursos de la Organización"
+                    description="Gestiona los cursos disponibles para todos los miembros"
+                    icon={AcademicCapIcon}
+                    iconColor={colors.purple}
+                >
+                    <CompanyCoursesSection companyId={company.id} />
+                </Card>
+            </div>
         </SectionWrapper>
     )
 }
@@ -574,41 +634,176 @@ function CoursesSection({ company }: { company: CompanyData }) {
 // STATS SECTION
 // ============================================
 function StatsSection({ company }: { company: CompanyData }) {
+    const [stats, setStats] = useState<any>(null)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await fetch(`/api/admin/companies/${company.id}/stats`)
+                const data = await res.json()
+                if (data.success) {
+                    setStats(data.stats)
+                }
+            } catch (err) {
+                console.error('Error fetching stats:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchStats()
+    }, [company.id])
+
+    if (loading) {
+        return (
+            <div className="py-20 text-center">
+                <ArrowPathIcon className="h-10 w-10 animate-spin mx-auto mb-4" style={{ color: colors.accent }} />
+                <p className="text-white/60">Calculando métricas en tiempo real...</p>
+            </div>
+        )
+    }
+
+    if (!stats) {
+        return (
+            <div className="py-20 text-center">
+                <ExclamationTriangleIcon className="h-10 w-10 mx-auto mb-4" style={{ color: colors.error }} />
+                <p className="text-white/60">No pudimos cargar las estadísticas</p>
+            </div>
+        )
+    }
+
+    const { overview, activityMonthly, courseProgress } = stats
+
     return (
         <SectionWrapper>
-            <Card
-                title="Estadísticas Generales"
-                description="Métricas de uso y rendimiento"
-                icon={ChartBarIcon}
-                iconColor={colors.success}
-            >
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                    <div className="p-4 rounded-xl text-center" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-3xl font-bold text-white">{company.total_users}</p>
-                        <p className="text-xs mt-1" style={{ color: colors.grayMedium }}>Usuarios totales</p>
-                    </div>
-                    <div className="p-4 rounded-xl text-center" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-3xl font-bold" style={{ color: colors.success }}>{company.active_users}</p>
-                        <p className="text-xs mt-1" style={{ color: colors.grayMedium }}>Usuarios activos</p>
-                    </div>
-                    <div className="p-4 rounded-xl text-center" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-3xl font-bold" style={{ color: colors.accent }}>0</p>
-                        <p className="text-xs mt-1" style={{ color: colors.grayMedium }}>Cursos asignados</p>
-                    </div>
-                    <div className="p-4 rounded-xl text-center" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-3xl font-bold" style={{ color: colors.purple }}>0h</p>
-                        <p className="text-xs mt-1" style={{ color: colors.grayMedium }}>Horas de aprendizaje</p>
-                    </div>
-                </div>
+            {/* Cards de Resumen */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
+                    style={{ backgroundColor: colors.bgSecondary }}
+                >
+                    <p className="text-3xl font-black text-white">{overview.totalUsers}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Usuarios Totales</p>
+                </motion.div>
+                
+                <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
+                    style={{ backgroundColor: colors.bgSecondary }}
+                >
+                    <p className="text-3xl font-black" style={{ color: colors.success }}>{overview.activeUsers}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Activos (Hoy)</p>
+                </motion.div>
 
-                <div className="text-center py-8">
-                    <ChartBarIcon className="h-16 w-16 mx-auto mb-4" style={{ color: colors.grayMedium }} />
-                    <p className="text-lg font-medium text-white mb-2">Próximamente</p>
-                    <p className="text-sm" style={{ color: colors.grayMedium }}>
-                        Gráficos y analytics detallados próximamente
-                    </p>
-                </div>
-            </Card>
+                <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
+                    style={{ backgroundColor: colors.bgSecondary }}
+                >
+                    <p className="text-3xl font-black" style={{ color: colors.accent }}>{overview.assignedCourses}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Cursos Adquiridos</p>
+                </motion.div>
+
+                <motion.div 
+                    whileHover={{ y: -5 }}
+                    className="p-5 rounded-2xl shadow-lg border border-white/5" 
+                    style={{ backgroundColor: colors.bgSecondary }}
+                >
+                    <p className="text-3xl font-black" style={{ color: colors.purple }}>{overview.totalLearningHours}h</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Horas Totales</p>
+                </motion.div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gráfico de Actividad */}
+                <Card 
+                    title="Actividad Reciente" 
+                    description="Evolución de horas de aprendizaje (últimos 6 meses)" 
+                    icon={ChartBarIcon} 
+                    iconColor={colors.blue}
+                >
+                    <div className="h-64 w-full mt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={activityMonthly}>
+                                <defs>
+                                    <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor={colors.blue} stopOpacity={0.4}/>
+                                        <stop offset="95%" stopColor={colors.blue} stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                                <XAxis 
+                                    dataKey="month" 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }} 
+                                />
+                                <YAxis 
+                                    axisLine={false} 
+                                    tickLine={false} 
+                                    tick={{ fill: colors.grayMedium, fontSize: 10, fontWeight: 'bold' }} 
+                                />
+                                <Tooltip 
+                                    contentStyle={{ 
+                                        backgroundColor: '#1E2329', 
+                                        borderRadius: '16px', 
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.5)'
+                                    }}
+                                    itemStyle={{ color: colors.accent, fontWeight: 'bold' }}
+                                />
+                                <Area 
+                                    type="monotone" 
+                                    dataKey="hours" 
+                                    stroke={colors.blue} 
+                                    strokeWidth={4} 
+                                    fillOpacity={1} 
+                                    fill="url(#colorHours)" 
+                                />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </Card>
+
+                {/* Top Cursos */}
+                <Card 
+                    title="Rendimiento por Curso" 
+                    description="Promedio de progreso y terminación" 
+                    icon={AcademicCapIcon} 
+                    iconColor={colors.purple}
+                >
+                    <div className="space-y-6 mt-4">
+                        {courseProgress.map((course: any, idx: number) => (
+                            <div key={course.id} className="group">
+                                <div className="flex justify-between items-end mb-2">
+                                    <div className="flex-1 min-w-0 pr-4">
+                                        <p className="text-white font-bold text-sm truncate">{course.title}</p>
+                                        <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: colors.grayMedium }}>
+                                            {course.enrolledCount} alumnos · {course.completedCount} graduados
+                                        </p>
+                                    </div>
+                                    <span className="text-sm font-black" style={{ color: colors.accent }}>{course.averageProgress}%</span>
+                                </div>
+                                <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div 
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${course.averageProgress}%` }}
+                                        className="h-full rounded-full"
+                                        style={{ backgroundColor: idx % 2 === 0 ? colors.purple : colors.accent }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                        {courseProgress.length === 0 && (
+                            <div className="h-full flex flex-col items-center justify-center py-10 opacity-30">
+                                <AcademicCapIcon className="h-10 w-10 mb-2" />
+                                <p className="text-xs font-bold uppercase tracking-widest">Sin datos suficientes</p>
+                            </div>
+                        )}
+                    </div>
+                </Card>
+            </div>
         </SectionWrapper>
     )
 }
@@ -813,113 +1008,6 @@ function CertificatesSection({ company }: { company: CompanyData }) {
     )
 }
 
-// ============================================
-// SUBSCRIPTION SECTION
-// ============================================
-function SubscriptionSection({ company, setCompany }: { company: CompanyData; setCompany: (c: CompanyData) => void }) {
-    const plans = [
-        { id: 'team', name: 'Team', price: '$99/mes', users: '10', color: colors.blue },
-        { id: 'business', name: 'Business', price: '$299/mes', users: '50', color: colors.purple },
-        { id: 'enterprise', name: 'Enterprise', price: 'Personalizado', users: 'Ilimitados', color: colors.warning }
-    ]
-
-    return (
-        <SectionWrapper>
-            <Card
-                title="Plan Actual"
-                description="Gestiona el plan de suscripción"
-                icon={CreditCardIcon}
-                iconColor="#F97316"
-            >
-                {/* Plan Selector */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    {plans.map((plan) => (
-                        <button
-                            key={plan.id}
-                            onClick={() => setCompany({ ...company, subscription_plan: plan.id })}
-                            className={`p-4 rounded-xl border-2 text-left transition-all ${company.subscription_plan === plan.id ? 'ring-2' : 'opacity-60 hover:opacity-100'
-                                }`}
-                            style={{
-                                backgroundColor: company.subscription_plan === plan.id ? `${plan.color}15` : colors.bgTertiary,
-                                borderColor: company.subscription_plan === plan.id ? plan.color : 'transparent'
-                            }}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="font-semibold text-white">{plan.name}</span>
-                                {company.subscription_plan === plan.id && (
-                                    <CheckIcon className="h-5 w-5" style={{ color: plan.color }} />
-                                )}
-                            </div>
-                            <p className="text-sm font-medium" style={{ color: plan.color }}>{plan.price}</p>
-                            <p className="text-xs mt-1" style={{ color: colors.grayMedium }}>Hasta {plan.users} usuarios</p>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Max Users */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-medium text-white/70 mb-1.5">Máximo de usuarios</label>
-                        <input
-                            type="number"
-                            min="1"
-                            value={company.max_users || ''}
-                            onChange={(e) => setCompany({ ...company, max_users: parseInt(e.target.value) || null })}
-                            className="w-full px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3]"
-                            style={{ backgroundColor: colors.bgTertiary, borderColor: `${colors.grayMedium}20` }}
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-medium text-white/70 mb-1.5">Estado de la empresa</label>
-                        <div className="flex items-center gap-3 h-[42px]">
-                            <button
-                                onClick={() => setCompany({ ...company, is_active: !company.is_active })}
-                                className="relative w-12 h-6 rounded-full transition-colors"
-                                style={{ backgroundColor: company.is_active ? colors.success : `${colors.grayMedium}40` }}
-                            >
-                                <motion.div
-                                    className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
-                                    animate={{ left: company.is_active ? '1.75rem' : '0.25rem' }}
-                                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                />
-                            </button>
-                            <span className="text-sm text-white">
-                                {company.is_active ? 'Empresa activa' : 'Empresa pausada'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </Card>
-
-            {/* Billing Info */}
-            <Card
-                title="Información de Facturación"
-                description="Fechas y detalles del ciclo de facturación"
-                icon={DocumentTextIcon}
-                iconColor={colors.grayMedium}
-            >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-xs uppercase mb-1" style={{ color: colors.grayMedium }}>Fecha de inicio</p>
-                        <p className="text-sm text-white">
-                            {company.subscription_start_date
-                                ? new Date(company.subscription_start_date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
-                                : 'No definida'}
-                        </p>
-                    </div>
-                    <div className="p-4 rounded-xl" style={{ backgroundColor: colors.bgTertiary }}>
-                        <p className="text-xs uppercase mb-1" style={{ color: colors.grayMedium }}>Fecha de vencimiento</p>
-                        <p className="text-sm text-white">
-                            {company.subscription_end_date
-                                ? new Date(company.subscription_end_date).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
-                                : 'No definida'}
-                        </p>
-                    </div>
-                </div>
-            </Card>
-        </SectionWrapper>
-    )
-}
 
 // ============================================
 // MAIN COMPONENT
@@ -938,24 +1026,25 @@ export default function EditCompanyPage() {
     const [company, setCompany] = useState<CompanyData | null>(null)
 
     // Cargar datos de la empresa
-    useEffect(() => {
-        async function loadCompany() {
-            try {
-                const res = await fetch(`/api/admin/companies/${companyId}`)
-                const data = await res.json()
+    const loadCompany = async () => {
+        setIsLoading(true)
+        try {
+            const res = await fetch(`/api/admin/companies/${companyId}`)
+            const data = await res.json()
 
-                if (data.success && data.company) {
-                    setCompany(data.company)
-                } else {
-                    setError('No se pudo cargar la empresa')
-                }
-            } catch (err) {
-                setError('Error al cargar la empresa')
-            } finally {
-                setIsLoading(false)
+            if (data.success && data.company) {
+                setCompany(data.company)
+            } else {
+                setError('No se pudo cargar la empresa')
             }
+        } catch (err) {
+            setError('Error al cargar la empresa')
+        } finally {
+            setIsLoading(false)
         }
+    }
 
+    useEffect(() => {
         if (companyId) {
             loadCompany()
         }
@@ -1025,7 +1114,7 @@ export default function EditCompanyPage() {
             case 'general':
                 return <GeneralSection company={company} setCompany={setCompany} />
             case 'users':
-                return <UsersSection company={company} />
+                return <UsersSection company={company} onUpdate={loadCompany} />
             case 'courses':
                 return <CoursesSection company={company} />
             case 'stats':
@@ -1036,8 +1125,6 @@ export default function EditCompanyPage() {
                 return <NotificationsSection company={company} />
             case 'certificates':
                 return <CertificatesSection company={company} />
-            case 'subscription':
-                return <SubscriptionSection company={company} setCompany={setCompany} />
             default:
                 return <GeneralSection company={company} setCompany={setCompany} />
         }

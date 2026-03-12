@@ -123,7 +123,7 @@ export default function InvitePage() {
 
   const handleLogin = () => {
     if (organization?.slug) {
-      router.push(`/auth/${organization.slug}/login`);
+      router.push(`/auth/${organization.slug}`);
     }
   };
 

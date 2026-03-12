@@ -3,6 +3,7 @@
 import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
 import { emailService } from '../services/email.service';
+import { logger } from '../../../lib/logger';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
@@ -167,24 +168,15 @@ export async function requestPasswordResetAction(
     // 8. ENVIAR EMAIL
     try {
       if (!emailService.isReady()) {
-        // console.error('⚠️  Email service not configured');
-
-        // En desarrollo, log del token
-        if (process.env.NODE_ENV !== 'production') {
-          }
-
+        logger.error('Email service not ready - check SMTP configuration');
         return { success: true, message: successMessage };
       }
 
       const username = user.first_name || user.username || user.email.split('@')[0];
       await emailService.sendPasswordResetEmail(user.email, resetToken, username);
 
-      } catch (emailError) {
-      // console.error('Error enviando email:', emailError);
-
-      // En desarrollo, mostrar el token
-      if (process.env.NODE_ENV !== 'production') {
-        }
+    } catch (emailError) {
+      logger.error('Error sending password reset email', emailError);
     }
 
     return { success: true, message: successMessage };

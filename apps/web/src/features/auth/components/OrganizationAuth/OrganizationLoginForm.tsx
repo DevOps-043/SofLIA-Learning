@@ -572,9 +572,9 @@ export function OrganizationLoginForm({
         </AnimatePresence>
       </motion.div>
 
-      {/* Remember Me - Rediseñado */}
+      {/* Remember Me & Forgot Password - Rediseñado */}
       <motion.div
-        className="flex items-center pt-1"
+        className="w-full flex items-center justify-between pt-1"
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25, duration: 0.4 }}
@@ -627,6 +627,16 @@ export function OrganizationLoginForm({
             Recordarme
           </span>
         </motion.label>
+
+        {/* Olvidaste tu contraseña */}
+        <button
+          type="button"
+          onClick={() => router.push('/auth/forgot-password')}
+          className="text-xs font-medium transition-colors hover:opacity-80"
+          style={{ color: primaryColor }}
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
       </motion.div>
 
       {/* Submit Button - Azul sólido */}

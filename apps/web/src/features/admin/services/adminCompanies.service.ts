@@ -669,5 +669,239 @@ export class AdminCompaniesService {
 
     return createdCompany
   }
+
+  static async getCompanyCourses(id: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('hierarchy_course_assignments')
+      .select(`
+        id,
+        course_id,
+        assigned_at,
+        due_date,
+        status,
+        courses (
+          id,
+          title,
+          slug,
+          thumbnail_url,
+          category,
+          level
+        )
+      `)
+      .eq('organization_id', id)
+
+    if (error) {
+      logger.error('❌ Error fetching company courses:', error)
+      throw error
+    }
+
+    return data || []
+  }
+
+  static async assignCourseToCompany(companyId: string, courseId: string, adminId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('hierarchy_course_assignments')
+      .insert({
+        organization_id: companyId,
+        course_id: courseId,
+        assigned_by: adminId,
+        status: 'active'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      logger.error('❌ Error assigning course to company:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  static async removeCourseFromCompany(companyId: string, courseId: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('hierarchy_course_assignments')
+      .delete()
+      .eq('organization_id', companyId)
+      .eq('course_id', courseId)
+
+    if (error) {
+      logger.error('❌ Error removing course from company:', error)
+      throw error
+    }
+
+    return { success: true }
+  }
+
+  // ─── INDIVIDUAL ASSIGNMENTS (Phase 3 Refinement) ───────────────────────────
+
+  static async getUserCourseAssignments(companyId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('organization_course_assignments')
+      .select(`
+        id,
+        user_id,
+        course_id,
+        assigned_at,
+        status,
+        completion_percentage,
+        courses (
+          id,
+          title,
+          slug,
+          thumbnail_url
+        ),
+        users:user_id (
+          id,
+          email,
+          first_name,
+          last_name,
+          display_name
+        )
+      `)
+      .eq('organization_id', companyId)
+
+    if (error) {
+      logger.error('❌ Error fetching user course assignments:', error)
+      throw error
+    }
+
+    return data || []
+  }
+
+  static async assignCourseToUser(companyId: string, userId: string, courseId: string, adminId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('organization_course_assignments')
+      .insert({
+        organization_id: companyId,
+        user_id: userId,
+        course_id: courseId,
+        assigned_by: adminId,
+        status: 'assigned'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      logger.error('❌ Error assigning course to user:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  static async removeCourseFromUser(assignmentId: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('organization_course_assignments')
+      .delete()
+      .eq('id', assignmentId)
+
+    if (error) {
+      logger.error('❌ Error removing user course assignment:', error)
+      throw error
+    }
+
+    return { success: true }
+  }
+
+  static async getCompanyDetailedStats(companyId: string) {
+    const supabase = await createClient()
+
+    // 1. Overview Metrics & Monthly Activity (Last 6 Months)
+    const [assignmentsRes, sessionsRes, membersRes] = await Promise.all([
+      supabase
+        .from('organization_course_assignments')
+        .select('course_id, completion_percentage, status, courses(title)')
+        .eq('organization_id', companyId),
+      supabase
+        .from('study_sessions')
+        .select('actual_duration_minutes, completed_at, status')
+        .eq('organization_id', companyId)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: true }),
+      supabase
+        .from('organization_users')
+        .select('status')
+        .eq('organization_id', companyId)
+    ])
+
+    const assignments = assignmentsRes.data || []
+    const sessions = sessionsRes.data || []
+    const members = membersRes.data || []
+
+    const distinctCourses = new Set(assignments.map((a: any) => a.course_id)).size
+    const totalLearningMinutes = sessions.reduce((acc: number, s: any) => acc + (s.actual_duration_minutes || 0), 0)
+    
+    const activeUsers = members.filter((m: any) => m.status === 'active').length
+    const totalUsers = members.length
+
+    // 2. Prepare Monthly Activity (last 6 months)
+    const monthlyData: Record<string, { month: string; hours: number; sessions: number }> = {}
+    const monthsOrder: string[] = []
+    
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date()
+        d.setMonth(d.setMonth(new Date().getMonth() - i))
+        const key = d.toLocaleString('es-MX', { month: 'short' }).replace('.', '').toUpperCase()
+        monthlyData[key] = { month: key, hours: 0, sessions: 0 }
+        monthsOrder.push(key)
+    }
+
+    sessions.forEach((s: any) => {
+        if (!s.completed_at) return
+        const date = new Date(s.completed_at)
+        const key = date.toLocaleString('es-MX', { month: 'short' }).replace('.', '').toUpperCase()
+        if (monthlyData[key]) {
+            monthlyData[key].hours += (s.actual_duration_minutes || 0) / 60
+            monthlyData[key].sessions += 1
+        }
+    })
+
+    // 3. Course Progress Breakdown
+    const courseStatsMap: Record<string, { title: string; totalProgress: number; count: number; completed: number }> = {}
+    
+    assignments.forEach((a: any) => {
+        const title = a.courses?.title || 'Curso sin título'
+        if (!courseStatsMap[a.course_id]) {
+            courseStatsMap[a.course_id] = { title, totalProgress: 0, count: 0, completed: 0 }
+        }
+        courseStatsMap[a.course_id].totalProgress += a.completion_percentage || 0
+        courseStatsMap[a.course_id].count += 1
+        if (a.status === 'completed') courseStatsMap[a.course_id].completed += 1
+    })
+
+    return {
+        overview: {
+            totalUsers,
+            activeUsers,
+            assignedCourses: distinctCourses,
+            totalLearningHours: Math.round(totalLearningMinutes / 60),
+            totalSessions: sessions.length
+        },
+        activityMonthly: monthsOrder.map(key => ({
+            ...monthlyData[key],
+            hours: Math.round(monthlyData[key].hours * 10) / 10 // 1 decimal
+        })),
+        courseProgress: Object.entries(courseStatsMap).map(([id, stats]) => ({
+            id,
+            title: stats.title,
+            averageProgress: stats.count > 0 ? Math.round(stats.totalProgress / stats.count) : 0,
+            enrolledCount: stats.count,
+            completedCount: stats.completed
+        })).sort((a, b) => b.enrolledCount - a.enrolledCount).slice(0, 5) // Top 5 courses
+    }
+  }
 }
 

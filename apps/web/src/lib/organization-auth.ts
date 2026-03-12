@@ -6,9 +6,9 @@ interface Organization {
   id: string;
   name: string;
   slug: string | null;
-  subscription_plan: 'team' | 'business' | 'enterprise';
-  subscription_status: 'active' | 'expired' | 'cancelled' | 'trial' | 'pending';
   is_active: boolean;
+  subscription_plan?: string;
+  subscription_status?: string;
 }
 
 /**
@@ -42,20 +42,6 @@ export function canUseCustomLogin(organization: Organization | null): boolean {
   // Debe tener un slug válido
   if (!organization.slug || organization.slug.trim() === '') {
     console.log('🔒 [canUseCustomLogin] DENIED: No valid slug');
-    return false;
-  }
-
-  // ✅ SOLO plan Enterprise puede usar login personalizado
-  // Los planes Team y Business usan el auth normal (/auth)
-  if (organization.subscription_plan !== 'enterprise') {
-    console.log('🔒 [canUseCustomLogin] DENIED: Not enterprise plan, is:', organization.subscription_plan);
-    return false;
-  }
-
-  // La suscripción debe estar activa o en trial
-  const activeStatuses = ['active', 'trial'];
-  if (!activeStatuses.includes(organization.subscription_status)) {
-    console.log('🔒 [canUseCustomLogin] DENIED: Subscription status not active/trial, is:', organization.subscription_status);
     return false;
   }
 

@@ -84,8 +84,7 @@ class EmailService {
    * Verifica si el servicio de email está configurado y listo para usar
    */
   public isReady(): boolean {
-    const config = this.getConfig();
-    return this.isConfigured(config);
+    return this.transporter !== null;
   }
 
 
@@ -114,7 +113,7 @@ class EmailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from: `"SofLIA" <noreply@soflia.com>`,
+        from: `"SofLIA" <noreply@soflia.ai>`,
         to,
         subject: 'Recuperación de Contraseña - SofLIA',
         text: textContent,
@@ -331,7 +330,7 @@ Este es un email automático, por favor no respondas a este mensaje.
 
     try {
       const info = await this.transporter.sendMail({
-        from: `"${organizationName}" <noreply@soflia.com>`,
+        from: `"${organizationName}" <noreply@soflia.ai>`,
         to,
         subject: `Invitación a ${organizationName}`,
         text: textContent,
