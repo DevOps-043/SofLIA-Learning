@@ -43,6 +43,9 @@ import {
     ResponsiveContainer, 
     AreaChart, 
     Area,
+    PieChart,
+    Pie,
+    Cell,
 } from 'recharts'
 
 // ============================================
@@ -672,7 +675,9 @@ function StatsSection({ company }: { company: CompanyData }) {
         )
     }
 
-    const { overview, activityMonthly, courseProgress } = stats
+    const { overview, activityMonthly, courseProgress, teamDistribution } = stats
+
+    const COLORS_CHART = [colors.accent, colors.purple, colors.blue, colors.success, colors.error, colors.warning]
 
     return (
         <SectionWrapper>
@@ -692,8 +697,10 @@ function StatsSection({ company }: { company: CompanyData }) {
                     className="p-5 rounded-2xl shadow-lg border border-white/5" 
                     style={{ backgroundColor: colors.bgSecondary }}
                 >
-                    <p className="text-3xl font-black" style={{ color: colors.success }}>{overview.activeUsers}</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Activos (Hoy)</p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-3xl font-black" style={{ color: colors.success }}>{overview.engagementRate}%</p>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Compromiso Semanal</p>
                 </motion.div>
 
                 <motion.div 
@@ -710,15 +717,18 @@ function StatsSection({ company }: { company: CompanyData }) {
                     className="p-5 rounded-2xl shadow-lg border border-white/5" 
                     style={{ backgroundColor: colors.bgSecondary }}
                 >
-                    <p className="text-3xl font-black" style={{ color: colors.purple }}>{overview.totalLearningHours}h</p>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Horas Totales</p>
+                    <div className="flex items-center gap-2">
+                        <p className="text-3xl font-black" style={{ color: colors.purple }}>{overview.avgSatisfaction}</p>
+                        <span className="text-sm font-bold opacity-40">/ 5</span>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] mt-2" style={{ color: colors.grayMedium }}>Satisfacción (LIA NPS)</p>
                 </motion.div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* Gráfico de Actividad */}
                 <Card 
-                    title="Actividad Reciente" 
+                    title="Engagement Temporal" 
                     description="Evolución de horas de aprendizaje (últimos 6 meses)" 
                     icon={ChartBarIcon} 
                     iconColor={colors.blue}
@@ -766,10 +776,55 @@ function StatsSection({ company }: { company: CompanyData }) {
                     </div>
                 </Card>
 
+                {/* Distribución por Equipo */}
+                <Card 
+                    title="Distribución por Equipos" 
+                    description="Participación según departamento o zona" 
+                    icon={UsersIcon} 
+                    iconColor={colors.success}
+                >
+                    <div className="h-64 w-full mt-4 flex items-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={teamDistribution}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {teamDistribution.map((entry: any, index: number) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS_CHART[index % COLORS_CHART.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip 
+                                    contentStyle={{ 
+                                        backgroundColor: '#1E2329', 
+                                        borderRadius: '16px', 
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                    }}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div className="w-1/3 space-y-2 pr-4">
+                            {teamDistribution.slice(0, 4).map((team: any, idx: number) => (
+                                <div key={team.name} className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS_CHART[idx % COLORS_CHART.length] }} />
+                                    <p className="text-[10px] font-bold text-white/60 truncate">{team.name}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Top Cursos */}
                 <Card 
                     title="Rendimiento por Curso" 
-                    description="Promedio de progreso y terminación" 
+                    description="Promedio de progreso y graduación" 
                     icon={AcademicCapIcon} 
                     iconColor={colors.purple}
                 >
@@ -795,12 +850,34 @@ function StatsSection({ company }: { company: CompanyData }) {
                                 </div>
                             </div>
                         ))}
-                        {courseProgress.length === 0 && (
-                            <div className="h-full flex flex-col items-center justify-center py-10 opacity-30">
-                                <AcademicCapIcon className="h-10 w-10 mb-2" />
-                                <p className="text-xs font-bold uppercase tracking-widest">Sin datos suficientes</p>
+                    </div>
+                </Card>
+
+                {/* Métricas de Valor */}
+                <Card 
+                    title="Impacto del Aprendizaje" 
+                    description="Métricas de calidad y constancia" 
+                    icon={SparklesIcon} 
+                    iconColor={colors.warning}
+                >
+                    <div className="grid grid-cols-2 gap-4 mt-4 h-full">
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-center text-center">
+                            <p className="text-2xl font-black" style={{ color: colors.blue }}>{overview.totalSessions}</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] mt-1 text-white/40">Lecciones Completas</p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-center text-center">
+                            <p className="text-2xl font-black" style={{ color: colors.warning }}>{Math.round(overview.totalLearningHours / 24)}d</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] mt-1 text-white/40">Tiempo Acumulado</p>
+                        </div>
+                        <div className="col-span-2 p-4 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <p className="text-xs font-black uppercase tracking-widest text-white/60">Salud del Ecosistema</p>
+                                    <p className="text-xs font-bold mt-1">Nivel de compromiso: <span style={{ color: overview.engagementRate > 30 ? colors.success : colors.warning }}>{overview.engagementRate > 60 ? 'Excepcional' : overview.engagementRate > 30 ? 'Saludable' : 'En riesgo'}</span></p>
+                                </div>
+                                <SparklesIcon className="h-8 w-8 opacity-20" />
                             </div>
-                        )}
+                        </div>
                     </div>
                 </Card>
             </div>

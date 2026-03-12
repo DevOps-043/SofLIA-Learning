@@ -1850,11 +1850,9 @@ function PersonalizationTab({
           }}
         >
           <AlertCircle className="w-6 h-6 text-red-400" />
-          <p className="text-red-300 font-medium">{s³n
-            </>
-          )}
-        </motion.button>
-      </motion.div>
+          <p className="text-red-300 font-medium">{saveError}</p>
+        </motion.div>
+      )}
     </div>
   )
 }

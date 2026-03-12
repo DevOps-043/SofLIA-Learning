@@ -827,13 +827,13 @@ export class AdminCompaniesService {
         .eq('organization_id', companyId),
       supabase
         .from('study_sessions')
-        .select('actual_duration_minutes, completed_at, status')
+        .select('actual_duration_minutes, completed_at, status, self_evaluation')
         .eq('organization_id', companyId)
         .eq('status', 'completed')
         .order('completed_at', { ascending: true }),
       supabase
         .from('organization_users')
-        .select('status')
+        .select('status, job_title, region_id, zone_id, team_id, organization_teams(name)')
         .eq('organization_id', companyId)
     ])
 
@@ -847,13 +847,13 @@ export class AdminCompaniesService {
     const activeUsers = members.filter((m: any) => m.status === 'active').length
     const totalUsers = members.length
 
-    // 2. Prepare Monthly Activity (last 6 months)
+    // 2. Prepare Monthly Activity (last 6 months) - FIX: Don't mutate the same Date object
     const monthlyData: Record<string, { month: string; hours: number; sessions: number }> = {}
     const monthsOrder: string[] = []
     
     for (let i = 5; i >= 0; i--) {
         const d = new Date()
-        d.setMonth(d.setMonth(new Date().getMonth() - i))
+        d.setMonth(d.getMonth() - i) // Corrected: Use setMonth on a new instance
         const key = d.toLocaleString('es-MX', { month: 'short' }).replace('.', '').toUpperCase()
         monthlyData[key] = { month: key, hours: 0, sessions: 0 }
         monthsOrder.push(key)
@@ -882,17 +882,42 @@ export class AdminCompaniesService {
         if (a.status === 'completed') courseStatsMap[a.course_id].completed += 1
     })
 
+    // 4. Team Distribution
+    const teamStatsMap: Record<string, number> = {}
+    members.forEach((m: any) => {
+        const teamName = m.organization_teams?.name || 'Sin Equipo'
+        teamStatsMap[teamName] = (teamStatsMap[teamName] || 0) + 1
+    })
+
+    // 5. Satisfaction (Avg self_evaluation)
+    const ratedSessions = sessions.filter((s: any) => s.self_evaluation != null)
+    const avgSatisfaction = ratedSessions.length > 0 
+        ? ratedSessions.reduce((acc: number, s: any) => acc + s.self_evaluation, 0) / ratedSessions.length 
+        : 0
+
+    // 6. Recent Engagement (started in last 7 days)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    const recentlyActiveUsersCount = new Set(
+        sessions
+            .filter((s: any) => s.completed_at && new Date(s.completed_at) >= sevenDaysAgo)
+            .map((s: any) => s.user_id)
+    ).size
+
     return {
         overview: {
             totalUsers,
             activeUsers,
             assignedCourses: distinctCourses,
             totalLearningHours: Math.round(totalLearningMinutes / 60),
-            totalSessions: sessions.length
+            totalSessions: sessions.length,
+            engagementRate: totalUsers > 0 ? Math.round((recentlyActiveUsersCount / totalUsers) * 100) : 0,
+            avgSatisfaction: Math.round(avgSatisfaction * 10) / 10
         },
         activityMonthly: monthsOrder.map(key => ({
             ...monthlyData[key],
-            hours: Math.round(monthlyData[key].hours * 10) / 10 // 1 decimal
+            hours: Math.round(monthlyData[key].hours * 10) / 10
         })),
         courseProgress: Object.entries(courseStatsMap).map(([id, stats]) => ({
             id,
@@ -900,7 +925,11 @@ export class AdminCompaniesService {
             averageProgress: stats.count > 0 ? Math.round(stats.totalProgress / stats.count) : 0,
             enrolledCount: stats.count,
             completedCount: stats.completed
-        })).sort((a, b) => b.enrolledCount - a.enrolledCount).slice(0, 5) // Top 5 courses
+        })).sort((a, b) => b.enrolledCount - a.enrolledCount).slice(0, 5),
+        teamDistribution: Object.entries(teamStatsMap).map(([name, value]) => ({
+            name,
+            value
+        })).sort((a, b) => b.value - a.value)
     }
   }
 }
