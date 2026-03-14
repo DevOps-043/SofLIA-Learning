@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -630,9 +631,10 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
 // ============================================
 export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
+  const { orgSlug } = useParams<{ orgSlug: string }>()
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, stats, isLoading, error, refetch, createUser, updateUser, deleteUser, resendInvitation, suspendUser, activateUser } = useBusinessUsers()
+  const { users, stats, isLoading, error, refetch, createUser, updateUser, deleteUser, resendInvitation, suspendUser, activateUser } = useBusinessUsers(orgSlug)
   const { user: currentUser } = useAuth()
 
   // View mode state
@@ -1331,7 +1333,8 @@ export default function BusinessPanelUsersPage() {
         onClose={() => setIsUnifiedInviteModalOpen(false)}
         onInviteSent={() => refetch()}
         onLinkCreated={() => refetch()}
-        organizationId={currentUser?.organization_id || undefined}
+        organizationId={orgData?.id || undefined}
+        organizationSlug={orgSlug}
       />
     </div>
   )

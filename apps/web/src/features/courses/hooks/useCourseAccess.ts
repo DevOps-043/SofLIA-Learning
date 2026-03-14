@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useOrganizationStore } from '@/core/stores/organizationStore';
 
 interface CourseAccessState {
     hasAccess: boolean | null; // null = loading
@@ -15,6 +16,7 @@ interface CourseAccessState {
  */
 export function useCourseAccess(courseSlug: string): CourseAccessState {
     const { user, loading: authLoading } = useAuth();
+    const currentOrganization = useOrganizationStore(state => state.currentOrganization);
     const [state, setState] = useState<CourseAccessState>({
         hasAccess: null,
         isLoading: true,
@@ -39,8 +41,14 @@ export function useCourseAccess(courseSlug: string): CourseAccessState {
             }
 
             try {
-                // Verificar si el usuario ha comprado el curso
-                const response = await fetch(`/api/courses/${courseSlug}/check-purchase`);
+                // Construir URL con el ID de la organización activa si existe
+                let url = `/api/courses/${courseSlug}/check-purchase`;
+                if (currentOrganization?.id) {
+                    url += `?orgId=${currentOrganization.id}`;
+                }
+
+                // Verificar si el usuario ha comprado el curso o lo tiene asignado
+                const response = await fetch(url);
 
                 if (!response.ok) {
                     throw new Error('Error al verificar acceso al curso');
@@ -66,7 +74,7 @@ export function useCourseAccess(courseSlug: string): CourseAccessState {
         }
 
         checkAccess();
-    }, [courseSlug, user, authLoading]);
+    }, [courseSlug, user, authLoading, currentOrganization?.id]);
 
     return state;
 }

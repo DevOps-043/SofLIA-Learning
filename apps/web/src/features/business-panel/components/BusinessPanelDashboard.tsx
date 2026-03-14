@@ -462,7 +462,7 @@ export function BusinessPanelDashboard() {
     const fetchStats = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('/api/business/dashboard/stats', {
+        const response = await fetch(`/api/${orgSlug}/business/dashboard/stats`, {
           credentials: 'include'
         })
 
@@ -489,7 +489,7 @@ export function BusinessPanelDashboard() {
     const fetchActivities = async () => {
       try {
         setActivitiesLoading(true)
-        const response = await fetch('/api/business/dashboard/activity', {
+        const response = await fetch(`/api/${orgSlug}/business/dashboard/activity`, {
           credentials: 'include'
         })
 

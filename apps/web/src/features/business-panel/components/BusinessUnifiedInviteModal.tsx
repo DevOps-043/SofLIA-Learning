@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -74,6 +75,8 @@ export function BusinessUnifiedInviteModal({
   organizationId,
   organizationSlug
 }: BusinessUnifiedInviteModalProps) {
+  const params = useParams()
+  const orgSlug = organizationSlug || (params?.orgSlug as string)
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -176,7 +179,7 @@ export function BusinessUnifiedInviteModal({
     setIsLoadingLinks(true)
     setLinksError(null)
     try {
-      const response = await fetch('/api/business/invite-links', {
+      const response = await fetch(`/api/${orgSlug}/business/invite-links`, {
         credentials: 'include'
       })
       const data = await response.json()
@@ -236,7 +239,7 @@ export function BusinessUnifiedInviteModal({
     setError(null)
 
     try {
-      const response = await fetch('/api/business/invite-links', {
+      const response = await fetch(`/api/${orgSlug}/business/invite-links`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -296,7 +299,7 @@ export function BusinessUnifiedInviteModal({
 
     try {
       if (action === 'delete') {
-        const response = await fetch(`/api/business/invite-links/${linkId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
           method: 'DELETE',
           credentials: 'include'
         })
@@ -308,7 +311,7 @@ export function BusinessUnifiedInviteModal({
 
         setLinks(prev => prev.filter(l => l.id !== linkId))
       } else {
-        const response = await fetch(`/api/business/invite-links/${linkId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

@@ -16,8 +16,8 @@ export interface JoinRequest {
 }
 
 export class JoinRequestsService {
-  static async getJoinRequests(): Promise<{ requests: JoinRequest[]; count: number }> {
-    const res = await fetch('/api/business/join-requests', {
+  static async getJoinRequests(orgSlug: string): Promise<{ requests: JoinRequest[]; count: number }> {
+    const res = await fetch(`/api/${orgSlug}/business/join-requests`, {
       credentials: 'include',
     })
 
@@ -29,8 +29,8 @@ export class JoinRequestsService {
     return { requests: data.requests || [], count: data.count || 0 }
   }
 
-  static async reviewJoinRequest(requestId: string, action: 'approve' | 'reject'): Promise<void> {
-    const res = await fetch(`/api/business/join-requests/${requestId}`, {
+  static async reviewJoinRequest(orgSlug: string, requestId: string, action: 'approve' | 'reject'): Promise<void> {
+    const res = await fetch(`/api/${orgSlug}/business/join-requests/${requestId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',

@@ -1,7 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
+import { useOrganizationStore } from '@/core/stores/organizationStore'
 import { BusinessUsersService, BusinessUser, BusinessUserStats } from '../services/businessUsers.service'
 
-export function useBusinessUsers() {
+export function useBusinessUsers(orgSlugProp?: string) {
+  const params = useParams()
+  const urlOrgSlug = params?.orgSlug as string | undefined
+  const currentOrgSlug = useOrganizationStore((state: any) => state.currentOrganization?.slug)
+  const orgSlug = orgSlugProp || urlOrgSlug || currentOrgSlug || ''
+  
   const [users, setUsers] = useState<BusinessUser[]>([])
   const [stats, setStats] = useState<BusinessUserStats>({
     total: 0,
@@ -13,19 +20,28 @@ export function useBusinessUsers() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [orgData, setOrgData] = useState<{ id: string, name: string, logo_url?: string } | null>(null)
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
       
       const [usersData, statsData] = await Promise.all([
-        BusinessUsersService.getOrganizationUsers(),
-        BusinessUsersService.getOrganizationStats()
+        BusinessUsersService.getOrganizationUsers(orgSlug),
+        BusinessUsersService.getOrganizationStats(orgSlug)
       ])
       
       setUsers(usersData)
       setStats(statsData)
+
+      // Obtener datos básicos de la organización si hay usuarios (o intentar resolver por slug)
+      if (usersData.length > 0 && usersData[0].organization_id) {
+        setOrgData({
+          id: usersData[0].organization_id,
+          name: '', // Podríamos obtenerlo de una API de org info si fuera necesario
+        })
+      }
       
       // Si no hay datos, mostrar mensaje informativo pero no error
       if (usersData.length === 0) {
@@ -46,11 +62,11 @@ export function useBusinessUsers() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [orgSlug])
 
   useEffect(() => {
     fetchUsers()
-  }, [])
+  }, [fetchUsers])
 
   const createUser = async (userData: {
     username: string
@@ -64,7 +80,12 @@ export function useBusinessUsers() {
     send_invitation?: boolean
   }) => {
     try {
-      const newUser = await BusinessUsersService.createUser(userData as any)
+      const newUser = await BusinessUsersService.createUser(orgSlug, userData as any)
+
+      // Actualizar orgData si no lo teníamos
+      if (!orgData && newUser.organization_id) {
+        setOrgData({ id: newUser.organization_id, name: '' })
+      }
 
       // Actualización optimista: agregar usuario y actualizar stats localmente
       setUsers(prev => [...prev, newUser])
@@ -93,7 +114,7 @@ export function useBusinessUsers() {
     org_status?: 'active' | 'invited' | 'suspended' | 'removed'
   }) => {
     try {
-      const updatedUser = await BusinessUsersService.updateUser(userId, userData)
+      const updatedUser = await BusinessUsersService.updateUser(orgSlug, userId, userData)
 
       // Actualización optimista: solo actualizar el usuario modificado
       setUsers(prev => prev.map(user => user.id === userId ? updatedUser : user))
@@ -144,7 +165,7 @@ export function useBusinessUsers() {
     try {
       const userToDelete = users.find(u => u.id === userId)
 
-      await BusinessUsersService.deleteUser(userId)
+      await BusinessUsersService.deleteUser(orgSlug, userId)
 
       // Actualización optimista: eliminar usuario y actualizar stats
       setUsers(prev => prev.filter(user => user.id !== userId))
@@ -171,7 +192,7 @@ export function useBusinessUsers() {
 
   const resendInvitation = async (userId: string) => {
     try {
-      await BusinessUsersService.resendInvitation(userId)
+      await BusinessUsersService.resendInvitation(orgSlug, userId)
     } catch (err) {
       throw err
     }
@@ -181,7 +202,7 @@ export function useBusinessUsers() {
     try {
       const oldUser = users.find(u => u.id === userId)
 
-      await BusinessUsersService.suspendUser(userId)
+      await BusinessUsersService.suspendUser(orgSlug, userId)
 
       // Actualización optimista
       setUsers(prev => prev.map(user =>
@@ -207,7 +228,7 @@ export function useBusinessUsers() {
     try {
       const oldUser = users.find(u => u.id === userId)
 
-      await BusinessUsersService.activateUser(userId)
+      await BusinessUsersService.activateUser(orgSlug, userId)
 
       // Actualización optimista
       setUsers(prev => prev.map(user =>
@@ -232,6 +253,7 @@ export function useBusinessUsers() {
   return {
     users,
     stats,
+    orgData,
     isLoading,
     error,
     refetch: fetchUsers,

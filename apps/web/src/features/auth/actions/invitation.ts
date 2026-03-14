@@ -163,7 +163,8 @@ export async function inviteUserAction(
         token,
         org?.name || 'Organización',
         org?.slug || '',
-        data.customMessage
+        data.customMessage,
+        org?.logo_url || undefined
       );
 
       logger.info('Invitación enviada exitosamente', {
@@ -517,7 +518,8 @@ export async function resendInvitationAction(
         newToken,
         org?.name || 'Organización',
         org?.slug || '',
-        customMessage
+        customMessage,
+        org?.logo_url || undefined
       );
     } catch (emailError) {
       logger.error('Error reenviando email:', emailError);

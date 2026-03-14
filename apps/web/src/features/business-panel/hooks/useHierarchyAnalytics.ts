@@ -6,6 +6,7 @@
  */
 
 import useSWR from 'swr'
+import { useParams } from 'next/navigation'
 import { HierarchyService } from '../services/hierarchy.service'
 import { HierarchyAnalytics } from '../types/hierarchy.types'
 
@@ -43,23 +44,27 @@ export function useHierarchyAnalytics(
   entityId: string | null | undefined,
   options: UseHierarchyAnalyticsOptions = {}
 ) {
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string | undefined
+
   const {
     refreshInterval = 30000, // 30 segundos por defecto
     disabled = false
   } = options
 
-  const key = entityId && !disabled
-    ? `hierarchy-analytics-${entityType}-${entityId}`
+  const key = entityId && !disabled && orgSlug
+    ? `hierarchy-analytics-${orgSlug}-${entityType}-${entityId}`
     : null
 
   const { data, error, isLoading, mutate } = useSWR<HierarchyAnalytics | null>(
     key,
     async () => {
-      if (!entityId) return null
-      return await HierarchyService.getVisualAnalytics(entityType, entityId)
+      if (!entityId || !orgSlug) return null
+      return await HierarchyService.getVisualAnalytics(entityType, entityId, orgSlug)
     },
     {
       refreshInterval: disabled ? 0 : refreshInterval,
+// ... (omitting unchanged options for brevity in logic, but I'll write the full block in replacement)
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       dedupingInterval: 5000, // Evitar requests duplicados en 5 segundos

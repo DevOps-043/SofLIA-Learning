@@ -256,7 +256,14 @@ export async function requireBusiness(options?: RequireBusinessOptions): Promise
       if (options.organizationId) {
         orgQuery = orgQuery.eq('id', options.organizationId);
       } else if (options.organizationSlug) {
-        orgQuery = orgQuery.eq('slug', options.organizationSlug);
+        // Verificar si el slug parece un UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(options.organizationSlug);
+        if (isUUID) {
+          // Si es un UUID, buscar por ID o por slug (por si acaso el slug ES un UUID)
+          orgQuery = orgQuery.or(`slug.eq.${options.organizationSlug},id.eq.${options.organizationSlug}`);
+        } else {
+          orgQuery = orgQuery.eq('slug', options.organizationSlug);
+        }
       }
 
       const { data: requestedOrg, error: orgError } = await orgQuery.single();
@@ -545,7 +552,14 @@ export async function requireBusinessUser(options?: RequireBusinessUserOptions):
       if (options.organizationId) {
         orgQuery = orgQuery.eq('id', options.organizationId);
       } else if (options.organizationSlug) {
-        orgQuery = orgQuery.eq('slug', options.organizationSlug);
+        // Verificar si el slug parece un UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(options.organizationSlug);
+        if (isUUID) {
+          // Si es un UUID, buscar por ID o por slug
+          orgQuery = orgQuery.or(`slug.eq.${options.organizationSlug},id.eq.${options.organizationSlug}`);
+        } else {
+          orgQuery = orgQuery.eq('slug', options.organizationSlug);
+        }
       }
 
       const { data: requestedOrg, error: orgError } = await orgQuery.single();

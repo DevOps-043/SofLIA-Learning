@@ -48,6 +48,10 @@ export function BusinessSettings() {
   const { branding, isLoading: isLoadingBranding, updateBranding, detectColors } = useBranding()
   const { plan, canUse, refetch: refetchSubscription } = useSubscriptionFeatures()
   const { refetch: refetchStyles } = useOrganizationStylesContext()
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string | undefined
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
   const [activeTab, setActiveTab] = useState<'organization' | 'branding' | 'personalization'>('organization')
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -454,7 +458,10 @@ function OrganizationTab({
         contact_phone: organization.contact_phone || '',
         website_url: organization.website_url || '',
         logo_url: organization.logo_url || '',
-        max_users: organization.max_users?.toString() || '10'
+        max_users: organization.max_users?.toString() || '10',
+        show_navbar_name: organization.show_navbar_name ?? true,
+        banner_url: branding?.banner_url || '',
+        icon_url: organization.logo_url || ''
       })
       setSaveError(null)
       setSaveSuccess(null)
@@ -1384,7 +1391,11 @@ function PersonalizationTab({
       setSlugError(null)
 
       try {
-        const response = await fetch(`/api/business/settings/check-slug?slug=${encodeURIComponent(slug)}`, {
+        const fetchUrl = orgSlug 
+          ? `/api/${orgSlug}/business/settings/check-slug?slug=${encodeURIComponent(slug)}`
+          : `/api/business/settings/check-slug?slug=${encodeURIComponent(slug)}`;
+
+        const response = await fetch(fetchUrl, {
           credentials: 'include'
         })
         const data = await response.json()

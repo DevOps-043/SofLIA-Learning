@@ -47,11 +47,15 @@ export interface AddGroupMemberRequest {
 }
 
 export class UserGroupsService {
-  private static readonly API_BASE = '/api/business/user-groups'
+  private static apiBase(orgSlug: string) {
+    return `/api/${orgSlug}/business/user-groups`
+  }
 
-  static async getGroups(): Promise<UserGroup[]> {
+  static async getGroups(orgSlug: string): Promise<UserGroup[]> {
     try {
-      const response = await fetch(this.API_BASE)
+      const response = await fetch(this.apiBase(orgSlug), {
+        credentials: 'include'
+      })
       const data = await response.json()
       
       if (!response.ok) {
@@ -60,14 +64,16 @@ export class UserGroupsService {
 
       return data.groups || []
     } catch (error) {
-      // console.error('Error fetching groups:', error)
+      console.error('Error fetching groups:', error)
       return []
     }
   }
 
-  static async getGroup(groupId: string): Promise<UserGroup | null> {
+  static async getGroup(orgSlug: string, groupId: string): Promise<UserGroup | null> {
     try {
-      const response = await fetch(`${this.API_BASE}/${groupId}`)
+      const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}`, {
+        credentials: 'include'
+      })
       const data = await response.json()
       
       if (!response.ok) {
@@ -76,17 +82,18 @@ export class UserGroupsService {
 
       return data.group || null
     } catch (error) {
-      // console.error('Error fetching group:', error)
+      console.error('Error fetching group:', error)
       return null
     }
   }
 
-  static async createGroup(groupData: CreateUserGroupRequest): Promise<UserGroup> {
-    const response = await fetch(this.API_BASE, {
+  static async createGroup(orgSlug: string, groupData: CreateUserGroupRequest): Promise<UserGroup> {
+    const response = await fetch(this.apiBase(orgSlug), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(groupData),
     })
 
@@ -99,12 +106,13 @@ export class UserGroupsService {
     return data.group
   }
 
-  static async updateGroup(groupId: string, groupData: UpdateUserGroupRequest): Promise<UserGroup> {
-    const response = await fetch(`${this.API_BASE}/${groupId}`, {
+  static async updateGroup(orgSlug: string, groupId: string, groupData: UpdateUserGroupRequest): Promise<UserGroup> {
+    const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(groupData),
     })
 
@@ -117,9 +125,10 @@ export class UserGroupsService {
     return data.group
   }
 
-  static async deleteGroup(groupId: string): Promise<void> {
-    const response = await fetch(`${this.API_BASE}/${groupId}`, {
+  static async deleteGroup(orgSlug: string, groupId: string): Promise<void> {
+    const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}`, {
       method: 'DELETE',
+      credentials: 'include',
     })
 
     if (!response.ok) {
@@ -128,9 +137,11 @@ export class UserGroupsService {
     }
   }
 
-  static async getGroupMembers(groupId: string): Promise<UserGroupMember[]> {
+  static async getGroupMembers(orgSlug: string, groupId: string): Promise<UserGroupMember[]> {
     try {
-      const response = await fetch(`${this.API_BASE}/${groupId}/members`)
+      const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}/members`, {
+        credentials: 'include'
+      })
       const data = await response.json()
       
       if (!response.ok) {
@@ -139,17 +150,18 @@ export class UserGroupsService {
 
       return data.members || []
     } catch (error) {
-      // console.error('Error fetching group members:', error)
+      console.error('Error fetching group members:', error)
       return []
     }
   }
 
-  static async addGroupMember(groupId: string, memberData: AddGroupMemberRequest): Promise<UserGroupMember> {
-    const response = await fetch(`${this.API_BASE}/${groupId}/members`, {
+  static async addGroupMember(orgSlug: string, groupId: string, memberData: AddGroupMemberRequest): Promise<UserGroupMember> {
+    const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}/members`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify(memberData),
     })
 
@@ -162,9 +174,10 @@ export class UserGroupsService {
     return data.member
   }
 
-  static async removeGroupMember(groupId: string, memberId: string): Promise<void> {
-    const response = await fetch(`${this.API_BASE}/${groupId}/members/${memberId}`, {
+  static async removeGroupMember(orgSlug: string, groupId: string, memberId: string): Promise<void> {
+    const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}/members/${memberId}`, {
       method: 'DELETE',
+      credentials: 'include',
     })
 
     if (!response.ok) {
@@ -173,12 +186,13 @@ export class UserGroupsService {
     }
   }
 
-  static async updateMemberRole(groupId: string, memberId: string, role: 'leader' | 'member'): Promise<UserGroupMember> {
-    const response = await fetch(`${this.API_BASE}/${groupId}/members/${memberId}`, {
+  static async updateMemberRole(orgSlug: string, groupId: string, memberId: string, role: 'leader' | 'member'): Promise<UserGroupMember> {
+    const response = await fetch(`${this.apiBase(orgSlug)}/${groupId}/members/${memberId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ role }),
     })
 
@@ -191,4 +205,3 @@ export class UserGroupsService {
     return data.member
   }
 }
-

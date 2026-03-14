@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from '../../../../../core/hooks/useTheme'
 import { AdminUnifiedInviteModal } from '@/features/admin/components/AdminUnifiedInviteModal'
 import { AdminMemberManageModal } from '@/features/admin/components/AdminMemberManageModal'
+import { CoursesSection as AdminCoursesSection } from '@/features/admin/components'
 import {
     ArrowLeftIcon,
     BuildingOffice2Icon,
@@ -26,7 +27,11 @@ import {
     PencilSquareIcon,
     TrashIcon,
     UsersIcon,
-    SparklesIcon
+    SparklesIcon,
+    PlusIcon,
+    MagnifyingGlassIcon,
+    ChevronRightIcon,
+    SwatchIcon
 } from '@heroicons/react/24/outline'
 import { 
     BarChart, 
@@ -41,6 +46,7 @@ import {
     PieChart,
     Pie,
     Cell,
+    Legend,
 } from 'recharts'
 
 // ============================================
@@ -632,64 +638,6 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
     )
 }
 
-// ============================================
-// COURSES SECTION
-// ============================================
-function CoursesSection({ company }: { company: CompanyData }) {
-    return (
-        <SectionWrapper>
-            <Card
-                title="Cursos Asignados"
-                description="Listado de programas de formación activos para la empresa"
-                icon={AcademicCapIcon}
-                iconColor={colors.accent}
-            >
-                <div className="mt-4 space-y-3">
-                    {company.assigned_courses && company.assigned_courses.length > 0 ? (
-                        company.assigned_courses.map((course: AssignedCourse) => (
-                            <div
-                                key={course.id}
-                                className="flex items-center justify-between p-4 rounded-xl border bg-gray-50/50 dark:bg-white/5 border-gray-100 dark:border-white/5 hover:border-accent/30 transition-colors group"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="h-10 w-10 rounded-lg bg-accent/20 flex items-center justify-center p-2">
-                                        <AcademicCapIcon className="text-accent" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-accent transition-colors">
-                                            {course.title || 'Curso sin título'}
-                                        </h4>
-                                        <p className="text-xs text-gray-400 dark:text-[#8899A6]">
-                                            Adquirido el {new Date(course.assigned_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                        <p className="text-sm font-bold text-gray-900 dark:text-white">{course.active_users || 0}</p>
-                                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 dark:text-[#8899A6]">Alumnos</p>
-                                    </div>
-                                    <ChevronRightIcon className="h-5 w-5 text-gray-300 dark:text-white/10 group-hover:text-accent transition-colors" />
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="py-12 text-center border-2 border-dashed border-gray-100 dark:border-white/5 rounded-2xl">
-                            <AcademicCapIcon className="h-12 w-12 text-gray-200 dark:text-white/5 mx-auto mb-4" />
-                            <p className="text-gray-400 dark:text-white/20 font-medium">No hay cursos asignados actualmente</p>
-                        </div>
-                    )}
-
-                    <button
-                        className="w-full mt-4 py-3 rounded-xl border border-dashed border-accent/20 text-accent hover:bg-accent/5 transition-colors font-bold text-sm"
-                    >
-                        + Explorar Catálogo de Cursos
-                    </button>
-                </div>
-            </Card>
-        </SectionWrapper>
-    )
-}
 
 // ============================================
 // STATS SECTION
@@ -1268,7 +1216,7 @@ export default function EditCompanyPage() {
             case 'users':
                 return <UsersSection company={company} onUpdate={loadCompany} />
             case 'courses':
-                return <CoursesSection company={company} />
+                return <AdminCoursesSection companyId={companyId} />
             case 'stats':
                 return <StatsSection company={company} />
             case 'customization':

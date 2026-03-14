@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -80,6 +81,8 @@ export function BusinessInviteModal({
   organizationSlug,
   defaultTab = 'individual'
 }: BusinessInviteModalProps) {
+  const params = useParams()
+  const orgSlug = organizationSlug || (params?.orgSlug as string)
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -171,7 +174,7 @@ export function BusinessInviteModal({
     setLinksLoading(true)
     setLinksError(null)
     try {
-      const response = await fetch('/api/business/invite-links', { credentials: 'include' })
+      const response = await fetch(`/api/${orgSlug}/business/invite-links`, { credentials: 'include' })
       const data = await response.json()
       if (!response.ok || !data.success) throw new Error(data.error || 'Error al cargar enlaces')
       setLinks(data.links || [])
@@ -223,7 +226,7 @@ export function BusinessInviteModal({
     setBulkError(null)
 
     try {
-      const response = await fetch('/api/business/invite-links', {
+      const response = await fetch(`/api/${orgSlug}/business/invite-links`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -273,7 +276,7 @@ export function BusinessInviteModal({
 
     try {
       if (action === 'delete') {
-        const response = await fetch(`/api/business/invite-links/${linkId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
           method: 'DELETE',
           credentials: 'include'
         })
@@ -283,7 +286,7 @@ export function BusinessInviteModal({
         }
         setLinks(prev => prev.filter(l => l.id !== linkId))
       } else {
-        const response = await fetch(`/api/business/invite-links/${linkId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',

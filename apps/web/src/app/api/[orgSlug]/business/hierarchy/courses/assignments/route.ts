@@ -1,0 +1,214 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/utils/logger'
+
+/**
+ * GET /api/[orgSlug]/business/hierarchy/courses/assignments/[id]
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ orgSlug: string; id: string }> }
+) {
+  try {
+    const { orgSlug, id } = await params
+    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    if (auth instanceof NextResponse) return auth
+
+    if (!auth.organizationId) {
+      return NextResponse.json({
+        success: false,
+        error: 'No tienes una organización asignada'
+      }, { status: 403 })
+    }
+
+    const supabase = await createClient()
+
+    const { data: assignment, error: assignmentError } = await supabase
+      .from('hierarchy_course_assignments')
+      .select(`
+        id,
+        organization_id,
+        course_id,
+        assigned_by,
+        assigned_at,
+        due_date,
+        start_date,
+        approach,
+        message,
+        status,
+        total_users,
+        assigned_users_count,
+        completed_users_count,
+        created_at,
+        updated_at,
+        courses:course_id (
+          id,
+          title,
+          description,
+          slug,
+          thumbnail_url,
+          duration_total_minutes
+        ),
+        assigner:assigned_by (
+          id,
+          display_name,
+          first_name,
+          last_name,
+          email,
+          profile_picture_url
+        )
+      `)
+      .eq('id', id)
+      .eq('organization_id', auth.organizationId)
+      .single()
+
+    if (assignmentError || !assignment) {
+      return NextResponse.json({ success: false, error: 'Asignación no encontrada' }, { status: 404 })
+    }
+
+    let entity_type: string | null = null
+    let entity_id: string | null = null
+    let entity: any = null
+
+    const { data: regionData } = await supabase
+      .from('region_course_assignments')
+      .select('region_id, organization_regions:region_id (id, name, code, description)')
+      .eq('hierarchy_assignment_id', id)
+      .maybeSingle()
+
+    if (regionData) {
+      entity_type = 'region'
+      entity_id = regionData.region_id
+      entity = regionData.organization_regions
+    } else {
+      const { data: zoneData } = await supabase
+        .from('zone_course_assignments')
+        .select('zone_id, organization_zones:zone_id (id, name, code, description)')
+        .eq('hierarchy_assignment_id', id)
+        .maybeSingle()
+
+      if (zoneData) {
+        entity_type = 'zone'
+        entity_id = zoneData.zone_id
+        entity = zoneData.organization_zones
+      } else {
+        const { data: teamData } = await supabase
+          .from('team_course_assignments')
+          .select('team_id, organization_teams:team_id (id, name, code, description)')
+          .eq('hierarchy_assignment_id', id)
+          .maybeSingle()
+
+        if (teamData) {
+          entity_type = 'team'
+          entity_id = teamData.team_id
+          entity = teamData.organization_teams
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { ...assignment, entity_type, entity_id, entity }
+    })
+  } catch (error: any) {
+    logger.error('Error inesperado en GET [orgSlug]/hierarchy/courses/assignments/[id]:', error)
+    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+  }
+}
+
+/**
+ * PUT /api/[orgSlug]/business/hierarchy/courses/assignments/[id]
+ */
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ orgSlug: string; id: string }> }
+) {
+  try {
+    const { orgSlug, id } = await params
+    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    if (auth instanceof NextResponse) return auth
+
+    const body = await request.json()
+    const { due_date, start_date, approach, message, status } = body
+
+    const supabase = await createClient()
+
+    const { data: existingAssignment, error: checkError } = await supabase
+      .from('hierarchy_course_assignments')
+      .select('id, status')
+      .eq('id', id)
+      .eq('organization_id', auth.organizationId)
+      .single()
+
+    if (checkError || !existingAssignment) {
+      return NextResponse.json({ success: false, error: 'Asignación no encontrada' }, { status: 404 })
+    }
+
+    const updateData: any = {}
+    if (due_date !== undefined) updateData.due_date = due_date || null
+    if (start_date !== undefined) updateData.start_date = start_date || null
+    if (approach !== undefined) updateData.approach = approach || null
+    if (message !== undefined) updateData.message = message?.trim() || null
+    if (status !== undefined) updateData.status = status
+
+    const { data: updatedAssignment, error: updateError } = await supabase
+      .from('hierarchy_course_assignments')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (updateError) {
+      logger.error('Error actualizando asignación:', updateError)
+      return NextResponse.json({ success: false, error: 'Error al actualizar' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, data: updatedAssignment })
+  } catch (error: any) {
+    logger.error('Error inesperado en PUT [orgSlug]/hierarchy/courses/assignments/[id]:', error)
+    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+  }
+}
+
+/**
+ * DELETE /api/[orgSlug]/business/hierarchy/courses/assignments/[id]
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ orgSlug: string; id: string }> }
+) {
+  try {
+    const { orgSlug, id } = await params
+    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    if (auth instanceof NextResponse) return auth
+
+    const supabase = await createClient()
+
+    const { data: existingAssignment, error: checkError } = await supabase
+      .from('hierarchy_course_assignments')
+      .select('id, status')
+      .eq('id', id)
+      .eq('organization_id', auth.organizationId)
+      .single()
+
+    if (checkError || !existingAssignment) {
+      return NextResponse.json({ success: false, error: 'Asignación no encontrada' }, { status: 404 })
+    }
+
+    const { error: updateError } = await supabase
+      .from('hierarchy_course_assignments')
+      .update({ status: 'cancelled' })
+      .eq('id', id)
+
+    if (updateError) {
+      logger.error('Error cancelando asignación:', updateError)
+      return NextResponse.json({ success: false, error: 'Error al cancelar' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true, message: 'Asignación cancelada exitosamente' })
+  } catch (error: any) {
+    logger.error('Error inesperado en DELETE [orgSlug]/hierarchy/courses/assignments/[id]:', error)
+    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+  }
+}
