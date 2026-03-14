@@ -31,6 +31,28 @@ export interface BusinessUser {
   team_name?: string | null
 }
 
+export interface BusinessInvitation {
+  id: string
+  email: string
+  role: string
+  status: string
+  created_at: string
+  expires_at: string
+  metadata?: any
+}
+
+export interface BulkInviteLink {
+  id: string
+  token: string
+  name: string | null
+  max_uses: number
+  current_uses: number
+  role: string
+  expires_at: string
+  status: 'active' | 'paused' | 'expired' | 'exhausted'
+  created_at: string
+}
+
 export interface BusinessUserStats {
   total: number
   active: number
@@ -71,7 +93,7 @@ export class BusinessUsersService {
     return `/api/${orgSlug}/business/users`
   }
 
-  static async getOrganizationUsers(orgSlug: string): Promise<BusinessUser[]> {
+  static async getOrganizationUsers(orgSlug: string): Promise<{ users: BusinessUser[], invitations: BusinessInvitation[] }> {
     try {
       const response = await fetch(this.apiBase(orgSlug), {
         credentials: 'include'
@@ -80,13 +102,16 @@ export class BusinessUsersService {
 
       if (!response.ok) {
         console.error('Error fetching users:', data.error || response.statusText)
-        return []
+        return { users: [], invitations: [] }
       }
 
-      return data.users || []
+      return {
+        users: data.users || [],
+        invitations: data.invitations || []
+      }
     } catch (error) {
       console.error('Error fetching users:', error)
-      return []
+      return { users: [], invitations: [] }
     }
   }
 
@@ -186,6 +211,34 @@ export class BusinessUsersService {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Error al activar usuario' }))
       throw new Error(error.message || 'Error al activar usuario')
+    }
+  }
+
+  // Invite Links Management
+  static async updateInviteLinkStatus(orgSlug: string, linkId: string, action: 'pause' | 'resume'): Promise<BulkInviteLink> {
+    const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ action })
+    })
+
+    const data = await response.json()
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Error al actualizar el enlace')
+    }
+    return data.link
+  }
+
+  static async deleteInviteLink(orgSlug: string, linkId: string): Promise<void> {
+    const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({ error: 'Error al eliminar el enlace' }))
+      throw new Error(data.error || 'Error al eliminar el enlace')
     }
   }
 }

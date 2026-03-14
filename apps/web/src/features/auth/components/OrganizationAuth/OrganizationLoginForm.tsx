@@ -5,9 +5,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, AlertCircle, Eye, EyeOff, Lock, Check } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { GoogleLoginButton } from '../GoogleLoginButton/GoogleLoginButton';
-import { MicrosoftLoginButton } from '../MicrosoftLoginButton/MicrosoftLoginButton';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { SocialLoginButtons } from '../SocialLoginButtons/SocialLoginButtons';
 import { LoginFormData } from '../../types/auth.types';
 import { loginSchema } from '../LoginForm/LoginForm.schema';
 import { loginAction } from '../../actions/login';
@@ -46,6 +45,10 @@ export function OrganizationLoginForm({
   }, []);
 
   const isDark = mounted ? resolvedTheme === 'dark' : true; 
+
+  const searchParams = useSearchParams();
+  const invitationToken = searchParams?.get('invitation_token');
+  const bulkInviteToken = searchParams?.get('bulk_token');
 
   const [error, setError] = useState<string | null>(null);
   const [redirectInfo, setRedirectInfo] = useState<{ to: string; message: string; countdown: number } | null>(null);
@@ -221,6 +224,13 @@ export function OrganizationLoginForm({
       formData.append('rememberMe', data.rememberMe.toString());
       formData.append('organizationId', organizationId);
       formData.append('organizationSlug', organizationSlug);
+
+      if (invitationToken) {
+        formData.append('invitationToken', invitationToken);
+      }
+      if (bulkInviteToken) {
+        formData.append('bulkInviteToken', bulkInviteToken);
+      }
 
       const result = await loginAction(formData);
 
@@ -687,37 +697,14 @@ export function OrganizationLoginForm({
             transition={{ delay: 0.4, duration: 0.4 }}
             className="mt-6"
         >
-             <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-700" style={{ borderColor: `${borderColor}` }}></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-4 text-xs font-medium" style={{ color: `${textColor}90`, backgroundColor: cardBg.startsWith('#') ? cardBg : 'transparent' }}>
-                    O continuar con
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-center gap-3">
-                {googleLoginEnabled && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1, duration: 0.3 }}
-                    >
-                      <GoogleLoginButton />
-                    </motion.div>
-                )}
-                {microsoftLoginEnabled && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.15, duration: 0.3 }}
-                    >
-                      <MicrosoftLoginButton />
-                    </motion.div>
-                )}
-              </div>
+          <SocialLoginButtons
+            googleEnabled={googleLoginEnabled}
+            microsoftEnabled={microsoftLoginEnabled}
+            organizationSlug={organizationSlug}
+            organizationId={organizationId}
+            invitationToken={invitationToken || undefined}
+            bulkInviteToken={bulkInviteToken || undefined}
+          />
         </motion.div>
       )}
     </>

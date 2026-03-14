@@ -88,7 +88,13 @@ export function SocialLoginButtons({
           <p className="text-sm text-gray-600 dark:text-white/70">
             ¿Ya tienes cuenta?{' '}
             <Link
-              href={`/auth/${organizationSlug}`}
+              href={`/auth/${organizationSlug}${
+                invitationToken 
+                  ? `?invitation_token=${invitationToken}` 
+                  : bulkInviteToken 
+                    ? `?bulk_token=${bulkInviteToken}` 
+                    : ''
+              }`}
               className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             >
               Iniciar sesión

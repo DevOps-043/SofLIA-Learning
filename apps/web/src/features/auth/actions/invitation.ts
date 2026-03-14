@@ -533,3 +533,125 @@ export async function resendInvitationAction(
     return { success: false, error: 'Error reenviando invitación' };
   }
 }
+
+// ============================================================================
+// ACTION: CONSUMIR INVITACIÓN MASIVA (link de invitación)
+// ============================================================================
+
+export async function consumeBulkInvitationAction(
+  token: string,
+  userId: string
+): Promise<{ success: boolean; error?: string; organizationSlug?: string }> {
+  try {
+    const supabase = await createClient();
+
+    // 1. Validar el enlace de invitación
+    const { data: link, error: linkError } = await supabase
+      .from('bulk_invite_links')
+      .select(`
+        id,
+        role,
+        max_uses,
+        current_uses,
+        expires_at,
+        status,
+        organization_id
+      `)
+      .eq('token', token)
+      .single();
+
+    if (linkError || !link) {
+      return { success: false, error: 'Enlace de invitación no encontrado' };
+    }
+
+    if (link.status !== 'active') {
+      return { success: false, error: 'Este enlace de invitación no está activo' };
+    }
+
+    if (new Date(link.expires_at) <= new Date()) {
+      await supabase.from('bulk_invite_links').update({ status: 'expired' }).eq('id', link.id);
+      return { success: false, error: 'Este enlace de invitación ha expirado' };
+    }
+
+    if (link.current_uses >= link.max_uses) {
+      await supabase.from('bulk_invite_links').update({ status: 'exhausted' }).eq('id', link.id);
+      return { success: false, error: 'Este enlace ha alcanzado el límite de registros' };
+    }
+
+    // 2. Verificar que el usuario existe
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      return { success: false, error: 'Usuario no encontrado' };
+    }
+
+    // 3. Verificar si ya pertenece a la organización
+    const { data: existingMember } = await supabase
+      .from('organization_users')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('organization_id', link.organization_id)
+      .single();
+
+    if (existingMember) {
+      return { success: false, error: 'Ya perteneces a esta organización' };
+    }
+
+    // 4. Unir al usuario a la organización
+    const { error: insertError } = await supabase
+      .from('organization_users')
+      .insert({
+        organization_id: link.organization_id,
+        user_id: userId,
+        role: link.role || 'member',
+        status: 'active',
+        joined_at: new Date().toISOString(),
+      });
+
+    if (insertError) {
+      logger.error('Error al unir usuario a organización (bulk):', insertError);
+      return { success: false, error: 'Error al unirte a la organización' };
+    }
+
+    // 5. Actualizar cargo_rol del usuario
+    await supabase
+      .from('users')
+      .update({ cargo_rol: 'Business' })
+      .eq('id', userId)
+      .neq('cargo_rol', 'Administrador');
+
+    // 6. Incrementar contador de usos
+    await supabase
+      .from('bulk_invite_links')
+      .update({ current_uses: link.current_uses + 1 })
+      .eq('id', link.id);
+
+    // 7. Registrar unión
+    await supabase
+      .from('bulk_invite_registrations')
+      .insert({
+        bulk_invite_link_id: link.id,
+        user_id: userId,
+      });
+
+    // 8. Obtener slug de organización
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('slug')
+      .eq('id', link.organization_id)
+      .single();
+
+    return {
+      success: true,
+      organizationSlug: org?.slug || undefined
+    };
+
+  } catch (error) {
+    logger.error('Error en consumeBulkInvitationAction:', error);
+    return { success: false, error: 'Error interno al procesar invitación' };
+  }
+}

@@ -22,9 +22,11 @@ export async function GET(
       )
     }
 
-    const [users, stats, { data: orgInfo }] = await Promise.all([
+    const [users, stats, invitationsResult, inviteLinksResult, { data: orgInfo }] = await Promise.all([
       BusinessUsersServerService.getOrganizationUsers(auth.organizationId),
       BusinessUsersServerService.getOrganizationStats(auth.organizationId),
+      (await createClient()).from('user_invitations').select('id, email, role, status, created_at, expires_at, metadata').eq('organization_id', auth.organizationId).eq('status', 'pending'),
+      (await createClient()).from('bulk_invite_links').select('*').eq('organization_id', auth.organizationId).order('created_at', { ascending: false }),
       (await createClient()).from('organizations').select('id, name, logo_url, brand_logo_url').eq('id', auth.organizationId).single()
     ])
 
@@ -32,6 +34,8 @@ export async function GET(
       success: true,
       users: users || [],
       stats: stats || {},
+      invitations: invitationsResult.data || [],
+      inviteLinks: inviteLinksResult.data || [],
       organization: {
         id: auth.organizationId,
         name: orgInfo?.name || '',

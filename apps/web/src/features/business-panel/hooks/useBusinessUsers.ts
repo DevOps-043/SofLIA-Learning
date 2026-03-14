@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
-import { BusinessUsersService, BusinessUser, BusinessUserStats } from '../services/businessUsers.service'
+import { BusinessUsersService, BusinessUser, BusinessUserStats, BusinessInvitation, BulkInviteLink } from '../services/businessUsers.service'
 
 export function useBusinessUsers(orgSlugProp?: string) {
   const params = useParams()
@@ -10,6 +10,8 @@ export function useBusinessUsers(orgSlugProp?: string) {
   const orgSlug = orgSlugProp || urlOrgSlug || currentOrgSlug || ''
   
   const [users, setUsers] = useState<BusinessUser[]>([])
+  const [invitations, setInvitations] = useState<BusinessInvitation[]>([])
+  const [inviteLinks, setInviteLinks] = useState<BulkInviteLink[]>([])
   const [stats, setStats] = useState<BusinessUserStats>({
     total: 0,
     active: 0,
@@ -52,6 +54,8 @@ export function useBusinessUsers(orgSlugProp?: string) {
       }
       
       setUsers(data.users || [])
+      setInvitations(data.invitations || [])
+      setInviteLinks(data.inviteLinks || [])
       setStats(data.stats || {
         total: 0, active: 0, invited: 0, suspended: 0, admins: 0, members: 0
       })
@@ -267,19 +271,42 @@ export function useBusinessUsers(orgSlugProp?: string) {
     }
   }
 
+  const updateInviteLinkStatus = async (linkId: string, action: 'pause' | 'resume') => {
+    try {
+      const updatedLink = await BusinessUsersService.updateInviteLinkStatus(orgSlug, linkId, action)
+      setInviteLinks(prev => prev.map(link => link.id === linkId ? updatedLink : link))
+      return updatedLink
+    } catch (err) {
+      throw err
+    }
+  }
+
+  const deleteInviteLink = async (linkId: string) => {
+    try {
+      await BusinessUsersService.deleteInviteLink(orgSlug, linkId)
+      setInviteLinks(prev => prev.filter(link => link.id !== linkId))
+    } catch (err) {
+      throw err
+    }
+  }
+
   return {
     users,
+    invitations,
+    inviteLinks,
     stats,
     orgData,
     isLoading,
     error,
-    refetch: fetchUsers,
+    syncOrgData: fetchUsers,
     createUser,
     updateUser,
     deleteUser,
     resendInvitation,
     suspendUser,
-    activateUser
+    activateUser,
+    updateInviteLinkStatus,
+    deleteInviteLink
   }
 }
 

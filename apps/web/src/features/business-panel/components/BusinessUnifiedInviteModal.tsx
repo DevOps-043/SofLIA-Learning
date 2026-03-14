@@ -609,6 +609,7 @@ export function BusinessUnifiedInviteModal({
                       className="px-5 py-2.5 rounded-xl text-sm font-medium text-white"
                       style={{
                         backgroundColor: primaryColor,
+                        color: '#FFFFFF',
                         boxShadow: `0 4px 15px ${primaryColor}40`
                       }}
                     >
@@ -769,6 +770,7 @@ export function BusinessUnifiedInviteModal({
                     className="px-5 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2 disabled:opacity-70"
                     style={{
                       backgroundColor: primaryColor,
+                      color: '#FFFFFF',
                       boxShadow: `0 4px 15px ${primaryColor}40`
                     }}
                   >
@@ -935,6 +937,7 @@ export function BusinessUnifiedInviteModal({
                     className="px-5 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2 disabled:opacity-70"
                     style={{
                       backgroundColor: primaryColor,
+                      color: '#FFFFFF',
                       boxShadow: `0 4px 15px ${primaryColor}40`
                     }}
                   >
@@ -1193,6 +1196,7 @@ export function BusinessUnifiedInviteModal({
                       className="px-4 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2"
                       style={{
                         backgroundColor: primaryColor,
+                        color: '#FFFFFF',
                         boxShadow: `0 4px 15px ${primaryColor}40`
                       }}
                     >
