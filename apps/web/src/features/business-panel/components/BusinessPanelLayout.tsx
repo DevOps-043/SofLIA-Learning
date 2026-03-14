@@ -115,7 +115,8 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     if (isLoading === false && user) {
       const normalizedRole = user.cargo_rol?.toLowerCase().trim();
 
-      if (normalizedRole !== 'business') {
+      // Permitir 'business' o 'administrador'
+      if (normalizedRole !== 'business' && normalizedRole !== 'administrador') {
         router.push('/dashboard');
         return;
       }
@@ -185,9 +186,9 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     return <PremiumLoadingScreen />
   }
 
-  // Verificar rol
+  // Verificar rol (permitir business y administrador)
   const normalizedRole = user?.cargo_rol?.toLowerCase().trim()
-  if (!user || normalizedRole !== 'business') {
+  if (!user || (normalizedRole !== 'business' && normalizedRole !== 'administrador')) {
     return null
   }
 

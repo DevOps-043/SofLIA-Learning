@@ -46,13 +46,23 @@ export default async function OrganizationDashboardPage({ params }: DashboardPag
     .eq('status', 'active')
     .single();
 
-  if (membershipError || !membership) {
-    // User is not a member of this organization
+  // Check if user is platform administrator
+  const { data: userData } = await supabase
+    .from('users')
+    .select('cargo_rol')
+    .eq('id', currentUser.id)
+    .single();
+  
+  const isPlatformAdmin = userData?.cargo_rol?.toLowerCase().trim() === 'administrador';
+
+  if ((membershipError || !membership) && !isPlatformAdmin) {
+    // User is not a member of this organization and not a platform admin
     redirect('/dashboard?error=not_member');
   }
 
   // Redirect based on role
-  const role = membership.role;
+  // Platform admins default to business panel
+  const role = isPlatformAdmin ? 'admin' : membership?.role;
 
   if (role === 'owner' || role === 'admin') {
     // Admins go to the business panel

@@ -292,22 +292,33 @@ export async function requireBusiness(options?: RequireBusinessOptions): Promise
         .single();
 
       if (membershipError || !membership) {
-        logger.warn('User not member of requested organization', {
-          userId: user.id,
-          organizationId: requestedOrg.id
-        });
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'No tienes acceso a esta organización.'
-          },
-          { status: 403 }
-        );
+        // ✅ EXCEPCIÓN: Si es administrador de la plataforma, permitir acceso aunque no sea miembro
+        if (isAdmin) {
+          logger.auth('Platform admin accessing organization (not a member)', {
+            userId: user.id,
+            organizationId: requestedOrg.id
+          });
+          organizationId = requestedOrg.id;
+          organizationSlug = requestedOrg.slug;
+          organizationRole = 'admin'; // Dar rol de admin por defecto
+        } else {
+          logger.warn('User not member of requested organization', {
+            userId: user.id,
+            organizationId: requestedOrg.id
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'No tienes acceso a esta organización.'
+            },
+            { status: 403 }
+          );
+        }
+      } else {
+        organizationId = requestedOrg.id;
+        organizationSlug = requestedOrg.slug;
+        organizationRole = membership.role as 'owner' | 'admin' | 'member';
       }
-
-      organizationId = requestedOrg.id;
-      organizationSlug = requestedOrg.slug;
-      organizationRole = membership.role as 'owner' | 'admin' | 'member';
     } else {
       // Default: get user's most recent organization
       const { data: userOrgs } = await supabase
@@ -515,13 +526,14 @@ export async function requireBusinessUser(options?: RequireBusinessUserOptions):
     }
 
 
-    // Verificar que el usuario sea Business
+    // Verificar que el usuario sea Business o Administrador
     // NOTA: 'Business User' ya no existe en cargo_rol - todos son 'Business'
     // La diferenciación se hace en organization_users.role (owner/admin/member)
     const normalizedRole = user.cargo_rol?.toLowerCase().trim() || '';
     const isBusiness = normalizedRole === 'business';
+    const isAdmin = normalizedRole === 'administrador';
 
-    if (!isBusiness) {
+    if (!isBusiness && !isAdmin) {
       logger.warn('Unauthorized access attempt - invalid role', {
         userId: user.id,
         role: user.cargo_rol,
@@ -530,7 +542,7 @@ export async function requireBusinessUser(options?: RequireBusinessUserOptions):
       return NextResponse.json(
         {
           success: false,
-          error: `Permisos insuficientes. Se requiere rol de Business. Rol actual: ${user.cargo_rol || 'sin rol'}`
+          error: `Permisos insuficientes. Se requiere rol de Business o Administrador. Rol actual: ${user.cargo_rol || 'sin rol'}`
         },
         { status: 403 }
       );
@@ -588,23 +600,34 @@ export async function requireBusinessUser(options?: RequireBusinessUserOptions):
         .single();
 
       if (membershipError || !membership) {
-        logger.warn('User not member of requested organization', {
-          userId: user.id,
-          organizationId: requestedOrg.id,
-          organizationSlug: requestedOrg.slug
-        });
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'No tienes acceso a esta organización.'
-          },
-          { status: 403 }
-        );
+        // ✅ EXCEPCIÓN: Si es administrador de la plataforma, permitir acceso aunque no sea miembro
+        if (isAdmin) {
+          logger.auth('Platform admin accessing organization (not a member)', {
+            userId: user.id,
+            organizationId: requestedOrg.id
+          });
+          organizationId = requestedOrg.id;
+          organizationSlug = requestedOrg.slug;
+          organizationRole = 'member'; // Dar rol de miembro por defecto en User Panel
+        } else {
+          logger.warn('User not member of requested organization', {
+            userId: user.id,
+            organizationId: requestedOrg.id,
+            organizationSlug: requestedOrg.slug
+          });
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'No tienes acceso a esta organización.'
+            },
+            { status: 403 }
+          );
+        }
+      } else {
+        organizationId = requestedOrg.id;
+        organizationSlug = requestedOrg.slug;
+        organizationRole = membership.role as 'owner' | 'admin' | 'member';
       }
-
-      organizationId = requestedOrg.id;
-      organizationSlug = requestedOrg.slug;
-      organizationRole = membership.role as 'owner' | 'admin' | 'member';
     } else {
       // Default: get user's most recent organization
       const { data: userOrgs } = await supabase

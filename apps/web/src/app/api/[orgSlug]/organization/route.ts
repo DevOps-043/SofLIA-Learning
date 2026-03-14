@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // Get organization by slug
     const { data: organization, error: orgError } = await supabase
       .from('organizations')
-      .select('id, name, slug, logo_url, brand_logo_url, brand_favicon_url')
+      .select('id, name, slug, logo_url, brand_logo_url, brand_favicon_url, show_navbar_name')
       .eq('slug', orgSlug)
       .eq('is_active', true)
       .single()
@@ -77,7 +77,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
         slug: organization.slug,
         logo_url: organization.logo_url,
         brand_logo_url: organization.brand_logo_url,
-        favicon_url: organization.brand_favicon_url
+        favicon_url: organization.brand_favicon_url,
+        show_navbar_name: organization.show_navbar_name
       },
       // El rol del usuario en esta organización (owner/admin/member)
       userRole: membership.role
