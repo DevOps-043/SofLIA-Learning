@@ -21,48 +21,65 @@ export function useBusinessUsers(orgSlugProp?: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orgData, setOrgData] = useState<{ id: string, name: string, logo_url?: string } | null>(null)
+  const getOrgBySlug = useOrganizationStore((state: any) => state.getOrganizationBySlug)
+
+  // Sincronizar datos de la organización desde el store basándose en el slug
+  useEffect(() => {
+    if (orgSlug) {
+      const org = getOrgBySlug(orgSlug)
+      if (org) {
+        setOrgData({
+          id: org.id,
+          name: org.name,
+          logo_url: org.logoUrl || undefined
+        })
+      }
+    }
+  }, [orgSlug, getOrgBySlug])
 
   const fetchUsers = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
       
-      const [usersData, statsData] = await Promise.all([
-        BusinessUsersService.getOrganizationUsers(orgSlug),
-        BusinessUsersService.getOrganizationStats(orgSlug)
-      ])
-      
-      setUsers(usersData)
-      setStats(statsData)
+      const response = await fetch(`/api/${orgSlug}/business/users`, {
+        credentials: 'include'
+      })
+      const data = await response.json()
 
-      // Obtener datos básicos de la organización si hay usuarios (o intentar resolver por slug)
-      if (usersData.length > 0 && usersData[0].organization_id) {
-        setOrgData({
-          id: usersData[0].organization_id,
-          name: '', // Podríamos obtenerlo de una API de org info si fuera necesario
-        })
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Error al cargar usuarios')
       }
       
-      // Si no hay datos, mostrar mensaje informativo pero no error
-      if (usersData.length === 0) {
-        // console.info('No users found in organization')
+      setUsers(data.users || [])
+      setStats(data.stats || {
+        total: 0, active: 0, invited: 0, suspended: 0, admins: 0, members: 0
+      })
+
+      // Sincronizar datos de la organización directamente desde la API
+      if (data.organization) {
+        setOrgData({
+          id: data.organization.id,
+          name: data.organization.name,
+          logo_url: data.organization.logo_url || undefined
+        })
+      } else {
+        // Fallback al store si la API no devuelve org
+        const org = getOrgBySlug(orgSlug)
+        if (org) {
+          setOrgData({
+            id: org.id,
+            name: org.name,
+            logo_url: org.logoUrl || undefined
+          })
+        }
       }
     } catch (err) {
-      // Solo setear error en casos críticos, no bloquear UI
-      // console.error('Error loading users:', err)
-      setUsers([])
-      setStats({
-        total: 0,
-        active: 0,
-        invited: 0,
-        suspended: 0,
-        admins: 0,
-        members: 0
-      })
+      setError(err instanceof Error ? err.message : 'Error al cargar datos')
     } finally {
       setIsLoading(false)
     }
-  }, [orgSlug])
+  }, [orgSlug, getOrgBySlug])
 
   useEffect(() => {
     fetchUsers()

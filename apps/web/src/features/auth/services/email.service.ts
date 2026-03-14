@@ -337,7 +337,7 @@ Este es un email automático, por favor no respondas a este mensaje.
 
     try {
       const info = await this.transporter.sendMail({
-        from: `"${organizationName}" <noreply@soflia.ai>`,
+        from: `"SofLIA" <noreply@soflia.ai>`,
         to,
         subject: `Invitación a ${organizationName}`,
         text: textContent,
@@ -369,7 +369,22 @@ Este es un email automático, por favor no respondas a este mensaje.
     organizationLogoUrl?: string
   ): string {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    const SofLIALogoUrl = `${appUrl}/Logo.png`;
+    
+    // Helper para asegurar que la URL de la imagen sea absoluta
+    const ensureAbsoluteUrl = (url?: string) => {
+      if (!url) return undefined;
+      // Si ya es absoluta (http/https), la mantenemos
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      // Si es relativa, la combiamos con la appUrl
+      return `${appUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+
+    const absoluteOrgLogoUrl = ensureAbsoluteUrl(organizationLogoUrl);
+    // Usa un placeholder real si estamos en localhost, ya que Gmail/Outlook bloquean `http://localhost...`
+    const isLocalhost = appUrl.includes('localhost') || appUrl.includes('127.0.0.1');
+    const SofLIALogoUrl = isLocalhost 
+      ? 'https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/www/public/logo.png' // Placeholder si es local para que no salga "rota" en pruebas
+      : `${appUrl}/Logo.png`;
 
     return `
       <!DOCTYPE html>
@@ -393,138 +408,129 @@ Este es un email automático, por favor no respondas a este mensaje.
             margin: 40px auto;
             border-radius: 4px;
             overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
           }
           .header {
             background-color: #0A2540;
-            padding: 28px 40px;
+            padding: 40px;
             text-align: center;
           }
-          .SofLIA-logo {
-            height: 60px;
+          .org-logo {
+            max-height: 80px;
+            max-width: 240px;
             width: auto;
             margin-bottom: 0;
           }
-          .org-section {
-            text-align: center;
-            padding: 32px 40px 24px;
-            border-bottom: 1px solid #e5e5e5;
-          }
-          .org-logo {
-            max-height: 60px;
-            max-width: 200px;
-            width: auto;
-            margin-bottom: 12px;
-          }
           .org-name {
-            color: #0A2540;
-            font-size: 18px;
+            color: #ffffff;
+            font-size: 22px;
             font-weight: 600;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
             margin: 0;
           }
           .content {
-            padding: 32px 40px 40px;
+            padding: 40px;
           }
           .title {
             color: #0A2540;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 600;
             margin: 0 0 24px 0;
+            text-align: center;
           }
           .text {
             color: #4a4a4a;
-            font-size: 15px;
-            margin: 0 0 16px 0;
+            font-size: 16px;
+            margin: 0 0 20px 0;
           }
           .custom-message {
             background-color: #f9fafb;
-            border-left: 3px solid #0A2540;
-            padding: 16px 20px;
-            margin: 24px 0;
+            border-left: 4px solid #00D4B3;
+            padding: 20px 24px;
+            margin: 32px 0;
             color: #4a4a4a;
-            font-size: 14px;
+            font-size: 15px;
+            font-style: italic;
           }
           .button-container {
             text-align: center;
-            margin: 32px 0;
+            margin: 40px 0;
           }
           .button {
             display: inline-block;
             background-color: #0A2540;
             color: #ffffff !important;
-            padding: 14px 32px;
+            padding: 16px 40px;
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            font-size: 15px;
-            letter-spacing: 0.3px;
-            }
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(10, 37, 64, 0.2);
+          }
           .divider {
             height: 1px;
-            background-color: #e5e5e5;
-            margin: 32px 0;
-          }
-          .link-section {
-            text-align: center;
+            background-color: #eee;
+            margin: 40px 0;
           }
           .link-label {
-            color: #6b6b6b;
+            color: #888;
             font-size: 13px;
             margin: 0 0 12px 0;
+            text-align: center;
           }
           .link-box {
             background-color: #f9fafb;
-            border: 1px solid #e5e5e5;
-            padding: 14px 16px;
-            border-radius: 4px;
-            font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+            border: 1px solid #eee;
+            padding: 16px;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 12px;
             word-break: break-all;
-            color: #0A2540;
+            color: #666;
+            text-align: center;
           }
           .info-section {
             background-color: #f9fafb;
-            border-radius: 4px;
-            padding: 20px 24px;
-            margin: 32px 0 0 0;
+            border-radius: 8px;
+            padding: 24px;
+            margin: 40px 0 0 0;
           }
           .info-title {
             color: #1a1a1a;
             font-size: 14px;
-            font-weight: 600;
-            margin: 0 0 12px 0;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
           }
           .info-list {
             margin: 0;
-            padding: 0 0 0 18px;
-            color: #4a4a4a;
+            padding: 0 0 0 20px;
+            color: #666;
             font-size: 14px;
           }
           .info-list li {
-            margin-bottom: 6px;
-          }
-          .info-list li:last-child {
-            margin-bottom: 0;
+            margin-bottom: 8px;
           }
           .footer {
-            background-color: #f9fafb;
-            padding: 24px 40px;
+            background-color: #ffffff;
+            padding: 40px;
             text-align: center;
-            border-top: 1px solid #e5e5e5;
+            border-top: 1px solid #eee;
           }
           .footer-logo {
-            height: 24px;
+            height: 32px;
             width: auto;
-            margin-bottom: 12px;
-            opacity: 0.7;
+            margin-bottom: 16px;
           }
           .footer-text {
-            color: #6b6b6b;
+            color: #888;
             font-size: 12px;
             margin: 0 0 8px 0;
           }
           .footer-copyright {
-            color: #9a9a9a;
+            color: #aaa;
             font-size: 11px;
             margin: 0;
           }
@@ -533,51 +539,51 @@ Este es un email automático, por favor no respondas a este mensaje.
       <body>
         <div class="container">
           <div class="header">
-            <img src="${SofLIALogoUrl}" alt="SofLIA" class="SofLIA-logo" />
-          </div>
-
-          <div class="org-section">
-            ${organizationLogoUrl ? `<img src="${organizationLogoUrl}" alt="${organizationName}" class="org-logo" /><br/>` : ''}
-            <p class="org-name">${organizationName}</p>
+            ${absoluteOrgLogoUrl ? `
+              <img src="${absoluteOrgLogoUrl}" alt="${organizationName}" class="org-logo" />
+            ` : `
+              <p class="org-name">${organizationName}</p>
+            `}
           </div>
 
           <div class="content">
-            <h1 class="title">Invitación a la plataforma</h1>
+            <h1 class="title">Invitación de ${organizationName}</h1>
             
-            <p class="text">Estimado/a usuario,</p>
+            <p class="text">Hola,</p>
 
-            <p class="text">Ha sido invitado/a a formar parte de <strong>${organizationName}</strong> en nuestra plataforma de capacitación y desarrollo profesional.</p>
+            <p class="text">Has sido invitado/a a unirte a <strong>${organizationName}</strong> en SofLIA, nuestra plataforma de aprendizaje y desarrollo continuo.</p>
 
             ${customMessage ? `
             <div class="custom-message">
-              ${customMessage}
+              "${customMessage}"
             </div>
             ` : ''}
 
             <div class="button-container">
-              <a href="${registerUrl}" class="button">Aceptar invitación</a>
+              <a href="${registerUrl}" class="button">Configurar mi cuenta</a>
             </div>
 
             <div class="divider"></div>
 
             <div class="link-section">
-              <p class="link-label">Si el botón no funciona, copie y pegue el siguiente enlace en su navegador:</p>
+              <p class="link-label">Si el botón no funciona, copia y pega el siguiente enlace:</p>
               <div class="link-box">${registerUrl}</div>
             </div>
 
             <div class="info-section">
-              <p class="info-title">Información importante</p>
+              <p class="info-title">Detalles de la invitación</p>
               <ul class="info-list">
-                <li>Esta invitación tiene una validez de 7 días.</li>
-                <li>El enlace es de uso único.</li>
-                <li>Su correo electrónico ha sido pre-registrado en el sistema.</li>
+                <li>Válida durante 7 días.</li>
+                <li>Acceso exclusivo para tu correo electrónico.</li>
+                <li>Plataforma segura impulsada por IA.</li>
               </ul>
             </div>
           </div>
 
           <div class="footer">
+            <p class="footer-text">Enviado a través de</p>
             <img src="${SofLIALogoUrl}" alt="SofLIA" class="footer-logo" />
-            <p class="footer-text">Este es un mensaje automático. Por favor, no responda a este correo.</p>
+            <p class="footer-text">Este es un mensaje automático. Por favor, no respondas a este correo.</p>
             <p class="footer-copyright">&copy; ${new Date().getFullYear()} SofLIA. Todos los derechos reservados.</p>
           </div>
         </div>
@@ -596,27 +602,26 @@ Este es un email automático, por favor no respondas a este mensaje.
     customMessage?: string
   ): string {
     return `
-${organizationName}
-Invitación a la plataforma
+Invitación de ${organizationName} en SofLIA
 
-Estimado/a usuario,
+Hola,
 
-Ha sido invitado/a a formar parte de ${organizationName} en nuestra plataforma de capacitación y desarrollo profesional.
+Has sido invitado/a a unirte a ${organizationName} en nuestra plataforma de capacitación y desarrollo profesional.
 
-${customMessage ? `Mensaje del administrador:\n${customMessage}\n` : ''}
-Para completar su registro, acceda al siguiente enlace:
+${customMessage ? `Mensaje del administrador:\n"${customMessage}"\n` : ''}
+
+Para completar tu registro y configurar tu cuenta, accede al siguiente enlace:
 ${registerUrl}
 
 INFORMACIÓN IMPORTANTE:
 - Esta invitación tiene una validez de 7 días.
-- El enlace es de uso único.
-- Su correo electrónico ha sido pre-registrado en el sistema.
+- El enlace es de uso único y personal.
 
 Atentamente,
-Equipo de ${organizationName}
+Equipo de SofLIA en colaboración con ${organizationName}
 
 ---
-Este es un mensaje automático. Por favor, no responda a este correo.
+Este es un mensaje automático enviado a través de SofLIA. Por favor, no respondas a este correo.
     `.trim();
   }
 }

@@ -3,6 +3,7 @@ import { logger } from '@/lib/utils/logger'
 import { BusinessUsersServerService } from '@/features/business-panel/services/businessUsers.server.service'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
@@ -21,15 +22,21 @@ export async function GET(
       )
     }
 
-    const [users, stats] = await Promise.all([
+    const [users, stats, { data: orgInfo }] = await Promise.all([
       BusinessUsersServerService.getOrganizationUsers(auth.organizationId),
-      BusinessUsersServerService.getOrganizationStats(auth.organizationId)
+      BusinessUsersServerService.getOrganizationStats(auth.organizationId),
+      (await createClient()).from('organizations').select('id, name, logo_url, brand_logo_url').eq('id', auth.organizationId).single()
     ])
 
     return NextResponse.json({
       success: true,
       users: users || [],
-      stats: stats || {}
+      stats: stats || {},
+      organization: {
+        id: auth.organizationId,
+        name: orgInfo?.name || '',
+        logo_url: orgInfo?.brand_logo_url || orgInfo?.logo_url || null
+      }
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business/users GET:', error)

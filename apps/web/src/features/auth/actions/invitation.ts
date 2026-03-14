@@ -478,7 +478,8 @@ export async function resendInvitationAction(
         metadata,
         organizations (
           name,
-          slug
+          slug,
+          logo_url
         )
       `)
       .eq('id', invitationId)

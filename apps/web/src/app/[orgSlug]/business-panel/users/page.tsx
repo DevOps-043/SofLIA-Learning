@@ -634,7 +634,7 @@ export default function BusinessPanelUsersPage() {
   const { orgSlug } = useParams<{ orgSlug: string }>()
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, stats, isLoading, error, refetch, createUser, updateUser, deleteUser, resendInvitation, suspendUser, activateUser } = useBusinessUsers(orgSlug)
+  const { users, stats, orgData, isLoading, error, refetch, createUser, updateUser, deleteUser, resendInvitation, suspendUser, activateUser } = useBusinessUsers(orgSlug)
   const { user: currentUser } = useAuth()
 
   // View mode state
