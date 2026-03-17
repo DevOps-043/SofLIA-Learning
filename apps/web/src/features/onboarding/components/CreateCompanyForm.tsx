@@ -59,7 +59,7 @@ export function CreateCompanyForm({ userEmail, onBack, onSuccess }: CreateCompan
     >
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+        className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-8"
       >
         <ArrowLeft className="w-4 h-4" />
         {t('orgOnboarding.back')}
@@ -69,75 +69,75 @@ export function CreateCompanyForm({ userEmail, onBack, onSuccess }: CreateCompan
         <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
           <Building2 className="w-6 h-6 text-blue-400" />
         </div>
-        <h2 className="text-2xl font-bold text-white">{t('orgOnboarding.createCompany')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('orgOnboarding.createCompany')}</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.companyName')} *
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors shadow-sm dark:shadow-none"
             placeholder="Ej: Mi Empresa S.A."
             disabled={isCreating}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.contactEmail')} *
           </label>
           <input
             type="email"
             value={contactEmail}
             onChange={(e) => setContactEmail(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors shadow-sm dark:shadow-none"
             placeholder="contacto@empresa.com"
             disabled={isCreating}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.contactPhone')}
           </label>
           <input
             type="tel"
             value={contactPhone}
             onChange={(e) => setContactPhone(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors shadow-sm dark:shadow-none"
             placeholder="+52 55 1234 5678"
             disabled={isCreating}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.description')}
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors resize-none shadow-sm dark:shadow-none"
             placeholder="Breve descripción de tu empresa..."
             disabled={isCreating}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.website')}
           </label>
           <input
             type="url"
             value={websiteUrl}
             onChange={(e) => setWebsiteUrl(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-colors shadow-sm dark:shadow-none"
             placeholder="https://www.miempresa.com"
             disabled={isCreating}
           />

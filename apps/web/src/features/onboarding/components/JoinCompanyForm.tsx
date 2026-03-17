@@ -50,7 +50,7 @@ export function JoinCompanyForm({ onBack, onSuccess }: JoinCompanyFormProps) {
     >
       <button
         onClick={onBack}
-        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+        className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-8"
       >
         <ArrowLeft className="w-4 h-4" />
         {t('orgOnboarding.back')}
@@ -60,52 +60,52 @@ export function JoinCompanyForm({ onBack, onSuccess }: JoinCompanyFormProps) {
         <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
           <UserPlus className="w-6 h-6 text-teal-400" />
         </div>
-        <h2 className="text-2xl font-bold text-white">{t('orgOnboarding.joinCompany')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{t('orgOnboarding.joinCompany')}</h2>
       </div>
 
-      <div className="flex items-start gap-2 p-3 rounded-lg bg-teal-500/5 border border-teal-500/10 text-teal-400 text-sm mb-6">
+      <div className="flex items-start gap-2 p-3 rounded-lg bg-teal-50 dark:bg-teal-500/5 border border-teal-200 dark:border-teal-500/10 text-teal-700 dark:text-teal-400 text-sm mb-6">
         <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
         <span>{t('orgOnboarding.companyCodeHint')}</span>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.companyCode')} *
           </label>
           <input
             type="text"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-colors shadow-sm dark:shadow-none"
             placeholder="ej: mi-empresa"
             disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.jobTitle')}
           </label>
           <input
             type="text"
             value={jobTitle}
             onChange={(e) => setJobTitle(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-colors"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-colors shadow-sm dark:shadow-none"
             placeholder="Ej: Gerente de Ventas"
             disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
             {t('orgOnboarding.message')}
           </label>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
-            className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-colors resize-none"
+            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-300 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/30 transition-colors resize-none shadow-sm dark:shadow-none"
             placeholder="Mensaje opcional para el administrador..."
             disabled={isSubmitting}
           />

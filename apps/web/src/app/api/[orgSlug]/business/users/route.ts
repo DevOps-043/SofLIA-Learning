@@ -41,6 +41,10 @@ export async function GET(
         name: orgInfo?.name || '',
         logo_url: orgInfo?.brand_logo_url || orgInfo?.logo_url || null
       }
+    }, {
+      headers: {
+        'Cache-Control': 'private, no-cache, no-store, must-revalidate'
+      }
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business/users GET:', error)
@@ -68,7 +72,35 @@ export async function POST(
       )
     }
 
+    // SECURITY: Solo owner y admin de la organización pueden crear/invitar usuarios.
+    // Un miembro (member) no tiene permisos de gestión sobre otros usuarios.
+    if (!auth.isOrgAdmin) {
+      logger.warn('Member attempted to create user — access denied', {
+        userId: auth.userId,
+        orgSlug,
+        organizationRole: auth.organizationRole
+      })
+      return NextResponse.json(
+        { success: false, error: 'No tienes permisos para gestionar usuarios en esta organización.' },
+        { status: 403 }
+      )
+    }
+
     const body = await request.json()
+
+    // SECURITY: Restringir los roles que se pueden asignar según el rol del solicitante.
+    // Un admin no puede crear owners; solo el owner puede asignar el rol de owner.
+    const requestedRole: string = body.org_role || 'member'
+    const allowedRoles = auth.organizationRole === 'owner'
+      ? ['member', 'admin', 'owner']
+      : ['member', 'admin']
+
+    if (!allowedRoles.includes(requestedRole)) {
+      return NextResponse.json(
+        { success: false, error: `No tienes permisos para asignar el rol '${requestedRole}'.` },
+        { status: 403 }
+      )
+    }
 
     const userData: CreateBusinessUserRequest = {
       username: body.username,
@@ -78,7 +110,7 @@ export async function POST(
       last_name: body.last_name,
       display_name: body.display_name,
       job_title: body.job_title,
-      org_role: body.org_role || 'member',
+      org_role: requestedRole,
       send_invitation: body.send_invitation !== undefined ? body.send_invitation : !body.password
     }
 

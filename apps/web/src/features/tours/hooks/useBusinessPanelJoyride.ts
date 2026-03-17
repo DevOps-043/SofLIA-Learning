@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import Joyride, { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
-import { businessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps.tsx';
+import { businessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourRestart } from '@/core/contexts/TourRestartContext';
 
 interface UseBusinessPanelJoyrideOptions {
   enabled?: boolean;
@@ -16,6 +17,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
   const { shouldShowTour, isLoading, startTour, completeTour, skipTour } = useTourProgress(BUSINESS_PANEL_TOUR_ID);
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const { setRestart } = useTourRestart();
 
   // Auto-start tour when conditions are met
   useEffect(() => {
@@ -79,6 +81,11 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
     setRun(true);
   }, []);
 
+  useEffect(() => {
+    setRestart(manualStartTour, 'Reiniciar tutorial');
+    return () => setRestart(null);
+  }, [manualStartTour, setRestart]);
+
   return {
     // Joyride props to spread
     joyrideProps: {
@@ -90,7 +97,8 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
-      disableOverlayClose: false,
+      disableOverlayClose: true,
+      disableCloseOnEsc: true,
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120, // Reasonable offset to clear header but keep element visible

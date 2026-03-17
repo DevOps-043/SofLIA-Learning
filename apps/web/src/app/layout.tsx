@@ -12,6 +12,7 @@ import { I18nProvider } from '../core/providers/I18nProvider';
 import { ShareModalProvider } from '../core/providers/ShareModalProvider';
 import { OnboardingAgent } from '../core/components/OnboardingAgent';
 import { LiaPanelProvider } from '../core/contexts/LiaPanelContext';
+import { TourRestartProvider } from '../core/contexts/TourRestartContext';
 import { ContentWrapper } from '../core/components/ContentWrapper';
 import { AuthSecurityGuard } from '../features/auth/components/AuthSecurityGuard';
 import { OrganizationStylesProvider } from '../features/business-panel/contexts/OrganizationStylesContext';
@@ -214,6 +215,7 @@ export default function RootLayout({
                   <NotificationProvider pollingInterval={60000}>
                     <OrganizationProvider>
                       <OrganizationStylesProvider>
+                        <TourRestartProvider>
                         <LiaPanelProvider>
                           <PrefetchManager />
                           <AuthSecurityGuard>
@@ -228,6 +230,7 @@ export default function RootLayout({
 
 
                         </LiaPanelProvider>
+                        </TourRestartProvider>
                       </OrganizationStylesProvider>
                     </OrganizationProvider>
                   </NotificationProvider>

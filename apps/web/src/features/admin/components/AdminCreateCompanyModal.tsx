@@ -51,6 +51,8 @@ export interface CreateCompanyData {
   brand_color_secondary: string
   brand_color_accent: string
   brand_font_family: string
+  google_login_enabled: boolean
+  microsoft_login_enabled: boolean
   owner_email?: string
   owner_position?: string
 }
@@ -88,6 +90,8 @@ export function AdminCreateCompanyModal({ onClose, onCreate, isCreating }: Creat
     brand_color_secondary: '#1E2329',
     brand_color_accent: '#00D4B3',
     brand_font_family: 'Inter',
+    google_login_enabled: false,
+    microsoft_login_enabled: false,
     owner_email: '',
     owner_position: ''
   })
@@ -410,10 +414,10 @@ export function AdminCreateCompanyModal({ onClose, onCreate, isCreating }: Creat
                            </div>
                         </div>
                         
-                        {/* Section: Subscription */}
+                        {/* Section: Subscription & Access */}
                         <div className="space-y-5">
                            <div className="flex items-center gap-2 text-sm font-bold text-white/50 uppercase tracking-wider pb-2 border-b border-white/5">
-                              <BoltIcon className="w-4 h-4" /> Suscripción
+                              <BoltIcon className="w-4 h-4" /> Suscripción y Acceso
                            </div>
                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                               <div className="relative">
@@ -444,6 +448,43 @@ export function AdminCreateCompanyModal({ onClose, onCreate, isCreating }: Creat
                               <div>
                                  <label className="block text-xs text-gray-400 mb-2 ml-1">Usuarios Máximos</label>
                                  <input type="number" min="1" value={formData.max_users} onChange={(e) => setFormData({...formData, max_users: parseInt(e.target.value) || 1 })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 outline-none transition-all" />
+                              </div>
+                              
+                              {/* SSO Options in Create Modal */}
+                              <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                                 <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#4285F4' }} />
+                                    <span className="text-sm text-white">Google SSO</span>
+                                 </div>
+                                 <button 
+                                    type="button" 
+                                    onClick={() => setFormData({...formData, google_login_enabled: !formData.google_login_enabled})} 
+                                    className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.google_login_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                                 >
+                                    <motion.div 
+                                       animate={{ x: formData.google_login_enabled ? 22 : 2 }} 
+                                       className="absolute top-0.5 left-0 w-4 h-4 rounded-full bg-white shadow-sm" 
+                                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    />
+                                 </button>
+                              </div>
+
+                              <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                                 <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00a6f0' }} />
+                                    <span className="text-sm text-white">Microsoft SSO</span>
+                                 </div>
+                                 <button 
+                                    type="button" 
+                                    onClick={() => setFormData({...formData, microsoft_login_enabled: !formData.microsoft_login_enabled})} 
+                                    className={`w-10 h-5 rounded-full relative transition-colors duration-300 ${formData.microsoft_login_enabled ? 'bg-green-500' : 'bg-gray-600'}`}
+                                 >
+                                    <motion.div 
+                                       animate={{ x: formData.microsoft_login_enabled ? 22 : 2 }} 
+                                       className="absolute top-0.5 left-0 w-4 h-4 rounded-full bg-white shadow-sm" 
+                                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                    />
+                                 </button>
                               </div>
                            </div>
                         </div>

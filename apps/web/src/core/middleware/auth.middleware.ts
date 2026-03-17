@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createClient } from '../../lib/supabase/server';
 import { logger } from '../../lib/logger';
 
@@ -163,24 +164,21 @@ function hasRoleAccess(role: ValidRole, pathname: string): boolean {
   // NOTA: Ya no existe 'Business User' en cargo_rol - todos son 'Business'
   // La diferenciación entre admin/owner y member se hace en organization_users.role
   if (role === 'Business') {
-    const isBusinessRoute = ROLE_ROUTES.business.some(route =>
-      pathname.startsWith(route)
-    );
-    const isBusinessUserRoute = pathname.startsWith('/business-user') ||
-      pathname.includes('/business-user');
-    const isUserRoute = ROLE_ROUTES.user.some(route =>
-      pathname.startsWith(route)
-    );
-    const isAdminRoute = ROLE_ROUTES.admin.some(route =>
-      pathname.startsWith(route)
-    );
+    // Rutas legacy: /business-panel (sin orgSlug)
+    const isBusinessPanelRoute = ROLE_ROUTES.business.some(route => pathname.startsWith(route));
+    // Rutas org-scoped: /{orgSlug}/business-panel/* y /{orgSlug}/business-user/*
+    // Se detectan buscando el segmento 'business-panel' o 'business-user' en el path
+    const isOrgScopedPanel = pathname.includes('/business-panel');
+    const isOrgScopedUser  = pathname.includes('/business-user');
+    const isUserRoute = ROLE_ROUTES.user.some(route => pathname.startsWith(route));
+    const isAdminRoute = ROLE_ROUTES.admin.some(route => pathname.startsWith(route));
 
     // Business NO puede acceder a rutas admin
     if (isAdminRoute) {
       return false;
     }
 
-    return isBusinessRoute || isBusinessUserRoute || isUserRoute;
+    return isBusinessPanelRoute || isOrgScopedPanel || isOrgScopedUser || isUserRoute;
   }
 
   // Usuario solo tiene acceso a rutas de usuario
@@ -228,73 +226,63 @@ export async function validateRoleAccess(
   const clientIp = getClientIp(request);
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
-  // 1. Verificar que hay cookie de sesión legacy
-  const sessionCookie = request.cookies.get('aprende-y-aplica-session')?.value;
-
-  if (!sessionCookie) {
-    await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
-      path: pathname,
-      ip: clientIp,
-      userAgent
-    });
-
-    return { isValid: false, error: 'No session found' };
-  }
-
   try {
-    // 2. Obtener datos de la sesión desde la base de datos
     const supabase = await createClient();
+    let resolvedUserId: string | null = null;
 
-    const { data: sessionData, error: sessionError } = await supabase
-      .from('user_session')
-      .select('user_id, expires_at, revoked')
-      .eq('jwt_id', sessionCookie)
-      .single();
+    // SISTEMA 1: Legacy session (aprende-y-aplica-session → user_session)
+    const sessionCookie = request.cookies.get('aprende-y-aplica-session')?.value;
+    if (sessionCookie) {
+      const { data: sessionData } = await supabase
+        .from('user_session')
+        .select('user_id, expires_at, revoked')
+        .eq('jwt_id', sessionCookie)
+        .single();
 
-    if (sessionError || !sessionData) {
-      await logSecurityEvent('USER_NOT_FOUND', {
-        path: pathname,
-        ip: clientIp
-      });
-
-      return { isValid: false, error: 'Invalid session' };
+      if (sessionData && !sessionData.revoked && new Date(sessionData.expires_at) > new Date()) {
+        resolvedUserId = sessionData.user_id;
+      } else if (sessionData?.revoked) {
+        await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', { userId: sessionData.user_id, path: pathname, ip: clientIp });
+        return { isValid: false, error: 'Session revoked' };
+      } else if (sessionData) {
+        await logSecurityEvent('EXPIRED_SESSION_ACCESS', { userId: sessionData.user_id, path: pathname, ip: clientIp });
+        return { isValid: false, error: 'Session expired' };
+      }
     }
 
-    // 3. Verificar que la sesión no esté revocada
-    if ((sessionData as any).revoked) {
-      await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', {
-        userId: (sessionData as any).user_id,
-        path: pathname,
-        ip: clientIp
-      });
-
-      return { isValid: false, error: 'Session revoked' };
+    // SISTEMA 2: Refresh token (access_token + refresh_token → refresh_tokens)
+    // Permite que usuarios autenticados con el sistema nuevo también pasen la validación de rol.
+    if (!resolvedUserId) {
+      const refreshTokenVal = request.cookies.get('refresh_token')?.value;
+      const accessTokenVal  = request.cookies.get('access_token')?.value;
+      if (refreshTokenVal && accessTokenVal) {
+        const tokenHash = crypto.createHash('sha256').update(refreshTokenVal).digest('hex');
+        const { data: tokenData } = await supabase
+          .from('refresh_tokens')
+          .select('user_id')
+          .eq('token_hash', tokenHash)
+          .eq('is_revoked', false)
+          .gt('expires_at', new Date().toISOString())
+          .single();
+        if (tokenData?.user_id) resolvedUserId = tokenData.user_id;
+      }
     }
 
-    // 4. Verificar expiración (con timestamp actual para evitar race conditions)
-    const expiresAt = new Date((sessionData as any).expires_at);
-    const now = new Date();
-
-    if (expiresAt <= now) {
-      await logSecurityEvent('EXPIRED_SESSION_ACCESS', {
-        userId: (sessionData as any).user_id,
-        path: pathname,
-        ip: clientIp
-      });
-
-      return { isValid: false, error: 'Session expired' };
+    if (!resolvedUserId) {
+      await logSecurityEvent('UNAUTHORIZED_ACCESS_ATTEMPT', { path: pathname, ip: clientIp, userAgent });
+      return { isValid: false, error: 'No session found' };
     }
 
-    // 5. Obtener datos del usuario (incluye verificación de existencia y estado)
+    // Obtener datos del usuario (incluye verificación de existencia y estado)
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, cargo_rol, email, username')
-      .eq('id', (sessionData as any).user_id)
+      .eq('id', resolvedUserId)
       .single();
 
     if (userError || !userData) {
       await logSecurityEvent('USER_NOT_FOUND', {
-        userId: (sessionData as any).user_id,
+        userId: resolvedUserId,
         path: pathname
       });
 
@@ -439,8 +427,10 @@ export async function validateBusinessAccess(request: NextRequest): Promise<Next
     return createForbiddenResponse(request);
   }
 
-  // Verificar que sea Business o Business User
-  if (result.role !== 'Business' && result.role !== 'Business User') {
+  // Verificar que sea Business o Administrador
+  // NOTA: 'Business User' ya no existe como cargo_rol — todos los usuarios de organización son 'Business'
+  // La distinción owner/admin/member se hace en organization_users.role, no aquí.
+  if (result.role !== 'Business' && result.role !== 'Administrador') {
     return createForbiddenResponse(request);
   }
 

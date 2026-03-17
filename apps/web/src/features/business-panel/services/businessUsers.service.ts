@@ -60,6 +60,7 @@ export interface BusinessUserStats {
   suspended: number
   admins: number
   members: number
+  bulk_link_usage?: number
 }
 
 export interface CreateBusinessUserRequest {
@@ -71,6 +72,7 @@ export interface CreateBusinessUserRequest {
   display_name?: string
   job_title: string  // Antes type_rol - cargo/puesto en la organización
   org_role?: 'owner' | 'admin' | 'member'
+  send_invitation?: boolean
 }
 
 export interface UpdateBusinessUserRequest {

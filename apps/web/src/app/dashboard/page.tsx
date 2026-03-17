@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { LogOut } from 'lucide-react'
 import Image from 'next/image'
+import { ThemeToggle } from '../../core/components/ThemeToggle/ThemeToggle'
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import {
   OnboardingChoiceScreen,
@@ -33,10 +34,10 @@ export default function DashboardPage() {
 
   if (loading || statusLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="flex flex-col items-center gap-4">
           <div className="w-8 h-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
-          <p className="text-gray-400">Cargando...</p>
+          <p className="text-gray-500 dark:text-gray-400">Cargando...</p>
         </div>
       </div>
     )
@@ -101,9 +102,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-gray-900/90 backdrop-blur-xl border-b border-white/5">
+      <header className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-200 dark:border-white/5 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Image
@@ -113,23 +114,25 @@ export default function DashboardPage() {
               height={40}
               className="w-10 h-10 object-contain"
             />
-            <span className="text-xl font-bold tracking-tight">SofLIA</span>
+            <span className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">SofLIA</span>
           </div>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle />
+            
             {user && (
-              <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                <div className="w-8 h-8 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold">
+              <div className="flex items-center gap-3 bg-gray-100 dark:bg-white/5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/5">
+                <div className="w-8 h-8 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm font-bold">
                   {user.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
                 </div>
-                <span className="text-gray-300 text-sm hidden sm:block pr-2">
+                <span className="text-gray-600 dark:text-gray-300 text-sm hidden sm:block pr-2">
                   {user.email}
                 </span>
               </div>
             )}
             <button
               onClick={logout}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 hover:bg-red-500/10 border border-white/5 hover:border-red-500/20 text-gray-400 hover:text-red-400 transition-colors text-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 border border-gray-200 dark:border-white/5 hover:border-red-200 dark:hover:border-red-500/20 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors text-sm"
             >
               <LogOut className="w-4 h-4" />
               <span className="hidden sm:block">Salir</span>

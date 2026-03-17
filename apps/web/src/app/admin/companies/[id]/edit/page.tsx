@@ -7,6 +7,10 @@ import { useTheme } from '../../../../../core/hooks/useTheme'
 import { AdminUnifiedInviteModal } from '@/features/admin/components/AdminUnifiedInviteModal'
 import { AdminMemberManageModal } from '@/features/admin/components/AdminMemberManageModal'
 import { CoursesSection as AdminCoursesSection } from '@/features/admin/components'
+import { resendInvitationAction, revokeInvitationAction } from '@/features/auth/actions/invitation'
+import { SuccessModal } from '@/core/components/SuccessModal/SuccessModal'
+import { ErrorModal } from '@/core/components/ErrorModal/ErrorModal'
+import { ConfirmationModal } from '@/features/admin/components/ConfirmationModal'
 import {
     ArrowLeftIcon,
     BuildingOffice2Icon,
@@ -28,10 +32,12 @@ import {
     TrashIcon,
     UsersIcon,
     SparklesIcon,
+    ShieldCheckIcon,
     PlusIcon,
     MagnifyingGlassIcon,
     ChevronRightIcon,
-    SwatchIcon
+    SwatchIcon,
+    LinkIcon
 } from '@heroicons/react/24/outline'
 import { 
     BarChart, 
@@ -93,7 +99,11 @@ interface CompanyData {
     active_users: number
     invited_users: number
     suspended_users: number
+    google_login_enabled: boolean
+    microsoft_login_enabled: boolean
     members: CompanyMember[]
+    pending_invitations: any[]
+    bulk_invite_links: any[]
     assigned_courses?: AssignedCourse[]
 }
 
@@ -395,6 +405,82 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                     </div>
                 </div>
             </Card>
+
+            {/* Seguridad y Acceso (SSO) */}
+            <Card title="Seguridad y Acceso" description="Configuración de inicio de sesión mediante SSO" icon={ShieldCheckIcon || Cog6ToothIcon} iconColor={colors.accent}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Google SSO */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                                    <path
+                                        fill="#4285F4"
+                                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                                    />
+                                    <path
+                                        fill="#34A853"
+                                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                                    />
+                                    <path
+                                        fill="#FBBC05"
+                                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                                    />
+                                    <path
+                                        fill="#EA4335"
+                                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                                    />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white">Google SSO</p>
+                                <p className="text-xs text-gray-500 dark:text-[#8899A6]">Permitir acceso con Google</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setCompany({ ...company, google_login_enabled: !company.google_login_enabled })}
+                            className="relative w-12 h-6 rounded-full transition-colors"
+                            style={{ backgroundColor: company.google_login_enabled ? colors.success : 'rgba(136, 153, 166, 0.4)' }}
+                        >
+                            <motion.div
+                                className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                                animate={{ left: company.google_login_enabled ? '1.75rem' : '0.25rem' }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            />
+                        </button>
+                    </div>
+
+                    {/* Microsoft SSO */}
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-white dark:bg-white/5 border border-gray-100 dark:border-white/10">
+                                <svg className="h-5 w-5" viewBox="0 0 23 23">
+                                    <path fill="#f3f3f3" d="M0 0h23v23H0z" />
+                                    <path fill="#f35325" d="M1 1h10v10H1z" />
+                                    <path fill="#81bc06" d="M12 1h10v10H12z" />
+                                    <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                                    <path fill="#ffba08" d="M12 12h10v10H12z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white">Microsoft SSO</p>
+                                <p className="text-xs text-gray-500 dark:text-[#8899A6]">Permitir acceso con Microsoft</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setCompany({ ...company, microsoft_login_enabled: !company.microsoft_login_enabled })}
+                            className="relative w-12 h-6 rounded-full transition-colors"
+                            style={{ backgroundColor: company.microsoft_login_enabled ? colors.success : 'rgba(136, 153, 166, 0.4)' }}
+                        >
+                            <motion.div
+                                className="absolute top-1 w-4 h-4 rounded-full bg-white shadow-sm"
+                                animate={{ left: company.microsoft_login_enabled ? '1.75rem' : '0.25rem' }}
+                                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                            />
+                        </button>
+                    </div>
+                </div>
+            </Card>
         </SectionWrapper>
     )
 }
@@ -405,9 +491,30 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
 function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: () => void }) {
     const [searchTerm, setSearchTerm] = useState('')
     const [roleFilter, setRoleFilter] = useState('all')
+    const [activeSubTab, setActiveSubTab] = useState<'members' | 'invitations' | 'links'>('members')
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
     const [manageMember, setManageMember] = useState<CompanyMember | null>(null)
     const [manageMode, setManageMode] = useState<'edit' | 'delete' | null>(null)
+    const [resendingId, setResendingId] = useState<string | null>(null)
+    const [revokingId, setRevokingId] = useState<string | null>(null)
+    const [invitationToRevoke, setInvitationToRevoke] = useState<string | null>(null)
+
+    // Modal state
+    const [modalConfig, setModalConfig] = useState<{
+        isOpen: boolean;
+        type: 'success' | 'error';
+        title: string;
+        message?: string;
+    }>({
+        isOpen: false,
+        type: 'success',
+        title: '',
+        message: ''
+    })
+
+    const showModal = (type: 'success' | 'error', title: string, message?: string) => {
+        setModalConfig({ isOpen: true, type, title, message })
+    }
 
     const filteredMembers = company.members?.filter(member => {
         const matchesSearch = !searchTerm ||
@@ -417,6 +524,57 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
         const matchesRole = roleFilter === 'all' || member.role === roleFilter
         return matchesSearch && matchesRole
     }) || []
+
+    const filteredInvitations = company.pending_invitations?.filter(inv => {
+        return !searchTerm || inv.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    }) || []
+
+    const filteredLinks = company.bulk_invite_links?.filter(link => {
+        return !searchTerm || link.name?.toLowerCase().includes(searchTerm.toLowerCase()) || link.token?.toLowerCase().includes(searchTerm.toLowerCase())
+    }) || []
+
+    const handleResendInvitation = async (invitationId: string) => {
+        setResendingId(invitationId)
+        try {
+            const result = await resendInvitationAction(invitationId)
+            if (result.success) {
+                showModal('success', '¡Éxito!', 'Invitación reenviada con éxito')
+            } else {
+                showModal('error', 'Error', result.error || 'No se pudo reenviar la invitación')
+            }
+        } catch (error) {
+            console.error('Error resending invitation:', error)
+            showModal('error', 'Error de conexión', 'Hubo un problema al intentar reenviar la invitación')
+        } finally {
+            setResendingId(null)
+        }
+    }
+
+    const handleRevokeInvitation = async (invitationId: string) => {
+        setInvitationToRevoke(invitationId)
+    }
+
+    const confirmRevokeInvitation = async () => {
+        if (!invitationToRevoke) return
+        
+        const invitationId = invitationToRevoke
+        setInvitationToRevoke(null)
+        setRevokingId(invitationId)
+        try {
+            const result = await revokeInvitationAction(invitationId)
+            if (result.success) {
+                showModal('success', '¡Éxito!', 'Invitación eliminada correctamente')
+                onUpdate()
+            } else {
+                showModal('error', 'Error', result.error || 'No se pudo eliminar la invitación')
+            }
+        } catch (error) {
+            console.error('Error revoking invitation:', error)
+            showModal('error', 'Error de conexión', 'Hubo un problema al intentar eliminar la invitación')
+        } finally {
+            setRevokingId(null)
+        }
+    }
 
     const getUserDisplayName = (user?: CompanyMember['user']) => {
         if (!user) return 'Usuario'
@@ -455,7 +613,7 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
-                    <p className="text-2xl font-bold text-white">{company.total_users}</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{company.total_users}</p>
                     <p className="text-xs" style={{ color: colors.grayMedium }}>Total usuarios</p>
                 </div>
                 <div className="p-4 rounded-xl bg-gray-50 dark:bg-[#0F1419] border border-gray-100 dark:border-white/5">
@@ -472,12 +630,50 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                 </div>
             </div>
 
-            {/* Users List */}
+            {/* Sub-Tabs Selector */}
+            <div className="flex items-center gap-2 border-b border-gray-100 dark:border-white/5 p-1">
+                <button
+                    onClick={() => setActiveSubTab('members')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'members' ? 'bg-[#00D4B3]/10 text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                >
+                    Miembros
+                </button>
+                <button
+                    onClick={() => setActiveSubTab('invitations')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'invitations' ? 'bg-[#00D4B3]/10 text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                >
+                    Invitaciones Individuales
+                </button>
+                <button
+                    onClick={() => setActiveSubTab('links')}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'links' ? 'bg-[#00D4B3]/10 text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                >
+                    Enlaces de Invitación
+                </button>
+            </div>
+
+            {/* Users / Invitations / Links List */}
             <Card
-                title="Miembros de la Empresa"
-                description={`${filteredMembers.length} usuarios encontrados`}
-                icon={UserGroupIcon}
-                iconColor={colors.blue}
+                title={
+                    activeSubTab === 'members' ? "Miembros de la Empresa" :
+                    activeSubTab === 'invitations' ? "Invitaciones Pendientes" :
+                    "Enlaces de Invitación Masiva"
+                }
+                description={
+                    activeSubTab === 'members' ? `${filteredMembers.length} usuarios encontrados` :
+                    activeSubTab === 'invitations' ? `${filteredInvitations.length} invitaciones activas` :
+                    `${filteredLinks.length} enlaces creados`
+                }
+                icon={
+                    activeSubTab === 'members' ? UserGroupIcon :
+                    activeSubTab === 'invitations' ? EnvelopeIcon :
+                    LinkIcon
+                }
+                iconColor={
+                    activeSubTab === 'members' ? colors.blue :
+                    activeSubTab === 'invitations' ? colors.warning :
+                    colors.purple
+                }
                 actions={
                     <motion.button
                         onClick={() => setIsInviteModalOpen(true)}
@@ -487,7 +683,7 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                         style={{ backgroundColor: colors.accent, color: colors.primary }}
                     >
                         <PlusIcon className="h-4 w-4" />
-                        Invitar usuario
+                        {activeSubTab === 'links' ? 'Crear enlace' : 'Invitar usuario'}
                     </motion.button>
                 }
             >
@@ -497,27 +693,34 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                         <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: colors.grayMedium }} />
                         <input
                             type="text"
-                            placeholder="Buscar por nombre o email..."
+                            placeholder={
+                                activeSubTab === 'members' ? "Buscar por nombre o email..." :
+                                activeSubTab === 'invitations' ? "Buscar por email..." :
+                                "Buscar por nombre o token..."
+                            }
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
                         />
                     </div>
-                    <select
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className="px-4 py-2.5 rounded-xl border text-sm text-white focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
-                    >
-                        <option value="all">Todos los roles</option>
-                        <option value="owner">Owner</option>
-                        <option value="admin">Admin</option>
-                        <option value="member">Miembros</option>
-                    </select>
+                    {activeSubTab === 'members' && (
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
+                        >
+                            <option value="all">Todos los roles</option>
+                            <option value="owner">Owner</option>
+                            <option value="admin">Admin</option>
+                            <option value="member">Miembros</option>
+                        </select>
+                    )}
                 </div>
 
-                {/* Users Table */}
+                {/* Content Table */}
                 <div className="overflow-x-auto">
-                    <table className="w-full">
+                    {activeSubTab === 'members' && (
+                        <table className="w-full">
                         <thead>
                             <tr className="text-left text-xs uppercase" style={{ color: colors.grayMedium }}>
                                 <th className="pb-3 font-medium">Usuario</th>
@@ -548,7 +751,7 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-medium text-white">{getUserDisplayName(member.user)}</p>
+                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{getUserDisplayName(member.user)}</p>
                                                     <p className="text-xs" style={{ color: colors.grayMedium }}>{member.user?.email}</p>
                                                 </div>
                                             </div>
@@ -600,11 +803,119 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                                 )
                             })}
                         </tbody>
-                    </table>
-                    {filteredMembers.length === 0 && (
+                        </table>
+                    )}
+
+                    {activeSubTab === 'invitations' && (
+                        <table className="w-full">
+                        <thead>
+                            <tr className="text-left text-xs uppercase" style={{ color: colors.grayMedium }}>
+                                <th className="pb-3 font-medium">Email</th>
+                                <th className="pb-3 font-medium">Rol</th>
+                                <th className="pb-3 font-medium">Enviada</th>
+                                <th className="pb-3 font-medium">Expira</th>
+                                <th className="pb-3 font-medium text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y" style={{ borderColor: `${colors.grayMedium}10` }}>
+                            {filteredInvitations.map((inv) => (
+                                <tr key={inv.id} className="group">
+                                    <td className="py-3">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{inv.email}</p>
+                                    </td>
+                                    <td className="py-3">
+                                        <span className="px-2.5 py-1 rounded-lg text-xs font-medium uppercase" style={{ backgroundColor: `${colors.accent}20`, color: colors.accent }}>
+                                            {inv.role}
+                                        </span>
+                                    </td>
+                                    <td className="py-3 text-sm text-gray-500">
+                                        {new Date(inv.created_at).toLocaleDateString('es-MX')}
+                                    </td>
+                                    <td className="py-3 text-sm text-gray-500">
+                                        {new Date(inv.expires_at).toLocaleDateString('es-MX')}
+                                    </td>
+                                    <td className="py-3">
+                                        <div className="flex items-center justify-end gap-2 text-xs">
+                                            <button
+                                                onClick={() => handleResendInvitation(inv.id)}
+                                                disabled={resendingId === inv.id}
+                                                className="px-3 py-1.5 rounded-lg border border-orange-500/50 text-orange-500 hover:bg-orange-500 hover:text-white transition-all disabled:opacity-50"
+                                            >
+                                                {resendingId === inv.id ? 'Reenviando...' : 'Reenviar'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleRevokeInvitation(inv.id)}
+                                                disabled={revokingId === inv.id}
+                                                className="px-3 py-1.5 rounded-lg border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                                            >
+                                                {revokingId === inv.id ? 'Eliminando...' : 'Eliminar'}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        </table>
+                    )}
+
+                    {activeSubTab === 'links' && (
+                        <table className="w-full">
+                        <thead>
+                            <tr className="text-left text-xs uppercase" style={{ color: colors.grayMedium }}>
+                                <th className="pb-3 font-medium">Nombre / Token</th>
+                                <th className="pb-3 font-medium text-center">Usos</th>
+                                <th className="pb-3 font-medium text-center">Límite</th>
+                                <th className="pb-3 font-medium text-center">Estado</th>
+                                <th className="pb-3 font-medium text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y" style={{ borderColor: `${colors.grayMedium}10` }}>
+                            {filteredLinks.map((link) => (
+                                <tr key={link.id} className="group">
+                                    <td className="py-3">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">{link.name || 'Sin nombre'}</p>
+                                        <p className="text-xs font-mono" style={{ color: colors.grayMedium }}>{link.token}</p>
+                                    </td>
+                                    <td className="py-3 text-center text-sm">
+                                        {link.current_uses}
+                                    </td>
+                                    <td className="py-3 text-center text-sm">
+                                        {link.max_uses || '∞'}
+                                    </td>
+                                    <td className="py-3 text-center">
+                                        <span className={`px-2.5 py-1 rounded-lg text-xs font-medium ${link.is_active ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+                                            {link.is_active ? 'Activo' : 'Inactivo'}
+                                        </span>
+                                    </td>
+                                    <td className="py-3">
+                                        <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    const url = `${window.location.origin}/register?invite=${link.token}`
+                                                    navigator.clipboard.writeText(url)
+                                                    showModal('success', '¡Copiado!', 'Enlace copiado al portapapeles')
+                                                }}
+                                                className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                                                title="Copiar enlace"
+                                            >
+                                                <DocumentTextIcon className="h-4 w-4" style={{ color: colors.grayMedium }} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                        </table>
+                    )}
+
+                    {(
+                        (activeSubTab === 'members' && filteredMembers.length === 0) ||
+                        (activeSubTab === 'invitations' && filteredInvitations.length === 0) ||
+                        (activeSubTab === 'links' && filteredLinks.length === 0)
+                    ) && (
                         <div className="text-center py-8">
-                            <UserGroupIcon className="h-12 w-12 mx-auto mb-3" style={{ color: colors.grayMedium }} />
-                            <p className="text-sm" style={{ color: colors.grayMedium }}>No se encontraron usuarios</p>
+                            <MagnifyingGlassIcon className="h-12 w-12 mx-auto mb-3" style={{ color: colors.grayMedium }} />
+                            <p className="text-sm" style={{ color: colors.grayMedium }}>No se encontraron elementos</p>
                         </div>
                     )}
                 </div>
@@ -633,6 +944,32 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                 mode={manageMode}
                 primaryColor={colors.primary}
                 accentColor={colors.accent}
+            />
+
+            <SuccessModal
+                isOpen={modalConfig.isOpen && modalConfig.type === 'success'}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+            />
+
+            <ErrorModal
+                isOpen={modalConfig.isOpen && modalConfig.type === 'error'}
+                onClose={() => setModalConfig(prev => ({ ...prev, isOpen: false }))}
+                title={modalConfig.title}
+                message={modalConfig.message}
+            />
+
+            <ConfirmationModal
+                isOpen={invitationToRevoke !== null}
+                onClose={() => setInvitationToRevoke(null)}
+                onConfirm={confirmRevokeInvitation}
+                title="Eliminar Invitación"
+                message="¿Estás seguro de que deseas eliminar esta invitación? Esta acción no se puede deshacer."
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                type="danger"
+                isLoading={revokingId !== null}
             />
         </SectionWrapper>
     )

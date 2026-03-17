@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import crypto from 'crypto';
+import { cookies } from 'next/headers';
 import { createClient } from '../../../lib/supabase/server';
 import { emailService } from '../services/email.service';
 import { logger } from '../../../lib/logger';
@@ -544,6 +545,55 @@ export async function consumeBulkInvitationAction(
 ): Promise<{ success: boolean; error?: string; organizationSlug?: string }> {
   try {
     const supabase = await createClient();
+
+    // SECURITY: Verificar que el userId proporcionado coincide con la sesión activa del servidor.
+    // Esta función es un Server Action y puede ser invocada directamente desde el cliente,
+    // por lo que NO debemos confiar ciegamente en el userId recibido como parámetro.
+    const cookieStore = await cookies();
+    let authenticatedUserId: string | null = null;
+
+    // Sistema legacy
+    const sessionCookie = cookieStore.get('aprende-y-aplica-session');
+    if (sessionCookie) {
+      const { data: session } = await supabase
+        .from('user_session')
+        .select('user_id')
+        .eq('jwt_id', sessionCookie.value)
+        .eq('revoked', false)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+      if (session?.user_id) authenticatedUserId = session.user_id;
+    }
+
+    // Sistema nuevo (refresh tokens)
+    if (!authenticatedUserId) {
+      const refreshTokenCookie = cookieStore.get('refresh_token');
+      const accessTokenCookie = cookieStore.get('access_token');
+      if (refreshTokenCookie && accessTokenCookie) {
+        const tokenHash = crypto.createHash('sha256').update(refreshTokenCookie.value).digest('hex');
+        const { data: tokenData } = await supabase
+          .from('refresh_tokens')
+          .select('user_id')
+          .eq('token_hash', tokenHash)
+          .eq('is_revoked', false)
+          .gt('expires_at', new Date().toISOString())
+          .single();
+        if (tokenData?.user_id) authenticatedUserId = tokenData.user_id;
+      }
+    }
+
+    if (!authenticatedUserId) {
+      logger.warn('consumeBulkInvitationAction called without valid session');
+      return { success: false, error: 'No autenticado. Por favor inicia sesión.' };
+    }
+
+    if (authenticatedUserId !== userId) {
+      logger.error('consumeBulkInvitationAction userId mismatch', {
+        sessionUser: authenticatedUserId,
+        requestedUser: userId
+      });
+      return { success: false, error: 'No autorizado.' };
+    }
 
     // 1. Validar el enlace de invitación
     const { data: link, error: linkError } = await supabase

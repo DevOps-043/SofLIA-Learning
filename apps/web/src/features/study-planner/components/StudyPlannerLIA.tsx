@@ -1,10 +1,11 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Volume2, VolumeX, ChevronRight, Mic, MicOff, Send, Check, BookOpen, Loader2, Calendar, ExternalLink, Search, ChevronLeft, HelpCircle, GraduationCap, Zap, Scale, Clock, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 import { HolidayService } from '../../../lib/holidays';
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext';
 import { generateStudyPlannerPrompt } from '../prompts/study-planner.prompt';
@@ -10749,7 +10750,16 @@ Cuéntame:
                         <div className="relative z-10 break-words">
                           {msg.role === 'assistant' ? (
                             <div className="font-body text-[14px] sm:text-[16px] leading-[1.6] sm:leading-[1.75] text-[#0A2540] dark:text-white tracking-wide">
-                              {formatLIAMessage(msg.content)}
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                  ul: ({ children }) => <ul className="my-2 pl-5 list-disc">{children}</ul>,
+                                  li: ({ children }) => <li className="mb-1">{children}</li>,
+                                }}
+                              >
+                                {msg.content}
+                              </ReactMarkdown>
                             </div>
                           ) : (
                             <p className="font-body text-[14px] sm:text-[16px] leading-[1.6] sm:leading-[1.75] font-medium whitespace-pre-wrap text-white tracking-wide">{msg.content}</p>

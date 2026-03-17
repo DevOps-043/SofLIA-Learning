@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useRouter } from 'next/navigation';
 import { useTourProgress } from './useTourProgress';
-import { businessUserJoyrideSteps, DASHBOARD_TOUR_ID } from '../config/business-user-joyride-steps.tsx';
+import { businessUserJoyrideSteps, DASHBOARD_TOUR_ID } from '../config/business-user-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourRestart } from '@/core/contexts/TourRestartContext';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;
@@ -18,6 +19,7 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
   const { shouldShowTour, isLoading, startTour, completeTour, skipTour } = useTourProgress(DASHBOARD_TOUR_ID);
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const { setRestart } = useTourRestart();
 
   // Auto-start tour when conditions are met
   useEffect(() => {
@@ -83,6 +85,13 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
     setRun(true);
   }, []);
 
+  // Registrar en el contexto global para que el botón flotante pueda dispararlo.
+  // Se limpia al desmontar el componente (al salir de la página).
+  useEffect(() => {
+    setRestart(manualStartTour, 'Reiniciar tutorial');
+    return () => setRestart(null);
+  }, [manualStartTour, setRestart]);
+
   return {
     // Joyride props to spread
     joyrideProps: {
@@ -94,7 +103,8 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
-      disableOverlayClose: false,
+      disableOverlayClose: true,
+      disableCloseOnEsc: true,
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120, 

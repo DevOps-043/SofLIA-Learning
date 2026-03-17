@@ -129,6 +129,14 @@ export class BusinessUsersServerService {
 
       if (invError) throw invError
 
+      // Obtener uso de enlaces masivos
+      const { data: bulkLinks } = await supabase
+        .from('bulk_invite_links')
+        .select('current_uses')
+        .eq('organization_id', organizationId)
+
+      const bulkLinkUsage = bulkLinks?.reduce((sum, link) => sum + (link.current_uses || 0), 0) || 0
+
       const stats: BusinessUserStats = {
         total: (orgUsers?.length || 0) + (pendingInvitations?.length || 0),
         active: orgUsers?.filter((u: any) => u.status === 'active').length || 0,
@@ -137,7 +145,8 @@ export class BusinessUsersServerService {
         admins: (orgUsers?.filter((u: any) => u.role === 'admin' || u.role === 'owner').length || 0) + 
                 (pendingInvitations?.filter((i: any) => i.role === 'admin' || i.role === 'owner').length || 0),
         members: (orgUsers?.filter((u: any) => u.role === 'member').length || 0) + 
-                 (pendingInvitations?.filter((i: any) => i.role === 'member').length || 0)
+                 (pendingInvitations?.filter((i: any) => i.role === 'member').length || 0),
+        bulk_link_usage: bulkLinkUsage
       }
 
       return stats
@@ -440,11 +449,11 @@ export class BusinessUsersServerService {
 
       // 
       return {
-        ...orgUserData.users,
+        ...(orgUserData.users as any),
         org_role: orgUserData?.role || 'member',
         org_status: orgUserData?.status || 'active',
         joined_at: orgUserData?.joined_at
-      }
+      } as BusinessUser
     } catch (error) {
       // console.error('Error in BusinessUsersService.updateOrganizationUser:', error)
       throw error

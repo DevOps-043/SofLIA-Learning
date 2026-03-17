@@ -87,7 +87,7 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-md w-full mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center shadow-2xl"
+        className="max-w-md w-full mx-auto bg-white dark:bg-white/5 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-8 text-center shadow-2xl"
       >
         {/* Icon */}
         <motion.div
@@ -100,12 +100,12 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
         </motion.div>
 
         {/* Title */}
-        <h1 className="text-2xl font-bold text-white mb-3">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
           {isBanned ? 'Cuenta Bloqueada' : 'Cuenta Suspendida'}
         </h1>
 
         {/* Message */}
-        <p className="text-gray-300 mb-2 leading-relaxed">
+        <p className="text-gray-700 dark:text-gray-300 mb-2 leading-relaxed">
           {isBanned
             ? 'Tu cuenta ha sido bloqueada por un administrador de la plataforma.'
             : `Tu acceso a la organización ${organizationName ? `"${organizationName}"` : ''} ha sido suspendido.`
@@ -120,7 +120,7 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
           </div>
         )}
 
-        <p className="text-gray-400 text-sm mb-8">
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-8">
           {isBanned
             ? 'Si crees que esto es un error, contacta a soporte para más información.'
             : 'Si crees que esto es un error, contacta al administrador de tu organización.'
@@ -131,7 +131,7 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
         <div className="flex flex-col gap-3">
           <button
             onClick={() => setShowEmailPicker(true)}
-            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white font-medium transition-all"
+            className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/15 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white font-medium transition-all shadow-sm dark:shadow-none"
           >
             <Mail className="w-4 h-4" />
             Contactar Soporte
@@ -149,7 +149,7 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
         {/* Org indicator */}
         {organizationName && !isBanned && (
           <p className="mt-6 text-xs text-gray-500">
-            Organización: <span className="text-gray-400">{organizationName}</span>
+            Organización: <span className="text-gray-700 dark:text-gray-400">{organizationName}</span>
           </p>
         )}
       </motion.div>
@@ -169,17 +169,17 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-              className="w-full max-w-sm bg-gray-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+              className="w-full max-w-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-                <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-teal-400" />
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-white/5">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-teal-600 dark:text-teal-400" />
                   Elige tu correo
                 </h2>
                 <button
                   onClick={() => setShowEmailPicker(false)}
-                  className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -187,7 +187,7 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
 
               {/* Email Options */}
               <div className="p-4 space-y-2">
-                <p className="text-gray-400 text-sm mb-3 px-1">
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 px-1">
                   Se abrirá tu correo con un mensaje predefinido para soporte.
                 </p>
 
@@ -210,9 +210,9 @@ export function SuspendedScreen({ type, organizationName, banReason }: Suspended
               </div>
 
               {/* Footer hint */}
-              <div className="px-6 py-3 border-t border-white/5">
+              <div className="px-6 py-3 border-t border-gray-200 dark:border-white/5">
                 <p className="text-xs text-gray-500 text-center">
-                  Destinatario: <span className="text-gray-400 font-mono">{SUPPORT_EMAIL}</span>
+                  Destinatario: <span className="text-gray-700 dark:text-gray-400 font-mono">{SUPPORT_EMAIL}</span>
                 </p>
               </div>
             </motion.div>

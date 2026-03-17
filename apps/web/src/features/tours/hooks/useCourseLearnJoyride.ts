@@ -3,6 +3,7 @@ import { CallBackProps, EVENTS, STATUS, ACTIONS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { COURSE_LEARN_TOUR_ID, courseLearnJoyrideSteps } from '../config/course-learn-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourRestart } from '@/core/contexts/TourRestartContext';
 
 export const useCourseLearnJoyride = () => {
   const {
@@ -15,6 +16,7 @@ export const useCourseLearnJoyride = () => {
 
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const { setRestart } = useTourRestart();
 
   // Check if tour should run when data is loaded
   useEffect(() => {
@@ -76,11 +78,13 @@ export const useCourseLearnJoyride = () => {
   const restartTour = useCallback(() => {
     setRun(false);
     setStepIndex(0);
-    // Force restart with timeout
-    setTimeout(() => {
-      setRun(true);
-    }, 100);
+    setTimeout(() => setRun(true), 100);
   }, []);
+
+  useEffect(() => {
+    setRestart(restartTour, 'Reiniciar tutorial');
+    return () => setRestart(null);
+  }, [restartTour, setRestart]);
 
   const joyrideProps = {
     run,
@@ -91,7 +95,8 @@ export const useCourseLearnJoyride = () => {
     showProgress: true,
     showSkipButton: true,
     hideCloseButton: false,
-    disableOverlayClose: false,
+    disableOverlayClose: true,
+    disableCloseOnEsc: true,
     disableScrolling: false,
     scrollOffset: 120,
     spotlightClicks: false,

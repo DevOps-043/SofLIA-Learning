@@ -18,6 +18,7 @@ import {
   PartyPopper
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { SocialLoginButtons } from '@/features/auth/components/SocialLoginButtons/SocialLoginButtons';
 
 // ============================================
 // TYPES
@@ -37,6 +38,8 @@ interface OrganizationData {
   logoUrl: string | null;
   primaryColor: string | null;
   accentColor: string | null;
+  googleLoginEnabled?: boolean;
+  microsoftLoginEnabled?: boolean;
 }
 
 interface InviteResponse {
@@ -131,10 +134,15 @@ export default function InvitePage() {
     if (!user?.id || !token) return;
     setAccepting(true);
     try {
+      // SECURITY: El servidor verifica la sesión activa por sí mismo.
+      // Solo enviamos userId como dato informativo; el servidor lo valida
+      // contra su propia sesión y rechaza si no coincide.
       const response = await fetch(`/api/invite/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.id }),
+        // Asegurar que las cookies de sesión se envíen al servidor
+        credentials: 'same-origin',
       });
       const data = await response.json();
       if (data.success) {
@@ -381,6 +389,17 @@ export default function InvitePage() {
                     <LogIn className="w-5 h-5 text-gray-400" />
                     Ya tengo cuenta
                   </button>
+
+                  {/* Social login buttons */}
+                  {organization && (organization.googleLoginEnabled || organization.microsoftLoginEnabled) && (
+                    <SocialLoginButtons
+                      googleEnabled={organization.googleLoginEnabled}
+                      microsoftEnabled={organization.microsoftLoginEnabled}
+                      organizationSlug={organization.slug}
+                      organizationId={organization.id}
+                      bulkInviteToken={token}
+                    />
+                  )}
                 </>
               )}
             </div>

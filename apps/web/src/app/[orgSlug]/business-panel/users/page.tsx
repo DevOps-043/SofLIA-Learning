@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -68,13 +68,15 @@ interface StatCardProps {
   delay: number
   trend?: number
   isDark?: boolean
+  onClick?: () => void
 }
 
-function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark }: StatCardProps) {
+function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark, onClick }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
+      onClick={onClick}
       transition={{
         delay: delay * 0.1,
         duration: 0.6,
@@ -88,7 +90,7 @@ function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark }: St
         transition: { duration: 0.3, type: "spring", stiffness: 300 }
       }}
       className="relative group overflow-hidden rounded-2xl cursor-pointer"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       {/* Animated Border Glow */}
       <motion.div
@@ -244,7 +246,7 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
         transition: { duration: 0.25 }
       }}
       className="relative group overflow-hidden rounded-2xl"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
@@ -380,9 +382,10 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
           <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start">
             {user.org_status === 'invited' && onResend && (
               <button
-                onClick={onResend}
-                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+                onClick={(e) => { e.stopPropagation(); onResend?.() }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border border-amber-500/20 flex items-center gap-1.5 font-bold"
               >
+                <Mail className="w-3.5 h-3.5" />
                 Reenviar
               </button>
             )}
@@ -402,6 +405,18 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
                 {t('users.card.activate')}
               </button>
             )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const tab = user.org_status === 'invited' ? 'invitations' : 'users';
+                // Encontrar el contenedor o disparar un evento si es necesario, 
+                // pero por ahora simplemente cambiaremos la pestaña si estamos en el mismo componente
+                window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }));
+              }}
+              className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20 font-bold"
+            >
+              Gestionar
+            </button>
           </div>
         </div>
       </div>
@@ -441,7 +456,7 @@ function InvitationCard({ invitation, index, primaryColor, onResend, onRevoke }:
       transition={{ delay: index * 0.05 }}
       whileHover={{ y: -4 }}
       className="relative overflow-hidden rounded-2xl p-6 border border-white/10"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       <div className="flex items-start justify-between gap-4 mb-4">
         <div className="flex items-center gap-3 min-w-0">
@@ -514,7 +529,7 @@ function InvitationListRow({ invitation, index, primaryColor, onResend, onRevoke
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.02 }}
       className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 flex-shrink-0">
         <Mail className="w-5 h-5 opacity-60" style={{ color: primaryColor }} />
@@ -570,7 +585,7 @@ function EmptyState({ onAddClick, primaryColor, secondaryColor }: { onAddClick: 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative overflow-hidden rounded-3xl p-12 text-center"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
@@ -747,7 +762,7 @@ function InviteLinkRow({ link, index, primaryColor, onToggleStatus, onDelete }: 
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.02 }}
       className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 flex-shrink-0">
         <Link2 className="w-5 h-5 opacity-60" style={{ color: primaryColor }} />
@@ -852,7 +867,7 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.02 }}
       className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       {/* Avatar */}
       {user.profile_picture_url ? (
@@ -927,26 +942,41 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <button onClick={onStats} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`} title="Ver estadísticas">
-          <BarChart3 className="w-4 h-4 text-blue-400" />
-        </button>
-        <button onClick={onEdit} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Editar">
-          <Edit className="w-4 h-4 opacity-70" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }} />
-        </button>
-        <button onClick={onDelete} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/20' : 'hover:bg-red-500/10'}`} title="Eliminar">
-          <Trash className="w-4 h-4 text-red-400" />
-        </button>
-        {user.org_status === 'invited' && onResend && (
-          <button onClick={onResend} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-amber-500/20' : 'hover:bg-amber-500/10'}`} title="Reenviar">
-            <Mail className="w-4 h-4 text-amber-400" />
+        {/* Quick Actions */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          {user.org_status === 'invited' && onResend && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onResend() }}
+              className={`p-1.5 rounded-lg transition-colors ${isDark ? 'bg-amber-500/10 hover:bg-amber-500/20' : 'bg-amber-500/5 hover:bg-amber-500/10'} border border-amber-500/20`}
+              title="Reenviar Invitación"
+            >
+              <Mail className="w-4 h-4 text-amber-500" />
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const tab = user.org_status === 'invited' ? 'invitations' : 'users';
+              window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }));
+            }}
+            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`}
+            title="Gestionar"
+          >
+            <ChevronRight className="w-4 h-4 text-blue-400" />
           </button>
-        )}
-      </div>
-    </motion.div>
-  )
-}
+          <button onClick={onStats} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`} title="Ver estadísticas">
+            <BarChart3 className="w-4 h-4 text-blue-400" />
+          </button>
+          <button onClick={onEdit} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Editar">
+            <Edit className="w-4 h-4 opacity-70" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }} />
+          </button>
+          <button onClick={onDelete} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/20' : 'hover:bg-red-500/10'}`} title="Eliminar">
+            <Trash className="w-4 h-4 text-red-400" />
+          </button>
+        </div>
+      </motion.div>
+    )
+  }
 
 // ============================================
 // PÁGINA PRINCIPAL: Users Management
@@ -954,6 +984,8 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
 export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
   const { orgSlug } = useParams<{ orgSlug: string }>()
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab') as 'users' | 'invitations' | 'links'
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
   const { 
@@ -1105,8 +1137,28 @@ export default function BusinessPanelUsersPage() {
   }
 
   // View mode and Tabs state
-  const [activeTab, setActiveTab] = useState<'users' | 'invitations' | 'links'>('users')
+  const [activeTab, setActiveTab] = useState<'users' | 'invitations' | 'links'>(initialTab || 'users')
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
+
+  // Effect to sync tab from URL
+  useEffect(() => {
+    if (initialTab && ['users', 'invitations', 'links'].includes(initialTab)) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab])
+
+  // Effect to handle custom tab changes
+  useEffect(() => {
+    const handleTabChange = (e: any) => {
+      if (e.detail && ['users', 'invitations', 'links'].includes(e.detail)) {
+        setActiveTab(e.detail)
+        // Scroll to top if needed or just switch
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+    window.addEventListener('change-user-tab', handleTabChange)
+    return () => window.removeEventListener('change-user-tab', handleTabChange)
+  }, [])
   
   // Search and filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -1143,10 +1195,6 @@ export default function BusinessPanelUsersPage() {
   // Count active filters
   const activeFiltersCount = [filterRole, filterStatus, filterRegion, filterZone, filterTeam].filter(f => f !== 'all').length
 
-  // Theme Colors
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const secondaryColor = panelStyles?.secondary_button_color || '#1E2329' // Usando fondo secundario oscuro como secundario default
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
 
   const filteredUsers = users.filter(user => {
     const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
@@ -1180,7 +1228,17 @@ export default function BusinessPanelUsersPage() {
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
 
-  const handleSaveNewUser = async (userData: any) => { await createUser(userData); refetch() }
+  const themeColors = useMemo(() => ({
+    text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
+    secondaryText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
+    cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
+    borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
+    primary: panelStyles?.primary_button_color || '#0A2540',
+    secondary: panelStyles?.secondary_button_color || '#1E2329',
+    accent: panelStyles?.accent_color || '#00D4B3'
+  }), [panelStyles, isDark])
+
+  const { primary: primaryColor, secondary: secondaryColor, accent: accentColor } = themeColors
 
   // Loading State
   if (isLoading) {
@@ -1259,7 +1317,7 @@ export default function BusinessPanelUsersPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  style={{ color: '#FFFFFF' }}
+                  style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
                 >
                   {t('users.title')}
                 </motion.h1>
@@ -1269,7 +1327,7 @@ export default function BusinessPanelUsersPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                  style={{ color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.8)' }}
                 >
                   {t('users.subtitle')}
                 </motion.p>
@@ -1292,9 +1350,13 @@ export default function BusinessPanelUsersPage() {
                   }
                 }}
 
-                className="px-4 py-2.5 rounded-xl font-medium text-sm border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2"
-                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}
-                whileHover={{ scale: 1.02 }}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+                style={{ 
+                  color: isDark ? '#FFFFFF' : '#0F172A', 
+                  borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)'
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Download className="w-4 h-4" />
@@ -1306,9 +1368,13 @@ export default function BusinessPanelUsersPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.45 }}
                 onClick={() => setIsImportModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl font-medium text-sm border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2"
-                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}
-                whileHover={{ scale: 1.02 }}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+                style={{ 
+                  color: isDark ? '#FFFFFF' : '#0F172A', 
+                  borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)'
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Upload className="w-4 h-4" />
@@ -1318,11 +1384,15 @@ export default function BusinessPanelUsersPage() {
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.45 }}
                 onClick={() => setIsUnifiedInviteModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl font-medium text-sm border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2"
-                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}
-                whileHover={{ scale: 1.02 }}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+                style={{ 
+                  color: isDark ? '#FFFFFF' : '#0F172A', 
+                  borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)'
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Mail className="w-4 h-4" />
@@ -1394,6 +1464,7 @@ export default function BusinessPanelUsersPage() {
           gradient="linear-gradient(135deg, #F59E0B, #D97706)"
           delay={2}
           isDark={isDark}
+          onClick={() => setActiveTab('invitations')}
         />
         <StatCard
           title={t('users.stats.admins')}

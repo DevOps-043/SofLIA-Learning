@@ -68,12 +68,23 @@ export async function middleware(request: NextRequest) {
   
   // Actualizar sesión de Supabase
   let response = await updateSession(request);
-  
+
+  // SECURITY: Descomponer el path para detectar rutas con orgSlug dinámico.
+  // Las rutas /{orgSlug}/business-panel/* y /{orgSlug}/business-user/* NO empiezan
+  // con '/business-panel', por lo que un startsWith simple las deja sin protección.
+  // Ejemplo: '/board-ready/business-panel/dashboard' → pathParts = ['board-ready', 'business-panel', 'dashboard']
+  const pathParts = pathname.split('/').filter(Boolean);
+  const isOrgScopedBizPanel = pathParts.length >= 2 && pathParts[1] === 'business-panel';
+  const isOrgScopedBizUser  = pathParts.length >= 2 && pathParts[1] === 'business-user';
+
   // Rutas protegidas por rol
-  const isAdminRoute = ROLE_ROUTES.admin.some(route => pathname.startsWith(route));
+  const isAdminRoute      = ROLE_ROUTES.admin.some(route => pathname.startsWith(route));
   const isInstructorRoute = ROLE_ROUTES.instructor.some(route => pathname.startsWith(route));
-  const isUserRoute = ROLE_ROUTES.user.some(route => pathname.startsWith(route));
-  const isBusinessRoute = ROLE_ROUTES.business.some(route => pathname.startsWith(route));
+  const isUserRoute       = ROLE_ROUTES.user.some(route => pathname.startsWith(route));
+  // Las rutas de negocio incluyen: /business-panel (legacy) + /{orgSlug}/business-panel/* y /{orgSlug}/business-user/*
+  const isBusinessRoute   = ROLE_ROUTES.business.some(route => pathname.startsWith(route))
+                            || isOrgScopedBizPanel
+                            || isOrgScopedBizUser;
   const authRoutes = ['/auth'];
 
   // Verificar si es una ruta protegida
@@ -162,7 +173,54 @@ export async function middleware(request: NextRequest) {
       // console.log('❌ Acceso denegado por validación de rol');
       return roleValidationResponse;
     }
-    
+
+    // SECURITY: Verificar suspensión del usuario en rutas org-scoped.
+    // Si el usuario está suspendido en la organización de la URL, redirigir a /suspended.
+    // Esto cubre /{orgSlug}/business-panel/* y /{orgSlug}/business-user/*
+    if ((isOrgScopedBizPanel || isOrgScopedBizUser) && !pathname.includes('/suspended')) {
+      try {
+        const { createServerClient } = await import('@supabase/ssr');
+        const supabaseForSuspension = createServerClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            cookies: {
+              getAll() { return request.cookies.getAll(); },
+              setAll() {},
+            },
+          }
+        );
+
+        const orgSlug = pathParts[0];
+        const sessionCookieVal = request.cookies.get('aprende-y-aplica-session')?.value;
+
+        if (sessionCookieVal) {
+          const { data: sessionRow } = await supabaseForSuspension
+            .from('user_session')
+            .select('user_id')
+            .eq('jwt_id', sessionCookieVal)
+            .eq('revoked', false)
+            .gt('expires_at', new Date().toISOString())
+            .single();
+
+          if (sessionRow?.user_id) {
+            const { data: membership } = await supabaseForSuspension
+              .from('organization_users')
+              .select('status, organizations!inner(slug)')
+              .eq('user_id', sessionRow.user_id)
+              .eq('organizations.slug', orgSlug)
+              .single();
+
+            if (membership?.status === 'suspended') {
+              return NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url));
+            }
+          }
+        }
+      } catch {
+        // En caso de error, continuar — la API también verifica suspensión
+      }
+    }
+
     // console.log('✅ Validación de rol exitosa');
   }
   

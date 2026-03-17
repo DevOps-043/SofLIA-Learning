@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -779,7 +779,7 @@ export function ContextualVoiceGuide({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-gradient-to-br from-black/70 via-black/80 to-black/70 backdrop-blur-md z-[9998]"
-            onClick={handleSkip}
+            // onClick removido para que solo se cierre con botones
           />
 
           {/* Contenedor principal sin scroll */}
