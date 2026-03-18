@@ -23,6 +23,7 @@ import { useThemeStore } from '@/core/stores/themeStore'
 // Removed old tour hook
 import { useBusinessUserJoyride } from '@/features/tours/hooks/useBusinessUserJoyride'
 import Joyride from 'react-joyride'
+import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 
 import { useTranslation } from 'react-i18next'
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
@@ -92,7 +93,10 @@ export default function BusinessUserDashboardPage() {
   const cssVariables = generateCSSVariables(userDashboardStyles)
 
   // Tour inicializado
-  const { joyrideProps, startTour: restartTour } = useBusinessUserJoyride()
+  const { joyrideProps, startTour: restartTour, showVideoIntro, handleVideoComplete } = useBusinessUserJoyride({
+    // Evitamos mostrar tours y videos a superadmins
+    enabled: orgRole !== null && orgRole !== 'superadmin' 
+  })
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => setIsMounted(true), [])
 
@@ -761,6 +765,14 @@ export default function BusinessUserDashboardPage() {
           </section>
         </div>
       </main>
+
+      {/* Videos Introductorios */}
+      {showVideoIntro && (
+        <OnboardingVideoPlayer
+          videos={[`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`]}
+          onComplete={handleVideoComplete}
+        />
+      )}
 
       {/* Tour de bienvenida Joyride */}
       {isMounted && <Joyride {...joyrideProps} />}

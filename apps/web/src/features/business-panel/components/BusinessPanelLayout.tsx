@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, useContext } from 'react'
 import { useRouter } from 'next/navigation'
 import Joyride from 'react-joyride'
 import { useAuth } from '../../auth/hooks/useAuth'
@@ -11,9 +11,10 @@ import { OrganizationStylesProvider, useOrganizationStylesContext } from '../con
 import { generateCSSVariables, getBackgroundStyle } from '../utils/styles'
 import { LiaSidePanel } from '@/core/components/LiaSidePanel'
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
-import { useLiaPanel } from '@/core/contexts/LiaPanelContext'
+import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
 import { useBusinessPanelJoyride } from '@/features/tours/hooks/useBusinessPanelJoyride'
 import { BusinessPanelTourProvider } from '../contexts/BusinessPanelTourContext'
+import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 
 
 interface BusinessPanelLayoutProps {
@@ -26,7 +27,10 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   // Usar effectiveStyles para soportar modo claro/oscuro
   const { styles, effectiveStyles, loading: stylesLoading } = useOrganizationStylesContext()
   // Use the new Joyride hook
-  const { joyrideProps, startTour, resetTour, run } = useBusinessPanelJoyride()
+  const normalizedUserRole = user?.cargo_rol?.toLowerCase().trim()
+  const { joyrideProps, startTour, resetTour, run, showVideoIntro, handleVideoComplete } = useBusinessPanelJoyride({
+    enabled: normalizedUserRole !== 'superadmin' && normalizedUserRole !== 'super admin'
+  })
   // Track if component has mounted (for client-only rendering)
   const [isMounted, setIsMounted] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -51,14 +55,9 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   // Obtener estado del panel de LIA para desplazar contenido
 
   // Obtener estado del panel de LIA para desplazar contenido (solo el main, no el sidebar)
-  let isLiaPanelOpen = false;
-  let liaPanel = null;
-  try {
-    liaPanel = useLiaPanel();
-    isLiaPanelOpen = liaPanel.isOpen;
-  } catch {
-    // Si no está dentro del LiaPanelProvider, ignorar
-  }
+  // Reemplazamos el try/catch ilegal por useContext directo para evitar violar Rules of Hooks
+  const liaPanel = useContext(LiaPanelContext) ?? null;
+  const isLiaPanelOpen = liaPanel?.isOpen ?? false;
 
   // Refs para rastrear el estado previo y evitar loops
   const prevLiaPanelOpen = useRef(isLiaPanelOpen);
@@ -200,6 +199,14 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   return (
     <BusinessPanelTourProvider startTour={startTour} resetTour={resetTour} isRunning={run}>
     <>
+      {/* Intro Videos */}
+      {showVideoIntro && (
+        <OnboardingVideoPlayer
+          videos={[`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`]}
+          onComplete={handleVideoComplete}
+        />
+      )}
+      
       {/* Joyride Tour Component - Only render on client */}
       {isMounted && <Joyride {...joyrideProps} />}
       

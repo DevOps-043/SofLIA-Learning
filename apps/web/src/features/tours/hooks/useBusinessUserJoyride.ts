@@ -18,6 +18,7 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
   
   const { shouldShowTour, isLoading, startTour, completeTour, skipTour } = useTourProgress(DASHBOARD_TOUR_ID);
   const [run, setRun] = useState(false);
+  const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const { setRestart } = useTourRestart();
 
@@ -27,14 +28,19 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
       return;
     }
 
-    // Wait for the page to render before starting
+    // Wait for the page to render before starting video intro
     const timer = setTimeout(() => {
-      startTour().catch(err => console.error('[useBusinessUserJoyride] DB start failed', err));
-      setRun(true);
+      setShowVideoIntro(true);
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [enabled, isLoading, shouldShowTour, startTour]);
+  }, [enabled, isLoading, shouldShowTour]);
+
+  const handleVideoComplete = useCallback(() => {
+    setShowVideoIntro(false);
+    startTour().catch(err => console.error('[useBusinessUserJoyride] DB start failed', err));
+    setRun(true);
+  }, [startTour]);
 
   // Handle Joyride callbacks
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
@@ -148,5 +154,7 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
     stepIndex,
     resetTour,
     startTour: manualStartTour,
+    showVideoIntro,
+    handleVideoComplete,
   };
 }
