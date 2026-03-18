@@ -393,12 +393,12 @@ export class AdminLessonsService {
     const supabase = await createClient()
 
     try {
-      // 1. First, update all to negative values to avoid UNIQUE constraint violations on `lesson_order_index`
+      // 1. First, update all to shifted positive values (e.g. +10000) to avoid UNIQUE and CHECK(>0) constraint violations on `lesson_order_index`
       const tempUpdates = lessons.map((lesson) => {
         return supabase
           .from('course_lessons')
           .update({
-            lesson_order_index: -lesson.lesson_order_index,
+            lesson_order_index: lesson.lesson_order_index + 10000,
             updated_at: new Date().toISOString()
           })
           .eq('lesson_id', lesson.lesson_id)
