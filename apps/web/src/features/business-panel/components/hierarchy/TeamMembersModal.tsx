@@ -42,7 +42,7 @@ export function TeamMembersModal({
   const { orgSlug } = useParams<{ orgSlug: string }>()
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, isLoading: loadingUsers, refetch: refetchUsers } = useBusinessUsers(orgSlug)
+  const { users, isLoading: loadingUsers, syncOrgData: refetchUsers } = useBusinessUsers(orgSlug)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())

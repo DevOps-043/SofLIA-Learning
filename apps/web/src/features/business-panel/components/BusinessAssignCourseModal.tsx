@@ -47,7 +47,7 @@ export function BusinessAssignCourseModal({
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, isLoading: loadingUsers, refetch: refetchUsers } = useBusinessUsers(orgSlug)
+  const { users, isLoading: loadingUsers, syncOrgData: refetchUsers } = useBusinessUsers(orgSlug)
 
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
   const [dueDate, setDueDate] = useState<string>('')
