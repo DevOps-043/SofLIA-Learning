@@ -237,7 +237,7 @@ export class AdminLessonsService {
 
       // Traducir automáticamente la lección a inglés y portugués
       try {
-        const { translateLessonOnCreate } = await import('@/core/services/courseTranslation.service')
+        const { translateLessonOnCreate } = await import('../../../core/services/courseTranslation.service')
         await translateLessonOnCreate(
           createdLesson.lesson_id,
           {
@@ -318,7 +318,6 @@ export class AdminLessonsService {
 
       const { data, error } = await supabase
         .from('course_lessons')
-        // @ts-expect-error - Supabase type inference issue, updateData is valid
         .update(updateData)
         .eq('lesson_id', lessonId)
         .select()
@@ -394,24 +393,42 @@ export class AdminLessonsService {
     const supabase = await createClient()
 
     try {
-      const updates = lessons.map((lesson) => {
-        const updateData = {
-          lesson_order_index: lesson.lesson_order_index,
-          updated_at: new Date().toISOString()
-        }
+      // 1. First, update all to negative values to avoid UNIQUE constraint violations on `lesson_order_index`
+      const tempUpdates = lessons.map((lesson) => {
         return supabase
           .from('course_lessons')
-          // @ts-expect-error - Supabase type inference issue, updateData is valid
-          .update(updateData)
+          .update({
+            lesson_order_index: -lesson.lesson_order_index,
+            updated_at: new Date().toISOString()
+          })
           .eq('lesson_id', lesson.lesson_id)
       })
 
-      const results = await Promise.all(updates)
-      const errors = results.filter(r => r.error)
+      const tempResults = await Promise.all(tempUpdates)
+      const tempErrors = tempResults.filter(r => r.error)
 
-      if (errors.length > 0) {
-        // console.error('Error reordering lessons:', errors)
-        throw new Error('Error al reordenar lecciones')
+      if (tempErrors.length > 0) {
+        console.error('Error pre-reordering lessons (temp values):', tempErrors)
+        throw new Error(`Error al reordenar (fase 1): ${tempErrors[0].error?.message || 'Unknown error'}`)
+      }
+
+      // 2. Then update to final positive values
+      const finalUpdates = lessons.map((lesson) => {
+        return supabase
+          .from('course_lessons')
+          .update({
+            lesson_order_index: lesson.lesson_order_index,
+            updated_at: new Date().toISOString()
+          })
+          .eq('lesson_id', lesson.lesson_id)
+      })
+
+      const finalResults = await Promise.all(finalUpdates)
+      const finalErrors = finalResults.filter(r => r.error)
+
+      if (finalErrors.length > 0) {
+        console.error('Error reordering lessons (final values):', finalErrors)
+        throw new Error(`Error al reordenar lecciones: ${finalErrors[0].error?.message || 'Unknown error'}`)
       }
     } catch (error) {
       // console.error('Error in AdminLessonsService.reorderLessons:', error)
@@ -439,7 +456,6 @@ export class AdminLessonsService {
       }
       const { data, error } = await supabase
         .from('course_lessons')
-        // @ts-expect-error - Supabase type inference issue, updateData is valid
         .update(updateData)
         .eq('lesson_id', lessonId)
         .select()
@@ -505,7 +521,6 @@ export class AdminLessonsService {
       }
       await supabase
         .from('course_modules')
-        // @ts-expect-error - Supabase type inference issue, moduleUpdateData is valid
         .update(moduleUpdateData)
         .eq('module_id', moduleId)
 
@@ -544,7 +559,6 @@ export class AdminLessonsService {
       }
       await supabase
         .from('courses')
-        // @ts-expect-error - Supabase type inference issue, courseUpdateData is valid
         .update(courseUpdateData)
         .eq('id', courseId)
     } catch (error) {
