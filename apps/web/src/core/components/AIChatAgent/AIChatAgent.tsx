@@ -2862,7 +2862,7 @@ Fecha: ${new Date().toLocaleString()}
                         <div className="max-w-sm text-center opacity-80">
                           <div className="mx-auto mb-3 w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-transparent">
                             {/* Usa el logo/avatares reales si existen */}
-                            <img src="/Logo.png" onError={(e) => ((e.target as HTMLImageElement).src = assistantAvatar)} alt="Aprende y Aplica" className="w-full h-full object-contain" />
+                            <img src="/Logo.png" onError={(e) => ((e.target as HTMLImageElement).src = assistantAvatar)} alt="SofLIA" className="w-full h-full object-contain" />
                           </div>
                           <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1 text-base">
                             SofLIA

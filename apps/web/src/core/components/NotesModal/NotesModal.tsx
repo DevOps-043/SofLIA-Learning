@@ -20,6 +20,8 @@ import {
   AlignRight,
   ChevronDown
 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface NotesModalProps {
   isOpen: boolean;
@@ -219,7 +221,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
   // Guardar nota
   const handleSave = async () => {
-    if (!title.trim() || !content.trim()) return;
+    if (!content.trim()) return;
     
     setIsSaving(true);
     try {
@@ -236,227 +238,86 @@ export const NotesModal: React.FC<NotesModalProps> = ({
     }
   };
 
-  // Exportar a PDF usando la API nativa del navegador
+  // Exportar a PDF usando jspdf y html2canvas para descarga directa
   const handleExportPDF = async () => {
-    if (!title.trim() || !content.trim()) {
-      alert('La nota debe tener título y contenido para exportar');
+    if (!content.trim()) {
+      alert('La nota debe tener contenido para exportar');
       return;
     }
 
+    setIsSaving(true);
     try {
-      // Crear una nueva ventana para imprimir
-      const printWindow = window.open('', '_blank');
-      if (!printWindow) {
-        alert('No se pudo abrir la ventana de impresión. Verifica que los pop-ups estén habilitados.');
-        return;
-      }
-
-      // Crear el contenido HTML para imprimir
-      const printContent = `
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${title}</title>
-          <style>
-            @media print {
-              body { margin: 0; padding: 0; }
-              .no-print { display: none; }
-            }
-            
-            body {
-              font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-              max-width: 800px;
-              margin: 0 auto;
-              padding: 40px;
-              background: white;
-              color: #1f2937;
-              line-height: 1.6;
-            }
-            
-            h1 {
-              font-size: 2rem;
-              font-weight: 700;
-              margin: 0 0 1rem 0;
-              color: #1f2937;
-              border-bottom: 2px solid #3b82f6;
-              padding-bottom: 0.5rem;
-            }
-            
-            h2 {
-              font-size: 1.5rem;
-              font-weight: 600;
-              margin: 0.875rem 0 0.5rem 0;
-              color: #1f2937;
-            }
-            
-            h3 {
-              font-size: 1.25rem;
-              font-weight: 600;
-              margin: 0.75rem 0 0.5rem 0;
-              color: #1f2937;
-            }
-            
-            ul, ol {
-              margin: 0.5rem 0;
-              padding-left: 1.5rem;
-              list-style-position: outside;
-            }
-            
-            ul {
-              list-style-type: disc;
-            }
-            
-            ol {
-              list-style-type: decimal;
-            }
-            
-            ul ul {
-              list-style-type: circle;
-              margin-top: 0.25rem;
-              margin-bottom: 0.25rem;
-            }
-            
-            ul ul ul {
-              list-style-type: square;
-            }
-            
-            ol ol {
-              list-style-type: lower-alpha;
-            }
-            
-            ol ol ol {
-              list-style-type: lower-roman;
-            }
-            
-            li {
-              margin: 0.25rem 0;
-              padding-left: 0.25rem;
-              display: list-item;
-            }
-            
-            p {
-              margin: 0.5rem 0;
-            }
-            
-            strong {
-              font-weight: 700;
-            }
-            
-            em {
-              font-style: italic;
-            }
-            
-            u {
-              text-decoration: underline;
-            }
-            
-            a {
-              color: #3b82f6;
-              text-decoration: underline;
-            }
-            
-            .tags {
-              margin-top: 2rem;
-              padding-top: 1rem;
-              border-top: 1px solid #e5e7eb;
-            }
-            
-            .tags p {
-              margin: 0 0 0.5rem 0;
-              font-weight: 600;
-              color: #6b7280;
-            }
-            
-            .tag-list {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 0.5rem;
-            }
-            
-            .tag {
-              background: #3b82f6;
-              color: white;
-              padding: 0.25rem 0.75rem;
-              border-radius: 1rem;
-              font-size: 0.875rem;
-              font-weight: 500;
-            }
-            
-            .footer {
-              margin-top: 2rem;
-              padding-top: 1rem;
-              border-top: 1px solid #e5e7eb;
-              text-align: center;
-              color: #6b7280;
-              font-size: 0.875rem;
-            }
-            
-            .print-button {
-              position: fixed;
-              top: 20px;
-              right: 20px;
-              background: #3b82f6;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-weight: 600;
-              z-index: 1000;
-            }
-            
-            .print-button:hover {
-              background: #2563eb;
-            }
-          </style>
-        </head>
-        <body>
-          <button class="print-button no-print" onclick="window.print()">Imprimir / Guardar PDF</button>
-          
-          <h1>${title}</h1>
-          
-          <div class="content">
-            ${content}
-          </div>
-          
-          ${tags.length > 0 ? `
-            <div class="tags">
-              <p>Etiquetas:</p>
-              <div class="tag-list">
-                ${tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
-              </div>
+      // Crear un elemento temporal para el renderizado del PDF
+      const element = document.createElement('div');
+      element.style.position = 'absolute';
+      element.style.left = '-9999px';
+      element.style.top = '0';
+      element.style.width = '800px';
+      element.style.padding = '40px';
+      element.style.backgroundColor = 'white';
+      element.style.color = '#1f2937';
+      element.style.fontFamily = "'Inter', sans-serif";
+      
+      // Contenido del PDF
+      element.innerHTML = `
+        <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 20px; color: #111827; border-bottom: 2px solid #00D4B3; padding-bottom: 10px;">
+          ${title || 'Nota sin título'}
+        </h1>
+        <div class="pdf-content" style="line-height: 1.6; font-size: 14px;">
+          ${content}
+        </div>
+        ${tags.length > 0 ? `
+          <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+            <p style="font-weight: 600; color: #6b7280; margin-bottom: 10px; font-size: 12px;">Etiquetas:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${tags.map(tag => `
+                <span style="background-color: #f3f4f6; color: #00D4B3; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 500; border: 1px solid #e5e7eb;">
+                  ${tag}
+                </span>
+              `).join('')}
             </div>
-          ` : ''}
-          
-          <div class="footer">
-            Generado el ${new Date().toLocaleDateString('es-ES', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
           </div>
-        </body>
-        </html>
+        ` : ''}
+        <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #f3f4f6; padding-top: 10px;">
+          Generado por SofLIA el ${new Date().toLocaleDateString('es-ES')}
+        </div>
       `;
 
-      // Escribir el contenido en la nueva ventana
-      printWindow.document.write(printContent);
-      printWindow.document.close();
+      document.body.appendChild(element);
 
-      // Esperar a que se cargue el contenido y luego mostrar el diálogo de impresión
-      printWindow.onload = () => {
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
-      };
+      // Capturar el elemento con html2canvas
+      const canvas = await html2canvas(element, {
+        scale: 2, // Mejor calidad
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
 
+      const imgData = canvas.toDataURL('image/png');
+      
+      // Crear PDF con jspdf
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      
+      // Nombre del archivo basado en el título
+      const fileName = `${(title || 'nota').toLowerCase().replace(/\s+/g, '-')}-${new Date().getTime()}.pdf`;
+      pdf.save(fileName);
+
+      document.body.removeChild(element);
     } catch (error) {
-      // console.error('Error al generar PDF:', error);
-      alert('Error al generar el PDF. Inténtalo de nuevo.');
+      console.error('Error al generar PDF:', error);
+      alert('Hubo un error al generar el PDF. Por favor, inténtalo de nuevo.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -518,9 +379,8 @@ export const NotesModal: React.FC<NotesModalProps> = ({
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
-                    {isEditing ? 'Editar Nota' : 'Nueva Nota'}
+                    {isEditing ? 'Editar Nota' : 'Estudio > Notas'}
                   </h2>
-                  <p className="text-xs text-gray-500 dark:text-white/40 uppercase tracking-wider font-medium">Studio &gt; Notas</p>
                 </div>
               </div>
               <button
@@ -681,7 +541,7 @@ export const NotesModal: React.FC<NotesModalProps> = ({
 
                 <button
                   onClick={handleSave}
-                  disabled={isSaving || !title.trim() || !content.trim()}
+                  disabled={isSaving || !content.trim()}
                   className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all shadow-md"
                 >
                   <Save className="w-4 h-4" />

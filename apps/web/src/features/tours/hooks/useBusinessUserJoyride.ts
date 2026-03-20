@@ -88,7 +88,8 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
   // Manual start tour
   const manualStartTour = useCallback(() => {
     setStepIndex(0);
-    setRun(true);
+    setRun(false); // Reset joyride run state
+    setShowVideoIntro(true);
   }, []);
 
   // Registrar en el contexto global para que el botón flotante pueda dispararlo.

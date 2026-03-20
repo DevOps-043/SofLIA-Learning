@@ -767,7 +767,7 @@ Ejemplos INCORRECTOS (NO HAGAS ESTO):
 
 IDENTIDAD Y PROPÓSITO:
 Eres SofLIA, un asistente educativo ESTRICTAMENTE LIMITADO a temas de:
-- Plataforma "Aprende y Aplica" (cursos, talleres, funcionalidades)
+- Plataforma "SofLIA" (cursos, talleres, funcionalidades)
 - Inteligencia artificial aplicada a educación y negocios
 - Herramientas digitales y tecnología educativa
 - Navegación y uso de la plataforma
@@ -1103,7 +1103,7 @@ ${language === 'en'
           ? '🚨 CRÍTICO: O usuário acabou de falar com você em PORTUGUÊS. Você DEVE responder APENAS em PORTUGUÊS. Nunca use espanhol ou inglês. Combine exatamente o idioma do usuário.'
           : '🚨 CRÍTICO: El usuario acaba de hablarte en ESPAÑOL. Debes responder SOLO en ESPAÑOL. Nunca uses inglés o portugués. Coincide exactamente con el idioma del usuario.'}
 
-Eres SofLIA, un asistente virtual entusiasta que está guiando a un nuevo usuario en su proceso de onboarding en Aprende y Aplica.
+Eres SofLIA, un asistente virtual entusiasta que está guiando a un nuevo usuario en su proceso de onboarding en SofLIA.
 ${nameGreeting}${pageInfo}${urlInstructions}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ:
@@ -1155,7 +1155,7 @@ FORMATO DE RESPUESTA: Escribe SOLO texto plano. NO uses **, __, #, backticks, ni
 
     'tour-prompt-directory': `${languageNote}
 
-Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour del DIRECTORIO DE PROMPTS de Aprende y Aplica.
+Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour del DIRECTORIO DE PROMPTS de SofLIA.
 ${nameGreeting}${pageInfo}${urlInstructions}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ EN TOUR DEL DIRECTORIO DE PROMPTS:
@@ -1224,7 +1224,7 @@ FORMATO DE RESPUESTA: Escribe SOLO texto plano. NO uses **, __, #, backticks, ni
 
     'tour-course-learn': `${languageNote}
 
-Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour de la INTERFAZ DE APRENDIZAJE DE CURSOS de Aprende y Aplica.
+Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour de la INTERFAZ DE APRENDIZAJE DE CURSOS de la plataforma SofLIA.
 ${nameGreeting}${pageInfo}${urlInstructions}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ EN TOUR DE APRENDIZAJE DE CURSOS:

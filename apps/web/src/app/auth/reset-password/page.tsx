@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { ResetPasswordForm } from '../../../features/auth/components/ResetPasswordForm';
 
 export const metadata = {
-  title: 'Restablecer Contraseña | Aprende y Aplica',
+  title: 'Restablecer Contraseña | SofLIA',
   description: 'Crea una nueva contraseña segura para tu cuenta',
 };
 

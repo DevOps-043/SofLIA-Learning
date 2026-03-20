@@ -13,7 +13,7 @@
   },
   "header": {
     "backButton": "Go back",
-    "workshop": "Aprende y Aplica Workshop",
+    "workshop": "SofLIA Workshop",
     "progress": "Progress"
   },
   "leftPanel": {
@@ -63,15 +63,15 @@
     "completeCourse": "Complete Course"
   },
   "lia": {
-    "title": "Lia",
+    "title": "SofLIA",
     "subtitle": "Your personalized tutor",
     "placeholder": "Type your message here...",
     "send": "Send",
     "newConversation": "New conversation",
     "viewHistory": "View history",
     "resetConversation": "Reset conversation",
-    "expand": "Expand Lia",
-    "minimize": "Minimize Lia",
+    "expand": "Expand SofLIA",
+    "minimize": "Minimize SofLIA",
     "moreOptions": "More options",
     "copyMessage": "Copy message",
     "createNote": "Create note",
@@ -168,8 +168,8 @@
     },
     "close": "Close",
     "resetConversation": {
-      "title": "Reset conversation with Lia?",
-      "message": "Do you want to clear the conversation history and start over? The chat will reset and you'll start a new conversation with Lia.",
+      "title": "Reset conversation with SofLIA?",
+      "message": "Do you want to clear the conversation history and start over? The chat will reset and you'll start a new conversation with SofLIA.",
       "cancel": "Cancel",
       "confirm": "Reset conversation"
     },
@@ -264,9 +264,9 @@
         "speech": "Complete the activities to put what you've learned into practice. They are essential for your progress and certification."
       },
       "lia": {
-        "title": "LIA is here to help you",
-        "description": "If you have questions about the content, activities or any topic in the course, ask LIA. She will help you at all times.",
-        "speech": "If you have questions about the content, activities or any topic in the course, ask LIA. She will help you at all times."
+        "title": "SofLIA is here to help you",
+        "description": "If you have questions about the content, activities or any topic in the course, ask SofLIA. She will help you at all times.",
+        "speech": "If you have questions about the content, activities or any topic in the course, ask SofLIA. She will help you at all times."
       },
       "progress": {
         "title": "Progress tracking",
@@ -275,8 +275,8 @@
       },
       "ready": {
         "title": "Ready to learn!",
-        "description": "Now you're ready to begin your learning journey. Remember, LIA will always be available to help you.",
-        "speech": "Now you're ready to begin your learning journey. Remember, LIA will always be available to help you."
+        "description": "Now you're ready to begin your learning journey. Remember, SofLIA will always be available to help you.",
+        "speech": "Now you're ready to begin your learning journey. Remember, SofLIA will always be available to help you."
       }
     }
   }

@@ -84,7 +84,8 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
   // Manual start tour
   const manualStartTour = useCallback(() => {
     setStepIndex(0);
-    setRun(true);
+    setRun(false); // Reset joyride run state
+    setShowVideoIntro(true);
   }, []);
 
   useEffect(() => {

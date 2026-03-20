@@ -159,12 +159,12 @@ function LiaSidePanelContent() {
     textSecondary: isLightTheme ? '#64748B' : '#6b7280',
     inputBg: isLightTheme ? '#F1F5F9' : 'rgba(255, 255, 255, 0.05)',
     inputBorder: isLightTheme ? '#CBD5E1' : (effectiveStyles?.border_color || '#374151'),
-    accentColor: '#00D4B3', // Siempre usar Aqua para identidad de LIA
+    accentColor: '#00D4B3', // Siempre usar Aqua para identidad de SofLIA
   };
   
   const { messages, isLoading, sendMessage, clearHistory, loadConversation, currentConversationId } = useLiaGeneralChat();
   
-  // ðŸŽ™ï¸ Configuración de personalización de LIA para voz
+  // 🎤 Configuración de personalización de SofLIA para voz
   const { settings: liaSettings } = useSofLIAPersonalization();
   const isVoiceEnabled = liaSettings?.voice_enabled ?? true; // Por defecto activado
   const isDictationEnabled = liaSettings?.dictation_enabled ?? false; // Por defecto desactivado

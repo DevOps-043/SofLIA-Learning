@@ -211,7 +211,7 @@ export function ProactiveLIAAssistant({
                   </motion.div>
                   <div>
                     <h3 id="lia-proactive-title" className="font-semibold text-base leading-tight">
-                      LIA está aquí para ayudar
+                      SofLIA está aquí para ayudar
                     </h3>
                     <p id="lia-proactive-subtitle" className="text-xs font-normal">
                       Asistencia inteligente

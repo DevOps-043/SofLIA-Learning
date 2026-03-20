@@ -85,7 +85,7 @@ interface EmbeddedLiaPanelProps {
 }
 
 export function EmbeddedLiaPanel({
-  assistantName = 'LIA',
+  assistantName = 'SofLIA',
   assistantAvatar = '/lia-avatar.png',
   initialMessage = null,
   organizationColors,

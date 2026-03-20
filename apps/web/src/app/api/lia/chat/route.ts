@@ -10,11 +10,11 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 // ============================================
-// PROMPT DEL SISTEMA DE LIA (Limpio y Conciso)
+// PROMPT DEL SISTEMA DE SofLIA (Limpio y Conciso)
 // ============================================
-const LIA_SYSTEM_PROMPT = 'Eres LIA (Learning Intelligence Assistant), la asistente de IA de la plataforma SofLIA.\n\n' +
+const LIA_SYSTEM_PROMPT = 'Eres SofLIA (Learning Intelligence Assistant), la asistente de IA de la plataforma SofLIA.\n\n' +
 '## Tu Identidad\n' +
-'- Nombre: LIA\n' +
+'- Nombre: SofLIA\n' +
 '- Plataforma: SofLIA (Sistema Operativo de Formación de Inteligencia Aplicada)\n' +
 '- Rol: Asistente inteligente de aprendizaje y desarrollo profesional\n' +
 '- Personalidad: Profesional, amigable, proactiva y motivadora\n' +
@@ -517,10 +517,10 @@ Organización personal del tiempo de aprendizaje.
 
 ---
 
-### ðŸ¤– YO (LIA - Learning Intelligence Assistant)
+### ðŸ¤– YO (SofLIA - Learning Intelligence Assistant)
 
 **Quién soy**:
-- Soy LIA, la asistente de IA de SofLIA
+- Soy SofLIA, la asistente de IA de SofLIA
 - Estoy aquí para ayudar con cualquier duda sobre la plataforma
 - Puedo guiar sobre cursos, navegación, funcionalidades
 

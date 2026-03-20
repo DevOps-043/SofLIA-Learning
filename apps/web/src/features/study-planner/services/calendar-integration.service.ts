@@ -291,7 +291,7 @@ export class CalendarIntegrationService {
           },
           body: JSON.stringify({
             summary: PLATFORM_CALENDAR_NAME,
-            description: 'Calendario de sesiones de estudio creado por Aprende y Aplica',
+            description: 'Calendario de sesiones de estudio creado por SofLIA',
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           }),
         }

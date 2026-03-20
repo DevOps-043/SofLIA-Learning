@@ -65,8 +65,8 @@ export const businessUserJoyrideSteps: Step[] = [
   },
   {
     target: '#tour-lia-button',
-    title: '¡Tu Asistente LIA!',
-    content: 'LIA es lo más importante de tu experiencia. Está aquí 24/7 para resolver dudas, analizar tu progreso y recibir feedback.',
+    title: '¡Tu Asistente SofLIA!',
+    content: 'SofLIA es lo más importante de tu experiencia. Está aquí 24/7 para resolver dudas, analizar tu progreso y recibir feedback.',
     placement: 'top-end',
     disableBeacon: true,
     data: {

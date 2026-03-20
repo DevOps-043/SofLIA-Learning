@@ -2,12 +2,12 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
-import type { LiaMessage } from '../types/lia.types';
+import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
-import { sessionRecorder } from '@/lib/rrweb/session-recorder';
+import { sessionRecorder } from '../../lib/rrweb/session-recorder';
 
 export interface UseLiaGeneralChatReturn {
-  messages: LiaMessage[];
+  messages: SofLIAMessage[];
   isLoading: boolean;
   error: Error | null;
   sendMessage: (message: string, isSystemMessage?: boolean, pageContext?: any) => Promise<void>;
@@ -19,7 +19,7 @@ export interface UseLiaGeneralChatReturn {
 export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneralChatReturn {
   const { user } = useAuth();
   const { language } = useLanguage();
-  const [messages, setMessages] = useState<LiaMessage[]>(
+  const [messages, setMessages] = useState<SofLIAMessage[]>(
     initialMessage !== null && initialMessage !== undefined && initialMessage !== ''
       ? [
           {
@@ -45,7 +45,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
     if (!message.trim() || isLoading) return;
 
     if (!isSystemMessage) {
-      const userMessage: LiaMessage = {
+      const userMessage: SofLIAMessage = {
         id: Date.now().toString(),
         role: 'user',
         content: message.trim(),
@@ -71,7 +71,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
       if (isBugReport && sessionRecorder) {
         try {
           // Log detallado para debugging
-          console.log('[LIA Chat] 🔍 Verificando estado del recorder:', {
+          console.log('[SofLIA Chat] 🔍 Verificando estado del recorder:', {
             exists: !!sessionRecorder,
             hasIsRrwebAvailable: typeof sessionRecorder.isRrwebAvailable === 'function',
             hasIsActive: typeof sessionRecorder.isActive === 'function',
@@ -86,33 +86,33 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             typeof sessionRecorder.captureSnapshot === 'function';
           
           if (!hasRequiredMethods) {
-            console.warn('[LIA Chat] ⚠️ sessionRecorder no tiene los métodos requeridos');
+            console.warn('[SofLIA Chat] ⚠️ sessionRecorder no tiene los métodos requeridos');
             recordingStatus = 'error';
           }
           // Verificar si rrweb está disponible
           else if (!sessionRecorder.isRrwebAvailable()) {
-            console.warn('[LIA Chat] ⚠️ rrweb no está disponible en este navegador');
+            console.warn('[SofLIA Chat] ⚠️ rrweb no está disponible en este navegador');
             recordingStatus = 'unavailable';
           } 
           // Verificar si la grabación está activa
           else if (!sessionRecorder.isActive()) {
-            console.warn('[LIA Chat] ⚠️ La grabación no está activa, intentando reiniciar...');
+            console.warn('[SofLIA Chat] ⚠️ La grabación no está activa, intentando reiniciar...');
             
             // Intentar reiniciar la grabación
             try {
               await sessionRecorder.startRecording(180000); // 3 minutos
-              console.log('[LIA Chat] ✅ Grabación reiniciada exitosamente');
+              console.log('[SofLIA Chat] ✅ Grabación reiniciada exitosamente');
               recordingStatus = 'restarted';
               
               // Esperar un momento para capturar al menos el estado inicial
               await new Promise(resolve => setTimeout(resolve, 500));
             } catch (restartError) {
-              console.error('[LIA Chat] ❌ No se pudo reiniciar la grabación:', restartError);
+              console.error('[SofLIA Chat] ❌ No se pudo reiniciar la grabación:', restartError);
               recordingStatus = 'error';
             }
           } else if (typeof sessionRecorder.isPaused === 'function' && sessionRecorder.isPaused()) {
             // Si está pausada por inactividad, reanudarla
-            console.log('[LIA Chat] ▶️ Reanudando grabación pausada...');
+            console.log('[SofLIA Chat] ▶️ Reanudando grabación pausada...');
             if (typeof sessionRecorder.resume === 'function') {
               sessionRecorder.resume();
             }
@@ -129,9 +129,9 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             sessionSnapshot = await sessionRecorder.exportSessionCompressed(snapshot);
             // Incluir metadata enriquecida del entorno
             enrichedMetadata = sessionRecorder.getEnrichedMetadata(snapshot);
-            console.log(`[LIA Chat] 📹 Capturado snapshot para reporte de bug (${snapshot.events.length} eventos)`);
+            console.log(`[SofLIA Chat] 📹 Capturado snapshot para reporte de bug (${snapshot.events.length} eventos)`);
           } else {
-            console.warn('[LIA Chat] ⚠️ No hay eventos en el snapshot');
+            console.warn('[SofLIA Chat] ⚠️ No hay eventos en el snapshot');
             // Generar metadata mínima sin grabación
             enrichedMetadata = {
               viewport: { width: window.innerWidth, height: window.innerHeight },
@@ -154,7 +154,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             };
           }
         } catch (err) {
-          console.warn('[LIA Chat] ⚠️ Error capturando snapshot:', err);
+          console.warn('[SofLIA Chat] ⚠️ Error capturando snapshot:', err);
           recordingStatus = 'error';
           
           // Generar metadata mínima en caso de error
@@ -200,8 +200,8 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             { role: 'user', content: message }
           ],
           context: {
-            userName: user?.first_name || user?.nombre,
-            userRole: user?.type_rol || user?.cargo_rol, // Priorizar type_rol (cargo real)
+            userName: user?.first_name || (user as any)?.nombre,
+            userRole: (user as any)?.type_rol || (user as any)?.cargo_rol, // Priorizar type_rol (cargo real)
             userId: user?.id,
             currentPage: typeof window !== 'undefined' ? window.location.pathname : undefined,
             ...(pageContext || {}),
@@ -219,7 +219,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
       });
 
       if (!response.ok) {
-        throw new Error('Error en la comunicación con LIA');
+        throw new Error('Error en la comunicación con SofLIA');
       }
 
       // Procesar streaming de respuesta
@@ -274,7 +274,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
       const errorMessage = err instanceof Error ? err : new Error('Error desconocido');
       setError(errorMessage);
       
-      const errorResponse: LiaMessage = {
+      const errorResponse: SofLIAMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
@@ -301,7 +301,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
 
       const data = await response.json();
       
-      const formattedMessages: LiaMessage[] = (data.messages || []).map((msg: any) => ({
+      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: any) => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,
@@ -332,7 +332,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
           }),
         });
       } catch (error) {
-        console.error('[LIA Analytics] Error cerrando conversación:', error);
+        console.error('[SofLIA Analytics] Error cerrando conversación:', error);
       }
       
       conversationIdRef.current = null;

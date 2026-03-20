@@ -1,7 +1,7 @@
 /**
  * TTS Voice Settings Utilities
  * 
- * Utilidades para calcular parámetros de voz según la personalización de tono de LIA
+ * Utilidades para calcular parámetros de voz según la personalización de tono de SofLIA
  * Aplica ajustes de voz para tonos amigable y entusiasta
  */
 
@@ -29,7 +29,7 @@ export interface WebSpeechVoiceSettings {
 /**
  * Calcula los parámetros de voz para ElevenLabs según la personalización de tono
  * 
- * @param settings - Configuración de personalización de LIA
+ * @param settings - Configuración de personalización de SofLIA
  * @returns Parámetros de voz optimizados para ElevenLabs
  */
 export function getElevenLabsVoiceSettings(
@@ -81,7 +81,7 @@ export function getElevenLabsVoiceSettings(
 /**
  * Calcula los parámetros de voz para Web Speech API según la personalización de tono
  * 
- * @param settings - Configuración de personalización de LIA
+ * @param settings - Configuración de personalización de SofLIA
  * @returns Parámetros de voz optimizados para Web Speech API
  */
 export function getWebSpeechVoiceSettings(

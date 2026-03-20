@@ -69,8 +69,8 @@ export const businessPanelJoyrideSteps: Step[] = [
   },
   {
     target: '#tour-lia-button',
-    title: 'Asistente LIA',
-    content: 'Tu asistente inteligente siempre está disponible. LIA puede ayudarte a resolver dudas sobre la plataforma, generar ideas para planes de carrera y sugerir cursos basados en roles.',
+    title: 'Asistente SofLIA',
+    content: 'Tu asistente inteligente siempre está disponible. SofLIA puede ayudarte a resolver dudas sobre la plataforma, generar ideas para planes de carrera y sugerir cursos basados en roles.',
     placement: 'top',
     disableBeacon: true,
     data: {

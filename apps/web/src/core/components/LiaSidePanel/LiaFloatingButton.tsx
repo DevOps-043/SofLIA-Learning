@@ -106,7 +106,7 @@ function LiaFloatingButtonContent() {
 
   return (
     <>
-      <TourRestartButton />
+      {!isOpen && <TourRestartButton />}
 
       <AnimatePresence>
         {!isOpen && (
@@ -135,7 +135,7 @@ function LiaFloatingButtonContent() {
               justifyContent: 'center',
               zIndex: 9998,
             }}
-            aria-label="Abrir asistente LIA"
+            aria-label="Abrir asistente SofLIA"
           >
             {/* Pulse effect */}
             <motion.div
@@ -159,7 +159,7 @@ function LiaFloatingButtonContent() {
 
             <img
               src="/lia-avatar.png"
-              alt="LIA"
+              alt="SofLIA"
               style={{
                 width: '100%',
                 height: '100%',

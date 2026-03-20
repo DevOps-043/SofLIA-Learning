@@ -71,7 +71,7 @@ interface Organization {
   show_navbar_name?: boolean
 }
 
-type OrgRole = 'owner' | 'admin' | 'member' | null
+type OrgRole = 'owner' | 'admin' | 'member' | 'superadmin' | null
 
 export default function BusinessUserDashboardPage() {
   const router = useRouter()
@@ -769,7 +769,10 @@ export default function BusinessUserDashboardPage() {
       {/* Videos Introductorios */}
       {showVideoIntro && (
         <OnboardingVideoPlayer
-          videos={[`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`]}
+          videos={[
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
+          ]}
           onComplete={handleVideoComplete}
         />
       )}

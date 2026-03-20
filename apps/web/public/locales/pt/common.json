@@ -103,9 +103,9 @@
   "onboarding": {
     "steps": {
       "1": {
-        "title": "Bem-vindo ao Aprende y Aplica!",
-        "description": "Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligÃªncia artificial.",
-        "speech": "Bem-vindo ao Aprende y Aplica. Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligÃªncia artificial."
+        "title": "Bem-vindo ao SofLIA!",
+        "description": "Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligência artificial.",
+        "speech": "Bem-vindo ao SofLIA. Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligência artificial."
       },
       "2": {
         "title": "ConheÃ§a a SofLIA",
