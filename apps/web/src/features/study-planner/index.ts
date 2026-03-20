@@ -9,7 +9,7 @@
 // COMPONENTES
 // ============================================================================
 
-export { StudyPlannerLIA } from './components/StudyPlannerLIA';
+export { StudyPlannerLIA as StudyPlannerSofLIA } from './components/StudyPlannerLIA';
 export { CalendarConnection } from './components/CalendarConnection';
 export { PlanSummary } from './components/PlanSummary';
 export { StudyPlannerCalendar } from './components/StudyPlannerCalendar';
@@ -29,23 +29,23 @@ export { ValidationService } from './services/validation.service';
 // ============================================================================
 
 export { 
-  useStudyPlannerLIA, 
+  useStudyPlannerSofLIA as useStudyPlannerLIA, 
   StudyPlannerPhase as LIAPhase,
   type PhaseData,
   type Message,
   type StudyPlannerLIAState,
   type StudyPlannerLIAActions,
-} from './hooks/useStudyPlannerLIA';
+} from './hooks/useStudyPlannerSofLIA';
 
 export {
-  useStudyPlannerDashboardLIA,
+  useStudyPlannerDashboardSofLIA as useStudyPlannerDashboardLIA,
   type DashboardMessage,
   type StudyPlannerAction,
   type ActiveStudyPlan,
   type CalendarChange,
   type StudyPlannerDashboardState,
   type StudyPlannerDashboardActions,
-} from './hooks/useStudyPlannerDashboardLIA';
+} from './hooks/useStudyPlannerDashboardSofLIA';
 
 // ============================================================================
 // CONTEXTO

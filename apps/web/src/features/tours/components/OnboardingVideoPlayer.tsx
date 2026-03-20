@@ -23,6 +23,18 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
     setIsPlaying(false);
     if (videoRef.current) {
       videoRef.current.load();
+      
+      // Si no es el primer video, intentar reproducir automáticamente (ya hubo interacción previa)
+      if (currentVideoIndex > 0) {
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            setIsPlaying(true);
+          }).catch(error => {
+            console.error("Error al reproducir automáticamente el video:", error);
+          });
+        }
+      }
     }
   }, [currentVideoIndex, videos]);
 
@@ -129,7 +141,7 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
           
           {/* Controles Overlay */}
           {!hasError && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none flex flex-col justify-between p-6">
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 transition-opacity duration-300 pointer-events-none flex flex-col justify-between p-6 ${isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
             
             {/* Top Bar */}
             <div className="flex justify-between items-center w-full pointer-events-auto">

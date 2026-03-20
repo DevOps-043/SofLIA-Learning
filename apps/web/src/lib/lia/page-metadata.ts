@@ -55,6 +55,16 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     contentSections: ['Grid de talleres/cursos disponibles', 'Sidebar con estadísticas', 'Actividad reciente', 'Filtros de categorías'],
     specialNotes: 'IMPORTANTE: El Dashboard (/dashboard) es donde se encuentra el CATÁLOGO COMPLETO de todos los cursos y talleres disponibles. Cuando el usuario pregunte sobre "ver todos los cursos" o "cursos disponibles", debe dirigirse al Dashboard, NO a /courses (que no existe como página de catálogo). La ruta /courses/[slug] es solo para ver el detalle de un curso específico.'
   },
+  '/study-planner': {
+    path: '/study-planner',
+    title: 'Planificador de Estudios',
+    description: 'Herramienta para crear y gestionar planes de estudio personalizados con IA. Permite organizar lecciones por días y horas.',
+    category: 'herramientas',
+    keywords: ['planificador', 'estudio', 'calendario', 'organización', 'plan de estudio'],
+    availableActions: ['Crear plan de estudio', 'Ver plan actual', 'Modificar disponibilidad', 'Conectar calendario'],
+    relatedPages: ['/dashboard', '/courses/[slug]/learn'],
+    features: ['Generación de planes con IA', 'Integración con Google Calendar', 'Recordatorios']
+  },
 
   '/news': {
     path: '/news',
@@ -116,18 +126,6 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     features: ['Gestión de avatar', 'Información personal y profesional', 'Enlaces sociales', 'Subida de CV', 'Puntos del usuario'],
     contentSections: ['Avatar y foto de perfil', 'Información personal', 'Información profesional', 'Enlaces sociales', 'CV'],
     specialNotes: 'Esta página también se conoce como "Editar perfil". Aquí puedes gestionar toda tu información personal y profesional.'
-  },
-  '/business-panel': {
-    path: '/business-panel',
-    title: 'Panel de Negocios',
-    description: 'Herramientas empresariales para gestión de equipos y cursos corporativos',
-    category: 'negocios',
-    keywords: ['negocios', 'empresas', 'equipos', 'corporativo', 'gestión'],
-    availableActions: ['Gestionar equipos', 'Ver estadísticas', 'Configurar cursos', 'Gestionar usuarios empresariales'],
-    relatedPages: ['/business-panel/courses', '/business-user/dashboard'],
-    features: ['Gestión de equipos', 'Estadísticas empresariales', 'Configuración de cursos corporativos'],
-    isBusinessOnly: true,
-    allowedRoles: ['business', 'administrador']
   },
   '/statistics': {
     path: '/statistics',
@@ -250,14 +248,14 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   '/business-panel/courses': {
     path: '/business-panel/courses',
     title: 'Catálogo y Asignación de Cursos',
-    description: 'Ver el catálogo de cursos disponibles y asignarlos a usuarios individuales o equipos completos. Configurar fechas límite con ayuda de LIA.',
+    description: 'Ver el catálogo de cursos disponibles y asignarlos a usuarios individuales o equipos completos. Configurar fechas límite con ayuda de SofLIA.',
     category: 'negocios',
     keywords: ['cursos', 'asignar', 'catálogo', 'formación', 'capacitación', 'deadline', 'fecha límite'],
-    availableActions: ['Ver catálogo', 'Asignar curso a usuario', 'Asignar curso a equipo', 'Configurar fecha límite', 'Usar sugerencias de LIA'],
+    availableActions: ['Ver catálogo', 'Asignar curso a usuario', 'Asignar curso a equipo', 'Configurar fecha límite', 'Usar sugerencias de SofLIA'],
     relatedPages: ['/business-panel/hierarchy', '/business-panel/users', '/business-panel/analytics'],
-    features: ['Grid de cursos', 'Modal: Asignar Curso (con pestañas Usuarios/Equipos)', 'Modal: Sugerencias de Fecha LIA', 'Configuración de deadline'],
+    features: ['Grid de cursos', 'Modal: Asignar Curso (con pestañas Usuarios/Equipos)', 'Modal: Sugerencias de Fecha SofLIA', 'Configuración de deadline'],
     contentSections: ['Catálogo de cursos', 'Filtros', 'Indicadores de progreso'],
-    specialNotes: 'El botón "✨ Sugerir con IA" abre un modal donde LIA recomienda fechas límite según 3 enfoques: Rápido (⚡), Equilibrado (⚖️) o Largo (🌱).',
+    specialNotes: 'El botón "✨ Sugerir con IA" abre un modal donde SofLIA recomienda fechas límite según 3 enfoques: Rápido (⚡), Equilibrado (⚖️) o Largo (🌱).',
     isBusinessOnly: true,
     allowedRoles: ['business', 'administrador']
   },
@@ -418,10 +416,10 @@ export function getAvailablePages(userRole: UserRole | null = null): PageMetadat
 }
 
 /**
- * Función para obtener links disponibles formateados para LIA
+ * Función para obtener links disponibles formateados para SofLIA
  * Devuelve un string con todos los links disponibles según el rol
  */
-export function getAvailableLinksForLIA(userRole: UserRole | null = null): string {
+export function getAvailableLinksForSofLIA(userRole: UserRole | null = null): string {
   const availablePages = getAvailablePages(userRole);
   
   let linksText = '\n\nLINKS DISPONIBLES EN LA PLATAFORMA:\n';
@@ -434,6 +432,12 @@ export function getAvailableLinksForLIA(userRole: UserRole | null = null): strin
       linksText += `  ⚠️ NOTA: ${page.specialNotes}\n`;
     }
   });
+
+  // Nota especial para el Planificador de Estudios
+  linksText += `\n\n📅 NOTA SOBRE EL PLANIFICADOR DE ESTUDIOS:\n`;
+  linksText += `Cuando el usuario pregunte por "Planificador", "Plan de estudios" o "Organizar mis estudios":\n`;
+  linksText += `- Usa SIEMPRE el enlace: [Planificador de Estudios](/study-planner)\n`;
+  linksText += `- IMPORTANTE: Esta ruta es GLOBAL y NO lleva el prefijo /{orgSlug}/ aunque el usuario sea de una empresa.\n`;
   
   /* TEMPORALMENTE OCULTO - Directorio IA no disponible actualmente
   // Agregar nota especial sobre Directorio IA

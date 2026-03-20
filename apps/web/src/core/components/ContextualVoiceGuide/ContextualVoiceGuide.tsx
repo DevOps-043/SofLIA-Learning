@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../providers/I18nProvider';
 import { ContextualVoiceGuideProps, VoiceGuideStep } from './types';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
-import { getPlatformContext, getAvailableLinksForLIA } from '../../../lib/lia/page-metadata';
+import { getPlatformContext, getAvailableLinksForSofLIA } from '../../../lib/lia/page-metadata';
 
 // Función para detectar automáticamente el contexto basado en la URL
 function detectContextFromURL(pathname: string): string {
@@ -616,7 +616,7 @@ export function ContextualVoiceGuide({
       const detectedArea = detectContextFromURL(currentPathname);
       const pageDescription = getPageContextInfo(currentPathname);
       const platformContextStr = getPlatformContext ? getPlatformContext() : undefined;
-      const availableLinks = getAvailableLinksForLIA ? getAvailableLinksForLIA() : undefined;
+      const availableLinks = getAvailableLinksForSofLIA ? getAvailableLinksForSofLIA() : undefined;
 
       const response = await fetch('/api/ai-chat', {
         method: 'POST',

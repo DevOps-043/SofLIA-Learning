@@ -25,21 +25,21 @@ import { useRouter } from 'next/navigation';
 import { StudyPlannerCalendar } from '@/features/study-planner/components/StudyPlannerCalendar';
 import { ToastNotification } from '@/core/components/ToastNotification';
 import { redirectToDashboard } from '@/features/auth/actions/dashboard-redirect';
-import { useStudyPlannerDashboardLIA, type DashboardMessage } from '@/features/study-planner/hooks/useStudyPlannerDashboardLIA';
+import { useStudyPlannerDashboardSofLIA, type DashboardMessage } from '@/features/study-planner/hooks/useStudyPlannerDashboardSofLIA';
 import { useStudyPlannerDashboardTour } from '@/features/study-planner/hooks/useStudyPlannerDashboardTour';
 import Joyride from 'react-joyride';
 
 export default function StudyPlannerDashboardPage() {
   const router = useRouter();
 
-  // Hook para el chat con LIA
+  // Hook para el chat con SofLIA
   const {
     messages,
     isSending,
     error,
     sendMessage,
     clearError,
-  } = useStudyPlannerDashboardLIA();
+  } = useStudyPlannerDashboardSofLIA();
 
   // Hook del Tour
   const { restartTour, joyrideProps } = useStudyPlannerDashboardTour();
