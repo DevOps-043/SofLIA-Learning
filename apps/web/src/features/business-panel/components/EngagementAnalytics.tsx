@@ -6,12 +6,14 @@ import {
   ScatterChart, Scatter, ZAxis
 } from 'recharts';
 import { Users, Zap, Clock, Calendar, BarChart2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface EngagementAnalyticsProps {
   data?: any;
 }
 
 export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
+  const { t } = useTranslation('business');
   // Extraer métricas reales o usar fallbacks vacíos
   const metrics = data?.engagement_metrics || {};
   
@@ -44,8 +46,8 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
           <Zap className="w-6 h-6 text-[#00D4B3]" />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-[#0A2540] dark:text-white">Engagement de Usuarios</h2>
-          <p className="text-sm text-[#6C757D] dark:text-gray-400">Análisis detallado de comportamiento y retención (Datos basados en actividad reciente)</p>
+          <h2 className="text-xl font-bold text-[#0A2540] dark:text-white">{t('analytics.engagement.title')}</h2>
+          <p className="text-sm text-[#6C757D] dark:text-gray-400">{t('analytics.engagement.subtitle')}</p>
         </div>
       </div>
 
@@ -59,7 +61,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
         >
           <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
             <Users className="w-5 h-5 mr-2 text-[#00D4B3]" />
-            Stickiness Ratio (DAU/MAU)
+            {t('analytics.engagement.stickiness.title')}
           </h3>
           <div className="h-[300px]">
             {hasStickiness ? (
@@ -73,14 +75,14 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                     labelStyle={{ color: '#0A2540', fontWeight: 'bold' }}
                   />
-                  <Line yAxisId="left" type="monotone" dataKey="dau" name="Usuarios Diarios (DAU)" stroke={colors.primary} strokeWidth={3} dot={{ r: 4, fill: colors.primary }} activeDot={{ r: 6 }} />
-                  <Line yAxisId="left" type="monotone" dataKey="mau" name="Usuarios Mensuales (MAU)" stroke={colors.secondary} strokeWidth={3} dot={{ r: 4, fill: colors.secondary }} />
-                  <Line yAxisId="right" type="monotone" dataKey="ratio" name="Ratio de Retención" stroke={colors.quaternary} strokeWidth={2} strokeDasharray="5 5" />
+                  <Line yAxisId="left" type="monotone" dataKey="dau" name={t('analytics.engagement.stickiness.dau')} stroke={colors.primary} strokeWidth={3} dot={{ r: 4, fill: colors.primary }} activeDot={{ r: 6 }} />
+                  <Line yAxisId="left" type="monotone" dataKey="mau" name={t('analytics.engagement.stickiness.mau')} stroke={colors.secondary} strokeWidth={3} dot={{ r: 4, fill: colors.secondary }} />
+                  <Line yAxisId="right" type="monotone" dataKey="ratio" name={t('analytics.engagement.stickiness.ratio')} stroke={colors.quaternary} strokeWidth={2} strokeDasharray="5 5" />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
                 <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                    No hay suficientes datos de actividad reciente
+                    {t('analytics.engagement.stickiness.noData')}
                 </div>
             )}
           </div>
@@ -95,7 +97,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
         >
           <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2 text-[#3B82F6]" />
-            Frecuencia de Sesiones (Mensual)
+            {t('analytics.engagement.frequency.title')}
           </h3>
           <div className="h-[300px]">
             {hasFrequency ? (
@@ -108,7 +110,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Bar dataKey="users" name="Usuarios" fill={colors.secondary} radius={[6, 6, 0, 0]} barSize={40}>
+                  <Bar dataKey="users" name={t('analytics.engagement.frequency.users')} fill={colors.secondary} radius={[6, 6, 0, 0]} barSize={40}>
                     {frequencyData.map((entry: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={[colors.primary, colors.secondary, colors.tertiary, colors.quaternary][index % 4]} />
                     ))}
@@ -117,7 +119,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
               </ResponsiveContainer>
             ) : (
                 <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                    No hay datos de frecuencia disponibles
+                    {t('analytics.engagement.frequency.noData')}
                 </div>
             )}
           </div>
@@ -132,7 +134,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
         >
           <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
             <Zap className="w-5 h-5 mr-2 text-[#F59E0B]" />
-            Rachas de Aprendizaje
+            {t('analytics.engagement.streaks.title')}
           </h3>
           <div className="flex flex-col md:flex-row items-center justify-between h-[300px]">
             <div className="w-full md:w-1/2 h-full">
@@ -163,8 +165,8 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                 <div key={index} className="flex items-center">
                   <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: item.fill }}></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.name} seguidos</p>
-                    <p className="text-xl font-bold text-[#0A2540] dark:text-white">{item.value}% <span className="text-xs font-normal text-gray-400">usuarios</span></p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.name} {t('analytics.engagement.streaks.inARow')}</p>
+                    <p className="text-xl font-bold text-[#0A2540] dark:text-white">{item.value}% <span className="text-xs font-normal text-gray-400">{t('analytics.engagement.streaks.users')}</span></p>
                   </div>
                 </div>
               ))}
@@ -181,26 +183,26 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
         >
           <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
             <Clock className="w-5 h-5 mr-2 text-[#8B5CF6]" />
-            Mapa de Calor (Día x Hora)
+            {t('analytics.engagement.heatmap.title')}
           </h3>
           <div className="h-[300px]">
              {hasHeatmap ? (
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
-                  <XAxis dataKey="day" type="category" name="Día" stroke={colors.text} interval={0} />
-                  <YAxis dataKey="hour" type="category" name="Hora" stroke={colors.text} reversed />
-                  <ZAxis dataKey="value" range={[50, 400]} name="Actividad" />
+                  <XAxis dataKey="day" type="category" name={t('analytics.engagement.heatmap.day')} stroke={colors.text} interval={0} />
+                  <YAxis dataKey="hour" type="category" name={t('analytics.engagement.heatmap.hour')} stroke={colors.text} reversed />
+                  <ZAxis dataKey="value" range={[50, 400]} name={t('analytics.engagement.heatmap.activity')} />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }} 
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Scatter name="Actividad" data={heatmapData} fill={colors.primary} />
+                  <Scatter name={t('analytics.engagement.heatmap.activity')} data={heatmapData} fill={colors.primary} />
                 </ScatterChart>
               </ResponsiveContainer>
              ) : (
                 <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                    No hay datos suficientes de actividad para el mapa de calor
+                    {t('analytics.engagement.heatmap.noData')}
                 </div>
              )}
           </div>
@@ -217,7 +219,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white flex items-center">
             <BarChart2 className="w-5 h-5 mr-2 text-rose-500" />
-            Duración Promedio de Sesiones por Rol
+            {t('analytics.engagement.duration.title')}
           </h3>
         </div>
         
@@ -232,18 +234,18 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                   cursor={{fill: 'transparent'}}
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 />
-                <Bar dataKey="median" name="Mediana (min)" fill={colors.primary} radius={[0, 4, 4, 0]} />
-                <Bar dataKey="max" name="Máximo (min)" fill={colors.text} opacity={0.3} radius={[0, 4, 4, 0]} />
+                <Bar dataKey="median" name={t('analytics.engagement.duration.median')} fill={colors.primary} radius={[0, 4, 4, 0]} />
+                <Bar dataKey="max" name={t('analytics.engagement.duration.max')} fill={colors.text} opacity={0.3} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
              <div className="flex items-center justify-center h-full text-gray-400 text-sm">
-                No hay datos de duración de sesiones
+                {t('analytics.engagement.duration.noData')}
             </div>
           )}
         </div>
         <p className="text-xs text-center text-gray-500 mt-2">
-          * Muestra la mediana y el máximo de minutos por lección completada o sesión activa
+          {t('analytics.engagement.duration.note')}
         </p>
       </motion.div>
     </div>

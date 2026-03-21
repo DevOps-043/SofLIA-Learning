@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAvailablePages, getAvailableLinksForLIA, type UserRole } from '../../../../lib/lia/page-metadata';
+import { getAvailablePages, getAvailableLinksForSofLIA, type UserRole } from '../../../../lib/lia/page-metadata';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { createClient } from '../../../../lib/supabase/server';
 import { logger } from '../../../../lib/logger';
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     }));
     
     // Obtener texto formateado para LIA
-    const linksForLIA = getAvailableLinksForLIA(userRole);
+    const linksForLIA = getAvailableLinksForSofLIA(userRole);
     
     return NextResponse.json({
       success: true,

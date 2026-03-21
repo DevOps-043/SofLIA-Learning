@@ -3,11 +3,13 @@ import { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { studyPlannerJoyrideSteps } from '../config/study-planner-joyride-config';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourRestart } from '@/core/contexts/TourRestartContext';
 
 export const useStudyPlannerJoyride = () => {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const tourProgress = useTourProgress('study-planner-joyride-v1');
+  const { setRestart } = useTourRestart();
 
   // Initiate tour check on mount
   useEffect(() => {
@@ -70,6 +72,11 @@ export const useStudyPlannerJoyride = () => {
     setRun(true);
   }, []);
 
+  useEffect(() => {
+    setRestart(restartTour, 'Reiniciar tutorial');
+    return () => setRestart(null);
+  }, [restartTour, setRestart]);
+
   const joyrideProps = {
     run,
     steps: studyPlannerJoyrideSteps,
@@ -78,6 +85,8 @@ export const useStudyPlannerJoyride = () => {
     continuous: true,
     showProgress: true,
     showSkipButton: true,
+    disableOverlayClose: true,
+    disableCloseOnEsc: true,
     tooltipComponent: JoyrideTooltip,
     scrollOffset: 120,    
     styles: {

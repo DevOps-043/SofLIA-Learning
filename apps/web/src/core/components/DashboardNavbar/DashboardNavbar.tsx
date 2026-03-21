@@ -75,7 +75,7 @@ export function DashboardNavbar({ activeItem = 'workshops' }: DashboardNavbarPro
             >
               <img 
                 src="/Logo.png" 
-                alt="Aprende y Aplica" 
+                alt="SofLIA" 
                 className="w-full h-full object-contain"
               />
               {/* Efecto visual cuando está activado */}

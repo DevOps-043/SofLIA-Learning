@@ -116,6 +116,7 @@ export default function BusinessCourseDetailPage() {
   const params = useParams()
   const router = useRouter()
   const courseId = params.id as string
+  const orgSlug = params.orgSlug as string
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
 
@@ -151,7 +152,7 @@ export default function BusinessCourseDetailPage() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`/api/business/courses/${courseId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}`, {
           credentials: 'include',
           headers: { 'Content-Type': 'application/json' }
         })
@@ -239,7 +240,7 @@ export default function BusinessCourseDetailPage() {
     setPurchaseSuccess(false)
 
     try {
-      const response = await fetch(`/api/business/courses/${courseId}/purchase`, {
+      const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/purchase`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' }
@@ -253,7 +254,7 @@ export default function BusinessCourseDetailPage() {
 
       setPurchaseSuccess(true)
 
-      const courseResponse = await fetch(`/api/business/courses/${courseId}`, { credentials: 'include' })
+      const courseResponse = await fetch(`/api/${orgSlug}/business/courses/${courseId}`, { credentials: 'include' })
       if (courseResponse.ok) {
         const courseData = await courseResponse.json()
         if (courseData.success && courseData.course) {
@@ -793,7 +794,7 @@ export default function BusinessCourseDetailPage() {
                 )}
 
                 {activeTab === 'analytics' && course && (
-                  <CourseAnalyticsTab courseId={course.id} />
+                  <CourseAnalyticsTab courseId={course.id} orgSlug={orgSlug} />
                 )}
               </AnimatePresence>
             </div>
@@ -939,6 +940,7 @@ export default function BusinessCourseDetailPage() {
           onClose={() => setIsAssignModalOpen(false)}
           courseId={course.id}
           courseTitle={course.title}
+          orgSlug={orgSlug}
           onAssignComplete={() => { }}
         />
       )}

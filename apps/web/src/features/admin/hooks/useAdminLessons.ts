@@ -7,12 +7,13 @@ interface UseAdminLessonsReturn {
   lessons: AdminLesson[]
   loading: boolean
   error: string | null
-  fetchLessons: (moduleId: string, courseId?: string) => Promise<void>
+  fetchLessons: (moduleId: string, courseId?: string, options?: { silent?: boolean }) => Promise<void>
   createLesson: (moduleId: string, data: any, courseId?: string) => Promise<AdminLesson>
   updateLesson: (lessonId: string, data: any, courseId?: string) => Promise<AdminLesson>
   deleteLesson: (lessonId: string, courseId?: string) => Promise<void>
   togglePublished: (lessonId: string, courseId?: string) => Promise<void>
-  refetchLessons: (moduleId: string, courseId?: string) => Promise<void>
+  refetchLessons: (moduleId: string, courseId?: string, options?: { silent?: boolean }) => Promise<void>
+  reorderLessons: (moduleId: string, lessons: Array<{ lesson_id: string, lesson_order_index: number }>, courseId?: string, options?: { silent?: boolean }) => Promise<void>
 }
 
 export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
@@ -53,7 +54,7 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
     throw new Error('Max retries exceeded')
   }
 
-  const fetchLessons = async (moduleId: string, providedCourseId?: string): Promise<void> => {
+  const fetchLessons = async (moduleId: string, providedCourseId?: string, options: { silent?: boolean } = {}): Promise<void> => {
     const actualCourseId = getCourseId(providedCourseId)
     const requestKey = `${actualCourseId}-${moduleId}`
 
@@ -70,7 +71,7 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
 
     const requestPromise = (async () => {
       try {
-        setLoading(true)
+        if (!options.silent) setLoading(true)
         setError(null)
 
         const response = await fetchWithRetry(`/api/admin/courses/${actualCourseId}/modules/${moduleId}/lessons`)
@@ -103,11 +104,11 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
     await requestPromise
   }
 
-  const refetchLessons = async (moduleId: string, providedCourseId?: string): Promise<void> => {
+  const refetchLessons = async (moduleId: string, providedCourseId?: string, options: { silent?: boolean } = {}): Promise<void> => {
     const actualCourseId = getCourseId(providedCourseId)
     const requestKey = `${actualCourseId}-${moduleId}`
     loadedModules.delete(requestKey) // Forzar refetch
-    await fetchLessons(moduleId, providedCourseId)
+    await fetchLessons(moduleId, providedCourseId, options)
   }
 
   const createLesson = async (moduleId: string, lessonData: any, providedCourseId?: string): Promise<AdminLesson> => {
@@ -210,7 +211,14 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
 
       // Actualizar localmente y refetch para asegurar consistencia
       setLessons(prev => prev.map(l => l.lesson_id === lessonId ? updatedLesson : l))
-      await refetchLessons(moduleId, actualCourseId)
+      
+      // Si el módulo cambió, refrescar ambos módulos
+      if (lessonData.module_id && lessonData.module_id !== moduleId) {
+        await refetchLessons(moduleId, actualCourseId, { silent: true })
+        await refetchLessons(lessonData.module_id, actualCourseId, { silent: true })
+      } else {
+        await refetchLessons(moduleId, actualCourseId, { silent: true })
+      }
       
       return updatedLesson
     } catch (err) {
@@ -260,6 +268,31 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
     }
   }
 
+  const reorderLessons = async (moduleId: string, reorderedLessons: Array<{ lesson_id: string, lesson_order_index: number }>, providedCourseId?: string, options: { silent?: boolean } = { silent: true }) => {
+    const actualCourseId = getCourseId(providedCourseId)
+    try {
+      if (!options.silent) setLoading(true)
+      const response = await fetchWithRetry(`/api/admin/courses/${actualCourseId}/modules/${moduleId}/lessons/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessons: reorderedLessons })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Error al reordenar lecciones' }))
+        throw new Error(errorData.error || 'Error al reordenar lecciones')
+      }
+
+      await refetchLessons(moduleId, actualCourseId, { silent: true })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al reordenar lecciones'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     lessons,
     loading,
@@ -269,7 +302,8 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
     updateLesson,
     deleteLesson,
     togglePublished,
-    refetchLessons
+    refetchLessons,
+    reorderLessons
   }
 }
 

@@ -1,5 +1,5 @@
 /**
- * API Route: LIA Onboarding Chat
+ * API Route: SofLIA Onboarding Chat
  * Endpoint para conversación por voz durante el onboarding
  */
 
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   try {
     const body: OnboardingChatRequest = await request.json();
     
-  const { question, context, userName, pageContext } = body;
+    const { question, context, userName, pageContext } = body;
 
     // Validaciones
     if (!question || !question.trim()) {
@@ -32,12 +32,12 @@ export async function POST(request: NextRequest) {
     }
 
     // En lugar de llamar directamente a OpenAI desde aquí, delegamos en el endpoint
-    // central `/api/ai-chat` que ya contiene el sistema completo de LIA y todo el
+    // central `/api/ai-chat` que ya contiene el sistema completo de SofLIA y todo el
     // manejo de contexto/analytics. Esto hará que las respuestas usen el mismo
     // 'system prompt' y contexto rico que el resto de la plataforma.
 
     // Enviamos la pregunta y el contexto al endpoint central sin la instrucción
-    // de clarificación automática para que LIA responda directamente.
+    // de clarificación automática para que SofLIA responda directamente.
     const aiChatResp = await fetch(new URL('/api/ai-chat', request.url).toString(), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -82,7 +82,7 @@ function buildOnboardingPrompt(
   userQuestion: string,
   context: OnboardingChatRequest['context']
 ): string {
-  return `Eres LIA, la asistente virtual de Aprende y Aplica. Estás guiando a un nuevo usuario en su proceso de onboarding.
+  return `Eres SofLIA, la asistente virtual de la plataforma SofLIA. Estás guiando a un nuevo usuario en su proceso de onboarding.
 
 ## CONTEXTO DEL ONBOARDING:
 - Paso actual: ${context.currentStep} de ${context.totalSteps}
@@ -116,7 +116,7 @@ Ahora responde a la pregunta del usuario de manera conversacional y amigable:`;
 }
 
 /**
- * Llama a la API de LIA (OpenAI) con el prompt contextual
+ * Llama a la API de SofLIA (OpenAI) con el prompt contextual
  */
 async function callLIA(
   prompt: string, 
@@ -134,7 +134,7 @@ async function callLIA(
     const messages = [
       {
         role: 'system',
-        content: 'Eres LIA, la asistente virtual de Aprende y Aplica. Eres amigable, entusiasta y especializada en IA. Respondes de manera conversacional y breve porque tus respuestas se leen en voz alta.',
+        content: 'Eres SofLIA, la asistente virtual de la plataforma SofLIA. Eres amigable, entusiasta y especializada en IA. Respondes de manera conversacional y breve porque tus respuestas se leen en voz alta.',
       },
       ...conversationHistory.slice(-6), // Últimas 3 interacciones (6 mensajes)
       {

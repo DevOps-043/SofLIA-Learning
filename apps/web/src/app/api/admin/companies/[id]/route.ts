@@ -89,6 +89,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     if (body.subscription_status !== undefined) payload.subscription_status = String(body.subscription_status)
     if (body.subscription_plan !== undefined) payload.subscription_plan = String(body.subscription_plan)
 
+    // SSO
+    if (body.google_login_enabled !== undefined) payload.google_login_enabled = Boolean(body.google_login_enabled)
+    if (body.microsoft_login_enabled !== undefined) payload.microsoft_login_enabled = Boolean(body.microsoft_login_enabled)
+
     if (body.max_users !== undefined) {
       const maxUsersNumber = Number(body.max_users)
       if (!Number.isNaN(maxUsersNumber) && maxUsersNumber >= 1) {

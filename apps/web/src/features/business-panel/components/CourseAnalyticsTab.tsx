@@ -29,9 +29,10 @@ const COLORS = {
 
 interface CourseAnalyticsTabProps {
   courseId: string
+  orgSlug: string
 }
 
-export function CourseAnalyticsTab({ courseId }: CourseAnalyticsTabProps) {
+export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProps) {
   const [analyticsData, setAnalyticsData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -91,7 +92,7 @@ export function CourseAnalyticsTab({ courseId }: CourseAnalyticsTabProps) {
       setIsLoading(true)
       setError(null)
       
-      const response = await fetch(`/api/business/courses/${courseId}/analytics`, {
+      const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/analytics`, {
         credentials: 'include'
       })
       

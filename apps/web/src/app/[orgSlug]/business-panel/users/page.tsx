@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import { useParams, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
@@ -32,15 +33,22 @@ import {
   Building2,
   Network,
   Filter,
-  X
+  X,
+  Link2,
+  Pause,
+  Play,
+  Trash2,
+  Calendar,
+  Clock
 } from 'lucide-react'
 import { ArrowTrendingUpIcon } from '@heroicons/react/24/outline'
 import { useBusinessUsers } from '@/features/business-panel/hooks/useBusinessUsers'
-import { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
+import { BusinessUsersService, BusinessUser, BusinessInvitation, BulkInviteLink } from '@/features/business-panel/services/businessUsers.service'
 import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '@/core/stores/themeStore'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { ToastNotification, ToastType } from '@/core/components/ToastNotification/ToastNotification'
 
 const AddUserModal = dynamic(() => import('@/features/business-panel/components/BusinessAddUserModal').then(mod => ({ default: mod.BusinessAddUserModal })), { ssr: false })
 const EditUserModal = dynamic(() => import('@/features/business-panel/components/BusinessEditUserModal').then(mod => ({ default: mod.BusinessEditUserModal })), { ssr: false })
@@ -60,13 +68,15 @@ interface StatCardProps {
   delay: number
   trend?: number
   isDark?: boolean
+  onClick?: () => void
 }
 
-function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark }: StatCardProps) {
+function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark, onClick }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
+      onClick={onClick}
       transition={{
         delay: delay * 0.1,
         duration: 0.6,
@@ -80,7 +90,7 @@ function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark }: St
         transition: { duration: 0.3, type: "spring", stiffness: 300 }
       }}
       className="relative group overflow-hidden rounded-2xl cursor-pointer"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       {/* Animated Border Glow */}
       <motion.div
@@ -236,7 +246,7 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
         transition: { duration: 0.25 }
       }}
       className="relative group overflow-hidden rounded-2xl"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
@@ -301,8 +311,8 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
             </motion.div>
 
             <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-white truncate">{displayName}</h3>
-              <p className="text-sm opacity-50 truncate">{user.email}</p>
+              <h3 className="font-bold truncate" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{displayName}</h3>
+              <p className="text-sm opacity-50 truncate" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{user.email}</p>
             </div>
           </div>
 
@@ -313,25 +323,25 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className="flex items-center gap-1.5"
+                className="flex items-center gap-1.5 flex-shrink-0"
               >
                 <button
                   onClick={onStats}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-blue-500/20 transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5 hover:bg-blue-500/20' : 'bg-black/5 hover:bg-blue-500/10'}`}
                   title="Ver estadísticas"
                 >
                   <BarChart3 className="w-4 h-4 text-blue-400" />
                 </button>
                 <button
                   onClick={onEdit}
-                  className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+                  className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'}`}
                   title="Editar"
                 >
-                  <Edit className="w-4 h-4" style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.7 }} />
+                  <Edit className="w-4 h-4" style={{ color: isDark ? '#FFFFFF' : '#0F172A', opacity: 0.7 }} />
                 </button>
                 <button
                   onClick={onDelete}
-                  className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 transition-colors"
+                  className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5 hover:bg-red-500/20' : 'bg-black/5 hover:bg-red-500/10'}`}
                   title="Eliminar"
                 >
                   <Trash className="w-4 h-4 text-red-400" />
@@ -372,9 +382,10 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
           <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-end sm:justify-start">
             {user.org_status === 'invited' && onResend && (
               <button
-                onClick={onResend}
-                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors whitespace-nowrap"
+                onClick={(e) => { e.stopPropagation(); onResend?.() }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border border-amber-500/20 flex items-center gap-1.5 font-bold"
               >
+                <Mail className="w-3.5 h-3.5" />
                 Reenviar
               </button>
             )}
@@ -394,6 +405,18 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
                 {t('users.card.activate')}
               </button>
             )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const tab = user.org_status === 'invited' ? 'invitations' : 'users';
+                // Encontrar el contenedor o disparar un evento si es necesario, 
+                // pero por ahora simplemente cambiaremos la pestaña si estamos en el mismo componente
+                window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }));
+              }}
+              className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors border border-blue-500/20 font-bold"
+            >
+              Gestionar
+            </button>
           </div>
         </div>
       </div>
@@ -411,6 +434,148 @@ function UserCard({ user, index, primaryColor, onEdit, onDelete, onStats, onRese
 }
 
 // ============================================
+// COMPONENTE: InvitationCard
+// ============================================
+interface InvitationCardProps {
+  invitation: BusinessInvitation
+  index: number
+  primaryColor: string
+  onResend: () => void
+  onRevoke: () => void
+}
+
+function InvitationCard({ invitation, index, primaryColor, onResend, onRevoke }: InvitationCardProps) {
+  const { t } = useTranslation('business')
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      whileHover={{ y: -4 }}
+      className="relative overflow-hidden rounded-2xl p-6 border border-white/10"
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
+    >
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 flex-shrink-0">
+            <Mail className="w-6 h-6 opacity-60" style={{ color: primaryColor }} />
+          </div>
+          <div className="min-w-0">
+            <h4 className="font-bold truncate" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{invitation.email}</h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold bg-white/5 text-white/40 border border-white/5">
+                {invitation.role}
+              </span>
+              <span className="text-[10px] text-white/40 flex items-center gap-1 whitespace-nowrap">
+                <Activity className="w-3 h-3" />
+                {new Date(invitation.created_at).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2 flex-shrink-0">
+          <button
+            onClick={onResend}
+            className="p-2 rounded-lg bg-white/5 hover:bg-amber-500/20 text-amber-500 transition-colors"
+            title="Reenviar"
+          >
+            <Mail className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onRevoke}
+            className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-red-500 transition-colors"
+            title="Revocar"
+          >
+            <XCircle className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+        <div className="text-[10px] uppercase font-bold tracking-wider opacity-30 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3" />
+          {t('users.status.pending', 'Pendiente')}
+        </div>
+        <div className="text-[10px] opacity-40">
+          Expira: {new Date(invitation.expires_at).toLocaleDateString()}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================
+// COMPONENTE: InvitationListRow
+// ============================================
+interface InvitationListRowProps {
+  invitation: BusinessInvitation
+  index: number
+  primaryColor: string
+  onResend: () => void
+  onRevoke: () => void
+}
+
+function InvitationListRow({ invitation, index, primaryColor, onResend, onRevoke }: InvitationListRowProps) {
+  const { t } = useTranslation('business')
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+      className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
+    >
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 flex-shrink-0">
+        <Mail className="w-5 h-5 opacity-60" style={{ color: primaryColor }} />
+      </div>
+
+      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+        <div className="col-span-1 lg:col-span-2 min-w-0">
+          <div className="font-semibold text-sm truncate" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{invitation.email}</div>
+          <div className="text-xs opacity-40 uppercase font-bold tracking-wider">{invitation.role}</div>
+        </div>
+
+        <div className="hidden lg:block text-xs opacity-60">
+          Enviada: {new Date(invitation.created_at).toLocaleDateString()}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="px-2 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/10">
+            {t('users.status.pending', 'Pendiente')}
+          </span>
+          <span className="text-[10px] opacity-40 whitespace-nowrap">
+            Expira: {new Date(invitation.expires_at).toLocaleDateString()}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 ml-auto">
+        <button
+          onClick={onResend}
+          className="p-2 rounded-lg bg-white/5 hover:bg-amber-500/20 text-amber-500 transition-colors"
+          title="Reenviar"
+        >
+          <Mail className="w-4 h-4" />
+        </button>
+        <button
+          onClick={onRevoke}
+          className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-red-500 transition-colors"
+          title="Revocar"
+        >
+          <XCircle className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================
 // COMPONENTE: Empty State Premium
 // ============================================
 function EmptyState({ onAddClick, primaryColor, secondaryColor }: { onAddClick: () => void, primaryColor: string, secondaryColor: string }) {
@@ -420,7 +585,7 @@ function EmptyState({ onAddClick, primaryColor, secondaryColor }: { onAddClick: 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative overflow-hidden rounded-3xl p-12 text-center"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
@@ -455,11 +620,11 @@ function EmptyState({ onAddClick, primaryColor, secondaryColor }: { onAddClick: 
           <UserPlus className="w-12 h-12" style={{ color: primaryColor, opacity: 0.6 }} />
         </motion.div>
 
-        <h3 className="text-2xl font-bold mb-3" style={{ color: 'var(--org-text-color, #FFFFFF)' }}>
+        <h3 className="text-2xl font-bold mb-3" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
           {t('users.empty.title')}
         </h3>
 
-        <p className="text-sm opacity-60 mb-6 max-w-md mx-auto leading-relaxed">
+        <p className="text-sm opacity-60 mb-6 max-w-md mx-auto leading-relaxed" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
           {t('users.empty.subtitle')}
         </p>
 
@@ -476,6 +641,179 @@ function EmptyState({ onAddClick, primaryColor, secondaryColor }: { onAddClick: 
           <Plus className="w-5 h-5 inline mr-2" />
           {t('users.empty.cta')}
         </motion.button>
+      </div>
+    </motion.div>
+  )
+}
+// ============================================
+// COMPONENTE: InviteLinkCard
+// ============================================
+interface InviteLinkCardProps {
+  link: BulkInviteLink
+  index: number
+  primaryColor: string
+  onToggleStatus: () => void
+  onDelete: () => void
+}
+
+function InviteLinkCard({ link, index, primaryColor, onToggleStatus, onDelete }: InviteLinkCardProps) {
+  const { t } = useTranslation('business')
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+  
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return { text: '#10B981', bg: 'rgba(16,185,129,0.1)' }
+      case 'paused': return { text: '#F59E0B', bg: 'rgba(245,158,11,0.1)' }
+      case 'expired': return { text: '#EF4444', bg: 'rgba(239,68,68,0.1)' }
+      case 'exhausted': return { text: '#6B7280', bg: 'rgba(107,114,128,0.1)' }
+      default: return { text: primaryColor, bg: `${primaryColor}10` }
+    }
+  }
+
+  const statusColors = getStatusColor(link.status)
+  const remainingSlots = link.max_uses - link.current_uses
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.05 }}
+      className="relative overflow-hidden rounded-2xl p-6 border border-white/10"
+      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10">
+            <Link2 className="w-6 h-6 opacity-60" style={{ color: primaryColor }} />
+          </div>
+          <div>
+            <h4 className="font-bold truncate max-w-[180px]" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
+              {link.name || `Link ${link.token.substring(0, 6)}`}
+            </h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold" style={{ backgroundColor: statusColors.bg, color: statusColors.text }}>
+                {link.status}
+              </span>
+              <span className="text-[10px] opacity-40 uppercase font-bold">{link.role}</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onToggleStatus}
+            className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5' : 'bg-black/5'}`}
+            title={link.status === 'active' ? 'Pausar' : 'Activar'}
+          >
+            {link.status === 'active' ? <Pause className="w-4 h-4 text-amber-500" /> : <Play className="w-4 h-4 text-emerald-500" />}
+          </button>
+          <button
+            onClick={onDelete}
+            className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5' : 'bg-black/5'} hover:bg-red-500/20 group`}
+            title="Eliminar"
+          >
+            <Trash2 className="w-4 h-4 text-red-500 group-hover:text-red-400" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/5">
+        <div>
+          <p className="text-[10px] uppercase font-bold tracking-wider opacity-40 mb-1">Usos</p>
+          <p className="text-xl font-black" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
+            {link.current_uses} <span className="text-sm font-normal opacity-40">/ {link.max_uses}</span>
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase font-bold tracking-wider opacity-40 mb-1">Espacios libres</p>
+          <p className="text-xl font-black" style={{ color: remainingSlots > 0 ? primaryColor : '#EF4444' }}>
+            {remainingSlots}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between text-[10px] opacity-30">
+        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(link.created_at).toLocaleDateString()}</span>
+        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Expira: {new Date(link.expires_at).toLocaleDateString()}</span>
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================
+// COMPONENTE: InviteLinkRow
+// ============================================
+interface InviteLinkRowProps {
+  link: BulkInviteLink
+  index: number
+  primaryColor: string
+  onToggleStatus: () => void
+  onDelete: () => void
+}
+
+function InviteLinkRow({ link, index, primaryColor, onToggleStatus, onDelete }: InviteLinkRowProps) {
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+  const remainingSlots = link.max_uses - link.current_uses
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.02 }}
+      className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
+    >
+      <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 flex-shrink-0">
+        <Link2 className="w-5 h-5 opacity-60" style={{ color: primaryColor }} />
+      </div>
+
+      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+        <div className="col-span-1 lg:col-span-1 min-w-0">
+          <div className="font-semibold text-sm truncate" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
+            {link.name || `Link ${link.token.substring(0, 6)}`}
+          </div>
+          <div className="text-[10px] opacity-40 uppercase font-bold tracking-wider">{link.role}</div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="text-center">
+            <p className="text-[10px] opacity-40 uppercase mb-0.5">Usos</p>
+            <p className="text-sm font-bold" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{link.current_uses}/{link.max_uses}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] opacity-40 uppercase mb-0.5">Libres</p>
+            <p className="text-sm font-bold" style={{ color: remainingSlots > 0 ? primaryColor : '#EF4444' }}>{remainingSlots}</p>
+          </div>
+        </div>
+
+        <div className="hidden lg:block text-[10px] opacity-40">
+          Expira: {new Date(link.expires_at).toLocaleDateString()}
+        </div>
+
+        <div className="flex items-center justify-end gap-2">
+          <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+            link.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 
+            link.status === 'paused' ? 'bg-amber-500/10 text-amber-500' : 'bg-red-500/10 text-red-500'
+          }`}>
+            {link.status}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 ml-auto">
+        <button
+          onClick={onToggleStatus}
+          className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5' : 'bg-black/5'}`}
+        >
+          {link.status === 'active' ? <Pause className="w-4 h-4 text-amber-500" /> : <Play className="w-4 h-4 text-emerald-500" />}
+        </button>
+        <button
+          onClick={onDelete}
+          className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5' : 'bg-black/5'} hover:bg-red-500/20`}
+        >
+          <Trash2 className="w-4 h-4 text-red-500" />
+        </button>
       </div>
     </motion.div>
   )
@@ -529,7 +867,7 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.02 }}
       className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
       {/* Avatar */}
       {user.profile_picture_url ? (
@@ -604,39 +942,237 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
         </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <button onClick={onStats} className="p-1.5 rounded-lg hover:bg-blue-500/20 transition-colors" title="Ver estadísticas">
-          <BarChart3 className="w-4 h-4 text-blue-400" />
-        </button>
-        <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Editar">
-          <Edit className="w-4 h-4 opacity-70" />
-        </button>
-        <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-500/20 transition-colors" title="Eliminar">
-          <Trash className="w-4 h-4 text-red-400" />
-        </button>
-        {user.org_status === 'invited' && onResend && (
-          <button onClick={onResend} className="p-1.5 rounded-lg hover:bg-amber-500/20 transition-colors" title="Reenviar">
-            <Mail className="w-4 h-4 text-amber-400" />
+        {/* Quick Actions */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+          {user.org_status === 'invited' && onResend && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onResend() }}
+              className={`p-1.5 rounded-lg transition-colors ${isDark ? 'bg-amber-500/10 hover:bg-amber-500/20' : 'bg-amber-500/5 hover:bg-amber-500/10'} border border-amber-500/20`}
+              title="Reenviar Invitación"
+            >
+              <Mail className="w-4 h-4 text-amber-500" />
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const tab = user.org_status === 'invited' ? 'invitations' : 'users';
+              window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }));
+            }}
+            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`}
+            title="Gestionar"
+          >
+            <ChevronRight className="w-4 h-4 text-blue-400" />
           </button>
-        )}
-      </div>
-    </motion.div>
-  )
-}
+          <button onClick={onStats} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`} title="Ver estadísticas">
+            <BarChart3 className="w-4 h-4 text-blue-400" />
+          </button>
+          <button onClick={onEdit} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Editar">
+            <Edit className="w-4 h-4 opacity-70" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }} />
+          </button>
+          <button onClick={onDelete} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-red-500/20' : 'hover:bg-red-500/10'}`} title="Eliminar">
+            <Trash className="w-4 h-4 text-red-400" />
+          </button>
+        </div>
+      </motion.div>
+    )
+  }
 
 // ============================================
 // PÁGINA PRINCIPAL: Users Management
 // ============================================
 export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
+  const { orgSlug } = useParams<{ orgSlug: string }>()
+  const searchParams = useSearchParams()
+  const initialTab = searchParams.get('tab') as 'users' | 'invitations' | 'links'
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, stats, isLoading, error, refetch, createUser, updateUser, deleteUser, resendInvitation, suspendUser, activateUser } = useBusinessUsers()
+  const { 
+    users, 
+    invitations, 
+    inviteLinks, 
+    stats, 
+    orgData, 
+    isLoading, 
+    error, 
+    syncOrgData: refetch, 
+    createUser, 
+    updateUser, 
+    deleteUser: originalDeleteUser, 
+    resendInvitation: originalResendInvitation, 
+    suspendUser: originalSuspendUser, 
+    activateUser: originalActivateUser, 
+    updateInviteLinkStatus: originalUpdateInviteLinkStatus, 
+    deleteInviteLink: originalDeleteInviteLink 
+  } = useBusinessUsers(orgSlug)
   const { user: currentUser } = useAuth()
 
-  // View mode state
+  // Toast state
+  const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  })
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ isOpen: true, message, type })
+  }
+
+  // Wrapped actions with notifications
+  const handleSaveNewUser = async (userData: any) => {
+    try {
+      const result = await createUser(userData)
+      if (result.success) {
+        showToast('Usuario creado con éxito', 'success')
+        setIsAddModalOpen(false)
+        refetch()
+      } else {
+        showToast(result.error || 'Error al crear usuario', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al crear usuario', 'error')
+    }
+  }
+  const resendInvitation = async (id: string) => {
+    try {
+      const result = await originalResendInvitation(id)
+      if (result.success) {
+        showToast('Invitación reenviada con éxito', 'success')
+      } else {
+        showToast(result.error || 'Error al reenviar invitación', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al reenviar invitación', 'error')
+    }
+  }
+
+  const suspendUser = async (id: string) => {
+    try {
+      const result = await originalSuspendUser(id)
+      if (result.success) {
+        showToast('Usuario suspendido', 'success')
+      } else {
+        showToast(result.error || 'Error al suspender usuario', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al suspender usuario', 'error')
+    }
+  }
+
+  const activateUser = async (id: string) => {
+    try {
+      const result = await originalActivateUser(id)
+      if (result.success) {
+        showToast('Usuario activado', 'success')
+      } else {
+        showToast(result.error || 'Error al activar usuario', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al activar usuario', 'error')
+    }
+  }
+
+  const deleteUser = async (id: string) => {
+    try {
+      const result = await originalDeleteUser(id)
+      if (result.success) {
+        showToast('Usuario eliminado con éxito', 'success')
+        setIsDeleteModalOpen(false)
+        setDeletingUser(null)
+      } else {
+        showToast(result.error || 'Error al eliminar usuario', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al eliminar usuario', 'error')
+    }
+  }
+
+  const updateInviteLinkStatus = async (id: string, action: 'pause' | 'resume') => {
+    try {
+      const result = await originalUpdateInviteLinkStatus(id, action)
+      if (result.success) {
+        showToast(action === 'pause' ? 'Enlace pausado' : 'Enlace reactivado', 'success')
+      } else {
+        showToast(result.error || 'Error al actualizar enlace', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al actualizar enlace', 'error')
+    }
+  }
+
+  const deleteInviteLink = async (id: string) => {
+    try {
+      const result = await originalDeleteInviteLink(id)
+      if (result.success) {
+        showToast('Enlace eliminado', 'success')
+      } else {
+        showToast(result.error || 'Error al eliminar enlace', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al eliminar enlace', 'error')
+    }
+  }
+
+  const handleResendIndividualInvitation = async (id: string) => {
+    try {
+      const response = await fetch(`/api/${orgSlug}/business/invitations/${id}/resend`, {
+        method: 'POST',
+        credentials: 'include'
+      })
+      if (response.ok) {
+        showToast('Invitación reenviada con éxito', 'success')
+        refetch()
+      } else {
+        const errorData = await response.json()
+        showToast(errorData.error || 'Error al reenviar invitación', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al reenviar invitación', 'error')
+    }
+  }
+
+  const handleRevokeInvitation = async (id: string) => {
+    try {
+      const response = await fetch(`/api/${orgSlug}/business/invitations/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      if (response.ok) {
+        showToast('Invitación revocada con éxito', 'success')
+        refetch()
+      } else {
+        const errorData = await response.json()
+        showToast(errorData.error || 'Error al revocar invitación', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al revocar invitación', 'error')
+    }
+  }
+
+  // View mode and Tabs state
+  const [activeTab, setActiveTab] = useState<'users' | 'invitations' | 'links'>(initialTab || 'users')
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
+
+  // Effect to sync tab from URL
+  useEffect(() => {
+    if (initialTab && ['users', 'invitations', 'links'].includes(initialTab)) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab])
+
+  // Effect to handle custom tab changes
+  useEffect(() => {
+    const handleTabChange = (e: any) => {
+      if (e.detail && ['users', 'invitations', 'links'].includes(e.detail)) {
+        setActiveTab(e.detail)
+        // Scroll to top if needed or just switch
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }
+    }
+    window.addEventListener('change-user-tab', handleTabChange)
+    return () => window.removeEventListener('change-user-tab', handleTabChange)
+  }, [])
   
   // Search and filters
   const [searchTerm, setSearchTerm] = useState('')
@@ -673,10 +1209,6 @@ export default function BusinessPanelUsersPage() {
   // Count active filters
   const activeFiltersCount = [filterRole, filterStatus, filterRegion, filterZone, filterTeam].filter(f => f !== 'all').length
 
-  // Theme Colors
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const secondaryColor = panelStyles?.secondary_button_color || '#1E2329' // Usando fondo secundario oscuro como secundario default
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
 
   const filteredUsers = users.filter(user => {
     const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
@@ -690,6 +1222,11 @@ export default function BusinessPanelUsersPage() {
     const matchesTeam = filterTeam === 'all' || user.team_name === filterTeam
     return matchesSearch && matchesRole && matchesStatus && matchesRegion && matchesZone && matchesTeam
   })
+
+  const filteredInvitations = invitations.filter(inv => 
+    inv.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    inv.role.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   // Clear all filters helper
   const clearAllFilters = () => {
@@ -705,7 +1242,17 @@ export default function BusinessPanelUsersPage() {
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
 
-  const handleSaveNewUser = async (userData: any) => { await createUser(userData); refetch() }
+  const themeColors = useMemo(() => ({
+    text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
+    secondaryText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
+    cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
+    borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
+    primary: panelStyles?.primary_button_color || '#0A2540',
+    secondary: panelStyles?.secondary_button_color || '#1E2329',
+    accent: panelStyles?.accent_color || '#00D4B3'
+  }), [panelStyles, isDark])
+
+  const { primary: primaryColor, secondary: secondaryColor, accent: accentColor } = themeColors
 
   // Loading State
   if (isLoading) {
@@ -784,7 +1331,7 @@ export default function BusinessPanelUsersPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
-                  style={{ color: '#FFFFFF' }}
+                  style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
                 >
                   {t('users.title')}
                 </motion.h1>
@@ -794,7 +1341,7 @@ export default function BusinessPanelUsersPage() {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                  style={{ color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.8)' }}
                 >
                   {t('users.subtitle')}
                 </motion.p>
@@ -817,9 +1364,13 @@ export default function BusinessPanelUsersPage() {
                   }
                 }}
 
-                className="px-4 py-2.5 rounded-xl font-medium text-sm border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2"
-                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}
-                whileHover={{ scale: 1.02 }}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+                style={{ 
+                  color: isDark ? '#FFFFFF' : '#0F172A', 
+                  borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)'
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Download className="w-4 h-4" />
@@ -831,9 +1382,13 @@ export default function BusinessPanelUsersPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.45 }}
                 onClick={() => setIsImportModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl font-medium text-sm border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2"
-                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}
-                whileHover={{ scale: 1.02 }}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+                style={{ 
+                  color: isDark ? '#FFFFFF' : '#0F172A', 
+                  borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)'
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Upload className="w-4 h-4" />
@@ -843,11 +1398,15 @@ export default function BusinessPanelUsersPage() {
               <motion.button
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
+                transition={{ delay: 0.45 }}
                 onClick={() => setIsUnifiedInviteModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl font-medium text-sm border border-white/20 hover:bg-white/10 transition-colors flex items-center gap-2"
-                style={{ color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}
-                whileHover={{ scale: 1.02 }}
+                className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+                style={{ 
+                  color: isDark ? '#FFFFFF' : '#0F172A', 
+                  borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)'
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Mail className="w-4 h-4" />
@@ -919,6 +1478,7 @@ export default function BusinessPanelUsersPage() {
           gradient="linear-gradient(135deg, #F59E0B, #D97706)"
           delay={2}
           isDark={isDark}
+          onClick={() => setActiveTab('invitations')}
         />
         <StatCard
           title={t('users.stats.admins')}
@@ -931,31 +1491,68 @@ export default function BusinessPanelUsersPage() {
         />
       </div>
 
-      {/* Search & Filter Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="space-y-4"
-      >
-        {/* Main Filter Row */}
-        <div className="flex flex-col lg:flex-row gap-4">
-          {/* Search Input */}
-          <div className="flex-1 relative group">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 opacity-40 group-focus-within:opacity-70 transition-opacity" />
-            <input
-              type="text"
-              placeholder={t('users.placeholders.search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 focus:outline-none transition-all duration-300"
-              style={{
-                backgroundColor: 'var(--org-card-background, #1E2329)',
-                borderColor: 'rgba(255,255,255,0.1)',
-                color: 'var(--org-text-color, #FFFFFF)'
+        {/* Tabs and Search Bar */}
+        <div className="flex flex-col space-y-4">
+          {/* Custom Tabs */}
+          <div className="flex items-center p-1 rounded-xl w-fit" style={{ backgroundColor: 'var(--org-card-background, #1E2329)', border: `1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}` }}>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'users' ? 'shadow-lg' : isDark ? 'text-white/40 hover:text-white/60' : 'text-gray-400 hover:text-gray-600'}`}
+              style={{ 
+                backgroundColor: activeTab === 'users' ? primaryColor : 'transparent',
+                color: activeTab === 'users' ? '#FFFFFF' : undefined
               }}
-            />
+            >
+              {t('users.title', 'Usuarios')}
+              <span className={`ml-2 py-0.5 px-2 rounded-full text-[10px] ${activeTab === 'users' ? 'bg-white/20' : isDark ? 'bg-white/10' : 'bg-black/5'}`}>
+                {users.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('invitations')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'invitations' ? 'shadow-lg' : isDark ? 'text-white/40 hover:text-white/60' : 'text-gray-400 hover:text-gray-600'}`}
+              style={{ 
+                backgroundColor: activeTab === 'invitations' ? primaryColor : 'transparent',
+                color: activeTab === 'invitations' ? '#FFFFFF' : undefined
+              }}
+            >
+              {t('users.tabs.invitations', 'Individuales')}
+              <span className={`ml-2 py-0.5 px-2 rounded-full text-[10px] ${activeTab === 'invitations' ? 'bg-white/20' : isDark ? 'bg-white/10' : 'bg-black/5'}`}>
+                {invitations.length}
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveTab('links')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'links' ? 'shadow-lg' : isDark ? 'text-white/40 hover:text-white/60' : 'text-gray-400 hover:text-gray-600'}`}
+              style={{ 
+                backgroundColor: activeTab === 'links' ? primaryColor : 'transparent',
+                color: activeTab === 'links' ? '#FFFFFF' : undefined
+              }}
+            >
+              {t('users.tabs.links', 'Enlaces')}
+              <span className={`ml-2 py-0.5 px-2 rounded-full text-[10px] ${activeTab === 'links' ? 'bg-white/20' : isDark ? 'bg-white/10' : 'bg-black/5'}`}>
+                {inviteLinks.length}
+              </span>
+            </button>
           </div>
+
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search Input */}
+            <div className="flex-1 relative group">
+              <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 transition-opacity ${isDark ? 'group-focus-within:opacity-70 opacity-40' : 'group-focus-within:opacity-50 opacity-30'}`} style={{ color: isDark ? '#FFFFFF' : '#0F172A' }} />
+              <input
+                type="text"
+                placeholder={activeTab === 'users' ? t('users.placeholders.search') : t('users.placeholders.searchInvitations', 'Buscar invitaciones...')}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 focus:outline-none transition-all duration-300"
+                style={{
+                  backgroundColor: 'var(--org-card-background, #1E2329)',
+                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                  color: 'var(--org-text-color, #FFFFFF)'
+                }}
+              />
+            </div>
 
           {/* Role Filter */}
           <div className="relative min-w-[140px]">
@@ -971,7 +1568,7 @@ export default function BusinessPanelUsersPage() {
               className="w-full px-4 py-3.5 rounded-xl border-2 flex items-center justify-between gap-2 transition-all duration-300"
               style={{
                 backgroundColor: 'var(--org-card-background, #1E2329)',
-                borderColor: filterRole !== 'all' ? primaryColor : 'rgba(255,255,255,0.1)',
+                borderColor: filterRole !== 'all' ? primaryColor : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                 color: 'var(--org-text-color, #FFFFFF)'
               }}
             >
@@ -1029,7 +1626,7 @@ export default function BusinessPanelUsersPage() {
               className="w-full px-4 py-3.5 rounded-xl border-2 flex items-center justify-between gap-2 transition-all duration-300"
               style={{
                 backgroundColor: 'var(--org-card-background, #1E2329)',
-                borderColor: filterStatus !== 'all' ? accentColor : 'rgba(255,255,255,0.1)',
+                borderColor: filterStatus !== 'all' ? accentColor : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
                 color: 'var(--org-text-color, #FFFFFF)'
               }}
             >
@@ -1076,10 +1673,10 @@ export default function BusinessPanelUsersPage() {
           {/* Advanced Filters Toggle */}
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`px-4 py-3.5 rounded-xl border-2 flex items-center gap-2 transition-all duration-300 ${showAdvancedFilters ? 'bg-white/10' : ''}`}
+            className={`px-4 py-3.5 rounded-xl border-2 flex items-center gap-2 transition-all duration-300 ${showAdvancedFilters ? (isDark ? 'bg-white/10' : 'bg-black/5') : ''}`}
             style={{
               backgroundColor: showAdvancedFilters ? `${primaryColor}20` : 'var(--org-card-background, #1E2329)',
-              borderColor: showAdvancedFilters || activeFiltersCount > 0 ? primaryColor : 'rgba(255,255,255,0.1)',
+              borderColor: showAdvancedFilters || activeFiltersCount > 0 ? primaryColor : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
               color: 'var(--org-text-color, #FFFFFF)'
             }}
           >
@@ -1093,10 +1690,10 @@ export default function BusinessPanelUsersPage() {
           </button>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center rounded-xl border-2 overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'var(--org-card-background, #1E2329)' }}>
+          <div className="flex items-center rounded-xl border-2 overflow-hidden" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', backgroundColor: 'var(--org-card-background, #1E2329)' }}>
             <button
               onClick={() => setViewMode('cards')}
-              className={`p-3.5 transition-all hover:bg-white/5 ${viewMode === 'cards' ? 'bg-white/10' : ''}`}
+              className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} ${viewMode === 'cards' ? (isDark ? 'bg-white/10' : 'bg-black/5') : ''}`}
               style={{ backgroundColor: viewMode === 'cards' ? `${primaryColor}30` : 'transparent' }}
               title={t('users.view.cards', 'Vista tarjetas')}
             >
@@ -1108,17 +1705,17 @@ export default function BusinessPanelUsersPage() {
                 }} 
               />
             </button>
-            <div className="w-px h-6" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }} />
+            <div className="w-px h-6" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }} />
             <button
               onClick={() => setViewMode('list')}
-              className={`p-3.5 transition-all hover:bg-white/5 ${viewMode === 'list' ? 'bg-white/10' : ''}`}
+              className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'} ${viewMode === 'list' ? (isDark ? 'bg-white/10' : 'bg-black/5') : ''}`}
               style={{ backgroundColor: viewMode === 'list' ? `${primaryColor}30` : 'transparent' }}
               title={t('users.view.list', 'Vista lista')}
             >
               <List 
                 className="w-5 h-5" 
                 style={{ 
-                  color: viewMode === 'list' ? primaryColor : 'rgba(255,255,255,0.7)',
+                  color: viewMode === 'list' ? primaryColor : isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.4)',
                   strokeWidth: viewMode === 'list' ? 2.5 : 2
                 }} 
               />
@@ -1253,70 +1850,184 @@ export default function BusinessPanelUsersPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
 
-      {/* Users Grid/List or Empty State */}
+      {/* Content Grid/List or Empty State */}
       <AnimatePresence mode="wait">
-        {filteredUsers.length === 0 ? (
-          <EmptyState
-            key="empty"
-            onAddClick={() => setIsAddModalOpen(true)}
-            primaryColor={primaryColor}
-            secondaryColor={secondaryColor}
-          />
-        ) : viewMode === 'cards' ? (
-          <motion.div
-            key="grid"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"
-          >
-            {filteredUsers.map((user, index) => (
-              <UserCard
-                key={user.id}
-                user={user}
-                index={index}
-                primaryColor={primaryColor}
-                onEdit={() => { setEditingUser(user); setIsEditModalOpen(true) }}
-                onDelete={() => { setDeletingUser(user); setIsDeleteModalOpen(true) }}
-                onStats={() => { setStatsUser(user); setIsStatsModalOpen(true) }}
-                onResend={user.org_status === 'invited' ? () => resendInvitation(user.id) : undefined}
-                onSuspend={user.org_status === 'active' ? () => suspendUser(user.id) : undefined}
-                onActivate={user.org_status === 'suspended' ? () => activateUser(user.id) : undefined}
-              />
-            ))}
-          </motion.div>
-        ) : (
-          <motion.div
-            key="list"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="space-y-2"
-          >
-            {/* List Header */}
-            <div className="hidden lg:grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium opacity-50 uppercase tracking-wider">
-              <div className="col-span-2">{t('users.list.name', 'Nombre')}</div>
-              <div>{t('users.list.hierarchy', 'Ubicación')}</div>
-              <div>{t('users.list.role', 'Rol / Estado')}</div>
-              <div className="text-right">{t('users.list.lastAccess', 'Último acceso')}</div>
+        {activeTab === 'users' ? (
+          filteredUsers.length === 0 ? (
+            <EmptyState
+              key="empty-users"
+              onAddClick={() => setIsAddModalOpen(true)}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+            />
+          ) : viewMode === 'cards' ? (
+            <motion.div
+              key="grid-users"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6"
+            >
+              {filteredUsers.map((user, index) => (
+                <UserCard
+                  key={user.id}
+                  user={user}
+                  index={index}
+                  primaryColor={primaryColor}
+                  onEdit={() => { setEditingUser(user); setIsEditModalOpen(true) }}
+                  onDelete={() => { setDeletingUser(user); setIsDeleteModalOpen(true) }}
+                  onStats={() => { setStatsUser(user); setIsStatsModalOpen(true) }}
+                  onResend={user.org_status === 'invited' ? () => resendInvitation(user.id) : undefined}
+                  onSuspend={user.org_status === 'active' ? () => suspendUser(user.id) : undefined}
+                  onActivate={user.org_status === 'suspended' ? () => activateUser(user.id) : undefined}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list-users"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2"
+            >
+              {/* List Header */}
+              <div className="hidden lg:grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium opacity-50 uppercase tracking-wider">
+                <div className="col-span-2">{t('users.list.name', 'Nombre')}</div>
+                <div>{t('users.list.hierarchy', 'Ubicación')}</div>
+                <div>{t('users.list.role', 'Rol / Estado')}</div>
+                <div className="text-right">{t('users.list.lastAccess', 'Último acceso')}</div>
+              </div>
+              {filteredUsers.map((user, index) => (
+                <UserListRow
+                  key={user.id}
+                  user={user}
+                  index={index}
+                  primaryColor={primaryColor}
+                  onEdit={() => { setEditingUser(user); setIsEditModalOpen(true) }}
+                  onDelete={() => { setDeletingUser(user); setIsDeleteModalOpen(true) }}
+                  onStats={() => { setStatsUser(user); setIsStatsModalOpen(true) }}
+                  onResend={user.org_status === 'invited' ? () => resendInvitation(user.id) : undefined}
+                  onSuspend={user.org_status === 'active' ? () => suspendUser(user.id) : undefined}
+                  onActivate={user.org_status === 'suspended' ? () => activateUser(user.id) : undefined}
+                />
+              ))}
+            </motion.div>
+          )
+        ) : activeTab === 'invitations' ? (
+          /* Invitations Tab Content */
+          filteredInvitations.length === 0 ? (
+            <div key="empty-invitations" className="flex flex-col items-center justify-center p-20 text-center rounded-3xl border border-white/5 bg-white/5">
+              <Mail className="w-16 h-16 opacity-20 mb-4" />
+              <h3 className="text-xl font-bold opacity-60">No hay invitaciones pendientes</h3>
+              <p className="text-sm opacity-40 max-w-xs mx-auto mt-2">
+                Todas tus invitaciones han sido aceptadas o no has enviado ninguna recientemente.
+              </p>
             </div>
-            {filteredUsers.map((user, index) => (
-              <UserListRow
-                key={user.id}
-                user={user}
-                index={index}
-                primaryColor={primaryColor}
-                onEdit={() => { setEditingUser(user); setIsEditModalOpen(true) }}
-                onDelete={() => { setDeletingUser(user); setIsDeleteModalOpen(true) }}
-                onStats={() => { setStatsUser(user); setIsStatsModalOpen(true) }}
-                onResend={user.org_status === 'invited' ? () => resendInvitation(user.id) : undefined}
-                onSuspend={user.org_status === 'active' ? () => suspendUser(user.id) : undefined}
-                onActivate={user.org_status === 'suspended' ? () => activateUser(user.id) : undefined}
-              />
-            ))}
-          </motion.div>
+          ) : viewMode === 'cards' ? (
+            <motion.div
+              key="grid-invitations"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {filteredInvitations.map((inv, index) => (
+                <InvitationCard
+                  key={inv.id}
+                  invitation={inv}
+                  index={index}
+                  primaryColor={primaryColor}
+                  onResend={() => handleResendIndividualInvitation(inv.id)}
+                  onRevoke={() => handleRevokeInvitation(inv.id)}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list-invitations"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2"
+            >
+              {/* List Header */}
+              <div className="hidden lg:grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium opacity-50 uppercase tracking-wider">
+                <div className="col-span-2">{t('users.list.invitation', 'Invitación')}</div>
+                <div>{t('users.list.sent', 'Enviada')}</div>
+                <div>{t('users.list.status', 'Estado')}</div>
+                <div className="text-right">Acciones</div>
+              </div>
+              {filteredInvitations.map((inv, index) => (
+                <InvitationListRow
+                  key={inv.id}
+                  invitation={inv}
+                  index={index}
+                  primaryColor={primaryColor}
+                  onResend={() => handleResendIndividualInvitation(inv.id)}
+                  onRevoke={() => handleRevokeInvitation(inv.id)}
+                />
+              ))}
+            </motion.div>
+          )
+        ) : (
+          /* Invite Links Tab Content */
+          inviteLinks.length === 0 ? (
+            <div key="empty-links" className="flex flex-col items-center justify-center p-20 text-center rounded-3xl border border-white/5 bg-white/5">
+              <Link2 className="w-16 h-16 opacity-20 mb-4" />
+              <h3 className="text-xl font-bold opacity-60">No hay enlaces activos</h3>
+              <p className="text-sm opacity-40 max-w-xs mx-auto mt-2">
+                Crea enlaces de invitación masiva para compartir con grupos grandes.
+              </p>
+            </div>
+          ) : viewMode === 'cards' ? (
+            <motion.div
+              key="grid-links"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {inviteLinks.map((link, index) => (
+                <InviteLinkCard
+                  key={link.id}
+                  link={link}
+                  index={index}
+                  primaryColor={primaryColor}
+                  onToggleStatus={() => updateInviteLinkStatus(link.id, link.status === 'active' ? 'pause' : 'resume')}
+                  onDelete={() => deleteInviteLink(link.id)}
+                />
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list-links"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2"
+            >
+              {/* List Header */}
+              <div className="hidden lg:grid grid-cols-5 gap-4 px-4 py-2 text-xs font-medium opacity-50 uppercase tracking-wider">
+                <div className="col-span-1 lg:col-span-1">{t('users.list.link', 'Enlace')}</div>
+                <div>{t('users.list.usage', 'Uso / Disponibles')}</div>
+                <div>{t('users.list.expires', 'Vencimiento')}</div>
+                <div className="text-right">Acciones</div>
+              </div>
+              {inviteLinks.map((link, index) => (
+                <InviteLinkRow
+                  key={link.id}
+                  link={link}
+                  index={index}
+                  primaryColor={primaryColor}
+                  onToggleStatus={() => updateInviteLinkStatus(link.id, link.status === 'active' ? 'pause' : 'resume')}
+                  onDelete={() => deleteInviteLink(link.id)}
+                />
+              ))}
+            </motion.div>
+          )
         )}
       </AnimatePresence>
 
@@ -1331,7 +2042,16 @@ export default function BusinessPanelUsersPage() {
         onClose={() => setIsUnifiedInviteModalOpen(false)}
         onInviteSent={() => refetch()}
         onLinkCreated={() => refetch()}
-        organizationId={currentUser?.organization_id || undefined}
+        organizationId={orgData?.id || undefined}
+        organizationSlug={orgSlug}
+      />
+      
+      {/* Toast Notifications */}
+      <ToastNotification
+        isOpen={toast.isOpen}
+        onClose={() => setToast({ ...toast, isOpen: false })}
+        message={toast.message}
+        type={toast.type}
       />
     </div>
   )

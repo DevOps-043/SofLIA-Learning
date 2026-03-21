@@ -26,6 +26,8 @@ import { useAdminCompanies } from '../hooks/useAdminCompanies'
 import { AdminCompany } from '../services/adminCompanies.service'
 import { AdminEditCompanyModal } from './AdminEditCompanyModal'
 import { AdminCreateCompanyModal, CreateCompanyData } from './AdminCreateCompanyModal'
+import { useThemeStore } from '@/core/stores/themeStore'
+import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
 
 // ============================================
 // DESIGN SYSTEM - SOFLIA COLORS
@@ -108,9 +110,10 @@ interface StatCardProps {
   icon: React.ComponentType<any>
   color: string
   delay: number
+  themeColors?: any
 }
 
-function StatCard({ title, value, subtitle, icon: Icon, color, delay }: StatCardProps) {
+function StatCard({ title, value, subtitle, icon: Icon, color, delay, themeColors }: StatCardProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -119,8 +122,8 @@ function StatCard({ title, value, subtitle, icon: Icon, color, delay }: StatCard
       whileHover={{ y: -5, scale: 1.02, transition: { duration: 0.2 } }}
       className="relative group overflow-hidden rounded-2xl border p-6"
       style={{
-        backgroundColor: colors.bgSecondary,
-        borderColor: `${colors.grayMedium}30`
+        backgroundColor: themeColors?.cardBackground || colors.bgSecondary,
+        borderColor: `${themeColors?.borderColor || colors.grayMedium}30`
       }}
     >
       {/* Glow Effect */}
@@ -141,7 +144,8 @@ function StatCard({ title, value, subtitle, icon: Icon, color, delay }: StatCard
         </div>
 
         <motion.h3
-          className="text-3xl font-bold text-white mb-1"
+          className="text-3xl font-bold mb-1"
+          style={{ color: themeColors?.textPrimary || 'white' }}
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: delay * 0.1 + 0.2 }}
@@ -175,9 +179,10 @@ interface CompanyCardProps {
   onToggle: () => void
   onActivate?: () => void
   isUpdating: boolean
+  themeColors?: any
 }
 
-function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating }: CompanyCardProps) {
+function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating, themeColors }: CompanyCardProps) {
   const statusInfo = getStatusInfo(company)
   const planInfo = formatPlan(company.subscription_plan)
   const StatusIcon = statusInfo.icon
@@ -190,8 +195,8 @@ function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating
       whileHover={{ y: -5, scale: 1.01 }}
       className="relative group overflow-hidden rounded-2xl border"
       style={{
-        backgroundColor: colors.bgSecondary,
-        borderColor: `${colors.grayMedium}20`
+        backgroundColor: themeColors?.cardBackground || colors.bgSecondary,
+        borderColor: `${themeColors?.borderColor || colors.grayMedium}20`
       }}
     >
       {/* Gradient overlay on hover */}
@@ -212,11 +217,11 @@ function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating
               }}
               whileHover={{ scale: 1.05 }}
             >
-              {company.logo_url ? (
+              {company.brand_logo_url || company.logo_url ? (
                 <img
-                  src={company.logo_url}
+                  src={company.brand_logo_url || company.logo_url || undefined}
                   alt={company.name}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain p-1"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none'
                   }}
@@ -226,8 +231,8 @@ function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating
               )}
             </motion.div>
             <div>
-              <h3 className="text-lg font-bold text-white">{company.name}</h3>
-              <p className="text-sm" style={{ color: colors.grayMedium }}>
+              <h3 className="text-lg font-bold" style={{ color: themeColors?.textPrimary || 'white' }}>{company.name}</h3>
+              <p className="text-sm" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>
                 {company.slug || 'Sin slug'}
               </p>
             </div>
@@ -277,24 +282,24 @@ function CompanyCard({ company, onView, onEdit, onToggle, onActivate, isUpdating
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div
             className="p-3 rounded-xl text-center"
-            style={{ backgroundColor: colors.bgTertiary }}
+            style={{ backgroundColor: themeColors?.inputBg || colors.bgTertiary }}
           >
-            <p className="text-lg font-bold text-white">{company.active_users}</p>
-            <p className="text-xs" style={{ color: colors.grayMedium }}>Activos</p>
+            <p className="text-lg font-bold" style={{ color: themeColors?.textPrimary || 'white' }}>{company.active_users}</p>
+            <p className="text-xs" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>Activos</p>
           </div>
           <div
             className="p-3 rounded-xl text-center"
-            style={{ backgroundColor: colors.bgTertiary }}
+            style={{ backgroundColor: themeColors?.inputBg || colors.bgTertiary }}
           >
-            <p className="text-lg font-bold text-white">{company.total_users}</p>
-            <p className="text-xs" style={{ color: colors.grayMedium }}>Total</p>
+            <p className="text-lg font-bold" style={{ color: themeColors?.textPrimary || 'white' }}>{company.total_users}</p>
+            <p className="text-xs" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>Total</p>
           </div>
           <div
             className="p-3 rounded-xl text-center"
-            style={{ backgroundColor: colors.bgTertiary }}
+            style={{ backgroundColor: themeColors?.inputBg || colors.bgTertiary }}
           >
             <p className="text-lg font-bold" style={{ color: colors.accent }}>{usagePercent}%</p>
-            <p className="text-xs" style={{ color: colors.grayMedium }}>Uso</p>
+            <p className="text-xs" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>Uso</p>
           </div>
         </div>
 
@@ -407,9 +412,10 @@ interface ViewModalProps {
   company: AdminCompany
   onClose: () => void
   onEdit: () => void
+  themeColors?: any
 }
 
-function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
+function ViewModal({ company, onClose, onEdit, themeColors }: ViewModalProps) {
   const router = useRouter()
   const statusInfo = getStatusInfo(company)
   const planInfo = formatPlan(company.subscription_plan)
@@ -449,13 +455,13 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
         transition={{ type: 'spring', duration: 0.4, bounce: 0.2 }}
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-2xl my-8 rounded-2xl shadow-2xl overflow-hidden"
-        style={{ backgroundColor: colors.bgSecondary }}
+        style={{ backgroundColor: themeColors?.cardBackground || colors.bgSecondary }}
       >
         {/* Banner */}
         <div
           className="relative h-40 w-full"
           style={{
-            backgroundColor: colors.bgTertiary,
+            backgroundColor: themeColors?.inputBg || colors.bgTertiary,
             backgroundImage: company.brand_banner_url ? `url(${company.brand_banner_url})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
@@ -486,8 +492,8 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
             <div
               className="h-24 w-24 rounded-2xl flex items-center justify-center overflow-hidden border-4 shadow-lg"
               style={{
-                backgroundColor: colors.bgSecondary,
-                borderColor: colors.bgSecondary
+                backgroundColor: themeColors?.cardBackground || colors.bgSecondary,
+                borderColor: themeColors?.cardBackground || colors.bgSecondary
               }}
             >
               {company.logo_url || company.brand_logo_url ? (
@@ -508,8 +514,8 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
               <div
                 className="h-12 w-12 rounded-xl flex items-center justify-center overflow-hidden border-3 shadow-md"
                 style={{
-                  backgroundColor: colors.bgSecondary,
-                  borderColor: colors.bgSecondary,
+                  backgroundColor: themeColors?.cardBackground || colors.bgSecondary,
+                  borderColor: themeColors?.cardBackground || colors.bgSecondary,
                   borderWidth: '3px'
                 }}
               >
@@ -527,8 +533,8 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
         <div className="pt-16 px-6 pb-4">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">{company.name}</h2>
-              <p className="text-sm mt-1" style={{ color: colors.grayMedium }}>
+              <h2 className="text-2xl font-bold" style={{ color: themeColors?.textPrimary || 'white' }}>{company.name}</h2>
+              <p className="text-sm mt-1" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>
                 /{company.slug || 'sin-slug'}
               </p>
               {company.description && (
@@ -570,7 +576,7 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
           {/* Owner & Admins */}
           <div
             className="p-4 rounded-xl"
-            style={{ backgroundColor: colors.bgTertiary }}
+            style={{ backgroundColor: themeColors?.inputBg || colors.bgTertiary }}
           >
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: colors.accent }}>
               Administradores
@@ -592,8 +598,8 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{getUserDisplayName(owner.user)}</p>
-                    <p className="text-xs truncate" style={{ color: colors.grayMedium }}>{owner.user?.email}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: themeColors?.textPrimary || 'white' }}>{getUserDisplayName(owner.user)}</p>
+                    <p className="text-xs truncate" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>{owner.user?.email}</p>
                   </div>
                   <span
                     className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase"
@@ -620,8 +626,8 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white truncate">{getUserDisplayName(admin.user)}</p>
-                    <p className="text-xs truncate" style={{ color: colors.grayMedium }}>{admin.user?.email}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: themeColors?.textPrimary || 'white' }}>{getUserDisplayName(admin.user)}</p>
+                    <p className="text-xs truncate" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>{admin.user?.email}</p>
                   </div>
                   <span
                     className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase"
@@ -643,31 +649,31 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
           {/* Contact Info */}
           <div
             className="p-4 rounded-xl"
-            style={{ backgroundColor: colors.bgTertiary }}
+            style={{ backgroundColor: themeColors?.inputBg || colors.bgTertiary }}
           >
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: colors.accent }}>
               Información de Contacto
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="flex items-start gap-2">
-                <EnvelopeIcon className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: colors.grayMedium }} />
+                <EnvelopeIcon className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: themeColors?.textSecondary || colors.grayMedium }} />
                 <div>
-                  <p className="text-[10px] uppercase" style={{ color: colors.grayMedium }}>Email</p>
-                  <p className="text-sm text-white break-all">{company.contact_email || 'No definido'}</p>
+                  <p className="text-[10px] uppercase" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>Email</p>
+                  <p className="text-sm break-all" style={{ color: themeColors?.textPrimary || 'white' }}>{company.contact_email || 'No definido'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <PhoneIcon className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: colors.grayMedium }} />
+                <PhoneIcon className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: themeColors?.textSecondary || colors.grayMedium }} />
                 <div>
-                  <p className="text-[10px] uppercase" style={{ color: colors.grayMedium }}>Teléfono</p>
-                  <p className="text-sm text-white">{company.contact_phone || 'No definido'}</p>
+                  <p className="text-[10px] uppercase" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>Teléfono</p>
+                  <p className="text-sm" style={{ color: themeColors?.textPrimary || 'white' }}>{company.contact_phone || 'No definido'}</p>
                 </div>
               </div>
               <div className="flex items-start gap-2 md:col-span-2">
-                <GlobeAltIcon className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: colors.grayMedium }} />
+                <GlobeAltIcon className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: themeColors?.textSecondary || colors.grayMedium }} />
                 <div>
-                  <p className="text-[10px] uppercase" style={{ color: colors.grayMedium }}>Sitio Web</p>
-                  <p className="text-sm text-white break-all">{company.website_url || 'No definido'}</p>
+                  <p className="text-[10px] uppercase" style={{ color: themeColors?.textSecondary || colors.grayMedium }}>Sitio Web</p>
+                  <p className="text-sm break-all" style={{ color: themeColors?.textPrimary || 'white' }}>{company.website_url || 'No definido'}</p>
                 </div>
               </div>
             </div>
@@ -676,7 +682,7 @@ function ViewModal({ company, onClose, onEdit }: ViewModalProps) {
           {/* Users Grid */}
           <div
             className="p-4 rounded-xl"
-            style={{ backgroundColor: colors.bgTertiary }}
+            style={{ backgroundColor: themeColors?.inputBg || colors.bgTertiary }}
           >
             <h3 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: colors.accent }}>
               Usuarios ({company.total_users})
@@ -744,6 +750,20 @@ export function AdminCompaniesPage() {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
+  const { resolvedTheme } = useThemeStore()
+  const isLightTheme = resolvedTheme === 'light'
+  const { styles: orgStyles } = useOrganizationStylesContext()
+  const panelStyles = orgStyles?.panel
+  
+  const themeColors = {
+    background: isLightTheme ? (panelStyles?.background_value && panelStyles.background_value !== '#0F1419' ? panelStyles.background_value : '#F8FAFC') : colors.bgPrimary,
+    cardBackground: isLightTheme ? (panelStyles?.card_background && panelStyles.card_background !== '#1E2329' ? panelStyles.card_background : '#FFFFFF') : colors.bgSecondary,
+    textPrimary: isLightTheme ? '#1E293B' : 'white',
+    textSecondary: isLightTheme ? '#64748B' : colors.grayMedium,
+    borderColor: isLightTheme ? '#E2E8F0' : colors.grayMedium,
+    inputBg: isLightTheme ? '#F1F5F9' : colors.bgTertiary,
+  }
+
 
   const filteredCompanies = useMemo(() => {
     return companies.filter(company => {
@@ -803,7 +823,7 @@ export function AdminCompaniesPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8 min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
+      <div className="p-6 lg:p-8 min-h-screen" style={{ backgroundColor: themeColors.background }}>
         <div className="animate-pulse space-y-8">
           <div className="h-12 bg-gray-800 rounded-xl w-1/3" />
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -823,18 +843,18 @@ export function AdminCompaniesPage() {
 
   if (error) {
     return (
-      <div className="p-6 lg:p-8 min-h-screen flex items-center justify-center" style={{ backgroundColor: colors.bgPrimary }}>
+      <div className="p-6 lg:p-8 min-h-screen flex items-center justify-center" style={{ backgroundColor: themeColors.background }}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="p-8 rounded-2xl border text-center max-w-md"
           style={{
-            backgroundColor: colors.bgSecondary,
+            backgroundColor: themeColors.cardBackground,
             borderColor: `${colors.error}30`
           }}
         >
           <ExclamationTriangleIcon className="h-12 w-12 mx-auto mb-4" style={{ color: colors.error }} />
-          <h2 className="text-xl font-bold text-white mb-2">Error al cargar</h2>
+          <h2 className="text-xl font-bold mb-2" style={{ color: themeColors.textPrimary }}>Error al cargar</h2>
           <p style={{ color: colors.grayMedium }} className="mb-6">{error}</p>
           <motion.button
             onClick={refetch}
@@ -852,7 +872,7 @@ export function AdminCompaniesPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 min-h-screen" style={{ backgroundColor: colors.bgPrimary }}>
+    <div className="p-6 lg:p-8 min-h-screen transition-colors duration-300" style={{ backgroundColor: themeColors.background }}>
       {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
@@ -867,10 +887,10 @@ export function AdminCompaniesPage() {
                 Gestión B2B
               </span>
             </div>
-            <h1 className="text-3xl lg:text-4xl font-bold text-white">
+            <h1 className="text-3xl lg:text-4xl font-bold" style={{ color: themeColors.textPrimary }}>
               Administración de Empresas
             </h1>
-            <p style={{ color: colors.grayMedium }} className="mt-2">
+            <p style={{ color: themeColors.textSecondary }} className="mt-2">
               Gestiona organizaciones, planes y usuarios empresariales
             </p>
           </div>
@@ -924,6 +944,7 @@ export function AdminCompaniesPage() {
           icon={CheckCircleIcon}
           color={colors.success}
           delay={0}
+          themeColors={themeColors}
         />
         <StatCard
           title="Pendientes"
@@ -932,6 +953,7 @@ export function AdminCompaniesPage() {
           icon={ArrowPathIcon}
           color="#F97316"
           delay={1}
+          themeColors={themeColors}
         />
         <StatCard
           title="En Trial"
@@ -940,6 +962,7 @@ export function AdminCompaniesPage() {
           icon={BoltIcon}
           color={colors.purple}
           delay={2}
+          themeColors={themeColors}
         />
         <StatCard
           title="Pausadas"
@@ -948,6 +971,7 @@ export function AdminCompaniesPage() {
           icon={PauseCircleIcon}
           color={colors.warning}
           delay={3}
+          themeColors={themeColors}
         />
         <StatCard
           title="Uso Promedio"
@@ -956,6 +980,7 @@ export function AdminCompaniesPage() {
           icon={ChartBarIcon}
           color={colors.accent}
           delay={4}
+          themeColors={themeColors}
         />
       </section>
 
@@ -964,10 +989,10 @@ export function AdminCompaniesPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="mb-8 p-5 rounded-2xl border"
+        className="mb-8 p-5 rounded-2xl border transition-colors"
         style={{
-          backgroundColor: colors.bgSecondary,
-          borderColor: `${colors.grayMedium}20`
+          backgroundColor: themeColors.cardBackground,
+          borderColor: `${themeColors.borderColor}30`
         }}
       >
         <div className="flex flex-col lg:flex-row lg:items-center gap-4">
@@ -982,10 +1007,11 @@ export function AdminCompaniesPage() {
               placeholder="Buscar por nombre, slug o email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 rounded-xl border bg-transparent text-white placeholder-gray-500 focus:outline-none focus:ring-2"
+              className="w-full pl-12 pr-4 py-3 rounded-xl border focus:outline-none focus:ring-2"
               style={{
-                borderColor: `${colors.grayMedium}30`,
-                backgroundColor: colors.bgTertiary
+                borderColor: `${themeColors.borderColor}30`,
+                backgroundColor: themeColors.inputBg,
+                color: themeColors.textPrimary
               }}
             />
           </div>
@@ -995,10 +1021,11 @@ export function AdminCompaniesPage() {
             <select
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value)}
-              className="px-4 py-3 rounded-xl border text-white focus:outline-none focus:ring-2"
+              className="px-4 py-3 rounded-xl border focus:outline-none focus:ring-2"
               style={{
-                borderColor: `${colors.grayMedium}30`,
-                backgroundColor: colors.bgTertiary
+                borderColor: `${themeColors.borderColor}30`,
+                backgroundColor: themeColors.inputBg,
+                color: themeColors.textPrimary
               }}
             >
               <option value="all">Todos los planes</option>
@@ -1009,10 +1036,11 @@ export function AdminCompaniesPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-3 rounded-xl border text-white focus:outline-none focus:ring-2"
+              className="px-4 py-3 rounded-xl border focus:outline-none focus:ring-2"
               style={{
-                borderColor: `${colors.grayMedium}30`,
-                backgroundColor: colors.bgTertiary
+                borderColor: `${themeColors.borderColor}30`,
+                backgroundColor: themeColors.inputBg,
+                color: themeColors.textPrimary
               }}
             >
               <option value="all">Todos los estados</option>
@@ -1024,7 +1052,7 @@ export function AdminCompaniesPage() {
             </select>
           </div>
 
-          <div className="text-sm" style={{ color: colors.grayMedium }}>
+          <div className="text-sm" style={{ color: themeColors.textSecondary }}>
             {filteredCompanies.length} empresas
           </div>
         </div>
@@ -1037,15 +1065,15 @@ export function AdminCompaniesPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="col-span-full p-12 rounded-2xl border text-center"
+              className="col-span-full p-12 rounded-2xl border text-center transition-colors"
               style={{
-                backgroundColor: colors.bgSecondary,
-                borderColor: `${colors.grayMedium}20`
+                backgroundColor: themeColors.cardBackground,
+                borderColor: `${themeColors.borderColor}30`
               }}
             >
-              <BuildingOffice2Icon className="h-16 w-16 mx-auto mb-4" style={{ color: colors.grayMedium }} />
-              <p className="text-lg font-medium text-white mb-2">No se encontraron empresas</p>
-              <p style={{ color: colors.grayMedium }}>Intenta ajustar los filtros de búsqueda</p>
+              <BuildingOffice2Icon className="h-16 w-16 mx-auto mb-4" style={{ color: themeColors.textSecondary }} />
+              <p className="text-lg font-medium mb-2" style={{ color: themeColors.textPrimary }}>No se encontraron empresas</p>
+              <p style={{ color: themeColors.textSecondary }}>Intenta ajustar los filtros de búsqueda</p>
             </motion.div>
           ) : (
             filteredCompanies.map((company, index) => (
@@ -1063,6 +1091,7 @@ export function AdminCompaniesPage() {
                   onToggle={() => handleToggle(company)}
                   onActivate={() => handleActivatePending(company)}
                   isUpdating={updatingId === company.id}
+                  themeColors={themeColors}
                 />
               </motion.div>
             ))
@@ -1080,6 +1109,7 @@ export function AdminCompaniesPage() {
               setEditCompany(viewCompany)
               setViewCompany(null)
             }}
+            themeColors={themeColors}
           />
         )}
         {editCompany && (

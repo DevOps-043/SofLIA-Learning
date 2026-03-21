@@ -22,12 +22,12 @@ export function UserStatsB2BPage() {
     <div className="p-6 w-full">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Estadísticas de Usuarios</h1>
-        <p className="text-gray-400">Métricas de aprendizaje, engagement y detalle de usuarios</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Estadísticas de Usuarios</h1>
+        <p className="text-gray-500 dark:text-gray-400">Métricas de aprendizaje, engagement y detalle de usuarios</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-700 p-1 rounded-lg overflow-x-auto">
+      <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 p-1 rounded-lg overflow-x-auto">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -35,7 +35,7 @@ export function UserStatsB2BPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors whitespace-nowrap ${
               activeTab === id
                 ? 'bg-blue-600 text-white'
-                : 'text-gray-400 hover:text-white hover:bg-gray-600'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600'
             }`}
           >
             <Icon className="w-4 h-4" />

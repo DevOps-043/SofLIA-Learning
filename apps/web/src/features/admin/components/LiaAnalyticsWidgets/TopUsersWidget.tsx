@@ -125,7 +125,7 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
           <UsersIcon className="w-5 h-5 text-indigo-500" />
-          Top Usuarios de LIA
+          Top Usuarios de SofLIA
         </h3>
         <select
           value={sortBy}

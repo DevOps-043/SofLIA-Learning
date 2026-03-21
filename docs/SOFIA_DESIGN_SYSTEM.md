@@ -1,4 +1,4 @@
-# Sistema de Diseño SOFIA - Guía de Identidad Visual
+# Sistema de Diseño SofLIA - Guía de Identidad Visual
 
 ## 1. Paleta de Colores
 
@@ -488,11 +488,11 @@
 - **Errores**: Mensajes claros con acciones sugeridas
 - **Éxito**: Confirmaciones breves y celebratorias
 
-## 8. Patrón de Modales: Split Panel Modal
+## 8. Patrón de Modales: Split Panel Modal (SofLIA)
 
 ### 8.1 Descripción
 
-El **Split Panel Modal** es el patrón de diseño oficial para todos los modales complejos en SOFIA. Inspirado en el estilo de Notion y Linear, proporciona una experiencia de usuario premium y consistente.
+El **Split Panel Modal** es el patrón de diseño oficial para todos los modales complejos en SofLIA. Inspirado en el estilo de Notion y Linear, proporciona una experiencia de usuario premium y consistente.
 
 ### 8.2 Características del Patrón
 
@@ -710,11 +710,11 @@ const accentColor = panelStyles?.accent_color || "#10B981";
 - Mensajes de éxito/error (usar Toast)
 - Pop-ups informativos breves (usar Popover)
 
-## 9. Patrón de Dropdowns: Premium Dropdown
+## 9. Patrón de Dropdowns: Premium Dropdown (SofLIA)
 
 ### 9.1 Descripción
 
-El **Premium Dropdown** es el patrón de diseño oficial para todos los selectores y filtros en SOFIA. Reemplaza los elementos `<select>` nativos del navegador con dropdowns personalizados que mantienen consistencia visual con el resto de la aplicación.
+El **Premium Dropdown** es el patrón de diseño oficial para todos los selectores y filtros en SofLIA. Reemplaza los elementos `<select>` nativos del navegador con dropdowns personalizados que mantienen consistencia visual con el resto de la aplicación.
 
 ### 9.2 Características del Patrón
 

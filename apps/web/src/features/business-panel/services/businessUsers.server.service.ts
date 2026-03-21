@@ -111,33 +111,47 @@ export class BusinessUsersServerService {
   static async getOrganizationStats(organizationId: string): Promise<BusinessUserStats> {
     const supabase = createServiceClient()
 
-    // 
     try {
-      const { data, error } = await supabase
+      // Obtener usuarios actuales de la organización
+      const { data: orgUsers, error: orgUsersError } = await supabase
         .from('organization_users')
         .select('role, status')
         .eq('organization_id', organizationId)
 
-      // 
-      if (error) {
-        // console.error('Error fetching organization stats:', error)
-        throw error
-      }
+      if (orgUsersError) throw orgUsersError
 
-      // 
+      // Obtener invitaciones individuales pendientes
+      const { data: pendingInvitations, error: invError } = await supabase
+        .from('user_invitations')
+        .select('role')
+        .eq('organization_id', organizationId)
+        .eq('status', 'pending')
+
+      if (invError) throw invError
+
+      // Obtener uso de enlaces masivos
+      const { data: bulkLinks } = await supabase
+        .from('bulk_invite_links')
+        .select('current_uses')
+        .eq('organization_id', organizationId)
+
+      const bulkLinkUsage = bulkLinks?.reduce((sum, link) => sum + (link.current_uses || 0), 0) || 0
+
       const stats: BusinessUserStats = {
-        total: data?.length || 0,
-        active: data?.filter((u: any) => u.status === 'active').length || 0,
-        invited: data?.filter((u: any) => u.status === 'invited').length || 0,
-        suspended: data?.filter((u: any) => u.status === 'suspended').length || 0,
-        admins: data?.filter((u: any) => u.role === 'admin' || u.role === 'owner').length || 0,
-        members: data?.filter((u: any) => u.role === 'member').length || 0
+        total: (orgUsers?.length || 0) + (pendingInvitations?.length || 0),
+        active: orgUsers?.filter((u: any) => u.status === 'active').length || 0,
+        invited: (orgUsers?.filter((u: any) => u.status === 'invited').length || 0) + (pendingInvitations?.length || 0),
+        suspended: orgUsers?.filter((u: any) => u.status === 'suspended').length || 0,
+        admins: (orgUsers?.filter((u: any) => u.role === 'admin' || u.role === 'owner').length || 0) + 
+                (pendingInvitations?.filter((i: any) => i.role === 'admin' || i.role === 'owner').length || 0),
+        members: (orgUsers?.filter((u: any) => u.role === 'member').length || 0) + 
+                 (pendingInvitations?.filter((i: any) => i.role === 'member').length || 0),
+        bulk_link_usage: bulkLinkUsage
       }
 
-      // 
       return stats
     } catch (error) {
-      // console.error('Error in BusinessUsersService.getOrganizationStats:', error)
+      console.error('Error in BusinessUsersService.getOrganizationStats:', error)
       throw error
     }
   }
@@ -297,6 +311,26 @@ export class BusinessUsersServerService {
       if (error && typeof error === 'object') {
         console.error('❌ [createOrganizationUser] Error details:', JSON.stringify(error, null, 2))
       }
+
+      // Convertir errores de Supabase/PostgreSQL a mensajes amigables
+      if (error && typeof error === 'object' && 'code' in error) {
+        const pgError = error as { code: string; message?: string; details?: string; constraint?: string }
+
+        // Error de clave única duplicada (PostgreSQL 23505)
+        if (pgError.code === '23505') {
+          const constraintOrMsg = (pgError.constraint || pgError.details || pgError.message || '').toLowerCase()
+
+          if (constraintOrMsg.includes('email')) {
+            throw new Error('El correo electrónico ya está registrado en la plataforma. Este usuario existe en otra empresa.')
+          }
+          if (constraintOrMsg.includes('username')) {
+            throw new Error('El nombre de usuario ya está en uso. Por favor elige otro nombre de usuario.')
+          }
+          // Fallback genérico para duplicado
+          throw new Error('Este usuario ya existe en la plataforma (correo o usuario duplicado). Por favor verifica los datos.')
+        }
+      }
+
       throw error
     }
   }
@@ -415,11 +449,11 @@ export class BusinessUsersServerService {
 
       // 
       return {
-        ...orgUserData.users,
+        ...(orgUserData.users as any),
         org_role: orgUserData?.role || 'member',
         org_status: orgUserData?.status || 'active',
         joined_at: orgUserData?.joined_at
-      }
+      } as BusinessUser
     } catch (error) {
       // console.error('Error in BusinessUsersService.updateOrganizationUser:', error)
       throw error
@@ -463,224 +497,178 @@ export class BusinessUsersServerService {
       }
 
       // ============================================
-      // PASO 1: Eliminar datos dependientes primero (orden de dependencias)
+      // PASO 1: Eliminar datos dependientes (Optimizado con Promise.all)
       // ============================================
+      console.log('🔄 Iniciando eliminación de datos relacionados en paralelo...')
 
-      // 1. LIA - Primero feedback, luego activity completions, luego conversaciones
-      console.log('🔄 Eliminando datos de LIA...')
-      await deleteFromTable('lia_user_feedback')
-      await deleteFromTable('lia_activity_completions')
-      await deleteFromTable('lia_conversations')
+      // GRUPO 1: Datos sin dependencias mutuas
+      await Promise.all([
+        // LIA
+        deleteFromTable('lia_user_feedback'),
+        deleteFromTable('lia_activity_completions'),
+        deleteFromTable('lia_conversations'),
+        
+        // Progreso y Tracking
+        deleteFromTable('user_quiz_submissions'),
+        deleteFromTable('lesson_tracking'),
+        deleteFromTable('user_lesson_progress'),
+        deleteFromTable('daily_progress'),
+        deleteFromTable('user_lesson_notes'),
+        
+        // Notificaciones y Preferencias
+        deleteFromTable('notification_email_queue'),
+        deleteFromTable('notification_push_subscriptions'),
+        deleteFromTable('notification_stats'),
+        deleteFromTable('user_notification_preferences'),
+        deleteFromTable('user_notifications'),
+        
+        // Calendario
+        deleteFromTable('user_calendar_events'),
+        deleteFromTable('calendar_subscription_tokens'),
+        deleteFromTable('calendar_integrations'),
+        
+        // Auditoría y Logs (MANTENER HISTORIAL ES OPCIONAL, PERO PARA ELIMINACIÓN TOTAL:)
+        deleteFromTable('audit_logs'),
+        deleteFromTable('audit_logs', 'admin_user_id'),
+        deleteFromTable('user_activity_log'),
+        deleteFromTable('ai_moderation_logs'),
+        
+        // Otros
+        deleteFromTable('user_favorites'),
+        deleteFromTable('notes'),
+        deleteFromTable('user_warnings'),
+        deleteFromTable('user_tour_progress'),
+        deleteFromTable('reportes_problemas'),
+        deleteFromTable('reportes_problemas', 'admin_asignado'),
+        deleteFromTable('admin_dashboard_layouts'),
+        deleteFromTable('admin_dashboard_preferences'),
+        deleteFromTable('study_preferences'),
+        deleteFromTable('user_streaks'),
+        deleteFromTable('oauth_accounts'),
+        deleteFromTable('password_reset_tokens'),
+        deleteFromTable('refresh_tokens'),
+        deleteFromTable('user_session')
+      ])
 
-      // 2. Certificados y ledger (certificate_ledger depende de user_course_certificates)
-      console.log('🔄 Eliminando certificados...')
-      // Primero obtener los certificate_ids del usuario para eliminar del ledger
-      const { data: certs } = await supabase
-        .from('user_course_certificates')
-        .select('certificate_id')
-        .eq('user_id', userId)
+      // GRUPO 2: Datos con dependencias específicas o de mayor peso
+      await Promise.all([
+        // Certificados (LEDGER primero si hay relación directa, pero aquí borramos ambos)
+        (async () => {
+          const { data: certs } = await supabase.from('user_course_certificates').select('certificate_id').eq('user_id', userId)
+          if (certs && certs.length > 0) {
+            await supabase.from('certificate_ledger').delete().in('cert_id', certs.map(c => c.certificate_id))
+          }
+          await deleteFromTable('user_course_certificates')
+        })(),
 
-      if (certs && certs.length > 0) {
-        const certIds = certs.map(c => c.certificate_id)
-        await supabase.from('certificate_ledger').delete().in('cert_id', certIds)
-      }
-      await deleteFromTable('user_course_certificates')
+        // SCORM
+        (async () => {
+          const { data: scormAttempts } = await supabase.from('scorm_attempts').select('id').eq('user_id', userId)
+          if (scormAttempts && scormAttempts.length > 0) {
+            const attemptIds = scormAttempts.map(a => a.id)
+            await Promise.all([
+              supabase.from('scorm_interactions').delete().in('attempt_id', attemptIds),
+              supabase.from('scorm_objectives').delete().in('attempt_id', attemptIds)
+            ])
+          }
+          await deleteFromTable('scorm_attempts')
+        })(),
 
-      // 3. Quiz submissions (dependen de enrollments)
-      console.log('🔄 Eliminando quiz submissions...')
-      await deleteFromTable('user_quiz_submissions')
+        // Comunidad y Q&A
+        Promise.all([
+          deleteFromTable('course_question_reactions'),
+          deleteFromTable('course_question_responses'),
+          deleteFromTable('course_questions'),
+          deleteFromTable('course_reviews'),
+          deleteFromTable('lesson_feedback'),
+          deleteFromTable('community_post_reactions'),
+          deleteFromTable('community_comment_reactions'),
+          deleteFromTable('community_comments'),
+          deleteFromTable('community_posts')
+        ]),
 
-      // 4. Progreso de lecciones y tracking (dependen de enrollments)
-      console.log('🔄 Eliminando progreso...')
-      await deleteFromTable('lesson_tracking')
-      await deleteFromTable('user_lesson_progress')
-      await deleteFromTable('daily_progress')
+        // Planeación y Estudio
+        Promise.all([
+          deleteFromTable('study_sessions'),
+          deleteFromTable('calendar_sync_history'),
+          deleteFromTable('study_plans')
+        ]),
 
-      // 5. Notas de lecciones
-      console.log('🔄 Eliminando notas de lecciones...')
-      await deleteFromTable('user_lesson_notes')
+        // Compras y Transacciones
+        Promise.all([
+          deleteFromTable('organization_course_purchases', 'purchased_by'),
+          deleteFromTable('transactions'),
+          deleteFromTable('subscriptions'),
+          deleteFromTable('payment_methods')
+        ]),
 
-      // 6. Sesiones de estudio (dependen de study_plans)
-      console.log('🔄 Eliminando sesiones de estudio...')
-      await deleteFromTable('study_sessions')
+        // Inscripciones y Asignaciones
+        Promise.all([
+          deleteFromTable('user_course_enrollments'),
+          deleteFromTable('organization_course_assignments'),
+          deleteFromTable('organization_course_assignments', 'assigned_by')
+        ]),
 
-      // 7. Calendar sync history (depende de study_plans)
-      console.log('🔄 Eliminando calendar sync...')
-      await deleteFromTable('calendar_sync_history')
+        // Creaciones (SCORM y otros donde el usuario pudo ser owner)
+        deleteFromTable('scorm_packages', 'created_by'),
+        deleteFromTable('user_invitations', 'created_by')
+      ])
 
-      // 8. Study plans
-      console.log('🔄 Eliminando planes de estudio...')
-      await deleteFromTable('study_plans')
+      // GRUPO 3: Equipos y Estructurales
+      await Promise.all([
+        deleteFromTable('work_team_feedback', 'from_user_id'),
+        deleteFromTable('work_team_feedback', 'to_user_id'),
+        deleteFromTable('work_team_messages', 'sender_id'),
+        deleteFromTable('work_team_objectives', 'created_by'),
+        deleteFromTable('work_team_course_assignments', 'assigned_by'),
+        deleteFromTable('work_team_members'),
+        
+        // Actualizar work_teams donde el usuario es leader o creador
+        supabase.from('work_teams').update({ team_leader_id: null }).eq('team_leader_id', userId),
+        supabase.from('work_teams').update({ created_by: null }).eq('created_by', userId),
+        
+        // Perfil y respuestas
+        (async () => {
+          const { data: userPerfil } = await supabase.from('user_perfil').select('id').eq('user_id', userId)
+          if (userPerfil && userPerfil.length > 0) {
+            await supabase.from('respuestas').delete().in('user_perfil_id', userPerfil.map(p => p.id))
+          }
+          await deleteFromTable('user_perfil')
+        })(),
 
-      // 9. Inscripciones a cursos
-      console.log('🔄 Eliminando enrollments...')
-      await deleteFromTable('user_course_enrollments')
+        // Jerarquía de organización
+        deleteFromTable('organization_node_users'),
+        supabase.from('organization_nodes').update({ manager_id: null }).eq('manager_id', userId)
+      ])
 
-      // 10. Asignaciones de cursos de organización
-      console.log('🔄 Eliminando asignaciones de cursos...')
-      await deleteFromTable('organization_course_assignments')
-      await deleteFromTable('organization_course_assignments', 'assigned_by')
-
-      // 11. Curso preguntas, respuestas y reacciones
-      console.log('🔄 Eliminando Q&A de cursos...')
-      await deleteFromTable('course_question_reactions')
-      await deleteFromTable('course_question_responses')
-      await deleteFromTable('course_questions')
-      await deleteFromTable('course_reviews')
-      await deleteFromTable('lesson_feedback')
-
-      // 12. Notificaciones y preferencias
-      console.log('🔄 Eliminando notificaciones...')
-      await deleteFromTable('notification_email_queue')
-      await deleteFromTable('notification_push_subscriptions')
-      await deleteFromTable('notification_stats')
-      await deleteFromTable('user_notification_preferences')
-      await deleteFromTable('user_notifications')
-
-      // 13. Calendario
-      console.log('🔄 Eliminando calendario...')
-      await deleteFromTable('user_calendar_events')
-      await deleteFromTable('calendar_subscription_tokens')
-      await deleteFromTable('calendar_integrations')
-
-      // 14. SCORM
-      console.log('🔄 Eliminando SCORM...')
-      // Obtener attempt_ids para eliminar objectives e interactions primero
-      const { data: scormAttempts } = await supabase
-        .from('scorm_attempts')
-        .select('id')
-        .eq('user_id', userId)
-
-      if (scormAttempts && scormAttempts.length > 0) {
-        const attemptIds = scormAttempts.map(a => a.id)
-        await supabase.from('scorm_interactions').delete().in('attempt_id', attemptIds)
-        await supabase.from('scorm_objectives').delete().in('attempt_id', attemptIds)
-      }
-      await deleteFromTable('scorm_attempts')
-
-      // 15. Transacciones y pagos (eliminar transacciones primero, luego payment_methods)
-      console.log('🔄 Eliminando transacciones...')
-      await deleteFromTable('transactions')
-      await deleteFromTable('subscriptions')
-      await deleteFromTable('payment_methods')
-
-      // 16. OAuth y autenticación
-      console.log('🔄 Eliminando auth data...')
-      await deleteFromTable('oauth_accounts')
-      await deleteFromTable('password_reset_tokens')
-      await deleteFromTable('refresh_tokens')
-      await deleteFromTable('user_session')
-
-      // 17. Work teams - feedback y mensajes primero
-      console.log('🔄 Eliminando datos de equipos...')
-      await deleteFromTable('work_team_feedback', 'from_user_id')
-      await deleteFromTable('work_team_feedback', 'to_user_id')
-      await deleteFromTable('work_team_messages', 'sender_id')
-      await deleteFromTable('work_team_objectives', 'created_by')
-      await deleteFromTable('work_team_course_assignments', 'assigned_by')
-      await deleteFromTable('work_team_members')
-
-      // Actualizar work_teams donde el usuario es leader o creador (no eliminar el team)
-      await supabase.from('work_teams').update({ team_leader_id: null }).eq('team_leader_id', userId)
-      await supabase.from('work_teams').update({ created_by: null }).eq('created_by', userId)
-
-      // 18. User perfil y respuestas (respuestas depende de user_perfil)
-      console.log('🔄 Eliminando perfil...')
-      // Primero obtener user_perfil_id para eliminar respuestas
-      const { data: userPerfil } = await supabase
-        .from('user_perfil')
-        .select('id')
-        .eq('user_id', userId)
-
-      if (userPerfil && userPerfil.length > 0) {
-        const perfilIds = userPerfil.map(p => p.id)
-        await supabase.from('respuestas').delete().in('user_perfil_id', perfilIds)
-      }
-      await deleteFromTable('user_perfil')
-
-      // 19. Reportes de problemas
-      console.log('🔄 Eliminando reportes...')
-      await deleteFromTable('reportes_problemas')
-      await deleteFromTable('reportes_problemas', 'admin_asignado')
-
-      // 20. Admin dashboard
-      console.log('🔄 Eliminando admin dashboard data...')
-      await deleteFromTable('admin_dashboard_layouts')
-      await deleteFromTable('admin_dashboard_preferences')
-
-      // 21. Study preferences y streaks
-      console.log('🔄 Eliminando preferencias de estudio...')
-      await deleteFromTable('study_preferences')
-      await deleteFromTable('user_streaks')
-
-      // 22. Activity logs
-      console.log('🔄 Eliminando activity logs...')
-      await deleteFromTable('user_activity_log')
-
-      // 23. Progreso de tours
-      console.log('🔄 Eliminando tour progress...')
-      await deleteFromTable('user_tour_progress')
-
-      // 24. Warnings y moderación
-      console.log('🔄 Eliminando warnings y moderación...')
-      await deleteFromTable('user_warnings')
-      await deleteFromTable('ai_moderation_logs')
-
-      // 25. Audit logs (mantener para historial pero actualizar user_id a null si es posible)
-      // await deleteFromTable('audit_logs')
-
-      // 26. Datos restantes que no estaban en la lista original
-      console.log('🔄 Eliminando datos adicionales...')
-      await deleteFromTable('user_favorites')
-      await deleteFromTable('notes')
-
-      // 27. Comunidad (si existe)
-      await deleteFromTable('community_post_reactions')
-      await deleteFromTable('community_comment_reactions')
-      await deleteFromTable('community_comments')
-      await deleteFromTable('community_posts')
-
-      console.log('✅ [deleteOrganizationUser] Todos los datos relacionados eliminados exitosamente')
-
-      // ============================================
-      // PASO 1.5: Eliminar datos de nodos jerárquicos
-      // ============================================
-      console.log('🔄 Eliminando datos de nodos jerárquicos...')
-      await deleteFromTable('organization_node_users')
-      await supabase.from('organization_nodes').update({ manager_id: null }).eq('manager_id', userId)
+      console.log('✅ Eliminación de datos relacionados completada')
 
       // ============================================
       // PASO 2: Eliminar de organization_users
       // ============================================
-      console.log('🔄 Eliminando de organization_users...')
-
-      // Eliminar también donde el usuario invitó a otros
       await supabase.from('organization_users').update({ invited_by: null }).eq('invited_by', userId)
 
-      const { error: deleteError } = await supabase
+      const { error: deleteOrgUserError } = await supabase
         .from('organization_users')
         .delete()
         .eq('organization_id', organizationId)
         .eq('user_id', userId)
 
-      if (deleteError) {
-        console.error('❌ Error eliminando de organization_users:', deleteError)
-        throw deleteError
-      }
+      if (deleteOrgUserError) throw deleteOrgUserError
 
       // ============================================
       // PASO 3: Eliminar el usuario de la tabla users
       // ============================================
-      console.log('🔄 Eliminando usuario de la tabla users...')
       const { error: deleteUserError } = await supabase
         .from('users')
         .delete()
         .eq('id', userId)
 
       if (deleteUserError) {
-        console.error('❌ Error eliminando de users:', deleteUserError)
-        throw new Error(`No se pudo eliminar el usuario: ${deleteUserError.message}`)
+        throw new Error(`No se pudo eliminar el usuario de la plataforma: ${deleteUserError.message}`)
       }
+
+      console.log('✅ [deleteOrganizationUser] Usuario eliminado completamente:', userId)
 
       console.log('✅ [deleteOrganizationUser] Usuario eliminado completamente:', userId)
     } catch (error) {

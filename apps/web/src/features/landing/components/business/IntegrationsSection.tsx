@@ -48,7 +48,7 @@ export function IntegrationsSection() {
             className="text-xl max-w-3xl mx-auto"
             variants={fadeIn}
           >
-            Conecta Aprende y Aplica Business con tus herramientas favoritas
+            Conecta SofLIA Learning Business con tus herramientas favoritas
           </motion.p>
         </motion.div>
 

@@ -9,7 +9,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     content: (
       <div className="flex flex-col gap-3">
         <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed">
-          Aquí comienza tu viaje de aprendizaje personalizado. LIA, tu asistente inteligente, te ayudará a crear un plan de estudios adaptado a tus necesidades.
+          Aquí comienza tu viaje de aprendizaje personalizado. SofLIA, tu asistente inteligente, te ayudará a crear un plan de estudios adaptado a tus necesidades.
         </p>
       </div>
     ),
@@ -21,11 +21,11 @@ export const studyPlannerJoyrideSteps: Step[] = [
   },
   {
     target: '#lia-chat-input',
-    title: 'Habla con LIA',
+    title: 'Habla con SofLIA',
     content: (
       <div className="flex flex-col gap-3">
         <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed">
-          ¿Tienes dudas o necesitas ajustar tu plan? Puedes chatear con LIA en cualquier momento. ¡Es experta en optimizar tu aprendizaje!
+          ¿Tienes dudas o necesitas ajustar tu plan? Puedes chatear con SofLIA en cualquier momento. ¡Es experta en optimizar tu aprendizaje!
         </p>
       </div>
     ),
@@ -40,7 +40,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     content: (
       <div className="flex flex-col gap-3">
         <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed">
-          Si prefieres hablar, activa el micrófono. LIA te escuchará y responderá instantáneamente. Ideal para sesiones de estudio manos libres.
+          Si prefieres hablar, activa el micrófono. SofLIA te escuchará y responderá instantáneamente. Ideal para sesiones de estudio manos libres.
         </p>
       </div>
     ),
@@ -55,7 +55,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     content: (
       <div className="flex flex-col gap-3">
         <p className="text-gray-700 dark:text-gray-200 text-sm leading-relaxed">
-          Para una planificación perfecta, permite que LIA consulte tu disponibilidad. Así evitará programar sesiones cuando estés ocupado.
+          Para una planificación perfecta, permite que SofLIA consulte tu disponibilidad. Así evitará programar sesiones cuando estés ocupado.
         </p>
       </div>
     ),

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger';
-import { AdminPromptsService } from '@/features/admin/services/adminPrompts.service'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { logger } from '../../../../lib/utils/logger';
+import { AdminPromptsService } from '../../../../features/admin/services/adminPrompts.service'
+import { requireAdmin } from '../../../../lib/auth/requireAdmin'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +20,7 @@ export async function GET(request: NextRequest) {
       success: true,
       categories: categories || []
     })
-  } catch (error) {
+  } catch (error: any) {
     logger.error('💥 Error in GET /api/admin/categories:', error)
     return NextResponse.json(
       { 

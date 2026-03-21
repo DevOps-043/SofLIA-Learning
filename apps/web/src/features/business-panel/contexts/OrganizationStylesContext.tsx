@@ -46,7 +46,7 @@ interface OrganizationStylesContextType {
 
 const OrganizationStylesContext = createContext<OrganizationStylesContextType | undefined>(undefined);
 
-export function OrganizationStylesProvider({ children }: { children: ReactNode }) {
+export function OrganizationStylesProvider({ children, orgSlug }: { children: ReactNode, orgSlug?: string }) {
   const { user } = useAuth();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [styles, setStyles] = useState<OrganizationStyles | null>(null);
@@ -176,7 +176,11 @@ export function OrganizationStylesProvider({ children }: { children: ReactNode }
     try {
       setError(null);
 
-      const response = await fetch('/api/business/settings/styles', {
+      const fetchUrl = orgSlug 
+        ? `/api/${orgSlug}/business/styles`
+        : `/api/${user.organization_id}/business/styles`; // Fallback a ID si no hay slug, pero siempre org-scoped
+
+      const response = await fetch(fetchUrl, {
         credentials: 'include',
       });
 
@@ -266,7 +270,11 @@ export function OrganizationStylesProvider({ children }: { children: ReactNode }
 
       // console.log('📤 Enviando actualización de estilos:', updateData);
 
-      const response = await fetch('/api/business/settings/styles', {
+      const fetchUrl = orgSlug 
+        ? `/api/${orgSlug}/business/styles`
+        : `/api/${user.organization_id}/business/styles`;
+
+      const response = await fetch(fetchUrl, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -308,7 +316,11 @@ export function OrganizationStylesProvider({ children }: { children: ReactNode }
     try {
       // console.log('🎨 Aplicando tema:', themeId);
 
-      const response = await fetch('/api/business/settings/styles', {
+      const fetchUrl = orgSlug 
+        ? `/api/${orgSlug}/business/styles`
+        : `/api/${user.organization_id}/business/styles`;
+
+      const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

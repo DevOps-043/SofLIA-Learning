@@ -14,6 +14,7 @@ import { ToastNotification } from '../../../../core/components/ToastNotification
 import { TextInput } from '../TextInput';
 import { PasswordInput } from '../PasswordInput';
 import { SocialLoginButtons } from '../SocialLoginButtons';
+import Link from 'next/link';
 import { useAuthTab } from '../AuthTabs/AuthTabContext';
 
 export function LoginForm() {
@@ -166,7 +167,6 @@ export function LoginForm() {
                 error={errors.emailOrUsername?.message}
                 focusedField={focusedField}
                 onFocus={() => setFocusedField('emailOrUsername')}
-                onBlur={() => setFocusedField(null)}
                 {...register('emailOrUsername')}
               />
             </motion.div>
@@ -183,17 +183,16 @@ export function LoginForm() {
                 error={errors.password?.message}
                 focusedField={focusedField}
                 onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
                 {...register('password')}
               />
             </motion.div>
 
-            {/* Recordar */}
+            {/* Recordar y Olvidaste tu contraseña */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4, duration: 0.4 }}
-              className="flex items-center"
+              className="w-full flex items-center justify-between"
             >
               {/* Checkbox Recordar */}
               <label className="flex items-center cursor-pointer group">
@@ -236,6 +235,14 @@ export function LoginForm() {
                   Recordarme
                 </span>
               </label>
+
+              {/* Olvidaste tu contraseña */}
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm font-medium text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
             </motion.div>
 
             {/* Botón de Login */}

@@ -11,9 +11,9 @@ import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useOrganizationStylesContext } from '../../../features/business-panel/contexts/OrganizationStylesContext';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useTranslation } from 'react-i18next';
-import { LiaPersonalizationSettings } from '../../../features/lia/components/LiaPersonalizationSettings';
+import { SofLIAPersonalizationSettings } from '../../../features/lia/components/SofLIAPersonalizationSettings';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useLiaPersonalization } from '../../hooks/useLiaPersonalization';
+import { useSofLIAPersonalization } from '../../hooks/useSofLIAPersonalization';
 import { useLanguage } from '../../providers/I18nProvider';
 
 // Función para parsear Markdown completo y convertirlo a elementos React
@@ -159,13 +159,13 @@ function LiaSidePanelContent() {
     textSecondary: isLightTheme ? '#64748B' : '#6b7280',
     inputBg: isLightTheme ? '#F1F5F9' : 'rgba(255, 255, 255, 0.05)',
     inputBorder: isLightTheme ? '#CBD5E1' : (effectiveStyles?.border_color || '#374151'),
-    accentColor: '#00D4B3', // Siempre usar Aqua para identidad de LIA
+    accentColor: '#00D4B3', // Siempre usar Aqua para identidad de SofLIA
   };
   
   const { messages, isLoading, sendMessage, clearHistory, loadConversation, currentConversationId } = useLiaGeneralChat();
   
-  // ðŸŽ™ï¸ Configuración de personalización de LIA para voz
-  const { settings: liaSettings } = useLiaPersonalization();
+  // 🎤 Configuración de personalización de SofLIA para voz
+  const { settings: liaSettings } = useSofLIAPersonalization();
   const isVoiceEnabled = liaSettings?.voice_enabled ?? true; // Por defecto activado
   const isDictationEnabled = liaSettings?.dictation_enabled ?? false; // Por defecto desactivado
   const { language } = useLanguage();
@@ -1068,7 +1068,7 @@ function LiaSidePanelContent() {
                 <motion.img
                   layoutId="lia-avatar-header"
                   src="/lia-avatar.png"
-                  alt="LIA"
+                  alt="SofLIA"
                   onClick={() => setIsAvatarExpanded(true)}
                   whileHover={{ scale: 1.05 }}
                   style={{
@@ -1334,7 +1334,7 @@ function LiaSidePanelContent() {
                    
                    <img
                     src="/lia-avatar.png"
-                    alt="LIA"
+                    alt="SofLIA"
                     style={{
                       width: '80px',
                       height: '80px',
@@ -1360,7 +1360,7 @@ function LiaSidePanelContent() {
                      fontWeight: 600, 
                      marginBottom: '8px' 
                    }}>
-                     LIA
+                     SofLIA
                    </h3>
                    <p style={{ 
                      color: themeColors.textSecondary, 
@@ -2034,7 +2034,7 @@ function LiaSidePanelContent() {
                     <motion.img
                       layoutId="lia-avatar-header"
                       src="/lia-avatar.png"
-                      alt="LIA Expanded"
+                      alt="SofLIA Expanded"
                       style={{
                         width: 'min(80vw, 400px)',
                         height: 'min(80vw, 400px)',
@@ -2049,7 +2049,7 @@ function LiaSidePanelContent() {
                       textAlign: 'center',
                       color: 'white'
                     }}>
-                      <h3 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>LIA</h3>
+                      <h3 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 8px 0' }}>SofLIA</h3>
                       <p style={{ opacity: 0.8, margin: 0 }}>Learning Intelligence Assistant</p>
                     </div>
                 </motion.div>
@@ -2062,7 +2062,7 @@ function LiaSidePanelContent() {
       </AnimatePresence>
       {/* Modal de Personalización */}
       {isPersonalizationOpen && (
-        <LiaPersonalizationSettings
+        <SofLIAPersonalizationSettings
           isOpen={isPersonalizationOpen}
           onClose={() => setIsPersonalizationOpen(false)}
         />

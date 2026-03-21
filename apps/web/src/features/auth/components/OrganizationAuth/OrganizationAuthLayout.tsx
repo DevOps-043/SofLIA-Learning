@@ -169,7 +169,7 @@ export function OrganizationAuthLayout({
 
       {/* Two-Column Layout Container */}
       <div className="w-full min-h-screen flex items-center justify-center p-4 lg:p-8 relative z-10 py-12 lg:py-0">
-        <div className="w-full max-w-7xl flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-20">
+        <div className="w-full max-w-7xl flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
           
           {/* LEFT SIDE - 3D Floating Logo */}
           <motion.div
@@ -191,7 +191,7 @@ export function OrganizationAuthLayout({
               }}
             >
               {/* 3D Logo Container - Clean */}
-              <div className="relative w-[180px] h-[180px] sm:w-[240px] sm:h-[240px] lg:w-[400px] lg:h-[400px] flex items-center justify-center">
+              <div className="relative w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] lg:w-[280px] lg:h-[280px] flex items-center justify-center">
 
                 {/* Logo/Favicon - Center */}
                 <motion.div
@@ -234,14 +234,14 @@ export function OrganizationAuthLayout({
 
           {/* RIGHT SIDE - Login Form Panel */}
           <motion.div
-            className="flex-1 w-full max-w-md lg:max-w-3xl"
+            className="flex-1 w-full max-w-md lg:max-w-xl"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           >
             {/* Login Card */}
             <div 
-              className="relative backdrop-blur-xl p-8 lg:p-10 shadow-2xl rounded-3xl border overflow-hidden min-h-[400px] flex flex-col justify-center"
+              className="relative backdrop-blur-xl p-6 lg:p-8 shadow-2xl rounded-3xl border overflow-hidden min-h-[300px] flex flex-col justify-center"
               style={{
                 backgroundColor: cardBackgroundColor,
                 borderColor: borderColor,
@@ -278,13 +278,13 @@ export function OrganizationAuthLayout({
                 {/* Organization Info */}
                 {!isLoading && (
                   <motion.div
-                    className="text-center mb-8"
+                    className="text-center mb-6"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
                   >
                     <motion.h1 
-                      className="text-3xl lg:text-4xl font-bold mb-3 tracking-tight"
+                      className="text-2xl lg:text-3xl font-bold mb-2 tracking-tight"
                       style={{
                         fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
                         color: textColor,

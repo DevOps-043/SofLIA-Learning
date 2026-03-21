@@ -121,7 +121,7 @@ export function LogoWall({ className = '' }: LogoWallProps) {
               </motion.div>
               
               <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-[#0A2540] dark:text-white mb-4">
-                {t('landing.lia.title', 'Conoce a')} <span className="text-[#00D4B3]">LIA</span>
+                {t('landing.lia.title', 'Conoce a')} <span className="text-[#00D4B3]">SofLIA</span>
               </h2>
               
               <p className="text-lg text-[#6C757D] dark:text-white/70 max-w-lg mx-auto lg:mx-0">

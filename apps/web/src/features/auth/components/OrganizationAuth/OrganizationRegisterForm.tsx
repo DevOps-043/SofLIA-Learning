@@ -206,16 +206,16 @@ export function OrganizationRegisterForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
         {/* Header */}
         <motion.div 
-          className="text-center space-y-3"
+          className="text-center space-y-2"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         >
           <motion.h2 
-            className="text-3xl lg:text-4xl font-bold"
+            className="text-2xl lg:text-3xl font-bold"
             style={{ color: textColor }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -619,7 +619,7 @@ export function OrganizationRegisterForm({
           <motion.button
             type="submit"
             disabled={isPending}
-            className="w-full rounded-xl py-4 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full rounded-xl py-3 font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             style={{
               backgroundColor: themePrimaryColor || '#3b82f6',
               boxShadow: `0 4px 20px -4px ${themePrimaryColor || '#3b82f6'}50`,

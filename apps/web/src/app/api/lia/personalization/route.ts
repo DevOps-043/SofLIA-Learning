@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
-import { LiaPersonalizationService } from '@/core/services/lia-personalization.service';
-import type { LiaPersonalizationSettingsInput } from '@/core/types/lia-personalization.types';
+import { SofLIAPersonalizationService } from '@/core/services/soflia-personalization.service';
+import type { SofLIAPersonalizationSettingsInput } from '@/core/types/soflia-personalization.types';
 import { logger } from '@/lib/utils/logger';
 
 /**
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const settings = await LiaPersonalizationService.getSettings(user.id);
+    const settings = await SofLIAPersonalizationService.getSettings(user.id);
 
     return NextResponse.json({
       settings,
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const settingsInput: LiaPersonalizationSettingsInput = {
+    const settingsInput: SofLIAPersonalizationSettingsInput = {
       base_style: body.base_style,
       is_friendly: body.is_friendly,
       is_enthusiastic: body.is_enthusiastic,
@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
         /roleplay\s+as/gi,
         /dan\s+mode/gi,
         /developer\s+mode/gi,
+        /developer\s+mode/gi,
       ];
 
       let sanitized = settingsInput.custom_instructions;
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const updatedSettings = await LiaPersonalizationService.updateSettings(
+    const updatedSettings = await SofLIAPersonalizationService.updateSettings(
       user.id,
       settingsInput
     );
@@ -169,7 +170,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await LiaPersonalizationService.deleteSettings(user.id);
+    await SofLIAPersonalizationService.deleteSettings(user.id);
 
     return NextResponse.json({
       success: true,
@@ -187,4 +188,3 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
-

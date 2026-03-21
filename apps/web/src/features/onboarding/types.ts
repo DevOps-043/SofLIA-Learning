@@ -1,4 +1,4 @@
-export type OnboardingStatus = 'none' | 'pending_company' | 'pending_join' | 'approved' | 'rejected'
+export type OnboardingStatus = 'none' | 'pending_company' | 'pending_join' | 'approved' | 'rejected' | 'suspended' | 'banned'
 
 export type OnboardingType = 'company_created' | 'join_approved'
 
@@ -8,6 +8,7 @@ export interface OnboardingStatusResponse {
   type?: OnboardingType
   organizationSlug?: string
   organizationName?: string
+  banReason?: string
   error?: string
 }
 

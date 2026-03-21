@@ -3,9 +3,10 @@
  * Exporta todos los componentes del planificador de estudios
  */
 
-export { StudyPlannerLIA } from './StudyPlannerLIA';
+export { StudyPlannerSofLIA } from './StudyPlannerLIA';
 export { PlanSummary } from './PlanSummary';
 export { PlanEditor } from './PlanEditor';
+export { CalendarSelectionPanel } from './CalendarSelection';
 
 
 

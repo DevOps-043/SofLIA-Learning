@@ -12,6 +12,7 @@ import { I18nProvider } from '../core/providers/I18nProvider';
 import { ShareModalProvider } from '../core/providers/ShareModalProvider';
 import { OnboardingAgent } from '../core/components/OnboardingAgent';
 import { LiaPanelProvider } from '../core/contexts/LiaPanelContext';
+import { TourRestartProvider } from '../core/contexts/TourRestartContext';
 import { ContentWrapper } from '../core/components/ContentWrapper';
 import { AuthSecurityGuard } from '../features/auth/components/AuthSecurityGuard';
 import { OrganizationStylesProvider } from '../features/business-panel/contexts/OrganizationStylesContext';
@@ -31,10 +32,10 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: 'SOFLIA',
+  title: 'SofLIA',
   description: 'Plataforma educativa de inteligencia artificial con asistente virtual LIA. Capacitación, comunidad y adopción de IA en el entorno laboral.',
   keywords: ['educación', 'inteligencia artificial', 'chatbot', 'capacitación', 'IA', 'LIA'],
-  authors: [{ name: 'Equipo SOFLIA' }],
+  authors: [{ name: 'Equipo SofLIA' }],
   robots: 'index, follow',
   icons: {
     icon: '/icono.ico',
@@ -44,10 +45,10 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'SOFLIA',
+    title: 'SofLIA',
   },
   openGraph: {
-    title: 'SOFLIA',
+    title: 'SofLIA',
     description: 'Plataforma educativa de inteligencia artificial con asistente virtual LIA',
     type: 'website',
     locale: 'es_ES',
@@ -195,10 +196,10 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://odbxqmhbnkfledqcqujl.supabase.co" />
 
         {/* 📱 PWA Meta Tags */}
-        <meta name="application-name" content="SOFLIA" />
+        <meta name="application-name" content="SofLIA" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SOFLIA" />
+        <meta name="apple-mobile-web-app-title" content="SofLIA" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3b82f6" />
@@ -215,7 +216,8 @@ export default function RootLayout({
                   <NotificationProvider pollingInterval={60000}>
                     <OrganizationProvider>
                       <FeatureFlagsProvider>
-                        <OrganizationStylesProvider>
+                      <OrganizationStylesProvider>
+                        <TourRestartProvider>
                         <LiaPanelProvider>
                           <PrefetchManager />
                           <AuthSecurityGuard>
@@ -230,7 +232,8 @@ export default function RootLayout({
 
 
                         </LiaPanelProvider>
-                        </OrganizationStylesProvider>
+                        </TourRestartProvider>
+                      </OrganizationStylesProvider>
                       </FeatureFlagsProvider>
                     </OrganizationProvider>
                   </NotificationProvider>

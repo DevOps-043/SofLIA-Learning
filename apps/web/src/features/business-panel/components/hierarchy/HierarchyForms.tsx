@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { Loader2, MapPin } from 'lucide-react';
 import type { Region, Zone, Team, ManagerInfo } from '../../types/hierarchy.types';
 import { formatFullAddress, getManagerDisplayName } from '../../types/hierarchy.types';
 
-async function geocodeAddress(data: { address?: string, city?: string, state?: string, country?: string, postal_code?: string }): Promise<{ lat: string; lon: string } | null> {
+async function geocodeAddress(data: { address?: string, city?: string, state?: string, country?: string, postal_code?: string }, orgSlug: string): Promise<{ lat: string; lon: string } | null> {
   const parts = [data.address, data.city, data.state, data.postal_code, data.country].filter(p => p && typeof p === 'string' && p.trim().length > 0);
   if (parts.length === 0) {
     console.warn('Geocoding: No hay datos suficientes para buscar coordenadas');
@@ -15,7 +16,7 @@ async function geocodeAddress(data: { address?: string, city?: string, state?: s
   try {
     console.log('🔍 Iniciando geocoding para:', parts.join(', '));
     
-    const res = await fetch('/api/business/hierarchy/geocode', {
+    const res = await fetch(`/api/${orgSlug}/business/hierarchy/geocode`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -151,6 +152,8 @@ interface RegionFormProps {
 }
 
 export function RegionForm({ region, isOpen, onClose, onSave, isLoading, availableManagers = [] }: RegionFormProps) {
+  const params = useParams();
+  const orgSlug = params?.orgSlug as string;
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -184,7 +187,7 @@ export function RegionForm({ region, isOpen, onClose, onSave, isLoading, availab
     }
     
     try {
-      const coords = await geocodeAddress(formData);
+      const coords = await geocodeAddress(formData, orgSlug);
       if (coords) {
         console.log('✅ Coordenadas calculadas:', coords);
         console.log('📝 Actualizando formData con:', { 
@@ -562,6 +565,8 @@ interface ZoneFormProps {
 }
 
 export function ZoneForm({ zone, regions, selectedRegionId, isOpen, onClose, onSave, isLoading, availableManagers = [] }: ZoneFormProps) {
+  const params = useParams();
+  const orgSlug = params?.orgSlug as string;
   const [formData, setFormData] = useState({
     region_id: '',
     name: '',
@@ -593,7 +598,7 @@ export function ZoneForm({ zone, regions, selectedRegionId, isOpen, onClose, onS
     }
     
     try {
-      const coords = await geocodeAddress(formData);
+      const coords = await geocodeAddress(formData, orgSlug);
       if (coords) {
         console.log('✅ Coordenadas calculadas:', coords);
         console.log('📝 Actualizando formData con:', { 
@@ -902,6 +907,8 @@ interface TeamFormProps {
 }
 
 export function TeamForm({ team, zones, selectedZoneId, isOpen, onClose, onSave, isLoading, availableLeaders = [] }: TeamFormProps) {
+  const params = useParams();
+  const orgSlug = params?.orgSlug as string;
   const [formData, setFormData] = useState({
     zone_id: '',
     name: '',
@@ -936,7 +943,7 @@ export function TeamForm({ team, zones, selectedZoneId, isOpen, onClose, onSave,
     }
     
     try {
-      const coords = await geocodeAddress(formData);
+      const coords = await geocodeAddress(formData, orgSlug);
       if (coords) {
         console.log('✅ Coordenadas calculadas:', coords);
         console.log('📝 Actualizando formData con:', { 

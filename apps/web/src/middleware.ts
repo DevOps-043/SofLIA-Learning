@@ -1,3 +1,18 @@
+/**
+ * ⚠️  ARCHIVO INACTIVO — NO EDITAR
+ *
+ * Next.js solo ejecuta UN middleware por aplicación. Cuando existen dos archivos:
+ *   - apps/web/middleware.ts        ← ACTIVO (se ejecuta en producción)
+ *   - apps/web/src/middleware.ts    ← ESTE ARCHIVO (ignorado por Next.js)
+ *
+ * Next.js da prioridad al archivo en la raíz del proyecto (`apps/web/middleware.ts`)
+ * sobre el de la carpeta `src/`. Todo el código aquí es CÓDIGO MUERTO.
+ *
+ * Para modificar la lógica del middleware, editar ÚNICAMENTE:
+ *   → apps/web/middleware.ts
+ *   → apps/web/src/core/middleware/auth.middleware.ts
+ */
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
@@ -93,7 +108,7 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.redirect(new URL(`/${userOrg.organizations.slug}/business-user/dashboard`, request.url))
               }
             } else {
-              // Usuario normal (cargo_rol === 'usuario' o cualquier otro) → Tour SOFLIA + Planes
+              // Usuario normal (cargo_rol === 'usuario' o cualquier otro) → Tour SofLIA + Planes
               return NextResponse.redirect(new URL('/dashboard', request.url))
             }
           }
@@ -244,6 +259,41 @@ export async function middleware(request: NextRequest) {
   } catch (error) {
     logger.error('[ERROR] Error validando sesión:', error)
     return NextResponse.redirect(new URL('/auth', request.url))
+  }
+
+  // =====================================================
+  // VERIFICACIÓN DE SUSPENSIÓN
+  // Para rutas con orgSlug (business-user/*, business-panel/*, courses via org)
+  // Si el usuario está suspendido en la organización, redirigir a /suspended
+  // =====================================================
+  const pathParts = request.nextUrl.pathname.split('/').filter(Boolean)
+  // Detectar rutas con orgSlug: /{orgSlug}/business-user/*, /{orgSlug}/business-panel/*
+  const hasBizRoute = pathParts.length >= 2 && (
+    pathParts[1] === 'business-user' || pathParts[1] === 'business-panel'
+  )
+
+  if (hasBizRoute && userId) {
+    const orgSlug = pathParts[0]
+
+    // No bloquear la propia página de suspensión
+    if (!request.nextUrl.pathname.includes('/suspended')) {
+      try {
+        const { data: orgMembership } = await supabase
+          .from('organization_users')
+          .select('status, organizations!inner(slug)')
+          .eq('user_id', userId)
+          .eq('organizations.slug', orgSlug)
+          .single()
+
+        if (orgMembership && orgMembership.status === 'suspended') {
+          logger.log('[AUTH] ⛔ Usuario suspendido en organización:', orgSlug)
+          return NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url))
+        }
+      } catch (error) {
+        logger.error('[ERROR] Error verificando suspensión:', error)
+        // En caso de error, permitir continuar (la API también verifica)
+      }
+    }
   }
 
   // Para rutas de admin, verificar rol

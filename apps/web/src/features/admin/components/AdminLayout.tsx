@@ -7,7 +7,7 @@ import { AdminSidebar } from './AdminSidebar'
 import { AdminHeader } from './AdminHeader'
 import { useLiaPanel } from '../../../core/contexts/LiaPanelContext'
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useThemeStore } from '../../../core/stores/themeStore'
 import { LiaSidePanel } from '../../../core/components/LiaSidePanel'
 import { LiaFloatingButton } from '../../../core/components/LiaSidePanel/LiaFloatingButton'
 
@@ -32,7 +32,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   
   // Colores del tema
   const themeColors = {
-    background: isLightTheme ? (panelStyles?.background_value || '#F8FAFC') : '#0F1419',
+    background: isLightTheme ? '#F8FAFC' : '#0F1419',
     cardBackground: isLightTheme ? (panelStyles?.card_background || '#FFFFFF') : '#0F1419',
   }
   
@@ -50,14 +50,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
     return false
   })
-  const [sidebarPinned, setSidebarPinned] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const pinned = localStorage.getItem('admin-sidebar-pinned')
-      return pinned === 'true'
-    }
-    return false
-  })
-  const [sidebarHovered, setSidebarHovered] = useState(false)
 
   // Asegurar que isLoading sea siempre un booleano, por defecto true si es undefined
   const isLoading = typeof authLoading === 'boolean' ? authLoading : true;
@@ -83,7 +75,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         return
       }
       
-      if (user.cargo_rol !== 'Administrador') {
+      const normalizedRole = user.cargo_rol?.toLowerCase().trim()
+      if (normalizedRole !== 'administrador') {
         setIsRedirecting(true)
         // Usar window.location como fallback si router falla
         try {
@@ -109,12 +102,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [sidebarCollapsed])
 
-  // Guardar estado pinned en localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('admin-sidebar-pinned', sidebarPinned.toString())
-    }
-  }, [sidebarPinned])
 
   // Mostrar loading spinner si isLoading es true
   if (isLoading) {
@@ -135,7 +122,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   // Si loading es false, y el usuario es administrador, renderizar children
-  if (!user || user.cargo_rol !== 'Administrador') {
+  const normalizedRole = user?.cargo_rol?.toLowerCase().trim()
+  if (!user || normalizedRole !== 'administrador') {
     return null
   }
 
@@ -152,15 +140,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         onSectionChange={setActiveSection}
         isCollapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        isPinned={sidebarPinned}
-        onTogglePin={() => setSidebarPinned(!sidebarPinned)}
-        onHoverChange={setSidebarHovered}
       />
 
       {/* Main Content Area - Solo el sidebar izquierdo afecta el margin-left */}
       <div 
         className={`min-h-screen transition-all duration-300 ease-in-out ${
-          (sidebarCollapsed && !sidebarPinned && !sidebarHovered) ? 'lg:ml-16' : 'lg:ml-64'
+          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
         }`}
         style={{ backgroundColor: themeColors.background }}
       >
@@ -169,14 +154,12 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           onMenuClick={() => setSidebarOpen(true)}
           title="Panel de Administración"
           isCollapsed={sidebarCollapsed}
-          isPinned={sidebarPinned}
-          isHovered={sidebarHovered}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
 
-        {/* Page Content - pt-16 para compensar el header fijo, pr para panel de LIA */}
+        {/* Page Content - pt-20 para compensar el header fijo, pr para panel de LIA */}
         <main 
-          className="min-h-screen pt-16 transition-all duration-300 ease-in-out"
+          className="min-h-screen pt-20 transition-all duration-300 ease-in-out"
           style={{ 
             backgroundColor: themeColors.background,
             paddingRight: isLiaPanelOpen ? '420px' : '0px' 

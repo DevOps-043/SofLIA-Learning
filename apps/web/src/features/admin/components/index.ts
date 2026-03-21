@@ -17,6 +17,7 @@ export { AdminReportesPage } from './AdminReportesPage'
 export { AdminAccessRequestsPage } from './AdminAccessRequestsPage'
 export { AdminUserStatsPage } from './AdminUserStatsPage'
 export { CourseManagementPage } from './CourseManagementPage'
+export { CoursesSection } from './CoursesSection'
 export { AdminCompaniesPage } from './AdminCompaniesPage'
 export { LiaAnalyticsPage } from './LiaAnalyticsPage'
 

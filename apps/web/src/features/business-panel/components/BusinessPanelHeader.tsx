@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, ChevronDown, LogOut, Building2, User, LayoutDashboard, Globe, ChevronRight, Check, Sun, Moon, Compass } from 'lucide-react'
+import { Menu, X, ChevronDown, LogOut, Building2, User, LayoutDashboard, Globe, ChevronRight, Check, Sun, Moon, Compass, ShieldCheck } from 'lucide-react'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import Image from 'next/image'
 import { useRouter, useParams } from 'next/navigation'
@@ -265,10 +265,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2"
+                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-white/20"
                           style={{
-                            background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))',
-                            ringColor: 'rgba(255, 255, 255, 0.2)'
+                            background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))'
                           }}
                         >
                           {userProfile?.profile_picture_url || user?.profile_picture_url ? (
@@ -296,7 +295,10 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                             className="text-xs truncate opacity-70"
                             style={{ color: navbarStyle.color || undefined }}
                           >
-                            Administrador
+                            {user?.cargo_rol?.toLowerCase() === 'administrador' 
+                              ? t('business:header.superadminRole', { defaultValue: 'Superadmin' })
+                              : t('business:header.administratorRole', { defaultValue: 'Administrador' })
+                            }
                           </p>
                         </div>
                       </div>
@@ -304,6 +306,21 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
 
                     {/* Menu Items */}
                     <div className="py-1.5">
+                      {user?.cargo_rol?.toLowerCase() === 'administrador' && (
+                        <motion.button
+                          onClick={() => {
+                            router.push('/admin/dashboard')
+                            setUserDropdownOpen(false)
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                          style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
+                          whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                        >
+                          <ShieldCheck className="h-4 w-4 opacity-70" />
+                          <span>Panel Superadmin</span>
+                        </motion.button>
+                      )}
+
                       <motion.button
                         onClick={() => {
                           router.push(`/${orgSlug}/business-user/dashboard`)
@@ -327,7 +344,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                       >
                         <Building2 className="h-4 w-4 opacity-70" />
-                        <span>Mis organizaciones</span>
+                        <span>{t('business:header.myOrganizations', { defaultValue: 'Mis organizaciones' })}</span>
                       </motion.button>
 
                       <motion.button

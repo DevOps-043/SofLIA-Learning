@@ -237,7 +237,7 @@ export interface CourseComplexity {
   totalModules: number;
   totalDurationMinutes: number;
   averageLessonDuration: number;
-  complexityScore: number; // 1-10, calculado por LIA
+  complexityScore: number; // 1-10, calculado por SofLIA
   recommendedSessionMinutes: number;
   recommendedBreakMinutes: number;
 }
@@ -406,6 +406,7 @@ export interface CalendarEvent {
   isRecurring: boolean;
   location?: string;
   status: 'confirmed' | 'tentative' | 'cancelled';
+  calendarId?: string;
 }
 
 /**
@@ -417,6 +418,26 @@ export interface CalendarAvailability {
   busySlots: TimeBlock[];
   totalFreeMinutes: number;
   totalBusyMinutes: number;
+}
+
+/**
+ * Item de la lista de calendarios disponibles (Google o Microsoft)
+ */
+export interface CalendarListItem {
+  id: string;
+  name: string;
+  isPrimary: boolean;
+  accessRole: 'owner' | 'writer' | 'reader' | 'freeBusyReader';
+  color?: string;
+  provider: CalendarProvider;
+}
+
+/**
+ * Metadata almacenada en calendar_integrations.metadata (JSONB)
+ */
+export interface CalendarIntegrationMetadata {
+  secondary_calendar_id?: string;
+  selected_calendar_ids?: string[];
 }
 
 // ============================================================================
@@ -465,13 +486,13 @@ export interface UserContext {
 }
 
 // ============================================================================
-// ANÁLISIS DE LIA
+// ANÁLISIS DE SofLIA
 // ============================================================================
 
 /**
- * Análisis de disponibilidad generado por LIA
+ * Análisis de disponibilidad generado por SofLIA
  */
-export interface LIAAvailabilityAnalysis {
+export interface SofLIAAvailabilityAnalysis {
   /** Tiempo estimado de disponibilidad semanal en minutos */
   estimatedWeeklyMinutes: number;
   /** Tiempo mínimo sugerido por sesión en minutos */
@@ -499,9 +520,9 @@ export interface LIAAvailabilityAnalysis {
 }
 
 /**
- * Análisis de tiempos generado por LIA
+ * Análisis de tiempos generado por SofLIA
  */
-export interface LIATimeAnalysis {
+export interface SofLIATimeAnalysis {
   /** Tiempo total estimado para completar todos los cursos */
   totalEstimatedMinutes: number;
   /** Tiempo por curso */
@@ -571,10 +592,10 @@ export interface StudyPlanConfig {
   preferredSessionType: SessionType;
   /** Modo de generación */
   generationMode: PlanGenerationMode;
-  /** Análisis de LIA */
-  liaAvailabilityAnalysis?: LIAAvailabilityAnalysis;
-  /** Análisis de tiempos de LIA */
-  liaTimeAnalysis?: LIATimeAnalysis;
+  /** Análisis de SofLIA */
+  sofLiaAvailabilityAnalysis?: SofLIAAvailabilityAnalysis;
+  /** Análisis de tiempos de SofLIA */
+  sofLiaTimeAnalysis?: SofLIATimeAnalysis;
   /** Calendario analizado */
   calendarAnalyzed: boolean;
   /** Proveedor de calendario usado */
@@ -600,7 +621,7 @@ export interface StudySession {
   breakDurationMinutes?: number;
   status: 'planned' | 'in_progress' | 'completed' | 'missed' | 'rescheduled';
   isAiGenerated: boolean;
-  liaSuggested: boolean;
+  sofLiaSuggested: boolean;
   sessionType: SessionType;
   /** Fecha límite del curso (para B2B) */
   dueDate?: string;
@@ -646,11 +667,11 @@ export type UserContextResponse = ApiResponse<UserContext>;
 export type CoursesResponse = ApiResponse<CourseAssignment[]>;
 
 /**
- * Respuesta de análisis de LIA
+ * Respuesta de análisis de SofLIA
  */
-export type LIAAnalysisResponse = ApiResponse<{
-  availabilityAnalysis: LIAAvailabilityAnalysis;
-  timeAnalysis: LIATimeAnalysis;
+export type SofLIAAnalysisResponse = ApiResponse<{
+  availabilityAnalysis: SofLIAAvailabilityAnalysis;
+  timeAnalysis: SofLIATimeAnalysis;
 }>;
 
 /**

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '../../../lib/logger';
 import { ProfileServerService } from '../../../features/profile/services/profile-server.service'
 import { SessionService } from '../../../features/auth/services/session.service'
 
@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const profile = await ProfileServerService.getProfile(user.id)
     return NextResponse.json(profile)
   } catch (error) {
+    console.error('API /profile GET Error:', error);
     logger.error('Error in profile GET API:', error)
     return NextResponse.json(
       { 
@@ -40,6 +41,7 @@ export async function PUT(request: NextRequest) {
     
     return NextResponse.json(updatedProfile)
   } catch (error) {
+    console.error('API /profile PUT Error:', error);
     logger.error('Error in profile PUT API:', error)
     return NextResponse.json(
       { 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import { useOrganizationStore } from '@/core/stores/organizationStore'
 import { detectColorsFromImage } from '../utils/colorDetection'
 
 export interface BrandingData {
@@ -26,10 +27,13 @@ export interface UseBrandingReturn {
  *
  * IMPORTANTE: Este hook usa el orgSlug de la URL para asegurar
  * que se obtengan los datos de la organización correcta.
+ * Fallback: Si no hay orgSlug en la URL, usa el de la organización actual del store.
  */
 export function useBranding(): UseBrandingReturn {
   const params = useParams()
-  const orgSlug = params?.orgSlug as string | undefined
+  const urlOrgSlug = params?.orgSlug as string | undefined
+  const currentOrgSlug = useOrganizationStore(state => state.currentOrganization?.slug)
+  const orgSlug = urlOrgSlug || currentOrgSlug
 
   const [branding, setBranding] = useState<BrandingData | null>(null)
   const [isLoading, setIsLoading] = useState(true)

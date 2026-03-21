@@ -110,12 +110,12 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-700 rounded-lg p-4 border border-gray-600"
+      className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-400 text-sm">{label}</p>
-          <p className="text-2xl font-bold text-white">{value}</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{label}</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
         </div>
         <Icon className={`w-8 h-8 ${color}`} />
       </div>
@@ -128,9 +128,9 @@ function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-gray-700 rounded-lg p-6 border border-gray-600 min-h-[350px]"
+      className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 min-h-[350px]"
     >
-      <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <Icon className="w-5 h-5" />
         {title}
       </h3>

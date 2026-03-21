@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger';
+import { logger } from '../../../../../lib/utils/logger';
 import { createClient } from '../../../../../lib/supabase/server'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { requireAdmin } from '../../../../../lib/auth/requireAdmin'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,12 +59,12 @@ export async function GET(request: NextRequest) {
     }
 
     const stats = statsData || []
-    const totalLikes = stats.reduce((sum, app) => sum + (app.like_count || 0), 0)
-    const totalViews = stats.reduce((sum, app) => sum + (app.view_count || 0), 0)
+    const totalLikes = stats.reduce((sum: number, app: any) => sum + (app.like_count || 0), 0)
+    const totalViews = stats.reduce((sum: number, app: any) => sum + (app.view_count || 0), 0)
     
-    const validRatings = stats.filter(a => a.rating && a.rating > 0)
+    const validRatings = stats.filter((a: any) => a.rating && a.rating > 0)
     const averageRating = validRatings.length > 0 
-      ? validRatings.reduce((sum, app) => sum + (app.rating || 0), 0) / validRatings.length
+      ? validRatings.reduce((sum: number, app: any) => sum + (app.rating || 0), 0) / validRatings.length
       : 0
 
     const result = {
@@ -76,7 +78,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ stats: result })
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Unexpected error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

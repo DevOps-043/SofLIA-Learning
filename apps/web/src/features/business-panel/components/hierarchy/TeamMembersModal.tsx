@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -38,9 +39,10 @@ export function TeamMembersModal({
   currentMembers,
   onMembersUpdated
 }: TeamMembersModalProps) {
+  const { orgSlug } = useParams<{ orgSlug: string }>()
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, isLoading: loadingUsers, refetch: refetchUsers } = useBusinessUsers()
+  const { users, isLoading: loadingUsers, syncOrgData: refetchUsers } = useBusinessUsers(orgSlug)
 
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
@@ -127,7 +129,7 @@ export function TeamMembersModal({
           user_id: userId,
           team_id: teamId,
           role: 'member'
-        })
+        }, orgSlug)
       )
 
       const results = await Promise.all(promises)
@@ -154,7 +156,7 @@ export function TeamMembersModal({
     setSuccess(null)
 
     try {
-      const result = await HierarchyService.removeUserFromTeam(userId)
+      const result = await HierarchyService.removeUserFromTeam(userId, orgSlug)
       if (result.success) {
         setSuccess('Miembro removido exitosamente')
         onMembersUpdated()
@@ -178,7 +180,7 @@ export function TeamMembersModal({
         user_id: userId,
         team_id: teamId,
         role: newRole
-      })
+      }, orgSlug)
 
       if (result.success) {
         setSuccess(`Rol actualizado exitosamente`)

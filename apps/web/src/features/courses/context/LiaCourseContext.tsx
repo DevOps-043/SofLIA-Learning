@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-import type { UseLiaCourseChatReturn } from '../../../../core/hooks/useLiaCourseChat';
+import type { UseLiaCourseChatReturn } from '../../../core/hooks/useLiaCourseChat';
 
 interface LiaCourseContextType {
   isOpen: boolean;
@@ -42,7 +42,7 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
   const [liaChat, setLiaChat] = useState<UseLiaCourseChatReturn | null>(null);
 
   const setActivity = useCallback((activity: ActivityContextType | null) => {
-    // console.log('🔄 Actualizando contexto de actividad LIA:', activity?.title);
+    // console.log('🔄 Actualizando contexto de actividad SofLIA:', activity?.title);
     setCurrentActivity(activity);
   }, []);
 

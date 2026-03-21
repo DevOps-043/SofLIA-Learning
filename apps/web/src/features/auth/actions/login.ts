@@ -12,8 +12,8 @@ import { cookies, headers } from 'next/headers'
 import { logger } from '../../../lib/logger'
 
 const loginSchema = z.object({
-  emailOrUsername: z.string().min(1, 'El correo o usuario es requerido'),
-  password: z.string().min(1, 'La contraseña es requerida'),
+  emailOrUsername: z.string().min(1, 'El correo o usuario es requerido').regex(/^\S+$/, 'No se permiten espacios'),
+  password: z.string().min(1, 'La contraseña es requerida').regex(/^\S+$/, 'No se permiten espacios'),
   rememberMe: z.boolean().default(false),
 })
 
@@ -33,6 +33,8 @@ export async function loginAction(formData: FormData) {
     // 3. Obtener contexto de organización si viene de login personalizado
     const organizationId = formData.get('organizationId')?.toString()
     const organizationSlug = formData.get('organizationSlug')?.toString()
+    const invitationToken = formData.get('invitationToken')?.toString()
+    const bulkInviteToken = formData.get('bulkInviteToken')?.toString()
 
     // 3. Buscar usuario y validar contraseña
     // OPTIMIZADO: Una sola consulta con OR en lugar de dos secuenciales
@@ -134,35 +136,33 @@ export async function loginAction(formData: FormData) {
       const belongsToOrganization = !!orgUser
 
       if (!belongsToOrganization) {
-        // Usuario NO pertenece a esta organización - buscar su organización correcta
-        let correctSlug: string | null = null
+        // ✅ [NUEVO] Si no pertenece pero trae token de invitación, intentar consumirla
+        if (invitationToken || bulkInviteToken) {
+          console.log('✉️ [loginAction] Intentando consumir invitación post-login', {
+            hasInvitationToken: !!invitationToken,
+            hasBulkToken: !!bulkInviteToken
+          })
 
-        // Buscar en organization_users (más reciente por joined_at)
-        const { data: userOrgs } = await supabase
-          .from('organization_users')
-          .select('organization_id, joined_at, organizations!inner(slug)')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .order('joined_at', { ascending: false })
-          .limit(1)
+          const { consumeInvitationAction, consumeBulkInvitationAction } = await import('./invitation')
+          
+          let consumeResult;
+          if (invitationToken) {
+            consumeResult = await consumeInvitationAction(invitationToken, organizationId, user.id)
+          } else if (bulkInviteToken) {
+            consumeResult = await consumeBulkInvitationAction(bulkInviteToken, user.id)
+          }
 
-        if (userOrgs && userOrgs.length > 0) {
-          correctSlug = userOrgs[0].organizations?.slug || null
-        }
-
-        // Retornar error con información de redirección
-        if (correctSlug) {
-          return {
-            error: 'Este usuario no pertenece a esta organización',
-            redirectTo: `/auth/${correctSlug}`,
-            redirectMessage: `Serás redirigido a tu organización en 5 segundos...`
+          if (consumeResult?.success) {
+            console.log('✅ [loginAction] Invitación consumida exitosamente para el usuario loggeado')
+            // Ahora sí pertenece, podemos continuar el flujo normal
+          } else {
+            console.warn('❌ [loginAction] Falló el consumo de invitación:', consumeResult?.error)
+            // Procedemos al error de redirección normal si no se pudo unir
+            return this.handleNoBelongingRedirect(supabase, user, organizationId)
           }
         } else {
-          return {
-            error: 'Este usuario no pertenece a esta organización',
-            redirectTo: '/auth',
-            redirectMessage: 'Serás redirigido al login principal en 5 segundos...'
-          }
+          // No trae token, procede con la redirección normal
+          return this.handleNoBelongingRedirect(supabase, user, organizationId)
         }
       }
     }

@@ -1,10 +1,10 @@
-# 📚 Documentación Completa del Proyecto: Aprende y Aplica
+# 📚 Documentación Completa del Proyecto: SofLIA Learning
 
 > **Documento generado para análisis externo del proyecto**
-> 
+>
 > Fecha de generación: 26 de Enero 2026  
 > Versión del proyecto: 2.2.1 (B2B)  
-> Mantenido por: Equipo Aprende y Aplica
+> Mantenido por: Equipo SofLIA Learning
 
 ---
 
@@ -35,7 +35,7 @@
 
 ### 1.1 Descripción del Proyecto
 
-**Aprende y Aplica** es una plataforma educativa empresarial B2B completa que combina inteligencia artificial, gestión de aprendizaje y herramientas de colaboración para ofrecer una experiencia de capacitación personalizada y escalable.
+**SofLIA Learning** es una plataforma educativa empresarial B2B completa que combina inteligencia artificial, gestión de aprendizaje y herramientas de colaboración para ofrecer una experiencia de capacitación personalizada y escalable.
 
 El proyecto se enfoca en capacitación corporativa en inteligencia artificial, permitiendo a las organizaciones desarrollar las habilidades de sus equipos con cursos, certificaciones, planificación de estudios con IA y seguimiento de progreso personalizado.
 
@@ -52,15 +52,15 @@ El proyecto se enfoca en capacitación corporativa en inteligencia artificial, p
 
 ### 1.3 Estadísticas del Proyecto
 
-| Métrica | Valor |
-|---------|-------|
-| **Total de Features** | 20 módulos principales |
-| **Componentes React** | 800+ componentes |
-| **Endpoints API** | 300+ rutas |
-| **Migraciones de BD** | 50+ migraciones |
-| **Idiomas Soportados** | 3 (Español, Inglés, Portugués) |
-| **Líneas de Código** | ~150,000+ líneas (estimado) |
-| **Documentos Técnicos** | 70+ archivos en `/docs` |
+| Métrica                 | Valor                          |
+| ----------------------- | ------------------------------ |
+| **Total de Features**   | 20 módulos principales         |
+| **Componentes React**   | 800+ componentes               |
+| **Endpoints API**       | 300+ rutas                     |
+| **Migraciones de BD**   | 50+ migraciones                |
+| **Idiomas Soportados**  | 3 (Español, Inglés, Portugués) |
+| **Líneas de Código**    | ~150,000+ líneas (estimado)    |
+| **Documentos Técnicos** | 70+ archivos en `/docs`        |
 
 ---
 
@@ -89,18 +89,18 @@ La plataforma está 100% enfocada en el mercado empresarial (Business-to-Busines
 
 ### 2.3 Roles de Usuario
 
-| Rol | Descripción | Rutas Principales |
-|-----|-------------|-------------------|
-| **Admin (Super Admin)** | Administrador de la plataforma Aprende y Aplica | `/admin/*` |
-| **Business (Admin Org)** | Administrador de una organización cliente | `/business-panel/*` |
-| **BusinessUser** | Empleado de una organización cliente | `/business-user/*` |
+| Rol                      | Descripción                                    | Rutas Principales   |
+| ------------------------ | ---------------------------------------------- | ------------------- |
+| **Admin (Super Admin)**  | Administrador de la plataforma SofLIA Learning | `/admin/*`          |
+| **Business (Admin Org)** | Administrador de una organización cliente      | `/business-panel/*` |
+| **BusinessUser**         | Empleado de una organización cliente           | `/business-user/*`  |
 
 ### 2.4 Planes de Suscripción
 
-| Plan | Usuarios | Características |
-|------|----------|-----------------|
-| **Team** | Hasta 10 | Cursos básicos, Reportes |
-| **Business** | Hasta 50 | Todos los cursos, Analytics avanzados |
+| Plan           | Usuarios   | Características                               |
+| -------------- | ---------- | --------------------------------------------- |
+| **Team**       | Hasta 10   | Cursos básicos, Reportes                      |
+| **Business**   | Hasta 50   | Todos los cursos, Analytics avanzados         |
 | **Enterprise** | Ilimitados | White-label, Certificados personalizados, API |
 
 ---
@@ -109,71 +109,71 @@ La plataforma está 100% enfocada en el mercado empresarial (Business-to-Busines
 
 ### 3.1 Frontend
 
-| Tecnología | Versión | Uso |
-|------------|---------|-----|
-| **Next.js** | 14.2.15 | Framework React con App Router |
-| **React** | 18.3.1 | Biblioteca UI |
-| **TypeScript** | 5.3.3 - 5.9.3 | Tipado estático |
-| **Tailwind CSS** | 3.4.18 | Estilos utility-first |
-| **Framer Motion** | 12.23.26 | Animaciones |
-| **Zustand** | 5.0.2 | Estado global |
-| **Axios** | 1.6.7 | Cliente HTTP |
-| **SWR** | 2.2.0 | Data fetching |
-| **Recharts** | 3.3.0-3.5.0 | Visualización de datos |
-| **Nivo Charts** | 0.99.0 | Gráficos complejos |
-| **Tremor** | 3.18.7 | Dashboards de negocios |
-| **FullCalendar** | 6.1.19 | Calendario del Study Planner |
-| **Radix UI** | Latest | Componentes accesibles |
-| **Headless UI** | 2.2.9 | Componentes sin estilos |
-| **React Hook Form** | 7.65.0 | Manejo de formularios |
-| **Lucide React** | 0.545.0 | Iconografía |
-| **i18next** | 23.12.1 | Internacionalización |
-| **react-i18next** | 15.1.1 | Bindings React para i18n |
+| Tecnología          | Versión       | Uso                            |
+| ------------------- | ------------- | ------------------------------ |
+| **Next.js**         | 14.2.15       | Framework React con App Router |
+| **React**           | 18.3.1        | Biblioteca UI                  |
+| **TypeScript**      | 5.3.3 - 5.9.3 | Tipado estático                |
+| **Tailwind CSS**    | 3.4.18        | Estilos utility-first          |
+| **Framer Motion**   | 12.23.26      | Animaciones                    |
+| **Zustand**         | 5.0.2         | Estado global                  |
+| **Axios**           | 1.6.7         | Cliente HTTP                   |
+| **SWR**             | 2.2.0         | Data fetching                  |
+| **Recharts**        | 3.3.0-3.5.0   | Visualización de datos         |
+| **Nivo Charts**     | 0.99.0        | Gráficos complejos             |
+| **Tremor**          | 3.18.7        | Dashboards de negocios         |
+| **FullCalendar**    | 6.1.19        | Calendario del Study Planner   |
+| **Radix UI**        | Latest        | Componentes accesibles         |
+| **Headless UI**     | 2.2.9         | Componentes sin estilos        |
+| **React Hook Form** | 7.65.0        | Manejo de formularios          |
+| **Lucide React**    | 0.545.0       | Iconografía                    |
+| **i18next**         | 23.12.1       | Internacionalización           |
+| **react-i18next**   | 15.1.1        | Bindings React para i18n       |
 
 ### 3.2 Backend
 
-| Tecnología | Versión | Uso |
-|------------|---------|-----|
-| **Node.js** | >= 22.0.0 | Runtime |
-| **Express** | 4.18.2 | Framework web |
-| **TypeScript** | 5.3.3 | Tipado estático |
-| **Zod** | 3.25.76 | Validación de esquemas |
-| **Helmet** | 7.1.0 | Seguridad HTTP |
-| **CORS** | 2.8.5 | Cross-Origin Resource Sharing |
-| **Morgan** | 1.10.0 | Logging de requests |
-| **Express Rate Limit** | 7.1.5 | Rate limiting |
-| **Cookie Parser** | 1.4.6 | Parsing de cookies |
-| **Compression** | 1.7.4 | Compresión de respuestas |
-| **bcrypt** | 5.1.1 | Hash de contraseñas |
+| Tecnología             | Versión   | Uso                           |
+| ---------------------- | --------- | ----------------------------- |
+| **Node.js**            | >= 22.0.0 | Runtime                       |
+| **Express**            | 4.18.2    | Framework web                 |
+| **TypeScript**         | 5.3.3     | Tipado estático               |
+| **Zod**                | 3.25.76   | Validación de esquemas        |
+| **Helmet**             | 7.1.0     | Seguridad HTTP                |
+| **CORS**               | 2.8.5     | Cross-Origin Resource Sharing |
+| **Morgan**             | 1.10.0    | Logging de requests           |
+| **Express Rate Limit** | 7.1.5     | Rate limiting                 |
+| **Cookie Parser**      | 1.4.6     | Parsing de cookies            |
+| **Compression**        | 1.7.4     | Compresión de respuestas      |
+| **bcrypt**             | 5.1.1     | Hash de contraseñas           |
 
 ### 3.3 Base de Datos e Infraestructura
 
-| Tecnología | Uso |
-|------------|-----|
-| **Supabase** | Base de datos PostgreSQL, Auth, Storage |
-| **Supabase Auth** | Autenticación y gestión de sesiones |
-| **Supabase SSR** | 0.8.0 - Server-side rendering |
-| **Netlify Functions** | Serverless functions (cron jobs) |
-| **Netlify** | Hosting del frontend |
+| Tecnología            | Uso                                     |
+| --------------------- | --------------------------------------- |
+| **Supabase**          | Base de datos PostgreSQL, Auth, Storage |
+| **Supabase Auth**     | Autenticación y gestión de sesiones     |
+| **Supabase SSR**      | 0.8.0 - Server-side rendering           |
+| **Netlify Functions** | Serverless functions (cron jobs)        |
+| **Netlify**           | Hosting del frontend                    |
 
 ### 3.4 Integraciones IA
 
-| Tecnología | Versión | Uso |
-|------------|---------|-----|
-| **OpenAI** | 6.8.0 | Asistente virtual LIA (GPT-4o-mini) |
-| **@google/generative-ai** | 0.24.1 | Integración con Google AI |
+| Tecnología                | Versión | Uso                                 |
+| ------------------------- | ------- | ----------------------------------- |
+| **OpenAI**                | 6.8.0   | Asistente virtual LIA (GPT-4o-mini) |
+| **@google/generative-ai** | 0.24.1  | Integración con Google AI           |
 
 ### 3.5 Otras Dependencias Importantes
 
-| Categoría | Tecnologías |
-|-----------|-------------|
-| **Exportación/Documentos** | jspdf, xlsx, JSZip, html2canvas |
-| **Grabación/Replay** | rrweb 2.0.0-alpha.18, rrweb-player |
-| **Mapas** | Leaflet 1.9.4, react-leaflet 5.0.0 |
-| **Fechas** | date-fns, moment |
-| **Validación** | validator, DOMPurify |
-| **QR Codes** | react-qr-code |
-| **Utilidades** | clsx, tailwind-merge, class-variance-authority |
+| Categoría                  | Tecnologías                                    |
+| -------------------------- | ---------------------------------------------- |
+| **Exportación/Documentos** | jspdf, xlsx, JSZip, html2canvas                |
+| **Grabación/Replay**       | rrweb 2.0.0-alpha.18, rrweb-player             |
+| **Mapas**                  | Leaflet 1.9.4, react-leaflet 5.0.0             |
+| **Fechas**                 | date-fns, moment                               |
+| **Validación**             | validator, DOMPurify                           |
+| **QR Codes**               | react-qr-code                                  |
+| **Utilidades**             | clsx, tailwind-merge, class-variance-authority |
 
 ### 3.6 Requisitos del Sistema
 
@@ -188,7 +188,7 @@ La plataforma está 100% enfocada en el mercado empresarial (Business-to-Busines
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         ARQUITECTURA APRENDE Y APLICA                        │
+│                         ARQUITECTURA SOFLIA LEARNING                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
@@ -259,6 +259,7 @@ src/
 ```
 
 **Reglas:**
+
 1. ❌ `shared/` NO debe importar de `features/` ni `core/`
 2. ❌ `core/` NO debe importar de `features/`
 3. ✅ `features/` puede importar de `core/` y `shared/`
@@ -312,13 +313,13 @@ Aprende-y-Aplica/
 
 ### 5.2 Estructura del Frontend (apps/web/src/)
 
-| Directorio | Propósito | Archivos |
-|------------|-----------|----------|
-| `app/` | Next.js App Router (Server Components por defecto) | 510 |
-| `features/` | Features de dominio (auto-contenidos, screaming architecture) | 539 |
-| `core/` | Lógica transversal: stores (Zustand), providers, services/api.ts | 134 |
-| `lib/` | Infraestructura: supabase/, openai/, lia/, schemas/, oauth/ | 127 |
-| `shared/` | Infraestructura pura: hooks genéricos, utilidades | 5 |
+| Directorio  | Propósito                                                        | Archivos |
+| ----------- | ---------------------------------------------------------------- | -------- |
+| `app/`      | Next.js App Router (Server Components por defecto)               | 510      |
+| `features/` | Features de dominio (auto-contenidos, screaming architecture)    | 539      |
+| `core/`     | Lógica transversal: stores (Zustand), providers, services/api.ts | 134      |
+| `lib/`      | Infraestructura: supabase/, openai/, lia/, schemas/, oauth/      | 127      |
+| `shared/`   | Infraestructura pura: hooks genéricos, utilidades                | 5        |
 
 ### 5.3 Path Aliases
 
@@ -339,28 +340,28 @@ Aprende-y-Aplica/
 
 ### 6.1 Lista de Features (20 módulos)
 
-| Feature | Archivos | Descripción |
-|---------|----------|-------------|
-| **admin/** | 153 | Gestión completa de plataforma |
-| **business-panel/** | 90 | Panel empresarial (admin org) |
-| **auth/** | 59 | Autenticación y SSO |
-| **communities/** | 45 | Sistema de comunidades |
-| **study-planner/** | 37 | Planificación con IA |
-| **instructor/** | 35 | Features de instructor |
-| **landing/** | 27 | Landing page |
-| **ai-directory/** | 19 | Directorio de IA |
-| **courses/** | 17 | Gestión de cursos |
-| **tours/** | 16 | Onboarding guiado |
-| **skills/** | 7 | Gestión de habilidades |
-| **reels/** | 7 | Contenido de video corto |
-| **notifications/** | 6 | Sistema de notificaciones |
-| **scorm/** | 6 | Integración SCORM |
-| **profile/** | 4 | Perfil de usuario |
-| **subscriptions/** | 4 | Gestión de suscripciones |
-| **video-tracking/** | 3 | Tracking de video |
-| **news/** | 2 | Artículos y noticias |
-| **purchases/** | 1 | Historial de compras |
-| **lia/** | 1 | Hooks del asistente LIA |
+| Feature             | Archivos | Descripción                    |
+| ------------------- | -------- | ------------------------------ |
+| **admin/**          | 153      | Gestión completa de plataforma |
+| **business-panel/** | 90       | Panel empresarial (admin org)  |
+| **auth/**           | 59       | Autenticación y SSO            |
+| **communities/**    | 45       | Sistema de comunidades         |
+| **study-planner/**  | 37       | Planificación con IA           |
+| **instructor/**     | 35       | Features de instructor         |
+| **landing/**        | 27       | Landing page                   |
+| **ai-directory/**   | 19       | Directorio de IA               |
+| **courses/**        | 17       | Gestión de cursos              |
+| **tours/**          | 16       | Onboarding guiado              |
+| **skills/**         | 7        | Gestión de habilidades         |
+| **reels/**          | 7        | Contenido de video corto       |
+| **notifications/**  | 6        | Sistema de notificaciones      |
+| **scorm/**          | 6        | Integración SCORM              |
+| **profile/**        | 4        | Perfil de usuario              |
+| **subscriptions/**  | 4        | Gestión de suscripciones       |
+| **video-tracking/** | 3        | Tracking de video              |
+| **news/**           | 2        | Artículos y noticias           |
+| **purchases/**      | 1        | Historial de compras           |
+| **lia/**            | 1        | Hooks del asistente LIA        |
 
 ### 6.2 Estructura de un Feature
 
@@ -385,6 +386,7 @@ features/[feature-name]/
 ### 6.3 Módulos Principales - Descripción Detallada
 
 #### 🛡️ Admin (153 archivos)
+
 - Gestión de empresas/organizaciones
 - Gestión de usuarios de plataforma
 - Gestión de cursos y contenido
@@ -397,6 +399,7 @@ features/[feature-name]/
 - Sistema de reportes
 
 #### 🏢 Business Panel (90 archivos)
+
 - Dashboard empresarial
 - Gestión de empleados
 - Gestión de equipos
@@ -410,6 +413,7 @@ features/[feature-name]/
 - Chats jerárquicos
 
 #### 🔐 Auth (59 archivos)
+
 - Login/Registro por organización
 - SSO con Google y Microsoft
 - Recuperación de contraseña
@@ -418,6 +422,7 @@ features/[feature-name]/
 - Middleware de autenticación
 
 #### 📅 Study Planner (37 archivos)
+
 - Creación de planes con IA
 - Dashboard del plan activo
 - Sesiones de estudio
@@ -428,6 +433,7 @@ features/[feature-name]/
 - Rebalanceo automático
 
 #### 📚 Courses (17 archivos)
+
 - Catálogo de cursos
 - Experiencia de aprendizaje (`/[slug]/learn`)
 - Progreso por módulo y lección
@@ -451,84 +457,84 @@ features/[feature-name]/
 
 #### Usuarios y Organizaciones
 
-| Tabla | Descripción |
-|-------|-------------|
-| `users` | Usuarios del sistema (linking con auth.users) |
-| `organizations` | Organizaciones/empresas con branding |
-| `organization_users` | Relación usuarios-organizaciones (multi-org) |
-| `organization_invitations` | Invitaciones pendientes |
-| `oauth_accounts` | Cuentas OAuth vinculadas |
+| Tabla                      | Descripción                                   |
+| -------------------------- | --------------------------------------------- |
+| `users`                    | Usuarios del sistema (linking con auth.users) |
+| `organizations`            | Organizaciones/empresas con branding          |
+| `organization_users`       | Relación usuarios-organizaciones (multi-org)  |
+| `organization_invitations` | Invitaciones pendientes                       |
+| `oauth_accounts`           | Cuentas OAuth vinculadas                      |
 
 #### Jerarquía Organizacional
 
-| Tabla | Descripción |
-|-------|-------------|
-| `organization_regions` | Regiones de la organización (nivel 1) |
-| `organization_zones` | Zonas dentro de regiones (nivel 2) |
-| `organization_teams` | Equipos dentro de zonas (nivel 3) |
-| `hierarchy_chats` | Chats jerárquicos (horizontales y verticales) |
-| `hierarchy_chat_messages` | Mensajes de chats jerárquicos |
+| Tabla                     | Descripción                                   |
+| ------------------------- | --------------------------------------------- |
+| `organization_regions`    | Regiones de la organización (nivel 1)         |
+| `organization_zones`      | Zonas dentro de regiones (nivel 2)            |
+| `organization_teams`      | Equipos dentro de zonas (nivel 3)             |
+| `hierarchy_chats`         | Chats jerárquicos (horizontales y verticales) |
+| `hierarchy_chat_messages` | Mensajes de chats jerárquicos                 |
 
 #### Cursos y Aprendizaje
 
-| Tabla | Descripción |
-|-------|-------------|
-| `courses` | Catálogo de cursos |
-| `course_modules` | Módulos dentro de cursos |
-| `course_lessons` | Lecciones individuales |
-| `lesson_activities` | Actividades interactivas por lección |
-| `lesson_materials` | Materiales descargables |
-| `lesson_checkpoints` | Checkpoints en videos |
-| `user_lesson_progress` | Progreso por lección |
-| `lesson_tracking` | Tracking en tiempo real |
-| `course_reviews` | Reseñas de cursos |
-| `course_questions` | Preguntas en cursos |
-| `course_question_responses` | Respuestas a preguntas |
+| Tabla                       | Descripción                          |
+| --------------------------- | ------------------------------------ |
+| `courses`                   | Catálogo de cursos                   |
+| `course_modules`            | Módulos dentro de cursos             |
+| `course_lessons`            | Lecciones individuales               |
+| `lesson_activities`         | Actividades interactivas por lección |
+| `lesson_materials`          | Materiales descargables              |
+| `lesson_checkpoints`        | Checkpoints en videos                |
+| `user_lesson_progress`      | Progreso por lección                 |
+| `lesson_tracking`           | Tracking en tiempo real              |
+| `course_reviews`            | Reseñas de cursos                    |
+| `course_questions`          | Preguntas en cursos                  |
+| `course_question_responses` | Respuestas a preguntas               |
 
 #### Planificación de Estudios
 
-| Tabla | Descripción |
-|-------|-------------|
-| `study_plans` | Planes de estudio creados con IA |
-| `study_sessions` | Sesiones individuales programadas |
-| `study_preferences` | Preferencias de estudio del usuario |
-| `calendar_integrations` | Conexión con calendarios externos |
-| `calendar_sync_history` | Historial de sincronizaciones |
-| `daily_progress` | Progreso diario |
+| Tabla                   | Descripción                         |
+| ----------------------- | ----------------------------------- |
+| `study_plans`           | Planes de estudio creados con IA    |
+| `study_sessions`        | Sesiones individuales programadas   |
+| `study_preferences`     | Preferencias de estudio del usuario |
+| `calendar_integrations` | Conexión con calendarios externos   |
+| `calendar_sync_history` | Historial de sincronizaciones       |
+| `daily_progress`        | Progreso diario                     |
 
 #### LIA (Asistente Virtual)
 
-| Tabla | Descripción |
-|-------|-------------|
-| `lia_conversations` | Historial de conversaciones |
-| `lia_messages` | Mensajes individuales |
-| `lia_user_feedback` | Feedback de usuarios |
-| `lia_activity_completions` | Completado de actividades |
-| `lia_common_questions` | Preguntas frecuentes |
+| Tabla                      | Descripción                 |
+| -------------------------- | --------------------------- |
+| `lia_conversations`        | Historial de conversaciones |
+| `lia_messages`             | Mensajes individuales       |
+| `lia_user_feedback`        | Feedback de usuarios        |
+| `lia_activity_completions` | Completado de actividades   |
+| `lia_common_questions`     | Preguntas frecuentes        |
 
 #### Certificados y Habilidades
 
-| Tabla | Descripción |
-|-------|-------------|
-| `user_course_certificates` | Certificados emitidos |
-| `certificate_ledger` | Registro blockchain de certificados |
-| `certificate_templates` | Templates por organización |
-| `skills` | Catálogo de habilidades |
-| `user_skills` | Habilidades por usuario |
+| Tabla                      | Descripción                         |
+| -------------------------- | ----------------------------------- |
+| `user_course_certificates` | Certificados emitidos               |
+| `certificate_ledger`       | Registro blockchain de certificados |
+| `certificate_templates`    | Templates por organización          |
+| `skills`                   | Catálogo de habilidades             |
+| `user_skills`              | Habilidades por usuario             |
 
 #### Otros
 
-| Tabla | Descripción |
-|-------|-------------|
-| `comunidades` | Comunidades de aprendizaje |
-| `comunidad_posts` | Posts en comunidades |
-| `comunidad_comentarios` | Comentarios en posts |
-| `user_notifications` | Notificaciones de usuario |
+| Tabla                   | Descripción                     |
+| ----------------------- | ------------------------------- |
+| `comunidades`           | Comunidades de aprendizaje      |
+| `comunidad_posts`       | Posts en comunidades            |
+| `comunidad_comentarios` | Comentarios en posts            |
+| `user_notifications`    | Notificaciones de usuario       |
 | `notification_settings` | Configuración de notificaciones |
-| `ai_moderation_logs` | Logs de moderación con IA |
-| `audit_logs` | Logs de auditoría |
-| `transactions` | Transacciones |
-| `payment_methods` | Métodos de pago |
+| `ai_moderation_logs`    | Logs de moderación con IA       |
+| `audit_logs`            | Logs de auditoría               |
+| `transactions`          | Transacciones                   |
+| `payment_methods`       | Métodos de pago                 |
 
 ### 7.3 Características de la Base de Datos
 
@@ -683,38 +689,38 @@ GET    /api/certificates/verify/:hash   # Verificar certificado (público)
 
 ---
 
-## 10. Sistema de Diseño SOFIA
+## 10. Sistema de Diseño SofLIA
 
 ### 10.1 Descripción
 
-**SOFIA** (Sistema Original de Funcionalidad e Interfaz Avanzada) es el sistema de diseño de la plataforma.
+**SofLIA** (Sistema Original de Funcionalidad e Interfaz Avanzada) es el sistema de diseño de la plataforma.
 
 ### 10.2 Paleta de Colores
 
 #### Colores Principales
 
-| Color | Hex | Uso |
-|-------|-----|-----|
-| **Azul Profundo** | `#0A2540` | Fondos header, botones primarios, navegación |
-| **Aqua** | `#00D4B3` | Acentos, estados activos, barras de progreso, LIA |
-| **Blanco** | `#FFFFFF` | Fondos de tarjetas, textos sobre fondos oscuros |
+| Color             | Hex       | Uso                                               |
+| ----------------- | --------- | ------------------------------------------------- |
+| **Azul Profundo** | `#0A2540` | Fondos header, botones primarios, navegación      |
+| **Aqua**          | `#00D4B3` | Acentos, estados activos, barras de progreso, LIA |
+| **Blanco**        | `#FFFFFF` | Fondos de tarjetas, textos sobre fondos oscuros   |
 
 #### Colores Secundarios
 
-| Color | Hex | Uso |
-|-------|-----|-----|
-| **Verde Suave** | `#10B981` | Estados de éxito, completado, logros |
-| **Ámbar** | `#F59E0B` | Alertas, notificaciones, advertencias |
-| **Gris Claro** | `#E9ECEF` | Fondos secundarios, separadores |
-| **Gris Medio** | `#6C757D` | Textos secundarios, iconos deshabilitados |
+| Color           | Hex       | Uso                                       |
+| --------------- | --------- | ----------------------------------------- |
+| **Verde Suave** | `#10B981` | Estados de éxito, completado, logros      |
+| **Ámbar**       | `#F59E0B` | Alertas, notificaciones, advertencias     |
+| **Gris Claro**  | `#E9ECEF` | Fondos secundarios, separadores           |
+| **Gris Medio**  | `#6C757D` | Textos secundarios, iconos deshabilitados |
 
 #### Modo Oscuro
 
-| Color | Hex | Uso |
-|-------|-----|-----|
-| **Fondo Principal** | `#0F1419` | Fondo principal de la app |
-| **Fondo Secundario** | `#1E2329` | Tarjetas y modales |
-| **Fondo Terciario** | `#0A0D12` | Elementos anidados |
+| Color                | Hex       | Uso                       |
+| -------------------- | --------- | ------------------------- |
+| **Fondo Principal**  | `#0F1419` | Fondo principal de la app |
+| **Fondo Secundario** | `#1E2329` | Tarjetas y modales        |
+| **Fondo Terciario**  | `#0A0D12` | Elementos anidados        |
 
 ### 10.3 Tipografía
 
@@ -730,24 +736,26 @@ GET    /api/certificates/verify/:hash   # Verificar certificado (público)
 
 ### 10.4 Componentes UI
 
-| Categoría | Componentes |
-|-----------|-------------|
-| **Layout** | Container, Grid, Flex, Spacer |
-| **Forms** | Input, Select, Checkbox, Radio, Switch, Textarea |
-| **Feedback** | Alert, Toast, Badge, Progress, Skeleton |
-| **Navigation** | Navbar, Sidebar, Tabs, Breadcrumb, Pagination |
-| **Overlays** | Modal, Dropdown, Tooltip, Popover, Sheet |
-| **Data Display** | Card, Table, Avatar, List, Accordion |
+| Categoría        | Componentes                                      |
+| ---------------- | ------------------------------------------------ |
+| **Layout**       | Container, Grid, Flex, Spacer                    |
+| **Forms**        | Input, Select, Checkbox, Radio, Switch, Textarea |
+| **Feedback**     | Alert, Toast, Badge, Progress, Skeleton          |
+| **Navigation**   | Navbar, Sidebar, Tabs, Breadcrumb, Pagination    |
+| **Overlays**     | Modal, Dropdown, Tooltip, Popover, Sheet         |
+| **Data Display** | Card, Table, Avatar, List, Accordion             |
 
 ### 10.5 Patrones de Diseño
 
 #### Split Panel Modal
+
 - Modales con dos columnas
 - Panel izquierdo: Preview animado (320px)
 - Panel derecho: Formulario
 - Uso: Formularios de creación/edición
 
 #### Premium Dropdown
+
 - Selectores personalizados
 - Diseño oscuro consistente
 - Animaciones con Framer Motion
@@ -782,15 +790,15 @@ GET    /api/certificates/verify/:hash   # Verificar certificado (público)
 
 ### 11.3 Protecciones
 
-| Protección | Implementación |
-|------------|----------------|
-| **CSP** | Content Security Policy con Helmet.js |
-| **CORS** | Configurado para dominios específicos |
-| **Rate Limiting** | 1000 requests/hora por usuario |
-| **Sanitización** | DOMPurify para contenido HTML |
-| **Validación** | Zod schemas en frontend y backend |
-| **XSS Prevention** | Headers de seguridad |
-| **HTTPS** | Forzado en producción |
+| Protección         | Implementación                        |
+| ------------------ | ------------------------------------- |
+| **CSP**            | Content Security Policy con Helmet.js |
+| **CORS**           | Configurado para dominios específicos |
+| **Rate Limiting**  | 1000 requests/hora por usuario        |
+| **Sanitización**   | DOMPurify para contenido HTML         |
+| **Validación**     | Zod schemas en frontend y backend     |
+| **XSS Prevention** | Headers de seguridad                  |
+| **HTTPS**          | Forzado en producción                 |
 
 ### 11.4 Moderación de Contenido
 
@@ -826,7 +834,7 @@ function MyComponent() {
 ```
 
 ```typescript
-import { useLanguage } from '@/core/i18n/I18nProvider';
+import { useLanguage } from "@/core/i18n/I18nProvider";
 
 function LanguageSelector() {
   const { language, changeLanguage } = useLanguage();
@@ -844,16 +852,17 @@ LIA detecta automáticamente el idioma del usuario y responde en ese idioma.
 
 ### 13.1 Convenciones de Código
 
-| Elemento | Convención |
-|----------|------------|
-| Archivos | kebab-case (`user-profile.tsx`) |
-| Componentes | PascalCase (`UserProfile`) |
-| Variables/funciones | camelCase |
-| Constantes | UPPER_SNAKE_CASE |
+| Elemento            | Convención                      |
+| ------------------- | ------------------------------- |
+| Archivos            | kebab-case (`user-profile.tsx`) |
+| Componentes         | PascalCase (`UserProfile`)      |
+| Variables/funciones | camelCase                       |
+| Constantes          | UPPER_SNAKE_CASE                |
 
 ### 13.2 Componentes
 
 #### Reglas Generales
+
 - Use Server Components por defecto
 - `'use client'` solo cuando sea necesario
 - Un componente = una responsabilidad
@@ -880,6 +889,7 @@ features/business-panel/components/hierarchy/HierarchyChat/
 ### 13.3 Hooks Personalizados
 
 Extraer lógica cuando:
+
 - 5+ useState
 - Múltiples useEffect
 - Lógica de negocio mezclada con UI
@@ -888,9 +898,11 @@ Extraer lógica cuando:
 // hooks/useFeatureLogic.ts
 export const useFeatureLogic = (props) => {
   const [state, setState] = useState();
-  
-  const handleAction = () => { /* ... */ };
-  
+
+  const handleAction = () => {
+    /* ... */
+  };
+
   return {
     state,
     handleAction,
@@ -964,14 +976,14 @@ export const useFeatureLogic = (props) => {
 
 ### 14.3 Tracking de Lecciones
 
-| Evento | Trigger | Acción |
-|--------|---------|--------|
-| `video_play` | Usuario reproduce video | Inicia tracking |
-| `video_ended` | Video termina | Registra evento |
-| `lia_message` | Usuario interactúa con LIA | Extiende actividad |
-| `activity` | Scroll, clic, etc. | Actualiza última actividad |
-| `quiz_submitted` | Quiz completado | Auto-completa lección |
-| `inactivity_5m` | 5 min sin actividad | Auto-completa lección |
+| Evento           | Trigger                    | Acción                     |
+| ---------------- | -------------------------- | -------------------------- |
+| `video_play`     | Usuario reproduce video    | Inicia tracking            |
+| `video_ended`    | Video termina              | Registra evento            |
+| `lia_message`    | Usuario interactúa con LIA | Extiende actividad         |
+| `activity`       | Scroll, clic, etc.         | Actualiza última actividad |
+| `quiz_submitted` | Quiz completado            | Auto-completa lección      |
+| `inactivity_5m`  | 5 min sin actividad        | Auto-completa lección      |
 
 ---
 
@@ -1042,30 +1054,30 @@ npm run <cmd> --workspace=apps/web       # Comando específico
 
 ### 16.1 Métricas de Producto
 
-| Métrica | Objetivo |
-|---------|----------|
-| **MAU (Monthly Active Users)** | 5,000 en 6 meses |
-| **Tasa de Completado de Cursos** | 70%+ |
-| **Engagement Diario** | 45 minutos por sesión |
-| **Net Promoter Score (NPS)** | 50+ |
+| Métrica                          | Objetivo              |
+| -------------------------------- | --------------------- |
+| **MAU (Monthly Active Users)**   | 5,000 en 6 meses      |
+| **Tasa de Completado de Cursos** | 70%+                  |
+| **Engagement Diario**            | 45 minutos por sesión |
+| **Net Promoter Score (NPS)**     | 50+                   |
 
 ### 16.2 Métricas Técnicas
 
-| Métrica | Objetivo |
-|---------|----------|
-| **Uptime** | 99.9% (máximo 8.77h downtime/año) |
-| **Tiempo de Respuesta API** | P95 < 500ms |
-| **Tiempo de Carga Inicial** | < 3s en 3G |
-| **Tasa de Error** | < 0.1% |
+| Métrica                     | Objetivo                          |
+| --------------------------- | --------------------------------- |
+| **Uptime**                  | 99.9% (máximo 8.77h downtime/año) |
+| **Tiempo de Respuesta API** | P95 < 500ms                       |
+| **Tiempo de Carga Inicial** | < 3s en 3G                        |
+| **Tasa de Error**           | < 0.1%                            |
 
 ### 16.3 Métricas de Negocio
 
-| Métrica | Objetivo |
-|---------|----------|
-| **Costo por Usuario Activo** | < $5/mes |
-| **Retención a 30 días** | > 60% |
-| **Satisfacción de Usuario** | > 4.5/5 |
-| **Certificados Emitidos** | 500 en 6 meses |
+| Métrica                      | Objetivo       |
+| ---------------------------- | -------------- |
+| **Costo por Usuario Activo** | < $5/mes       |
+| **Retención a 30 días**      | > 60%          |
+| **Satisfacción de Usuario**  | > 4.5/5        |
+| **Certificados Emitidos**    | 500 en 6 meses |
 
 ---
 
@@ -1076,22 +1088,26 @@ npm run <cmd> --workspace=apps/web       # Comando específico
 #### Funcionalidades Completadas ✅
 
 **LIA - Asistente Virtual**
+
 - ✅ Historial de conversaciones persistente
 - ✅ Edición de títulos de conversaciones
 - ✅ Contexto separado (general, Study Planner, curso)
 - ✅ Visibilidad de enlaces en Dark Mode
 
 **Panel de Administración**
+
 - ✅ AdminEditCompanyModal rediseñado (Split Panel Modal)
 - ✅ Gestión de empresas mejorada
 - ✅ LIA Analytics Panel
 
 **Autenticación**
+
 - ✅ Flujo SSO corregido
 - ✅ Sistema de invitaciones mejorado
 - ✅ Eliminación en cascada de usuarios
 
 **UI/UX**
+
 - ✅ Headers premium en Business Panel
 - ✅ Responsividad completa
 - ✅ Soporte Light/Dark mode
@@ -1105,16 +1121,19 @@ npm run <cmd> --workspace=apps/web       # Comando específico
 ### 17.3 Roadmap Futuro 📋
 
 **Corto plazo (Q1 2026)**
+
 - Notificaciones push
 - Gamificación y badges
 - Recomendaciones avanzadas con IA
 
 **Mediano plazo (Q2 2026)**
+
 - Aplicaciones móviles nativas
 - Modo offline
 - Integraciones empresariales adicionales
 
 **Largo plazo (2026+)**
+
 - Marketplace de cursos
 - Sistema de pagos integrado
 - Expansión internacional
@@ -1125,50 +1144,50 @@ npm run <cmd> --workspace=apps/web       # Comando específico
 
 ### 18.1 Arquitectura y Código
 
-| Área | Estado Actual | Mejora Sugerida |
-|------|---------------|-----------------|
-| **Testing** | Mínimo | Implementar tests unitarios y E2E |
-| **CI/CD** | Básico | Pipeline completo con GitHub Actions |
-| **Monitoreo** | Básico | Grafana, Sentry, APM |
-| **Documentación de API** | Parcial | Swagger/OpenAPI completo |
-| **Backend** | Express básico | Migración a serverless o microservicios |
+| Área                     | Estado Actual  | Mejora Sugerida                         |
+| ------------------------ | -------------- | --------------------------------------- |
+| **Testing**              | Mínimo         | Implementar tests unitarios y E2E       |
+| **CI/CD**                | Básico         | Pipeline completo con GitHub Actions    |
+| **Monitoreo**            | Básico         | Grafana, Sentry, APM                    |
+| **Documentación de API** | Parcial        | Swagger/OpenAPI completo                |
+| **Backend**              | Express básico | Migración a serverless o microservicios |
 
 ### 18.2 Performance
 
-| Área | Mejora Sugerida |
-|------|-----------------|
-| **Bundle Size** | Análisis y optimización de dependencias |
-| **Lazy Loading** | Más agresivo en rutas y componentes |
-| **Caching** | Implementar caching de API más robusto |
-| **CDN** | Optimizar assets estáticos |
-| **Base de Datos** | Más índices, query optimization |
+| Área              | Mejora Sugerida                         |
+| ----------------- | --------------------------------------- |
+| **Bundle Size**   | Análisis y optimización de dependencias |
+| **Lazy Loading**  | Más agresivo en rutas y componentes     |
+| **Caching**       | Implementar caching de API más robusto  |
+| **CDN**           | Optimizar assets estáticos              |
+| **Base de Datos** | Más índices, query optimization         |
 
 ### 18.3 Seguridad
 
-| Área | Mejora Sugerida |
-|------|-----------------|
-| **Penetration Testing** | Auditoría de seguridad externa |
+| Área                    | Mejora Sugerida                              |
+| ----------------------- | -------------------------------------------- |
+| **Penetration Testing** | Auditoría de seguridad externa               |
 | **Dependency Scanning** | Actualización automática de deps vulnerables |
-| **Secrets Management** | Vault o similar |
-| **2FA** | Autenticación de dos factores |
+| **Secrets Management**  | Vault o similar                              |
+| **2FA**                 | Autenticación de dos factores                |
 
 ### 18.4 UX/UI
 
-| Área | Mejora Sugerida |
-|------|-----------------|
-| **Accesibilidad** | Auditoría WCAG completa |
-| **PWA** | Mejorar experiencia offline |
-| **Onboarding** | Tours más interactivos |
-| **Analytics UX** | Heatmaps, session recordings |
+| Área              | Mejora Sugerida              |
+| ----------------- | ---------------------------- |
+| **Accesibilidad** | Auditoría WCAG completa      |
+| **PWA**           | Mejorar experiencia offline  |
+| **Onboarding**    | Tours más interactivos       |
+| **Analytics UX**  | Heatmaps, session recordings |
 
 ### 18.5 Escalabilidad
 
-| Área | Mejora Sugerida |
-|------|-----------------|
+| Área              | Mejora Sugerida                          |
+| ----------------- | ---------------------------------------- |
 | **Multi-tenancy** | Mejorar aislamiento entre organizaciones |
-| **Geografía** | CDN global, edge functions |
-| **Database** | Read replicas, sharding futuro |
-| **Queue System** | Implementar para tareas pesadas |
+| **Geografía**     | CDN global, edge functions               |
+| **Database**      | Read replicas, sharding futuro           |
+| **Queue System**  | Implementar para tareas pesadas          |
 
 ---
 
@@ -1176,23 +1195,23 @@ npm run <cmd> --workspace=apps/web       # Comando específico
 
 ### Apéndice A: Documentos de Referencia
 
-| Documento | Ubicación | Descripción |
-|-----------|-----------|-------------|
-| `README.md` | `/` | Documentación principal |
-| `CLAUDE.md` | `/` | Guía de desarrollo para AI assistants |
-| `ARQUITECTURA-COMPLETA.md` | `/docs` | Arquitectura detallada |
-| `PRD_MASTER.md` | `/docs` | Product Requirements Document |
-| `SOFIA_DESIGN_SYSTEM.md` | `/docs` | Sistema de diseño |
-| `AGENTES_LIA.md` | `/docs` | Documentación de agentes LIA |
-| `STUDY-PLANNER-FLOW.md` | `/docs` | Flujo del planificador |
-| `SCORM-IMPLEMENTACION.md` | `/docs` | Guía de implementación SCORM |
+| Documento                  | Ubicación | Descripción                           |
+| -------------------------- | --------- | ------------------------------------- |
+| `README.md`                | `/`       | Documentación principal               |
+| `CLAUDE.md`                | `/`       | Guía de desarrollo para AI assistants |
+| `ARQUITECTURA-COMPLETA.md` | `/docs`   | Arquitectura detallada                |
+| `PRD_MASTER.md`            | `/docs`   | Product Requirements Document         |
+| `SOFIA_DESIGN_SYSTEM.md`   | `/docs`   | Sistema de diseño                     |
+| `AGENTES_LIA.md`           | `/docs`   | Documentación de agentes LIA          |
+| `STUDY-PLANNER-FLOW.md`    | `/docs`   | Flujo del planificador                |
+| `SCORM-IMPLEMENTACION.md`  | `/docs`   | Guía de implementación SCORM          |
 
 ### Apéndice B: URLs de Desarrollo
 
-| Servicio | URL |
-|----------|-----|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:4000/api/v1 |
+| Servicio     | URL                          |
+| ------------ | ---------------------------- |
+| Frontend     | http://localhost:3000        |
+| Backend API  | http://localhost:4000/api/v1 |
 | Health Check | http://localhost:4000/health |
 
 ### Apéndice C: Estructura de Rutas Principales

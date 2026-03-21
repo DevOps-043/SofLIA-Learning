@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -51,6 +52,8 @@ export function BusinessManageInviteLinksModal({
   onCreateNew,
   organizationSlug
 }: BusinessManageInviteLinksModalProps) {
+  const params = useParams()
+  const orgSlug = organizationSlug || (params?.orgSlug as string)
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -71,12 +74,25 @@ export function BusinessManageInviteLinksModal({
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown menu when clicking outside
+  useEffect(() => {
+    if (!openMenuId) return
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuId(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openMenuId])
 
   const fetchLinks = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await fetch('/api/business/invite-links', {
+      const response = await fetch(`/api/${orgSlug}/business/invite-links`, {
         credentials: 'include'
       })
       const data = await response.json()
@@ -120,7 +136,7 @@ export function BusinessManageInviteLinksModal({
 
     try {
       if (action === 'delete') {
-        const response = await fetch(`/api/business/invite-links/${linkId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
           method: 'DELETE',
           credentials: 'include'
         })
@@ -132,7 +148,7 @@ export function BusinessManageInviteLinksModal({
 
         setLinks(prev => prev.filter(l => l.id !== linkId))
       } else {
-        const response = await fetch(`/api/business/invite-links/${linkId}`, {
+        const response = await fetch(`/api/${orgSlug}/business/invite-links/${linkId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -332,7 +348,8 @@ export function BusinessManageInviteLinksModal({
                     className="px-5 py-2.5 rounded-xl text-sm font-medium text-white inline-flex items-center gap-2"
                     style={{
                       backgroundColor: primaryColor,
-                      boxShadow: `0 4px 15px ${primaryColor}40`
+                      boxShadow: `0 4px 15px ${primaryColor}40`,
+                      color: '#FFFFFF'
                     }}
                   >
                     <Plus className="w-4 h-4" />
@@ -457,11 +474,12 @@ export function BusinessManageInviteLinksModal({
                             <AnimatePresence>
                               {openMenuId === link.id && (
                                 <motion.div
+                                  ref={menuRef}
                                   initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                   animate={{ opacity: 1, scale: 1, y: 0 }}
                                   exit={{ opacity: 0, scale: 0.95, y: -10 }}
                                   className="absolute right-0 top-full mt-1 w-40 rounded-xl border shadow-lg overflow-hidden"
-                                  style={{ backgroundColor: isDark ? '#252b3b' : '#FFFFFF', borderColor, zIndex: 10 }}
+                                  style={{ backgroundColor: isDark ? '#252b3b' : '#FFFFFF', borderColor, zIndex: 50 }}
                                 >
                                   {link.status === 'active' && (
                                     <button
@@ -525,7 +543,8 @@ export function BusinessManageInviteLinksModal({
                   className="px-5 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2"
                   style={{
                     backgroundColor: primaryColor,
-                    boxShadow: `0 4px 15px ${primaryColor}40`
+                    boxShadow: `0 4px 15px ${primaryColor}40`,
+                    color: '#FFFFFF'
                   }}
                 >
                   <Plus className="w-4 h-4" />
@@ -536,14 +555,6 @@ export function BusinessManageInviteLinksModal({
           </div>
         </motion.div>
 
-        {/* Click outside to close menu */}
-        {openMenuId && (
-          <div
-            className="fixed inset-0"
-            style={{ zIndex: 99998 }}
-            onClick={() => setOpenMenuId(null)}
-          />
-        )}
       </div>
     </AnimatePresence>
   )

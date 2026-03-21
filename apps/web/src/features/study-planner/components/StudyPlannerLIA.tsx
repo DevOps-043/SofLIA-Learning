@@ -2,14 +2,16 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Volume2, VolumeX, ChevronRight, Mic, MicOff, Send, Check, BookOpen, Loader2, Calendar, ExternalLink, Search, ChevronLeft, HelpCircle, GraduationCap, Zap, Scale, Clock, ArrowLeft } from 'lucide-react';
+import { X, Volume2, VolumeX, ChevronRight, Mic, MicOff, Send, Check, BookOpen, Loader2, Calendar, ExternalLink, Search, ChevronLeft, HelpCircle, GraduationCap, Zap, Scale, Clock, ArrowLeft, Settings } from 'lucide-react';
+import { CalendarSelectionPanel } from './CalendarSelection';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 import { HolidayService } from '../../../lib/holidays';
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext';
 import { generateStudyPlannerPrompt } from '../prompts/study-planner.prompt';
 import { useAuth } from '@/features/auth/hooks/useAuth';
-import { useLIAData } from '../hooks/useLIAData';
+import { useSofLIAData } from '../hooks/useSofLIAData';
 import { parseLiaResponseToSchedules } from '../services/plan-parser.service';
 import { useVoiceEngine } from '../hooks/useVoiceEngine';
 import { GoogleIcon, MicrosoftIcon } from './icons/PlannerIcons';
@@ -25,8 +27,115 @@ import { StudyPlannerHeader } from './study-planner-ui/StudyPlannerHeader';
 // import Joyride from 'react-joyride';
 // import { useStudyPlannerJoyride } from '../../tours/hooks/useStudyPlannerJoyride';
 
+// Componentes de iconos de Google y Microsoft
+const GoogleIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+    <path
+      d="M17.64 9.20443C17.64 8.56625 17.5827 7.95262 17.4764 7.36353H9V10.8449H13.8436C13.635 11.9699 13.0009 12.9231 12.0477 13.5613V15.8194H14.9564C16.6582 14.2526 17.64 11.9453 17.64 9.20443Z"
+      fill="#4285F4"
+    />
+    <path
+      d="M8.99976 18C11.4298 18 13.467 17.1941 14.9561 15.8195L12.0475 13.5613C11.2416 14.1013 10.2107 14.4204 8.99976 14.4204C6.65567 14.4204 4.67158 12.8372 3.96385 10.71H0.957031V13.0418C2.43794 15.9831 5.48158 18 8.99976 18Z"
+      fill="#34A853"
+    />
+    <path
+      d="M3.96409 10.7098C3.78409 10.1698 3.68182 9.59301 3.68182 8.99983C3.68182 8.40665 3.78409 7.82983 3.96409 7.28983V4.95801H0.957273C0.347727 6.17301 0 7.54756 0 8.99983C0 10.4521 0.347727 11.8266 0.957273 13.0416L3.96409 10.7098Z"
+      fill="#FBBC05"
+    />
+    <path
+      d="M8.99976 3.57955C10.3211 3.57955 11.5075 4.03364 12.4402 4.92545L15.0216 2.34409C13.4629 0.891818 11.4257 0 8.99976 0C5.48158 0 2.43794 2.01682 0.957031 4.95818L3.96385 7.29C4.67158 5.16273 6.65567 3.57955 8.99976 3.57955Z"
+      fill="#EA4335"
+    />
+  </svg>
+);
 
-export function StudyPlannerLIA() {
+const MicrosoftIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+    <rect width="10" height="10" x="1" y="1" fill="#F25022" />
+    <rect width="10" height="10" x="12" y="1" fill="#7FBA00" />
+    <rect width="10" height="10" x="1" y="12" fill="#00A4EF" />
+    <rect width="10" height="10" x="12" y="12" fill="#FFB900" />
+  </svg>
+);
+
+interface StudyPlannerStep {
+  id: number;
+  title: string;
+  description: string;
+  speech: string;
+}
+
+const STUDY_PLANNER_STEPS: StudyPlannerStep[] = [
+  {
+    id: 1,
+    title: '¡Bienvenido al Planificador de Estudios!',
+    description: 'Soy SofLIA, tu asistente inteligente. Estoy aquí para ayudarte a crear un plan de estudios personalizado que se adapte a tu tiempo y ritmo de aprendizaje.',
+    speech: '¡Bienvenido al Planificador de Estudios! Soy SofLIA, tu asistente inteligente. Estoy aquí para ayudarte a crear un plan de estudios personalizado que se adapte a tu tiempo y ritmo de aprendizaje.'
+  },
+  {
+    id: 2,
+    title: '¿Cómo funciona?',
+    description: 'Puedo crear tu plan de estudios de dos formas: de manera automática usando inteligencia artificial para optimizar tu tiempo, o manualmente donde tú decides cada detalle. ¿Cuál prefieres?',
+    speech: 'Puedo crear tu plan de estudios de dos formas: de manera automática usando inteligencia artificial para optimizar tu tiempo, o manualmente donde tú decides cada detalle. ¿Cuál prefieres?'
+  },
+  {
+    id: 3,
+    title: 'Planificación Inteligente',
+    description: 'Si eliges la opción automática, analizaré tus cursos, tu disponibilidad de tiempo, tu rol profesional y tus preferencias para crear el plan perfecto para ti.',
+    speech: 'Si eliges la opción automática, analizaré tus cursos, tu disponibilidad de tiempo, tu rol profesional y tus preferencias para crear el plan perfecto para ti.'
+  },
+  {
+    id: 4,
+    title: '¡Empecemos!',
+    description: 'Estoy lista para ayudarte. Puedes hablarme por voz haciendo clic en el micrófono, o simplemente continuar para comenzar a configurar tu plan.',
+    speech: 'Estoy lista para ayudarte. Puedes hablarme por voz haciendo clic en el micrófono, o simplemente continuar para comenzar a configurar tu plan.'
+  }
+];
+
+/**
+ * Obtiene un mensaje de error amigable basado en el tipo de error de OAuth
+ */
+function getCalendarErrorMessage(errorType: string, errorMsg: string): string {
+  switch (errorType) {
+    case 'email_mismatch':
+      return 'âš ï¸ El calendario conectado pertenece a otra cuenta.\n\nEl email con el que iniciaste sesión en Google/Microsoft no coincide con tu cuenta en la aplicación.\n\nPara solucionarlo:\n1. Cierra sesión en Google/Microsoft en tu navegador\n2. Inicia sesión con el mismo email que usas aquí\n3. Vuelve a intentar conectar tu calendario';
+
+    case 'test_mode_user_not_added':
+      return 'Tu email no está agregado como usuario de prueba.\n\nâš ï¸ IMPORTANTE: El email debe coincidir EXACTAMENTE con el que usas para iniciar sesión en Google.\n\nPara solucionarlo:\n1. Ve a Google Cloud Console (console.cloud.google.com)\n2. Ve a "APIs & Services" > "OAuth consent screen"\n3. En "Test users", haz clic en "+ ADD USERS"\n4. Agrega tu email EXACTO (el mismo que usas para Google) y guarda\n5. Espera 1-2 minutos para que se apliquen los cambios\n6. Intenta conectar de nuevo';
+
+    case 'app_not_verified':
+      return 'La aplicación requiere configuración en Google Cloud Console.\n\nPara solucionarlo:\n1. Ve a Google Cloud Console\n2. Ve a "APIs & Services" > "OAuth consent screen"\n3. Cambia el estado a "Testing" (modo de prueba)\n4. Agrega tu email como usuario de prueba\n5. Intenta conectar de nuevo';
+
+    case 'access_denied':
+      return 'No se otorgaron los permisos necesarios.\n\nAsegúrate de aceptar todos los permisos cuando Google los solicite e intenta de nuevo.';
+
+    case 'redirect_uri_mismatch':
+      return 'Error de configuración: URI de redirección incorrecta.\n\nVerifica que en Google Cloud Console > Credentials tengas configurada la URI correcta.';
+
+    case 'invalid_client':
+      return 'El Client ID no es válido.\n\nVerifica que NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID esté configurado correctamente en tu archivo .env.local';
+
+    case 'code_expired':
+      return 'El código de autorización expiró.\n\nEsto puede pasar si el proceso tarda mucho. Simplemente intenta conectar de nuevo.';
+
+    case 'rls_error':
+      return 'Error de permisos en la base de datos.\n\nNo se pudo guardar la integración. Este es un error del servidor. Por favor, contacta al administrador.';
+
+    default:
+      // Detectar errores conocidos por el contenido del mensaje
+      if (errorMsg.includes("doesn't comply with Google's OAuth 2.0 policy") ||
+        errorMsg.includes('OAuth 2.0 policy') ||
+        errorMsg.includes('comply with Google')) {
+        return 'Tu aplicación de Google requiere configuración.\n\nPara solucionarlo:\n1. Ve a Google Cloud Console\n2. Cambia tu app a modo de prueba (Testing)\n3. Agrega tu email como usuario de prueba\n4. Intenta conectar de nuevo';
+      }
+      if (errorMsg.includes('connection_failed')) {
+        return 'No se pudo conectar el calendario.\n\nVerifica tu configuración de OAuth en Google Cloud Console y que tu email esté agregado como usuario de prueba.';
+      }
+      return errorMsg || 'Error desconocido al conectar el calendario. Por favor, intenta de nuevo.';
+  }
+}
+
+export function StudyPlannerSofLIA({ onBack }: { onBack?: () => void }) {
   const router = useRouter();
   const params = useParams();
   const { user } = useAuth();
@@ -83,6 +192,8 @@ export function StudyPlannerLIA() {
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
   const [connectedCalendar, setConnectedCalendar] = useState<'google' | 'microsoft' | null>(null);
   const [calendarSkipped, setCalendarSkipped] = useState(false); // Indica si el usuario rechazó explícitamente conectar calendario
+  const [showCalendarConfig, setShowCalendarConfig] = useState(false);
+  const [hasConfiguredCalendars, setHasConfiguredCalendars] = useState(false);
 
   // Manejar conexión de calendario (Google/Microsoft)
   const handleCalendarConnect = async (provider: 'google' | 'microsoft') => {
@@ -168,7 +279,7 @@ export function StudyPlannerLIA() {
         body: JSON.stringify({
           lessonDistribution: lessonDistributionForApi,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          planName: 'Plan de Estudios SOFLIA'
+          planName: 'Plan de Estudios SofLIA'
         })
       });
 
@@ -188,7 +299,7 @@ export function StudyPlannerLIA() {
 
       // Agregar mensaje al chat confirmando la inserción
       if (result.success && result.insertedCount > 0) {
-        const successMessage = `? **¡Listo!** He insertado ${result.insertedCount} eventos en tu calendario de Google.\n\nPuedes verlos en el calendario secundario "SOFLIA - Sesiones de Estudio". Cada evento incluye recordatorios 15 minutos antes.\n\n?? [Abrir Google Calendar](https://calendar.google.com)`;
+        const successMessage = `✅ **¡Listo!** He insertado ${result.insertedCount} eventos en tu calendario de Google.\n\nPuedes verlos en el calendario secundario "SofLIA - Sesiones de Estudio". Cada evento incluye recordatorios 15 minutos antes.\n\n📅 [Abrir Google Calendar](https://calendar.google.com)`;
 
         setConversationHistory(prev => [...prev, {
           role: 'assistant',
@@ -300,11 +411,11 @@ export function StudyPlannerLIA() {
   const [conversationHistory, setConversationHistory] = useState<Array<{ role: string, content: string }>>([]);
 
 
-  // ? Estado para tracking de analytics de LIA
+  // ✅ Estado para tracking de analytics de SofLIA
   const [liaConversationId, setLiaConversationId] = useState<string | null>(null);
 
-  // ? NUEVO: Hook para datos de LIA (lecciones pendientes desde BD)
-  const liaData = useLIAData();
+  // ✅ NUEVO: Hook para datos de SofLIA (lecciones pendientes desde BD)
+  const liaData = useSofLIAData();
 
   // Hook de motor de voz (ElevenLabs TTS + Speech Recognition)
   const voice = useVoiceEngine({
@@ -434,8 +545,8 @@ export function StudyPlannerLIA() {
     durationMinutes: number;
   }>>([]);
 
-  // Función para formatear mensajes de LIA con estilos mejorados y tipografía Inter
-  const formatLIAMessage = (text: string): React.ReactNode => {
+  // Función para formatear mensajes de SofLIA con estilos mejorados y tipografía Inter
+  const formatSofLIAMessage = (text: string): React.ReactNode => {
     if (!text) return null;
 
     // Limpiar TODOS los emojis usando regex Unicode
@@ -753,7 +864,7 @@ export function StudyPlannerLIA() {
           // ? ESTABLECER userContext COMPLETO AL INICIO (no solo en analyzeCalendarAndSuggest)
           if (userData.success && userData.data) {
             const userProfile = userData.data;
-            console.log('? [StudyPlannerLIA] Estableciendo userContext al inicio:', {
+            console.log('✅ [StudyPlannerSofLIA] Estableciendo userContext al inicio:', {
               userType: userProfile.userType,
               hasOrganization: !!userProfile.organization,
               coursesCount: userProfile.courses?.length || 0,
@@ -801,13 +912,13 @@ export function StudyPlannerLIA() {
                 });
 
               setAssignedCourses(allAssignedCourses);
-              console.log('? [StudyPlannerLIA] Cursos asignados:', allAssignedCourses);
+              console.log('✅ [StudyPlannerSofLIA] Cursos asignados:', allAssignedCourses);
 
               // Establecer selectedCourseIds automáticamente
               if (allAssignedCourses.length > 0) {
                 const courseIds = allAssignedCourses.map((c: any) => c.courseId).filter(Boolean);
                 setSelectedCourseIds(courseIds);
-                console.log('? [StudyPlannerLIA] Cursos seleccionados automáticamente:', courseIds);
+                console.log('✅ [StudyPlannerSofLIA] Cursos seleccionados automáticamente:', courseIds);
               }
             }
           }
@@ -821,6 +932,19 @@ export function StudyPlannerLIA() {
 
             // Solo guardar el estado, NO saltar el flujo
             setConnectedCalendar(data.provider as 'google' | 'microsoft');
+
+            // Verificar si ya configuró calendarios
+            try {
+              const selResponse = await fetch('/api/study-planner/calendar/selection');
+              if (selResponse.ok) {
+                const selData = await selResponse.json();
+                if (selData.success && selData.data?.selectedCalendarIds?.length > 0) {
+                  setHasConfiguredCalendars(true);
+                }
+              }
+            } catch {
+              // No bloquear por error de config check
+            }
           } else {
             // Asegurarse de limpiar si no hay calendario conectado
             setConnectedCalendar(null);
@@ -908,8 +1032,8 @@ export function StudyPlannerLIA() {
     }
   }, []); // Solo al montar
 
-  // ? CRÃTICO: Cargar lecciones pendientes cuando hay cursos asignados
-  // Usa el hook useLIAData que consulta directamente la BD para obtener nombres EXACTOS
+  // ✅ CRÃTICO: Cargar lecciones pendientes cuando hay cursos asignados
+  // Usa el hook useSofLIAData que consulta directamente la BD para obtener nombres EXACTOS
   // Esto evita alucinaciones de la IA (patrón Bridge de IRIS)
   useEffect(() => {
     // Cargar lecciones si hay cursos asignados y el hook aún no las tiene, Y no hay error previo
@@ -938,7 +1062,7 @@ export function StudyPlannerLIA() {
         pendingLessonsRef.current = formattedLessons;
         setPendingLessonsWithNames(formattedLessons);
 
-        console.log(`? [Sync] ${formattedLessons.length} lecciones sincronizadas desde useLIAData`);
+        console.log(`✅ [Sync] ${formattedLessons.length} lecciones sincronizadas desde useSofLIAData`);
 
         // Log de verificación
         if (formattedLessons.length > 0) {
@@ -952,7 +1076,7 @@ export function StudyPlannerLIA() {
   }, [liaData.isReady, liaData.lessons]);
 
   // Inicializar mensaje de bienvenida cuando se carga la página (solo si no hay historial)
-  // ? Flujo B2B: LIA genera el mensaje de bienvenida dinámicamente
+  // ✅ Flujo B2B: SofLIA genera el mensaje de bienvenida dinámicamente
   useEffect(() => {
     console.log('?? [Welcome] useEffect ejecutado:', {
       showConversation,
@@ -988,7 +1112,7 @@ export function StudyPlannerLIA() {
 
       console.log('? [Welcome] Generando mensaje de bienvenida...');
 
-      // Construir contexto para LIA
+      // Construir contexto para SofLIA
       const contextInfo = {
         rol: userContext.rol,
         area: userContext.area,
@@ -1000,7 +1124,7 @@ export function StudyPlannerLIA() {
         }))
       };
 
-      // Mensaje interno para LIA (el usuario no lo ve)
+      // Mensaje interno para SofLIA (el usuario no lo ve)
       const systemPrompt = `[INICIO_PLANIFICADOR]
 El usuario acaba de abrir el planificador de estudios. Genera un mensaje de bienvenida personalizado con la siguiente información:
 
@@ -1012,7 +1136,7 @@ DATOS DEL USUARIO:
 - Cursos asignados: ${contextInfo.courses.length > 0 ? contextInfo.courses.map(c => `"${c.title}"${c.dueDate ? ` (fecha límite: ${c.dueDate})` : ''}`).join(', ') : 'Ninguno'}
 
 INSTRUCCIONES:
-1. Preséntate como LIA, el asistente del Planificador de Estudios
+1. Preséntate como SofLIA, el asistente del Planificador de Estudios
 2. Menciona brevemente que has analizado su información
 3. Destaca su rol y organización (si están disponibles)
 4. Si tiene equipos, menciónalos
@@ -1118,20 +1242,20 @@ INSTRUCCIONES:
         if (response.ok) {
           const data = await response.json();
           let liaResponse = data.response;
-          console.log('? [Welcome] Mensaje de LIA recibido:', liaResponse?.substring(0, 100) + '...');
+          console.log('✅ [Welcome] Mensaje de SofLIA recibido:', liaResponse?.substring(0, 100) + '...');
 
           // ? Guardar conversationId para analytics
           if (data.conversationId) {
             setLiaConversationId(data.conversationId);
           }
 
-          // Agregar el mensaje de LIA al historial
+          // Agregar el mensaje de SofLIA al historial
           setConversationHistory([{ role: 'assistant', content: liaResponse }]);
           console.log('? [Welcome] Mensaje agregado al historial');
 
           // Reproducir audio de bienvenida si está habilitado
           if (isAudioEnabled && assignedCourses.length > 0) {
-            const audioText = `¡Bienvenido al Planificador de Estudios! Soy LIA, tu asistente de aprendizaje.`;
+            const audioText = `¡Bienvenido al Planificador de Estudios! Soy SofLIA, tu asistente de aprendizaje.`;
             speakText(audioText);
           }
 
@@ -1141,11 +1265,11 @@ INSTRUCCIONES:
             setShowApproachButtons(true);
           }
         } else {
-          console.error('Error obteniendo mensaje de bienvenida de LIA');
+          console.error('Error obteniendo mensaje de bienvenida de SofLIA');
           // Fallback: mostrar un mensaje simple
           setConversationHistory([{
             role: 'assistant',
-            content: '¡Hola! Soy LIA, tu asistente del Planificador de Estudios. Estoy aquí para ayudarte a organizar tu tiempo de estudio. ¿Qué tipo de sesiones prefieres: rápidas, normales o largas?'
+            content: '¡Hola! Soy SofLIA, tu asistente del Planificador de Estudios. Estoy aquí para ayudarte a organizar tu tiempo de estudio. ¿Qué tipo de sesiones prefieres: rápidas, normales o largas?'
           }]);
           // ? REFACTOR: Mostrar botones inline inmediatamente
           if (assignedCourses.length > 0) {
@@ -1162,7 +1286,7 @@ INSTRUCCIONES:
         // Fallback en caso de error
         setConversationHistory([{
           role: 'assistant',
-          content: '¡Hola! Soy LIA, tu asistente del Planificador de Estudios. ¿Cómo te gustaría organizar tus sesiones de estudio?'
+          content: '¡Hola! Soy SofLIA, tu asistente del Planificador de Estudios. ¿Cómo te gustaría organizar tus sesiones de estudio?'
         }]);
         // ? REFACTOR: Mostrar botones inline inmediatamente
         if (assignedCourses.length > 0) {
@@ -1310,12 +1434,12 @@ INSTRUCCIONES:
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Error en respuesta de LIA:', {
+        console.error('Error en respuesta de SofLIA:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText
         });
-        throw new Error(`Error al comunicarse con LIA: ${response.status} ${response.statusText}`);
+        throw new Error(`Error al comunicarse con SofLIA: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -1352,7 +1476,7 @@ INSTRUCCIONES:
         return next;
       });
 
-      // Detectar si LIA está pidiendo seleccionar cursos y abrir el modal automáticamente
+      // Detectar si SofLIA está pidiendo seleccionar cursos y abrir el modal automáticamente
       if (liaResponse.includes('¿Qué cursos te gustaría incluir?') ||
         liaResponse.includes('qué cursos') ||
         liaResponse.includes('seleccionar cursos')) {
@@ -1442,7 +1566,7 @@ INSTRUCCIONES:
     setIsVisible(false);
     setShowConversation(true);
 
-    // Mensaje inicial de LIA
+    // Mensaje inicial de SofLIA
     const welcomeMessage = '¡Perfecto! Vamos a crear tu plan de estudios. ¿Qué cursos te gustaría incluir?';
     setConversationHistory([{ role: 'assistant', content: welcomeMessage }]);
     setTimeout(() => speakText(welcomeMessage), 500);
@@ -1455,7 +1579,7 @@ INSTRUCCIONES:
     setIsVisible(false);
     setShowConversation(true);
 
-    // Mensaje inicial de LIA para comenzar la conversación
+    // Mensaje inicial de SofLIA para comenzar la conversación
     const welcomeMessage = '¡Perfecto! Ahora vamos a crear tu plan de estudios personalizado. Haz clic en "Seleccionar cursos" para elegir los cursos que quieres incluir en tu plan.';
 
     setConversationHistory([
@@ -1519,8 +1643,8 @@ INSTRUCCIONES:
 
     setConversationHistory(prev => [...prev, { role: 'user', content: userMsg }]);
 
-    // Respuesta de LIA - preguntar sobre enfoque de estudio primero
-    // ? NOTA: El modal se muestra pero la selección NO afecta el multiplicador de duración
+    // Respuesta de SofLIA - preguntar sobre enfoque de estudio primero
+    // ✅ NOTA: El modal se muestra pero la selección NO afecta el multiplicador de duración
     setTimeout(async () => {
       setIsProcessing(true);
 
@@ -1588,7 +1712,7 @@ INSTRUCCIONES:
     // Abrir en popup en lugar de redirigir
     const popup = window.open(
       authUrl,
-      'SOFLIAlia-ai-google-calendar-auth',
+      'SofLIAlia-ai-google-calendar-auth',
       'width=600,height=700,scrollbars=yes,resizable=yes,status=yes,location=yes,toolbar=no,menubar=no'
     );
 
@@ -1776,7 +1900,7 @@ INSTRUCCIONES:
         const errorMsg = event.data.error || 'Error desconocido';
         const userFriendlyMsg = getCalendarErrorMessage(errorType, errorMsg);
 
-        // Notificar a LIA sobre el error
+        // Notificar a SofLIA sobre el error
         setConversationHistory(prev => [...prev, {
           role: 'assistant',
           content: `No pude conectar tu calendario. ${userFriendlyMsg.split('\n\n')[0]}`
@@ -2588,7 +2712,7 @@ INSTRUCCIONES:
       console.log('? [handleApproachSelection] Usando estado local del calendario (ya conectado)');
     }
 
-    // Construir el prompt para LIA dependiendo del estado del calendario
+    // Construir el prompt para SofLIA dependiendo del estado del calendario
     let systemPrompt: string;
 
     if (calendarAlreadyConnected) {
@@ -2686,7 +2810,7 @@ INSTRUCCIONES:
         setConversationHistory(prev => [...prev, { role: 'assistant', content: fallbackMsg }]);
       }
     } catch (error) {
-      console.error('Error obteniendo respuesta de LIA:', error);
+      console.error('Error obteniendo respuesta de SofLIA:', error);
       const fallbackMsg = `¡Perfecto! Has seleccionado **${approachText[approach]}**. ¿Te gustaría conectar tu calendario para personalizar tu plan?`;
       setConversationHistory(prev => [...prev, { role: 'assistant', content: fallbackMsg }]);
     } finally {
@@ -5941,7 +6065,7 @@ INSTRUCCIONES:
 
           // ? MOSTRAR SOLO LOS SLOTS QUE TIENEN LECCIONES ASIGNADAS
           // No mostrar todos los slots disponibles, solo los que realmente se van a usar
-          // Formatear mensaje detallado para LIA con tiempos reales
+          // Formatear mensaje detallado para SofLIA con tiempos reales
           const distByDay = new Map<string, typeof lessonDistribution>();
 
           lessonDistribution.forEach(dist => {
@@ -5975,7 +6099,7 @@ INSTRUCCIONES:
             distributions.forEach(dist => {
               // Calcular duración real basada en la suma de las lecciones asignadas
               const realDurationMinutes = dist.lessons.reduce((sum, l) => sum + (l.durationMinutes || 15), 0);
-              console.log(`[StudyPlannerLIA] Slot ${dist.slot.start.toLocaleTimeString()} - Duración real: ${realDurationMinutes} min (Lecciones: ${dist.lessons.map(l => `${l.lessonTitle} (${l.durationMinutes})`).join(', ')})`);
+              console.log(`[StudyPlannerSofLIA] Slot ${dist.slot.start.toLocaleTimeString()} - Duración real: ${realDurationMinutes} min (Lecciones: ${dist.lessons.map(l => `${l.lessonTitle} (${l.durationMinutes})`).join(', ')})`);
 
               // Calcular hora de fin ajustada
               const startTime = dist.slot.start;
@@ -6040,7 +6164,7 @@ INSTRUCCIONES:
             });
           }
 
-          // Agregar datos crudos para que LIA calcule las metas semanales AUTOMÃTICAMENTE
+          // Agregar datos crudos para que SofLIA calcule las metas semanales AUTOMÃTICAMENTE
           if (selectedCourseIds.length > 0 && totalLessonsNeeded > 0 && weeksUntilTarget > 0 && targetDate) {
             // Calcular metas automáticamente
             const lessonsPerWeekCalc = Math.ceil(totalLessonsNeeded / weeksUntilTarget);
@@ -6049,7 +6173,7 @@ INSTRUCCIONES:
             const avgLessonMinutes = 15; // Promedio estimado si no tenemos datos exactos
             const hoursPerWeekCalc = Math.ceil((lessonsPerWeekCalc * avgLessonMinutes) / 60);
 
-            // Enviar datos en formato estructurado para LIA (sin instrucciones visibles)
+            // Enviar datos en formato estructurado para SofLIA (sin instrucciones visibles)
             calendarMessage += `\n`;
             calendarMessage += `**METAS SEMANALES:**\n`;
             calendarMessage += `\n`;
@@ -6614,7 +6738,7 @@ Cuéntame:
     };
   };
 
-  // Función para parsear la respuesta de LIA y extraer horarios
+  // Función para parsear la respuesta de SofLIA y extraer horarios
   const parseLiaScheduleResponse = (liaResponse: string): StoredLessonDistribution[] | null => {
     try {
       // Detectar si la respuesta contiene horarios (buscar patrones de fechas y horas)
@@ -6631,7 +6755,7 @@ Cuéntame:
         return null; // No hay horarios en la respuesta
       }
 
-      console.log('?? Detectados patrones de horarios en respuesta de LIA, parseando...');
+      console.log('🔍 Detectados patrones de horarios en respuesta de SofLIA, parseando...');
 
       const extractedSchedules: StoredLessonDistribution[] = [];
 
@@ -6986,7 +7110,7 @@ Cuéntame:
       }
 
       if (extractedSchedules.length > 0) {
-        console.log(`? Extraídos ${extractedSchedules.length} horarios de la respuesta de LIA`);
+        console.log(`✅ Extraídos ${extractedSchedules.length} horarios de la respuesta de SofLIA`);
         console.log(`   Primeros 3 horarios extraídos:`, extractedSchedules.slice(0, 3).map(s => ({
           fecha: s.dateStr,
           hora: `${s.startTime}-${s.endTime}`,
@@ -6998,12 +7122,12 @@ Cuéntame:
       // Si detectamos patrones pero no extrajimos horarios, loguear para debugging
       if (hasSchedulePatterns) {
         console.warn('âš ï¸ Se detectaron patrones de horarios pero no se extrajeron horarios válidos');
-        console.warn('   Respuesta de LIA (primeros 500 caracteres):', liaResponse.substring(0, 500));
+        console.warn('   Respuesta de SofLIA (primeros 500 caracteres):', liaResponse.substring(0, 500));
       }
 
       return null;
     } catch (error) {
-      console.error('âŒ Error parseando respuesta de LIA:', error);
+      console.error('âŒ Error parseando respuesta de SofLIA:', error);
       return null;
     }
   };
@@ -7349,7 +7473,7 @@ Cuéntame:
       // Crear configuración del plan
       const planConfig = {
         name: `Plan de Estudios - ${new Date().toLocaleDateString('es-ES')}`,
-        description: `Plan generado por LIA con ${sessions.length} sesiones${selectedCourseIds.length > 0 ? ` para ${selectedCourseIds.length} curso(s)` : ''}`,
+        description: `Plan generado por SofLIA con ${sessions.length} sesiones${selectedCourseIds.length > 0 ? ` para ${selectedCourseIds.length} curso(s)` : ''}`,
         userType: (userContext?.userType || 'b2c') as 'b2b' | 'b2c',
         courseIds: selectedCourseIds,
         goalHoursPerWeek,
@@ -7556,7 +7680,7 @@ Cuéntame:
             body: JSON.stringify({
               lessonDistribution: lessonDistributionForApi,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              planName: 'Plan de Estudios SOFLIA'
+              planName: 'Plan de Estudios SofLIA'
             })
           });
 
@@ -7587,7 +7711,7 @@ Cuéntame:
       // Mostrar mensaje de éxito
       let calendarMsg = '';
       if (connectedCalendar && calendarInsertSuccess && calendarInsertedCount > 0) {
-        calendarMsg = ` He insertado ${calendarInsertedCount} eventos en tu calendario de Google (en "SOFLIA - Sesiones de Estudio").`;
+        calendarMsg = ` He insertado ${calendarInsertedCount} eventos en tu calendario de Google (en "SofLIA - Sesiones de Estudio").`;
       } else if (connectedCalendar) {
         calendarMsg = ' Las sesiones han sido sincronizadas con tu calendario.';
       }
@@ -9525,7 +9649,16 @@ Cuéntame:
                         <div className="relative z-10 break-words">
                           {msg.role === 'assistant' ? (
                             <div className="font-body text-[14px] sm:text-[16px] leading-[1.6] sm:leading-[1.75] text-[#0A2540] dark:text-white tracking-wide">
-                              {formatLIAMessage(msg.content)}
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                  ul: ({ children }) => <ul className="my-2 pl-5 list-disc">{children}</ul>,
+                                  li: ({ children }) => <li className="mb-1">{children}</li>,
+                                }}
+                              >
+                                {msg.content}
+                              </ReactMarkdown>
                             </div>
                           ) : (
                             <p className="font-body text-[14px] sm:text-[16px] leading-[1.6] sm:leading-[1.75] font-medium whitespace-pre-wrap text-white tracking-wide">{msg.content}</p>
@@ -9721,6 +9854,57 @@ Cuéntame:
                 )}
               </div>
             </div>
+
+            {/* Modal de configuración de calendarios */}
+            <AnimatePresence>
+              {showCalendarConfig && connectedCalendar && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                    onClick={() => setShowCalendarConfig(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
+                  >
+                    <motion.div className="relative bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto">
+                      {/* Header */}
+                      <div className="flex items-center justify-between p-4 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+                        <div>
+                          <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">Configurar calendarios</h3>
+                          <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-0.5">
+                            Selecciona qué calendarios considerar para tu disponibilidad
+                          </p>
+                        </div>
+                        <motion.button
+                          onClick={() => setShowCalendarConfig(false)}
+                          whileHover={{ scale: 1.1, rotate: 90 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-2 text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-all"
+                        >
+                          <X size={18} />
+                        </motion.button>
+                      </div>
+                      {/* Content */}
+                      <div className="p-4">
+                        <CalendarSelectionPanel
+                          provider={connectedCalendar}
+                          onSaveSuccess={() => {
+                            setHasConfiguredCalendars(true);
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
 
             <StudyApproachModal
               show={showApproachModal}

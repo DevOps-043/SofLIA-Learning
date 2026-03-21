@@ -36,9 +36,9 @@ import { IntentDetectionService } from '../../services/intent-detection.service'
 import { PromptPreviewPanel, type PromptDraft } from './PromptPreviewPanel';
 import { NanoBananaPreviewPanel } from './NanoBananaPreviewPanel';
 import type { NanoBananaSchema, NanoBananaDomain, OutputFormat } from '../../../lib/nanobana/templates';
-import { LiaPersonalizationSettings } from '../../../features/lia/components/LiaPersonalizationSettings';
+import { SofLIAPersonalizationSettings } from '../../../features/lia/components/SofLIAPersonalizationSettings';
 import { useThemeStore } from '../../stores/themeStore';
-import { useLiaPersonalization } from '../../hooks/useLiaPersonalization';
+import { useSofLIAPersonalization } from '../../hooks/useSofLIAPersonalization';
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../utils/tts-voice-settings';
 
 interface Message {
@@ -273,7 +273,7 @@ function renderTextWithLinks(text: string): React.ReactNode {
 }
 
 export function AIChatAgent({
-  assistantName = 'Lia',
+  assistantName = 'SofLIA',
   assistantAvatar = '/lia-avatar.png',
   initialMessage,
   promptPlaceholder,
@@ -655,7 +655,7 @@ export function AIChatAgent({
   const { user } = useAuth();
   
   // ðŸŽ™ï¸ Configuración de personalización de LIA para voz
-  const { settings: liaSettings, loading: liaSettingsLoading } = useLiaPersonalization();
+  const { settings: liaSettings, loading: liaSettingsLoading } = useSofLIAPersonalization();
   const isVoiceEnabled = liaSettings?.voice_enabled ?? true; // Por defecto activado
   
   // Debug: Log de configuración de voz
@@ -2228,7 +2228,7 @@ ${generatedPrompt.tips.map(tip => `- ${tip}`).join('\n')}
 
 ---
 
-Generado por Lia - Asistente de IA para Creación de Prompts
+Generado por SofLIA - Asistente de IA para Creación de Prompts
 Fecha: ${new Date().toLocaleString()}
 `;
 
@@ -2281,9 +2281,9 @@ Fecha: ${new Date().toLocaleString()}
         };
       default:
         return {
-          header: 'bg-[#0A2540]', /* Azul Profundo SOFLIA */
+          header: 'bg-[#0A2540]', /* Azul Profundo SofLIA */
           accent: '[#00D4B3]', // Aqua
-          bubbleUser: 'from-[#0A2540] to-[#00D4B3]', /* Gradiente SOFLIA */
+          bubbleUser: 'from-[#0A2540] to-[#00D4B3]', /* Gradiente SofLIA */
           ring: 'focus:ring-[#00D4B3]', /* Aqua para focus */
           borderUser: 'border-[#00D4B3]', /* Aqua */
           chipBg: 'bg-[#00D4B3]/15 text-[#00D4B3] border border-[#00D4B3]/30', /* Aqua para chips de LIA */
@@ -2632,7 +2632,7 @@ Fecha: ${new Date().toLocaleString()}
                           <div className="py-2">
                             {/* Header del modal con X a la derecha */}
                             <div className="px-4 py-2 border-b border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-between">
-                              <div className="text-sm font-semibold text-[#0A2540] dark:text-white">LIA</div>
+                              <div className="text-sm font-semibold text-[#0A2540] dark:text-white">SofLIA</div>
                               <button
                                 onClick={() => setModeMenuOpen(false)}
                                 className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-[#1E2329]/50 transition-colors text-[#6C757D] dark:text-white/60"
@@ -2862,10 +2862,10 @@ Fecha: ${new Date().toLocaleString()}
                         <div className="max-w-sm text-center opacity-80">
                           <div className="mx-auto mb-3 w-16 h-16 rounded-full flex items-center justify-center shadow-lg overflow-hidden bg-transparent">
                             {/* Usa el logo/avatares reales si existen */}
-                            <img src="/Logo.png" onError={(e) => ((e.target as HTMLImageElement).src = assistantAvatar)} alt="Aprende y Aplica" className="w-full h-full object-contain" />
+                            <img src="/Logo.png" onError={(e) => ((e.target as HTMLImageElement).src = assistantAvatar)} alt="SofLIA" className="w-full h-full object-contain" />
                           </div>
                           <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-1 text-base">
-                            {currentMode === 'nanobana' ? 'Generador de Imágenes' : currentMode === 'prompt' ? promptModeTitle : currentMode === 'analysis' ? contextModeTitle : assistantModeTitle}
+                            SofLIA
                           </h3>
                           <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                             {currentMode === 'nanobana'
@@ -2918,8 +2918,8 @@ Fecha: ${new Date().toLocaleString()}
 
                         {/* Contenido del mensaje */}
                         <div className={`flex-1 rounded-2xl px-3.5 py-3 shadow-lg ${message.role === 'user'
-                          ? 'bg-[#10B981] text-white' // Verde Suave SOFLIA para mensajes del usuario
-                          : 'bg-[#0A2540] text-white dark:bg-[#0A2540]' // Azul Profundo SOFLIA para mensajes de LIA
+                          ? 'bg-[#10B981] text-white' // Verde Suave SofLIA para mensajes del usuario
+                          : 'bg-[#0A2540] text-white dark:bg-[#0A2540]' // Azul Profundo SofLIA para mensajes de SofLIA
                           }`}>
                           <p className="text-[13px] leading-relaxed whitespace-pre-wrap font-medium">
                             {renderTextWithLinks(message.content)}
@@ -3204,7 +3204,7 @@ Fecha: ${new Date().toLocaleString()}
       )}
 
       {/* Modal de Personalización */}
-      <LiaPersonalizationSettings
+      <SofLIAPersonalizationSettings
         isOpen={isPersonalizationOpen}
         onClose={() => setIsPersonalizationOpen(false)}
       />

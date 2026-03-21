@@ -1,7 +1,55 @@
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { consumeBulkInvitationAction } from '@/features/auth/actions/invitation'
+
+/**
+ * SECURITY: Obtiene el userId autenticado del servidor verificando ambos sistemas de sesión:
+ * 1. Sistema legacy: cookie 'aprende-y-aplica-session' → tabla user_session
+ * 2. Sistema nuevo: cookie 'refresh_token' → tabla refresh_tokens (SHA-256)
+ * Nunca confía en el userId que viene del cliente (body/query).
+ */
+async function getAuthenticatedUserId(): Promise<string | null> {
+  const cookieStore = await cookies()
+  const supabase = await createClient()
+
+  // SISTEMA 1: Legacy session
+  const sessionCookie = cookieStore.get('aprende-y-aplica-session')
+  if (sessionCookie) {
+    const { data: session } = await supabase
+      .from('user_session')
+      .select('user_id')
+      .eq('jwt_id', sessionCookie.value)
+      .eq('revoked', false)
+      .gt('expires_at', new Date().toISOString())
+      .single()
+    if (session?.user_id) return session.user_id
+  }
+
+  // SISTEMA 2: Refresh token (nuevo)
+  const refreshTokenCookie = cookieStore.get('refresh_token')
+  const accessTokenCookie = cookieStore.get('access_token')
+  if (refreshTokenCookie && accessTokenCookie) {
+    const encoder = new TextEncoder()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(refreshTokenCookie.value))
+    const tokenHash = Array.from(new Uint8Array(hashBuffer))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+    const { data: tokenData } = await supabase
+      .from('refresh_tokens')
+      .select('user_id')
+      .eq('token_hash', tokenHash)
+      .eq('is_revoked', false)
+      .gt('expires_at', new Date().toISOString())
+      .single()
+    if (tokenData?.user_id) return tokenData.user_id
+  }
+
+  return null
+}
 
 // GET - Validate an invite token (public endpoint)
+// ... (rest of the GEThandler remains the same)
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ token: string }> }
@@ -37,8 +85,11 @@ export async function GET(
           slug,
           logo_url,
           brand_logo_url,
+          brand_favicon_url,
           brand_color_primary,
-          brand_color_accent
+          brand_color_accent,
+          google_login_enabled,
+          microsoft_login_enabled
         )
       `)
       .eq('token', token)
@@ -133,9 +184,11 @@ export async function GET(
         id: organization.id,
         name: organization.name,
         slug: organization.slug,
-        logoUrl: organization.brand_logo_url || organization.logo_url,
+        logoUrl: organization.brand_logo_url || organization.logo_url || organization.brand_favicon_url || null,
         primaryColor: organization.brand_color_primary,
-        accentColor: organization.brand_color_accent
+        accentColor: organization.brand_color_accent,
+        googleLoginEnabled: organization.google_login_enabled,
+        microsoftLoginEnabled: organization.microsoft_login_enabled
       } : null
     })
   } catch (error) {
@@ -146,3 +199,67 @@ export async function GET(
     )
   }
 }
+
+// POST - Accept an invite link (for authenticated users)
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ token: string }> }
+) {
+  try {
+    const { token } = await params
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: 'Token es requerido' },
+        { status: 400 }
+      )
+    }
+
+    // SECURITY FIX: Verificar identidad del usuario desde el servidor,
+    // NO confiar en el userId que envía el cliente desde el browser.
+    // Esto previene que una sesión de admin/owner acepte invitaciones
+    // en nombre de otro usuario, o que se inyecte un userId arbitrario.
+    const authenticatedUserId = await getAuthenticatedUserId()
+
+    if (!authenticatedUserId) {
+      return NextResponse.json(
+        { success: false, error: 'No autenticado. Por favor inicia sesión.' },
+        { status: 401 }
+      )
+    }
+
+    // Validación extra de defensa: si el cliente envía userId, verificar que coincida
+    const body = await request.json().catch(() => ({}))
+    const { userId: clientUserId } = body
+    if (clientUserId && clientUserId !== authenticatedUserId) {
+      console.error('[SECURITY] Invite userId mismatch — client:', clientUserId, 'session:', authenticatedUserId)
+      return NextResponse.json(
+        { success: false, error: 'No autorizado.' },
+        { status: 403 }
+      )
+    }
+
+    const result = await consumeBulkInvitationAction(token, authenticatedUserId);
+
+    if (!result.success) {
+      const status = result.error?.includes('encontrado') ? 404 : 400;
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Te has unido exitosamente a la organización',
+      organizationSlug: result.organizationSlug || null
+    })
+  } catch (error) {
+    console.error('Error in POST /api/invite/[token]:', error)
+    return NextResponse.json(
+      { success: false, error: 'Error interno del servidor' },
+      { status: 500 }
+    )
+  }
+}
+

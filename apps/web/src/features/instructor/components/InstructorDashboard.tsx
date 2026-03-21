@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo, memo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { 
   BookOpenIcon, 
   UserGroupIcon, 
@@ -25,6 +26,8 @@ interface InstructorStats {
 }
 
 export function InstructorDashboard() {
+  const { t } = useTranslation('instructor')
+
   const [stats, setStats] = useState<InstructorStats>({
     totalCourses: 0,
     totalStudents: 0,
@@ -54,7 +57,7 @@ export function InstructorDashboard() {
         setStats(data)
       } catch (error) {
         // console.error('Error fetching stats:', error)
-        setError('Error al cargar las estadísticas')
+        setError(t('dashboard.error'))
       } finally {
         setLoading(false)
       }
@@ -65,60 +68,60 @@ export function InstructorDashboard() {
 
   const statCards = useMemo(() => [
     {
-      name: 'Cursos Creados',
+      name: t('dashboard.stats.courses'),
       value: stats.totalCourses,
       icon: BookOpenIcon,
       color: 'from-blue-500 to-cyan-500',
       bgColor: 'bg-blue-500/10',
-      change: stats.coursesThisMonth > 0 ? `+${stats.coursesThisMonth} este mes` : 'Sin cambios este mes'
+      change: stats.coursesThisMonth > 0 ? t('dashboard.stats.thisMonth', { count: stats.coursesThisMonth }) : t('dashboard.stats.noChanges')
     },
     {
-      name: 'Estudiantes',
+      name: t('dashboard.stats.students'),
       value: stats.totalStudents,
       icon: UserGroupIcon,
       color: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-500/10',
-      change: stats.studentsThisMonth > 0 ? `+${stats.studentsThisMonth} este mes` : 'Sin cambios este mes'
+      change: stats.studentsThisMonth > 0 ? t('dashboard.stats.thisMonth', { count: stats.studentsThisMonth }) : t('dashboard.stats.noChanges')
     },
     {
-      name: 'Reels',
+      name: t('dashboard.stats.reels'),
       value: stats.totalReels,
       icon: VideoCameraIcon,
       color: 'from-green-500 to-emerald-500',
       bgColor: 'bg-green-500/10',
-      change: stats.reelsThisMonth > 0 ? `+${stats.reelsThisMonth} este mes` : 'Sin cambios este mes'
+      change: stats.reelsThisMonth > 0 ? t('dashboard.stats.thisMonth', { count: stats.reelsThisMonth }) : t('dashboard.stats.noChanges')
     },
     {
-      name: 'Calificación Promedio',
+      name: t('dashboard.stats.rating'),
       value: stats.averageRating.toFixed(1),
       icon: TrophyIcon,
       color: 'from-amber-500 to-yellow-500',
       bgColor: 'bg-amber-500/10',
-      change: 'Promedio general',
+      change: t('dashboard.stats.overallAverage'),
       suffix: '/ 5.0'
     },
     {
-      name: 'Horas Impartidas',
+      name: t('dashboard.stats.hours'),
       value: stats.totalHours,
       icon: ClockIcon,
       color: 'from-indigo-500 to-purple-500',
       bgColor: 'bg-indigo-500/10',
-      change: 'Total acumulado'
+      change: t('dashboard.stats.totalAccumulated')
     }
-  ], [stats])
+  ], [stats, t])
 
   const quickActions = useMemo(() => [
-    { name: 'Crear Nuevo Curso', description: 'Crea y publica un nuevo curso educativo', icon: BookOpenIcon, color: 'from-blue-500 to-cyan-500', href: '/instructor/courses/new' },
-    { name: 'Gestionar Talleres', description: 'Organiza y administra tus talleres', icon: AcademicCapIcon, color: 'from-purple-500 to-pink-500', href: '/instructor/workshops' },
-    { name: 'Subir Nuevo Reel', description: 'Comparte contenido en formato reel', icon: VideoCameraIcon, color: 'from-green-500 to-emerald-500', href: '/instructor/reels/new' }
-  ], [])
+    { name: t('dashboard.actions.createCourse.title'), description: t('dashboard.actions.createCourse.desc'), icon: BookOpenIcon, color: 'from-blue-500 to-cyan-500', href: '/instructor/courses/new' },
+    { name: t('dashboard.actions.manageWorkshops.title'), description: t('dashboard.actions.manageWorkshops.desc'), icon: AcademicCapIcon, color: 'from-purple-500 to-pink-500', href: '/instructor/workshops' },
+    { name: t('dashboard.actions.uploadReel.title'), description: t('dashboard.actions.uploadReel.desc'), icon: VideoCameraIcon, color: 'from-green-500 to-emerald-500', href: '/instructor/reels/new' }
+  ], [t])
 
   if (loading) {
     return (
       <div className="p-6 w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-indigo-950/30 to-purple-950/30">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-500"></div>
-          <p className="text-purple-300 text-lg font-medium">Cargando estadísticas...</p>
+          <p className="text-purple-300 text-lg font-medium">{t('dashboard.loading')}</p>
         </div>
       </div>
     )
@@ -133,7 +136,7 @@ export function InstructorDashboard() {
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
           >
-            Reintentar
+            {t('dashboard.retry')}
           </button>
         </div>
       </div>
@@ -160,10 +163,10 @@ export function InstructorDashboard() {
                 </div>
                 <div className="flex-1">
                   <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-3 leading-tight">
-                    Panel de Instructor
+                    {t('dashboard.title')}
                   </h1>
                   <p className="text-indigo-200 text-base md:text-lg font-medium max-w-2xl">
-                    Gestiona tus cursos, estudiantes y contenido educativo de forma eficiente
+                    {t('dashboard.subtitle')}
                   </p>
                 </div>
               </div>
@@ -179,14 +182,14 @@ export function InstructorDashboard() {
                 <ChartBarIcon className="h-6 w-6 text-yellow-400" />
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-white">
-                Estadísticas Generales
+                {t('dashboard.stats.title')}
               </h2>
             </div>
-            <p className="text-indigo-300/70 ml-14 text-sm md:text-base">Resumen de tu actividad como instructor</p>
+            <p className="text-indigo-300/70 ml-14 text-sm md:text-base">{t('dashboard.stats.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {/* Mostrar solo 5 tarjetas en lugar de 6 (eliminamos Talleres) */}
-            {statCards.map((card, index) => (
+            {statCards.map((card: any, index: number) => (
               <div
                 key={card.name}
                 className={`
@@ -236,13 +239,13 @@ export function InstructorDashboard() {
                 <BoltIcon className="h-6 w-6 text-orange-400" />
               </div>
               <h2 className="text-2xl md:text-3xl font-bold text-white">
-                Acciones Rápidas
+                {t('dashboard.actions.title')}
               </h2>
             </div>
-            <p className="text-indigo-300/70 ml-14 text-sm md:text-base">Accede rápidamente a las funciones más utilizadas</p>
+            <p className="text-indigo-300/70 ml-14 text-sm md:text-base">{t('dashboard.actions.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-            {quickActions.map((action, index) => (
+            {quickActions.map((action: any, index: number) => (
               <a
                 key={action.name}
                 href={action.href}

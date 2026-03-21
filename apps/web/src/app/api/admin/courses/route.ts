@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger';
-import { AdminCoursesService } from '@/features/admin/services/adminCourses.service'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { logger } from '../../../../lib/utils/logger';
+import { AdminCoursesService } from '../../../../features/admin/services/adminCourses.service'
+import { requireAdmin } from '../../../../lib/auth/requireAdmin'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
@@ -14,7 +16,7 @@ export async function GET() {
       success: true,
       courses
     })
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error in GET /api/admin/courses:', error)
     return NextResponse.json(
       { 

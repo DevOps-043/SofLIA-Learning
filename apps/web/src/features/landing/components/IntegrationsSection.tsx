@@ -80,7 +80,7 @@ const liaActions = [
 const chatConversation = [
   {
     type: 'user' as const,
-    message: 'Hola LIA, ¿qué puedo hacer aquí?',
+    message: 'Hola SofLIA, ¿qué puedo hacer aquí?',
   },
   {
     type: 'lia' as const,
@@ -242,7 +242,7 @@ function AnimatedChat() {
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#00D4B3]/50 flex-shrink-0">
               <Image
                 src="/lia-avatar.png"
-                alt="LIA"
+                alt="SofLIA"
                 fill
                 className="object-cover object-top"
               />
@@ -297,11 +297,11 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
           </div>
           
           <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-[#0A2540] dark:text-white mb-6">
-            {t('landing.liaSection.title', '¿Qué puede hacer')} <span className="text-[#00D4B3]">LIA</span> {t('landing.liaSection.titleEnd', 'por ti?')}
+            {t('landing.liaSection.title', '¿Qué puede hacer')} <span className="text-[#00D4B3]">SofLIA</span> {t('landing.liaSection.titleEnd', 'por ti?')}
           </h2>
           
           <p className="text-lg text-[#6C757D] dark:text-white/70 max-w-3xl mx-auto">
-            {t('landing.liaSection.description', 'LIA es tu asistente de aprendizaje con inteligencia artificial, disponible 24/7 para ayudarte en cada paso de tu capacitación.')}
+            {t('landing.liaSection.description', 'SofLIA es tu asistente de aprendizaje con inteligencia artificial, disponible 24/7 para ayudarte en cada paso de tu capacitación.')}
           </p>
         </motion.div>
 
@@ -314,7 +314,7 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
             transition={{ duration: 0.6 }}
           >
             <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-6">
-              {t('landing.liaSection.capabilitiesTitle', 'Capacidades de LIA')}
+              {t('landing.liaSection.capabilitiesTitle', 'Capacidades de SofLIA')}
             </h3>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -350,7 +350,7 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
             transition={{ duration: 0.6, delay: 0.2 }}
           >
             <h3 className="text-xl font-bold text-[#0A2540] dark:text-white mb-6">
-              {t('landing.liaSection.actionsTitle', 'LIA puede ayudarte a:')}
+              {t('landing.liaSection.actionsTitle', 'SofLIA puede ayudarte a:')}
             </h3>
             
             {/* Actions List */}
@@ -396,7 +396,7 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-white font-semibold">LIA</span>
+                    <span className="text-white font-semibold">SofLIA</span>
                     <span className="px-2 py-0.5 bg-[#00D4B3]/20 text-[#00D4B3] text-xs font-medium rounded-full">
                       {t('landing.liaSection.preview.online', 'En línea')}
                     </span>

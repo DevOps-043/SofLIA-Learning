@@ -89,6 +89,10 @@
       "users": "Usuários",
       "courses": "Cursos",
       "active": "ativos"
+    },
+    "emptyCourses": {
+      "title": "Você ainda não tem cursos atribuídos",
+      "description": "Sua organização atribuirá cursos em breve. Enquanto isso, explore o que preparamos para você."
     }
   },
   "users": {
@@ -447,13 +451,111 @@
     "title": "Configurações",
     "subtitle": "Gerencie as configurações de sua organização"
   },
-  "reports": {
-    "title": "Relatórios",
-    "subtitle": "Gere relatórios detalhados e exporte dados"
-  },
   "analytics": {
     "title": "Analytics",
-    "subtitle": "Análises detalhadas de comportamento e desempenho"
+    "headerTitle": "Analytics e Desempenho",
+    "subtitle": "Análises detalhadas de comportamento e desempenho",
+    "headerSubtitle": "Resumo das principais métricas da equipe. Monitore o progresso e o desempenho.",
+    "center": "Centro de Analytics",
+    "loading": "Carregando análises...",
+    "noData": "Nenhum dado disponível",
+    "retry": "Tentar novamente",
+    "tabs": {
+      "overview": "Visão Geral",
+      "users": "Lista de Usuários",
+      "engagement": "Engajamento e Comportamento",
+      "teams": "Equipes"
+    },
+    "kpis": {
+      "totalUsers": "Total de Usuários",
+      "assignedCourses": "Cursos Atribuídos",
+      "completed": "Concluídos",
+      "avgProgress": "Progresso Médio",
+      "totalTime": "Tempo Total",
+      "certificates": "Certificados",
+      "activeUsers": "Usuários Ativos",
+      "retentionRate": "Taxa de Retenção"
+    },
+    "usersTable": {
+      "title": "Detalhes de Usuários",
+      "subtitle": "Desempenho individual por funcionário",
+      "columns": {
+        "user": "Usuário",
+        "role": "Cargo",
+        "progress": "Progresso Geral",
+        "courses": "Cursos",
+        "time": "Tempo",
+        "lastActivity": "Última Atividade"
+      },
+      "noUsers": "Nenhum usuário encontrado.",
+      "never": "Nunca",
+      "noName": "Sem nome",
+      "student": "Estudante",
+      "userDefault": "Usuário"
+    },
+    "teams": {
+      "totalTeams": "Total de Equipes",
+      "bestProgress": "Melhor Progresso",
+      "totalMembers": "Total de Membros",
+      "totalSofLIAChats": "Total SofLIA Chats",
+      "progressComparison": "Comparação de Progresso por Equipe",
+      "members": "membros",
+      "noTeams": "Nenhuma equipe registrada",
+      "noDescription": "Sem descrição",
+      "progress": "Progresso",
+      "time": "Tempo",
+      "coursesCompleted": "Cursos Concluídos"
+    },
+    "userDetail": {
+      "streak": "Sequência",
+      "adherence": "Adesão",
+      "totalTime": "Tempo Total",
+      "tabs": {
+        "activity": "Atividade e Hábitos",
+        "planner": "Planejador de Estudos",
+        "courses": "Progresso em Cursos"
+      },
+      "history": "Histórico de Atividade",
+      "last6Months": "(Últimos 6 meses)",
+      "less": "Menos",
+      "more": "Mais",
+      "days": "dias"
+    },
+    "engagement": {
+      "title": "Engajamento de Usuários",
+      "subtitle": "Análise detalhada de comportamento e retenção (Dados baseados em atividade recente)",
+      "stickiness": {
+        "title": "Taxa de Retenção (DAU/MAU)",
+        "dau": "Usuários Diários (DAU)",
+        "mau": "Usuários Mensais (MAU)",
+        "ratio": "Taxa de Retenção",
+        "noData": "Dados insuficientes de atividade recente"
+      },
+      "frequency": {
+        "title": "Frequência de Sessões (Mensal)",
+        "users": "Usuários",
+        "noData": "Nenhum dado de frequência disponível"
+      },
+      "streaks": {
+        "title": "Sequências de Estudo",
+        "inARow": "seguidos",
+        "users": "usuários"
+      },
+      "heatmap": {
+        "title": "Mapa de Calor (Dia x Hora)",
+        "day": "Dia",
+        "hour": "Hora",
+        "activity": "Atividade",
+        "noData": "Dados de atividade insuficientes para o mapa de calor"
+      },
+      "duration": {
+        "title": "Duração Média de Sessões por Cargo",
+        "median": "Mediana (min)",
+        "max": "Máximo (min)",
+        "noData": "Nenhum dado de duração de sessão",
+        "note": "* Mostra a mediana e o máximo de minutos por lição concluída ou sessão ativa"
+      }
+    }
   },
   "progress": {
     "title": "Progresso da Equipe",
@@ -719,6 +821,135 @@
       "close": "Fechar",
       "import": "Importar Usuários",
       "cancel": "Cancelar"
+    }
+  },
+  "reports": {
+    "title": "Relatórios e Análise",
+    "subtitle": "Central de Relatórios",
+    "description": "Gere relatórios detalhados de usuários, atividade e certificados. Exporte dados para Excel para uma análise mais aprofundada.",
+    "liaAnalysis": {
+      "title": "Análise Preditiva SOFLIA LIA",
+      "subtitle": "Relatório executivo gerado com Inteligência Artificial",
+      "generatedBy": "Gerado pelo SOFLIA AI Engine",
+      "pdfHeader": "Relatório LIA",
+      "pdfSubheader": "Análise Preditiva & Inteligência Artificial",
+      "organization": "Organização:",
+      "generatedByLabel": "Gerado por:",
+      "systemName": "Sistema SOFLIA",
+      "issueDate": "Data de Emissão:",
+      "confidential": "Confidencial - Uso exclusivo de"
+    },
+    "types": {
+      "liaAnalysis": { "label": "Análise LIA", "description": "Análise preditiva com IA" },
+      "users": { "label": "Usuários", "description": "Informações detalhadas de usuários" },
+      "activity": { "label": "Atividade", "description": "Rastreamento de atividade recente" },
+      "certificates": { "label": "Certificados", "description": "Certificados emitidos" }
+    },
+    "actions": {
+      "filters": "Filtros",
+      "update": "Atualizar",
+      "generating": "Gerando...",
+      "downloadPdf": "Baixar PDF",
+      "exportExcel": "Exportar Excel",
+      "applyFilters": "Aplicar Filtros",
+      "clear": "Limpar"
+    },
+    "filters": {
+      "title": "Filtros de Data e Status",
+      "startDate": "Data de Início",
+      "endDate": "Data de Término",
+      "role": "Cargo",
+      "selectRole": "Selecionar cargo...",
+      "status": "Status",
+      "selectStatus": "Selecionar status..."
+    },
+    "status": {
+      "all": "Todos",
+      "owner": "Proprietário",
+      "admin": "Admin",
+      "member": "Membro",
+      "active": "Ativo",
+      "invited": "Convidado",
+      "suspended": "Suspenso",
+      "completed": "Concluído",
+      "inactive": "Inativo",
+      "actives": "Ativos",
+      "invitedPlural": "Convidados",
+      "suspendedPlural": "Suspensos",
+      "completedPlural": "Concluídos",
+      "inactives": "Inativos"
+    },
+    "export": {
+      "noData": "Sem dados para exportar.",
+      "error": "Erro ao exportar o relatório."
+    },
+    "messages": {
+      "loading": "Gerando relatório...",
+      "unavailable": "Tipo de relatório não disponível",
+      "unspecified": "Não especificado",
+      "value": "Valor"
+    },
+    "usersReport": {
+      "columns": {
+        "username": "Nome de Usuário",
+        "email": "Email",
+        "name": "Nome",
+        "role": "Cargo",
+        "status": "Status",
+        "joinedAt": "Ingresso"
+      },
+      "stats": {
+        "totalUsers": "Total de Usuários",
+        "activeUsers": "Usuários Ativos",
+        "differentRoles": "Cargos Diferentes"
+      },
+      "charts": {
+        "roleDistribution": "Distribuição por Cargo",
+        "statusDistribution": "Distribuição por Status"
+      }
+    },
+    "activityReport": {
+      "columns": {
+        "user": "Usuário",
+        "course": "Curso",
+        "status": "Status",
+        "enrolledAt": "Inscrito",
+        "lastAccess": "Último Acesso"
+      },
+      "stats": {
+        "totalActivities": "Total de Atividades",
+        "users": "Usuários",
+        "actives": "Ativos",
+        "completed": "Concluídos"
+      },
+      "charts": {
+        "status": "Status de Atividades"
+      }
+    },
+    "certificatesReport": {
+      "courseFallback": "Curso",
+      "columns": {
+        "user": "Usuário",
+        "course": "Curso",
+        "category": "Categoria",
+        "issuedAt": "Data de Emissão",
+        "view": "Ver"
+      },
+      "stats": {
+        "totalCertificates": "Total de Certificados",
+        "certifiedUsers": "Usuários Certificados",
+        "averagePerUser": "Média por Usuário"
+      },
+      "charts": {
+        "byCourse": "Certificados por Curso"
+      }
+    },
+    "liaMetrics": {
+      "totalUsers": "Total de Usuários",
+      "activeCourses": "Cursos Ativos",
+      "certificates": "Certificados",
+      "recentActivity": "Atividade Recente",
+      "last6Months": "Interações últimos 6 meses"
     }
   }
 }

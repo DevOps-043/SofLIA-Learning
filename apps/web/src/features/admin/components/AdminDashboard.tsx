@@ -688,7 +688,7 @@ export function AdminDashboard() {
                   <span className="text-[#10B981] font-medium">Operativo</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-[#6C757D]">LIA (IA)</span>
+                  <span className="text-[#6C757D]">SofLIA (IA)</span>
                   <span className="text-[#10B981] font-medium">Activo</span>
                 </div>
               </div>

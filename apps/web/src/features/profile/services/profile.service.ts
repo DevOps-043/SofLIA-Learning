@@ -229,37 +229,18 @@ export class ProfileService {
 
   static async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
     try {
-      const supabase = createClient()
-      
-      // Obtener el email del usuario actual
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-      
-      if (!currentUser?.email) {
-        throw new Error('No se pudo obtener el email del usuario')
+      const response = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error al cambiar la contraseña');
       }
-      
-      // Verificar contraseña actual haciendo re-autenticación
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: currentUser.email,
-        password: currentPassword
-      })
-
-      if (authError) {
-        throw new Error('Contraseña actual incorrecta')
-      }
-
-      // Actualizar contraseña
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      })
-
-      if (updateError) {
-        // console.error('Error updating password:', updateError)
-        throw new Error(`Error al cambiar contraseña: ${updateError.message}`)
-      }
-
-      // Nota: Las notificaciones de cambio de contraseña se manejan a través de API routes
-      // para evitar problemas con server-only imports en el cliente
     } catch (error) {
       // console.error('Error in ProfileService.changePassword:', error)
       throw error

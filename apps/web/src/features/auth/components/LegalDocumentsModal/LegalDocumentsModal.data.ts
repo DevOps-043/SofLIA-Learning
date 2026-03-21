@@ -7,12 +7,12 @@ export const LEGAL_DOCUMENTS = {
         number: 1,
         title: 'Aceptación de los Términos',
         content:
-          'Estos Términos y Condiciones de Uso ("Términos") constituyen un acuerdo legal entre usted ("Usuario", "usted" o "su") y SOFLIA ("nosotros", "nuestro" o "la Plataforma"). Al acceder, utilizar, registrarse o interactuar de cualquier manera con nuestra plataforma de capacitación en inteligencia artificial ubicada en nuestro sitio web (la "Plataforma"), usted acepta estar legalmente vinculado por estos Términos. Si no está de acuerdo con alguno de estos términos, no debe acceder ni utilizar nuestros servicios.',
+          'Estos Términos y Condiciones de Uso ("Términos") constituyen un acuerdo legal entre usted ("Usuario", "usted" o "su") y SofLIA ("nosotros", "nuestro" o "la Plataforma"). Al acceder, utilizar, registrarse o interactuar de cualquier manera con nuestra plataforma de capacitación en inteligencia artificial ubicada en nuestro sitio web (la "Plataforma"), usted acepta estar legalmente vinculado por estos Términos. Si no está de acuerdo con alguno de estos términos, no debe acceder ni utilizar nuestros servicios.',
       },
       {
         number: 2,
         title: 'Descripción del Servicio',
-        content: 'SOFLIA es una plataforma educativa B2B que ofrece servicios de capacitación empresarial en inteligencia artificial, incluyendo pero no limitado a:',
+        content: 'SofLIA es una plataforma educativa B2B que ofrece servicios de capacitación empresarial en inteligencia artificial, incluyendo pero no limitado a:',
         list: [
           'Cursos en línea de inteligencia artificial, machine learning y tecnologías relacionadas',
           'Contenido educativo interactivo, incluyendo videos, lecciones, materiales de estudio y recursos multimedia',
@@ -55,7 +55,7 @@ export const LEGAL_DOCUMENTS = {
       {
         number: 6,
         title: 'Propiedad Intelectual',
-        content: 'Todos los derechos de propiedad intelectual sobre la Plataforma, incluyendo pero no limitado a textos, gráficos, logos, iconos, imágenes, clips de audio y video, software, compilaciones de datos, diseño, estructura y organización de la Plataforma, son propiedad de SOFLIA o de nuestros licenciantes y están protegidos por leyes de derechos de autor, marcas registradas, secretos comerciales y otras leyes de propiedad intelectual. No se otorgan licencias implícitas. Usted no puede reproducir, distribuir, modificar, crear trabajos derivados, mostrar públicamente, realizar públicamente, republicar, descargar, almacenar o transmitir ningún material de la Plataforma sin nuestro permiso previo por escrito.',
+        content: 'Todos los derechos de propiedad intelectual sobre la Plataforma, incluyendo pero no limitado a textos, gráficos, logos, iconos, imágenes, clips de audio y video, software, compilaciones de datos, diseño, estructura y organización de la Plataforma, son propiedad de SofLIA o de nuestros licenciantes y están protegidos por leyes de derechos de autor, marcas registradas, secretos comerciales y otras leyes de propiedad intelectual. No se otorgan licencias implícitas. Usted no puede reproducir, distribuir, modificar, crear trabajos derivados, mostrar públicamente, realizar públicamente, republicar, descargar, almacenar o transmitir ningún material de la Plataforma sin nuestro permiso previo por escrito.',
       },
       {
         number: 7,
@@ -65,7 +65,7 @@ export const LEGAL_DOCUMENTS = {
       {
         number: 8,
         title: 'Integraciones con Calendarios y Servicios de Terceros',
-        content: 'La Plataforma ofrece integración opcional con Google Calendar y Microsoft Outlook exclusivamente para optimizar su experiencia de planificación de estudios. Al autorizar esta integración, usted entiende y acepta que: (a) ÚNICAMENTE accedemos a información de disponibilidad (horarios ocupados/libres) y NO al contenido, títulos o detalles de sus eventos personales o de trabajo; (b) Esta información se utiliza exclusivamente para diseñar un plan de estudios personalizado que se adapte a sus horarios disponibles; (c) Ni SOFLIA ni Google/Microsoft recopilan información adicional más allá de lo estrictamente necesario para este propósito; (d) Puede revocar el acceso en cualquier momento desde la configuración de su cuenta.',
+        content: 'La Plataforma ofrece integración opcional con Google Calendar y Microsoft Outlook exclusivamente para optimizar su experiencia de planificación de estudios. Al autorizar esta integración, usted entiende y acepta que: (a) ÚNICAMENTE accedemos a información de disponibilidad (horarios ocupados/libres) y NO al contenido, títulos o detalles de sus eventos personales o de trabajo; (b) Esta información se utiliza exclusivamente para diseñar un plan de estudios personalizado que se adapte a sus horarios disponibles; (c) Ni SofLIA ni Google/Microsoft recopilan información adicional más allá de lo estrictamente necesario para este propósito; (d) Puede revocar el acceso en cualquier momento desde la configuración de su cuenta.',
       },
       {
         number: 9,
@@ -95,7 +95,7 @@ export const LEGAL_DOCUMENTS = {
       {
         number: 14,
         title: 'Indemnización',
-        content: 'Usted acepta indemnizar, defender y mantener indemnes a SOFLIA, sus afiliados, directores, empleados, agentes y licenciantes de y contra todas y cada una de las reclamaciones, daños, obligaciones, pérdidas, responsabilidades, costos o deudas, y gastos (incluidos pero no limitados a honorarios de abogados) que surjan de: (a) su uso e ingreso a la Plataforma, (b) su violación de cualquier término de estos Términos, (c) su violación de cualquier derecho de un tercero, incluidos sin limitación derechos de propiedad intelectual o privacidad, o (d) cualquier reclamación de que su Contenido del Usuario causó daño a un tercero.',
+        content: 'Usted acepta indemnizar, defender y mantener indemnes a SofLIA, sus afiliados, directores, empleados, agentes y licenciantes de y contra todas y cada una de las reclamaciones, daños, obligaciones, pérdidas, responsabilidades, costos o deudas, y gastos (incluidos pero no limitados a honorarios de abogados) que surjan de: (a) su uso e ingreso a la Plataforma, (b) su violación de cualquier término de estos Términos, (c) su violación de cualquier derecho de un tercero, incluidos sin limitación derechos de propiedad intelectual o privacidad, o (d) cualquier reclamación de que su Contenido del Usuario causó daño a un tercero.',
       },
       {
         number: 15,

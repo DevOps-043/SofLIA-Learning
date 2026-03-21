@@ -15,31 +15,28 @@ export class SubscriptionService {
   /**
    * Verifica si un usuario tiene una suscripción activa (Team, Business o Enterprise)
    * Verifica la suscripción a nivel de organización
+   *
+   * @param userId - ID del usuario
+   * @param organizationId - ID de la organización (recomendado para usuarios multi-empresa).
+   *   Si se omite, se resuelve automáticamente desde organization_users (puede ser incorrecto
+   *   cuando el usuario pertenece a múltiples empresas).
    */
-  static async hasActiveSubscription(userId: string): Promise<boolean> {
+  static async hasActiveSubscription(userId: string, organizationId?: string): Promise<boolean> {
     try {
       const { createClient } = await import('@/lib/supabase/server')
       const supabase = await createClient()
 
       console.log('🔍 [SubscriptionService] Checking subscription for user:', userId)
 
-      // Obtener la organización del usuario (primero de users, luego de organization_users)
-      let organizationId: string | null = null
+      // Si se proporcionó organizationId directamente, usarlo sin resolución adicional
+      let resolvedOrganizationId: string | null = organizationId ?? null
 
-      // Método 1: Buscar organization_id directamente en la tabla users
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('id', userId)
-        .single()
+      if (!resolvedOrganizationId) {
+        console.log('⚠️ [SubscriptionService] No organizationId provided, resolving from organization_users...')
 
-      if (!userError && user?.organization_id) {
-        organizationId = user.organization_id
-        console.log('✅ [SubscriptionService] Found organization_id from users table:', organizationId)
-      } else {
-        console.log('⚠️ [SubscriptionService] No organization_id in users table, checking organization_users...')
-
-        // Método 2: Buscar en la tabla organization_users
+        // Fallback: Buscar en la tabla organization_users
+        // NOTA: Para usuarios multi-empresa esto puede retornar la org incorrecta.
+        // Siempre pasar organizationId explícitamente cuando esté disponible.
         const { data: orgUser, error: orgUserError } = await supabase
           .from('organization_users')
           .select('organization_id')
@@ -48,12 +45,17 @@ export class SubscriptionService {
           .maybeSingle()
 
         if (!orgUserError && orgUser?.organization_id) {
-          organizationId = orgUser.organization_id
-          console.log('✅ [SubscriptionService] Found organization_id from organization_users table:', organizationId)
+          resolvedOrganizationId = orgUser.organization_id
+          console.log('✅ [SubscriptionService] Found organization_id from organization_users table:', resolvedOrganizationId)
         }
+      } else {
+        console.log('✅ [SubscriptionService] Using provided organization_id:', resolvedOrganizationId)
       }
 
-      if (!organizationId) {
+      // Reasignar para mantener compatibilidad con el resto del método
+      const organizationId_resolved = resolvedOrganizationId
+
+      if (!organizationId_resolved) {
         console.log('❌ [SubscriptionService] No organization found for user')
         return false
       }
@@ -62,13 +64,13 @@ export class SubscriptionService {
       const { data: organization, error: orgError } = await supabase
         .from('organizations')
         .select('id, name, subscription_plan, subscription_status, subscription_end_date, is_active')
-        .eq('id', organizationId)
+        .eq('id', organizationId_resolved)
         .single()
 
       if (orgError || !organization) {
         console.log('❌ [SubscriptionService] Organization not found:', orgError?.message)
         // Si no hay organización, intentar verificar en la tabla subscriptions
-        return await this.checkSubscriptionTable(userId, organizationId)
+        return await this.checkSubscriptionTable(userId, organizationId_resolved)
       }
 
       console.log('📊 [SubscriptionService] Organization info:', {
@@ -92,7 +94,7 @@ export class SubscriptionService {
       if (!plan || !validPlans.includes(plan)) {
         console.log('⚠️ [SubscriptionService] Invalid plan, checking subscriptions table...')
         // Si el plan no es válido, verificar en la tabla subscriptions
-        return await this.checkSubscriptionTable(userId, organizationId)
+        return await this.checkSubscriptionTable(userId, organizationId_resolved)
       }
 
       // Verificar que el estado sea activo o trial

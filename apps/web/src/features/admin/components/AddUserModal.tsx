@@ -10,7 +10,7 @@ import {
   PhoneIcon,
   MapPinIcon,
   LinkIcon,
-  DocumentTextIcon,
+  DocumentTextIcon, // LinkIcon removed as it's no longer used for the 'additional' tab
   AcademicCapIcon,
   GlobeAltIcon,
   StarIcon,
@@ -202,7 +202,6 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
     linkedin_url: '',
     github_url: '',
     website_url: '',
-    role_zoom: '',
     points: 0,
     country_code: ''
   })
@@ -243,7 +242,6 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
         linkedin_url: '',
         github_url: '',
         website_url: '',
-        role_zoom: '',
         points: 0,
         country_code: ''
       })
@@ -260,25 +258,24 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
   const tabs: { id: TabType; label: string; icon: typeof UserIcon }[] = [
     { id: 'basic', label: 'Básica', icon: UserIcon },
     { id: 'personal', label: 'Personal', icon: UserIcon },
-    { id: 'additional', label: 'Adicional', icon: LinkIcon }
+    { id: 'additional', label: 'Adicional', icon: GlobeAltIcon } // Changed icon from LinkIcon to GlobeAltIcon
   ]
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[150] bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             onClick={onClose}
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 z-[150] overflow-y-auto">
             <div className="flex min-h-screen items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -583,38 +580,6 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
                               />
                             </div>
 
-                            {/* Role Zoom */}
-                            <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Rol Zoom
-                              </label>
-                              <input
-                                type="text"
-                                name="role_zoom"
-                                value={formData.role_zoom}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                              />
-                            </div>
-
-                            {/* Points */}
-                            <div className="group">
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                Puntos iniciales
-                              </label>
-                              <div className="relative">
-                                <StarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
-                                <input
-                                  type="number"
-                                  name="points"
-                                  value={formData.points}
-                                  onChange={handleChange}
-                                  min="0"
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                />
-                              </div>
-                            </div>
-
                             {/* Profile Picture URL */}
                             <div>
                               <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
@@ -628,72 +593,6 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
                                 className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
                                 placeholder="https://..."
                               />
-                            </div>
-
-                            {/* Curriculum URL */}
-                            <div className="group">
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                URL de currículum
-                              </label>
-                              <div className="relative">
-                                <DocumentTextIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
-                                <input
-                                  type="url"
-                                  name="curriculum_url"
-                                  value={formData.curriculum_url}
-                                  onChange={handleChange}
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                  placeholder="https://..."
-                                />
-                              </div>
-                            </div>
-
-                            {/* LinkedIn URL */}
-                            <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                URL de LinkedIn
-                              </label>
-                              <input
-                                type="url"
-                                name="linkedin_url"
-                                value={formData.linkedin_url}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                placeholder="https://linkedin.com/in/..."
-                              />
-                            </div>
-
-                            {/* GitHub URL */}
-                            <div>
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                URL de GitHub
-                              </label>
-                              <input
-                                type="url"
-                                name="github_url"
-                                value={formData.github_url}
-                                onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                placeholder="https://github.com/..."
-                              />
-                            </div>
-
-                            {/* Website URL */}
-                            <div className="md:col-span-2 group">
-                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                                URL de sitio web
-                              </label>
-                              <div className="relative">
-                                <GlobeAltIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
-                                <input
-                                  type="url"
-                                  name="website_url"
-                                  value={formData.website_url}
-                                  onChange={handleChange}
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                  placeholder="https://..."
-                                />
-                              </div>
                             </div>
                           </div>
                         </motion.div>

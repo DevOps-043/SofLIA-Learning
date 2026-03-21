@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Palette,
@@ -37,6 +38,8 @@ const getDefaultStyle = (): StyleConfig => ({
 });
 
 export function BusinessThemeCustomizer() {
+  const params = useParams();
+  const orgSlug = params?.orgSlug as string | undefined;
   const { styles, loading, error, updateStyles, applyTheme, refetch } = useOrganizationStylesContext();
   const [activePanel, setActivePanel] = useState<ActivePanel>('panel');
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
@@ -88,7 +91,11 @@ export function BusinessThemeCustomizer() {
     const fetchBrandingColors = async () => {
       try {
         setLoadingBranding(true);
-        const response = await fetch('/api/business/settings/branding', {
+        const fetchUrl = orgSlug 
+          ? `/api/${orgSlug}/business/branding`
+          : '/api/business/settings/branding';
+
+        const response = await fetch(fetchUrl, {
           credentials: 'include'
         });
 

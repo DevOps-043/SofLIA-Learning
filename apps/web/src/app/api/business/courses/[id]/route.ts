@@ -296,8 +296,9 @@ export async function GET(
 
       if (currentUser && auth.organizationId) {
         try {
-          // Verificar membresía activa
-          hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id)
+          // Verificar membresía activa — pasar auth.organizationId para evitar resolución
+          // incorrecta en usuarios pertenecientes a múltiples empresas
+          hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id, auth.organizationId)
         } catch (subError) {
           logger.warn('⚠️ Error checking subscription (non-critical):', subError)
           hasSubscription = false

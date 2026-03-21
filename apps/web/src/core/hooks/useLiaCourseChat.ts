@@ -2,11 +2,11 @@
 
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
-import type { CourseLessonContext, LiaMessage } from '../types/lia.types';
+import type { CourseLessonContext, SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 
 export interface UseLiaCourseChatReturn {
-  messages: LiaMessage[];
+  messages: SofLIAMessage[];
   isLoading: boolean;
   error: Error | null;
   sendMessage: (message: string, courseContext?: CourseLessonContext, workshopContext?: CourseLessonContext, isSystemMessage?: boolean) => Promise<void>;
@@ -18,7 +18,7 @@ export interface UseLiaCourseChatReturn {
 export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseChatReturn {
   const { user } = useAuth();
   const { language } = useLanguage();
-  const [messages, setMessages] = useState<LiaMessage[]>(
+  const [messages, setMessages] = useState<SofLIAMessage[]>(
     initialMessage !== null && initialMessage !== undefined && initialMessage !== ''
       ? [
           {
@@ -66,7 +66,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
 
       activityStartTimeRef.current = null;
     } catch (error) {
-      console.error('[LIA Analytics] Error registrando actividad:', error);
+      console.error('[SofLIA Analytics] Error registrando actividad:', error);
     }
   }, [user]);
 
@@ -79,7 +79,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
     if (!message.trim() || isLoading) return;
 
     if (!isSystemMessage) {
-      const userMessage: LiaMessage = {
+      const userMessage: SofLIAMessage = {
         id: Date.now().toString(),
         role: 'user',
         content: message.trim(),
@@ -114,9 +114,8 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
             { role: 'user', content: message }
           ],
           context: {
-            userId: user?.id,
-            userName: user?.first_name || user?.nombre,
-            userRole: user?.type_rol || user?.cargo_rol, // Priorizar type_rol (cargo real) sobre cargo_rol (rol sistema)
+            userName: user?.first_name || (user as any)?.nombre,
+            userRole: (user as any)?.type_rol || user?.cargo_rol, // Priorizar type_rol (cargo real) sobre cargo_rol (rol sistema)
             userCheck: {
                // Datos adicionales de usuario para personalización (si useAuth los tuviera extendidos)
                area: (user as any)?.area,
@@ -142,7 +141,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
       });
 
       if (!response.ok) {
-        throw new Error('Error en la comunicación con LIA');
+        throw new Error('Error en la comunicación con SofLIA');
       }
 
       const data = await response.json();
@@ -156,7 +155,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
       const responseText = data.message?.content || data.response;
 
       if (responseText) {
-        const assistantMessage: LiaMessage = {
+        const assistantMessage: SofLIAMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: responseText,
@@ -170,7 +169,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
       const errorMessage = err instanceof Error ? err : new Error('Error desconocido');
       setError(errorMessage);
       
-      const errorResponse: LiaMessage = {
+      const errorResponse: SofLIAMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
@@ -197,7 +196,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
 
       const data = await response.json();
       
-      const formattedMessages: LiaMessage[] = (data.messages || []).map((msg: any) => ({
+      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: any) => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,
@@ -228,7 +227,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
           }),
         });
       } catch (error) {
-        console.error('[LIA Analytics] Error cerrando conversación:', error);
+        console.error('[SofLIA Analytics] Error cerrando conversación:', error);
       }
       
       conversationIdRef.current = null;

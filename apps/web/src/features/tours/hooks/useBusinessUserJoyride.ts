@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useRouter } from 'next/navigation';
 import { useTourProgress } from './useTourProgress';
-import { businessUserJoyrideSteps, DASHBOARD_TOUR_ID } from '../config/business-user-joyride-steps.tsx';
+import { businessUserJoyrideSteps, DASHBOARD_TOUR_ID } from '../config/business-user-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourRestart } from '@/core/contexts/TourRestartContext';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;
@@ -17,7 +18,9 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
   
   const { shouldShowTour, isLoading, startTour, completeTour, skipTour } = useTourProgress(DASHBOARD_TOUR_ID);
   const [run, setRun] = useState(false);
+  const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const { setRestart } = useTourRestart();
 
   // Auto-start tour when conditions are met
   useEffect(() => {
@@ -25,14 +28,19 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
       return;
     }
 
-    // Wait for the page to render before starting
+    // Wait for the page to render before starting video intro
     const timer = setTimeout(() => {
-      startTour().catch(err => console.error('[useBusinessUserJoyride] DB start failed', err));
-      setRun(true);
+      setShowVideoIntro(true);
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [enabled, isLoading, shouldShowTour, startTour]);
+  }, [enabled, isLoading, shouldShowTour]);
+
+  const handleVideoComplete = useCallback(() => {
+    setShowVideoIntro(false);
+    startTour().catch(err => console.error('[useBusinessUserJoyride] DB start failed', err));
+    setRun(true);
+  }, [startTour]);
 
   // Handle Joyride callbacks
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
@@ -80,8 +88,16 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
   // Manual start tour
   const manualStartTour = useCallback(() => {
     setStepIndex(0);
-    setRun(true);
+    setRun(false); // Reset joyride run state
+    setShowVideoIntro(true);
   }, []);
+
+  // Registrar en el contexto global para que el botón flotante pueda dispararlo.
+  // Se limpia al desmontar el componente (al salir de la página).
+  useEffect(() => {
+    setRestart(manualStartTour, 'Reiniciar tutorial');
+    return () => setRestart(null);
+  }, [manualStartTour, setRestart]);
 
   return {
     // Joyride props to spread
@@ -94,7 +110,8 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
-      disableOverlayClose: false,
+      disableOverlayClose: true,
+      disableCloseOnEsc: true,
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120, 
@@ -138,5 +155,7 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
     stepIndex,
     resetTour,
     startTour: manualStartTour,
+    showVideoIntro,
+    handleVideoComplete,
   };
 }

@@ -1,7 +1,7 @@
 /**
- * LIA Analytics Logger
+ * SofLIA Analytics Logger
  * 
- * Sistema de logging para interacciones con LIA que permite:
+ * Sistema de logging para interacciones con SofLIA que permite:
  * - Rastrear conversaciones completas
  * - Analizar mensajes individuales
  * - Calcular métricas de uso y calidad
@@ -48,7 +48,7 @@ export interface ActivityProgress {
 // CLASE PRINCIPAL: LiaLogger
 // ============================================================================
 
-export class LiaLogger {
+export class SofLIALogger {
   private userId: string;
   private conversationId: string | null = null;
   private messageSequence: number = 0; // Contador de secuencia de mensajes
@@ -58,7 +58,7 @@ export class LiaLogger {
   }
 
   /**
-   * Inicia una nueva conversación con LIA
+   * Inicia una nueva conversación con SofLIA
    * IMPORTANTE: Limita a máximo 5 conversaciones por usuario por contexto
    * Elimina automáticamente las conversaciones más antiguas si se excede el límite
    */
@@ -113,7 +113,7 @@ export class LiaLogger {
       .single();
 
     if (error) {
-      console.error('[LiaLogger] Error starting conversation:', error);
+      console.error('[SofLIALogger] Error starting conversation:', error);
       throw error;
     }
 
@@ -166,7 +166,7 @@ export class LiaLogger {
         this.messageSequence = 0;
         return ''; // Retornar vacío sin loggear error
       }
-      console.error('[LiaLogger] Error logging message:', error);
+      console.error('[SofLIALogger] Error logging message:', error);
       throw error;
     }
 
@@ -368,7 +368,7 @@ export class LiaLogger {
   }
 
   /**
-   * Registra feedback del usuario sobre un mensaje de LIA
+   * Registra feedback del usuario sobre un mensaje de SofLIA
    */
   async logFeedback(
     messageId: string,
@@ -424,7 +424,7 @@ export class LiaLogger {
       .eq('completion_id', completionId);
 
     if (error) {
-      console.error('[LiaLogger] Error incrementing redirections:', error);
+      console.error('[SofLIALogger] Error incrementing redirections:', error);
     }
   }
 

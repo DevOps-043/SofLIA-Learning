@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { translateCourseOnCreate } from '@/core/services/courseTranslation.service'
-import { LanguageDetectionService } from '@/core/services/languageDetection.service'
-import { ContentTranslationService } from '@/core/services/contentTranslation.service'
-import { createClient } from '@/lib/supabase/server'
-import { SupportedLanguage } from '@/core/i18n/i18n'
+import { translateCourseOnCreate } from '../../../core/services/courseTranslation.service'
+import { LanguageDetectionService } from '../../../core/services/languageDetection.service'
+import { ContentTranslationService } from '../../../core/services/contentTranslation.service'
+import { createClient } from '../../../lib/supabase/server'
+import { SupportedLanguage } from '../../../core/i18n/i18n'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * Endpoint de prueba para verificar que el sistema de traducción funciona
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
         description: course.description,
         learning_objectives: course.learning_objectives
       },
-      null, // userId opcional
+      undefined, // userId opcional
       supabase
     )
 
@@ -132,7 +134,7 @@ export async function GET(request: NextRequest) {
       summary: {
         originalLanguage: detectedLanguage,
         expectedTargetLanguages: detectedLanguage === 'es' ? ['en', 'pt'] : detectedLanguage === 'en' ? ['es', 'pt'] : ['es', 'en'],
-        actualTranslationsInDB: translations?.map(t => t.language_code) || [],
+        actualTranslationsInDB: translations?.map((t: any) => t.language_code) || [],
         allTranslationsLoaded: Object.values(translationTests).every((t: any) => t.success)
       },
       environment: {

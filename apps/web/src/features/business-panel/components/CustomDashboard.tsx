@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
   Settings,
@@ -55,6 +56,8 @@ interface CustomDashboardProps {
 }
 
 export function CustomDashboard({ onClose }: CustomDashboardProps) {
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string
   const [isEditMode, setIsEditMode] = useState(false)
   const [layout, setLayout] = useState<DashboardLayout | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -71,7 +74,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       setIsLoading(true)
       setError(null)
 
-      const response = await fetch('/api/business/dashboard/layout', {
+      const response = await fetch(`/api/${orgSlug}/business/dashboard/layout`, {
         credentials: 'include'
       })
 
@@ -108,7 +111,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       setError(null)
       setSaveSuccess(false)
 
-      const response = await fetch('/api/business/dashboard/layout', {
+      const response = await fetch(`/api/${orgSlug}/business/dashboard/layout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -148,7 +151,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       setIsSaving(true)
       setError(null)
 
-      const response = await fetch('/api/business/dashboard/layout', {
+      const response = await fetch(`/api/${orgSlug}/business/dashboard/layout`, {
         method: 'DELETE',
         credentials: 'include'
       })

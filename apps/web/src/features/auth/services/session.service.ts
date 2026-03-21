@@ -224,6 +224,14 @@ export class SessionService {
 
       return user;
     } catch (error) {
+      // Re-lanzar errores de Next.js para bailout dinámico durante el build
+      if (
+        (error as any)?.digest === 'DYNAMIC_SERVER_USAGE' || 
+        (error as any)?.message?.includes('Dynamic server usage')
+      ) {
+        throw error;
+      }
+
       logger.error('💥 Error crítico obteniendo usuario actual:', {
         name: (error as any)?.name,
         message: (error as any)?.message,
@@ -334,6 +342,14 @@ export class SessionService {
 
       logger.auth('✅ Sesión destruida y cookies eliminadas completamente');
     } catch (error) {
+      // Re-lanzar errores de Next.js para bailout dinámico durante el build
+      if (
+        (error as any)?.digest === 'DYNAMIC_SERVER_USAGE' || 
+        (error as any)?.message?.includes('Dynamic server usage')
+      ) {
+        throw error;
+      }
+
       logger.error('❌ Error destroying session:', error);
       throw error;
     }

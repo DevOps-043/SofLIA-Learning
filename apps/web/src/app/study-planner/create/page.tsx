@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { StudyPlannerLIA } from '../../../features/study-planner/components/StudyPlannerLIA';
+import { StudyPlannerSofLIA } from '../../../features/study-planner/components/StudyPlannerLIA';
 import { ComplianceDashboard } from '../../../features/study-planner-v3/components/ComplianceDashboard';
 import { useFeatureFlags } from '../../../core/providers/FeatureFlagsProvider';
 
@@ -14,7 +14,7 @@ export default function CreateStudyPlanPage() {
       {flags.planner_v3_ui && !showLegacyLia ? (
         <ComplianceDashboard onOpenLia={() => setShowLegacyLia(true)} />
       ) : (
-        <StudyPlannerLIA onBack={() => setShowLegacyLia(false)} />
+        <StudyPlannerSofLIA onBack={() => setShowLegacyLia(false)} />
       )}
     </div>
   );

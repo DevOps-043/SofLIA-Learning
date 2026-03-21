@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Plus, ChevronDown, ChevronRight, GripVertical, Book, FileText, ClipboardList, Flag, Clock, BarChart3, LayoutDashboard, Users2, DollarSign, Star, Sigma, Briefcase, LineChart as LineChartIcon, ListChecks, Pencil, Trash2, Settings, Eye, Award, CheckCircle2, AlertTriangle, TrendingUp, Rocket, Target, Lightbulb, Sprout, RefreshCw } from 'lucide-react'
+import { motion, AnimatePresence, Reorder } from 'framer-motion'
+import { ArrowLeft, Plus, ChevronDown, ChevronRight, GripVertical, Book, FileText, ClipboardList, Flag, Clock, BarChart3, LayoutDashboard, Users2, DollarSign, Star, Sigma, Briefcase, LineChart as LineChartIcon, ListChecks, Pencil, Trash2, Settings, Eye, Award, CheckCircle2, AlertTriangle, TrendingUp, Rocket, Target, Lightbulb, Sprout, RefreshCw, ArrowRightLeft } from 'lucide-react'
 import { BarChart, Bar, AreaChart, Area, RadialBarChart, RadialBar, PieChart, Pie, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
 import { EnrollmentTrendChart, ProgressDistributionChart, EngagementScatterChart, CompletionRateChart, DonutPieChart } from './AdvancedCharts'
 import { useAdminModules } from '../hooks/useAdminModules'
@@ -36,6 +36,10 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
   const [showLessonModal, setShowLessonModal] = useState(false)
   const [showMaterialModal, setShowMaterialModal] = useState(false)
   const [showActivityModal, setShowActivityModal] = useState(false)
+  const [showMoveLessonModal, setShowMoveLessonModal] = useState(false)
+  const [movingLesson, setMovingLesson] = useState<AdminLesson | null>(null)
+  
+  // Datos del curso
   const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const feedbackTimerRef = useRef<NodeJS.Timeout | null>(null)
   const [selectedModule, setSelectedModule] = useState<AdminModule | null>(null)
@@ -63,6 +67,9 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
   const [studentDetailsData, setStudentDetailsData] = useState<any>(null)
   const [loadingStudentDetails, setLoadingStudentDetails] = useState(false)
   const [recalculatingDurations, setRecalculatingDurations] = useState(false)
+  const [orderedModules, setOrderedModules] = useState<AdminModule[]>([])
+  const [orderedLessons, setOrderedLessons] = useState<Record<string, AdminLesson[]>>({})
+  const reorderTimeoutRef = useRef<Record<string, NodeJS.Timeout>>({})
   const [configData, setConfigData] = useState({
     title: '',
     description: '',
@@ -75,8 +82,8 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
     instructor_id: ''
   })
 
-  const { modules, loading: modulesLoading, fetchModules, createModule, updateModule, deleteModule } = useAdminModules()
-  const { lessons, loading: lessonsLoading, fetchLessons, createLesson, updateLesson, deleteLesson } = useAdminLessons(courseId)
+  const { modules, loading: modulesLoading, fetchModules, createModule, updateModule, deleteModule, reorderModules } = useAdminModules()
+  const { lessons, loading: lessonsLoading, fetchLessons, createLesson, updateLesson, deleteLesson, reorderLessons } = useAdminLessons(courseId)
   const { materials, getMaterialsByLesson, fetchMaterials, createMaterial, updateMaterial, deleteMaterial } = useAdminMaterials()
   const { activities, getActivitiesByLesson, fetchActivities, createActivity, updateActivity, deleteActivity } = useAdminActivities()
 
@@ -127,6 +134,36 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
     }
     loadInstructorSignature()
   }, [courseId])
+
+  // Sincronizar módulos ordenados
+  useEffect(() => {
+    if (modules.length > 0) {
+      const sortedModules = [...modules].sort((a, b) => {
+        return (a.module_order_index || 0) - (b.module_order_index || 0);
+      });
+      setOrderedModules(sortedModules);
+    } else {
+      setOrderedModules([]);
+    }
+  }, [modules])
+
+  // Sincronizar lecciones ordenadas por módulo
+  useEffect(() => {
+    const lessonsByModule: Record<string, AdminLesson[]> = {};
+    lessons.forEach(lesson => {
+      if (!lessonsByModule[lesson.module_id]) {
+        lessonsByModule[lesson.module_id] = [];
+      }
+      lessonsByModule[lesson.module_id].push(lesson);
+    });
+
+    // Ordenar cada grupo de lecciones
+    Object.keys(lessonsByModule).forEach(moduleId => {
+      lessonsByModule[moduleId].sort((a, b) => (a.lesson_order_index || 0) - (b.lesson_order_index || 0));
+    });
+
+    setOrderedLessons(lessonsByModule);
+  }, [lessons])
 
   useEffect(() => {
     if (workshopPreview) {
@@ -327,7 +364,75 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
   }
 
   const getModuleLessons = (moduleId: string) => {
-    return lessons.filter(l => l.module_id === moduleId)
+    const fromOrdered = orderedLessons[moduleId]
+    if (fromOrdered && fromOrdered.length > 0) return fromOrdered
+    return lessons.filter(l => l.module_id === moduleId).sort((a, b) => (a.lesson_order_index || 0) - (b.lesson_order_index || 0))
+  }
+
+  const handleModulesReorder = (newOrder: AdminModule[]) => {
+    setOrderedModules(newOrder)
+    
+    // Debounce API call
+    if (reorderTimeoutRef.current['modules']) {
+      clearTimeout(reorderTimeoutRef.current['modules'])
+    }
+    
+    reorderTimeoutRef.current['modules'] = setTimeout(async () => {
+      try {
+        const reorderData = newOrder.map((mod, index) => ({
+          module_id: mod.module_id,
+          module_order_index: index + 1
+        }))
+        await reorderModules(courseId, reorderData)
+        showFeedbackMessage('success', 'Orden de módulos guardado')
+      } catch (error) {
+        showFeedbackMessage('error', 'Error al guardar el orden de los módulos')
+        setOrderedModules(modules)
+      }
+    }, 1000)
+  }
+
+  const handleLessonsReorder = (moduleId: string, newOrder: AdminLesson[]) => {
+    setOrderedLessons(prev => ({ ...prev, [moduleId]: newOrder }))
+    
+    // Debounce API call
+    const key = `lessons-${moduleId}`
+    if (reorderTimeoutRef.current[key]) {
+      clearTimeout(reorderTimeoutRef.current[key])
+    }
+    
+    reorderTimeoutRef.current[key] = setTimeout(async () => {
+      try {
+        const reorderData = newOrder.map((lesson, index) => ({
+          lesson_id: lesson.lesson_id,
+          lesson_order_index: index + 1
+        }))
+        await reorderLessons(moduleId, reorderData, courseId)
+        showFeedbackMessage('success', 'Orden de lecciones guardado')
+      } catch (error) {
+        showFeedbackMessage('error', 'Error al guardar el orden de las lecciones')
+        fetchLessons(moduleId, courseId)
+      }
+    }, 1000)
+  }
+
+  const handleMoveLessonToModule = async (moduleId: string) => {
+    if (!movingLesson) return
+
+    try {
+      // Usar updateLesson del hook useAdminLessons
+      await updateLesson(movingLesson.lesson_id, { module_id: moduleId }, courseId)
+      
+      showFeedbackMessage('success', 'Lección movida correctamente')
+      setShowMoveLessonModal(false)
+      setMovingLesson(null)
+      
+      // Refrescar lecciones de ambos módulos
+      await fetchLessons(movingLesson.module_id, courseId, { silent: true })
+      await fetchLessons(moduleId, courseId, { silent: true })
+    } catch (error) {
+      showFeedbackMessage('error', 'Error al mover la lección')
+    }
   }
 
   const loadStudentDetails = async (userId: string) => {
@@ -622,42 +727,25 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                   </motion.button>
                 </motion.div>
               ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {[...modules]
-                    .sort((a, b) => {
-                      const extractModuleNumber = (title: string): number => {
-                        const match = title.match(/Módulo\s*(\d+)/i);
-                        return match ? parseInt(match[1], 10) : 999;
-                      };
+                <Reorder.Group
+                  axis="y"
+                  values={orderedModules}
+                  onReorder={handleModulesReorder}
+                  className="space-y-4 max-w-4xl mx-auto"
+                >
+                  {orderedModules.map((module, index) => {
+                    const moduleLessons = getModuleLessons(module.module_id);
+                    const isExpanded = expandedModules.has(module.module_id);
 
-                      const aNumber = extractModuleNumber(a.module_title);
-                      const bNumber = extractModuleNumber(b.module_title);
-
-                      if (aNumber !== 999 && bNumber !== 999) {
-                        return aNumber - bNumber;
-                      }
-
-                      if (aNumber !== 999 && bNumber === 999) return -1;
-                      if (aNumber === 999 && bNumber !== 999) return 1;
-
-                      const orderDiff = (a.module_order_index || 0) - (b.module_order_index || 0);
-                      if (orderDiff !== 0) return orderDiff;
-
-                      return a.module_title.localeCompare(b.module_title);
-                    })
-                    .map((module, index) => {
-                      const moduleLessons = getModuleLessons(module.module_id);
-                      const isExpanded = expandedModules.has(module.module_id);
-
-                      return (
-                        <motion.div
-                          key={module.module_id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                          whileHover={{ y: -4 }}
-                          className="group relative bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
-                        >
+                    return (
+                      <Reorder.Item
+                        key={module.module_id}
+                        value={module}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="group relative bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+                      >
                           {/* Borde superior con color según estado */}
                           <div className={`h-1 ${module.is_published
                             ? 'bg-gradient-to-r from-[#10B981] to-[#00D4B3]'
@@ -670,23 +758,28 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-2">
-                                  <motion.button
-                                    onClick={() => toggleModule(module.module_id)}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className="flex-shrink-0 p-1.5 rounded-lg hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12] transition-colors"
-                                  >
-                                    <motion.div
-                                      animate={{ rotate: isExpanded ? 180 : 0 }}
-                                      transition={{ duration: 0.3 }}
-                                    >
-                                      <ChevronDown className="w-5 h-5 text-[#6C757D] dark:text-white/60" />
-                                    </motion.div>
-                                  </motion.button>
-                                  <h3 className="text-lg font-bold text-[#0A2540] dark:text-white line-clamp-2 flex-1">
-                                    {module.module_title}
-                                  </h3>
-                                </div>
+                                    <div className="flex items-center gap-1">
+                                      <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12] rounded transition-colors mr-1">
+                                        <GripVertical className="w-4 h-4 text-[#6C757D]/40" />
+                                      </div>
+                                      <motion.button
+                                        onClick={() => toggleModule(module.module_id)}
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        className="flex-shrink-0 p-1.5 rounded-lg hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12] transition-colors"
+                                      >
+                                        <motion.div
+                                          animate={{ rotate: isExpanded ? 180 : 0 }}
+                                          transition={{ duration: 0.3 }}
+                                        >
+                                          <ChevronDown className="w-5 h-5 text-[#6C757D] dark:text-white/60" />
+                                        </motion.div>
+                                      </motion.button>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-[#0A2540] dark:text-white line-clamp-2 flex-1">
+                                      {module.module_title}
+                                    </h3>
+                                  </div>
 
                                 {/* Badges y metadata */}
                                 <div className="flex items-center gap-2 flex-wrap ml-11">
@@ -804,15 +897,21 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                                       </motion.button>
                                     </motion.div>
                                   ) : (
-                                    <div className="space-y-2 mt-2">
+                                    <Reorder.Group
+                                      axis="y"
+                                      values={moduleLessons}
+                                      onReorder={(newOrder) => handleLessonsReorder(module.module_id, newOrder)}
+                                      className="space-y-2 mt-2"
+                                    >
                                       {moduleLessons.map((lesson, lessonIndex) => {
                                         const isLessonExpanded = expandedLessons.has(lesson.lesson_id);
                                         const lessonMaterials = getLessonMaterials(lesson.lesson_id);
                                         const lessonActivities = getLessonActivities(lesson.lesson_id);
 
                                         return (
-                                          <motion.div
+                                          <Reorder.Item
                                             key={lesson.lesson_id}
+                                            value={lesson}
                                             initial={{ opacity: 0, x: -20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: lessonIndex * 0.05 }}
@@ -821,19 +920,24 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                                             {/* Header de la Lección */}
                                             <div className="p-4 flex items-center justify-between">
                                               <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                <motion.button
-                                                  onClick={() => toggleLesson(lesson.lesson_id)}
-                                                  whileHover={{ scale: 1.1 }}
-                                                  whileTap={{ scale: 0.9 }}
-                                                  className="flex-shrink-0 p-1 rounded-lg hover:bg-white/50 dark:hover:bg-[#1E2329] transition-colors"
-                                                >
-                                                  <motion.div
-                                                    animate={{ rotate: isLessonExpanded ? 180 : 0 }}
-                                                    transition={{ duration: 0.2 }}
+                                                <div className="flex items-center gap-1">
+                                                  <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-white/50 dark:hover:bg-[#1E2329] rounded transition-colors">
+                                                    <GripVertical className="w-4 h-4 text-[#6C757D]/40" />
+                                                  </div>
+                                                  <motion.button
+                                                    onClick={() => toggleLesson(lesson.lesson_id)}
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    className="flex-shrink-0 p-1 rounded-lg hover:bg-white/50 dark:hover:bg-[#1E2329] transition-colors"
                                                   >
-                                                    <ChevronDown className="w-4 h-4 text-[#6C757D] dark:text-white/60" />
-                                                  </motion.div>
-                                                </motion.button>
+                                                    <motion.div
+                                                      animate={{ rotate: isLessonExpanded ? 180 : 0 }}
+                                                      transition={{ duration: 0.2 }}
+                                                    >
+                                                      <ChevronDown className="w-4 h-4 text-[#6C757D] dark:text-white/60" />
+                                                    </motion.div>
+                                                  </motion.button>
+                                                </div>
                                                 <div className="flex-1 min-w-0">
                                                   <h4 className="font-semibold text-sm text-[#0A2540] dark:text-white line-clamp-1">
                                                     {lesson.lesson_title}
@@ -1063,19 +1167,19 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                                                 </motion.div>
                                               )}
                                             </AnimatePresence>
-                                          </motion.div>
+                                          </Reorder.Item>
                                         )
                                       })}
-                                    </div>
+                                    </Reorder.Group>
                                   )}
                                 </div>
                               </motion.div>
                             )}
                           </AnimatePresence>
-                        </motion.div>
+                        </Reorder.Item>
                       )
                     })}
-                </div>
+                </Reorder.Group>
               )}
             </motion.div>
           )}
@@ -2577,14 +2681,14 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                         </div>
                       </div>
 
-                      {/* Estadísticas de Interacción con LIA */}
+                      {/* Estadísticas de Interacción con SofLIA */}
                       <div className="bg-gradient-to-br from-[#0A2540]/5 to-[#00D4B3]/5 dark:from-[#0A2540]/10 dark:to-[#00D4B3]/10 rounded-xl p-6 border-2 border-[#00D4B3]/30 mb-6">
                         <div className="flex items-center gap-3 mb-6">
                           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center shadow-lg">
                             <Lightbulb className="w-6 h-6 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold text-[#0A2540] dark:text-white">Interacción con LIA</h3>
+                            <h3 className="text-xl font-bold text-[#0A2540] dark:text-white">Interacción con SofLIA</h3>
                             <p className="text-xs text-[#6C757D] dark:text-white/60">Análisis de conversaciones y asistencia personalizada</p>
                           </div>
                         </div>
@@ -2643,7 +2747,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                           })}
                         </div>
 
-                        {/* Gráfica de Conversaciones con LIA */}
+                        {/* Gráfica de Conversaciones con SofLIA */}
                         <div className="bg-white dark:bg-[#1E2329] rounded-xl p-5 border border-[#E9ECEF] dark:border-[#6C757D]/30">
                           <div className="flex items-center gap-2 mb-4">
                             <Rocket className="w-5 h-5 text-[#00D4B3]" />
@@ -2853,7 +2957,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                         </div>
                       </div>
 
-                      {/* Insights de LIA */}
+                      {/* Insights de SofLIA */}
                       {studentDetailsData.studySessions && (
                         <div className="mt-4 bg-white dark:bg-[#1E2329] rounded-xl p-4 border-l-4 border-[#00D4B3]">
                           <div className="flex items-start gap-3">
@@ -2861,7 +2965,7 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
                               <Lightbulb className="w-4 h-4 text-white" />
                             </div>
                             <div>
-                              <h5 className="text-sm font-bold text-[#0A2540] dark:text-white mb-1">Insights de LIA</h5>
+                              <h5 className="text-sm font-bold text-[#0A2540] dark:text-white mb-1">Insights de SofLIA</h5>
                               <p className="text-xs text-[#6C757D] dark:text-white/70 leading-relaxed">
                                 {studentDetailsData.studySessions.preferredTimeSlots && studentDetailsData.studySessions.preferredTimeSlots.length > 0 ? (
                                   <>
@@ -2963,7 +3067,74 @@ export function CourseManagementPage({ courseId }: CourseManagementPageProps) {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* Modal para mover lección */}
+        <AnimatePresence>
+          {showMoveLessonModal && movingLesson && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowMoveLessonModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                className="bg-white dark:bg-[#1E2329] rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-xl bg-[#F59E0B]/10 flex items-center justify-center">
+                    <ArrowRightLeft className="w-5 h-5 text-[#F59E0B]" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">Mover Lección</h3>
+                    <p className="text-xs text-[#6C757D] dark:text-white/60">Selecciona el módulo de destino</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                  {modules.map((module) => (
+                    <motion.button
+                      key={module.module_id}
+                      onClick={() => handleMoveLessonToModule(module.module_id)}
+                      disabled={module.module_id === movingLesson.module_id}
+                      whileHover={module.module_id !== movingLesson.module_id ? { x: 4, backgroundColor: 'rgba(0,0,0,0.05)' } : {}}
+                      className={`w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between group ${
+                        module.module_id === movingLesson.module_id
+                          ? 'bg-[#E9ECEF]/50 border-transparent opacity-50 cursor-not-allowed'
+                          : 'border-[#E9ECEF] dark:border-[#6C757D]/30 hover:border-[#00D4B3]/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Book className={`w-4 h-4 ${module.module_id === movingLesson.module_id ? 'text-[#6C757D]' : 'text-[#00D4B3]'}`} />
+                        <span className="text-sm font-medium text-[#0A2540] dark:text-white truncate max-w-[200px]">
+                          {module.module_title}
+                        </span>
+                      </div>
+                      {module.module_id === movingLesson.module_id ? (
+                        <span className="text-[10px] font-bold text-[#6C757D] uppercase tracking-wider">Actual</span>
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-[#6C757D]/30 group-hover:text-[#00D4B3] transition-colors" />
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex justify-end">
+                  <button
+                    onClick={() => setShowMoveLessonModal(false)}
+                    className="px-4 py-2 text-sm font-semibold text-[#6C757D] hover:text-[#0A2540] dark:text-white/60 dark:hover:text-white transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )
-} 
+}

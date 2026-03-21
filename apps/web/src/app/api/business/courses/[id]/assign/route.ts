@@ -41,7 +41,7 @@ export async function POST(
     const organizationId = auth.organizationId
 
     // Validar que la organización tenga membresía activa
-    const hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id)
+    const hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id, organizationId)
     if (!hasSubscription) {
       return NextResponse.json({
         success: false,

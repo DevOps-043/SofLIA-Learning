@@ -79,6 +79,8 @@ export function useStudyPlannerDashboardTour() {
     continuous: true,
     showProgress: true,
     showSkipButton: true,
+    disableOverlayClose: true,
+    disableCloseOnEsc: true,
     tooltipComponent: JoyrideTooltip,
     scrollOffset: 120,
     styles: {

@@ -7,11 +7,12 @@ interface UseAdminModulesReturn {
   modules: AdminModule[]
   loading: boolean
   error: string | null
-  fetchModules: (courseId: string) => Promise<void>
+  fetchModules: (courseId: string, options?: { silent?: boolean }) => Promise<void>
   createModule: (courseId: string, data: any) => Promise<AdminModule>
   updateModule: (moduleId: string, data: any) => Promise<AdminModule>
   deleteModule: (moduleId: string) => Promise<void>
   togglePublished: (moduleId: string) => Promise<void>
+  reorderModules: (courseId: string, modules: Array<{ module_id: string, module_order_index: number }>, options?: { silent?: boolean }) => Promise<void>
 }
 
 export function useAdminModules(): UseAdminModulesReturn {
@@ -45,9 +46,9 @@ export function useAdminModules(): UseAdminModulesReturn {
     throw new Error('Max retries exceeded')
   }
 
-  const fetchModules = async (courseId: string) => {
+  const fetchModules = async (courseId: string, options: { silent?: boolean } = {}) => {
     try {
-      setLoading(true)
+      if (!options.silent) setLoading(true)
       setError(null)
 
       const response = await fetchWithRetry(`/api/admin/courses/${courseId}/modules`)
@@ -168,6 +169,32 @@ export function useAdminModules(): UseAdminModulesReturn {
     }
   }
 
+  const reorderModules = async (courseId: string, reorderedModules: Array<{ module_id: string, module_order_index: number }>, options: { silent?: boolean } = { silent: true }) => {
+    try {
+      if (!options.silent) setLoading(true)
+      const response = await fetchWithRetry(`/api/admin/courses/${courseId}/modules/reorder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modules: reorderedModules })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Error al reordenar módulos' }))
+        throw new Error(errorData.error || 'Error al reordenar módulos')
+      }
+
+      // Actualizar localmente para evitar saltos visuales si es necesario, 
+      // aunque el componente que lo usa probablemente ya maneje el estado optimista
+      await fetchModules(courseId, { silent: true })
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al reordenar módulos'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return {
     modules,
     loading,
@@ -176,7 +203,8 @@ export function useAdminModules(): UseAdminModulesReturn {
     createModule,
     updateModule,
     deleteModule,
-    togglePublished
+    togglePublished,
+    reorderModules
   }
 }
 

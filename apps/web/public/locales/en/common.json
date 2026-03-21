@@ -1,5 +1,5 @@
 {
-  "appName": "SOFLIA",  
+  "appName": "SofLIA",  
   "welcome": "Welcome",
   "language": "Language",
   "change_language": "Change language",
@@ -30,7 +30,7 @@
     "home": "Home",
     "login": "Sign in",
     "register": "Sign up",
-    "logoAlt": "Aprende y Aplica logo",
+    "logoAlt": "SofLIA Learning logo",
     "clickCounter": "Counter: {{current}}/{{total}}"
   },
   "aiChat": {
@@ -44,21 +44,21 @@
     "helpPrompt": "What can I do here? Help me",
     "helpFallback": "Sorry, I couldn't generate a response.",
     "helpError": "Sorry, there was an error processing your help request. Please try again.",
-    "initialMessage": "Hi! ðŸ‘‹ I'm Lia, your AI assistant. I'm here to help you with any questions you have.",
+    "initialMessage": "Hi! ðŸ‘‹ I'm SofLIA, your AI assistant. I'm here to help you with any questions you have.",
     "clearConversation": "Clear conversation",
-    "changeMode": "Change Lia mode",
+    "changeMode": "Change SofLIA mode",
     "clearContext": "Clear context",
     "clearContextConfirm": "Do you want to clear the context and start a new conversation?",
     "reportProblem": "Report problem",
     "promptMode": {
       "placeholder": "Describe what kind of prompt you want to create...",
       "title": "Prompt Designer",
-      "description": "Create and refine professional prompts guided by LIA.",
+      "description": "Create and refine professional prompts guided by SofLIA.",
       "viewGenerated": "View Generated Prompt",
       "download": "Download",
       "titleLabel": "Title",
       "contentLabel": "Content",
-      "emptyDescription": "Generate and refine professional prompts. Specify the objective, tone, and requirements; LIA delivers a ready-to-use prompt with best practices.",
+      "emptyDescription": "Generate and refine professional prompts. Specify the objective, tone, and requirements; SofLIA delivers a ready-to-use prompt with best practices.",
       "loginRequired": "You must sign in to save prompts"
     },
     "nanobanaMode": {
@@ -92,8 +92,8 @@
     }
   },
   "tours": {
-    "viewTourWithLia": "View Tour with LIA",
-    "viewTourWithLiaTitle": "View the welcome experience with LIA again",
+    "viewTourWithLia": "View Tour with SofLIA",
+    "viewTourWithLiaTitle": "View the welcome experience with SofLIA again",
     "viewGuidedTour": "View guided tour",
     "promptDirectory": {
       "replayButtonLabel": "View directory tour",
@@ -103,14 +103,14 @@
   "onboarding": {
     "steps": {
       "1": {
-        "title": "Welcome to Aprende y Aplica!",
+        "title": "Welcome to SofLIA!",
         "description": "I'm your intelligent assistant. I'm here to guide you on your learning journey with artificial intelligence.",
-        "speech": "Welcome to Aprende y Aplica. I'm your intelligent assistant. I'm here to guide you on your learning journey with artificial intelligence."
+        "speech": "Welcome to SofLIA. I'm your intelligent assistant. I'm here to guide you on your learning journey with artificial intelligence."
       },
       "2": {
-        "title": "Meet LIA",
-        "description": "LIA is your learning companion who will accompany you everywhere. She can answer your questions, help you with tasks, and adapt to the context of each page.",
-        "speech": "LIA is your learning companion who will accompany you everywhere. She can answer your questions and adapt to the context of each page.",
+        "title": "Meet SofLIA",
+        "description": "SofLIA is your learning companion who will accompany you everywhere. She can answer your questions, help you with tasks, and adapt to the context of each page.",
+        "speech": "SofLIA is your learning companion who will accompany you everywhere. She can answer your questions and adapt to the context of each page.",
         "actionLabel": "View Dashboard"
       },
       "3": {
@@ -121,8 +121,8 @@
       },
       "4": {
         "title": "You're ready!",
-        "description": "Now you can start your adventure. Remember, LIA will always be available in the bottom right corner to help you.",
-        "speech": "Now you can start your adventure. Remember, LIA will always be available to help you.",
+        "description": "Now you can start your adventure. Remember, SofLIA will always be available in the bottom right corner to help you.",
+        "speech": "Now you can start your adventure. Remember, SofLIA will always be available to help you.",
         "actionLabel": "Start"
       }
     },
@@ -170,23 +170,26 @@
       "help": "Quick help"
     },
     "header": {
-      "title": "LIA",
+      "title": "SofLIA",
       "subtitle": "AI Assistant"
     },
     "chat": {
-      "inputPlaceholder": "Type a message to LIA...",
+      "inputPlaceholder": "Type a message to SofLIA...",
       "cleanHistory": "Clear conversation"
     }
   },
   "landing": {
     "nav": {
+      "home": "Home",
       "platform": "Platform",
       "capabilities": "Capabilities",
       "useCases": "Use Cases",
       "integrations": "Integrations",
+      "downloads": "Downloads",
       "security": "Security",
       "faq": "FAQ",
       "clientAccess": "Client Access",
+      "downloadHub": "Download Hub",
       "scheduleDemo": "Schedule Demo"
     },
     "hero": {
@@ -194,7 +197,7 @@
       "title": "AI Training with",
       "highlight": "measurable impact",
       "titleEnd": "for your organization",
-      "description": "SOFLIA is the corporate training platform that combines artificial intelligence, smart planning, and verifiable certifications to develop your team's competencies.",
+      "description": "SofLIA is the corporate training platform that combines artificial intelligence, smart planning, and verifiable certifications to develop your team's competencies.",
       "ctaPrimary": "Schedule Executive Demo",
       "ctaSecondary": "Request Assessment",
       "benefits": {
@@ -204,7 +207,7 @@
       }
     },
     "logoWall": {
-      "title": "Organizations that trust SOFLIA"
+      "title": "Organizations that trust SofLIA"
     },
     "trust": {
       "title": "Enterprise-ready from day one",
@@ -238,21 +241,21 @@
       "stats": {
         "languages": "Languages",
         "compatible": "Compatible",
-        "lia": "LIA Assistant",
+        "lia": "SofLIA Assistant",
         "hash": "Certificates"
       }
     },
     "platform": {
       "tag": "The Platform",
       "title": "Corporate training powered by artificial intelligence",
-      "description": "SOFLIA combines cutting-edge technology with user-centered design to deliver a learning experience that generates measurable results for your organization.",
+      "description": "SofLIA combines cutting-edge technology with user-centered design to deliver a learning experience that generates measurable results for your organization.",
       "features": {
         "aiTraining": {
           "title": "AI Training",
           "description": "Specialized artificial intelligence courses for corporate teams"
         },
         "liaAssistant": {
-          "title": "LIA Assistant",
+          "title": "SofLIA Assistant",
           "description": "24/7 contextual AI that adapts to each user and lesson"
         },
         "studyPlanner": {
@@ -275,7 +278,7 @@
       "subtitle": "Every feature is designed to generate measurable impact in your organization",
       "items": {
         "lia": {
-          "title": "LIA - AI Assistant",
+          "title": "SofLIA - AI Assistant",
           "benefit": "24/7 contextual help in ES, EN and PT",
           "result": "Reduces HR inquiries"
         },
@@ -335,7 +338,7 @@
         "onboarding": {
           "title": "Accelerated Onboarding",
           "pain": "Too long time-to-productivity",
-          "solution": "Onboarding paths + LIA as guide",
+          "solution": "Onboarding paths + SofLIA as guide",
           "result": "Reduced ramp-up time"
         },
         "salesEnablement": {
@@ -367,7 +370,7 @@
     "roi": {
       "tag": "Measurable Impact",
       "title": "ROI that speaks for itself",
-      "subtitle": "Real results from organizations that transformed their training with SOFLIA",
+      "subtitle": "Real results from organizations that transformed their training with SofLIA",
       "metrics": {
         "onboarding": "Onboarding time reduction",
         "savings": "Estimated annual savings",
@@ -379,7 +382,7 @@
     "integrations": {
       "tag": "Integrations",
       "title": "Integrates with your corporate stack",
-      "description": "Connect SOFLIA with your existing tools for a frictionless experience. Agile deployment with calendar sync, e-learning compatibility and options for custom integrations.",
+      "description": "Connect SofLIA with your existing tools for a frictionless experience. Agile deployment with calendar sync, e-learning compatibility and options for custom integrations.",
       "features": {
         "calendar": "Sync with Google Calendar and Microsoft Outlook",
         "elearning": "Compatible with SCORM",
@@ -459,7 +462,7 @@
         },
         "multilingual": {
           "question": "How does it support multiple languages?",
-          "answer": "SOFLIA is available in Spanish, English and Portuguese. LIA automatically detects the user's language and responds in that language. Content can be available in multiple languages."
+          "answer": "SOFLIA is available in Spanish, English and Portuguese. SofLIA automatically detects the user's language and responds in that language. Content can be available in multiple languages."
         },
         "certificates": {
           "question": "How does verifiable certification work?",
@@ -471,14 +474,14 @@
         },
         "adoption": {
           "question": "How is change and adoption managed?",
-          "answer": "LIA acts as a guide throughout the process, helping users navigate the platform. Additionally, we offer onboarding materials, suggested internal communication and real-time adoption metrics."
+          "answer": "SofLIA acts as a guide throughout the process, helping users navigate the platform. Additionally, we offer onboarding materials, suggested internal communication and real-time adoption metrics."
         }
       }
     },
     "cta": {
       "tag": "Start Today",
       "title": "Transform your organization's training",
-      "subtitle": "Schedule an executive demo and discover how SOFLIA can boost your team's development with measurable results.",
+      "subtitle": "Schedule an executive demo and discover how SofLIA can boost your team's development with measurable results.",
       "form": {
         "name": "Your name",
         "email": "you@company.com",
@@ -506,10 +509,11 @@
       },
       "links": {
         "features": "Features",
-        "lia": "LIA Assistant",
+        "lia": "SofLIA Assistant",
         "studyPlanner": "Study Planner",
         "analytics": "Analytics",
         "certificates": "Certificates",
+        "downloads": "Soflia Hub",
         "upskilling": "AI Upskilling",
         "onboarding": "Onboarding",
         "sales": "Sales",
@@ -566,6 +570,25 @@
       "emailRequired": "Contact email is required",
       "codeRequired": "Company code is required",
       "generic": "An error occurred. Please try again."
+    }
+  },
+  "studyPlanner": {
+    "calendarSelection": {
+      "title": "Select calendars",
+      "subtitle": "Choose which calendars to use for availability analysis",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "save": "Save selection",
+      "saving": "Saving...",
+      "saved": "Selection saved",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
+      "primary": "Primary",
+      "minOneRequired": "You must select at least one calendar",
+      "noCalendarsFound": "No calendars found",
+      "errorLoading": "Error loading calendars",
+      "errorSaving": "Error saving selection",
+      "staleWarning": "Some selected calendars no longer exist and were removed"
     }
   }
 }

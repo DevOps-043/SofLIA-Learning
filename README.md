@@ -1,14 +1,14 @@
-# 🚀 Aprende y Aplica - Plataforma B2B de Capacitación en IA
+# 🚀 SofLIA Learning - Plataforma B2B de Capacitación en IA
 
 > Plataforma de capacitación empresarial B2B enfocada en inteligencia artificial, diseñada para organizaciones que buscan desarrollar las habilidades de sus equipos con cursos, certificaciones, planificación de estudios con IA y seguimiento de progreso personalizado.
 
 ## 📌 Resumen Ejecutivo
 
-**Aprende y Aplica** es una plataforma educativa empresarial completa que combina inteligencia artificial, gestión de aprendizaje y herramientas de colaboración para ofrecer una experiencia de capacitación personalizada y escalable.
+**SofLIA Learning** es una plataforma educativa empresarial completa que combina inteligencia artificial, gestión de aprendizaje y herramientas de colaboración para ofrecer una experiencia de capacitación personalizada y escalable.
 
 ### Propuesta de Valor
 
-- ✅ **Aprendizaje Personalizado con IA**: Asistente virtual LIA que se adapta al contexto y necesidades de cada usuario
+- ✅ **Aprendizaje Personalizado con IA**: Asistente virtual SofLIA que se adapta al contexto y necesidades de cada usuario
 - ✅ **Gestión Empresarial Completa**: Sistema de jerarquías, equipos, analytics y reportes avanzados
 - ✅ **Planificación Inteligente**: Generación automática de planes de estudio con sincronización de calendarios
 - ✅ **White-Label**: Personalización completa de marca para organizaciones Enterprise
@@ -57,11 +57,11 @@
 
 ### Usuarios de la Plataforma
 
-| Rol                     | Descripción                                     | Acceso              |
-| ----------------------- | ----------------------------------------------- | ------------------- |
-| **Admin (Super Admin)** | Administrador de la plataforma Aprende y Aplica | `/admin/*`          |
-| **Business Admin**      | Administrador de una organización cliente       | `/business-panel/*` |
-| **Business User**       | Empleado de una organización cliente            | `/business-user/*`  |
+| Rol                     | Descripción                                    | Acceso              |
+| ----------------------- | ---------------------------------------------- | ------------------- |
+| **Admin (Super Admin)** | Administrador de la plataforma SofLIA Learning | `/admin/*`          |
+| **Business Admin**      | Administrador de una organización cliente      | `/business-panel/*` |
+| **Business User**       | Empleado de una organización cliente           | `/business-user/*`  |
 
 ---
 
@@ -69,11 +69,11 @@
 
 - [Modelo de Negocio B2B](#-modelo-de-negocio-b2b)
 - [Características Principales](#-características-principales)
-- [Asistente Virtual LIA](#-asistente-virtual-lia)
+- [Asistente Virtual SofLIA](#-asistente-virtual-soflia)
 - [Planificador de Estudios con IA](#-planificador-de-estudios-con-ia)
 - [Sistema de Jerarquías Organizacionales](#-sistema-de-jerarquías-organizacionales)
 - [Sistema de Chats Jerárquicos](#-sistema-de-chats-jerárquicos)
-- [Sistema de Diseño SOFIA](#-sistema-de-diseño-sofia)
+- [Sistema de Diseño SofLIA](#-sistema-de-diseño-soflia)
 - [Integración SCORM](#-integración-scorm)
 - [Arquitectura del Proyecto](#-arquitectura-del-proyecto)
 - [Estructura de la Plataforma](#-estructura-de-la-plataforma)
@@ -130,7 +130,7 @@
 - **Lecciones en Video**: Contenido multimedia con tracking automático
 - **Evaluaciones**: Quizzes y exámenes integrados
 - **Notas Personales**: Sistema de notas por lección
-- **Asistente LIA**: Chat con IA contextual durante el aprendizaje
+- **Asistente SofLIA**: Chat con IA contextual durante el aprendizaje
 
 ### 🛡️ Para Administradores de Plataforma (Admin)
 
@@ -159,7 +159,7 @@
 
 - **Dashboard de Estadísticas**: Métricas de plataforma
 - **Reportes**: Uso, crecimiento, engagement
-- **LIA Analytics**: Uso del asistente virtual, métricas de interacción
+- **SofLIA Analytics**: Uso del asistente virtual, métricas de interacción
 
 ### 🎓 Sistema de Certificados con Blockchain
 
@@ -170,9 +170,9 @@
 
 ---
 
-## 🤖 Asistente Virtual LIA
+## 🤖 Asistente Virtual SofLIA
 
-LIA (Learning Intelligence Assistant) es el asistente de IA integrado en toda la plataforma, potenciado por **OpenAI GPT-4o-mini**.
+SofLIA (Learning Intelligence Assistant) es el asistente de IA integrado en toda la plataforma, potenciado por **OpenAI GPT-4o-mini**.
 
 ### Características Principales
 
@@ -187,9 +187,9 @@ LIA (Learning Intelligence Assistant) es el asistente de IA integrado en toda la
 | **Renderizado de Enlaces** | Soporte para links markdown clickeables en respuestas              |
 | **Dark Mode Optimizado**   | Legibilidad perfecta en modo oscuro                                |
 
-### Contextos de LIA
+### Contextos de SofLIA
 
-LIA se adapta según el contexto del usuario:
+SofLIA se adapta según el contexto del usuario:
 
 ```
 📚 Curso/Lección     → Responde dudas sobre el contenido, explica conceptos
@@ -202,7 +202,7 @@ LIA se adapta según el contexto del usuario:
 ### Uso en el Código
 
 ```typescript
-// Hook principal para usar LIA
+// Hook principal para usar SofLIA
 import { useLIAChat } from "@/features/lia/hooks/useLIAChat";
 
 const { sendMessage, messages, isLoading } = useLIAChat({
@@ -215,14 +215,14 @@ const { sendMessage, messages, isLoading } = useLIAChat({
 
 ## 📅 Planificador de Estudios con IA
 
-Sistema inteligente de planificación de estudios que permite a los usuarios crear planes personalizados, sincronizar con calendarios externos y tener a LIA como asistente proactivo.
+Sistema inteligente de planificación de estudios que permite a los usuarios crear planes personalizados, sincronizar con calendarios externos y tener a SofLIA como asistente proactivo.
 
 ### Flujo Completo
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    1. CREACIÓN DEL PLAN                              │
-│  Usuario → Selecciona Curso → Configura Preferencias → LIA genera   │
+│  Usuario → Selecciona Curso → Configura Preferencias → SofLIA genera   │
 │  plan → Se guardan sesiones → Sync con calendario externo           │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
@@ -230,14 +230,14 @@ Sistema inteligente de planificación de estudios que permite a los usuarios cre
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    2. DASHBOARD                                      │
 │  - Vista calendario con sesiones programadas                         │
-│  - LIA analiza proactivamente: sesiones overdue, conflictos         │
+│  - SofLIA analiza proactivamente: sesiones overdue, conflictos         │
 │  - Usuario puede mover/eliminar/crear sesiones                       │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
                                     ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │                 3. EJECUCIÓN DE SESIÓN                               │
-│  Usuario → Entra al curso → Tracking inicia → Video + LIA →         │
+│  Usuario → Entra al curso → Tracking inicia → Video + SofLIA →      │
 │  Tracking eventos → Completar (quiz/inactividad/manual)             │
 └─────────────────────────────────────────────────────────────────────┘
                                     │
@@ -264,18 +264,18 @@ El usuario define:
 
 El sistema registra automáticamente:
 
-| Evento           | Trigger                    | Acción                     |
-| ---------------- | -------------------------- | -------------------------- |
-| `video_play`     | Usuario reproduce video    | Inicia tracking            |
-| `video_ended`    | Video termina              | Registra evento            |
-| `lia_message`    | Usuario interactúa con LIA | Extiende actividad         |
-| `activity`       | Scroll, clic, etc.         | Actualiza última actividad |
-| `quiz_submitted` | Quiz completado            | Auto-completa lección      |
-| `inactivity_5m`  | 5 min sin actividad        | Auto-completa lección      |
+| Evento           | Trigger                       | Acción                     |
+| ---------------- | ----------------------------- | -------------------------- |
+| `video_play`     | Usuario reproduce video       | Inicia tracking            |
+| `video_ended`    | Video termina                 | Registra evento            |
+| `lia_message`    | Usuario interactúa con SofLIA | Extiende actividad         |
+| `activity`       | Scroll, clic, etc.            | Actualiza última actividad |
+| `quiz_submitted` | Quiz completado               | Auto-completa lección      |
+| `inactivity_5m`  | 5 min sin actividad           | Auto-completa lección      |
 
-### Acciones de LIA en el Study Planner
+### Acciones de SofLIA en el Study Planner
 
-LIA puede ejecutar las siguientes acciones de forma proactiva:
+SofLIA puede ejecutar las siguientes acciones de forma proactiva:
 
 ```typescript
 // Acciones disponibles
@@ -301,7 +301,7 @@ LIA puede ejecutar las siguientes acciones de forma proactiva:
 
 Integración con Google Calendar y Microsoft Outlook:
 
-- Creación automática de eventos en calendario secundario "Aprende y Aplica"
+- Creación automática de eventos en calendario secundario "SofLIA Learning"
 - Sincronización bidireccional de cambios
 - Detección de conflictos con otros eventos
 
@@ -323,14 +323,14 @@ Organización (organization)
 
 ### Roles y Permisos
 
-| Rol                | Scope        | Descripción                                    | Acceso                              |
-| ------------------ | ------------ | ---------------------------------------------- | ----------------------------------- |
-| `owner`            | organization | Propietario, control total sin restricciones  | Toda la organización                |
-| `admin`            | organization | Administrador genérico, ámbito según asignación | Toda la organización                |
-| `regional_manager` | region       | Gerente Regional                                | Solo su región y sub-entidades      |
-| `zone_manager`     | zone         | Gerente de Zona                                | Solo su zona y equipos dentro       |
-| `team_leader`      | team         | Líder de Equipo                                | Solo su equipo                      |
-| `member`           | team         | Miembro básico                                 | Solo su equipo (vista limitada)     |
+| Rol                | Scope        | Descripción                                     | Acceso                          |
+| ------------------ | ------------ | ----------------------------------------------- | ------------------------------- |
+| `owner`            | organization | Propietario, control total sin restricciones    | Toda la organización            |
+| `admin`            | organization | Administrador genérico, ámbito según asignación | Toda la organización            |
+| `regional_manager` | region       | Gerente Regional                                | Solo su región y sub-entidades  |
+| `zone_manager`     | zone         | Gerente de Zona                                 | Solo su zona y equipos dentro   |
+| `team_leader`      | team         | Líder de Equipo                                 | Solo su equipo                  |
+| `member`           | team         | Miembro básico                                  | Solo su equipo (vista limitada) |
 
 ### Características
 
@@ -345,7 +345,7 @@ Organización (organization)
 
 ```sql
 -- Activar jerarquía para una organización
-UPDATE organizations 
+UPDATE organizations
 SET hierarchy_enabled = true,
     hierarchy_config = '{"labels": {"region": "Sucursal", "zone": "Área"}}'::jsonb
 WHERE id = 'org-uuid';
@@ -371,10 +371,12 @@ Sistema de comunicación interna que permite chats **horizontales** (mismo nivel
 ### Tipos de Chat
 
 #### Chats Horizontales
+
 - Comunicación entre miembros del mismo nivel (todos los equipos de una zona, todas las zonas de una región)
 - Útiles para coordinación y colaboración entre pares
 
 #### Chats Verticales
+
 - Comunicación jerárquica (gerente con subordinados)
 - Permite comunicación directa entre niveles de la jerarquía
 
@@ -384,10 +386,10 @@ Sistema de comunicación interna que permite chats **horizontales** (mismo nivel
 interface HierarchyChat {
   id: string;
   organization_id: string;
-  chat_type: 'horizontal' | 'vertical';
-  entity_type: 'region' | 'zone' | 'team';
+  chat_type: "horizontal" | "vertical";
+  entity_type: "region" | "zone" | "team";
   entity_id: string;
-  level_role?: 'regional_manager' | 'zone_manager' | 'team_leader';
+  level_role?: "regional_manager" | "zone_manager" | "team_leader";
   name?: string;
   description?: string;
   is_active: boolean;
@@ -406,6 +408,7 @@ interface HierarchyChat {
 ### Storage Bucket
 
 El bucket `hierarchy-chats` almacena:
+
 - Imágenes: JPEG, PNG, WebP, GIF, SVG
 - Documentos: PDF, Word, Excel, PowerPoint
 - Videos: MP4, WebM, OGG
@@ -447,9 +450,9 @@ const scormData = await parseSCORMPackage(file);
 
 ---
 
-## 🎨 Sistema de Diseño SOFIA
+## 🎨 Sistema de Diseño SofLIA
 
-**SOFIA** (Sistema Original de Funcionalidad e Interfaz Avanzada) es el sistema de diseño de la plataforma.
+**SofLIA** (Sistema Original de Funcionalidad e Interfaz Avanzada) es el sistema de diseño de la plataforma.
 
 ### Principios de Diseño
 
@@ -512,7 +515,7 @@ const { theme, toggleTheme } = useTheme();
 ├── /apps                    # Directorio de apps IA
 ├── /news                    # Gestión de noticias
 ├── /statistics              # Estadísticas de plataforma
-├── /lia-analytics           # Analytics del asistente LIA
+├── /lia-analytics           # Analytics del asistente SofLIA
 └── /reportes                # Sistema de reportes
 
 📁 /business-panel           # Panel Admin de Organización
@@ -548,7 +551,7 @@ const { theme, toggleTheme } = useTheme();
 📁 /account-settings         # Configuración de cuenta
 📁 /questionnaire            # Cuestionario inicial
 📁 /welcome                  # Página de bienvenida
-📁 /conocer-lia              # Presentación de LIA
+📁 /conocer-lia              # Presentación de SofLIA
 ```
 
 ---
@@ -593,7 +596,7 @@ const { theme, toggleTheme } = useTheme();
 ## 📁 Estructura del Monorepo
 
 ```
-Aprende-y-Aplica/
+SofLIA-Learning/
 ├── apps/
 │   ├── web/                          # Frontend (Next.js)
 │   │   └── src/
@@ -627,7 +630,7 @@ Aprende-y-Aplica/
 │   │       ├── lib/                  # Infraestructura y utilidades
 │   │       │   ├── supabase/         # Cliente Supabase y types
 │   │       │   ├── openai/           # Cliente OpenAI
-│   │       │   ├── lia/              # Configuración de LIA
+│   │       │   ├── lia/              # Configuración de SofLIA
 │   │       │   ├── scorm/            # Utilidades SCORM
 │   │       │   ├── oauth/            # Configuración OAuth
 │   │       │   ├── schemas/          # Esquemas de validación Zod
@@ -682,14 +685,14 @@ shared/    → No importa de ningún lado (infraestructura pura)
 - **Node.js**: >= 22.0.0
 - **npm**: >= 10.5.1
 - **Cuenta Supabase**: Para base de datos y autenticación
-- **OpenAI API Key**: Para el asistente LIA
+- **OpenAI API Key**: Para el asistente SofLIA
 
 ### Pasos de Instalación
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-repo/aprende-y-aplica.git
-cd Aprende-y-Aplica
+git clone https://github.com/tu-repo/soflia-learning.git
+cd SofLIA-Learning
 
 # 2. Instalar dependencias
 npm install
@@ -714,7 +717,7 @@ NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
 NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
 SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
 
-# OpenAI (para LIA)
+# OpenAI (para SofLIA)
 OPENAI_API_KEY=tu_openai_api_key
 CHATBOT_MODEL=gpt-4o-mini
 CHATBOT_MAX_TOKENS=700
@@ -806,14 +809,14 @@ POST   /api/study-planner/lesson-tracking/start    # Iniciar tracking
 POST   /api/study-planner/lesson-tracking/event    # Registrar evento
 POST   /api/study-planner/lesson-tracking/complete # Completar lección
 
-# Chat con LIA
+# Chat con SofLIA
 POST   /api/study-planner/dashboard/chat # Chat contextual
 ```
 
-### Asistente LIA
+### Asistente SofLIA
 
 ```
-POST   /api/ai-chat                     # Chat con LIA
+POST   /api/ai-chat                     # Chat con SofLIA
 POST   /api/ai-directory/generate-prompt # Generar prompt
 POST   /api/lia/context-help            # Ayuda contextual
 ```
@@ -883,7 +886,7 @@ function LanguageSelector() {
 }
 ```
 
-> **Nota**: LIA detecta automáticamente el idioma del usuario y responde en ese idioma.
+> **Nota**: SofLIA detecta automáticamente el idioma del usuario y responde en ese idioma.
 
 ---
 
@@ -942,10 +945,10 @@ El proyecto incluye documentación en el directorio `docs/`:
 | Documento                     | Descripción                                        |
 | ----------------------------- | -------------------------------------------------- |
 | `SOFIA_DESIGN_SYSTEM.md`      | Sistema de diseño SOFIA con patrones y componentes |
-| `AGENTES_LIA.md`              | Documentación de los agentes de LIA                |
+| `AGENTES_LIA.md`              | Documentación de los agentes de SofLIA             |
 | `SCORM-IMPLEMENTACION.md`     | Guía de implementación SCORM                       |
 | `STUDY-PLANNER-FLOW.md`       | Flujo completo del planificador de estudios        |
-| `LIA_ANALYTICS_PANEL.md`      | Documentación del panel de analytics de LIA        |
+| `LIA_ANALYTICS_PANEL.md`      | Documentación del panel de analytics de SofLIA     |
 | `GUIA-RAPIDA-TRADUCCIONES.md` | Guía rápida de internacionalización                |
 | `BUGS-SISTEMA.md`             | Bugs conocidos y soluciones del sistema            |
 
@@ -955,77 +958,77 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 ### Tablas de Usuarios y Organizaciones
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `usuarios`                 | Perfiles de usuario (auth linking)                 |
-| `organizations`            | Organizaciones/empresas con branding               |
-| `organization_users`       | Relación usuarios-organizaciones (multi-org)       |
-| `organization_invitations` | Invitaciones pendientes a organizaciones           |
+| Tabla                      | Descripción                                  |
+| -------------------------- | -------------------------------------------- |
+| `usuarios`                 | Perfiles de usuario (auth linking)           |
+| `organizations`            | Organizaciones/empresas con branding         |
+| `organization_users`       | Relación usuarios-organizaciones (multi-org) |
+| `organization_invitations` | Invitaciones pendientes a organizaciones     |
 
 ### Tablas de Jerarquía (Opcional)
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `organization_regions`     | Regiones de la organización (nivel 1)              |
-| `organization_zones`       | Zonas dentro de regiones (nivel 2)                  |
-| `organization_teams`       | Equipos dentro de zonas (nivel 3)                  |
-| `hierarchy_chats`          | Chats jerárquicos (horizontales y verticales)       |
-| `hierarchy_chat_messages`  | Mensajes de chats jerárquicos                      |
+| Tabla                     | Descripción                                   |
+| ------------------------- | --------------------------------------------- |
+| `organization_regions`    | Regiones de la organización (nivel 1)         |
+| `organization_zones`      | Zonas dentro de regiones (nivel 2)            |
+| `organization_teams`      | Equipos dentro de zonas (nivel 3)             |
+| `hierarchy_chats`         | Chats jerárquicos (horizontales y verticales) |
+| `hierarchy_chat_messages` | Mensajes de chats jerárquicos                 |
 
 ### Tablas de Cursos y Aprendizaje
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `cursos`                   | Catálogo de cursos con módulos y lecciones         |
-| `modulos`                  | Módulos dentro de cursos                           |
-| `lecciones`                | Lecciones individuales con videos y actividades    |
-| `actividades`              | Actividades interactivas por lección               |
-| `user_lesson_progress`     | Progreso por lección                               |
-| `lesson_tracking`          | Tracking en tiempo real de lección activa          |
+| Tabla                  | Descripción                                     |
+| ---------------------- | ----------------------------------------------- |
+| `cursos`               | Catálogo de cursos con módulos y lecciones      |
+| `modulos`              | Módulos dentro de cursos                        |
+| `lecciones`            | Lecciones individuales con videos y actividades |
+| `actividades`          | Actividades interactivas por lección            |
+| `user_lesson_progress` | Progreso por lección                            |
+| `lesson_tracking`      | Tracking en tiempo real de lección activa       |
 
 ### Tablas de Planificación de Estudios
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `study_plans`              | Planes de estudio creados con IA                   |
-| `study_sessions`           | Sesiones individuales programadas                  |
-| `study_preferences`        | Preferencias de estudio del usuario                |
-| `calendar_integrations`    | Conexión con Google/Microsoft Calendar             |
+| Tabla                   | Descripción                            |
+| ----------------------- | -------------------------------------- |
+| `study_plans`           | Planes de estudio creados con IA       |
+| `study_sessions`        | Sesiones individuales programadas      |
+| `study_preferences`     | Preferencias de estudio del usuario    |
+| `calendar_integrations` | Conexión con Google/Microsoft Calendar |
 
-### Tablas de LIA (Asistente Virtual)
+### Tablas de SofLIA (Asistente Virtual)
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `lia_conversations`        | Historial de conversaciones con LIA                |
-| `lia_messages`             | Mensajes individuales de cada conversación con LIA |
-| `lia_personalization`      | Configuración personalizada de LIA por usuario     |
+| Tabla                 | Descripción                                           |
+| --------------------- | ----------------------------------------------------- |
+| `lia_conversations`   | Historial de conversaciones con SofLIA                |
+| `lia_messages`        | Mensajes individuales de cada conversación con SofLIA |
+| `lia_personalization` | Configuración personalizada de SofLIA por usuario     |
 
 ### Tablas de Certificados y Habilidades
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `certificates`             | Certificados generados con hash blockchain         |
-| `skills`                   | Catálogo de habilidades                            |
-| `user_skills`              | Habilidades adquiridas por usuario                 |
+| Tabla          | Descripción                                |
+| -------------- | ------------------------------------------ |
+| `certificates` | Certificados generados con hash blockchain |
+| `skills`       | Catálogo de habilidades                    |
+| `user_skills`  | Habilidades adquiridas por usuario         |
 
 ### Tablas de Comunidad y Contenido
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `comunidades`              | Comunidades de aprendizaje                         |
-| `comunidad_posts`          | Posts en comunidades                               |
-| `comunidad_comentarios`    | Comentarios en posts                               |
-| `news`                     | Artículos y noticias                               |
-| `reels`                    | Contenido de video corto                          |
-| `workshops`                | Talleres y eventos en vivo                         |
+| Tabla                   | Descripción                |
+| ----------------------- | -------------------------- |
+| `comunidades`           | Comunidades de aprendizaje |
+| `comunidad_posts`       | Posts en comunidades       |
+| `comunidad_comentarios` | Comentarios en posts       |
+| `news`                  | Artículos y noticias       |
+| `reels`                 | Contenido de video corto   |
+| `workshops`             | Talleres y eventos en vivo |
 
 ### Tablas de Directorio de IA
 
-| Tabla                      | Descripción                                        |
-| -------------------------- | -------------------------------------------------- |
-| `ai_apps`                  | Aplicaciones de IA catalogadas                     |
-| `ai_prompts`               | Prompts de IA reutilizables                        |
-| `prompt_favorites`         | Prompts favoritos de usuarios                      |
+| Tabla              | Descripción                    |
+| ------------------ | ------------------------------ |
+| `ai_apps`          | Aplicaciones de IA catalogadas |
+| `ai_prompts`       | Prompts de IA reutilizables    |
+| `prompt_favorites` | Prompts favoritos de usuarios  |
 
 ---
 
@@ -1033,12 +1036,12 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 ### Enero 2026 (v2.2.0)
 
-#### 🤖 LIA - Nuevas Funcionalidades
+#### 🤖 SofLIA - Nuevas Funcionalidades
 
-- ✅ **Historial de Conversaciones**: Persistencia de conversaciones de LIA con capacidad de cargar chats anteriores
+- ✅ **Historial de Conversaciones**: Persistencia de conversaciones de SofLIA con capacidad de cargar chats anteriores
 - ✅ **Edición de Títulos**: Los usuarios pueden renombrar sus conversaciones pasadas
 - ✅ **Contexto Separado**: Historial independiente por contexto (general, Study Planner, curso)
-- ✅ **Visibilidad de Enlaces en Dark Mode**: Links de redirección de LIA ahora son claramente legibles en modo oscuro
+- ✅ **Visibilidad de Enlaces en Dark Mode**: Links de redirección de SofLIA ahora son claramente legibles en modo oscuro
 
 #### 🏢 Panel de Administración Mejorado
 
@@ -1047,7 +1050,7 @@ El proyecto incluye documentación en el directorio `docs/`:
   - Panel derecho con inputs premium y formularios organizados
   - Navegación integrada con tabs especializados
 - ✅ **Gestión de Empresas**: Limpieza completa del modal de creación de organizaciones
-- ✅ **LIA Analytics Panel**: Métricas de uso del asistente virtual con widgets especializados
+- ✅ **SofLIA Analytics Panel**: Métricas de uso del asistente virtual con widgets especializados
 
 #### 🔐 Autenticación y Usuarios
 
@@ -1073,8 +1076,8 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 #### 📱 Responsividad y UI
 
-- ✅ **LIA Side Panel**: Panel lateral totalmente responsive en diferentes tamaños de pantalla
-- ✅ **Course Detail Page**: Corrección de layout cuando el panel de LIA está abierto
+- ✅ **SofLIA Side Panel**: Panel lateral totalmente responsive en diferentes tamaños de pantalla
+- ✅ **Course Detail Page**: Corrección de layout cuando el panel de SofLIA está abierto
 - ✅ **Tabs de Navegación**: Adaptación correcta de elementos en modo responsive
 - ✅ **Course Cards**: Prevención de overflow de contenido en pantallas pequeñas
 - ✅ **Botones SOFIA**: Corrección de colores de botones primarios (fondo azul, texto blanco)
@@ -1116,7 +1119,7 @@ El proyecto incluye documentación en el directorio `docs/`:
 - ✅ Rebalanceo automático de planes
 - ✅ Cron job para cerrar sesiones inactivas
 
-#### 🤖 LIA Mejorada
+#### 🤖 SofLIA Mejorada
 
 - ✅ Soporte multilingüe (ES, EN, PT) con detección automática
 - ✅ Tono profesional sin emojis
@@ -1183,6 +1186,7 @@ El proyecto incluye documentación en el directorio `docs/`:
 ### Arquitectura del Proyecto
 
 #### Frontend (apps/web)
+
 - **Framework**: Next.js 14.2.15 con App Router
 - **Componentes**: React 18.3.1 con TypeScript estricto
 - **Estado Global**: Zustand 5.0.2
@@ -1191,13 +1195,15 @@ El proyecto incluye documentación en el directorio `docs/`:
 - **Visualización**: Nivo Charts, Recharts, Tremor
 
 #### Backend (apps/api)
+
 - **Framework**: Express 4.18.2 con TypeScript
 - **Base de Datos**: Supabase (PostgreSQL)
 - **Autenticación**: Supabase Auth + JWT
 - **Seguridad**: Helmet, CORS, Rate Limiting
 
 #### Integraciones
-- **IA**: OpenAI GPT-4o-mini (LIA)
+
+- **IA**: OpenAI GPT-4o-mini (SofLIA)
 - **Calendarios**: Google Calendar, Microsoft Outlook
 - **Storage**: Supabase Storage (buckets para archivos)
 - **Session Recording**: rrweb para análisis de UX
@@ -1218,6 +1224,7 @@ El proyecto incluye documentación en el directorio `docs/`:
 ### Funcionalidades Clave
 
 #### 🎓 Sistema de Aprendizaje
+
 - Cursos estructurados con módulos y lecciones
 - Videos con tracking automático de progreso
 - Actividades interactivas y quizzes
@@ -1225,13 +1232,15 @@ El proyecto incluye documentación en el directorio `docs/`:
 - Certificados verificables con blockchain
 
 #### 🤖 Inteligencia Artificial
-- Asistente LIA contextual en toda la plataforma
+
+- Asistente SofLIA contextual en toda la plataforma
 - Planificación de estudios con IA
 - Generación automática de planes personalizados
 - Detección proactiva de problemas
 - Análisis de progreso y recomendaciones
 
 #### 🏢 Gestión Empresarial
+
 - Sistema de jerarquías (Región > Zona > Equipo)
 - Chats jerárquicos (horizontales y verticales)
 - Branding personalizado (white-label)
@@ -1239,9 +1248,10 @@ El proyecto incluye documentación en el directorio `docs/`:
 - Gestión de equipos y asignaciones
 
 #### 📊 Analytics y Reportes
+
 - Dashboard empresarial con KPIs
 - Reportes de progreso por equipo/usuario
-- Analytics de uso de LIA
+- Analytics de uso de SofLIA
 - Estadísticas de completado de cursos
 - Métricas de engagement
 
@@ -1289,4 +1299,4 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 **Última actualización**: 10 de Enero 2026  
 **Versión**: 2.2.1 (B2B)  
-**Mantenedores**: Equipo Aprende y Aplica
+**Mantenedores**: Equipo SofLIA Learning

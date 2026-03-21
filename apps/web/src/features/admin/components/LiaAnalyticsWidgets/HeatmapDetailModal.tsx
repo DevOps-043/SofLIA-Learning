@@ -152,7 +152,7 @@ export function HeatmapDetailModal({ isOpen, onClose, dayOfWeek, hour, period }:
                         {data?.slot.dayName} a las {data?.slot.hourFormatted}
                       </DialogTitle>
                       <p className="text-emerald-100 text-sm mt-1">
-                        Detalle de actividad de LIA
+                        Detalle de actividad de SofLIA
                       </p>
                     </div>
                     <button

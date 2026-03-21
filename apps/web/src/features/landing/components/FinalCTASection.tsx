@@ -97,7 +97,7 @@ export function FinalCTASection() {
             </h2>
 
             <p className="text-lg lg:text-xl text-white/60 max-w-2xl mx-auto">
-              {t('landing.cta.subtitle', 'Agenda una demo ejecutiva y descubre cómo SOFLIA puede impulsar el desarrollo de tu equipo con resultados medibles.')}
+              {t('landing.cta.subtitle', 'Agenda una demo ejecutiva y descubre cómo SofLIA puede impulsar el desarrollo de tu equipo con resultados medibles.')}
             </p>
           </motion.div>
 

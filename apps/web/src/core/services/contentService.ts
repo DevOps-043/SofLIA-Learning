@@ -3,8 +3,8 @@ import { LandingPageContent, BusinessPageContent } from '@aprende-y-aplica/share
 // Mock data - En el futuro esto vendrá de una API
 const mockLandingPageContent: LandingPageContent = {
   hero: {
-    tag: "âž¤ SOFLIA",
-    title: "SOFLIA: Domina la IA que transformará tu",
+    tag: "➤ SofLIA",
+    title: "SofLIA: Domina la IA que transformará tu",
     highlightWord: "futuro",
     description: "Conviértete en experto aplicado: fundamentos claros, herramientas que importan, y hábitos de aprendizaje continuo para destacar en la era de la inteligencia artificial.",
     ctaText: "Iniciar Sesión",
@@ -84,7 +84,7 @@ const mockLandingPageContent: LandingPageContent = {
 // Mock data para Business Page
 const mockBusinessPageContent: BusinessPageContent = {
   hero: {
-    tag: "🚀 SOFLIA Business",
+    tag: "🚀 SofLIA Business",
     title: "Soluciones IA para",
     highlightWord: "tu organización",
     description: "Ya seas una empresa buscando capacitar a tu equipo o un instructor profesional, tenemos la plataforma perfecta para ti.",
@@ -489,7 +489,7 @@ const mockBusinessPageContent: BusinessPageContent = {
     testimonials: [
       {
         id: "company-testimonial-1",
-        quote: "Implementar Aprende y Aplica Business ha sido una de las mejores decisiones. Nuestro equipo ahora domina las herramientas de IA más relevantes.",
+        quote: "Implementar SofLIA Business ha sido una de las mejores decisiones. Nuestro equipo ahora domina las herramientas de IA más relevantes.",
         author: "Roberto Silva",
         role: "CTO, TechSolutions Inc."
       },
@@ -508,7 +508,7 @@ const mockBusinessPageContent: BusinessPageContent = {
     ],
     faq: {
       title: "Preguntas Frecuentes - Empresas",
-      subtitle: "Todo lo que necesitas saber sobre Aprende y Aplica Business",
+      subtitle: "Todo lo que necesitas saber sobre SofLIA Business",
       items: [
         {
           question: "¿Cómo funciona la facturación?",
@@ -601,7 +601,7 @@ const mockBusinessPageContent: BusinessPageContent = {
     testimonials: [
       {
         id: "instructor-testimonial-1",
-        quote: "Gracias a Aprende y Aplica Business he podido monetizar mi experiencia de 15 años en Machine Learning. La plataforma es intuitiva y el soporte excepcional.",
+        quote: "Gracias a SofLIA Business he podido monetizar mi experiencia de 15 años en Machine Learning. La plataforma es intuitiva y el soporte excepcional.",
         author: "Dr. Laura Martínez",
         role: "Instructor desde 2022"
       },

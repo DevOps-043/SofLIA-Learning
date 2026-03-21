@@ -66,7 +66,9 @@ export async function GET(
       materialsResult,
       materialQuizzesResult,
       activityQuizzesResult,
-      enrollmentResult
+      enrollmentResult,
+      liaCompletionsResult,
+      quizSubmissionsResult
     ] = await Promise.all([
       // Actividades
       supabase
@@ -105,6 +107,24 @@ export async function GET(
             .eq('user_id', currentUser.id)
             .eq('course_id', course.id)
             .single()
+        : Promise.resolve({ data: null, error: null }),
+
+      // Completaciones de actividades LIA (para determinar is_completed por actividad)
+      currentUser
+        ? supabase
+            .from('lia_activity_completions')
+            .select('activity_id, status')
+            .eq('user_id', currentUser.id)
+            .eq('status', 'completed')
+        : Promise.resolve({ data: null, error: null }),
+
+      // Submissions de quizzes (para determinar is_completed en actividades tipo quiz)
+      currentUser
+        ? supabase
+            .from('user_quiz_submissions')
+            .select('activity_id, is_passed')
+            .eq('user_id', currentUser.id)
+            .eq('lesson_id', lessonId)
         : Promise.resolve({ data: null, error: null })
     ]);
 
@@ -125,8 +145,29 @@ export async function GET(
       );
     }
 
-    const activities = activitiesResult.data || [];
+    const rawActivities = activitiesResult.data || [];
     const materials = materialsResult.data || [];
+
+    // Paso 2.5: Enriquecer actividades con estado de completación del usuario
+    const activityIds = rawActivities.map((a: any) => a.activity_id);
+    const liaCompletions = (liaCompletionsResult.data || [])
+      .filter((c: any) => activityIds.includes(c.activity_id));
+    const quizSubmissions = (quizSubmissionsResult.data || [])
+      .filter((s: any) => activityIds.includes(s.activity_id));
+
+    const completedActivityIds = new Set<string>([
+      ...liaCompletions
+        .filter((c: any) => c.status === 'completed')
+        .map((c: any) => c.activity_id),
+      ...quizSubmissions
+        .filter((s: any) => s.is_passed && s.activity_id)
+        .map((s: any) => s.activity_id),
+    ]);
+
+    const activities = rawActivities.map((a: any) => ({
+      ...a,
+      is_completed: completedActivityIds.has(a.activity_id),
+    }));
 
     // Paso 3: Procesar quiz status (solo si hay usuario autenticado)
     let quizStatus = {
@@ -213,10 +254,10 @@ export async function GET(
       quizStatus,
     };
 
-    // ⚡ OPTIMIZACIÓN: Cache headers (1 hora para datos estáticos)
+    // Cache dinámico: contiene datos de completación específicos del usuario
     return withCacheHeaders(
       NextResponse.json(response),
-      cacheHeaders.static
+      cacheHeaders.dynamic
     );
   } catch (error) {
     console.error('Error in sidebar-data API:', error);

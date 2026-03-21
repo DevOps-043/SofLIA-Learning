@@ -84,7 +84,7 @@ export default function WelcomeClient() {
             </motion.div>
             
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              ¡Bienvenido a Aprende y Aplica!
+              ¡Bienvenido a SofLIA!
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300">
               Estamos emocionados de tenerte aquí

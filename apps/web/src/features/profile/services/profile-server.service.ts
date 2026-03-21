@@ -76,10 +76,10 @@ export class ProfileServerService {
         cargo_rol: data.cargo_rol || '',
         type_rol: data.type_rol || '',
         profile_picture_url: data.profile_picture_url || '',
-        curriculum_url: data.curriculum_url || '',
-        linkedin_url: data.linkedin_url || '',
-        github_url: data.github_url || '',
-        website_url: data.website_url || '',
+        curriculum_url: '', // Removed from schema
+        linkedin_url: '', // Removed from schema
+        github_url: '', // Removed from schema
+        website_url: '', // Removed from schema
         country_code: data.country_code || '',
         points: data.points || 0,
         created_at: data.created_at,
@@ -107,8 +107,9 @@ export class ProfileServerService {
       const allowedFields: (keyof UpdateProfileRequest)[] = [
         'username', 'first_name', 'last_name', 'display_name',
         'phone', 'bio', 'location', 'cargo_rol', 'type_rol',
-        'profile_picture_url', 'curriculum_url', 'linkedin_url',
-        'github_url', 'website_url', 'country_code'
+        'profile_picture_url', 'country_code'
+        // Nota: 'curriculum_url', 'linkedin_url', 'github_url', 'website_url' 
+        // fueron removidos de la tabla `users` en la nueva optimización.
         // Nota: 'email' se excluye por defecto aquí ya que el cambio de email 
         // suele requerir confirmación o flujo de auth. Si se desea permitir, agregarlo.
         // Por seguridad, evitamos actualizar 'email' directamente en la tabla users
@@ -142,18 +143,18 @@ export class ProfileServerService {
         .single()
 
       if (error) {
-        // console.error('Error updating profile:', error)
         throw new Error(`Error al actualizar perfil: ${error.message}`)
       }
 
       if (!data) {
+        console.error('--- Supabase Update No Data ---')
         throw new Error('Error al actualizar perfil')
       }
 
       // Crear notificación de actualización de perfil
       // Solo incluir campos que realmente cambiaron (comparar valores anteriores vs nuevos)
       try {
-        const { AutoNotificationsService } = await import('@/features/notifications/services/auto-notifications.service')
+        const { AutoNotificationsService } = await import('../../notifications/services/auto-notifications.service')
 
         // Comparar valores anteriores vs nuevos para detectar cambios reales
         const actualChanges: string[] = []

@@ -4,7 +4,7 @@
  * useErrorCapture
  * 
  * Hook para capturar errores de consola y excepciones no manejadas.
- * Proporciona información útil para LIA cuando el usuario reporta bugs.
+ * Proporciona información útil para SofLIA cuando el usuario reporta bugs.
  * 
  * Características:
  * - Intercepta console.error
@@ -263,7 +263,7 @@ export function useErrorCapture(options: UseErrorCaptureOptions = {}) {
     clearErrors,
     /** Obtiene un resumen de errores */
     getErrorSummary,
-    /** Obtiene errores en formato para LIA */
+    /** Obtiene errores en formato para SofLIA */
     getErrorsForLia,
     /** Agrega un error manualmente */
     addError,

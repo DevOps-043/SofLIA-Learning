@@ -64,6 +64,10 @@
 [functions."process-inactive-lessons"]
   schedule = "*/5 * * * *"
 
+# Función programada: Procesar cursos del inbox de CourseEngine cada 5 minutos
+[functions."process-inbox"]
+  schedule = "*/5 * * * *"
+
 # Configuración específica para diferentes contextos (opcional)
 # Si no se especifica, se usa el comando de [build]
 [context.production]

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { logger } from '@/lib/logger'
-import { SessionService } from '@/features/auth/services/session.service'
+import { createClient } from '../../../../../lib/supabase/server'
+import { logger } from '../../../../../lib/logger'
+import { SessionService } from '../../../../../features/auth/services/session.service'
 
 /**
  * Función helper para detectar si un string es UUID
@@ -267,7 +267,7 @@ export async function POST(
 
     // Verificar permisos: instructor del curso o admin
     const isInstructor = course.instructor_id === currentUser.id
-    const isAdmin = userData.cargo_rol === 'Administrador'
+    const isAdmin = userData.cargo_rol?.toLowerCase().trim() === 'administrador'
 
     if (!isInstructor && !isAdmin) {
       return NextResponse.json({

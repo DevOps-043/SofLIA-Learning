@@ -10,10 +10,9 @@ export const CreateUserSchema = z.object({
     .trim()
     .toLowerCase(),
   
-  name: z.string()
-    .min(2, 'El nombre debe tener al menos 2 caracteres')
-    .max(100, 'El nombre no puede exceder 100 caracteres')
-    .trim(),
+  first_name: z.string().optional().nullable(),
+  last_name: z.string().optional().nullable(),
+  display_name: z.string().optional().nullable(),
   
   username: z.string()
     .min(3, 'El username debe tener al menos 3 caracteres')
@@ -22,27 +21,28 @@ export const CreateUserSchema = z.object({
     .trim(),
   
   password: z.string()
-    .min(8, 'La contraseña debe tener al menos 8 caracteres')
-    .max(100, 'La contraseña no puede exceder 100 caracteres')
-    .regex(/[A-Z]/, 'La contraseña debe contener al menos una letra mayúscula')
-    .regex(/[a-z]/, 'La contraseña debe contener al menos una letra minúscula')
-    .regex(/[0-9]/, 'La contraseña debe contener al menos un número'),
+    .min(6, 'La contraseña debe tener al menos 6 caracteres')
+    .max(100, 'La contraseña no puede exceder 100 caracteres'),
   
-  role: z.enum(['Usuario', 'Instructor', 'Administrador'], {
-    errorMap: () => ({ message: 'Rol inválido. Debe ser: Usuario, Instructor o Administrador' })
-  })
-    .default('Usuario'),
+  cargo_rol: z.enum(['Usuario', 'Instructor', 'Administrador', 'Business', 'Business User'], {
+    errorMap: () => ({ message: 'Rol inválido. Debe ser: Usuario, Instructor, Administrador, Business o Business User' })
+  }).default('Usuario'),
+  
+  type_rol: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  country_code: z.string().optional().nullable(),
   
   bio: z.string()
     .max(500, 'La biografía no puede exceder 500 caracteres')
     .optional()
     .nullable(),
   
-  avatar_url: z.string()
-    .url('URL de avatar inválida')
+  profile_picture_url: z.string()
     .max(500, 'La URL del avatar no puede exceder 500 caracteres')
     .optional()
-    .nullable(),
+    .nullable()
+    .or(z.literal('')),
 });
 
 /**
@@ -56,11 +56,9 @@ export const UpdateUserSchema = z.object({
     .toLowerCase()
     .optional(),
   
-  name: z.string()
-    .min(2, 'El nombre debe tener al menos 2 caracteres')
-    .max(100, 'El nombre no puede exceder 100 caracteres')
-    .trim()
-    .optional(),
+  first_name: z.string().optional().nullable(),
+  last_name: z.string().optional().nullable(),
+  display_name: z.string().optional().nullable(),
   
   username: z.string()
     .min(3, 'El username debe tener al menos 3 caracteres')
@@ -69,21 +67,26 @@ export const UpdateUserSchema = z.object({
     .trim()
     .optional(),
   
-  role: z.enum(['Usuario', 'Instructor', 'Administrador'], {
-    errorMap: () => ({ message: 'Rol inválido. Debe ser: Usuario, Instructor o Administrador' })
-  })
-    .optional(),
+  cargo_rol: z.enum(['Usuario', 'Instructor', 'Administrador', 'Business', 'Business User'], {
+    errorMap: () => ({ message: 'Rol inválido. Debe ser: Usuario, Instructor, Administrador, Business o Business User' })
+  }).optional(),
+  
+  type_rol: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  location: z.string().optional().nullable(),
+  country_code: z.string().optional().nullable(),
+  email_verified: z.boolean().optional(),
   
   bio: z.string()
     .max(500, 'La biografía no puede exceder 500 caracteres')
     .optional()
     .nullable(),
   
-  avatar_url: z.string()
-    .url('URL de avatar inválida')
+  profile_picture_url: z.string()
     .max(500, 'La URL del avatar no puede exceder 500 caracteres')
     .optional()
-    .nullable(),
+    .nullable()
+    .or(z.literal('')),
   
   is_active: z.boolean()
     .optional(),

@@ -22,6 +22,7 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import { MapPinIcon as MapPinIconSolid } from '@heroicons/react/24/solid'
+import { useTranslation } from 'react-i18next'
 
 interface InstructorSidebarProps {
   isOpen: boolean
@@ -34,17 +35,17 @@ interface InstructorSidebarProps {
   onTogglePin: () => void
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/instructor/dashboard', icon: HomeIcon },
-  { name: 'Talleres', href: '/instructor/workshops', icon: BookOpenIcon },
-  { name: 'Comunidades', href: '/instructor/communities', icon: UserGroupIcon },
-  { name: 'Apps de IA', href: '/instructor/apps', icon: CpuChipIcon },
-  { name: 'Skills', href: '/instructor/skills', icon: AcademicCapIcon },
-  { name: 'Noticias', href: '/instructor/news', icon: NewspaperIcon },
-  { name: 'Reels', href: '/instructor/reels', icon: PlayIcon },
-  { name: 'Estadísticas', href: '/instructor/stats', icon: ChartBarIcon },
-  { name: 'Empresas', href: '/instructor/companies', icon: BuildingOffice2Icon },
-  { name: 'Reportes', href: '/instructor/reportes', icon: DocumentTextIcon },
+const getNavigation = (t: any) => [
+  { name: t('sidebar.nav.dashboard'), href: '/instructor/dashboard', icon: HomeIcon },
+  { name: t('sidebar.nav.workshops'), href: '/instructor/workshops', icon: BookOpenIcon },
+  { name: t('sidebar.nav.communities'), href: '/instructor/communities', icon: UserGroupIcon },
+  { name: t('sidebar.nav.aiApps'), href: '/instructor/apps', icon: CpuChipIcon },
+  { name: t('sidebar.nav.skills'), href: '/instructor/skills', icon: AcademicCapIcon },
+  { name: t('sidebar.nav.news'), href: '/instructor/news', icon: NewspaperIcon },
+  { name: t('sidebar.nav.reels'), href: '/instructor/reels', icon: PlayIcon },
+  { name: t('sidebar.nav.stats'), href: '/instructor/stats', icon: ChartBarIcon },
+  { name: t('sidebar.nav.companies'), href: '/instructor/companies', icon: BuildingOffice2Icon },
+  { name: t('sidebar.nav.reports'), href: '/instructor/reportes', icon: DocumentTextIcon },
 ]
 
 export function InstructorSidebar({
@@ -57,6 +58,7 @@ export function InstructorSidebar({
   isPinned,
   onTogglePin,
 }: InstructorSidebarProps) {
+  const { t } = useTranslation('instructor')
   const pathname = usePathname()
   const [isHovered, setIsHovered] = useState(false)
   const [isClicking, setIsClicking] = useState(false)
@@ -128,7 +130,7 @@ export function InstructorSidebar({
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-purple-800/40 flex-shrink-0">
           <div className="flex items-center">
-            <img src="/icono.png" alt="Aprende y Aplica" className="h-8 w-8 rounded-lg flex-shrink-0" />
+            <img src="/icono.png" alt="SofLIA" className="h-8 w-8 rounded-lg flex-shrink-0" />
           </div>
           <div className="flex items-center space-x-2">
             {/* Botón de fijar - siempre visible en desktop */}
@@ -138,7 +140,7 @@ export function InstructorSidebar({
                 onTogglePin()
               }}
               className="hidden lg:block p-2 rounded-md text-purple-300 hover:text-white hover:bg-purple-800/50 transition-colors"
-              title={isPinned ? 'Desfijar panel' : 'Fijar panel'}
+              title={isPinned ? t('sidebar.pin.unpinPanel') : t('sidebar.pin.pinPanel')}
             >
               {isPinned ? (
                 <MapPinIconSolid className="h-4 w-4 text-purple-400" />
@@ -165,7 +167,7 @@ export function InstructorSidebar({
           <div className="px-4 py-1.5 bg-gradient-to-r from-purple-600/10 to-transparent border-b border-purple-800/30">
             <p className="text-xs text-purple-300/80 font-light flex items-center gap-1.5">
               <MapPinIcon className="h-3 w-3 text-purple-400/60" />
-              Doble clic para fijar
+              {t('sidebar.pin.doubleClickToPin')}
             </p>
           </div>
         )}
@@ -175,7 +177,7 @@ export function InstructorSidebar({
           <div className="px-4 py-1.5 bg-gradient-to-r from-purple-600/15 to-transparent border-b border-purple-800/30">
             <p className="text-xs text-purple-200/90 font-light flex items-center gap-1.5">
               <MapPinIconSolid className="h-3 w-3 text-purple-400" />
-              Panel fijado
+              {t('sidebar.pin.panelPinned')}
             </p>
           </div>
         )}
@@ -185,7 +187,7 @@ export function InstructorSidebar({
           <div className="px-4 py-1.5 bg-gradient-to-r from-purple-500/20 to-transparent border-b border-purple-700/40">
             <p className="text-xs text-purple-200 font-light flex items-center gap-1.5 animate-in fade-in duration-200">
               <MapPinIconSolid className="h-3 w-3 text-purple-400" />
-              {isPinned ? 'Panel fijado' : 'Panel desfijado'}
+              {isPinned ? t('sidebar.pin.panelPinned') : t('sidebar.pin.panelUnpinned')}
             </p>
           </div>
         )}
@@ -193,7 +195,7 @@ export function InstructorSidebar({
         {/* Navigation */}
         <nav className="flex-1 px-2 py-6 overflow-y-auto">
           <div className="space-y-1">
-            {navigation.map((item) => {
+            {getNavigation(t).map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link
@@ -236,8 +238,8 @@ export function InstructorSidebar({
             </div>
             {(!isCollapsed || shouldExpand) && (
               <div className="ml-3 min-w-0">
-                <p className="text-sm font-medium text-purple-100 truncate">Instructor</p>
-                <p className="text-xs text-purple-300 truncate">Panel</p>
+                <p className="text-sm font-medium text-purple-100 truncate">{t('sidebar.user.role')}</p>
+                <p className="text-xs text-purple-300 truncate">{t('sidebar.user.panel')}</p>
               </div>
             )}
           </div>

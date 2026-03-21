@@ -41,7 +41,7 @@
     "introduccion-a-la-ia": "Introducción a la IA"
   },
   "assistant": {
-    "initialMessage": "¡Hola! 👋 Soy Lia, tu asistente de IA. Estoy aquí para ayudarte con información sobre talleres, cursos y contenido educativo. ¿En qué puedo asistirte hoy?",
+    "initialMessage": "¡Hola! 👋 Soy SofLIA, tu asistente de IA. Estoy aquí para ayudarte con información sobre talleres, cursos y contenido educativo. ¿En qué puedo asistirte hoy?",
     "placeholder": "Pregunta sobre talleres, cursos..."
   },
   "sections": {

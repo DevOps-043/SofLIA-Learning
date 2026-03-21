@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { AdminDashboard } from '@/features/admin/components'
 
 export const metadata: Metadata = {
-  title: 'Panel de Administración | Aprende y Aplica',
+  title: 'Panel de Administración | SofLIA',
   description: 'Panel de administración para gestionar talleres, comunidades, prompts, apps de IA, noticias y usuarios.',
 }
 

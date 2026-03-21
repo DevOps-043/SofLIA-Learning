@@ -1,0 +1,63 @@
+{
+  "dashboard": {
+    "title": "Painel de Instrutor",
+    "subtitle": "Gerencie seus cursos, estudantes e conteúdo educacional de forma eficiente",
+    "loading": "Carregando estatísticas...",
+    "error": "Erro ao carregar as estatísticas",
+    "retry": "Tentar novamente",
+    "stats": {
+      "title": "Estatísticas Gerais",
+      "subtitle": "Resumo da sua atividade como instrutor",
+      "courses": "Cursos Criados",
+      "students": "Estudantes",
+      "reels": "Reels",
+      "rating": "Avaliação Média",
+      "hours": "Horas Ensinadas",
+      "thisMonth": "+{{count}} este mês",
+      "noChanges": "Sem mudanças este mês",
+      "overallAverage": "Média geral",
+      "totalAccumulated": "Total acumulado"
+    },
+    "actions": {
+      "title": "Ações Rápidas",
+      "subtitle": "Acesse rapidamente as funções mais usadas",
+      "createCourse": {
+        "title": "Criar Novo Curso",
+        "desc": "Crie e publique um novo curso educacional"
+      },
+      "manageWorkshops": {
+        "title": "Gerenciar Workshops",
+        "desc": "Organize e gerencie seus workshops"
+      },
+      "uploadReel": {
+        "title": "Enviar Novo Reel",
+        "desc": "Compartilhe conteúdo em formato reel"
+      }
+    }
+  },
+  "sidebar": {
+    "nav": {
+      "dashboard": "Dashboard",
+      "workshops": "Workshops",
+      "communities": "Comunidades",
+      "aiApps": "Apps de IA",
+      "skills": "Habilidades",
+      "news": "Notícias",
+      "reels": "Reels",
+      "stats": "Estatísticas",
+      "companies": "Empresas",
+      "reports": "Relatórios"
+    },
+    "pin": {
+      "pinPanel": "Fixar painel",
+      "unpinPanel": "Desafixar painel",
+      "doubleClickToPin": "Duplo clique para fixar",
+      "panelPinned": "Painel fixado",
+      "panelUnpinned": "Painel desafixado"
+    },
+    "user": {
+      "role": "Instrutor",
+      "panel": "Painel"
+    }
+  }
+}

@@ -54,6 +54,9 @@ export interface WorkshopLearningProviderProps {
   /** Colores personalizados de la organización */
   colors?: OrganizationColors;
 
+  /** Si se debe suprimir la visualización del asistente (sin desactivar detección) */
+  suppressDisplay?: boolean;
+
   /** Contenido hijo */
   children: ReactNode;
 }
@@ -68,6 +71,7 @@ export function WorkshopLearningProvider({
   onDifficultyDetected,
   onHelpAccepted,
   colors,
+  suppressDisplay = false,
   children
 }: WorkshopLearningProviderProps) {
   const [isLoadingHelp, setIsLoadingHelp] = useState(false);
@@ -128,7 +132,7 @@ export function WorkshopLearningProvider({
       {enabled && (
         <ProactiveLIAAssistant
           analysis={analysis}
-          show={shouldShowHelp}
+          show={shouldShowHelp && !suppressDisplay}
           onAccept={handleAcceptHelp}
           onDismiss={dismissHelp}
           position={assistantPosition}

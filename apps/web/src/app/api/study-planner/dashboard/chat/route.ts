@@ -20,7 +20,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
-import { LiaLogger } from '../../../../../lib/analytics/lia-logger';
+import { SofLIALogger } from '../../../../../lib/analytics/lia-logger';
 import { calculateCost, logOpenAIUsage } from '../../../../../lib/openai/usage-monitor';
 
 /**
@@ -64,6 +64,12 @@ type ActionType =
   | 'create_micro_session'  // Crear sesión corta de 15-30 min para ventanas libres
   | 'reduce_session_load'   // Reducir carga de días sobrecargados
   | 'recover_missed_session' // Reprogramar una sesión perdida
+  // Configuración de calendarios
+  | 'update_calendar_selection' // Cambiar qué calendarios considerar para disponibilidad
+  // Alias que LIA a veces envía
+  | 'rebalance'
+  | 'rebalanzar'
+  | 'redistribuir'
   | 'none';
 
 interface ActionResult {
@@ -92,10 +98,12 @@ ACCIONES DISPONIBLES (usa tags <action>JSON</action>):
 - create_session: Crear nueva sesión
 - recover_missed_session: Reprogramar sesión perdida
 - reduce_session_load: Reducir carga de un día
+- update_calendar_selection: Cambiar qué calendarios se consideran para disponibilidad
 
 FORMATO OBLIGATORIO DE ACCIÓN (siempre incluir "type" y "data"):
 <action>{"type": "rebalance_plan", "data": {}}</action>
 <action>{"type": "move_session", "data": {"sessionId": "uuid", "newStartTime": "ISO", "newEndTime": "ISO"}}</action>
+<action>{"type": "update_calendar_selection", "data": {"selectedCalendarIds": ["id1", "id2"]}}</action>
 
 REGLAS DE ORO:
 1. SIEMPRE incluir "type" en el JSON de la acción
@@ -842,6 +850,40 @@ async function getPlanContext(userId: string, planId?: string): Promise<{ contex
 
   logger.info(`🔑 Calendar token: ${accessToken ? 'SÍ' : 'NO'}, provider: ${provider}`);
 
+  // Obtener lista de calendarios disponibles y selección actual para el contexto de LIA
+  let calendarListContext = '';
+  if (accessToken && provider) {
+    try {
+      const selectedIds = await CalendarIntegrationService.getSelectedCalendarIds(userId);
+
+      if (provider === 'google') {
+        const googleCals = await CalendarIntegrationService.getGoogleCalendarList(accessToken);
+        if (googleCals.length > 0) {
+          calendarListContext = `\n## 📋 CALENDARIOS DISPONIBLES DEL USUARIO (Google)\n`;
+          calendarListContext += `Selección actual: ${selectedIds ? selectedIds.join(', ') : 'solo principal (sin configurar)'}\n`;
+          for (const cal of googleCals) {
+            const isSelected = selectedIds ? selectedIds.includes(cal.id) : cal.primary;
+            calendarListContext += `- ${isSelected ? '✅' : '⬜'} "${cal.summary}" (ID: ${cal.id})${cal.primary ? ' [PRINCIPAL]' : ''}\n`;
+          }
+          calendarListContext += `\nEl usuario puede pedirte que cambies qué calendarios se consideran para su disponibilidad. Usa la acción update_calendar_selection con los IDs deseados. SIEMPRE debe quedar al menos 1 calendario seleccionado.\n`;
+        }
+      } else {
+        const msCals = await CalendarIntegrationService.getMicrosoftCalendarList(accessToken);
+        if (msCals.length > 0) {
+          calendarListContext = `\n## 📋 CALENDARIOS DISPONIBLES DEL USUARIO (Microsoft)\n`;
+          calendarListContext += `Selección actual: ${selectedIds ? selectedIds.join(', ') : 'solo principal (sin configurar)'}\n`;
+          for (const cal of msCals) {
+            const isSelected = selectedIds ? selectedIds.includes(cal.id) : cal.isDefaultCalendar;
+            calendarListContext += `- ${isSelected ? '✅' : '⬜'} "${cal.name}" (ID: ${cal.id})${cal.isDefaultCalendar ? ' [PRINCIPAL]' : ''}\n`;
+          }
+          calendarListContext += `\nEl usuario puede pedirte que cambies qué calendarios se consideran para su disponibilidad. Usa la acción update_calendar_selection con los IDs deseados. SIEMPRE debe quedar al menos 1 calendario seleccionado.\n`;
+        }
+      }
+    } catch (calListError) {
+      logger.warn('⚠️ No se pudo obtener lista de calendarios para contexto:', calListError);
+    }
+  }
+
   if (accessToken && provider === 'google') {
     // PRIMERO: Obtener eventos del calendario para las próximas 2 semanas
     logger.info(`📅 Consultando eventos de hoy: ${todayStart.toISOString()} - ${todayEnd.toISOString()}`);
@@ -866,6 +908,11 @@ async function getPlanContext(userId: string, planId?: string): Promise<{ contex
   }
 
   let context = '';
+
+  // Agregar info de calendarios disponibles y selección
+  if (calendarListContext) {
+    context += calendarListContext + '\n';
+  }
 
   // Si se detectaron eliminaciones, agregar alerta al contexto
   if (syncResult && syncResult.deletedFromDb.length > 0) {
@@ -2498,6 +2545,28 @@ async function executeAction(
       };
     }
 
+    case 'update_calendar_selection': {
+      const { selectedCalendarIds } = action.data || {};
+
+      if (!selectedCalendarIds || !Array.isArray(selectedCalendarIds) || selectedCalendarIds.length === 0) {
+        return { ...action, status: 'error', message: 'Debes seleccionar al menos un calendario.' };
+      }
+
+      logger.info(`📅 Actualizando selección de calendarios: ${selectedCalendarIds.join(', ')}`);
+
+      try {
+        await CalendarIntegrationService.saveSelectedCalendarIds(userId, selectedCalendarIds);
+        return {
+          ...action,
+          status: 'success',
+          message: `✅ Selección de calendarios actualizada (${selectedCalendarIds.length} calendario${selectedCalendarIds.length > 1 ? 's' : ''} seleccionado${selectedCalendarIds.length > 1 ? 's' : ''}).`
+        };
+      } catch (calError: any) {
+        logger.error('❌ Error actualizando selección de calendarios:', calError);
+        return { ...action, status: 'error', message: `Error al actualizar calendarios: ${calError.message}` };
+      }
+    }
+
     // Alias para acciones - LIA a veces envía nombres diferentes
     case 'rebalance':
     case 'rebalanzar':
@@ -2521,13 +2590,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<ChatRespo
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Usuario no autenticado' },
+        { success: false, response: '', error: 'Usuario no autenticado' },
         { status: 401 }
       );
     }
 
     // Inicializar LiaLogger para analytics
-    const liaLogger = new LiaLogger(user.id);
+    const liaLogger = new SofLIALogger(user.id);
     let conversationId: string | undefined = undefined; // Será asignado más adelante
 
     const body: ChatRequest = await request.json();

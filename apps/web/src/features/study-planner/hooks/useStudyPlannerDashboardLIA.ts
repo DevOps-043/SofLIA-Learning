@@ -159,7 +159,7 @@ export function useStudyPlannerDashboardLIA(): StudyPlannerDashboardState & Stud
             messages: [{
               id: `no-plan-${Date.now()}`,
               role: 'assistant',
-              content: `¡Hola! 👋 Soy LIA, tu asistente de estudios.
+              content: `¡Hola! 👋 Soy SofLIA, tu asistente de estudios.
 
 Aún no tienes un plan de estudios activo. ¿Te gustaría crear uno?
 
@@ -188,16 +188,16 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
           messages: prev.messages.length === 0 ? [{
             id: `loading-${Date.now()}`,
             role: 'assistant' as const,
-            content: `¡Hola! Soy LIA. Estoy analizando tu calendario y plan de estudios...`,
+            content: `¡Hola! Soy SofLIA. Estoy analizando tu calendario y plan de estudios...`,
             timestamp: new Date(),
           }] : prev.messages,
         }));
         
-        // Si es la primera carga, hacer una llamada proactiva a LIA para obtener análisis
+        // Si es la primera carga, hacer una llamada proactiva a SofLIA para obtener análisis
         if (isFirstLoad) {
-          // Obtener análisis proactivo de LIA
+          // Obtener análisis proactivo de SofLIA
           try {
-            console.log('[LIA Dashboard] Iniciando análisis proactivo para plan:', plan.id);
+            console.log('[SofLIA Dashboard] Iniciando análisis proactivo para plan:', plan.id);
             
             const chatResponse = await fetch('/api/study-planner/dashboard/chat', {
               method: 'POST',
@@ -210,7 +210,7 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
             });
             
             const chatData = await chatResponse.json();
-            console.log('[LIA Dashboard] Respuesta proactiva:', chatData.success, chatData.response?.substring(0, 100));
+            console.log('[SofLIA Dashboard] Respuesta proactiva:', chatData.success, chatData.response?.substring(0, 100));
             
             if (chatData.success && chatData.response) {
               setState(prev => ({
@@ -229,7 +229,7 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
               
               // Si la acción fue exitosa, recargar el plan para reflejar los cambios
               if (chatData.action?.status === 'success') {
-                console.log('[LIA Dashboard] Acción proactiva exitosa, recargando plan...');
+                console.log('[SofLIA Dashboard] Acción proactiva exitosa, recargando plan...');
                 // Recargar después de un breve delay para que la BD se actualice
                 setTimeout(() => {
                   fetch('/api/study-planner/dashboard/plan')
@@ -244,18 +244,18 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
               }
             } else {
               // API respondió pero sin éxito o sin respuesta - mostrar fallback
-              console.warn('[LIA Dashboard] Respuesta sin éxito:', chatData.error || 'Sin respuesta');
+              console.warn('[SofLIA Dashboard] Respuesta sin éxito:', chatData.error || 'Sin respuesta');
               throw new Error(chatData.error || 'Sin respuesta del análisis');
             }
           } catch (chatError) {
-            console.error('[LIA Dashboard] Error obteniendo análisis proactivo:', chatError);
+            console.error('[SofLIA Dashboard] Error obteniendo análisis proactivo:', chatError);
             // Fallback al mensaje estático si falla
             setState(prev => ({
               ...prev,
               messages: [{
                 id: `welcome-${Date.now()}`,
                 role: 'assistant' as const,
-                content: `¡Hola! 👋 Soy LIA, tu asistente para gestionar tu plan de estudios "${plan.name}".
+                content: `¡Hola! 👋 Soy SofLIA, tu asistente para gestionar tu plan de estudios "${plan.name}".
 
 Puedo ayudarte a:
 • 📅 **Mover sesiones** a horarios más convenientes

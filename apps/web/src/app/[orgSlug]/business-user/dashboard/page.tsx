@@ -23,6 +23,7 @@ import { useThemeStore } from '@/core/stores/themeStore'
 // Removed old tour hook
 import { useBusinessUserJoyride } from '@/features/tours/hooks/useBusinessUserJoyride'
 import Joyride from 'react-joyride'
+import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 
 import { useTranslation } from 'react-i18next'
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
@@ -67,16 +68,17 @@ interface Organization {
   slug: string
   logo_url?: string | null
   favicon_url?: string | null
+  show_navbar_name?: boolean
 }
 
-type OrgRole = 'owner' | 'admin' | 'member' | null
+type OrgRole = 'owner' | 'admin' | 'member' | 'superadmin' | null
 
 export default function BusinessUserDashboardPage() {
   const router = useRouter()
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
   const { user, logout } = useAuth()
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStyles()
 
   const [loading, setLoading] = useState(true)
@@ -91,7 +93,10 @@ export default function BusinessUserDashboardPage() {
   const cssVariables = generateCSSVariables(userDashboardStyles)
 
   // Tour inicializado
-  const { joyrideProps, startTour: restartTour } = useBusinessUserJoyride()
+  const { joyrideProps, startTour: restartTour, showVideoIntro, handleVideoComplete } = useBusinessUserJoyride({
+    // Evitamos mostrar tours y videos a superadmins
+    enabled: orgRole !== null && orgRole !== 'superadmin' 
+  })
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => setIsMounted(true), [])
 
@@ -100,35 +105,50 @@ export default function BusinessUserDashboardPage() {
   const isSystemLightMode = resolvedTheme === 'light'
 
   const orgColors = useMemo(() => {
-    const cardBg = userDashboardStyles?.card_background || (isSystemLightMode ? '#FFFFFF' : '#1E2329')
-    const isLightMode = cardBg.toLowerCase() === '#ffffff' ||
-      cardBg.toLowerCase() === '#f8fafc' ||
-      isSystemLightMode
+    // Definir defaults basados en el tema resuelto (resolvedTheme)
+    // El resolvedTheme ya contiene la preferencia del usuario (Light o Dark)
+    const isLightMode = resolvedTheme === 'light'
+    
+    // Si NO hay estilos de DB explícitos, usamos los defaults según el isLightMode
+    const defaultCardBg = isLightMode ? '#FFFFFF' : '#1E2329'
+    const defaultSidebarBg = isLightMode ? '#F8FAFC' : '#0F1419'
+    const defaultText = isLightMode ? '#0F172A' : '#FFFFFF'
+    const defaultBorder = isLightMode ? '#E2E8F0' : '#334155'
+    
+    // Obtener los colores directos si existen en DB
+    // Nota: El useOrganizationStyles() idealmente ya retorna los colores en su versión 
+    // "Light" si isLightMode es true (a través de effectiveStyles)
+    const dbCardBg = userDashboardStyles?.card_background
+    const dbSidebarBg = userDashboardStyles?.sidebar_background
+    const dbText = userDashboardStyles?.text_color
+    const dbBorder = userDashboardStyles?.border_color
+    const dbPrimary = userDashboardStyles?.primary_button_color
+    const dbAccent = userDashboardStyles?.accent_color
 
     return {
-      primary: userDashboardStyles?.primary_button_color || '#0A2540',
-      accent: userDashboardStyles?.accent_color || '#00D4B3',
-      text: userDashboardStyles?.text_color || (isLightMode ? '#1E293B' : '#FFFFFF'),
-      cardBg: userDashboardStyles?.card_background || (isLightMode ? '#FFFFFF' : '#1E2329'),
-      sidebarBg: userDashboardStyles?.sidebar_background || (isLightMode ? '#FFFFFF' : '#0F1419'),
-      border: userDashboardStyles?.border_color || (isLightMode ? '#E2E8F0' : '#334155'),
+      primary: dbPrimary || '#0A2540',
+      accent: dbAccent || '#00D4B3',
+      text: dbText || defaultText,
+      cardBg: dbCardBg || defaultCardBg,
+      sidebarBg: dbSidebarBg || defaultSidebarBg,
+      border: dbBorder || defaultBorder,
       isLightMode,
       // Colores secundarios que se adaptan al modo
       textSecondary: isLightMode ? '#64748B' : '#9CA3AF',
       textMuted: isLightMode ? '#94A3B8' : '#6B7280',
       // Color de iconos: aqua en modo oscuro para visibilidad (SOFLIA Design System)
       iconColor: isLightMode
-        ? (userDashboardStyles?.primary_button_color || '#0A2540')
-        : (userDashboardStyles?.accent_color || '#00D4B3'),
+        ? (dbPrimary || '#0A2540')
+        : (dbAccent || '#00D4B3'),
       heroBg: isLightMode
-        ? 'linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 50%, #F8FAFC 100%)'
+        ? 'linear-gradient(135deg, #0A2540 0%, #173B63 50%, #0A2540 100%)' // Ensure contrast
         : 'linear-gradient(135deg, #0a1628 0%, #0f1e30 50%, #0d1a2a 100%)',
       heroOverlay: isLightMode
-        ? 'linear-gradient(to right, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.7) 50%, transparent 100%)'
+        ? 'linear-gradient(to right, rgba(10, 37, 64, 0.95) 0%, rgba(10, 37, 64, 0.7) 50%, transparent 100%)'
         : 'linear-gradient(to right, rgba(10, 22, 40, 0.9) 0%, rgba(10, 22, 40, 0.5) 50%, transparent 100%)',
-      gridPattern: isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)',
+      gridPattern: isLightMode ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)',
     }
-  }, [userDashboardStyles, isSystemLightMode])
+  }, [userDashboardStyles, resolvedTheme])
 
   const [stats, setStats] = useState<DashboardStats>({
     total_assigned: 0,
@@ -526,7 +546,7 @@ export default function BusinessUserDashboardPage() {
                     style={{ color: 'rgba(255,255,255,0.7)' }}
                   >
                     <Clock className="w-4 h-4" />
-                    {currentTime.toLocaleDateString('es-MX', {
+                    {currentTime.toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'pt' ? 'pt-BR' : 'es-MX'), {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -677,15 +697,15 @@ export default function BusinessUserDashboardPage() {
                   <div
                     className="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center mb-6 border"
                     style={{
-                      background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
+                      backgroundColor: `${orgColors.iconColor}15`,
                       borderColor: `${orgColors.iconColor}30`
                     }}
                   >
                     <BookOpen className="w-10 h-10" style={{ color: orgColors.iconColor }} />
                   </div>
-                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>No tienes cursos asignados aún</h3>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>{t('dashboard.emptyCourses.title', 'No tienes cursos asignados aún')}</h3>
                   <p className="max-w-md mx-auto" style={{ color: orgColors.textSecondary }}>
-                    Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti.
+                    {t('dashboard.emptyCourses.description', 'Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti.')}
                   </p>
 
                   {/* Decorative elements - static */}
@@ -745,6 +765,17 @@ export default function BusinessUserDashboardPage() {
           </section>
         </div>
       </main>
+
+      {/* Videos Introductorios */}
+      {showVideoIntro && (
+        <OnboardingVideoPlayer
+          videos={useMemo(() => [
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
+            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
+          ], [])}
+          onComplete={handleVideoComplete}
+        />
+      )}
 
       {/* Tour de bienvenida Joyride */}
       {isMounted && <Joyride {...joyrideProps} />}

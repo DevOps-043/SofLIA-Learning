@@ -94,7 +94,7 @@ function buildContextualPrompt(
   context: any,
   metadata: { workshopId?: string; activityId?: string }
 ): string {
-  let prompt = `Eres LIA, la asistente virtual de Aprende y Aplica. Un usuario está trabajando en un taller y necesita tu ayuda.
+  let prompt = `Eres SofLIA, la asistente virtual de SofLIA. Un usuario está trabajando en un taller y necesita tu ayuda.
 
 ## PREGUNTA DEL USUARIO:
 "${userQuestion}"
@@ -173,7 +173,7 @@ async function callLIA(prompt: string): Promise<string> {
         messages: [
           {
             role: 'system',
-            content: 'Eres LIA, la asistente virtual experta en IA de Aprende y Aplica. Eres empática, clara y siempre proporcionas ayuda práctica basada en el contexto específico del usuario.',
+            content: 'Eres SofLIA, la asistente virtual experta en IA de la plataforma SofLIA. Eres empática, clara y siempre proporcionas ayuda práctica basada en el contexto específico del usuario.',
           },
           {
             role: 'user',

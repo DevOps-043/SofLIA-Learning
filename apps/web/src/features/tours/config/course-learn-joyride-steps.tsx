@@ -117,7 +117,7 @@ export const courseLearnJoyrideSteps: Step[] = [
     content: (
       <TourContent>
         <p>
-          <Highlight color="accent">LIA</Highlight> es tu asistente IA. Resuelve dudas,
+          <Highlight color="accent">SofLIA</Highlight> es tu asistente IA. Resuelve dudas,
           explica conceptos y te guía en reflexiones.
         </p>
         <p className="text-gray-600 dark:text-white/70 text-xs mt-2">
@@ -125,7 +125,7 @@ export const courseLearnJoyrideSteps: Step[] = [
         </p>
       </TourContent>
     ),
-    title: 'Conoce a LIA',
+    title: 'Conoce a SofLIA',
     disableBeacon: true,
     data: {
       liaAction: 'open',
@@ -139,7 +139,7 @@ export const courseLearnJoyrideSteps: Step[] = [
     content: (
       <TourContent>
         <p>
-          Cuando abras el panel de LIA, podrás:
+          Cuando abras el panel de SofLIA, podrás:
         </p>
         <ul className="space-y-2 list-disc pl-4 text-gray-700 dark:text-white/90">
           <li><Highlight>Escribir preguntas</Highlight> en lenguaje natural</li>
@@ -148,11 +148,11 @@ export const courseLearnJoyrideSteps: Step[] = [
           <li><Highlight>Copiar respuestas</Highlight> a tus notas</li>
         </ul>
         <p className="text-[#00D4B3] text-sm mt-2">
-          LIA recuerda el contexto de tu lección actual.
+          SofLIA recuerda el contexto de tu lección actual.
         </p>
       </TourContent>
     ),
-    title: 'Interactúa con LIA',
+    title: 'Interactúa con SofLIA',
     disableBeacon: true,
     data: {
       icon: <Sparkles className="w-5 h-5 text-[#00D4B3]" />
@@ -169,7 +169,7 @@ export const courseLearnJoyrideSteps: Step[] = [
         </p>
         <ul className="space-y-2 list-disc pl-4 text-gray-700 dark:text-white/90">
           <li>Completa las actividades obligatorias</li>
-          <li>Usa LIA cuando tengas dudas</li>
+          <li>Usa SofLIA cuando tengas dudas</li>
           <li>Toma notas de los conceptos clave</li>
           <li>Revisa los resúmenes antes de avanzar</li>
         </ul>

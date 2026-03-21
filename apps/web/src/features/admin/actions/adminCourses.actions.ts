@@ -1,204 +1,292 @@
 'use server'
 
-import { createClient } from '../../../lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { SessionService } from '../../auth/services/session.service'
+import {
+    createAdminSupabase,
+    createNewCourseFromPayload,
+    updateExistingCourseFromPayload,
+    buildCoursePreviewFromPayload,
+    resolveInstructor,
+} from '../../../lib/courseImport'
+import { buildCourseDiff } from '../../../lib/courseDiff'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface AdminCourse {
-    id: string
+    id: string                  // courses_staging.id — usado como ID en toda la UI de revisiones
     title: string
     description: string
     slug: string
     category: string
     level: string
-    instructor_id: string
-    duration_total_minutes: number
     thumbnail_url?: string
     is_active: boolean
-    created_at: string
+    created_at: string          // staging.submitted_at
     updated_at: string
-    price?: number
-    average_rating?: number
-    student_count: number
-    review_count: number
     instructor_name?: string
+    duration_total_minutes: number
     duration_hours?: number
-    approval_status?: 'pending' | 'approved' | 'rejected'
+    approval_status: 'pending' | 'approved' | 'rejected'
+    is_update: boolean
+    rejection_reason?: string
 }
 
+// ─── Leer pendientes / rechazados ─────────────────────────────────────────────
+
 export async function getPendingCourses(): Promise<AdminCourse[]> {
-    const supabase = await createClient()
+    const supabase = createAdminSupabase()
 
     const { data, error } = await supabase
-        .from('courses')
+        .from('courses_staging')
         .select(`
             id,
-            title,
-            description,
-            slug,
-            category,
-            level,
-            instructor_id,
-            duration_total_minutes,
-            thumbnail_url,
-            is_active,
-            created_at,
+            course_id,
+            source_slug,
+            is_update,
+            submitted_at,
             updated_at,
-            price,
-            average_rating,
-            approval_status,
-            users!fk_courses_instructor (
-                first_name,
-                last_name,
-                email
+            status,
+            rejection_reason,
+            payload,
+            course:courses!course_id (
+                title,
+                slug,
+                thumbnail_url,
+                level,
+                category,
+                instructor:users!fk_courses_instructor(first_name, last_name, email)
             )
         `)
-        .in('approval_status', ['pending', 'rejected'])
-        .order('created_at', { ascending: false })
+        .in('status', ['pending', 'rejected'])
+        .order('submitted_at', { ascending: false })
 
     if (error) {
-        console.error('Error fetching pending courses:', error)
+        console.error('Error fetching staging courses:', error)
         throw new Error(error.message)
     }
 
-    const formattedCourses = data?.map((course: any) => ({
-        ...course,
-        instructor_name: course.users
-            ? `${(course.users as any).first_name} ${(course.users as any).last_name}`
-            : 'Desconocido',
-        duration_hours: course.duration_total_minutes ? Math.round((course.duration_total_minutes / 60) * 10) / 10 : 0
-    })) as AdminCourse[]
+    return (data ?? []).map((row: any) => {
+        const coursePayload = row.payload?.course ?? {}
+        const existingCourse = row.course as any
 
-    return formattedCourses
+        const title = coursePayload.title || existingCourse?.title || 'Sin título'
+        const description = coursePayload.description || existingCourse?.description || ''
+        const level = coursePayload.level || existingCourse?.level || 'beginner'
+        const category = coursePayload.category || existingCourse?.category || 'General'
+        const thumbnail_url = coursePayload.thumbnail_url ?? existingCourse?.thumbnail_url ?? undefined
+
+        let instructor_name = 'Desconocido'
+        if (existingCourse?.instructor) {
+            const ins = existingCourse.instructor as any
+            instructor_name = `${ins.first_name ?? ''} ${ins.last_name ?? ''}`.trim() || ins.email
+        } else if (coursePayload.instructor_email) {
+            instructor_name = coursePayload.instructor_email
+        }
+
+        return {
+            id: row.id,
+            title,
+            description,
+            slug: row.source_slug,
+            category,
+            level,
+            thumbnail_url,
+            is_active: false,
+            created_at: row.submitted_at,
+            updated_at: row.updated_at ?? row.submitted_at,
+            instructor_name,
+            duration_total_minutes: 0,
+            duration_hours: 0,
+            approval_status: row.status as 'pending' | 'approved' | 'rejected',
+            is_update: row.is_update,
+            rejection_reason: row.rejection_reason ?? undefined,
+        }
+    })
 }
 
-export async function getCourseFullDetails(courseId: string): Promise<any> {
-    const supabase = await createClient()
+// ─── Obtener estructura actual del curso publicado (para comparación) ────────
 
-    const { data: course, error } = await supabase
+async function getCurrentCourseStructure(
+    supabase: ReturnType<typeof createAdminSupabase>,
+    courseId: string
+): Promise<any> {
+    const { data: course, error: courseError } = await supabase
         .from('courses')
         .select(`
-            *,
-            instructor:users!fk_courses_instructor(
-                id, first_name, last_name, email, profile_picture_url, display_name
-            ),
-            modules:course_modules(
-                module_id, 
-                module_title, 
-                module_order_index,
-                is_published,
-                lessons:course_lessons(
-                    lesson_id, 
-                    lesson_title, 
-                    lesson_order_index,
-                    duration_seconds,
-                    video_provider,
-                    transcript_content,
-                    summary_content,
-                    materials:lesson_materials(
-                        material_id, 
-                        material_title, 
-                        material_type,
-                        file_url,
-                        external_url,
-                        content_data
-                    ),
-                    activities:lesson_activities(
-                        activity_id,
-                        activity_title,
-                        activity_type,
-                        activity_content,
-                        activity_order_index
-                    )
-                )
-            )
+            title, description, level, category, thumbnail_url, slug,
+            instructor:users!fk_courses_instructor(first_name, last_name, email, display_name, profile_picture_url)
         `)
         .eq('id', courseId)
         .single()
 
-    if (error) {
-        console.error('Error fetching course details:', error)
-        throw new Error(error.message)
-    }
+    if (courseError || !course) return null
 
-    // Ordenamiento manual x seguridad
-    if (course.modules) {
-        course.modules.sort((a: any, b: any) => a.module_order_index - b.module_order_index)
-        course.modules.forEach((mod: any) => {
-            if (mod.lessons) {
-                mod.lessons.sort((a: any, b: any) => a.lesson_order_index - b.lesson_order_index)
-            }
+    const { data: modules } = await supabase
+        .from('course_modules')
+        .select('module_id, module_title, module_order_index, is_published')
+        .eq('course_id', courseId)
+        .order('module_order_index', { ascending: true })
+
+    const modulesWithLessons = []
+    for (const mod of (modules ?? [])) {
+        const { data: lessons } = await supabase
+            .from('course_lessons')
+            .select(`
+                lesson_id, lesson_title, lesson_order_index,
+                duration_seconds, video_provider, video_provider_id,
+                transcript_content, summary_content
+            `)
+            .eq('module_id', mod.module_id)
+            .order('lesson_order_index', { ascending: true })
+
+        const lessonsWithContent = []
+        for (const lesson of (lessons ?? [])) {
+            const { data: materials } = await supabase
+                .from('lesson_materials')
+                .select('material_id, material_title, material_type, external_url, file_url, content_data')
+                .eq('lesson_id', lesson.lesson_id)
+                .order('material_order_index', { ascending: true })
+
+            const { data: activities } = await supabase
+                .from('lesson_activities')
+                .select('activity_id, activity_title, activity_type, activity_content, activity_order_index')
+                .eq('lesson_id', lesson.lesson_id)
+                .order('activity_order_index', { ascending: true })
+
+            lessonsWithContent.push({
+                ...lesson,
+                materials: materials ?? [],
+                activities: activities ?? [],
+            })
+        }
+
+        modulesWithLessons.push({
+            ...mod,
+            lessons: lessonsWithContent,
         })
     }
 
-    return course
+    return {
+        ...course,
+        modules: modulesWithLessons,
+    }
 }
 
-export async function approveCourse(courseId: string, adminId: string): Promise<boolean> {
-    const supabase = await createClient()
+// ─── Detalle de un staging row (para la vista de revisión) ───────────────────
 
-    // 1. Validar identidad usando el sistema custom de sesiones
+export async function getStagingDetails(stagingId: string): Promise<any> {
+    const supabase = createAdminSupabase()
+
+    const { data: staging, error } = await supabase
+        .from('courses_staging')
+        .select(`
+            *,
+            course:courses!course_id (
+                title, slug, thumbnail_url, level, category,
+                instructor:users!fk_courses_instructor(first_name, last_name, email, display_name, profile_picture_url)
+            )
+        `)
+        .eq('id', stagingId)
+        .single()
+
+    if (error || !staging) {
+        throw new Error(error?.message ?? 'Staging row no encontrado')
+    }
+
+    const preview = buildCoursePreviewFromPayload(staging)
+
+    // If it's an update and the original course exists, build comparison
+    if (staging.is_update && staging.course_id) {
+        const originalCourse = await getCurrentCourseStructure(supabase, staging.course_id)
+        if (originalCourse) {
+            const diff = buildCourseDiff(originalCourse, preview)
+            return {
+                ...preview,
+                original_course: originalCourse,
+                diff,
+            }
+        }
+    }
+
+    return preview
+}
+
+// ─── Aprobar ─────────────────────────────────────────────────────────────────
+
+export async function approveCourse(stagingId: string, _adminId: string): Promise<boolean> {
     const user = await SessionService.getCurrentUser()
     const effectiveAdminId = user?.id
 
-    console.log('[APPROVE_DEBUG] Server Action Auth Check (Custom Session):', {
-        hasUser: !!user,
-        userId: user?.id,
-        role: user?.cargo_rol
-    })
+    console.log('[APPROVE_DEBUG] Auth Check:', { hasUser: !!user, userId: user?.id, role: user?.cargo_rol })
 
     if (!effectiveAdminId) {
-        console.error('[APPROVE_ERROR] No admin identified for approval via SessionService')
+        console.error('[APPROVE_ERROR] No admin identified')
         return false
     }
 
-    // Verificar permisos de admin
-    if (user?.cargo_rol && user.cargo_rol !== 'Administrador') {
-        // Log warning but allow if undefined (dev env safety or fallback)
-        console.warn('[APPROVE_WARN] User might not be Administrator:', user?.cargo_rol)
-    }
+    const supabase = createAdminSupabase()
 
-    const { error: courseError } = await supabase
-        .from('courses')
-        .update({
-            approval_status: 'approved',
-            is_active: true,
-            approved_by: effectiveAdminId,
-            approved_at: new Date().toISOString()
-        })
-        .eq('id', courseId)
+    const { data: staging, error: stagingError } = await supabase
+        .from('courses_staging')
+        .select('*')
+        .eq('id', stagingId)
+        .single()
 
-    if (courseError) {
-        console.error('Error approving course:', courseError)
+    if (stagingError || !staging) {
+        console.error('[APPROVE_ERROR] Staging row not found:', stagingError)
         return false
     }
 
-    await supabase.from('course_modules').update({ is_published: true }).eq('course_id', courseId)
+    try {
+        const instructorId = await resolveInstructor(supabase, staging.payload?.course?.instructor_email)
 
-    // Obtener ids de modulos para activar lecciones
-    const { data: modules } = await supabase.from('course_modules').select('module_id').eq('course_id', courseId)
-    if (modules && modules.length > 0) {
-        const moduleIds = modules.map((m: any) => m.module_id)
-        await supabase.from('course_lessons').update({ is_published: true }).in('module_id', moduleIds)
+        let courseId: string
+
+        if (staging.is_update && staging.course_id) {
+            await updateExistingCourseFromPayload(supabase, staging.course_id, staging.payload, instructorId, effectiveAdminId)
+            courseId = staging.course_id
+        } else {
+            courseId = await createNewCourseFromPayload(supabase, staging.payload, instructorId, effectiveAdminId)
+        }
+
+        // Publicar módulos y lecciones
+        await supabase.from('course_modules').update({ is_published: true }).eq('course_id', courseId)
+        const { data: modules } = await supabase.from('course_modules').select('module_id').eq('course_id', courseId)
+        if (modules && modules.length > 0) {
+            const moduleIds = modules.map((m: any) => m.module_id)
+            await supabase.from('course_lessons').update({ is_published: true }).in('module_id', moduleIds)
+        }
+
+        // Marcar staging como aprobado
+        await supabase
+            .from('courses_staging')
+            .update({ status: 'approved', reviewed_by: effectiveAdminId, reviewed_at: new Date().toISOString() })
+            .eq('id', stagingId)
+
+        revalidatePath('/admin/courses/pending')
+        return true
+    } catch (err: any) {
+        console.error('[APPROVE_ERROR]', err.message)
+        return false
     }
-
-    revalidatePath('/admin/courses/pending')
-    revalidatePath('/[orgSlug]/business-panel/reviews', 'page') // Intento de revalidación dinámica
-
-    return true
 }
 
-export async function rejectCourse(courseId: string, reason: string): Promise<boolean> {
-    const supabase = await createClient()
+// ─── Rechazar ────────────────────────────────────────────────────────────────
+
+export async function rejectCourse(stagingId: string, reason: string): Promise<boolean> {
+    const user = await SessionService.getCurrentUser()
+    const supabase = createAdminSupabase()
 
     const { error } = await supabase
-        .from('courses')
+        .from('courses_staging')
         .update({
-            approval_status: 'rejected',
+            status: 'rejected',
             rejection_reason: reason,
-            is_active: false
+            reviewed_by: user?.id ?? null,
+            reviewed_at: new Date().toISOString(),
         })
-        .eq('id', courseId)
+        .eq('id', stagingId)
 
     if (error) {
         console.error('Error rejecting course:', error)
@@ -206,34 +294,43 @@ export async function rejectCourse(courseId: string, reason: string): Promise<bo
     }
 
     revalidatePath('/admin/courses/pending')
-    revalidatePath('/[orgSlug]/business-panel/reviews', 'page')
-
     return true
 }
 
-export async function deleteCourse(courseId: string): Promise<boolean> {
-    const user = await SessionService.getCurrentUser()
-    const adminId = user?.id
+// ─── Eliminar staging row ─────────────────────────────────────────────────────
 
-    if (!adminId) {
-        console.error('No admin session found for delete action')
+export async function deleteCourse(stagingId: string): Promise<boolean> {
+    const supabase = createAdminSupabase()
+
+    const { error } = await supabase
+        .from('courses_staging')
+        .delete()
+        .eq('id', stagingId)
+
+    if (error) {
+        console.error('Error deleting staging course:', error)
         return false
     }
 
-    try {
-        // Importación dinámica para evitar ciclos si fuera necesario, o uso directo si no hay ciclo.
-        // Asumo que AdminWorkshopsService está disponible.
-        // Dato: import { AdminWorkshopsService } from '../services/adminWorkshops.service' 
-        // No está importado arriba, necesito agregarlo o implementar la lógica aquí.
-        // Mejor usar el servicio ya existente para mantener consistencia (limpieza de relaciones).
-        const { AdminWorkshopsService } = await import('../services/adminWorkshops.service')
+    revalidatePath('/admin/courses/pending')
+    return true
+}
 
-        await AdminWorkshopsService.deleteWorkshop(courseId, adminId)
+// ─── Reconsiderar (rechazado → pendiente) ────────────────────────────────────
 
-        revalidatePath('/admin/courses/pending')
-        return true
-    } catch (error) {
-        console.error('Error deleting course:', error)
+export async function reconsiderCourse(stagingId: string): Promise<boolean> {
+    const supabase = createAdminSupabase()
+
+    const { error } = await supabase
+        .from('courses_staging')
+        .update({ status: 'pending', rejection_reason: null, reviewed_by: null, reviewed_at: null })
+        .eq('id', stagingId)
+
+    if (error) {
+        console.error('Error reconsidering course:', error)
         return false
     }
+
+    revalidatePath('/admin/courses/pending')
+    return true
 }

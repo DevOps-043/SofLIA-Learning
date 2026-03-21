@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '../../../../lib/utils/logger';
 import { OpenAI } from 'openai';
-import { formatApiError, logError } from '@/core/utils/api-errors';
-import { trackOpenAICall, calculateOpenAIMetadata, calculateCost } from '@/lib/openai/usage-monitor';
-import { SessionService } from '@/features/auth/services/session.service';
-import { LiaLogger } from '@/lib/analytics/lia-logger';
+import { formatApiError, logError } from '../../../../core/utils/api-errors';
+import { trackOpenAICall, calculateOpenAIMetadata, calculateCost } from '../../../../lib/openai/usage-monitor';
+import { SessionService } from '../../../../features/auth/services/session.service';
+import { LiaLogger } from '../../../../lib/analytics/lia-logger';
 
 // Configuración de Lia directamente en el archivo
 const LIA_CONFIG = {
@@ -43,7 +43,7 @@ const openai = new OpenAI({
 });
 
 // Prompt maestro de seguridad y profesionalismo para Lia
-const MASTER_PROMPT = `Eres Lia, una especialista profesional en creación de prompts de IA. Tu única función es ayudar a los usuarios a crear prompts efectivos, bien estructurados y profesionales.
+const MASTER_PROMPT = `Eres SofLIA, una especialista profesional en creación de prompts de IA. Tu única función es ayudar a los usuarios a crear prompts efectivos, bien estructurados y profesionales.
 
 IDENTIDAD:
 - Nombre: Lia
