@@ -69,6 +69,11 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const backgroundStyle = useMemo(() => getBackgroundStyle(panelStyles), [panelStyles])
   const cssVariables = useMemo(() => generateCSSVariables(panelStyles), [panelStyles])
 
+  const introVideos = useMemo(() => [
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
+  ], []);
+
   // Debug: Log cuando los estilos se aplican
   useEffect(() => {
     if (panelStyles) {
@@ -202,10 +207,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
       {/* Intro Videos */}
       {showVideoIntro && (
         <OnboardingVideoPlayer
-          videos={useMemo(() => [
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
-          ], [])}
+          videos={introVideos}
           onComplete={handleVideoComplete}
         />
       )}

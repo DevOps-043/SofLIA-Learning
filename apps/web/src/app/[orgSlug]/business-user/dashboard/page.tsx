@@ -100,6 +100,11 @@ export default function BusinessUserDashboardPage() {
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => setIsMounted(true), [])
 
+  const introVideos = useMemo(() => [
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
+  ], []);
+
   // Colores personalizados de la organización con detección de modo
   const { resolvedTheme } = useThemeStore()
   const isSystemLightMode = resolvedTheme === 'light'
@@ -769,10 +774,7 @@ export default function BusinessUserDashboardPage() {
       {/* Videos Introductorios */}
       {showVideoIntro && (
         <OnboardingVideoPlayer
-          videos={useMemo(() => [
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
-            `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
-          ], [])}
+          videos={introVideos}
           onComplete={handleVideoComplete}
         />
       )}
