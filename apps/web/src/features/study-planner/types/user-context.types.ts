@@ -406,6 +406,7 @@ export interface CalendarEvent {
   isRecurring: boolean;
   location?: string;
   status: 'confirmed' | 'tentative' | 'cancelled';
+  calendarId?: string;
 }
 
 /**
@@ -417,6 +418,26 @@ export interface CalendarAvailability {
   busySlots: TimeBlock[];
   totalFreeMinutes: number;
   totalBusyMinutes: number;
+}
+
+/**
+ * Item de la lista de calendarios disponibles (Google o Microsoft)
+ */
+export interface CalendarListItem {
+  id: string;
+  name: string;
+  isPrimary: boolean;
+  accessRole: 'owner' | 'writer' | 'reader' | 'freeBusyReader';
+  color?: string;
+  provider: CalendarProvider;
+}
+
+/**
+ * Metadata almacenada en calendar_integrations.metadata (JSONB)
+ */
+export interface CalendarIntegrationMetadata {
+  secondary_calendar_id?: string;
+  selected_calendar_ids?: string[];
 }
 
 // ============================================================================

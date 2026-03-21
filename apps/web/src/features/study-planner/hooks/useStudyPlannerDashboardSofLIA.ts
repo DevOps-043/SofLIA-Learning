@@ -34,7 +34,8 @@ export type StudyPlannerAction =
   | 'reschedule_week'
   | 'analyze_calendar'
   | 'suggest_adjustments'
-  | 'get_plan_summary';
+  | 'get_plan_summary'
+  | 'update_calendar_selection';
 
 // Datos de una sesión de estudio
 export interface StudySession {

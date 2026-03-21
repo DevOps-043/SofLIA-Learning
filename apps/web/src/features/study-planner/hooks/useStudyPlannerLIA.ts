@@ -12,7 +12,7 @@ import type {
   StudySession,
   TimeBlock,
   CalendarEvent,
-  LIAAvailabilityAnalysis,
+  SofLIAAvailabilityAnalysis,
 } from '../types/user-context.types';
 import { generateStudyPlannerPrompt } from '../prompts/study-planner.prompt';
 
@@ -33,7 +33,7 @@ export enum StudyPlannerPhase {
 export interface PhaseData {
   // Fase 1: Análisis de contexto
   userContext?: UserContext;
-  availabilityAnalysis?: LIAAvailabilityAnalysis;
+  availabilityAnalysis?: SofLIAAvailabilityAnalysis;
 
   // Fase 2: Selección de cursos
   selectedCourseIds?: string[];
@@ -413,7 +413,7 @@ export function useStudyPlannerLIA(): StudyPlannerLIAState & StudyPlannerLIAActi
         breakDurationMinutes: phaseData.breakDurationMinutes || 10,
         preferredSessionType: getSessionType(phaseData.maxSessionMinutes || 45),
         generationMode: 'ai_generated',
-        liaAvailabilityAnalysis: phaseData.availabilityAnalysis,
+        sofLiaAvailabilityAnalysis: phaseData.availabilityAnalysis,
         calendarAnalyzed: phaseData.calendarConnected || false,
         calendarProvider: phaseData.calendarProvider,
       };

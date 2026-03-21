@@ -769,10 +769,10 @@ export default function BusinessUserDashboardPage() {
       {/* Videos Introductorios */}
       {showVideoIntro && (
         <OnboardingVideoPlayer
-          videos={[
+          videos={useMemo(() => [
             `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
             `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
-          ]}
+          ], [])}
           onComplete={handleVideoComplete}
         />
       )}

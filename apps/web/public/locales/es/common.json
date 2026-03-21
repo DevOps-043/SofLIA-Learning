@@ -630,6 +630,25 @@
       "codeRequired": "El código de empresa es requerido",
       "generic": "Ocurrió un error. Intenta nuevamente."
     }
+  },
+  "studyPlanner": {
+    "calendarSelection": {
+      "title": "Seleccionar calendarios",
+      "subtitle": "Elige qué calendarios se usarán para analizar tu disponibilidad",
+      "selectAll": "Seleccionar todos",
+      "deselectAll": "Deseleccionar todos",
+      "save": "Guardar selección",
+      "saving": "Guardando...",
+      "saved": "Selección guardada",
+      "refresh": "Actualizar",
+      "refreshing": "Actualizando...",
+      "primary": "Principal",
+      "minOneRequired": "Debes seleccionar al menos un calendario",
+      "noCalendarsFound": "No se encontraron calendarios",
+      "errorLoading": "Error al cargar los calendarios",
+      "errorSaving": "Error al guardar la selección",
+      "staleWarning": "Algunos calendarios seleccionados ya no existen y fueron removidos"
+    }
   }
 }
 

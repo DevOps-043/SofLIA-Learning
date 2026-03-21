@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -1020,6 +1020,20 @@ export default function BusinessPanelUsersPage() {
   }
 
   // Wrapped actions with notifications
+  const handleSaveNewUser = async (userData: any) => {
+    try {
+      const result = await createUser(userData)
+      if (result.success) {
+        showToast('Usuario creado con éxito', 'success')
+        setIsAddModalOpen(false)
+        refetch()
+      } else {
+        showToast(result.error || 'Error al crear usuario', 'error')
+      }
+    } catch (err) {
+      showToast('Error inesperado al crear usuario', 'error')
+    }
+  }
   const resendInvitation = async (id: string) => {
     try {
       const result = await originalResendInvitation(id)

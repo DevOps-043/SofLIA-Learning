@@ -107,16 +107,16 @@ export async function GET(request: NextRequest) {
     // ✅ SINCRONIZAR: Verificar si eventos de sesiones fueron eliminados manualmente en Google Calendar
     await syncDeletedStudySessions(supabase, user.id, startDate, endDate, accessToken, integration);
 
-    // Obtener eventos según el proveedor
+    // Obtener eventos según el proveedor, respetando calendarios seleccionados
     let events: any[] = [];
-
+    const metadata = integration.metadata as { secondary_calendar_id?: string; selected_calendar_ids?: string[] } | null;
+    const selectedCalendarIds = metadata?.selected_calendar_ids;
 
     if (integration.provider === 'google') {
-      const metadata = integration.metadata as { secondary_calendar_id?: string } | null;
       const secondaryCalendarId = metadata?.secondary_calendar_id;
-      events = await getGoogleCalendarEvents(accessToken, startDate, endDate, secondaryCalendarId);
+      events = await getGoogleCalendarEvents(accessToken, startDate, endDate, secondaryCalendarId, selectedCalendarIds);
     } else if (integration.provider === 'microsoft') {
-      events = await getMicrosoftCalendarEvents(accessToken, startDate, endDate);
+      events = await getMicrosoftCalendarEvents(accessToken, startDate, endDate, selectedCalendarIds);
     }
 
     if (events.length > 0) {
@@ -369,7 +369,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
 /**
  * Obtiene eventos de Google Calendar desde TODOS los calendarios del usuario
  */
-async function getGoogleCalendarEvents(accessToken: string, startDate: Date, endDate: Date, secondaryCalendarId?: string): Promise<any[]> {
+async function getGoogleCalendarEvents(accessToken: string, startDate: Date, endDate: Date, secondaryCalendarId?: string, selectedCalendarIds?: string[]): Promise<any[]> {
   try {
 
     // Primero, obtener la lista de calendarios del usuario
@@ -421,20 +421,22 @@ async function getGoogleCalendarEvents(accessToken: string, startDate: Date, end
     const allEvents: any[] = [];
 
     for (const calendar of calendars) {
-      // CRITERIO: Calendario principal (primary=true) O calendario secundario de SOFLIA
-      // Esto permite ver eventos creados por la plataforma
+      // Siempre incluir el calendario SOFLIA (para sync de sesiones)
       const isSofliaCalendar = (secondaryCalendarId && calendar.id === secondaryCalendarId) ||
         calendar.summary?.toLowerCase() === 'soflia - sesiones de estudio';
 
-      if (calendar.primary === true || isSofliaCalendar) {
-
-        const events = await getEventsFromCalendar(accessToken, calendar.id, startDate, endDate);
-
-        // Marcar origen para depuración si es necesario
-        // events.forEach(e => e.sourceCalendar = calendar.primary ? 'primary' : 'soflia');
-
-        allEvents.push(...events);
+      // Si hay calendarios seleccionados, usar esos + SOFLIA
+      let shouldInclude = false;
+      if (selectedCalendarIds && selectedCalendarIds.length > 0) {
+        shouldInclude = selectedCalendarIds.includes(calendar.id) || isSofliaCalendar;
       } else {
+        // Sin selección: comportamiento original (primary + SOFLIA)
+        shouldInclude = calendar.primary === true || isSofliaCalendar;
+      }
+
+      if (shouldInclude) {
+        const events = await getEventsFromCalendar(accessToken, calendar.id, startDate, endDate);
+        allEvents.push(...events);
       }
     }
 
@@ -613,39 +615,13 @@ async function syncDeletedStudySessions(
 /**
  * Obtiene eventos de Microsoft Calendar
  */
-async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<any[]> {
+async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, endDate: Date, selectedCalendarIds?: string[]): Promise<any[]> {
   try {
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/me/calendarview?` +
-      `startDateTime=${startDate.toISOString()}&` +
-      `endDateTime=${endDate.toISOString()}&` +
-      `$orderby=start/dateTime&` +
-      `$top=100`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-
-    if (!response.ok) {
-      console.error('Error obteniendo eventos de Microsoft:', await response.text());
-      return [];
-    }
-
-    const data = await response.json();
-    const events = data.value || [];
-
-    return events.map((event: any) => {
+    const mapEvent = (event: any) => {
       let start = event.start?.dateTime;
       let end = event.end?.dateTime;
 
-      // Microsoft Graph: para eventos de todo el día, dateTime viene como
-      // "2026-02-09T00:00:00.0000000" sin zona horaria explícita.
-      // Asegurar que cubra el día completo.
       if (event.isAllDay && start && end) {
-        // Normalizar: start = día T00:00:00, end = día anterior T23:59:59
-        // Microsoft end date es exclusive (día siguiente T00:00:00)
         const startStr = start.split('T')[0];
         start = `${startStr}T00:00:00`;
         const endDateObj = new Date(end.split('T')[0] + 'T00:00:00');
@@ -666,7 +642,60 @@ async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, 
         status: event.showAs,
         isAllDay: event.isAllDay,
       };
-    });
+    };
+
+    // Si hay calendarios seleccionados, obtener eventos por calendario individual
+    if (selectedCalendarIds && selectedCalendarIds.length > 0) {
+      const allEvents: any[] = [];
+      for (const calId of selectedCalendarIds) {
+        const params = new URLSearchParams({
+          startDateTime: startDate.toISOString(),
+          endDateTime: endDate.toISOString(),
+          $orderby: 'start/dateTime',
+          $top: '100',
+        });
+
+        const response = await fetch(
+          `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calId)}/calendarView?${params}`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.error(`Error obteniendo eventos de Microsoft calendario ${calId}:`, await response.text());
+          continue;
+        }
+
+        const data = await response.json();
+        allEvents.push(...(data.value || []).map(mapEvent));
+      }
+      return allEvents;
+    }
+
+    // Sin selección: usar endpoint por defecto
+    const response = await fetch(
+      `https://graph.microsoft.com/v1.0/me/calendarview?` +
+      `startDateTime=${startDate.toISOString()}&` +
+      `endDateTime=${endDate.toISOString()}&` +
+      `$orderby=start/dateTime&` +
+      `$top=100`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Error obteniendo eventos de Microsoft:', await response.text());
+      return [];
+    }
+
+    const data = await response.json();
+    return (data.value || []).map(mapEvent);
   } catch (error) {
     console.error('Error en getMicrosoftCalendarEvents:', error);
     return [];

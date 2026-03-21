@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Volume2, VolumeX, ChevronRight, Mic, MicOff, Send, Check, BookOpen, Loader2, Calendar, ExternalLink, Search, ChevronLeft, HelpCircle, GraduationCap, Zap, Scale, Clock, ArrowLeft } from 'lucide-react';
+import { X, Volume2, VolumeX, ChevronRight, Mic, MicOff, Send, Check, BookOpen, Loader2, Calendar, ExternalLink, Search, ChevronLeft, HelpCircle, GraduationCap, Zap, Scale, Clock, ArrowLeft, Settings } from 'lucide-react';
+import { CalendarSelectionPanel } from './CalendarSelection';
 import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
@@ -182,6 +183,8 @@ export function StudyPlannerSofLIA() {
   const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
   const [connectedCalendar, setConnectedCalendar] = useState<'google' | 'microsoft' | null>(null);
   const [calendarSkipped, setCalendarSkipped] = useState(false); // Indica si el usuario rechazó explícitamente conectar calendario
+  const [showCalendarConfig, setShowCalendarConfig] = useState(false);
+  const [hasConfiguredCalendars, setHasConfiguredCalendars] = useState(false);
 
   // Manejar conexión de calendario (Google/Microsoft)
   const handleCalendarConnect = async (provider: 'google' | 'microsoft') => {
@@ -940,6 +943,19 @@ export function StudyPlannerSofLIA() {
 
             // Solo guardar el estado, NO saltar el flujo
             setConnectedCalendar(data.provider as 'google' | 'microsoft');
+
+            // Verificar si ya configuró calendarios
+            try {
+              const selResponse = await fetch('/api/study-planner/calendar/selection');
+              if (selResponse.ok) {
+                const selData = await selResponse.json();
+                if (selData.success && selData.data?.selectedCalendarIds?.length > 0) {
+                  setHasConfiguredCalendars(true);
+                }
+              }
+            } catch {
+              // No bloquear por error de config check
+            }
           } else {
             // Asegurarse de limpiar si no hay calendario conectado
             setConnectedCalendar(null);
@@ -10599,6 +10615,44 @@ Cuéntame:
                     </motion.button>
                   )}
 
+                  {/* Botón Configuración de calendarios */}
+                  <motion.button
+                    layout
+                    onClick={() => setShowCalendarConfig(true)}
+                    disabled={!connectedCalendar || isProcessing}
+                    onMouseEnter={() => !isMobile && setHoveredButton('calendar-config')}
+                    onMouseLeave={() => !isMobile && setHoveredButton(null)}
+                    whileTap={{ scale: 0.95 }}
+                    className={`relative rounded-lg transition-colors p-2 sm:p-2.5 flex-shrink-0 flex items-center disabled:opacity-50 ${
+                      !connectedCalendar || isProcessing
+                        ? 'bg-[#6C757D]/50 text-gray-400 cursor-not-allowed'
+                        : 'bg-[#E9ECEF] dark:bg-[#0A2540]/10 hover:bg-[#E9ECEF]/80 dark:hover:bg-[#0A2540]/20 text-[#0A2540] dark:text-white border border-[#E9ECEF] dark:border-[#6C757D]/30'
+                    }`}
+                    title={connectedCalendar ? 'Configurar calendarios' : 'Conecta un calendario primero'}
+                  >
+                    <Settings size={20} />
+                    {/* Ping badge - solo si no ha configurado */}
+                    {connectedCalendar && !hasConfiguredCalendars && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
+                      </span>
+                    )}
+                    <AnimatePresence>
+                      {(hoveredButton === 'calendar-config' && !isMobile) && (
+                        <motion.span
+                          initial={{ width: 0, opacity: 0, marginLeft: 0 }}
+                          animate={{ width: 'auto', opacity: 1, marginLeft: 8 }}
+                          exit={{ width: 0, opacity: 0, marginLeft: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                          className="whitespace-nowrap text-sm font-medium overflow-hidden inline-block"
+                        >
+                          Configurar calendarios
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
+
                   {/* Botón Iniciar Tour */}
                   <motion.button
                     layout
@@ -11333,6 +11387,57 @@ Cuéntame:
                 )}
               </div>
             </div>
+
+            {/* Modal de configuración de calendarios */}
+            <AnimatePresence>
+              {showCalendarConfig && connectedCalendar && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
+                    onClick={() => setShowCalendarConfig(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none"
+                  >
+                    <motion.div className="relative bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl shadow-2xl w-full max-w-md overflow-hidden pointer-events-auto">
+                      {/* Header */}
+                      <div className="flex items-center justify-between p-4 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+                        <div>
+                          <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">Configurar calendarios</h3>
+                          <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-0.5">
+                            Selecciona qué calendarios considerar para tu disponibilidad
+                          </p>
+                        </div>
+                        <motion.button
+                          onClick={() => setShowCalendarConfig(false)}
+                          whileHover={{ scale: 1.1, rotate: 90 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="p-2 text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-all"
+                        >
+                          <X size={18} />
+                        </motion.button>
+                      </div>
+                      {/* Content */}
+                      <div className="p-4">
+                        <CalendarSelectionPanel
+                          provider={connectedCalendar}
+                          onSaveSuccess={() => {
+                            setHasConfiguredCalendars(true);
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
 
             {/* Modal de selección de enfoque de estudio */}
             <AnimatePresence>

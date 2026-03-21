@@ -24,6 +24,7 @@ import ReactMarkdown from 'react-markdown';
 import { useRouter } from 'next/navigation';
 import { StudyPlannerCalendar } from '@/features/study-planner/components/StudyPlannerCalendar';
 import { ToastNotification } from '@/core/components/ToastNotification';
+import { CalendarSelectionPanel } from '@/features/study-planner/components/CalendarSelection';
 import { redirectToDashboard } from '@/features/auth/actions/dashboard-redirect';
 import { useStudyPlannerDashboardSofLIA, type DashboardMessage } from '@/features/study-planner/hooks/useStudyPlannerDashboardSofLIA';
 import { useStudyPlannerDashboardTour } from '@/features/study-planner/hooks/useStudyPlannerDashboardTour';
@@ -67,9 +68,18 @@ export default function StudyPlannerDashboardPage() {
     }
   }, [messages]);
 
+  // Refrescar calendario cuando SofLIA actualiza la selección de calendarios
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.actionType === 'update_calendar_selection' && lastMsg?.actionStatus === 'success') {
+      setHasConfiguredCalendars(true);
+      setCalendarRefreshTrigger(prev => prev + 1);
+    }
+  }, [messages]);
+
   // Estados para los iconos de acción
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [connectedProvider, setConnectedProvider] = useState<'google' | 'microsoft' | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -78,8 +88,10 @@ export default function StudyPlannerDashboardPage() {
   const [calendarError, setCalendarError] = useState<string | null>(null);
   const [isDeletingPlan, setIsDeletingPlan] = useState(false);
   const [isRecreatingPlan, setIsRecreatingPlan] = useState(false);
-  const settingsMenuRef = useRef<HTMLDivElement>(null);
   const [showOnlyPlanEvents, setShowOnlyPlanEvents] = useState(false);
+  const [isCalendarConfigOpen, setIsCalendarConfigOpen] = useState(false);
+  const [hasConfiguredCalendars, setHasConfiguredCalendars] = useState(false);
+  const [calendarRefreshTrigger, setCalendarRefreshTrigger] = useState(0);
 
   // Estado para notificaciones toast
   const [toast, setToast] = useState<{
@@ -110,20 +122,6 @@ export default function StudyPlannerDashboardPage() {
     checkCalendarConnection();
   }, []);
 
-  // Cerrar menú de configuración al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (settingsMenuRef.current && !settingsMenuRef.current.contains(target)) {
-        setIsSettingsMenuOpen(false);
-      }
-    };
-
-    if (isSettingsMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isSettingsMenuOpen]);
 
   const checkCalendarConnection = async () => {
     try {
@@ -132,6 +130,21 @@ export default function StudyPlannerDashboardPage() {
         const data = await response.json();
         setIsGoogleConnected(data.isConnected);
         setConnectedProvider(data.provider || null);
+
+        // Verificar si ya configuró calendarios (si tiene selected_calendar_ids guardados)
+        if (data.isConnected) {
+          try {
+            const selResponse = await fetch('/api/study-planner/calendar/selection');
+            if (selResponse.ok) {
+              const selData = await selResponse.json();
+              setHasConfiguredCalendars(
+                selData.success && selData.data?.selectedCalendarIds?.length > 0
+              );
+            }
+          } catch {
+            // No bloquear si falla la verificación de selección
+          }
+        }
       }
     } catch (error) {
       console.error('Error verificando conexión:', error);
@@ -680,7 +693,6 @@ export default function StudyPlannerDashboardPage() {
               layout
               onClick={() => {
                 setIsCalendarModalOpen(true);
-                setIsSettingsMenuOpen(false);
               }}
               onMouseEnter={() => setHoveredButton('calendar')}
               onMouseLeave={() => setHoveredButton(null)}
@@ -737,6 +749,67 @@ export default function StudyPlannerDashboardPage() {
               </AnimatePresence>
             </motion.button>
 
+          </div>
+
+          {/* Botón Configuración de Calendarios */}
+          <div className="relative">
+            <motion.button
+              layout
+              onClick={() => setIsCalendarConfigOpen(true)}
+              disabled={!connectedProvider}
+              onMouseEnter={() => setHoveredButton('calConfig')}
+              onMouseLeave={() => setHoveredButton(null)}
+              whileTap={{ scale: 0.95 }}
+              className={`
+                rounded-lg transition-colors flex items-center overflow-hidden
+                ${!connectedProvider
+                  ? 'bg-gray-100 dark:bg-gray-800/50 text-gray-300 dark:text-gray-600 border border-gray-200 dark:border-gray-700 cursor-not-allowed'
+                  : 'bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30'
+                }
+              `}
+              title="Configuración de calendarios"
+            >
+              <motion.div
+                className="p-2.5 flex-shrink-0 flex items-center justify-center"
+                animate={hoveredButton === 'calConfig' ? {
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 90, 0],
+                } : {}}
+                transition={{
+                  duration: 0.6,
+                  repeat: hoveredButton === 'calConfig' ? Infinity : 0,
+                  repeatType: 'reverse',
+                  ease: 'easeInOut'
+                }}
+              >
+                <Settings className="w-5 h-5" />
+              </motion.div>
+              <AnimatePresence>
+                {hoveredButton === 'calConfig' && connectedProvider && (
+                  <motion.span
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 'auto', opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeInOut' }}
+                    className="pr-3 whitespace-nowrap text-sm font-medium overflow-hidden inline-block"
+                  >
+                    Configuración
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+
+            {/* Badge de notificación primeriza */}
+            {connectedProvider && !hasConfiguredCalendars && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center"
+              >
+                <span className="absolute w-full h-full bg-red-500 rounded-full animate-ping opacity-75" />
+                <span className="relative w-2 h-2 bg-white rounded-full" />
+              </motion.span>
+            )}
           </div>
 
           {/* Botón Añadir y Eliminar Plan */}
@@ -833,119 +906,12 @@ export default function StudyPlannerDashboardPage() {
             </motion.button>
           </div>
 
-          {/* Icono de Configuraciones */}
-          <div ref={settingsMenuRef} className="relative">
-            <motion.button
-              id="dashboard-settings-button"
-              layout
-              onClick={() => {
-                setIsSettingsMenuOpen(!isSettingsMenuOpen);
-                setIsCalendarModalOpen(false);
-              }}
-              onMouseEnter={() => setHoveredButton('settings')}
-              onMouseLeave={() => setHoveredButton(null)}
-              whileTap={{ scale: 0.95 }}
-              className="rounded-lg bg-white dark:bg-[#1E2329] text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 border border-[#E9ECEF] dark:border-[#6C757D]/30 transition-colors flex items-center overflow-hidden"
-            >
-              <motion.div
-                className="p-2.5 flex-shrink-0"
-                animate={hoveredButton === 'settings' ? {
-                  rotate: 360,
-                } : {}}
-                transition={{
-                  duration: 1,
-                  repeat: hoveredButton === 'settings' ? Infinity : 0,
-                  ease: 'linear'
-                }}
-              >
-                <Settings className="w-5 h-5" />
-              </motion.div>
-              <AnimatePresence>
-                {hoveredButton === 'settings' && (
-                  <motion.span
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.2, ease: 'easeInOut' }}
-                    className="pr-3 whitespace-nowrap text-sm font-medium overflow-hidden inline-block"
-                  >
-                    Configuración
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
-
-            {/* Menú desplegable de Configuraciones */}
-            <AnimatePresence>
-              {isSettingsMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-[#1E2329] rounded-xl shadow-lg border border-[#E9ECEF] dark:border-[#6C757D]/30 z-50 overflow-hidden"
-                >
-                  <div className="p-2 space-y-1">
-                    {/* Filtro de eventos */}
-                    <div className="px-3 py-2 flex items-center justify-between hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors">
-                      <span className="text-sm text-[#0A2540] dark:text-white font-medium">
-                        Solo eventos del plan
-                      </span>
-                      <motion.button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowOnlyPlanEvents(!showOnlyPlanEvents);
-                        }}
-                        className={`
-                          relative inline-flex h-6 w-11 items-center rounded-full focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:ring-offset-2 cursor-pointer
-                          ${showOnlyPlanEvents
-                            ? 'bg-[#0A2540] dark:bg-[#0A2540]'
-                            : 'bg-[#E9ECEF] dark:bg-[#6C757D]'
-                          }
-                        `}
-                        role="switch"
-                        aria-checked={showOnlyPlanEvents}
-                        aria-label="Mostrar solo eventos del plan"
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <motion.span
-                          className="inline-block h-4 w-4 rounded-full bg-white shadow-md"
-                          animate={{
-                            x: showOnlyPlanEvents ? 22 : 4,
-                          }}
-                          transition={{
-                            type: 'spring',
-                            stiffness: 500,
-                            damping: 30,
-                          }}
-                        />
-                      </motion.button>
-                    </div>
-                    <div className="border-t border-[#E9ECEF] dark:border-[#6C757D]/30 my-1"></div>
-                    <button className="w-full px-3 py-2 text-sm text-left text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors">
-                      Preferencias de vista
-                    </button>
-                    <button className="w-full px-3 py-2 text-sm text-left text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors">
-                      Notificaciones
-                    </button>
-                    <button className="w-full px-3 py-2 text-sm text-left text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors">
-                      Sincronización
-                    </button>
-                    <div className="border-t border-[#E9ECEF] dark:border-[#6C757D]/30 my-1"></div>
-                    <button className="w-full px-3 py-2 text-sm text-left text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors">
-                      Ayuda
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
         <div className="flex-1 overflow-auto px-0 sm:px-6 pb-6">
           {/* Calendario de Estudios */}
           <div className="bg-white dark:bg-[#1E2329] rounded-none sm:rounded-xl shadow-sm border-x-0 sm:border border-[#E9ECEF] dark:border-[#6C757D]/30 p-0 sm:p-6 h-full flex flex-col">
-            <StudyPlannerCalendar showOnlyPlanEvents={showOnlyPlanEvents} />
+            <StudyPlannerCalendar showOnlyPlanEvents={showOnlyPlanEvents} refreshTrigger={calendarRefreshTrigger} />
           </div>
         </div>
       </div>
@@ -1435,6 +1401,102 @@ export default function StudyPlannerDashboardPage() {
                       <p className="text-xs text-red-600 dark:text-red-400">{calendarError}</p>
                     </motion.div>
                   )}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Modal de Configuración de Calendarios */}
+      <AnimatePresence>
+        {isCalendarConfigOpen && connectedProvider && (
+          <>
+            {/* Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsCalendarConfigOpen(false)}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="bg-white dark:bg-[#1E2329] rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200 dark:border-[#6C757D]/30">
+                {/* Header */}
+                <div className="flex items-center justify-between p-5 border-b border-gray-200 dark:border-[#6C757D]/30">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-accent/10 dark:bg-accent/20">
+                      <Settings className="w-5 h-5 text-accent" />
+                    </div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Configuración
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setIsCalendarConfigOpen(false)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors"
+                  >
+                    <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Contenido */}
+                <div className="p-5 space-y-5">
+                  {/* Toggle: Solo eventos del plan */}
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-[#0A2540]/10 border border-gray-200 dark:border-[#6C757D]/20">
+                    <div>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        Solo eventos del plan
+                      </span>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Oculta eventos externos en el calendario
+                      </p>
+                    </div>
+                    <motion.button
+                      onClick={() => setShowOnlyPlanEvents(!showOnlyPlanEvents)}
+                      className={`
+                        relative inline-flex h-6 w-11 items-center rounded-full focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:ring-offset-2 cursor-pointer
+                        ${showOnlyPlanEvents
+                          ? 'bg-[#0A2540] dark:bg-[#0A2540]'
+                          : 'bg-gray-300 dark:bg-[#6C757D]'
+                        }
+                      `}
+                      role="switch"
+                      aria-checked={showOnlyPlanEvents}
+                      aria-label="Mostrar solo eventos del plan"
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <motion.span
+                        className="inline-block h-4 w-4 rounded-full bg-white shadow-md"
+                        animate={{
+                          x: showOnlyPlanEvents ? 22 : 4,
+                        }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 500,
+                          damping: 30,
+                        }}
+                      />
+                    </motion.button>
+                  </div>
+
+                  {/* Selección de calendarios */}
+                  <CalendarSelectionPanel
+                    provider={connectedProvider}
+                    onSaveSuccess={() => {
+                      setHasConfiguredCalendars(true);
+                      setCalendarRefreshTrigger(prev => prev + 1);
+                    }}
+                  />
                 </div>
               </div>
             </motion.div>

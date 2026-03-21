@@ -571,6 +571,25 @@
       "codeRequired": "Company code is required",
       "generic": "An error occurred. Please try again."
     }
+  },
+  "studyPlanner": {
+    "calendarSelection": {
+      "title": "Select calendars",
+      "subtitle": "Choose which calendars to use for availability analysis",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "save": "Save selection",
+      "saving": "Saving...",
+      "saved": "Selection saved",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
+      "primary": "Primary",
+      "minOneRequired": "You must select at least one calendar",
+      "noCalendarsFound": "No calendars found",
+      "errorLoading": "Error loading calendars",
+      "errorSaving": "Error saving selection",
+      "staleWarning": "Some selected calendars no longer exist and were removed"
+    }
   }
 }
 

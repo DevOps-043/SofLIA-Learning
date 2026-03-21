@@ -1212,7 +1212,7 @@ ACCIONES:
    * LIA solo debe COPIAR este texto, no hacer cálculos
    */
   static formatPreCalculatedSessionsForPrompt(
-    preCalculatedData: ReturnType<typeof LiaContextService.preCalculateStudySessions>
+    preCalculatedData: ReturnType<typeof SofLIAContextService.preCalculateStudySessions>
   ): string {
     if (preCalculatedData.sessions.length === 0) {
       return '';

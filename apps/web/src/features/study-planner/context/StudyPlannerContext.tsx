@@ -7,8 +7,8 @@ import type {
   StudySession,
   TimeBlock,
   CalendarEvent,
-  LIAAvailabilityAnalysis,
-  LIATimeAnalysis,
+  SofLIAAvailabilityAnalysis,
+  SofLIATimeAnalysis,
 } from '../types/user-context.types';
 
 // ============================================================================
@@ -64,8 +64,8 @@ export interface StudyPlannerState {
   calendarEvents: CalendarEvent[];
   
   // Análisis de LIA
-  liaAvailabilityAnalysis?: LIAAvailabilityAnalysis;
-  liaTimeAnalysis?: LIATimeAnalysis;
+  liaAvailabilityAnalysis?: SofLIAAvailabilityAnalysis;
+  liaTimeAnalysis?: SofLIATimeAnalysis;
   
   // Plan generado
   generatedConfig?: StudyPlanConfig;
@@ -94,8 +94,8 @@ type StudyPlannerAction =
   | { type: 'SET_END_DATE'; payload: string | undefined }
   | { type: 'SET_CALENDAR_CONNECTED'; payload: { connected: boolean; provider?: 'google' | 'microsoft' } }
   | { type: 'SET_CALENDAR_EVENTS'; payload: CalendarEvent[] }
-  | { type: 'SET_LIA_AVAILABILITY_ANALYSIS'; payload: LIAAvailabilityAnalysis }
-  | { type: 'SET_LIA_TIME_ANALYSIS'; payload: LIATimeAnalysis }
+  | { type: 'SET_LIA_AVAILABILITY_ANALYSIS'; payload: SofLIAAvailabilityAnalysis }
+  | { type: 'SET_LIA_TIME_ANALYSIS'; payload: SofLIATimeAnalysis }
   | { type: 'SET_GENERATED_PLAN'; payload: { config: StudyPlanConfig; sessions: StudySession[] } }
   | { type: 'SET_SAVED_PLAN_ID'; payload: string }
   | { type: 'RESET' };
@@ -251,8 +251,8 @@ interface StudyPlannerContextValue {
     setEndDate: (date: string | undefined) => void;
     setCalendarConnected: (connected: boolean, provider?: 'google' | 'microsoft') => void;
     setCalendarEvents: (events: CalendarEvent[]) => void;
-    setLIAAvailabilityAnalysis: (analysis: LIAAvailabilityAnalysis) => void;
-    setLIATimeAnalysis: (analysis: LIATimeAnalysis) => void;
+    setSofLIAAvailabilityAnalysis: (analysis: SofLIAAvailabilityAnalysis) => void;
+    setSofLIATimeAnalysis: (analysis: SofLIATimeAnalysis) => void;
     setGeneratedPlan: (config: StudyPlanConfig, sessions: StudySession[]) => void;
     setSavedPlanId: (planId: string) => void;
     reset: () => void;
@@ -357,11 +357,11 @@ export function StudyPlannerProvider({ children }: StudyPlannerProviderProps) {
     dispatch({ type: 'SET_CALENDAR_EVENTS', payload: events });
   }, []);
 
-  const setLIAAvailabilityAnalysis = useCallback((analysis: LIAAvailabilityAnalysis) => {
+  const setSofLIAAvailabilityAnalysis = useCallback((analysis: SofLIAAvailabilityAnalysis) => {
     dispatch({ type: 'SET_LIA_AVAILABILITY_ANALYSIS', payload: analysis });
   }, []);
 
-  const setLIATimeAnalysis = useCallback((analysis: LIATimeAnalysis) => {
+  const setSofLIATimeAnalysis = useCallback((analysis: SofLIATimeAnalysis) => {
     dispatch({ type: 'SET_LIA_TIME_ANALYSIS', payload: analysis });
   }, []);
 
@@ -497,8 +497,8 @@ export function StudyPlannerProvider({ children }: StudyPlannerProviderProps) {
       setEndDate,
       setCalendarConnected,
       setCalendarEvents,
-      setLIAAvailabilityAnalysis,
-      setLIATimeAnalysis,
+      setSofLIAAvailabilityAnalysis,
+      setSofLIATimeAnalysis,
       setGeneratedPlan,
       setSavedPlanId,
       reset,

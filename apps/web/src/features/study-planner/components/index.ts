@@ -6,6 +6,7 @@
 export { StudyPlannerSofLIA } from './StudyPlannerLIA';
 export { PlanSummary } from './PlanSummary';
 export { PlanEditor } from './PlanEditor';
+export { CalendarSelectionPanel } from './CalendarSelection';
 
 
 

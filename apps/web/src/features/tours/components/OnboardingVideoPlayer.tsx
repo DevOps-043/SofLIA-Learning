@@ -17,13 +17,25 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
   const [videoError, setVideoError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const prevVideosRef = useRef<string[]>([]);
+  
   useEffect(() => {
-    setHasError(false);
-    setVideoError(null);
-    setIsPlaying(false);
-    if (videoRef.current) {
-      videoRef.current.load();
+    // Solo recargar si el contenido del array ha cambiado realmente, no solo la referencia
+    const videosChanged = JSON.stringify(videos) !== JSON.stringify(prevVideosRef.current);
+    
+    if (videosChanged) {
+      setHasError(false);
+      setVideoError(null);
+      setIsPlaying(false);
+      prevVideosRef.current = videos;
       
+      if (videoRef.current) {
+        videoRef.current.load();
+      }
+    }
+
+    // Manejar el inicio de reproducción al cambiar de video o al cargar inicialmente
+    if (videoRef.current && !hasError) {
       // Si no es el primer video, intentar reproducir automáticamente (ya hubo interacción previa)
       if (currentVideoIndex > 0) {
         const playPromise = videoRef.current.play();
@@ -36,7 +48,7 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
         }
       }
     }
-  }, [currentVideoIndex, videos]);
+  }, [currentVideoIndex, videos, hasError]);
 
   const handleVideoEnd = () => {
     if (currentVideoIndex < videos.length - 1) {
