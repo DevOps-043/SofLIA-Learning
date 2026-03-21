@@ -110,33 +110,42 @@ function LiaFloatingButtonContent() {
 
       <AnimatePresence>
         {!isOpen && (
-          <motion.button
-            id="tour-lia-button"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={togglePanel}
+          <div
+            id="lia-tour-trigger-stable"
+            data-tour="lia-button"
             style={{
               position: 'fixed',
               bottom: '24px',
               right: '24px',
               width: '56px',
               height: '56px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #00D4B3 0%, #00a893 100%)',
-              boxShadow: '0 4px 20px rgba(0, 212, 179, 0.4)',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
               zIndex: 9998,
+              background: 'rgba(0,0,0,0.01)', // Give it some substance for layout detection
+              borderRadius: '50%',
             }}
-            aria-label="Abrir asistente SofLIA"
           >
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={togglePanel}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #00D4B3 0%, #00a893 100%)',
+                boxShadow: '0 4px 20px rgba(0, 212, 179, 0.4)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-label="Abrir asistente SofLIA"
+            >
             {/* Pulse effect */}
             <motion.div
               style={{
@@ -169,7 +178,8 @@ function LiaFloatingButtonContent() {
                 zIndex: 1,
               }}
             />
-          </motion.button>
+            </motion.button>
+          </div>
         )}
       </AnimatePresence>
     </>
@@ -184,6 +194,6 @@ export function LiaFloatingButton() {
   }, []);
 
   if (!mounted) return null;
-
-  return createPortal(<LiaFloatingButtonContent />, document.body);
+  
+  return <LiaFloatingButtonContent />;
 }

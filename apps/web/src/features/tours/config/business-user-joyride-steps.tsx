@@ -64,23 +64,15 @@ export const businessUserJoyrideSteps: Step[] = [
     }
   },
   {
-    target: '#tour-lia-button',
+    target: '#lia-tour-trigger-stable',
     title: '¡Tu Asistente SofLIA!',
     content: 'SofLIA es lo más importante de tu experiencia. Está aquí 24/7 para resolver dudas, analizar tu progreso y recibir feedback.',
     placement: 'top-end',
     disableBeacon: true,
+    disableScrolling: true,
+    spotlightPadding: 20,
     data: {
       icon: <Bot className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  {
-    target: 'body',
-    title: '¡Hora de Planificar!',
-    content: 'Para comenzar con el pie derecho, te recomendamos visitar el Planificador de Estudios para crear tu primer plan personalizado.',
-    placement: 'center',
-    disableBeacon: true,
-    data: {
-      icon: <CalendarCheck className="w-5 h-5 text-[#00D4B3]" />
     }
   },
 ];

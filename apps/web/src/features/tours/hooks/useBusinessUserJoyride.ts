@@ -50,8 +50,6 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
     if (status === STATUS.FINISHED) {
       setRun(false);
       completeTour().catch(err => console.error('[useBusinessUserJoyride] Complete failed', err));
-      // Redirect to study planner on completion as per original design
-      router.push('/study-planner/create');
       return;
     }
 
