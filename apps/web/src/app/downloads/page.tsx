@@ -6,7 +6,6 @@ import {
   Download,
   Monitor,
   Apple,
-  Info,
   CheckCircle2,
   ShieldCheck,
   Zap,
@@ -15,11 +14,7 @@ import {
   Github,
   Bot,
   Cpu,
-  Globe,
-  RefreshCw,
-  MessageSquare,
   BarChart3,
-  BookOpen,
   AlertTriangle,
   Plus,
   Wrench,
@@ -27,13 +22,21 @@ import {
   Trash2,
   FileText,
   Layers,
-  FolderKanban,
   MessageCircle,
   Search,
   Settings
 } from 'lucide-react';
 import { LandingHeader } from '../../features/landing/components/LandingHeader';
 import { LandingFooter } from '../../features/landing/components/LandingFooter';
+
+/** Parse markdown bold (**text**) into JSX <strong> elements */
+function formatMarkdownBold(text: string): React.ReactNode {
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i} className="font-semibold text-gray-900 dark:text-white">{part}</strong> : part
+  );
+}
 
 const RELEASES_API = '/api/releases';
 
@@ -597,7 +600,7 @@ export default function DownloadsPage() {
                                                 <div key={j} className="flex items-start gap-3 group/item">
                                                   <div className={`w-1.5 h-1.5 rounded-full ${section.dotColor} mt-2 shrink-0 opacity-60`} />
                                                   <span className="text-sm text-[#0A2540]/70 dark:text-white/70 leading-relaxed">
-                                                    {item}
+                                                    {formatMarkdownBold(item)}
                                                   </span>
                                                 </div>
                                               ))}
