@@ -113,7 +113,7 @@ export function CertificateDisplay({
       <div className="flex-1 p-12 flex flex-col relative z-10">
         {/* Contenido del certificado */}
         <div className="flex flex-col justify-between items-center text-center h-full">
-          {/* Logo de Aprende y Aplica */}
+          {/* Logo de SofLIA */}
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div 
@@ -138,7 +138,7 @@ export function CertificateDisplay({
             color: primaryColor,
             textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
           }}>
-            Aprende y Aplica
+            SofLIA
           </div>
           
           {/* Línea decorativa */}

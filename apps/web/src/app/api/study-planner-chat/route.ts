@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
                 },
                 {
                     role: 'model',
-                    parts: [{ text: 'Perfecto, he internalizado todas las instrucciones. Estoy listo para ayudar como LIA, el asistente del Planificador de Estudios. Responderé en español, de forma natural y amigable, siguiendo todas las reglas establecidas.' }]
+                    parts: [{ text: 'Perfecto, he internalizado todas las instrucciones. Estoy listo para ayudar como SofLIA, el asistente del Planificador de Estudios. Responderé en español, de forma natural y amigable, siguiendo todas las reglas establecidas.' }]
                 },
                 // Añadir el historial de conversación real
                 ...geminiHistory

@@ -431,7 +431,7 @@ export function StudyPlannerOnboardingAgent() {
               <div className="relative flex flex-col items-center flex-shrink-0">
                 {/* Esfera central con anillos */}
                 <div className="relative w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 mb-1.5 sm:mb-2 md:mb-3">
-                  {/* Esfera central con foto de LIA */}
+                  {/* Esfera central con foto de SofLIA */}
                   <motion.div
                     className="absolute inset-8 sm:inset-10 md:inset-12 rounded-full bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 p-1 overflow-hidden"
                     animate={{
@@ -449,11 +449,11 @@ export function StudyPlannerOnboardingAgent() {
                       boxShadow: { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
                     }}
                   >
-                    {/* Foto de LIA */}
+                    {/* Foto de SofLIA */}
                     <div className="relative w-full h-full rounded-full overflow-hidden bg-white/10 backdrop-blur-sm">
                       <Image
                         src="/lia-avatar.png"
-                        alt="LIA"
+                        alt="SofLIA"
                         fill
                         sizes="256px"
                         className="object-cover"

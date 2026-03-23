@@ -9,8 +9,8 @@ export const STUDY_PLANNER_STEPS: StudyPlannerStep[] = [
   {
     id: 1,
     title: '¡Bienvenido al Planificador de Estudios!',
-    description: 'Soy LIA, tu asistente inteligente. Estoy aquí para ayudarte a crear un plan de estudios personalizado que se adapte a tu tiempo y ritmo de aprendizaje.',
-    speech: '¡Bienvenido al Planificador de Estudios! Soy LIA, tu asistente inteligente. Estoy aquí para ayudarte a crear un plan de estudios personalizado que se adapte a tu tiempo y ritmo de aprendizaje.'
+    description: 'Soy SofLIA, tu asistente inteligente. Estoy aquí para ayudarte a crear un plan de estudios personalizado que se adapte a tu tiempo y ritmo de aprendizaje.',
+    speech: '¡Bienvenido al Planificador de Estudios! Soy SofLIA, tu asistente inteligente. Estoy aquí para ayudarte a crear un plan de estudios personalizado que se adapte a tu tiempo y ritmo de aprendizaje.'
   },
   {
     id: 2,

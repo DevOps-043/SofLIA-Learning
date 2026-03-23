@@ -1,221 +1,177 @@
-/**
- * useStudyPlannerLIA Hook
- * 
- * Hook personalizado para manejar el estado conversacional con LIA
- * en el planificador de estudios.
- */
-
-import { useState, useCallback, useEffect, useRef } from 'react';
-import type {
-  UserContext,
-  StudyPlanConfig,
-  StudySession,
-  TimeBlock,
-  CalendarEvent,
-  SofLIAAvailabilityAnalysis,
-} from '../types/user-context.types';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { generateStudyPlannerPrompt } from '../prompts/study-planner.prompt';
 
-// Fases del flujo conversacional
-export enum StudyPlannerPhase {
-  WELCOME = 0,
-  CONTEXT_ANALYSIS = 1,
-  COURSE_SELECTION = 2,
-  CALENDAR_INTEGRATION = 3,
-  TIME_CONFIGURATION = 4,
-  BREAK_CONFIGURATION = 5,
-  SCHEDULE_CONFIGURATION = 6,
-  SUMMARY = 7,
-  COMPLETE = 8,
+export interface UseStudyPlannerLIAProps {
+  userContext: any;
+  assignedCourses: any[];
+  availableCourses: any[];
+  selectedCourseIds: string[];
+  liaData: {
+    isReady: boolean;
+    lessons: any[];
+    totalPending: number;
+    courseProgress?: any[];
+  };
+  pendingLessonsRef: React.MutableRefObject<any[]>;
+  connectedCalendar: 'google' | 'microsoft' | null;
+  savedCalendarData: any;
+  
+  studyApproach: 'corto' | 'balance' | 'largo' | null;
+  targetDate: string | null;
+  hasAskedApproach: boolean;
+  hasAskedTargetDate: boolean;
+  showDateModal: boolean;
+  
+  isAudioEnabled: boolean;
+  processingRef: React.MutableRefObject<boolean>;
+
+  setStudyApproach: (a: 'corto' | 'balance' | 'largo') => void;
+  setTargetDate: (d: string) => void;
+  setHasAskedApproach: (v: boolean) => void;
+  setHasAskedTargetDate: (v: boolean) => void;
+  setShowApproachModal: (v: boolean) => void;
+  loadUserCourses: () => void;
+  handleStudyApproachResponse: (a: 'corto' | 'balance' | 'largo') => Promise<void>;
+  handleTargetDateResponse: (d: string) => Promise<void>;
+  executeFinalPlanSave: () => Promise<void>;
+  speakText: (t: string) => Promise<void>;
+  stopAllAudio: () => void;
+  onSetLiaConversationId?: (id: string) => void;
 }
 
-// Datos recopilados en cada fase
-export interface PhaseData {
-  // Fase 1: Análisis de contexto
-  userContext?: UserContext;
-  availabilityAnalysis?: SofLIAAvailabilityAnalysis;
+export function useStudyPlannerLIA(props: UseStudyPlannerLIAProps) {
+  const {
+    userContext,
+    assignedCourses,
+    availableCourses,
+    selectedCourseIds,
+    liaData,
+    pendingLessonsRef,
+    connectedCalendar,
+    savedCalendarData,
+    studyApproach,
+    targetDate,
+    hasAskedApproach,
+    hasAskedTargetDate,
+    showDateModal,
+    isAudioEnabled,
+    processingRef,
+    setStudyApproach,
+    setTargetDate,
+    setHasAskedApproach,
+    setHasAskedTargetDate,
+    setShowApproachModal,
+    loadUserCourses,
+    handleStudyApproachResponse,
+    handleTargetDateResponse,
+    executeFinalPlanSave,
+    speakText,
+    stopAllAudio,
+    onSetLiaConversationId
+  } = props;
 
-  // Fase 2: Selección de cursos
-  selectedCourseIds?: string[];
-  learningRouteId?: string;
+  // Estados conversacionales que se extraen de StudyPlannerLIA.tsx
+  const [conversationHistory, setConversationHistory] = useState<Array<{ role: string, content: string }>>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [hasShownFinalSummary, setHasShownFinalSummary] = useState(false);
+  
+  // Estado para la distribución de las lecciones
+  type StoredLessonDistribution = {
+    dateStr: string;
+    dayName: string;
+    startTime: string;
+    endTime: string;
+    lessons: Array<{ courseTitle: string; lessonTitle: string; lessonOrderIndex: number; durationMinutes?: number }>;
+  };
+  const [savedLessonDistribution, setSavedLessonDistribution] = useState<StoredLessonDistribution[]>([]);
 
-  // Fase 3: Calendario
-  calendarConnected?: boolean;
-  calendarProvider?: 'google' | 'microsoft';
-  calendarEvents?: CalendarEvent[];
+  // Refs necesarios
+  const conversationHistoryRef = useRef(conversationHistory);
+  
+  // Sincronizar ref con history
 
-  // Fase 4: Tiempos de sesión
-  minSessionMinutes?: number;
-  maxSessionMinutes?: number;
-
-  // Fase 5: Descansos
-  breakDurationMinutes?: number;
-
-  // Fase 6: Días y horarios
-  preferredDays?: number[];
-  preferredTimeBlocks?: TimeBlock[];
-  preferredTimeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night';
-
-  // Fase 7: Plan generado
-  planName?: string;
-  planDescription?: string;
-  goalHoursPerWeek?: number;
-  startDate?: string;
-  endDate?: string;
-  generatedSessions?: StudySession[];
-}
-
-// Mensaje en el historial
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date;
-  phase?: StudyPlannerPhase;
-}
-
-// Estado del hook
-export interface StudyPlannerLIAState {
-  currentPhase: StudyPlannerPhase;
-  phaseData: PhaseData;
-  messages: Message[];
-  isLoading: boolean;
-  isListening: boolean;
-  isSpeaking: boolean;
-  error: string | null;
-}
-
-// Acciones disponibles
-export interface StudyPlannerLIAActions {
-  // Comunicación con LIA
-  sendMessage: (message: string) => Promise<void>;
-  sendVoiceMessage: (transcript: string) => Promise<void>;
-
-  // Navegación entre fases
-  goToPhase: (phase: StudyPlannerPhase) => void;
-  nextPhase: () => void;
-  previousPhase: () => void;
-
-  // Actualización de datos
-  updatePhaseData: (data: Partial<PhaseData>) => void;
-
-  // Control de audio
-  setIsListening: (listening: boolean) => void;
-  setIsSpeaking: (speaking: boolean) => void;
-
-  // Generación del plan
-  generatePlan: () => Promise<void>;
-  savePlan: () => Promise<{ planId: string; sessionIds: string[] } | null>;
-
-  // Utilidades
-  clearError: () => void;
-  reset: () => void;
-}
-
-const initialState: StudyPlannerLIAState = {
-  currentPhase: StudyPlannerPhase.WELCOME,
-  phaseData: {},
-  messages: [],
-  isLoading: false,
-  isListening: false,
-  isSpeaking: false,
-  error: null,
-};
-
-/**
- * Hook para manejar la interacción con LIA en el planificador de estudios
- */
-export function useStudyPlannerLIA(): StudyPlannerLIAState & StudyPlannerLIAActions {
-  const [state, setState] = useState<StudyPlannerLIAState>(initialState);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Cargar contexto del usuario al iniciar
   useEffect(() => {
-    loadUserContext();
-  }, []);
+    conversationHistoryRef.current = conversationHistory;
+  }, [conversationHistory]);
 
-  // Cargar contexto del usuario
-  const loadUserContext = useCallback(async () => {
-    setState(prev => ({ ...prev, isLoading: true }));
-
-    try {
-      const response = await fetch('/api/study-planner/user-context');
-
-      if (!response.ok) {
-        throw new Error('Error al cargar el contexto del usuario');
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setState(prev => ({
-          ...prev,
-          phaseData: {
-            ...prev.phaseData,
-            userContext: data.data,
-            selectedCourseIds: data.data.courses.map((c: any) => c.courseId),
-            calendarConnected: data.data.calendarIntegration?.isConnected,
-            calendarProvider: data.data.calendarIntegration?.provider,
-          },
-          isLoading: false,
-        }));
-      }
-    } catch (error) {
-      console.error('Error cargando contexto:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Error al cargar tu información. Por favor, recarga la página.',
-        isLoading: false,
-      }));
-    }
-  }, []);
-
-  // Enviar mensaje a LIA
-  const sendMessage = useCallback(async (message: string) => {
+  const handleSendMessage = async (message: string) => {
     if (!message.trim()) return;
 
-    // Cancelar solicitud anterior si existe
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+    stopAllAudio();
+    setIsProcessing(true);
 
-    // Agregar mensaje del usuario
-    const userMessage: Message = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: message,
-      timestamp: new Date(),
-      phase: state.currentPhase,
-    };
-
-    setState(prev => ({
-      ...prev,
-      messages: [...prev.messages, userMessage],
-      isLoading: true,
-      error: null,
-    }));
+    const userMessage = { role: 'user', content: message };
+    setConversationHistory(prev => [...prev, userMessage]);
 
     try {
-      // Preparar historial de conversación
-      const conversationHistory = state.messages
-        .slice(-10) // Últimos 10 mensajes
-        .map(m => ({
-          role: m.role,
-          content: m.content,
-        }));
-      // Generar el systemPrompt para esta llamada
-      const hookDateStr = new Date().toLocaleDateString('es-ES', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+      
+      // Filtros de inyección de prompts
+      const promptInjectionPatterns = [
+        /ignora\\s+(todas?\\s+)?las?\\s+instrucciones/i,
+        /olvida\\s+(que\\s+)?eres/i,
+        /actúa\\s+como/i,
+        /muéstrame\\s+el\\s+prompt/i,
+        /ejecuta\\s+(código|comando|script)/i,
+        /system\\s*:\\s*ignore/i,
+        /\\[SYSTEM\\]/i,
+        /<\\|system\\|>/i,
+      ];
 
-      const hookSystemPrompt = generateStudyPlannerPrompt({
-        userName: undefined,
-        studyPlannerContextString: `FASE ACTUAL: ${StudyPlannerPhase[state.currentPhase]}\nCURSOS SELECCIONADOS: ${state.phaseData.selectedCourseIds?.length || 0}`,
-        currentDate: hookDateStr
+      const hasInjectionAttempt = promptInjectionPatterns.some(pattern => pattern.test(message));
+      if (hasInjectionAttempt) {
+        setConversationHistory(prev => [...prev, {
+          role: 'assistant',
+          content: 'Entiendo que quieres probar diferentes cosas, pero estoy aquí para ayudarte con tu plan de estudios. ¿En qué puedo asistirte?'
+        }]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Contexto Calendario
+      let calendarContext = '';
+      if (connectedCalendar && savedCalendarData && Object.keys(savedCalendarData).length > 0) {
+        try {
+          const busyList: string[] = [];
+          Object.entries(savedCalendarData || {}).forEach(([dateKey, data]: [string, any]) => {
+            if (data?.busySlots && Array.isArray(data.busySlots)) {
+              data.busySlots.forEach((slot: any) => {
+                const start = new Date(slot.start);
+                const end = new Date(slot.end);
+                busyList.push(`- ${dateKey}: ${start.getHours()}:${start.getMinutes()} - ${end.getHours()}:${end.getMinutes()}`);
+              });
+            }
+          });
+          if (busyList.length > 0) {
+            calendarContext = `\\n\\nRESTRICCIONES CALENDARIO:\\n${busyList.join('\\n')}`;
+          }
+        } catch(e) {}
+      }
+
+      const isB2B = userContext?.userType === 'b2b';
+      
+      let pendingLessonsContext = '';
+      if (isB2B) {
+         if (pendingLessonsRef.current && pendingLessonsRef.current.length > 0) {
+            pendingLessonsContext = pendingLessonsRef.current.map(l => `- ${l.lessonTitle} (${l.durationMinutes||15} min) - ${l.courseTitle}`).join('\\n');
+         } else {
+            pendingLessonsContext = 'No hay lecciones pendientes.';
+         }
+      } else {
+         if (liaData?.lessons?.length > 0 && selectedCourseIds?.length > 0) {
+            const filtered = liaData.lessons.filter((l:any) => selectedCourseIds.includes(l.courseId) || selectedCourseIds.includes(l.courses?.id));
+            pendingLessonsContext = filtered.slice(0,10).map((l:any) => `- ${l.title} (${l.duration_minutes||15}m)`).join('\\n');
+         }
+      }
+
+      const currentDateStr = new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      
+      const systemPrompt = generateStudyPlannerPrompt({
+        userName: userContext?.userName || undefined,
+        studyPlannerContextString: `TIPO DE USUARIO: ${isB2B ? 'B2B (Corporativo)' : 'B2C (Individual)'}
+ENFOQUE DE ESTUDIO: ${studyApproach || 'No definido'}
+FECHA LÍMITE GENERAL: ${targetDate || 'No definida'}
+LECCIONES PENDIENTES:\\n${pendingLessonsContext}${calendarContext}`,
+        currentDate: currentDateStr
       });
 
       const response = await fetch('/api/study-planner-chat', {
@@ -223,288 +179,103 @@ export function useStudyPlannerLIA(): StudyPlannerLIAState & StudyPlannerLIAActi
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message,
-          conversationHistory,
-          systemPrompt: hookSystemPrompt,
-          userName: undefined
-        }),
-        signal: abortControllerRef.current.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al comunicarse con LIA');
-      }
-
-      const data = await response.json();
-
-      // Agregar respuesta de LIA
-      const assistantMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: data.response,
-        timestamp: new Date(),
-        phase: state.currentPhase,
-      };
-
-      setState(prev => ({
-        ...prev,
-        messages: [...prev.messages, assistantMessage],
-        isLoading: false,
-      }));
-
-      return data.response;
-
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        return;
-      }
-
-      console.error('Error enviando mensaje:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Error al comunicarse con LIA. Por favor, intenta de nuevo.',
-        isLoading: false,
-      }));
-    }
-  }, [state.currentPhase, state.messages, state.phaseData]);
-
-  // Enviar mensaje por voz
-  const sendVoiceMessage = useCallback(async (transcript: string) => {
-    setState(prev => ({ ...prev, isListening: false }));
-    return sendMessage(transcript);
-  }, [sendMessage]);
-
-  // Ir a una fase específica
-  const goToPhase = useCallback((phase: StudyPlannerPhase) => {
-    setState(prev => ({
-      ...prev,
-      currentPhase: phase,
-    }));
-  }, []);
-
-  // Avanzar a la siguiente fase
-  const nextPhase = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      currentPhase: Math.min(prev.currentPhase + 1, StudyPlannerPhase.COMPLETE),
-    }));
-  }, []);
-
-  // Retroceder a la fase anterior
-  const previousPhase = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      currentPhase: Math.max(prev.currentPhase - 1, StudyPlannerPhase.WELCOME),
-    }));
-  }, []);
-
-  // Actualizar datos de la fase
-  const updatePhaseData = useCallback((data: Partial<PhaseData>) => {
-    setState(prev => ({
-      ...prev,
-      phaseData: {
-        ...prev.phaseData,
-        ...data,
-      },
-    }));
-  }, []);
-
-  // Control de escucha
-  const setIsListening = useCallback((listening: boolean) => {
-    setState(prev => ({ ...prev, isListening: listening }));
-  }, []);
-
-  // Control de habla
-  const setIsSpeaking = useCallback((speaking: boolean) => {
-    setState(prev => ({ ...prev, isSpeaking: speaking }));
-  }, []);
-
-  // Generar plan
-  const generatePlan = useCallback(async () => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const { phaseData } = state;
-
-      // Validar datos necesarios
-      if (!phaseData.selectedCourseIds || phaseData.selectedCourseIds.length === 0) {
-        throw new Error('No hay cursos seleccionados');
-      }
-
-      if (!phaseData.minSessionMinutes || !phaseData.maxSessionMinutes) {
-        throw new Error('No se han configurado los tiempos de sesión');
-      }
-
-      // Preparar request
-      const requestBody = {
-        name: phaseData.planName || 'Mi Plan de Estudios',
-        description: phaseData.planDescription,
-        courseIds: phaseData.selectedCourseIds,
-        learningRouteId: phaseData.learningRouteId,
-        goalHoursPerWeek: phaseData.goalHoursPerWeek || 5,
-        startDate: phaseData.startDate || new Date().toISOString(),
-        endDate: phaseData.endDate,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        preferredDays: phaseData.preferredDays || [1, 2, 3, 4, 5],
-        preferredTimeBlocks: phaseData.preferredTimeBlocks || [],
-        minSessionMinutes: phaseData.minSessionMinutes,
-        maxSessionMinutes: phaseData.maxSessionMinutes,
-        breakDurationMinutes: phaseData.breakDurationMinutes || 10,
-        preferredSessionType: getSessionType(phaseData.maxSessionMinutes),
-      };
-
-      const response = await fetch('/api/study-planner/generate-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al generar el plan');
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        setState(prev => ({
-          ...prev,
-          phaseData: {
-            ...prev.phaseData,
-            generatedSessions: data.data.sessions,
-          },
-          isLoading: false,
-        }));
-      }
-
-    } catch (error) {
-      console.error('Error generando plan:', error);
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Error al generar el plan',
-        isLoading: false,
-      }));
-    }
-  }, [state.phaseData]);
-
-  // Guardar plan
-  const savePlan = useCallback(async (): Promise<{ planId: string; sessionIds: string[] } | null> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
-    try {
-      const { phaseData } = state;
-
-      if (!phaseData.generatedSessions || phaseData.generatedSessions.length === 0) {
-        throw new Error('No hay sesiones generadas para guardar');
-      }
-
-      const config: StudyPlanConfig = {
-        name: phaseData.planName || 'Mi Plan de Estudios',
-        description: phaseData.planDescription,
-        userType: phaseData.userContext?.userType || 'b2c',
-        courseIds: phaseData.selectedCourseIds || [],
-        learningRouteId: phaseData.learningRouteId,
-        goalHoursPerWeek: phaseData.goalHoursPerWeek || 5,
-        startDate: phaseData.startDate,
-        endDate: phaseData.endDate,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        preferredDays: phaseData.preferredDays || [1, 2, 3, 4, 5],
-        preferredTimeBlocks: phaseData.preferredTimeBlocks || [],
-        minSessionMinutes: phaseData.minSessionMinutes || 20,
-        maxSessionMinutes: phaseData.maxSessionMinutes || 45,
-        breakDurationMinutes: phaseData.breakDurationMinutes || 10,
-        preferredSessionType: getSessionType(phaseData.maxSessionMinutes || 45),
-        generationMode: 'ai_generated',
-        sofLiaAvailabilityAnalysis: phaseData.availabilityAnalysis,
-        calendarAnalyzed: phaseData.calendarConnected || false,
-        calendarProvider: phaseData.calendarProvider,
-      };
-
-      const response = await fetch('/api/study-planner/save-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          config,
-          sessions: phaseData.generatedSessions,
+          conversationHistory: conversationHistoryRef.current.slice(-10),
+          systemPrompt,
+          userName: userContext?.userName || undefined
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Error al guardar el plan');
-      }
+      if (!response.ok) throw new Error('Error de comunicación con la API de SofLIA');
 
       const data = await response.json();
-
-      if (data.success && data.data) {
-        setState(prev => ({
-          ...prev,
-          currentPhase: StudyPlannerPhase.COMPLETE,
-          isLoading: false,
-        }));
-
-        return {
-          planId: data.data.planId,
-          sessionIds: data.data.sessionIds || []
-        };
+      let liaResponse = data.response;
+      
+      if (data.conversationId && onSetLiaConversationId) {
+        onSetLiaConversationId(data.conversationId);
       }
 
-      return null;
+      // Evitar que SofLIA escupa el prompt (bug de LLM)
+      if (liaResponse.trim().startsWith('╔══') || liaResponse.trim().startsWith('█ IDENTIDAD') || liaResponse.trim().startsWith('PROMPT MAESTRO')) {
+        liaResponse = '¡Perfecto! Vamos a continuar. ¿Qué más necesitas para tu plan de estudios?';
+      }
 
-    } catch (error) {
-      console.error('Error guardando plan:', error);
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Error al guardar el plan',
-        isLoading: false,
-      }));
-      return null;
+      setConversationHistory(prev => [...prev, { role: 'assistant', content: liaResponse }]);
+
+      // Extraer lógicas de LIA desde las respuestas aquí
+      
+      if (liaResponse.includes('¿Qué cursos te gustaría incluir?')) {
+        setTimeout(() => loadUserCourses(), 500);
+      }
+      
+      // Parsear respuesta del Approach
+      if (hasAskedApproach && !studyApproach) {
+        const lower = message.toLowerCase();
+        if (lower.includes('corto') || lower.includes('rápido')) {
+          setStudyApproach('corto');
+          await handleStudyApproachResponse('corto');
+          return;
+        } else if (lower.includes('balance') || lower.includes('equilibrado')) {
+          setStudyApproach('balance');
+          await handleStudyApproachResponse('balance');
+          return;
+        } else if (lower.includes('largo') || lower.includes('profundizar')) {
+          setStudyApproach('largo');
+          await handleStudyApproachResponse('largo');
+          return;
+        }
+      }
+
+      if (hasAskedTargetDate && !targetDate && studyApproach && !showDateModal) {
+        const dateMatch = message.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/i);
+        if (dateMatch || message.toLowerCase().includes('mes')) {
+          setTargetDate(message);
+          await handleTargetDateResponse(message);
+          return;
+        }
+      }
+
+      const isUserConfirmation = message.toLowerCase().match(/^(s[íi]|ok|claro|perfecto|adelante|dale|va|seguro)/i);
+      const liaConfirmsSaving = liaResponse.toLowerCase().match(/(guardad|guardar|xito|comenzar|dashboard|creado)/i);
+      
+      if (isUserConfirmation && liaConfirmsSaving && savedLessonDistribution.length > 0) {
+        setTimeout(() => executeFinalPlanSave(), 2000);
+      }
+      
+      if (isAudioEnabled) {
+        await speakText(liaResponse);
+      }
+      
+    } catch(err) {
+      console.error(err);
+      setConversationHistory(prev => [...prev, { role: 'assistant', content: 'Lo siento, tuve un problema procesando tu mensaje.'}]);
+    } finally {
+      setIsProcessing(false);
     }
-  }, [state.phaseData]);
+  };
 
-  // Limpiar error
-  const clearError = useCallback(() => {
-    setState(prev => ({ ...prev, error: null }));
-  }, []);
-
-  // Reiniciar estado
-  const reset = useCallback(() => {
-    setState(initialState);
-    loadUserContext();
-  }, [loadUserContext]);
-
-  // Limpiar al desmontar
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+  const handleVoiceQuestion = async (question: string) => {
+    if (!question.trim()) return;
+    if (processingRef.current) return;
+    
+    processingRef.current = true;
+    
+    try {
+      await handleSendMessage(question);
+    } finally {
+      processingRef.current = false;
+    }
+  };
 
   return {
-    // Estado
-    ...state,
-
-    // Acciones
-    sendMessage,
-    sendVoiceMessage,
-    goToPhase,
-    nextPhase,
-    previousPhase,
-    updatePhaseData,
-    setIsListening,
-    setIsSpeaking,
-    generatePlan,
-    savePlan,
-    clearError,
-    reset,
+    conversationHistory,
+    setConversationHistory,
+    isProcessing,
+    savedLessonDistribution,
+    setSavedLessonDistribution,
+    hasShownFinalSummary,
+    setHasShownFinalSummary,
+    handleSendMessage,
+    handleVoiceQuestion,
+    setIsProcessing
   };
 }
-
-// Utilidad para determinar tipo de sesión
-function getSessionType(maxMinutes: number): 'short' | 'medium' | 'long' {
-  if (maxMinutes <= 25) return 'short';
-  if (maxMinutes <= 45) return 'medium';
-  return 'long';
-}
-
-export default useStudyPlannerLIA;
-

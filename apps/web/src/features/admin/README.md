@@ -1,8 +1,8 @@
-# Panel de Administración - Aprende y Aplica
+# Panel de Administración - SofLIA
 
 ## 📋 Descripción
 
-El panel de administración es una interfaz completa para gestionar todos los aspectos de la plataforma Aprende y Aplica. Permite a los administradores gestionar usuarios, talleres, comunidades, prompts, apps de IA, noticias y visualizar estadísticas.
+El panel de administración es una interfaz completa para gestionar todos los aspectos de la plataforma SofLIA. Permite a los administradores gestionar usuarios, talleres, comunidades, prompts, apps de IA, noticias y visualizar estadísticas.
 
 ## 🏗️ Arquitectura
 

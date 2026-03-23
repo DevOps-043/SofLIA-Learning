@@ -141,7 +141,7 @@ export function WelcomeTourOverlay({
                     <div className="relative w-full h-full rounded-full overflow-hidden bg-white/10 backdrop-blur-sm">
                       <Image
                         src="/lia-avatar.png"
-                        alt="LIA"
+                        alt="SofLIA"
                         fill
                         sizes="256px"
                         className="object-cover"
@@ -456,7 +456,7 @@ export function WelcomeTourOverlay({
                               ? 'Procesando tu pregunta...'
                               : isListening
                                 ? 'Escuchando... Habla ahora'
-                                : 'Haz clic en el micrófono para hablar con LIA'}
+                                : 'Haz clic en el micrófono para hablar con SofLIA'}
                           </motion.p>
                         </motion.div>
                       )}

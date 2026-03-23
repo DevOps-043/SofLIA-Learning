@@ -52,14 +52,14 @@ export function StudyPlannerHeader({
           <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-[#0A2540]/20 dark:border-[#00D4B3]/30 flex-shrink-0">
             <Image
               src="/lia-avatar.png"
-              alt="LIA"
+              alt="SofLIA"
               fill
               sizes="48px"
               className="object-cover"
             />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-base sm:text-lg font-bold text-[#0A2540] dark:text-white truncate">LIA - Planificador</h1>
+            <h1 className="text-base sm:text-lg font-bold text-[#0A2540] dark:text-white truncate">SofLIA - Planificador</h1>
             <p className="text-xs sm:text-sm text-[#6C757D] dark:text-gray-400 truncate">Tu asistente personal</p>
           </div>
         </div>
