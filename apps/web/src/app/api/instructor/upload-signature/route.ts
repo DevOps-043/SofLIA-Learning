@@ -2,16 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { requireInstructor } from '@/lib/auth/requireAdmin'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-// Cliente con service role key para bypass de RLS
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
 export async function POST(request: NextRequest) {
   try {
     const auth = await requireInstructor()
     if (auth instanceof NextResponse) return auth
+
+    // Cliente con service role key para bypass de RLS (dentro de la función para evitar error en build)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const formData = await request.formData()
     const file = formData.get('file') as File

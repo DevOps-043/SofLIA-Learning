@@ -3,7 +3,6 @@
 import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
 import { emailService } from '../services/email.service';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 // ============================================================================
@@ -269,22 +268,18 @@ export async function resetPasswordAction(
       };
     }
 
-    // 8. HASH NUEVA CONTRASEÑA
-    const saltRounds = 12;
-    const passwordHash = await bcrypt.hash(newPassword, saltRounds);
+    // 8. ACTUALIZAR CONTRASEÑA VIA RPC (usa pgcrypto para compatibilidad con el ecosistema)
+    const { data: rpcResult, error: rpcError } = await supabase.rpc('change_user_password', {
+      p_user_id: tokenData.user_id,
+      p_new_password: newPassword,
+    });
 
-    // 9. ACTUALIZAR CONTRASEÑA EN USERS
-    const { error: updateError } = await supabase
-      .from('users')
-      .update({
-        password_hash: passwordHash,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', tokenData.user_id);
-
-    if (updateError) {
-      // console.error('Error actualizando contraseña:', updateError);
+    if (rpcError) {
       return { error: 'Error actualizando contraseña.' };
+    }
+
+    if (rpcResult && !rpcResult.success) {
+      return { error: rpcResult.error || 'Error actualizando contraseña.' };
     }
 
     // 10. MARCAR TOKEN COMO USADO
