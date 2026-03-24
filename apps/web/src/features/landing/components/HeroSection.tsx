@@ -138,7 +138,7 @@ export function HeroSection({ content }: HeroSectionProps) {
               >
                 <Image
                   src="/Logo.png"
-                  alt="SOFLIA Logo"
+                  alt="SofLIA Logo"
                   fill
                   className="object-contain"
                   priority

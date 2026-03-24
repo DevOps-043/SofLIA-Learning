@@ -6,6 +6,7 @@ export { PendingCompanyScreen } from './components/PendingCompanyScreen'
 export { PendingJoinScreen } from './components/PendingJoinScreen'
 export { RejectedScreen } from './components/RejectedScreen'
 export { ApprovedRedirect } from './components/ApprovedRedirect'
+export { SuspendedScreen } from './components/SuspendedScreen'
 
 // Hooks
 export { useOnboardingStatus } from './hooks/useOnboardingStatus'

@@ -1,14 +1,8 @@
-/**
- * API Endpoint: Calendar OAuth Callback
- * 
- * GET /api/study-planner/calendar/callback
- * 
- * Maneja el callback de OAuth para Google y Microsoft Calendar
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
@@ -67,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       
       if (isPopup) {
         return NextResponse.redirect(
-          new URL(`/study-planner/calendar/callback?error=missing_params&error_description=${encodeURIComponent('Faltan parámetros requeridos')}&state=${encodeURIComponent(state)}`, request.url)
+          new URL(`/study-planner/calendar/callback?error=missing_params&error_description=${encodeURIComponent('Faltan parámetros requeridos')}&state=${encodeURIComponent(state || '')}`, request.url)
         );
       }
       
@@ -238,7 +232,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error en callback de calendario:', error);
     return NextResponse.redirect(
       new URL('/study-planner/create?calendar_error=server_error', request.url)

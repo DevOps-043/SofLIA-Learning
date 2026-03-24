@@ -23,6 +23,7 @@ import { useThemeStore } from '@/core/stores/themeStore'
 // Removed old tour hook
 import { useBusinessUserJoyride } from '@/features/tours/hooks/useBusinessUserJoyride'
 import Joyride from 'react-joyride'
+import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 
 import { useTranslation } from 'react-i18next'
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
@@ -67,16 +68,17 @@ interface Organization {
   slug: string
   logo_url?: string | null
   favicon_url?: string | null
+  show_navbar_name?: boolean
 }
 
-type OrgRole = 'owner' | 'admin' | 'member' | null
+type OrgRole = 'owner' | 'admin' | 'member' | 'superadmin' | null
 
 export default function BusinessUserDashboardPage() {
   const router = useRouter()
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
   const { user, logout } = useAuth()
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStyles()
 
   const [loading, setLoading] = useState(true)
@@ -91,9 +93,17 @@ export default function BusinessUserDashboardPage() {
   const cssVariables = generateCSSVariables(userDashboardStyles)
 
   // Tour inicializado
-  const { joyrideProps, startTour: restartTour } = useBusinessUserJoyride()
+  const { joyrideProps, startTour: restartTour, showVideoIntro, handleVideoComplete } = useBusinessUserJoyride({
+    // Evitamos mostrar tours y videos a superadmins
+    enabled: orgRole !== null && orgRole !== 'superadmin' 
+  })
   const [isMounted, setIsMounted] = useState(false)
   useEffect(() => setIsMounted(true), [])
+
+  const introVideos = useMemo(() => [
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2B.mp4`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/TourB2C.mp4`
+  ], []);
 
   // Colores personalizados de la organización con detección de modo
   const { resolvedTheme } = useThemeStore()
@@ -541,7 +551,7 @@ export default function BusinessUserDashboardPage() {
                     style={{ color: 'rgba(255,255,255,0.7)' }}
                   >
                     <Clock className="w-4 h-4" />
-                    {currentTime.toLocaleDateString('es-MX', {
+                    {currentTime.toLocaleDateString(i18n.language === 'en' ? 'en-US' : (i18n.language === 'pt' ? 'pt-BR' : 'es-MX'), {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',
@@ -698,9 +708,9 @@ export default function BusinessUserDashboardPage() {
                   >
                     <BookOpen className="w-10 h-10" style={{ color: orgColors.iconColor }} />
                   </div>
-                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>No tienes cursos asignados aún</h3>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>{t('dashboard.emptyCourses.title', 'No tienes cursos asignados aún')}</h3>
                   <p className="max-w-md mx-auto" style={{ color: orgColors.textSecondary }}>
-                    Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti.
+                    {t('dashboard.emptyCourses.description', 'Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti.')}
                   </p>
 
                   {/* Decorative elements - static */}
@@ -760,6 +770,14 @@ export default function BusinessUserDashboardPage() {
           </section>
         </div>
       </main>
+
+      {/* Videos Introductorios */}
+      {showVideoIntro && (
+        <OnboardingVideoPlayer
+          videos={introVideos}
+          onComplete={handleVideoComplete}
+        />
+      )}
 
       {/* Tour de bienvenida Joyride */}
       {isMounted && <Joyride {...joyrideProps} />}

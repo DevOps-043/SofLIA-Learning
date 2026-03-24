@@ -63,6 +63,8 @@ export async function POST(request: Request) {
       brand_color_secondary: body.brand_color_secondary,
       brand_color_accent: body.brand_color_accent,
       brand_font_family: body.brand_font_family,
+      google_login_enabled: body.google_login_enabled,
+      microsoft_login_enabled: body.microsoft_login_enabled,
       // Owner
       owner_email: body.owner_email,
       owner_position: body.owner_position

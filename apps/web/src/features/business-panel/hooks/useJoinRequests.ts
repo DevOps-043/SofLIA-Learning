@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import { JoinRequest, JoinRequestsService } from '../services/joinRequests.service'
 
 interface UseJoinRequestsReturn {
@@ -14,6 +15,8 @@ interface UseJoinRequestsReturn {
 }
 
 export function useJoinRequests(): UseJoinRequestsReturn {
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string
   const [requests, setRequests] = useState<JoinRequest[]>([])
   const [count, setCount] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -24,7 +27,7 @@ export function useJoinRequests(): UseJoinRequestsReturn {
     try {
       setIsLoading(true)
       setError(null)
-      const data = await JoinRequestsService.getJoinRequests()
+      const data = await JoinRequestsService.getJoinRequests(orgSlug)
       setRequests(data.requests)
       setCount(data.count)
     } catch (err) {
@@ -32,14 +35,14 @@ export function useJoinRequests(): UseJoinRequestsReturn {
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [orgSlug])
 
   const reviewRequest = useCallback(
     async (requestId: string, action: 'approve' | 'reject') => {
       try {
         setReviewingId(requestId)
         setError(null)
-        await JoinRequestsService.reviewJoinRequest(requestId, action)
+        await JoinRequestsService.reviewJoinRequest(orgSlug, requestId, action)
         await fetchRequests()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error desconocido')
@@ -48,7 +51,7 @@ export function useJoinRequests(): UseJoinRequestsReturn {
         setReviewingId(null)
       }
     },
-    [fetchRequests]
+    [orgSlug, fetchRequests]
   )
 
   useEffect(() => {

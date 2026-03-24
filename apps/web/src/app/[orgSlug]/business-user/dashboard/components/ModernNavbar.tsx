@@ -52,7 +52,7 @@ interface ModernNavbarProps {
     cargo_rol?: string | null
   } | null
   /** Rol del usuario dentro de la organización actual (owner/admin/member) */
-  orgRole?: 'owner' | 'admin' | 'member' | null
+  orgRole?: 'owner' | 'admin' | 'member' | 'superadmin' | null
   getDisplayName: () => string
   getInitials: () => string
   onProfileClick: () => void
@@ -73,7 +73,7 @@ export function ModernNavbar({
   onRestartTour
 }: ModernNavbarProps) {
   // El usuario puede ver el panel de administración si es owner o admin de la organización
-  const canAccessAdminPanel = orgRole === 'owner' || orgRole === 'admin'
+  const canAccessAdminPanel = orgRole === 'owner' || orgRole === 'admin' || orgRole === 'superadmin'
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)

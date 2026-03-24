@@ -89,6 +89,10 @@
       "users": "Users",
       "courses": "Courses",
       "active": "active"
+    },
+    "emptyCourses": {
+      "title": "You don't have assigned courses yet",
+      "description": "Your organization will assign you courses soon. In the meantime, explore what we have prepared for you."
     }
   },
   "users": {
@@ -494,7 +498,7 @@
       "totalTeams": "Total Teams",
       "bestProgress": "Best Progress",
       "totalMembers": "Total Members",
-      "totalLiaChats": "Total LIA Chats",
+      "totalLiaChats": "Total SofLIA Chats",
       "progressComparison": "Progress Comparison by Team",
       "members": "members",
       "noTeams": "No teams registered",

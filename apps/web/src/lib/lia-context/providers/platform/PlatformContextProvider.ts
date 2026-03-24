@@ -104,9 +104,9 @@ export class PlatformContextProvider extends BaseContextProvider {
   private buildPlatformContext(contextType: string, currentPage?: string): string {
     const sections: string[] = [];
 
-    sections.push('## CONTEXTO DE LA PLATAFORMA SOFLIA');
+    sections.push('## CONTEXTO DE LA PLATAFORMA SofLIA');
     sections.push('');
-    sections.push('SOFLIA es una plataforma de aprendizaje corporativo con IA integrada.');
+    sections.push('SofLIA es una plataforma de aprendizaje corporativo con IA integrada.');
     sections.push('');
 
     // Módulos relevantes según la página actual

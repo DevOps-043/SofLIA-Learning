@@ -9,7 +9,7 @@
 // COMPONENTES
 // ============================================================================
 
-export { StudyPlannerLIA } from './components/StudyPlannerLIA';
+export { StudyPlannerSofLIA } from './components/StudyPlannerLIA';
 export { CalendarConnection } from './components/CalendarConnection';
 export { PlanSummary } from './components/PlanSummary';
 export { StudyPlannerCalendar } from './components/StudyPlannerCalendar';
@@ -21,7 +21,7 @@ export { StudyPlannerCalendar } from './components/StudyPlannerCalendar';
 export { UserContextService } from './services/user-context.service';
 export { CourseAnalysisService } from './services/course-analysis.service';
 export { CalendarIntegrationService } from './services/calendar-integration.service';
-export { LiaContextService } from './services/lia-context.service';
+export { SofLIAContextService } from './services/lia-context.service';
 export { ValidationService } from './services/validation.service';
 
 // ============================================================================
@@ -29,23 +29,23 @@ export { ValidationService } from './services/validation.service';
 // ============================================================================
 
 export { 
-  useStudyPlannerLIA, 
+  useStudyPlannerSofLIA as useStudyPlannerLIA, 
   StudyPlannerPhase as LIAPhase,
   type PhaseData,
   type Message,
-  type StudyPlannerLIAState,
-  type StudyPlannerLIAActions,
-} from './hooks/useStudyPlannerLIA';
+  type StudyPlannerSofLIAState,
+  type StudyPlannerSofLIAActions,
+} from './hooks/useStudyPlannerSofLIA';
 
 export {
-  useStudyPlannerDashboardLIA,
+  useStudyPlannerDashboardSofLIA as useStudyPlannerDashboardLIA,
   type DashboardMessage,
   type StudyPlannerAction,
   type ActiveStudyPlan,
   type CalendarChange,
   type StudyPlannerDashboardState,
   type StudyPlannerDashboardActions,
-} from './hooks/useStudyPlannerDashboardLIA';
+} from './hooks/useStudyPlannerDashboardSofLIA';
 
 // ============================================================================
 // CONTEXTO
@@ -115,9 +115,9 @@ export type {
   UserBasicInfo,
   UserContext,
   
-  // Análisis de LIA
-  LIAAvailabilityAnalysis,
-  LIATimeAnalysis,
+  // Análisis de SofLIA
+  SofLIAAvailabilityAnalysis,
+  SofLIATimeAnalysis,
   
   // Plan de estudio
   StudyPlanConfig,
@@ -128,7 +128,7 @@ export type {
   ApiResponse,
   UserContextResponse,
   CoursesResponse,
-  LIAAnalysisResponse,
+  SofLIAAnalysisResponse,
   StudyPlanResponse,
 } from './types/user-context.types';
 
@@ -136,8 +136,8 @@ export type {
 // TIPOS DE SERVICIO LIA
 // ============================================================================
 
-export type { 
-  StudyPlannerLIAContext 
+export type {
+  StudyPlannerContext as StudyPlannerLIAContext
 } from './services/lia-context.service';
 
 export type { 

@@ -131,7 +131,8 @@ export class PurchasedCoursesService {
         .eq('user_id', userId)
         .eq('course_id', courseId)
         .eq('access_status', 'active')
-        .single();
+        .limit(1)
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         // console.error('Error checking purchase:', error);

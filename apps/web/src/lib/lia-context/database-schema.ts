@@ -1,5 +1,5 @@
 export const DATABASE_SCHEMA_CONTEXT = `
-## ESQUEMA DE BASE DE DATOS DE SOFLIA
+## ESQUEMA DE BASE DE DATOS DE SofLIA
 Usa este esquema para entender la estructura de datos real de la plataforma, las relaciones entre entidades y los campos disponibles.
 Esto te servirá para responder preguntas técnicas o sobre disponibilidad de datos.
 

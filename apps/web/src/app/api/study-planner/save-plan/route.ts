@@ -151,8 +151,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
           breakDurationMinutes: body.config.breakDurationMinutes,
           calendarAnalyzed: body.config.calendarAnalyzed,
           calendarProvider: body.config.calendarProvider,
-          liaAvailabilityAnalysis: body.config.liaAvailabilityAnalysis,
-          liaTimeAnalysis: body.config.liaTimeAnalysis,
+          sofLiaAvailabilityAnalysis: body.config.sofLiaAvailabilityAnalysis,
+          sofLiaTimeAnalysis: body.config.sofLiaTimeAnalysis,
           generatedAt: new Date().toISOString(),
         },
       })

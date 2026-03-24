@@ -247,9 +247,8 @@ export const NotesModalWithLibraries: React.FC<NotesModalProps> = ({
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  // Guardar nota
   const handleSave = async () => {
-    if (!title.trim() || !content.trim()) return;
+    if (!content.trim()) return;
     
     setIsSaving(true);
     try {
@@ -425,8 +424,8 @@ export const NotesModalWithLibraries: React.FC<NotesModalProps> = ({
 
   // Exportar a PDF usando librerías
   const handleExportPDF = async () => {
-    if (!title.trim() || !content.trim()) {
-      alert('La nota debe tener título y contenido para exportar');
+    if (!content.trim()) {
+      alert('La nota debe tener contenido para exportar');
       return;
     }
 
@@ -725,9 +724,8 @@ export const NotesModalWithLibraries: React.FC<NotesModalProps> = ({
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {isEditing ? 'Editar Nota' : 'Nueva Nota'}
+                    {isEditing ? 'Editar Nota' : 'Estudio > Notas'}
                   </h2>
-                  <p className="text-sm text-gray-600 dark:text-slate-400">Studio &gt; Notas</p>
                 </div>
               </div>
               <button
@@ -937,7 +935,7 @@ export const NotesModalWithLibraries: React.FC<NotesModalProps> = ({
                 </button>
                 <button
                   onClick={handleSave}
-                  disabled={isSaving || !title.trim() || !content.trim()}
+                  disabled={isSaving || !content.trim()}
                   className="flex-1 md:flex-initial flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white rounded-lg md:rounded-xl text-xs md:text-base font-medium transition-all duration-200 shadow-lg hover:shadow-green-500/25"
                 >
                   <Save className="w-3 h-3 md:w-4 md:h-4 shrink-0" />

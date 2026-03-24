@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { LanguageDetectionService } from '@/core/services/languageDetection.service'
-import { ContentTranslationService } from '@/core/services/contentTranslation.service'
-import { SupportedLanguage } from '@/core/i18n/i18n'
+import { createClient } from '../../../../lib/supabase/server'
+import { LanguageDetectionService } from '../../../../core/services/languageDetection.service'
+import { ContentTranslationService } from '../../../../core/services/contentTranslation.service'
+import { SupportedLanguage } from '../../../../core/i18n/i18n'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * Endpoint para listar todas las lecciones de un curso y verificar sus traducciones
@@ -46,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Analizar cada lección
     const lessonsAnalysis = await Promise.all(
-      lessons.map(async (lesson) => {
+      lessons.map(async (lesson: any) => {
         // Detectar idioma
         const textsToAnalyze: string[] = [lesson.lesson_title]
         if (lesson.lesson_description) textsToAnalyze.push(lesson.lesson_description)
@@ -60,7 +62,7 @@ export async function GET(request: NextRequest) {
           .eq('entity_type', 'lesson')
           .eq('entity_id', lesson.lesson_id)
 
-        const translationLanguages = translations?.map(t => t.language_code) || []
+        const translationLanguages = translations?.map((t: any) => t.language_code) || []
         
         // Probar carga de traducción a español
         const spanishTranslation = await ContentTranslationService.loadTranslations(
@@ -94,12 +96,12 @@ export async function GET(request: NextRequest) {
     // Resumen
     const summary = {
       totalLessons: lessonsAnalysis.length,
-      lessonsInSpanish: lessonsAnalysis.filter(l => l.detectedLanguage === 'es').length,
-      lessonsInEnglish: lessonsAnalysis.filter(l => l.detectedLanguage === 'en').length,
-      lessonsInPortuguese: lessonsAnalysis.filter(l => l.detectedLanguage === 'pt').length,
-      lessonsNeedingTranslation: lessonsAnalysis.filter(l => l.status === 'needs_translation').length,
-      lessonsTranslated: lessonsAnalysis.filter(l => l.status === 'translated').length,
-      lessonsOK: lessonsAnalysis.filter(l => l.status === 'ok').length
+      lessonsInSpanish: lessonsAnalysis.filter((l: any) => l.detectedLanguage === 'es').length,
+      lessonsInEnglish: lessonsAnalysis.filter((l: any) => l.detectedLanguage === 'en').length,
+      lessonsInPortuguese: lessonsAnalysis.filter((l: any) => l.detectedLanguage === 'pt').length,
+      lessonsNeedingTranslation: lessonsAnalysis.filter((l: any) => l.status === 'needs_translation').length,
+      lessonsTranslated: lessonsAnalysis.filter((l: any) => l.status === 'translated').length,
+      lessonsOK: lessonsAnalysis.filter((l: any) => l.status === 'ok').length
     }
 
     return NextResponse.json({
@@ -108,15 +110,15 @@ export async function GET(request: NextRequest) {
       summary: summary,
       lessons: lessonsAnalysis,
       recommendations: lessonsAnalysis
-        .filter(l => l.status === 'needs_translation')
-        .map(l => ({
+        .filter((l: any) => l.status === 'needs_translation')
+        .map((l: any) => ({
           lesson_id: l.lesson_id,
           lesson_title: l.lesson_title,
           detectedLanguage: l.detectedLanguage,
           action: `Ejecutar: /api/test-translation/lesson?lessonId=${l.lesson_id} para traducir esta lección`
         }))
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('[TEST-COURSE-LESSONS] ❌ Error:', error)
     return NextResponse.json(
       {

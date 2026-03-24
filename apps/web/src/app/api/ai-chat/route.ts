@@ -7,10 +7,10 @@ import { checkRateLimit } from '../../../core/lib/rate-limit';
 import { calculateCost, logOpenAIUsage } from '../../../lib/openai/usage-monitor';
 import type { Database } from '../../../lib/supabase/types';
 import { SessionService } from '../../../features/auth/services/session.service';
-import { LiaLogger, type ContextType } from '../../../lib/analytics/lia-logger';
-import { LiaContextService } from '../../../features/study-planner/services/lia-context.service';
+import { SofLIALogger, type ContextType } from '../../../lib/analytics/lia-logger';
+import { SofLIAContextService } from '../../../features/study-planner/services/lia-context.service';
 import { generateStudyPlannerPrompt, generateAvailabilityPrompt } from '../../../features/study-planner/prompts/study-planner.prompt';
-import { LiaPersonalizationService } from '../../../core/services/lia-personalization.service';
+import { SofLIAPersonalizationService } from '../../../core/services/lia-personalization.service';
 
 // Tipo para el contexto de la página
 interface PageContext {
@@ -232,7 +232,7 @@ const LANGUAGE_CONFIG: Record<SupportedLanguage, { instruction: string; fallback
 };
 
 /**
- * Función para limpiar Markdown de las respuestas de LIA
+ * Función para limpiar Markdown de las respuestas de SofLIA
  * Elimina todos los símbolos de formato Markdown y los convierte a texto plano
  */
 function cleanMarkdownFromResponse(text: string): string {
@@ -306,7 +306,7 @@ function cleanMarkdownFromResponse(text: string): string {
  * Evita que el modelo devuelva el prompt como respuesta
  * 
  * ⚠️ IMPORTANTE: Este filtro debe capturar casos reales de exposición del prompt
- * mientras permite respuestas normales de LIA
+ * mientras permite respuestas normales de SofLIA
  */
 function filterSystemPromptFromResponse(text: string): string {
   if (!text || text.trim().length === 0) {
@@ -337,7 +337,7 @@ function filterSystemPromptFromResponse(text: string): string {
     
     // Declaraciones de identidad del sistema (Comentadas para evitar falsos positivos si LIA se presenta)
     // 'Eres SofLIA, un asistente virtual',
-    // 'Eres LIA, un asistente educativo',
+    // 'Eres SofLIA, un asistente educativo',
     // 'Eres ARIA, tu asistente',
     
     // Instrucciones internas
@@ -649,7 +649,7 @@ IMPORTANTE: Siempre combina la respuesta educativa/informativa con la navegació
 
 🚫 RESTRICCIONES DE CONTENIDO (CRÍTICO):
 
-Lia es un asistente educativo especializado ÚNICAMENTE en:
+SofLIA es un asistente educativo especializado ÚNICAMENTE en:
 - El contenido del curso y lección actual que el usuario está viendo
 - Conceptos educativos relacionados con la lección
 - Explicaciones sobre el material educativo de la plataforma
@@ -767,7 +767,7 @@ Ejemplos INCORRECTOS (NO HAGAS ESTO):
 
 IDENTIDAD Y PROPÓSITO:
 Eres SofLIA, un asistente educativo ESTRICTAMENTE LIMITADO a temas de:
-- Plataforma "Aprende y Aplica" (cursos, talleres, funcionalidades)
+- Plataforma "SofLIA" (cursos, talleres, funcionalidades)
 - Inteligencia artificial aplicada a educación y negocios
 - Herramientas digitales y tecnología educativa
 - Navegación y uso de la plataforma
@@ -1103,7 +1103,7 @@ ${language === 'en'
           ? '🚨 CRÍTICO: O usuário acabou de falar com você em PORTUGUÊS. Você DEVE responder APENAS em PORTUGUÊS. Nunca use espanhol ou inglês. Combine exatamente o idioma do usuário.'
           : '🚨 CRÍTICO: El usuario acaba de hablarte en ESPAÑOL. Debes responder SOLO en ESPAÑOL. Nunca uses inglés o portugués. Coincide exactamente con el idioma del usuario.'}
 
-Eres SofLIA, un asistente virtual entusiasta que está guiando a un nuevo usuario en su proceso de onboarding en Aprende y Aplica.
+Eres SofLIA, un asistente virtual entusiasta que está guiando a un nuevo usuario en su proceso de onboarding en SofLIA.
 ${nameGreeting}${pageInfo}${urlInstructions}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ:
@@ -1155,7 +1155,7 @@ FORMATO DE RESPUESTA: Escribe SOLO texto plano. NO uses **, __, #, backticks, ni
 
     'tour-prompt-directory': `${languageNote}
 
-Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour del DIRECTORIO DE PROMPTS de Aprende y Aplica.
+Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour del DIRECTORIO DE PROMPTS de SofLIA.
 ${nameGreeting}${pageInfo}${urlInstructions}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ EN TOUR DEL DIRECTORIO DE PROMPTS:
@@ -1224,7 +1224,7 @@ FORMATO DE RESPUESTA: Escribe SOLO texto plano. NO uses **, __, #, backticks, ni
 
     'tour-course-learn': `${languageNote}
 
-Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour de la INTERFAZ DE APRENDIZAJE DE CURSOS de Aprende y Aplica.
+Eres SofLIA, un asistente virtual entusiasta que está guiando a un usuario en un tour de la INTERFAZ DE APRENDIZAJE DE CURSOS de la plataforma SofLIA.
 ${nameGreeting}${pageInfo}${urlInstructions}
 
 CONTEXTO ESPECIAL - CONVERSACIÓN POR VOZ EN TOUR DE APRENDIZAJE DE CURSOS:
@@ -1236,7 +1236,7 @@ El usuario está viendo la PÁGINA DE APRENDIZAJE DE UN CURSO (/courses/[slug]/l
 - Leer transcripciones y resúmenes
 - Acceder a materiales descargables (PDFs, recursos)
 - Completar actividades interactivas
-- Hacer preguntas a LIA sobre el contenido
+- Hacer preguntas a SofLIA sobre el contenido
 - Seguir su progreso en el curso
 - Navegar entre módulos y lecciones
 
@@ -1647,9 +1647,9 @@ export async function POST(request: NextRequest) {
     let studyPlannerContextString = '';
     if (effectiveContext === 'study-planner' && user) {
       try {
-        logger.info('📚 Construyendo contexto detallado del planificador de estudios para LIA', { userId: user.id });
-        const studyPlannerContext = await LiaContextService.buildStudyPlannerContext(user.id);
-        studyPlannerContextString = LiaContextService.formatContextForPrompt(studyPlannerContext);
+        logger.info('📚 Construyendo contexto detallado del planificador de estudios para SofLIA', { userId: user.id });
+        const studyPlannerContext = await SofLIAContextService.buildStudyPlannerContext(user.id);
+        studyPlannerContextString = SofLIAContextService.formatContextForPrompt(studyPlannerContext);
         logger.info('✅ Contexto del planificador construido exitosamente', {
           coursesCount: studyPlannerContext.courses.length,
           hasModules: studyPlannerContext.courses.some(c => c.modules && c.modules.length > 0)
@@ -1680,7 +1680,7 @@ export async function POST(request: NextRequest) {
         const validation = await validateProposedSchedule(user.id, proposedSlots);
 
         if (validation.hasConflicts) {
-          // Agregar conflictos al contexto para que LIA los conozca
+          // Agregar conflictos al contexto para que SofLIA los conozca
           contextPrompt += `\n\n⚠️ CONFLICTOS DETECTADOS:\n`;
           validation.conflicts.forEach(conflict => {
             contextPrompt += `- ${conflict.date} a las ${conflict.time}: ${conflict.event}\n`;
@@ -1776,7 +1776,7 @@ export async function POST(request: NextRequest) {
           const targetDate = targetDateStr ? new Date(targetDateStr) : undefined;
 
           // Pre-calcular las sesiones
-          const preCalculatedPlan = LiaContextService.preCalculateStudySessions(
+          const preCalculatedPlan = SofLIAContextService.preCalculateStudySessions(
             lessonsForCalculation,
             {
               studyDays: scheduleConfig.studyDays,
@@ -1795,11 +1795,11 @@ export async function POST(request: NextRequest) {
             });
 
             // Agregar el plan pre-calculado al contexto
-            const preCalculatedPrompt = LiaContextService.formatPreCalculatedSessionsForPrompt(preCalculatedPlan);
+            const preCalculatedPrompt = SofLIAContextService.formatPreCalculatedSessionsForPrompt(preCalculatedPlan);
             contextPrompt += preCalculatedPrompt;
 
             // Agregar instrucción explícita de que debe copiar este plan
-            contextPrompt += `\n\n🚨 INSTRUCCIÓN CRÍTICA PARA LIA 🚨\n`;
+            contextPrompt += `\n\n🚨 INSTRUCCIÓN CRÍTICA PARA SofLIA 🚨\n`;
             contextPrompt += `El plan de arriba ya está COMPLETAMENTE CALCULADO.\n`;
             contextPrompt += `- Las horas de fin son EXACTAS (ya calculadas con aritmética precisa)\n`;
             contextPrompt += `- Las lecciones decimales ya están AGRUPADAS correctamente\n`;
@@ -1817,7 +1817,7 @@ export async function POST(request: NextRequest) {
     let conversationId: string | null = existingConversationId || null;
 
     // Función para inicializar analytics de forma asíncrona (no bloquea la respuesta)
-    const initializeAnalyticsAsync = async (): Promise<{ liaLogger: LiaLogger | null; conversationId: string | null }> => {
+    const initializeAnalyticsAsync = async (): Promise<{ liaLogger: SofLIALogger | null; conversationId: string | null }> => {
       if (!user) {
         logger.warn('[LIA Analytics] ⚠️ No hay usuario autenticado, skipping analytics');
         return { liaLogger: null, conversationId: null };
@@ -1826,11 +1826,11 @@ export async function POST(request: NextRequest) {
       logger.info('[LIA Analytics] 🚀 Iniciando analytics para usuario:', { userId: user.id, hasExistingConversation: !!conversationId });
 
       try {
-        const liaLogger = new LiaLogger(user.id);
+        const liaLogger = new SofLIALogger(user.id);
 
         // Si no hay conversationId existente, iniciar nueva conversación
         if (!conversationId) {
-          logger.info('Iniciando nueva conversación LIA (async)', { userId: user.id, context });
+          logger.info('Iniciando nueva conversación SofLIA (async)', { userId: user.id, context });
 
           // Truncar browser para que no exceda el límite de 100 caracteres
           const userAgent = request.headers.get('user-agent') || undefined;
@@ -1937,18 +1937,18 @@ export async function POST(request: NextRequest) {
             }
           }
 
-          logger.info('✅ Nueva conversación LIA creada exitosamente (async)', { conversationId: newConversationId, userId: user.id, context });
+          logger.info('✅ Nueva conversación SofLIA creada exitosamente (async)', { conversationId: newConversationId, userId: user.id, context });
           return { liaLogger, conversationId: newConversationId };
         } else {
           // Si hay conversationId existente, establecerlo en el logger
-          logger.info('Continuando conversación LIA existente (async)', { conversationId, userId: user.id });
+          logger.info('Continuando conversación SofLIA existente (async)', { conversationId, userId: user.id });
           liaLogger.setConversationId(conversationId);
           // ✅ Recuperar la secuencia de mensajes para continuar correctamente
           await liaLogger.recoverMessageSequence();
           return { liaLogger, conversationId };
         }
       } catch (error) {
-        logger.error('❌ Error inicializando LIA Analytics (async):', error);
+        logger.error('❌ Error inicializando SofLIA Analytics (async):', error);
         // Continuar sin analytics si hay error
         return { liaLogger: null, conversationId: null };
       }
@@ -1957,16 +1957,16 @@ export async function POST(request: NextRequest) {
     // Iniciar inicialización de analytics en background (no esperar)
     const analyticsPromise = initializeAnalyticsAsync();
 
-    // ✅ Cargar configuración de personalización de LIA
+    // ✅ Cargar configuración de personalización de SofLIA
     let personalizationPrompt = '';
     if (user) {
       try {
-        const personalizationSettings = await LiaPersonalizationService.getSettings(user.id);
+        const personalizationSettings = await SofLIAPersonalizationService.getSettings(user.id);
         if (personalizationSettings) {
-          personalizationPrompt = LiaPersonalizationService.buildPersonalizationPrompt(personalizationSettings);
+          personalizationPrompt = SofLIAPersonalizationService.buildPersonalizationPrompt(personalizationSettings);
           // Agregar la personalización al contextPrompt
           contextPrompt += personalizationPrompt;
-          logger.info('✅ Personalización de LIA aplicada', {
+          logger.info('✅ Personalización de SofLIA aplicada', {
             userId: user.id,
             baseStyle: personalizationSettings.base_style,
             hasCustomInstructions: !!personalizationSettings.custom_instructions,
@@ -1974,7 +1974,7 @@ export async function POST(request: NextRequest) {
         }
       } catch (error) {
         // No fallar si hay error cargando personalización, solo loguear
-        logger.warn('⚠️ Error cargando personalización de LIA:', error);
+        logger.warn('⚠️ Error cargando personalización de SofLIA:', error);
       }
     }
 
@@ -2013,11 +2013,11 @@ export async function POST(request: NextRequest) {
         let result;
 
         if (shouldUseGemini) {
-          console.log('🚀 [LIA] INTENTANDO USAR GEMINI...');
-          logger.info('🚀 [LIA] Usando Google Gemini', { context, model: process.env.GEMINI_MODEL });
+          console.log('🚀 [SofLIA] INTENTANDO USAR GEMINI...');
+          logger.info('🚀 [SofLIA] Usando Google Gemini', { context, model: process.env.GEMINI_MODEL });
           result = await callGemini(message, contextPrompt, conversationHistory, userId, isSystemMessage);
         } else {
-          console.log('⚠️ [LIA] FALLBACK A OPENAI. Motivo:', !shouldUseGemini ? 'Contexto incorrecto o preferencia' : 'Falta API Key');
+          console.log('⚠️ [SofLIA] FALLBACK A OPENAI. Motivo:', !shouldUseGemini ? 'Contexto incorrecto o preferencia' : 'Falta API Key');
           // Fallback a OpenAI (o uso normal para otros contextos)
           result = await callOpenAI(message, contextPrompt, conversationHistory, hasCourseContext, userId, isSystemMessage, effectiveLanguage, context);
         }
@@ -2147,7 +2147,7 @@ export async function POST(request: NextRequest) {
     try {
       const analyticsResult = await Promise.race([
         analyticsPromise,
-        new Promise<{ liaLogger: LiaLogger | null; conversationId: string | null }>((resolve) =>
+        new Promise<{ liaLogger: SofLIALogger | null; conversationId: string | null }>((resolve) =>
           setTimeout(() => resolve({ liaLogger: null, conversationId: null }), 100)
         )
       ]);
@@ -2415,7 +2415,7 @@ ${antiMarkdownInstructions}
 
   // Log si se detectó y limpió Markdown (solo en desarrollo)
   if (process.env.NODE_ENV === 'development' && rawResponse !== cleanedResponse) {
-    logger.warn('Markdown o prompt del sistema detectado y limpiado en respuesta de LIA', {
+    logger.warn('Markdown o prompt del sistema detectado y limpiado en respuesta de SofLIA', {
       originalLength: rawResponse.length,
       cleanedLength: cleanedResponse.length
     });

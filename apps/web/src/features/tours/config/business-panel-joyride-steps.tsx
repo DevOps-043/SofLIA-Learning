@@ -68,11 +68,13 @@ export const businessPanelJoyrideSteps: Step[] = [
     }
   },
   {
-    target: '#tour-lia-button',
-    title: 'Asistente LIA',
-    content: 'Tu asistente inteligente siempre está disponible. LIA puede ayudarte a resolver dudas sobre la plataforma, generar ideas para planes de carrera y sugerir cursos basados en roles.',
-    placement: 'top',
+    target: '#lia-tour-trigger-stable',
+    title: 'Asistente SofLIA',
+    content: 'Tu asistente personal inteligente disponible 24/7. SofLIA puede analizar datos de tus equipos, generar reportes narrativos y responder cualquier duda sobre la plataforma.',
+    placement: 'top-end',
     disableBeacon: true,
+    disableScrolling: true,
+    spotlightPadding: 20,
     data: {
       icon: <Bot className="w-5 h-5 text-[#00D4B3]" />
     }

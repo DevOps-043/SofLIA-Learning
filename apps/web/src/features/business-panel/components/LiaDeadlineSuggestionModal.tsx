@@ -36,6 +36,7 @@ interface LiaDeadlineSuggestionModalProps {
   onClose: () => void
   courseId: string
   courseTitle: string
+  orgSlug: string
   onSelectDeadline: (deadline: string, startDate: string, approach: string) => void
 }
 
@@ -64,6 +65,7 @@ export function LiaDeadlineSuggestionModal({
   onClose,
   courseId,
   courseTitle,
+  orgSlug,
   onSelectDeadline
 }: LiaDeadlineSuggestionModalProps) {
   const { styles } = useOrganizationStylesContext()
@@ -108,7 +110,7 @@ export function LiaDeadlineSuggestionModal({
     
     try {
       const response = await fetch(
-        `/api/business/courses/${courseId}/deadline-suggestions?start_date=${new Date(startDate).toISOString()}`,
+        `/api/${orgSlug}/business/courses/${courseId}/deadline-suggestions?start_date=${new Date(startDate).toISOString()}`,
         { credentials: 'include' }
       )
 

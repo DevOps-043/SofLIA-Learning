@@ -12,6 +12,7 @@ import type {
   CalendarIntegration,
   CalendarEvent,
   CalendarAvailability,
+  CalendarIntegrationMetadata,
   TimeBlock,
 } from '../types/user-context.types';
 
@@ -59,7 +60,7 @@ function createAdminClient() {
 }
 
 // Nombre del calendario secundario de la plataforma
-const PLATFORM_CALENDAR_NAME = 'SOFLIA - Sesiones de Estudio';
+const PLATFORM_CALENDAR_NAME = 'SofLIA - Sesiones de Estudio';
 
 export class CalendarIntegrationService {
   /**
@@ -268,6 +269,99 @@ export class CalendarIntegrationService {
   }
 
   /**
+   * Obtiene la lista de todos los calendarios del usuario de Microsoft
+   */
+  static async getMicrosoftCalendarList(accessToken: string): Promise<Array<{
+    id: string;
+    name: string;
+    isDefaultCalendar: boolean;
+    canEdit: boolean;
+    color?: string;
+  }>> {
+    try {
+      const response = await fetch(
+        'https://graph.microsoft.com/v1.0/me/calendars',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('[Calendar] Error obteniendo lista de calendarios de Microsoft:', await response.text());
+        return [];
+      }
+
+      const data = await response.json();
+      return (data.value || []).map((cal: any) => ({
+        id: cal.id,
+        name: cal.name || 'Sin nombre',
+        isDefaultCalendar: cal.isDefaultCalendar || false,
+        canEdit: cal.canEdit || false,
+        color: cal.hexColor,
+      }));
+    } catch (error) {
+      console.error('[Calendar] Error obteniendo lista de calendarios de Microsoft:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Obtiene los IDs de calendarios seleccionados por el usuario desde metadata
+   * Retorna null si no hay selección guardada (= usar default)
+   */
+  static async getSelectedCalendarIds(userId: string): Promise<string[] | null> {
+    try {
+      const supabase = createAdminClient();
+      const { data } = await supabase
+        .from('calendar_integrations')
+        .select('metadata')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!data?.metadata) return null;
+      const metadata = data.metadata as CalendarIntegrationMetadata;
+      return metadata.selected_calendar_ids || null;
+    } catch (error) {
+      console.error('[Calendar] Error obteniendo calendarios seleccionados:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Guarda los IDs de calendarios seleccionados en metadata
+   * Preserva campos existentes como secondary_calendar_id
+   */
+  static async saveSelectedCalendarIds(userId: string, calendarIds: string[]): Promise<void> {
+    const supabase = createAdminClient();
+
+    // Leer metadata existente para no sobreescribir otros campos
+    const { data } = await supabase
+      .from('calendar_integrations')
+      .select('metadata')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    const existingMetadata = (data?.metadata || {}) as CalendarIntegrationMetadata;
+
+    await supabase
+      .from('calendar_integrations')
+      .update({
+        metadata: {
+          ...existingMetadata,
+          selected_calendar_ids: calendarIds,
+        },
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', userId);
+  }
+
+  /**
    * Busca el calendario secundario de la plataforma por nombre
    */
   private static async findPlatformCalendar(accessToken: string): Promise<string | null> {
@@ -291,7 +385,7 @@ export class CalendarIntegrationService {
           },
           body: JSON.stringify({
             summary: PLATFORM_CALENDAR_NAME,
-            description: 'Calendario de sesiones de estudio creado por Aprende y Aplica',
+            description: 'Calendario de sesiones de estudio creado por SofLIA',
             timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           }),
         }
@@ -337,17 +431,26 @@ export class CalendarIntegrationService {
     accessToken: string,
     startDate: Date,
     endDate: Date,
-    calendarIds?: string[]
+    calendarIds?: string[],
+    userId?: string
   ): Promise<{
     calendars: Record<string, { busy: Array<{ start: string; end: string }> }>;
     allBusySlots: Array<{ start: Date; end: Date }>;
   }> {
     try {
-      // Si no se especifican calendarios, obtener todos
+      // Si no se especifican calendarios, intentar cargar selección del usuario
       let idsToQuery = calendarIds;
       if (!idsToQuery || idsToQuery.length === 0) {
+        if (userId) {
+          const selectedIds = await this.getSelectedCalendarIds(userId);
+          if (selectedIds && selectedIds.length > 0) {
+            idsToQuery = selectedIds;
+          }
+        }
+      }
+      // Si aún no hay IDs, obtener todos los calendarios accesibles
+      if (!idsToQuery || idsToQuery.length === 0) {
         const calendars = await this.getGoogleCalendarList(accessToken);
-        // Consultar todos los calendarios donde el usuario tiene acceso de lectura o superior
         idsToQuery = calendars
           .filter(cal => ['owner', 'writer', 'reader'].includes(cal.accessRole))
           .map(cal => cal.id);
@@ -424,7 +527,7 @@ export class CalendarIntegrationService {
   /**
    * Guarda el calendarId del calendario secundario en la integración del usuario
    */
-  private static async saveSecondaryCalendarId(userId: string, calendarId: string): Promise<void> {
+  static async saveSecondaryCalendarId(userId: string, calendarId: string): Promise<void> {
     const supabase = createAdminClient();
 
     const { error } = await supabase
@@ -824,7 +927,8 @@ export class CalendarIntegrationService {
   static async getGoogleCalendarEvents(
     accessToken: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    selectedCalendarIds?: string[]
   ): Promise<CalendarEvent[]> {
     try {
       // Primero, obtener la lista de calendarios del usuario
@@ -846,16 +950,20 @@ export class CalendarIntegrationService {
       const calendarsData = await calendarsResponse.json();
       const calendars = calendarsData.items || [];
 
-      // Obtener eventos de TODOS los calendarios del usuario (owner, writer, reader)
-      // para detectar conflictos de horarios completos
+      // Obtener eventos filtrados por selección del usuario
       const allEvents: CalendarEvent[] = [];
 
       for (const calendar of calendars) {
-        // Incluir todos los calendarios donde el usuario tiene acceso de lectura o superior
-        if (['owner', 'writer', 'reader'].includes(calendar.accessRole) || calendar.primary) {
-          const events = await this.getEventsFromSingleCalendar(accessToken, calendar.id, startDate, endDate);
-          allEvents.push(...events);
+        // Si hay calendarios seleccionados, solo incluir esos
+        if (selectedCalendarIds && selectedCalendarIds.length > 0) {
+          if (!selectedCalendarIds.includes(calendar.id)) continue;
+        } else if (!(['owner', 'writer', 'reader'].includes(calendar.accessRole) || calendar.primary)) {
+          // Sin selección guardada: incluir todos con acceso de lectura o superior
+          continue;
         }
+
+        const events = await this.getEventsFromSingleCalendar(accessToken, calendar.id, startDate, endDate);
+        allEvents.push(...events);
       }
 
       // Ordenar por fecha de inicio
@@ -928,9 +1036,56 @@ export class CalendarIntegrationService {
   static async getMicrosoftCalendarEvents(
     accessToken: string,
     startDate: Date,
-    endDate: Date
+    endDate: Date,
+    selectedCalendarIds?: string[]
   ): Promise<CalendarEvent[]> {
     try {
+      const mapMicrosoftEvent = (event: any, calId?: string): CalendarEvent => ({
+        id: event.id,
+        title: event.subject || 'Sin título',
+        description: event.bodyPreview,
+        startTime: event.start?.dateTime,
+        endTime: event.end?.dateTime,
+        isAllDay: event.isAllDay,
+        isRecurring: !!event.seriesMasterId,
+        location: event.location?.displayName,
+        status: event.showAs === 'busy' ? 'confirmed' :
+          event.showAs === 'tentative' ? 'tentative' : 'cancelled',
+        calendarId: calId,
+      });
+
+      // Si hay calendarios seleccionados, obtener eventos por calendario individual
+      if (selectedCalendarIds && selectedCalendarIds.length > 0) {
+        const allEvents: CalendarEvent[] = [];
+        for (const calId of selectedCalendarIds) {
+          const params = new URLSearchParams({
+            startDateTime: startDate.toISOString(),
+            endDateTime: endDate.toISOString(),
+            $orderby: 'start/dateTime',
+            $top: '100',
+          });
+
+          const response = await fetch(
+            `https://graph.microsoft.com/v1.0/me/calendars/${encodeURIComponent(calId)}/calendarView?${params}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            console.error(`[Calendar] Error obteniendo eventos de Microsoft calendario ${calId}:`, await response.text());
+            continue;
+          }
+
+          const data = await response.json();
+          allEvents.push(...(data.value || []).map((e: any) => mapMicrosoftEvent(e, calId)));
+        }
+        return allEvents;
+      }
+
+      // Sin selección: usar endpoint por defecto (todos los calendarios)
       const params = new URLSearchParams({
         startDateTime: startDate.toISOString(),
         endDateTime: endDate.toISOString(),
@@ -953,19 +1108,7 @@ export class CalendarIntegrationService {
       }
 
       const data = await response.json();
-
-      return (data.value || []).map((event: any) => ({
-        id: event.id,
-        title: event.subject || 'Sin título',
-        description: event.bodyPreview,
-        startTime: event.start?.dateTime,
-        endTime: event.end?.dateTime,
-        isAllDay: event.isAllDay,
-        isRecurring: !!event.seriesMasterId,
-        location: event.location?.displayName,
-        status: event.showAs === 'busy' ? 'confirmed' :
-          event.showAs === 'tentative' ? 'tentative' : 'cancelled',
-      }));
+      return (data.value || []).map((e: any) => mapMicrosoftEvent(e));
 
     } catch (error) {
       console.error('Error obteniendo eventos de Microsoft:', error);
@@ -995,10 +1138,13 @@ export class CalendarIntegrationService {
       return [];
     }
 
+    // Cargar calendarios seleccionados por el usuario
+    const selectedCalendarIds = await this.getSelectedCalendarIds(userId);
+
     if (integration.provider === 'google') {
-      return this.getGoogleCalendarEvents(accessToken, startDate, endDate);
+      return this.getGoogleCalendarEvents(accessToken, startDate, endDate, selectedCalendarIds || undefined);
     } else {
-      return this.getMicrosoftCalendarEvents(accessToken, startDate, endDate);
+      return this.getMicrosoftCalendarEvents(accessToken, startDate, endDate, selectedCalendarIds || undefined);
     }
   }
 

@@ -229,48 +229,17 @@ export class ProfileService {
 
   static async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
     try {
-      const supabase = createClient()
+      const response = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
 
-      // Obtener el email del usuario actual
-      const { data: { user: currentUser } } = await supabase.auth.getUser()
-
-      if (!currentUser?.email) {
-        throw new Error('No se pudo obtener el email del usuario')
-      }
-
-      // Verificar contraseña actual haciendo re-autenticación
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: currentUser.email,
-        password: currentPassword
-      })
-
-      if (authError) {
-        throw new Error('Contraseña actual incorrecta')
-      }
-
-      // Actualizar contraseña en Supabase Auth
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: newPassword
-      })
-
-      if (updateError) {
-        throw new Error(`Error al cambiar contraseña: ${updateError.message}`)
-      }
-
-      // Sincronizar password_hash en public.users via RPC (pgcrypto)
-      // Esto es necesario porque SofLIA Hub y otros sistemas del ecosistema
-      // autentican contra public.users.password_hash usando crypt() de PostgreSQL
-      const { data: rpcResult, error: rpcError } = await supabase.rpc('change_user_password', {
-        p_user_id: userId,
-        p_new_password: newPassword
-      })
-
-      if (rpcError) {
-        throw new Error(`Error sincronizando contraseña con el ecosistema: ${rpcError.message}`)
-      }
-
-      if (rpcResult && !rpcResult.success) {
-        throw new Error(rpcResult.error || 'Error sincronizando contraseña con el ecosistema')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Error al cambiar la contraseña');
       }
     } catch (error) {
       throw error

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { AutoTranslationService } from '@/core/services/autoTranslation.service'
-import { ContentTranslationService } from '@/core/services/contentTranslation.service'
-import { LanguageDetectionService } from '@/core/services/languageDetection.service'
-import { createClient } from '@/lib/supabase/server'
-import { SupportedLanguage } from '@/core/i18n/i18n'
+import { AutoTranslationService } from '../../../../core/services/autoTranslation.service'
+import { ContentTranslationService } from '../../../../core/services/contentTranslation.service'
+import { LanguageDetectionService } from '../../../../core/services/languageDetection.service'
+import { createClient } from '../../../../lib/supabase/server'
+import { SupportedLanguage } from '../../../../core/i18n/i18n'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+
+export const dynamic = 'force-dynamic'
 
 /**
  * Endpoint de prueba específico para diagnosticar problemas con traducción a español
@@ -112,7 +114,7 @@ export async function GET(request: NextRequest) {
         lessonId,
         'es',
         translations,
-        null,
+        undefined,
         supabase
       )
 

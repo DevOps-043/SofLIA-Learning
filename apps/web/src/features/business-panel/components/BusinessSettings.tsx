@@ -45,9 +45,14 @@ import { useThemeStore } from '@/core/stores/themeStore'
 
 export function BusinessSettings() {
   const { data, isLoading, error, refetch, updateOrganization } = useBusinessSettings()
+  const { branding, isLoading: isLoadingBranding, updateBranding, detectColors } = useBranding()
   const { plan, canUse, refetch: refetchSubscription } = useSubscriptionFeatures()
   const { refetch: refetchStyles } = useOrganizationStylesContext()
-  const [activeTab, setActiveTab] = useState<'organization' | 'subscription' | 'branding' | 'personalization'>('organization')
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string | undefined
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+  const [activeTab, setActiveTab] = useState<'organization' | 'branding' | 'personalization'>('organization')
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -76,7 +81,6 @@ export function BusinessSettings() {
   // Definición de tabs con iconos y colores
   const tabs = [
     { id: 'organization' as const, label: 'Datos de la Empresa', icon: Building2, color: '#3b82f6' },
-    { id: 'subscription' as const, label: 'Suscripción', icon: CreditCard, color: '#10b981' },
     ...(canUseBranding ? [{ id: 'branding' as const, label: 'Branding', icon: Palette, color: '#8b5cf6' }] : []),
     // TODO: Habilitar cuando esté lista la sección de Personalización
     // ...(isEnterprise ? [{ id: 'personalization' as const, label: 'Personalización', icon: Settings2, color: '#f59e0b' }] : []),
@@ -280,6 +284,8 @@ export function BusinessSettings() {
               <OrganizationTab
                 organization={data.organization}
                 updateOrganization={updateOrganization}
+                branding={branding}
+                updateBranding={updateBranding}
                 saveSuccess={saveSuccess}
                 setSaveSuccess={setSaveSuccess}
                 saveError={saveError}
@@ -295,9 +301,6 @@ export function BusinessSettings() {
                 </div>
               )}
             </>
-          )}
-          {activeTab === 'subscription' && (
-            <SubscriptionTab subscription={data.subscription} />
           )}
           {activeTab === 'branding' && canUseBranding && (
             <BrandingTab />
@@ -340,6 +343,8 @@ export function BusinessSettings() {
 function OrganizationTab({
   organization,
   updateOrganization,
+  branding,
+  updateBranding,
   saveSuccess,
   setSaveSuccess,
   saveError,
@@ -347,6 +352,8 @@ function OrganizationTab({
 }: {
   organization: OrganizationData | null
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
+  branding: any | null
+  updateBranding: (data: any) => Promise<boolean>
   saveSuccess: string | null
   setSaveSuccess: (msg: string | null) => void
   saveError: string | null
@@ -362,14 +369,17 @@ function OrganizationTab({
     website_url: organization?.website_url || '',
     logo_url: organization?.logo_url || '',
     max_users: organization?.max_users?.toString() || '10',
-    show_navbar_name: organization?.show_navbar_name ?? true
+    show_navbar_name: organization?.show_navbar_name ?? true,
+    banner_url: branding?.banner_url || '',
+    icon_url: organization?.logo_url || ''
   })
   const [isSaving, setIsSaving] = useState(false)
   const [copiedFields, setCopiedFields] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     if (organization) {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         name: organization.name || '',
         description: organization.description || '',
         contact_email: organization.contact_email || '',
@@ -377,10 +387,17 @@ function OrganizationTab({
         website_url: organization.website_url || '',
         logo_url: organization.logo_url || '',
         max_users: organization.max_users?.toString() || '10',
-        show_navbar_name: organization.show_navbar_name ?? true
-      })
+        show_navbar_name: organization.show_navbar_name ?? true,
+        icon_url: organization.logo_url || ''
+      }))
     }
-  }, [organization])
+    if (branding) {
+      setFormData(prev => ({
+        ...prev,
+        banner_url: branding.banner_url || ''
+      }))
+    }
+  }, [organization, branding])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -409,9 +426,15 @@ function OrganizationTab({
         show_navbar_name: formData.show_navbar_name
       }
 
-      const success = await updateOrganization(updateData)
+      const successOrg = await updateOrganization(updateData)
+      
+      // Actualizar branding si cambió el banner
+      let successBranding = true
+      if (formData.banner_url !== branding?.banner_url) {
+        successBranding = await updateBranding({ banner_url: formData.banner_url })
+      }
 
-      if (success) {
+      if (successOrg && successBranding) {
         setSaveSuccess('Datos de la empresa actualizados correctamente')
         setTimeout(() => setSaveSuccess(null), 5000)
       } else {
@@ -435,7 +458,10 @@ function OrganizationTab({
         contact_phone: organization.contact_phone || '',
         website_url: organization.website_url || '',
         logo_url: organization.logo_url || '',
-        max_users: organization.max_users?.toString() || '10'
+        max_users: organization.max_users?.toString() || '10',
+        show_navbar_name: organization.show_navbar_name ?? true,
+        banner_url: branding?.banner_url || '',
+        icon_url: organization.logo_url || ''
       })
       setSaveError(null)
       setSaveSuccess(null)
@@ -486,6 +512,123 @@ function OrganizationTab({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Identidad Visual - Banner e Icono */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+      >
+        {/* Banner de la Empresa */}
+        <div className="relative rounded-2xl p-6 border backdrop-blur-xl border-gray-200 dark:border-slate-700/30 bg-gray-50 dark:bg-[#0F1419] overflow-hidden group">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-blue-500/10">
+              <ImageIcon className="w-5 h-5 text-blue-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Banner de la Empresa</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Imagen de fondo del panel</p>
+            </div>
+          </div>
+
+          <motion.div
+            className="relative h-32 rounded-xl overflow-hidden mb-4 border-2 border-dashed border-gray-300 dark:border-white/10 flex items-center justify-center cursor-pointer hover:border-blue-500/50 transition-colors"
+            onClick={() => {
+              const input = document.createElement('input')
+              input.type = 'file'
+              input.accept = 'image/*'
+              input.onchange = async (e) => {
+                const file = (e.target as HTMLInputElement).files?.[0]
+                if (file) {
+                  const formData = new FormData()
+                  formData.append('file', file)
+                  formData.append('bucket', 'Panel-Business')
+                  formData.append('folder', 'Banner-Empresa')
+                  try {
+                    const response = await fetch('/api/upload', { method: 'POST', body: formData })
+                    const result = await response.json()
+                    if (result.success && result.url) {
+                      setFormData(prev => ({ ...prev, banner_url: result.url }))
+                    }
+                  } catch (err) {
+                    setSaveError('Error al subir el banner')
+                  }
+                }
+              }
+              input.click()
+            }}
+          >
+            {formData.banner_url ? (
+              <img src={formData.banner_url} alt="Banner Preview" className="w-full h-full object-cover" />
+            ) : (
+              <div className="text-center">
+                <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-xs text-gray-500 font-medium">Click para subir banner</p>
+              </div>
+            )}
+          </motion.div>
+        </div>
+
+        {/* Ícono/Logo de la Empresa */}
+        <div className="relative rounded-2xl p-6 border backdrop-blur-xl border-gray-200 dark:border-slate-700/30 bg-gray-50 dark:bg-[#0F1419] overflow-hidden group">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2.5 rounded-xl bg-purple-500/10">
+              <Sparkles className="w-5 h-5 text-purple-500" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Ícono de la Empresa</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Logo principal (formato cuadrado)</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <motion.div
+              className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 dark:border-white/10 flex items-center justify-center cursor-pointer hover:border-purple-500/50 transition-colors bg-white dark:bg-white/5"
+              onClick={() => {
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = 'image/*'
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0]
+                  if (file) {
+                    const formData = new FormData()
+                    formData.append('file', file)
+                    formData.append('bucket', 'Panel-Business')
+                    formData.append('folder', 'Logo-Empresa')
+                    try {
+                      const response = await fetch('/api/upload', { method: 'POST', body: formData })
+                      const result = await response.json()
+                      if (result.success && result.url) {
+                        setFormData(prev => ({ ...prev, icon_url: result.url, logo_url: result.url }))
+                      }
+                    } catch (err) {
+                      setSaveError('Error al subir el logo')
+                    }
+                  }
+                }
+                input.click()
+              }}
+            >
+              {formData.icon_url ? (
+                <img src={formData.icon_url} alt="Logo Preview" className="w-full h-full object-contain p-2" />
+              ) : (
+                <Upload className="w-6 h-6 text-gray-400" />
+              )}
+            </motion.div>
+            <div className="flex-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 font-medium">Recomendado: 512x512px. Formato PNG o SVG para mejores resultados.</p>
+              <button
+                type="button"
+                onClick={() => {
+                   document.querySelector<HTMLDivElement>('div[onClick][class*="w-24 h-24"]')?.click()
+                }}
+                className="text-xs font-bold text-purple-500 hover:text-purple-600 transition-colors uppercase tracking-wider"
+              >
+                Cambiar imagen
+              </button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
       {/* Información Básica y Contacto - Grid de 2 columnas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Columna Izquierda: Información Básica */}
@@ -1248,7 +1391,11 @@ function PersonalizationTab({
       setSlugError(null)
 
       try {
-        const response = await fetch(`/api/business/settings/check-slug?slug=${encodeURIComponent(slug)}`, {
+        const fetchUrl = orgSlug 
+          ? `/api/${orgSlug}/business/settings/check-slug?slug=${encodeURIComponent(slug)}`
+          : `/api/business/settings/check-slug?slug=${encodeURIComponent(slug)}`;
+
+        const response = await fetch(fetchUrl, {
           credentials: 'include'
         })
         const data = await response.json()
@@ -1717,502 +1864,6 @@ function PersonalizationTab({
           <p className="text-red-300 font-medium">{saveError}</p>
         </motion.div>
       )}
-    </div>
-  )
-}
-
-// Tab: Suscripción
-function SubscriptionTab({ subscription }: { subscription: any }) {
-  const router = useRouter()
-  const params = useParams()
-  const orgSlug = params.orgSlug as string
-  const [isCancelling, setIsCancelling] = useState(false)
-
-  if (!subscription) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center py-20"
-      >
-        <motion.div
-          animate={{ y: [0, -10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <CreditCard className="w-24 h-24 mx-auto mb-6 text-white/40" />
-        </motion.div>
-        <p className="text-white/70 text-lg">No hay información de suscripción disponible</p>
-      </motion.div>
-    )
-  }
-
-  const planLabels: Record<string, string> = {
-    team: 'Team',
-    business: 'Business',
-    enterprise: 'Enterprise',
-    starter: 'Starter',
-    pro: 'Pro'
-  }
-
-  const planColors: Record<string, { primary: string, secondary: string, glow: string }> = {
-    enterprise: { primary: '#8b5cf6', secondary: '#7c3aed', glow: 'rgba(139, 92, 246, 0.4)' },
-    business: { primary: '#3b82f6', secondary: '#2563eb', glow: 'rgba(59, 130, 246, 0.4)' },
-    team: { primary: '#10b981', secondary: '#059669', glow: 'rgba(16, 185, 129, 0.4)' },
-    pro: { primary: '#f59e0b', secondary: '#d97706', glow: 'rgba(245, 158, 11, 0.4)' },
-    starter: { primary: '#6b7280', secondary: '#4b5563', glow: 'rgba(107, 114, 128, 0.4)' }
-  }
-
-  const planIcons: Record<string, React.ReactNode> = {
-    enterprise: <Sparkles className="w-8 h-8" />,
-    business: <Building2 className="w-8 h-8" />,
-    team: <Users className="w-8 h-8" />,
-    pro: <CreditCard className="w-8 h-8" />,
-    starter: <CreditCard className="w-8 h-8" />
-  }
-
-  const statusConfig: Record<string, { color: string, bg: string, label: string }> = {
-    active: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.2)', label: 'ACTIVA' },
-    expired: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.2)', label: 'EXPIRADA' },
-    cancelled: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.2)', label: 'CANCELADA' },
-    trial: { color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.2)', label: 'EN PRUEBA' },
-    pending: { color: '#6b7280', bg: 'rgba(107, 114, 128, 0.2)', label: 'PENDIENTE' }
-  }
-
-  const formatDate = (date: string | null | undefined) => {
-    if (!date) return 'No disponible'
-    try {
-      const dateObj = new Date(date)
-      if (isNaN(dateObj.getTime())) return 'No disponible'
-      return dateObj.toLocaleDateString('es-MX', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    } catch (error) {
-      return 'No disponible'
-    }
-  }
-
-  const calculateDaysUntilRenewal = () => {
-    if (!subscription.end_date) return null
-    const endDate = new Date(subscription.end_date)
-    const today = new Date()
-    const diffTime = endDate.getTime() - today.getTime()
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    return diffDays > 0 ? diffDays : 0
-  }
-
-  const daysUntilRenewal = subscription.days_until_expiration ?? calculateDaysUntilRenewal()
-  const totalDays = 365 // Assuming yearly subscription
-  const progressPercentage = daysUntilRenewal ? Math.max(0, Math.min(100, (daysUntilRenewal / totalDays) * 100)) : 0
-
-  const getBenefits = () => {
-    const plan = subscription.plan?.toLowerCase() || 'team'
-    const benefits: Record<string, { icon: React.ReactNode, text: string }[]> = {
-      enterprise: [
-        { icon: <Check className="w-4 h-4" />, text: 'Soporte 24/7 Prioritario' },
-        { icon: <Check className="w-4 h-4" />, text: 'Almacenamiento Ilimitado en Nube' },
-        { icon: <Check className="w-4 h-4" />, text: 'Analíticas Avanzadas de Equipo' },
-        { icon: <Check className="w-4 h-4" />, text: 'Integraciones Exclusivas' },
-        { icon: <Check className="w-4 h-4" />, text: 'Acceso a Funciones Beta' },
-        { icon: <Check className="w-4 h-4" />, text: 'Gestión Avanzada de Usuarios' }
-      ],
-      business: [
-        { icon: <Check className="w-4 h-4" />, text: 'Soporte Prioritario' },
-        { icon: <Check className="w-4 h-4" />, text: 'Almacenamiento Ampliado' },
-        { icon: <Check className="w-4 h-4" />, text: 'Analíticas de Equipo' },
-        { icon: <Check className="w-4 h-4" />, text: 'Integraciones Premium' },
-        { icon: <Check className="w-4 h-4" />, text: 'Gestión de Usuarios' }
-      ],
-      team: [
-        { icon: <Check className="w-4 h-4" />, text: 'Soporte por Email' },
-        { icon: <Check className="w-4 h-4" />, text: 'Almacenamiento Estándar' },
-        { icon: <Check className="w-4 h-4" />, text: 'Analíticas Básicas' },
-        { icon: <Check className="w-4 h-4" />, text: 'Integraciones Estándar' }
-      ],
-      pro: [
-        { icon: <Check className="w-4 h-4" />, text: 'Soporte Prioritario' },
-        { icon: <Check className="w-4 h-4" />, text: 'Almacenamiento Ampliado' },
-        { icon: <Check className="w-4 h-4" />, text: 'Analíticas Avanzadas' },
-        { icon: <Check className="w-4 h-4" />, text: 'Integraciones Premium' }
-      ],
-      starter: [
-        { icon: <Check className="w-4 h-4" />, text: 'Soporte por Email' },
-        { icon: <Check className="w-4 h-4" />, text: 'Almacenamiento Básico' },
-        { icon: <Check className="w-4 h-4" />, text: 'Analíticas Básicas' }
-      ]
-    }
-    return benefits[plan] || benefits.team
-  }
-
-  const handleChangePlan = () => {
-    router.push(`/${orgSlug}/business-panel/subscription/plans`)
-  }
-
-  const handleCancelSubscription = async () => {
-    if (!confirm('¿Estás seguro de que deseas cancelar tu suscripción? Esto afectará el acceso a los servicios.')) {
-      return
-    }
-
-    setIsCancelling(true)
-    try {
-      alert('Funcionalidad de cancelación en desarrollo. Próximamente estarás disponible para cancelar tu suscripción.')
-    } catch (error) {
-      alert('Error al cancelar la suscripción. Por favor, intenta más tarde.')
-    } finally {
-      setIsCancelling(false)
-    }
-  }
-
-  const planKey = subscription.plan?.toLowerCase() || 'team'
-  const planName = planLabels[planKey] || subscription.plan || 'Team'
-  const colors = planColors[planKey] || planColors.team
-  const statusInfo = statusConfig[subscription.status?.toLowerCase() || 'active'] || statusConfig.active
-  const isActive = subscription.status?.toLowerCase() === 'active' && !subscription.is_expired
-
-  return (
-    <div className="space-y-6">
-      {/* Hero Card - Plan Principal */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative overflow-hidden rounded-3xl p-8"
-        style={{
-          background: `linear-gradient(135deg, ${colors.primary}20, ${colors.secondary}10)`,
-          border: `1px solid ${colors.primary}30`
-        }}
-      >
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-20"
-            style={{ background: `radial-gradient(circle, ${colors.primary}, transparent 70%)` }}
-          />
-          <motion.div
-            animate={{ rotate: -360 }}
-            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-            className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-15"
-            style={{ background: `radial-gradient(circle, ${colors.secondary}, transparent 70%)` }}
-          />
-        </div>
-
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          {/* Left: Plan Info */}
-          <div className="flex items-start gap-5">
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 10 }}
-              className="p-4 rounded-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-                boxShadow: `0 8px 30px ${colors.glow}`
-              }}
-            >
-              <div className="text-white">
-                {planIcons[planKey] || <CreditCard className="w-8 h-8" />}
-              </div>
-            </motion.div>
-
-            <div>
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center gap-3 mb-2"
-              >
-                <h2 className="text-3xl lg:text-4xl font-bold text-white">
-                  Plan {planName}
-                </h2>
-                {planKey === 'enterprise' && (
-                  <motion.span
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="px-3 py-1 rounded-full text-xs font-bold"
-                    style={{
-                      background: `linear-gradient(135deg, #fbbf24, #f59e0b)`,
-                      color: '#1f2937'
-                    }}
-                  >
-                    PREMIUM
-                  </motion.span>
-                )}
-              </motion.div>
-
-              <motion.p
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-white/60 text-lg"
-              >
-                Tu plan de liderazgo digital
-              </motion.p>
-            </div>
-          </div>
-
-          {/* Right: Status Badge */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, type: "spring" }}
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-3 px-6 py-3 rounded-2xl"
-            style={{
-              background: statusInfo.bg,
-              border: `1px solid ${statusInfo.color}40`
-            }}
-          >
-            <motion.div
-              animate={{ scale: [1, 1.3, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: statusInfo.color }}
-            />
-            <span className="font-bold text-lg" style={{ color: statusInfo.color }}>
-              {statusInfo.label}
-            </span>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* Three Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        {/* Card 1: Tiempo Restante con Circular Progress */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="relative overflow-hidden rounded-2xl p-6 border backdrop-blur-xl group"
-          style={{
-            backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-            borderColor: 'rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br from-blue-500/20 to-transparent blur-2xl" />
-          </div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-blue-400" />
-              <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
-                Tiempo Restante
-              </h3>
-            </div>
-
-            <div className="flex flex-col items-center justify-center py-4">
-              {/* Circular Progress */}
-              <div className="relative w-32 h-32 mb-4">
-                <svg className="w-full h-full transform -rotate-90">
-                  <circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke="rgba(255,255,255,0.1)"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                  <motion.circle
-                    cx="64"
-                    cy="64"
-                    r="56"
-                    stroke={colors.primary}
-                    strokeWidth="8"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${2 * Math.PI * 56}`}
-                    initial={{ strokeDashoffset: 2 * Math.PI * 56 }}
-                    animate={{ strokeDashoffset: 2 * Math.PI * 56 * (1 - progressPercentage / 100) }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    style={{ filter: `drop-shadow(0 0 10px ${colors.glow})` }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.5, type: "spring" }}
-                    className="text-4xl font-bold text-white"
-                  >
-                    {daysUntilRenewal || 0}
-                  </motion.span>
-                  <span className="text-xs text-white/50 uppercase">días</span>
-                </div>
-              </div>
-
-              <p className="text-center text-white/60 text-sm">
-                Para renovación automática
-              </p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Card 2: Fechas */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="relative overflow-hidden rounded-2xl p-6 border backdrop-blur-xl group"
-          style={{
-            backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-            borderColor: 'rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute -top-12 -left-12 w-32 h-32 rounded-full bg-gradient-to-br from-purple-500/20 to-transparent blur-2xl" />
-          </div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-6">
-              <Calendar className="w-5 h-5 text-purple-400" />
-              <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
-                Período de Suscripción
-              </h3>
-            </div>
-
-            <div className="space-y-6">
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex items-center gap-4"
-              >
-                <div className="p-3 rounded-xl bg-green-500/20">
-                  <Calendar className="w-5 h-5 text-green-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-white/50 uppercase mb-1">Fecha de Inicio</p>
-                  <p className="text-white font-semibold">{formatDate(subscription.start_date)}</p>
-                </div>
-              </motion.div>
-
-              <div className="border-l-2 border-dashed border-white/20 ml-6 h-4" />
-
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-4"
-              >
-                <div className="p-3 rounded-xl bg-red-500/20">
-                  <Calendar className="w-5 h-5 text-red-400" />
-                </div>
-                <div>
-                  <p className="text-xs text-white/50 uppercase mb-1">Fecha de Finalización</p>
-                  <p className="text-white font-semibold">{formatDate(subscription.end_date)}</p>
-                </div>
-              </motion.div>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Card 3: Beneficios */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="relative overflow-hidden rounded-2xl p-6 border backdrop-blur-xl group"
-          style={{
-            backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-            borderColor: 'rgba(255, 255, 255, 0.1)'
-          }}
-        >
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-            <div className="absolute -bottom-12 -right-12 w-32 h-32 rounded-full bg-gradient-to-br from-emerald-500/20 to-transparent blur-2xl" />
-          </div>
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-5">
-              <Sparkles className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
-                Beneficios Incluidos
-              </h3>
-            </div>
-
-            <div className="space-y-3">
-              {getBenefits().map((benefit, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + (index * 0.1) }}
-                  className="flex items-center gap-3 group/item"
-                >
-                  <motion.div
-                    whileHover={{ scale: 1.2, rotate: 10 }}
-                    className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-                      boxShadow: `0 2px 10px ${colors.glow}`
-                    }}
-                  >
-                    {benefit.icon}
-                  </motion.div>
-                  <p className="text-sm text-white/80 group-hover/item:text-white transition-colors">
-                    {benefit.text}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Action Buttons */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="flex flex-wrap gap-4 justify-center lg:justify-start pt-4"
-      >
-        <motion.button
-          onClick={handleChangePlan}
-          disabled={isCancelling}
-          whileHover={{ scale: 1.03, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          className="px-8 py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
-          style={{
-            background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-            color: '#ffffff',
-            boxShadow: `0 8px 30px ${colors.glow}`
-          }}
-        >
-          <Sparkles className="w-5 h-5" />
-          Cambiar de Plan
-        </motion.button>
-
-        <motion.button
-          onClick={handleCancelSubscription}
-          disabled={isCancelling || subscription.status === 'cancelled'}
-          whileHover={{ scale: 1.03, y: -2 }}
-          whileTap={{ scale: 0.98 }}
-          className="px-8 py-4 rounded-2xl font-semibold text-sm uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 border-2"
-          style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.05)',
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            color: 'rgba(255, 255, 255, 0.8)'
-          }}
-        >
-          {isCancelling ? (
-            <>
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              >
-                <Loader2 className="w-5 h-5" />
-              </motion.div>
-              Cancelando...
-            </>
-          ) : (
-            <>
-              <X className="w-5 h-5" />
-              Cancelar Suscripción
-            </>
-          )}
-        </motion.button>
-      </motion.div>
     </div>
   )
 }

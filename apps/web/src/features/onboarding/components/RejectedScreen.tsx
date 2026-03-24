@@ -22,17 +22,17 @@ export function RejectedScreen({ organizationName, onTryAgain }: RejectedScreenP
         <XCircle className="w-10 h-10 text-red-400" />
       </div>
 
-      <h2 className="text-2xl font-bold text-white mb-3">
+      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
         {t('orgOnboarding.rejected')}
       </h2>
 
-      <p className="text-gray-400 mb-8 leading-relaxed">
+      <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
         {t('orgOnboarding.rejectedDesc', { company: organizationName || '' })}
       </p>
 
       <button
         onClick={onTryAgain}
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-medium transition-colors border border-white/10"
+        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white font-medium transition-colors border border-gray-200 dark:border-white/10 shadow-sm dark:shadow-none"
       >
         <RotateCcw className="w-4 h-4" />
         {t('orgOnboarding.tryAgain')}

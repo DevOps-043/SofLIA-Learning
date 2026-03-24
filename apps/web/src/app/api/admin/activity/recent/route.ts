@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { NotificationService } from '@/features/notifications/services/notification.service'
-import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { NotificationService } from '../../../../../features/notifications/services/notification.service'
+import { requireAdmin } from '../../../../../lib/auth/requireAdmin'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest) {
       success: true,
       activities: notifications
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in GET /api/admin/activity/recent:', error)
     return NextResponse.json(
       {

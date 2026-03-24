@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { Search, X, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useParams } from 'next/navigation'
 import { HierarchyService } from '../../services/hierarchy.service'
 import type { UserWithHierarchy } from '../../types/hierarchy.types'
 
@@ -22,6 +23,8 @@ export function MemberAssignmentModal({
   onSuccess,
   initialRole
 }: MemberAssignmentModalProps) {
+  const params = useParams()
+  const orgSlug = params?.orgSlug as string
   const [loading, setLoading] = useState(false)
   const [searching, setSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -44,7 +47,7 @@ export function MemberAssignmentModal({
     const fetchUsers = async () => {
       setSearching(true)
       try {
-        const results = await HierarchyService.getAvailableUsersForNode(nodeId, searchQuery, role === 'leader')
+        const results = await HierarchyService.getAvailableUsersForNode(nodeId, searchQuery, role === 'leader', orgSlug)
         setUsers(results)
       } catch (err) {
         console.error(err)
@@ -67,7 +70,7 @@ export function MemberAssignmentModal({
     setLoading(true)
     setError(null)
     try {
-      const result = await HierarchyService.assignUserToNode(nodeId, selectedUser, role)
+      const result = await HierarchyService.assignUserToNode(nodeId, selectedUser, role, false, orgSlug)
 
       if (result.success) {
         onSuccess()
@@ -166,20 +169,20 @@ export function MemberAssignmentModal({
                   ) : (
                     users.map(user => (
                       <div
-                        key={user.id}
-                        onClick={() => setSelectedUser(user.id)}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${selectedUser === user.id
+                        key={user?.id || 'unknown'}
+                        onClick={() => user?.id && setSelectedUser(user.id)}
+                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${user?.id && selectedUser === user.id
                           ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-500/10'
                           : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5'
                           } `}
                       >
                         {/* Avatar */}
                         <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-[#2A3038] flex-shrink-0 overflow-hidden">
-                          {user.profile_picture_url ? (
+                          {user?.profile_picture_url ? (
                             <img src={user.profile_picture_url} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-gray-400 font-bold">
-                              {(user.first_name?.[0] || user.username?.[0] || '?').toUpperCase()}
+                              {(user?.first_name?.[0] || user?.username?.[0] || '?').toUpperCase()}
                             </div>
                           )}
                         </div>
@@ -187,15 +190,15 @@ export function MemberAssignmentModal({
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 dark:text-white truncate">
-                            {user.first_name} {user.last_name}
+                            {user?.first_name} {user?.last_name}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {user.email}
+                            {user?.email}
                           </div>
                         </div>
 
                         {/* Selection Indicator */}
-                        {selectedUser === user.id && (
+                        {user?.id && selectedUser === user.id && (
                           <div className="text-blue-500">
                             <CheckCircle className="w-5 h-5 fill-current" />
                           </div>

@@ -130,7 +130,7 @@ export function InstructorSidebar({
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-purple-800/40 flex-shrink-0">
           <div className="flex items-center">
-            <img src="/icono.png" alt="Aprende y Aplica" className="h-8 w-8 rounded-lg flex-shrink-0" />
+            <img src="/icono.png" alt="SofLIA" className="h-8 w-8 rounded-lg flex-shrink-0" />
           </div>
           <div className="flex items-center space-x-2">
             {/* Botón de fijar - siempre visible en desktop */}

@@ -1,10 +1,10 @@
-# 📐 Guía de Arquitectura Completa - Aprende y Aplica
+# 📐 Guía de Arquitectura Completa - SofLIA Learning
 
-> **Documento de Referencia para la Arquitectura del Proyecto Aprende y Aplica (Chat-Bot-LIA)**
-> 
+> **Documento de Referencia para la Arquitectura del Proyecto SofLIA Learning (Chat-Bot-LIA)**
+>
 > Versión: 2.0.0  
 > Última actualización: Diciembre 2024  
-> Mantenido por: Equipo Aprende y Aplica
+> Mantenido por: Equipo SofLIA Learning
 
 ---
 
@@ -30,11 +30,12 @@
 
 ## 1. Introducción y Visión General
 
-### 1.1 ¿Qué es Aprende y Aplica?
+### 1.1 ¿Qué es SofLIA Learning?
 
-Aprende y Aplica es una **plataforma educativa con IA integrada (Chat-Bot-LIA)** construida con tecnologías modernas. El proyecto implementa las mejores prácticas de arquitectura de software, diseño de interfaces y experiencia de usuario para ofrecer una experiencia de aprendizaje personalizada.
+SofLIA Learning es una **plataforma educativa con IA integrada (Chat-Bot-LIA)** construida con tecnologías modernas. El proyecto implementa las mejores prácticas de arquitectura de software, diseño de interfaces y experiencia de usuario para ofrecer una experiencia de aprendizaje personalizada.
 
 **Características principales:**
+
 - ✅ Monorepo con npm workspaces
 - ✅ Frontend moderno con Next.js 16 y React 18
 - ✅ Backend robusto con Express y TypeScript
@@ -50,7 +51,7 @@ Aprende y Aplica es una **plataforma educativa con IA integrada (Chat-Bot-LIA)**
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    APRENDE Y APLICA - STACK (Diciembre 2024)                │
+│                    SOFLIA LEARNING - STACK (Diciembre 2024)                 │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  FRONTEND (apps/web)              BACKEND (apps/api)                        │
@@ -104,7 +105,7 @@ REQUISITOS DEL SISTEMA:
 ### 1.3 Arquitectura de Alto Nivel (Monorepo)
 
 ```
-Aprende-y-Aplica/
+SofLIA-Learning/
 │
 ├── apps/                      # Aplicaciones principales
 │   ├── web/                  # Frontend (Next.js 16)
@@ -137,20 +138,24 @@ Aprende-y-Aplica/
 ### 1.4 Principios de Diseño
 
 **1. Screaming Architecture**
+
 - La estructura "grita" sobre el dominio del negocio, no sobre frameworks
 - Organización por features, no por tipos técnicos
 
 **2. Separation of Concerns**
+
 - Frontend y backend completamente separados
 - Comunicación vía API REST
 - Tipos compartidos entre ambos
 
 **3. DRY (Don't Repeat Yourself)**
+
 - Código compartido en packages
 - Componentes reutilizables
 - Utilidades centralizadas
 
 **4. SOLID Principles**
+
 - Single Responsibility
 - Open/Closed
 - Liskov Substitution
@@ -170,6 +175,7 @@ Aprende-y-Aplica/
 **Pregunta clave:** Al ver la estructura de carpetas, ¿qué ves primero?
 
 ❌ **Mal ejemplo (organización técnica):**
+
 ```
 src/
 ├── controllers/
@@ -178,9 +184,11 @@ src/
 ├── views/
 └── utils/
 ```
-*Solo veo patrones técnicos, no sé qué hace la aplicación*
+
+_Solo veo patrones técnicos, no sé qué hace la aplicación_
 
 ✅ **Buen ejemplo (organización por dominio):**
+
 ```
 src/
 ├── features/
@@ -191,7 +199,8 @@ src/
 ├── shared/
 └── core/
 ```
-*Inmediatamente sé que la app maneja autenticación, usuarios, dashboard y casos de éxito*
+
+_Inmediatamente sé que la app maneja autenticación, usuarios, dashboard y casos de éxito_
 
 ### 2.2 Estructura de Carpetas Detallada
 
@@ -320,23 +329,25 @@ apps/api/src/
 #### ¿Dónde va cada cosa?
 
 **Pregunta 1: ¿Es específico de un dominio de negocio?**
+
 - ✅ SÍ → Va en `/features/nombre-feature/`
 - ❌ NO → Continúa a pregunta 2
 
 **Pregunta 2: ¿Conoce sobre el dominio de negocio?**
+
 - ✅ SÍ → Va en `/core/` (lógica de negocio transversal)
 - ❌ NO → Va en `/shared/` (infraestructura técnica pura)
 
 **Ejemplos:**
 
-| Elemento | ¿Dominio específico? | ¿Conoce negocio? | Ubicación |
-|----------|---------------------|------------------|-----------|
-| LoginForm | SÍ (auth) | - | `/features/auth/components/` |
-| Button | NO | NO | `/shared/components/` |
-| authStore | NO | SÍ | `/core/stores/` |
-| apiService | NO | SÍ | `/core/services/` |
-| useDebounce | NO | NO | `/shared/hooks/` |
-| CasoCard | SÍ (casos) | - | `/features/casos-exito/components/` |
+| Elemento    | ¿Dominio específico? | ¿Conoce negocio? | Ubicación                           |
+| ----------- | -------------------- | ---------------- | ----------------------------------- |
+| LoginForm   | SÍ (auth)            | -                | `/features/auth/components/`        |
+| Button      | NO                   | NO               | `/shared/components/`               |
+| authStore   | NO                   | SÍ               | `/core/stores/`                     |
+| apiService  | NO                   | SÍ               | `/core/services/`                   |
+| useDebounce | NO                   | NO               | `/shared/hooks/`                    |
+| CasoCard    | SÍ (casos)           | -                | `/features/casos-exito/components/` |
 
 ### 2.4 Reglas de Dependencias
 
@@ -357,6 +368,7 @@ apps/api/src/
 ```
 
 **Reglas:**
+
 1. ❌ `shared/` NO debe importar de `features/` ni `core/`
 2. ❌ `core/` NO debe importar de `features/`
 3. ✅ `features/` puede importar de `core/` y `shared/`
@@ -391,6 +403,7 @@ export default nextConfig;
 Aprende y Aplica usa **App Router** (Next.js 13+):
 
 **Estructura de rutas:**
+
 ```
 app/
 ├── layout.tsx          → Layout raíz
@@ -404,6 +417,7 @@ app/
 #### Server vs Client Components
 
 **Server Component (por defecto):**
+
 ```typescript
 // app/sobre/page.tsx
 import { Metadata } from 'next';
@@ -418,6 +432,7 @@ export default function SobrePage() {
 ```
 
 **Client Component (con 'use client'):**
+
 ```typescript
 // app/contacto/ContactoClient.tsx
 'use client';
@@ -451,12 +466,13 @@ export const ContactoClient = () => {
 ```
 
 **Path Aliases:**
+
 ```typescript
 // En lugar de:
-import { Button } from '../../../shared/components/Button';
+import { Button } from "../../../shared/components/Button";
 
 // Usas:
-import { Button } from '@/shared/components/Button';
+import { Button } from "@/shared/components/Button";
 ```
 
 ### 3.3 TailwindCSS
@@ -465,28 +481,26 @@ import { Button } from '@/shared/components/Button';
 
 ```javascript
 module.exports = {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
         primary: {
-          600: '#1F5AF6',
-          100: '#E8EFFD',
+          600: "#1F5AF6",
+          100: "#E8EFFD",
         },
         neutral: {
-          900: '#0A1633',
-          600: '#5B6472',
+          900: "#0A1633",
+          600: "#5B6472",
         },
         accent: {
-          orange: '#FF7A45',
-          green: '#10B981',
+          orange: "#FF7A45",
+          green: "#10B981",
         },
       },
     },
   },
-}
+};
 ```
 
 #### globals.css - Variables CSS
@@ -494,21 +508,21 @@ module.exports = {
 ```css
 :root {
   /* Colores */
-  --primary-600: #1F5AF6;
-  --neutral-900: #0A1633;
-  --accent-orange: #FF7A45;
-  
+  --primary-600: #1f5af6;
+  --neutral-900: #0a1633;
+  --accent-orange: #ff7a45;
+
   /* Tipografía */
   --text-base: 1rem;
   --text-xl: 1.5rem;
-  
+
   /* Espaciado */
   --space-4: 1rem;
   --space-8: 2rem;
-  
+
   /* Border Radius */
   --radius-base: 0.75rem;
-  
+
   /* Sombras */
   --shadow-base: 0 2px 8px rgba(10, 22, 51, 0.08);
 }
@@ -536,8 +550,8 @@ export interface LoginCredentials {
 }
 
 // hooks/useAuth.ts
-'use client';
-import { useAuthStore } from '@/core/stores/authStore';
+("use client");
+import { useAuthStore } from "@/core/stores/authStore";
 
 export const useAuth = () => {
   const { user, login, logout } = useAuthStore();
@@ -545,8 +559,8 @@ export const useAuth = () => {
 };
 
 // index.ts (Barrel export)
-export * from './types';
-export * from './hooks/useAuth';
+export * from "./types";
+export * from "./hooks/useAuth";
 ```
 
 ### 3.5 Estructura /shared
@@ -568,8 +582,8 @@ shared/
 **Ejemplo: shared/utils/cn.ts**
 
 ```typescript
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -591,7 +605,7 @@ core/
 **Ejemplo: core/services/api.ts**
 
 ```typescript
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 
 class ApiService {
   private client: AxiosInstance;
@@ -606,7 +620,7 @@ class ApiService {
 
   private setupInterceptors() {
     this.client.interceptors.request.use((config) => {
-      const token = localStorage.getItem('accessToken');
+      const token = localStorage.getItem("accessToken");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -631,9 +645,9 @@ export const apiService = new ApiService();
 **Ejemplo: core/stores/authStore.ts**
 
 ```typescript
-'use client';
-import { create } from 'zustand';
-import { User } from '@aprende-y-aplica/shared';
+"use client";
+import { create } from "zustand";
+import { User } from "@aprende-y-aplica/shared";
 
 interface AuthStore {
   user: User | null;
@@ -648,13 +662,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   login: async (credentials) => {
     // Lógica de login
-    const response = await apiService.post('/auth/login', credentials);
-    localStorage.setItem('accessToken', response.accessToken);
+    const response = await apiService.post("/auth/login", credentials);
+    localStorage.setItem("accessToken", response.accessToken);
     set({ user: response.user, isAuthenticated: true });
   },
 
   logout: () => {
-    localStorage.removeItem('accessToken');
+    localStorage.removeItem("accessToken");
     set({ user: null, isAuthenticated: false });
   },
 }));
@@ -669,14 +683,14 @@ export const useAuthStore = create<AuthStore>((set) => ({
 #### server.ts - Entry Point
 
 ```typescript
-import dotenv from 'dotenv';
-import express, { Application } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import { errorHandler } from './core/middleware/errorHandler';
-import { authRoutes } from './features/auth/auth.routes';
-import { userRoutes } from './features/users/users.routes';
+import dotenv from "dotenv";
+import express, { Application } from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import { errorHandler } from "./core/middleware/errorHandler";
+import { authRoutes } from "./features/auth/auth.routes";
+import { userRoutes } from "./features/users/users.routes";
 
 // Cargar variables de entorno
 dotenv.config();
@@ -686,21 +700,23 @@ const PORT = process.env.PORT || 4000;
 
 // Middleware global
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
-  credentials: true,
-}));
-app.use(morgan('dev'));
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || "http://localhost:3000",
+    credentials: true,
+  }),
+);
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', message: 'API is running' });
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", message: "API is running" });
 });
 
 // API Routes
-const API_VERSION = process.env.API_VERSION || 'v1';
+const API_VERSION = process.env.API_VERSION || "v1";
 app.use(`/api/${API_VERSION}/auth`, authRoutes);
 app.use(`/api/${API_VERSION}/users`, userRoutes);
 
@@ -711,7 +727,7 @@ app.use(errorHandler);
 app.use((_req, res) => {
   res.status(404).json({
     success: false,
-    error: { message: 'Ruta no encontrada', code: 'NOT_FOUND' },
+    error: { message: "Ruta no encontrada", code: "NOT_FOUND" },
   });
 });
 
@@ -761,79 +777,79 @@ features/nombre-feature/
 **auth.types.ts - Validación con Zod**
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const loginSchema = z.object({
   body: z.object({
-    email: z.string().email('Email inválido'),
-    password: z.string().min(6, 'Mínimo 6 caracteres'),
+    email: z.string().email("Email inválido"),
+    password: z.string().min(6, "Mínimo 6 caracteres"),
   }),
 });
 
 export const registerSchema = z.object({
   body: z.object({
-    name: z.string().min(2, 'Nombre requerido'),
-    email: z.string().email('Email inválido'),
-    password: z.string().min(6, 'Mínimo 6 caracteres'),
+    name: z.string().min(2, "Nombre requerido"),
+    email: z.string().email("Email inválido"),
+    password: z.string().min(6, "Mínimo 6 caracteres"),
   }),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>['body'];
-export type RegisterInput = z.infer<typeof registerSchema>['body'];
+export type LoginInput = z.infer<typeof loginSchema>["body"];
+export type RegisterInput = z.infer<typeof registerSchema>["body"];
 ```
 
 **auth.service.ts - Lógica de Negocio**
 
 ```typescript
-import { User, AuthTokens } from '@aprende-y-aplica/shared';
-import { LoginInput, RegisterInput } from './auth.types';
-import { createError } from '../../core/middleware/errorHandler';
-import { HTTP_STATUS, ERROR_CODES } from '@aprende-y-aplica/shared';
+import { User, AuthTokens } from "@aprende-y-aplica/shared";
+import { LoginInput, RegisterInput } from "./auth.types";
+import { createError } from "../../core/middleware/errorHandler";
+import { HTTP_STATUS, ERROR_CODES } from "@aprende-y-aplica/shared";
 
 export class AuthService {
   async login(credentials: LoginInput): Promise<{ user: User } & AuthTokens> {
     const { email, password } = credentials;
 
     // TODO: Validar con base de datos
-    if (email === 'demo@aprendeyaplica.com' && password === 'demo123') {
+    if (email === "demo@aprendeyaplica.com" && password === "demo123") {
       const user: User = {
-        id: '1',
+        id: "1",
         email,
-        name: 'Usuario Demo',
-        role: 'user',
+        name: "Usuario Demo",
+        role: "user",
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       return {
         user,
-        accessToken: 'demo-access-token',
-        refreshToken: 'demo-refresh-token',
+        accessToken: "demo-access-token",
+        refreshToken: "demo-refresh-token",
       };
     }
 
     throw createError(
-      'Credenciales inválidas',
+      "Credenciales inválidas",
       HTTP_STATUS.UNAUTHORIZED,
-      ERROR_CODES.AUTHENTICATION_ERROR
+      ERROR_CODES.AUTHENTICATION_ERROR,
     );
   }
 
   async register(data: RegisterInput): Promise<{ user: User } & AuthTokens> {
     // TODO: Verificar email, hashear password, crear en DB
     const user: User = {
-      id: '2',
+      id: "2",
       email: data.email,
       name: data.name,
-      role: 'user',
+      role: "user",
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     return {
       user,
-      accessToken: 'demo-access-token',
-      refreshToken: 'demo-refresh-token',
+      accessToken: "demo-access-token",
+      refreshToken: "demo-refresh-token",
     };
   }
 }
@@ -844,10 +860,10 @@ export const authService = new AuthService();
 **auth.controller.ts - Maneja HTTP**
 
 ```typescript
-import { Request, Response } from 'express';
-import { authService } from './auth.service';
-import { HTTP_STATUS } from '@aprende-y-aplica/shared';
-import { asyncHandler } from '../../core/utils';
+import { Request, Response } from "express";
+import { authService } from "./auth.service";
+import { HTTP_STATUS } from "@aprende-y-aplica/shared";
+import { asyncHandler } from "../../core/utils";
 
 export class AuthController {
   login = asyncHandler(async (req: Request, res: Response) => {
@@ -875,15 +891,15 @@ export const authController = new AuthController();
 **auth.routes.ts - Define Rutas**
 
 ```typescript
-import { Router } from 'express';
-import { authController } from './auth.controller';
-import { validate } from '../../core/middleware/validation.middleware';
-import { loginSchema, registerSchema } from './auth.types';
+import { Router } from "express";
+import { authController } from "./auth.controller";
+import { validate } from "../../core/middleware/validation.middleware";
+import { loginSchema, registerSchema } from "./auth.types";
 
 const router = Router();
 
-router.post('/login', validate(loginSchema), authController.login);
-router.post('/register', validate(registerSchema), authController.register);
+router.post("/login", validate(loginSchema), authController.login);
+router.post("/register", validate(registerSchema), authController.register);
 
 export { router as authRoutes };
 ```
@@ -894,23 +910,23 @@ export { router as authRoutes };
 
 ```typescript
 // core/middleware/errorHandler.ts
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
 export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number = 500,
-    public code: string = 'INTERNAL_ERROR'
+    public code: string = "INTERNAL_ERROR",
   ) {
     super(message);
-    this.name = 'AppError';
+    this.name = "AppError";
   }
 }
 
 export const createError = (
   message: string,
   statusCode: number,
-  code: string
+  code: string,
 ) => {
   return new AppError(message, statusCode, code);
 };
@@ -919,7 +935,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
@@ -932,12 +948,12 @@ export const errorHandler = (
   }
 
   // Error no manejado
-  console.error('Error no manejado:', err);
+  console.error("Error no manejado:", err);
   res.status(500).json({
     success: false,
     error: {
-      message: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR',
+      message: "Error interno del servidor",
+      code: "INTERNAL_ERROR",
     },
   });
 };
@@ -947,22 +963,22 @@ export const errorHandler = (
 
 ```typescript
 // core/middleware/auth.middleware.ts
-import { Request, Response, NextFunction } from 'express';
-import { createError } from './errorHandler';
-import { HTTP_STATUS, ERROR_CODES } from '@aprende-y-aplica/shared';
+import { Request, Response, NextFunction } from "express";
+import { createError } from "./errorHandler";
+import { HTTP_STATUS, ERROR_CODES } from "@aprende-y-aplica/shared";
 
 export const authenticate = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
-  const token = req.headers.authorization?.replace('Bearer ', '');
+  const token = req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
     throw createError(
-      'Token no proporcionado',
+      "Token no proporcionado",
       HTTP_STATUS.UNAUTHORIZED,
-      ERROR_CODES.AUTHENTICATION_ERROR
+      ERROR_CODES.AUTHENTICATION_ERROR,
     );
   }
 
@@ -978,10 +994,10 @@ export const authenticate = (
 
 ```typescript
 // core/middleware/validation.middleware.ts
-import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
-import { createError } from './errorHandler';
-import { HTTP_STATUS, ERROR_CODES } from '@aprende-y-aplica/shared';
+import { Request, Response, NextFunction } from "express";
+import { ZodSchema } from "zod";
+import { createError } from "./errorHandler";
+import { HTTP_STATUS, ERROR_CODES } from "@aprende-y-aplica/shared";
 
 export const validate = (schema: ZodSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -996,7 +1012,7 @@ export const validate = (schema: ZodSchema) => {
       throw createError(
         error.errors[0].message,
         HTTP_STATUS.BAD_REQUEST,
-        ERROR_CODES.VALIDATION_ERROR
+        ERROR_CODES.VALIDATION_ERROR,
       );
     }
   };
@@ -1138,9 +1154,9 @@ export interface User {
 }
 
 export enum UserRole {
-  ADMIN = 'admin',
-  USER = 'user',
-  GUEST = 'guest',
+  ADMIN = "admin",
+  USER = "user",
+  GUEST = "guest",
 }
 
 export interface ApiResponse<T = any> {
@@ -1171,20 +1187,22 @@ export const HTTP_STATUS = {
 } as const;
 
 export const ERROR_CODES = {
-  VALIDATION_ERROR: 'VALIDATION_ERROR',
-  AUTHENTICATION_ERROR: 'AUTHENTICATION_ERROR',
-  NOT_FOUND: 'NOT_FOUND',
+  VALIDATION_ERROR: "VALIDATION_ERROR",
+  AUTHENTICATION_ERROR: "AUTHENTICATION_ERROR",
+  NOT_FOUND: "NOT_FOUND",
 } as const;
 ```
 
 **Uso en Frontend:**
+
 ```typescript
-import { User, ApiResponse } from '@aprende-y-aplica/shared';
+import { User, ApiResponse } from "@aprende-y-aplica/shared";
 ```
 
 **Uso en Backend:**
+
 ```typescript
-import { User, HTTP_STATUS } from '@aprende-y-aplica/shared';
+import { User, HTTP_STATUS } from "@aprende-y-aplica/shared";
 ```
 
 ---
@@ -1195,41 +1213,41 @@ import { User, HTTP_STATUS } from '@aprende-y-aplica/shared';
 
 ```css
 /* Primary - Azul corporativo */
---primary-600: #1F5AF6;
---primary-100: #E8EFFD;
+--primary-600: #1f5af6;
+--primary-100: #e8effd;
 
 /* Neutral - Grises */
---neutral-900: #0A1633;  /* Texto principal */
---neutral-600: #5B6472;  /* Texto secundario */
---neutral-200: #E3E8F0;  /* Bordes */
---neutral-100: #F7F9FB;  /* Fondos claros */
+--neutral-900: #0a1633; /* Texto principal */
+--neutral-600: #5b6472; /* Texto secundario */
+--neutral-200: #e3e8f0; /* Bordes */
+--neutral-100: #f7f9fb; /* Fondos claros */
 
 /* Accent - Colores de acción */
---accent-orange: #FF7A45;  /* CTAs principales */
---accent-green: #10B981;   /* Success */
---accent-red: #EF4444;     /* Errors */
---accent-yellow: #F59E0B;  /* Warnings */
+--accent-orange: #ff7a45; /* CTAs principales */
+--accent-green: #10b981; /* Success */
+--accent-red: #ef4444; /* Errors */
+--accent-yellow: #f59e0b; /* Warnings */
 ```
 
 ### 6.2 Tipografía
 
 ```css
 /* Escala de tamaños */
---text-xs: 0.75rem;     /* 12px */
---text-sm: 0.875rem;    /* 14px */
---text-base: 1rem;      /* 16px */
---text-lg: 1.125rem;    /* 18px */
---text-xl: 1.5rem;      /* 24px */
---text-2xl: 2rem;       /* 32px */
---text-3xl: 2.5rem;     /* 40px */
+--text-xs: 0.75rem; /* 12px */
+--text-sm: 0.875rem; /* 14px */
+--text-base: 1rem; /* 16px */
+--text-lg: 1.125rem; /* 18px */
+--text-xl: 1.5rem; /* 24px */
+--text-2xl: 2rem; /* 32px */
+--text-3xl: 2.5rem; /* 40px */
 
 /* Line Heights */
---leading-tight: 1.25;    /* Títulos */
---leading-normal: 1.45;   /* Texto normal */
---leading-relaxed: 1.6;   /* Texto largo */
+--leading-tight: 1.25; /* Títulos */
+--leading-normal: 1.45; /* Texto normal */
+--leading-relaxed: 1.6; /* Texto largo */
 
 /* Font Family */
-font-family: 'Inter', system-ui, sans-serif;
+font-family: "Inter", system-ui, sans-serif;
 ```
 
 ### 6.3 Componentes Base
@@ -1246,6 +1264,7 @@ font-family: 'Inter', system-ui, sans-serif;
 ```
 
 **Características:**
+
 - Animaciones con Framer Motion
 - Shimmer effect en primary
 - Ripple effect en secondary
@@ -1260,6 +1279,7 @@ font-family: 'Inter', system-ui, sans-serif;
 ```
 
 **Variantes:**
+
 - `default`: Fondo blanco sólido
 - `glass`: Glassmorphism effect
 
@@ -1283,13 +1303,23 @@ import { motion } from 'framer-motion';
 
 ```css
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 ```
 
@@ -1319,8 +1349,8 @@ import { motion } from 'framer-motion';
 ```typescript
 export function useLocalStorage<T>(key: string, initialValue: T) {
   const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === 'undefined') return initialValue;
-    
+    if (typeof window === "undefined") return initialValue;
+
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
@@ -1347,7 +1377,7 @@ interface Store {
   // Estado
   data: Data | null;
   isLoading: boolean;
-  
+
   // Acciones
   fetchData: () => Promise<void>;
   updateData: (data: Data) => void;
@@ -1357,13 +1387,13 @@ interface Store {
 export const useStore = create<Store>((set) => ({
   data: null,
   isLoading: false,
-  
+
   fetchData: async () => {
     set({ isLoading: true });
-    const data = await api.get('/data');
+    const data = await api.get("/data");
     set({ data, isLoading: false });
   },
-  
+
   updateData: (data) => set({ data }),
   reset: () => set({ data: null, isLoading: false }),
 }));
@@ -1418,10 +1448,10 @@ export interface User {
 
 ```typescript
 // apps/web/src/features/auth/types.ts
-import { User } from '@aprende-y-aplica/shared';
+import { User } from "@aprende-y-aplica/shared";
 
 export interface LoginResponse {
-  user: User;  // ✅ Mismo tipo
+  user: User; // ✅ Mismo tipo
   accessToken: string;
 }
 ```
@@ -1449,10 +1479,7 @@ async login(): Promise<User> {
 {
   "name": "aprende-y-aplica",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
     "dev:web": "npm run dev --workspace=apps/web",
@@ -1495,6 +1522,7 @@ API_VERSION=v1
 ### 9.3 Dependencias Principales
 
 **Frontend:**
+
 - next: 16.0.7
 - react: 18.3.1
 - typescript: 5.9.3
@@ -1504,6 +1532,7 @@ API_VERSION=v1
 - framer-motion: 12.23.24
 
 **Backend:**
+
 - express: 4.18.2
 - typescript: 5.3.3
 - zod: 3.25.76
@@ -1536,11 +1565,13 @@ npm run dev:api  # Backend en :4000
 ### 10.2 Hot Reload
 
 **Frontend (Next.js Fast Refresh):**
+
 - Cambios en componentes → Recarga automática
 - Preserva estado de React
 - Actualización en < 1 segundo
 
 **Backend (Nodemon):**
+
 - Cambios en archivos .ts → Reinicia servidor
 - Configurado en nodemon.json
 - Watch en carpeta src/
@@ -1548,12 +1579,14 @@ npm run dev:api  # Backend en :4000
 ### 10.3 Verificación
 
 **Frontend:**
+
 ```bash
 curl http://localhost:3000
 # Debe mostrar HTML de Next.js
 ```
 
 **Backend:**
+
 ```bash
 curl http://localhost:4000/health
 # {"status":"ok","message":"API is running"}
@@ -1567,10 +1600,10 @@ curl http://localhost:4000/health
 
 ```javascript
 // tailwind.config.js usa breakpoints por defecto:
-sm: '640px'   // Mobile landscape
-md: '768px'   // Tablet
-lg: '1024px'  // Desktop
-xl: '1280px'  // Large desktop
+sm: "640px"; // Mobile landscape
+md: "768px"; // Tablet
+lg: "1024px"; // Desktop
+xl: "1280px"; // Large desktop
 ```
 
 **Uso:**
@@ -1600,6 +1633,7 @@ xl: '1280px'  // Large desktop
 El Navbar cambia completamente entre mobile y desktop:
 
 **Desktop (lg+):**
+
 ```typescript
 <div className="hidden lg:flex items-center gap-1">
   {navLinks.map((link) => (
@@ -1611,8 +1645,9 @@ El Navbar cambia completamente entre mobile y desktop:
 ```
 
 **Mobile (<lg):**
+
 ```typescript
-<button 
+<button
   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
   className="lg:hidden p-2"
 >
@@ -1631,6 +1666,7 @@ El Navbar cambia completamente entre mobile y desktop:
 #### Grid Responsive
 
 **Pattern básico:**
+
 ```typescript
 <div className="
   grid
@@ -1642,6 +1678,7 @@ El Navbar cambia completamente entre mobile y desktop:
 ```
 
 **Pattern avanzado (4 columnas en XL):**
+
 ```typescript
 <div className="
   grid
@@ -1669,7 +1706,7 @@ El Navbar cambia completamente entre mobile y desktop:
     ">
       Título Responsivo
     </h1>
-    
+
     <p className="
       text-base sm:text-lg md:text-xl  // Tamaño de párrafo
       max-w-xl md:max-w-2xl lg:max-w-3xl  // Ancho máximo
@@ -1690,7 +1727,7 @@ El Navbar cambia completamente entre mobile y desktop:
   md:w-auto                       // Auto width en tablet+
 ">
   <div className="
-    flex 
+    flex
     flex-col md:flex-row           // Vertical en mobile, horizontal en tablet+
     gap-4 md:gap-6                // Gap responsivo
     items-start md:items-center   // Alineación responsiva
@@ -1712,14 +1749,14 @@ El Navbar cambia completamente entre mobile y desktop:
 <form className="space-y-4 md:space-y-6">
   {/* Grid de 2 columnas en tablet+ */}
   <div className="
-    grid 
-    grid-cols-1 md:grid-cols-2 
+    grid
+    grid-cols-1 md:grid-cols-2
     gap-4 md:gap-6
   ">
     <div>
       <label className="text-sm md:text-base">Nombre</label>
       <input className="
-        w-full 
+        w-full
         px-3 py-2 md:px-4 md:py-3  // Padding responsivo
         text-sm md:text-base        // Tamaño de texto
       " />
@@ -1729,7 +1766,7 @@ El Navbar cambia completamente entre mobile y desktop:
       <input className="w-full px-3 py-2 md:px-4 md:py-3" />
     </div>
   </div>
-  
+
   {/* Botón full width en mobile */}
   <Button className="w-full md:w-auto">
     Enviar
@@ -1740,6 +1777,7 @@ El Navbar cambia completamente entre mobile y desktop:
 #### Imágenes Responsive
 
 **Con Next.js Image:**
+
 ```typescript
 <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px]">
   <Image
@@ -1760,8 +1798,8 @@ El Navbar cambia completamente entre mobile y desktop:
 
 ```typescript
 <div className="
-  container 
-  mx-auto 
+  container
+  mx-auto
   px-4 sm:px-6 lg:px-8       // Padding lateral responsivo
   max-w-7xl                   // Ancho máximo
 ">
@@ -1794,7 +1832,7 @@ El Navbar cambia completamente entre mobile y desktop:
 
 ```typescript
 <div className="
-  flex 
+  flex
   flex-col md:flex-row          // Dirección
   items-start md:items-center   // Alineación
   justify-start md:justify-between  // Justificación
@@ -1841,6 +1879,7 @@ return (
 ### 11.6 Testing Responsive
 
 **Breakpoints a probar:**
+
 - **Mobile:** 375px (iPhone SE)
 - **Mobile Large:** 414px (iPhone Pro Max)
 - **Tablet:** 768px (iPad)
@@ -1849,6 +1888,7 @@ return (
 - **XL Desktop:** 1920px
 
 **Herramientas:**
+
 - Chrome DevTools (Device Toolbar)
 - Responsive Design Mode (Firefox)
 - Real devices cuando sea posible
@@ -1859,15 +1899,15 @@ return (
 
 ```typescript
 <div className="
-  grid 
-  grid-cols-1 lg:grid-cols-3 
+  grid
+  grid-cols-1 lg:grid-cols-3
   gap-8
 ">
   {/* Sidebar - 1/3 en desktop */}
   <aside className="lg:col-span-1">
     Sidebar
   </aside>
-  
+
   {/* Main content - 2/3 en desktop */}
   <main className="lg:col-span-2">
     Contenido principal
@@ -1879,8 +1919,8 @@ return (
 
 ```typescript
 <div className="
-  flex 
-  flex-col md:flex-row 
+  flex
+  flex-col md:flex-row
   gap-6
 ">
   <div className="flex-1">Izquierda</div>
@@ -1902,8 +1942,6 @@ return (
 
 ---
 
-
-
 ## 12. Configuración de Despliegue
 
 ### 12.1 Frontend en Netlify
@@ -1922,6 +1960,7 @@ return (
 ```
 
 **Variables de entorno en Netlify:**
+
 ```
 NEXT_PUBLIC_API_URL=https://api.tu-dominio.com/api
 ```
@@ -1929,16 +1968,19 @@ NEXT_PUBLIC_API_URL=https://api.tu-dominio.com/api
 ### 12.2 Backend en Railway/Render
 
 **Build Command:**
+
 ```bash
 npm run build --workspace=apps/api
 ```
 
 **Start Command:**
+
 ```bash
 npm start --workspace=apps/api
 ```
 
 **Variables de entorno:**
+
 ```
 PORT=4000
 NODE_ENV=production
@@ -1953,11 +1995,13 @@ ALLOWED_ORIGINS=https://tu-dominio.com
 ### 13.1 TypeScript
 
 ✅ **Hacer:**
+
 - Siempre tipar funciones y variables
 - Usar interfaces para objetos
 - Evitar `any`, usar `unknown` si es necesario
 
 ❌ **Evitar:**
+
 - `any` en producción
 - Type assertions innecesarios
 - Ignorar errores de TypeScript
@@ -1965,11 +2009,13 @@ ALLOWED_ORIGINS=https://tu-dominio.com
 ### 13.2 Componentes
 
 ✅ **Hacer:**
+
 - Un componente = una responsabilidad
 - Props con interfaces
 - Componentes pequeños y reutilizables
 
 ❌ **Evitar:**
+
 - Componentes de > 300 líneas
 - Lógica de negocio en componentes UI
 - Props sin tipar
@@ -1977,11 +2023,13 @@ ALLOWED_ORIGINS=https://tu-dominio.com
 ### 13.3 Organización
 
 ✅ **Hacer:**
+
 - Feature-first organization
 - Barrel exports (index.ts)
 - Imports absolutos con @/
 
 ❌ **Evitar:**
+
 - Imports relativos largos (../../../)
 - Archivos de > 500 líneas
 - Código duplicado
@@ -1993,6 +2041,7 @@ ALLOWED_ORIGINS=https://tu-dominio.com
 ### 14.1 Homepage
 
 **Estructura:**
+
 ```typescript
 // app/page.tsx
 export default function HomePage() {
@@ -2011,6 +2060,7 @@ export default function HomePage() {
 ### 14.2 Página de Contacto
 
 **Características:**
+
 - Formulario con validación
 - Estados: normal, loading, success, error
 - Campos: nombre, email, empresa, rol, mensaje
@@ -2024,7 +2074,7 @@ const [loading, setLoading] = useState(false);
 const handleSubmit = async (e) => {
   e.preventDefault();
   if (!validateForm()) return;
-  
+
   setLoading(true);
   await submitForm(formData);
   setLoading(false);
@@ -2125,9 +2175,10 @@ Aprende y Aplica es una plataforma educativa completa y lista para producción q
 ✅ Hot reload en desarrollo  
 ✅ Sistema de planificación de estudios con LIA  
 ✅ Visualización de datos con Nivo y Recharts  
-✅ Configuración de despliegue  
+✅ Configuración de despliegue
 
 **Usa esta guía como referencia para:**
+
 - Entender la arquitectura completa
 - Migrar proyectos existentes
 - Crear nuevos proyectos similares
@@ -2161,7 +2212,7 @@ import { RippleEffect } from './RippleEffect';
 const buttonAnimations = {
   primary: {
     rest: { scale: 1 },
-    hover: { 
+    hover: {
       scale: 1.03,
       transition: { duration: 0.2, ease: 'easeOut' }
     },
@@ -2169,7 +2220,7 @@ const buttonAnimations = {
   },
   secondary: {
     rest: { scale: 1 },
-    hover: { 
+    hover: {
       scale: 1.02,
       transition: { duration: 0.2, ease: 'easeOut' }
     },
@@ -2177,7 +2228,7 @@ const buttonAnimations = {
   },
   tertiary: {
     rest: { scale: 1 },
-    hover: { 
+    hover: {
       scale: 1.01,
       transition: { duration: 0.16, ease: 'easeOut' }
     },
@@ -2214,7 +2265,7 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size, children, ...props }, ref) => {
     const [isHovered, setIsHovered] = useState(false);
-    
+
     return (
       <motion.button
         ref={ref}
@@ -2229,15 +2280,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {/* Shimmer effect para primary */}
         {variant === 'primary' && <ShimmerEffect />}
-        
+
         {/* Ripple effect para secondary */}
         {variant === 'secondary' && <RippleEffect color="rgba(31, 90, 246, 0.2)" />}
-        
+
         {/* Contenido del botón */}
         <span className="relative z-10 flex items-center justify-center gap-2">
           {children}
         </span>
-        
+
         {/* Glow effect en hover para primary */}
         {isHovered && variant === 'primary' && (
           <motion.div
@@ -2297,8 +2348,8 @@ interface RippleEffectProps {
   color?: string;
 }
 
-export const RippleEffect: React.FC<RippleEffectProps> = ({ 
-  color = 'rgba(255,255,255,0.6)' 
+export const RippleEffect: React.FC<RippleEffectProps> = ({
+  color = 'rgba(255,255,255,0.6)'
 }) => {
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
 
@@ -2306,17 +2357,17 @@ export const RippleEffect: React.FC<RippleEffectProps> = ({
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     const newRipple = { x, y, id: Date.now() };
     setRipples([...ripples, newRipple]);
-    
+
     setTimeout(() => {
       setRipples(prev => prev.filter(r => r.id !== newRipple.id));
     }, 600);
   };
 
   return (
-    <div 
+    <div
       className="absolute inset-0 overflow-hidden rounded-[var(--radius-base)]"
       onMouseEnter={addRipple}
     >
@@ -2331,9 +2382,9 @@ export const RippleEffect: React.FC<RippleEffectProps> = ({
               backgroundColor: color,
             }}
             initial={{ width: 0, height: 0, opacity: 1 }}
-            animate={{ 
-              width: 400, 
-              height: 400, 
+            animate={{
+              width: 400,
+              height: 400,
               opacity: 0,
               x: -200,
               y: -200
@@ -2367,8 +2418,8 @@ interface AnimatedSectionProps {
   threshold?: number;
 }
 
-const AnimatedSection: React.FC<AnimatedSectionProps> = ({ 
-  children, 
+const AnimatedSection: React.FC<AnimatedSectionProps> = ({
+  children,
   className = '',
   variant = 'slideUp',
   delay = 0,
@@ -2411,7 +2462,7 @@ const AnimatedSection: React.FC<AnimatedSectionProps> = ({
       ref={ref}
       initial={variants.initial}
       animate={isInView ? variants.animate : variants.initial}
-      transition={{ 
+      transition={{
         duration,
         delay,
         ease: 'easeOut'
@@ -2688,9 +2739,9 @@ export const Footer: React.FC = () => {
 ### 17.1 useDebounce
 
 ```typescript
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export function useDebounce<T>(value: T, delay: number = 500): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -2712,7 +2763,7 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
 **Uso:**
 
 ```typescript
-const [searchTerm, setSearchTerm] = useState('');
+const [searchTerm, setSearchTerm] = useState("");
 const debouncedSearch = useDebounce(searchTerm, 500);
 
 useEffect(() => {
@@ -2726,16 +2777,16 @@ useEffect(() => {
 ### 17.2 useLocalStorage
 
 ```typescript
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export function useLocalStorage<T>(
-  key: string, 
-  initialValue: T
+  key: string,
+  initialValue: T,
 ): [T, (value: T | ((val: T) => T)) => void] {
   const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return initialValue;
     }
 
@@ -2752,10 +2803,10 @@ export function useLocalStorage<T>(
     try {
       const valueToStore =
         value instanceof Function ? value(storedValue) : value;
-      
+
       setStoredValue(valueToStore);
-      
-      if (typeof window !== 'undefined') {
+
+      if (typeof window !== "undefined") {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
@@ -2770,10 +2821,10 @@ export function useLocalStorage<T>(
 **Uso:**
 
 ```typescript
-const [theme, setTheme] = useLocalStorage('theme', 'light');
+const [theme, setTheme] = useLocalStorage("theme", "light");
 
 // Cambiar tema
-setTheme('dark');
+setTheme("dark");
 
 // El valor persiste en localStorage
 ```
@@ -2781,24 +2832,24 @@ setTheme('dark');
 ### 17.3 useMediaQuery
 
 ```typescript
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia(query);
-    
+
     if (media.matches !== matches) {
       setMatches(media.matches);
     }
 
     const listener = () => setMatches(media.matches);
-    media.addEventListener('change', listener);
+    media.addEventListener("change", listener);
 
-    return () => media.removeEventListener('change', listener);
+    return () => media.removeEventListener("change", listener);
   }, [matches, query]);
 
   return matches;
@@ -2832,7 +2883,7 @@ module.exports = {
     tailwindcss: {},
     autoprefixer: {},
   },
-}
+};
 ```
 
 ### 18.2 ESLint
@@ -2854,12 +2905,7 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-    ],
+    ignores: ["node_modules/**", ".next/**", "out/**", "build/**"],
   },
 ];
 
@@ -3000,7 +3046,7 @@ export const ContactForm = () => {
   ) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     // Limpiar error cuando el usuario empieza a escribir
     if (errors[name]) {
       setErrors(prev => {
@@ -3017,7 +3063,7 @@ export const ContactForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Marcar todos los campos como touched
     const allTouched = Object.keys(formData).reduce((acc, key) => {
       acc[key] = true;
@@ -3178,5 +3224,3 @@ export const ContactForm = () => {
 ```
 
 ---
-
-

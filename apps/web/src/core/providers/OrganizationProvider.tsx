@@ -167,8 +167,9 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
   );
 
   // Sync fetched organizations to store
+  // Also handles empty array (user has no active orgs) to avoid stale data
   useEffect(() => {
-    if (fetchedOrganizations && fetchedOrganizations.length > 0) {
+    if (fetchedOrganizations !== null && fetchedOrganizations !== undefined) {
       setUserOrganizations(fetchedOrganizations);
     }
   }, [fetchedOrganizations, setUserOrganizations]);

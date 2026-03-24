@@ -472,7 +472,7 @@ export function BusinessAnalytics() {
                                     <div className="p-2 rounded-lg bg-purple-500/20">
                                         <Zap className="w-5 h-5 text-purple-400" />
                                     </div>
-                                    <span className="text-sm text-gray-500 dark:text-gray-400">Total LIA Chats</span>
+                                    <span className="text-sm text-gray-500 dark:text-gray-400">Total SofLIA Chats</span>
                                 </div>
                                 <p className="text-3xl font-bold text-gray-900 dark:text-white">
                                     {data?.teams?.teams?.reduce((sum: number, t: any) => sum + (t.stats?.lia_conversations || 0), 0) || 0}

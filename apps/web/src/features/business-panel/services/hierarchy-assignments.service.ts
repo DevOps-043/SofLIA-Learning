@@ -13,16 +13,17 @@ import type {
   HierarchyAssignmentStats
 } from '../types/hierarchy-assignments.types'
 
-const API_BASE = '/api/business/hierarchy/courses'
+const getApiBase = (orgSlug?: string) => 
+  orgSlug ? `/api/${orgSlug}/business/hierarchy/courses` : '/api/business/hierarchy/courses';
 
 /**
  * Respuesta genérica de la API
  */
 interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
-  message?: string
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
 }
 
 /**
@@ -30,38 +31,40 @@ interface ApiResponse<T> {
  */
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  orgSlug?: string
 ): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const apiBase = getApiBase(orgSlug);
+    const response = await fetch(`${apiBase}${endpoint}`, {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
         ...options.headers
       },
       ...options
-    })
+    });
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (!response.ok) {
       return {
         success: false,
         error: data.error || data.message || `Error ${response.status}`
-      }
+      };
     }
 
     return {
       success: true,
       data: data.data ?? data,
       message: data.message
-    }
+    };
   } catch (error) {
-    console.error('API Error:', error)
+    console.error('API Error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error de conexión'
-    }
+    };
   }
 }
 
@@ -72,47 +75,54 @@ export class HierarchyAssignmentsService {
    * Crea una nueva asignación jerárquica de cursos
    */
   static async createAssignment(
-    request: CreateHierarchyAssignmentRequest
+    request: CreateHierarchyAssignmentRequest,
+    orgSlug?: string
   ): Promise<CreateHierarchyAssignmentResponse> {
     return fetchApi(`/assign`, {
       method: 'POST',
       body: JSON.stringify(request)
-    })
+    }, orgSlug);
   }
 
   /**
    * Lista asignaciones jerárquicas con filtros opcionales
    */
   static async listAssignments(
-    filters?: HierarchyAssignmentFilters
+    filters?: HierarchyAssignmentFilters,
+    orgSlug?: string
   ): Promise<HierarchyCourseAssignment[]> {
-    const params = new URLSearchParams()
+    const params = new URLSearchParams();
 
-    if (filters?.entity_type) params.append('entity_type', filters.entity_type)
-    if (filters?.entity_id) params.append('entity_id', filters.entity_id)
-    if (filters?.course_id) params.append('course_id', filters.course_id)
-    if (filters?.status) params.append('status', filters.status)
-    if (filters?.limit) params.append('limit', filters.limit.toString())
-    if (filters?.offset) params.append('offset', filters.offset.toString())
+    if (filters?.entity_type) params.append('entity_type', filters.entity_type);
+    if (filters?.entity_id) params.append('entity_id', filters.entity_id);
+    if (filters?.course_id) params.append('course_id', filters.course_id);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
 
     const result = await fetchApi<HierarchyCourseAssignment[]>(
-      `/assignments?${params.toString()}`
-    )
+      `/assignments?${params.toString()}`,
+      {},
+      orgSlug
+    );
 
-    return result.success && result.data ? result.data : []
+    return result.success && result.data ? result.data : [];
   }
 
   /**
    * Obtiene el detalle de una asignación
    */
   static async getAssignment(
-    assignmentId: string
+    assignmentId: string,
+    orgSlug?: string
   ): Promise<HierarchyCourseAssignment | null> {
     const result = await fetchApi<HierarchyCourseAssignment>(
-      `/assignments/${assignmentId}`
-    )
+      `/assignments/${assignmentId}`,
+      {},
+      orgSlug
+    );
 
-    return result.success && result.data ? result.data : null
+    return result.success && result.data ? result.data : null;
   }
 
   /**
@@ -120,31 +130,34 @@ export class HierarchyAssignmentsService {
    */
   static async updateAssignment(
     assignmentId: string,
-    request: UpdateHierarchyAssignmentRequest
+    request: UpdateHierarchyAssignmentRequest,
+    orgSlug?: string
   ): Promise<HierarchyCourseAssignment | null> {
     const result = await fetchApi<HierarchyCourseAssignment>(
       `/assignments/${assignmentId}`,
       {
         method: 'PUT',
         body: JSON.stringify(request)
-      }
-    )
+      },
+      orgSlug
+    );
 
-    return result.success && result.data ? result.data : null
+    return result.success && result.data ? result.data : null;
   }
 
   /**
    * Cancela una asignación
    */
-  static async cancelAssignment(assignmentId: string): Promise<boolean> {
+  static async cancelAssignment(assignmentId: string, orgSlug?: string): Promise<boolean> {
     const result = await fetchApi<{ success: boolean; message?: string }>(
       `/assignments/${assignmentId}`,
       {
         method: 'DELETE'
-      }
-    )
+      },
+      orgSlug
+    );
 
-    return result.success || false
+    return result.success || false;
   }
 
   /**
@@ -152,23 +165,25 @@ export class HierarchyAssignmentsService {
    */
   static async getEntityAssignments(
     entityType: 'region' | 'zone' | 'team',
-    entityId: string
+    entityId: string,
+    orgSlug?: string
   ): Promise<HierarchyCourseAssignment[]> {
     return this.listAssignments({
       entity_type: entityType,
       entity_id: entityId
-    })
+    }, orgSlug);
   }
 
   /**
    * Obtiene asignaciones de un curso específico
    */
   static async getCourseAssignments(
-    courseId: string
+    courseId: string,
+    orgSlug?: string
   ): Promise<HierarchyCourseAssignment[]> {
     return this.listAssignments({
       course_id: courseId
-    })
+    }, orgSlug);
   }
 
   /**

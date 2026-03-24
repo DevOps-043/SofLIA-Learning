@@ -20,6 +20,7 @@
 
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import crypto from 'crypto';
 import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/logger';
 
@@ -30,62 +31,79 @@ export interface UserAuth {
 }
 
 /**
- * Verifica que el usuario esté autenticado (cualquier rol)
+ * Verifica que el usuario esté autenticado (cualquier rol).
+ *
+ * Soporta DOS sistemas de sesión:
+ * 1. Legacy: cookie 'aprende-y-aplica-session' → tabla user_session
+ * 2. Nuevo:  cookies 'access_token' + 'refresh_token' → tabla refresh_tokens (SHA-256)
+ *
+ * El middleware principal (src/middleware.ts) ya valida ambos sistemas en las rutas protegidas.
+ * Esta función extiende esa validación a los route handlers de la API.
  */
-export async function requireUser(): Promise<UserAuth | NextResponse> {
+export async function requireUser(options: { allowBanned?: boolean } = {}): Promise<UserAuth | NextResponse> {
+  const { allowBanned = false } = options;
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('aprende-y-aplica-session');
+    const supabase = await createClient();
 
-    if (!sessionCookie) {
+    let userId: string | null = null;
+
+    // SISTEMA 1: Legacy session (cookie aprende-y-aplica-session → tabla user_session)
+    const sessionCookie = cookieStore.get('aprende-y-aplica-session');
+    if (sessionCookie) {
+      const { data: session } = await supabase
+        .from('user_session')
+        .select('user_id, expires_at, revoked')
+        .eq('jwt_id', sessionCookie.value)
+        .single();
+
+      if (session && !session.revoked && new Date(session.expires_at) > new Date()) {
+        userId = session.user_id;
+      }
+    }
+
+    // SISTEMA 2: Refresh tokens (cookies access_token + refresh_token → tabla refresh_tokens)
+    if (!userId) {
+      const refreshTokenCookie = cookieStore.get('refresh_token');
+      const accessTokenCookie = cookieStore.get('access_token');
+      if (refreshTokenCookie && accessTokenCookie) {
+        const tokenHash = crypto.createHash('sha256').update(refreshTokenCookie.value).digest('hex');
+        const { data: tokenData } = await supabase
+          .from('refresh_tokens')
+          .select('user_id')
+          .eq('token_hash', tokenHash)
+          .eq('is_revoked', false)
+          .gt('expires_at', new Date().toISOString())
+          .single();
+        if (tokenData?.user_id) userId = tokenData.user_id;
+      }
+    }
+
+    if (!userId) {
       return NextResponse.json(
         { success: false, error: 'No autenticado. Por favor, inicia sesión.' },
         { status: 401 }
       );
     }
 
-    const sessionToken = sessionCookie.value;
-    const supabase = await createClient();
-
-    const { data: session, error: sessionError } = await supabase
-      .from('user_session')
-      .select('user_id, expires_at, revoked')
-      .eq('jwt_id', sessionToken)
-      .single();
-
-    if (sessionError || !session) {
-      return NextResponse.json(
-        { success: false, error: 'Sesión inválida. Por favor, inicia sesión nuevamente.' },
-        { status: 401 }
-      );
-    }
-
-    if (session.revoked) {
-      return NextResponse.json(
-        { success: false, error: 'Sesión revocada. Por favor, inicia sesión nuevamente.' },
-        { status: 401 }
-      );
-    }
-
-    const now = new Date();
-    const expiresAt = new Date(session.expires_at);
-    if (now > expiresAt) {
-      return NextResponse.json(
-        { success: false, error: 'Sesión expirada. Por favor, inicia sesión nuevamente.' },
-        { status: 401 }
-      );
-    }
-
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('id, email, cargo_rol')
-      .eq('id', session.user_id)
+      .select('id, email, cargo_rol, is_banned')
+      .eq('id', userId)
       .single();
 
     if (userError || !user) {
       return NextResponse.json(
         { success: false, error: 'Usuario no encontrado.' },
         { status: 401 }
+      );
+    }
+
+    // ⛔ Verificar si el usuario está baneado globalmente
+    if (user.is_banned && !allowBanned) {
+      return NextResponse.json(
+        { success: false, error: 'Tu cuenta ha sido suspendida. Contacta a soporte para más información.' },
+        { status: 403 }
       );
     }
 

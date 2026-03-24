@@ -48,11 +48,16 @@ export interface AdminCompany {
   active_users: number
   invited_users: number
   suspended_users: number
+  // SSO Enablement
+  google_login_enabled: boolean
+  microsoft_login_enabled: boolean
   // Dates
   created_at: string
   updated_at: string
-  // Members
+  // Members & Invitations
   members: AdminCompanyMember[]
+  pending_invitations?: any[]
+  bulk_invite_links?: any[]
 }
 
 export interface CompanyStats {
@@ -85,6 +90,8 @@ export interface CompanyUpdatePayload {
   subscription_status?: string
   subscription_plan?: string
   max_users?: number
+  google_login_enabled?: boolean
+  microsoft_login_enabled?: boolean
 }
 
 interface OrganizationUserRow {
@@ -128,6 +135,8 @@ interface OrganizationRow {
   max_users: number | null
   created_at: string | null
   updated_at: string | null
+  google_login_enabled: boolean | null
+  microsoft_login_enabled: boolean | null
   organization_users?: OrganizationUserRow[] | null
 }
 
@@ -136,7 +145,6 @@ export class AdminCompaniesService {
     const orgUsers = row.organization_users || []
     const totalUsers = orgUsers.length
     const activeUsers = orgUsers.filter(m => m.status === 'active').length
-    const invitedUsers = orgUsers.filter(m => m.status === 'invited').length
     const suspendedUsers = orgUsers.filter(m => m.status === 'suspended').length
 
     const members: AdminCompanyMember[] = orgUsers.map(m => ({
@@ -180,8 +188,10 @@ export class AdminCompaniesService {
       max_users: row.max_users,
       total_users: totalUsers,
       active_users: activeUsers,
-      invited_users: invitedUsers,
+      invited_users: 0, // Will be populated in the service methods
       suspended_users: suspendedUsers,
+      google_login_enabled: row.google_login_enabled ?? false,
+      microsoft_login_enabled: row.microsoft_login_enabled ?? false,
       created_at: row.created_at || new Date().toISOString(),
       updated_at: row.updated_at || new Date().toISOString(),
       members
@@ -215,6 +225,8 @@ export class AdminCompaniesService {
         subscription_end_date,
         is_active,
         max_users,
+        google_login_enabled,
+        microsoft_login_enabled,
         created_at,
         updated_at,
         organization_users (
@@ -242,7 +254,7 @@ export class AdminCompaniesService {
       })
     })
 
-    let usersMap: Map<string, { id: string; email: string; username: string | null; first_name: string | null; last_name: string | null; display_name: string | null; profile_picture_url: string | null }> = new Map()
+    const usersMap: Map<string, { id: string; email: string; username: string | null; first_name: string | null; last_name: string | null; display_name: string | null; profile_picture_url: string | null }> = new Map()
 
     if (allUserIds.size > 0) {
       const { data: usersData } = await supabase
@@ -257,13 +269,28 @@ export class AdminCompaniesService {
       }
     }
 
+    // Obtener conteo de invitaciones pendientes por organización
+    const { data: invCountData } = await supabase
+      .from('user_invitations')
+      .select('organization_id')
+      .eq('status', 'pending')
+
+    const invitationCountsMap: Record<string, number> = {}
+    if (invCountData) {
+      invCountData.forEach(inv => {
+        invitationCountsMap[inv.organization_id] = (invitationCountsMap[inv.organization_id] || 0) + 1
+      })
+    }
+
     // Mapear organizaciones con datos de usuarios
     return organizations.map(org => {
       const orgUsers = org.organization_users || []
       const totalUsers = orgUsers.length
       const activeUsers = orgUsers.filter(m => m.status === 'active').length
-      const invitedUsers = orgUsers.filter(m => m.status === 'invited').length
+      const invitedUsersInOrg = orgUsers.filter(m => m.status === 'invited').length
       const suspendedUsers = orgUsers.filter(m => m.status === 'suspended').length
+      const pendingInvCount = invitationCountsMap[org.id] || 0
+      const totalInvited = invitedUsersInOrg + pendingInvCount
 
       const members: AdminCompanyMember[] = orgUsers.map(m => ({
         id: m.id,
@@ -298,8 +325,10 @@ export class AdminCompaniesService {
         max_users: org.max_users,
         total_users: totalUsers,
         active_users: activeUsers,
-        invited_users: invitedUsers,
+        invited_users: totalInvited,
         suspended_users: suspendedUsers,
+        google_login_enabled: org.google_login_enabled ?? false,
+        microsoft_login_enabled: org.microsoft_login_enabled ?? false,
         created_at: org.created_at || new Date().toISOString(),
         updated_at: org.updated_at || new Date().toISOString(),
         members
@@ -380,6 +409,8 @@ export class AdminCompaniesService {
         subscription_end_date,
         is_active,
         max_users,
+        google_login_enabled,
+        microsoft_login_enabled,
         created_at,
         updated_at,
         organization_users (
@@ -422,8 +453,23 @@ export class AdminCompaniesService {
     const org = data as unknown as OrganizationRow
     const totalUsers = orgUsers.length
     const activeUsers = orgUsers.filter(m => m.status === 'active').length
-    const invitedUsers = orgUsers.filter(m => m.status === 'invited').length
+    const invitedUsersInOrg = orgUsers.filter(m => m.status === 'invited').length
     const suspendedUsers = orgUsers.filter(m => m.status === 'suspended').length
+
+    // Pendientes en user_invitations
+    const { data: pendingInvitations } = await supabase
+      .from('user_invitations')
+      .select('*')
+      .eq('organization_id', id)
+      .eq('status', 'pending')
+
+    // Enlaces masivos en bulk_invite_links
+    const { data: bulkLinks } = await supabase
+      .from('bulk_invite_links')
+      .select('*')
+      .eq('organization_id', id)
+
+    const totalInvited = invitedUsersInOrg + (pendingInvitations?.length || 0)
 
     const members: AdminCompanyMember[] = orgUsers.map(m => ({
       id: m.id,
@@ -458,11 +504,15 @@ export class AdminCompaniesService {
       max_users: org.max_users,
       total_users: totalUsers,
       active_users: activeUsers,
-      invited_users: invitedUsers,
+      invited_users: totalInvited,
       suspended_users: suspendedUsers,
+      google_login_enabled: org.google_login_enabled ?? false,
+      microsoft_login_enabled: org.microsoft_login_enabled ?? false,
       created_at: org.created_at || new Date().toISOString(),
       updated_at: org.updated_at || new Date().toISOString(),
-      members
+      members,
+      pending_invitations: pendingInvitations || [],
+      bulk_invite_links: bulkLinks || []
     }
   }
 
@@ -498,6 +548,8 @@ export class AdminCompaniesService {
     if (updates.subscription_status !== undefined) updateData.subscription_status = updates.subscription_status
     if (updates.subscription_plan !== undefined) updateData.subscription_plan = updates.subscription_plan
     if (updates.max_users !== undefined) updateData.max_users = updates.max_users
+    if (updates.google_login_enabled !== undefined) updateData.google_login_enabled = updates.google_login_enabled
+    if (updates.microsoft_login_enabled !== undefined) updateData.microsoft_login_enabled = updates.microsoft_login_enabled
 
     if (Object.keys(updateData).length === 1) {
       throw new Error('No hay campos para actualizar')
@@ -587,6 +639,8 @@ export class AdminCompaniesService {
     brand_color_secondary?: string
     brand_color_accent?: string
     brand_font_family?: string
+    google_login_enabled?: boolean
+    microsoft_login_enabled?: boolean
     // Owner
     owner_email?: string
     owner_position?: string
@@ -630,7 +684,9 @@ export class AdminCompaniesService {
       brand_color_primary: data.brand_color_primary || '#3b82f6',
       brand_color_secondary: data.brand_color_secondary || '#10b981',
       brand_color_accent: data.brand_color_accent || '#8b5cf6',
-      brand_font_family: data.brand_font_family || 'Inter'
+      brand_font_family: data.brand_font_family || 'Inter',
+      google_login_enabled: data.google_login_enabled ?? false,
+      microsoft_login_enabled: data.microsoft_login_enabled ?? false
     }
 
     const { data: newOrg, error } = await supabase
@@ -668,6 +724,279 @@ export class AdminCompaniesService {
     }
 
     return createdCompany
+  }
+
+  static async getCompanyCourses(id: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('hierarchy_course_assignments')
+      .select(`
+        id,
+        course_id,
+        assigned_at,
+        due_date,
+        status,
+        courses (
+          id,
+          title,
+          slug,
+          thumbnail_url,
+          category,
+          level
+        )
+      `)
+      .eq('organization_id', id)
+
+    if (error) {
+      logger.error('❌ Error fetching company courses:', error)
+      throw error
+    }
+
+    return data || []
+  }
+
+  static async assignCourseToCompany(companyId: string, courseId: string, adminId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('hierarchy_course_assignments')
+      .insert({
+        organization_id: companyId,
+        course_id: courseId,
+        assigned_by: adminId,
+        status: 'active'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      logger.error('❌ Error assigning course to company:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  static async removeCourseFromCompany(companyId: string, courseId: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('hierarchy_course_assignments')
+      .delete()
+      .eq('organization_id', companyId)
+      .eq('course_id', courseId)
+
+    if (error) {
+      logger.error('❌ Error removing course from company:', error)
+      throw error
+    }
+
+    return { success: true }
+  }
+
+  // ─── INDIVIDUAL ASSIGNMENTS (Phase 3 Refinement) ───────────────────────────
+
+  static async getUserCourseAssignments(companyId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('organization_course_assignments')
+      .select(`
+        id,
+        user_id,
+        course_id,
+        assigned_at,
+        status,
+        completion_percentage,
+        courses (
+          id,
+          title,
+          slug,
+          thumbnail_url
+        ),
+        users:user_id (
+          id,
+          email,
+          first_name,
+          last_name,
+          display_name
+        )
+      `)
+      .eq('organization_id', companyId)
+
+    if (error) {
+      logger.error('❌ Error fetching user course assignments:', error)
+      throw error
+    }
+
+    return data || []
+  }
+
+  static async assignCourseToUser(companyId: string, userId: string, courseId: string, adminId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('organization_course_assignments')
+      .insert({
+        organization_id: companyId,
+        user_id: userId,
+        course_id: courseId,
+        assigned_by: adminId,
+        status: 'assigned'
+      })
+      .select()
+      .single()
+
+    if (error) {
+      logger.error('❌ Error assigning course to user:', error)
+      throw error
+    }
+
+    return data
+  }
+
+  static async removeCourseFromUser(assignmentId: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+      .from('organization_course_assignments')
+      .delete()
+      .eq('id', assignmentId)
+
+    if (error) {
+      logger.error('❌ Error removing user course assignment:', error)
+      throw error
+    }
+
+    return { success: true }
+  }
+
+  static async getCompanyDetailedStats(companyId: string) {
+    const supabase = await createClient()
+
+    // 1. Overview Metrics & Monthly Activity (Last 6 Months)
+    const [assignmentsRes, sessionsRes, membersRes, pendingInvRes] = await Promise.all([
+      supabase
+        .from('organization_course_assignments')
+        .select('course_id, completion_percentage, status, courses(title)')
+        .eq('organization_id', companyId),
+      supabase
+        .from('study_sessions')
+        .select('actual_duration_minutes, completed_at, status, self_evaluation')
+        .eq('organization_id', companyId)
+        .eq('status', 'completed')
+        .order('completed_at', { ascending: true }),
+      supabase
+        .from('organization_users')
+        .select('status, job_title, region_id, zone_id, team_id, organization_teams(name)')
+        .eq('organization_id', companyId),
+      supabase
+        .from('user_invitations')
+        .select('id', { count: 'exact' })
+        .eq('organization_id', companyId)
+        .eq('status', 'pending')
+    ])
+
+    const assignments = assignmentsRes.data || []
+    const sessions = sessionsRes.data || []
+    const members = membersRes.data || []
+    const pendingInvCount = pendingInvRes.count || 0
+
+    const distinctCourses = new Set(assignments.map((a: any) => a.course_id)).size
+    const totalLearningMinutes = sessions.reduce((acc: number, s: any) => acc + (s.actual_duration_minutes || 0), 0)
+    
+    const activeUsers = members.filter((m: any) => m.status === 'active').length
+    const invitedUsersInOrg = members.filter((m: any) => m.status === 'invited').length
+    const suspendedUsers = members.filter((m: any) => m.status === 'suspended').length
+    const totalInvited = invitedUsersInOrg + pendingInvCount
+    const totalUsers = members.length
+
+    // 2. Prepare Monthly Activity (last 6 months) - FIX: Don't mutate the same Date object
+    const monthlyData: Record<string, { month: string; hours: number; sessions: number }> = {}
+    const monthsOrder: string[] = []
+    
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date()
+        d.setMonth(d.getMonth() - i) // Corrected: Use setMonth on a new instance
+        const key = d.toLocaleString('es-MX', { month: 'short' }).replace('.', '').toUpperCase()
+        monthlyData[key] = { month: key, hours: 0, sessions: 0 }
+        monthsOrder.push(key)
+    }
+
+    sessions.forEach((s: any) => {
+        if (!s.completed_at) return
+        const date = new Date(s.completed_at)
+        const key = date.toLocaleString('es-MX', { month: 'short' }).replace('.', '').toUpperCase()
+        if (monthlyData[key]) {
+            monthlyData[key].hours += (s.actual_duration_minutes || 0) / 60
+            monthlyData[key].sessions += 1
+        }
+    })
+
+    // 3. Course Progress Breakdown
+    const courseStatsMap: Record<string, { title: string; totalProgress: number; count: number; completed: number }> = {}
+    
+    assignments.forEach((a: any) => {
+        const title = a.courses?.title || 'Curso sin título'
+        if (!courseStatsMap[a.course_id]) {
+            courseStatsMap[a.course_id] = { title, totalProgress: 0, count: 0, completed: 0 }
+        }
+        courseStatsMap[a.course_id].totalProgress += a.completion_percentage || 0
+        courseStatsMap[a.course_id].count += 1
+        if (a.status === 'completed') courseStatsMap[a.course_id].completed += 1
+    })
+
+    // 4. Team Distribution
+    const teamStatsMap: Record<string, number> = {}
+    members.forEach((m: any) => {
+        const teamName = m.organization_teams?.name || 'Sin Equipo'
+        teamStatsMap[teamName] = (teamStatsMap[teamName] || 0) + 1
+    })
+
+    // 5. Satisfaction (Avg self_evaluation)
+    const ratedSessions = sessions.filter((s: any) => s.self_evaluation != null)
+    const avgSatisfaction = ratedSessions.length > 0 
+        ? ratedSessions.reduce((acc: number, s: any) => acc + s.self_evaluation, 0) / ratedSessions.length 
+        : 0
+
+    // 6. Recent Engagement (started in last 7 days)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    const recentlyActiveUsersCount = new Set(
+        sessions
+            .filter((s: any) => s.completed_at && new Date(s.completed_at) >= sevenDaysAgo)
+            .map((s: any) => s.user_id)
+    ).size
+
+    return {
+        overview: {
+            totalUsers,
+            activeUsers,
+            invitedUsers: totalInvited,
+            assignedCourses: distinctCourses,
+            totalLearningHours: Math.round(totalLearningMinutes / 60),
+            totalSessions: sessions.length,
+            engagementRate: totalUsers > 0 ? Math.round((recentlyActiveUsersCount / totalUsers) * 100) : 0,
+            avgSatisfaction: Math.round(avgSatisfaction * 10) / 10
+        },
+        activityMonthly: monthsOrder.map(key => ({
+            ...monthlyData[key],
+            hours: Math.round(monthlyData[key].hours * 10) / 10
+        })),
+        courseProgress: Object.entries(courseStatsMap).map(([id, stats]) => ({
+            id,
+            title: stats.title,
+            averageProgress: stats.count > 0 ? Math.round(stats.totalProgress / stats.count) : 0,
+            enrolledCount: stats.count,
+            completedCount: stats.completed
+        })).sort((a, b) => b.enrolledCount - a.enrolledCount).slice(0, 5),
+        teamDistribution: Object.entries(teamStatsMap).map(([name, value]) => ({
+            name,
+            value
+        })).sort((a, b) => b.value - a.value)
+    }
   }
 }
 

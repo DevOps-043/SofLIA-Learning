@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X,
@@ -43,6 +44,8 @@ export function BusinessBulkInviteLinkModal({
   onLinkCreated,
   organizationSlug
 }: BusinessBulkInviteLinkModalProps) {
+  const params = useParams()
+  const orgSlug = organizationSlug || (params?.orgSlug as string)
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -110,7 +113,7 @@ export function BusinessBulkInviteLinkModal({
     setError(null)
 
     try {
-      const response = await fetch('/api/business/invite-links', {
+      const response = await fetch(`/api/${orgSlug}/business/invite-links`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

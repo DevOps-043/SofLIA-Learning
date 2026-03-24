@@ -34,9 +34,10 @@ interface CalendarEvent {
 
 interface StudyPlannerCalendarProps {
   showOnlyPlanEvents?: boolean;
+  refreshTrigger?: number;
 }
 
-export function StudyPlannerCalendar({ showOnlyPlanEvents = false }: StudyPlannerCalendarProps) {
+export function StudyPlannerCalendar({ showOnlyPlanEvents = false, refreshTrigger = 0 }: StudyPlannerCalendarProps) {
   const [currentDate, setCurrentDate] = useState(moment());
   const [view, setView] = useState<ViewType>('month');
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -400,10 +401,10 @@ export function StudyPlannerCalendar({ showOnlyPlanEvents = false }: StudyPlanne
     await loadEvents(true);
   };
 
-  // Cargar eventos cuando cambia el mes o la vista
+  // Cargar eventos cuando cambia el mes, la vista, o se dispara un refresh externo
   useEffect(() => {
     loadEvents();
-  }, [loadEvents]);
+  }, [loadEvents, refreshTrigger]);
 
   // Recarga automática cada 5 minutos
   useEffect(() => {

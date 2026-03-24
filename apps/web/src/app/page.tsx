@@ -31,7 +31,7 @@ export default function HomePage() {
       {/* Señales de Confianza - Enterprise-ready */}
       <TrustSection />
       
-      {/* Qué es SOFLIA - Explicación ejecutiva */}
+      {/* Qué es SofLIA - Explicación ejecutiva */}
       <PlatformOverview />
       
       {/* Capacidades Clave - Feature â†’ Beneficio â†’ Resultado */}

@@ -71,7 +71,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const result = await HierarchyService.getNodeDetails(nodeId);
+            const result = await HierarchyService.getNodeDetails(nodeId, orgSlug);
             if (result) {
                 setData(result);
             } else {
@@ -95,7 +95,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
     const fetchMembers = async () => {
         setLoadingMembers(true);
         try {
-            const result = await HierarchyService.getNodeMembers(nodeId);
+            const result = await HierarchyService.getNodeMembers(nodeId, orgSlug);
             setMembers(result);
         } catch (error) {
             console.error('Error fetching members:', error);
@@ -106,7 +106,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
 
     const handleEditSave = async (formData: any) => {
         try {
-            await DynamicHierarchyService.updateNode(nodeId, formData);
+            await DynamicHierarchyService.updateNode(nodeId, formData, orgSlug);
             fetchData();
             setShowEditModal(false);
         } catch (error) {
@@ -118,7 +118,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
         if (!confirm('¿Estás seguro de remover a este miembro del nodo?')) return;
 
         try {
-            await HierarchyService.removeUserFromNode(nodeId, userId);
+            await HierarchyService.removeUserFromNode(nodeId, userId, orgSlug);
             fetchMembers();
             // Refresh data to update counts if needed
             fetchData();
@@ -622,6 +622,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     onClose={() => setSelectedCourseForIndividual(null)}
                     courseId={selectedCourseForIndividual.id}
                     courseTitle={selectedCourseForIndividual.title}
+                    orgSlug={orgSlug}
                     onAssignComplete={() => {
                         // Optional: Refresh data or show success message
                         console.log('Individual assignment complete');

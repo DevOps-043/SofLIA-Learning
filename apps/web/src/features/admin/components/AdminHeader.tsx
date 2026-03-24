@@ -12,12 +12,10 @@ interface AdminHeaderProps {
   onMenuClick: () => void
   title: string
   isCollapsed?: boolean
-  isPinned?: boolean
-  isHovered?: boolean
   onToggleCollapse?: () => void
 }
 
-export function AdminHeader({ onMenuClick, title, isCollapsed, isPinned, isHovered, onToggleCollapse }: AdminHeaderProps) {
+export function AdminHeader({ onMenuClick, title, isCollapsed, onToggleCollapse }: AdminHeaderProps) {
   const { user, isLoading } = useAdminUser()
   
   // Obtener tema del usuario (light/dark)
@@ -34,24 +32,21 @@ export function AdminHeader({ onMenuClick, title, isCollapsed, isPinned, isHover
     hoverBg: isLightTheme ? '#F1F5F9' : 'rgba(10, 37, 64, 0.2)',
   }
 
-  // Calcular el left del header basado en el estado del sidebar
-  // Si el sidebar está colapsado Y no está fijado Y no está en hover, usar left-16 (64px)
-  // De lo contrario, usar left-64 (256px)
-  const sidebarWidth = (isCollapsed && !isPinned && !isHovered) ? 'lg:left-16' : 'lg:left-64'
+  const sidebarWidth = isCollapsed ? 'lg:left-16' : 'lg:left-64'
 
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className={`fixed top-0 right-0 z-[40] shadow-sm border-b transition-all duration-300 ${sidebarWidth} left-0`}
+      className={`fixed top-0 right-0 z-[40] shadow-sm border-b transition-all duration-300 ${sidebarWidth} left-0 backdrop-blur-md`}
       style={{ 
-        backgroundColor: themeColors.background,
+        backgroundColor: isLightTheme ? 'rgba(255, 255, 255, 0.8)' : 'rgba(15, 20, 25, 0.8)',
         borderColor: themeColors.borderColor
       }}
     >
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20">
           {/* Left side */}
           <div className="flex items-center gap-4">
             <motion.button

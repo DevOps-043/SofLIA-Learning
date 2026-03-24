@@ -33,8 +33,11 @@ import {
   Globe,
   ExternalLink,
   LucideIcon,
-  Check
+  Check,
+  Building2,
+  Users
 } from 'lucide-react'
+import { useOrganization } from '../../hooks/useOrganization'
 
 interface UserDropdownProps {
   className?: string
@@ -49,6 +52,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
   const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore()
   const { getItemCount } = useShoppingCartStore()
   const { language, setLanguage } = useLanguage()
+  const { organizations, currentOrganization, isB2B, switchOrganization } = useOrganization()
   const router = useRouter()
   const { t } = useTranslation('common')
   
@@ -122,6 +126,20 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
   const getCurrentLanguageFlag = () => {
     return languageOptions.find(l => l.value === language)?.flag || '🌐'
   }
+
+  const getOrgRoleLabel = (role: string) => {
+    switch (role) {
+      case 'owner': return 'Propietario'
+      case 'admin': return 'Admin'
+      default: return 'Miembro'
+    }
+  }
+
+  const handleSwitchOrg = useCallback((orgIdOrSlug: string) => {
+    switchOrganization(orgIdOrSlug)
+    setIsOpen(false)
+    setActiveSubmenu(null)
+  }, [switchOrganization])
 
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
@@ -259,12 +277,105 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                 <MenuItem icon={Wallet} label="Métodos de Pago" onClick={() => handleNavigation('/payment-methods')} />
                 <MenuItem icon={Receipt} label="Historial de Compras" onClick={() => handleNavigation('/purchase-history')} />
 
+                {/* Mis Organizaciones - solo B2B */}
+                {isB2B && organizations.length > 0 && (
+                  <>
+                    <div className="h-px bg-[#2A3038] mx-3 my-1" />
+                    <div className="relative">
+                      <MenuItem
+                        icon={Building2}
+                        label="Mis Organizaciones"
+                        rightElement={
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-[#8B95A5]">{organizations.length}</span>
+                            <ChevronRight className={`w-3.5 h-3.5 text-[#8B95A5] transition-transform ${activeSubmenu === 'orgs' ? 'rotate-90' : ''}`} />
+                          </div>
+                        }
+                        onClick={() => setActiveSubmenu(activeSubmenu === 'orgs' ? null : 'orgs')}
+                      />
+                      <AnimatePresence>
+                        {activeSubmenu === 'orgs' && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="py-1 px-3 space-y-0.5">
+                              {organizations.map((org) => {
+                                const isCurrent = currentOrganization?.id === org.id
+                                return (
+                                  <button
+                                    key={org.id}
+                                    onClick={() => handleSwitchOrg(org.id)}
+                                    className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs transition-all ${
+                                      isCurrent
+                                        ? 'bg-[#00D4B3]/15 text-[#00D4B3]'
+                                        : 'text-[#8B95A5] hover:bg-white/5 hover:text-white'
+                                    }`}
+                                  >
+                                    {/* Logo / Initial */}
+                                    <div
+                                      className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 overflow-hidden text-white"
+                                      style={{ backgroundColor: org.brandColorPrimary || '#0A2540' }}
+                                    >
+                                      {org.brandLogoUrl || org.logoUrl ? (
+                                        <img
+                                          src={org.brandLogoUrl || org.logoUrl || ''}
+                                          alt={org.name}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <span className="text-[9px] font-bold leading-none">
+                                          {org.name.charAt(0).toUpperCase()}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Name */}
+                                    <span className="flex-1 text-left truncate">{org.name}</span>
+
+                                    {/* Role badge */}
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded flex items-center gap-0.5 flex-shrink-0 ${
+                                      org.role === 'owner' || org.role === 'admin'
+                                        ? 'bg-blue-500/15 text-blue-400'
+                                        : 'bg-emerald-500/15 text-emerald-400'
+                                    }`}>
+                                      {org.role === 'owner' || org.role === 'admin'
+                                        ? <Shield className="w-2.5 h-2.5" />
+                                        : <Users className="w-2.5 h-2.5" />
+                                      }
+                                      {getOrgRoleLabel(org.role)}
+                                    </span>
+
+                                    {/* Current indicator */}
+                                    {isCurrent && <Check className="w-3 h-3 ml-0.5 flex-shrink-0" />}
+                                  </button>
+                                )
+                              })}
+
+                              {/* Ver todas link */}
+                              <button
+                                onClick={() => { handleNavigation('/auth/select-organization') }}
+                                className="w-full flex items-center justify-center gap-1 px-2 py-1.5 mt-1 rounded-lg text-[10px] text-[#8B95A5] hover:text-[#00D4B3] transition-colors border-t border-[#2A3038] pt-2"
+                              >
+                                Ver todas
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </button>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </>
+                )}
+
                 <div className="h-px bg-[#2A3038] mx-3 my-1" />
 
                 {/* Preferences */}
                 <div className="relative">
-                  <MenuItem 
-                    icon={getCurrentThemeIcon()} 
+                  <MenuItem
+                    icon={getCurrentThemeIcon()}
                     label="Tema" 
                     rightElement={
                       <div className="flex items-center gap-1">

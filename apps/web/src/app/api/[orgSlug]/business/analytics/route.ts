@@ -526,17 +526,97 @@ export async function GET(
     // =====================================================
     // PASO 7: Course distribution
     // =====================================================
-    const inProgressCount = assignments.filter(a => {
-      const enrollment = enrollmentMap.get(`${a.user_id}_${a.course_id}`)
-      const progress = enrollment?.overall_progress_percentage ?? a.completion_percentage ?? 0
-      return Number(progress) > 0 && Number(progress) < 100 && a.status !== 'completed'
-    }).length
+    // --- INICIALIZACIÓN DE MAPAS PARA TENDENCIAS Y ROLES ---
+    const enrollmentsByMonth = new Map<string, number>()
+    const completionsByMonth = new Map<string, number>()
+    const timeByMonth = new Map<string, number>()
+    const activeUsersByMonth = new Map<string, number>()
+    
+    const typeRolDistribution = new Map<string, number>()
+    const typeRolProgress = new Map<string, { sum: number, count: number }>()
+    const typeRolCompletions = new Map<string, number>()
+    const typeRolTime = new Map<string, { sum: number, count: number }>()
+    const courseDistributionMap = new Map<string, number>()
 
-    const notStartedCount = assignments.filter(a => {
+    // Auxiliar para tendencias
+    const processTrend = (dateStr: string | null, map: Map<string, number>, value: number = 1) => {
+      if (!dateStr) return
+      try {
+        const key = new Date(dateStr).toISOString().slice(0, 7) // YYYY-MM
+        map.set(key, (map.get(key) || 0) + value)
+      } catch (e) {}
+    }
+
+    // Mapa de usuarios para acceso rápido a roles
+    const userMap = new Map<string, any>()
+    orgUsers.forEach(u => {
+      userMap.set(u.user_id, u)
+      const role = u.job_title || u.role || 'member'
+      typeRolDistribution.set(role, (typeRolDistribution.get(role) || 0) + 1)
+      
+      if (!typeRolProgress.has(role)) typeRolProgress.set(role, { sum: 0, count: 0 })
+      if (!typeRolCompletions.has(role)) typeRolCompletions.set(role, 0)
+      if (!typeRolTime.has(role)) typeRolTime.set(role, { sum: 0, count: 0 })
+    })
+
+    // Procesar Assignments para Tendencias y Roles
+    assignments.forEach(a => {
       const enrollment = enrollmentMap.get(`${a.user_id}_${a.course_id}`)
       const progress = enrollment?.overall_progress_percentage ?? a.completion_percentage ?? 0
-      return Number(progress) === 0 && a.status !== 'completed'
-    }).length
+      const role = userMap.get(a.user_id)?.job_title || userMap.get(a.user_id)?.role || 'member'
+      
+      const isCompleted = a.status === 'completed' || enrollment?.enrollment_status === 'completed'
+      if (isCompleted) {
+        processTrend(a.completed_at || enrollment?.completed_at, completionsByMonth)
+        typeRolCompletions.set(role, (typeRolCompletions.get(role) || 0) + 1)
+      }
+      
+      const rolProg = typeRolProgress.get(role)
+      if (rolProg) {
+        rolProg.sum += Number(progress)
+        rolProg.count++
+      }
+
+      const status = isCompleted ? 'completed' : Number(progress) > 0 ? 'in_progress' : 'not_started'
+      courseDistributionMap.set(status, (courseDistributionMap.get(status) || 0) + 1)
+    })
+
+    // Procesar Enrollments para Tendencias de Inscripción
+    enrollments.forEach(e => {
+      processTrend(e.started_at || (e as any).enrolled_at, enrollmentsByMonth)
+    })
+
+    // Procesar Lesson Progress para Tendencias de Tiempo y Roles
+    lessonProgress.forEach(lp => {
+      const mins = lp.time_spent_minutes || 0
+      const role = userMap.get(lp.user_id)?.job_title || userMap.get(lp.user_id)?.role || 'member'
+      
+      const rolTime = typeRolTime.get(role)
+      if (rolTime) {
+        rolTime.sum += mins
+        rolTime.count++
+      }
+
+      processTrend(lp.completed_at || lp.last_accessed_at, timeByMonth, mins)
+    })
+
+    // Procesar Daily Progress para Tendencias de Usuarios Activos
+    const activeTrendMap = new Map<string, Set<string>>()
+    dailyProgress.forEach(dp => {
+      if (!dp.had_activity) return
+      const key = dp.progress_date.slice(0, 7)
+      if (!activeTrendMap.has(key)) activeTrendMap.set(key, new Set())
+      activeTrendMap.get(key)!.add(dp.user_id)
+    })
+    activeTrendMap.forEach((users, key) => activeUsersByMonth.set(key, users.size))
+
+    // Función auxiliar formatTrends
+    const formatTrends = (mapData: Map<string, number>) => {
+      return Array.from(mapData.entries())
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .slice(-6) // Últimos 6 meses
+    }
 
     // =====================================================
     // RESPUESTA FINAL
@@ -555,23 +635,25 @@ export async function GET(
       },
       user_analytics: userAnalytics,
       trends: {
-        enrollments_by_month: [],
-        completions_by_month: [],
-        time_by_month: [],
-        active_users_by_month: []
+        enrollments_by_month: formatTrends(enrollmentsByMonth),
+        completions_by_month: formatTrends(completionsByMonth),
+        time_by_month: formatTrends(timeByMonth).map(t => ({ ...t, count: Math.round((t.count as number) / 60 * 10) / 10 })),
+        active_users_by_month: formatTrends(activeUsersByMonth)
       },
       by_role: {
-        distribution: [],
-        progress_comparison: [],
-        completions: [],
-        time_spent: []
+        distribution: Array.from(typeRolDistribution.entries()).map(([role, count]) => ({ role, count })),
+        progress_comparison: Array.from(typeRolProgress.entries()).map(([role, data]) => ({
+          role,
+          average_progress: data.count > 0 ? Math.round((data.sum / data.count) * 10) / 10 : 0
+        })),
+        completions: Array.from(typeRolCompletions.entries()).map(([role, count]) => ({ role, total_completed: count })),
+        time_spent: Array.from(typeRolTime.entries()).map(([role, data]) => ({
+          role,
+          average_hours: data.count > 0 ? Math.round((data.sum / 60 / data.count) * 10) / 10 : 0
+        }))
       },
       course_metrics: {
-        distribution: [
-          { status: 'completed', count: completedCourses },
-          { status: 'in_progress', count: inProgressCount },
-          { status: 'not_started', count: notStartedCount }
-        ],
+        distribution: Array.from(courseDistributionMap.entries()).map(([status, count]) => ({ status, count })),
         top_by_time: []
       },
       teams: {

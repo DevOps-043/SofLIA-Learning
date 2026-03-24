@@ -121,7 +121,7 @@ export function BusinessLogo() {
         >
           <Image
             src="/icono.png"
-            alt="Aprende y Aplica Logo"
+            alt="SofLIA Logo"
             width={40}
             height={40}
             className="w-full h-full object-contain"
@@ -134,7 +134,7 @@ export function BusinessLogo() {
           className="font-bold text-lg lg:text-xl hidden sm:inline-block"
           style={{ color: '#8B5CF6' }}
         >
-          Aprende y Aplica
+          SofLIA
         </span>
         
         {/* Business Badge con Lottie + GSAP */}

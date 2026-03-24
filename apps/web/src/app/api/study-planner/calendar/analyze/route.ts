@@ -14,7 +14,7 @@ import { CalendarIntegrationService } from '../../../../../features/study-planne
 import type { 
   CalendarEvent,
   TimeBlock,
-  LIAAvailabilityAnalysis 
+  SofLIAAvailabilityAnalysis 
 } from '../../../../../features/study-planner/types/user-context.types';
 
 interface AnalyzeCalendarRequest {
@@ -29,7 +29,7 @@ interface AnalyzeCalendarResponse {
   success: boolean;
   data?: {
     events: CalendarEvent[];
-    liaAnalysis: LIAAvailabilityAnalysis;
+    liaAnalysis: SofLIAAvailabilityAnalysis;
     recommendedSlots: Array<{
       date: string;
       slot: TimeBlock;
@@ -174,7 +174,7 @@ async function generateLIAAnalysis(
     maxSessionMinutes: number;
     preferredDays: number[];
   }
-): Promise<LIAAvailabilityAnalysis> {
+): Promise<SofLIAAvailabilityAnalysis> {
   // Calcular estadísticas del calendario
   let totalFreeMinutes = 0;
   let totalBusyMinutes = 0;

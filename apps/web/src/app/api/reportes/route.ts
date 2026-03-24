@@ -225,7 +225,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
 
     // Verificar si el usuario es admin
-    const isAdmin = user.cargo_rol === 'Administrador';
+    const isAdmin = user.cargo_rol?.toLowerCase().trim() === 'administrador';
 
     // Construir query
     let query = supabase

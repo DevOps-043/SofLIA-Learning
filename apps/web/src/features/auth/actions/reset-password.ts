@@ -3,6 +3,8 @@
 import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
 import { emailService } from '../services/email.service';
+import { logger } from '../../../lib/logger';
+import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 
 // ============================================================================
@@ -131,7 +133,7 @@ export async function requestPasswordResetAction(
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, email, username, first_name')
-      .eq('email', email.toLowerCase())
+      .ilike('email', email)
       .single();
 
     // POR SEGURIDAD: Siempre retornar el mismo mensaje
@@ -139,9 +141,11 @@ export async function requestPasswordResetAction(
       'Si el correo está registrado, recibirás un enlace de recuperación.';
 
     if (userError || !user) {
-      // Usuario no existe, pero no lo revelamos
+      logger.error('User not found or DB error', { email, userError });
       return { success: true, message: successMessage };
     }
+
+    logger.info('User found, proceeding with reset', { userId: user.id });
 
     // 6. GENERAR TOKEN SEGURO
     const resetToken = crypto.randomBytes(32).toString('hex'); // 64 caracteres hex
@@ -157,33 +161,26 @@ export async function requestPasswordResetAction(
       });
 
     if (insertError) {
-      // console.error('Error guardando token:', insertError);
+      logger.error('Error inserting reset token', insertError);
       return {
         error: 'Error procesando solicitud. Inténtalo más tarde.',
       };
     }
 
+    logger.info('Reset token saved, sending email');
+
     // 8. ENVIAR EMAIL
     try {
       if (!emailService.isReady()) {
-        // console.error('⚠️  Email service not configured');
-
-        // En desarrollo, log del token
-        if (process.env.NODE_ENV !== 'production') {
-          }
-
+        logger.error('Email service not ready - check SMTP configuration');
         return { success: true, message: successMessage };
       }
 
       const username = user.first_name || user.username || user.email.split('@')[0];
       await emailService.sendPasswordResetEmail(user.email, resetToken, username);
 
-      } catch (emailError) {
-      // console.error('Error enviando email:', emailError);
-
-      // En desarrollo, mostrar el token
-      if (process.env.NODE_ENV !== 'production') {
-        }
+    } catch (emailError) {
+      logger.error('Error sending password reset email', emailError);
     }
 
     return { success: true, message: successMessage };

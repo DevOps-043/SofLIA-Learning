@@ -107,7 +107,7 @@ export function PlatformOverview() {
             </h2>
 
             <p className="text-lg text-[#6C757D] dark:text-white/60 mb-10 leading-relaxed">
-              {t('landing.platform.description', 'SOFLIA combina tecnología de punta con diseño centrado en el usuario para ofrecer una experiencia de aprendizaje que genera resultados medibles para tu organización.')}
+              {t('landing.platform.description', 'SofLIA combina tecnología de punta con diseño centrado en el usuario para ofrecer una experiencia de aprendizaje que genera resultados medibles para tu organización.')}
             </p>
 
             {/* Features List */}
@@ -163,7 +163,7 @@ export function PlatformOverview() {
                 {/* Try to load actual dashboard image, fallback to gradient */}
                 <Image
                   src="/images/dashboard-header.png"
-                  alt="SOFLIA Dashboard"
+                  alt="SofLIA Dashboard"
                   fill
                   className="object-cover object-top"
                   onError={(e) => {

@@ -120,7 +120,7 @@ export function HeroSectionB2B() {
               variants={fadeInUp}
               className="text-lg lg:text-xl text-[#6C757D] dark:text-white/70 mb-8 leading-relaxed"
             >
-              {t('landing.hero.description', 'SOFLIA es la plataforma de capacitación corporativa que combina inteligencia artificial, planificación inteligente y certificaciones verificables para desarrollar las competencias de tu equipo.')}
+              {t('landing.hero.description', 'SofLIA es la plataforma de capacitación corporativa que combina inteligencia artificial, planificación inteligente y certificaciones verificables para desarrollar las competencias de tu equipo.')}
             </motion.p>
 
             {/* CTA Buttons */}
@@ -196,7 +196,7 @@ export function HeroSectionB2B() {
               >
                 <Image
                   src="/Logo.png"
-                  alt="SOFLIA"
+                  alt="SofLIA"
                   fill
                   className="object-contain drop-shadow-2xl"
                   priority

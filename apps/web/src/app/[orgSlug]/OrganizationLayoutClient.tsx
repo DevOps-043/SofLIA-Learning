@@ -53,7 +53,7 @@ export function OrganizationLayoutClient({
   ]);
 
   return (
-    <OrganizationStylesProvider>
+    <OrganizationStylesProvider orgSlug={organization.slug}>
       {children}
     </OrganizationStylesProvider>
   );

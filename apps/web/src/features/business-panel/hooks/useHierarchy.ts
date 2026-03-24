@@ -1,6 +1,6 @@
-'use client';
-
 import { useState, useCallback, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import { useOrganizationStore } from '@/core/stores/organizationStore';
 import { HierarchyService } from '../services/hierarchy.service';
 import type {
   Region,
@@ -49,6 +49,11 @@ interface HierarchyState {
  * Hook para gestionar la jerarquía organizacional
  */
 export function useHierarchy() {
+  const params = useParams();
+  const urlOrgSlug = params?.orgSlug as string | undefined;
+  const currentOrgSlug = useOrganizationStore(state => state.currentOrganization?.slug);
+  const orgSlug = urlOrgSlug || currentOrgSlug;
+
   const [state, setState] = useState<HierarchyState>({
     config: null,
     stats: null,
@@ -82,14 +87,26 @@ export function useHierarchy() {
   const clearError = useCallback(() => setError(null), [setError]);
 
   // =============================================
-  // CONFIGURACIÓN
+  // CARGADORES BASE (Declarados primero para evitar errores de hoisting)
   // =============================================
+
+  const loadStats = useCallback(async () => {
+    setLoading('isLoadingStats', true);
+    try {
+      const stats = await HierarchyService.getStats(orgSlug);
+      setState(prev => ({ ...prev, stats, isLoadingStats: false }));
+      return stats;
+    } catch (err) {
+      setLoading('isLoadingStats', false);
+      return null;
+    }
+  }, [setLoading, orgSlug]);
 
   const loadConfig = useCallback(async () => {
     setLoading('isLoadingConfig', true);
     clearError();
     try {
-      const config = await HierarchyService.getConfig();
+      const config = await HierarchyService.getConfig(orgSlug);
       setState(prev => ({ ...prev, config, isLoadingConfig: false }));
       return config;
     } catch (err) {
@@ -97,13 +114,77 @@ export function useHierarchy() {
       setLoading('isLoadingConfig', false);
       return null;
     }
-  }, [setLoading, setError, clearError]);
+  }, [setLoading, setError, clearError, orgSlug]);
+
+  const loadRegions = useCallback(async (options?: { includeInactive?: boolean; withCounts?: boolean }) => {
+    setLoading('isLoadingRegions', true);
+    try {
+      const regions = await HierarchyService.getRegions(options, orgSlug);
+      setState(prev => ({ ...prev, regions, isLoadingRegions: false }));
+      return regions;
+    } catch (err) {
+      setLoading('isLoadingRegions', false);
+      return [];
+    }
+  }, [setLoading, orgSlug]);
+
+  const loadZones = useCallback(async (regionId?: string) => {
+    setLoading('isLoadingZones', true);
+    try {
+      const zones = await HierarchyService.getZones({ regionId, withCounts: true }, orgSlug);
+      setState(prev => ({ ...prev, zones, isLoadingZones: false }));
+      return zones;
+    } catch (err) {
+      setLoading('isLoadingZones', false);
+      return [];
+    }
+  }, [setLoading, orgSlug]);
+
+  const loadTeams = useCallback(async (zoneId?: string) => {
+    setLoading('isLoadingTeams', true);
+    try {
+      const teams = await HierarchyService.getTeams({ zoneId, withCounts: true }, orgSlug);
+      setState(prev => ({ ...prev, teams, isLoadingTeams: false }));
+      return teams;
+    } catch (err) {
+      setLoading('isLoadingTeams', false);
+      return [];
+    }
+  }, [setLoading, orgSlug]);
+
+  const loadUnassignedUsers = useCallback(async () => {
+    setLoading('isLoadingUsers', true);
+    try {
+      const users = await HierarchyService.getUnassignedUsers(orgSlug);
+      setState(prev => ({ ...prev, unassignedUsers: users, isLoadingUsers: false }));
+      return users;
+    } catch (err) {
+      setLoading('isLoadingUsers', false);
+      return [];
+    }
+  }, [setLoading, orgSlug]);
+
+  const loadFullHierarchy = useCallback(async () => {
+    setLoading('isLoading', true);
+    try {
+      const tree = await HierarchyService.getFullHierarchy(orgSlug);
+      setState(prev => ({ ...prev, hierarchyTree: tree, isLoading: false }));
+      return tree;
+    } catch (err) {
+      setLoading('isLoading', false);
+      return null;
+    }
+  }, [setLoading, orgSlug]);
+
+  // =============================================
+  // CONFIGURACIÓN (ACCIONES)
+  // =============================================
 
   const updateConfig = useCallback(async (config: Partial<HierarchyConfig>) => {
     setLoading('isLoadingConfig', true);
     clearError();
     try {
-      const result = await HierarchyService.updateConfig(config);
+      const result = await HierarchyService.updateConfig(config, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({ ...prev, config: result.data!, isLoadingConfig: false }));
         return true;
@@ -116,13 +197,13 @@ export function useHierarchy() {
       setLoading('isLoadingConfig', false);
       return false;
     }
-  }, [setLoading, setError, clearError]);
+  }, [setLoading, setError, clearError, orgSlug]);
 
   const enableHierarchy = useCallback(async () => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.enableHierarchy();
+      const result = await HierarchyService.enableHierarchy(orgSlug);
       if (result.success) {
         await loadConfig();
         await loadStats();
@@ -137,13 +218,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadConfig]);
+  }, [setLoading, setError, clearError, loadConfig, loadStats, orgSlug]);
 
   const disableHierarchy = useCallback(async () => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.disableHierarchy();
+      const result = await HierarchyService.disableHierarchy(orgSlug);
       if (result.success) {
         await loadConfig();
         await loadStats();
@@ -158,13 +239,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadConfig]);
+  }, [setLoading, setError, clearError, loadConfig, loadStats, orgSlug]);
 
   const seedDefaultStructure = useCallback(async () => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.seedDefaultStructure();
+      const result = await HierarchyService.seedDefaultStructure(orgSlug);
       if (result.success) {
         await Promise.all([loadStats(), loadRegions(), loadZones(), loadTeams()]);
         return { success: true, data: result.data };
@@ -178,45 +259,17 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError]);
+  }, [setLoading, setError, clearError, loadStats, loadRegions, loadZones, loadTeams, orgSlug]);
 
   // =============================================
-  // ESTADÍSTICAS
+  // REGIONES (CRUD)
   // =============================================
-
-  const loadStats = useCallback(async () => {
-    setLoading('isLoadingStats', true);
-    try {
-      const stats = await HierarchyService.getStats();
-      setState(prev => ({ ...prev, stats, isLoadingStats: false }));
-      return stats;
-    } catch (err) {
-      setLoading('isLoadingStats', false);
-      return null;
-    }
-  }, [setLoading]);
-
-  // =============================================
-  // REGIONES
-  // =============================================
-
-  const loadRegions = useCallback(async (options?: { includeInactive?: boolean; withCounts?: boolean }) => {
-    setLoading('isLoadingRegions', true);
-    try {
-      const regions = await HierarchyService.getRegions(options);
-      setState(prev => ({ ...prev, regions, isLoadingRegions: false }));
-      return regions;
-    } catch (err) {
-      setLoading('isLoadingRegions', false);
-      return [];
-    }
-  }, [setLoading]);
 
   const createRegion = useCallback(async (data: CreateRegionRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.createRegion(data);
+      const result = await HierarchyService.createRegion(data, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({
           ...prev,
@@ -235,13 +288,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadStats]);
+  }, [setLoading, setError, clearError, loadStats, orgSlug]);
 
   const updateRegion = useCallback(async (regionId: string, data: UpdateRegionRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.updateRegion(regionId, data);
+      const result = await HierarchyService.updateRegion(regionId, data, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({
           ...prev,
@@ -259,13 +312,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError]);
+  }, [setLoading, setError, clearError, orgSlug]);
 
   const deleteRegion = useCallback(async (regionId: string) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.deleteRegion(regionId);
+      const result = await HierarchyService.deleteRegion(regionId, orgSlug);
       if (result.success) {
         setState(prev => ({
           ...prev,
@@ -284,29 +337,17 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadStats]);
+  }, [setLoading, setError, clearError, loadStats, orgSlug]);
 
   // =============================================
-  // ZONAS
+  // ZONAS (CRUD)
   // =============================================
-
-  const loadZones = useCallback(async (regionId?: string) => {
-    setLoading('isLoadingZones', true);
-    try {
-      const zones = await HierarchyService.getZones({ regionId, withCounts: true });
-      setState(prev => ({ ...prev, zones, isLoadingZones: false }));
-      return zones;
-    } catch (err) {
-      setLoading('isLoadingZones', false);
-      return [];
-    }
-  }, [setLoading]);
 
   const createZone = useCallback(async (data: CreateZoneRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.createZone(data);
+      const result = await HierarchyService.createZone(data, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({
           ...prev,
@@ -325,13 +366,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadStats]);
+  }, [setLoading, setError, clearError, loadStats, orgSlug]);
 
   const updateZone = useCallback(async (zoneId: string, data: UpdateZoneRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.updateZone(zoneId, data);
+      const result = await HierarchyService.updateZone(zoneId, data, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({
           ...prev,
@@ -349,13 +390,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError]);
+  }, [setLoading, setError, clearError, orgSlug]);
 
   const deleteZone = useCallback(async (zoneId: string) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.deleteZone(zoneId);
+      const result = await HierarchyService.deleteZone(zoneId, orgSlug);
       if (result.success) {
         setState(prev => ({
           ...prev,
@@ -374,29 +415,17 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadStats]);
+  }, [setLoading, setError, clearError, loadStats, orgSlug]);
 
   // =============================================
-  // EQUIPOS
+  // EQUIPOS (CRUD)
   // =============================================
-
-  const loadTeams = useCallback(async (zoneId?: string) => {
-    setLoading('isLoadingTeams', true);
-    try {
-      const teams = await HierarchyService.getTeams({ zoneId, withCounts: true });
-      setState(prev => ({ ...prev, teams, isLoadingTeams: false }));
-      return teams;
-    } catch (err) {
-      setLoading('isLoadingTeams', false);
-      return [];
-    }
-  }, [setLoading]);
 
   const createTeam = useCallback(async (data: CreateTeamRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.createTeam(data);
+      const result = await HierarchyService.createTeam(data, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({
           ...prev,
@@ -415,13 +444,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadStats]);
+  }, [setLoading, setError, clearError, loadStats, orgSlug]);
 
   const updateTeam = useCallback(async (teamId: string, data: UpdateTeamRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.updateTeam(teamId, data);
+      const result = await HierarchyService.updateTeam(teamId, data, orgSlug);
       if (result.success && result.data) {
         setState(prev => ({
           ...prev,
@@ -439,13 +468,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError]);
+  }, [setLoading, setError, clearError, orgSlug]);
 
   const deleteTeam = useCallback(async (teamId: string) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.deleteTeam(teamId);
+      const result = await HierarchyService.deleteTeam(teamId, orgSlug);
       if (result.success) {
         setState(prev => ({
           ...prev,
@@ -464,29 +493,17 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadStats]);
+  }, [setLoading, setError, clearError, loadStats, orgSlug]);
 
   // =============================================
-  // USUARIOS
+  // USUARIOS (ACCIONES)
   // =============================================
-
-  const loadUnassignedUsers = useCallback(async () => {
-    setLoading('isLoadingUsers', true);
-    try {
-      const users = await HierarchyService.getUnassignedUsers();
-      setState(prev => ({ ...prev, unassignedUsers: users, isLoadingUsers: false }));
-      return users;
-    } catch (err) {
-      setLoading('isLoadingUsers', false);
-      return [];
-    }
-  }, [setLoading]);
 
   const assignUserToTeam = useCallback(async (data: AssignUserToTeamRequest) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.assignUserToTeam(data);
+      const result = await HierarchyService.assignUserToTeam(data, orgSlug);
       if (result.success) {
         // Refrescar lista de no asignados y estadísticas
         await Promise.all([loadUnassignedUsers(), loadStats(), loadTeams()]);
@@ -501,13 +518,13 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadUnassignedUsers, loadStats, loadTeams]);
+  }, [setLoading, setError, clearError, loadUnassignedUsers, loadStats, loadTeams, orgSlug]);
 
   const removeUserFromTeam = useCallback(async (userId: string) => {
     setLoading('isLoading', true);
     clearError();
     try {
-      const result = await HierarchyService.removeUserFromTeam(userId);
+      const result = await HierarchyService.removeUserFromTeam(userId, orgSlug);
       if (result.success) {
         await Promise.all([loadUnassignedUsers(), loadStats(), loadTeams()]);
         return { success: true };
@@ -521,23 +538,7 @@ export function useHierarchy() {
     } finally {
       setLoading('isLoading', false);
     }
-  }, [setLoading, setError, clearError, loadUnassignedUsers, loadStats, loadTeams]);
-
-  // =============================================
-  // JERARQUÍA COMPLETA
-  // =============================================
-
-  const loadFullHierarchy = useCallback(async () => {
-    setLoading('isLoading', true);
-    try {
-      const tree = await HierarchyService.getFullHierarchy();
-      setState(prev => ({ ...prev, hierarchyTree: tree, isLoading: false }));
-      return tree;
-    } catch (err) {
-      setLoading('isLoading', false);
-      return null;
-    }
-  }, [setLoading]);
+  }, [setLoading, setError, clearError, loadUnassignedUsers, loadStats, loadTeams, orgSlug]);
 
   // =============================================
   // CARGA INICIAL

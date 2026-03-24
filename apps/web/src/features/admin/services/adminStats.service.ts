@@ -3,6 +3,7 @@ import { createClient } from '../../../lib/supabase/server'
 export interface AdminStats {
   totalUsers: number
   activeCourses: number
+  totalOrganizations?: number
   totalAIApps: number
   totalNews: number
   totalReels: number
@@ -12,6 +13,7 @@ export interface AdminStats {
 export interface AdminStatsWithChanges extends AdminStats {
   userGrowth: number
   courseGrowth: number
+  organizationGrowth?: number
   aiAppGrowth: number
   newsGrowth: number
   reelsGrowth: number
@@ -35,6 +37,7 @@ export class AdminStatsService {
       const [
         usersResult,
         coursesResult,
+        orgsResult,
         aiAppsResult,
         newsResult,
         reelsResult,
@@ -46,6 +49,9 @@ export class AdminStatsService {
 
         // 🚀 Estadísticas de courses (total + growth en una query)
         supabase.from('courses').select('id, created_at', { count: 'exact', head: false }).eq('is_active', true),
+
+        // 🚀 Estadísticas de organizations (total + growth en una query)
+        supabase.from('organizations').select('id, created_at', { count: 'exact', head: false }).eq('is_active', true),
 
         // 🚀 Estadísticas de ai_apps (total + growth en una query)
         supabase.from('ai_apps').select('app_id, created_at', { count: 'exact', head: false }),
@@ -65,24 +71,27 @@ export class AdminStatsService {
 
       // 🚀 Calcular totales y growth en cliente (más rápido que queries separadas)
       const totalUsers = usersResult.count || 0
-      const usersGrowth = usersResult.data?.filter(u => new Date(u.created_at) >= thirtyDaysAgo).length || 0
+      const usersGrowth = usersResult.data?.filter((u: any) => new Date(u.created_at) >= thirtyDaysAgo).length || 0
 
       const totalCourses = coursesResult.count || 0
-      const coursesGrowth = coursesResult.data?.filter(c => new Date(c.created_at) >= thirtyDaysAgo).length || 0
+      const coursesGrowth = coursesResult.data?.filter((c: any) => new Date(c.created_at) >= thirtyDaysAgo).length || 0
+
+      const totalOrgs = orgsResult.count || 0
+      const orgsGrowth = orgsResult.data?.filter((o: any) => new Date(o.created_at) >= thirtyDaysAgo).length || 0
 
       const totalAIApps = aiAppsResult.count || 0
-      const aiAppsGrowth = aiAppsResult.data?.filter(a => new Date(a.created_at) >= thirtyDaysAgo).length || 0
+      const aiAppsGrowth = aiAppsResult.data?.filter((a: any) => new Date(a.created_at) >= thirtyDaysAgo).length || 0
 
       const totalNews = newsResult.count || 0
-      const newsGrowth = newsResult.data?.filter(n => new Date(n.created_at) >= thirtyDaysAgo).length || 0
+      const newsGrowth = newsResult.data?.filter((n: any) => new Date(n.created_at) >= thirtyDaysAgo).length || 0
 
       const totalReels = reelsResult.count || 0
-      const reelsGrowth = reelsResult.data?.filter(r => new Date(r.created_at) >= thirtyDaysAgo).length || 0
+      const reelsGrowth = reelsResult.data?.filter((r: any) => new Date(r.created_at) >= thirtyDaysAgo).length || 0
 
       const totalFavorites = favoritesResult.count || 0
-      const favoritesGrowth = favoritesResult.data?.filter(f => new Date(f.created_at) >= thirtyDaysAgo).length || 0
+      const favoritesGrowth = favoritesResult.data?.filter((f: any) => new Date(f.created_at) >= thirtyDaysAgo).length || 0
 
-      const activeUsers = new Set(activeUsersResult.data?.map(session => session.user_id)).size
+      const activeUsers = new Set(activeUsersResult.data?.map((session: any) => session.user_id)).size
       const engagementRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
 
       // Calcular porcentajes de crecimiento
@@ -101,12 +110,14 @@ export class AdminStatsService {
       const stats: AdminStatsWithChanges = {
         totalUsers: totalUsers,
         activeCourses: totalCourses,
+        totalOrganizations: totalOrgs,
         totalAIApps: totalAIApps,
         totalNews: totalNews,
         totalReels: totalReels,
         engagementRate: engagementRate,
         userGrowth: calculateGrowthPercentage(totalUsers, usersGrowth),
         courseGrowth: calculateGrowthPercentage(totalCourses, coursesGrowth),
+        organizationGrowth: calculateGrowthPercentage(totalOrgs, orgsGrowth),
         aiAppGrowth: calculateGrowthPercentage(totalAIApps, aiAppsGrowth),
         newsGrowth: calculateGrowthPercentage(totalNews, newsGrowth),
         reelsGrowth: calculateGrowthPercentage(totalReels, reelsGrowth),
@@ -123,12 +134,14 @@ export class AdminStatsService {
       const defaultStats = {
         totalUsers: 0,
         activeCourses: 0,
+        totalOrganizations: 0,
         totalAIApps: 0,
         totalNews: 0,
         totalReels: 0,
         engagementRate: 0,
         userGrowth: 0,
         courseGrowth: 0,
+        organizationGrowth: 0,
         aiAppGrowth: 0,
         newsGrowth: 0,
         reelsGrowth: 0,

@@ -96,7 +96,7 @@ export default function CertificateVerifyPage() {
           <div className="flex justify-center mb-4">
             <Image
               src="/Logo.png"
-              alt="Aprende y Aplica"
+              alt="SofLIA"
               width={80}
               height={80}
               className="w-16 h-16 md:w-20 md:h-20 object-contain"
@@ -106,7 +106,7 @@ export default function CertificateVerifyPage() {
             Validación de Certificado
           </h1>
           <p className="text-sm md:text-base text-[#6C757D] dark:text-gray-400 px-4">
-            Verifica la autenticidad de un certificado emitido por Aprende y Aplica
+            Verifica la autenticidad de un certificado emitido por SofLIA
           </p>
         </div>
 

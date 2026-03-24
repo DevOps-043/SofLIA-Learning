@@ -81,7 +81,7 @@ class Logger {
    */
   info(message: string, context?: LogContext): void {
     const sanitizedContext = context ? this.sanitize(context) : undefined;
-    // console.log(this.formatMessage('INFO', message, sanitizedContext as LogContext));
+    console.log(this.formatMessage('INFO', message, sanitizedContext as LogContext));
   }
 
   /**
@@ -106,7 +106,7 @@ class Logger {
     };
 
     const sanitizedContext = this.sanitize(errorContext) as LogContext;
-    // console.error(this.formatMessage('ERROR', message, sanitizedContext));
+    console.error(this.formatMessage('ERROR', message, sanitizedContext));
   }
 
   /**

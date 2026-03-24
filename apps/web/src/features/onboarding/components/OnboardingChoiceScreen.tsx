@@ -20,9 +20,9 @@ export function OnboardingChoiceScreen({ onCreateCompany, onJoinCompany }: Onboa
       description: t('orgOnboarding.createCompanyDesc'),
       onClick: onCreateCompany,
       gradient: 'from-blue-500 to-indigo-600',
-      iconBg: 'bg-blue-500/10',
-      iconColor: 'text-blue-400',
-      borderHover: 'hover:border-blue-500/40',
+      iconBg: 'bg-blue-500/10 dark:bg-blue-500/10',
+      iconColor: 'text-blue-600 dark:text-blue-400',
+      borderHover: 'hover:border-blue-500/40 dark:hover:border-blue-500/40',
     },
     {
       id: 'join',
@@ -31,9 +31,9 @@ export function OnboardingChoiceScreen({ onCreateCompany, onJoinCompany }: Onboa
       description: t('orgOnboarding.joinCompanyDesc'),
       onClick: onJoinCompany,
       gradient: 'from-teal-500 to-emerald-600',
-      iconBg: 'bg-teal-500/10',
-      iconColor: 'text-teal-400',
-      borderHover: 'hover:border-teal-500/40',
+      iconBg: 'bg-teal-500/10 dark:bg-teal-500/10',
+      iconColor: 'text-teal-600 dark:text-teal-400',
+      borderHover: 'hover:border-teal-500/40 dark:hover:border-teal-500/40',
     },
   ]
 
@@ -42,7 +42,7 @@ export function OnboardingChoiceScreen({ onCreateCompany, onJoinCompany }: Onboa
       <motion.h1
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-3xl md:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4"
+        className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white tracking-tight mb-4 transition-colors"
       >
         {t('orgOnboarding.title')}
       </motion.h1>
@@ -51,7 +51,7 @@ export function OnboardingChoiceScreen({ onCreateCompany, onJoinCompany }: Onboa
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="text-lg text-gray-400 mb-12 max-w-xl mx-auto"
+        className="text-lg text-gray-600 dark:text-gray-400 mb-12 max-w-xl mx-auto transition-colors"
       >
         {t('orgOnboarding.subtitle')}
       </motion.p>
@@ -65,9 +65,9 @@ export function OnboardingChoiceScreen({ onCreateCompany, onJoinCompany }: Onboa
             transition={{ delay: 0.2 + index * 0.1 }}
             onClick={option.onClick}
             className={`
-              group relative rounded-2xl border border-white/10 bg-gray-800/50
+              group relative rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800/50
               p-8 text-left transition-all duration-300
-              hover:bg-gray-800 hover:scale-[1.02] hover:shadow-xl
+              hover:bg-gray-50 dark:hover:bg-gray-800 hover:scale-[1.02] hover:shadow-xl dark:shadow-none
               ${option.borderHover}
             `}
           >
@@ -75,8 +75,8 @@ export function OnboardingChoiceScreen({ onCreateCompany, onJoinCompany }: Onboa
               <option.icon className={`w-7 h-7 ${option.iconColor}`} />
             </div>
 
-            <h3 className="text-xl font-bold text-white mb-2">{option.title}</h3>
-            <p className="text-gray-400 text-sm mb-6">{option.description}</p>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 transition-colors">{option.title}</h3>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-6 transition-colors">{option.description}</p>
 
             <div className={`
               inline-flex items-center gap-2 text-sm font-medium

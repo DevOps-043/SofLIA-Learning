@@ -125,11 +125,11 @@ function CourseLiaFloatingButton() {
             padding: 0,
             overflow: 'hidden'
           }}
-          aria-label="Abrir asistente LIA"
+          aria-label="Abrir asistente SofLIA"
         >
           <img
             src="/lia-avatar.png"
-            alt="LIA"
+            alt="SofLIA"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </motion.button>
@@ -177,8 +177,8 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
   };
 
   const initialMessage = user?.first_name
-    ? `¡Hola ${user.first_name}! 👋 Soy LIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`
-    : `¡Hola! 👋 Soy LIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`;
+    ? `¡Hola ${user.first_name}! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`
+    : `¡Hola! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`;
 
   const liaChat = useLiaCourseChat(initialMessage);
   const { messages, isLoading, sendMessage, clearHistory } = liaChat;
@@ -260,13 +260,13 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
             }
          };
 
-         // Prompt interno oculto para forzar a LIA a hablar primero
+         // Prompt interno oculto para forzar a SofLIA a hablar primero
          const systemTrigger = `[SYSTEM_EVENT: USER_STARTED_ACTIVITY]
          Actividad: "${currentActivity.title}"
          Descripción: "${currentActivity.description}"
          
-         Instrucción para LIA:
-         El usuario acaba de hacer clic en "Interactuar con Lia" para esta actividad.
+         Instrucción para SofLIA:
+         El usuario acaba de hacer clic en "Interactuar con SofLIA" para esta actividad.
          1. Salúdalo por su nombre y menciona explícitamente que estás lista para guiarlo en "${currentActivity.title}".
          2. Explica brevemente el objetivo (1 frase).
          3. Haz la primera pregunta o da la primera instrucción para empezar.
@@ -347,11 +347,11 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${themeColors.borderColor}`, backgroundColor: themeColors.headerBg }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ position: 'relative' }}>
-                <img src="/lia-avatar.png" alt="LIA" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${themeColors.accentColor}` }} />
+                <img src="/lia-avatar.png" alt="SofLIA" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${themeColors.accentColor}` }} />
                 <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '14px', height: '14px', backgroundColor: '#22c55e', borderRadius: '50%', border: `2px solid ${themeColors.panelBg}` }} />
               </div>
               <div>
-                <h2 className="lia-header-title" style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>LIA</h2>
+                <h2 className="lia-header-title" style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>SofLIA</h2>
               </div>
             </div>
             

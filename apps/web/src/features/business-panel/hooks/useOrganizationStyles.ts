@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useThemeStore } from '@/core/stores/themeStore';
+import { useOrganizationStore } from '@/core/stores/organizationStore';
 import { getThemeStylesForMode } from '../config/preset-themes';
 
 export interface OrganizationStyles {
@@ -31,10 +32,17 @@ export interface StyleConfig {
  *
  * IMPORTANTE: Este hook usa el orgSlug de la URL para asegurar
  * que se obtengan los datos de la organización correcta.
+ * Fallback: Si no hay orgSlug en la URL, intenta usar el slug
+ * de la organización actual del store.
  */
 export function useOrganizationStyles() {
   const params = useParams();
-  const orgSlug = params?.orgSlug as string | undefined;
+  const urlOrgSlug = params?.orgSlug as string | undefined;
+  
+  // Usar el slug del store como fallback
+  const currentOrgSlug = useOrganizationStore(state => state.currentOrganization?.slug);
+  const orgSlug = urlOrgSlug || currentOrgSlug;
+
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [styles, setStyles] = useState<OrganizationStyles | null>(null);
   const [loading, setLoading] = useState(true);

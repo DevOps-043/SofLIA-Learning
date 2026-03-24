@@ -1,3 +1,18 @@
+/**
+ * ⚠️  ARCHIVO INACTIVO — NO EDITAR
+ *
+ * Next.js solo ejecuta UN middleware por aplicación. Cuando existen dos archivos:
+ *   - apps/web/middleware.ts        ← ACTIVO (se ejecuta en producción)
+ *   - apps/web/src/middleware.ts    ← ESTE ARCHIVO (ignorado por Next.js)
+ *
+ * Next.js da prioridad al archivo en la raíz del proyecto (`apps/web/middleware.ts`)
+ * sobre el de la carpeta `src/`. Todo el código aquí es CÓDIGO MUERTO.
+ *
+ * Para modificar la lógica del middleware, editar ÚNICAMENTE:
+ *   → apps/web/middleware.ts
+ *   → apps/web/src/core/middleware/auth.middleware.ts
+ */
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
@@ -93,7 +108,7 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.redirect(new URL(`/${userOrg.organizations.slug}/business-user/dashboard`, request.url))
               }
             } else {
-              // Usuario normal (cargo_rol === 'usuario' o cualquier otro) → Tour SOFLIA + Planes
+              // Usuario normal (cargo_rol === 'usuario' o cualquier otro) → Tour SofLIA + Planes
               return NextResponse.redirect(new URL('/dashboard', request.url))
             }
           }

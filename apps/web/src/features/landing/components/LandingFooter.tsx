@@ -62,14 +62,17 @@ export function LandingFooter() {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 lg:gap-12">
           {/* Brand Column */}
           <div className="col-span-2 md:col-span-3 lg:col-span-2">
-            <Link href="/" className="inline-block mb-3">
-              <div className="relative w-40 h-40">
+            <Link href="/" className="flex items-center gap-3 mb-6 group">
+              <div className="relative w-10 h-10 lg:w-12 lg:h-12">
                 <Image
-                  src="/SofiaLogo.png"
-                  alt="SOFLIA"
+                  src="/Logo.png"
+                  alt="SofLIA"
                   fill
                   className="object-contain brightness-0 invert"
                 />
+              </div>
+              <div className="text-2xl lg:text-3xl font-bold text-white tracking-wide">
+                <span>SofLIA</span>
               </div>
             </Link>
 
@@ -119,7 +122,7 @@ export function LandingFooter() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Copyright */}
             <div className="flex items-center gap-2 text-sm text-white/40">
-              <span>© {currentYear} SOFLIA</span>
+              <span>© {currentYear} SofLIA Learning</span>
               <span className="hidden md:inline">·</span>
               <span className="hidden md:flex items-center gap-1">
                 <MapPin size={14} />

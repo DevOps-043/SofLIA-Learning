@@ -93,16 +93,18 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
             priority={false}
           />
           <div
-            className="absolute inset-0 bg-gradient-to-br from-[var(--org-card-background,#1E2329)]/70 via-[var(--org-card-background,#1E2329)]/40 to-transparent"
+            className="absolute inset-0 bg-gradient-to-br transition-all duration-300"
             style={{
+              background: `linear-gradient(135deg, ${theme?.cardBg || '#1E2329'}B3, ${theme?.cardBg || '#1E2329'}66, transparent)`,
               willChange: 'auto',
               transform: 'translateZ(0)',
               backfaceVisibility: 'hidden'
             }}
           />
           <div
-            className="absolute inset-0 bg-gradient-to-t from-[var(--org-card-background,#1E2329)]/80 via-transparent to-transparent"
+            className="absolute inset-0 bg-gradient-to-t transition-all duration-300"
             style={{
+              background: `linear-gradient(0deg, ${theme?.cardBg || '#1E2329'}CC, transparent, transparent)`,
               willChange: 'auto',
               transform: 'translateZ(0)',
               backfaceVisibility: 'hidden'
@@ -168,7 +170,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
           <h3
             className="text-4xl font-black tracking-tight"
             style={{
-              color: 'var(--org-text-color, #FFFFFF)'
+              color: theme?.text || 'var(--org-text-color, #FFFFFF)'
             }}
           >
             {typeof value === 'number' ? value.toLocaleString() : value}
@@ -177,7 +179,7 @@ function StatCard({ title, value, change, backgroundImage, gradient, gradientSty
           <p
             className="text-sm font-semibold tracking-wide uppercase"
             style={{
-              color: 'var(--org-text-color, #FFFFFF)',
+              color: theme?.text || 'var(--org-text-color, #FFFFFF)',
               opacity: 0.7,
               letterSpacing: '0.05em'
             }}
@@ -462,7 +464,7 @@ export function BusinessPanelDashboard() {
     const fetchStats = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('/api/business/dashboard/stats', {
+        const response = await fetch(`/api/${orgSlug}/business/dashboard/stats`, {
           credentials: 'include'
         })
 
@@ -489,7 +491,7 @@ export function BusinessPanelDashboard() {
     const fetchActivities = async () => {
       try {
         setActivitiesLoading(true)
-        const response = await fetch('/api/business/dashboard/activity', {
+        const response = await fetch(`/api/${orgSlug}/business/dashboard/activity`, {
           credentials: 'include'
         })
 
@@ -542,11 +544,22 @@ export function BusinessPanelDashboard() {
     return 0
   }
 
+  // Helpers para extraer valores de stats (pueden ser primitivos o objetos {value, change, changeType})
+  const getStatValue = (stat: any, fallback: any = 0): any => {
+    if (stat && typeof stat === 'object' && 'value' in stat) return stat.value
+    return stat || fallback
+  }
+
+  const getStatChange = (stat: any, fallbackChange: any = 0): number => {
+    if (stat && typeof stat === 'object' && 'change' in stat) return parseChange(stat.change)
+    return parseChange(fallbackChange)
+  }
+
   const statsData = useMemo(() => stats ? [
     {
       title: t('dashboard.stats.activeUsers'),
-      value: typeof stats.activeUsers === 'object' ? stats.activeUsers.value : (stats.activeUsers || 0),
-      change: typeof stats.activeUsers === 'object' ? parseChange(stats.activeUsers.change) : 0,
+      value: getStatValue(stats.activeUsers),
+      change: getStatChange(stats.activeUsers, stats.usersChange),
       backgroundImage: '/images/dashboard-cards/users-card-bg.png',
       gradient: `bg-gradient-to-br from-[${themeColors.primary}] to-[${themeColors.primary}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.primary}, ${themeColors.primary}cc)` },
@@ -554,8 +567,8 @@ export function BusinessPanelDashboard() {
     },
     {
       title: t('dashboard.stats.assignedCourses'),
-      value: typeof stats.assignedCourses === 'object' ? stats.assignedCourses.value : (stats.assignedCourses || 0),
-      change: typeof stats.assignedCourses === 'object' ? parseChange(stats.assignedCourses.change) : 0,
+      value: getStatValue(stats.assignedCourses),
+      change: getStatChange(stats.assignedCourses, stats.assignmentsChange),
       backgroundImage: '/images/dashboard-cards/courses-card-bg.png',
       gradient: `bg-gradient-to-br from-[${themeColors.secondary}] to-[${themeColors.secondary}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.secondary}, ${themeColors.secondary}cc)` },
@@ -564,24 +577,24 @@ export function BusinessPanelDashboard() {
     },
     {
       title: t('dashboard.stats.completed'),
-      value: typeof stats.completed === 'object' ? stats.completed.value : (stats.completed || stats.completedCourses || 0),
-      change: typeof stats.completed === 'object' ? parseChange(stats.completed.change) : 0,
+      value: getStatValue(stats.completedCourses || stats.completed),
+      change: getStatChange(stats.completedCourses || stats.completed, stats.completedChange),
       backgroundImage: '/images/dashboard-cards/completed-card-bg.png',
       gradient: `bg-gradient-to-br from-[${themeColors.accent}] to-[${themeColors.accent}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.accent}, ${themeColors.accent}cc)` },
     },
     {
       title: t('dashboard.stats.avgProgress'),
-      value: typeof stats.inProgress === 'object' ? stats.inProgress.value : `${stats.averageProgress || 0}%`,
-      change: typeof stats.inProgress === 'object' ? parseChange(stats.inProgress.change) : 0,
+      value: getStatValue(stats.inProgress, `${stats.averageProgress || 0}%`),
+      change: getStatChange(stats.inProgress, stats.progressChange),
       backgroundImage: '/images/dashboard-cards/progress-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80',
       gradientStyle: { background: `linear-gradient(to bottom right, #F59E0B, #F59E0Bcc)` },
     },
     {
       title: t('dashboard.stats.certificates'),
-      value: stats.certificates || 0,
-      change: parseChange(stats.certificateGrowth),
+      value: getStatValue(stats.certificates, 0),
+      change: getStatChange(stats.certificates, stats.certificateGrowth),
       backgroundImage: '/images/dashboard-cards/certificates-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
       gradientStyle: { background: `linear-gradient(to bottom right, #8B5CF6, #8B5CF6cc)` },
@@ -589,11 +602,29 @@ export function BusinessPanelDashboard() {
     },
     {
       title: t('dashboard.stats.engagement'),
-      value: `${stats.engagementRate || 0}%`,
-      change: parseChange(stats.engagementGrowth),
+      value: getStatValue(stats.engagement, `${stats.engagementRate || 0}%`),
+      change: getStatChange(stats.engagement, stats.engagementGrowth),
       backgroundImage: '/images/dashboard-cards/engagement-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#EC4899] to-[#EC4899]/80',
       gradientStyle: { background: `linear-gradient(to bottom right, #EC4899, #EC4899cc)` },
+    },
+    {
+      title: t('dashboard.stats.invitedUsers', 'Usuarios Invitados'),
+      value: getStatValue(stats.invitedUsers),
+      change: getStatChange(stats.invitedUsers),
+      backgroundImage: '/images/dashboard-cards/users-card-bg.png',
+      gradient: 'bg-gradient-to-br from-[#6366F1] to-[#6366F1]/80',
+      gradientStyle: { background: `linear-gradient(to bottom right, #6366F1, #6366F1cc)` },
+      href: `/${orgSlug}/business-panel/users?tab=invitations`
+    },
+    {
+      title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitación'),
+      value: stats.invitedUsers && typeof stats.invitedUsers === 'object' ? stats.invitedUsers.linksCount || 0 : 0,
+      change: 0,
+      backgroundImage: '/images/dashboard-cards/courses-card-bg.png',
+      gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
+      gradientStyle: { background: `linear-gradient(to bottom right, #10B981, #10B981cc)` },
+      href: `/${orgSlug}/business-panel/users?tab=links`
     },
   ] : [], [stats, themeColors, t, orgSlug])
 

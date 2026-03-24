@@ -1,5 +1,5 @@
 {
-  "appName": "SOFLIA",
+  "appName": "SofLIA",
   "welcome": "Bem-vindo",
   "language": "Idioma",
   "change_language": "Mudar idioma",
@@ -30,7 +30,7 @@
     "home": "Início",
     "login": "Entrar",
     "register": "Criar conta",
-    "logoAlt": "Logo da Aprende y Aplica",
+    "logoAlt": "Logo da SofLIA Learning",
     "clickCounter": "Contador: {{current}}/{{total}}"
   },
   "aiChat": {
@@ -44,21 +44,21 @@
     "helpPrompt": "O que posso fazer aqui? Ajude-me",
     "helpFallback": "Desculpe, nÃ£o consegui gerar uma resposta.",
     "helpError": "Desculpe, ocorreu um erro ao processar seu pedido de ajuda. Tente novamente.",
-    "initialMessage": "Olá! ðŸ‘‹ Sou Lia, sua assistente de IA. Estou aqui para ajudá-lo com qualquer pergunta que tenha.",
+    "initialMessage": "Olá! ðŸ‘‹ Sou SofLIA, sua assistente de IA. Estou aqui para ajudá-lo com qualquer pergunta que tenha.",
     "clearConversation": "Limpar conversa",
-    "changeMode": "Mudar modo da Lia",
+    "changeMode": "Mudar modo da SofLIA",
     "clearContext": "Limpar contexto",
     "clearContextConfirm": "Deseja limpar o contexto e iniciar uma nova conversa?",
     "reportProblem": "Reportar problema",
     "promptMode": {
       "placeholder": "Descreva que tipo de prompt vocÃª quer criar...",
       "title": "Designer de Prompts",
-      "description": "Crie e refine prompts profissionais guiados pela LIA.",
+      "description": "Crie e refine prompts profissionais guiados pela SofLIA.",
       "viewGenerated": "Ver Prompt Gerado",
       "download": "Baixar",
       "titleLabel": "Título",
       "contentLabel": "Conteúdo",
-      "emptyDescription": "Gere e refine prompts profissionais. Indique o objetivo, o tom e os requisitos; LIA entrega um prompt pronto para usar com boas práticas.",
+      "emptyDescription": "Gere e refine prompts profissionais. Indique o objetivo, o tom e os requisitos; SofLIA entrega um prompt pronto para usar com boas práticas.",
       "loginRequired": "VocÃª deve fazer login para salvar prompts"
     },
     "nanobanaMode": {
@@ -92,8 +92,8 @@
     }
   },
   "tours": {
-    "viewTourWithLia": "Ver Tour com LIA",
-    "viewTourWithLiaTitle": "Ver novamente a experiÃªncia de boas-vindas com LIA",
+    "viewTourWithLia": "Ver Tour com SofLIA",
+    "viewTourWithLiaTitle": "Ver novamente a experiÃªncia de boas-vindas com SofLIA",
     "viewGuidedTour": "Ver tour guiado",
     "promptDirectory": {
       "replayButtonLabel": "Ver tour do diretório",
@@ -103,14 +103,14 @@
   "onboarding": {
     "steps": {
       "1": {
-        "title": "Bem-vindo ao Aprende y Aplica!",
-        "description": "Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligÃªncia artificial.",
-        "speech": "Bem-vindo ao Aprende y Aplica. Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligÃªncia artificial."
+        "title": "Bem-vindo ao SofLIA!",
+        "description": "Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligência artificial.",
+        "speech": "Bem-vindo ao SofLIA. Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligência artificial."
       },
       "2": {
-        "title": "ConheÃ§a a LIA",
-        "description": "LIA é sua companheira de aprendizado que te acompanhará em todos os lugares. Ela pode responder suas perguntas, ajudá-lo com tarefas e se adaptar ao contexto de cada página.",
-        "speech": "LIA é sua companheira de aprendizado que te acompanhará em todos os lugares. Ela pode responder suas perguntas e se adaptar ao contexto de cada página.",
+        "title": "ConheÃ§a a SofLIA",
+        "description": "SofLIA é sua companheira de aprendizado que te acompanhará em todos os lugares. Ela pode responder suas perguntas, ajudá-lo com tarefas e se adaptar ao contexto de cada página.",
+        "speech": "SofLIA é sua companheira de aprendizado que te acompanhará em todos os lugares. Ela pode responder suas perguntas e se adaptar ao contexto de cada página.",
         "actionLabel": "Ver Dashboard"
       },
       "3": {
@@ -121,8 +121,8 @@
       },
       "4": {
         "title": "VocÃª está pronto!",
-        "description": "Agora vocÃª pode comeÃ§ar sua aventura. Lembre-se, LIA estará sempre disponível no canto inferior direito para ajudá-lo.",
-        "speech": "Agora vocÃª pode comeÃ§ar sua aventura. Lembre-se, LIA estará sempre disponível para ajudá-lo.",
+        "description": "Agora vocÃª pode comeÃ§ar sua aventura. Lembre-se, SofLIA estará sempre disponível no canto inferior direito para ajudá-lo.",
+        "speech": "Agora vocÃª pode comeÃ§ar sua aventura. Lembre-se, SofLIA estará sempre disponível para ajudá-lo.",
         "actionLabel": "ComeÃ§ar"
       }
     },
@@ -170,11 +170,11 @@
       "help": "Ajuda rápida"
     },
     "header": {
-      "title": "LIA",
+      "title": "SofLIA",
       "subtitle": "Assistente de IA"
     },
     "chat": {
-      "inputPlaceholder": "Escreva uma mensagem para a LIA...",
+      "inputPlaceholder": "Escreva uma mensagem para a SofLIA...",
       "cleanHistory": "Limpar conversa"
     }
   },
@@ -196,7 +196,7 @@
       "title": "Treinamento em IA com",
       "highlight": "impacto mensurável",
       "titleEnd": "para sua organizaÃ§Ã£o",
-      "description": "SOFLIA é a plataforma de treinamento corporativo que combina inteligÃªncia artificial, planejamento inteligente e certificaÃ§Ãµes verificáveis para desenvolver as competÃªncias da sua equipe.",
+      "description": "SofLIA é a plataforma de treinamento corporativo que combina inteligÃªncia artificial, planejamento inteligente e certificaÃ§Ãµes verificáveis para desenvolver as competÃªncias da sua equipe.",
       "ctaPrimary": "Agendar Demo Executiva",
       "ctaSecondary": "Solicitar Diagnóstico",
       "benefits": {
@@ -206,7 +206,7 @@
       }
     },
     "logoWall": {
-      "title": "OrganizaÃ§Ãµes que confiam na SOFLIA"
+      "title": "OrganizaÃ§Ãµes que confiam na SofLIA"
     },
     "trust": {
       "title": "Enterprise-ready desde o primeiro dia",
@@ -240,21 +240,21 @@
       "stats": {
         "languages": "Idiomas",
         "compatible": "Compatível",
-        "lia": "Assistente LIA",
+        "lia": "Assistente SofLIA",
         "hash": "Certificados"
       }
     },
     "platform": {
       "tag": "A Plataforma",
       "title": "Treinamento corporativo potenciado por inteligÃªncia artificial",
-      "description": "SOFLIA combina tecnologia de ponta com design centrado no usuário para oferecer uma experiÃªncia de aprendizado que gera resultados mensuráveis para sua organizaÃ§Ã£o.",
+      "description": "SofLIA combina tecnologia de ponta com design centrado no usuário para oferecer uma experiÃªncia de aprendizado que gera resultados mensuráveis para sua organizaÃ§Ã£o.",
       "features": {
         "aiTraining": {
           "title": "Treinamento em IA",
           "description": "Cursos especializados em inteligÃªncia artificial para equipes corporativas"
         },
         "liaAssistant": {
-          "title": "Assistente LIA",
+          "title": "Assistente SofLIA",
           "description": "IA contextual 24/7 que se adapta a cada usuário e liÃ§Ã£o"
         },
         "studyPlanner": {
@@ -277,7 +277,7 @@
       "subtitle": "Cada funcionalidade é projetada para gerar impacto mensurável em sua organizaÃ§Ã£o",
       "items": {
         "lia": {
-          "title": "LIA - Assistente IA",
+          "title": "SofLIA - Assistente IA",
           "benefit": "Ajuda contextual 24/7 em ES, EN e PT",
           "result": "Reduz consultas ao RH"
         },
@@ -337,7 +337,7 @@
         "onboarding": {
           "title": "Onboarding Acelerado",
           "pain": "Tempo de produtividade muito longo",
-          "solution": "Trilhas de integraÃ§Ã£o + LIA como guia",
+          "solution": "Trilhas de integraÃ§Ã£o + SofLIA como guia",
           "result": "ReduÃ§Ã£o do tempo de ramp-up"
         },
         "salesEnablement": {
@@ -369,7 +369,7 @@
     "roi": {
       "tag": "Impacto Mensurável",
       "title": "ROI que fala por si só",
-      "subtitle": "Resultados reais de organizaÃ§Ãµes que transformaram seu treinamento com SOFLIA",
+      "subtitle": "Resultados reais de organizaÃ§Ãµes que transformaram seu treinamento com SofLIA",
       "metrics": {
         "onboarding": "ReduÃ§Ã£o do tempo de onboarding",
         "savings": "Economia anual estimada",
@@ -381,7 +381,7 @@
     "integrations": {
       "tag": "IntegraÃ§Ãµes",
       "title": "Integra-se com seu stack corporativo",
-      "description": "Conecte SOFLIA com suas ferramentas existentes para uma experiÃªncia sem fricÃ§Ãµes. ImplantaÃ§Ã£o ágil com sincronizaÃ§Ã£o de calendários, compatibilidade e-learning e opÃ§Ãµes para integraÃ§Ãµes personalizadas.",
+      "description": "Conecte SofLIA com suas ferramentas existentes para uma experiÃªncia sem fricÃ§Ãµes. ImplantaÃ§Ã£o ágil com sincronizaÃ§Ã£o de calendários, compatibilidade e-learning e opÃ§Ãµes para integraÃ§Ãµes personalizadas.",
       "features": {
         "calendar": "SincronizaÃ§Ã£o com Google Calendar e Microsoft Outlook",
         "elearning": "Compatível com SCORM",
@@ -445,7 +445,7 @@
       "items": {
         "roi": {
           "question": "Como o ROI do treinamento é medido?",
-          "answer": "SOFLIA fornece dashboards com métricas-chave: taxa de conclusÃ£o, tempo de treinamento, certificaÃ§Ãµes obtidas e correlaÃ§Ã£o com indicadores de negócios. VocÃª pode exportar relatórios para justificar o investimento Ã  lideranÃ§a."
+          "answer": "SofLIA fornece dashboards com métricas-chave: taxa de conclusÃ£o, tempo de treinamento, certificaÃ§Ãµes obtidas e correlaÃ§Ã£o com indicadores de negócios. VocÃª pode exportar relatórios para justificar o investimento Ã  lideranÃ§a."
         },
         "implementation": {
           "question": "Qual é o tempo de implementaÃ§Ã£o?",
@@ -461,7 +461,7 @@
         },
         "multilingual": {
           "question": "Como suporta múltiplos idiomas?",
-          "answer": "SOFLIA está disponível em espanhol, inglÃªs e portuguÃªs. LIA detecta automaticamente o idioma do usuário e responde nesse idioma. O conteúdo pode estar disponível em vários idiomas."
+          "answer": "SofLIA está disponível em espanhol, inglÃªs e portuguÃªs. SofLIA detecta automaticamente o idioma do usuário e responde nesse idioma. O conteúdo pode estar disponível em vários idiomas."
         },
         "certificates": {
           "question": "Como funciona a certificaÃ§Ã£o verificável?",
@@ -473,14 +473,14 @@
         },
         "adoption": {
           "question": "Como a mudanÃ§a e a adoÃ§Ã£o sÃ£o gerenciadas?",
-          "answer": "LIA atua como guia durante todo o processo, ajudando os usuários a navegar pela plataforma. Além disso, oferecemos materiais de onboarding, comunicaÃ§Ã£o interna sugerida e métricas de adoÃ§Ã£o em tempo real."
+          "answer": "SofLIA atua como guia durante todo o processo, ajudando os usuários a navegar pela plataforma. Além disso, oferecemos materiais de onboarding, comunicaÃ§Ã£o interna sugerida e métricas de adoÃ§Ã£o em tempo real."
         }
       }
     },
     "cta": {
       "tag": "Comece Hoje",
       "title": "Transforme o treinamento da sua organizaÃ§Ã£o",
-      "subtitle": "Agende uma demo executiva e descubra como SOFLIA pode impulsionar o desenvolvimento da sua equipe com resultados mensuráveis.",
+      "subtitle": "Agende uma demo executiva e descubra como SofLIA pode impulsionar o desenvolvimento da sua equipe com resultados mensuráveis.",
       "form": {
         "name": "Seu nome",
         "email": "voce@empresa.com",
@@ -508,7 +508,7 @@
       },
       "links": {
         "features": "Funcionalidades",
-        "lia": "Assistente LIA",
+        "lia": "Assistente SofLIA",
         "studyPlanner": "Study Planner",
         "analytics": "Analytics",
         "certificates": "Certificados",
@@ -569,6 +569,25 @@
       "emailRequired": "O email de contato é obrigatório",
       "codeRequired": "O código da empresa é obrigatório",
       "generic": "Ocorreu um erro. Tente novamente."
+    }
+  },
+  "studyPlanner": {
+    "calendarSelection": {
+      "title": "Selecionar calendários",
+      "subtitle": "Escolha quais calendários serão usados para análise de disponibilidade",
+      "selectAll": "Selecionar todos",
+      "deselectAll": "Desmarcar todos",
+      "save": "Salvar seleção",
+      "saving": "Salvando...",
+      "saved": "Seleção salva",
+      "refresh": "Atualizar",
+      "refreshing": "Atualizando...",
+      "primary": "Principal",
+      "minOneRequired": "Você deve selecionar pelo menos um calendário",
+      "noCalendarsFound": "Nenhum calendário encontrado",
+      "errorLoading": "Erro ao carregar os calendários",
+      "errorSaving": "Erro ao salvar a seleção",
+      "staleWarning": "Alguns calendários selecionados não existem mais e foram removidos"
     }
   }
 }

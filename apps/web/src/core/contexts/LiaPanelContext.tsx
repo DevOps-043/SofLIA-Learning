@@ -11,7 +11,7 @@ interface LiaPanelContextType {
   setPageContext: (data: any) => void;
 }
 
-const LiaPanelContext = createContext<LiaPanelContextType | undefined>(undefined);
+export const LiaPanelContext = createContext<LiaPanelContextType | undefined>(undefined);
 
 export function LiaPanelProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);

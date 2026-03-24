@@ -32,14 +32,14 @@ export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartPro
         return (
           <div
             key={index}
-            className="group flex items-center gap-4 p-2 rounded-lg hover:bg-white/5 transition-all duration-300 cursor-pointer"
+            className="group flex items-center gap-4 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-300 cursor-pointer"
           >
             <div className="w-32 text-right flex-shrink-0">
-              <span className="text-sm font-medium text-white/80 group-hover:text-white transition-colors">
+              <span className="text-sm font-medium text-gray-600 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                 {displayName}
               </span>
             </div>
-            <div className="flex-1 bg-white/10 rounded-full h-6 overflow-hidden relative">
+            <div className="flex-1 bg-gray-100 dark:bg-white/10 rounded-full h-6 overflow-hidden relative">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
@@ -53,7 +53,7 @@ export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartPro
               />
             </div>
             <div className="w-16 text-left">
-              <span className="text-sm font-bold text-white/80 group-hover:text-white transition-colors">
+              <span className="text-sm font-bold text-gray-700 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                 {typeof item[dataKey] === 'number' && !Number.isInteger(item[dataKey])
                   ? item[dataKey].toFixed(1)
                   : item[dataKey]}
@@ -149,9 +149,9 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
           return (
             <div key={index} className="flex items-center gap-3 text-sm">
               <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-              <span className="text-gray-300 min-w-0 flex-1">{item[nameKey]}</span>
-              <span className="text-white font-semibold">{item[dataKey]}</span>
-              <span className="text-gray-400 text-xs">({percentage.toFixed(1)}%)</span>
+              <span className="text-gray-600 dark:text-gray-300 min-w-0 flex-1">{item[nameKey]}</span>
+              <span className="text-gray-900 dark:text-white font-semibold">{item[dataKey]}</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">({percentage.toFixed(1)}%)</span>
             </div>
           )
         })}
@@ -181,7 +181,7 @@ export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChar
     <div className="space-y-4">
       <div className="flex gap-4 justify-center mb-2">
         {keys.map(k => (
-          <div key={k.key} className="flex items-center gap-2 text-xs text-gray-300">
+          <div key={k.key} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
             <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: k.color }} />
             {k.label}
           </div>
@@ -189,13 +189,13 @@ export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChar
       </div>
       {data.slice(0, 8).map((item, index) => (
         <div key={index} className="space-y-1">
-          <span className="text-xs text-gray-400">{item[nameKey]}</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">{item[nameKey]}</span>
           {keys.map(k => {
             const val = item[k.key] ?? 0
             const pct = maxValue > 0 ? (val / maxValue) * 100 : 0
             return (
               <div key={k.key} className="flex items-center gap-2">
-                <div className="flex-1 bg-white/10 rounded-full h-4 overflow-hidden">
+                <div className="flex-1 bg-gray-100 dark:bg-white/10 rounded-full h-4 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${pct}%` }}
@@ -204,7 +204,7 @@ export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChar
                     style={{ backgroundColor: k.color }}
                   />
                 </div>
-                <span className="text-xs text-white w-8 text-right">{val}</span>
+                <span className="text-xs text-gray-900 dark:text-white w-8 text-right">{val}</span>
               </div>
             )
           })}

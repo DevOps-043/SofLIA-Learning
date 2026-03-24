@@ -27,6 +27,7 @@ interface BusinessAssignCourseModalProps {
   onClose: () => void
   courseId: string
   courseTitle: string
+  orgSlug: string
   onAssignComplete: () => void
 }
 
@@ -40,12 +41,13 @@ export function BusinessAssignCourseModal({
   onClose,
   courseId,
   courseTitle,
+  orgSlug,
   onAssignComplete
 }: BusinessAssignCourseModalProps) {
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
-  const { users, isLoading: loadingUsers, refetch: refetchUsers } = useBusinessUsers()
+  const { users, isLoading: loadingUsers, syncOrgData: refetchUsers } = useBusinessUsers(orgSlug)
 
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
   const [dueDate, setDueDate] = useState<string>('')
@@ -84,7 +86,7 @@ export function BusinessAssignCourseModal({
       const fetchAssignedUsers = async () => {
         try {
           console.log('🔍 Fetching assigned users for course:', courseId)
-          const response = await fetch(`/api/business/courses/${courseId}/assigned-users`, {
+          const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assigned-users`, {
             credentials: 'include'
           })
           if (response.ok) {
@@ -166,7 +168,7 @@ export function BusinessAssignCourseModal({
 
     try {
       // Assign to individual users
-      const response = await fetch(`/api/business/courses/${courseId}/assign`, {
+      const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

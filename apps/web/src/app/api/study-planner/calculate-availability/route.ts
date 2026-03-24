@@ -11,7 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { UserContextService } from '../../../../features/study-planner/services/user-context.service';
 import type { 
-  LIAAvailabilityAnalysis,
+  SofLIAAvailabilityAnalysis,
   TimeBlock,
   CalendarEvent 
 } from '../../../../features/study-planner/types/user-context.types';
@@ -24,7 +24,7 @@ interface CalculateAvailabilityRequest {
 
 interface CalculateAvailabilityResponse {
   success: boolean;
-  data?: LIAAvailabilityAnalysis;
+  data?: SofLIAAvailabilityAnalysis;
   error?: string;
 }
 
@@ -139,7 +139,7 @@ Proporciona tu análisis en formato JSON con la siguiente estructura:
 async function callLIAForAvailabilityAnalysis(
   prompt: string,
   profileData: any
-): Promise<LIAAvailabilityAnalysis> {
+): Promise<SofLIAAvailabilityAnalysis> {
   try {
     // Llamar al endpoint de AI chat con contexto especializado
     const response = await fetch(new URL('/api/ai-chat', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'), {
@@ -187,7 +187,7 @@ async function callLIAForAvailabilityAnalysis(
 /**
  * Genera disponibilidad por defecto basada en el perfil
  */
-function generateDefaultAvailability(profileData: any): LIAAvailabilityAnalysis {
+function generateDefaultAvailability(profileData: any): SofLIAAvailabilityAnalysis {
   // Estimar disponibilidad basada en nivel jerárquico
   let estimatedWeeklyMinutes = 300; // 5 horas base
   let suggestedMinSessionMinutes = 20;
