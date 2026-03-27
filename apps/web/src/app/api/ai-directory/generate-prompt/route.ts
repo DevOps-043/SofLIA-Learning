@@ -37,11 +37,6 @@ function hasPromptInjection(message: string): boolean {
   return LIA_CONFIG.detection.promptInjection.some(pattern => lowerMessage.includes(pattern));
 }
 
-// Configurar OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 // Prompt maestro de seguridad y profesionalismo para Lia
 const MASTER_PROMPT = `Eres SofLIA, una especialista profesional en creación de prompts de IA. Tu única función es ayudar a los usuarios a crear prompts efectivos, bien estructurados y profesionales.
 
@@ -225,6 +220,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Llamar a OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     logger.log('🤖 Calling OpenAI with', messages.length, 'messages');
     logger.log('📋 Messages array:', JSON.stringify(messages, null, 2));
     const startTime = Date.now();

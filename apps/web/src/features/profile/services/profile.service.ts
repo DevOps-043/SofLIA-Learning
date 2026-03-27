@@ -242,7 +242,6 @@ export class ProfileService {
         throw new Error(errorData.error || 'Error al cambiar la contraseña');
       }
     } catch (error) {
-      // console.error('Error in ProfileService.changePassword:', error)
       throw error
     }
   }

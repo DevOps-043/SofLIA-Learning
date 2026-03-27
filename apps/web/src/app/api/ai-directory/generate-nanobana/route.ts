@@ -6,10 +6,7 @@ import { trackOpenAICall, calculateOpenAIMetadata, calculateCost } from '@/lib/o
 import { SessionService } from '@/features/auth/services/session.service';
 import { LiaLogger } from '@/lib/analytics/lia-logger';
 
-// Configurar OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// OpenAI se instancia dentro de la función POST para evitar errores en build
 
 // Tipos de dominio soportados
 type NanoBananaDomain = 'ui' | 'photo' | 'diagram';
@@ -431,6 +428,7 @@ Genera un JSON completo basado en la solicitud del usuario, utilizando la planti
     });
 
     // Llamar a OpenAI
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     logger.log('🤖 Calling OpenAI for NanoBanana JSON generation');
     const startTime = Date.now();
     const model = 'gpt-4o';

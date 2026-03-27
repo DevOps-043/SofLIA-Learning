@@ -3,9 +3,6 @@ import { logger } from '@/lib/utils/logger';
 import { createClient } from '@supabase/supabase-js'
 import { SessionService } from '../../../../features/auth/services/session.service'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
 export async function POST(request: NextRequest) {
   try {
     // Usar SessionService para obtener el usuario actual (sistema de autenticación personalizado)
@@ -15,8 +12,10 @@ export async function POST(request: NextRequest) {
       logger.error('Auth error: No user found in session')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    
-    // Crear cliente con service role key para bypass de RLS
+
+    // Crear cliente con service role key para bypass de RLS (dentro de la función para evitar error en build)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const formData = await request.formData()
