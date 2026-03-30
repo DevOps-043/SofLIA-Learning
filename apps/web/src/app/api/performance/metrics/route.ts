@@ -71,7 +71,6 @@ export async function GET() {
 
     return NextResponse.json(metrics)
   } catch (error) {
-    // console.error('Error fetching performance metrics:', error)
     return NextResponse.json(
       {
         error: 'Error al obtener métricas de rendimiento',
@@ -105,7 +104,6 @@ export async function POST() {
       note: 'Los contadores se reinician automáticamente con cada deploy'
     })
   } catch (error) {
-    // console.error('Error resetting metrics:', error)
     return NextResponse.json(
       {
         error: 'Error al reiniciar métricas',

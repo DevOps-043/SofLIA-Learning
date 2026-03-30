@@ -76,7 +76,6 @@ export function EditReelModal({ reel, onClose, onSave }: EditReelModalProps) {
     try {
       await onSave(formData)
     } catch (error) {
-      // console.error('Error updating reel:', error)
     } finally {
       setLoading(false)
     }

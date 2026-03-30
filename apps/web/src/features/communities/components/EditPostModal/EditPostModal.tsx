@@ -239,7 +239,6 @@ export function EditPostModal({
           const processedAttachments = []
           const filesToProcess = postAttachments.filter(att => att.data?.file)
           
-          console.log(`📤 Procesando ${filesToProcess.length} archivo(s)...`)
           
           for (const att of postAttachments) {
             if (att.data?.file) {

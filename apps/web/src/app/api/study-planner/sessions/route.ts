@@ -219,7 +219,6 @@ async function syncDeletedStudySessions(
 
     // Limpiar external_event_id y calendar_provider de sesiones cuyos eventos fueron eliminados
     if (sessionsToClean.length > 0) {
-      console.log(`🔄 [Sync Study Sessions] Limpiando ${sessionsToClean.length} sesiones con eventos eliminados en ${integration.provider} Calendar`);
       
       const { error: updateError } = await supabase
         .from('study_sessions')
@@ -234,7 +233,6 @@ async function syncDeletedStudySessions(
       if (updateError) {
         console.error('❌ [Sync Study Sessions] Error limpiando sesiones:', updateError);
       } else {
-        console.log(`✅ [Sync Study Sessions] ${sessionsToClean.length} sesiones limpiadas exitosamente`);
       }
     }
   } catch (error) {

@@ -73,7 +73,6 @@ export async function GET(
       }
     })
   } catch (error: unknown) {
-    // console.error('Error in debug endpoint:', error)
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ 
       success: false, 

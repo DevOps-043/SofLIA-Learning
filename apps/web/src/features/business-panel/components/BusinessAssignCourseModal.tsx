@@ -85,15 +85,12 @@ export function BusinessAssignCourseModal({
     if (isOpen && courseId) {
       const fetchAssignedUsers = async () => {
         try {
-          console.log('🔍 Fetching assigned users for course:', courseId)
           const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assigned-users`, {
             credentials: 'include'
           })
           if (response.ok) {
             const data = await response.json()
-            console.log('📊 Assigned users response:', data)
             if (data.success && data.user_ids) {
-              console.log('✅ Setting alreadyAssignedUserIds:', data.user_ids)
               setAlreadyAssignedUserIds(new Set(data.user_ids))
               // Guardar info detallada sobre origen de asignación
               if (data.assigned_users) {
@@ -102,7 +99,6 @@ export function BusinessAssignCourseModal({
                   infoMap.set(u.user_id, u)
                 })
                 setAssignedUsersInfo(infoMap)
-                console.log('✅ Setting assignedUsersInfo:', data.assigned_users)
               }
             }
           } else {

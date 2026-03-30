@@ -41,7 +41,6 @@ export async function GET(request: Request) {
             dbQuery = dbQuery.or(`first_name.ilike.${q},last_name.ilike.${q},email.ilike.${q}`, { foreignTable: 'users' });
         }
 
-        console.log(`[DEBUG] Searching users in org ${auth.organizationId} with query: "${query}"`);
 
         const { data: users, error } = await dbQuery.limit(20);
 
@@ -50,7 +49,6 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: error.message }, { status: 500 });
         }
 
-        console.log(`[DEBUG] Found ${users?.length || 0} users`);
 
         // Flatten the structure for easier frontend consumption
         const formattedUsers = users?.map(u => ({

@@ -55,7 +55,6 @@ export class ProfileService {
         .single()
 
       if (error) {
-        // console.error('Error fetching profile:', error)
         throw new Error(`Error al obtener perfil: ${error.message}`)
       }
 
@@ -87,7 +86,6 @@ export class ProfileService {
         email_verified: data.email_verified || false
       }
     } catch (error) {
-      // console.error('Error in ProfileService.getProfile:', error)
       throw error
     }
   }
@@ -107,7 +105,6 @@ export class ProfileService {
         .single()
 
       if (error) {
-        // console.error('Error updating profile:', error)
         throw new Error(`Error al actualizar perfil: ${error.message}`)
       }
 
@@ -139,7 +136,6 @@ export class ProfileService {
         email_verified: data.email_verified || false
       }
     } catch (error) {
-      // console.error('Error in ProfileService.updateProfile:', error)
       throw error
     }
   }
@@ -174,7 +170,6 @@ export class ProfileService {
         })
 
       if (error) {
-        // console.error('Error uploading profile picture:', error)
         throw new Error(`Error al subir imagen: ${error.message}`)
       }
 
@@ -188,7 +183,6 @@ export class ProfileService {
 
       return publicUrl
     } catch (error) {
-      // console.error('Error in ProfileService.uploadProfilePicture:', error)
       throw error
     }
   }
@@ -208,7 +202,6 @@ export class ProfileService {
         .upload(filePath, file)
 
       if (error) {
-        // console.error('Error uploading curriculum:', error)
         throw new Error(`Error al subir curriculum: ${error.message}`)
       }
 
@@ -222,7 +215,6 @@ export class ProfileService {
 
       return publicUrl
     } catch (error) {
-      // console.error('Error in ProfileService.uploadCurriculum:', error)
       throw error
     }
   }

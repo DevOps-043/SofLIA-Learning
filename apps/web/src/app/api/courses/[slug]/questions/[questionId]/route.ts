@@ -61,7 +61,6 @@ export async function GET(
 
     return NextResponse.json({ ...question, view_count: (question.view_count || 0) + 1 });
   } catch (error) {
-    // console.error('Error in question API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',
@@ -171,7 +170,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      // console.error('Error updating question:', updateError);
       return NextResponse.json(
         { error: 'Error al actualizar pregunta' },
         { status: 500 }
@@ -180,7 +178,6 @@ export async function PUT(
 
     return NextResponse.json(updatedQuestion);
   } catch (error) {
-    // console.error('Error in question API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',
@@ -264,7 +261,6 @@ export async function DELETE(
       .eq('id', questionId);
 
     if (deleteError) {
-      // console.error('Error deleting question:', deleteError);
       return NextResponse.json(
         { error: 'Error al eliminar pregunta' },
         { status: 500 }
@@ -273,7 +269,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // console.error('Error in question API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

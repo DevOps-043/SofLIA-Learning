@@ -232,7 +232,6 @@ export const NotesModal: React.FC<NotesModalProps> = ({
       });
       onClose();
     } catch (error) {
-      // console.error('Error al guardar nota:', error);
     } finally {
       setIsSaving(false);
     }

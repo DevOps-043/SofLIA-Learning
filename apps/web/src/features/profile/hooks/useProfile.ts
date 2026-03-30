@@ -110,7 +110,6 @@ export function useProfile(): UseProfileReturn {
         .single() as { data: Database['public']['Tables']['users']['Row'] | null, error: any }
 
       if (fetchError || !data) {
-        // console.error('Error fetching user profile:', fetchError)
         throw new Error(`Error al obtener perfil: ${fetchError?.message || 'No data found'}`)
       }
 
@@ -140,7 +139,6 @@ export function useProfile(): UseProfileReturn {
       }
       
       setProfile(profileData)
-      // console.log('🔍 Profile data loaded:', profileData)
 
       // Obtener estadísticas del usuario desde la API
       try {
@@ -162,7 +160,6 @@ export function useProfile(): UseProfileReturn {
         }
       } catch (statsError) {
         // No lanzar error, solo usar valores por defecto
-        // console.error('Error fetching user stats:', statsError)
         setStats({
           completedCourses: 0,
           completedLessons: 0,
@@ -173,7 +170,6 @@ export function useProfile(): UseProfileReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error fetching profile:', err)
     } finally {
       setLoading(false)
     }
@@ -216,7 +212,6 @@ export function useProfile(): UseProfileReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error updating profile:', err)
       throw err
     } finally {
       setSaving(false)
@@ -239,7 +234,6 @@ export function useProfile(): UseProfileReturn {
         throw new Error('Usuario no autenticado')
       }
       
-      // console.log('🔍 Usuario autenticado:', currentUser.id)
       
       // Validar archivo (coincide con configuración del bucket: image/png, image/jpeg, image/jpg, image/gif)
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
@@ -252,14 +246,12 @@ export function useProfile(): UseProfileReturn {
         throw new Error('El archivo es demasiado grande. Máximo 10MB.')
       }
       
-      // console.log('📁 Archivo válido:', file.name, file.type, file.size)
       
       // Subir directamente a Supabase Storage
       const fileExt = file.name.split('.').pop()
       const fileName = `${currentUser.id}-${Date.now()}.${fileExt}`
       const filePath = `profile-pictures/${fileName}`
 
-      // console.log('📤 Subiendo archivo:', filePath)
 
       // Subir archivo usando API REST (mejor manejo de autenticación y RLS)
       const formData = new FormData()
@@ -289,7 +281,6 @@ export function useProfile(): UseProfileReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error uploading profile picture:', err)
       throw err
     } finally {
       setSaving(false)
@@ -339,7 +330,6 @@ export function useProfile(): UseProfileReturn {
         .upload(filePath, file)
 
       if (uploadError) {
-        // console.error('Error uploading curriculum:', uploadError)
         throw new Error(`Error al subir curriculum: ${uploadError.message}`)
       }
 
@@ -358,7 +348,6 @@ export function useProfile(): UseProfileReturn {
         .eq('id', currentUser.id)
 
       if (updateError) {
-        // console.error('Error updating profile:', updateError)
         throw new Error(`Error al actualizar perfil: ${updateError.message}`)
       }
       
@@ -369,7 +358,6 @@ export function useProfile(): UseProfileReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error uploading curriculum:', err)
       throw err
     } finally {
       setSaving(false)
@@ -386,11 +374,9 @@ export function useProfile(): UseProfileReturn {
       setError(null)
       
       // TODO: Implementar API para cambio de contraseña
-      // console.log('Change password not implemented yet')
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error changing password:', err)
       throw err
     } finally {
       setSaving(false)

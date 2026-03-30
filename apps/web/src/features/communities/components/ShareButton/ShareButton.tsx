@@ -73,7 +73,6 @@ export function ShareButton({ postId, postContent, communityName, communitySlug 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      // console.error('Error copying to clipboard:', err);
       // Fallback para navegadores que no soportan clipboard API
       const textArea = document.createElement('textarea');
       textArea.value = text;

@@ -197,7 +197,6 @@ export async function csrfProtectionMiddleware(
   const isValid = await verifyCSRFToken(request);
 
   if (!isValid) {
-    // console.warn(`[CSRF] Token inválido o faltante para ${method} ${pathname}`);
 
     return new NextResponse(
       JSON.stringify({

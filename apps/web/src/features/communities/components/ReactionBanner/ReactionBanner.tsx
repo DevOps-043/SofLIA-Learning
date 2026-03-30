@@ -27,7 +27,6 @@ export function ReactionBanner({
   const [showDetails, setShowDetails] = useState(false);
 
   // Debug temporal
-  // console.log('ReactionBanner debug:', { totalReactions, topReactions, showTopReactions, postId });
 
   // Si no hay reacciones, no mostrar nada
   if (totalReactions === 0) {

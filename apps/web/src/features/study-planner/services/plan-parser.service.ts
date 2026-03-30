@@ -1,134 +1,229 @@
+import {
+  parsePlannerDateString,
+  parsePlannerTimeString,
+  sortLessonDistributions,
+} from './lesson-distribution.service';
+import type {
+  StudyPlannerScheduledLesson,
+  StudyPlannerStoredLessonDistribution,
+} from '../types/planner-schedule.types';
 
-export interface ParsedLesson {
-  lessonTitle: string;
-  durationMinutes: number;
-  courseTitle?: string;
-  lessonOrderIndex?: number;
+const MONTH_NAMES = [
+  'enero',
+  'febrero',
+  'marzo',
+  'abril',
+  'mayo',
+  'junio',
+  'julio',
+  'agosto',
+  'septiembre',
+  'octubre',
+  'noviembre',
+  'diciembre',
+] as const;
+const MONTH_ABBREVIATIONS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'] as const;
+const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'] as const;
+const MONTH_PATTERN = `${MONTH_NAMES.join('|')}|${MONTH_ABBREVIATIONS.join('|')}`;
+const DAY_PATTERN = 'lunes|martes|miercoles|jueves|viernes|sabado|domingo';
+
+function normalizeComparableText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
-export interface ParsedSchedule {
-  dateStr: string;
-  startTime: string;
-  endTime: string;
-  lessons: ParsedLesson[];
+function buildIsoDate(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-/**
- * Parsea la respuesta de texto de LIA/Generador para extraer una estructura de calendario estructurada.
- * Soporta formatos con emojis (📅, ⏰) y Markdown (**Negrita**).
- * Es robusto para detectar múltiples días y bloques horarios.
- */
-export function parseLiaResponseToSchedules(text: string): ParsedSchedule[] {
-  const schedules: ParsedSchedule[] = [];
-  const lines = text.split('\n');
+function getDayName(date: Date): string {
+  return DAY_NAMES[date.getDay()];
+}
 
-  let currentDate = '';
-  // let currentTimeRange = ''; 
-  let currentStartTime = '';
-  let currentEndTime = '';
-  let currentLessons: ParsedLesson[] = [];
-  
-  // Regex patterns
-  // Detects: "📅 Lunes 20...", "Lunes 20...", "**Lunes 20...**", "*Lunes 20...*"
-  // Use loose matching for days to catch Spanish variations
-  const datePattern = /^(?:\*|_|#|📅)?\s*(?:📅)?\s*\*?\*?\s*(Lunes|Martes|Miércoles|Miercoles|Jueves|Viernes|Sábado|Sabado|Domingo)\s+\d+/i;
-  
-  // Detects time range: "14:00 - 15:00", "⏰ 14:00 - 15:00", "09:00 AM - 10:00 AM"
-  // Handles optional AM/PM
-  const timePattern = /(\d{1,2}:\d{2}(?:\s?[AaPp][Mm])?)\s*(?:-|a|to)\s*(\d{1,2}:\d{2}(?:\s?[AaPp][Mm])?)/i;
-  
-  // Detects lessons: "- Lección...", "1. Lección..."
-  // Group 1: Title, Group 2: Duration (optional)
-  const lessonPattern = /^[-•*]?\s*(?:(?:\d+(?:\.\d+)*)\.?\s+)?(.+?)(?:\s*\((\d+)\s*min\))?$/i;
+function getScheduleDetectionPattern(): RegExp {
+  return new RegExp(
+    `(?:${DAY_PATTERN})\\s+\\d{1,2}|\\d{1,2}\\s*(?:de\\s+)?(?:${MONTH_PATTERN})|\\d{1,2}[\\/.\\-]\\d{1,2}(?:[\\/.\\-]\\d{4})?|\\d{1,2}(?::\\d{2})?\\s*(?:a\\.?\\s*m\\.?|p\\.?\\s*m\\.?|am|pm)?\\s*(?:-|a|hasta)\\s*\\d{1,2}(?::\\d{2})?`,
+    'i'
+  );
+}
 
-  const flushCurrent = () => {
-    if (currentDate && currentStartTime && currentLessons.length > 0) {
-      schedules.push({
-        dateStr: normalizeDateString(currentDate),
-        startTime: normalizeTime(currentStartTime),
-        endTime: normalizeTime(currentEndTime || currentStartTime),
-        lessons: [...currentLessons]
-      });
-      // console.log(`[Parser] Flushed block: ${currentDate} ${currentStartTime} with ${currentLessons.length} lessons`);
-    } else {
-        // console.log(`[Parser] Ignored empty block or missing data: Date=${currentDate} Time=${currentStartTime} Lessons=${currentLessons.length}`);
-    }
-  };
+function parseDateFromLine(line: string): { dateStr: string; dayName: string } | null {
+  const normalized = normalizeComparableText(line);
+  const parsed = parsePlannerDateString(normalized);
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-
-    const dateMatch = line.match(datePattern);
-    const timeMatch = line.match(timePattern);
-
-    // Prioridad 1: Detección de Fecha
-    if (dateMatch) {
-       // Si teníamos un slot abierto, lo cerramos y guardamos
-       if (currentDate && currentStartTime) {
-           flushCurrent();
-           currentLessons = [];
-           currentStartTime = ''; // Reset time for new date
-           currentEndTime = '';
-       } else if (currentLessons.length > 0) {
-           // Caso raro: Lecciones huérfanas sin hora anterior? Las descartamos o asumimos error.
-           currentLessons = []; 
-       }
-       
-       // Capturamos la nueva fecha
-       currentDate = line;
-       continue;
-    }
-
-    // Prioridad 2: Detección de Hora
-    if (timeMatch) {
-       // Si teníamos slot abierto (con fecha y hora anterior), lo cerramos
-       if (currentDate && currentStartTime) {
-          flushCurrent();
-          currentLessons = [];
-       }
-       // Actualizamos hora
-       currentStartTime = timeMatch[1];
-       currentEndTime = timeMatch[2];
-       continue;
-    }
-
-    // Prioridad 3: Detección de Lecciones
-    // Solo si tenemos contexto activo (fecha + hora)
-    if (currentDate && currentStartTime) {
-        // Ignorar líneas de metadatos o totales
-        if (line.toLowerCase().includes('total agrupado') || 
-            line.toLowerCase().includes('sesion de estudio') || 
-            line.toLowerCase().includes('sesión de estudio')) continue;
-
-        // Validar que parece una lección y no basura
-        const lessonMatch = line.match(lessonPattern);
-        if (lessonMatch) {
-            const potentialTitle = lessonMatch[1].trim();
-            // Filtrar falsos positivos
-            // No debe ser muy corta, no debe ser un separador
-            if (potentialTitle.length > 3 && !potentialTitle.match(/^semama|^dia|^bloque/i) && !line.includes('---')) {
-               currentLessons.push({
-                   lessonTitle: potentialTitle,
-                   durationMinutes: parseInt(lessonMatch[2] || '0', 10)
-               });
-            }
-        }
-    }
+  if (!parsed) {
+    return null;
   }
-  
-  // Flush del último bloque pendiente al terminar el archivo
-  flushCurrent();
 
-  return schedules;
+  return {
+    dateStr: buildIsoDate(parsed),
+    dayName: getDayName(parsed),
+  };
 }
 
-function normalizeDateString(raw: string): string {
-    // Intentar limpiar markdown y emojis para dejar texto plano
-    // Ej: "📅 **Lunes 20**" -> "Lunes 20"
-    return raw.replace(/[📅⏰]/g, '').replace(/\*\*/g, '').trim();
+function parseTimeRangeFromLine(line: string): { startTime: string; endTime: string } | null {
+  const normalized = normalizeComparableText(line);
+  const rangeMatch = normalized.match(
+    /(?:a\s+las\s+|de\s+)?(\d{1,2}(?::\d{2})?\s*(?:a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?)\s*(?:-|a|hasta)\s*(\d{1,2}(?::\d{2})?\s*(?:a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?)/i
+  );
+
+  if (!rangeMatch) {
+    return null;
+  }
+
+  const start = parsePlannerTimeString(rangeMatch[1]);
+  const end = parsePlannerTimeString(rangeMatch[2]);
+
+  if (!start || !end) {
+    return null;
+  }
+
+  return {
+    startTime: `${String(start.hours).padStart(2, '0')}:${String(start.minutes).padStart(2, '0')}`,
+    endTime: `${String(end.hours).padStart(2, '0')}:${String(end.minutes).padStart(2, '0')}`,
+  };
 }
 
-function normalizeTime(raw: string): string {
-    return raw.trim();
+function extractLessonFromLine(rawLine: string): StudyPlannerScheduledLesson | null {
+  const normalized = normalizeComparableText(rawLine);
+  if (!normalized) {
+    return null;
+  }
+
+  if (
+    normalized.includes('total agrupado') ||
+    normalized.includes('sesion de estudio') ||
+    normalized.includes('sesiones de estudio') ||
+    normalized.includes('sin lecciones asignadas') ||
+    normalized.startsWith('resumen') ||
+    normalized.startsWith('verificacion')
+  ) {
+    return null;
+  }
+
+  const patterns = [
+    /^(?:[-*•]\s*)?leccion\s+(\d+(?:\.\d+)*)[:.\-]?\s*(.+)$/i,
+    /^(?:[-*•]\s*)?(\d+(?:\.\d+)*)[:.\-]\s*(.+)$/i,
+    /^(?:[-*•]\s+)(.+)$/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = rawLine.trim().match(pattern);
+    if (!match) {
+      continue;
+    }
+
+    const lessonOrderIndex = pattern === patterns[2] ? 0 : Number.parseInt(match[1], 10) || 0;
+    const lessonTitle = (pattern === patterns[2] ? match[1] : match[2]).trim();
+    const comparableTitle = normalizeComparableText(lessonTitle);
+
+    if (!comparableTitle || comparableTitle.length <= 3) {
+      return null;
+    }
+
+    if (/^leccion\s+\d+(?:\.\d+)?[:.\-]?\s*$/.test(comparableTitle)) {
+      return null;
+    }
+
+    return {
+      courseTitle: 'Curso',
+      lessonTitle,
+      lessonOrderIndex,
+      durationMinutes: 0,
+    };
+  }
+
+  return null;
+}
+
+function flushCurrentSchedule(
+  schedules: StudyPlannerStoredLessonDistribution[],
+  currentSchedule: StudyPlannerStoredLessonDistribution | null
+): StudyPlannerStoredLessonDistribution | null {
+  if (!currentSchedule) {
+    return null;
+  }
+
+  schedules.push({
+    ...currentSchedule,
+    lessons: [...currentSchedule.lessons],
+  });
+
+  return null;
+}
+
+export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLessonDistribution[] {
+  if (!text || !getScheduleDetectionPattern().test(normalizeComparableText(text))) {
+    return [];
+  }
+
+  const schedules: StudyPlannerStoredLessonDistribution[] = [];
+  const lines = text.split('\n');
+  let currentDate: { dateStr: string; dayName: string } | null = null;
+  let currentSchedule: StudyPlannerStoredLessonDistribution | null = null;
+
+  lines.forEach(line => {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) {
+      return;
+    }
+
+    const nextDate = parseDateFromLine(trimmedLine);
+    const nextTimeRange = parseTimeRangeFromLine(trimmedLine);
+
+    if (nextDate && nextTimeRange) {
+      currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
+      currentDate = nextDate;
+      currentSchedule = {
+        dateStr: nextDate.dateStr,
+        dayName: nextDate.dayName,
+        startTime: nextTimeRange.startTime,
+        endTime: nextTimeRange.endTime,
+        lessons: [],
+      };
+      return;
+    }
+
+    if (nextDate) {
+      currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
+      currentDate = nextDate;
+      return;
+    }
+
+    if (nextTimeRange && currentDate) {
+      currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
+      currentSchedule = {
+        dateStr: currentDate.dateStr,
+        dayName: currentDate.dayName,
+        startTime: nextTimeRange.startTime,
+        endTime: nextTimeRange.endTime,
+        lessons: [],
+      };
+      return;
+    }
+
+    if (!currentSchedule) {
+      return;
+    }
+
+    const lesson = extractLessonFromLine(trimmedLine);
+    if (lesson) {
+      currentSchedule.lessons.push(lesson);
+    }
+  });
+
+  flushCurrentSchedule(schedules, currentSchedule);
+
+  return sortLessonDistributions(
+    schedules.filter(
+      schedule =>
+        Boolean(schedule.dateStr) &&
+        Boolean(schedule.startTime) &&
+        Boolean(schedule.endTime)
+    )
+  );
 }

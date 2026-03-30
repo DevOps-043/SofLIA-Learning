@@ -22,11 +22,6 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const body = await request.json();
     
-    // console.log('Body recibido del reporte:', {
-    //   categoria: body.categoria,
-    //   prioridad: body.prioridad,
-    //   hasScreenshot: !!body.screenshot_data
-    // });
     
     const {
       titulo,
@@ -74,7 +69,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // console.log('Validaciones completadas');
 
     // Si hay screenshot, subirlo a Supabase Storage usando service role key
     let screenshot_url = null;
@@ -85,7 +79,6 @@ export async function POST(request: NextRequest) {
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
         
         if (!supabaseServiceKey) {
-          // console.error('❌ Missing SUPABASE_SERVICE_ROLE_KEY');
           return NextResponse.json(
             { error: 'Configuración del servidor incompleta' },
             { status: 500 }
@@ -118,7 +111,6 @@ export async function POST(request: NextRequest) {
           });
 
         if (uploadError) {
-          // console.error('❌ Error subiendo screenshot:', uploadError);
           // Continuar sin screenshot si falla la subida
         } else {
           // Obtener URL pública
@@ -127,10 +119,8 @@ export async function POST(request: NextRequest) {
             .getPublicUrl(uploadData.path);
           
           screenshot_url = publicUrlData.publicUrl;
-          // console.log('Screenshot subido exitosamente:', screenshot_url);
         }
       } catch (error) {
-        // console.error('❌ Error procesando screenshot:', error);
         // Continuar sin screenshot si falla
       }
     }
@@ -165,14 +155,12 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      // console.error('Error insertando reporte:', insertError);
       return NextResponse.json(
         { error: 'Error al crear el reporte', details: insertError.message },
         { status: 500 }
       );
     }
 
-    // console.log('Reporte creado con ID:', reporte?.id);
 
     // TODO: Enviar notificación a administradores (opcional)
     // Puedes agregar aquí lógica para notificar por email o sistema de notificaciones
@@ -190,7 +178,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    // console.error('Error en POST /api/reportes:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -252,7 +239,6 @@ export async function GET(request: NextRequest) {
     const { data: reportes, error: queryError, count } = await query;
 
     if (queryError) {
-      // console.error('Error obteniendo reportes:', queryError);
       return NextResponse.json(
         { error: 'Error al obtener reportes', details: queryError.message },
         { status: 500 }
@@ -268,7 +254,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    // console.error('Error en GET /api/reportes:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

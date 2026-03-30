@@ -103,12 +103,10 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
       if (data.success) {
         // Recargar datos para mostrar el nuevo miembro
         await refetch()
-        // console.log('Usuario invitado exitosamente:', data.member)
       } else {
         throw new Error(data.error || 'Error al invitar usuario')
       }
     } catch (error) {
-      // console.error('Error inviting user:', error)
       throw error
     }
   }
@@ -138,10 +136,8 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
         // Actualizar solo los miembros sin recargar toda la página
         updateMembers(updatedMembers)
       } else {
-        // console.error('Error al cambiar rol del miembro')
       }
     } catch (error) {
-      // console.error('Error al cambiar rol del miembro:', error)
     } finally {
       setIsProcessing(null)
     }
@@ -166,10 +162,8 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
             const updatedMembers = members.filter(member => member.id !== memberId)
             updateMembers(updatedMembers)
           } else {
-            // console.error('Error al remover miembro')
           }
         } catch (error) {
-          // console.error('Error al remover miembro:', error)
         } finally {
           setIsProcessing(null)
           closeConfirmation()
@@ -198,7 +192,6 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
 
           if (response.ok) {
             const result = await response.json()
-            // console.log('Solicitud aprobada exitosamente:', result)
             // Actualizar el estado local cambiando el status de la solicitud
             const updatedRequests = accessRequests.map(request => 
               request.id === requestId 
@@ -209,11 +202,9 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
             updateAccessRequests(updatedRequests)
           } else {
             const errorData = await response.json()
-            // console.error('Error al aprobar solicitud:', errorData)
             alert(`Error: ${errorData.message || 'Error desconocido'}`)
           }
         } catch (error) {
-          // console.error('Error al aprobar solicitud:', error)
         } finally {
           setIsProcessing(null)
           closeConfirmation()
@@ -241,7 +232,6 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
 
           if (response.ok) {
             const result = await response.json()
-            // console.log('Solicitud rechazada exitosamente:', result)
             // Actualizar el estado local cambiando el status de la solicitud
             const updatedRequests = accessRequests.map(request => 
               request.id === requestId 
@@ -252,11 +242,9 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
             updateAccessRequests(updatedRequests)
           } else {
             const errorData = await response.json()
-            // console.error('Error al rechazar solicitud:', errorData)
             alert(`Error: ${errorData.message || 'Error desconocido'}`)
           }
         } catch (error) {
-          // console.error('Error al rechazar solicitud:', error)
         } finally {
           setIsProcessing(null)
           closeConfirmation()
@@ -295,11 +283,9 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
             updatePosts(updatedPosts)
           } else {
             const errorData = await response.json()
-            // console.error('Error al eliminar post:', errorData)
             alert(`Error: ${errorData.message || 'Error desconocido'}`)
           }
         } catch (error) {
-          // console.error('Error al eliminar post:', error)
         } finally {
           setIsProcessing(null)
           closeConfirmation()
@@ -334,11 +320,9 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
             updatePosts(updatedPosts)
           } else {
             const errorData = await response.json()
-            // console.error('Error al ocultar post:', errorData)
             alert(`Error: ${errorData.message || 'Error desconocido'}`)
           }
         } catch (error) {
-          // console.error('Error al ocultar post:', error)
         } finally {
           setIsProcessing(null)
           closeConfirmation()
@@ -374,11 +358,9 @@ export function AdminCommunityDetailPage({ slug }: AdminCommunityDetailPageProps
             updatePosts(updatedPosts)
           } else {
             const errorData = await response.json()
-            // console.error('Error al fijar/desfijar post:', errorData)
             alert(`Error: ${errorData.message || 'Error desconocido'}`)
           }
         } catch (error) {
-          // console.error('Error al fijar/desfijar post:', error)
         } finally {
           setIsProcessing(null)
           closeConfirmation()

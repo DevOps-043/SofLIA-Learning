@@ -80,7 +80,6 @@ export function LoginForm() {
         // ✅ Login exitoso - navegar a la URL indicada
         // IMPORTANTE: Usar window.location.href en lugar de router.push
         // para forzar navegación completa y que las cookies del servidor se propaguen
-        console.log('🚀 [LoginForm] Redirigiendo a:', result.redirectTo);
         window.location.href = result.redirectTo;
         // No resetear isPending - la página recargará completamente
       }

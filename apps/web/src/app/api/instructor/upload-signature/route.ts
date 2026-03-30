@@ -28,7 +28,6 @@ export async function POST(request: NextRequest) {
         .eq('id', auth.userId)
 
       if (updateError) {
-        // console.error('Error saving signature name:', updateError)
         return NextResponse.json(
           { 
             error: 'Error al guardar el nombre de firma',
@@ -86,7 +85,6 @@ export async function POST(request: NextRequest) {
       })
 
     if (uploadError) {
-      // console.error('Error uploading signature:', uploadError)
       return NextResponse.json(
         { 
           error: 'Error al subir la firma',
@@ -118,7 +116,6 @@ export async function POST(request: NextRequest) {
       .eq('id', auth.userId)
 
     if (updateError) {
-      // console.error('Error saving signature URL:', updateError)
       // No fallar si no se puede guardar en la BD, pero sí retornar la URL
       // para que el cliente pueda guardarla localmente
     }
@@ -130,7 +127,6 @@ export async function POST(request: NextRequest) {
       message: 'Firma subida exitosamente'
     })
   } catch (error) {
-    // console.error('Error in /api/instructor/upload-signature:', error)
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

@@ -14,7 +14,10 @@
     "test:cache": "node scripts/test-cache-headers.js",
     "analyze": "set ANALYZE=true&& next build",
     "analyze:server": "set ANALYZE=true&& set BUNDLE_ANALYZE=server&& next build",
-    "analyze:browser": "set ANALYZE=true&& set BUNDLE_ANALYZE=browser&& next build"
+    "analyze:browser": "set ANALYZE=true&& set BUNDLE_ANALYZE=browser&& next build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@aprende-y-aplica/shared": "*",
@@ -117,6 +120,9 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@next/bundle-analyzer": "^14.2.15",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/dompurify": "^3.2.0",
     "@types/jspdf": "^1.3.3",
@@ -129,12 +135,15 @@
     "@types/validator": "^13.15.4",
     "@types/video.js": "^7.3.58",
     "@types/xml2js": "^0.4.14",
+    "@vitejs/plugin-react": "^6.0.1",
     "eslint": "8.57.0",
     "eslint-config-next": "14.2.15",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "jsdom": "^29.0.1",
     "typescript": "5.9.3",
-    "typescript-eslint": "^8.50.0"
+    "typescript-eslint": "^8.50.0",
+    "vitest": "^4.1.2"
   },
   "engines": {
     "node": ">=22.0.0",

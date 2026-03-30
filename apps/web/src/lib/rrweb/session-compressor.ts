@@ -121,7 +121,6 @@ export function trimSessionToSize(session: RecordingSession, maxSize: number = T
     return session;
   }
   
-  console.log(`[SessionCompressor] Recortando sesión de ${formatBytes(currentSize)} a ${formatBytes(maxSize)}`);
   
   const events = [...session.events];
   
@@ -155,7 +154,6 @@ export function trimSessionToSize(session: RecordingSession, maxSize: number = T
     endTime: trimmedEvents[trimmedEvents.length - 1]?.timestamp || session.endTime
   };
   
-  console.log(`[SessionCompressor] Sesión recortada: ${events.length} → ${trimmedEvents.length} eventos`);
   
   return trimmedSession;
 }

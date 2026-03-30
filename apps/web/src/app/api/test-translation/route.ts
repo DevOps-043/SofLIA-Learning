@@ -40,8 +40,6 @@ export async function GET(request: NextRequest) {
 
     // Verificar variables de entorno
 
-    console.log('[TEST-TRANSLATION] - OPENAI_API_KEY:', process.env.OPENAI_API_KEY ? `${process.env.OPENAI_API_KEY.substring(0, 7)}...` : 'NO CONFIGURADA')
-    console.log('[TEST-TRANSLATION] - OPENAI_MODEL:', process.env.OPENAI_MODEL || 'gpt-4o-mini (default)')
 
     // Verificar permisos del cliente de Supabase
 
@@ -77,7 +75,6 @@ export async function GET(request: NextRequest) {
       supabase
     )
 
-    console.log('[TEST-TRANSLATION] Resultado:', JSON.stringify(result, null, 2))
 
     // PASO 1: Detectar idioma del contenido original
 

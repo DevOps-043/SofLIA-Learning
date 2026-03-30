@@ -68,7 +68,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error fetching reels:', error)
       throw error
     }
   }
@@ -81,7 +80,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error fetching reel:', error)
       throw error
     }
   }
@@ -100,7 +98,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error creating reel:', error)
       throw error
     }
   }
@@ -119,7 +116,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error updating reel:', error)
       throw error
     }
   }
@@ -133,7 +129,6 @@ export class AdminReelsService {
         throw new Error('Failed to delete reel')
       }
     } catch (error) {
-      // console.error('Error deleting reel:', error)
       throw error
     }
   }
@@ -148,7 +143,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error toggling reel status:', error)
       throw error
     }
   }
@@ -163,7 +157,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error toggling reel featured:', error)
       throw error
     }
   }
@@ -176,7 +169,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error fetching reel stats:', error)
       throw error
     }
   }
@@ -189,7 +181,6 @@ export class AdminReelsService {
       }
       return await response.json()
     } catch (error) {
-      // console.error('Error fetching categories:', error)
       throw error
     }
   }

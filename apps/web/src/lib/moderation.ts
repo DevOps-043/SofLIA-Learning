@@ -25,7 +25,6 @@ export async function containsForbiddenContent(
     });
     
     if (error) {
-      // console.error('Error checking forbidden content:', error);
       return { contains: false, words: [] };
     }
     
@@ -34,7 +33,6 @@ export async function containsForbiddenContent(
       words: data?.found_words || []
     };
   } catch (error) {
-    // console.error('Exception checking forbidden content:', error);
     return { contains: false, words: [] };
   }
 }
@@ -61,7 +59,6 @@ export async function registerWarning(
     });
     
     if (error) {
-      // console.error('Error registering warning:', error);
       throw error;
     }
     
@@ -71,7 +68,6 @@ export async function registerWarning(
       message: data?.message || ''
     };
   } catch (error) {
-    // console.error('Exception registering warning:', error);
     throw error;
   }
 }
@@ -90,13 +86,11 @@ export async function isUserBanned(
     });
     
     if (error) {
-      // console.error('Error checking if user is banned:', error);
       return false;
     }
     
     return data || false;
   } catch (error) {
-    // console.error('Exception checking if user is banned:', error);
     return false;
   }
 }
@@ -115,13 +109,11 @@ export async function getUserWarningHistory(
     });
     
     if (error) {
-      // console.error('Error getting warning history:', error);
       return [];
     }
     
     return data || [];
   } catch (error) {
-    // console.error('Exception getting warning history:', error);
     return [];
   }
 }
@@ -140,13 +132,11 @@ export async function getUserWarningsCount(
     });
     
     if (error) {
-      // console.error('Error getting warning count:', error);
       return 0;
     }
     
     return data || 0;
   } catch (error) {
-    // console.error('Exception getting warning count:', error);
     return 0;
   }
 }

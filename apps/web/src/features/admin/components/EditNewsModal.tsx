@@ -224,12 +224,9 @@ export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalPr
           })) : null
       }
 
-      // console.log('🔄 Datos antes de enviar:', JSON.stringify(newsData, null, 2))
-      // console.log('🔄 Secciones específicamente:', newsData.sections)
 
       await onSave(newsData)
     } catch (error) {
-      // console.error('Error updating news:', error)
     } finally {
       setIsSubmitting(false)
     }

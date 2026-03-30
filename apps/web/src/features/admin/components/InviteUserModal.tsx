@@ -63,22 +63,17 @@ export function InviteUserModal({
       setIsLoading(true)
       setError(null)
       
-      // console.log('🔄 InviteUserModal: Cargando usuarios...')
       
       const response = await fetch('/api/admin/users')
       const data = await response.json()
       
-      // console.log('📡 Respuesta de API usuarios:', data)
       
       if (data.success) {
         setUsers(data.users || [])
-        // console.log('✅ Usuarios cargados en modal:', data.users?.length || 0)
       } else {
-        // console.error('❌ Error en respuesta:', data.error)
         setError(data.error || 'Error al cargar usuarios')
       }
     } catch (err) {
-      // console.error('💥 Error loading users:', err)
       setError('Error de conexión al cargar usuarios')
     } finally {
       setIsLoading(false)
@@ -102,7 +97,6 @@ export function InviteUserModal({
       setSelectedUser(null)
       setSearchTerm('')
     } catch (err) {
-      // console.error('Error inviting user:', err)
       setError('Error al invitar usuario')
     } finally {
       setIsLoading(false)

@@ -182,7 +182,6 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
         if (isFirstLoad) {
           // Obtener análisis proactivo de SofLIA
           try {
-            console.log('[SofLIA Dashboard] Iniciando análisis proactivo para plan:', plan.id);
             
             const chatResponse = await fetch('/api/study-planner/dashboard/chat', {
               method: 'POST',
@@ -195,7 +194,6 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
             });
             
             const chatData = await chatResponse.json();
-            console.log('[SofLIA Dashboard] Respuesta proactiva:', chatData.success, chatData.response?.substring(0, 100));
             
             if (chatData.success && chatData.response) {
               setState(prev => ({
@@ -214,7 +212,6 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
               
               // Si la acción fue exitosa, recargar el plan para reflejar los cambios
               if (chatData.action?.status === 'success') {
-                console.log('[SofLIA Dashboard] Acción proactiva exitosa, recargando plan...');
                 // Recargar después de un breve delay para que la BD se actualice
                 setTimeout(() => {
                   fetch('/api/study-planner/dashboard/plan')

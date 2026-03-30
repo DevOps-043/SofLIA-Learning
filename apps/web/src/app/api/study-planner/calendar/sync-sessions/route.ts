@@ -137,7 +137,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SyncSessi
       secondaryCalendarId = await CalendarIntegrationService.getSecondaryCalendarId(user.id);
 
       if (!secondaryCalendarId) {
-        console.log('[Sync Sessions] No hay calendario secundario guardado, se intentara crear...');
       }
     }
 
@@ -180,7 +179,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SyncSessi
 
     // Si es Google y no tenemos calendario secundario, intentar crearlo/obtenerlo ahora
     if (integration.provider === 'google' && !secondaryCalendarId) {
-      console.log('[Sync Sessions] Intentando crear/obtener calendario secundario...');
       secondaryCalendarId = await CalendarIntegrationService.getOrCreatePlatformCalendar(accessToken);
 
       if (secondaryCalendarId) {
@@ -195,7 +193,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SyncSessi
           .eq('user_id', user.id)
           .eq('provider', 'google');
 
-        console.log('[Sync Sessions] Calendario secundario creado/obtenido:', secondaryCalendarId);
       } else {
         console.warn('[Sync Sessions] No se pudo crear el calendario secundario, se usara el principal');
       }
@@ -474,7 +471,6 @@ async function createGoogleCalendarEvent(
 
     // Usar el calendario secundario de la plataforma si está disponible, sino el primario
     const targetCalendarId = calendarId || 'primary';
-    console.log(`[Google Calendar] Creando evento en calendario: ${targetCalendarId === 'primary' ? 'principal' : 'secundario (SOFLIA)'}`);
 
     const response = await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
@@ -494,13 +490,11 @@ async function createGoogleCalendarEvent(
 
       // Si el calendario secundario no existe (404), intentar recrearlo o usar el primario
       if (response.status === 404 && targetCalendarId !== 'primary') {
-        console.log('[Google Calendar] Calendario secundario no encontrado (404), intentando recrear...');
 
         // Intentar crear un nuevo calendario secundario
         const newCalendarId = await CalendarIntegrationService.getOrCreatePlatformCalendar(accessToken);
 
         if (newCalendarId) {
-          console.log(`[Google Calendar] Nuevo calendario secundario creado/encontrado: ${newCalendarId}`);
 
           // Actualizar en BD para futuras sincronizaciones
           if (userId) {
@@ -530,7 +524,6 @@ async function createGoogleCalendarEvent(
 
           if (retryResponse.ok) {
             const retryEvent = await retryResponse.json();
-            console.log(`[Google Calendar] Evento creado en nuevo calendario secundario: ${retryEvent.id}`);
             return { eventId: retryEvent.id, newCalendarId };
           }
 
@@ -538,7 +531,6 @@ async function createGoogleCalendarEvent(
         }
 
         // Fallback al calendario primario
-        console.log('[Google Calendar] Fallback: creando evento en calendario principal');
         const fallbackResponse = await fetch(
           `https://www.googleapis.com/calendar/v3/calendars/primary/events`,
           {
@@ -553,7 +545,6 @@ async function createGoogleCalendarEvent(
 
         if (fallbackResponse.ok) {
           const fallbackEvent = await fallbackResponse.json();
-          console.log(`[Google Calendar] Evento creado en calendario principal (fallback): ${fallbackEvent.id}`);
           return { eventId: fallbackEvent.id };
         }
 

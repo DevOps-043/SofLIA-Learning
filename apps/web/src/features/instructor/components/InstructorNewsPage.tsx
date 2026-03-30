@@ -63,7 +63,6 @@ export function InstructorNewsPage() {
       await createNews(newsData)
       setShowAddModal(false)
     } catch (error) {
-      // console.error('Error creating news:', error)
     }
   }
 
@@ -75,7 +74,6 @@ export function InstructorNewsPage() {
       setShowEditModal(false)
       setSelectedNews(null)
     } catch (error) {
-      // console.error('Error updating news:', error)
     }
   }
 
@@ -87,7 +85,6 @@ export function InstructorNewsPage() {
       setShowDeleteModal(false)
       setSelectedNews(null)
     } catch (error) {
-      // console.error('Error deleting news:', error)
     }
   }
 
@@ -95,7 +92,6 @@ export function InstructorNewsPage() {
     try {
       await toggleNewsStatus(newsItem.id, newStatus)
     } catch (error) {
-      // console.error('Error toggling news status:', error)
     }
   }
 

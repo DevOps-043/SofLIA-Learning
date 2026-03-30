@@ -4,6 +4,10 @@ declare const process: any;
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import {
+    normalizeImportedActivityContent,
+    normalizeImportedMaterialContent,
+} from '@/lib/course-content'
 
 // ✅ Cliente administrativo para API routes externas (sin cookies)
 // Usa Service Role Key en vez de cookies de sesión del navegador
@@ -166,14 +170,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    console.log('[IMPORT API] ========== REQUEST RECEIVED ==========')
-    console.log('[IMPORT API] Timestamp:', new Date().toISOString())
-    console.log('[IMPORT API] ENV Check:', {
-        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-        hasCourseforgeKey: !!process.env.COURSEFORGE_API_KEY,
-        nodeEnv: process.env.NODE_ENV
-    })
 
     try {
         // 1. Validar API Key
@@ -181,7 +177,6 @@ export async function POST(request: Request) {
         const validApiKey = process.env.COURSEFORGE_API_KEY
 
         const debugKey = apiKey ? `${apiKey.substring(0, 4)}...` : 'NONE';
-        console.log(`[IMPORT API] Header 'x-api-key': ${debugKey}`);
 
         if (!validApiKey || apiKey !== validApiKey) {
             console.warn('[IMPORT API] ❌ Unauthorized - API key mismatch')
@@ -221,7 +216,6 @@ export async function POST(request: Request) {
         }
 
         const { course: courseData, modules } = validation.data
-        console.log('[IMPORT API] ✅ Validation passed. Course:', courseData.title, '| Modules:', modules.length)
         const supabase = createServiceClient()
 
         // 3. Obtener Usuario Admin/Instructor por defecto (Para evitar fallos si no viene email)
@@ -269,7 +263,6 @@ export async function POST(request: Request) {
         // 5. Upsert Transaccional (Secuencial simulada)
 
         // A. Upsert Curso (idempotente por slug — soporta re-publicaciones)
-        console.log('[IMPORT API] Upserting Course...');
         const { data: newCourse, error: createError } = await supabase
             .from('courses')
             .upsert(
@@ -298,7 +291,6 @@ export async function POST(request: Request) {
 
         // B. Crear Módulos y Lecciones
         try {
-            console.log('[IMPORT API] Inserting Modules and Lessons...');
             for (const mod of modules) {
                 // Crear Módulo
                 const { data: newModule, error: modError } = await supabase
@@ -321,7 +313,6 @@ export async function POST(request: Request) {
 
                     // DEBUG: Log the duration value before insert
                     const durationToInsert = lesson.duration || 1
-                    console.log(`[IMPORT DEBUG] Lesson: "${lesson.title}" | lesson.duration: ${lesson.duration} | Using: ${durationToInsert}`)
 
                     // Crear Lección
                     const { data: newLesson, error: lessonError } = await supabase
@@ -351,6 +342,8 @@ export async function POST(request: Request) {
                             if (mat.type === 'download') matType = 'document' // o 'pdf' si podemos inferir
                             if (mat.type === 'pdf') matType = 'pdf'
                             if (mat.type === 'quiz') matType = 'quiz'
+                            if (mat.type === 'reading') matType = 'reading'
+                            if (mat.type === 'exercise') matType = 'exercise'
 
                             return {
                                 lesson_id: newLesson.lesson_id,
@@ -360,7 +353,12 @@ export async function POST(request: Request) {
                                 file_url: mat.type === 'download' ? mat.url : null, // Si es descarga directa quizas file_url
                                 material_order_index: idx + 1,
                                 material_description: mat.description || null,
-                                content_data: mat.type === 'quiz' ? normalizeQuizData(mat.data) : null,
+                                content_data:
+                                    mat.type === 'quiz'
+                                        ? normalizeQuizData(mat.data)
+                                        : mat.type === 'reading' || mat.type === 'exercise'
+                                            ? normalizeImportedMaterialContent(mat.data)
+                                            : null,
                             }
                         })
 
@@ -385,7 +383,7 @@ export async function POST(request: Request) {
                                 activity_type: actType,
                                 activity_content: act.type === 'quiz'
                                     ? JSON.stringify(normalizeQuizData(act.data))
-                                    : JSON.stringify(act.data), // Guardamos la data como string JSON
+                                    : normalizeImportedActivityContent(act.type, act.data),
                                 activity_order_index: idx + 1,
                                 is_required: false
                             }
@@ -400,7 +398,6 @@ export async function POST(request: Request) {
                 }
             }
 
-            console.log('[IMPORT API] ✅ Import Successful');
             return NextResponse.json({
                 success: true,
                 course_id: newCourse.id,

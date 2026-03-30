@@ -22,7 +22,6 @@ export async function GET(
       members 
     })
   } catch (error: unknown) {
-    // console.error('Error fetching community members via API:', error)
     const message = error instanceof Error ? error.message : 'Error al obtener los miembros';
     return NextResponse.json({ 
       success: false, 

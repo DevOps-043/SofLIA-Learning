@@ -495,7 +495,6 @@ export class SessionRecorder {
   async exportSessionCompressed(session: RecordingSession): Promise<string> {
     try {
       const result = await compressSession(session);
-      console.log(`[SessionRecorder] Compresión: ${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${result.compressionRatio}% reducción)`);
       return result.compressed;
     } catch (error) {
       console.error('[SessionRecorder] Error en compresión, usando fallback:', error);
@@ -516,7 +515,6 @@ export class SessionRecorder {
   pause(): void {
     if (this.isRecording && !this.isPausedState) {
       this.isPausedState = true;
-      console.log('[SessionRecorder] ⏸️ Grabación pausada');
     }
   }
 
@@ -526,7 +524,6 @@ export class SessionRecorder {
   resume(): void {
     if (this.isRecording && this.isPausedState) {
       this.isPausedState = false;
-      console.log('[SessionRecorder] ▶️ Grabación reanudada');
     }
   }
 

@@ -306,7 +306,6 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
 
   const loadMoreMessages = async () => {
     // Implementar paginación real si es necesario
-    console.log('Load more messages not implemented yet')
   }
 
   return {

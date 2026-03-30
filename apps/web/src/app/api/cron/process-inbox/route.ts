@@ -72,7 +72,6 @@ async function processInboxItem(
             .eq('id', existingStagingRow.id)
 
         if (error) throw new Error(`Error actualizando staging row: ${error.message}`)
-        console.log(`[INBOX CRON] ↻ ${slug} → staging actualizado (${isUpdate ? 'update' : 'new'})`)
     } else {
         const { error } = await supabase
             .from('courses_staging')
@@ -86,7 +85,6 @@ async function processInboxItem(
             })
 
         if (error) throw new Error(`Error insertando staging row: ${error.message}`)
-        console.log(`[INBOX CRON] + ${slug} → staging creado (${isUpdate ? 'update' : 'new'})`)
     }
 }
 
@@ -119,7 +117,6 @@ export async function GET(request: Request) {
         return NextResponse.json({ processed: 0, errors: 0, message: 'Sin ítems pendientes' })
     }
 
-    console.log(`[INBOX CRON] Procesando ${inboxItems.length} ítem(s) → staging...`)
 
     let processed = 0
     let errors = 0
@@ -149,6 +146,5 @@ export async function GET(request: Request) {
         }
     }
 
-    console.log(`[INBOX CRON] Resultado: ${processed} → staging, ${errors} errores`)
     return NextResponse.json({ processed, errors, details })
 }

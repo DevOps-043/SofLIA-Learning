@@ -2,27 +2,15 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  UsersIcon,
-  BookOpenIcon,
-  CheckCircleIcon,
-  ChartBarIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
   SparklesIcon,
   ClockIcon,
-  PlusIcon,
-  Cog6ToothIcon,
   RocketLaunchIcon,
-  AcademicCapIcon,
-  UserGroupIcon
 } from '@heroicons/react/24/outline'
-import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useAuth } from '../../auth/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
-import { useThemeStore } from '../../../core/stores/themeStore'
+import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboardLogic'
 
 // ============================================
 // COMPONENTE: StatCard Premium
@@ -388,291 +376,22 @@ function ActivityItem({ title, description, user, timestamp, type, delay }: Acti
 // COMPONENTE PRINCIPAL: BusinessPanelDashboard
 // ============================================
 export function BusinessPanelDashboard() {
-  const { user } = useAuth()
-  const params = useParams()
-  const orgSlug = params?.orgSlug as string || 'org' // Fallback for safety
-  const [stats, setStats] = useState<any>(null)
-  const [activities, setActivities] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [activitiesLoading, setActivitiesLoading] = useState(true)
-  const [currentTime, setCurrentTime] = useState(new Date())
   const { t } = useTranslation('business')
-  const { effectiveStyles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-
-  // Obtener estilos del panel con fallbacks
-  const panelStyles = effectiveStyles?.panel
-
-  // Definir themeColors basado en los estilos del panel
-  const themeColors = useMemo(() => {
-    return {
-      primary: panelStyles?.primary_button_color || (isDark ? '#8B5CF6' : '#6366F1'),
-      secondary: panelStyles?.secondary_button_color || '#3B82F6',
-      accent: panelStyles?.accent_color || '#00D4B3',
-      text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
-      cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
-      borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
-      background: panelStyles?.background_value || (isDark ? '#0F172A' : '#F8FAFC'),
-      backgroundType: panelStyles?.background_type || 'color'
-    }
-  }, [panelStyles, isDark])
-
-  // Funciones auxiliares
-  const getGreeting = () => {
-    const hour = currentTime.getHours()
-    if (hour < 12) return t('dashboard.greetings.morning')
-    if (hour < 18) return t('dashboard.greetings.afternoon')
-    return t('dashboard.greetings.evening')
-  }
-
-  const getUserName = () => {
-    if (user?.first_name && user?.last_name) {
-      return `${user.first_name} ${user.last_name}`
-    }
-    if (user?.display_name) {
-      return user.display_name
-    }
-    if (user?.first_name) {
-      return user.first_name
-    }
-    if (user?.username) {
-      return user.username
-    }
-    return t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' })
-  }
-
-  const formatTimestamp = (dateString: string): string => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMs / 3600000)
-    const diffDays = Math.floor(diffMs / 86400000)
-
-    if (diffMins < 1) return t('dashboard.recentActivity.time.justNow')
-    if (diffMins < 60) return t('dashboard.recentActivity.time.minsAgo', { time: diffMins })
-    if (diffHours < 24) return t('dashboard.recentActivity.time.hoursAgo', { time: diffHours })
-    if (diffDays === 1) return t('dashboard.recentActivity.time.daysAgo', { time: 1 })
-    if (diffDays < 7) return t('dashboard.recentActivity.time.daysAgo', { time: diffDays })
-
-    return date.toLocaleDateString(t('dashboard.recentActivity.time.locale', { defaultValue: 'es-ES' }), { day: 'numeric', month: 'short' })
-  }
-
-  // Cargar estadísticas del dashboard
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true)
-        const response = await fetch(`/api/${orgSlug}/business/dashboard/stats`, {
-          credentials: 'include'
-        })
-
-        if (!response.ok) {
-          throw new Error('Error al cargar estadísticas')
-        }
-
-        const data = await response.json()
-        if (data.success && data.stats) {
-          setStats(data.stats)
-        }
-      } catch (error) {
-        console.error('Error loading stats:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchStats()
-  }, [])
-
-  // Cargar actividades recientes
-  useEffect(() => {
-    const fetchActivities = async () => {
-      try {
-        setActivitiesLoading(true)
-        const response = await fetch(`/api/${orgSlug}/business/dashboard/activity`, {
-          credentials: 'include'
-        })
-
-        if (!response.ok) {
-          throw new Error('Error al cargar actividades')
-        }
-
-        const data = await response.json()
-        if (data.success && data.activities) {
-          // Mapear el formato de la API al formato esperado por el componente
-          const mappedActivities = data.activities.map((activity: any) => ({
-            title: activity.action || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
-            description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' }),
-            user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
-            timestamp: activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }), // La API ya devuelve el tiempo formateado
-            type: activity.icon === 'CheckCircle' ? 'certificate' :
-              activity.icon === 'Users' ? 'user' :
-                activity.icon === 'BookOpen' ? 'course' : 'progress'
-          }))
-          setActivities(mappedActivities)
-        }
-      } catch (error) {
-        console.error('Error loading activities:', error)
-      } finally {
-        setActivitiesLoading(false)
-      }
-    }
-
-    fetchActivities()
-  }, [])
-
-  // Actualizar hora actual cada minuto
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 60000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  // Función auxiliar para parsear el cambio (puede venir como string con + o - y %)
-  const parseChange = (change: any): number => {
-    if (typeof change === 'number') return change
-    if (typeof change === 'string') {
-      // Remover +, - y % del string
-      const cleaned = change.replace(/[+\-%]/g, '')
-      const parsed = parseFloat(cleaned)
-      return isNaN(parsed) ? 0 : parsed
-    }
-    return 0
-  }
-
-  // Helpers para extraer valores de stats (pueden ser primitivos o objetos {value, change, changeType})
-  const getStatValue = (stat: any, fallback: any = 0): any => {
-    if (stat && typeof stat === 'object' && 'value' in stat) return stat.value
-    return stat || fallback
-  }
-
-  const getStatChange = (stat: any, fallbackChange: any = 0): number => {
-    if (stat && typeof stat === 'object' && 'change' in stat) return parseChange(stat.change)
-    return parseChange(fallbackChange)
-  }
-
-  const statsData = useMemo(() => stats ? [
-    {
-      title: t('dashboard.stats.activeUsers'),
-      value: getStatValue(stats.activeUsers),
-      change: getStatChange(stats.activeUsers, stats.usersChange),
-      backgroundImage: '/images/dashboard-cards/users-card-bg.png',
-      gradient: `bg-gradient-to-br from-[${themeColors.primary}] to-[${themeColors.primary}]/80`,
-      gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.primary}, ${themeColors.primary}cc)` },
-      href: `/${orgSlug}/business-panel/users`
-    },
-    {
-      title: t('dashboard.stats.assignedCourses'),
-      value: getStatValue(stats.assignedCourses),
-      change: getStatChange(stats.assignedCourses, stats.assignmentsChange),
-      backgroundImage: '/images/dashboard-cards/courses-card-bg.png',
-      gradient: `bg-gradient-to-br from-[${themeColors.secondary}] to-[${themeColors.secondary}]/80`,
-      gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.secondary}, ${themeColors.secondary}cc)` },
-      href: `/${orgSlug}/business-panel/courses`,
-      id: 'tour-stat-courses'
-    },
-    {
-      title: t('dashboard.stats.completed'),
-      value: getStatValue(stats.completedCourses || stats.completed),
-      change: getStatChange(stats.completedCourses || stats.completed, stats.completedChange),
-      backgroundImage: '/images/dashboard-cards/completed-card-bg.png',
-      gradient: `bg-gradient-to-br from-[${themeColors.accent}] to-[${themeColors.accent}]/80`,
-      gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.accent}, ${themeColors.accent}cc)` },
-    },
-    {
-      title: t('dashboard.stats.avgProgress'),
-      value: getStatValue(stats.inProgress, `${stats.averageProgress || 0}%`),
-      change: getStatChange(stats.inProgress, stats.progressChange),
-      backgroundImage: '/images/dashboard-cards/progress-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #F59E0B, #F59E0Bcc)` },
-    },
-    {
-      title: t('dashboard.stats.certificates'),
-      value: getStatValue(stats.certificates, 0),
-      change: getStatChange(stats.certificates, stats.certificateGrowth),
-      backgroundImage: '/images/dashboard-cards/certificates-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #8B5CF6, #8B5CF6cc)` },
-      id: 'tour-stat-certificates'
-    },
-    {
-      title: t('dashboard.stats.engagement'),
-      value: getStatValue(stats.engagement, `${stats.engagementRate || 0}%`),
-      change: getStatChange(stats.engagement, stats.engagementGrowth),
-      backgroundImage: '/images/dashboard-cards/engagement-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#EC4899] to-[#EC4899]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #EC4899, #EC4899cc)` },
-    },
-    {
-      title: t('dashboard.stats.invitedUsers', 'Usuarios Invitados'),
-      value: getStatValue(stats.invitedUsers),
-      change: getStatChange(stats.invitedUsers),
-      backgroundImage: '/images/dashboard-cards/users-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#6366F1] to-[#6366F1]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #6366F1, #6366F1cc)` },
-      href: `/${orgSlug}/business-panel/users?tab=invitations`
-    },
-    {
-      title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitación'),
-      value: stats.invitedUsers && typeof stats.invitedUsers === 'object' ? stats.invitedUsers.linksCount || 0 : 0,
-      change: 0,
-      backgroundImage: '/images/dashboard-cards/courses-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #10B981, #10B981cc)` },
-      href: `/${orgSlug}/business-panel/users?tab=links`
-    },
-  ] : [], [stats, themeColors, t, orgSlug])
-
-  const quickActions = useMemo(() => [
-    {
-      title: t('dashboard.quickActions.manageUsers.title'),
-      description: t('dashboard.quickActions.manageUsers.desc'),
-      icon: UsersIcon,
-      href: `/${orgSlug}/business-panel/users`,
-      color: themeColors.primary
-    },
-    {
-      title: t('dashboard.quickActions.assignCourses.title'),
-      description: t('dashboard.quickActions.assignCourses.desc'),
-      icon: PlusIcon,
-      href: `/${orgSlug}/business-panel/courses`,
-      color: themeColors.secondary
-    },
-    {
-      title: t('dashboard.quickActions.viewReports.title'),
-      description: t('dashboard.quickActions.viewReports.desc'),
-      icon: ChartBarIcon,
-      href: `/${orgSlug}/business-panel/reports`,
-      color: themeColors.accent
-    },
-    {
-      title: t('dashboard.quickActions.settings.title'),
-      description: t('dashboard.quickActions.settings.desc'),
-      icon: Cog6ToothIcon,
-      href: `/${orgSlug}/business-panel/settings`,
-      color: '#8B5CF6'
-    },
-  ], [themeColors, t, orgSlug])
-
-  // Calcular estilo de fondo dinámico
-  const getBackgroundStyles = () => {
-    if (themeColors.backgroundType === 'gradient' && themeColors.background) {
-      return { background: themeColors.background }
-    } else if (themeColors.backgroundType === 'image' && themeColors.background) {
-      return {
-        backgroundImage: `url(${themeColors.background})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }
-    }
-    return { backgroundColor: themeColors.background }
-  }
+  const {
+    user,
+    orgSlug,
+    stats,
+    activities,
+    isLoading,
+    activitiesLoading,
+    themeColors,
+    statsData,
+    quickActions,
+    getGreeting,
+    getUserName,
+    formatTimestamp,
+    getBackgroundStyles,
+  } = useBusinessPanelDashboardLogic()
 
   return (
     <div

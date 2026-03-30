@@ -240,24 +240,12 @@ export class ContentTranslationService {
       // Verificar tamaño total de las traducciones (Supabase tiene límites)
       const translationsJson = JSON.stringify(translations);
       const translationsSize = new Blob([translationsJson]).size;
-      console.log(`[ContentTranslationService] Tamaño de traducciones para ${entityType}:${entityId}:${language}:`, {
-        sizeBytes: translationsSize,
-        sizeKB: (translationsSize / 1024).toFixed(2),
-        sizeMB: (translationsSize / (1024 * 1024)).toFixed(2),
-        fieldCount: Object.keys(translations).length,
-        fields: Object.keys(translations)
-      });
 
       // Supabase JSONB tiene un límite de ~1GB, pero en la práctica es mejor mantenerlo bajo
       if (translationsSize > 10 * 1024 * 1024) { // 10MB
         console.warn(`[ContentTranslationService] ⚠️ Traducciones muy grandes (${(translationsSize / (1024 * 1024)).toFixed(2)}MB) para ${entityType}:${entityId}:${language}`);
       }
 
-      console.log(`[ContentTranslationService] Guardando traducción para ${entityType}:${entityId}:${language}`, {
-        fields: Object.keys(translations),
-        hasClient: !!supabaseClient,
-        userId
-      });
 
       // IMPORTANTE: Siempre usar SERVICE_ROLE_KEY para guardar traducciones
       // Esto bypassa RLS y permite escribir independientemente de los permisos del usuario
@@ -292,13 +280,6 @@ export class ContentTranslationService {
         updated_at: new Date().toISOString()
       };
 
-      console.log(`[ContentTranslationService] Datos a insertar/actualizar:`, {
-        entity_type: upsertData.entity_type,
-        entity_id: upsertData.entity_id,
-        language_code: upsertData.language_code,
-        translations_keys: Object.keys(upsertData.translations),
-        created_by: upsertData.created_by
-      });
 
       
       const { data, error } = await supabase

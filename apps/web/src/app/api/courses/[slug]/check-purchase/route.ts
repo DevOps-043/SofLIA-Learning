@@ -66,12 +66,10 @@ export async function GET(
       .maybeSingle();
 
     if (assignmentError && assignmentError.code !== 'PGRST116') {
-      // console.error('Error checking assignment:', assignmentError);
     }
 
     return NextResponse.json({ isPurchased: !!assignment });
   } catch (error) {
-    // console.error('Error in check-purchase API:', error);
     return NextResponse.json({ isPurchased: false });
   }
 }

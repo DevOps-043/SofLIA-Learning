@@ -28,7 +28,6 @@ export async function GET() {
 
     return NextResponse.json(stats)
   } catch (error) {
-    // console.error('Error in GET /api/instructor/stats:', error)
     return NextResponse.json(
       { error: 'Error al obtener estadísticas del instructor' },
       { status: 500 }

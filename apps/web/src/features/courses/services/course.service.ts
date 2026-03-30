@@ -88,7 +88,6 @@ export class CourseService {
 
       const { data, error } = results[0] as any
       if (error) {
-        // console.error('Error fetching courses:', error)
         throw new Error(`Error al obtener cursos: ${error.message}`)
       }
 
@@ -115,7 +114,6 @@ export class CourseService {
             purchasedCourseIds = purchasesResult.data.map((p: any) => p.course_id)
           }
 
-          // console.log(`Found ${purchasedCourseIds.length} purchased courses for user ${userId}`)
         }
       }
 
@@ -138,7 +136,6 @@ export class CourseService {
 
         // Debug: Log para verificar el status
         if (isPurchased) {
-          // console.log(`Course ${course.id} (${course.title}) is marked as purchased`)
         }
 
         return {
@@ -172,7 +169,6 @@ export class CourseService {
 
       return courses
     } catch (error) {
-      // console.error('Error in CourseService.getActiveCourses:', error)
       throw error
     }
   }
@@ -236,7 +232,6 @@ export class CourseService {
       const { data, error } = results[0] as any
 
       if (error) {
-        // console.error('Error fetching course by slug:', error)
         return null
       }
 
@@ -290,7 +285,6 @@ export class CourseService {
 
       return course
     } catch (error) {
-      // console.error('Error in CourseService.getCourseBySlug:', error)
       return null
     }
   }
@@ -323,7 +317,6 @@ export class CourseService {
         .single()
 
       if (error) {
-        // console.error('Error fetching course:', error)
         return null
       }
 
@@ -351,7 +344,6 @@ export class CourseService {
 
       return course
     } catch (error) {
-      // console.error('Error in CourseService.getCourseById:', error)
       return null
     }
   }
@@ -370,7 +362,6 @@ export class CourseService {
         .not('category', 'is', null)
 
       if (error) {
-        // console.error('Error fetching categories:', error)
         throw new Error(`Error al obtener categorías: ${error.message}`)
       }
 
@@ -381,7 +372,6 @@ export class CourseService {
 
       return uniqueCategories
     } catch (error) {
-      // console.error('Error in CourseService.getCategories:', error)
       throw error
     }
   }
@@ -429,7 +419,6 @@ export class CourseService {
         .order('created_at', { ascending: false })
 
       if (error) {
-        // console.error('Error fetching courses by category:', error)
         throw new Error(`Error al obtener cursos por categoría: ${error.message}`)
       }
 
@@ -475,7 +464,6 @@ export class CourseService {
 
       return courses
     } catch (error) {
-      // console.error('Error in CourseService.getCoursesByCategory:', error)
       throw error
     }
   }

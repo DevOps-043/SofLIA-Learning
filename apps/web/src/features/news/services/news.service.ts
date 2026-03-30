@@ -59,7 +59,6 @@ export class NewsService {
       const { data, error } = await query
 
       if (error) {
-        // console.error('Error fetching news:', error)
         throw new Error(`Error al obtener noticias: ${error.message}`)
       }
 
@@ -72,7 +71,6 @@ export class NewsService {
 
       return newsWithMetrics
     } catch (error) {
-      // console.error('Error in NewsService.getPublishedNews:', error)
       throw error
     }
   }
@@ -92,7 +90,6 @@ export class NewsService {
         if (error.code === 'PGRST116') {
           return null // No se encontró la noticia
         }
-        // console.error('Error fetching news by slug:', error)
         throw new Error(`Error al obtener noticia: ${error.message}`)
       }
 
@@ -102,7 +99,6 @@ export class NewsService {
         comment_count: data.metrics?.comments || 0
       }
     } catch (error) {
-      // console.error('Error in NewsService.getNewsBySlug:', error)
       throw error
     }
   }
@@ -119,7 +115,6 @@ export class NewsService {
         .limit(limit)
 
       if (error) {
-        // console.error('Error fetching featured news:', error)
         throw new Error(`Error al obtener noticias destacadas: ${error.message}`)
       }
 
@@ -129,7 +124,6 @@ export class NewsService {
         comment_count: news.metrics?.comments || 0
       }))
     } catch (error) {
-      // console.error('Error in NewsService.getFeaturedNews:', error)
       throw error
     }
   }
@@ -144,7 +138,6 @@ export class NewsService {
         .eq('status', 'published')
 
       if (error) {
-        // console.error('Error fetching news categories:', error)
         throw new Error(`Error al obtener categorías: ${error.message}`)
       }
 
@@ -152,7 +145,6 @@ export class NewsService {
       const categories = [...new Set(data.map(item => item.language))].filter(Boolean)
       return categories
     } catch (error) {
-      // console.error('Error in NewsService.getNewsCategories:', error)
       throw error
     }
   }
@@ -171,7 +163,6 @@ export class NewsService {
         .eq('status', 'published')
 
       if (error) {
-        // console.error('Error fetching news stats:', error)
         throw new Error(`Error al obtener estadísticas: ${error.message}`)
       }
 
@@ -185,7 +176,6 @@ export class NewsService {
         totalViews
       }
     } catch (error) {
-      // console.error('Error in NewsService.getNewsStats:', error)
       throw error
     }
   }
@@ -214,7 +204,6 @@ export class NewsService {
         .single()
 
       if (fetchError) {
-        // console.error('Error fetching news for view increment:', fetchError)
         return
       }
 
@@ -230,7 +219,6 @@ export class NewsService {
           .eq('slug', slug)
 
         if (updateError) {
-          // console.error('Error updating view count:', updateError)
         }
       } else {
         // Fallback: usar metrics JSONB
@@ -249,11 +237,9 @@ export class NewsService {
           .eq('slug', slug)
 
         if (updateError) {
-          // console.error('Error updating view count:', updateError)
         }
       }
     } catch (error) {
-      // console.error('Error in NewsService.incrementViewCount:', error)
     }
   }
 
@@ -284,7 +270,6 @@ export class NewsService {
         )
       )
     } catch (error) {
-      // console.error('Error in NewsService.batchIncrementViewCounts:', error)
     }
   }
 }

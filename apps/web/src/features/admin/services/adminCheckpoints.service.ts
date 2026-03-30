@@ -37,13 +37,11 @@ export class AdminCheckpointsService {
         .order('checkpoint_order_index', { ascending: true })
 
       if (error) {
-        // console.error('Error fetching checkpoints:', error)
         throw error
       }
 
       return data || []
     } catch (error) {
-      // console.error('Error in AdminCheckpointsService.getLessonCheckpoints:', error)
       throw error
     }
   }
@@ -59,13 +57,11 @@ export class AdminCheckpointsService {
         .single()
 
       if (error) {
-        // console.error('Error fetching checkpoint:', error)
         throw error
       }
 
       return data
     } catch (error) {
-      // console.error('Error in AdminCheckpointsService.getCheckpointById:', error)
       return null
     }
   }
@@ -97,13 +93,11 @@ export class AdminCheckpointsService {
         .single()
 
       if (error) {
-        // console.error('Error creating checkpoint:', error)
         throw error
       }
 
       return data
     } catch (error) {
-      // console.error('Error in AdminCheckpointsService.createCheckpoint:', error)
       throw error
     }
   }
@@ -120,13 +114,11 @@ export class AdminCheckpointsService {
         .single()
 
       if (error) {
-        // console.error('Error updating checkpoint:', error)
         throw error
       }
 
       return data
     } catch (error) {
-      // console.error('Error in AdminCheckpointsService.updateCheckpoint:', error)
       throw error
     }
   }
@@ -141,11 +133,9 @@ export class AdminCheckpointsService {
         .eq('checkpoint_id', checkpointId)
 
       if (error) {
-        // console.error('Error deleting checkpoint:', error)
         throw error
       }
     } catch (error) {
-      // console.error('Error in AdminCheckpointsService.deleteCheckpoint:', error)
       throw error
     }
   }

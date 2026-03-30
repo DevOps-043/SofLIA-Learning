@@ -119,9 +119,6 @@ export class CalendarSyncService {
       // Usar el calendario secundario si existe, si no usar 'primary'
       const targetCalendarId = calendarId || 'primary';
 
-      console.log(
-        `[CalendarSync] Eliminando evento ${cleanEventId} del calendario ${targetCalendarId === 'primary' ? 'principal' : 'secundario'}`
-      );
 
       const response = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId)}`,
@@ -135,7 +132,6 @@ export class CalendarSyncService {
 
       // 404 significa que el evento ya no existe, lo cual es OK
       if (response.ok || response.status === 404) {
-        console.log('[CalendarSync] Evento eliminado exitosamente');
         return { success: true };
       }
 
@@ -168,7 +164,6 @@ export class CalendarSyncService {
    */
   static async deleteMicrosoftEvent(accessToken: string, eventId: string): Promise<SyncResult> {
     try {
-      console.log(`[CalendarSync] Eliminando evento ${eventId} de Microsoft Calendar`);
 
       const response = await fetch(
         `https://graph.microsoft.com/v1.0/me/calendar/events/${encodeURIComponent(eventId)}`,
@@ -182,7 +177,6 @@ export class CalendarSyncService {
 
       // 404 significa que el evento ya no existe, lo cual es OK
       if (response.ok || response.status === 404) {
-        console.log('[CalendarSync] Evento de Microsoft eliminado exitosamente');
         return { success: true };
       }
 
@@ -312,9 +306,6 @@ export class CalendarSyncService {
     try {
       const targetCalendarId = calendarId || 'primary';
 
-      console.log(
-        `[CalendarSync] Creando evento en calendario ${targetCalendarId === 'primary' ? 'principal' : 'secundario'}`
-      );
 
       const response = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events`,
@@ -353,7 +344,6 @@ export class CalendarSyncService {
       }
 
       const createdEvent = await response.json();
-      console.log('[CalendarSync] Evento creado exitosamente:', createdEvent.id);
 
       return {
         success: true,
@@ -382,7 +372,6 @@ export class CalendarSyncService {
     }
   ): Promise<SyncResult> {
     try {
-      console.log('[CalendarSync] Creando evento en Microsoft Calendar');
 
       const response = await fetch('https://graph.microsoft.com/v1.0/me/events', {
         method: 'POST',
@@ -419,7 +408,6 @@ export class CalendarSyncService {
       }
 
       const createdEvent = await response.json();
-      console.log('[CalendarSync] Evento de Microsoft creado exitosamente:', createdEvent.id);
 
       return {
         success: true,
@@ -453,9 +441,6 @@ export class CalendarSyncService {
       const cleanEventId = eventId.split('_')[0];
       const targetCalendarId = calendarId || 'primary';
 
-      console.log(
-        `[CalendarSync] Actualizando evento ${cleanEventId} en calendario ${targetCalendarId === 'primary' ? 'principal' : 'secundario'}`
-      );
 
       const updateBody: Record<string, unknown> = {};
 
@@ -497,7 +482,6 @@ export class CalendarSyncService {
         };
       }
 
-      console.log('[CalendarSync] Evento actualizado exitosamente');
       return { success: true };
     } catch (error) {
       console.error('[CalendarSync] Error en updateGoogleEvent:', error);

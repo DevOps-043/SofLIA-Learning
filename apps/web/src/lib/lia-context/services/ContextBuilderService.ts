@@ -34,7 +34,6 @@ export class ContextBuilderService {
       p.shouldInclude(request)
     );
     
-    console.log(`[ContextBuilder] Construyendo contexto con ${relevantProviders.length} providers relevantes`);
     
     const fragmentPromises = relevantProviders.map(async (provider) => {
       const providerStartTime = Date.now();
@@ -46,7 +45,6 @@ export class ContextBuilderService {
           // Por ahora no podemos distinguir hits/misses fácilmente sin modificar caché
           // En fase posterior se puede mejorar
           cacheMisses++;
-          console.log(`[ContextBuilder] Provider ${provider.name}: ${fragment.tokens} tokens, ${providerTime}ms`);
           return fragment;
         }
         return null;
@@ -69,7 +67,6 @@ export class ContextBuilderService {
     // 3. Calcular tiempo de construcción
     const buildTime = Date.now() - startTime;
     
-    console.log(`[ContextBuilder] Contexto construido: ${fragments.length} fragmentos, ${totalTokens} tokens, ${buildTime}ms`);
     
     return {
       basePrompt,

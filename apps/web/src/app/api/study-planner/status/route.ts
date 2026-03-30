@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        console.log('🔍 StudyPlanner Status Check:', { userId: user.id, email: user.email });
 
         let supabase;
         // Intenta usar la clave de servicio (admin) si está disponible para omitir RLS
@@ -29,7 +28,6 @@ export async function GET(request: NextRequest) {
 
         if (serviceRoleKey) {
             const { createClient: createSupabaseClient } = await import('@supabase/supabase-js');
-            // console.log('✅ Using Service Role Key for admin access');
             supabase = createSupabaseClient(
                 process.env.NEXT_PUBLIC_SUPABASE_URL!,
                 serviceRoleKey,
@@ -42,7 +40,6 @@ export async function GET(request: NextRequest) {
                 }
             );
         } else {
-            // console.log('⚠️ Using Standard Client');
             // CRITICAL FIX: createClient is async in server.ts
             supabase = await createClient();
         }
@@ -65,7 +62,6 @@ export async function GET(request: NextRequest) {
         }
 
         const hasPlan = plans && plans.length > 0;
-        console.log(`🔍 Plan status for user ${user.id}:`, { hasPlan, planId: hasPlan ? plans[0].id : null });
 
         return NextResponse.json({
             success: true,

@@ -141,7 +141,6 @@ export async function GET(
       cacheHeaders.dynamic // 30 segundos (contiene datos de progreso del usuario)
     )
   } catch (error) {
-    // console.error('Error in unified learn-data endpoint:', error)
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
@@ -353,7 +352,6 @@ async function loadModulesWithProgress(
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 
-  console.log(`[learn-data] Usando tabla de lecciones: ${getLessonsTableName(language)} para idioma: ${language}`);
 
   // Construir módulos con lecciones (ya vienen traducidas de la tabla correcta)
   const modulesWithLessons = await Promise.all(
@@ -378,7 +376,6 @@ async function loadModulesWithProgress(
       const lessonsToShow = publishedLessons.length > 0 ? publishedLessons : moduleLessons
 
       // Las lecciones ya vienen traducidas de la tabla específica del idioma
-      console.log(`[learn-data] Procesando ${lessonsToShow.length} lecciones (ya traducidas de ${getLessonsTableName(language)})`);
 
       const lessonsWithProgress = lessonsToShow.map((lesson: any) => {
         // Reconstruir URL de video

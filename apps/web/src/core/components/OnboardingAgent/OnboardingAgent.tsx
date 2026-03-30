@@ -201,11 +201,6 @@ export function OnboardingAgent() {
       const modelId = 'eleven_turbo_v2_5';
 
       // Debug: mostrar valores (comentado para reducir logs)
-      // console.log('ElevenLabs Config (OPTIMIZED):', { 
-      //   apiKey: apiKey.substring(0, 15) + '...', 
-      //   voiceId,
-      //   modelId
-      // });
 
       if (!apiKey || !voiceId) {
         console.warn('⚠️ ElevenLabs credentials not found, using fallback Web Speech API');

@@ -130,7 +130,6 @@ export class SofLIAContextService {
     // Obtener contexto del usuario
     const userContext = await UserContextService.getFullUserContext(userId);
 
-    console.log(`[SofLIAContextService] buildStudyPlannerContext - userType recibido: ${userContext.userType} para userId: ${userId}`);
 
     // Construir contexto base
     const context: StudyPlannerContext = {
@@ -141,7 +140,6 @@ export class SofLIAContextService {
       calendarProvider: userContext.calendarIntegration?.provider,
     };
 
-    console.log(`[SofLIAContextService] buildStudyPlannerContext - Contexto construido con userType: ${context.userType}`);
 
     // Agregar información de organización para B2B
     if (userContext.userType === 'b2b' && userContext.organization) {

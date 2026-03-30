@@ -653,7 +653,6 @@ export default function ProfilePage() {
                         alt="Profile" 
                         className="w-full h-full object-cover" 
                         onError={() => {
-                          // console.log('Error loading image:', profile.profile_picture_url)
                           setImageError(true)
                         }}
                       />

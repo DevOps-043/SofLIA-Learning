@@ -299,7 +299,6 @@ export async function DELETE(
             // Si el error indica que no se encontró, intentar en el primario
             // Google devuelve 404 Not Found o 410 Gone
             if (error.message?.includes('404') || error.message?.includes('410') || error.message?.includes('Not Found') || error.message?.includes('Deleted')) {
-              console.log('[Delete Event] Intentando eliminar del calendario principal...');
               try {
                 await deleteGoogleCalendarEvent(accessToken, id, 'primary');
               } catch (primaryError: any) {

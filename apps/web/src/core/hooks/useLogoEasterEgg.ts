@@ -33,11 +33,9 @@ export function useLogoEasterEgg() {
     setClickCount(newCount)
     
     // Mostrar feedback discreto en consola
-    // console.log(`🥚 ${newCount}/5`)
     
     // Si llega a 5 clics consecutivos, redirigir a easteregg
     if (newCount >= 5) {
-      // console.log('🎉 ¡Easter Egg!')
       setIsActivated(true)
       
       // Pequeño delay para el efecto visual
@@ -65,7 +63,6 @@ export function useLogoEasterEgg() {
     // Establecer un temporizador para resetear el contador si no hay otro clic en 500ms
     clickTimerRef.current = setTimeout(() => {
       resetClickCount()
-      // console.log('🔄 Reset - clics no consecutivos')
     }, 500)
   }, [resetClickCount, router])
 

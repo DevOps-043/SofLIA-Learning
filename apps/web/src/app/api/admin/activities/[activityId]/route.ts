@@ -14,7 +14,6 @@ export async function PUT(
     const activity = await AdminActivitiesService.updateActivity(activityId, body)
     return NextResponse.json({ success: true, activity })
   } catch (error) {
-    // console.error('Error in PUT /api/admin/activities/[activityId]:', error)
     return NextResponse.json({ error: 'Error al actualizar actividad' }, { status: 500 })
   }
 }
@@ -31,7 +30,6 @@ export async function DELETE(
     await AdminActivitiesService.deleteActivity(activityId)
     return NextResponse.json({ success: true })
   } catch (error) {
-    // console.error('Error in DELETE /api/admin/activities/[activityId]:', error)
     return NextResponse.json({ error: 'Error al eliminar actividad' }, { status: 500 })
   }
 }

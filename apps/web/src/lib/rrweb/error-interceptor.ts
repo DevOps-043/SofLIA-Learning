@@ -167,7 +167,6 @@ export function startErrorInterceptor() {
     }
   };
 
-  console.log('[ErrorInterceptor] ✅ Interceptor de errores activado');
 }
 
 /**
@@ -192,7 +191,6 @@ export function stopErrorInterceptor() {
   }
   
   isInterceptorActive = false;
-  console.log('[ErrorInterceptor] 🛑 Interceptor de errores desactivado');
 }
 
 /**

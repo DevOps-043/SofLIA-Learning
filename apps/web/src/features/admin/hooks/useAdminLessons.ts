@@ -93,7 +93,6 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
         
         // Solo limpiar lecciones del módulo que falló, no todas
         setLessons(prev => prev.filter(l => l.module_id !== moduleId))
-        // console.error('Error fetching lessons:', err)
       } finally {
         setLoading(false)
         pendingRequests.delete(requestKey)

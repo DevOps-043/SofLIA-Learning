@@ -69,7 +69,6 @@ export default function AIModerationPanel() {
         setStats(data);
       }
     } catch (error) {
-      // console.error('Error loading stats:', error);
     }
   }
 
@@ -85,7 +84,6 @@ export default function AIModerationPanel() {
         try {
           await registerWarning(item.user_id, item.content_preview, item.content_type as 'post' | 'comment', supabase);
         } catch (error) {
-          // console.error('Error registering warning:', error);
         }
       }
     }

@@ -84,7 +84,6 @@ export function InstructorReelsPage() {
       await createReel(data)
       setShowAddModal(false)
     } catch (error) {
-      // console.error('Error creating reel:', error)
     }
   }
 
@@ -95,7 +94,6 @@ export function InstructorReelsPage() {
       setShowEditModal(false)
       setSelectedReel(null)
     } catch (error) {
-      // console.error('Error updating reel:', error)
     }
   }
 
@@ -106,7 +104,6 @@ export function InstructorReelsPage() {
       setShowDeleteModal(false)
       setSelectedReel(null)
     } catch (error) {
-      // console.error('Error deleting reel:', error)
     }
   }
 
@@ -114,7 +111,6 @@ export function InstructorReelsPage() {
     try {
       await toggleReelStatus(reel.id)
     } catch (error) {
-      // console.error('Error toggling status:', error)
     }
   }
 
@@ -122,7 +118,6 @@ export function InstructorReelsPage() {
     try {
       await toggleReelFeatured(reel.id)
     } catch (error) {
-      // console.error('Error toggling featured:', error)
     }
   }
 

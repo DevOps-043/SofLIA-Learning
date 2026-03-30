@@ -87,7 +87,6 @@ export default function CertificateDetailPage() {
         throw new Error(data.error || 'Error al obtener certificado')
       }
     } catch (err) {
-      // console.error('Error fetching certificate:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setLoading(false)

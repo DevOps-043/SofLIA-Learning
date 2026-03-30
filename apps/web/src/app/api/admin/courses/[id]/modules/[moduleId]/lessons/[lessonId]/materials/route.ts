@@ -26,7 +26,6 @@ export async function GET(
       materials
     })
   } catch (error) {
-    // console.error('Error in GET /api/admin/courses/[id]/modules/[moduleId]/lessons/[lessonId]/materials:', error)
     return NextResponse.json(
       { 
         success: false,
@@ -70,7 +69,6 @@ export async function POST(
       material
     })
   } catch (error) {
-    // console.error('Error in POST /api/admin/courses/[id]/modules/[moduleId]/lessons/[lessonId]/materials:', error)
     return NextResponse.json(
       { 
         success: false,

@@ -189,13 +189,10 @@ export function logError(context: string, error: unknown): void {
   const isDevelopment = process.env.NODE_ENV === 'development'
 
   if (isDevelopment) {
-    // console.error(`[${context}] Error:`, error)
   } else {
     // In production: log minimal info without stack traces
     if (error instanceof Error) {
-      // console.error(`[${context}] ${error.name}: ${error.message}`)
     } else {
-      // console.error(`[${context}] Error:`, String(error))
     }
   }
 }

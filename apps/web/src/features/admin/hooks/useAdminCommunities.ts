@@ -31,7 +31,6 @@ export function useAdminCommunities(): UseAdminCommunitiesReturn {
       if (!communitiesResponse.ok || !statsResponse.ok) {
         const communitiesError = !communitiesResponse.ok ? await communitiesResponse.json().catch(() => null) : null
         const statsError = !statsResponse.ok ? await statsResponse.json().catch(() => null) : null
-        // console.error('❌ Error en respuestas:', { communitiesError, statsError })
         throw new Error('Error al cargar los datos de comunidades')
       }
 
@@ -41,15 +40,6 @@ export function useAdminCommunities(): UseAdminCommunitiesReturn {
       ])
 
       // Logging para debugging
-      // console.log('📊 Communities API Response:', {
-      //   hasCommunities: !!communitiesData.communities,
-      //   communitiesCount: communitiesData.communities?.length || 0,
-      //   rawData: communitiesData
-      // })
-      // console.log('📈 Stats API Response:', {
-      //   hasStats: !!statsData.stats,
-      //   stats: statsData.stats
-      // })
 
 // 
       // Manejar ambos formatos: paginado (data) y no paginado (communities)
@@ -60,9 +50,7 @@ export function useAdminCommunities(): UseAdminCommunitiesReturn {
       setStats(statsData.stats || null)
 
 // 
-      // console.log('✅ Communities loaded:', communities.length)
     } catch (err) {
-      // console.error('❌ Error fetching communities data:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)
@@ -157,7 +145,6 @@ export function useCommunitiesPaginated(params: UseCommunitiesPaginatedParams = 
       const result: PaginatedCommunitiesPage = await response.json()
       setPages([result])
     } catch (err) {
-      // console.error('Error fetching first page:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)
@@ -197,7 +184,6 @@ export function useCommunitiesPaginated(params: UseCommunitiesPaginatedParams = 
       const result: PaginatedCommunitiesPage = await response.json()
       setPages(prev => [...prev, result])
     } catch (err) {
-      // console.error('Error fetching next page:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsFetchingNextPage(false)

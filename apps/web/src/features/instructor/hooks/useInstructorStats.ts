@@ -24,7 +24,6 @@ export function useInstructorStats(initialPeriod: string = '1month') {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al cargar las estadísticas'
       setError(errorMessage)
-      // console.error('Error fetching instructor stats:', err)
     } finally {
       setLoading(false)
     }

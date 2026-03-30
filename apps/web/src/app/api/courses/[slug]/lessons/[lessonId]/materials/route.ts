@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
+import { normalizeLessonMaterialRecord } from '@/lib/course-content';
 
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/materials
@@ -58,7 +59,6 @@ export async function GET(
       .order('material_order_index', { ascending: true });
 
     if (materialsError) {
-      // console.error('Error fetching materials:', materialsError);
       return NextResponse.json(
         { error: 'Error al obtener materiales' },
         { status: 500 }
@@ -66,12 +66,15 @@ export async function GET(
     }
 
     // ⚡ OPTIMIZACIÓN: Agregar cache headers (datos estáticos - 1 hora)
+    const normalizedMaterials = (materials || []).map((material: any) =>
+      normalizeLessonMaterialRecord(material)
+    );
+
     return withCacheHeaders(
-      NextResponse.json(materials || []),
-      cacheHeaders.static
+      NextResponse.json(normalizedMaterials),
+      cacheHeaders.private
     );
   } catch (error) {
-    // console.error('Error in materials API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',
@@ -81,4 +84,3 @@ export async function GET(
     );
   }
 }
-

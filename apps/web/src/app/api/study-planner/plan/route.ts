@@ -324,7 +324,6 @@ async function deleteGoogleCalendarEvent(
 
     // Si es 404 y estábamos usando un calendario secundario, intentar en primary como fallback
     if (response.status === 404 && targetCalendarId !== 'primary') {
-      console.log(`[Delete Event] Evento no encontrado en calendario secundario, intentando en primary...`);
       const fallbackResponse = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(cleanEventId)}`,
         {

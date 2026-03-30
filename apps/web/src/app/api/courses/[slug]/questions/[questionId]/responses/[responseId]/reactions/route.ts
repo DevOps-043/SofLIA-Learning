@@ -74,7 +74,6 @@ export async function POST(
       .maybeSingle();
 
     if (checkError) {
-      // console.error('Error checking reaction:', checkError);
       return NextResponse.json(
         { error: 'Error al verificar reacción' },
         { status: 500 }
@@ -90,7 +89,6 @@ export async function POST(
           .eq('id', existingReaction.id);
 
         if (deleteError) {
-          // console.error('Error deleting reaction:', deleteError);
           return NextResponse.json(
             { error: 'Error al eliminar reacción' },
             { status: 500 }
@@ -136,7 +134,6 @@ export async function POST(
         .single();
 
       if (insertError) {
-        // console.error('Error creating reaction:', insertError);
         return NextResponse.json(
           { error: 'Error al crear reacción' },
           { status: 500 }
@@ -157,7 +154,6 @@ export async function POST(
       });
     }
   } catch (error) {
-    // console.error('Error in reactions API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

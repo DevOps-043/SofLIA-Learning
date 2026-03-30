@@ -112,12 +112,6 @@ export function ConversationsTableWidget({
         params.append('endDate', endDate.toISOString());
       }
 
-      console.log('[ConversationsTableWidget] Fetching:', {
-        url: `/api/admin/lia-analytics/conversations?${params}`,
-        period,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString()
-      });
 
       const response = await fetch(`/api/admin/lia-analytics/conversations?${params}`);
       const data = await response.json();

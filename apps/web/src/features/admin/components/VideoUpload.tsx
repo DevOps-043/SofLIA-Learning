@@ -73,7 +73,6 @@ export function VideoUpload({ value, onChange, disabled = false }: VideoUploadPr
       }, 1000)
 
     } catch (err) {
-      // console.error('Error uploading video:', err)
       setError(err instanceof Error ? err.message : 'Error al subir el video')
       setUploading(false)
       setProgress(0)

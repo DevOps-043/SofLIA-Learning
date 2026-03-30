@@ -56,7 +56,6 @@ export function InstructorDashboard() {
         const data = await response.json()
         setStats(data)
       } catch (error) {
-        // console.error('Error fetching stats:', error)
         setError(t('dashboard.error'))
       } finally {
         setLoading(false)

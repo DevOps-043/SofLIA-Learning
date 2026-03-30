@@ -180,7 +180,6 @@ async function loadRrwebPlayerStyles(): Promise<void> {
       }
     `;
     document.head.appendChild(styleElement);
-    console.log('✅ Estilos de rrweb-player cargados');
   } catch (error) {
     console.warn('⚠️ Error cargando estilos de rrweb-player:', error);
   }

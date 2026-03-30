@@ -153,7 +153,6 @@ export function NotificationProvider({
         mutateCount()
       ])
     } catch (error) {
-      // console.error('Error marcando notificación como leída:', error)
       throw error
     }
   }
@@ -176,7 +175,6 @@ export function NotificationProvider({
         mutateCount()
       ])
     } catch (error) {
-      // console.error('Error marcando todas como leídas:', error)
       throw error
     }
   }
@@ -199,7 +197,6 @@ export function NotificationProvider({
         mutateCount()
       ])
     } catch (error) {
-      // console.error('Error archivando notificación:', error)
       throw error
     }
   }
@@ -222,7 +219,6 @@ export function NotificationProvider({
         mutateCount()
       ])
     } catch (error) {
-      // console.error('Error eliminando notificación:', error)
       throw error
     }
   }

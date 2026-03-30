@@ -79,7 +79,6 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
         })))
       }
     } catch (err) {
-      // console.error('Error fetching instructors:', err)
     }
   }
 

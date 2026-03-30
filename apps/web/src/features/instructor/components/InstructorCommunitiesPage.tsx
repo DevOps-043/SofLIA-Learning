@@ -76,7 +76,6 @@ export function InstructorCommunitiesPage() {
         refetch() // Recargar los datos
       }
     } catch (error) {
-      // console.error('Error toggling community visibility:', error)
     }
   }
 
@@ -96,7 +95,6 @@ export function InstructorCommunitiesPage() {
         throw new Error('Error al actualizar comunidad')
       }
     } catch (error) {
-      // console.error('Error saving community:', error)
       throw error
     }
   }
@@ -115,7 +113,6 @@ export function InstructorCommunitiesPage() {
         throw new Error('Error al eliminar comunidad')
       }
     } catch (error) {
-      // console.error('Error deleting community:', error)
       throw error
     }
   }
@@ -126,7 +123,6 @@ export function InstructorCommunitiesPage() {
 
   const handleSaveNewCommunity = async (communityData: any) => {
     try {
-      // console.log('🔄 Enviando solicitud de creación de comunidad:', communityData)
       
       // ✅ Ahora usamos el endpoint de instructor que crea solicitudes en lugar de comunidades directamente
       const response = await fetch('/api/instructor/communities', {
@@ -141,23 +137,18 @@ export function InstructorCommunitiesPage() {
         })
       })
       
-      // console.log('📡 Respuesta del servidor:', response.status, response.statusText)
       
       const data = await response.json()
-      // console.log('📋 Datos de respuesta:', data)
       
       if (response.ok && data.success) {
-        // console.log('✅ Solicitud de comunidad enviada exitosamente')
         // Mostrar mensaje de éxito con el mensaje del servidor
         alert(data.message || 'Se ha enviado la solicitud para crear la comunidad al Administrador. Recibirás una notificación cuando sea aprobada.')
         closeAddModal() // Cerrar el modal
         // No recargar datos ya que aún no hay comunidad creada, solo una solicitud
       } else {
-        // console.error('❌ Error en la respuesta:', data)
         throw new Error(data.message || data.error || 'Error al crear la solicitud de comunidad')
       }
     } catch (error) {
-      // console.error('💥 Error creating community request:', error)
       throw error
     }
   }

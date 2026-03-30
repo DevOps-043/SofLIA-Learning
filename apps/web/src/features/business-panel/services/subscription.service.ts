@@ -26,13 +26,11 @@ export class SubscriptionService {
       const { createClient } = await import('@/lib/supabase/server')
       const supabase = await createClient()
 
-      console.log('🔍 [SubscriptionService] Checking subscription for user:', userId)
 
       // Si se proporcionó organizationId directamente, usarlo sin resolución adicional
       let resolvedOrganizationId: string | null = organizationId ?? null
 
       if (!resolvedOrganizationId) {
-        console.log('⚠️ [SubscriptionService] No organizationId provided, resolving from organization_users...')
 
         // Fallback: Buscar en la tabla organization_users
         // NOTA: Para usuarios multi-empresa esto puede retornar la org incorrecta.
@@ -46,17 +44,14 @@ export class SubscriptionService {
 
         if (!orgUserError && orgUser?.organization_id) {
           resolvedOrganizationId = orgUser.organization_id
-          console.log('✅ [SubscriptionService] Found organization_id from organization_users table:', resolvedOrganizationId)
         }
       } else {
-        console.log('✅ [SubscriptionService] Using provided organization_id:', resolvedOrganizationId)
       }
 
       // Reasignar para mantener compatibilidad con el resto del método
       const organizationId_resolved = resolvedOrganizationId
 
       if (!organizationId_resolved) {
-        console.log('❌ [SubscriptionService] No organization found for user')
         return false
       }
 
@@ -68,22 +63,13 @@ export class SubscriptionService {
         .single()
 
       if (orgError || !organization) {
-        console.log('❌ [SubscriptionService] Organization not found:', orgError?.message)
         // Si no hay organización, intentar verificar en la tabla subscriptions
         return await this.checkSubscriptionTable(userId, organizationId_resolved)
       }
 
-      console.log('📊 [SubscriptionService] Organization info:', {
-        name: organization.name,
-        plan: organization.subscription_plan,
-        status: organization.subscription_status,
-        is_active: organization.is_active,
-        end_date: organization.subscription_end_date
-      })
 
       // Verificar que la organización esté activa
       if (!organization.is_active) {
-        console.log('❌ [SubscriptionService] Organization is not active')
         return false
       }
 
@@ -92,7 +78,6 @@ export class SubscriptionService {
       const validPlans = ['team', 'business', 'enterprise']
 
       if (!plan || !validPlans.includes(plan)) {
-        console.log('⚠️ [SubscriptionService] Invalid plan, checking subscriptions table...')
         // Si el plan no es válido, verificar en la tabla subscriptions
         return await this.checkSubscriptionTable(userId, organizationId_resolved)
       }
@@ -102,7 +87,6 @@ export class SubscriptionService {
       const activeStatuses = ['active', 'trial']
 
       if (!status || !activeStatuses.includes(status)) {
-        console.log('❌ [SubscriptionService] Subscription status is not active:', status)
         return false
       }
 
@@ -112,12 +96,10 @@ export class SubscriptionService {
         const now = new Date()
 
         if (endDate < now) {
-          console.log('❌ [SubscriptionService] Subscription has expired:', endDate)
           return false
         }
       }
 
-      console.log('✅ [SubscriptionService] User has active subscription!')
       return true
     } catch (error) {
       console.error('💥 [SubscriptionService] Error checking subscription:', error)

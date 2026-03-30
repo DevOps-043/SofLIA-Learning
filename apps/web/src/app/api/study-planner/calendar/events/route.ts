@@ -141,7 +141,6 @@ export async function GET(request: NextRequest) {
         })
     );
 
-    console.log(`🔍 [API Events] Sesiones activas con eventos externos: ${activeEventIds.size}`);
 
     // Filtrar eventos que corresponden a sesiones eliminadas
     const filteredEvents = events.filter(event => {
@@ -180,7 +179,6 @@ export async function GET(request: NextRequest) {
         .filter(id => id && !activeEventIds.has(id)) // Solo eventos que NO están en sesiones activas
     );
 
-    console.log(`🗑️ [API Events] Eventos huérfanos detectados: ${orphanedEventIds.size}`);
 
     // Filtrar eventos que están en la lista de huérfanos
     const finalEvents = filteredEvents.filter(event => {
@@ -188,7 +186,6 @@ export async function GET(request: NextRequest) {
       return !orphanedEventIds.has(cleanEventId);
     });
 
-    console.log(`✅ [API Events] Eventos después de filtrar huérfanos: ${finalEvents.length} (${events.length - finalEvents.length} eliminados)`);
 
     return NextResponse.json({
       events: finalEvents,
@@ -405,7 +402,6 @@ async function getGoogleCalendarEvents(accessToken: string, startDate: Date, end
       }
 
       // Fallback: intentar solo con primary
-      console.log('📅 [Google] Intentando solo con calendario primario');
       return await getEventsFromCalendar(accessToken, 'primary', startDate, endDate);
     }
 
@@ -588,7 +584,6 @@ async function syncDeletedStudySessions(
 
     // Limpiar external_event_id y calendar_provider de sesiones cuyos eventos fueron eliminados
     if (sessionsToClean.length > 0) {
-      console.log(`🔄 [Sync Study Sessions] Limpiando ${sessionsToClean.length} sesiones con eventos eliminados en ${integration.provider} Calendar`);
 
       const { error: updateError } = await supabase
         .from('study_sessions')
@@ -603,7 +598,6 @@ async function syncDeletedStudySessions(
       if (updateError) {
         console.error('❌ [Sync Study Sessions] Error limpiando sesiones:', updateError);
       } else {
-        console.log(`✅ [Sync Study Sessions] ${sessionsToClean.length} sesiones limpiadas exitosamente`);
       }
     }
   } catch (error) {

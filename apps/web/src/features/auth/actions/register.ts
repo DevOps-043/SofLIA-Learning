@@ -226,17 +226,10 @@ export async function registerAction(formData: FormData) {
       return { error: 'Error al crear perfil de usuario' }
     }
 
-    console.log('✅ [registerAction] Usuario creado:', { id: userId, cargo_rol: cargoRol });
 
     // Si viene de registro personalizado de organización, crear relación en organization_users
     if (organizationId) {
       try {
-        console.log('🔄 [registerAction] Vinculando usuario a organización:', {
-          organizationId,
-          userId,
-          role: invitedRole || 'member',
-          job_title: cargoTitulo // El cargo ahora va aquí
-        });
 
         const { error: orgUserError } = await supabase
           .from('organization_users')
@@ -254,7 +247,6 @@ export async function registerAction(formData: FormData) {
            // Hacemos throw para que vaya al catch, pero no bloqueamos el registro exitoso del usuario
            throw orgUserError; 
         } else {
-           console.log('✅ [registerAction] Usuario vinculado exitosamente a la organización');
         }
 
         // Consumir la invitación según el tipo
@@ -314,7 +306,6 @@ export async function registerAction(formData: FormData) {
       } catch (profileError) {
         // No fallar el registro si hay error creando el perfil
         // El perfil se puede crear después cuando complete el cuestionario
-        // console.error('Error creating initial profile:', profileError)
       }
     }
 
@@ -324,7 +315,6 @@ export async function registerAction(formData: FormData) {
       userId: user.id
     }
   } catch (error) {
-    // console.error('Register error:', error)
     if (error instanceof z.ZodError) {
       return { error: error.errors[0].message }
     }

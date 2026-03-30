@@ -71,13 +71,6 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
       if (isBugReport && sessionRecorder) {
         try {
           // Log detallado para debugging
-          console.log('[SofLIA Chat] 🔍 Verificando estado del recorder:', {
-            exists: !!sessionRecorder,
-            hasIsRrwebAvailable: typeof sessionRecorder.isRrwebAvailable === 'function',
-            hasIsActive: typeof sessionRecorder.isActive === 'function',
-            hasIsPaused: typeof sessionRecorder.isPaused === 'function',
-            hasCaptureSnapshot: typeof sessionRecorder.captureSnapshot === 'function',
-          });
           
           // Verificar que los métodos existen antes de llamarlos
           const hasRequiredMethods = 
@@ -101,7 +94,6 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             // Intentar reiniciar la grabación
             try {
               await sessionRecorder.startRecording(180000); // 3 minutos
-              console.log('[SofLIA Chat] ✅ Grabación reiniciada exitosamente');
               recordingStatus = 'restarted';
               
               // Esperar un momento para capturar al menos el estado inicial
@@ -112,7 +104,6 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             }
           } else if (typeof sessionRecorder.isPaused === 'function' && sessionRecorder.isPaused()) {
             // Si está pausada por inactividad, reanudarla
-            console.log('[SofLIA Chat] ▶️ Reanudando grabación pausada...');
             if (typeof sessionRecorder.resume === 'function') {
               sessionRecorder.resume();
             }
@@ -129,7 +120,6 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             sessionSnapshot = await sessionRecorder.exportSessionCompressed(snapshot);
             // Incluir metadata enriquecida del entorno
             enrichedMetadata = sessionRecorder.getEnrichedMetadata(snapshot);
-            console.log(`[SofLIA Chat] 📹 Capturado snapshot para reporte de bug (${snapshot.events.length} eventos)`);
           } else {
             console.warn('[SofLIA Chat] ⚠️ No hay eventos en el snapshot');
             // Generar metadata mínima sin grabación

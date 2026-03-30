@@ -30,7 +30,6 @@ export function useAdminReportes() {
       setError(null)
       
       const activeFilters = customFilters || filters
-      // console.log('🔄 useAdminReportes: Cargando reportes...', activeFilters)
       
       // Construir query string
       const params = new URLSearchParams()
@@ -45,7 +44,6 @@ export function useAdminReportes() {
       const response = await fetch(url)
       const data = await response.json()
       
-      // console.log('📡 Respuesta de API reportes:', data)
       
       if (data.success) {
         setReportes(data.reportes || [])
@@ -59,13 +57,10 @@ export function useAdminReportes() {
           porCategoria: {},
           porPrioridad: {}
         })
-        // console.log('✅ Reportes cargados exitosamente:', data.reportes?.length || 0)
       } else {
-        // console.error('❌ Error en respuesta:', data.error)
         setError(data.error || 'Error al cargar reportes')
       }
     } catch (err) {
-      // console.error('💥 Error loading reportes:', err)
       setError('Error de conexión al cargar reportes')
     } finally {
       setIsLoading(false)
@@ -82,7 +77,6 @@ export function useAdminReportes() {
     }
   ) => {
     try {
-      // console.log('🔄 useAdminReportes: Actualizando reporte...', { reporteId, updates })
       
       const response = await fetch('/api/admin/reportes', {
         method: 'PATCH',
@@ -96,7 +90,6 @@ export function useAdminReportes() {
       })
       
       const data = await response.json()
-      // console.log('📡 Respuesta de API actualizar reporte:', data)
       
       if (!response.ok) {
         const errorMessage = data.message || data.error || `Error al actualizar reporte (${response.status})`
@@ -105,14 +98,12 @@ export function useAdminReportes() {
       
       if (data.success) {
         await fetchReportes() // Recargar la lista
-        // console.log('✅ Reporte actualizado exitosamente')
         return { success: true, reporte: data.reporte }
       } else {
         const errorMessage = data.message || data.error || 'Error al actualizar reporte'
         throw new Error(errorMessage)
       }
     } catch (err) {
-      // console.error('💥 Error updating reporte:', err)
       throw err
     }
   }

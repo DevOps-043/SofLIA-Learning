@@ -67,7 +67,6 @@ export async function GET(
       .range(offset, offset + limit - 1);
 
     if (error) {
-      // console.error('Error fetching comments:', error);
       return NextResponse.json({ error: 'Error al obtener comentarios' }, { status: 500 });
     }
 
@@ -79,7 +78,6 @@ export async function GET(
       .in('id', userIds);
 
     if (usersError) {
-      // console.error('Error fetching users:', usersError);
     }
 
     // Crear mapa de usuarios para acceso rápido (optimizado)
@@ -108,7 +106,6 @@ export async function GET(
           .order('created_at', { ascending: true });
 
         if (repliesError) {
-          // console.error('Error fetching replies:', repliesError);
         }
 
         // Agregar información del usuario a las respuestas
@@ -134,7 +131,6 @@ export async function GET(
       .is('parent_comment_id', null);
 
     if (countError) {
-      // console.error('Error counting comments:', countError);
     }
 
     return NextResponse.json({
@@ -147,7 +143,6 @@ export async function GET(
       }
     });
   } catch (error) {
-    // console.error('Error in comments GET:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -215,7 +210,6 @@ export async function POST(
           { status: 400 }
         );
       } catch (error) {
-        // console.error('Error registering warning:', error);
         // Si falla el registro, al menos bloquear el contenido
         return NextResponse.json(
           { error: 'El contenido contiene lenguaje inapropiado y ha sido bloqueado.' },
@@ -249,7 +243,6 @@ export async function POST(
       .single();
 
     if (insertError) {
-      // console.error('Error creating comment:', insertError);
       return NextResponse.json({ error: 'Error al crear comentario' }, { status: 500 });
     }
 
@@ -272,7 +265,6 @@ export async function POST(
     });
 
     if (updateError) {
-      // console.error('Error updating comment count:', updateError);
     }
 
     // Crear notificación para el autor del post (en background)
@@ -318,10 +310,6 @@ export async function POST(
           previousWarnings: await getUserWarningsCount(user.id, supabase),
         });
         
-        // console.log(`Confianza: ${(aiResult.confidenceScore || 0).toFixed(1)}%`, {
-        //   categories: aiResult.categories,
-        //   requiresHumanReview: aiResult.requiresHumanReview,
-        // });
         
         // Registrar análisis en BD
         await logAIModerationAnalysis(
@@ -342,7 +330,6 @@ export async function POST(
             .eq('id', newComment.id);
           
           if (deleteError) {
-            // console.error('❌ Error deleting flagged comment:', deleteError);
           } else {
             // Decrementar el contador de comentarios
             const { error: decrementError } = await (supabase as any).rpc('decrement_comment_count', {
@@ -350,7 +337,6 @@ export async function POST(
             });
             
             if (decrementError) {
-              // console.error('Error decrementing comment count:', decrementError);
             }
           }
           
@@ -369,7 +355,6 @@ export async function POST(
           }
         
       } catch (error) {
-        // console.error('❌ Error in background AI moderation:', error);
       }
     })();
 
@@ -380,7 +365,6 @@ export async function POST(
       aiModerationPending: true // Indica que el análisis de IA está en proceso
     });
   } catch (error) {
-    // console.error('Error in comments POST:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

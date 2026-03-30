@@ -77,12 +77,6 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   // Debug: Log cuando los estilos se aplican
   useEffect(() => {
     if (panelStyles) {
-      console.log('✅ [BusinessPanelLayout] Estilos aplicados correctamente al layout:', {
-        theme: styles?.selectedTheme,
-        mode: effectiveStyles ? 'effective' : 'base',
-        backgroundValue: panelStyles.background_value?.substring(0, 50),
-        primaryColor: panelStyles.primary_button_color
-      });
     }
   }, [styles, effectiveStyles, panelStyles])
 
@@ -107,7 +101,6 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
             redirectPath = `/auth/${lastOrgSlug}`;
           }
         } catch (error) {
-          // console.error('Error reading localStorage:', error);
         }
       }
 

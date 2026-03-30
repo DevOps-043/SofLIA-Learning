@@ -59,7 +59,6 @@ class SupabaseStorageService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        // console.error('Error uploading file:', errorData);
         return { success: false, error: errorData.error || 'Error al subir archivo' };
       }
 
@@ -71,7 +70,6 @@ class SupabaseStorageService {
         path: result.path
       };
     } catch (error) {
-      // console.error('Error in uploadFile:', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Error desconocido' 
@@ -115,7 +113,6 @@ class SupabaseStorageService {
     attachment_data: any;
   }> {
     const { type } = attachmentData;
-    // console.log('🎥 [YOUTUBE] SupabaseStorage.processAttachment - TIPO RECIBIDO:', type, attachmentData);
 
     switch (type) {
       case 'image':
@@ -154,7 +151,6 @@ class SupabaseStorageService {
         break;
 
       case 'youtube':
-        // console.log('🎥 [YOUTUBE] Procesando caso YouTube:', attachmentData);
         // Mapear 'youtube' a 'link' para cumplir con el constraint de la base de datos
         // pero mantener la información de YouTube en attachment_data
         const result = {
@@ -168,7 +164,6 @@ class SupabaseStorageService {
             url: attachmentData.url
           }
         };
-        // console.log('🎥 [YOUTUBE] Resultado del caso YouTube:', result);
         return result;
 
       case 'link':
@@ -262,7 +257,6 @@ class SupabaseStorageService {
         thumbnail: data.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
       };
     } catch (error) {
-      // console.error('Error getting YouTube video info:', error);
       // En caso de error, devolver información básica usando el videoId
       return {
         title: 'Video de YouTube',

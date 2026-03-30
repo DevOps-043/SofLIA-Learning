@@ -189,7 +189,6 @@ export async function requestPasswordResetAction(
       return { error: error.errors[0].message };
     }
 
-    // console.error('Error en requestPasswordResetAction:', error);
     return { error: 'Error procesando solicitud. Inténtalo más tarde.' };
   }
 }
@@ -304,7 +303,6 @@ export async function resetPasswordAction(
       return { error: error.errors[0].message };
     }
 
-    // console.error('Error en resetPasswordAction:', error);
     return { error: 'Error procesando solicitud. Inténtalo más tarde.' };
   }
 }
@@ -339,7 +337,6 @@ export async function validateResetTokenAction(token: string) {
 
     return { valid: true };
   } catch (error) {
-    // console.error('Error validando token:', error);
     return { valid: false, error: 'Error validando token.' };
   }
 }

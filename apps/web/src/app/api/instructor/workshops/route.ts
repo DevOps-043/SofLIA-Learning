@@ -28,7 +28,6 @@ export async function GET() {
 
     return NextResponse.json(workshops)
   } catch (error) {
-    // console.error('Error in GET /api/instructor/workshops:', error)
     return NextResponse.json(
       { error: 'Error al obtener talleres del instructor' },
       { status: 500 }
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(workshop, { status: 201 })
   } catch (error) {
-    // console.error('Error in POST /api/instructor/workshops:', error)
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Error al crear el taller' },
       { status: 500 }

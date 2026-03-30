@@ -39,7 +39,6 @@ export function useAdminWorkshops(): UseAdminWorkshopsReturn {
       setWorkshops(workshopsData.workshops || [])
       setStats(statsData.stats || null)
     } catch (err) {
-      // console.error('Error fetching workshops data:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)

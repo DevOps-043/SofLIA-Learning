@@ -48,12 +48,6 @@ export async function loginAction(formData: FormData) {
       return { error: 'Credenciales inválidas' }
     }
 
-    console.log('👤 [loginAction] Usuario encontrado:', {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      cargo_rol: user.cargo_rol
-    });
 
     // â­ MODERACIÓN: Verificar si el usuario está baneado
     if ((user as any).is_banned) {
@@ -138,10 +132,6 @@ export async function loginAction(formData: FormData) {
       if (!belongsToOrganization) {
         // ✅ [NUEVO] Si no pertenece pero trae token de invitación, intentar consumirla
         if (invitationToken || bulkInviteToken) {
-          console.log('✉️ [loginAction] Intentando consumir invitación post-login', {
-            hasInvitationToken: !!invitationToken,
-            hasBulkToken: !!bulkInviteToken
-          })
 
           const { consumeInvitationAction, consumeBulkInvitationAction } = await import('./invitation')
           
@@ -153,7 +143,6 @@ export async function loginAction(formData: FormData) {
           }
 
           if (consumeResult?.success) {
-            console.log('✅ [loginAction] Invitación consumida exitosamente para el usuario loggeado')
             // Ahora sí pertenece, podemos continuar el flujo normal
           } else {
             console.warn('❌ [loginAction] Falló el consumo de invitación:', consumeResult?.error)
@@ -187,11 +176,6 @@ export async function loginAction(formData: FormData) {
         headersList.get('x-real-ip') ||
         'unknown'
 
-      console.log('ðŸ“‹ [loginAction] Contexto obtenido:', {
-        hasHeaders: !!headersList,
-        userAgent: userAgent.substring(0, 50),
-        ip
-      });
 
       // Crear Request mock para RefreshTokenService
       const requestHeaders = new Headers()
@@ -312,10 +296,6 @@ export async function loginAction(formData: FormData) {
     // - Usuario (o cualquier otro) â†’ /dashboard (Tour SOFLIA + Planes)
 
     const normalizedRole = user.cargo_rol?.toLowerCase().trim();
-    console.log('ðŸŽ¯ [loginAction] Determinando redirección según cargo_rol:', {
-      cargo_rol: user.cargo_rol,
-      normalizedRole
-    });
 
     // En lugar de usar redirect(), devolver la URL para que el cliente maneje la navegación
     // Esto evita problemas de "redirect count exceeded" en Next.js
@@ -364,31 +344,15 @@ export async function loginAction(formData: FormData) {
         .order('joined_at', { ascending: true })
 
       if (orgError || !userOrgs || userOrgs.length === 0) {
-        console.log('âš ï¸ [loginAction] Usuario Business sin organización activa:', {
-          userId: user.id,
-          cargo_rol: normalizedRole,
-          error: orgError?.message
-        })
         redirectTo = '/dashboard'; // Sin organización, ir al dashboard normal
       } else if (userOrgs.length > 1) {
         // Usuario pertenece a MÚLTIPLES organizaciones - mostrar selector
-        console.log('ðŸ¢ [loginAction] Usuario Business con múltiples organizaciones:', {
-          userId: user.id,
-          cargo_rol: normalizedRole,
-          organizationCount: userOrgs.length
-        })
         redirectTo = '/auth/select-organization';
       } else {
         // Usuario pertenece a UNA sola organización - redirigir directamente
         const userOrg = userOrgs[0]
         const orgSlug = (userOrg.organizations as any)?.slug
 
-        console.log('✅ [loginAction] Usuario Business con organización única:', {
-          userId: user.id,
-          cargo_rol: normalizedRole,
-          organizationId: userOrg.organization_id,
-          organizationSlug: orgSlug
-        })
 
         // Redirigir a la ruta de la organización
         if (orgSlug) {
@@ -400,7 +364,6 @@ export async function loginAction(formData: FormData) {
       }
     }
 
-    console.log('🚀 [loginAction] Redirigiendo a:', redirectTo);
 
     // Devolver success con la URL de redirección
     return { success: true, redirectTo }

@@ -7,8 +7,6 @@ import { useChatLogic } from './hooks/useChatLogic'
 import { ChatMessages } from './ChatMessages'
 import { ChatInput } from './ChatInput'
 import { ChatHeader } from './ChatHeader'
-// import { ImageModal } from './ImageModal' // Not used yet based on current code
-// import { FilePreview } from './FilePreview' // Not used yet based on current code
 
 interface HierarchyChatProps {
   entityType: 'region' | 'zone' | 'team' | 'node'

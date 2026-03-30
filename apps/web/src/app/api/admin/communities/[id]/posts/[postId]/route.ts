@@ -23,7 +23,6 @@ export async function DELETE(
       .single()
 
     if (fetchError || !currentPost) {
-      // console.error('❌ Error fetching post:', fetchError)
       return NextResponse.json({ 
         success: false, 
         message: 'Post no encontrado' 
@@ -58,7 +57,6 @@ export async function DELETE(
       .eq('community_id', communityId)
 
     if (deletePostError) {
-      // console.error('Error deleting post:', deletePostError)
       return NextResponse.json({ 
         success: false, 
         message: 'Error al eliminar el post' 
@@ -108,7 +106,6 @@ export async function DELETE(
         user_agent: userAgent
       })
     } catch (auditError) {
-      // console.error('Error en auditoría:', auditError)
       // No fallar la operación por esto
     }
 
@@ -117,7 +114,6 @@ export async function DELETE(
       message: 'Post eliminado exitosamente' 
     })
   } catch (error: unknown) {
-    // console.error('Error in delete post API:', error)
     const message = error instanceof Error ? error.message : 'Error interno del servidor';
     return NextResponse.json({ 
       success: false, 

@@ -231,22 +231,6 @@ export async function trackOpenAICall(metadata: OpenAICallMetadata): Promise<voi
   }
   
   // 2. Log detallado para monitoreo en servidor
-  console.log('[OpenAI Usage]', {
-    endpoint: metadata.endpoint,
-    userId: metadata.userId || 'anonymous',
-    model: metadata.model,
-    tokens: {
-      prompt: metadata.promptTokens,
-      completion: metadata.completionTokens,
-      total: metadata.totalTokens
-    },
-    cost: {
-      prompt: `$${metadata.promptCost.toFixed(6)}`,
-      completion: `$${metadata.completionCost.toFixed(6)}`,
-      total: `$${metadata.totalCost.toFixed(6)}`
-    },
-    responseTimeMs: metadata.responseTimeMs
-  });
 }
 
 /**

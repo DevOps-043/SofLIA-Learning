@@ -20,32 +20,20 @@ interface Organization {
  */
 export function canUseCustomLogin(organization: Organization | null): boolean {
   if (!organization) {
-    console.log('🔒 [canUseCustomLogin] No organization provided');
     return false;
   }
 
-  console.log('🔒 [canUseCustomLogin] Checking organization:', {
-    id: organization.id,
-    name: organization.name,
-    slug: organization.slug,
-    is_active: organization.is_active,
-    subscription_plan: organization.subscription_plan,
-    subscription_status: organization.subscription_status
-  });
 
   // La organización debe estar activa
   if (!organization.is_active) {
-    console.log('🔒 [canUseCustomLogin] DENIED: Organization is not active');
     return false;
   }
 
   // Debe tener un slug válido
   if (!organization.slug || organization.slug.trim() === '') {
-    console.log('🔒 [canUseCustomLogin] DENIED: No valid slug');
     return false;
   }
 
-  console.log('🔒 [canUseCustomLogin] ALLOWED: All checks passed');
   return true;
 }
 

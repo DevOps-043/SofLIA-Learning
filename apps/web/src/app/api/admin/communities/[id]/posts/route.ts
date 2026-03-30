@@ -22,7 +22,6 @@ export async function GET(
       posts 
     })
   } catch (error: unknown) {
-    // console.error('Error fetching community posts via API:', error)
     const message = error instanceof Error ? error.message : 'Error al obtener los posts';
     return NextResponse.json({ 
       success: false, 

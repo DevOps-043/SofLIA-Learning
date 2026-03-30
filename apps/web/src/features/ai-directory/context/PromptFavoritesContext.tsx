@@ -68,7 +68,6 @@ export function PromptFavoritesProvider({ children }: { children: React.ReactNod
         setError(null)
       } else {
         setError(errorMessage)
-        // console.error('Error fetching prompt favorites:', err)
       }
     } finally {
       setLoading(false)
@@ -160,7 +159,6 @@ export function PromptFavoritesProvider({ children }: { children: React.ReactNod
       })
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error toggling prompt favorite:', err)
       return false
     } finally {
       setLoading(false)

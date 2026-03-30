@@ -225,7 +225,6 @@ export class AdminUsersService {
         .single()
 
       if (error) {
-        // console.error('Error updating user:', error)
         throw error
       }
 
@@ -244,7 +243,6 @@ export class AdminUsersService {
 
       return data
     } catch (error) {
-      // console.error('Error in AdminUsersService.updateUser:', error)
       throw error
     }
   }
@@ -259,11 +257,9 @@ export class AdminUsersService {
         .eq('id', userId)
 
       if (error) {
-        // console.error('Error updating user role:', error)
         throw error
       }
     } catch (error) {
-      // console.error('Error in AdminUsersService.updateUserRole:', error)
       throw error
     }
   }
@@ -323,7 +319,6 @@ export class AdminUsersService {
         .single()
 
       if (error) {
-        // console.error('Error creating user:', error)
         throw error
       }
 
@@ -342,7 +337,6 @@ export class AdminUsersService {
 
       return data
     } catch (error) {
-      // console.error('Error in AdminUsersService.createUser:', error)
       throw error
     }
   }
@@ -376,17 +370,14 @@ export class AdminUsersService {
         // No fallar la eliminación si el log de auditoría falla
       }
 
-      console.log('🗑️ [AdminUsersService.deleteUser] Intentando eliminar usuario:', userId)
 
       // ============================================
       // INTENTO 1: Usar función RPC delete_user_cascade (más confiable)
       // ============================================
-      console.log('🔄 Intentando eliminar via RPC delete_user_cascade...')
       const { data: rpcResult, error: rpcError } = await adminSupabase
         .rpc('delete_user_cascade', { target_user_id: userId })
 
       if (!rpcError) {
-        console.log('✅ Usuario eliminado exitosamente via RPC:', rpcResult)
         return // Éxito - no necesitamos continuar
       }
 
@@ -395,7 +386,6 @@ export class AdminUsersService {
       // ============================================
       // INTENTO 2: Método manual si RPC falla
       // ============================================
-      console.log('🗑️ [AdminUsersService.deleteUser] Iniciando eliminación manual en cascada')
 
       // Helper function para eliminar de una tabla de forma segura
       const deleteFromTable = async (tableName: string, column: string = 'user_id') => {
@@ -414,24 +404,20 @@ export class AdminUsersService {
       // ============================================
 
       // 1. LIA - Primero feedback, luego activity completions, luego conversaciones
-      console.log('🔄 Eliminando datos de LIA...')
       await deleteFromTable('lia_user_feedback')
       await deleteFromTable('lia_activity_completions')
       await deleteFromTable('lia_conversations')
 
       // 2. CRÍTICO: Obtener enrollment_ids del usuario ANTES de eliminar dependencias
-      console.log('🔄 Obteniendo enrollment IDs...')
       const { data: enrollments } = await adminSupabase
         .from('user_course_enrollments')
         .select('enrollment_id')
         .eq('user_id', userId)
 
       const enrollmentIds = enrollments?.map(e => e.enrollment_id) || []
-      console.log(`📋 Encontrados ${enrollmentIds.length} enrollments para eliminar`)
 
       // 3. Eliminar tablas que dependen de enrollment_id PRIMERO
       if (enrollmentIds.length > 0) {
-        console.log('🔄 Eliminando dependencias de enrollments...')
 
         // user_lesson_progress tiene FK a enrollment_id
         const { error: progErr } = await adminSupabase
@@ -450,7 +436,6 @@ export class AdminUsersService {
         // user_course_certificates tiene FK a enrollment_id
         // NOTA: certificate_ledger es append-only, NO intentar eliminar de ahí
         // Solo eliminar los certificados directamente
-        console.log('🔄 Eliminando certificados (sin tocar ledger)...')
         const { error: certErr } = await adminSupabase
           .from('user_course_certificates')
           .delete()
@@ -471,36 +456,28 @@ export class AdminUsersService {
       }
 
       // 4. También eliminar certificados, quiz submissions y progress por user_id (por si acaso)
-      console.log('🔄 Eliminando certificados por user_id...')
       await deleteFromTable('user_course_certificates')
 
-      console.log('🔄 Eliminando quiz submissions por user_id...')
       await deleteFromTable('user_quiz_submissions')
 
       // 5. Progreso de lecciones y tracking
-      console.log('🔄 Eliminando progreso...')
       await deleteFromTable('lesson_tracking')
       await deleteFromTable('user_lesson_progress')
       await deleteFromTable('daily_progress')
 
       // 6. Notas de lecciones
-      console.log('🔄 Eliminando notas de lecciones...')
       await deleteFromTable('user_lesson_notes')
 
       // 7. Sesiones de estudio
-      console.log('🔄 Eliminando sesiones de estudio...')
       await deleteFromTable('study_sessions')
 
       // 8. Calendar sync history
-      console.log('🔄 Eliminando calendar sync...')
       await deleteFromTable('calendar_sync_history')
 
       // 9. Study plans
-      console.log('🔄 Eliminando planes de estudio...')
       await deleteFromTable('study_plans')
 
       // 10. CRÍTICO: Eliminar enrollments - verificar que se eliminen
-      console.log('🔄 Eliminando enrollments...')
       const { error: enrollError } = await adminSupabase
         .from('user_course_enrollments')
         .delete()
@@ -543,12 +520,10 @@ export class AdminUsersService {
 
 
       // 10. Asignaciones de cursos
-      console.log('🔄 Eliminando asignaciones de cursos...')
       await deleteFromTable('organization_course_assignments')
       await deleteFromTable('organization_course_assignments', 'assigned_by')
 
       // 11. Preguntas, respuestas y reacciones de cursos
-      console.log('🔄 Eliminando Q&A de cursos...')
       await deleteFromTable('course_question_reactions')
       await deleteFromTable('course_question_responses')
       await deleteFromTable('course_questions')
@@ -556,7 +531,6 @@ export class AdminUsersService {
       await deleteFromTable('lesson_feedback')
 
       // 12. Notificaciones y preferencias
-      console.log('🔄 Eliminando notificaciones...')
       await deleteFromTable('notification_email_queue')
       await deleteFromTable('notification_push_subscriptions')
       await deleteFromTable('notification_stats')
@@ -564,13 +538,11 @@ export class AdminUsersService {
       await deleteFromTable('user_notifications')
 
       // 13. Calendario
-      console.log('🔄 Eliminando calendario...')
       await deleteFromTable('user_calendar_events')
       await deleteFromTable('calendar_subscription_tokens')
       await deleteFromTable('calendar_integrations')
 
       // 14. SCORM
-      console.log('🔄 Eliminando SCORM...')
       const { data: scormAttempts } = await adminSupabase
         .from('scorm_attempts')
         .select('id')
@@ -584,20 +556,17 @@ export class AdminUsersService {
       await deleteFromTable('scorm_attempts')
 
       // 15. Transacciones y pagos
-      console.log('🔄 Eliminando transacciones...')
       await deleteFromTable('transactions')
       await deleteFromTable('subscriptions')
       await deleteFromTable('payment_methods')
 
       // 16. OAuth y autenticación
-      console.log('🔄 Eliminando auth data...')
       await deleteFromTable('oauth_accounts')
       await deleteFromTable('password_reset_tokens')
       await deleteFromTable('refresh_tokens')
       await deleteFromTable('user_session')
 
       // 17. Work teams
-      console.log('🔄 Eliminando datos de equipos...')
       await deleteFromTable('work_team_feedback', 'from_user_id')
       await deleteFromTable('work_team_feedback', 'to_user_id')
       await deleteFromTable('work_team_messages', 'sender_id')
@@ -609,7 +578,6 @@ export class AdminUsersService {
       await adminSupabase.from('work_teams').update({ created_by: null }).eq('created_by', userId)
 
       // 18. User perfil y respuestas
-      console.log('🔄 Eliminando perfil...')
       const { data: userPerfil } = await adminSupabase
         .from('user_perfil')
         .select('id')
@@ -622,46 +590,37 @@ export class AdminUsersService {
       await deleteFromTable('user_perfil')
 
       // 19. Reportes de problemas
-      console.log('🔄 Eliminando reportes...')
       await deleteFromTable('reportes_problemas')
       await adminSupabase.from('reportes_problemas').update({ admin_asignado: null }).eq('admin_asignado', userId)
 
       // 20. Admin dashboard
-      console.log('🔄 Eliminando admin dashboard data...')
       await deleteFromTable('admin_dashboard_layouts')
       await deleteFromTable('admin_dashboard_preferences')
 
       // 21. Study preferences y streaks
-      console.log('🔄 Eliminando preferencias de estudio...')
       await deleteFromTable('study_preferences')
       await deleteFromTable('user_streaks')
 
       // 22. Activity logs
-      console.log('🔄 Eliminando activity logs...')
       await deleteFromTable('user_activity_log')
 
       // 23. Progreso de tours
-      console.log('🔄 Eliminando tour progress...')
       await deleteFromTable('user_tour_progress')
 
       // 24. Warnings y moderación
-      console.log('🔄 Eliminando warnings y moderación...')
       await deleteFromTable('user_warnings')
       await deleteFromTable('ai_moderation_logs')
 
       // 25. Audit logs
-      console.log('🔄 Eliminando audit logs...')
       await deleteFromTable('audit_logs')
       await deleteFromTable('audit_logs', 'admin_user_id')
 
       // 26. Datos adicionales
-      console.log('🔄 Eliminando datos adicionales...')
       await deleteFromTable('user_favorites')
       await deleteFromTable('app_favorites')
       await deleteFromTable('notes')
 
       // 27. Comunidad - Obtener posts primero para limpiar dependencias
-      console.log('🔄 Eliminando datos de comunidad...')
       const { data: userPosts } = await adminSupabase
         .from('community_posts')
         .select('id')
@@ -686,23 +645,19 @@ export class AdminUsersService {
       await adminSupabase.from('community_access_requests').update({ reviewed_by: null }).eq('reviewed_by', userId)
 
       // 28. Organization hierarchy nodes
-      console.log('🔄 Eliminando datos de nodos jerárquicos...')
       await deleteFromTable('organization_node_users')
       await adminSupabase.from('organization_nodes').update({ manager_id: null }).eq('manager_id', userId)
 
       // 29. Organization users
-      console.log('🔄 Eliminando de organization_users...')
       await adminSupabase.from('organization_users').update({ invited_by: null }).eq('invited_by', userId)
       await deleteFromTable('organization_users')
 
       // 29. Compras de cursos de organización
-      console.log('🔄 Eliminando compras de cursos...')
       await deleteFromTable('organization_course_purchases', 'purchased_by')
 
       // 30. Manejar referencias como instructor en lecciones
       // NOTA: instructor_id es NOT NULL en course_lessons, por lo que debemos ELIMINAR las lecciones
       // Primero eliminamos todas las referencias a esas lecciones
-      console.log('🔄 Obteniendo lecciones donde el usuario es instructor...')
 
       const { data: userLessons, error: fetchLessonsError } = await adminSupabase
         .from('course_lessons')
@@ -714,10 +669,8 @@ export class AdminUsersService {
       }
 
       const lessonIds = userLessons?.map(lesson => lesson.lesson_id) || []
-      console.log(`📋 Encontradas ${lessonIds.length} lecciones con instructor_id=${userId}`)
 
       if (lessonIds.length > 0) {
-        console.log('🔄 Eliminando referencias a lecciones...')
 
         // Eliminar todas las referencias a estas lecciones
         await adminSupabase.from('lesson_activities').delete().in('lesson_id', lessonIds)
@@ -733,10 +686,8 @@ export class AdminUsersService {
         await adminSupabase.from('study_sessions').delete().in('lesson_id', lessonIds)
         await adminSupabase.from('user_activity_log').delete().in('lesson_id', lessonIds)
 
-        console.log('✅ Referencias a lecciones eliminadas')
 
         // Ahora eliminar las lecciones
-        console.log('🔄 Eliminando lecciones donde el usuario es instructor...')
 
         const { error: deleteLessonsError } = await adminSupabase
           .from('course_lessons')
@@ -746,7 +697,6 @@ export class AdminUsersService {
         if (deleteLessonsError) {
           console.error('❌ Error eliminando course_lessons:', deleteLessonsError)
         } else {
-          console.log('✅ course_lessons eliminadas correctamente')
         }
 
         // También eliminar de tablas de traducciones
@@ -767,12 +717,10 @@ export class AdminUsersService {
       // Actualizar scorm_packages
       await adminSupabase.from('scorm_packages').update({ created_by: null }).eq('created_by', userId)
 
-      console.log('✅ [AdminUsersService.deleteUser] Todos los datos relacionados eliminados')
 
       // ============================================
       // PASO FINAL: Eliminar el usuario
       // ============================================
-      console.log('🔄 Eliminando usuario de la tabla users...')
       const { error } = await adminSupabase
         .from('users')
         .delete()
@@ -783,7 +731,6 @@ export class AdminUsersService {
         throw error
       }
 
-      console.log('✅ [AdminUsersService.deleteUser] Usuario eliminado completamente:', userId)
     } catch (error) {
       console.error('❌ Error in AdminUsersService.deleteUser:', error)
       throw error

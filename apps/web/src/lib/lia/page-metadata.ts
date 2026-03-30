@@ -169,26 +169,6 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     features: ['Configuración de notificaciones', 'Configuración de privacidad', 'Guardado de preferencias'],
     contentSections: ['Notificaciones', 'Privacidad']
   },
-  '/cart': {
-    path: '/cart',
-    title: 'Carrito de Compras',
-    description: 'Gestión de items en el carrito antes de comprar',
-    category: 'comercio',
-    keywords: ['carrito', 'compras', 'checkout', 'pago', 'items'],
-    availableActions: ['Ver items', 'Eliminar items', 'Proceder a compra'],
-    relatedPages: ['/dashboard', '/payment-methods'],
-    features: ['Gestión de items', 'Eliminación de items', 'Proceso de compra']
-  },
-  '/purchase-history': {
-    path: '/purchase-history',
-    title: 'Historial de Compras',
-    description: 'Historial de todas las compras realizadas',
-    category: 'comercio',
-    keywords: ['historial', 'compras', 'facturas', 'transacciones', 'pedidos'],
-    availableActions: ['Ver compras pasadas', 'Descargar facturas'],
-    relatedPages: ['/dashboard', '/cart'],
-    features: ['Visualización de compras', 'Descarga de facturas']
-  },
   // ==========================================
   // BUSINESS PANEL - ADMINISTRADOR EMPRESARIAL
   // ==========================================

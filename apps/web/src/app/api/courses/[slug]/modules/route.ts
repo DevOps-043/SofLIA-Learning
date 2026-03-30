@@ -123,15 +123,6 @@ export async function GET(
       if (lessonsError) {
         console.error('[modules/route] ❌ Error obteniendo lecciones:', lessonsError);
       } else {
-        console.log('[modules/route] ✅ Lecciones obtenidas:', {
-          count: lessonsData?.length || 0,
-          lessons: lessonsData?.map(l => ({
-            id: l.lesson_id,
-            title: l.lesson_title,
-            module_id: l.module_id,
-            is_published: l.is_published
-          }))
-        });
       }
 
       allLessonsData = lessonsData ?? [];
@@ -183,15 +174,6 @@ export async function GET(
         );
 
         const moduleLessons = lessonsByModule.get(module.module_id) || [];
-        console.log(`[modules/route] Módulo ${module.module_id} (${module.module_title}):`, {
-          totalLessons: moduleLessons.length,
-          publishedLessons: moduleLessons.filter(l => l.is_published === true).length,
-          allLessons: moduleLessons.map(l => ({
-            id: l.lesson_id,
-            title: l.lesson_title,
-            is_published: l.is_published
-          }))
-        });
 
         const publishedLessons = moduleLessons.filter(
           (lesson) => lesson.is_published === true
@@ -219,13 +201,6 @@ export async function GET(
           })
         );
 
-        console.log(`[modules/route] Lecciones finales para módulo ${module.module_id}:`, {
-          count: translatedLessons.length,
-          lessons: translatedLessons.map(l => ({
-            id: l.lesson_id,
-            title: l.lesson_title
-          }))
-        });
 
         const lessonsWithProgress = translatedLessons.map((lesson) => {
           let videoUrl = lesson.video_provider_id;
@@ -290,7 +265,6 @@ export async function GET(
       cacheHeaders.semiStatic
     );
   } catch (error) {
-    // console.error('Error in modules API:', error);
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

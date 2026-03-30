@@ -218,7 +218,6 @@ export async function approveCourse(stagingId: string, _adminId: string): Promis
     const user = await SessionService.getCurrentUser()
     const effectiveAdminId = user?.id
 
-    console.log('[APPROVE_DEBUG] Auth Check:', { hasUser: !!user, userId: user?.id, role: user?.cargo_rol })
 
     if (!effectiveAdminId) {
         console.error('[APPROVE_ERROR] No admin identified')

@@ -38,7 +38,6 @@ export async function GET() {
       .single();
 
     if (error) {
-      // console.error('[TEST] Error en insert:', error);
       return NextResponse.json({
         success: false,
         error: error.message,
@@ -62,7 +61,6 @@ export async function GET() {
       .single();
 
     if (checkError) {
-      // console.error('[TEST] Error verificando:', checkError);
     }
 
     // 6. Limpiar (borrar el registro de prueba)
@@ -84,7 +82,6 @@ export async function GET() {
     });
 
   } catch (error) {
-    // console.error('[TEST] Error general:', error);
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Error desconocido',

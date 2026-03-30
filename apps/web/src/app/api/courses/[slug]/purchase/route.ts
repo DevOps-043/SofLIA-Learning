@@ -23,7 +23,6 @@ export async function POST(
     const currentUser = await SessionService.getCurrentUser();
     
     if (!currentUser) {
-      // console.error('❌ No hay usuario autenticado');
       return NextResponse.json(
         { error: 'No autenticado. Por favor inicia sesión.' },
         { status: 401 }
@@ -102,7 +101,6 @@ export async function POST(
         .single();
 
       if (paymentMethodError || !tempPaymentMethod) {
-        // console.error('Error creando método de pago temporal:', paymentMethodError);
         return NextResponse.json(
           { error: 'Error al crear método de pago', details: paymentMethodError },
           { status: 500 }
@@ -133,7 +131,6 @@ export async function POST(
       .single();
 
     if (transactionError || !transaction) {
-      // console.error('Error creating transaction:', transactionError);
       return NextResponse.json(
         { error: 'Error al crear la transacción', details: transactionError },
         { status: 500 }
@@ -163,7 +160,6 @@ export async function POST(
       .single();
 
     if (purchaseError || !purchase) {
-      // console.error('Error creating purchase:', purchaseError);
       // Intentar eliminar la transacción creada
       await supabase.from('transactions').delete().eq('transaction_id', transaction.transaction_id);
       
@@ -189,7 +185,6 @@ export async function POST(
       .single();
 
     if (enrollmentError) {
-      // console.error('Error creating enrollment:', enrollmentError);
       // No revertimos la compra, solo lo registramos
       }
 
@@ -217,7 +212,6 @@ export async function POST(
         )
       } catch (notificationError) {
         // No lanzar error para no afectar el flujo principal
-        // console.error('Error creando notificación de inscripción en curso:', notificationError)
       }
     }
 
@@ -238,7 +232,6 @@ export async function POST(
     }, { status: 200 });
 
   } catch (error) {
-    // console.error('Error in purchase endpoint:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

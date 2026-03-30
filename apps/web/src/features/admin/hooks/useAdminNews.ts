@@ -30,7 +30,6 @@ export function useAdminNews() {
       setNews(newsData)
       setStats(statsData)
     } catch (err) {
-      // console.error('Error fetching admin news data:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)
@@ -55,7 +54,6 @@ export function useAdminNews() {
       
       return newNews
     } catch (err) {
-      // console.error('Error creating news:', err)
       throw err
     }
   }
@@ -73,7 +71,6 @@ export function useAdminNews() {
       
       return updatedNews
     } catch (err) {
-      // console.error('Error updating news:', err)
       throw err
     }
   }
@@ -95,7 +92,6 @@ export function useAdminNews() {
         }))
       }
     } catch (err) {
-      // console.error('Error deleting news:', err)
       throw err
     }
   }
@@ -131,7 +127,6 @@ export function useAdminNews() {
         return newStats
       })
     } catch (err) {
-      // console.error('Error toggling news status:', err)
       throw err
     }
   }

@@ -61,11 +61,9 @@ export class AdminCoursesService {
         .order('title', { ascending: true })
 
       if (error) {
-        // console.error('❌ Error fetching courses:', error)
         return []
       }
 
-      // console.log('Cursos encontrados:', data?.length || 0)
 
       // Mapear datos con instructor ya incluido
       const courses = (data || []).map((course: any) => {
@@ -101,7 +99,6 @@ export class AdminCoursesService {
 
       return courses
     } catch (error) {
-      // console.error('💥 Error in AdminCoursesService.getAllCourses:', error)
       return []
     }
   }
@@ -144,11 +141,9 @@ export class AdminCoursesService {
         .order('title', { ascending: true })
 
       if (error) {
-        // console.error('❌ Error fetching active courses:', error)
         return []
       }
 
-      // console.log('Cursos activos encontrados:', data?.length || 0)
 
       // Mapear datos con instructor ya incluido
       const courses = (data || []).map((course: any) => {
@@ -184,7 +179,6 @@ export class AdminCoursesService {
 
       return courses
     } catch (error) {
-      // console.error('💥 Error in AdminCoursesService.getActiveCourses:', error)
       return []
     }
   }

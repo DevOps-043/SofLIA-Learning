@@ -133,18 +133,6 @@ class DevLogger {
     console.groupEnd()
   }
 
-  /**
-   * Tabla de datos
-   */
-  table(data: any[], columns?: string[]) {
-    if (!this.isDevelopment) return
-
-    if (columns) {
-
-    } else {
-
-    }
-  }
 }
 
 // Exportar instancia singleton

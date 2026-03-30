@@ -14,7 +14,6 @@ export function DeleteReelModal({ reel, onClose, onConfirm }: DeleteReelModalPro
     try {
       await onConfirm()
     } catch (error) {
-      // console.error('Error deleting reel:', error)
     }
   }
 

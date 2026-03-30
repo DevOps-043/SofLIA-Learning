@@ -112,7 +112,6 @@ export class InstructorStatsService {
       const data = await response.json()
       return data
     } catch (error) {
-      // console.error('Error in InstructorStatsService.getDetailedStats:', error)
       throw error
     }
   }

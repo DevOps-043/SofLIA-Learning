@@ -87,13 +87,6 @@ export class ContextMetricsService {
 
     // Log para debugging (en producción, enviar a analytics)
     if (process.env.NODE_ENV === 'development') {
-      console.log('[ContextMetrics] Recorded:', {
-        type: metric.contextType,
-        providers: metric.providersUsed,
-        tokens: metric.totalTokens,
-        time: metric.buildTimeMs + 'ms',
-        cached: metric.cached
-      });
     }
   }
 

@@ -20,7 +20,6 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (error) {
-      // console.error('Error fetching user settings:', error);
       // Si no existe el campo, devolver valores por defecto
       return NextResponse.json({
         privacy: {
@@ -53,7 +52,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    // console.error('Error in GET /api/account-settings:', error);
     return NextResponse.json(
       { error: 'Error al obtener la configuración' },
       { status: 500 }
@@ -116,7 +114,6 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id);
 
     if (error) {
-      // console.error('Error updating user settings:', error);
       return NextResponse.json(
         { error: 'Error al guardar la configuración' },
         { status: 500 }
@@ -129,7 +126,6 @@ export async function POST(request: NextRequest) {
       notifications,
     });
   } catch (error) {
-    // console.error('Error in POST /api/account-settings:', error);
     return NextResponse.json(
       { error: 'Error al guardar la configuración' },
       { status: 500 }

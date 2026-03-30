@@ -265,7 +265,6 @@ async function cleanupOrphanedPlanEvents(supabase: any, userId: string): Promise
 
     // Eliminar eventos huérfanos
     if (orphanedEventIds.length > 0) {
-      console.log(`🗑️ [Cleanup] Eliminando ${orphanedEventIds.length} eventos huérfanos de planes eliminados`);
       
       const { error: deleteError } = await supabase
         .from('user_calendar_events')
@@ -276,7 +275,6 @@ async function cleanupOrphanedPlanEvents(supabase: any, userId: string): Promise
       if (deleteError) {
         console.error('❌ [Cleanup] Error eliminando eventos huérfanos:', deleteError);
       } else {
-        console.log(`✅ [Cleanup] ${orphanedEventIds.length} eventos huérfanos eliminados exitosamente`);
       }
     }
   } catch (error) {

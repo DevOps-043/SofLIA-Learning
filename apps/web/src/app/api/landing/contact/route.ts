@@ -59,7 +59,6 @@ export async function POST(request: NextRequest) {
     if (dbError) {
       console.error('Error saving contact:', dbError);
       // Continuar con el envío de correo aunque falle la base de datos
-      console.log('New landing contact (DB failed):', { name, email, company, source, timestamp });
     }
 
     // Enviar correo de notificación
@@ -189,7 +188,6 @@ export async function POST(request: NextRequest) {
         html: htmlContent,
       });
 
-      console.log('Demo request email sent successfully to:', DEMO_REQUEST_EMAIL);
 
     } catch (emailError) {
       console.error('Error sending email:', emailError);

@@ -58,10 +58,6 @@ export async function GET(request: NextRequest) {
       .eq('entity_type', 'lesson')
       .eq('entity_id', lessonId)
 
-    console.log('[TEST-LESSON-TRANSLATION] Traducciones existentes en BD:', {
-      count: existingTranslations?.length || 0,
-      languages: existingTranslations?.map((t: any) => t.language_code) || []
-    })
 
     // PASO 3: Traducir la lección (si no está traducida o necesita actualización)
 
@@ -83,10 +79,6 @@ export async function GET(request: NextRequest) {
       .eq('entity_type', 'lesson')
       .eq('entity_id', lessonId)
 
-    console.log('[TEST-LESSON-TRANSLATION] Traducciones después de traducir:', {
-      count: translationsAfter?.length || 0,
-      languages: translationsAfter?.map((t: any) => t.language_code) || []
-    })
 
     // PASO 5: Probar carga de traducciones para cada idioma
 

@@ -1,14 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, BarChart3, TrendingUp, BookOpen, Award, Clock, FileText, Target, CheckCircle, PlayCircle, XCircle, User, Mail, Briefcase, Calendar, LogIn, MessageSquare, HelpCircle, Activity, Zap, Trophy, Layers, BookMarked, Eye } from 'lucide-react'
-import { Button } from '@aprende-y-aplica/ui'
-import { useTranslation } from 'react-i18next'
+import { X, BarChart3, TrendingUp, BookOpen, Award, Clock, FileText, Target, CheckCircle, PlayCircle, XCircle, Briefcase, Calendar, LogIn, MessageSquare, HelpCircle, Activity, Zap, Layers } from 'lucide-react'
 import Image from 'next/image'
 import { BusinessUser } from '../services/businessUsers.service'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '../../../core/stores/themeStore'
+import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
 
 interface BusinessUserStatsModalProps {
   user: BusinessUser | null
@@ -16,259 +12,29 @@ interface BusinessUserStatsModalProps {
   onClose: () => void
 }
 
-interface UserStats {
-  total_courses: number
-  completed_courses: number
-  in_progress_courses: number
-  not_started_courses: number
-  average_progress: number
-  total_time_spent_minutes: number
-  total_time_spent_hours: number
-  completed_lessons: number
-  total_lessons: number
-  certificates_count: number
-  notes_count: number
-  total_assignments: number
-  completed_assignments: number
-  lia_conversations_total?: number
-  lia_messages_total?: number
-  quiz_total?: number
-  quiz_passed?: number
-  quiz_failed?: number
-  quiz_average_score?: number
-  lia_activities_completed?: number
-  lia_activities_total?: number
-  courses_data: Array<{
-    course_id: string
-    course_title: string
-    progress: number
-    status: string
-    enrolled_at: string
-    completed_at: string | null
-    has_certificate: boolean
-    lia_conversations_count?: number
-    lia_messages_count?: number
-    lia_avg_duration_minutes?: number
-    lia_last_conversation?: string | null
-    quiz_total?: number
-    quiz_passed?: number
-    quiz_failed?: number
-    quiz_average_score?: number
-    quiz_best_score?: number
-    quiz_total_attempts?: number
-    lia_activities_completed?: number
-    notes_count?: number
-    time_spent_minutes?: number
-    modules_total?: number
-    modules_completed?: number
-    lessons_total?: number
-    lessons_completed?: number
-    lessons_in_progress?: number
-    activities_completed?: number
-    activities_total?: number
-    readings_viewed?: number
-    quiz_lessons_completed?: number
-  }>
-  time_by_course: Array<{
-    course_id: string
-    course_title: string
-    total_minutes: number
-    total_hours: number
-  }>
-  completed_by_month: Array<{
-    month: string
-    count: number
-  }>
-  distribution: {
-    completed: number
-    in_progress: number
-    not_started: number
-  }
-}
-
-// Fallback translations in case i18n fails
-const fallbackTranslations: Record<string, string> = {
-  'users.stats.time.never': 'Nunca',
-  'users.stats.time.invalid': 'Fecha inválida',
-  'users.stats.time.moments': 'Hace unos momentos',
-  'users.stats.time.minutes': 'Hace {{count}} minuto(s)',
-  'users.stats.time.hours': 'Hace {{count}} hora(s)',
-  'users.stats.time.days': 'Hace {{count}} día(s)',
-  'users.stats.time.weeks': 'Hace {{count}} semana(s)',
-  'users.stats.time.months': 'Hace {{count}} mes(es)',
-  'users.stats.time.years': 'Hace {{count}} año(s)',
-  'users.stats.time.today': 'Hoy',
-  'users.stats.time.yesterday': 'Ayer',
-  'users.stats.labels.typeRole': 'Tipo de Rol',
-  'users.stats.labels.lastConnection': 'Última Conexión',
-  'users.stats.labels.joined': 'Se unió',
-  'users.stats.cards.courses': 'Cursos',
-  'users.stats.cards.completed': 'Completados',
-  'users.stats.cards.hours': 'Horas',
-  'users.stats.cards.certificates': 'Certificados',
-  'users.stats.platformActivity.title': 'Actividad en la Plataforma',
-  'users.stats.platformActivity.liaQueries': 'Consultas LIA',
-  'users.stats.platformActivity.messages': 'mensajes',
-  'users.stats.platformActivity.quizzesPassed': 'Quiz Aprobados',
-  'users.stats.platformActivity.average': 'promedio',
-  'users.stats.platformActivity.liaActivities': 'Actividades LIA',
-  'users.stats.platformActivity.total': 'total',
-  'users.stats.generalProgress.title': 'Progreso General',
-  'users.stats.generalProgress.subtitle': 'Avance en todos los cursos asignados',
-  'users.stats.generalProgress.completed': 'Completados',
-  'users.stats.generalProgress.inProgress': 'En Progreso',
-  'users.stats.generalProgress.notStarted': 'Sin Iniciar',
-  'users.stats.coursesList.empty': 'No hay cursos asignados',
-  'users.stats.coursesList.enrolled': 'Inscrito',
-  'users.stats.coursesList.certificate': 'Certificado',
-  'users.stats.coursesList.completed': 'Completado',
-  'users.stats.coursesList.inProgress': 'En progreso',
-  'users.stats.coursesList.notStarted': 'Sin iniciar',
-  'users.stats.coursesList.progress': 'Progreso del curso',
-  'users.stats.coursesList.time': 'Tiempo',
-  'users.stats.coursesList.lia': 'LIA',
-  'users.stats.coursesList.quiz': 'Quiz',
-  'users.stats.coursesList.notes': 'Notas',
-  'users.stats.timeline.empty': 'No hay progreso que mostrar',
-  'users.stats.timeline.modules': 'módulos',
-  'users.stats.timeline.lessons': 'lecciones',
-  'users.stats.timeline.quizzes': 'quiz',
-  'users.stats.activity.notesCreated': 'Notas Creadas',
-  'users.stats.activity.assignments': 'Asignaciones',
-  'users.stats.activity.certificates': 'Certificados',
-  'users.stats.activity.completionHistory': 'Historial de Completados',
-  'users.stats.activity.courses': 'curso(s)',
-  'users.stats.activity.summary': 'Resumen de Actividad',
-  'users.stats.activity.studyTime': 'Tiempo de estudio',
-  'users.stats.activity.lessons': 'Lecciones',
-  'users.roles.owner': 'Propietario',
-  'users.roles.admin': 'Administrador',
-  'users.roles.member': 'Miembro'
-}
-
 export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserStatsModalProps) {
-  const { t: originalT } = useTranslation('business')
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-  
-  // Helper function that provides fallback translations
-  const t = (key: string, options?: any): string => {
-    const result = originalT(key, options)
-    const resultStr = typeof result === 'string' ? result : String(result)
-    // If the result equals the key, it means translation was not found
-    if (resultStr === key || resultStr.includes('.stats.')) {
-      let fallback = fallbackTranslations[key] || key
-      // Handle interpolation for count
-      if (options?.count !== undefined && fallback.includes('{{count}}')) {
-        fallback = fallback.replace('{{count}}', String(options.count))
-      }
-      return fallback
-    }
-    return resultStr
-  }
-  
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
-  const [stats, setStats] = useState<UserStats | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'progress' | 'activity'>('overview')
-
-  // Aplicar colores personalizados
-  const modalBg = isDark ? (panelStyles?.card_background || 'rgba(30, 41, 59, 0.95)') : '#FFFFFF'
-  const modalBorder = isDark ? (panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)') : 'rgba(226, 232, 240, 0.8)'
-  const textColor = isDark ? (panelStyles?.text_color || '#f8fafc') : '#0F172A'
-  const primaryColor = panelStyles?.primary_button_color || '#3b82f6'
-  const accentColor = panelStyles?.accent_color || '#10B981'
-  const secondaryColor = panelStyles?.secondary_button_color || '#8b5cf6'
-
-  useEffect(() => {
-    if (isOpen && user) {
-      fetchUserStats()
-    }
-  }, [isOpen, user])
-
-  const fetchUserStats = async () => {
-    if (!user) return
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const response = await fetch(`/api/business/users/${user.id}/stats`, {
-        credentials: 'include'
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Error al cargar estadísticas')
-      }
-
-      if (data.success && data.stats) {
-        setStats(data.stats)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar estadísticas')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const formatMonth = (monthKey: string) => {
-    const [year, month] = monthKey.split('-')
-    const date = new Date(parseInt(year), parseInt(month) - 1)
-    return date.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
-  }
-
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'N/A'
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    })
-  }
-
-  const formatRelativeTime = (dateString: string | null | undefined) => {
-    if (!dateString) return t('users.stats.time.never')
-
-    try {
-      const date = new Date(dateString)
-      // Verificar si la fecha es válida
-      if (isNaN(date.getTime())) return t('users.stats.time.invalid')
-
-      const now = new Date()
-      const diffMs = now.getTime() - date.getTime()
-
-      // Si la fecha es en el futuro, mostrar la fecha completa
-      if (diffMs < 0) {
-        return formatDate(dateString)
-      }
-
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-      const diffMinutes = Math.floor(diffMs / (1000 * 60))
-
-      if (diffMinutes < 1) return t('users.stats.time.moments')
-      if (diffMinutes < 60) return t('users.stats.time.minutes', { count: diffMinutes, plural: diffMinutes > 1 ? 's' : '' })
-      if (diffHours < 24) return t('users.stats.time.hours', { count: diffHours, plural: diffHours > 1 ? 's' : '' })
-      if (diffDays === 0) return t('users.stats.time.today')
-      if (diffDays === 1) return t('users.stats.time.yesterday')
-      if (diffDays < 7) return t('users.stats.time.days', { count: diffDays })
-      if (diffDays < 30) return t('users.stats.time.weeks', { count: Math.floor(diffDays / 7) })
-      if (diffDays < 365) return t('users.stats.time.months', { count: Math.floor(diffDays / 30) })
-      return t('users.stats.time.years', { count: Math.floor(diffDays / 365) })
-    } catch (error) {
-      // Si hay algún error, intentar mostrar la fecha formateada
-      return formatDate(dateString)
-    }
-  }
+  const {
+    t,
+    isDark,
+    stats,
+    loading,
+    error,
+    activeTab,
+    setActiveTab,
+    modalBg,
+    modalBorder,
+    textColor,
+    primaryColor,
+    accentColor,
+    secondaryColor,
+    formatMonth,
+    formatDate,
+    formatRelativeTime,
+    displayName,
+    initials,
+  } = useBusinessUserStatsModalLogic({ user, isOpen, onClose })
 
   if (!isOpen || !user) return null
-
-  const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-  const initials = (user.first_name?.[0] || user.username[0] || 'U').toUpperCase()
 
   return (
     <AnimatePresence>
@@ -308,13 +74,13 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
               {/* Left Side - User Profile */}
               <div
                 className="w-64 lg:w-72 p-4 lg:p-6 flex flex-col border-r shrink-0 overflow-y-auto"
-                style={{ 
-                  background: isDark 
+                style={{
+                  background: isDark
                     ? `linear-gradient(135deg, ${primaryColor}20, ${primaryColor}10)`
                     : `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)`,
                   borderColor: modalBorder,
-                  scrollbarWidth: 'thin', 
-                  scrollbarColor: 'rgba(128,128,128,0.2) transparent' 
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(128,128,128,0.2) transparent'
                 }}
               >
                 {/* User Avatar */}
@@ -346,8 +112,8 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                   {/* Role Badge */}
                   <div
                     className="mt-3 px-3 py-1.5 rounded-full text-xs font-medium border"
-                    style={{ 
-                      backgroundColor: isDark ? `${primaryColor}30` : `${primaryColor}20`, 
+                    style={{
+                      backgroundColor: isDark ? `${primaryColor}30` : `${primaryColor}20`,
                       color: isDark ? '#FFFFFF' : primaryColor,
                       borderColor: isDark ? `${primaryColor}50` : `${primaryColor}30`
                     }}
@@ -359,7 +125,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
 
                 {/* User Info */}
                 <div className="space-y-3 lg:space-y-4 flex-1">
-                  <div 
+                  <div
                     className="p-3 rounded-xl border"
                     style={{
                       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
@@ -373,7 +139,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                     <p className="text-sm font-medium" style={{ color: textColor }}>{user.job_title || user.cargo_rol || 'N/A'}</p>
                   </div>
 
-                  <div 
+                  <div
                     className="p-3 rounded-xl border"
                     style={{
                       backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
@@ -393,7 +159,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                   </div>
 
                   {user.joined_at && (
-                    <div 
+                    <div
                       className="p-3 rounded-xl border"
                       style={{
                         backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
@@ -413,7 +179,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
               {/* Right Side - Stats Content */}
               <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 {/* Header with Tabs */}
-                <div 
+                <div
                   className="flex items-center justify-between p-3 lg:p-4 border-b shrink-0"
                   style={{ borderColor: modalBorder }}
                 >
@@ -431,8 +197,8 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                           ? ''
                           : 'text-gray-500 dark:text-white/50 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
                           }`}
-                        style={activeTab === id ? { 
-                          backgroundColor: isDark ? `${primaryColor}30` : `${primaryColor}20`, 
+                        style={activeTab === id ? {
+                          backgroundColor: isDark ? `${primaryColor}30` : `${primaryColor}20`,
                           color: isDark ? '#FFFFFF' : primaryColor,
                           border: `1px solid ${primaryColor}60`,
                           fontWeight: '600'
@@ -513,7 +279,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                 transition={{ delay: index * 0.1 }}
                                 className="relative overflow-hidden rounded-2xl p-4 group cursor-default border"
                                 style={{
-                                  background: isDark 
+                                  background: isDark
                                     ? `linear-gradient(135deg, ${iconColor}20, ${iconColor}05)`
                                     : `linear-gradient(135deg, ${iconColor}15, ${iconColor}05)`,
                                   borderColor: isDark ? `${iconColor}40` : `${iconColor}30`
@@ -525,7 +291,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                   style={{ backgroundColor: iconColor }}
                                 />
 
-                                <div 
+                                <div
                                   className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
                                   style={{ backgroundColor: `${iconColor}20` }}
                                 >
@@ -555,17 +321,17 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                               </h3>
                               <div className="grid grid-cols-3 gap-3">
                                 {stats.lia_conversations_total !== undefined && (
-                                  <div 
+                                  <div
                                     className="relative overflow-hidden rounded-xl p-4 border"
                                     style={{
-                                      background: isDark 
+                                      background: isDark
                                         ? `linear-gradient(135deg, ${primaryColor}20, ${primaryColor}05)`
                                         : `linear-gradient(135deg, ${primaryColor}15, ${primaryColor}05)`,
                                       borderColor: isDark ? `${primaryColor}40` : `${primaryColor}30`
                                     }}
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div 
+                                      <div
                                         className="w-12 h-12 rounded-xl flex items-center justify-center"
                                         style={{
                                           backgroundColor: `${primaryColor}20`
@@ -585,17 +351,17 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                 )}
 
                                 {stats.quiz_total !== undefined && stats.quiz_total > 0 && (
-                                  <div 
+                                  <div
                                     className="relative overflow-hidden rounded-xl p-4 border"
                                     style={{
-                                      background: isDark 
+                                      background: isDark
                                         ? `linear-gradient(135deg, ${accentColor}20, ${accentColor}05)`
                                         : `linear-gradient(135deg, ${accentColor}15, ${accentColor}05)`,
                                       borderColor: isDark ? `${accentColor}40` : `${accentColor}30`
                                     }}
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div 
+                                      <div
                                         className="w-12 h-12 rounded-xl flex items-center justify-center"
                                         style={{
                                           backgroundColor: `${accentColor}20`
@@ -617,17 +383,17 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                 )}
 
                                 {stats.lia_activities_completed !== undefined && (
-                                  <div 
+                                  <div
                                     className="relative overflow-hidden rounded-xl p-4 border"
                                     style={{
-                                      background: isDark 
+                                      background: isDark
                                         ? 'linear-gradient(135deg, rgba(244, 63, 94, 0.1), transparent)'
                                         : '#E9ECEF',
                                       borderColor: isDark ? 'rgba(244, 63, 94, 0.2)' : '#6C757D'
                                     }}
                                   >
                                     <div className="flex items-center gap-3">
-                                      <div 
+                                      <div
                                         className="w-12 h-12 rounded-xl flex items-center justify-center"
                                         style={{
                                           backgroundColor: isDark ? 'rgba(244, 63, 94, 0.2)' : 'rgba(244, 63, 94, 0.15)'
@@ -656,7 +422,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                             transition={{ delay: 0.5 }}
                             className="rounded-2xl p-5 border"
                             style={{
-                              background: isDark 
+                              background: isDark
                                 ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent)'
                                 : '#E9ECEF',
                               borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#6C757D'
@@ -691,14 +457,14 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
 
                             {/* Distribution */}
                             <div className="grid grid-cols-3 gap-4">
-                              <div 
+                              <div
                                 className="text-center p-3 rounded-xl border"
                                 style={{
                                   background: isDark ? 'rgba(16, 185, 129, 0.1)' : '#E9ECEF',
                                   borderColor: isDark ? 'rgba(16, 185, 129, 0.2)' : '#6C757D'
                                 }}
                               >
-                                <div 
+                                <div
                                   className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2"
                                   style={{
                                     backgroundColor: isDark ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)'
@@ -709,14 +475,14 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                 <div className="text-2xl font-bold" style={{ color: isDark ? '#10B981' : '#059669' }}>{stats.completed_courses}</div>
                                 <div className="text-xs" style={{ color: isDark ? 'rgba(255, 255, 255, 0.4)' : '#6C757D' }}>{t('users.stats.generalProgress.completed')}</div>
                               </div>
-                              <div 
+                              <div
                                 className="text-center p-3 rounded-xl border"
                                 style={{
                                   background: isDark ? 'rgba(59, 130, 246, 0.1)' : '#E9ECEF',
                                   borderColor: isDark ? 'rgba(59, 130, 246, 0.2)' : '#6C757D'
                                 }}
                               >
-                                <div 
+                                <div
                                   className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2"
                                   style={{
                                     backgroundColor: isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(59, 130, 246, 0.15)'
@@ -727,14 +493,14 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                 <div className="text-2xl font-bold" style={{ color: isDark ? '#3B82F6' : '#2563EB' }}>{stats.in_progress_courses}</div>
                                 <div className="text-xs" style={{ color: isDark ? 'rgba(255, 255, 255, 0.4)' : '#6C757D' }}>{t('users.stats.generalProgress.inProgress')}</div>
                               </div>
-                              <div 
+                              <div
                                 className="text-center p-3 rounded-xl border"
                                 style={{
                                   background: isDark ? 'rgba(255, 255, 255, 0.05)' : '#E9ECEF',
                                   borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#6C757D'
                                 }}
                               >
-                                <div 
+                                <div
                                   className="inline-flex items-center justify-center w-10 h-10 rounded-xl mb-2"
                                   style={{
                                     backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(108, 117, 125, 0.15)'
@@ -902,7 +668,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                         >
                           {stats.courses_data.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
-                              <div 
+                              <div
                                 className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
                                 style={{
                                   backgroundColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#F3F4F6'
@@ -926,10 +692,10 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                 >
                                   {/* Timeline line */}
                                   {index < stats.courses_data.length - 1 && (
-                                    <div 
+                                    <div
                                       className="absolute left-6 top-16 bottom-0 w-0.5"
                                       style={{
-                                        background: isDark 
+                                        background: isDark
                                           ? 'linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent)'
                                           : 'linear-gradient(to bottom, rgba(0, 0, 0, 0.2), transparent)'
                                       }}
@@ -953,10 +719,10 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
 
                                     {/* Course Content */}
                                     <div className="flex-1 pb-6">
-                                      <div 
+                                      <div
                                         className="rounded-2xl border p-4"
                                         style={{
-                                          background: isDark 
+                                          background: isDark
                                             ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03))'
                                             : '#E9ECEF',
                                           borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#6C757D'
@@ -976,7 +742,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                             </p>
                                           </div>
                                           {course.status === 'completed' && (
-                                            <div 
+                                            <div
                                               className="w-8 h-8 rounded-full flex items-center justify-center"
                                               style={{
                                                 backgroundColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)'
@@ -988,7 +754,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                         </div>
 
                                         {/* Progress Bar */}
-                                        <div 
+                                        <div
                                           className="relative h-3 rounded-full overflow-hidden mb-4"
                                           style={{
                                             backgroundColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)'
@@ -1061,14 +827,14 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                               animate={{ opacity: 1, y: 0 }}
                               className="relative overflow-hidden rounded-2xl p-5 border"
                               style={{
-                                background: isDark 
+                                background: isDark
                                   ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(16, 185, 129, 0.1))'
                                   : '#E9ECEF',
                                 borderColor: isDark ? 'rgba(16, 185, 129, 0.4)' : '#6C757D'
                               }}
                             >
                               <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-emerald-500/10 blur-2xl" />
-                              <div 
+                              <div
                                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                                 style={{
                                   backgroundColor: isDark ? 'rgba(16, 185, 129, 0.3)' : 'rgba(16, 185, 129, 0.2)'
@@ -1087,14 +853,14 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                               transition={{ delay: 0.1 }}
                               className="relative overflow-hidden rounded-2xl p-5 border"
                               style={{
-                                background: isDark 
+                                background: isDark
                                   ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(59, 130, 246, 0.1))'
                                   : '#E9ECEF',
                                 borderColor: isDark ? 'rgba(59, 130, 246, 0.4)' : '#6C757D'
                               }}
                             >
                               <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-blue-500/10 blur-2xl" />
-                              <div 
+                              <div
                                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                                 style={{
                                   backgroundColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'
@@ -1116,14 +882,14 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                               transition={{ delay: 0.2 }}
                               className="relative overflow-hidden rounded-2xl p-5 border"
                               style={{
-                                background: isDark 
+                                background: isDark
                                   ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.1))'
                                   : '#E9ECEF',
                                 borderColor: isDark ? 'rgba(245, 158, 11, 0.4)' : '#6C757D'
                               }}
                             >
                               <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full bg-amber-500/10 blur-2xl" />
-                              <div 
+                              <div
                                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
                                 style={{
                                   backgroundColor: isDark ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.2)'
@@ -1144,7 +910,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                               transition={{ delay: 0.3 }}
                               className="rounded-2xl border p-5"
                               style={{
-                                background: isDark 
+                                background: isDark
                                   ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03))'
                                   : '#E9ECEF',
                                 borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#6C757D'
@@ -1168,7 +934,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                       transition={{ delay: 0.4 + index * 0.1 }}
                                       className="flex items-center gap-4"
                                     >
-                                      <div 
+                                      <div
                                         className="w-20 text-xs flex-shrink-0"
                                         style={{ color: isDark ? 'rgba(255, 255, 255, 0.7)' : '#6B7280' }}
                                       >
@@ -1204,7 +970,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                             transition={{ delay: 0.4 }}
                             className="rounded-2xl border p-5"
                             style={{
-                              background: isDark 
+                              background: isDark
                                 ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03))'
                                 : '#E9ECEF',
                               borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#6C757D'
@@ -1216,7 +982,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                              <div 
+                              <div
                                 className="flex items-center gap-3 p-3 rounded-xl border"
                                 style={{
                                   background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E9ECEF',
@@ -1229,7 +995,7 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
                                   <div className="text-xs" style={{ color: isDark ? 'rgba(255, 255, 255, 0.5)' : '#6C757D' }}>{t('users.stats.activity.studyTime')}</div>
                                 </div>
                               </div>
-                              <div 
+                              <div
                                 className="flex items-center gap-3 p-3 rounded-xl border"
                                 style={{
                                   background: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E9ECEF',
@@ -1257,4 +1023,3 @@ export function BusinessUserStatsModal({ user, isOpen, onClose }: BusinessUserSt
     </AnimatePresence>
   )
 }
-

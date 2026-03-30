@@ -30,7 +30,6 @@ export function useAdminApps() {
       setApps(appsData)
       setStats(statsData)
     } catch (err) {
-      // console.error('Error fetching admin apps data:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)
@@ -55,7 +54,6 @@ export function useAdminApps() {
       
       return newApp
     } catch (err) {
-      // console.error('Error creating app:', err)
       throw err
     }
   }
@@ -73,7 +71,6 @@ export function useAdminApps() {
       
       return updatedApp
     } catch (err) {
-      // console.error('Error updating app:', err)
       throw err
     }
   }
@@ -95,7 +92,6 @@ export function useAdminApps() {
         }))
       }
     } catch (err) {
-      // console.error('Error deleting app:', err)
       throw err
     }
   }
@@ -115,7 +111,6 @@ export function useAdminApps() {
         activeApps: prevStats.activeApps + (isActive ? 1 : -1)
       }))
     } catch (err) {
-      // console.error('Error toggling app status:', err)
       throw err
     }
   }
@@ -135,7 +130,6 @@ export function useAdminApps() {
         featuredApps: prevStats.featuredApps + (isFeatured ? 1 : -1)
       }))
     } catch (err) {
-      // console.error('Error toggling app featured:', err)
       throw err
     }
   }
@@ -155,7 +149,6 @@ export function useAdminApps() {
         verifiedApps: prevStats.verifiedApps + (isVerified ? 1 : -1)
       }))
     } catch (err) {
-      // console.error('Error toggling app verified:', err)
       throw err
     }
   }

@@ -22,7 +22,6 @@ export async function GET(
       videos 
     })
   } catch (error: unknown) {
-    // console.error('Error fetching community videos via API:', error)
     const message = error instanceof Error ? error.message : 'Error al obtener los videos';
     return NextResponse.json({ 
       success: false, 

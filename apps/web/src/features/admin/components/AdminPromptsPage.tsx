@@ -91,7 +91,6 @@ export function AdminPromptsPage() {
       setIsDeleteModalOpen(false)
       setSelectedPrompt(null)
     } catch (error) {
-      // console.error('Error deleting prompt:', error)
     } finally {
       setIsProcessing(null)
     }
@@ -101,7 +100,6 @@ export function AdminPromptsPage() {
     try {
       await createPrompt(promptData)
     } catch (error) {
-      // console.error('Error creating prompt:', error)
       throw error
     }
   }
@@ -110,7 +108,6 @@ export function AdminPromptsPage() {
     try {
       await updatePrompt(promptId, promptData)
     } catch (error) {
-      // console.error('Error updating prompt:', error)
       throw error
     }
   }
@@ -120,7 +117,6 @@ export function AdminPromptsPage() {
       setIsProcessing(prompt.prompt_id)
       await togglePromptStatus(prompt.prompt_id, !prompt.is_active)
     } catch (error) {
-      // console.error('Error toggling prompt status:', error)
     } finally {
       setIsProcessing(null)
     }
@@ -131,7 +127,6 @@ export function AdminPromptsPage() {
       setIsProcessing(prompt.prompt_id)
       await togglePromptFeatured(prompt.prompt_id, !prompt.is_featured)
     } catch (error) {
-      // console.error('Error toggling prompt featured:', error)
     } finally {
       setIsProcessing(null)
     }

@@ -45,7 +45,6 @@ export async function GET(
       .single()
 
     if (error) {
-      // console.error('Error fetching workshop:', error)
       return NextResponse.json(
         { error: 'Workshop not found' },
         { status: 404 }
@@ -77,7 +76,6 @@ export async function GET(
       }
     })
   } catch (error) {
-    // console.error('Error in GET /api/admin/workshops/[id]:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -169,7 +167,6 @@ export async function DELETE(
       message: 'Taller eliminado correctamente'
     })
   } catch (error) {
-    // console.error('Error in DELETE /api/admin/workshops/[id]:', error)
     return NextResponse.json(
       { error: 'Error al eliminar taller' },
       { status: 500 }

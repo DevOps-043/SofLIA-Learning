@@ -73,7 +73,6 @@ export function PDFUpload({ value, onChange, disabled = false }: PDFUploadProps)
       }, 1000)
 
     } catch (err) {
-      // console.error('Error uploading file:', err)
       setError(err instanceof Error ? err.message : 'Error al subir el archivo')
       setUploading(false)
       setProgress(0)

@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../../features/auth/hooks/useAuth'
 import { useUserProfile } from '../../../features/auth/hooks/useUserProfile'
 import { useThemeStore, Theme } from '../../stores/themeStore'
-import { useShoppingCartStore } from '../../stores/shoppingCartStore'
 import { useLanguage } from '../../providers/I18nProvider'
 
 // Lucide Icons
@@ -23,13 +22,9 @@ import {
   ChevronRight,
   Shield,
   GraduationCap,
-  CreditCard,
-  Wallet,
   Settings,
-  Receipt,
   Award,
   Bell,
-  ShoppingBag,
   Globe,
   ExternalLink,
   LucideIcon,
@@ -50,13 +45,11 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
   const { user, logout } = useAuth()
   const { userProfile } = useUserProfile()
   const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore()
-  const { getItemCount } = useShoppingCartStore()
   const { language, setLanguage } = useLanguage()
   const { organizations, currentOrganization, isB2B, switchOrganization } = useOrganization()
   const router = useRouter()
   const { t } = useTranslation('common')
   
-  const itemCount = getItemCount()
 
 
   useEffect(() => {
@@ -245,22 +238,6 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                   <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">Alertas</span>
                 </motion.button>
 
-                <motion.button
-                  onClick={() => handleNavigation('/cart')}
-                  className="flex-1 flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-white/5 transition-colors group"
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <div className="relative w-8 h-8 rounded-lg bg-[#2A3038] flex items-center justify-center group-hover:bg-[#00D4B3]/20 transition-colors">
-                    <ShoppingBag className="w-4 h-4 text-[#8B95A5] group-hover:text-[#00D4B3] transition-colors" />
-                    {itemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#00D4B3] text-[#0A2540] text-[9px] font-bold rounded-full flex items-center justify-center">
-                        {itemCount > 9 ? '9+' : itemCount}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">Carrito</span>
-                </motion.button>
               </div>
 
               {/* Menu Items */}
@@ -270,13 +247,6 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                 <MenuItem icon={BarChart3} label="Estadísticas" onClick={() => handleNavigation('/statistics')} />
                 <MenuItem icon={Award} label="Certificados" onClick={() => handleNavigation('/certificates')} />
                 
-                <div className="h-px bg-[#2A3038] mx-3 my-1" />
-                
-                {/* Billing Section */}
-                <MenuItem icon={CreditCard} label="Suscripciones" onClick={() => handleNavigation('/subscriptions')} />
-                <MenuItem icon={Wallet} label="Métodos de Pago" onClick={() => handleNavigation('/payment-methods')} />
-                <MenuItem icon={Receipt} label="Historial de Compras" onClick={() => handleNavigation('/purchase-history')} />
-
                 {/* Mis Organizaciones - solo B2B */}
                 {isB2B && organizations.length > 0 && (
                   <>

@@ -40,12 +40,10 @@ export function useVideoTracking({
 }: VideoTrackingOptions) {
     // 🐛 DEBUG: Log when hook is initialized
     useEffect(() => {
-        console.log('[useVideoTracking] Hook initialized with:', { lessonId, trackingId });
 
         if (!lessonId) {
             console.warn('[useVideoTracking] ⚠️ No lessonId provided - tracking will NOT work');
         } else {
-            console.log('[useVideoTracking] ✅ Tracking is ACTIVE for lesson:', lessonId);
         }
     }, [lessonId, trackingId]);
 
@@ -88,7 +86,6 @@ export function useVideoTracking({
             // Si el servidor devuelve un trackingId nuevo, podríamos guardarlo
             // (útil para la primera vez que se crea el tracking)
             if (data.trackingId && !trackingId) {
-                console.log('[VideoTracking] New tracking ID received:', data.trackingId);
             }
 
             lastProgressUpdate.current = currentTime;
@@ -114,7 +111,6 @@ export function useVideoTracking({
         playbackRate: number
     ) => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VideoTracking] Play event', { currentTime, duration, playbackRate });
         }
         // Actualizar inmediatamente al dar play
         updateProgress(currentTime, duration, playbackRate);
@@ -130,7 +126,6 @@ export function useVideoTracking({
         playbackRate: number
     ) => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VideoTracking] Pause event', { currentTime, duration, playbackRate });
         }
         // Actualizar inmediatamente al pausar
         updateProgress(currentTime, duration, playbackRate);
@@ -148,7 +143,6 @@ export function useVideoTracking({
         playbackRate: number
     ) => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VideoTracking] Ended event', { currentTime, duration, playbackRate });
         }
         // Actualizar con la duración completa
         updateProgress(duration, duration, playbackRate);
@@ -165,7 +159,6 @@ export function useVideoTracking({
         playbackRate: number
     ) => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VideoTracking] Seeked event', { currentTime, duration, playbackRate });
         }
         // Actualizar inmediatamente al hacer seek
         updateProgress(currentTime, duration, playbackRate);
@@ -198,7 +191,6 @@ export function useVideoTracking({
         playbackRate: number
     ) => {
         if (process.env.NODE_ENV === 'development') {
-            console.log('[VideoTracking] Rate change event', { playbackRate });
         }
         // Actualizar inmediatamente al cambiar velocidad
         updateProgress(currentTime, duration, playbackRate);

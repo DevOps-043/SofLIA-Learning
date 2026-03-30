@@ -55,11 +55,9 @@ export class AuditLogService {
         })
 
       if (error) {
-        // console.error('Error logging audit action:', error)
         // No lanzar error para no interrumpir el flujo principal
       }
     } catch (error) {
-      // console.error('Error in AuditLogService.logAction:', error)
       // No lanzar error para no interrumpir el flujo principal
     }
   }
@@ -81,13 +79,11 @@ export class AuditLogService {
       const { data, error } = await query
 
       if (error) {
-        // console.error('Error fetching audit logs:', error)
         throw error
       }
 
       return data || []
     } catch (error) {
-      // console.error('Error in AuditLogService.getAuditLogs:', error)
       throw error
     }
   }

@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -22,12 +21,10 @@ import {
   EyeIcon,
   ArrowTopRightOnSquareIcon
 } from '@heroicons/react/24/outline'
-import { useAdminCompanies } from '../hooks/useAdminCompanies'
 import { AdminCompany } from '../services/adminCompanies.service'
 import { AdminEditCompanyModal } from './AdminEditCompanyModal'
 import { AdminCreateCompanyModal, CreateCompanyData } from './AdminCreateCompanyModal'
-import { useThemeStore } from '@/core/stores/themeStore'
-import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
+import { useAdminCompaniesLogic } from '../hooks/useAdminCompaniesLogic'
 
 // ============================================
 // DESIGN SYSTEM - SOFLIA COLORS
@@ -740,84 +737,23 @@ function ViewModal({ company, onClose, onEdit, themeColors }: ViewModalProps) {
 // MAIN COMPONENT
 // ============================================
 export function AdminCompaniesPage() {
-  const { companies, stats, isLoading, error, refetch, updatingId, updateCompany, createCompany, actionError } = useAdminCompanies()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [planFilter, setPlanFilter] = useState('all')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [viewCompany, setViewCompany] = useState<AdminCompany | null>(null)
-  const [editCompany, setEditCompany] = useState<AdminCompany | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [isCreating, setIsCreating] = useState(false)
-
-  const { resolvedTheme } = useThemeStore()
-  const isLightTheme = resolvedTheme === 'light'
-  const { styles: orgStyles } = useOrganizationStylesContext()
-  const panelStyles = orgStyles?.panel
-  
-  const themeColors = {
-    background: isLightTheme ? (panelStyles?.background_value && panelStyles.background_value !== '#0F1419' ? panelStyles.background_value : '#F8FAFC') : colors.bgPrimary,
-    cardBackground: isLightTheme ? (panelStyles?.card_background && panelStyles.card_background !== '#1E2329' ? panelStyles.card_background : '#FFFFFF') : colors.bgSecondary,
-    textPrimary: isLightTheme ? '#1E293B' : 'white',
-    textSecondary: isLightTheme ? '#64748B' : colors.grayMedium,
-    borderColor: isLightTheme ? '#E2E8F0' : colors.grayMedium,
-    inputBg: isLightTheme ? '#F1F5F9' : colors.bgTertiary,
-  }
-
-
-  const filteredCompanies = useMemo(() => {
-    return companies.filter(company => {
-      const searchLower = searchTerm.toLowerCase()
-      const matchesSearch =
-        company.name.toLowerCase().includes(searchLower) ||
-        (company.slug?.toLowerCase().includes(searchLower) ?? false) ||
-        (company.contact_email?.toLowerCase().includes(searchLower) ?? false)
-
-      const matchesPlan =
-        planFilter === 'all' ||
-        company.subscription_plan?.toLowerCase() === planFilter
-
-      const normalizedStatus = company.subscription_status?.toLowerCase()
-      const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'active' && company.is_active && normalizedStatus !== 'trial') ||
-        (statusFilter === 'trial' && normalizedStatus === 'trial') ||
-        (statusFilter === 'pending' && normalizedStatus === 'pending' && !company.is_active) ||
-        (statusFilter === 'paused' && !company.is_active && normalizedStatus !== 'pending') ||
-        (statusFilter === 'expired' && normalizedStatus === 'expired')
-
-      return matchesSearch && matchesPlan && matchesStatus
-    })
-  }, [companies, planFilter, searchTerm, statusFilter])
-
-  const handleToggle = async (company: AdminCompany) => {
-    await updateCompany(company.id, { is_active: !company.is_active })
-  }
-
-  const handleActivatePending = async (company: AdminCompany) => {
-    await updateCompany(company.id, { is_active: true, subscription_status: 'active' })
-  }
-
-  const handleSaveEdit = async (updates: Partial<AdminCompany>) => {
-    if (!editCompany) return
-    setIsSaving(true)
-    try {
-      await updateCompany(editCompany.id, updates)
-      setEditCompany(null)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
-  const handleCreateCompany = async (data: CreateCompanyData) => {
-    setIsCreating(true)
-    try {
-      await createCompany(data)
-      setShowCreateModal(false)
-    } finally {
-      setIsCreating(false)
-    }
-  }
+  const {
+    companies, stats, isLoading, error, refetch, updatingId, actionError,
+    searchTerm, setSearchTerm,
+    planFilter, setPlanFilter,
+    statusFilter, setStatusFilter,
+    viewCompany, setViewCompany,
+    editCompany, setEditCompany,
+    isSaving,
+    showCreateModal, setShowCreateModal,
+    isCreating,
+    themeColors,
+    filteredCompanies,
+    handleToggle,
+    handleActivatePending,
+    handleSaveEdit,
+    handleCreateCompany,
+  } = useAdminCompaniesLogic()
 
 
 

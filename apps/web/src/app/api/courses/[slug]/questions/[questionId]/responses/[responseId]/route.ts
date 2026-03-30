@@ -120,7 +120,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      // console.error('Error updating response:', updateError);
       return NextResponse.json(
         { error: 'Error al actualizar respuesta' },
         { status: 500 }
@@ -129,7 +128,6 @@ export async function PUT(
 
     return NextResponse.json(updatedResponse);
   } catch (error) {
-    // console.error('Error in response API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',
@@ -208,7 +206,6 @@ export async function DELETE(
       .eq('id', responseId);
 
     if (deleteError) {
-      // console.error('Error deleting response:', deleteError);
       return NextResponse.json(
         { error: 'Error al eliminar respuesta' },
         { status: 500 }
@@ -217,7 +214,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // console.error('Error in response API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

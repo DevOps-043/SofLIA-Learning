@@ -675,7 +675,6 @@ export class ContentService {
       
       return mockLandingPageContent;
     } catch (error) {
-      // console.error('Error fetching landing page content:', error);
       // Retornar contenido mock como fallback
       return mockLandingPageContent;
     }
@@ -711,7 +710,6 @@ export class ContentService {
       // TODO: Reemplazar con llamada real a la API
       return mockBusinessPageContent;
     } catch (error) {
-      // console.error('Error fetching business page content:', error);
       return mockBusinessPageContent;
     }
   }

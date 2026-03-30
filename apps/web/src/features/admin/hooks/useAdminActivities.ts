@@ -28,19 +28,16 @@ export function useAdminActivities(): UseAdminActivitiesReturn {
       setLoading(true)
       setError(null)
 
-      // console.log('🔍 Fetching activities for lesson:', lessonId);
       const response = await fetch(`/api/admin/courses/0/modules/0/lessons/${lessonId}/activities`)
       
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
-        // console.error('❌ Error fetching activities:', response.status, errorText);
         throw new Error(`Error al obtener actividades: ${response.status}`)
       }
 
       const data = await response.json()
       const activitiesData = data.activities || data || [];
       
-      // console.log('✅ Activities fetched for lesson', lessonId, ':', activitiesData.length, 'activities');
       
       // Actualizar el Map con las actividades de esta lección específica
       setActivitiesByLesson(prev => {
@@ -49,7 +46,6 @@ export function useAdminActivities(): UseAdminActivitiesReturn {
         return newMap
       })
     } catch (err) {
-      // console.error('❌ Error in fetchActivities:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido')
       // No limpiar todas las actividades, solo las de esta lección
       setActivitiesByLesson(prev => {

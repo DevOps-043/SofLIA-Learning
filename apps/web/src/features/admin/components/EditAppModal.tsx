@@ -62,7 +62,6 @@ export function EditAppModal({ isOpen, onClose, onSave, app }: EditAppModalProps
       const categoriesData = await AdminAppsService.getCategories()
       setCategories(categoriesData)
     } catch (err) {
-      // console.error('Error loading categories:', err)
     }
   }
 

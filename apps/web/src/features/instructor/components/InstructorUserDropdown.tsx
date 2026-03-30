@@ -45,7 +45,6 @@ export function InstructorUserDropdown({ user }: InstructorUserDropdownProps) {
       await logout()
       router.push('/auth')
     } catch (error) {
-      // console.error('Error al cerrar sesión:', error)
     }
   }
 

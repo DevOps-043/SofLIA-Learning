@@ -73,7 +73,6 @@ export function ThumbnailUpload({ value, onChange, disabled = false }: Thumbnail
       }, 1000)
 
     } catch (err) {
-      // console.error('Error uploading thumbnail:', err)
       setError(err instanceof Error ? err.message : 'Error al subir la imagen')
       setUploading(false)
       setProgress(0)

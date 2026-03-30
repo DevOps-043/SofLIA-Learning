@@ -181,7 +181,6 @@ export class OAuthService {
         // ✅ Éxito - usuario creado
         if (!error) {
           if (attempt > 0) {
-            // console.log(`✅ Usuario creado después de ${attempt + 1} intentos con username: ${username}`);
           }
           return userId;
         }
@@ -191,7 +190,6 @@ export class OAuthService {
           // Exponential backoff: 0ms, 100ms, 200ms, 300ms, 400ms
           const backoffMs = attempt * 100;
           if (backoffMs > 0) {
-            // console.log(`⚠️ Username duplicado, reintentando en ${backoffMs}ms (intento ${attempt + 1}/${maxAttempts})...`);
             await new Promise(resolve => setTimeout(resolve, backoffMs));
           }
           continue; // Reintentar con nuevo username

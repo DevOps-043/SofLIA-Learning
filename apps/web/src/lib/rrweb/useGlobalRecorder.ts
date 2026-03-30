@@ -63,12 +63,10 @@ export function useGlobalRecorder() {
         if (!isActive) {
           try {
             await sessionRecorder.startRecording(180000); // 3 minutos
-            console.log('[Global] 🎬 Grabación global iniciada');
           } catch (error) {
             // Silenciar errores de grabación ya activa
           }
         } else {
-          console.log('[Global] ℹ️ Grabación ya estaba activa');
         }
         
         isInitialized = true;
@@ -99,7 +97,6 @@ export function useGlobalRecorder() {
               
               if (mountedRef.current) {
                 await recorder.startRecording(180000);
-                console.log('[Global] 🔄 Grabación reiniciada');
               }
             } catch (error) {
               // Silenciar errores

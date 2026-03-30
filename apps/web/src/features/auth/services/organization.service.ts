@@ -48,7 +48,6 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
 
     return data as Organization;
   } catch (error) {
-    // console.error('Error obteniendo organización por slug:', error);
     return null;
   }
 }
@@ -74,7 +73,6 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
 
     return data as Organization;
   } catch (error) {
-    // console.error('Error obteniendo organización por ID:', error);
     return null;
   }
 }
@@ -97,7 +95,6 @@ export async function isOrganizationSlugAvailable(slug: string): Promise<boolean
     // Si hay error o no hay datos, el slug está disponible
     return error !== null || !data;
   } catch (error) {
-    // console.error('Error verificando disponibilidad de slug:', error);
     return false;
   }
 }

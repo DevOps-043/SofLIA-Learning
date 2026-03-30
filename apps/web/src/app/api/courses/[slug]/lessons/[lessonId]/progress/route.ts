@@ -68,7 +68,6 @@ export async function POST(
         .single();
 
       if (createError || !newEnrollment) {
-        // console.error('Error creando enrollment:', createError);
         return NextResponse.json(
           { error: 'Error al crear inscripción' },
           { status: 500 }
@@ -262,7 +261,6 @@ export async function POST(
         .eq('progress_id', existingProgress.progress_id);
 
       if (updateError) {
-        // console.error('Error actualizando progreso:', updateError);
         return NextResponse.json(
           { error: 'Error al actualizar progreso' },
           { status: 500 }
@@ -285,7 +283,6 @@ export async function POST(
         });
 
       if (insertError) {
-        // console.error('Error creando progreso:', insertError);
         return NextResponse.json(
           { error: 'Error al guardar progreso' },
           { status: 500 }
@@ -388,7 +385,6 @@ export async function POST(
       .eq('enrollment_id', enrollmentId);
 
     if (updateEnrollmentError) {
-      // console.error('Error actualizando enrollment:', updateEnrollmentError);
       // No retornar error aquí, el progreso de la lección ya se guardó
     }
 
@@ -658,7 +654,6 @@ export async function POST(
       },
     });
   } catch (error) {
-    // console.error('Error en POST /api/courses/[slug]/lessons/[lessonId]/progress:', error);
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

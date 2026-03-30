@@ -82,7 +82,6 @@ export async function POST(request: NextRequest) {
         const results = await Promise.all(deletionPromises);
         const deletedCount = results.filter(r => r).length;
 
-        console.log(`✅ [Delete Events] Eliminados ${deletedCount} eventos del plan ${planId}`);
 
         return NextResponse.json({ success: true, deletedCount });
 

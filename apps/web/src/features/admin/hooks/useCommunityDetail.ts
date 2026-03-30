@@ -73,7 +73,6 @@ export function useCommunityDetail(slug: string): CommunityDetailData {
         }
       }
     } catch (err) {
-      // console.error('Error fetching community detail:', err)
       setError(err instanceof Error ? err.message : 'Error al cargar los datos')
     } finally {
       setIsLoading(false)

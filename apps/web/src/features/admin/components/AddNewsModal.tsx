@@ -187,8 +187,6 @@ export function AddNewsModal({ isOpen, onClose, onSave }: AddNewsModalProps) {
           })) : null
       }
 
-      // console.log('🔄 Datos antes de enviar:', JSON.stringify(newsData, null, 2))
-      // console.log('🔄 Secciones específicamente:', newsData.sections)
 
       await onSave(newsData)
       // Reset form
@@ -210,7 +208,6 @@ export function AddNewsModal({ isOpen, onClose, onSave }: AddNewsModalProps) {
         sections: [{ type: 'text', content: '', items: [] }]
       })
     } catch (error) {
-      // console.error('Error saving news:', error)
     } finally {
       setIsSubmitting(false)
     }

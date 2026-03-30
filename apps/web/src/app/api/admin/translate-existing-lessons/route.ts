@@ -107,8 +107,6 @@ export async function POST(request: NextRequest) {
           continue
         }
 
-        console.log(`[translate-existing-lessons] Traduciendo lección ${lessonId} (${lessonTitle})`)
-        console.log(`[translate-existing-lessons] Idioma detectado: ${detectedLanguage}, idiomas faltantes: ${missingLanguages.join(', ')}`)
 
         // Traducir la lección
         const translationResult = await translateLessonOnCreate(
@@ -130,7 +128,6 @@ export async function POST(request: NextRequest) {
             status: 'translated',
             languages: translationResult.languages
           })
-          console.log(`[translate-existing-lessons] ✅ Lección ${lessonId} traducida exitosamente a: ${translationResult.languages.join(', ')}`)
         } else {
           results.failed++
           results.details.push({

@@ -111,9 +111,7 @@ export function SessionRecordingLoader({
       if (isGzipped) {
         setLoadingState('decompressing');
         setProgress(60);
-        console.log('📦 Descomprimiendo archivo gzip...');
         jsonString = await decompressGzip(arrayBuffer);
-        console.log('✅ Archivo descomprimido');
       } else {
         const decoder = new TextDecoder('utf-8');
         jsonString = decoder.decode(arrayBuffer);
@@ -155,11 +153,6 @@ export function SessionRecordingLoader({
         console.warn('⚠️ La grabación no contiene snapshot inicial');
       }
 
-      console.log('📼 Grabación cargada:', {
-        eventos: parsedData.events.length,
-        duracion: parsedData.endTime - parsedData.startTime,
-        tieneSnapshot: hasSnapshot
-      });
 
       setSession(parsedData as RecordingSession);
       setLoadingState('ready');

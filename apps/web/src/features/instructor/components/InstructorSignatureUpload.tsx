@@ -82,7 +82,6 @@ export function InstructorSignatureUpload({
       }, 2000)
 
     } catch (err) {
-      // console.error('Error uploading signature:', err)
       setError(err instanceof Error ? err.message : 'Error al subir la firma')
       setIsUploading(false)
       setUploadProgress(0)
@@ -123,7 +122,6 @@ export function InstructorSignatureUpload({
       }, 2000)
 
     } catch (err) {
-      // console.error('Error saving signature name:', err)
       setError(err instanceof Error ? err.message : 'Error al guardar el nombre de firma')
       setIsUploading(false)
     }

@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
       feedbackType,
     });
   } catch (error) {
-    // console.error('Error logging feedback:', error);
     return NextResponse.json(
       { error: 'Error al registrar feedback' },
       { status: 500 }

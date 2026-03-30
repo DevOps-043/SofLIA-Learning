@@ -74,14 +74,6 @@ export async function GET(request: NextRequest) {
         }
       )
 
-      console.log('[TEST-ES-TRANSLATION] ✅ Traducción completada:', {
-        translationKeys: Object.keys(translations),
-        titleLength: translations.lesson_title?.length || 0,
-        descriptionLength: translations.lesson_description?.length || 0,
-        transcriptLength: translations.transcript_content?.length || 0,
-        summaryLength: translations.summary_content?.length || 0,
-        sampleTitle: translations.lesson_title?.substring(0, 100)
-      })
     } catch (error) {
       console.error('[TEST-ES-TRANSLATION] ❌ Error en traducción:', error)
       return NextResponse.json({
@@ -96,11 +88,6 @@ export async function GET(request: NextRequest) {
     const translationsJson = JSON.stringify(translations)
     const translationsSize = new Blob([translationsJson]).size
 
-    console.log('[TEST-ES-TRANSLATION] Tamaño de traducciones:', {
-      sizeBytes: translationsSize,
-      sizeKB: (translationsSize / 1024).toFixed(2),
-      sizeMB: (translationsSize / (1024 * 1024)).toFixed(2)
-    })
 
     // PASO 3: Intentar guardar directamente con Supabase para capturar el error
 

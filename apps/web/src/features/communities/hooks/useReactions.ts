@@ -65,7 +65,6 @@ export function useReactions({ postId, communitySlug, autoFetch = true }: UseRea
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
-      // console.error('Error fetching reactions:', err);
     } finally {
       setLoading(false);
     }
@@ -104,7 +103,6 @@ export function useReactions({ postId, communitySlug, autoFetch = true }: UseRea
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
-      // console.error('Error adding reaction:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -144,7 +142,6 @@ export function useReactions({ postId, communitySlug, autoFetch = true }: UseRea
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
-      // console.error('Error removing reaction:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -181,7 +178,6 @@ export function useReactions({ postId, communitySlug, autoFetch = true }: UseRea
       // Refrescar datos con estadísticas
       await fetchReactions(true);
     } catch (err) {
-      // console.error('Error refreshing stats:', err);
     }
   }, [postId, communitySlug, fetchReactions]);
 

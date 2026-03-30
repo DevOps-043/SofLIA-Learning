@@ -58,7 +58,6 @@ export async function POST(request: NextRequest) {
       completed,
     });
   } catch (error) {
-    // console.error('Error ending conversation:', error);
     return NextResponse.json(
       { error: 'Error al cerrar conversación' },
       { status: 500 }

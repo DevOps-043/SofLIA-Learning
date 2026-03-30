@@ -225,25 +225,6 @@ export async function GET(request: NextRequest) {
       return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
     }))].sort() : [];
 
-    console.log('[LIA Analytics] Consulta de costos diarios:', {
-      provider,
-      queryRange: {
-        startDateUTC: startDateUTC.toISOString(),
-        endDateUTC: nowISO,
-        startDateLocal: startDate.toISOString()
-      },
-      totalRecords: dailyCosts?.length || 0,
-      dateRange: dailyCosts?.length > 0 ? {
-        first: dailyCosts[0]?.created_at,
-        last: dailyCosts[dailyCosts.length - 1]?.created_at
-      } : null,
-      uniqueDatesFromData,
-      groupedDates: Array.from(costsByDay.keys()).sort(),
-      groupedDataSample: Array.from(costsByDay.entries()).slice(0, 10).reduce((acc, [date, data]) => {
-        acc[date] = { cost: data.cost, tokens: data.tokens, messages: data.messages };
-        return acc;
-      }, {} as Record<string, any>)
-    });
 
     // Asegurar que incluimos todos los días del rango, incluso si no hay datos
     // IMPORTANTE: Usar UTC para coincidir con cómo se agruparon los datos
@@ -279,21 +260,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Debug: Log para verificar datos
-    console.log('[LIA Analytics] Costos por período:', {
-      startDateUTC: startDateUTC.toISOString(),
-      todayUTC: todayUTC.toISOString(),
-      totalDays: costsByPeriod.length,
-      daysWithData: costsByPeriod.filter(d => d.messages > 0).length,
-      firstDate: costsByPeriod[0]?.date,
-      lastDate: costsByPeriod[costsByPeriod.length - 1]?.date,
-      totalMessagesFound: dailyCosts?.length || 0,
-      sampleDaysWithData: costsByPeriod.filter(d => d.messages > 0).slice(0, 10).map(d => ({
-        date: d.date,
-        messages: d.messages,
-        cost: d.cost,
-        tokens: d.tokens
-      }))
-    });
 
     // ===== DISTRIBUCIÓN POR CONTEXTO =====
     // ===== DISTRIBUCIÓN POR CONTEXTO (OPTIMIZADO CON VISTA) =====
@@ -393,12 +359,6 @@ export async function GET(request: NextRequest) {
       23, 59, 59, 999
     ));
 
-    console.log('[LIA Analytics] Fechas de hoy (UTC):', {
-      now: now.toISOString(),
-      todayStart: todayStart.toISOString(),
-      todayEnd: todayEnd.toISOString(),
-      serverTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    });
 
     // Usar fecha actual para incluir datos hasta ahora
     const nowForToday = now.toISOString();

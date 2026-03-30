@@ -81,7 +81,6 @@ export function ImageUploadCourse({
       }, 1000)
 
     } catch (err: any) {
-      // console.error('Error uploading image:', err)
       setError(err.message || 'Error al subir la imagen')
       setIsUploading(false)
       setUploadProgress(0)

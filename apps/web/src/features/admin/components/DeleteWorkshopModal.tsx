@@ -20,7 +20,6 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
     try {
       await onConfirm()
     } catch (error) {
-      // console.error('Error deleting workshop:', error)
     } finally {
       setIsDeleting(false)
     }

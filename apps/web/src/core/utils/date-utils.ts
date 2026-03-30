@@ -59,7 +59,6 @@ export function formatRelativeTime(dateString: string): string {
     }
   } catch (error) {
     // En caso de error, retornar string genérico
-    // console.error('Error formatting relative time:', error)
     return 'Hace algún tiempo'
   }
 }
@@ -123,7 +122,6 @@ export function formatDate(
         return date.toLocaleDateString('es-ES')
     }
   } catch (error) {
-    // console.error('Error formatting date:', error)
     return 'Fecha inválida'
   }
 }

@@ -92,7 +92,6 @@ class MemoryCache<T = any> {
 
     // Si el valor es demasiado grande, no cachear
     if (size > this.maxSizeBytes * 0.5) {
-      // console.warn(`Valor demasiado grande para cachear: ${size} bytes`)
       return false
     }
 
@@ -272,7 +271,6 @@ if (typeof setInterval !== 'undefined') {
     queryCache.cleanup()
 
     if (process.env.NODE_ENV === 'development') {
-      // console.log('🧹 Caché cleanup ejecutado')
     }
   }, 10 * 60 * 1000) // Cada 10 minutos
 }

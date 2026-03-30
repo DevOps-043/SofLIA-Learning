@@ -78,7 +78,6 @@ export function ImageUpload({
       onChange(result.url)
       
     } catch (err: any) {
-      // console.error('Error uploading image:', err)
       setError(err.message || 'Error al subir la imagen')
     } finally {
       setIsUploading(false)

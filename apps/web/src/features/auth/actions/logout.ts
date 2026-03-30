@@ -11,7 +11,6 @@ export async function logoutAction() {
     // Redirigir a la página de auth
     redirect('/auth')
   } catch (error) {
-    // console.error('Logout error:', error)
     
     // Manejar redirect de Next.js (no es un error real)
     if (error && typeof error === 'object' && 'digest' in error) {

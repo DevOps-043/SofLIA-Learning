@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logError('GET /api/courses', error)
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-    // console.error('Error detallado en GET /api/courses:', error)
     return NextResponse.json(
       {
         error: 'Error al obtener cursos',

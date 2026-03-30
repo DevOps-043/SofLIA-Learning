@@ -18,18 +18,14 @@ export function useAttachments() {
     setError(null);
 
     try {
-      // console.log('🎥 [YOUTUBE] Processing attachment - TIPO INICIAL:', attachmentData.type, attachmentData);
       
       // Si es YouTube, obtener información adicional
       if (attachmentData.type === 'youtube' && attachmentData.url) {
-        // console.log('🎥 [YOUTUBE] Procesando YouTube URL:', attachmentData.url);
         const videoId = supabaseStorageService.extractYouTubeVideoId(attachmentData.url);
-        // console.log('🎥 [YOUTUBE] Video ID extraído:', videoId);
         
         if (videoId) {
           try {
             const videoInfo = await supabaseStorageService.getYouTubeVideoInfo(videoId);
-            // console.log('🎥 [YOUTUBE] Información del video:', videoInfo);
             attachmentData = {
               ...attachmentData,
               videoId,
@@ -37,7 +33,6 @@ export function useAttachments() {
               thumbnail: videoInfo.thumbnail
             };
           } catch (error) {
-            // console.warn('🎥 [YOUTUBE] Error obteniendo info del video, usando datos básicos:', error);
             // Si falla la API, usar datos básicos
             attachmentData = {
               ...attachmentData,
@@ -47,28 +42,19 @@ export function useAttachments() {
             };
           }
         } else {
-          // console.warn('🎥 [YOUTUBE] No se pudo extraer videoId de la URL');
         }
       }
 
       const result = await supabaseStorageService.processAttachment(attachmentData);
-      // console.log('🎥 [YOUTUBE] Attachment processed successfully:', result);
       
       // Log específico para YouTube
       if (attachmentData.type === 'youtube') {
-        // console.log('🎥 [YOUTUBE] Resultado final:', {
-        //   attachment_url: result.attachment_url,
-        //   attachment_type: result.attachment_type,
-        //   attachment_data: result.attachment_data
-        // });
       }
       
       return result;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al procesar adjunto';
       setError(errorMessage);
-      // console.error('Error processing attachment:', err);
-      // console.error('Attachment data that caused error:', attachmentData);
       return null;
     } finally {
       setIsProcessing(false);
@@ -231,7 +217,6 @@ export function useAttachments() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al crear el post';
       setError(errorMessage);
-      // console.error('Error creating post:', err);
       throw err;
     } finally {
       setIsProcessing(false);

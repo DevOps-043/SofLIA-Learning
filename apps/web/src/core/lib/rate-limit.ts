@@ -212,7 +212,6 @@ export async function applyRateLimit(
   const result = checkRateLimit(request, config, prefix);
   
   if (!result.success && result.response) {
-    // console.warn(`[RATE LIMIT] Blocked request from ${getIdentifier(request, prefix)}`);
     return result.response;
   }
   

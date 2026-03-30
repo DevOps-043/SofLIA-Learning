@@ -26,7 +26,6 @@ export async function GET(
       checkpoints
     })
   } catch (error) {
-    // console.error('Error in GET /api/admin/courses/[id]/modules/[moduleId]/lessons/[lessonId]/checkpoints:', error)
     return NextResponse.json(
       { 
         success: false,
@@ -66,7 +65,6 @@ export async function POST(
       checkpoint
     })
   } catch (error) {
-    // console.error('Error in POST /api/admin/courses/[id]/modules/[moduleId]/lessons/[lessonId]/checkpoints:', error)
     return NextResponse.json(
       { 
         success: false,

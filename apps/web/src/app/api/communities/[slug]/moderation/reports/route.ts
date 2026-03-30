@@ -93,11 +93,6 @@ export async function GET(
       .select('id, community_id, post_id, status')
       .eq('community_id', community.id)
 
-    console.log('📊 All reports for community (debug):', {
-      count: allReports?.length || 0,
-      reports: allReports,
-      error: allReportsError
-    })
 
     let query = adminSupabase
       .from('community_post_reports')
@@ -215,11 +210,6 @@ export async function GET(
       console.error('❌ Error counting reports:', countError)
     }
 
-    console.log('✅ Returning reports:', {
-      count: enrichedReports?.length || 0,
-      total: count || 0,
-      hasMore: (count || 0) > offset + limit
-    })
 
     return NextResponse.json({
       success: true,

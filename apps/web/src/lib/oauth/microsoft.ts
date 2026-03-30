@@ -9,8 +9,6 @@ export function getMicrosoftRedirectUri(): string {
   const redirectRaw = process.env.MICROSOFT_OAUTH_REDIRECT_URI || '';
   // Normalizar: quitar comillas, espacios y slash al final
   let redirectUri = redirectRaw.replace(/^['"]|['"]$/g, '').trim();
-  console.log('[Microsoft OAuth] Redirect URI Raw:', redirectRaw);
-  console.log('[Microsoft OAuth] Redirect URI Processed:', redirectUri);
 
   // Quitar slash final si existe, ya que Azure AD es estricto con la coincidencia exacta
   if (redirectUri.endsWith('/')) {

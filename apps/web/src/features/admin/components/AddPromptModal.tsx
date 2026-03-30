@@ -45,7 +45,6 @@ export function AddPromptModal({ isOpen, onClose, onSave }: AddPromptModalProps)
         setCategories(data.categories || [])
       }
     } catch (error) {
-      // console.error('Error fetching categories:', error)
     }
   }
 
@@ -130,7 +129,6 @@ export function AddPromptModal({ isOpen, onClose, onSave }: AddPromptModalProps)
       setErrors({})
       onClose()
     } catch (error) {
-      // console.error('Error saving prompt:', error)
     } finally {
       setIsLoading(false)
     }

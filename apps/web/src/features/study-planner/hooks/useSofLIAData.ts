@@ -70,12 +70,10 @@ export function useSofLIAData() {
   const loadPendingLessons = useCallback(async () => {
     // Evitar cargar múltiples veces
     if (loadedRef.current && lessonsRef.current.length > 0) {
-      console.log('📚 [useSofLIAData] Lecciones ya cargadas, omitiendo...');
       return;
     }
 
     setState(prev => ({ ...prev, isLoading: true, error: null }));
-    console.log('📚 [useSofLIAData] Cargando lecciones pendientes desde BD...');
 
     try {
       const response = await fetch('/api/study-planner/pending-lessons');
@@ -126,13 +124,10 @@ export function useSofLIAData() {
         error: null,
       });
 
-      console.log(`✅ [useSofLIAData] ${lessons.length} lecciones cargadas desde BD`);
       
       // Log de verificación
       if (lessons.length > 0) {
-        console.log('   📋 Primeras 3 lecciones (nombres exactos):');
         lessons.slice(0, 3).forEach((l, i) => {
-          console.log(`      ${i + 1}. "${l.lessonTitle}" (${l.durationMinutes} min)`);
         });
       }
 

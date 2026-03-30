@@ -59,11 +59,9 @@ export function PrefetchManager() {
         try {
           router.prefetch(route)
           if (process.env.NODE_ENV === 'development') {
-            // console.log(`✅ Prefetched: ${route}`)
           }
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            // console.warn(`❌ Failed to prefetch: ${route}`, error)
           }
         }
       })

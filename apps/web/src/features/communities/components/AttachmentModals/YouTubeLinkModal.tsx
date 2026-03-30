@@ -43,7 +43,6 @@ export function YouTubeLinkModal({ isOpen, onClose, onConfirm, type }: YouTubeLi
       setIsValid(false);
       onClose();
     } catch (error) {
-      // console.error('Error validating URL:', error);
     } finally {
       setIsLoading(false);
     }

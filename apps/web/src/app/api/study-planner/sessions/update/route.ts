@@ -84,16 +84,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       .eq('user_id', user.id)
       .order('start_time', { ascending: true });
     
-    console.log(`📋 Sesiones encontradas en el plan: ${allSessions?.length || 0}`);
     if (allSessions && allSessions.length > 0) {
-      console.log(`📋 Primeras 5 sesiones:`, allSessions.slice(0, 5).map(s => ({
-        id: s.id,
-        title: s.title,
-        start_time: s.start_time,
-        date: new Date(s.start_time).toLocaleDateString('es-ES'),
-        hour: new Date(s.start_time).getHours(),
-        min: new Date(s.start_time).getMinutes()
-      })));
     }
 
     if (sessionsError) {
@@ -115,15 +106,8 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     let updatedCount = 0;
     const errors: string[] = [];
     
-    console.log(`🔄 Procesando ${body.updates.length} actualizaciones...`);
 
     for (const update of body.updates) {
-      console.log(`🔄 Procesando actualización:`, {
-        dateStr: update.dateStr,
-        originalStartTime: update.originalStartTime,
-        newStartTime: update.newStartTime,
-        newEndTime: update.newEndTime
-      });
       try {
         // Parsear fecha y hora original
         const dateParts = update.dateStr.split('-');
@@ -151,14 +135,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
         // Usar fecha/hora original en UTC para comparación más precisa
         const originalStartISO = originalStartDateTime.toISOString();
         
-        console.log(`🔍 Buscando sesión:`, {
-          dateStr: update.dateStr,
-          originalStartTime: update.originalStartTime,
-          originalHour,
-          originalMin,
-          originalStartISO,
-          originalStartDateTime: originalStartDateTime.toLocaleString('es-ES')
-        });
         
         const matchingSession = allSessions.find(session => {
           const sessionStart = new Date(session.start_time);
@@ -182,14 +158,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
           const matches = hourMatch && minMatch;
           
           if (matches) {
-            console.log(`✅ Sesión candidata encontrada:`, {
-              sessionId: session.id,
-              sessionStart: session.start_time,
-              sessionHour,
-              sessionMin,
-              originalHour,
-              originalMin
-            });
           }
           
           return matches;
@@ -197,29 +165,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
         if (!matchingSession) {
           // Log detallado para debugging
-          console.log(`🔍 No se encontró sesión para:`, {
-            dateStr: update.dateStr,
-            originalStartTime: update.originalStartTime,
-            originalHour,
-            originalMin,
-            availableSessions: allSessions.map(s => ({
-              id: s.id,
-              start_time: s.start_time,
-              date: new Date(s.start_time).toDateString(),
-              hour: new Date(s.start_time).getHours(),
-              min: new Date(s.start_time).getMinutes()
-            }))
-          });
           errors.push(`No se encontró sesión para ${update.dateStr} a las ${update.originalStartTime}`);
           continue;
         }
         
-        console.log(`✅ Sesión encontrada:`, {
-          sessionId: matchingSession.id,
-          originalStart: matchingSession.start_time,
-          newStart: `${update.newStartTime}`,
-          newEnd: `${update.newEndTime}`
-        });
 
         // Parsear nuevos horarios
         const newStartMatch = update.newStartTime.match(/(\d{1,2}):(\d{2})/);
@@ -264,7 +213,6 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
           errors.push(`Error actualizando sesión para ${update.dateStr}: ${updateError.message}`);
         } else {
           updatedCount++;
-          console.log(`✅ Sesión ${matchingSession.id} actualizada: ${update.originalStartTime} → ${update.newStartTime}`);
         }
       } catch (error: any) {
         console.error(`Error procesando actualización para ${update.dateStr}:`, error);

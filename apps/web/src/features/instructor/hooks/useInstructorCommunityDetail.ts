@@ -76,7 +76,6 @@ export function useInstructorCommunityDetail(slug: string): InstructorCommunityD
         }
       }
     } catch (err) {
-      // console.error('Error fetching instructor community detail:', err)
       setError(err instanceof Error ? err.message : 'Error al cargar los datos')
     } finally {
       setIsLoading(false)

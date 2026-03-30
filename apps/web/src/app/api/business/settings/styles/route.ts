@@ -39,12 +39,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('📥 [API] Organización obtenida:', {
-      hasPanel: !!organization.panel_styles,
-      hasUserDashboard: !!organization.user_dashboard_styles,
-      hasLogin: !!organization.login_styles,
-      selectedTheme: organization.selected_theme
-    });
 
     // Si hay un tema seleccionado pero no hay estilos guardados, aplicar el tema preset
     let panelStyles = organization.panel_styles;
@@ -52,7 +46,6 @@ export async function GET(request: NextRequest) {
     let loginStyles = organization.login_styles;
 
     if (organization.selected_theme && (!panelStyles || !userDashboardStyles || !loginStyles)) {
-      console.log('🎨 [API] Aplicando tema preset:', organization.selected_theme);
       const theme = getThemeById(organization.selected_theme);
       if (theme) {
         panelStyles = panelStyles || theme.panel;
@@ -193,7 +186,6 @@ export async function PUT(request: NextRequest) {
       }
     });
   } catch (error: any) {
-    // console.error('Error en PUT /api/business/settings/styles:', error);
     return NextResponse.json(
       { success: false, error: 'Error al actualizar estilos' },
       { status: 500 }
@@ -292,7 +284,6 @@ export async function POST(request: NextRequest) {
       }
     });
   } catch (error: any) {
-    // console.error('Error en POST /api/business/settings/styles:', error);
     return NextResponse.json(
       { success: false, error: 'Error al aplicar tema' },
       { status: 500 }

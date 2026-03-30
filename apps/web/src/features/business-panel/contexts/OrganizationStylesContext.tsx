@@ -268,7 +268,6 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
       if (userDashboard !== undefined) updateData.userDashboard = userDashboard;
       if (login !== undefined) updateData.login = login;
 
-      // console.log('📤 Enviando actualización de estilos:', updateData);
 
       const fetchUrl = orgSlug 
         ? `/api/${orgSlug}/business/styles`
@@ -289,7 +288,6 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
         throw new Error(data.error || 'Error al actualizar estilos');
       }
 
-      // console.log('✅ Estilos actualizados:', data.styles);
       setStyles(data.styles);
 
       // Guardar en localStorage
@@ -306,7 +304,6 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
 
       return true;
     } catch (err: any) {
-      // console.error('Error updating styles:', err);
       setError(err.message || 'Error al actualizar estilos');
       return false;
     }
@@ -314,7 +311,6 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
 
   const applyTheme = async (themeId: string): Promise<boolean> => {
     try {
-      // console.log('🎨 Aplicando tema:', themeId);
 
       const fetchUrl = orgSlug 
         ? `/api/${orgSlug}/business/styles`
@@ -335,7 +331,6 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
         throw new Error(data.error || 'Error al aplicar tema');
       }
 
-      // console.log('✅ Tema aplicado:', data.styles);
       setStyles(data.styles);
 
       // Guardar en localStorage
@@ -352,14 +347,12 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
 
       return true;
     } catch (err: any) {
-      // console.error('Error applying theme:', err);
       setError(err.message || 'Error al aplicar tema');
       return false;
     }
   };
 
   const refetch = async () => {
-    // console.log('🔄 Refrescando estilos...');
     await fetchStyles();
   };
 

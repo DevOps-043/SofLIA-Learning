@@ -117,10 +117,6 @@ export function EmbeddedLiaPanel({
       pathname.startsWith('/news') ||
       pathname.startsWith('/statistics') ||
       pathname.startsWith('/questionnaire') ||
-      pathname.startsWith('/cart') ||
-      pathname.startsWith('/subscriptions') ||
-      pathname.startsWith('/payment-methods') ||
-      pathname.startsWith('/purchase-history') ||
       pathname.startsWith('/account-settings') ||
       pathname.startsWith('/certificates');
 

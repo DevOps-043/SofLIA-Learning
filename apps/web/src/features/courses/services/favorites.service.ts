@@ -15,7 +15,6 @@ export class FavoritesService {
 
       if (error) {
         if (process.env.NODE_ENV === 'development') {
-          // console.error('Error fetching user favorites:', error)
         }
         throw new Error(`Error al obtener favoritos: ${error.message}`)
       }
@@ -23,7 +22,6 @@ export class FavoritesService {
       return data?.map(favorite => favorite.course_id) || []
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        // console.error('Error in FavoritesService.getUserFavorites:', error)
       }
 
       // Si es un error de configuración de Supabase, devolver array vacío
@@ -72,7 +70,6 @@ export class FavoritesService {
         // Si es un error de duplicado, ignorarlo
         if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
           if (process.env.NODE_ENV === 'development') {
-            console.log(`Favorito duplicado (ignorado): userId=${userId}, courseId=${normalizedCourseId}`)
           }
           return
         }

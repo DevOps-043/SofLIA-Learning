@@ -10,9 +10,6 @@ function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  console.log('🔧 [createServiceClient] URL exists:', !!supabaseUrl)
-  console.log('🔧 [createServiceClient] Service key exists:', !!supabaseServiceKey)
-  console.log('🔧 [createServiceClient] Service key length:', supabaseServiceKey?.length || 0)
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('❌ Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
@@ -32,7 +29,6 @@ export class BusinessUsersServerService {
     const supabase = createServiceClient()
 
     try {
-      console.log('🔍 [BusinessUsersServerService] Getting users for org:', organizationId)
 
       // 🚀 OPTIMIZACIÓN: Una sola query con JOIN
       // Antes: 2 queries secuenciales (~600ms)
@@ -74,7 +70,6 @@ export class BusinessUsersServerService {
         throw orgUsersError
       }
 
-      console.log('🔍 [BusinessUsersServerService] organization_users found:', orgUsersData?.length || 0)
 
       if (!orgUsersData || orgUsersData.length === 0) {
         return []
@@ -95,7 +90,6 @@ export class BusinessUsersServerService {
           }
         })
 
-      console.log('🔍 [BusinessUsersServerService] Final users count:', users.length)
       return users
     } catch (error) {
       console.error('💥 Error in BusinessUsersServerService.getOrganizationUsers:', error)
@@ -212,7 +206,6 @@ export class BusinessUsersServerService {
 
       // 
       if (userError) {
-        // console.error('Error creating user:', userError)
         throw userError
       }
 
@@ -234,7 +227,6 @@ export class BusinessUsersServerService {
 
       // 
       if (orgUserError) {
-        // console.error('Error adding user to organization:', orgUserError)
         // Rollback: eliminar usuario si falla agregarlo a la organización
         await supabase.from('users').delete().eq('id', newUser.id)
         throw orgUserError
@@ -272,7 +264,6 @@ export class BusinessUsersServerService {
                   role: 'member',
                   is_primary: true
                 })
-              console.log(`✅ [createOrganizationUser] Auto-assigned user ${newUser.id} to team ${defaultTeam.id}`)
             }
           }
         } catch (autoAssignError) {
@@ -455,7 +446,6 @@ export class BusinessUsersServerService {
         joined_at: orgUserData?.joined_at
       } as BusinessUser
     } catch (error) {
-      // console.error('Error in BusinessUsersService.updateOrganizationUser:', error)
       throw error
     }
   }
@@ -482,7 +472,6 @@ export class BusinessUsersServerService {
         throw new Error('Usuario no pertenece a tu organización')
       }
 
-      console.log('🗑️ [deleteOrganizationUser] Iniciando eliminación en cascada COMPLETA para usuario:', userId)
 
       // Helper function para eliminar de una tabla
       const deleteFromTable = async (tableName: string, column: string = 'user_id') => {
@@ -499,7 +488,6 @@ export class BusinessUsersServerService {
       // ============================================
       // PASO 1: Eliminar datos dependientes (Optimizado con Promise.all)
       // ============================================
-      console.log('🔄 Iniciando eliminación de datos relacionados en paralelo...')
 
       // GRUPO 1: Datos sin dependencias mutuas
       await Promise.all([
@@ -641,7 +629,6 @@ export class BusinessUsersServerService {
         supabase.from('organization_nodes').update({ manager_id: null }).eq('manager_id', userId)
       ])
 
-      console.log('✅ Eliminación de datos relacionados completada')
 
       // ============================================
       // PASO 2: Eliminar de organization_users
@@ -668,9 +655,7 @@ export class BusinessUsersServerService {
         throw new Error(`No se pudo eliminar el usuario de la plataforma: ${deleteUserError.message}`)
       }
 
-      console.log('✅ [deleteOrganizationUser] Usuario eliminado completamente:', userId)
 
-      console.log('✅ [deleteOrganizationUser] Usuario eliminado completamente:', userId)
     } catch (error) {
       console.error('❌ Error in BusinessUsersService.deleteOrganizationUser:', error)
       throw error

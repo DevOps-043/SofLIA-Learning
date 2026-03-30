@@ -127,10 +127,3 @@ AFTER INSERT ON course_lessons
 FOR EACH ROW EXECUTE FUNCTION update_module_duration_after_lesson_insert();
 `;
 
-console.log('='.repeat(60));
-console.log('MIGRATION: Add total_duration_minutes to course_lessons');
-console.log('='.repeat(60));
-console.log('');
-console.log('Please execute the following SQL in your Supabase SQL Editor:');
-console.log('');
-console.log(migrationSQL);

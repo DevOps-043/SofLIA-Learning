@@ -112,7 +112,6 @@ export class AdminReportesService {
       const { data, error } = await query
 
       if (error) {
-        // console.error('❌ Error fetching reportes:', error)
         throw error
       }
 
@@ -157,7 +156,6 @@ export class AdminReportesService {
 
       return reportesConUsuarios
     } catch (error) {
-      // console.error('💥 Error in AdminReportesService.getReportes:', error)
       throw error
     }
   }
@@ -198,7 +196,6 @@ export class AdminReportesService {
         .single()
 
       if (error) {
-        // console.error('❌ Error fetching reporte:', error)
         throw error
       }
 
@@ -240,7 +237,6 @@ export class AdminReportesService {
         admin_asignado_info: adminInfo
       }
     } catch (error) {
-      // console.error('💥 Error in AdminReportesService.getReporteById:', error)
       throw error
     }
   }
@@ -286,13 +282,11 @@ export class AdminReportesService {
         .single()
 
       if (error) {
-        // console.error('❌ Error updating reporte:', error)
         throw error
       }
 
       return data as AdminReporte
     } catch (error) {
-      // console.error('💥 Error in AdminReportesService.updateReporte:', error)
       throw error
     }
   }
@@ -307,7 +301,6 @@ export class AdminReportesService {
         .select('estado, categoria, prioridad')
 
       if (error) {
-        // console.error('❌ Error fetching reportes for stats:', error)
         throw error
       }
 
@@ -354,7 +347,6 @@ export class AdminReportesService {
 
       return stats
     } catch (error) {
-      // console.error('💥 Error in AdminReportesService.getReporteStats:', error)
       throw error
     }
   }

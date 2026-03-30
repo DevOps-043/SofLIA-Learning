@@ -231,7 +231,6 @@ export function LIAProvider({ children }: LIAProviderProps) {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
-      console.log('📚 [LIAContext] Consultando BD para lecciones pendientes...');
 
       // Usar el endpoint que consulta directamente la BD
       const response = await fetch('/api/study-planner/pending-lessons');
@@ -280,13 +279,10 @@ export function LIAProvider({ children }: LIAProviderProps) {
         lastUpdated: new Date(),
       }));
 
-      console.log(`✅ [LIAContext] ${allPendingLessons.length} lecciones pendientes cargadas`);
 
       // Log de verificación
       if (allPendingLessons.length > 0) {
-        console.log('   📋 Primeras 3 lecciones (nombres exactos):');
         allPendingLessons.slice(0, 3).forEach((l, i) => {
-          console.log(`      ${i + 1}. "${l.lessonTitle}" (${l.durationMinutes} min)`);
         });
       }
 

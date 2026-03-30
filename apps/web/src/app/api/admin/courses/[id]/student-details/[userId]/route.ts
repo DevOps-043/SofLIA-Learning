@@ -24,7 +24,6 @@ export async function GET(
       return NextResponse.json({ error: 'Parámetros faltantes', details: { courseId, userId } }, { status: 400 })
     }
 
-    console.log(`[Student Details API] Fetching data for userId: ${userId}, courseId: ${courseId}`)
 
     // 1. Obtener información básica del estudiante y su inscripción
     // Intentar primero con user_course_enrollments (vista/tabla principal)
@@ -203,12 +202,6 @@ export async function GET(
     const positiveFeedback = liaFeedback?.filter(f => f.rating >= 4).length || 0
     const feedbackRate = totalConversations > 0 ? (positiveFeedback / totalConversations) * 100 : 0
 
-    console.log(`[Student Details API] LIA Stats for userId ${userId}:`, {
-      totalConversations,
-      totalMessages,
-      positiveFeedback,
-      feedbackRate
-    })
 
     // Conversaciones por semana (últimas 5 semanas) - TODAS las conversaciones
     const conversationsByWeek = calculateWeeklyData(liaConversations || [], 5)
@@ -234,11 +227,6 @@ export async function GET(
     
     const totalSessions = courseSessions.length
 
-    console.log(`[Student Details API] Study Sessions for userId ${userId}:`, {
-      totalSessionsFromDB: studySessions?.length || 0,
-      totalCourseSessions: totalSessions,
-      courseId
-    })
     const totalStudyTime = courseSessions.reduce((acc, s) => {
       if (s.duration_minutes) {
         return acc + s.duration_minutes

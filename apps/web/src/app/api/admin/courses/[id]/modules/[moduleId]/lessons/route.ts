@@ -26,7 +26,6 @@ export async function GET(
       lessons
     })
   } catch (error) {
-    // console.error('Error in GET /api/admin/courses/[id]/modules/[moduleId]/lessons:', error)
     return NextResponse.json(
       { 
         success: false,

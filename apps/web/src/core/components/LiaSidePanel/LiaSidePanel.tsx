@@ -1,50 +1,46 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Sparkles, MessageSquare, Lightbulb, HelpCircle, Trash2, Clock, Edit2, Check, MoreVertical, Settings, Mic, MicOff, Loader2 } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useLiaPanel } from '../../contexts/LiaPanelContext';
-import { useLiaGeneralChat } from '../../hooks/useLiaGeneralChat';
-import { useAuth } from '../../../features/auth/hooks/useAuth';
-import { useOrganizationStylesContext } from '../../../features/business-panel/contexts/OrganizationStylesContext';
-import { useThemeStore } from '../../../core/stores/themeStore';
-import { useTranslation } from 'react-i18next';
+import { X, Send, Sparkles, MessageSquare, Lightbulb, HelpCircle, Trash2, Clock, Edit2, Check, MoreVertical, Settings, Mic, MicOff, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SofLIAPersonalizationSettings } from '../../../features/lia/components/SofLIAPersonalizationSettings';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useSofLIAPersonalization } from '../../hooks/useSofLIAPersonalization';
-import { useLanguage } from '../../providers/I18nProvider';
+import { useLiaSidePanelLogic } from './hooks/useLiaSidePanelLogic';
+
+const PANEL_WIDTH = 420; // Mismo ancho que ARIA en IRIS
+
+// Exportar constante para uso en ContentWrapper
+export const LIA_PANEL_WIDTH = PANEL_WIDTH;
 
 // Función para parsear Markdown completo y convertirlo a elementos React
 function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, isDarkMode: boolean = false): React.ReactNode {
   let keyIndex = 0;
-  
+
   // Primero convertir listas con asterisco a guiones
   let processedText = text.replace(/^\*\s+/gm, '- ');
-  
+
   // Dividir por líneas para procesar cada una
   const lines = processedText.split('\n');
-  
+
   // Color del enlace basado en el tema
   const linkColor = isDarkMode ? '#00D4B3' : '#0A2540';
-  
+
   const processInlineFormatting = (line: string): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
-    
+
     // Regex combinado para encontrar negritas, cursivas y enlaces
     // Orden: enlaces primero, luego negritas, luego cursivas
     const inlineRegex = /(\[([^\]]+)\]\(([^)]+)\))|(\*\*([^*]+)\*\*)|(\*([^*\n]+)\*)/g;
-    
+
     let lastIndex = 0;
     let match;
-    
+
     while ((match = inlineRegex.exec(line)) !== null) {
       // Texto antes del match
       if (match.index > lastIndex) {
         elements.push(line.slice(lastIndex, match.index));
       }
-      
+
       if (match[1]) {
         // Es un enlace [texto](url)
         const linkText = match[2];
@@ -82,18 +78,18 @@ function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, 
           </em>
         );
       }
-      
+
       lastIndex = match.index + match[0].length;
     }
-    
+
     // Texto después del último match
     if (lastIndex < line.length) {
       elements.push(line.slice(lastIndex));
     }
-    
+
     return elements.length > 0 ? elements : [line];
   };
-  
+
   // Procesar cada línea y agregar saltos de línea
   const result: React.ReactNode[] = [];
   lines.forEach((line, index) => {
@@ -102,928 +98,28 @@ function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, 
       result.push(<br key={`br-${keyIndex++}`} />);
     }
   });
-  
+
   return <>{result}</>;
 }
 
-// Altura del navbar (AdminHeader = 64px / h-16, DashboardNavbar = ~80px)
-// Usamos 64px como valor base para el admin panel
-const NAVBAR_HEIGHT = 64;
-const PANEL_WIDTH = 420; // Mismo ancho que ARIA en IRIS
-
-interface QuickAction {
-  id: string;
-  label: string;
-  icon: React.ElementType;
-  prompt: string;
-}
-
-// Variable global para persistir el scroll
-let liaPanelScrollTop = -1;
-
 function LiaSidePanelContent() {
-  const { t } = useTranslation('common');
-  const { isOpen, closePanel, pageContext } = useLiaPanel();
-  const { user } = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  
-  // Obtener tema del usuario (light/dark)
-  const { resolvedTheme } = useThemeStore();
-  const isDarkMode = resolvedTheme === 'dark';
-  
-  // Obtener estilos de la organización para modo claro/oscuro
-  const orgContext = useOrganizationStylesContext();
-  const orgStyles = orgContext?.styles;
-
-  // Determinar si estamos en el dashboard de usuario o planner
-  const isUserDashboard = pathname?.includes('/business-user') || pathname?.includes('/study-planner') || pathname === '/dashboard';
-  
-  // Seleccionar los estilos activos según la ruta
-  const effectiveStyles = isUserDashboard 
-    ? (orgStyles?.userDashboard || orgStyles?.panel) 
-    : orgStyles?.panel;
-  
-  // Determinar si es tema claro
-  const isLightTheme = !isDarkMode;
-  
-  // Colores dinámicos basados en el tema
-  const themeColors = {
-    panelBg: isLightTheme ? '#FFFFFF' : (effectiveStyles?.sidebar_background || '#0a0f14'),
-    headerBg: isLightTheme ? '#F8FAFC' : (effectiveStyles?.sidebar_background || '#0a0f14'),
-    borderColor: isLightTheme ? '#E2E8F0' : (effectiveStyles?.border_color || '#1e2a35'),
-    messageBubbleAssistant: isLightTheme ? '#F1F5F9' : (effectiveStyles?.card_background || '#1e2a35'),
-    messageBubbleUser: effectiveStyles?.primary_button_color || '#0A2540',
-    // Forzar texto oscuro en modo claro, ignorando el tema de la organización si este es 'SOFLIA-predeterminado' (oscuro)
-    textPrimary: isLightTheme ? '#1E293B' : (effectiveStyles?.text_color || '#e5e7eb'),
-    textSecondary: isLightTheme ? '#64748B' : '#6b7280',
-    inputBg: isLightTheme ? '#F1F5F9' : 'rgba(255, 255, 255, 0.05)',
-    inputBorder: isLightTheme ? '#CBD5E1' : (effectiveStyles?.border_color || '#374151'),
-    accentColor: '#00D4B3', // Siempre usar Aqua para identidad de SofLIA
-  };
-  
-  const { messages, isLoading, sendMessage, clearHistory, loadConversation, currentConversationId } = useLiaGeneralChat();
-  
-  // 🎤 Configuración de personalización de SofLIA para voz
-  const { settings: liaSettings } = useSofLIAPersonalization();
-  const isVoiceEnabled = liaSettings?.voice_enabled ?? true; // Por defecto activado
-  const isDictationEnabled = liaSettings?.dictation_enabled ?? false; // Por defecto desactivado
-  const { language } = useLanguage();
-  
-  // ðŸŽ™ï¸ Estados y refs para síntesis de voz
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const ttsAbortRef = useRef<AbortController | null>(null);
-  const lastReadMessageIdRef = useRef<string | null>(null);
-  
-  // ðŸŽ™ï¸ Mapeo de idiomas para reconocimiento de voz
-  const speechLanguageMap: Record<string, string> = {
-    'es': 'es-ES',
-    'en': 'en-US',
-    'pt': 'pt-BR'
-  };
-  
-  const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  
-  // ðŸŽ™ï¸ Estados para dictado
-  const [isDictating, setIsDictating] = useState(false);
-  const [isProcessingDictation, setIsProcessingDictation] = useState(false);
-  const [interimTranscript, setInterimTranscript] = useState(''); // Texto temporal mientras se habla
-  const [finalTranscript, setFinalTranscript] = useState(''); // Texto final confirmado
-  const recognitionRef = useRef<any>(null); // Web Speech API Recognition
-  const isDictatingRef = useRef<boolean>(false); // Ref para verificar estado actual en callbacks
-  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Timeout para detectar silencio
-  const lastTranscriptTimeRef = useRef<number>(0); // Timestamp del último texto detectado
-  const dictationTextToApplyRef = useRef<string>(''); // Ref para almacenar texto a aplicar al finalizar dictado
-  const [currentTip, setCurrentTip] = useState('');
-  const [isAvatarExpanded, setIsAvatarExpanded] = useState(false);
-  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
-  const [isPersonalizationOpen, setIsPersonalizationOpen] = useState(false);
-  const optionsMenuRef = useRef<HTMLDivElement>(null);
-
-  // Cerrar menú de opciones al hacer clic fuera
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (optionsMenuRef.current && !optionsMenuRef.current.contains(event.target as Node)) {
-        setIsOptionsMenuOpen(false);
-      }
-    };
-
-    if (isOptionsMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOptionsMenuOpen]);
-
-  // History State
-  const [showHistory, setShowHistory] = useState(false);
-  const [historyList, setHistoryList] = useState<any[]>([]);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
-  const [editingTitle, setEditingTitle] = useState('');
-  const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [conversationToDelete, setConversationToDelete] = useState<{ id: string; title: string } | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalConversations, setTotalConversations] = useState(0);
-  const [hasMore, setHasMore] = useState(false);
-  const limit = 20;
-
-  const loadHistory = useCallback(async (page: number = 0) => {
-    setIsHistoryLoading(true);
-    try {
-      const offset = page * limit;
-      const response = await fetch(`/api/lia/conversations?limit=${limit}&offset=${offset}`);
-      const data = await response.json();
-      
-      if (data.conversations) {
-        setHistoryList(data.conversations);
-        if (data.pagination) {
-          setTotalConversations(data.pagination.total || 0);
-          setHasMore(data.pagination.hasMore || false);
-        } else {
-          // Si no hay información de paginación, asumir que no hay más
-          setTotalConversations(data.conversations.length);
-          setHasMore(false);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching history:', err);
-    } finally {
-      setIsHistoryLoading(false);
-    }
-  }, [limit]);
-
-  useEffect(() => {
-    if (showHistory) {
-      loadHistory(currentPage);
-    }
-  }, [showHistory, currentPage, loadHistory]);
-
-  const handleNextPage = () => {
-    if (hasMore) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
-
-  const closeHistory = useCallback(() => {
-    setShowHistory(false);
-    setCurrentPage(0); // Resetear página al cerrar historial
-  }, []);
-
-  const handleSelectConversation = async (conversationId: string) => {
-    await loadConversation(conversationId);
-    closeHistory();
-  };
-
-  const handleStartEdit = (conv: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingConversationId(conv.conversation_id);
-    setEditingTitle(conv.conversation_title || new Date(conv.started_at).toLocaleDateString());
-  };
-
-  const handleSaveEdit = async (convId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!editingTitle.trim()) return;
-    
-    try {
-        const response = await fetch('/api/lia/conversations', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ conversationId: convId, title: editingTitle })
-        });
-        
-        if (response.ok) {
-            setHistoryList(prev => prev.map(c => 
-                c.conversation_id === convId ? { ...c, conversation_title: editingTitle } : c
-            ));
-            setEditingConversationId(null);
-        }
-    } catch (err) {
-        console.error('Error saving title', err);
-    }
-  };
-
-  const handleCancelEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingConversationId(null);
-  };
-
-  const handleDeleteClick = (conv: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setConversationToDelete({
-      id: conv.conversation_id,
-      title: conv.conversation_title || new Date(conv.started_at).toLocaleDateString()
-    });
-    setShowDeleteConfirm(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!conversationToDelete) return;
-
-    setDeletingConversationId(conversationToDelete.id);
-    setShowDeleteConfirm(false);
-
-    try {
-      const response = await fetch(`/api/lia/conversations/${conversationToDelete.id}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (response.ok) {
-        // Remover de la lista local
-        setHistoryList(prev => prev.filter(c => c.conversation_id !== conversationToDelete.id));
-        
-        // Si la conversación eliminada es la actual, limpiar el chat
-        if (currentConversationId === conversationToDelete.id) {
-          clearHistory();
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-        alert('Error al eliminar conversación: ' + (errorData.error || 'Error desconocido'));
-      }
-    } catch (err) {
-      console.error('Error eliminando conversación:', err);
-      alert('Error al eliminar conversación');
-    } finally {
-      setDeletingConversationId(null);
-      setConversationToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteConfirm(false);
-    setConversationToDelete(null);
-  };
-
-  const quickActions: QuickAction[] = [
-    {
-      id: 'capabilities',
-      label: t('lia.quickActions.capabilities'),
-      icon: HelpCircle,
-      prompt: t('lia.quickActions.capabilities')
-    },
-    {
-      id: 'courses',
-      label: t('lia.quickActions.courses'),
-      icon: MessageSquare,
-      prompt: t('lia.quickActions.courses')
-    },
-    {
-      id: 'recommend',
-      label: t('lia.quickActions.recommend'),
-      icon: Lightbulb,
-      prompt: t('lia.quickActions.recommend')
-    },
-    {
-      id: 'help',
-      label: t('lia.quickActions.help'),
-      icon: Sparkles,
-      prompt: t('lia.quickActions.help')
-    }
-  ];
-
-  // Cast tips to string array just to be safe with unknown return type of returnObjects
-  const tips = (t('lia.tips', { returnObjects: true }) as string[]) || [];
-
-  // Seleccionar tip aleatorio al abrir el panel
-  useEffect(() => {
-    if (isOpen && tips.length > 0) {
-      const randomTip = tips[Math.floor(Math.random() * tips.length)];
-      setCurrentTip(randomTip);
-    }
-  }, [isOpen, t]); // Re-run if language changes (t changes)
-
-  // Función para manejar clicks en enlaces del chat
-  const handleLinkClick = useCallback((url: string) => {
-    // Si es una URL interna (comienza con /), navegar con router
-    if (url.startsWith('/')) {
-      closePanel();
-      router.push(url);
-    } else if (url.startsWith('http')) {
-      // Si es una URL externa, abrir en nueva pestaña
-      window.open(url, '_blank', 'noopener,noreferrer');
-    }
-  }, [router, closePanel]);
-
-  // Scroll Logic: Restore position on open, sticky scroll on new messages
-  useEffect(() => {
-    const container = chatContainerRef.current;
-    if (!container || !isOpen) return;
-
-    // Si acabamos de abrir el panel
-    // Usamos setTimeout para asegurar que el layout esté listo
-    const timer = setTimeout(() => {
-        // Si tenemos una posición guardada, restaurarla
-        if (liaPanelScrollTop !== -1) {
-            container.scrollTop = liaPanelScrollTop;
-        } else {
-            // Si es la primera vez, ir al fondo
-            messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-        }
-    }, 50);
-
-    return () => clearTimeout(timer);
-  }, [isOpen]);
-
-  // Efecto para auto-scroll cuando llegan mensajes nuevos (solo si estamos abajo)
-  useEffect(() => {
-    const container = chatContainerRef.current;
-    if (!container) return;
-
-    // Si no hay posición guardada (primera carga) o estamos cerca del fondo, hacer scroll
-    const scrollBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-    // Umbral de 150px para considerar que está "abajo"
-    const isNearBottom = scrollBottom < 150;
-    
-    // Si el último mensaje es del usuario, siempre scroll
-    const lastMsg = messages[messages.length - 1];
-    const isUserMsg = lastMsg?.role === 'user';
-
-    // Hacer scroll si estamos abajo, es mensaje del usuario, o es la primera vez (-1)
-    if (isNearBottom || isUserMsg || liaPanelScrollTop === -1) {
-       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    if (isOpen && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 300);
-    }
-  }, [isOpen]);
-
-  // ðŸŽ™ï¸ Función para limpiar texto antes de leerlo (eliminar markdown, enlaces, etc.)
-  const cleanTextForTTS = useCallback((text: string): string => {
-    if (!text) return text;
-
-    let cleaned = text;
-
-    // Eliminar bloques de código (```código```)
-    cleaned = cleaned.replace(/```[\w]*\n?[\s\S]*?```/g, '');
-    
-    // Eliminar títulos Markdown (# ## ###)
-    cleaned = cleaned.replace(/^#{1,6}\s+/gm, '');
-    
-    // Eliminar negritas (**texto** o __texto__)
-    cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, '$1');
-    cleaned = cleaned.replace(/__([^_]+)__/g, '$1');
-    
-    // Eliminar cursivas (*texto* o _texto_)
-    cleaned = cleaned.replace(/([^*\n])\*([^*\n]+)\*([^*\n])/g, '$1$2$3');
-    cleaned = cleaned.replace(/([^_\n])_([^_\n]+)_([^_\n])/g, '$1$2$3');
-    
-    // Eliminar código en línea (`código`)
-    cleaned = cleaned.replace(/`([^`]+)`/g, '$1');
-    
-    // Eliminar enlaces [texto](url) - reemplazar solo con el texto
-    cleaned = cleaned.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
-    
-    // Eliminar imágenes ![alt](url)
-    cleaned = cleaned.replace(/!\[([^\]]*)\]\([^\)]+\)/g, '');
-    
-    // Eliminar bloques de citas (>)
-    cleaned = cleaned.replace(/^>\s+/gm, '');
-    
-    // Eliminar líneas horizontales (--- o ***)
-    cleaned = cleaned.replace(/^[-*]{3,}$/gm, '');
-    
-    // Limpiar espacios múltiples y saltos de línea excesivos
-    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
-    cleaned = cleaned.replace(/[ \t]+/g, ' ');
-    
-    // Limpiar espacios al inicio y final
-    cleaned = cleaned.trim();
-    
-    return cleaned;
-  }, []);
-
-  // ðŸŽ™ï¸ Función para detener todo audio/voz en reproducción
-  const stopAllAudio = useCallback(() => {
-    try {
-      // Abort any in-flight TTS fetch
-      if (ttsAbortRef.current) {
-        try { ttsAbortRef.current.abort(); } catch (e) { /* ignore */ }
-        ttsAbortRef.current = null;
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-
-      if (typeof window !== 'undefined' && window.speechSynthesis) {
-        // Cancelar cualquier utterance en curso
-        window.speechSynthesis.cancel();
-        utteranceRef.current = null;
-      }
-
-      setIsSpeaking(false);
-    } catch (err) {
-      console.warn('Error deteniendo audio:', err);
-    }
-  }, []);
-
-  // ðŸŽ™ï¸ Función para síntesis de voz con ElevenLabs
-  const speakText = useCallback(async (text: string) => {
-    if (!isVoiceEnabled || typeof window === 'undefined') {
-      console.log('ðŸ”‡ [TTS] Voz deshabilitada o no disponible en el navegador', { isVoiceEnabled, isWindow: typeof window !== 'undefined' });
-      return;
-    }
-
-    // Limpiar el texto antes de leerlo
-    const cleanedText = cleanTextForTTS(text);
-    
-    if (!cleanedText || cleanedText.trim().length === 0) {
-      console.log('ðŸ”‡ [TTS] Texto vacío después de limpiar');
-      return;
-    }
-
-    console.log('ðŸ”Š [TTS] Iniciando lectura de texto:', { 
-      originalLength: text.length, 
-      cleanedLength: cleanedText.length,
-      preview: cleanedText.substring(0, 100) + '...'
-    });
-
-    // Asegurar que no haya audio superpuesto
-    stopAllAudio();
-
-    try {
-      setIsSpeaking(true);
-
-      const apiKey = 'sk_dd0d1757269405cd26d5e22fb14c54d2f49c4019fd8e86d0';
-      const voiceId = process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || 'ay4iqk10DLwc8KGSrf2t';
-      const modelId = 'eleven_turbo_v2_5';
-
-      if (!apiKey || !voiceId) {
-        console.warn('âš ï¸ ElevenLabs credentials not found, using fallback Web Speech API');
-        
-        // Fallback a Web Speech API
-        const utterance = new SpeechSynthesisUtterance(cleanedText);
-        utterance.lang = speechLanguageMap[language] || 'es-ES';
-        utterance.rate = 0.9;
-        utterance.pitch = 1;
-        utterance.volume = 0.8;
-        
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          utteranceRef.current = null;
-        };
-        utterance.onerror = () => {
-          setIsSpeaking(false);
-          utteranceRef.current = null;
-        };
-        
-        utteranceRef.current = utterance;
-        window.speechSynthesis.speak(utterance);
-        return;
-      }
-
-      // Setup abort controller so we can cancel in-flight TTS requests
-      const controller = new AbortController();
-      ttsAbortRef.current = controller;
-
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-        {
-          signal: controller.signal,
-          method: 'POST',
-          headers: {
-            'Accept': 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': apiKey,
-          },
-          body: JSON.stringify({
-            text: cleanedText,
-            model_id: modelId,
-            voice_settings: {
-              stability: 0.4,
-              similarity_boost: 0.65,
-              style: 0.3,
-              use_speaker_boost: false
-            },
-            optimize_streaming_latency: 4,
-            output_format: 'mp3_22050_32'
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`ElevenLabs API error: ${response.status}`);
-      }
-
-      const audioBlob = await response.blob();
-      // If the request was aborted, do not proceed
-      if (ttsAbortRef.current && ttsAbortRef.current.signal.aborted) {
-        ttsAbortRef.current = null;
-        return;
-      }
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      const audio = new Audio(audioUrl);
-      audio.volume = 0.8;
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-        if (audioRef.current === audio) audioRef.current = null;
-      };
-
-      audio.onerror = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-        if (audioRef.current === audio) audioRef.current = null;
-      };
-
-      // Intentar reproducir el audio
-      try {
-        await audio.play();
-        console.log('✅ [TTS] Audio reproducido exitosamente');
-        // Playback started successfully; clear abort controller
-        if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
-      } catch (playError: any) {
-        // Autoplay bloqueado por el navegador - esto es normal y esperado
-        console.warn('âš ï¸ [TTS] Error al reproducir audio (puede ser bloqueo de autoplay):', playError);
-        setIsSpeaking(false);
-      }
-    } catch (error: any) {
-      // Si la petición fue abortada, lo manejamos como info
-      if (error && (error.name === 'AbortError' || error.message?.includes('aborted'))) {
-        // Silenciar errores de abort
-      } else {
-        console.error('Error en síntesis de voz con ElevenLabs:', error);
-      }
-      setIsSpeaking(false);
-    }
-  }, [isVoiceEnabled, language, stopAllAudio, cleanTextForTTS]);
-
-  // ðŸŽ™ï¸ Detectar cuando llega un nuevo mensaje del asistente y leerlo
-  useEffect(() => {
-    if (!isVoiceEnabled || messages.length === 0 || isLoading) return;
-
-    // Buscar el último mensaje del asistente que no haya sido leído
-    const lastAssistantMessage = [...messages].reverse().find(
-      msg => msg.role === 'assistant' && msg.id !== lastReadMessageIdRef.current && msg.content.trim().length > 0
-    );
-
-    if (lastAssistantMessage) {
-      // Esperar un poco para que el mensaje termine de renderizarse (especialmente si es streaming)
-      const timer = setTimeout(() => {
-        console.log('ðŸ”Š [TTS] Nuevo mensaje del asistente detectado, leyendo...', {
-          messageId: lastAssistantMessage.id,
-          contentLength: lastAssistantMessage.content.length,
-          preview: lastAssistantMessage.content.substring(0, 50) + '...'
-        });
-        
-        speakText(lastAssistantMessage.content);
-        lastReadMessageIdRef.current = lastAssistantMessage.id;
-      }, 1000); // Esperar 1 segundo para que termine el streaming
-
-      return () => clearTimeout(timer);
-    }
-  }, [messages, isVoiceEnabled, isLoading, speakText]);
-
-  // Limpiar audio al desmontar o cerrar el panel
-  useEffect(() => {
-    if (!isOpen) {
-      stopAllAudio();
-    }
-    return () => {
-      stopAllAudio();
-    };
-  }, [isOpen, stopAllAudio]);
-
-  // ðŸŽ™ï¸ Función para detener dictado y limpiar recursos
-  const stopDictation = useCallback(() => {
-    // IMPORTANTE: Capturar el texto ANTES de cambiar isDictating y limpiar estados
-    // Esto evita que el input muestre el texto duplicado
-    setFinalTranscript(currentFinal => {
-      setInterimTranscript(currentInterim => {
-        // Guardar el texto en el ref antes de limpiar
-        const fullText = (currentFinal + ' ' + currentInterim).trim();
-        dictationTextToApplyRef.current = fullText;
-        
-        // Limpiar estados INMEDIATAMENTE para evitar duplicación en el render
-        return '';
-      });
-      return '';
-    });
-
-    // Cambiar isDictating a false ANTES de agregar el texto al input
-    // Esto asegura que el input no muestre finalTranscript/interimTranscript cuando agregamos el texto
-    setIsDictating(false);
-    isDictatingRef.current = false;
-
-    // Limpiar timeout de silencio
-    if (silenceTimeoutRef.current) {
-      clearTimeout(silenceTimeoutRef.current);
-      silenceTimeoutRef.current = null;
-    }
-
-    // Detener reconocimiento de voz
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (e) {
-        // Ignorar errores al detener
-      }
-      recognitionRef.current = null;
-    }
-
-    // Agregar el texto capturado al input DESPUÉS de limpiar estados y cambiar isDictating
-    const textToApply = dictationTextToApplyRef.current;
-    if (textToApply) {
-      // Usar setTimeout para asegurar que los estados se hayan actualizado y React haya re-renderizado
-      setTimeout(() => {
-        setInputValue(prev => {
-          const newValue = prev + (prev ? ' ' : '') + textToApply;
-          return newValue;
-        });
-        
-        // Limpiar el ref
-        dictationTextToApplyRef.current = '';
-        
-        // Enfocar el input
-        setTimeout(() => {
-          inputRef.current?.focus();
-          // Mover cursor al final
-          if (inputRef.current) {
-            inputRef.current.setSelectionRange(
-              inputRef.current.value.length,
-              inputRef.current.value.length
-            );
-          }
-        }, 50);
-      }, 0);
-    } else {
-      // Limpiar el ref si no hay texto
-      dictationTextToApplyRef.current = '';
-    }
-
-    // Limpiar timestamp
-    lastTranscriptTimeRef.current = 0;
-  }, []);
-
-  // ðŸŽ™ï¸ Función para aplicar el texto transcrito al input
-  const applyTranscribedText = useCallback(() => {
-    const fullText = (finalTranscript + ' ' + interimTranscript).trim();
-    if (fullText) {
-      setInputValue(prev => {
-        const newValue = prev + (prev ? ' ' : '') + fullText;
-        return newValue;
-      });
-      // Enfocar el input
-      setTimeout(() => {
-        inputRef.current?.focus();
-        // Mover cursor al final
-        if (inputRef.current) {
-          inputRef.current.setSelectionRange(
-            inputRef.current.value.length,
-            inputRef.current.value.length
-          );
-        }
-      }, 100);
-    }
-    // Limpiar transcripciones
-    setInterimTranscript('');
-    setFinalTranscript('');
-  }, [finalTranscript, interimTranscript]);
-
-  // ðŸŽ™ï¸ Función para iniciar/detener dictado usando Web Speech API
-  const toggleDictation = useCallback(async () => {
-    if (!isDictationEnabled) {
-      console.warn('Dictado no está habilitado en la configuración');
-      return;
-    }
-
-    // Verificar soporte del navegador
-    if (typeof window === 'undefined') return;
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-      alert('Tu navegador no soporta reconocimiento de voz. Por favor, usa Chrome, Edge o Safari.');
-      return;
-    }
-
-    if (isDictating) {
-      // Detener manualmente
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (e) {
-          // Ignorar errores
-        }
-      }
-      // Detener dictado (aplicará el texto automáticamente)
-      stopDictation();
-      return;
-    }
-
-    // Iniciar reconocimiento de voz
-    try {
-      // Limpiar transcripciones anteriores
-      setInterimTranscript('');
-      setFinalTranscript('');
-
-      // Crear instancia de reconocimiento
-      const recognition = new SpeechRecognition();
-      recognitionRef.current = recognition;
-
-      // Configuración
-      const langMap: Record<string, string> = {
-        'es': 'es-ES',
-        'en': 'en-US',
-        'pt': 'pt-BR',
-      };
-      recognition.lang = langMap[language || 'es'] || 'es-ES';
-      recognition.continuous = true; // Continuar escuchando
-      recognition.interimResults = true; // Mostrar resultados intermedios (tiempo real)
-      recognition.maxAlternatives = 1;
-
-      // Configuración de timeout para detección de silencio
-      const SILENCE_TIMEOUT_MS = 3000; // 3 segundos sin nuevas palabras = detener
-
-      // Función para reiniciar el timeout de silencio
-      const resetSilenceTimeout = () => {
-        // Limpiar timeout anterior
-        if (silenceTimeoutRef.current) {
-          clearTimeout(silenceTimeoutRef.current);
-          silenceTimeoutRef.current = null;
-        }
-
-        // Crear nuevo timeout
-        silenceTimeoutRef.current = setTimeout(() => {
-          console.log('ðŸ”‡ No se detectaron nuevas palabras por 3 segundos, deteniendo dictado...');
-          
-          // Detener reconocimiento
-          if (recognitionRef.current) {
-            try {
-              recognitionRef.current.stop();
-            } catch (e) {
-              // Ignorar errores
-            }
-          }
-          
-          // Detener dictado (aplicará el texto automáticamente)
-          stopDictation();
-        }, SILENCE_TIMEOUT_MS);
-      };
-
-      // Evento: resultados intermedios (texto en tiempo real)
-      recognition.onresult = (event: any) => {
-        let interim = '';
-        let final = '';
-        let hasNewText = false;
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          
-          if (event.results[i].isFinal) {
-            // Resultado final (confirmado)
-            final += transcript + ' ';
-            hasNewText = true;
-          } else {
-            // Resultado intermedio (temporal, puede cambiar)
-            interim += transcript;
-            hasNewText = true;
-          }
-        }
-
-        // Si hay nuevo texto, actualizar timestamp y reiniciar timeout
-        if (hasNewText) {
-          lastTranscriptTimeRef.current = Date.now();
-          resetSilenceTimeout();
-          console.log('ðŸ”Š Nuevo texto detectado, reiniciando timeout de silencio');
-        }
-
-        // Actualizar estados
-        if (final) {
-          setFinalTranscript(prev => (prev + ' ' + final).trim());
-        }
-        setInterimTranscript(interim);
-
-        // Actualizar input en tiempo real
-        const currentFinal = finalTranscript + (finalTranscript ? ' ' : '') + final;
-        const displayText = (currentFinal + ' ' + interim).trim();
-        
-        // Mostrar en el input mientras se habla (solo visual, no se guarda hasta que termine)
-        if (inputRef.current && displayText) {
-          const currentValue = inputValue;
-          const newValue = currentValue + (currentValue ? ' ' : '') + displayText;
-          // No actualizamos el estado directamente para evitar conflictos
-          // Solo mostramos visualmente
-        }
-      };
-
-      // Evento: cuando termina el reconocimiento (silencio detectado automáticamente)
-      recognition.onend = () => {
-        console.log('ðŸŽ™ï¸ Reconocimiento de voz finalizado');
-        
-        // Limpiar timeout si existe
-        if (silenceTimeoutRef.current) {
-          clearTimeout(silenceTimeoutRef.current);
-          silenceTimeoutRef.current = null;
-        }
-        
-        // Detener dictado (aplicará el texto automáticamente)
-        stopDictation();
-      };
-
-      // Evento: errores
-      recognition.onerror = (event: any) => {
-        console.error('Error en reconocimiento de voz:', event.error);
-        
-        if (event.error === 'no-speech') {
-          // No se detectó habla, pero esto es normal, solo detener
-          console.log('No se detectó habla, deteniendo...');
-          stopDictation();
-        } else if (event.error === 'audio-capture') {
-          alert('No se pudo acceder al micrófono. Por favor, verifica los permisos.');
-          stopDictation();
-        } else if (event.error === 'not-allowed') {
-          alert('Permiso de micrófono denegado. Por favor, permite el acceso al micrófono.');
-          stopDictation();
-        } else {
-          // Otros errores, intentar continuar o detener según el caso
-          console.warn('Error de reconocimiento:', event.error);
-          if (event.error === 'network' || event.error === 'aborted') {
-            stopDictation();
-          }
-        }
-      };
-
-      // Evento: cuando comienza el reconocimiento
-      recognition.onstart = () => {
-        console.log('ðŸŽ™ï¸ Reconocimiento de voz iniciado');
-        setIsDictating(true);
-        isDictatingRef.current = true;
-        lastTranscriptTimeRef.current = Date.now();
-        
-        // Iniciar timeout de silencio (por si no se detecta nada al inicio)
-        resetSilenceTimeout();
-      };
-
-      // Iniciar reconocimiento
-      recognition.start();
-      console.log('ðŸŽ™ï¸ Dictado iniciado con transcripción en tiempo real');
-    } catch (error: any) {
-      console.error('Error iniciando dictado:', error);
-      setIsDictating(false);
-      
-      if (error?.name === 'NotAllowedError' || error?.message?.includes('not allowed')) {
-        alert('Se necesita permiso para usar el micrófono. Por favor, permite el acceso al micrófono en la configuración del navegador.');
-      } else if (error?.message?.includes('already started')) {
-        // Ya está iniciado, solo actualizar estado
-        setIsDictating(true);
-        isDictatingRef.current = true;
-      } else {
-        alert('Error al acceder al micrófono. Por favor, verifica que tu navegador soporte reconocimiento de voz.');
-      }
-    }
-  }, [isDictationEnabled, isDictating, language, stopDictation, applyTranscribedText, finalTranscript, inputValue]);
-
-  // Limpiar recursos de dictado al desmontar o cerrar
-  useEffect(() => {
-    if (!isOpen) {
-      stopDictation();
-    }
-    return () => {
-      stopDictation();
-    };
-  }, [isOpen, stopDictation]);
-
-  const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || isLoading) return;
-    const message = inputValue.trim();
-    setInputValue('');
-    await sendMessage(message, false, pageContext);
-  }, [inputValue, isLoading, sendMessage, pageContext]);
-
-  const handleQuickAction = useCallback(async (action: QuickAction) => {
-    await sendMessage(action.prompt);
-  }, [sendMessage]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  const {
+    t, user, isOpen, closePanel,
+    isDarkMode, isLightTheme, themeColors,
+    messages, isLoading, clearHistory, currentConversationId,
+    inputValue, setInputValue, inputRef, messagesEndRef, chatContainerRef,
+    handleChatScroll, handleSendMessage, handleQuickAction, handleKeyDown, handleLinkClick, quickActions,
+    currentTip, tips,
+    isSpeaking, isVoiceEnabled,
+    isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, toggleDictation, stopDictation,
+    isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
+    isPersonalizationOpen, setIsPersonalizationOpen,
+    isAvatarExpanded, setIsAvatarExpanded,
+    showHistory, setShowHistory, closeHistory, historyList, isHistoryLoading,
+    editingConversationId, editingTitle, setEditingTitle, deletingConversationId, showDeleteConfirm, conversationToDelete,
+    currentPage, totalConversations, hasMore,
+    handleNextPage, handlePrevPage, handleSelectConversation, handleStartEdit, handleSaveEdit, handleCancelEdit, handleDeleteClick, handleConfirmDelete, handleCancelDelete,
+  } = useLiaSidePanelLogic();
 
   return (
     <>
@@ -1093,7 +189,7 @@ function LiaSidePanelContent() {
                   }}
                 />
               </div>
-              
+
               <div>
                 <h2 style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
                   {t('lia.header.title')}
@@ -1103,7 +199,7 @@ function LiaSidePanelContent() {
                 </p>
               </div>
             </div>
-            
+
             {/* Contenedor de acciones (Menú de opciones + Cerrar) */}
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               {/* Botón de historial (mantener visible) */}
@@ -1285,7 +381,7 @@ function LiaSidePanelContent() {
           {/* Messages Area */}
           <div
             ref={chatContainerRef}
-            onScroll={(e) => { liaPanelScrollTop = e.currentTarget.scrollTop; }}
+            onScroll={handleChatScroll}
             style={{
               flex: 1,
               overflowY: 'auto',
@@ -1331,7 +427,7 @@ function LiaSidePanelContent() {
                      opacity: 0.2,
                      zIndex: 0
                    }} />
-                   
+
                    <img
                     src="/lia-avatar.png"
                     alt="SofLIA"
@@ -1354,17 +450,17 @@ function LiaSidePanelContent() {
                    animate={{ y: 0, opacity: 1 }}
                    transition={{ delay: 0.2, duration: 0.5 }}
                  >
-                   <h3 style={{ 
-                     color: themeColors.textPrimary, 
-                     fontSize: '18px', 
-                     fontWeight: 600, 
-                     marginBottom: '8px' 
+                   <h3 style={{
+                     color: themeColors.textPrimary,
+                     fontSize: '18px',
+                     fontWeight: 600,
+                     marginBottom: '8px'
                    }}>
                      SofLIA
                    </h3>
-                   <p style={{ 
-                     color: themeColors.textSecondary, 
-                     fontSize: '14px', 
+                   <p style={{
+                     color: themeColors.textSecondary,
+                     fontSize: '14px',
                      lineHeight: 1.5,
                      maxWidth: '280px',
                      margin: '0 auto'
@@ -1394,15 +490,15 @@ function LiaSidePanelContent() {
                     wordBreak: 'break-word',
                   }}
                 >
-                  <p style={{ 
-                    fontSize: '14px', 
-                    lineHeight: 1.5, 
-                    margin: 0, 
+                  <p style={{
+                    fontSize: '14px',
+                    lineHeight: 1.5,
+                    margin: 0,
                     whiteSpace: 'pre-wrap',
                     overflowWrap: 'break-word',
                     wordBreak: 'break-word',
                   }}>
-                    {message.role === 'assistant' 
+                    {message.role === 'assistant'
                       ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode)
                       : message.content
                     }
@@ -1421,7 +517,7 @@ function LiaSidePanelContent() {
               </div>
             ))
             )}
-            
+
             {isLoading && (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <div
@@ -1439,7 +535,7 @@ function LiaSidePanelContent() {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -1499,7 +595,7 @@ function LiaSidePanelContent() {
               }}
             >
 
-              
+
               <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
                 <input
                   ref={inputRef}
@@ -1550,8 +646,8 @@ function LiaSidePanelContent() {
                   </div>
                 )}
               </div>
-              
-              {/* ðŸŽ™ï¸ Botón de dictado (solo si está habilitado) */}
+
+              {/* 🎙️ Botón de dictado (solo si está habilitado) */}
               {isDictationEnabled && (
                 <button
                   onClick={toggleDictation}
@@ -1561,9 +657,9 @@ function LiaSidePanelContent() {
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    backgroundColor: isDictating 
-                      ? '#EF4444' 
-                      : isProcessingDictation 
+                    backgroundColor: isDictating
+                      ? '#EF4444'
+                      : isProcessingDictation
                         ? (isLightTheme ? '#CBD5E1' : '#374151')
                         : 'transparent',
                     border: `1px solid ${isDictating ? '#EF4444' : themeColors.inputBorder}`,
@@ -1594,7 +690,7 @@ function LiaSidePanelContent() {
                   )}
                 </button>
               )}
-              
+
               <button
                 onClick={handleSendMessage}
                 disabled={!inputValue.trim() || isLoading}
@@ -1611,15 +707,15 @@ function LiaSidePanelContent() {
                   transition: 'background-color 0.2s',
                 }}
               >
-                <Send style={{ 
-                  width: '16px', 
-                  height: '16px', 
+                <Send style={{
+                  width: '16px',
+                  height: '16px',
                   color: inputValue.trim() && !isLoading ? '#FFFFFF' : (isLightTheme ? '#6B7280' : '#9CA3AF')
                 }} />
               </button>
             </div>
           </div>
-          
+
           {/* History View Overlay */}
           <AnimatePresence>
             {showHistory && (
@@ -1629,8 +725,8 @@ function LiaSidePanelContent() {
                 exit={{ opacity: 0, y: 20 }}
                 style={{
                   position: 'absolute',
-                  top: '81px', 
-                  left: 0, 
+                  top: '81px',
+                  left: 0,
                   right: 0,
                   bottom: 0,
                   backgroundColor: themeColors.panelBg,
@@ -1721,7 +817,7 @@ function LiaSidePanelContent() {
                                            {conv.conversation_title || new Date(conv.started_at).toLocaleDateString()}
                                         </span>
                                         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-                                            <button 
+                                            <button
                                                 onClick={(e) => handleStartEdit(conv, e)}
                                                 style={{background:'none', border:'none', cursor:'pointer', color: themeColors.textSecondary, padding: 0, opacity: 0.6}}
                                                 onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
@@ -1730,15 +826,15 @@ function LiaSidePanelContent() {
                                             >
                                                 <Edit2 size={14} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={(e) => handleDeleteClick(conv, e)}
                                                 disabled={deletingConversationId === conv.conversation_id}
                                                 style={{
-                                                    background:'none', 
-                                                    border:'none', 
-                                                    cursor: deletingConversationId === conv.conversation_id ? 'wait' : 'pointer', 
-                                                    color: deletingConversationId === conv.conversation_id ? themeColors.textSecondary : '#ef4444', 
-                                                    padding: 0, 
+                                                    background:'none',
+                                                    border:'none',
+                                                    cursor: deletingConversationId === conv.conversation_id ? 'wait' : 'pointer',
+                                                    color: deletingConversationId === conv.conversation_id ? themeColors.textSecondary : '#ef4444',
+                                                    padding: 0,
                                                     opacity: deletingConversationId === conv.conversation_id ? 0.5 : 0.6,
                                                     display: 'flex',
                                                     alignItems: 'center'
@@ -1929,7 +1025,7 @@ function LiaSidePanelContent() {
                       Esta acción no se puede deshacer.
                     </p>
                   </div>
-                  
+
                   <div style={{
                     display: 'flex',
                     gap: '12px',
@@ -1964,8 +1060,8 @@ function LiaSidePanelContent() {
                         padding: '10px 20px',
                         borderRadius: '8px',
                         border: 'none',
-                        background: deletingConversationId === conversationToDelete.id 
-                          ? themeColors.textSecondary 
+                        background: deletingConversationId === conversationToDelete.id
+                          ? themeColors.textSecondary
                           : '#ef4444',
                         color: 'white',
                         cursor: deletingConversationId === conversationToDelete.id ? 'wait' : 'pointer',
@@ -1992,7 +1088,7 @@ function LiaSidePanelContent() {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           <style>{`
             @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             @keyframes liaPulse {
@@ -2082,6 +1178,3 @@ export function LiaSidePanel() {
 
   return createPortal(<LiaSidePanelContent />, document.body);
 }
-
-// Exportar constante para uso en ContentWrapper
-export const LIA_PANEL_WIDTH = PANEL_WIDTH;

@@ -10,6 +10,10 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import {
+    normalizeImportedActivityContent,
+    normalizeImportedMaterialContent,
+} from './course-content'
 
 // ─── Admin client (service role, sin cookies) ────────────────────────────────
 
@@ -137,12 +141,24 @@ export async function applyPayloadToCourse(
                 const rows = materials.map((mat: any, idx: number) => ({
                     lesson_id: lessonId,
                     material_title: mat.title,
-                    material_type: mat.type === 'download' ? 'document' : mat.type === 'quiz' ? 'quiz' : 'link',
+                    material_type:
+                        mat.type === 'download'
+                            ? 'document'
+                            : mat.type === 'quiz'
+                                ? 'quiz'
+                                : mat.type === 'reading' || mat.type === 'exercise'
+                                    ? mat.type
+                                    : 'link',
                     external_url: mat.url ?? null,
                     file_url: mat.type === 'download' ? mat.url : null,
                     material_order_index: idx + 1,
                     material_description: mat.description ?? null,
-                    content_data: mat.type === 'quiz' ? normalizeQuizData(mat.data) : null,
+                    content_data:
+                        mat.type === 'quiz'
+                            ? normalizeQuizData(mat.data)
+                            : mat.type === 'reading' || mat.type === 'exercise'
+                                ? normalizeImportedMaterialContent(mat.data)
+                                : null,
                 }))
                 const { error } = await supabase.from('lesson_materials').insert(rows)
                 if (error) throw new Error(`Materials insert failed: ${error.message}`)
@@ -156,9 +172,10 @@ export async function applyPayloadToCourse(
                     lesson_id: lessonId,
                     activity_title: act.title,
                     activity_type: act.type === 'lia_script' ? 'ai_chat' : act.type,
-                    activity_content: act.type === 'quiz'
-                        ? JSON.stringify(normalizeQuizData(act.data))
-                        : JSON.stringify(act.data),
+                    activity_content:
+                        act.type === 'quiz'
+                            ? JSON.stringify(normalizeQuizData(act.data))
+                            : normalizeImportedActivityContent(act.type, act.data),
                     activity_order_index: idx + 1,
                     is_required: false,
                 }))
@@ -300,18 +317,25 @@ export function buildCoursePreviewFromPayload(staging: any) {
                     materials: (lesson.materials ?? []).map((mat: any, matIdx: number) => ({
                         material_id: `staging-mat-${modIdx}-${lesIdx}-${matIdx}`,
                         material_title: mat.title,
-                        material_type: mat.type === 'download' ? 'document' : mat.type,
+                        material_type:
+                            mat.type === 'download'
+                                ? 'document'
+                                : mat.type,
                         external_url: mat.url ?? null,
                         file_url: mat.type === 'download' ? mat.url : null,
-                        content_data: mat.data ?? null,
+                        content_data:
+                            mat.type === 'quiz'
+                                ? normalizeQuizData(mat.data)
+                                : normalizeImportedMaterialContent(mat.data),
                     })),
                     activities: (lesson.activities ?? []).map((act: any, actIdx: number) => ({
                         activity_id: `staging-act-${modIdx}-${lesIdx}-${actIdx}`,
                         activity_title: act.title,
                         activity_type: act.type === 'lia_script' ? 'ai_chat' : act.type,
-                        activity_content: act.type === 'quiz'
-                            ? JSON.stringify(normalizeQuizData(act.data))
-                            : JSON.stringify(act.data ?? {}),
+                        activity_content:
+                            act.type === 'quiz'
+                                ? JSON.stringify(normalizeQuizData(act.data))
+                                : normalizeImportedActivityContent(act.type, act.data),
                         activity_order_index: actIdx + 1,
                     })),
                 }

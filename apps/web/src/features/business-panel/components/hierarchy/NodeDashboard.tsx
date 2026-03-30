@@ -625,7 +625,6 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     orgSlug={orgSlug}
                     onAssignComplete={() => {
                         // Optional: Refresh data or show success message
-                        console.log('Individual assignment complete');
                     }}
                 />
             )}

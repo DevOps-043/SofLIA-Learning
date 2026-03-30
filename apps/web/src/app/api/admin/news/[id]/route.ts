@@ -40,7 +40,6 @@ export async function GET(
       .single()
 
     if (error) {
-      // console.error('❌ Error fetching news:', error)
       return NextResponse.json(
         { error: 'News not found' },
         { status: 404 }
@@ -49,7 +48,6 @@ export async function GET(
 
     return NextResponse.json({ news })
   } catch (error) {
-    // console.error('💥 Unexpected error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -127,7 +125,6 @@ export async function PUT(
       .single()
 
     if (error) {
-      // console.error('❌ Error updating news:', error)
       return NextResponse.json(
         { error: 'Failed to update news' },
         { status: 500 }
@@ -148,7 +145,6 @@ export async function PUT(
       }, { status: 400 })
     }
     
-    // console.error('💥 Unexpected error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -173,7 +169,6 @@ export async function DELETE(
       .eq('id', id)
 
     if (error) {
-      // console.error('❌ Error deleting news:', error)
       return NextResponse.json(
         { error: 'Failed to delete news' },
         { status: 500 }
@@ -182,7 +177,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    // console.error('💥 Unexpected error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

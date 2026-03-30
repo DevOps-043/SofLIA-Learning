@@ -49,13 +49,6 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
       const parsedSession = JSON.parse(jsonString)
       
       // Debug: Verificar estructura de la sesión
-      console.log('📦 Sesión parseada (base64):', {
-        totalEvents: parsedSession.events?.length || 0,
-        hasSnapshot: parsedSession.events?.some((e: any) => e.type === 2) || false,
-        eventTypes: parsedSession.events?.map((e: any) => e.type).slice(0, 10) || [],
-        startTime: parsedSession.startTime,
-        endTime: parsedSession.endTime
-      })
       
       return parsedSession
     } catch (error) {

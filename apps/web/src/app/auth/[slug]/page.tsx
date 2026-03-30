@@ -55,7 +55,6 @@ export default function OrganizationLoginPage() {
 
         setOrganization(data.organization);
       } catch (err) {
-        // console.error('Error fetching organization:', err);
         setError('Error al cargar información de la organización');
       } finally {
         setIsLoading(false);

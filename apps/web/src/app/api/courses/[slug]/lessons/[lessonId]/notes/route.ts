@@ -39,7 +39,6 @@ export async function GET(
 
     return NextResponse.json(notes)
   } catch (error) {
-    // console.error('Error in notes GET API:', error)
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
@@ -123,7 +122,6 @@ export async function POST(
           note_title = "Nota de estudio";
         }
       } catch (aiError) {
-        // console.error('Error generando título por IA:', aiError);
         note_title = "Nota de estudio";
       }
     }

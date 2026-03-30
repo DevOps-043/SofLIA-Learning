@@ -31,7 +31,6 @@ export async function GET(
           { status: 404 }
         )
       }
-      // console.error('Error fetching news by slug:', error)
       return NextResponse.json(
         { 
           error: 'Error al obtener noticia',
@@ -50,7 +49,6 @@ export async function GET(
 
     return NextResponse.json(newsWithMetrics)
   } catch (error) {
-    // console.error('Error in news slug API:', error)
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',

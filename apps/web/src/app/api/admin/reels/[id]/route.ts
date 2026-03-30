@@ -42,13 +42,11 @@ export async function GET(
       .single()
 
     if (error) {
-      // console.error('Error fetching reel:', error)
       return NextResponse.json({ error: 'Reel not found' }, { status: 404 })
     }
 
     return NextResponse.json(reel)
   } catch (error) {
-    // console.error('Error in GET /api/admin/reels/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -91,7 +89,6 @@ export async function PUT(
       .single()
 
     if (error) {
-      // console.error('Error updating reel:', error)
       return NextResponse.json({ error: 'Failed to update reel' }, { status: 500 })
     }
 
@@ -109,7 +106,6 @@ export async function PUT(
       }, { status: 400 })
     }
     
-    // console.error('Error in PUT /api/admin/reels/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -131,13 +127,11 @@ export async function DELETE(
       .eq('id', id)
 
     if (error) {
-      // console.error('Error deleting reel:', error)
       return NextResponse.json({ error: 'Failed to delete reel' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    // console.error('Error in DELETE /api/admin/reels/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

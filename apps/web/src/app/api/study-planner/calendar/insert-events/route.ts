@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        console.log(`📅 [Insert Events] Iniciando inserción de ${lessonDistribution.length} sesiones para usuario ${user.id}`);
 
         // Obtener integración de calendario del usuario
         const supabase = createAdminClient();
@@ -95,7 +94,6 @@ export async function POST(request: NextRequest) {
         const needsRefresh = !tokenExpiry || tokenExpiry <= new Date();
 
         if (needsRefresh) {
-            console.log('🔄 [Insert Events] Token expirado, refrescando...');
             const refreshedToken = await CalendarIntegrationService.refreshTokenIfNeeded(user.id);
             if (!refreshedToken) {
                 return NextResponse.json({
@@ -114,7 +112,6 @@ export async function POST(request: NextRequest) {
             if (calendarId) {
                 // Guardar el ID del calendario secundario si aún no está guardado
                 await CalendarIntegrationService.saveSecondaryCalendarId(user.id, calendarId);
-                console.log(`✅ [Insert Events] Usando calendario secundario: ${calendarId}`);
             } else {
                 console.warn('⚠️ [Insert Events] No se pudo crear calendario secundario, usando primario');
             }
@@ -153,7 +150,6 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        console.log(`📝 [Insert Events] Preparados ${eventsToInsert.length} eventos para insertar`);
 
         // Insertar eventos con throttling para evitar rate limiting
         const results: Array<{ success: boolean; eventId?: string; error?: string; index: number }> = [];
@@ -172,7 +168,6 @@ export async function POST(request: NextRequest) {
 
                     if (result) {
                         results.push({ success: true, eventId: result.id, index: i });
-                        console.log(`✅ [Insert Events] Evento ${i + 1}/${eventsToInsert.length} insertado: ${result.id}`);
                     } else {
                         results.push({ success: false, error: 'No se pudo crear el evento', index: i });
                         console.error(`âŒ [Insert Events] Error en evento ${i + 1}/${eventsToInsert.length}`);
@@ -185,7 +180,6 @@ export async function POST(request: NextRequest) {
 
                     if (result) {
                         results.push({ success: true, eventId: result.id, index: i });
-                        console.log(`✅ [Insert Events] Evento Microsoft ${i + 1}/${eventsToInsert.length} insertado: ${result.id}`);
                     } else {
                         results.push({ success: false, error: 'No se pudo crear el evento en Microsoft Calendar', index: i });
                         console.error(`âŒ [Insert Events] Error en evento Microsoft ${i + 1}/${eventsToInsert.length}`);
@@ -207,7 +201,6 @@ export async function POST(request: NextRequest) {
         const failedCount = results.filter(r => !r.success).length;
         const errors = results.filter(r => !r.success).map(r => `Evento ${r.index + 1}: ${r.error}`);
 
-        console.log(`📊 [Insert Events] Resultado: ${insertedCount} insertados, ${failedCount} fallidos`);
 
         return NextResponse.json({
             success: failedCount === 0,

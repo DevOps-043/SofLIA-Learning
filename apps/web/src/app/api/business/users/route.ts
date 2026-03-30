@@ -10,16 +10,10 @@ export async function GET() {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
-    console.log('🔍 [Users API] Auth result:', {
-      userId: auth.userId,
-      organizationId: auth.organizationId,
-      role: auth.role
-    })
 
     logger.log('🔄 Cargando usuarios de organización desde API...')
 
     if (!auth.organizationId) {
-      console.log('🔍 [Users API] No organization ID found')
       return NextResponse.json(
         {
           success: false,

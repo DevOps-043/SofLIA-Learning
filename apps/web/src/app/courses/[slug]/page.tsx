@@ -35,7 +35,6 @@ import { StarRating } from '../../../features/courses/components/StarRating';
 import { createClient } from '../../../lib/supabase/client';
 import { SuccessModal } from '../../../core/components/SuccessModal';
 import { ErrorModal } from '../../../core/components/ErrorModal';
-import { useShoppingCartStore } from '../../../core/stores/shoppingCartStore';
 import { SkillBadgeList } from '../../../features/skills/components/SkillBadgeList';
 
 export default function CourseDetailPage() {
@@ -60,7 +59,6 @@ export default function CourseDetailPage() {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [courseSkills, setCourseSkills] = useState<any[]>([]);
-  const { items, removeItem } = useShoppingCartStore();
 
   useEffect(() => {
     async function loadCourseData() {
@@ -143,7 +141,6 @@ export default function CourseDetailPage() {
                 setInstructorData(instructorData);
               }
             } catch (err) {
-              // console.error('Error loading instructor:', err);
             }
           })();
         }
@@ -178,22 +175,6 @@ export default function CourseDetailPage() {
         throw new Error(data.error || 'Error al adquirir el curso');
       }
 
-      // Remover el curso del carrito si está presente
-      // Buscar por itemId (puede ser el ID del curso o el slug)
-      const courseInCart = items.find(
-        (item) => 
-          item.itemType === 'course' && 
-          (item.itemId === course.id || item.itemId === course.slug || item.itemId === slug)
-      );
-      if (courseInCart) {
-        removeItem(courseInCart.id);
-      }
-
-      // También usar el método del store para remover cursos comprados
-      // Esto asegura que se remueva incluso si el ID no coincide exactamente
-      const { removePurchasedCourses } = useShoppingCartStore.getState();
-      removePurchasedCourses([course.id]);
-
       // Mostrar mensaje de éxito con el modal personalizado
       setSuccessMessage(`¡Curso "${data.data.course_title}" adquirido exitosamente!`);
       setShowSuccessModal(true);
@@ -214,12 +195,10 @@ export default function CourseDetailPage() {
           }
         } catch (checkError) {
           // Si falla la verificación, mantener el estado optimista
-          // console.error('Error verificando compra:', checkError);
         }
       }, 500); // Esperar 500ms para que la transacción se complete
       
     } catch (error) {
-      // console.error('Error purchasing course:', error);
       // Mostrar error con el modal de error
       setErrorMessage(error instanceof Error ? error.message : 'Error al adquirir el curso');
       setShowErrorModal(true);
@@ -930,7 +909,6 @@ export default function CourseDetailPage() {
             }
           } catch (checkError) {
             // Si falla, mantener el estado actual
-            // console.error('Error verificando compra:', checkError);
           }
         }}
         title={successMessage}

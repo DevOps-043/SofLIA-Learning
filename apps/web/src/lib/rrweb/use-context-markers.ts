@@ -44,7 +44,6 @@ export function useContextMarkers() {
       const title = document.title || pathname;
       
       module.markPageChange(pathname, title);
-      console.log(`[ContextMarkers] 📍 Marcado cambio de página: ${pathname}`);
     }).catch((error) => {
       console.error('[ContextMarkers] Error marcando página:', error);
     });

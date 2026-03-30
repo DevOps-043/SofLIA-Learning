@@ -373,7 +373,6 @@ export class AdminWorkshopsService {
 
       return data
     } catch (error) {
-      // console.error('Error in AdminWorkshopsService.createWorkshop:', error)
       throw error
     }
   }
@@ -466,7 +465,6 @@ export class AdminWorkshopsService {
         .single()
 
       if (error) {
-        // console.error('Error updating workshop:', error)
         throw error
       }
 
@@ -485,7 +483,6 @@ export class AdminWorkshopsService {
 
       return data
     } catch (error) {
-      // console.error('Error in AdminWorkshopsService.updateWorkshop:', error)
       throw error
     }
   }
@@ -629,7 +626,6 @@ export class AdminWorkshopsService {
         .order('display_name')
 
       if (error) {
-        // console.error('Error fetching instructors:', error)
         throw error
       }
 
@@ -640,7 +636,6 @@ export class AdminWorkshopsService {
           'Instructor sin nombre'
       }))
     } catch (error) {
-      // console.error('Error in AdminWorkshopsService.getInstructors:', error)
       throw error
     }
   }

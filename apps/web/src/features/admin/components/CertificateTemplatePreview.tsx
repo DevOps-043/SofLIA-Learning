@@ -70,16 +70,6 @@ export function CertificateTemplatePreview({
   // Debug: Log cuando cambian los props de firma
   useEffect(() => {
     if (isOpen) {
-      // console.log('CertificateTemplatePreview - Signature props updated:', {
-      //   instructorSignatureUrl,
-      //   instructorSignatureName,
-      //   instructorDisplayName,
-      //   hasSignatureName: !!instructorSignatureName,
-      //   hasSignatureUrl: !!instructorSignatureUrl,
-      //   signatureNameLength: instructorSignatureName?.length || 0,
-      //   signatureNameValue: instructorSignatureName,
-      //   willShowName: !!(instructorSignatureName && instructorSignatureName.trim() && (!instructorSignatureUrl || !instructorSignatureUrl.trim()))
-      // })
     }
   }, [isOpen, instructorSignatureUrl, instructorSignatureName, instructorDisplayName])
   

@@ -6,7 +6,6 @@ import { ThemeProvider } from '../core/components/ThemeProvider';
 import { PrefetchManager } from '../core/components/PrefetchManager';
 import { SWRProvider } from '../core/providers/SWRProvider';
 import { NotificationProvider } from '../features/notifications/context/NotificationContext';
-// import { ConditionalAIChatAgent } from '../core/components/ConditionalAIChatAgent/ConditionalAIChatAgent'; // Removed
 import { GlobalRecorderProvider } from '../core/components/GlobalRecorderProvider';
 import { I18nProvider } from '../core/providers/I18nProvider';
 import { ShareModalProvider } from '../core/providers/ShareModalProvider';

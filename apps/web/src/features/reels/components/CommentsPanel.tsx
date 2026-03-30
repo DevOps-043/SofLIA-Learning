@@ -54,7 +54,6 @@ export const CommentsPanel: React.FC<CommentsPanelProps> = ({
         setComments(data);
       }
     } catch (error) {
-      // console.error('Error loading comments:', error);
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +85,6 @@ export const CommentsPanel: React.FC<CommentsPanelProps> = ({
         }
       }
     } catch (error) {
-      // console.error('Error submitting comment:', error);
     } finally {
       setIsSubmitting(false);
     }

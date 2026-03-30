@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { SessionService } from '@/features/auth/services/session.service';
+import { createClient } from '../../../../../../../lib/supabase/server';
+import { SessionService } from '../../../../../../../features/auth/services/session.service';
 
 /**
  * POST /api/courses/[slug]/questions/[questionId]/reactions
@@ -73,7 +73,6 @@ export async function POST(
       .maybeSingle();
 
     if (checkError) {
-      // console.error('Error checking reaction:', checkError);
       return NextResponse.json(
         { error: 'Error al verificar reacción' },
         { status: 500 }
@@ -89,16 +88,35 @@ export async function POST(
           .eq('id', existingReaction.id);
 
         if (deleteError) {
-          // console.error('Error deleting reaction:', deleteError);
           return NextResponse.json(
             { error: 'Error al eliminar reacción' },
             { status: 500 }
           );
         }
 
-        return NextResponse.json({ action: 'removed', reaction_type });
+        const { count } = await supabase
+          .from('course_question_reactions')
+          .select('id', { count: 'exact', head: true })
+          .eq('question_id', questionId);
+
+        return NextResponse.json({
+          action: 'removed',
+          reaction_type,
+          new_count: count || 0,
+          user_reaction: null
+        });
       } else {
-        return NextResponse.json({ action: 'exists', reaction_type });
+        const { count } = await supabase
+          .from('course_question_reactions')
+          .select('id', { count: 'exact', head: true })
+          .eq('question_id', questionId);
+
+        return NextResponse.json({
+          action: 'exists',
+          reaction_type,
+          new_count: count || 0,
+          user_reaction: reaction_type
+        });
       }
     } else {
       // Crear la reacción
@@ -113,17 +131,25 @@ export async function POST(
         .single();
 
       if (insertError) {
-        // console.error('Error creating reaction:', insertError);
         return NextResponse.json(
           { error: 'Error al crear reacción' },
           { status: 500 }
         );
       }
 
-      return NextResponse.json({ action: 'added', reaction: reaction });
+      const { count } = await supabase
+        .from('course_question_reactions')
+        .select('id', { count: 'exact', head: true })
+        .eq('question_id', questionId);
+
+      return NextResponse.json({
+        action: 'added',
+        reaction,
+        new_count: count || 0,
+        user_reaction: reaction_type
+      });
     }
   } catch (error) {
-    // console.error('Error in reactions API:', error);
     return NextResponse.json(
       { 
         error: 'Error interno del servidor',
@@ -133,4 +159,3 @@ export async function POST(
     );
   }
 }
-

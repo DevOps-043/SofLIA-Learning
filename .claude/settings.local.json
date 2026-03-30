@@ -65,7 +65,16 @@
       "Bash(del \"apps\\\\web\\\\src\\\\features\\\\tours\\\\config\\\\business-panel-tour-steps.tsx\")",
       "Bash(ren:*)",
       "Bash(if exist \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Trabajo\\\\Aprende y Aplica\\\\Aprende-y-Aplica\\\\apps\\\\web\\\\.next\" rmdir /s /q \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Trabajo\\\\Aprende y Aplica\\\\Aprende-y-Aplica\\\\apps\\\\web\\\\.next\")",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(wc -l /c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/supabase/migrations/*.sql)",
+      "Bash(find \"/c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/app/api\" -name \"*.ts\" -exec grep -l \"request.json\\(\\)\" {})",
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|HACK\" /c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/supabase/migrations/*.sql)",
+      "Bash(grep -r \"TODO\\\\|FIXME\\\\|BUG\\\\|HACK\" /c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/features --include=*.tsx --include=*.ts)",
+      "Bash(xargs wc:*)",
+      "Bash(find 'c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src' \\\\\\(-name *.tsx -o -name *.ts \\\\\\) -exec wc -l {} +)",
+      "Bash(wc -l \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/lib/lia-context/__tests__/\"*.test.ts)",
+      "Bash(grep \"total$\")",
+      "Read(//c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/**)"
     ],
     "deny": [],
     "ask": []

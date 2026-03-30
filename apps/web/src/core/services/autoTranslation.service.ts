@@ -182,13 +182,6 @@ Traducción:`;
     // Traducir cada campo en paralelo para mejor rendimiento
     const translationPromises = fields.map(async (field) => {
       const value = obj[field];
-      console.log(`[AutoTranslationService] translateObject: Procesando campo "${field}"`, {
-        hasValue: value !== undefined && value !== null,
-        type: typeof value,
-        isString: typeof value === 'string',
-        isArray: Array.isArray(value),
-        stringLength: typeof value === 'string' ? value.length : 'N/A'
-      });
       
       // Solo traducir si el campo existe y tiene contenido
       if (value === null || value === undefined || value === '') {
@@ -228,10 +221,6 @@ Traducción:`;
     
     results.forEach(({ field, translated }) => {
       translations[field] = translated;
-      console.log(`[AutoTranslationService] translateObject: Campo "${field}" traducido`, {
-        original: typeof obj[field] === 'string' ? obj[field].substring(0, 50) : obj[field],
-        translated: typeof translated === 'string' ? translated.substring(0, 50) : translated
-      });
     });
 
     return translations;

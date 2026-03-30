@@ -46,7 +46,6 @@ export function AuthSecurityGuard({ children }: { children: React.ReactNode }) {
 
             // Si hay un cambio de usuario (incluyendo logout)
             if (previousUserId !== null && currentUserId !== previousUserId) {
-                console.log('🔄 User changed, clearing auth storage')
 
                 // Limpiar todo el localStorage relacionado con auth
                 localStorage.removeItem('auth-storage')

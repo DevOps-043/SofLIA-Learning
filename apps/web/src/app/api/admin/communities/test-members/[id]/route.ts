@@ -90,7 +90,6 @@ export async function GET(
       }
     })
   } catch (error: unknown) {
-    // console.error('Error in test members endpoint:', error)
     const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ 
       success: false, 

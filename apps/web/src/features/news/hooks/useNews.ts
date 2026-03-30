@@ -47,7 +47,6 @@ export function useNews(filters: NewsFilters = {}): UseNewsReturn {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
       setError(errorMessage)
-      // console.error('Error fetching news:', err)
     } finally {
       setLoading(false)
     }

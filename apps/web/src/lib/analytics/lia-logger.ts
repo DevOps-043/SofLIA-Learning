@@ -220,7 +220,6 @@ export class SofLIALogger {
       .eq('conversation_id', this.conversationId);
 
     if (error) {
-      // console.error('Error ending conversation:', error);
       throw error;
     }
 
@@ -254,7 +253,6 @@ export class SofLIALogger {
       .single();
 
     if (error) {
-      // console.error('Error starting activity:', error);
       throw error;
     }
 
@@ -300,7 +298,6 @@ export class SofLIALogger {
       .eq('completion_id', completionId);
 
     if (error) {
-      // console.error('Error updating activity progress:', error);
       throw error;
     }
   }
@@ -342,7 +339,6 @@ export class SofLIALogger {
       .eq('completion_id', completionId);
 
     if (error) {
-      // console.error('Error completing activity:', error);
       throw error;
     }
   }
@@ -362,7 +358,6 @@ export class SofLIALogger {
       .eq('completion_id', completionId);
 
     if (error) {
-      // console.error('Error abandoning activity:', error);
       throw error;
     }
   }
@@ -394,7 +389,6 @@ export class SofLIALogger {
       } as any);
 
     if (error) {
-      // console.error('Error logging feedback:', error);
       throw error;
     }
   }
@@ -492,7 +486,6 @@ export async function getUserConversationStats(userId: string) {
     .order('started_at', { ascending: false });
 
   if (error) {
-    // console.error('Error fetching user stats:', error);
     return null;
   }
 
@@ -512,7 +505,6 @@ export async function getActivityPerformance(activityId: string) {
     .single();
 
   if (error) {
-    // console.error('Error fetching activity performance:', error);
     return null;
   }
 
@@ -533,7 +525,6 @@ export async function getCommonQuestionsForLesson(lessonId: string, limit: numbe
     .limit(limit);
 
   if (error) {
-    // console.error('Error fetching common questions:', error);
     return null;
   }
 

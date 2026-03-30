@@ -47,7 +47,6 @@ export function VideoPlayerProvider({ children }: { children: React.ReactNode })
         setIsPiPActive(true);
       }
     } catch (error) {
-      console.log('No se pudo activar Picture-in-Picture:', error);
     }
   }, [isPiPActive]);
 
@@ -58,7 +57,6 @@ export function VideoPlayerProvider({ children }: { children: React.ReactNode })
         await document.exitPictureInPicture();
         setIsPiPActive(false);
       } catch (error) {
-        console.log('No se pudo desactivar Picture-in-Picture:', error);
       }
     }
   }, []);
@@ -103,11 +101,6 @@ export function VideoPlayerProvider({ children }: { children: React.ReactNode })
       const isVideoVisible = videoContainer && videoContainer.getBoundingClientRect().height > 0;
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('[VideoPlayerContext] Global leavepictureinpicture:', {
-          isVideoVisible,
-          isPaused: video.paused,
-          currentTime: video.currentTime
-        });
       }
 
       // Update PiP state
@@ -118,7 +111,6 @@ export function VideoPlayerProvider({ children }: { children: React.ReactNode })
         video.pause();
         setIsVideoPlaying(false);
         if (process.env.NODE_ENV === 'development') {
-          console.log('[VideoPlayerContext] Paused video after PiP exit (not visible)');
         }
       }
     };

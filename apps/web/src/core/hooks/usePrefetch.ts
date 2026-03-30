@@ -21,7 +21,6 @@ export function usePrefetch(routes: string[], options: {
         try {
           router.prefetch(route)
         } catch (error) {
-          // console.warn(`Failed to prefetch route: ${route}`, error)
         }
       })
     }, delay)
@@ -43,7 +42,6 @@ export function usePrefetchOnHover() {
         try {
           router.prefetch(href)
         } catch (error) {
-          // console.warn(`Failed to prefetch on hover: ${href}`, error)
         }
       }
     }
@@ -68,7 +66,6 @@ export function usePrefetchRelated(currentPath: string) {
         try {
           router.prefetch(route)
         } catch (error) {
-          // console.warn(`Failed to prefetch related route: ${route}`, error)
         }
       })
     }, 1000)
@@ -128,7 +125,6 @@ export function usePrefetchCriticalRoutes() {
         try {
           router.prefetch(route)
         } catch (error) {
-          // console.warn(`Failed to prefetch critical route: ${route}`, error)
         }
       })
     }, 3000)

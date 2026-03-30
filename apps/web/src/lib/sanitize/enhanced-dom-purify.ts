@@ -109,7 +109,6 @@ export function setupDOMPurifyHooks(): void {
         if (url.startsWith(protocol)) {
           data.forceKeepAttr = false;
           data.attrValue = '';
-          // console.warn(`[DOMPurify] Blocked dangerous protocol: ${protocol} in ${attrName}`);
           return;
         }
       }
@@ -119,7 +118,6 @@ export function setupDOMPurifyHooks(): void {
         if (pattern.test(url)) {
           data.forceKeepAttr = false;
           data.attrValue = '';
-          // console.warn(`[DOMPurify] Blocked suspicious URL pattern: ${pattern} in ${attrName}`);
           return;
         }
       }
@@ -154,14 +152,12 @@ export function setupDOMPurifyHooks(): void {
     // Remover elementos script (aunque DOMPurify ya lo hace)
     if (tagName === 'script') {
       node.remove();
-      // console.warn('[DOMPurify] Removed <script> tag');
       return;
     }
 
     // Remover elementos style (inline CSS puede ser peligroso)
     if (tagName === 'style') {
       node.remove();
-      // console.warn('[DOMPurify] Removed <style> tag');
       return;
     }
 
@@ -175,7 +171,6 @@ export function setupDOMPurifyHooks(): void {
 
         if (action.startsWith('http') && typeof window !== 'undefined' && window.location && !action.includes(window.location.hostname)) {
           formElement.removeAttribute('action');
-          // console.warn('[DOMPurify] Removed external form action');
         }
       }
 
@@ -226,7 +221,6 @@ export function setupDOMPurifyHooks(): void {
       const src = imgElement.getAttribute('src') || '';
       if (!src || DANGEROUS_PROTOCOLS.some(p => src.toLowerCase().startsWith(p))) {
         imgElement.remove();
-        // console.warn('[DOMPurify] Removed image with dangerous src');
       }
     }
   });
@@ -240,7 +234,6 @@ export function setupDOMPurifyHooks(): void {
       for (const attr of attrs) {
         if (attr.name.toLowerCase().startsWith('on')) {
           node.removeAttribute(attr.name);
-          // console.warn(`[DOMPurify] Removed event handler: ${attr.name}`);
         }
       }
     }
@@ -402,7 +395,6 @@ export function initializeSecureDOMPurify(): void {
     return;
   }
 
-  // console.log('[Security] Initializing Enhanced DOMPurify...');
 
   setupDOMPurifyHooks();
 
@@ -411,7 +403,6 @@ export function initializeSecureDOMPurify(): void {
     ...SECURE_RICH_TEXT_CONFIG,
   });
 
-  // console.log('[Security] Enhanced DOMPurify initialized successfully');
 }
 
 // Auto-inicializar en el browser

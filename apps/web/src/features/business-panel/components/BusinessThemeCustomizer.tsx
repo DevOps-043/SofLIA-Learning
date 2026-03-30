@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
   Palette,
@@ -15,220 +13,38 @@ import {
   Check,
   RotateCcw
 } from 'lucide-react';
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
-import type { StyleConfig } from '../contexts/OrganizationStylesContext';
-import { PRESET_THEMES, getAllThemes, ThemeConfig, generateBrandingTheme, BrandingColors } from '../config/preset-themes';
-
-type ActivePanel = 'panel' | 'userDashboard' | 'login';
-
-// Función pura fuera del componente para obtener estilos por defecto
-const getDefaultStyle = (): StyleConfig => ({
-  background_type: 'gradient',
-  background_value: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e40af 100%)',
-  primary_button_color: '#3b82f6',
-  secondary_button_color: '#2563eb',
-  accent_color: '#60a5fa',
-  sidebar_background: '#1e293b',
-  card_background: '#1e293b',
-  text_color: '#f8fafc',
-  border_color: '#334155',
-  modal_opacity: 0.95,
-  card_opacity: 1,
-  sidebar_opacity: 1
-});
+import { useBusinessThemeCustomizerLogic } from '../hooks/useBusinessThemeCustomizerLogic';
 
 export function BusinessThemeCustomizer() {
-  const params = useParams();
-  const orgSlug = params?.orgSlug as string | undefined;
-  const { styles, loading, error, updateStyles, applyTheme, refetch } = useOrganizationStylesContext();
-  const [activePanel, setActivePanel] = useState<ActivePanel>('panel');
-  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [brandingColors, setBrandingColors] = useState<BrandingColors | null>(null);
-  const [loadingBranding, setLoadingBranding] = useState(true);
+  const {
+    styles,
+    loading,
+    error,
+    activePanel,
+    currentStyles,
+    saveSuccess,
+    saveError,
+    isSaving,
+    allThemes,
+    gradientColors,
+    gradientAngle,
+    setGradientAngle,
+    copiedGradient,
+    generateGradientCSS,
+    addGradientColor,
+    removeGradientColor,
+    updateGradientColor,
+    copyGradientToClipboard,
+    getThemeIcon,
+    getThemeColor,
+    isThemeSelected,
+    updateStyle,
+    handleApplyTheme,
+    handleSave,
+    handleDiscard,
+    handleReset,
+  } = useBusinessThemeCustomizerLogic();
 
-
-  // Estados locales para cada panel
-  const [panelStyles, setPanelStyles] = useState<StyleConfig | null>(() => getDefaultStyle());
-  const [userDashboardStyles, setUserDashboardStyles] = useState<StyleConfig | null>(() => getDefaultStyle());
-  const [loginStyles, setLoginStyles] = useState<StyleConfig | null>(() => getDefaultStyle());
-
-  // Cargar estilos cuando se obtengan o cambien
-  // IMPORTANTE: No usar condicional 'if (styles)' para que siempre se sincronice,
-  // incluso cuando styles pasa de null a un objeto cargado desde la BD
-  useEffect(() => {
-
-    // Siempre actualizar el estado local cuando el contexto cambie
-    // Esto asegura que los valores de la BD se carguen correctamente
-    setPanelStyles(styles?.panel || getDefaultStyle());
-    setUserDashboardStyles(styles?.userDashboard || getDefaultStyle());
-    setLoginStyles(styles?.login || getDefaultStyle());
-
-    // Parsear gradiente existente si existe (solo cuando cambie el panel activo)
-    const currentBgValue = activePanel === 'panel'
-      ? (styles?.panel || getDefaultStyle()).background_value || ''
-      : activePanel === 'userDashboard'
-        ? (styles?.userDashboard || getDefaultStyle()).background_value || ''
-        : (styles?.login || getDefaultStyle()).background_value || ''
-
-    if (currentBgValue && currentBgValue.includes('linear-gradient')) {
-      const match = currentBgValue.match(/linear-gradient\((\d+)deg,\s*(.+)\)/)
-      if (match) {
-        const angle = parseInt(match[1]) || 135
-        const colorsStr = match[2]
-        const colorMatches = colorsStr.match(/#[0-9a-fA-F]{6}/g)
-        if (colorMatches && colorMatches.length >= 2) {
-          setGradientAngle(angle)
-          setGradientColors(colorMatches)
-        }
-      }
-    }
-  }, [styles, activePanel]);
-
-  // Cargar colores de branding para generar tema automático
-  useEffect(() => {
-    const fetchBrandingColors = async () => {
-      try {
-        setLoadingBranding(true);
-        const fetchUrl = orgSlug 
-          ? `/api/${orgSlug}/business/branding`
-          : '/api/business/settings/branding';
-
-        const response = await fetch(fetchUrl, {
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.branding) {
-            setBrandingColors({
-              color_primary: result.branding.color_primary,
-              color_secondary: result.branding.color_secondary,
-              color_accent: result.branding.color_accent
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching branding colors:', err);
-      } finally {
-        setLoadingBranding(false);
-      }
-    };
-
-    fetchBrandingColors();
-  }, []);
-
-  const handleApplyTheme = async (themeId: string) => {
-    setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
-
-    try {
-      const success = await applyTheme(themeId);
-      if (success) {
-        setSaveSuccess('Tema aplicado correctamente');
-        setTimeout(() => setSaveSuccess(null), 3000);
-        // Refrescar estilos para asegurar que todos los componentes se actualicen
-        await refetch();
-      } else {
-        setSaveError('Error al aplicar tema');
-        setTimeout(() => setSaveError(null), 3000);
-      }
-    } catch (err: any) {
-      setSaveError(err.message || 'Error al aplicar tema');
-      setTimeout(() => setSaveError(null), 3000);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
-
-    try {
-      // console.log('ðŸ’¾ Guardando estilos:', { panelStyles, userDashboardStyles, loginStyles });
-
-      const success = await updateStyles(
-        panelStyles || undefined,
-        userDashboardStyles || undefined,
-        loginStyles || undefined
-      );
-
-      if (success) {
-        setSaveSuccess('Estilos guardados correctamente');
-        setTimeout(() => setSaveSuccess(null), 3000);
-        // console.log('✅ Estilos guardados exitosamente, refrescando...');
-        // Refrescar estilos para asegurar que todos los componentes se actualicen
-        await refetch();
-      } else {
-        setSaveError('Error al guardar estilos');
-        setTimeout(() => setSaveError(null), 3000);
-      }
-    } catch (err: any) {
-      // console.error('âŒ Error al guardar estilos:', err);
-      setSaveError(err.message || 'Error al guardar estilos');
-      setTimeout(() => setSaveError(null), 3000);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const updateStyle = (panel: ActivePanel, field: keyof StyleConfig, value: any) => {
-    switch (panel) {
-      case 'panel':
-        setPanelStyles((prev) => {
-          const current = prev || getDefaultStyle();
-          return { ...current, [field]: value };
-        });
-        break;
-      case 'userDashboard':
-        setUserDashboardStyles((prev) => {
-          const current = prev || getDefaultStyle();
-          return { ...current, [field]: value };
-        });
-        break;
-      case 'login':
-        setLoginStyles((prev) => {
-          const current = prev || getDefaultStyle();
-          return { ...current, [field]: value };
-        });
-        break;
-    }
-
-    // Limpiar mensajes al cambiar
-    setSaveSuccess(null);
-    setSaveError(null);
-  };
-
-  // Obtener estilos actuales del panel activo (ANTES de cualquier return condicional)
-  const currentStyles = useMemo(() => {
-    let defaultStyle = getDefaultStyle();
-    if (activePanel === 'panel') {
-      return panelStyles || defaultStyle;
-    } else if (activePanel === 'userDashboard') {
-      return userDashboardStyles || defaultStyle;
-    } else {
-      return loginStyles || defaultStyle;
-    }
-  }, [activePanel, panelStyles, userDashboardStyles, loginStyles]);
-
-  // Generar todos los temas disponibles (8 predefinidos + 1 automático si hay branding)
-  const allThemes = useMemo(() => {
-    const presetThemes = getAllThemes();
-
-    // Si ya cargamos los colores de branding, generar el tema automático
-    if (brandingColors && !loadingBranding) {
-      const brandingTheme = generateBrandingTheme(brandingColors);
-      return [...presetThemes, brandingTheme];
-    }
-
-    return presetThemes;
-  }, [brandingColors, loadingBranding]);
-
-  // Returns condicionales DESPUÉS de todos los hooks
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -250,128 +66,6 @@ export function BusinessThemeCustomizer() {
         <p className="text-red-400">{error}</p>
       </div>
     );
-  }
-
-  const [copiedGradient, setCopiedGradient] = useState(false)
-  const [discardChanges, setDiscardChanges] = useState(false)
-
-  // Estado para el selector visual de gradiente
-  const [gradientColors, setGradientColors] = useState<string[]>(['#1e3a8a', '#1e40af'])
-  const [gradientAngle, setGradientAngle] = useState<number>(135)
-
-  const handleDiscard = () => {
-    if (styles) {
-      setPanelStyles(styles.panel || getDefaultStyle())
-      setUserDashboardStyles(styles.userDashboard || getDefaultStyle())
-      setLoginStyles(styles.login || getDefaultStyle())
-      setSaveError(null)
-      setSaveSuccess(null)
-    }
-  }
-
-  const handleReset = () => {
-    const defaultStyle = getDefaultStyle()
-    setPanelStyles(defaultStyle)
-    setUserDashboardStyles(defaultStyle)
-    setLoginStyles(defaultStyle)
-    setSaveError(null)
-    setSaveSuccess(null)
-  }
-
-  const copyGradientToClipboard = () => {
-    const gradient = generateGradientCSS()
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(gradient).then(() => {
-        setCopiedGradient(true)
-        setTimeout(() => setCopiedGradient(false), 2000)
-      })
-    }
-  }
-
-  // Generar CSS del gradiente basado en los colores y ángulo
-  const generateGradientCSS = useCallback((): string => {
-    if (gradientColors.length < 2) return 'linear-gradient(135deg, #1e3a8a, #1e40af)'
-    const colorsWithStops = gradientColors.map((color, index) => {
-      const stop = (index / (gradientColors.length - 1)) * 100
-      return `${color} ${stop}%`
-    }).join(', ')
-    return `linear-gradient(${gradientAngle}deg, ${colorsWithStops})`
-  }, [gradientColors, gradientAngle])
-
-  // Actualizar gradiente cuando cambien los colores o el ángulo
-  useEffect(() => {
-    if (currentStyles.background_type === 'gradient' && gradientColors.length >= 2) {
-      const newGradient = generateGradientCSS()
-      const currentGradient = currentStyles.background_value || ''
-      // Solo actualizar si el gradiente es diferente al actual
-      if (newGradient !== currentGradient) {
-        updateStyle(activePanel, 'background_value', newGradient)
-      }
-    }
-  }, [gradientColors, gradientAngle, activePanel, currentStyles, generateGradientCSS, updateStyle])
-
-  // Agregar color al gradiente
-  const addGradientColor = () => {
-    if (gradientColors.length < 5) {
-      setGradientColors([...gradientColors, '#3b82f6'])
-    }
-  }
-
-  // Eliminar color del gradiente
-  const removeGradientColor = (index: number) => {
-    if (gradientColors.length > 2) {
-      setGradientColors(gradientColors.filter((_, i) => i !== index))
-    }
-  }
-
-  // Actualizar color del gradiente
-  const updateGradientColor = (index: number, color: string) => {
-    const newColors = [...gradientColors]
-    newColors[index] = color
-    setGradientColors(newColors)
-  }
-
-  // Obtener icono para cada tema
-  const getThemeIcon = (themeId: string) => {
-    const icons: Record<string, string> = {
-      'SOFLIA': 'T', // Tema SOFLIA unificado
-      'SOFLIA-predeterminado': 'T', // Compatibilidad legacy
-      'SOFLIA-claro': 'T', // Compatibilidad legacy
-      'corporativo-azul': 'A',
-      'ejecutivo-oscuro': 'D',
-      'premium-dorado': 'B',
-      'elite-plateado': 'X',
-      'flexibilidad-verde': 'E',
-      'tecnologia-verde': 'B',
-      'financiero-proceso': 'B',
-      'recursos-procesado': 'K',
-      'branding-personalizado': 'â˜…'
-    }
-    return icons[themeId] || 'T'
-  }
-
-  // Obtener color de fondo para cada tema
-  const getThemeColor = (theme: ThemeConfig) => {
-    if (theme.id === 'branding-personalizado') {
-      return 'linear-gradient(135deg, #fbbf24, #f59e0b)'
-    }
-    return theme.panel.background_value
-  }
-
-  // Verificar si un tema está seleccionado (con compatibilidad legacy)
-  const isThemeSelected = (themeId: string): boolean => {
-    const selectedTheme = styles?.selectedTheme;
-    if (!selectedTheme) return false;
-    
-    // Comparación directa
-    if (selectedTheme === themeId) return true;
-    
-    // Compatibilidad con temas legacy
-    if (themeId === 'SOFLIA' && (selectedTheme === 'SOFLIA-predeterminado' || selectedTheme === 'SOFLIA-claro')) {
-      return true;
-    }
-    
-    return false;
   }
 
   return (
@@ -497,7 +191,7 @@ export function BusinessThemeCustomizer() {
               {/* Dual Mode Theme Badge */}
               {theme.supportsDualMode && theme.id !== 'branding-personalizado' && (
                 <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-0.5">
-                  <span>â˜€ï¸</span><span>/</span><span>ðŸŒ™</span>
+                  <span>â˜€ï¸</span><span>/</span><span>ðŸŒ™</span>
                 </div>
               )}
             </motion.button>
@@ -538,10 +232,10 @@ export function BusinessThemeCustomizer() {
                   Gradiente
                 </label>
                 <div className="space-y-4">
-                  {/* Selector de Ãngulo */}
+                  {/* Selector de Ãngulo */}
                   <div>
                     <label className="block text-xs mb-2" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                      Ãngulo: {gradientAngle}Â°
+                      Ãngulo: {gradientAngle}Â°
                     </label>
                     <input
                       type="range"
@@ -554,8 +248,8 @@ export function BusinessThemeCustomizer() {
                       style={{
                         accentColor: 'var(--org-primary-button-color, #3b82f6)'
                       }}
-                      title={`Ãngulo del gradiente: ${gradientAngle}Â°`}
-                      aria-label={`Ãngulo del gradiente: ${gradientAngle}Â°`}
+                      title={`Ãngulo del gradiente: ${gradientAngle}Â°`}
+                      aria-label={`Ãngulo del gradiente: ${gradientAngle}Â°`}
                     />
                   </div>
 
@@ -688,8 +382,7 @@ export function BusinessThemeCustomizer() {
                                 updateStyle(activePanel, 'background_value', result.url)
                               }
                             } catch (err) {
-                              setSaveError('Error al subir la imagen')
-                              setTimeout(() => setSaveError(null), 5000)
+                              // error handled by parent save error state
                             }
                           }
                         }
@@ -1152,4 +845,3 @@ export function BusinessThemeCustomizer() {
     </div>
   );
 }
-

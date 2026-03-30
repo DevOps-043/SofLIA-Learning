@@ -98,7 +98,6 @@ const authFetcher = async (url: string): Promise<User | null> => {
     }
 
     if (process.env.NODE_ENV === 'development') {
-      // console.warn('useAuth fetcher error:', error)
     }
     return getCachedUser() // Intentar retornar cache en caso de error
   }
@@ -144,10 +143,6 @@ export function useAuth() {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
 
-        // Limpiar carrito
-        const { useShoppingCartStore } = await import('@/core/stores/shoppingCartStore')
-        useShoppingCartStore.getState().clearCart()
-        useShoppingCartStore.getState().setUserId(null)
       }
 
       // Llamar a la API de logout para destruir cookies del servidor
@@ -175,10 +170,6 @@ export function useAuth() {
         localStorage.removeItem(USER_CACHE_KEY);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-
-        const { useShoppingCartStore } = await import('@/core/stores/shoppingCartStore')
-        useShoppingCartStore.getState().clearCart()
-        useShoppingCartStore.getState().setUserId(null)
       }
 
       await mutate(null, false)
@@ -193,7 +184,6 @@ export function useAuth() {
       return updatedUser ?? null
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        // console.error('Error refreshing user:', error)
       }
       return null
     }

@@ -53,13 +53,11 @@ export async function POST() {
             )
         }
 
-        console.log(`[API] User ${user.email} (${userRole}) starting lesson duration recalculation...`)
 
         const startTime = Date.now()
         const result = await AdminLessonsService.recalculateAllLessonDurations()
         const elapsedTime = Date.now() - startTime
 
-        console.log(`[API] Recalculation complete in ${elapsedTime}ms: ${result.updated} updated, ${result.errors.length} errors`)
 
         return NextResponse.json({
             success: true,

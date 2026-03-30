@@ -30,7 +30,6 @@ export function useInstructorNews() {
       setNews(newsData)
       setStats(statsData)
     } catch (err) {
-      // console.error('Error fetching instructor news data:', err)
       setError(err instanceof Error ? err.message : 'Error desconocido')
     } finally {
       setIsLoading(false)
@@ -53,7 +52,6 @@ export function useInstructorNews() {
       
       return newNews
     } catch (err) {
-      // console.error('Error creating instructor news:', err)
       throw err
     }
   }
@@ -71,7 +69,6 @@ export function useInstructorNews() {
       
       return updatedNews
     } catch (err) {
-      // console.error('Error updating instructor news:', err)
       throw err
     }
   }
@@ -93,7 +90,6 @@ export function useInstructorNews() {
         }))
       }
     } catch (err) {
-      // console.error('Error deleting instructor news:', err)
       throw err
     }
   }
@@ -129,7 +125,6 @@ export function useInstructorNews() {
         return newStats
       })
     } catch (err) {
-      // console.error('Error toggling instructor news status:', err)
       throw err
     }
   }

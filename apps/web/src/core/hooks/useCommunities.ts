@@ -32,7 +32,6 @@ export function useCommunities() {
     
     // Asegurar que siempre retornamos un objeto con la estructura esperada
     if (!result.communities) {
-      // console.warn('⚠️ API response missing communities array, using empty array');
       return {
         communities: [],
         total: 0

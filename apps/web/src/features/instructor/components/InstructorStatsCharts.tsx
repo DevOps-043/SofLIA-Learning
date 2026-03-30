@@ -129,7 +129,6 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
         setMapLoading(false)
       })
       .catch(err => {
-        // console.error('Error loading world map:', err)
         setMapError('Error al cargar el mapa. Por favor, intente más tarde.')
         setMapLoading(false)
       })
@@ -194,10 +193,6 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
 
   // Debug: Log para ver qué propiedades tiene el GeoJSON
   if (firstFeature?.properties) {
-    // console.log('🔍 GeoJSON properties sample:', Object.keys(firstFeature.properties))
-    // console.log('🔍 First feature properties:', firstFeature.properties)
-    // console.log('🔍 Country ID property:', countryIdProperty)
-    // console.log('🔍 Chart data:', chartData)
   }
 
   // Transformar features para que tengan un id que coincida con nuestros datos
@@ -235,14 +230,11 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
   })
 
   // Debug: Log para verificar el matching
-  // console.log('🔍 Transformed data:', transformedData)
-  // console.log('🔍 Sample transformed feature IDs:', transformedFeatures.slice(0, 10).map((f: any) => f.id))
   
   // Verificar si hay matches
   const matchedCountries = transformedFeatures
     .filter((f: any) => transformedData.some(d => d.id === f.id))
     .map((f: any) => f.id)
-  // console.log('🔍 Matched countries:', matchedCountries)
 
   return (
     <div className="w-full">

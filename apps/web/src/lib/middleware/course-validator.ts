@@ -68,7 +68,6 @@ export async function validateCourseSlug(
 
     return { valid: true, courseId: course.id }
   } catch (error) {
-    // console.error('Error validating course:', error)
     return { valid: false, error: 'Error al validar curso' }
   }
 }

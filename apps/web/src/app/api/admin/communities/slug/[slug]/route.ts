@@ -25,7 +25,6 @@ export async function GET(
       community 
     })
   } catch (error: unknown) {
-    // console.error('Error fetching community by slug via API:', error)
     const message = error instanceof Error ? error.message : 'Error al obtener la comunidad';
     return NextResponse.json({ 
       success: false, 

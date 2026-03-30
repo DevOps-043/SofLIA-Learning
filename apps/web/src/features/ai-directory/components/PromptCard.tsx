@@ -83,14 +83,12 @@ export function PromptCard({ prompt, viewMode = 'grid' }: PromptCardProps) {
     }
 
     if (!toggleFavorite) {
-      // console.error('toggleFavorite function is not available');
       return;
     }
 
     try {
       await toggleFavorite(promptId);
     } catch (error) {
-      // console.error('Error toggling favorite:', error);
     }
   };
 

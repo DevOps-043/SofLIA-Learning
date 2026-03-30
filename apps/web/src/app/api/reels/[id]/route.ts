@@ -56,7 +56,6 @@ export async function GET(
       .single();
 
     if (reelError || !reel) {
-      // console.error('❌ Reel not found:', reelError);
       return NextResponse.json({ error: 'Reel no encontrado' }, { status: 404 });
     }
 
@@ -112,7 +111,6 @@ export async function GET(
     });
 
   } catch (error) {
-    // console.error('❌ Error in reel API:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -169,7 +167,6 @@ export async function PUT(
       .single();
 
     if (updateError) {
-      // console.error('❌ Error updating reel:', updateError);
       return NextResponse.json({ error: 'Error al actualizar el reel' }, { status: 500 });
     }
 
@@ -209,7 +206,6 @@ export async function PUT(
     });
 
   } catch (error) {
-    // console.error('❌ Error in reel PUT API:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
@@ -251,7 +247,6 @@ export async function DELETE(
       .eq('id', id);
 
     if (deleteError) {
-      // console.error('❌ Error deleting reel:', deleteError);
       return NextResponse.json({ error: 'Error al eliminar el reel' }, { status: 500 });
     }
 
@@ -260,7 +255,6 @@ export async function DELETE(
     });
 
   } catch (error) {
-    // console.error('❌ Error in reel DELETE API:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

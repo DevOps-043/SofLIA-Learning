@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 import { ContentTranslationService } from '@/core/services/contentTranslation.service';
 import { SupportedLanguage } from '@/core/i18n/i18n';
+import { normalizeLessonActivityRecord } from '@/lib/course-content';
 
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/activities
@@ -55,11 +56,9 @@ export async function GET(
     }
 
     // Obtener actividades de la lección
-    console.log(`[activities/route] Buscando actividades para lessonId: ${lessonId} (slug: ${slug})`);
     
     // Check session to confirm user is authenticated (RLS check)
     const { data: { session: debugSession } } = await supabase.auth.getSession();
-    console.log(`[activities/route] Session present: ${!!debugSession}, User ID: ${debugSession?.user?.id}`);
 
     const { data: activities, error: activitiesError, count } = await supabase
       .from('lesson_activities')
@@ -67,11 +66,6 @@ export async function GET(
       .eq('lesson_id', lessonId)
       .order('activity_order_index', { ascending: true });
 
-    console.log(`[activities/route] Resultado DB:`, { 
-      count: activities?.length, 
-      error: activitiesError ? activitiesError.message : null,
-      hasActivities: activities && activities.length > 0
-    });
 
     if (activitiesError) {
       console.error('[activities/route] Error obteniendo actividades:', activitiesError);
@@ -101,9 +95,13 @@ export async function GET(
     }
 
     // ⚡ OPTIMIZACIÓN: Agregar cache headers (datos estáticos - 1 hora)
+    const normalizedActivities = translatedActivities.map((activity: any) =>
+      normalizeLessonActivityRecord(activity)
+    );
+
     return withCacheHeaders(
-      NextResponse.json(translatedActivities),
-      cacheHeaders.static
+      NextResponse.json(normalizedActivities),
+      cacheHeaders.private
     );
   } catch (error) {
     console.error('[activities/route] Error inesperado:', error);
@@ -116,4 +114,3 @@ export async function GET(
     );
   }
 }
-

@@ -141,7 +141,6 @@ export async function POST(
       .eq('id', postId);
 
     if (updatePostError) {
-      // console.error('Error actualizando post:', updatePostError);
       return NextResponse.json({ error: 'Error actualizando encuesta' }, { status: 500 });
     }
 
@@ -153,7 +152,6 @@ export async function POST(
     });
 
   } catch (error) {
-    // console.error('Error en votación de encuesta:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
@@ -209,7 +207,6 @@ export async function GET(
     });
 
   } catch (error) {
-    // console.error('Error obteniendo voto de usuario:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

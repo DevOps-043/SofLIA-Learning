@@ -38,7 +38,6 @@ export async function GET(
       }
     });
   } catch (error: any) {
-    // console.error('Error en GET /api/organizations/[slug]/styles:', error);
     return NextResponse.json(
       { success: false, error: 'Error al obtener estilos' },
       { status: 500 }

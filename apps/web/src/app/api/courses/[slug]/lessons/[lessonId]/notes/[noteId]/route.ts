@@ -77,7 +77,6 @@ export async function PUT(
           }
         }
       } catch (aiError) {
-        // console.error('Error generando título por IA (PUT):', aiError);
       }
     }
 
@@ -89,7 +88,6 @@ export async function PUT(
 
     return NextResponse.json(note)
   } catch (error) {
-    // console.error('Error in notes PUT API:', error)
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
@@ -135,7 +133,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    // console.error('Error in notes DELETE API:', error)
     return NextResponse.json(
       {
         error: 'Error interno del servidor',

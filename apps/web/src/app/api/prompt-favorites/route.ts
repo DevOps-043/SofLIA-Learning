@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     logError('POST /api/prompt-favorites', error)
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
-    // console.error('Error detallado en POST /api/prompt-favorites:', error)
     return NextResponse.json(
       formatApiError(error, 'Error al gestionar favoritos de prompts'),
       { status: 500 }

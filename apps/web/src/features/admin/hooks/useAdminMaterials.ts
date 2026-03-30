@@ -28,19 +28,16 @@ export function useAdminMaterials(): UseAdminMaterialsReturn {
       setLoading(true)
       setError(null)
 
-      // console.log('🔍 Fetching materials for lesson:', lessonId);
       const response = await fetch(`/api/admin/courses/0/modules/0/lessons/${lessonId}/materials`)
       
       if (!response.ok) {
         const errorText = await response.text().catch(() => '');
-        // console.error('❌ Error fetching materials:', response.status, errorText);
         throw new Error(`Error al obtener materiales: ${response.status}`)
       }
 
       const data = await response.json()
       const materialsData = data.materials || data || [];
       
-      // console.log('✅ Materials fetched for lesson', lessonId, ':', materialsData.length, 'materials');
       
       // Actualizar el Map con los materiales de esta lección específica
       setMaterialsByLesson(prev => {
@@ -49,7 +46,6 @@ export function useAdminMaterials(): UseAdminMaterialsReturn {
         return newMap
       })
     } catch (err) {
-      // console.error('❌ Error in fetchMaterials:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido')
       // No limpiar todos los materiales, solo los de esta lección
       setMaterialsByLesson(prev => {

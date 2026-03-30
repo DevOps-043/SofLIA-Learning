@@ -210,7 +210,6 @@ export function ReporteProblema({ isOpen, onClose, preselectedCategory, fromLia 
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        // console.error('❌ Error del servidor:', errorData);
         throw new Error(errorData.error || 'Error al enviar el reporte');
       }
 
@@ -224,7 +223,6 @@ export function ReporteProblema({ isOpen, onClose, preselectedCategory, fromLia 
       }, 3000);
 
     } catch (error) {
-      // console.error('❌ Error al enviar reporte:', error);
       setError(error instanceof Error ? error.message : 'Error desconocido');
     } finally {
       setIsSubmitting(false);

@@ -27,7 +27,6 @@ export class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error a servicio de monitoreo (ej: Sentry)
     if (process.env.NODE_ENV === 'development') {
-      // console.error('Error boundary caught:', error, errorInfo)
     }
 
     // Llamar callback personalizado si existe

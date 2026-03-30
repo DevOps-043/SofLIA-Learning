@@ -50,7 +50,6 @@ export async function PATCH(
       .single()
 
     if (updateError) {
-      // console.error('Error updating member role:', updateError)
       return NextResponse.json({ 
         success: false, 
         message: 'Error al actualizar el rol del miembro' 
@@ -92,7 +91,6 @@ export async function PATCH(
       }, { status: 400 })
     }
     
-    // console.error('Error in member role update API:', error)
     const message = error instanceof Error ? error.message : 'Error interno del servidor';
     return NextResponse.json({ 
       success: false, 

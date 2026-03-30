@@ -34,7 +34,6 @@ export async function PATCH(
       .single()
 
     if (fetchError || !currentRequest) {
-      // console.error('❌ Error fetching request:', fetchError)
       return NextResponse.json({ 
         success: false, 
         message: 'Solicitud no encontrada' 
@@ -62,7 +61,6 @@ export async function PATCH(
       .single()
 
     if (updateError) {
-      // console.error('Error updating access request:', updateError)
       return NextResponse.json({ 
         success: false, 
         message: 'Error al aprobar la solicitud' 
@@ -81,7 +79,6 @@ export async function PATCH(
       })
 
     if (addMemberError) {
-      // console.error('Error adding member to community:', addMemberError)
       // No fallar la operación por esto, solo loguear el error
     }
 
@@ -124,7 +121,6 @@ export async function PATCH(
         user_agent: userAgent
       })
     } catch (auditError) {
-      // console.error('Error en auditoría:', auditError)
       // No fallar la operación por esto
     }
 
@@ -134,7 +130,6 @@ export async function PATCH(
       message: 'Solicitud aprobada exitosamente' 
     })
   } catch (error: unknown) {
-    // console.error('Error in approve access request API:', error)
     const message = error instanceof Error ? error.message : 'Error interno del servidor';
     return NextResponse.json({ 
       success: false, 

@@ -56,7 +56,6 @@ export function VideoProviderSelector({
       const data = await response.json()
       return data.duration || null
     } catch (error) {
-      // console.error('Error detecting YouTube duration:', error)
       return null
     }
   }
@@ -77,7 +76,6 @@ export function VideoProviderSelector({
       const data = await response.json()
       return data.duration || null
     } catch (error) {
-      // console.error('Error detecting Vimeo duration:', error)
       return null
     }
   }
@@ -112,7 +110,6 @@ export function VideoProviderSelector({
         video.src = url
       })
     } catch (error) {
-      // console.error('Error detecting custom URL duration:', error)
       return null
     }
   }
@@ -157,7 +154,6 @@ export function VideoProviderSelector({
               }
             }
           } catch (error) {
-            // console.error('Error getting video duration:', error)
             // No hacer nada si falla, el usuario puede ingresar la duración manualmente
           }
         }
@@ -165,7 +161,6 @@ export function VideoProviderSelector({
         const handleError = (error: Event | Error) => {
           try {
             if (timeoutId) clearTimeout(timeoutId)
-            // console.warn('Error loading video metadata:', error)
             // No mostrar duración si hay error
             setVideoDuration('')
           } catch (e) {
@@ -198,7 +193,6 @@ export function VideoProviderSelector({
           }
         }
       } catch (error) {
-        // console.error('Error creating video preview:', error)
         setVideoPreview(null)
         setVideoDuration('')
       }
@@ -230,14 +224,12 @@ export function VideoProviderSelector({
               }
             }
           } catch (error) {
-            // console.error('Error getting video duration:', error)
           }
         }
         
         const handleError = (error: Event | Error) => {
           try {
             if (timeoutId) clearTimeout(timeoutId)
-            // console.warn('Error loading video metadata from URL:', error)
             setVideoDuration('')
           } catch (e) {
             // Ignorar errores
@@ -268,7 +260,6 @@ export function VideoProviderSelector({
           }
         }
       } catch (error) {
-        // console.error('Error loading video from URL:', error)
         setVideoDuration('')
       }
     } else {
@@ -315,7 +306,6 @@ export function VideoProviderSelector({
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
       const filePath = `videos/${fileName}`
 
-      // console.log('📤 Subiendo video directamente a Supabase:', { fileName, size: file.size, type: file.type })
 
       // Simular progreso (Supabase no tiene callback de progreso nativo)
       setUploadProgress(30)
@@ -333,13 +323,11 @@ export function VideoProviderSelector({
       setUploadProgress(70)
 
       if (uploadError) {
-        // console.error('❌ Error uploading directly to Supabase:', uploadError)
         
         // Si el error es de permisos, intentar usar API route como fallback
         if (uploadError.message?.includes('new row violates row-level security') || 
             uploadError.message?.includes('permission denied') ||
             uploadError.statusCode === '403') {
-          // console.log('⚠️ Direct upload failed due to permissions, trying API route...')
           
           // Fallback: usar API route (puede fallar para archivos muy grandes, pero intentamos)
           const formData = new FormData()
@@ -355,7 +343,6 @@ export function VideoProviderSelector({
 
           if (!isJson) {
             const textResponse = await response.text().catch(() => '')
-            // console.error('❌ Server returned non-JSON response:', {
             //   status: response.status,
             //   contentType,
             //   preview: textResponse.substring(0, 200)
@@ -396,14 +383,12 @@ export function VideoProviderSelector({
         throw new Error('Error al obtener la URL pública del video')
       }
 
-      // console.log('✅ Video uploaded successfully:', urlData.publicUrl)
 
       setUploadProgress(100)
       onVideoIdChange(urlData.publicUrl)
       if (onUploadComplete) onUploadComplete(urlData.publicUrl)
 
     } catch (err) {
-      // console.error('💥 Error uploading video:', err)
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido al subir el video'
       alert(`Error al subir el video: ${errorMessage}`)
     } finally {
@@ -515,7 +500,6 @@ export function VideoProviderSelector({
                       onDurationChange(duration)
                     }
                   } catch (error) {
-                    // console.error('Error detecting YouTube duration:', error)
                   } finally {
                     setDetectingDuration(false)
                   }
@@ -555,7 +539,6 @@ export function VideoProviderSelector({
                       onDurationChange(duration)
                     }
                   } catch (error) {
-                    // console.error('Error detecting Vimeo duration:', error)
                   } finally {
                     setDetectingDuration(false)
                   }
@@ -605,12 +588,10 @@ export function VideoProviderSelector({
                           }
                         }
                       } catch (error) {
-                        // console.error('Error getting video duration from player:', error)
                         // No hacer nada si falla
                       }
                     }}
                     onError={(e) => {
-                      // console.warn('Error loading video in player:', e)
                       // No romper la aplicación si el video no se puede cargar
                     }}
                     onClick={(e) => {
@@ -793,7 +774,6 @@ export function VideoProviderSelector({
                       onDurationChange(duration)
                     }
                   } catch (error) {
-                    // console.error('Error detecting custom URL duration:', error)
                   } finally {
                     setDetectingDuration(false)
                   }
