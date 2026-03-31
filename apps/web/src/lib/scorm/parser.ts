@@ -1,6 +1,9 @@
 import { parseStringPromise } from 'xml2js';
 import JSZip from 'jszip';
 
+/** Represents a loosely-typed xml2js parsed XML node */
+type XmlNode = Record<string, unknown> & { $?: Record<string, string>; title?: string; item?: XmlNode | XmlNode[] }
+
 export interface ScormManifest {
   version: 'SCORM_1.2' | 'SCORM_2004';
   title: string;
@@ -45,7 +48,7 @@ export async function parseScormManifest(xml: string): Promise<ScormManifest> {
   const orgs = manifest.organizations?.organization;
   const orgArray = Array.isArray(orgs) ? orgs : orgs ? [orgs] : [];
 
-  const organizations: ScormOrganization[] = orgArray.map((org: any) => ({
+  const organizations: ScormOrganization[] = orgArray.map((org: XmlNode) => ({
     identifier: org['$']?.identifier || '',
     title: org.title || '',
     items: parseItems(org.item),
@@ -55,7 +58,7 @@ export async function parseScormManifest(xml: string): Promise<ScormManifest> {
   const res = manifest.resources?.resource;
   const resArray = Array.isArray(res) ? res : res ? [res] : [];
 
-  const resources: ScormResource[] = resArray.map((r: any) => ({
+  const resources: ScormResource[] = resArray.map((r: XmlNode) => ({
     identifier: r['$']?.identifier || '',
     type: r['$']?.type || '',
     href: r['$']?.href,
@@ -81,10 +84,10 @@ export async function parseScormManifest(xml: string): Promise<ScormManifest> {
   };
 }
 
-function parseItems(items: any): ScormItem[] {
+function parseItems(items: XmlNode | XmlNode[] | undefined): ScormItem[] {
   if (!items) return [];
   const arr = Array.isArray(items) ? items : [items];
-  return arr.map((item: any) => ({
+  return arr.map((item: XmlNode) => ({
     identifier: item['$']?.identifier || '',
     title: item.title || '',
     resourceId: item['$']?.identifierref,
@@ -92,10 +95,10 @@ function parseItems(items: any): ScormItem[] {
   }));
 }
 
-function parseFiles(files: any): string[] {
+function parseFiles(files: XmlNode | XmlNode[] | undefined): string[] {
   if (!files) return [];
   const arr = Array.isArray(files) ? files : [files];
-  return arr.map((f: any) => f['$']?.href || '').filter(Boolean);
+  return arr.map((f: XmlNode) => f['$']?.href || '').filter(Boolean);
 }
 
 export async function validateScormPackage(

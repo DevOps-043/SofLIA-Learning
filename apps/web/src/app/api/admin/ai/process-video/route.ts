@@ -4,11 +4,16 @@ import { GoogleAIFileManager, FileState } from '@google/generative-ai/server';
 import { writeFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import os from 'os';
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export const runtime = 'nodejs'; // Required for file system operations
 export const maxDuration = 300; // 5 minutes max for processing
 
 export async function POST(req: NextRequest) {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
   try {
     const { videoUrl } = await req.json();
 

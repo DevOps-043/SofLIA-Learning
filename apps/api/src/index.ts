@@ -59,22 +59,43 @@ app.get('/health', (_req: Request, res: Response) => {
   });
 });
 
-// API Routes - TODO: Implementar features
+// ─── Infrastructure / Observability Routes ────────────────────────────────────
+// ARCHITECTURE DECISION: Business logic lives exclusively in Next.js API routes.
+// This Express server handles only infrastructure concerns:
+//   - Health checks (load balancer / container orchestration)
+//   - Runtime metrics (uptime, memory usage)
+//   - Build/version info
+//
+// See: apps/api/ARCHITECTURE.md
 const API_VERSION = config.API_VERSION || 'v1';
-app.use(`/api/${API_VERSION}/auth`, (req: Request, res: Response) => {
-  res.json({ message: 'Auth endpoints - Coming soon' });
+const startTime = Date.now();
+
+app.get(`/api/${API_VERSION}/version`, (_req: Request, res: Response) => {
+  res.json({
+    success: true,
+    data: {
+      version: process.env.npm_package_version || '1.0.0',
+      apiVersion: API_VERSION,
+      environment: config.NODE_ENV,
+    },
+  });
 });
-app.use(`/api/${API_VERSION}/users`, (req: Request, res: Response) => {
-  res.json({ message: 'Users endpoints - Coming soon' });
-});
-app.use(`/api/${API_VERSION}/courses`, (req: Request, res: Response) => {
-  res.json({ message: 'Courses endpoints - Coming soon' });
-});
-app.use(`/api/${API_VERSION}/community`, (req: Request, res: Response) => {
-  res.json({ message: 'Community endpoints - Coming soon' });
-});
-app.use(`/api/${API_VERSION}/chat-lia`, (req: Request, res: Response) => {
-  res.json({ message: 'Chat LIA endpoints - Coming soon' });
+
+app.get(`/api/${API_VERSION}/metrics`, (_req: Request, res: Response) => {
+  const mem = process.memoryUsage();
+  res.json({
+    success: true,
+    data: {
+      uptime_seconds: Math.floor((Date.now() - startTime) / 1000),
+      memory: {
+        rss_mb: Math.round(mem.rss / 1024 / 1024),
+        heap_used_mb: Math.round(mem.heapUsed / 1024 / 1024),
+        heap_total_mb: Math.round(mem.heapTotal / 1024 / 1024),
+      },
+      node_version: process.version,
+      timestamp: new Date().toISOString(),
+    },
+  });
 });
 
 // Error handling (debe ir al final)

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export async function POST(request: NextRequest) {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
   try {
     const { provider, videoIdOrUrl } = await request.json()
 

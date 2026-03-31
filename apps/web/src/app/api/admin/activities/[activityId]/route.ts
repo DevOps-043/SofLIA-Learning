@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AdminActivitiesService, UpdateActivityData } from '@/features/admin/services/adminActivities.service'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 export async function PUT(
   request: NextRequest,

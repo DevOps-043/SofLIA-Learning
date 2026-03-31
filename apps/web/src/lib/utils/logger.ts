@@ -20,7 +20,7 @@ export const logger = {
    * Log normal - Solo en desarrollo
    * @example logger.log('User logged in:', userId)
    */
-  log: (...args: any[]) => {
+  log: (...args: unknown[]) => {
     if (isDevelopment) {
     }
   },
@@ -29,7 +29,7 @@ export const logger = {
    * Log de información - Solo en desarrollo
    * @example logger.info('Processing request...')
    */
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     if (isDevelopment) {
     }
   },
@@ -38,7 +38,7 @@ export const logger = {
    * Log de advertencia - Solo en desarrollo
    * @example logger.warn('Deprecated function used')
    */
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     if (isDevelopment) {
     }
   },
@@ -47,7 +47,7 @@ export const logger = {
    * Log de debug - Solo en desarrollo
    * @example logger.debug('Variable value:', myVar)
    */
-  debug: (...args: any[]) => {
+  debug: (...args: unknown[]) => {
     if (isDevelopment) {
     }
   },
@@ -57,7 +57,7 @@ export const logger = {
    * Los errores son críticos y deben registrarse en todos los entornos
    * @example logger.error('Database connection failed:', error)
    */
-  error: (...args: any[]) => {
+  error: (...args: unknown[]) => {
   },
 
   /**
@@ -65,7 +65,7 @@ export const logger = {
    * Útil para visualizar objetos/arrays
    * @example logger.table([{name: 'John', age: 30}])
    */
-  table: (data: any) => {
+  table: (data: unknown) => {
     if (isDevelopment && console.table) {
 
     }
@@ -122,7 +122,7 @@ export const logger = {
    * Muestra el stack trace actual
    * @example logger.trace('Function called from')
    */
-  trace: (...args: any[]) => {
+  trace: (...args: unknown[]) => {
     if (isDevelopment && console.trace) {
 
     }
@@ -137,7 +137,7 @@ export const componentLogger = {
    * Log de render de componente
    * @example componentLogger.render('UserProfile', { userId: 123 })
    */
-  render: (componentName: string, props?: Record<string, any>) => {
+  render: (componentName: string, props?: Record<string, unknown>) => {
     if (isDevelopment) {
     }
   },
@@ -178,7 +178,7 @@ export const apiLogger = {
    * Log de request API
    * @example apiLogger.request('GET', '/api/users', { userId: 123 })
    */
-  request: (method: string, path: string, data?: any) => {
+  request: (method: string, path: string, data?: unknown) => {
     if (isDevelopment) {
     }
   },
@@ -187,7 +187,7 @@ export const apiLogger = {
    * Log de response exitoso
    * @example apiLogger.success('GET', '/api/users', responseData)
    */
-  success: (method: string, path: string, data?: any) => {
+  success: (method: string, path: string, data?: unknown) => {
     if (isDevelopment) {
     }
   },
@@ -196,7 +196,7 @@ export const apiLogger = {
    * Log de error de API - SIEMPRE se registra
    * @example apiLogger.error('GET', '/api/users', error)
    */
-  error: (method: string, path: string, error: any) => {
+  error: (method: string, path: string, error: unknown) => {
   },
 }
 

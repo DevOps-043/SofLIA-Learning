@@ -341,7 +341,7 @@ export function validatePassword(
 
   // Validar caracteres especiales
   if (PASSWORD_REQUIREMENTS.requireSpecialChar) {
-    const specialCharsRegex = new RegExp(`[${PASSWORD_REQUIREMENTS.allowedSpecialChars.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}]`);
+    const specialCharsRegex = new RegExp(`[${PASSWORD_REQUIREMENTS.allowedSpecialChars.replace(/[-.*+?^${}()|[\]\\]/g, '\\$&')}]`);
 
     if (!specialCharsRegex.test(password)) {
       errors.push(`La contraseña debe contener al menos un carácter especial (${PASSWORD_REQUIREMENTS.allowedSpecialChars})`);

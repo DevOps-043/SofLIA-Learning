@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 /**
  * POST /api/admin/courses/recalculate-durations
@@ -7,6 +8,10 @@ import { createClient } from '@/lib/supabase/server'
  * incluyendo videos + materiales + actividades
  */
 export async function POST(request: NextRequest) {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
     try {
         const body = await request.json().catch(() => ({}))
         const { courseId } = body // Optional: if not provided, recalculate all

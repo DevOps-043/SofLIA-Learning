@@ -10,6 +10,7 @@ import { AdminModule } from '@/features/admin/services/adminModules.service'
 import { AdminLesson } from '@/features/admin/services/adminLessons.service'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { CourseSkill } from '@/features/courses/components/CourseSkillsSelector'
+import { InstructorWorkshop } from '@/features/instructor/services/instructorWorkshops.service'
 
 interface InstructorCourseManagementPageProps {
   courseId: string
@@ -43,12 +44,12 @@ export function useInstructorCourseManagementLogic({ courseId }: InstructorCours
   const { activities, fetchActivities, createActivity, updateActivity } = useInstructorActivities()
   const { user } = useAuth()
 
-  const [workshopPreview, setWorkshopPreview] = useState<any>(null)
+  const [workshopPreview, setWorkshopPreview] = useState<InstructorWorkshop | null>(null)
   const [previewLoading, setPreviewLoading] = useState<boolean>(false)
-  const [userStats, setUserStats] = useState<any>(null)
-  const [enrolledUsers, setEnrolledUsers] = useState<any[]>([])
+  const [userStats, setUserStats] = useState<Record<string, unknown> | null>(null)
+  const [enrolledUsers, setEnrolledUsers] = useState<Record<string, unknown>[]>([])
   const [statsLoading, setStatsLoading] = useState<boolean>(false)
-  const [chartData, setChartData] = useState<any>(null)
+  const [chartData, setChartData] = useState<Record<string, unknown> | null>(null)
   const [savingConfig, setSavingConfig] = useState<boolean>(false)
   const [showTemplatePreview, setShowTemplatePreview] = useState<boolean>(false)
   const [selectedCertificateTemplate, setSelectedCertificateTemplate] = useState<string>('default')

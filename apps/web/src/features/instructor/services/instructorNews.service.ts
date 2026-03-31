@@ -7,12 +7,12 @@ export interface InstructorNews {
   subtitle?: string
   language: string
   hero_image_url?: string
-  tldr?: any
+  tldr?: Record<string, unknown>
   intro?: string
-  sections?: any
-  metrics?: any
-  links?: any
-  cta?: any
+  sections?: Record<string, unknown>[]
+  metrics?: Record<string, unknown>
+  links?: Record<string, unknown>[]
+  cta?: Record<string, unknown>
   status: string
   published_at?: string
   created_by: string

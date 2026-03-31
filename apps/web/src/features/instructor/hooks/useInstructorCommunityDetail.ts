@@ -3,26 +3,58 @@
 import { useState, useEffect } from 'react'
 import { InstructorCommunity } from '../services/instructorCommunities.service'
 
+export interface CommunityPost {
+  id: string
+  content: string
+  author_id: string
+  created_at: string
+  [key: string]: unknown
+}
+
+export interface CommunityMember {
+  id: string
+  user_id: string
+  role: string
+  joined_at: string
+  [key: string]: unknown
+}
+
+export interface CommunityAccessRequest {
+  id: string
+  user_id: string
+  status: string
+  created_at: string
+  [key: string]: unknown
+}
+
+export interface CommunityVideo {
+  id: string
+  title: string
+  url: string
+  created_at: string
+  [key: string]: unknown
+}
+
 interface InstructorCommunityDetailData {
   community: InstructorCommunity | null
-  posts: any[]
-  members: any[]
-  accessRequests: any[]
-  videos: any[]
+  posts: CommunityPost[]
+  members: CommunityMember[]
+  accessRequests: CommunityAccessRequest[]
+  videos: CommunityVideo[]
   isLoading: boolean
   error: string | null
   refetch: () => void
-  updateMembers: (updatedMembers: any[]) => void
-  updateAccessRequests: (updatedRequests: any[]) => void
-  updatePosts: (updatedPosts: any[]) => void
+  updateMembers: (updatedMembers: CommunityMember[]) => void
+  updateAccessRequests: (updatedRequests: CommunityAccessRequest[]) => void
+  updatePosts: (updatedPosts: CommunityPost[]) => void
 }
 
 export function useInstructorCommunityDetail(slug: string): InstructorCommunityDetailData {
   const [community, setCommunity] = useState<InstructorCommunity | null>(null)
-  const [posts, setPosts] = useState<any[]>([])
-  const [members, setMembers] = useState<any[]>([])
-  const [accessRequests, setAccessRequests] = useState<any[]>([])
-  const [videos, setVideos] = useState<any[]>([])
+  const [posts, setPosts] = useState<CommunityPost[]>([])
+  const [members, setMembers] = useState<CommunityMember[]>([])
+  const [accessRequests, setAccessRequests] = useState<CommunityAccessRequest[]>([])
+  const [videos, setVideos] = useState<CommunityVideo[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -90,18 +122,15 @@ export function useInstructorCommunityDetail(slug: string): InstructorCommunityD
     fetchCommunityData()
   }
 
-  // Función para actualizar solo los miembros
-  const updateMembers = (updatedMembers: any[]) => {
+  const updateMembers = (updatedMembers: CommunityMember[]) => {
     setMembers(updatedMembers)
   }
 
-  // Función para actualizar solo las solicitudes de acceso
-  const updateAccessRequests = (updatedRequests: any[]) => {
+  const updateAccessRequests = (updatedRequests: CommunityAccessRequest[]) => {
     setAccessRequests(updatedRequests)
   }
 
-  // Función para actualizar solo los posts
-  const updatePosts = (updatedPosts: any[]) => {
+  const updatePosts = (updatedPosts: CommunityPost[]) => {
     setPosts(updatedPosts)
   }
 

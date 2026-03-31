@@ -8,8 +8,8 @@ interface UseInstructorMaterialsReturn {
   loading: boolean
   error: string | null
   fetchMaterials: (lessonId: string, courseId: string, moduleId: string) => Promise<void>
-  createMaterial: (lessonId: string, courseId: string, moduleId: string, data: any) => Promise<AdminMaterial>
-  updateMaterial: (materialId: string, courseId: string, moduleId: string, lessonId: string, data: any) => Promise<AdminMaterial>
+  createMaterial: (lessonId: string, courseId: string, moduleId: string, data: Record<string, unknown>) => Promise<AdminMaterial>
+  updateMaterial: (materialId: string, courseId: string, moduleId: string, lessonId: string, data: Record<string, unknown>) => Promise<AdminMaterial>
   deleteMaterial: (materialId: string, courseId: string, moduleId: string, lessonId: string) => Promise<void>
 }
 
@@ -36,7 +36,7 @@ export function useInstructorMaterials(): UseInstructorMaterialsReturn {
     }
   }
 
-  const createMaterial = async (lessonId: string, courseId: string, moduleId: string, materialData: any): Promise<AdminMaterial> => {
+  const createMaterial = async (lessonId: string, courseId: string, moduleId: string, materialData: Record<string, unknown>): Promise<AdminMaterial> => {
     try {
       const response = await fetch(`/api/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/materials`, {
         method: 'POST',
@@ -57,7 +57,7 @@ export function useInstructorMaterials(): UseInstructorMaterialsReturn {
     }
   }
 
-  const updateMaterial = async (materialId: string, courseId: string, moduleId: string, lessonId: string, materialData: any): Promise<AdminMaterial> => {
+  const updateMaterial = async (materialId: string, courseId: string, moduleId: string, lessonId: string, materialData: Record<string, unknown>): Promise<AdminMaterial> => {
     try {
       // Necesitamos crear la ruta de instructor para actualizar materiales
       // Por ahora, usar la ruta de admin pero con validación de instructor

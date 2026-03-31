@@ -8,8 +8,8 @@ interface UseInstructorLessonsReturn {
   loading: boolean
   error: string | null
   fetchLessons: (moduleId: string, courseId?: string) => Promise<void>
-  createLesson: (moduleId: string, data: any, courseId?: string) => Promise<AdminLesson>
-  updateLesson: (lessonId: string, data: any, courseId?: string) => Promise<AdminLesson>
+  createLesson: (moduleId: string, data: Record<string, unknown>, courseId?: string) => Promise<AdminLesson>
+  updateLesson: (lessonId: string, data: Record<string, unknown>, courseId?: string) => Promise<AdminLesson>
   deleteLesson: (lessonId: string, courseId?: string) => Promise<void>
   togglePublished: (lessonId: string, courseId?: string) => Promise<void>
   refetchLessons: (moduleId: string, courseId?: string) => Promise<void>
@@ -109,7 +109,7 @@ export function useInstructorLessons(courseId?: string): UseInstructorLessonsRet
     await fetchLessons(moduleId, providedCourseId)
   }
 
-  const createLesson = async (moduleId: string, lessonData: any, providedCourseId?: string): Promise<AdminLesson> => {
+  const createLesson = async (moduleId: string, lessonData: Record<string, unknown>, providedCourseId?: string): Promise<AdminLesson> => {
     const actualCourseId = getCourseId(providedCourseId)
     
     try {
@@ -139,7 +139,7 @@ export function useInstructorLessons(courseId?: string): UseInstructorLessonsRet
     }
   }
 
-  const updateLesson = async (lessonId: string, lessonData: any, providedCourseId?: string): Promise<AdminLesson> => {
+  const updateLesson = async (lessonId: string, lessonData: Record<string, unknown>, providedCourseId?: string): Promise<AdminLesson> => {
     const actualCourseId = getCourseId(providedCourseId)
     
     try {

@@ -214,6 +214,25 @@ function buildAlternativeSelectionMessage(
   );
 }
 
+/**
+ * Analiza el mensaje del usuario en el contexto del planificador y resuelve su intención.
+ *
+ * Detecta si el usuario está:
+ * - Seleccionando una opción de alternativas de fecha ("quiero la opción 2")
+ * - Confirmando horarios propuestos ("sí", "confirmo")
+ * - Confirmando el resumen final ("guardar", "crear plan")
+ * - Añadiendo nuevos bloques de horario ("agrega jueves")
+ * - Cambiando la fecha límite ("cambiar la fecha límite")
+ *
+ * También enriquece el mensaje con contexto de sistema cuando el asistente
+ * estaba esperando una confirmación o selección específica.
+ *
+ * @param params.message - Mensaje original del usuario (con acentos)
+ * @param params.lowerMessage - Mensaje en minúsculas para comparación rápida
+ * @param params.conversationHistory - Historial de mensajes del chat
+ * @param params.hasSavedDistribution - Si ya existe un plan de distribución guardado
+ * @returns Resolución de intención con mensaje (posiblemente enriquecido) y flags booleanos
+ */
 export function resolvePlannerMessageIntent(
   params: ResolvePlannerMessageIntentParams,
 ): PlannerMessageIntentResolution {

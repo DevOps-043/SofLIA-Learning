@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRateLimitStats, clearAllRateLimits } from '@/core/lib/rate-limit';
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 /**
  * GET /api/admin/rate-limit/stats
@@ -7,6 +8,10 @@ import { getRateLimitStats, clearAllRateLimits } from '@/core/lib/rate-limit';
  * Solo accesible para administradores
  */
 export async function GET(request: NextRequest) {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
   try {
     // TODO: Verificar que sea admin
     const sessionCookie = request.cookies.get('aprende-y-aplica-session');
@@ -41,6 +46,10 @@ export async function GET(request: NextRequest) {
  * Solo disponible en desarrollo
  */
 export async function DELETE(request: NextRequest) {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
   // Solo permitir en desarrollo
   if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json(

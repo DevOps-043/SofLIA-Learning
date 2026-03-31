@@ -3,6 +3,7 @@ import { getServerClientPoolStats } from '@/lib/supabase/server'
 import { getPoolStats } from '@/lib/supabase/pool'
 import { getDeduplicationStats } from '@/lib/supabase/request-deduplication'
 import { getAllCacheStats } from '@/lib/cache/memory-cache'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 /**
  * ⚡ DASHBOARD DE RENDIMIENTO - ENDPOINT COMPLETO
@@ -21,6 +22,10 @@ import { getAllCacheStats } from '@/lib/cache/memory-cache'
  * - Producción: Dashboard de administración
  */
 export async function GET() {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
   try {
     const timestamp = new Date().toISOString()
 
@@ -200,6 +205,10 @@ export async function GET() {
  * Reinicia todas las métricas (solo desarrollo)
  */
 export async function POST() {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
   if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json(
       { error: 'Este endpoint solo está disponible en desarrollo' },

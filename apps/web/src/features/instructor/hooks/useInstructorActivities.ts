@@ -8,8 +8,8 @@ interface UseInstructorActivitiesReturn {
   loading: boolean
   error: string | null
   fetchActivities: (lessonId: string, courseId: string, moduleId: string) => Promise<void>
-  createActivity: (lessonId: string, courseId: string, moduleId: string, data: any) => Promise<AdminActivity>
-  updateActivity: (activityId: string, courseId: string, moduleId: string, lessonId: string, data: any) => Promise<AdminActivity>
+  createActivity: (lessonId: string, courseId: string, moduleId: string, data: Record<string, unknown>) => Promise<AdminActivity>
+  updateActivity: (activityId: string, courseId: string, moduleId: string, lessonId: string, data: Record<string, unknown>) => Promise<AdminActivity>
   deleteActivity: (activityId: string, courseId: string, moduleId: string, lessonId: string) => Promise<void>
 }
 
@@ -36,7 +36,7 @@ export function useInstructorActivities(): UseInstructorActivitiesReturn {
     }
   }
 
-  const createActivity = async (lessonId: string, courseId: string, moduleId: string, activityData: any): Promise<AdminActivity> => {
+  const createActivity = async (lessonId: string, courseId: string, moduleId: string, activityData: Record<string, unknown>): Promise<AdminActivity> => {
     try {
       const response = await fetch(`/api/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/activities`, {
         method: 'POST',
@@ -57,7 +57,7 @@ export function useInstructorActivities(): UseInstructorActivitiesReturn {
     }
   }
 
-  const updateActivity = async (activityId: string, courseId: string, moduleId: string, lessonId: string, activityData: any): Promise<AdminActivity> => {
+  const updateActivity = async (activityId: string, courseId: string, moduleId: string, lessonId: string, activityData: Record<string, unknown>): Promise<AdminActivity> => {
     try {
       // Necesitamos crear la ruta de instructor para actualizar actividades
       // Por ahora, usar la ruta de admin pero con validación de instructor

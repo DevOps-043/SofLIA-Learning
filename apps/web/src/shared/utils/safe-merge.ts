@@ -21,7 +21,7 @@ const DANGEROUS_KEYS = [
  * Verifica si una key es peligrosa para el prototipo
  */
 export function isDangerousKey(key: string): boolean {
-  return DANGEROUS_KEYS.includes(key as any);
+  return (DANGEROUS_KEYS as readonly string[]).includes(key);
 }
 
 /**

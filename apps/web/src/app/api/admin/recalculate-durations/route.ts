@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { AdminLessonsService } from '@/features/admin/services/adminLessons.service'
+import { requireAdmin } from '@/lib/auth/requireAdmin'
 
 /**
  * POST /api/admin/recalculate-durations
@@ -19,6 +20,10 @@ import { AdminLessonsService } from '@/features/admin/services/adminLessons.serv
  * - errors: lista de errores encontrados (si los hay)
  */
 export async function POST() {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
     try {
         // Verificar autenticación
         const supabase = await createClient()
@@ -84,6 +89,10 @@ export async function POST() {
  * Retorna información sobre el endpoint
  */
 export async function GET() {
+  // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+
     return NextResponse.json({
         endpoint: '/api/admin/recalculate-durations',
         method: 'POST',

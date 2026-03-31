@@ -15,7 +15,7 @@ export interface InstructorWorkshop {
   average_rating?: number
   student_count: number
   review_count: number
-  learning_objectives?: any
+  learning_objectives?: string[]
   approval_status?: 'pending' | 'approved' | 'rejected'
   approved_by?: string
   approved_at?: string
@@ -189,7 +189,7 @@ export class InstructorWorkshopsService {
       }
 
       // Si el taller estaba aprobado y se edita, debe volver a pending para nueva aprobación
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         ...workshopData,
         updated_at: new Date().toISOString()
       }
@@ -289,12 +289,12 @@ export class InstructorWorkshopsService {
         .single()
 
       if (error) {
-        if ((error as any)?.code === 'PGRST116') return null
+        if ((error as { code?: string })?.code === 'PGRST116') return null
         throw error
       }
 
       // Extraer nombre de instructor del JOIN
-      const instructor = (data as any).instructor
+      const instructor = (data as { instructor?: { display_name?: string; first_name?: string; last_name?: string; username?: string } }).instructor
       const instructorName = instructor
         ? (instructor.display_name ||
           `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
