@@ -15,6 +15,13 @@ export async function POST(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
+    if (!auth.organizationId) {
+      return NextResponse.json(
+        { success: false, error: 'Organización no encontrada' },
+        { status: 400 }
+      )
+    }
+
     const supabase = await createClient()
     
     // Obtener la invitación para verificar que pertenece a la organización

@@ -99,16 +99,16 @@ export function startErrorInterceptor() {
   };
 
   // 3. Interceptar errores JavaScript globales
-  window.addEventListener('error', (event: ErrorEvent) => {
+  window.addEventListener('error', (event: globalThis.ErrorEvent) => {
     addError({
       type: 'js_error',
       timestamp: Date.now(),
       message: event.message || 'Unknown error',
       details: {
-        filename: (event as any).filename,
-        lineno: (event as any).lineno,
-        colno: (event as any).colno,
-        stack: (event as any).error?.stack
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        stack: event.error?.stack
       }
     });
   });

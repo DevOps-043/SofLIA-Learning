@@ -18,14 +18,14 @@ export interface RefreshToken {
   user_id: string;
   token_hash: string;
   expires_at: string;
-  created_at: string;
-  last_used_at: string;
-  device_fingerprint?: string;
-  ip_address?: string;
-  user_agent?: string;
-  is_revoked: boolean;
-  revoked_at?: string;
-  revoked_reason?: string;
+  created_at: string | null;
+  last_used_at: string | null;
+  device_fingerprint?: string | null;
+  ip_address?: string | null;
+  user_agent?: string | null;
+  is_revoked: boolean | null;
+  revoked_at?: string | null;
+  revoked_reason?: string | null;
 }
 
 export interface SessionInfo {
@@ -41,6 +41,27 @@ export interface RefreshSessionInfo {
   accessToken: string;
   accessExpiresAt: Date;
   refreshExpiresAt: Date;
+}
+
+type RefreshTokenRow = Omit<
+  RefreshToken,
+  'created_at' | 'last_used_at' | 'is_revoked'
+> & {
+  created_at: string | null;
+  last_used_at: string | null;
+  is_revoked: boolean | null;
+};
+
+function normalizeRefreshToken(row: RefreshTokenRow): RefreshToken {
+  const createdAt = row.created_at ?? row.last_used_at ?? new Date().toISOString();
+  const lastUsedAt = row.last_used_at ?? createdAt;
+
+  return {
+    ...row,
+    created_at: createdAt,
+    last_used_at: lastUsedAt,
+    is_revoked: row.is_revoked ?? false,
+  };
 }
 
 export class RefreshTokenService {
@@ -72,7 +93,7 @@ export class RefreshTokenService {
       throw new RefreshTokenError('INVALID_REFRESH_TOKEN');
     }
 
-    return data as RefreshToken;
+    return normalizeRefreshToken(data as RefreshTokenRow);
   }
 
   static async createSession(
@@ -121,7 +142,10 @@ export class RefreshTokenService {
 
     const tokenData = await this.findActiveRefreshToken(refreshToken);
 
-    if (isRefreshTokenInactive(tokenData.last_used_at)) {
+    if (
+      tokenData.last_used_at &&
+      isRefreshTokenInactive(tokenData.last_used_at)
+    ) {
       await this.revokeToken(tokenData.id, 'Session expired due to inactivity');
       throw new RefreshTokenError('INACTIVE_REFRESH_TOKEN');
     }
@@ -215,7 +239,7 @@ export class RefreshTokenService {
       throw new Error(`Error fetching active sessions: ${error.message}`);
     }
 
-    return data || [];
+    return (data || []).map((row) => normalizeRefreshToken(row as RefreshTokenRow));
   }
 
   static async cleanExpiredTokens(): Promise<number> {

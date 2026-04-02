@@ -5,7 +5,7 @@ import type { ReportFilters, ReportType } from '../types/report-data.types'
 export interface ReportData {
   report_type: ReportType
   filters: ReportFilters
-  data: any
+  data: unknown
   generated_at: string
 }
 

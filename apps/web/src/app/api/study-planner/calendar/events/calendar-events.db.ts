@@ -1,4 +1,4 @@
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   normalizeExternalEventId,
 } from './calendar-events.utils'
@@ -7,20 +7,22 @@ import type {
   CalendarProvider,
 } from './calendar-events.types'
 
-export function createCalendarAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const CALENDAR_INTEGRATION_SELECT = `
+  id,
+  user_id,
+  provider,
+  access_token,
+  refresh_token,
+  expires_at,
+  metadata
+`
 
-  if (!supabaseUrl || !supabaseServiceKey) {
+export function createCalendarAdminClient() {
+  try {
+    return createAdminClient()
+  } catch {
     throw new Error('Variables de Supabase no configuradas')
   }
-
-  return createServiceClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
 }
 
 export async function getLatestCalendarIntegration(
@@ -29,7 +31,7 @@ export async function getLatestCalendarIntegration(
 ): Promise<CalendarIntegrationRecord | null> {
   const { data, error } = await supabase
     .from('calendar_integrations')
-    .select('*')
+    .select(CALENDAR_INTEGRATION_SELECT)
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
     .limit(1)
@@ -48,17 +50,14 @@ export async function getActiveStudySessionEventIds(
 ): Promise<Set<string>> {
   const { data } = await supabase
     .from('study_sessions')
-    .select('external_event_id, calendar_provider')
+    .select('external_event_id')
     .eq('user_id', userId)
     .not('external_event_id', 'is', null)
     .eq('calendar_provider', provider)
 
   return new Set(
     (data || [])
-      .filter(
-        (session: Record<string, unknown>) =>
-          session.external_event_id && session.calendar_provider === provider,
-      )
+      .filter((session: Record<string, unknown>) => session.external_event_id)
       .map((session: Record<string, unknown>) =>
         normalizeExternalEventId(session.external_event_id),
       )

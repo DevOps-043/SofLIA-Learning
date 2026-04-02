@@ -9,9 +9,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
+import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
 
 // Crear cliente admin para bypass de RLS
-function createAdminClient() {
+export function createLegacyAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }, { status: 401 });
     }
 
-    const supabase = createAdminClient();
+    const supabase = createSharedAdminClient();
     
     // Obtener el plan activo más reciente del usuario
     const { data: activePlan, error: planError } = await supabase
@@ -62,15 +63,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       hasActivePlan: true
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error en GET /api/study-planner/active-plan:', error);
     return NextResponse.json({ 
       planId: null,
-      error: error.message || 'Error interno del servidor'
+      error: error instanceof Error ? error.message : 'Error interno del servidor'
     }, { status: 500 });
   }
 }
-
-
 
 

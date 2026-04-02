@@ -1,14 +1,24 @@
 import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => {
+    if (
+      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      !process.env.SUPABASE_SERVICE_ROLE_KEY
+    ) {
+      throw new Error('Missing Supabase env')
+    }
+
+    return { from: vi.fn() }
+  }),
+}))
+
 import {
   createCalendarAdminClient,
   getActiveStudySessionEventIds,
   getLatestCalendarIntegration,
   getOrphanedCalendarEventIds,
 } from '../calendar-events.db'
-
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ from: vi.fn() })),
-}))
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 

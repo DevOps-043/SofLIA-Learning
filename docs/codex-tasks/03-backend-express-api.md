@@ -1,154 +1,133 @@
 # CODEX TASK — Backend: Express API (`apps/api`)
 
-**Peso en TDI:** 10% | **Deuda residual estimada:** ~92% (sin cambios desde baseline)
-**Fecha de corte:** 2026-04-01
-**Estado:** CRÍTICO — `apps/api` es un placeholder. Aporta 9.2pp de piso mínimo al TDI
-que no puede reducirse mientras siga sin implementar.
+**Peso en TDI:** 10% | **Deuda residual actual:** ~60%
+**Fecha de corte:** 2026-04-02 (worktree real)
+**Estado:** Infraestructura base + dominio Notificaciones implementados. Aporta 6.0pp al TDI.
 
 ---
 
-## Lo que ya está hecho
+## Ya resuelto — NO tocar
 
-- Estructura de directorios creada: `features/`, `core/`, `shared/` ✅
-- `package.json` configurado con TypeScript y Express ✅
-- Algunos controladores placeholder existen pero sin lógica real
-- Health endpoint funcional: `GET /health` ✅
+### Infraestructura base ✅
 
-**Lo que NO existe aún:**
-- Ningún dominio de negocio real implementado en Express
-- 0 tests en `apps/api`
-- Sin validación Zod sistemática
-- Sin rate limiting
-- Sin middleware de autenticación JWT real
+| Archivo | Líneas | Estado |
+|---|---|---|
+| `core/middleware/auth.ts` | ~146 | JWT Supabase verificado ✅ |
+| `core/middleware/errorHandler.ts` | — | Captura Zod/Supabase/NotFound ✅ |
+| `core/middleware/rateLimit.ts` | — | Rate limiting por IP + userId ✅ |
+| `core/middleware/role.ts` | — | Validación de rol Admin/Business/BusinessUser ✅ |
+| `core/validation/` | — | Middleware Zod centralizado ✅ |
 
----
-
-## Por qué esto bloquea el TDI
-
-El cálculo del TDI tiene un **piso estructural de ~29.8pp** formado por:
-- Backend (92% × 0.10) = **9.2pp**
-- Seguridad (55% × 0.10) = 5.5pp
-- BD (58% × 0.10) = 5.8pp
-- Testing (60% × 0.15) = 9.3pp
-
-Mientras `apps/api` siga siendo un placeholder, **el TDI no puede bajar de ~14-15%
-aunque se resuelva todo lo demás**. Este es el cambio de mayor impacto estructural
-a largo plazo.
-
----
-
-## Pendiente — plan de implementación por dominios
-
-### FASE 1 — Infraestructura base (prerequisito para todo lo demás)
-
-**TAREA 1A — Middleware de autenticación JWT**
-
-Crear `apps/api/src/core/middleware/auth.middleware.ts`:
-```typescript
-// Validar JWT de Supabase en cada request protegido
-// Extraer userId, orgSlug, role del token
-// Rechazar con 401 si inválido o expirado
-// NO reimplementar auth — verificar el JWT que emite Supabase
-```
-
-Estructura:
-```
-apps/api/src/core/middleware/
-├── auth.middleware.ts       # verificar JWT Supabase
-├── role.middleware.ts       # validar rol (Admin, Business, BusinessUser)
-├── rateLimit.middleware.ts  # rate limiting por IP + userId
-└── __tests__/
-    ├── auth.middleware.test.ts
-    └── role.middleware.test.ts
-```
-
-**TAREA 1B — Validación Zod centralizada**
-
-```
-apps/api/src/core/
-├── validation/
-│   ├── validate.middleware.ts   # middleware que valida req.body con schema Zod
-│   ├── common.schemas.ts        # paginación, UUID, fechas
-│   └── __tests__/
-│       └── validate.middleware.test.ts
-```
-
-**TAREA 1C — Error handler unificado**
-
-```typescript
-// apps/api/src/core/middleware/error.middleware.ts
-// Capturar ZodError → 400 con detalle de campos
-// Capturar errores Supabase → 500 con código interno
-// Capturar NotFoundError → 404
-// Nunca exponer stack trace en producción
-```
-
----
-
-### FASE 2 — Primer dominio real: Notificaciones
-
-Las notificaciones ya están completamente refactorizadas en el frontend
-(`notification/creation.service.ts`, `notification/actions.service.ts`, etc.).
-El backend Express puede envolver esa lógica como primera implementación real.
-
-**TAREA 2A — Notifications Controller + Routes**
+### Dominio Notificaciones ✅ (FASE 2 completa)
 
 ```
 apps/api/src/features/notifications/
-├── notifications.controller.ts
-├── notifications.service.ts     # re-usa lógica ya probada del frontend
-├── notifications.routes.ts
-├── notifications.types.ts       # Zod schemas para validación
-└── __tests__/
-    ├── notifications.controller.test.ts
-    └── notifications.service.test.ts
+├── notifications.controller.ts    # ~86 líneas ✅
+├── notifications.service.ts       # ~121 líneas ✅
+├── notifications.repository.ts    ✅
+├── notifications.routes.ts        ✅
+├── notifications.types.ts         ✅
+├── notifications.utils.ts         ✅
+└── __tests__/                     # 37 test cases en apps/api total ✅
 ```
 
-Endpoints a implementar:
+Endpoints implementados:
 ```
-GET    /api/v1/notifications           # getUserNotifications (paginado)
-GET    /api/v1/notifications/unread-count
-PATCH  /api/v1/notifications/:id/read
-PATCH  /api/v1/notifications/mark-all-read
-PATCH  /api/v1/notifications/:id/archive
-DELETE /api/v1/notifications/:id
+GET    /api/v1/notifications                # getUserNotifications paginado ✅
+GET    /api/v1/notifications/unread-count   ✅
+PATCH  /api/v1/notifications/:id/read       ✅
+PATCH  /api/v1/notifications/mark-all-read  ✅
+PATCH  /api/v1/notifications/:id/archive    ✅
+DELETE /api/v1/notifications/:id            ✅
 ```
+
+**Tests en `apps/api`: 37 test cases en 7 archivos — todos verdes ✅**
 
 ---
 
-### FASE 3 — Segundo dominio: Admin Users
+## Pendiente — dominios por implementar
+
+### FASE 3 — Admin Users (próximo dominio a atacar)
 
 ```
 apps/api/src/features/admin/users/
 ├── admin-users.controller.ts
 ├── admin-users.service.ts
+├── admin-users.repository.ts
 ├── admin-users.routes.ts
-├── admin-users.types.ts
+├── admin-users.types.ts          # Zod schemas: CreateUserSchema, UpdateUserSchema, etc.
 └── __tests__/
+    ├── admin-users.controller.test.ts
     └── admin-users.service.test.ts
 ```
 
-Endpoints:
+Endpoints a implementar:
 ```
-GET    /api/v1/admin/users            # paginado + búsqueda
-GET    /api/v1/admin/users/stats
-GET    /api/v1/admin/users/:id
-PATCH  /api/v1/admin/users/:id
-PATCH  /api/v1/admin/users/:id/role
-DELETE /api/v1/admin/users/:id
+GET    /api/v1/admin/users            # paginado, filtro por búsqueda/rol/estado
+GET    /api/v1/admin/users/stats      # totales: activos, por rol, por org
+GET    /api/v1/admin/users/:id        # detalle con org y roles
+PATCH  /api/v1/admin/users/:id        # actualizar perfil
+PATCH  /api/v1/admin/users/:id/role   # cambiar rol
+DELETE /api/v1/admin/users/:id        # soft delete (status = 'deleted')
 ```
+
+Referencia: `features/admin/services/adminUsers.service.ts` (web) ya es facade de 57 líneas.
+El dominio Express recibe esas queries directamente a Supabase con service role key.
 
 ---
 
-### FASE 4 — Tercer dominio: Business Analytics
+### FASE 4 — Business Analytics
 
-Este dominio ya tiene servicios bien modularizados en el frontend. Migrar:
+Este dominio ya tiene servicios modularizados en el frontend (post-refactorización).
+El backend Express sirve como capa de agregación con service role key para queries cross-org.
+
 ```
 apps/api/src/features/business/analytics/
 ├── analytics.controller.ts
 ├── analytics.service.ts
 ├── analytics.routes.ts
-├── analytics.types.ts
+├── analytics.types.ts          # Zod para DateRange, OrgId, etc.
+└── __tests__/
+    └── analytics.service.test.ts
+```
+
+Endpoints a implementar:
+```
+GET    /api/v1/business/:orgId/analytics         # métricas de engagement + usuarios
+GET    /api/v1/business/:orgId/analytics/teams   # métricas por equipo
+GET    /api/v1/business/:orgId/analytics/export  # exportar a CSV/Excel
+```
+
+---
+
+### FASE 5 — Courses Domain
+
+```
+apps/api/src/features/courses/
+├── courses.controller.ts
+├── courses.service.ts
+├── courses.routes.ts
+├── courses.types.ts
+└── __tests__/
+```
+
+Endpoints prioritarios:
+```
+GET    /api/v1/courses                          # catálogo con paginación
+GET    /api/v1/courses/:id/progress/:userId     # progreso del usuario en el curso
+PATCH  /api/v1/courses/:id/lessons/:lessonId/progress  # actualizar progreso de lección
+```
+
+---
+
+### FASE 6 — Study Planner Domain
+
+```
+apps/api/src/features/study-planner/
+├── study-planner.controller.ts
+├── study-planner.service.ts
+├── study-planner.routes.ts
+├── study-planner.types.ts
 └── __tests__/
 ```
 
@@ -156,13 +135,14 @@ apps/api/src/features/business/analytics/
 
 ## Reglas para Codex en este módulo
 
-1. **Nunca duplicar lógica.** Si el frontend tiene un servicio ya probado, reutilizar o mover — no reimplementar.
-2. **Zod en todos los endpoints.** Cada ruta con body debe tener schema de validación.
+1. **Nunca duplicar lógica.** Reutilizar servicios ya probados del frontend donde sea posible.
+2. **Zod en todos los endpoints.** Cada ruta con body/params tiene schema de validación.
 3. **JWT de Supabase.** No crear sistema de auth propio. Verificar tokens que emite Supabase.
-4. **Tests con Vitest.** Usar el mismo framework que el frontend.
-5. **Mocks de Supabase.** Mockear el cliente, no hacer llamadas reales en tests.
+4. **Tests con Vitest.** Mismo framework que el frontend. Mismo patrón `makeSupabase()`.
+5. **Mocks de Supabase.** Mockear el cliente, nunca llamadas reales en tests.
 6. **Sin `any`.** Todos los tipos explícitos desde el inicio.
-7. **Un dominio = un commit.** No mezclar fases.
+7. **Un dominio = un commit atómico.**
+8. **Seguir el patrón de Notificaciones** — es el dominio de referencia del proyecto.
 
 ## Verificación
 
@@ -180,9 +160,9 @@ npm run type-check --workspace=apps/api
 
 ## Métrica de éxito por fase
 
-- **Fase 1:** Middleware de auth, Zod y error handler con tests — TDI Backend baja de 92% a ~75%
-- **Fase 2:** Notificaciones implementadas — TDI Backend baja a ~65%
-- **Fase 3:** Admin Users implementado — TDI Backend baja a ~55%
-- **Fase 4:** Business Analytics implementado — TDI Backend baja a ~45%
+- **Fase 3 (Admin Users):** TDI Backend baja de ~60% a ~50%
+- **Fase 4 (Business Analytics):** TDI Backend baja a ~42%
+- **Fase 5 (Courses):** TDI Backend baja a ~35%
+- **Fase 6 (Study Planner):** TDI Backend baja a ~28%
 
-> Cada fase reduce ~2pp el TDI global (peso 10% × mejora por dominio).
+> Cada dominio implementado reduce ~1pp el TDI global.

@@ -263,7 +263,13 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
     login?: StyleConfig
   ): Promise<boolean> => {
     try {
-      const updateData: any = {};
+      const organizationId = user?.organization_id;
+      if (!orgSlug && !organizationId) {
+        setError('No se encontró la organización del usuario');
+        return false;
+      }
+
+      const updateData: Partial<Pick<OrganizationStyles, 'panel' | 'userDashboard' | 'login'>> = {};
       if (panel !== undefined) updateData.panel = panel;
       if (userDashboard !== undefined) updateData.userDashboard = userDashboard;
       if (login !== undefined) updateData.login = login;
@@ -271,7 +277,7 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
 
       const fetchUrl = orgSlug 
         ? `/api/${orgSlug}/business/styles`
-        : `/api/${user.organization_id}/business/styles`;
+        : `/api/${organizationId}/business/styles`;
 
       const response = await fetch(fetchUrl, {
         method: 'PUT',
@@ -303,18 +309,23 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
       }
 
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Error al actualizar estilos');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar estilos');
       return false;
     }
   };
 
   const applyTheme = async (themeId: string): Promise<boolean> => {
     try {
+      const organizationId = user?.organization_id;
+      if (!orgSlug && !organizationId) {
+        setError('No se encontró la organización del usuario');
+        return false;
+      }
 
       const fetchUrl = orgSlug 
         ? `/api/${orgSlug}/business/styles`
-        : `/api/${user.organization_id}/business/styles`;
+        : `/api/${organizationId}/business/styles`;
 
       const response = await fetch(fetchUrl, {
         method: 'POST',
@@ -346,8 +357,8 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
       }
 
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Error al aplicar tema');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al aplicar tema');
       return false;
     }
   };
@@ -370,4 +381,3 @@ export function useOrganizationStylesContext() {
   }
   return context;
 }
-

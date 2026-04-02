@@ -1,0 +1,25 @@
+{
+  "extends": "../apps/web/tsconfig.json",
+  "include": [
+    "../apps/web/src/lib/auth/requireBusiness.ts",
+    "../apps/web/src/lib/auth/business-auth/**/*.ts",
+    "../apps/web/src/features/auth/actions/login.ts",
+    "../apps/web/src/features/notifications/services/auto-notifications-community.service.ts",
+    "../apps/web/src/features/notifications/services/auto-notifications-content.service.ts",
+    "../apps/web/src/features/notifications/services/auto-notifications.shared.ts",
+    "../apps/web/src/lib/auth/hierarchicalAccess.ts",
+    "../apps/web/src/lib/auth/hierarchical-access/**/*.ts",
+    "../apps/web/src/lib/rrweb/session-recorder-privacy.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.options.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.metadata.ts",
+    "../apps/web/src/lib/supabase/pool.ts",
+    "../apps/web/src/lib/auth/__tests__/business-auth.session.service.test.ts",
+    "../apps/web/src/lib/auth/__tests__/business-auth.organization.service.test.ts",
+    "../apps/web/src/lib/auth/__tests__/hierarchical-access.context.service.test.ts",
+    "../apps/web/src/lib/auth/__tests__/hierarchical-access.permissions.test.ts",
+    "../apps/web/src/lib/auth/__tests__/hierarchical-access.query-filters.test.ts",
+    "../apps/web/src/features/notifications/services/__tests__/auto-notifications.shared.test.ts",
+    "../apps/web/src/lib/rrweb/__tests__/session-recorder-privacy.test.ts",
+    "../apps/web/src/lib/supabase/__tests__/pool.test.ts"
+  ]
+}

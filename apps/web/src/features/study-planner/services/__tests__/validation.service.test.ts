@@ -150,9 +150,9 @@ describe('ValidationService.validateSessionTimes', () => {
 
   it('warns when min < 15', () => {
     const result = ValidationService.validateSessionTimes(10, 60);
-    expect(result.isValid).toBe(false); // min < 15 is an error? Let me re-check...
-    // Actually it may just be a warning. Let me check: min=10>0 is valid, max=60>10 is valid
-    // So errors from step 1 and 3 are empty. But min < 15 adds a warning
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+    expect(result.warnings.some((warning) => warning.includes('15 minutos'))).toBe(true);
   });
 
   it('warns when max > 120', () => {

@@ -13,6 +13,7 @@ import type {
   CreateNotificationParams,
   Notification,
   NotificationFilters,
+  NotificationQueryResult,
 } from './notification'
 
 export type {
@@ -31,7 +32,7 @@ export class NotificationService {
   static async getUserNotifications(
     userId: string,
     filters?: NotificationFilters,
-  ): Promise<{ notifications: Notification[]; total: number }> {
+  ): Promise<NotificationQueryResult> {
     return getUserNotifications(userId, filters)
   }
 

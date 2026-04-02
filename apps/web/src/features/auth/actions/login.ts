@@ -1,5 +1,6 @@
 'use server'
 
+import { fromLoose } from '@/lib/supabase/looseQuery'
 import { createClient } from '../../../lib/supabase/server'
 import { AuthService } from '../services/auth.service'
 import { SessionService } from '../services/session.service'
@@ -16,6 +17,88 @@ const loginSchema = z.object({
   password: z.string().min(1, 'La contraseña es requerida').regex(/^\S+$/, 'No se permiten espacios'),
   rememberMe: z.boolean().default(false),
 })
+
+type LoginSupabaseClient = Awaited<ReturnType<typeof createClient>>
+
+interface LoginUserRecord {
+  id: string
+  username: string | null
+  email: string | null
+  password_hash: string | null
+  email_verified: boolean | null
+  cargo_rol: string | null
+  is_banned: boolean | null
+  ban_reason: string | null
+}
+
+interface OrganizationMembershipRedirectRow {
+  organization_id: string
+  organizations:
+    | {
+        slug: string | null
+      }
+    | Array<{
+        slug: string | null
+      }>
+    | null
+}
+
+function getRedirectMembershipSlug(record: OrganizationMembershipRedirectRow): string | null {
+  if (Array.isArray(record.organizations)) {
+    return record.organizations[0]?.slug ?? null
+  }
+
+  return record.organizations?.slug ?? null
+}
+
+async function handleNoBelongingRedirect(
+  supabase: LoginSupabaseClient,
+  user: Pick<LoginUserRecord, 'id'>,
+  organizationId: string,
+) {
+  const { data: memberships } = await fromLoose<OrganizationMembershipRedirectRow>(
+    supabase,
+    'organization_users',
+  )
+    .select('organization_id, organizations!inner(slug)')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .neq('organization_id', organizationId)
+    .limit(3)
+
+  const fallback = {
+    error: 'No perteneces a esta organizacion.',
+    redirectTo: '/dashboard?error=not_member',
+    redirectMessage:
+      'No tienes acceso a esta organizacion. Seras redirigido en 5 segundos.',
+  }
+
+  if (!memberships || memberships.length === 0) {
+    return fallback
+  }
+
+  if (memberships.length > 1) {
+    return {
+      error: 'Tu cuenta pertenece a otra organizacion.',
+      redirectTo: '/auth/select-organization',
+      redirectMessage:
+        'Tu cuenta pertenece a otra organizacion. Seras redirigido al selector en 5 segundos.',
+    }
+  }
+
+  const membershipSlug = getRedirectMembershipSlug(memberships[0])
+
+  if (!membershipSlug) {
+    return fallback
+  }
+
+  return {
+    error: 'Tu cuenta no pertenece a esta organizacion.',
+    redirectTo: `/${membershipSlug}/dashboard`,
+    redirectMessage:
+      'Tu cuenta pertenece a otra organizacion. Seras redirigido en 5 segundos.',
+  }
+}
 
 export async function loginAction(formData: FormData) {
   try {
@@ -42,7 +125,7 @@ export async function loginAction(formData: FormData) {
       .from('users')
       .select('id, username, email, password_hash, email_verified, cargo_rol, is_banned, ban_reason')
       .or(`username.ilike.${parsed.emailOrUsername},email.ilike.${parsed.emailOrUsername}`)
-      .maybeSingle()
+      .maybeSingle<LoginUserRecord>()
 
     if (error || !user) {
       return { error: 'Credenciales inválidas' }
@@ -50,9 +133,9 @@ export async function loginAction(formData: FormData) {
 
 
     // â­ MODERACIÓN: Verificar si el usuario está baneado
-    if ((user as any).is_banned) {
+    if (user.is_banned) {
       return {
-        error: `âŒ Tu cuenta ha sido suspendida por violaciones de las reglas de la comunidad. ${(user as any).ban_reason || ''}`,
+        error: `âŒ Tu cuenta ha sido suspendida por violaciones de las reglas de la comunidad. ${user.ban_reason || ''}`,
         banned: true
       }
     }
@@ -147,11 +230,11 @@ export async function loginAction(formData: FormData) {
           } else {
             console.warn('❌ [loginAction] Falló el consumo de invitación:', consumeResult?.error)
             // Procedemos al error de redirección normal si no se pudo unir
-            return this.handleNoBelongingRedirect(supabase, user, organizationId)
+            return handleNoBelongingRedirect(supabase, user, organizationId)
           }
         } else {
           // No trae token, procede con la redirección normal
-          return this.handleNoBelongingRedirect(supabase, user, organizationId)
+          return handleNoBelongingRedirect(supabase, user, organizationId)
         }
       }
     }

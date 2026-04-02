@@ -2,6 +2,7 @@ import type { Json } from '../../../../lib/supabase/types'
 import type {
   CreateNotificationParams,
   Notification,
+  NotificationCursor,
   NotificationFilters,
 } from './types'
 
@@ -54,9 +55,59 @@ export function normalizeNotificationFilters(filters?: NotificationFilters) {
     limit:
       filters?.limit && filters.limit > 0 ? Math.min(filters.limit, 100) : 50,
     offset: filters?.offset && filters.offset >= 0 ? filters.offset : 0,
+    cursor: filters?.cursor?.trim() || undefined,
     orderBy: filters?.orderBy || 'created_at',
     orderDirection: filters?.orderDirection || 'desc',
   }
+}
+
+export function encodeNotificationCursor(
+  notification: Pick<Notification, 'created_at' | 'notification_id'>,
+) {
+  return `${notification.created_at}::${notification.notification_id}`
+}
+
+export function parseNotificationCursor(
+  cursor?: string,
+): NotificationCursor | null {
+  if (!cursor) {
+    return null
+  }
+
+  const [createdAt, notificationId] = cursor.split('::')
+  if (!createdAt || !notificationId) {
+    return null
+  }
+
+  const parsedDate = new Date(createdAt)
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null
+  }
+
+  return {
+    createdAt,
+    notificationId,
+  }
+}
+
+export function buildNextNotificationCursor(
+  notifications: Array<Pick<Notification, 'created_at' | 'notification_id'>>,
+) {
+  const lastNotification = notifications[notifications.length - 1]
+
+  if (!lastNotification) {
+    return null
+  }
+
+  return encodeNotificationCursor(lastNotification)
+}
+
+export function shouldUseNotificationCursorPagination(filters: {
+  cursor?: string
+  offset: number
+  orderBy: 'created_at' | 'priority' | 'status'
+}) {
+  return filters.orderBy === 'created_at' && (Boolean(filters.cursor) || filters.offset === 0)
 }
 
 export function filterExpiredNotifications<T extends { expires_at?: string | null }>(

@@ -1,323 +1,322 @@
 import { describe, expect, it } from 'vitest'
-import {
-  buildBusinessAnalyticsResponse,
-  getEmptyBusinessAnalyticsResponse,
-  getRelevantAnalyticsCourseIds,
-} from '../analytics-response.service'
 
-describe('analytics-response.service', () => {
-  it('returns an empty analytics payload when no users are present', () => {
-    expect(getEmptyBusinessAnalyticsResponse()).toMatchObject({
-      success: true,
-      general_metrics: {
-        total_users: 0,
-        total_courses_assigned: 0,
-        completed_courses: 0,
+import type { BuildBusinessAnalyticsResponseInput } from '../analytics-response.types'
+import { buildBusinessAnalyticsResponse } from '../analytics-response.service'
+
+function buildInput(): BuildBusinessAnalyticsResponseInput {
+  return {
+    assignments: [
+      {
+        assigned_at: '2026-03-01T00:00:00.000Z',
+        completed_at: null,
+        completion_percentage: 40,
+        course_id: 'course-1',
+        due_date: null,
+        id: 'assignment-1',
+        status: null,
+        user_id: 'user-1',
       },
-      user_analytics: [],
-      teams: {
-        total_teams: 0,
-        teams: [],
-        ranking: [],
+      {
+        assigned_at: '2026-03-15T00:00:00.000Z',
+        completed_at: '2026-04-01T00:00:00.000Z',
+        completion_percentage: 100,
+        course_id: 'course-1',
+        due_date: null,
+        id: 'assignment-2',
+        status: 'completed',
+        user_id: 'user-2',
       },
-    })
-  })
+    ],
+    certificates: [
+      {
+        certificate_id: 'certificate-1',
+        course_id: 'course-1',
+        issued_at: '2026-04-01T00:00:00.000Z',
+        user_id: 'user-2',
+      },
+    ],
+    courses: [
+      {
+        id: 'course-1',
+        title: 'Curso Liderazgo',
+      },
+    ],
+    dailyProgress: [
+      {
+        had_activity: true,
+        progress_date: '2026-04-01',
+        sessions_completed: 1,
+        sessions_missed: 0,
+        streak_count: 3,
+        study_minutes: 20,
+        user_id: 'user-1',
+      },
+      {
+        had_activity: true,
+        progress_date: '2026-04-01',
+        sessions_completed: 1,
+        sessions_missed: 0,
+        streak_count: 7,
+        study_minutes: 60,
+        user_id: 'user-2',
+      },
+    ],
+    enrollments: [
+      {
+        completed_at: null,
+        course_id: 'course-1',
+        enrolled_at: '2026-03-01T00:00:00.000Z',
+        enrollment_id: 'enrollment-1',
+        enrollment_status: 'active',
+        overall_progress_percentage: 60,
+        started_at: '2026-03-01T00:00:00.000Z',
+        user_id: 'user-1',
+      },
+      {
+        completed_at: '2026-04-01T00:00:00.000Z',
+        course_id: 'course-1',
+        enrolled_at: '2026-03-15T00:00:00.000Z',
+        enrollment_id: 'enrollment-2',
+        enrollment_status: 'completed',
+        overall_progress_percentage: 100,
+        started_at: '2026-03-15T00:00:00.000Z',
+        user_id: 'user-2',
+      },
+    ],
+    lessonProgress: [
+      {
+        completed_at: '2026-04-01T09:00:00.000Z',
+        enrollment_id: 'enrollment-1',
+        is_completed: true,
+        last_accessed_at: '2026-04-01T09:00:00.000Z',
+        lesson_id: 'lesson-1',
+        quiz_completed: false,
+        quiz_passed: false,
+        time_spent_minutes: 30,
+        user_id: 'user-1',
+      },
+      {
+        completed_at: '2026-04-01T10:00:00.000Z',
+        enrollment_id: 'enrollment-2',
+        is_completed: true,
+        last_accessed_at: '2026-04-01T10:00:00.000Z',
+        lesson_id: 'lesson-2',
+        quiz_completed: true,
+        quiz_passed: true,
+        time_spent_minutes: 90,
+        user_id: 'user-2',
+      },
+    ],
+    liaConversations: [
+      {
+        context_type: 'course',
+        created_at: '2026-04-01T10:00:00.000Z',
+        id: 'conversation-1',
+        user_id: 'user-1',
+      },
+      {
+        context_type: 'ai_chat',
+        created_at: '2026-04-01T11:00:00.000Z',
+        id: 'conversation-2',
+        user_id: 'user-2',
+      },
+    ],
+    liaMessages: [
+      {
+        conversation_id: 'conversation-1',
+        id: 'message-1',
+        role: 'user',
+        user_id: 'user-1',
+      },
+      {
+        conversation_id: 'conversation-1',
+        id: 'message-2',
+        role: 'assistant',
+        user_id: 'user-1',
+      },
+      {
+        conversation_id: 'conversation-2',
+        id: 'message-3',
+        role: 'user',
+        user_id: 'user-2',
+      },
+    ],
+    nodes: [
+      {
+        id: 'team-1',
+        name: 'Equipo Norte',
+        organization_node_users: [{ user_id: 'user-1' }, { user_id: 'user-2' }],
+        properties: {
+          description: 'Equipo comercial',
+          image_url: 'https://example.com/team.png',
+        },
+        type: 'team',
+      },
+    ],
+    orgUsers: [
+      {
+        job_title: 'manager',
+        joined_at: '2026-01-01T00:00:00.000Z',
+        role: 'admin',
+        status: 'active',
+        user_id: 'user-1',
+        users: {
+          display_name: 'Ada',
+          email: 'ada@example.com',
+          first_name: 'Ada',
+          id: 'profile-1',
+          last_login_at: '2026-04-01T08:00:00.000Z',
+          last_name: 'Lovelace',
+          profile_picture_url: null,
+          username: 'ada',
+        },
+      },
+      {
+        job_title: null,
+        joined_at: '2026-02-01T00:00:00.000Z',
+        role: 'member',
+        status: 'active',
+        user_id: 'user-2',
+        users: {
+          display_name: 'Grace',
+          email: 'grace@example.com',
+          first_name: 'Grace',
+          id: 'profile-2',
+          last_login_at: '2026-04-01T09:00:00.000Z',
+          last_name: 'Hopper',
+          profile_picture_url: null,
+          username: 'grace',
+        },
+      },
+    ],
+    studySessions: [
+      {
+        actual_duration_minutes: 30,
+        completed_at: '2026-04-01T09:30:00.000Z',
+        id: 'session-1',
+        session_type: 'study',
+        start_time: new Date(2026, 3, 1, 9, 0, 0).toISOString(),
+        status: 'completed',
+        user_id: 'user-1',
+      },
+      {
+        actual_duration_minutes: 60,
+        completed_at: '2026-04-01T10:00:00.000Z',
+        id: 'session-2',
+        session_type: 'study',
+        start_time: new Date(2026, 3, 1, 10, 0, 0).toISOString(),
+        status: 'completed',
+        user_id: 'user-2',
+      },
+    ],
+    thirtyDaysAgoStr: '2026-03-02',
+    userNotes: [
+      {
+        id: 'note-1',
+        user_id: 'user-1',
+      },
+    ],
+  }
+}
 
-  it('deduplicates relevant course ids from assignments and enrollments', () => {
-    expect(
-      getRelevantAnalyticsCourseIds({
-        assignments: [
-          {
-            id: 'assignment-1',
-            user_id: 'user-1',
-            course_id: 'course-1',
-            status: 'assigned',
-            completion_percentage: 0,
-            assigned_at: null,
-            due_date: null,
-            completed_at: null,
-          },
-          {
-            id: 'assignment-2',
-            user_id: 'user-2',
-            course_id: 'course-2',
-            status: 'assigned',
-            completion_percentage: 0,
-            assigned_at: null,
-            due_date: null,
-            completed_at: null,
-          },
-        ],
-        enrollments: [
-          {
-            enrollment_id: 'enrollment-1',
-            user_id: 'user-1',
-            course_id: 'course-1',
-            overall_progress_percentage: 25,
-            enrollment_status: 'active',
-            completed_at: null,
-            started_at: '2026-03-01',
-          },
-        ],
-      }),
-    ).toEqual(['course-1', 'course-2'])
-  })
-
-  it('builds the analytics response from grouped source data', () => {
+describe('analytics-response service', () => {
+  it('returns an empty response when there are no organization users', () => {
     const response = buildBusinessAnalyticsResponse({
-      orgUsers: [
-        {
-          user_id: 'user-1',
-          role: 'student',
-          status: 'active',
-          joined_at: '2026-01-01',
-          job_title: null,
-          users: {
-            id: 'user-1',
-            username: 'ana',
-            email: 'ana@example.com',
-            first_name: 'Ana',
-            last_name: 'Lopez',
-            display_name: 'Ana Lopez',
-            profile_picture_url: null,
-            last_login_at: '2026-03-30T10:00:00.000Z',
-          },
-        },
-        {
-          user_id: 'user-2',
-          role: 'admin',
-          status: 'active',
-          joined_at: '2026-01-15',
-          job_title: null,
-          users: {
-            id: 'user-2',
-            username: 'mario',
-            email: 'mario@example.com',
-            first_name: 'Mario',
-            last_name: 'Perez',
-            display_name: null,
-            profile_picture_url: null,
-            last_login_at: '2026-03-20T10:00:00.000Z',
-          },
-        },
-      ],
-      assignments: [
-        {
-          id: 'assignment-1',
-          user_id: 'user-1',
-          course_id: 'course-1',
-          status: 'completed',
-          completion_percentage: 100,
-          assigned_at: '2026-03-01',
-          due_date: null,
-          completed_at: '2026-03-20',
-        },
-        {
-          id: 'assignment-2',
-          user_id: 'user-2',
-          course_id: 'course-2',
-          status: 'assigned',
-          completion_percentage: 50,
-          assigned_at: '2026-03-02',
-          due_date: null,
-          completed_at: null,
-        },
-      ],
-      enrollments: [
-        {
-          enrollment_id: 'enrollment-1',
-          user_id: 'user-1',
-          course_id: 'course-1',
-          overall_progress_percentage: 100,
-          enrollment_status: 'completed',
-          completed_at: '2026-03-20',
-          started_at: '2026-03-01',
-        },
-        {
-          enrollment_id: 'enrollment-2',
-          user_id: 'user-2',
-          course_id: 'course-2',
-          overall_progress_percentage: 50,
-          enrollment_status: 'active',
-          completed_at: null,
-          started_at: '2026-03-02',
-        },
-      ],
-      certificates: [
-        {
-          certificate_id: 'certificate-1',
-          user_id: 'user-1',
-          course_id: 'course-1',
-          issued_at: '2026-03-20',
-        },
-      ],
-      lessonProgress: [
-        {
-          user_id: 'user-1',
-          lesson_id: 'lesson-1',
-          enrollment_id: 'enrollment-1',
-          time_spent_minutes: 90,
-          is_completed: true,
-          completed_at: '2026-03-10',
-          last_accessed_at: '2026-03-10',
-          quiz_completed: true,
-          quiz_passed: true,
-        },
-        {
-          user_id: 'user-2',
-          lesson_id: 'lesson-2',
-          enrollment_id: 'enrollment-2',
-          time_spent_minutes: 30,
-          is_completed: false,
-          completed_at: null,
-          last_accessed_at: '2026-03-11',
-          quiz_completed: false,
-          quiz_passed: false,
-        },
-      ],
-      dailyProgress: [
-        {
-          user_id: 'user-1',
-          progress_date: '2026-03-31',
-          had_activity: true,
-          streak_count: 4,
-          study_minutes: 30,
-          sessions_completed: 1,
-          sessions_missed: 0,
-        },
-        {
-          user_id: 'user-2',
-          progress_date: '2026-03-15',
-          had_activity: false,
-          streak_count: 0,
-          study_minutes: 0,
-          sessions_completed: 0,
-          sessions_missed: 0,
-        },
-      ],
-      studySessions: [
-        {
-          id: 'session-1',
-          user_id: 'user-1',
-          start_time: '2026-03-31T08:00:00.000Z',
-          actual_duration_minutes: 45,
-          status: 'completed',
-          completed_at: '2026-03-31T08:45:00.000Z',
-          session_type: 'planner',
-        },
-        {
-          id: 'session-2',
-          user_id: 'user-2',
-          start_time: '2026-03-30T09:00:00.000Z',
-          actual_duration_minutes: 30,
-          status: 'pending',
-          completed_at: null,
-          session_type: 'planner',
-        },
-      ],
-      nodes: [
-        {
-          id: 'team-1',
-          name: 'Equipo A',
-          type: 'team',
-          properties: {
-            description: 'Equipo principal',
-            image_url: 'https://example.com/team-a.png',
-          },
-          organization_node_users: [
-            { user_id: 'user-1' },
-            { user_id: 'user-2' },
-          ],
-        },
-      ],
-      liaConversations: [
-        {
-          id: 'conversation-1',
-          user_id: 'user-1',
-          context_type: 'course',
-          created_at: '2026-03-21',
-        },
-      ],
-      liaMessages: [
-        {
-          id: 'message-1',
-          conversation_id: 'conversation-1',
-          role: 'user',
-          user_id: 'user-1',
-        },
-        {
-          id: 'message-2',
-          conversation_id: 'conversation-1',
-          role: 'assistant',
-          user_id: 'user-1',
-        },
-      ],
-      userNotes: [
-        {
-          id: 'note-1',
-          user_id: 'user-1',
-        },
-      ],
-      courses: [
-        {
-          id: 'course-1',
-          title: 'Curso 1',
-        },
-        {
-          id: 'course-2',
-          title: 'Curso 2',
-        },
-      ],
-      thirtyDaysAgoStr: '2026-03-01',
+      ...buildInput(),
+      orgUsers: [],
     })
 
     expect(response.general_metrics).toMatchObject({
-      total_users: 2,
-      total_courses_assigned: 2,
+      total_users: 0,
+      total_courses_assigned: 0,
+    })
+    expect(response.user_analytics).toEqual([])
+  })
+
+  it('builds business analytics sections from grouped backend data', () => {
+    const response = buildBusinessAnalyticsResponse(buildInput())
+    const adaAnalytics = response.user_analytics.find((user) => user.user_id === 'user-1')
+
+    expect(response.general_metrics).toEqual({
+      active_users: 2,
+      average_progress: 80,
       completed_courses: 1,
+      retention_rate: 100,
       total_certificates: 1,
-      active_users: 1,
-      retention_rate: 50,
+      total_courses_assigned: 2,
+      total_time_hours: 2,
+      total_users: 2,
     })
-    expect(response.user_analytics[0]).toMatchObject({
-      user_id: 'user-1',
-      display_name: 'Ana Lopez',
-      courses_completed: 1,
-      total_time_minutes: 90,
+    expect(response.trends).toMatchObject({
+      active_users_by_month: [{ count: 2, date: '2026-04' }],
+      completions_by_month: [{ count: 1, date: '2026-04' }],
+      enrollments_by_month: [{ count: 2, date: '2026-03' }],
+      time_by_month: [{ count: 2, date: '2026-04' }],
     })
-    expect(response.user_analytics[0].stats).toMatchObject({
-      current_streak: 4,
-      planner: {
-        adherence: 100,
-        total_sessions: 1,
-        completed: 1,
-        pending: 0,
-      },
+    expect(response.by_role.distribution).toEqual(
+      expect.arrayContaining([
+        { count: 1, role: 'manager' },
+        { count: 1, role: 'member' },
+      ]),
+    )
+    expect(response.course_metrics.distribution).toEqual(
+      expect.arrayContaining([
+        { count: 1, status: 'completed' },
+        { count: 1, status: 'in_progress' },
+      ]),
+    )
+    expect(response.teams).toMatchObject({
+      total_teams: 1,
+      teams: [
+        {
+          description: 'Equipo comercial',
+          member_count: 2,
+          name: 'Equipo Norte',
+          stats: {
+            average_progress: 80,
+            courses_completed: 1,
+            total_enrollments: 2,
+            total_time_hours: 2,
+          },
+          team_id: 'team-1',
+        },
+      ],
+    })
+    expect(adaAnalytics).toMatchObject({
+      average_progress: 60,
+      certificates_count: 0,
+      courses_assigned: 1,
+      courses_completed: 0,
+      display_name: 'Ada',
+      name: 'Ada Lovelace',
+      total_time_minutes: 30,
+    })
+    expect(adaAnalytics?.stats).toMatchObject({
+      current_streak: 3,
       courses: {
+        breakdown: [
+          {
+            course_id: 'course-1',
+            course_title: 'Curso Liderazgo',
+            progress: 60,
+            status: 'active',
+          },
+        ],
         notes_count: 1,
       },
       lia: {
-        total_conversations: 1,
-        total_messages: 2,
-        user_messages: 1,
         assistant_responses: 1,
         contexts: {
           ai_chat: 0,
           course: 1,
         },
+        total_conversations: 1,
       },
-    })
-    expect(response.user_analytics[0].stats.courses.breakdown[0]).toMatchObject({
-      course_id: 'course-1',
-      course_title: 'Curso 1',
-      progress: 100,
-      status: 'completed',
-    })
-    expect(response.teams.total_teams).toBe(1)
-    expect(response.teams.ranking[0]).toMatchObject({
-      team_id: 'team-1',
-      name: 'Equipo A',
-      member_count: 2,
+      planner: {
+        adherence: 100,
+        completed_sessions: 1,
+        total_sessions: 1,
+      },
     })
   })
 })

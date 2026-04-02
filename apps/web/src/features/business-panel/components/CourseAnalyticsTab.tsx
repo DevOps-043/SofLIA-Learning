@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { ResponsiveBar } from '@nivo/bar'
+import { ResponsivePie } from '@nivo/pie'
 import {
   Users,
   CheckCircle,
@@ -10,13 +12,10 @@ import {
   Award,
   AlertTriangle,
   BarChart3,
-  Target
+  Target,
+  type LucideIcon
 } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import { useThemeStore } from '@/core/stores/themeStore'
-
-const ResponsiveBar = dynamic(() => import('@nivo/bar').then(mod => mod.ResponsiveBar), { ssr: false })
-const ResponsivePie = dynamic(() => import('@nivo/pie').then(mod => mod.ResponsivePie), { ssr: false })
 
 const COLORS = {
   primary: '#8b5cf6',
@@ -32,8 +31,54 @@ interface CourseAnalyticsTabProps {
   orgSlug: string
 }
 
+interface CourseAnalyticsStats {
+  total_assigned: number
+  completed: number
+  completion_rate: number
+  average_progress: number
+  average_time_minutes: number
+}
+
+interface CourseAnalyticsEngagement {
+  active_learners: number
+  retention_rate: number
+  total_sessions: number
+  average_session_duration: number
+}
+
+interface CourseAnalyticsPerformance {
+  average_rating: number
+  total_reviews: number
+  average_completion_time_days: number
+}
+
+interface ProgressDistributionItem {
+  range: string
+  count: number
+}
+
+interface DropoffPoint {
+  lesson_title: string
+  dropoff_count: number
+}
+
+interface DropoffAnalysis {
+  average_dropoff_percentage: number
+  dropoff_points: DropoffPoint[]
+}
+
+interface CourseAnalyticsResponse {
+  success?: boolean
+  error?: string
+  stats: CourseAnalyticsStats
+  engagement: CourseAnalyticsEngagement
+  performance: CourseAnalyticsPerformance
+  progress_distribution: ProgressDistributionItem[]
+  dropoff_analysis: DropoffAnalysis
+}
+
 export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProps) {
-  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [analyticsData, setAnalyticsData] = useState<CourseAnalyticsResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { resolvedTheme } = useThemeStore()
@@ -96,7 +141,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
         credentials: 'include'
       })
       
-      const data = await response.json()
+      const data = await response.json() as CourseAnalyticsResponse
 
       if (data.success) {
         setAnalyticsData(data)
@@ -144,14 +189,14 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
   const { stats, engagement, performance, progress_distribution, dropoff_analysis } = analyticsData
 
   // Datos para gráfica de distribución de progreso
-  const progressData = progress_distribution.map((item: any) => ({
+  const progressData = progress_distribution.map((item) => ({
     id: item.range,
     label: item.range,
     value: item.count
   }))
 
   // Datos para gráfica de puntos de abandono
-  const dropoffData = dropoff_analysis.dropoff_points.map((item: any) => ({
+  const dropoffData = dropoff_analysis.dropoff_points.map((item) => ({
     lesson: item.lesson_title.substring(0, 30) + (item.lesson_title.length > 30 ? '...' : ''),
     count: item.dropoff_count
   }))
@@ -229,7 +274,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
             Distribución de Progreso
           </h3>
           <div className="h-80">
-            {progressData.length > 0 && progressData.some((d: any) => d.value > 0) ? (
+            {progressData.length > 0 && progressData.some((distribution) => distribution.value > 0) ? (
               <ResponsivePie
                 data={progressData}
                 margin={{ top: 40, right: 80, bottom: 80, left: 80 }}
@@ -332,7 +377,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
   )
 }
 
-function MetricCard({ icon: Icon, label, value, color }: { icon: any, label: string, value: string, color: string }) {
+function MetricCard({ icon: Icon, label, value, color }: { icon: LucideIcon, label: string, value: string, color: string }) {
   return (
     <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
       <div className="flex items-center justify-between mb-4">
@@ -352,4 +397,3 @@ function StatRow({ label, value }: { label: string, value: string }) {
     </div>
   )
 }
-

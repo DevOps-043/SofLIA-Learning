@@ -34,15 +34,22 @@ export interface RrwebRecordOptions {
   };
   ignoreClass?: string;
   maskTextClass?: string;
+  maskTextSelector?: string;
   maskAllInputs?: boolean;
   slimDOMOptions?: Record<string, boolean>;
   blockClass?: string;
   blockSelector?: string | null;
   ignoreCSSAttributes?: Set<string>;
+  maskInputFn?: (text: string, element: HTMLElement) => string;
+  maskTextFn?: (text: string, element: HTMLElement | null) => string;
   maskInputOptions?: {
     password?: boolean;
     email?: boolean;
     tel?: boolean;
+    text?: boolean;
+    textarea?: boolean;
+    search?: boolean;
+    url?: boolean;
   };
 }
 
@@ -280,4 +287,3 @@ export function clearRrwebCache(): void {
   rrwebLoadPromise = null;
   rrwebPlayerLoadPromise = null;
 }
-

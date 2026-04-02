@@ -7,7 +7,7 @@ import {
 } from './shared';
 
 function getElevenLabsApiKey() {
-  return process.env.ELEVENLABS_API_KEY || process.env.NEXT_PUBLIC_ELEVENLABS_API_KEY || null;
+  return process.env.ELEVENLABS_API_KEY || null;
 }
 
 function getElevenLabsVoiceId(voiceId?: string) {

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
 import { RefreshTokenError } from '@/lib/auth/refresh-token.errors';
+import { clearRateLimitCache } from '@/lib/rate-limit/advanced-rate-limit';
 
 const { refreshSessionMock } = vi.hoisted(() => ({
   refreshSessionMock: vi.fn(),
@@ -32,6 +33,7 @@ function createRequest(method: 'GET' | 'POST', cookieHeader?: string) {
 describe('/api/auth/refresh route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearRateLimitCache();
   });
 
   it('returns the next access token expiry on POST success', async () => {

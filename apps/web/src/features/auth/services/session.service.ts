@@ -112,12 +112,12 @@ export class SessionService {
           } else {
             userId = token.user_id;
 
-            supabase
-              .from('refresh_tokens')
-              .update({ last_used_at: new Date().toISOString() })
-              .eq('id', token.id)
-              .then(() => {})
-              .catch(() => {});
+            void Promise.resolve(
+              supabase
+                .from('refresh_tokens')
+                .update({ last_used_at: new Date().toISOString() })
+                .eq('id', token.id)
+            ).catch(() => undefined);
           }
         } else {
           logger.debug('No hay refresh token en cookie');
@@ -236,7 +236,7 @@ export class SessionService {
         try {
           userId = await revokeLegacySession(sessionToken);
         } catch (dbError) {
-          logger.warn('Error al revocar sesion legacy:', dbError);
+          logger.warn('Error al revocar sesion legacy:', { error: dbError });
         }
       }
 
@@ -259,7 +259,7 @@ export class SessionService {
         } catch (hashError) {
           logger.warn(
             'Error al obtener userId desde refresh token:',
-            hashError
+            { error: hashError }
           );
         }
       }
@@ -269,7 +269,7 @@ export class SessionService {
           await RefreshTokenService.revokeAllUserTokens(userId, 'user_logout');
           logger.auth('Todos los refresh tokens del usuario revocados');
         } catch (revokeError) {
-          logger.warn('Error al revocar refresh tokens:', revokeError);
+          logger.warn('Error al revocar refresh tokens:', { error: revokeError });
         }
       }
 

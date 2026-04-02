@@ -1,7 +1,7 @@
 'use client'
 
 import useSWR from 'swr'
-import { AdminStatsWithChanges } from '../services/adminStats.service'
+import type { AdminStatsWithChanges } from '../services/admin-stats.types'
 
 // 🚀 OPTIMIZACIÓN: Implementar SWR para caché automática y revalidación
 const fetcher = async (url: string): Promise<AdminStatsWithChanges> => {

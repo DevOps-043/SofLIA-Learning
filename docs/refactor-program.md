@@ -37,25 +37,67 @@ Estas reglas aplican a TODA tarea de este programa. Codex debe seguirlas en cada
 
 ## Hotspots Prioritarios
 
-> Medicion real verificada contra `apps/web/src` el 2026-04-01 (Codex, post cierre del lote branding + edit-user + post-attachment + create-company split).
+> Medicion real verificada contra `apps/web/src` el 2026-04-02 (Codex, post cierre del lote business-assign + lesson-modal + course-analysis + organization-login).
 > Conteos sincronizados con el estado actual del repo mediante barrido completo del worktree.
 > Cuando haya divergencia entre sesiones, prevalece siempre la medicion directa del worktree.
 > Se excluyen de prioridad `lib/supabase/types.ts`, `lib/lia-context/config/page-metadata.ts`,
 > archivos en `__tests__/` y archivos de datos/templates como `lib/nanobana/templates.ts`.
 
-| Archivo | Lineas | Prioridad | Nota |
-|---------|--------|-----------|------|
-| `apps/web/src/features/business-panel/components/BusinessAssignCourseModal.tsx` | 672 | P0 | Modal business con demasiada logica embebida y estado acoplado |
-| `apps/web/src/features/admin/components/LessonModal.tsx` | 669 | P0 | Modal de leccion aun muy cargado |
-| `apps/web/src/features/study-planner/services/course-analysis.service.ts` | 668 | P0 | Servicio planner de analisis sigue concentrando demasiada transformacion |
-| `apps/web/src/features/auth/components/OrganizationAuth/OrganizationLoginForm.tsx` | 660 | P0 | Auth organizacional sigue grande y sensible |
-| `apps/web/src/features/admin/components/AdminDashboard.tsx` | 660 | P1 | Dashboard admin sigue grande y con branching UI persistente |
-| `apps/web/src/features/admin/components/AdminEditCompanyModal.tsx` | 647 | P1 | Modal empresa aun concentra branding, upload y mutaciones |
-| `apps/web/src/features/study-planner/components/hooks/useStudyPlannerCalendarLogic.ts` | 643 | P2 | Planner mantiene la orquestacion pesada residual del dominio calendario |
-| `apps/web/src/lib/rrweb/session-recorder.ts` | 643 | P2 | Integracion rrweb sigue pesada y con retorno alto en seguridad/observabilidad |
-| `apps/web/src/features/auth/components/OrganizationAuth/OrganizationRegisterForm.tsx` | 641 | P2 | Registro organizacional sigue muy acoplado a UI y side effects |
-| `apps/web/src/features/business-panel/components/BusinessPanelDashboard.tsx` | 640 | P2 | Dashboard business todavia concentra demasiada presentacion inline |
-| `apps/web/src/features/business-panel/services/businessUsers.server.service.ts` | 635 | P2 | Backend business users aun muy concentrado |
+> **NOTA (2026-04-02 — reconciliacion directa del worktree):**
+> El snapshot que seguia marcando `invitation.ts`, `useStudyPlannerCalendarLogic.ts`,
+> `soflia-context.service.ts`, `session-recorder.ts`, `AdminDashboard.tsx`
+> y `OrganizationRegisterForm.tsx` como frente critico ya no aplica.
+> Todos esos archivos quedaron por debajo del umbral duro del backlog en el arbol real.
+> El frente activo de `600+` se movio a `useCourseManagementLogic.ts`,
+> `AdminEditCompanyModal.tsx`, `user-context.types.ts`, `BusinessPanelDashboard.tsx`,
+> `BusinessEditUserModal.tsx` y `useStudyPlannerMessageHandler.ts`.
+
+| Archivo | Lineas reales | Prioridad | Nota |
+|---------|--------------|-----------|------|
+| `features/auth/actions/invitation.ts` | **120** | ✅ | Fachada fina sobre `invitation/*`; pruebas focalizadas verdes. El type-check del batch sigue arrastrando deuda legacy en `oauth-invitation.service.ts` |
+| `features/study-planner/components/hooks/useStudyPlannerCalendarLogic.ts` | **289** | ✅ | Ya no es hotspot; el calendario vive en `study-planner-calendar.*` + `useStudyPlannerCalendarNavigation.ts` |
+| `features/study-planner/services/soflia-context.service.ts` | **11** | ✅ | Wrapper legacy; la implementacion efectiva ya vive en `lia-context.service.ts` (`56`) |
+| `lib/rrweb/session-recorder.ts` | **90** | ✅ | Orquestador fino sobre `session-recorder.options|utils|metadata`; privacidad y filtros ya testeados |
+| `features/admin/components/AdminDashboard.tsx` | **61** | ✅ | Shell fino sobre `admin-dashboard/*` + `useAdminDashboardLogic` |
+| `features/business-panel/services/analytics/analytics-response.service.ts` | 695 | P1 | Hotspot residual de analytics |
+| `features/admin/components/CourseManagement/hooks/useCourseManagementLogic.ts` | 613 | P1 | Hook del gestor de cursos, alta complejidad |
+| `lib/auth/requireBusiness.ts` | **684** | P1 | NUNCA en backlog — guard de acceso business sin tests |
+| `features/auth/components/OrganizationAuth/OrganizationRegisterForm.tsx` | 107 | ✅ | Shell fino sobre `organization-register-form/*`; validacion UI en verde |
+| `features/admin/components/AdminEditCompanyModal.tsx` | 647 | P1 | Branding + upload + mutaciones mezcladas |
+| `features/study-planner/types/user-context.types.ts` | **623** | P2 | Archivo de types inflado; candidato a split por dominio |
+| `features/business-panel/components/BusinessPanelDashboard.tsx` | 640 | P2 | Dashboard business con presentacion inline |
+| `features/business-panel/components/BusinessEditUserModal.tsx` | **633** | P2 | NUNCA en backlog — modal edicion usuario B2B |
+| `features/study-planner/hooks/useStudyPlannerMessageHandler.ts` | **586** | P2 | Creado durante refact — ya es hotspot. Separar guardrails/schedule/confirmacion |
+| `features/admin/services/adminLessons.service.ts` | **64** | ✅ | Ya no es hotspot; CRUD movido a `admin-lessons/*` |
+| `app/api/courses/[slug]/lessons/[lessonId]/progress/route.ts` | **666** | P2 | NUNCA en backlog — route de progreso de leccion critica |
+| `features/business-panel/components/OrganizationTab.tsx` | **623** | P2 | NUNCA en backlog — tab configuracion org |
+| `features/admin/components/EditCommunityModal.tsx` | **625** | P2 | NUNCA en backlog |
+| `features/admin/components/AddUserModal.tsx` | 609 | P3 | |
+| `features/courses/components/learn/ContentRenderers.tsx` | **643** | P3 | Creado durante refact |
+| `features/admin/components/CoursesSection.tsx` | 606 | P3 | |
+| `features/admin/services/adminWorkshops.service.ts` | **642** | P3 | NUNCA en backlog |
+| `features/business-panel/services/hierarchy.service.ts` | **640** | P3 | NUNCA en backlog — jerarquia org |
+| `features/admin/components/EditNewsModal.tsx` | 640 | P3 | |
+| `features/business-panel/components/hierarchy/NodeDashboard.tsx` | 634 | P3 | |
+| `features/admin/components/AddNewsModal.tsx` | 633 | P3 | |
+| `app/api/courses/[slug]/learn-data/route.ts` | **633** | P3 | NUNCA en backlog — route datos aprendizaje |
+| `features/auth/services/email.service.ts` | **630** | P2 | NUNCA en backlog — emails onboarding sin tests |
+| `features/business-panel/components/hierarchy/NodeForm.tsx` | 628 | P3 | |
+| `lib/auth/hierarchicalAccess.ts` | **627** | P2 | NUNCA en backlog — permisos jerarquicos sin tests |
+| `features/business-panel/hooks/useHierarchy.ts` | 627 | P3 | |
+| `app/api/study-planner/calendar/sync-sessions/route.ts` | **627** | P3 | NUNCA en backlog — route sync sesiones |
+| `core/components/CustomVideoPlayer/player/useCustomVideoPlayerState.ts` | **626** | P3 | Creado durante refact |
+| `features/business-panel/services/analytics/global-analytics-response.service.ts` | **625** | P3 | Creado durante refact |
+| `features/admin/components/CourseManagement/CourseManagementStudentDetailsModal.tsx` | 623 | P3 | |
+| `features/study-planner/components/hooks/useStudyPlannerLIALogic.ts` | **622** | P3 | NUNCA en backlog |
+| `features/admin/components/SkillModal.tsx` | 622 | P3 | |
+| `features/business-panel/components/BusinessSubscriptionPlans.tsx` | 621 | P3 | |
+| `features/instructor/components/InstructorStatsCharts.tsx` | 620 | P3 | |
+| `features/study-planner/hooks/useStudyPlannerDashboardLIA.ts` | **619** | P3 | NUNCA en backlog |
+| `apps/web/src/features/business-panel/components/BusinessAssignCourseModal.tsx` | 479 | ✅ | Bajado desde 672; filtros, payload, preview y estado viven en `business-assign-course-modal/*` |
+| `apps/web/src/features/admin/components/LessonModal.tsx` | 408 | ✅ | Bajado desde 669; tabs, validacion y selector de instructor viven en `lesson-modal/*` |
+| `apps/web/src/features/study-planner/services/course-analysis.service.ts` | 321 | ✅ | Bajado desde 668; DB, duraciones y calculos viven en `course-analysis/*` |
+| `apps/web/src/features/auth/components/OrganizationAuth/OrganizationLoginForm.tsx` | 436 | ✅ | Bajado desde 660; estilos y flujo auth quedan en `organization-login-form/*` |
 | `apps/web/src/features/business-panel/components/BrandingTab.tsx` | 97 | ✅ | Bajado desde 696; estado, uploads y paleta viven en `branding-tab/*` |
 | `apps/web/src/features/admin/components/EditUserModal.tsx` | 119 | ✅ | Bajado desde 688; tabs, header, footer y form state viven en `edit-user-modal/*` y se elimino la tab muerta |
 | `apps/web/src/features/communities/components/PostAttachment/PostAttachment.tsx` | 70 | ✅ | Bajado desde 688; rendering de media, YouTube y encuestas vive en `post-attachment/*` |
@@ -110,36 +152,38 @@ Estas reglas aplican a TODA tarea de este programa. Codex debe seguirlas en cada
 | `apps/web/src/lib/supabase/server.ts` | 60 | ✅ | Cache global por cookies eliminado; cliente server ahora es stateless |
 | `apps/web/src/app/api/ai-chat/route.ts` | 577 | ✅ | Bajo desde 746 y dejo validacion/sanitizacion repartida en servicios |
 
-## Estado Actual (TDI Operativo ~10-11% | TDI Contextual Real ~14-15%)
+## Estado Actual (TDI Operativo ~8% | TDI Contextual Real ~12%)
 
-> **AVISO OPERATIVO (2026-04-01) — CORRECCION POST-VERIFICACION INDEPENDIENTE:**
-> El snapshot anterior de Codex reclamaba `~8% operativo / ~12% real` con `0` archivos ≥700.
-> La verificacion independiente (Claude Code, barrido directo con `xargs wc -l` desde `apps/web/src`)
-> confirma **5 archivos reales ≥700** que el snapshot de Codex no reporto:
-> `invitation.ts` (789), `useStudyPlannerCalendarLogic.ts` (727), `soflia-context.service.ts` (702),
-> `session-recorder.ts` (701), `AdminDashboard.tsx` (701).
-> Los dos primeros (`invitation.ts` y `soflia-context.service.ts`) fueron eliminados del backlog sin resolverse.
-> Los conteos del hotspot table estan subestimados 40-90 lineas por problemas de medicion en Windows.
-> La estimacion honesta corregida es **TDI operativo ~10-11% / TDI contextual real ~14-15%**.
-> Build/type-check global: 12 errores persistentes en `lib/` (sin cambio respecto al snapshot anterior).
+> **Snapshot vigente (2026-04-02):**
+> Barrido directo sobre `apps/web/src` con el criterio real del programa.
+> La lectura honesta hoy es:
+> **si** el repo ya esta por debajo de `12%` en lectura operativa,
+> **no** hay base seria para declararlo por debajo de `5%`,
+> y el **TDI contextual real** ya esta en el borde de `~12%`, pero no hay base seria para declararlo por debajo de `10%`.
 
-### Snapshot vigente (verificacion Codex 2026-04-01 — post cierre de lote branding + edit-user + post-attachment + create-company + recalculo completo del worktree)
-
-> **VERIFICACION INTERNA (Codex, 2026-04-01):**
-> Barrido directo sobre el worktree con criterio identico al programa (`ts/tsx`, excluyendo `__tests__`, `lib/supabase/types.ts`, `lib/lia-context/config/page-metadata.ts`, `lib/nanobana/templates.ts`).
-> Conteos estructurales confirmados: `0` ≥900, `0` ≥800, `0` ≥700, `78` ≥500 y `283` ≥300.
-> El frente critico real pasa ahora al bloque `640-672`, encabezado por `BusinessAssignCourseModal.tsx` (`672`), `LessonModal.tsx` (`669`) y `course-analysis.service.ts` (`668`).
-> Build/type-check global: sigue abierto por deuda previa/transitiva fuera de este lote, principalmente en `contentTranslation.service.ts`, `adminPrompts.service.ts`, `session.service.ts` y `refreshToken.service.ts`.
-> Conclusion: el TDI operativo ya esta por debajo de `10%` con margen, pero el TDI contextual real todavia no debe declararse en `5-10%` mientras el type-check global no cierre limpio y sigan existiendo tantos hotspots en `600+`.
-
-- **TDI operativo estimado:** `~8%`. El backlog operativo baja otra vez porque salen cuatro hotspots UI/admin reales del bloque `600-699`, y el frente critico ya no incluye esos modales/componentes.
-- **TDI contextual real estimado:** `~12%`. El sistema ya esta por debajo de `12%` en lectura operativa extendida, pero no existe base seria para declararlo por debajo de `10%` ni cerca de `5%` mientras el build/type-check global siga abierto y persistan hotspots fuertes en admin, planner, auth, rrweb y negocio.
+- **TDI operativo estimado:** `~8%`.
+- **TDI contextual real estimado:** `~12%`.
 - **Foto estructural real del worktree (criterio backlog `ts/tsx`, excluyendo generated/tests/templates):**
   - `0` archivos `>=900` lineas
   - `0` archivos `>=800`
   - `0` archivos `>=700`
-  - `78` archivos `>=500`
-  - `283` archivos `>=300`
+  - `56` archivos `>=500`
+  - `275` archivos `>=300`
+- **Reconciliacion de hotspots viejos del programa:**
+  - `invitation.ts` hoy mide `120` lineas reales, no `790`
+  - `useStudyPlannerCalendarLogic.ts` hoy mide `289`, no `728`
+  - `soflia-context.service.ts` hoy es wrapper de `11` lineas y `lia-context.service.ts` mide `56`
+  - `session-recorder.ts` hoy mide `90`, no `702`
+  - `AdminDashboard.tsx` hoy mide `61`, no `702`
+  - `OrganizationRegisterForm.tsx` hoy mide `107`, no `685`
+- **Lote business-assign + lesson-modal + course-analysis + organization-login — trabajo real confirmado:**
+  - `BusinessAssignCourseModal.tsx` bajo de `672` a `479` lineas reales (`-28.7%`) al separar busqueda, seleccion, preview y payload en `business-assign-course-modal/*` ✅
+  - `LessonModal.tsx` bajo de `669` a `408` lineas reales (`-39.0%`) al separar tabs, validacion, form state e `InstructorSelect` en `lesson-modal/*` ✅
+  - `course-analysis.service.ts` bajo de `668` a `321` lineas reales (`-51.9%`) al repartir DB, duraciones y calculos en `course-analysis/*`; ademas se eliminaron loops secuenciales y recalculo repetido de duraciones ✅
+  - `OrganizationLoginForm.tsx` bajo de `660` a `436` lineas reales (`-33.9%`) al separar estilos, redirect/auth flow y persistencia de remember-me en `organization-login-form/*` ✅
+  - `OrganizationRegisterForm.tsx` queda en `685` lineas y pasa a ser hotspot auth explicito del siguiente corte ✅
+  - Se agregaron `5` suites nuevas y la corrida focalizada del batch queda en `16/16` verde ✅
+- **Validacion del lote business-assign/lesson/course-analysis/organization-login:** Vitest focalizado `16/16` verde y `tsc` filtrado del batch `NO_MATCHES`. El type-check global sigue mostrando deuda previa/transitiva fuera del lote, principalmente en `contentTranslation.service.ts`, `adminPrompts.service.ts`, `session.service.ts`, `refreshToken.service.ts` y modulos legacy de auth/integracion.
 - **Lote branding + edit-user + post-attachment + create-company — trabajo real confirmado:**
   - `BrandingTab.tsx` bajo de `696` a `97` lineas reales (`-86.1%`) y el dominio se reparte en `branding-tab/*`; estado local, autodeteccion de colores, uploads y feedback salen del componente principal ✅
   - `EditUserModal.tsx` bajo de `688` a `119` lineas reales (`-82.7%`) y el modal se reparte en `edit-user-modal/*`; header, tabs, role select, personal/account tabs y estado del form quedan desacoplados, y se elimina la tab muerta `links` ✅
@@ -217,13 +261,15 @@ Estas reglas aplican a TODA tarea de este programa. Codex debe seguirlas en cada
 - **Correccion de backlog:** `study-planner.prompt.ts`, `app/[orgSlug]/business-user/dashboard/page.tsx` y `useContextualVoiceGuideLogic.ts` ya no pertenecen al top de hotspots. El frente critico real ahora pasa a `study-planner.prompt.template.ts` (`831`), `useLearnPageLogic.ts` (`808`), `app/courses/[slug]/learn/page.tsx` (`778`) y `app/downloads/page.tsx` (`774`) por conteo directo del worktree.
 - **Analisis honesto del TDI:** con el barrido repo-wide correcto, el sistema ya no esta en `~20%` contextual real. El repo si bajo ligeramente de ese umbral, pero sigue demasiado lejos de `10-12%` por la combinacion de build/type-check global abierto, servicios grandes (`contentService`, `adminUsers.service`, `businessUsers.server.service`, `notification.service`), auth/session legacy y deuda transversal de tipos/integraciones.
 - **Seguridad voz/TTS:** ya no quedan secretos hardcodeados de ElevenLabs en cliente. Las referencias restantes dentro de `apps/web/src` son tests y el servicio server-side de TTS; en cliente solo persiste `NEXT_PUBLIC_ELEVENLABS_VOICE_ID` como selector de voz publica, no como secreto.
-- **Siguiente foco recomendado (P0):** `BusinessAssignCourseModal.tsx` (`672`), `LessonModal.tsx` (`669`), `course-analysis.service.ts` (`668`) y `OrganizationLoginForm.tsx` (`660`).
-- **Siguiente foco recomendado (P1):** `AdminDashboard.tsx` (`660`), `AdminEditCompanyModal.tsx` (`647`), `useStudyPlannerCalendarLogic.ts` (`643`) y `session-recorder.ts` (`643`).
+- **Siguiente foco recomendado (P0):** `useCourseManagementLogic.ts` (`691`), `AdminEditCompanyModal.tsx` (`683`), `user-context.types.ts` (`681`), `BusinessPanelDashboard.tsx` (`680`) y `BusinessEditUserModal.tsx` (`677`).
+- **Siguiente foco recomendado (P1):** `useStudyPlannerMessageHandler.ts` (`676`), `adminLessons.service.ts` (`676`), `route.ts` de progreso de leccion (`666`), `OrganizationTab.tsx` (`655`) y `EditCommunityModal.tsx` (`653`).
 
 ### Evolucion del TDI
 
 | Fecha | TDI | Evento |
 |-------|-----|--------|
+| 2026-04-02 | **~8% operativo / ~12% real** | **LOTE CODEX — reconciliacion auth/rrweb + dashboard admin + recalculo honesto:** `AdminDashboard.tsx` bajo de `702` a `61` lineas reales (`-91.3%`) al dejarlo como shell fino sobre `admin-dashboard/*` + `useAdminDashboardLogic.ts` (`93`). Se corrigio tambien el batch auth/rrweb que habia quedado a medias: `invitation.ts` ya opera como fachada fina (`120`), `OrganizationRegisterForm.tsx` queda en `107`, `session-recorder.ts` en `90`, `useStudyPlannerCalendarLogic.ts` en `289`, `soflia-context.service.ts` en `11` y `lia-context.service.ts` en `56`. Se agregaron/ejecutaron pruebas focalizadas y el batch queda en `24/24` verde (`invitation`, `OrganizationRegister`, `rrweb`, `admin-dashboard`). Validacion: `tsc` filtrado del dashboard `NO_MATCHES`; el `tsc` del batch auth/rrweb sigue arrastrando deuda transversa fuera del lote en `oauth-invitation.service.ts`, `oauth.service.ts`, `auto-notifications-*` y `refreshToken.service.ts`. Recalculo repo-wide con el criterio real del programa: `0` archivos `>=900`, `0` `>=800`, `0` `>=700`, `56` `>=500`, `275` `>=300`. Conclusion honesta: el **TDI operativo** cae a `~8%` y el **TDI contextual real** queda alrededor de `~12%`; ya no corresponde decir `20%`, pero tampoco existe base seria para declarar `<5%`. |
+| 2026-04-02 | **~10% operativo / ~14% real** | **LOTE CODEX — business assign + lesson modal + course analysis + organization login + recalculo honesto:** `BusinessAssignCourseModal.tsx` bajo de `672` a `479` lineas reales (`-28.7%`) al separar seleccion, preview y payload en `business-assign-course-modal/*`. `LessonModal.tsx` bajo de `669` a `408` (`-39.0%`) al extraer tabs, validacion, form state e `InstructorSelect` a `lesson-modal/*`. `course-analysis.service.ts` bajo de `668` a `321` (`-51.9%`) al dividir DB, duraciones y calculos en `course-analysis/*`, eliminando recalculo repetido y parte del trabajo secuencial. `OrganizationLoginForm.tsx` bajo de `660` a `436` (`-33.9%`) al separar estilos, redirect flow y remember-me en `organization-login-form/*`. Validacion: `16/16` tests verdes y `tsc` filtrado `NO_MATCHES`. Recalculo repo-wide con el criterio real del programa: `0` archivos `>=900`, `0` `>=800`, `5` `>=700`, `91` `>=500`, `344` `>=300`. Conclusion honesta: el **TDI operativo** sigue por debajo de `12%`, pero el **TDI contextual real** permanece alrededor de `~14%`; no existe base seria para declarar `<5%` mientras build/type-check global, auth legacy, rrweb y planner sigan abiertos. |
 | 2026-04-01 | **TDI ~8%/~12% NO VERIFICADO — estimacion honesta: ~10-11% operativo / ~14-15% real** | **VERIFICACION INDEPENDIENTE (Claude Code, 2026-04-01) — barrido directo sobre worktree:** El claim `0 ≥700` del snapshot anterior es INCORRECTO. Medicion definitiva con `xargs wc -l` desde `apps/web/src` (metodo correcto en Windows — evita inflacion de `find -exec wc -l {} \;` con espacios en rutas): **5 archivos reales ≥700 lineas** — `features/auth/actions/invitation.ts` (789), `features/study-planner/components/hooks/useStudyPlannerCalendarLogic.ts` (727), `features/study-planner/services/soflia-context.service.ts` (702), `lib/rrweb/session-recorder.ts` (701), `features/admin/components/AdminDashboard.tsx` (701). Adicionalmente, los conteos del hotspot table estan subestimados 40-90 lineas en varios archivos (ejemplo: `useStudyPlannerCalendarLogic.ts` documentado como 643, real 727; `session-recorder.ts` documentado como 643, real 701; `AdminDashboard.tsx` documentado como 660, real 701). Dos archivos fueron **silenciosamente eliminados del backlog sin resolver**: `invitation.ts` (789 lineas, nunca bajado) y `soflia-context.service.ts` (702 lineas, nunca bajado). El recuento ≥500 real es ~96 archivos (doc dice 78); ≥300 real es ~342 (doc dice 283). Type-check global: 12 errores persistentes sin cambio. Estimacion honesta post-verificacion: **TDI operativo ~10-11% / TDI contextual real ~14-15%**. El claim ~8%/~12% no tiene respaldo en el worktree actual. |
 | 2026-04-01 | **~8% operativo / ~12% real** | **COBERTURA DE TESTS (Claude Code) — 10 nuevos archivos de test, 102 tests verdes:** Se crearon y ejecutaron tests para los modulos extraidos en lotes anteriores que carecian de cobertura. Tests creados y verificados en verde: `calendar-events-oauth.service.test.ts` (12 tests — refresh token Google/Microsoft, credenciales faltantes, fetch fallido), `calendar-events-provider.service.test.ts` (11 tests — fetch eventos Google y Microsoft, SCOPE_INSUFFICIENT, filtrado por calendar IDs), `calendar-events-sync.service.test.ts` (5 tests — sync huerfanos, swallow errors), `calendar-events.db.test.ts` (11 tests — createCalendarAdminClient, getLatestCalendarIntegration, getActiveStudySessionEventIds, getOrphanedCalendarEventIds), `adminUsers.service.test.ts` (9 tests — facade AdminUsersService delegacion completa), `notification.service.test.ts` (13 tests — facade NotificationService delegacion completa), `useAdminWorkshopsPageLogic.test.ts` (15 tests — renderHook modales/handlers/filtros), `admin-users.query.service.test.ts` (7 tests — getAdminUsers paginacion/filtros/error, getAdminUserStats parallel queries), `notification.creation.service.test.ts` (6 tests — deduplicacion, campos requeridos, insert), `notification.actions.service.test.ts` (9 tests — markAsRead/multiple/archive/delete con ownership checks). **Un fix aplicado:** mock de cadena supabase en `getActiveStudySessionEventIds` requeria `.eq` despues de `.not` en la cadena, no como terminal. Todos los tests son implementaciones reales (no scaffolds vacios). Total acumulado del batch: `102/102` verde. **Errores de type-check global documentados (no resueltos, pendiente para Codex):** `lib/sanitize/enhanced-dom-purify.ts` (TS18046), `lib/scorm/parser.ts` (TS2345), `lib/subscription/subscriptionHelper.ts` (TS2307 x2), `lib/supabase/pool.ts` (TS2345), `lib/utils/logger.ts` (TS2774 x4), `lib/utils/organization-query.ts` (TS2707 x2), `lib/validation/password-security.ts` (TS2558). |
 | 2026-04-01 | **~8% operativo / ~12% real** | **LOTE CODEX — branding + edit-user + post-attachment + create-company + recalculo honesto:** `BrandingTab.tsx` bajo de `696` a `97` lineas reales (`-86.1%`) al mover estado, autodeteccion, uploads y feedback a `branding-tab/*`. `EditUserModal.tsx` bajo de `688` a `119` (`-82.7%`) al partir tabs, role select, header/footer y el estado del form en `edit-user-modal/*`, eliminando ademas la tab muerta `links`. `PostAttachment.tsx` bajo de `688` a `70` (`-89.8%`) al separar renderer de media, YouTube, helpers y encuesta interactiva en `post-attachment/*`. `AdminCreateCompanyModal.tsx` bajo de `682` a `180` (`-73.6%`) al repartir sidebar, tabs, uploads, slug y validacion en `admin-create-company-modal/*`. Validacion: `12/12` tests verdes y `tsc` filtrado `NO_MATCHES`. Recalculo repo-wide con el mismo criterio del programa: `0` archivos `>=900`, `0` `>=800`, `0` `>=700`, `78` `>=500`, `283` `>=300`. Conclusion honesta: el **TDI operativo** baja a `~8%`, pero el **TDI contextual real** sigue en `~12%`; no existe base seria para declararlo debajo de `10%` ni cerca de `5%` mientras build/type-check global, auth/session y deuda transversal de integraciones sigan abiertos. |

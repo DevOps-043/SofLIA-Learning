@@ -4,6 +4,7 @@
  */
 
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
@@ -12,7 +13,7 @@ import type { CalendarEvent } from './types';
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
  */
-export function createAdminClient() {
+export function createLegacyAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

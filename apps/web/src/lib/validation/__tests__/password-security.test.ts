@@ -8,6 +8,8 @@ import {
   getPasswordStrengthLevel,
   validatePassword,
   generateSecurePassword,
+  passwordSchema,
+  passwordConfirmationSchema,
   PASSWORD_REQUIREMENTS,
   PasswordStrength,
 } from '../password-security'
@@ -218,5 +220,37 @@ describe('generateSecurePassword', () => {
     const minLength = PASSWORD_REQUIREMENTS.minLength
     const password = generateSecurePassword(minLength)
     expect(password.length).toBeGreaterThanOrEqual(minLength)
+  })
+})
+
+describe('passwordSchema', () => {
+  it('accepts a strong password', () => {
+    const result = passwordSchema.safeParse('X9#mK2$pL7@qN3wZ')
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects an obviously weak common password candidate', () => {
+    const result = passwordSchema.safeParse('password123')
+    expect(result.success).toBe(false)
+  })
+})
+
+describe('passwordConfirmationSchema', () => {
+  it('accepts matching passwords', () => {
+    const result = passwordConfirmationSchema.safeParse({
+      password: 'X9#mK2$pL7@qN3wZ',
+      passwordConfirmation: 'X9#mK2$pL7@qN3wZ',
+    })
+
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects mismatched passwords', () => {
+    const result = passwordConfirmationSchema.safeParse({
+      password: 'X9#mK2$pL7@qN3wZ',
+      passwordConfirmation: 'X9#mK2$pL7@qN3wX',
+    })
+
+    expect(result.success).toBe(false)
   })
 })

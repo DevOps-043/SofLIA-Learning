@@ -5,6 +5,59 @@
 
 import { createClient } from '@/lib/supabase/server';
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+interface CourseModuleRow {
+  module_id: string | null;
+  module_title: string | null;
+}
+
+type CourseModuleRelation = CourseModuleRow | CourseModuleRow[] | null;
+
+interface LessonRelationRow {
+  lesson_id: string;
+  lesson_title: string | null;
+  module_id: string | null;
+  course_modules: CourseModuleRelation;
+}
+
+type LessonRelation = LessonRelationRow | LessonRelationRow[] | null;
+
+interface LessonTimeEstimateRow {
+  lesson_id: string;
+  video_minutes: number | null;
+  activities_time_minutes: number | null;
+  reading_time_minutes: number | null;
+  interactions_time_minutes: number | null;
+  quiz_time_minutes: number | null;
+  total_time_minutes: number | null;
+  course_lessons: LessonRelation;
+}
+
+interface CourseLessonRow {
+  lesson_id: string;
+  lesson_title: string | null;
+  duration_seconds: number | null;
+  module_id: string | null;
+  course_modules: CourseModuleRelation;
+}
+
+interface EstimatedTimeRow {
+  estimated_time_minutes: number | null;
+}
+
+function getRelationRecord<T>(relation: T | T[] | null | undefined): T | null {
+  if (Array.isArray(relation)) {
+    return relation[0] || null;
+  }
+
+  return relation || null;
+}
+
+function sumEstimatedMinutes(items: EstimatedTimeRow[] | null | undefined): number {
+  return items?.reduce((sum, item) => sum + (item.estimated_time_minutes || 0), 0) || 0;
+}
+
 // Tipos para tiempos de lecciones
 export interface LessonTimeEstimate {
   lessonId: string;
@@ -115,7 +168,10 @@ export class LessonTimeService {
   /**
    * Obtiene los tiempos de todas las lecciones de un curso
    */
-  private static async getCourseLessonsTime(courseId: string, supabase: any): Promise<LessonTimeEstimate[]> {
+  private static async getCourseLessonsTime(
+    courseId: string,
+    supabase: SupabaseServerClient,
+  ): Promise<LessonTimeEstimate[]> {
     // Primero intentar obtener de lesson_time_estimates si existe
     const { data: timeEstimates } = await supabase
       .from('lesson_time_estimates')
@@ -141,7 +197,7 @@ export class LessonTimeService {
 
     if (timeEstimates && timeEstimates.length > 0) {
       // Usar datos pre-calculados
-      return timeEstimates.map((estimate: any) => ({
+      return timeEstimates.map((estimate) => ({
         lessonId: estimate.lesson_id,
         lessonTitle: estimate.course_lessons?.lesson_title || 'Sin título',
         moduleId: estimate.course_lessons?.module_id || null,
@@ -161,7 +217,10 @@ export class LessonTimeService {
   /**
    * Calcula los tiempos de lecciones en tiempo real (fallback)
    */
-  private static async calculateLessonsTimeRealtime(courseId: string, supabase: any): Promise<LessonTimeEstimate[]> {
+  private static async calculateLessonsTimeRealtime(
+    courseId: string,
+    supabase: SupabaseServerClient,
+  ): Promise<LessonTimeEstimate[]> {
     // Obtener lecciones del curso
     const { data: lessons } = await supabase
       .from('course_lessons')
@@ -197,8 +256,8 @@ export class LessonTimeService {
 
       // Calcular tiempos
       const videoMinutes = Math.ceil((lesson.duration_seconds || 0) / 60);
-      const activitiesMinutes = activities?.reduce((sum: number, a: any) => sum + (a.estimated_time_minutes || 0), 0) || 0;
-      const materialsMinutes = materials?.reduce((sum: number, m: any) => sum + (m.estimated_time_minutes || 0), 0) || 0;
+      const activitiesMinutes = sumEstimatedMinutes(activities as EstimatedTimeRow[] | null);
+      const materialsMinutes = sumEstimatedMinutes(materials as EstimatedTimeRow[] | null);
       const interactionsMinutes = this.INTERACTION_TIME_MINUTES;
 
       const totalMinutes = videoMinutes + activitiesMinutes + materialsMinutes + interactionsMinutes;
@@ -328,4 +387,3 @@ export class LessonTimeService {
     return `${hours}h ${remainingMinutes}min`;
   }
 }
-

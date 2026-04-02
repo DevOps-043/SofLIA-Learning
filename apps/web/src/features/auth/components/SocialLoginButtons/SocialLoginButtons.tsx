@@ -1,9 +1,14 @@
 'use client';
 
+import type { ComponentProps, JSX } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { GoogleLoginButton } from '../GoogleLoginButton/GoogleLoginButton';
 import { MicrosoftLoginButton } from '../MicrosoftLoginButton/MicrosoftLoginButton';
+
+const SafeLink = Link as unknown as (
+  props: ComponentProps<typeof Link>
+) => JSX.Element;
 
 interface SocialLoginButtonsProps {
   googleEnabled?: boolean;
@@ -87,7 +92,7 @@ export function SocialLoginButtons({
         >
           <p className="text-sm text-gray-600 dark:text-white/70">
             ¿Ya tienes cuenta?{' '}
-            <Link
+            <SafeLink
               href={`/auth/${organizationSlug}${
                 invitationToken 
                   ? `?invitation_token=${invitationToken}` 
@@ -98,7 +103,7 @@ export function SocialLoginButtons({
               className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             >
               Iniciar sesión
-            </Link>
+            </SafeLink>
           </p>
         </motion.div>
       )}

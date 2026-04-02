@@ -20,7 +20,10 @@
  * ```
  */
 
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+interface OrganizationScopedQuery<TQuery> {
+  eq(column: string, value: string): TQuery;
+  is(column: string, value: null): TQuery;
+}
 
 /**
  * Add organization filter to a Supabase query.
@@ -31,10 +34,10 @@ import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
  * @param organizationId - Organization ID or null for B2C users
  * @returns The query with organization filter applied
  */
-export function withOrganizationFilter<T>(
-  query: PostgrestFilterBuilder<any, any, T>,
+export function withOrganizationFilter<TQuery extends OrganizationScopedQuery<TQuery>>(
+  query: TQuery,
   organizationId: string | null
-): PostgrestFilterBuilder<any, any, T> {
+): TQuery {
   if (organizationId) {
     return query.eq('organization_id', organizationId);
   } else {

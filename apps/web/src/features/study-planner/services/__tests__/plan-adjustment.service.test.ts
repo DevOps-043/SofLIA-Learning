@@ -10,10 +10,9 @@ import type { StudyPlannerStoredLessonDistribution } from '../../types/planner-s
 
 describe('validateScheduleConflict', () => {
   const makeDate = (dateStr: string, time: string) => {
+    const [year, month, day] = dateStr.split('-').map(Number);
     const [h, m] = time.split(':').map(Number);
-    const d = new Date(dateStr);
-    d.setHours(h, m, 0, 0);
-    return d;
+    return new Date(year, month - 1, day, h, m, 0, 0);
   };
 
   it('returns no conflict when savedCalendarData is null', () => {

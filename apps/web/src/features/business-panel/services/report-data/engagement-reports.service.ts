@@ -5,7 +5,75 @@ import {
   getUserDisplayName,
   type ReportRuntime,
   type ReportSupabaseClient,
+  type ReportUserProfile,
 } from './shared'
+
+interface AssignmentCourse {
+  id: string
+  title: string | null
+  category: string | null
+  level?: string | null
+}
+
+interface OrganizationCourseAssignment {
+  user_id: string
+  course_id: string
+  status: string | null
+  completion_percentage: number | null
+  assigned_at: string | null
+  completed_at: string | null
+  due_date: string | null
+}
+
+interface ProgressReportRow extends OrganizationCourseAssignment {
+  user_name: string
+  user_email: string
+  course_title: string
+  course_category: string
+  course_level: string
+}
+
+interface ProgressByCourseSummary {
+  course_id: string
+  course_title: string
+  total: number
+  completed: number
+  in_progress: number
+  not_started: number
+  average_progress: number
+}
+
+interface CourseEnrollment {
+  user_id: string
+  course_id: string
+  enrolled_at: string | null
+  last_accessed_at: string | null
+  enrollment_status: string | null
+}
+
+interface ActivityReportRow extends CourseEnrollment {
+  user_name: string
+  user_email: string
+  course_title: string
+  course_category: string
+}
+
+interface ActivityByCourseSummary {
+  course_id: string
+  course_title: string
+  total_enrollments: number
+  active: number
+  completed: number
+  inactive: number
+}
+
+function buildUserMap(
+  organizationUsers: Awaited<ReturnType<typeof getActiveOrganizationUsers>>,
+): Map<string, ReportUserProfile | null> {
+  return new Map(
+    organizationUsers.map((organizationUser) => [organizationUser.user_id, organizationUser.users]),
+  )
+}
 
 export async function generateProgressReport(
   supabase: ReportSupabaseClient,
@@ -14,7 +82,7 @@ export async function generateProgressReport(
   runtime: ReportRuntime,
 ) {
   const organizationUsers = await getActiveOrganizationUsers(supabase, organizationId, runtime)
-  const organizationUserIds = organizationUsers.map((organizationUser: any) => organizationUser.user_id)
+  const organizationUserIds = organizationUsers.map((organizationUser) => organizationUser.user_id)
   const userIds = getFilteredUserIds(organizationUserIds, filters)
 
   if (userIds.length === 0) {
@@ -25,8 +93,8 @@ export async function generateProgressReport(
       in_progress_count: 0,
       not_started_count: 0,
       average_progress: 0,
-      progress_data: [],
-      progress_by_course: [],
+      progress_data: [] as ProgressReportRow[],
+      progress_by_course: [] as ProgressByCourseSummary[],
     }
   }
 
@@ -45,7 +113,8 @@ export async function generateProgressReport(
   }
 
   const { data: assignments } = await assignmentsQuery
-  const courseIds = [...new Set((assignments || []).map((assignment: any) => assignment.course_id))]
+  const assignmentRows = (assignments || []) as OrganizationCourseAssignment[]
+  const courseIds = [...new Set(assignmentRows.map((assignment) => assignment.course_id))]
   const courses =
     courseIds.length > 0
       ? (
@@ -56,12 +125,11 @@ export async function generateProgressReport(
         ).data
       : []
 
-  const courseMap = new Map((courses || []).map((course: any) => [course.id, course]))
-  const userMap = new Map(
-    organizationUsers.map((organizationUser: any) => [organizationUser.user_id, organizationUser.users]),
-  )
+  const courseRows = (courses || []) as AssignmentCourse[]
+  const courseMap = new Map(courseRows.map((course) => [course.id, course]))
+  const userMap = buildUserMap(organizationUsers)
 
-  const progressData = (assignments || []).map((assignment: any) => {
+  const progressData: ProgressReportRow[] = assignmentRows.map((assignment) => {
     const course = courseMap.get(assignment.course_id)
     const user = userMap.get(assignment.user_id)
 
@@ -75,50 +143,48 @@ export async function generateProgressReport(
     }
   })
 
-  const completedCount = progressData.filter((progress: any) => progress.status === 'completed').length
-  const inProgressCount =
-    progressData.filter((progress: any) => progress.status === 'in_progress').length
-  const notStartedCount =
-    progressData.filter((progress: any) => progress.status === 'not_started').length
+  const completedCount = progressData.filter((progress) => progress.status === 'completed').length
+  const inProgressCount = progressData.filter((progress) => progress.status === 'in_progress').length
+  const notStartedCount = progressData.filter((progress) => progress.status === 'not_started').length
   const averageProgress =
     progressData.length > 0
       ? progressData.reduce(
-          (sum: number, progress: any) => sum + (progress.completion_percentage || 0),
+          (sum, progress) => sum + (progress.completion_percentage || 0),
           0,
         ) / progressData.length
       : 0
 
-  const progressByCourse = new Map()
-  progressData.forEach((progress: any) => {
-    if (!progressByCourse.has(progress.course_id)) {
-      progressByCourse.set(progress.course_id, {
-        course_id: progress.course_id,
-        course_title: progress.course_title,
-        total: 0,
-        completed: 0,
-        in_progress: 0,
-        not_started: 0,
-        average_progress: 0,
-      })
+  const progressByCourse = new Map<string, ProgressByCourseSummary>()
+  progressData.forEach((progress) => {
+    const currentCourse = progressByCourse.get(progress.course_id) || {
+      course_id: progress.course_id,
+      course_title: progress.course_title,
+      total: 0,
+      completed: 0,
+      in_progress: 0,
+      not_started: 0,
+      average_progress: 0,
     }
 
-    const course = progressByCourse.get(progress.course_id)
-    course.total++
+    currentCourse.total++
     if (progress.status === 'completed') {
-      course.completed++
+      currentCourse.completed++
     } else if (progress.status === 'in_progress') {
-      course.in_progress++
+      currentCourse.in_progress++
     } else {
-      course.not_started++
+      currentCourse.not_started++
     }
-    course.average_progress =
-      ((course.average_progress * (course.total - 1)) + (progress.completion_percentage || 0)) /
-      course.total
+    currentCourse.average_progress =
+      ((currentCourse.average_progress * (currentCourse.total - 1)) +
+        (progress.completion_percentage || 0)) /
+      currentCourse.total
+
+    progressByCourse.set(progress.course_id, currentCourse)
   })
 
   return {
     total_users: userIds.length,
-    total_assignments: assignments?.length || 0,
+    total_assignments: assignmentRows.length,
     completed_count: completedCount,
     in_progress_count: inProgressCount,
     not_started_count: notStartedCount,
@@ -135,7 +201,7 @@ export async function generateActivityReport(
   runtime: ReportRuntime,
 ) {
   const organizationUsers = await getActiveOrganizationUsers(supabase, organizationId, runtime)
-  const organizationUserIds = organizationUsers.map((organizationUser: any) => organizationUser.user_id)
+  const organizationUserIds = organizationUsers.map((organizationUser) => organizationUser.user_id)
   const userIds = getFilteredUserIds(organizationUserIds, filters)
 
   if (userIds.length === 0) {
@@ -145,8 +211,8 @@ export async function generateActivityReport(
       active_count: 0,
       completed_count: 0,
       inactive_count: 0,
-      activities: [],
-      activity_by_course: [],
+      activities: [] as ActivityReportRow[],
+      activity_by_course: [] as ActivityByCourseSummary[],
     }
   }
 
@@ -165,7 +231,8 @@ export async function generateActivityReport(
   }
 
   const { data: enrollments } = await enrollmentsQuery.limit(500)
-  const courseIds = [...new Set((enrollments || []).map((enrollment: any) => enrollment.course_id))]
+  const enrollmentRows = (enrollments || []) as CourseEnrollment[]
+  const courseIds = [...new Set(enrollmentRows.map((enrollment) => enrollment.course_id))]
   const courses =
     courseIds.length > 0
       ? (
@@ -176,12 +243,11 @@ export async function generateActivityReport(
         ).data
       : []
 
-  const courseMap = new Map((courses || []).map((course: any) => [course.id, course]))
-  const userMap = new Map(
-    organizationUsers.map((organizationUser: any) => [organizationUser.user_id, organizationUser.users]),
-  )
+  const courseRows = (courses || []) as AssignmentCourse[]
+  const courseMap = new Map(courseRows.map((course) => [course.id, course]))
+  const userMap = buildUserMap(organizationUsers)
 
-  const activities = (enrollments || []).map((enrollment: any) => {
+  const activities: ActivityReportRow[] = enrollmentRows.map((enrollment) => {
     const course = courseMap.get(enrollment.course_id)
     const user = userMap.get(enrollment.user_id)
 
@@ -194,34 +260,33 @@ export async function generateActivityReport(
     }
   })
 
-  const activeCount = activities.filter((activity: any) => activity.enrollment_status === 'active').length
+  const activeCount = activities.filter((activity) => activity.enrollment_status === 'active').length
   const completedCount =
-    activities.filter((activity: any) => activity.enrollment_status === 'completed').length
+    activities.filter((activity) => activity.enrollment_status === 'completed').length
   const inactiveCount =
-    activities.filter((activity: any) => activity.enrollment_status === 'inactive').length
+    activities.filter((activity) => activity.enrollment_status === 'inactive').length
 
-  const activityByCourse = new Map()
-  activities.forEach((activity: any) => {
-    if (!activityByCourse.has(activity.course_id)) {
-      activityByCourse.set(activity.course_id, {
-        course_id: activity.course_id,
-        course_title: activity.course_title,
-        total_enrollments: 0,
-        active: 0,
-        completed: 0,
-        inactive: 0,
-      })
+  const activityByCourse = new Map<string, ActivityByCourseSummary>()
+  activities.forEach((activity) => {
+    const currentCourse = activityByCourse.get(activity.course_id) || {
+      course_id: activity.course_id,
+      course_title: activity.course_title,
+      total_enrollments: 0,
+      active: 0,
+      completed: 0,
+      inactive: 0,
     }
 
-    const course = activityByCourse.get(activity.course_id)
-    course.total_enrollments++
+    currentCourse.total_enrollments++
     if (activity.enrollment_status === 'active') {
-      course.active++
+      currentCourse.active++
     } else if (activity.enrollment_status === 'completed') {
-      course.completed++
+      currentCourse.completed++
     } else {
-      course.inactive++
+      currentCourse.inactive++
     }
+
+    activityByCourse.set(activity.course_id, currentCourse)
   })
 
   return {

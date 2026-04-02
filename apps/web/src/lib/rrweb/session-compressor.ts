@@ -5,7 +5,8 @@
 
 'use client';
 
-import type { RecordingSession } from './session-recorder';
+import type { eventWithTime } from '@rrweb/types'
+import type { RecordingSession } from './session-recorder.types';
 
 // Límite máximo de tamaño (2MB)
 export const MAX_SESSION_SIZE = 2 * 1024 * 1024;
@@ -129,16 +130,18 @@ export function trimSessionToSize(session: RecordingSession, maxSize: number = T
   const snapshot = snapshotIndex !== -1 ? events[snapshotIndex] : null;
   
   // Remover eventos antiguos (excepto snapshot) hasta alcanzar el tamaño objetivo
-  let trimmedEvents = snapshot ? [snapshot] : [];
+  let trimmedEvents: eventWithTime[] = snapshot ? [snapshot] : [];
   const otherEvents = events.filter((_, i) => i !== snapshotIndex);
   
   // Agregar eventos desde el más reciente hacia atrás
   for (let i = otherEvents.length - 1; i >= 0; i--) {
-    const testEvents = [snapshot, ...trimmedEvents.slice(1), otherEvents[i]].filter(Boolean);
+    const testEvents = [snapshot, ...trimmedEvents.slice(1), otherEvents[i]].filter(
+      (event): event is eventWithTime => Boolean(event)
+    );
     const testSession = { ...session, events: testEvents };
     
     if (getSessionSize(testSession) <= maxSize) {
-      trimmedEvents = testEvents as typeof events;
+      trimmedEvents = testEvents;
     } else {
       break;
     }

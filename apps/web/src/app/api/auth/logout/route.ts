@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger';
 import { SessionService } from '../../../../features/auth/services/session.service'
+import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const rateLimitResponse = applyAuthRateLimit(request)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     logger.log('🚪 API Logout: Iniciando...')
     
     // Destruir la sesión usando SessionService

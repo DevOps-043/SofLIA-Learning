@@ -11,11 +11,12 @@ import { SessionService } from '../../../../../features/auth/services/session.se
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
+import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
 
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
  */
-function createAdminClient() {
+export function createLegacyAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
     logger.info(`Dashboard plan API: Buscando plan para usuario ${user.id}`);
 
     // Usar cliente admin para bypass de RLS (la autenticación ya se verificó con SessionService)
-    const supabase = createAdminClient();
+    const supabase = createSharedAdminClient();
 
     // Obtener plan más reciente del usuario
     // Nota: La tabla study_plans no tiene columna 'status', se usa el más reciente

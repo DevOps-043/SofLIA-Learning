@@ -9,6 +9,9 @@ import {
   findInvitationByEmailAction,
   consumeInvitationAction
 } from './invitation'
+import { createInvitationRepository } from './invitation/repository'
+import { finalizeBulkInviteRegistration } from './invitation/invitation-redemption.service'
+import { validateBulkInviteRegistration } from './invitation/invitation-validation.service'
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -58,6 +61,7 @@ export async function registerAction(formData: FormData) {
     const bulkInviteToken = formData.get('bulkInviteToken')?.toString()
 
     const supabase = await createClient()
+    const invitationRepository = createInvitationRepository(supabase)
 
     // Variables para almacenar datos de la invitación (si existe)
     let invitedRole: string | undefined
@@ -65,11 +69,14 @@ export async function registerAction(formData: FormData) {
 
     // Validar organización si viene de registro personalizado
     if (organizationId && organizationSlug) {
+      const currentOrganizationId = organizationId
+      const currentOrganizationSlug = organizationSlug
+
       const { data: organization, error: orgError } = await supabase
         .from('organizations')
         .select('id, slug, subscription_plan, subscription_status, is_active')
-        .eq('id', organizationId)
-        .eq('slug', organizationSlug)
+        .eq('id', currentOrganizationId)
+        .eq('slug', currentOrganizationSlug)
         .single()
 
       if (orgError || !organization) {
@@ -80,8 +87,11 @@ export async function registerAction(formData: FormData) {
       const allowedPlans = ['team', 'business', 'enterprise']
       const activeStatuses = ['active', 'trial']
 
-      if (!allowedPlans.includes(organization.subscription_plan) ||
-        !activeStatuses.includes(organization.subscription_status) ||
+      const subscriptionPlan = organization.subscription_plan ?? ''
+      const subscriptionStatus = organization.subscription_status ?? ''
+
+      if (!allowedPlans.includes(subscriptionPlan) ||
+        !activeStatuses.includes(subscriptionStatus) ||
         !organization.is_active) {
         return { error: 'Esta organización no permite nuevos registros' }
       }
@@ -92,42 +102,21 @@ export async function registerAction(formData: FormData) {
 
       if (bulkInviteToken) {
         // Caso 0: Registro con enlace de invitación masiva
-        const { data: bulkLink, error: bulkError } = await supabase
-          .from('bulk_invite_links')
-          .select('*')
-          .eq('token', bulkInviteToken)
-          .eq('organization_id', organizationId)
-          .single()
+        const bulkInviteValidation = await validateBulkInviteRegistration(
+          invitationRepository,
+          bulkInviteToken,
+          currentOrganizationId
+        )
 
-        if (bulkError || !bulkLink) {
-          return { error: 'Enlace de invitación inválido o expirado' }
+        if (!bulkInviteValidation.valid) {
+          return {
+            error:
+              bulkInviteValidation.error ||
+              'Enlace de invitacion invalido o expirado',
+          }
         }
 
-        // Verificar que el enlace está activo
-        if (bulkLink.status !== 'active') {
-          return { error: `El enlace de invitación está ${bulkLink.status === 'paused' ? 'pausado' : bulkLink.status === 'expired' ? 'expirado' : 'inactivo'}` }
-        }
-
-        // Verificar que no ha expirado
-        if (new Date(bulkLink.expires_at) <= new Date()) {
-          await supabase
-            .from('bulk_invite_links')
-            .update({ status: 'expired' })
-            .eq('id', bulkLink.id)
-          return { error: 'El enlace de invitación ha expirado' }
-        }
-
-        // Verificar que no se ha alcanzado el límite
-        if (bulkLink.current_uses >= bulkLink.max_uses) {
-          await supabase
-            .from('bulk_invite_links')
-            .update({ status: 'exhausted' })
-            .eq('id', bulkLink.id)
-          return { error: 'El enlace de invitación ha alcanzado el límite de registros' }
-        }
-
-        // Guardar rol del enlace masivo
-        invitedRole = bulkLink.role
+        invitedRole = bulkInviteValidation.role
       } else if (invitationToken) {
         // Caso 1: Registro con token de invitación individual
         const validation = await validateInvitationAction(invitationToken)
@@ -142,7 +131,7 @@ export async function registerAction(formData: FormData) {
         }
 
         // Verificar que la invitación es para esta organización
-        if (validation.organizationId !== organizationId) {
+        if (validation.organizationId !== currentOrganizationId) {
           return { error: 'Esta invitación no es para esta organización' }
         }
 
@@ -153,7 +142,7 @@ export async function registerAction(formData: FormData) {
         // Caso 2: Registro manual sin token - buscar invitación por email
         const { hasInvitation, role, error: invError } = await findInvitationByEmailAction(
           parsed.email,
-          organizationId
+          currentOrganizationId
         )
 
         if (!hasInvitation) {
@@ -251,33 +240,19 @@ export async function registerAction(formData: FormData) {
 
         // Consumir la invitación según el tipo
         if (bulkInviteToken) {
-          // Incrementar contador del enlace de invitación masiva
-          await supabase
-            .from('bulk_invite_links')
-            .update({ current_uses: supabase.rpc ? undefined : 1 }) // Placeholder, usaremos RPC
-            .eq('token', bulkInviteToken)
+          const bulkConsumeResult = await finalizeBulkInviteRegistration(
+            invitationRepository,
+            bulkInviteToken,
+            organizationId,
+            user.id
+          )
 
-          // Usar update con incremento manual
-          const { data: currentLink } = await supabase
-            .from('bulk_invite_links')
-            .select('current_uses')
-            .eq('token', bulkInviteToken)
-            .single()
-
-          if (currentLink) {
-            await supabase
-              .from('bulk_invite_links')
-              .update({ current_uses: currentLink.current_uses + 1 })
-              .eq('token', bulkInviteToken)
+          if (!bulkConsumeResult.success) {
+            throw new Error(
+              bulkConsumeResult.error ||
+                'Error al finalizar la invitacion masiva'
+            )
           }
-
-          // Registrar el uso del enlace
-          await supabase
-            .from('bulk_invite_registrations')
-            .insert({
-              bulk_invite_link_id: (await supabase.from('bulk_invite_links').select('id').eq('token', bulkInviteToken).single()).data?.id,
-              user_id: user.id
-            })
         } else {
           // Consumir invitación individual
           await consumeInvitationAction(

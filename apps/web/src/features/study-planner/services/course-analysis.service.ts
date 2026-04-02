@@ -23,6 +23,7 @@ import {
   fetchCourseLessonCountRows,
   fetchCourseInfoRow,
   fetchCourseModulesRows,
+  fetchCourseModulesRowsByCourseIds,
   fetchUserCourseProgressRows,
   fetchUserStudyStreakRow,
 } from './course-analysis/db'
@@ -35,6 +36,7 @@ import {
   createDefaultCourseProgress,
   type CourseProgressSnapshot,
 } from './course-analysis/progress.service'
+import type { CourseModuleRow } from './course-analysis/types'
 
 export class CourseAnalysisService {
   static async getUserCourses(
@@ -59,27 +61,7 @@ export class CourseAnalysisService {
   static async getCourseModules(courseId: string): Promise<CourseModule[]> {
     const moduleRows = await fetchCourseModulesRows(courseId)
 
-    return moduleRows.map((module) => ({
-      moduleId: module.module_id,
-      moduleTitle: module.module_title,
-      moduleDescription: module.module_description || undefined,
-      moduleOrderIndex: module.module_order_index,
-      moduleDurationMinutes: module.module_duration_minutes || 0,
-      isRequired: module.is_required || false,
-      isPublished: module.is_published,
-      lessons: (module.course_lessons || [])
-        .filter((lesson) => lesson.is_published)
-        .sort((left, right) => left.lesson_order_index - right.lesson_order_index)
-        .map((lesson) => ({
-          lessonId: lesson.lesson_id,
-          lessonTitle: lesson.lesson_title,
-          lessonDescription: lesson.lesson_description || undefined,
-          lessonOrderIndex: lesson.lesson_order_index,
-          durationSeconds: lesson.duration_seconds || 0,
-          moduleId: module.module_id,
-          isPublished: lesson.is_published,
-        })),
-    }))
+    return moduleRows.map(mapCourseModuleRow)
   }
 
   static async getCourseLessons(courseId: string): Promise<LessonInfo[]> {
@@ -97,15 +79,30 @@ export class CourseAnalysisService {
   static async getAllLessonsForCourses(
     courseIds: string[],
   ): Promise<Map<string, LessonDuration[]>> {
-    const courseEntries = await Promise.all(
-      courseIds.map(async (courseId) => {
-        const modules = await this.getCourseModules(courseId)
-        const durations = await fetchCourseLessonDurations(modules)
-        return [courseId, durations] as const
-      }),
+    const uniqueCourseIds = Array.from(
+      new Set(courseIds.filter((courseId) => Boolean(courseId))),
     )
 
-    return new Map(courseEntries)
+    if (uniqueCourseIds.length === 0) {
+      return new Map()
+    }
+
+    const modulesByCourseId = await this.getCourseModulesMap(uniqueCourseIds)
+    const durationMap = await fetchLessonDurationMap(
+      uniqueCourseIds.flatMap((courseId) =>
+        getCourseLessonIds(modulesByCourseId.get(courseId) || []),
+      ),
+    )
+
+    return new Map(
+      uniqueCourseIds.map((courseId) => [
+        courseId,
+        getCourseDurations(
+          modulesByCourseId.get(courseId) || [],
+          durationMap,
+        ),
+      ]),
+    )
   }
 
   static async calculateCourseTotalTime(courseId: string): Promise<number> {
@@ -229,11 +226,26 @@ export class CourseAnalysisService {
     complexities: CourseComplexity[]
     userProfile: typeof userProfile
   }> {
-    const complexities = (
-      await Promise.all(
-        courses.map((course) => this.getCourseComplexity(course.id)),
-      )
-    ).filter((complexity): complexity is CourseComplexity => Boolean(complexity))
+    void userId
+
+    const uniqueCourses = Array.from(
+      new Map(courses.map((course) => [course.id, course])).values(),
+    )
+    const modulesByCourseId = await this.getCourseModulesMap(
+      uniqueCourses.map((course) => course.id),
+    )
+    const durationMap = await fetchLessonDurationMap(
+      uniqueCourses.flatMap((course) =>
+        getCourseLessonIds(modulesByCourseId.get(course.id) || []),
+      ),
+    )
+    const complexities = uniqueCourses.map((course) =>
+      buildCourseComplexityForCourse(
+        course,
+        modulesByCourseId.get(course.id) || [],
+        durationMap,
+      ),
+    )
 
     return {
       courses,
@@ -317,4 +329,100 @@ export class CourseAnalysisService {
       longestStreak: streakRow.longest_streak || 0,
     }
   }
+
+  private static async getCourseModulesMap(
+    courseIds: string[],
+  ): Promise<Map<string, CourseModule[]>> {
+    const uniqueCourseIds = Array.from(
+      new Set(courseIds.filter((courseId) => Boolean(courseId))),
+    )
+
+    if (uniqueCourseIds.length === 0) {
+      return new Map()
+    }
+
+    const moduleRows = await fetchCourseModulesRowsByCourseIds(uniqueCourseIds)
+    const modulesByCourseId = new Map<string, CourseModule[]>()
+
+    for (const moduleRow of moduleRows) {
+      const mappedModule = mapCourseModuleRow(moduleRow)
+      const existingModules = modulesByCourseId.get(moduleRow.course_id)
+
+      if (existingModules) {
+        existingModules.push(mappedModule)
+        continue
+      }
+
+      modulesByCourseId.set(moduleRow.course_id, [mappedModule])
+    }
+
+    return modulesByCourseId
+  }
+}
+
+function mapCourseModuleRow(module: CourseModuleRow): CourseModule {
+  return {
+    moduleId: module.module_id,
+    moduleTitle: module.module_title,
+    moduleDescription: module.module_description || undefined,
+    moduleOrderIndex: module.module_order_index,
+    moduleDurationMinutes: module.module_duration_minutes || 0,
+    isRequired: module.is_required || false,
+    isPublished: module.is_published,
+    lessons: (module.course_lessons || [])
+      .filter((lesson) => lesson.is_published)
+      .sort((left, right) => left.lesson_order_index - right.lesson_order_index)
+      .map((lesson) => ({
+        lessonId: lesson.lesson_id,
+        lessonTitle: lesson.lesson_title,
+        lessonDescription: lesson.lesson_description || undefined,
+        lessonOrderIndex: lesson.lesson_order_index,
+        durationSeconds: lesson.duration_seconds || 0,
+        moduleId: module.module_id,
+        isPublished: lesson.is_published,
+      })),
+  }
+}
+
+function getCourseLessonIds(modules: CourseModule[]): string[] {
+  return modules.flatMap((module) =>
+    module.lessons.map((lesson) => lesson.lessonId),
+  )
+}
+
+function getCourseDurations(
+  modules: CourseModule[],
+  durationMap: Map<string, LessonDuration>,
+): LessonDuration[] {
+  return getCourseLessonIds(modules)
+    .map((lessonId) => durationMap.get(lessonId))
+    .filter((duration): duration is LessonDuration => Boolean(duration))
+}
+
+function buildCourseComplexityForCourse(
+  course: CourseInfo,
+  modules: CourseModule[],
+  durationMap: Map<string, LessonDuration>,
+): CourseComplexity {
+  const durations = getCourseDurations(modules, durationMap)
+  const totalLessons = modules.reduce(
+    (sum, module) => sum + module.lessons.length,
+    0,
+  )
+  const totalDurationMinutes = durations.reduce(
+    (sum, duration) => sum + duration.totalMinutes,
+    0,
+  )
+  const averageLessonDuration =
+    durations.length > 0 ? totalDurationMinutes / durations.length : 0
+
+  return buildCourseComplexity({
+    courseId: course.id,
+    level: course.level,
+    category: course.category,
+    totalLessons,
+    totalModules: modules.length,
+    totalDurationMinutes,
+    averageLessonDuration,
+  })
 }

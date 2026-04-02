@@ -101,6 +101,8 @@ logs
 
 # SQL
 *.sql
+!supabase/migrations/
+!supabase/migrations/*.sql
 !supabase/scripts/
 !supabase/scripts/*.sql
   

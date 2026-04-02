@@ -93,11 +93,10 @@ describe('HolidayService.getHolidayDatesForYear', () => {
     }
   });
 
-  it('returns empty Set for unknown country', () => {
-    // Unknown country → defaults to MX actually, so test a non-configured one
+  it('falls back to MX holidays for unknown country', () => {
+    const mxHolidays = HolidayService.getHolidayDatesForYear('MX', 2025);
     const holidays = HolidayService.getHolidayDatesForYear('XX', 2025);
-    // XX isn't in config → empty set
-    expect(holidays.size).toBe(0);
+    expect(holidays).toEqual(mxHolidays);
   });
 
   it('normalizes country code before lookup', () => {
@@ -184,11 +183,12 @@ describe('HolidayService.getHolidaysInRange', () => {
     }
   });
 
-  it('returns empty array for unknown country', () => {
+  it('falls back to MX holiday ranges for unknown country', () => {
     const start = new Date('2025-01-01T00:00:00');
     const end = new Date('2025-12-31T23:59:59');
+    const mxHolidays = HolidayService.getHolidaysInRange(start, end, 'MX');
     const holidays = HolidayService.getHolidaysInRange(start, end, 'XX');
-    expect(holidays).toHaveLength(0);
+    expect(holidays).toEqual(mxHolidays);
   });
 
   it('works across year boundaries', () => {
@@ -232,10 +232,11 @@ describe('HolidayService.getHolidayName', () => {
     expect(name).toBeNull();
   });
 
-  it('returns null for unknown country', () => {
+  it('falls back to MX holiday names for unknown country', () => {
     const date = new Date('2025-01-01T12:00:00');
+    const mxName = HolidayService.getHolidayName(date, 'MX');
     const name = HolidayService.getHolidayName(date, 'XX');
-    expect(name).toBeNull();
+    expect(name).toBe(mxName);
   });
 });
 

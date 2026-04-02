@@ -1,20 +1,33 @@
-import { NotificationService } from './notification.service'
 import { getNotificationPriority } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
+import { fromLoose } from '@/lib/supabase/looseQuery'
 import { getServerClient } from './auto-notifications-server-client'
+import {
+  dispatchNotifications,
+  dispatchNotificationsInChunks,
+  fetchNotificationActorName,
+  truncateNotificationPreview,
+} from './auto-notifications.shared'
+
+interface SimpleUserRow {
+  id: string
+}
+
+interface ReelRow {
+  title: string | null
+}
 
 /**
- * Notificaciones automáticas relacionadas con contenido publicado
- * (noticias, reels y prompts de IA).
+ * Notificaciones automaticas relacionadas con contenido publicado.
  */
 export class ContentNotificationsService {
   /**
-   * Crea notificaciones para usuarios cuando se publica una noticia
+   * Crea notificaciones para usuarios cuando se publica una noticia.
    */
   static async notifyNewsPublished(
     newsId: string,
     newsTitle: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -35,7 +48,7 @@ export class ContentNotificationsService {
         return
       }
 
-      const notifications = users.map(user => ({
+      const notifications = users.map((user: SimpleUserRow) => ({
         userId: user.id,
         notificationType: 'news_published',
         title: 'Nueva noticia publicada',
@@ -43,70 +56,66 @@ export class ContentNotificationsService {
         metadata: {
           ...metadata,
           news_id: newsId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
-        priority: getNotificationPriority('news_published')
+        priority: getNotificationPriority('news_published'),
       }))
 
-      const batchSize = 100
-      for (let i = 0; i < notifications.length; i += batchSize) {
-        const batch = notifications.slice(i, i + batchSize)
-        for (const notification of batch) {
-          await NotificationService.createNotification(notification)
-        }
-      }
+      await dispatchNotificationsInChunks(notifications)
 
-      logger.info('✅ Notificaciones de noticia publicada creadas', {
+      logger.info('Notificaciones de noticia publicada creadas', {
         newsId,
-        count: notifications.length
+        count: notifications.length,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificaciones de noticia publicada:', error)
+      logger.error('Error creando notificaciones de noticia publicada:', error)
     }
   }
 
   /**
-   * Crea una notificación cuando una noticia es destacada.
+   * Crea una notificacion cuando una noticia es destacada.
    * Notifica al autor de la noticia.
    */
   static async notifyNewsFeatured(
     newsId: string,
     newsAuthorId: string,
     newsTitle: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
-      await NotificationService.createNotification({
-        userId: newsAuthorId,
-        notificationType: 'news_featured',
-        title: 'Tu noticia fue destacada',
-        message: `Tu noticia "${newsTitle}" ha sido destacada. ¡Felicidades!`,
-        metadata: {
-          ...metadata,
-          news_id: newsId,
-          news_title: newsTitle,
-          timestamp: new Date().toISOString()
+      await dispatchNotifications([
+        {
+          userId: newsAuthorId,
+          notificationType: 'news_featured',
+          title: 'Tu noticia fue destacada',
+          message: `Tu noticia "${newsTitle}" ha sido destacada. Felicidades.`,
+          metadata: {
+            ...metadata,
+            news_id: newsId,
+            news_title: newsTitle,
+            timestamp: new Date().toISOString(),
+          },
+          priority: getNotificationPriority('news_featured'),
         },
-        priority: getNotificationPriority('news_featured')
-      })
+      ])
 
-      logger.info('✅ Notificación de noticia destacada creada', {
+      logger.info('Notificacion de noticia destacada creada', {
         newsId,
-        newsAuthorId
+        newsAuthorId,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificación de noticia destacada:', error)
+      logger.error('Error creando notificacion de noticia destacada:', error)
     }
   }
 
   /**
-   * Crea notificaciones para usuarios cuando se crea un reel
+   * Crea notificaciones para usuarios cuando se crea un reel.
    */
   static async notifyReelCreated(
     reelId: string,
     reelTitle: string,
     authorId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -128,54 +137,42 @@ export class ContentNotificationsService {
         return
       }
 
-      const { data: author } = await supabase
-        .from('users')
-        .select('username, display_name, first_name')
-        .eq('id', authorId)
-        .single()
+      const authorName = await fetchNotificationActorName(supabase, authorId)
 
-      const authorName = author?.display_name || author?.first_name || author?.username || 'Un usuario'
-
-      const notifications = users.map(user => ({
+      const notifications = users.map((user: SimpleUserRow) => ({
         userId: user.id,
         notificationType: 'reel_created',
         title: 'Nuevo reel disponible',
-        message: `${authorName} publicó un nuevo reel: "${reelTitle}"`,
+        message: `${authorName} publico un nuevo reel: "${reelTitle}"`,
         metadata: {
           ...metadata,
           reel_id: reelId,
           author_id: authorId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
-        priority: getNotificationPriority('reel_created')
+        priority: getNotificationPriority('reel_created'),
       }))
 
-      const batchSize = 100
-      for (let i = 0; i < notifications.length; i += batchSize) {
-        const batch = notifications.slice(i, i + batchSize)
-        for (const notification of batch) {
-          await NotificationService.createNotification(notification)
-        }
-      }
+      await dispatchNotificationsInChunks(notifications)
 
-      logger.info('✅ Notificaciones de reel creado creadas', {
+      logger.info('Notificaciones de reel creado creadas', {
         reelId,
-        count: notifications.length
+        count: notifications.length,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificaciones de reel creado:', error)
+      logger.error('Error creando notificaciones de reel creado:', error)
     }
   }
 
   /**
-   * Crea una notificación cuando se da like a un reel.
-   * Notifica al autor del reel (no al que da like).
+   * Crea una notificacion cuando se da like a un reel.
+   * Notifica al autor del reel, no al que da like.
    */
   static async notifyReelLiked(
     reelId: string,
     reelAuthorId: string,
     likeAuthorId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       if (reelAuthorId === likeAuthorId) {
@@ -183,49 +180,43 @@ export class ContentNotificationsService {
       }
 
       const supabase = await getServerClient()
+      const likeAuthorName = await fetchNotificationActorName(supabase, likeAuthorId)
 
-      const { data: likeAuthor } = await supabase
-        .from('users')
-        .select('username, display_name, first_name')
-        .eq('id', likeAuthorId)
-        .single()
-
-      const likeAuthorName = likeAuthor?.display_name || likeAuthor?.first_name || likeAuthor?.username || 'Un usuario'
-
-      const { data: reel } = await supabase
-        .from('reels')
+      const { data: reel } = await fromLoose<ReelRow>(supabase, 'reels')
         .select('title')
         .eq('id', reelId)
         .single()
 
       const reelTitle = reel?.title || 'tu reel'
 
-      await NotificationService.createNotification({
-        userId: reelAuthorId,
-        notificationType: 'reel_liked',
-        title: 'Nuevo like en tu reel',
-        message: `${likeAuthorName} le dio like a "${reelTitle}"`,
-        metadata: {
-          ...metadata,
-          reel_id: reelId,
-          like_author_id: likeAuthorId,
-          timestamp: new Date().toISOString()
+      await dispatchNotifications([
+        {
+          userId: reelAuthorId,
+          notificationType: 'reel_liked',
+          title: 'Nuevo like en tu reel',
+          message: `${likeAuthorName} le dio like a "${reelTitle}"`,
+          metadata: {
+            ...metadata,
+            reel_id: reelId,
+            like_author_id: likeAuthorId,
+            timestamp: new Date().toISOString(),
+          },
+          priority: getNotificationPriority('reel_liked'),
         },
-        priority: getNotificationPriority('reel_liked')
-      })
+      ])
 
-      logger.info('✅ Notificación de like en reel creada', {
+      logger.info('Notificacion de like en reel creada', {
         reelId,
         reelAuthorId,
-        likeAuthorId
+        likeAuthorId,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificación de like en reel:', error)
+      logger.error('Error creando notificacion de like en reel:', error)
     }
   }
 
   /**
-   * Crea una notificación cuando se comenta un reel.
+   * Crea una notificacion cuando se comenta un reel.
    * Notifica al autor del reel.
    */
   static async notifyReelComment(
@@ -234,7 +225,7 @@ export class ContentNotificationsService {
     reelAuthorId: string,
     commentAuthorId: string,
     commentPreview: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       if (reelAuthorId === commentAuthorId) {
@@ -242,62 +233,53 @@ export class ContentNotificationsService {
       }
 
       const supabase = await getServerClient()
+      const commentAuthorName = await fetchNotificationActorName(supabase, commentAuthorId)
 
-      const { data: commentAuthor } = await supabase
-        .from('users')
-        .select('username, display_name, first_name')
-        .eq('id', commentAuthorId)
-        .single()
-
-      const commentAuthorName = commentAuthor?.display_name || commentAuthor?.first_name || commentAuthor?.username || 'Un usuario'
-
-      const { data: reel } = await supabase
-        .from('reels')
+      const { data: reel } = await fromLoose<ReelRow>(supabase, 'reels')
         .select('title')
         .eq('id', reelId)
         .single()
 
       const reelTitle = reel?.title || 'tu reel'
+      const truncatedPreview = truncateNotificationPreview(commentPreview)
 
-      const truncatedPreview = commentPreview.length > 100
-        ? commentPreview.substring(0, 100) + '...'
-        : commentPreview
-
-      await NotificationService.createNotification({
-        userId: reelAuthorId,
-        notificationType: 'reel_comment',
-        title: 'Nuevo comentario en tu reel',
-        message: `${commentAuthorName} comentó en "${reelTitle}": "${truncatedPreview}"`,
-        metadata: {
-          ...metadata,
-          reel_id: reelId,
-          comment_id: commentId,
-          comment_author_id: commentAuthorId,
-          comment_preview: truncatedPreview,
-          timestamp: new Date().toISOString()
+      await dispatchNotifications([
+        {
+          userId: reelAuthorId,
+          notificationType: 'reel_comment',
+          title: 'Nuevo comentario en tu reel',
+          message: `${commentAuthorName} comento en "${reelTitle}": "${truncatedPreview}"`,
+          metadata: {
+            ...metadata,
+            reel_id: reelId,
+            comment_id: commentId,
+            comment_author_id: commentAuthorId,
+            comment_preview: truncatedPreview,
+            timestamp: new Date().toISOString(),
+          },
+          priority: getNotificationPriority('reel_comment'),
         },
-        priority: getNotificationPriority('reel_comment')
-      })
+      ])
 
-      logger.info('✅ Notificación de comentario en reel creada', {
+      logger.info('Notificacion de comentario en reel creada', {
         reelId,
         commentId,
         reelAuthorId,
-        commentAuthorId
+        commentAuthorId,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificación de comentario en reel:', error)
+      logger.error('Error creando notificacion de comentario en reel:', error)
     }
   }
 
   /**
-   * Crea notificaciones para usuarios cuando se crea un prompt
+   * Crea notificaciones para usuarios cuando se crea un prompt.
    */
   static async notifyPromptCreated(
     promptId: string,
     promptTitle: string,
     authorId: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -319,47 +301,35 @@ export class ContentNotificationsService {
         return
       }
 
-      const { data: author } = await supabase
-        .from('users')
-        .select('username, display_name, first_name')
-        .eq('id', authorId)
-        .single()
+      const authorName = await fetchNotificationActorName(supabase, authorId)
 
-      const authorName = author?.display_name || author?.first_name || author?.username || 'Un usuario'
-
-      const notifications = users.map(user => ({
+      const notifications = users.map((user: SimpleUserRow) => ({
         userId: user.id,
         notificationType: 'prompt_created',
         title: 'Nuevo prompt de IA disponible',
-        message: `${authorName} creó un nuevo prompt: "${promptTitle}"`,
+        message: `${authorName} creo un nuevo prompt: "${promptTitle}"`,
         metadata: {
           ...metadata,
           prompt_id: promptId,
           author_id: authorId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         },
-        priority: getNotificationPriority('prompt_created')
+        priority: getNotificationPriority('prompt_created'),
       }))
 
-      const batchSize = 100
-      for (let i = 0; i < notifications.length; i += batchSize) {
-        const batch = notifications.slice(i, i + batchSize)
-        for (const notification of batch) {
-          await NotificationService.createNotification(notification)
-        }
-      }
+      await dispatchNotificationsInChunks(notifications)
 
-      logger.info('✅ Notificaciones de prompt creado creadas', {
+      logger.info('Notificaciones de prompt creado creadas', {
         promptId,
-        count: notifications.length
+        count: notifications.length,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificaciones de prompt creado:', error)
+      logger.error('Error creando notificaciones de prompt creado:', error)
     }
   }
 
   /**
-   * Crea una notificación cuando se marca un prompt como favorito.
+   * Crea una notificacion cuando se marca un prompt como favorito.
    * Notifica al autor del prompt.
    */
   static async notifyPromptFavorited(
@@ -367,7 +337,7 @@ export class ContentNotificationsService {
     promptAuthorId: string,
     favoritedByUserId: string,
     promptTitle: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<void> {
     try {
       if (promptAuthorId === favoritedByUserId) {
@@ -375,37 +345,35 @@ export class ContentNotificationsService {
       }
 
       const supabase = await getServerClient()
+      const favoritedByName = await fetchNotificationActorName(
+        supabase,
+        favoritedByUserId,
+      )
 
-      const { data: favoritedBy } = await supabase
-        .from('users')
-        .select('username, display_name, first_name')
-        .eq('id', favoritedByUserId)
-        .single()
-
-      const favoritedByName = favoritedBy?.display_name || favoritedBy?.first_name || favoritedBy?.username || 'Un usuario'
-
-      await NotificationService.createNotification({
-        userId: promptAuthorId,
-        notificationType: 'prompt_favorited',
-        title: 'Tu prompt fue marcado como favorito',
-        message: `${favoritedByName} marcó como favorito tu prompt "${promptTitle}"`,
-        metadata: {
-          ...metadata,
-          prompt_id: promptId,
-          prompt_title: promptTitle,
-          favorited_by_user_id: favoritedByUserId,
-          timestamp: new Date().toISOString()
+      await dispatchNotifications([
+        {
+          userId: promptAuthorId,
+          notificationType: 'prompt_favorited',
+          title: 'Tu prompt fue marcado como favorito',
+          message: `${favoritedByName} marco como favorito tu prompt "${promptTitle}"`,
+          metadata: {
+            ...metadata,
+            prompt_id: promptId,
+            prompt_title: promptTitle,
+            favorited_by_user_id: favoritedByUserId,
+            timestamp: new Date().toISOString(),
+          },
+          priority: getNotificationPriority('prompt_favorited'),
         },
-        priority: getNotificationPriority('prompt_favorited')
-      })
+      ])
 
-      logger.info('✅ Notificación de prompt favorited creada', {
+      logger.info('Notificacion de prompt favorito creada', {
         promptId,
         promptAuthorId,
-        favoritedByUserId
+        favoritedByUserId,
       })
     } catch (error) {
-      logger.error('❌ Error creando notificación de prompt favorited:', error)
+      logger.error('Error creando notificacion de prompt favorito:', error)
     }
   }
 }

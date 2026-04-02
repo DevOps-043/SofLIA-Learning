@@ -42,6 +42,7 @@ export function extractPromptList(rawPrompts: unknown): string[] {
       : [parsedPrompts];
 
   return promptList
+    .filter((prompt) => prompt !== null && prompt !== undefined)
     .map((prompt) => String(prompt).replace(/^["']|["']$/g, "").trim())
     .filter(Boolean);
 }

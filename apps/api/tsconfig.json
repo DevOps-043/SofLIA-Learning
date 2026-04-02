@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ES2020",
     "lib": ["ES2020"],
     "module": "commonjs",
@@ -19,6 +20,7 @@
     "types": ["node"],
     "typeRoots": ["./node_modules/@types", "../node_modules/@types", "../../node_modules/@types"],
     "paths": {
+      "@/*": ["./src/*"],
       "@shared/*": ["../../packages/shared/src/*"],
       "@/features/*": ["./src/features/*"],
       "@/core/*": ["./src/core/*"],

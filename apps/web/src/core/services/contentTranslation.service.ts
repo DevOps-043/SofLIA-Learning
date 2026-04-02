@@ -96,7 +96,9 @@ export class ContentTranslationService {
   ): Promise<string> {
     // Siempre intentar cargar traducciones, incluso para español
     const translations = await this.loadTranslations(entityType, entityId, language);
-    return translations[field] || fallback;
+    const translatedValue = translations[field];
+
+    return typeof translatedValue === 'string' ? translatedValue : fallback;
   }
 
   /**

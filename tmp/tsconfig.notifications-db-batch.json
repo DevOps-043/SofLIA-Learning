@@ -1,0 +1,9 @@
+{
+  "extends": "../apps/web/tsconfig.json",
+  "include": [
+    "../apps/web/src/features/notifications/services/notification/types.ts",
+    "../apps/web/src/features/notifications/services/notification/utils.ts",
+    "../apps/web/src/features/notifications/services/notification/query.service.ts",
+    "../apps/web/src/features/notifications/services/notification.service.ts"
+  ]
+}

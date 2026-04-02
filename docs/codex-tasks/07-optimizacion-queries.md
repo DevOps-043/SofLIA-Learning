@@ -1,68 +1,88 @@
 # CODEX TASK — Optimización de Queries y Performance
 
 **Peso en TDI:** parte del 10% de BD + parte del 20% de Arquitectura
-**Deuda residual estimada:** sin medición formal — múltiples N+1 identificados
-**Fecha de corte:** 2026-04-01
-**Estado:** Parcialmente resuelto — varios N+1 eliminados, pero hotspots de performance
-en business panel y study planner siguen activos.
+**Deuda residual actual:** múltiples N+1 confirmados en hotspots pendientes
+**Fecha de corte:** 2026-04-02 (worktree real)
 
 ---
 
-## Lo que ya está hecho (NO tocar)
+## Ya resuelto — NO tocar
 
-- `adminCommunityContent.service.ts` — N+1 de comentarios/reacciones eliminado con bulk + mapa por `user_id` ✅
-- `app/api/courses/[slug]/full/route.ts` — pasó de múltiples queries a 1 payload agregado ✅
-- `app/api/[orgSlug]/business/analytics/route.ts` — full scan de `study_sessions` eliminado ✅
-- `analytics-identity.service.ts` — matching email/UUID en mapa O(n), no O(n²) ✅
-- `adminCommunityMembers.service.ts` — `find()` sobre arrays reemplazado por mapas ✅
-- `useCommunityDetail.ts` — pasó de 5 fetches cliente a 1 endpoint agregado ✅
-- `profile-server.service.ts` — stats en `Promise.all`, short-circuit si no hay cambios ✅
-- `app/[orgSlug]/business-user/dashboard/page.tsx` — carga de org + dashboard en `Promise.all` ✅
+| Área | Estado |
+|---|---|
+| `adminCommunityContent.service.ts` — N+1 comentarios/reacciones → bulk + mapa | ✅ |
+| `app/api/courses/[slug]/full/route.ts` — múltiples queries → 1 payload agregado | ✅ |
+| `app/api/[orgSlug]/business/analytics/route.ts` — full scan eliminado | ✅ |
+| `analytics-identity.service.ts` — matching email/UUID en mapa O(n) | ✅ |
+| `adminCommunityMembers.service.ts` — `find()` sobre arrays → mapas | ✅ |
+| `useCommunityDetail.ts` — 5 fetches cliente → 1 endpoint agregado | ✅ |
+| `profile-server.service.ts` — stats en `Promise.all`, short-circuit | ✅ |
+| `app/[orgSlug]/business-user/dashboard/page.tsx` — org + dashboard en `Promise.all` | ✅ |
+| `features/business-panel/services/businessUsers.server.service.ts` | 635 → **76** ✅ |
+
+### Índices de performance creados ✅
+
+Ver `06-base-de-datos.md` — migración `20260402113000_planner_notifications_query_indexes.sql`:
+- `idx_calendar_integrations_user_provider_updated_at`
+- `idx_study_sessions_user_plan_start_time`
+- `idx_study_sessions_calendar_sync_lookup`
+- `idx_user_notifications_unread_priority_expires_at`
 
 ---
 
 ## Pendiente — por impacto de performance
 
-### BLOQUE 1 — N+1 probables sin confirmar
+### BLOQUE 1 — Servicios grandes con N+1 probable
 
-**TAREA 1A — Auditar `features/business-panel/services/businessUsers.server.service.ts` (635 líneas)**
-
-Este es el servicio más grande sin modularizar del business panel. Los servicios de usuarios
-B2B frecuentemente tienen N+1 por usuario.
-
-```bash
-# Leer el archivo completo
-cat apps/web/src/features/business-panel/services/businessUsers.server.service.ts
-```
-
-Buscar patrones problemáticos:
-```typescript
-// ❌ N+1 clásico
-for (const user of users) {
-  const stats = await supabase.from('user_stats').select('*').eq('user_id', user.id)
-}
-
-// ✅ Corrección: bulk fetch + agrupado por mapa
-const userIds = users.map(u => u.id)
-const { data: allStats } = await supabase.from('user_stats').select('*').in('user_id', userIds)
-const statsByUser = Object.fromEntries(allStats.map(s => [s.user_id, s]))
-```
-
-**TAREA 1B — Auditar `features/study-planner/services/course-analysis.service.ts` (668 líneas)**
-
-El análisis de cursos para el planner puede hacer queries repetidas por lección/módulo.
-
-Buscar en el archivo:
-1. Loops con `await supabase.from(...)` dentro — cada uno es un N+1
-2. Múltiples llamadas a Supabase que podrían fusionarse con `.select('*, modulos(*, lecciones(*))')`
-3. Transformaciones sobre arrays completos con `.find()` — reemplazar con mapas
-
-**TAREA 1C — Auditar `features/business-panel/services/analytics/analytics-response.service.ts` (694 líneas)**
+**TAREA 1A — Auditar `features/business-panel/services/analytics/analytics-response.service.ts` (694 líneas)**
 
 Este servicio tiene lógica de agregación compleja. Verificar:
 1. ¿Hace queries dentro de loops por usuario/equipo?
 2. ¿Filtra en memoria arrays grandes que deberían filtrarse en SQL?
 3. ¿Hace múltiples `.count()` que podrían ser un solo query con `GROUP BY`?
+
+Patrón a buscar (N+1 clásico):
+```typescript
+// ❌ N+1 — una query por usuario
+for (const user of users) {
+  const stats = await supabase.from('study_sessions').select('*').eq('user_id', user.id)
+}
+
+// ✅ Corrección — bulk fetch + agrupado
+const userIds = users.map(u => u.id)
+const { data: allStats } = await supabase
+  .from('study_sessions').select('*').in('user_id', userIds)
+const statsByUser = Object.fromEntries(allStats.map(s => [s.user_id, s]))
+```
+
+**TAREA 1B — Auditar `features/study-planner/services/course-analysis.service.ts` (428 líneas)**
+
+Reducido de 668 pero sigue en 428. El análisis de cursos para el planner puede hacer
+queries repetidas por lección/módulo.
+
+Buscar en el archivo:
+1. Loops con `await supabase.from(...)` dentro — cada uno es un N+1
+2. Múltiples llamadas separadas que podrían fusionarse con `.select('*, modulos(*, lecciones(*))')`
+3. Transformaciones sobre arrays con `.find()` — reemplazar con mapas
+
+**TAREA 1C — Auditar `features/admin/services/adminLessons.service.ts` (675 líneas)**
+
+CRUD de lecciones. Candidato a N+1 en la carga de materiales por lección.
+
+```bash
+grep -n "await.*supabase\|for.*of\|forEach" \
+  apps/web/src/features/admin/services/adminLessons.service.ts | head -30
+```
+
+Separación esperada (ver `01-arquitectura-modularidad.md` TAREA 2G):
+```
+features/admin/services/admin-lessons/
+├── admin-lessons.service.ts            # facade ≤80 líneas
+├── admin-lessons-query.service.ts
+├── admin-lessons-mutation.service.ts
+├── admin-lessons-materials.service.ts
+└── __tests__/admin-lessons.service.test.ts
+```
 
 ---
 
@@ -70,65 +90,47 @@ Este servicio tiene lógica de agregación compleja. Verificar:
 
 **TAREA 2A — Notificaciones: query de conteo de no-leídas**
 
-La query de `getUnreadCount` probablemente hace un `SELECT *` con count en memoria.
+Verificar en `features/notifications/services/notification/query.service.ts`:
 
-Corrección esperada:
 ```typescript
-// ❌ Ineficiente
+// ❌ Ineficiente — count en memoria
 const { data } = await supabase
-  .from('notifications')
-  .select('*')
-  .eq('user_id', userId)
-  .eq('status', 'unread')
-// count = data.length en memoria
+  .from('user_notifications').select('*')
+  .eq('user_id', userId).eq('status', 'unread')
+// count = data.length
 
 // ✅ Eficiente — count en DB
 const { count } = await supabase
-  .from('notifications')
+  .from('user_notifications')
   .select('*', { count: 'exact', head: true })
-  .eq('user_id', userId)
-  .eq('status', 'unread')
+  .eq('user_id', userId).eq('status', 'unread')
 ```
 
-Verificar en `features/notifications/services/notification/query.service.ts`.
+**TAREA 2B — Study Sessions: verificar uso de índices en queries de rango**
 
-**TAREA 2B — Study Sessions: queries de rangos de fecha**
-
-El planner hace múltiples queries de sesiones por rango de fecha. Verificar si usan
-índices (ver `06-base-de-datos.md` TAREA 4A).
+Los índices `idx_study_sessions_user_plan_start_time` y `idx_study_sessions_calendar_sync_lookup`
+ya existen. Verificar que las queries los usan correctamente:
 
 ```bash
-# Buscar queries de study_sessions en el planner
 grep -r "study_sessions" apps/web/src/features/study-planner/services/ --include="*.ts" -l
 ```
 
-Para cada servicio: verificar que las queries filtran por `user_id` primero, luego por fecha.
-El orden de columnas en el `WHERE` afecta el uso del índice.
+Para cada servicio: el filtro por `user_id` debe ser el primer predicado en el `WHERE`.
 
 ---
 
-### BLOQUE 3 — Carga inicial de páginas con múltiples fetches
+### BLOQUE 3 — Queries paralelas en servicios de analytics
 
-**TAREA 3A — Auditar pages del business panel**
+**TAREA 3A — `features/business-panel/services/analytics/global-analytics-response.service.ts` (625 líneas)**
 
-Verificar si estas páginas aún hacen múltiples fetches paralelos no coordinados:
+Descubierto en el último barrido. Creado durante la refactorización — posible candidato a N+1
+igual que `analytics-response.service.ts`.
 
 ```bash
-grep -r "useEffect\|fetch(" apps/web/src/app/\\[orgSlug\\]/business-panel/ \
-  --include="*.tsx" -l
+wc -l apps/web/src/features/business-panel/services/analytics/global-analytics-response.service.ts
 ```
 
-Para cada página con múltiples fetches: consolidar en `Promise.all` dentro de un hook
-o migrar a endpoint agregado en `app/api/`.
-
-**TAREA 3B — `app/api/[orgSlug]/business/analytics/route.ts`**
-
-Verificar el estado actual post-refactorización:
-```bash
-wc -l apps/web/src/app/api/\\[orgSlug\\]/business/analytics/route.ts
-```
-
-Si el servicio de agregación hace queries secuenciales por métrica, paralelizarlas:
+Patrón de paralelización:
 ```typescript
 // ❌ Secuencial
 const activeUsers = await getActiveUsers(orgId, range)
@@ -145,46 +147,16 @@ const [activeUsers, completionRate, topCourses] = await Promise.all([
 
 ---
 
-### BLOQUE 4 — Caché de respuestas
+### BLOQUE 4 — Selects innecesariamente amplios
 
-**TAREA 4A — Caché en endpoints de datos estables**
-
-Algunos datos cambian poco y pueden cachearse con los mecanismos de Next.js:
-
-```typescript
-// Para datos que cambian poco (cursos públicos, catálogo)
-export const revalidate = 3600 // 1 hora
-
-// Para datos de usuario (no cachear)
-export const dynamic = 'force-dynamic'
-```
-
-Candidatos para caché:
-1. `app/api/courses/[slug]/full/route.ts` — detalle de curso público (revalidate: 300)
-2. `app/api/[orgSlug]/business/reports/data/route.ts` — reportes (revalidate: 900)
-
-**NO cachear:**
-- Cualquier route que lea datos de usuario específico
-- Notificaciones
-- Sesiones del planner
-- Progreso de lecciones
-
----
-
-### BLOQUE 5 — Selects innecesariamente amplios
-
-**TAREA 5A — Auditar `.select('*')` en queries de producción**
-
-Un `.select('*')` en tablas grandes trae todas las columnas aunque solo se necesiten 3.
+**TAREA 4A — Auditar `.select('*')` en servicios de producción**
 
 ```bash
-# Buscar selects amplios en servicios
 grep -rn "\.select\('\*'\)" apps/web/src/features/ --include="*.ts" | head -30
 ```
 
-Para cada ocurrencia: identificar qué campos usa realmente el código y hacer el select explícito.
+Para cada ocurrencia: especificar solo los campos que se usan.
 
-Ejemplo:
 ```typescript
 // ❌ Trae 20 columnas para usar 3
 const { data } = await supabase.from('usuarios').select('*').eq('id', userId)
@@ -195,6 +167,24 @@ const { data } = await supabase
   .select('id, email, first_name, last_name, role')
   .eq('id', userId)
 ```
+
+Prioridad: servicios que consultan tablas grandes (`usuarios`, `study_sessions`, `lecciones`).
+
+---
+
+### BLOQUE 5 — Caché en endpoints de datos estables
+
+**TAREA 5A — Agregar revalidate en endpoints de catálogo**
+
+```typescript
+// Solo para datos que cambian poco (NO para datos de usuario)
+export const revalidate = 3600 // 1 hora
+
+// Candidatos:
+// app/api/courses/[slug]/full/route.ts — detalle de curso público
+```
+
+No cachear: notificaciones, sesiones del planner, progreso de lecciones, datos de usuario.
 
 ---
 
@@ -211,18 +201,19 @@ const { data } = await supabase
 
 ```bash
 # Verificar que los servicios optimizados siguen pasando tests
-npx vitest run --reporter=verbose apps/web/src/features/notifications/
-npx vitest run --reporter=verbose apps/web/src/features/study-planner/services/
-npx vitest run --reporter=verbose apps/web/src/features/business-panel/services/
+cd apps/web && npx vitest run --reporter=verbose src/features/notifications/
+npx vitest run --reporter=verbose src/features/study-planner/services/
+npx vitest run --reporter=verbose src/features/business-panel/services/
 
 # Buscar patrones N+1 restantes
-grep -rn "await.*supabase" apps/web/src/features/ --include="*.ts" -A 2 | grep -B 2 "for.*of\|forEach"
+grep -rn "await.*supabase" apps/web/src/features/ --include="*.ts" -A 1 | \
+  grep -B 1 "for.*of\|forEach" | head -20
 ```
 
 ## Métrica de éxito
 
 - 0 loops con `await supabase.from()` dentro en servicios de producción
-- `businessUsers.server.service.ts` auditado y N+1 corregidos
-- `analytics-response.service.ts` con queries paralelas donde aplique
+- `analytics-response.service.ts` auditado con queries paralelas donde aplique
+- `adminLessons.service.ts` modularizado y N+1 corregidos
 - `.select('*')` reemplazado por selects explícitos en los 10 servicios más usados
 - Notificaciones usando `count: 'exact'` en vez de count en memoria

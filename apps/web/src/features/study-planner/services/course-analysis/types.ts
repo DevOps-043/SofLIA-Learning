@@ -5,6 +5,7 @@ export interface CourseInfoRow extends CourseRow {
 }
 
 export interface CourseModuleRow {
+  course_id: string
   module_id: string
   module_title: string
   module_description?: string | null

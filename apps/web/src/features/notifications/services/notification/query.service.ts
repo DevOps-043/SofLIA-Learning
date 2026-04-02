@@ -2,11 +2,37 @@ import { logger } from '../../../../lib/logger'
 import { getServerClient } from '../auto-notifications-server-client'
 import {
   attachUsersToNotifications,
+  buildNextNotificationCursor,
   buildNotificationsActiveFilter,
   filterExpiredNotifications,
   normalizeNotificationFilters,
+  parseNotificationCursor,
+  shouldUseNotificationCursorPagination,
 } from './utils'
-import type { Notification, NotificationFilters } from './types'
+import type {
+  Notification,
+  NotificationFilters,
+  NotificationQueryResult,
+} from './types'
+
+const NOTIFICATION_SELECT = `
+  notification_id,
+  user_id,
+  notification_type,
+  title,
+  message,
+  metadata,
+  priority,
+  status,
+  channels_sent,
+  channels_pending,
+  read_at,
+  expires_at,
+  organization_id,
+  group_id,
+  created_at,
+  updated_at
+`
 
 async function getUnreadCountFallback(userId: string) {
   const supabase = await getServerClient()
@@ -16,20 +42,20 @@ async function getUnreadCountFallback(userId: string) {
   const [totalResult, criticalResult, highResult] = await Promise.all([
     supabase
       .from('user_notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('notification_id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'unread')
       .or(activeFilter),
     supabase
       .from('user_notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('notification_id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'unread')
       .eq('priority', 'critical')
       .or(activeFilter),
     supabase
       .from('user_notifications')
-      .select('*', { count: 'exact', head: true })
+      .select('notification_id', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('status', 'unread')
       .eq('priority', 'high')
@@ -54,15 +80,18 @@ async function getUnreadCountFallback(userId: string) {
 export async function getUserNotifications(
   userId: string,
   filters?: NotificationFilters,
-) {
+): Promise<NotificationQueryResult> {
   const supabase = await getServerClient()
   const now = new Date().toISOString()
   const activeFilter = buildNotificationsActiveFilter(now)
   const normalizedFilters = normalizeNotificationFilters(filters)
+  const useCursorPagination = shouldUseNotificationCursorPagination(
+    normalizedFilters,
+  )
 
   let query = supabase
     .from('user_notifications')
-    .select('*', { count: 'exact' })
+    .select(NOTIFICATION_SELECT, { count: 'exact' })
     .eq('user_id', userId)
     .or(activeFilter)
 
@@ -90,10 +119,23 @@ export async function getUserNotifications(
     })
   }
 
-  query = query.range(
-    normalizedFilters.offset,
-    normalizedFilters.offset + normalizedFilters.limit - 1,
-  )
+  if (useCursorPagination) {
+    const cursor = parseNotificationCursor(normalizedFilters.cursor)
+
+    if (cursor) {
+      query =
+        normalizedFilters.orderDirection === 'asc'
+          ? query.gt('created_at', cursor.createdAt)
+          : query.lt('created_at', cursor.createdAt)
+    }
+
+    query = query.limit(normalizedFilters.limit + 1)
+  } else {
+    query = query.range(
+      normalizedFilters.offset,
+      normalizedFilters.offset + normalizedFilters.limit - 1,
+    )
+  }
 
   const { data, error, count } = await query
   if (error) {
@@ -101,9 +143,22 @@ export async function getUserNotifications(
     throw new Error(`Error al obtener notificaciones: ${error.message}`)
   }
 
+  const notifications = (data || []) as Notification[]
+  const paginatedNotifications = useCursorPagination
+    ? notifications.slice(0, normalizedFilters.limit)
+    : notifications
+  const hasMore = useCursorPagination
+    ? notifications.length > normalizedFilters.limit
+    : normalizedFilters.offset + normalizedFilters.limit < (count || 0)
+
   return {
-    notifications: (data || []) as Notification[],
+    notifications: paginatedNotifications,
     total: count || 0,
+    hasMore,
+    nextCursor:
+      useCursorPagination && hasMore
+        ? buildNextNotificationCursor(paginatedNotifications)
+        : null,
   }
 }
 
@@ -148,7 +203,7 @@ export async function getRecentActivity(limit = 10) {
   const supabase = await getServerClient()
   const { data, error } = await supabase
     .from('user_notifications')
-    .select('*')
+    .select(NOTIFICATION_SELECT)
     .order('created_at', { ascending: false })
     .limit(limit)
 

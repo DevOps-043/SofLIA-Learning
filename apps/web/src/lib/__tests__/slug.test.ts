@@ -42,7 +42,7 @@ describe('sanitizeSlug', () => {
 
   it('removes special characters', () => {
     expect(sanitizeSlug('Programación en C++')).toBe('programacion-en-c');
-    expect(sanitizeSlug('Hello & World!')).toBe('hello--world');
+    expect(sanitizeSlug('Hello & World!')).toBe('hello-world');
   });
 
   it('prevents path traversal', () => {

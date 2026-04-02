@@ -9,9 +9,10 @@
 import { NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
+import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
 
 // Crear cliente admin para bypass de RLS
-function createAdminClient() {
+export function createLegacyAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -40,7 +41,7 @@ export async function GET(): Promise<NextResponse> {
     }
 
     // Buscar integración de calendario existente
-    const supabase = createAdminClient();
+    const supabase = createSharedAdminClient();
     
     const { data: integration, error } = await supabase
       .from('calendar_integrations')
@@ -77,14 +78,12 @@ export async function GET(): Promise<NextResponse> {
       lastUpdated: integration.updated_at
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error verificando estado de calendario:', error);
     return NextResponse.json({ 
       isConnected: false, 
-      error: error.message || 'Error interno' 
+      error: error instanceof Error ? error.message : 'Error interno' 
     }, { status: 500 });
   }
 }
-
-
 

@@ -6,17 +6,39 @@
  */
 
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { Database } from '../../../lib/supabase/types';
 import type {
   CalendarIntegration,
   CalendarIntegrationMetadata,
 } from '../types/user-context.types';
 
+const CALENDAR_INTEGRATION_PUBLIC_SELECT = `
+  id,
+  user_id,
+  provider,
+  access_token,
+  expires_at,
+  scope
+`;
+
+const CALENDAR_INTEGRATION_TOKEN_SELECT = `
+  id,
+  user_id,
+  provider,
+  access_token,
+  refresh_token,
+  expires_at,
+  scope,
+  metadata,
+  updated_at
+`;
+
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
  * Útil para operaciones del servidor donde ya validamos la autenticación
  */
-export function createAdminClient() {
+export function createLegacyAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -81,7 +103,7 @@ export class CalendarDbService {
           updated_at: new Date().toISOString(),
         })
         .eq('id', existing.id)
-        .select()
+        .select(CALENDAR_INTEGRATION_PUBLIC_SELECT)
         .single();
 
       if (error) {
@@ -106,7 +128,7 @@ export class CalendarDbService {
           expires_at: expiresAt,
           scope: tokens.scope,
         })
-        .select()
+        .select(CALENDAR_INTEGRATION_PUBLIC_SELECT)
         .single();
 
       if (error) {
@@ -140,7 +162,7 @@ export class CalendarDbService {
 
     const { data, error } = await supabase
       .from('calendar_integrations')
-      .select('*')
+      .select(CALENDAR_INTEGRATION_PUBLIC_SELECT)
       .eq('user_id', userId)
       .order('updated_at', { ascending: false })
       .limit(1)
@@ -171,7 +193,7 @@ export class CalendarDbService {
 
     const { data } = await supabase
       .from('calendar_integrations')
-      .select('*')
+      .select(CALENDAR_INTEGRATION_TOKEN_SELECT)
       .eq('user_id', userId)
       .single();
 

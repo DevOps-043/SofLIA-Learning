@@ -1,63 +1,53 @@
-/**
- * Connection Pooling para Supabase
- *
- * Implementa un singleton pattern para reutilizar conexiones y evitar
- * crear múltiples clientes en cada request.
- *
- * OPTIMIZACIÓN: Reduce overhead de creación de conexiones
- * - Antes: Nuevo cliente en cada request (~50-100ms overhead)
- * - Después: Cliente reutilizado (~0ms overhead)
- */
-
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import {
+  createClient as createSupabaseClient,
+  type SupabaseClient as BaseSupabaseClient,
+} from '@supabase/supabase-js'
 import type { Database } from './types'
 
-// Pool de clientes Supabase con caché LRU simple
-class SupabaseConnectionPool {
-  private clients: Map<string, ReturnType<typeof createSupabaseClient<Database>>>
-  private maxConnections: number
-  private connectionCount: number
-  private hits: number
-  private misses: number
+type SupabaseClient = BaseSupabaseClient<Database>
+
+export interface SupabasePoolStats {
+  hits: number
+  misses: number
+  connections: number
+  maxConnections: number
+  hitRate: string
+}
+
+export class SupabaseConnectionPool {
+  private readonly clients = new Map<string, SupabaseClient>()
+  private readonly maxConnections: number
+  private hits = 0
+  private misses = 0
 
   constructor(maxConnections: number = 10) {
-    this.clients = new Map()
     this.maxConnections = maxConnections
-    this.connectionCount = 0
-    this.hits = 0
-    this.misses = 0
   }
 
-  /**
-   * Obtiene o crea un cliente de Supabase
-   * Usa las credenciales como key para reutilizar el mismo cliente
-   */
-  getClient(url: string, key: string): ReturnType<typeof createSupabaseClient<Database>> {
+  getClient(url: string, key: string): SupabaseClient {
     const clientKey = `${url}:${key}`
+    const existingClient = this.clients.get(clientKey)
 
-    // Verificar si ya existe un cliente para estas credenciales
-    if (this.clients.has(clientKey)) {
+    if (existingClient) {
       this.hits++
-      if (process.env.NODE_ENV === 'development') {
-      }
-      return this.clients.get(clientKey)!
+      return existingClient
     }
 
-    // Si llegamos al límite de conexiones, eliminar la más antigua
-    if (this.connectionCount >= this.maxConnections) {
-      const firstKey = this.clients.keys().next().value
-      this.clients.delete(firstKey)
-      this.connectionCount--
-      if (process.env.NODE_ENV === 'development') {
+    if (this.clients.size >= this.maxConnections) {
+      const oldestClientKey = this.clients.keys().next().value as
+        | string
+        | undefined
+
+      if (oldestClientKey) {
+        this.clients.delete(oldestClientKey)
       }
     }
 
-    // Crear nuevo cliente
     this.misses++
     const client = createSupabaseClient<Database>(url, key, {
       auth: {
         autoRefreshToken: true,
-        persistSession: false, // Server-side no necesita persistencia
+        persistSession: false,
       },
       db: {
         schema: 'public',
@@ -70,46 +60,36 @@ class SupabaseConnectionPool {
     })
 
     this.clients.set(clientKey, client)
-    this.connectionCount++
-
-    if (process.env.NODE_ENV === 'development') {
-    }
-
     return client
   }
 
-  /**
-   * Obtiene estadísticas del pool
-   */
-  getStats() {
-    const hitRate = this.hits + this.misses > 0
-      ? (this.hits / (this.hits + this.misses) * 100).toFixed(2)
-      : '0.00'
+  getStats(): SupabasePoolStats {
+    const totalRequests = this.hits + this.misses
+    const hitRate =
+      totalRequests > 0 ? ((this.hits / totalRequests) * 100).toFixed(2) : '0.00'
 
     return {
       hits: this.hits,
       misses: this.misses,
-      connections: this.connectionCount,
+      connections: this.clients.size,
       maxConnections: this.maxConnections,
       hitRate: `${hitRate}%`,
     }
   }
 
-  /**
-   * Limpia todas las conexiones del pool
-   */
   clear() {
     this.clients.clear()
-    this.connectionCount = 0
     this.hits = 0
     this.misses = 0
   }
 }
 
-// Singleton instance
-const pool = new SupabaseConnectionPool(10)
+export function createSupabaseConnectionPool(maxConnections: number = 10) {
+  return new SupabaseConnectionPool(maxConnections)
+}
 
-// Exportar funciones de utilidad
+const pool = createSupabaseConnectionPool(10)
+
 export function getSupabaseClient(url: string, key: string) {
   return pool.getClient(url, key)
 }

@@ -83,31 +83,8 @@ export function CountrySelector({
             exit={{ opacity: 0, y: 5 }}
             className={dropdownClassName}
             style={customStyles ? {
-                // For dropdown, we want a solid or semi-solid background to ensure readability
-                // If the input bg is very transparent, this might need an adjustment, but let's try consistency first.
-                // We'll use the same bg color but maybe ensure it's not totally transparent if passed that way?
-                // Actually, for consistency with the form "glass" look, we can reuse it, but high transparency might make list hard to read over other content.
-                // Let's assume standard 'card' behavior: if custom color is passed, use it.
-                backgroundColor: customStyles.bgColor?.includes('0.05') ? '#1a1a2e' : customStyles.bgColor, // Fallback for very transparent inputs if needed, or just use solid
-                // Wait, if we use the same 'inputBgColor' it has 0.05 opacity. That's too transparent for a dropdown menu over other text.
-                // We should probably default to the "Card" background color or a solid version of it. 
-                // However, without a separate prop, we'll try to use a more opaque version if possible.
-                // For now, let's blindly trust the prop but set a backdrop-filter in className.
-                // Re-reading user issue: "white background".
-                // Let's try to use the passed bgColor but maybe enforce a higher opacity if we could parse it, but that's complex.
-                // Simplest fix: Use the passed bgColor, which works for the inputs on the card.
-                // NOTE: The inputs sit ON the card. The dropdown floats OVER everything.
-                // If we use the input background (which matches the card background roughly or is transparent), it might blend too much.
-                // Let's manually set a high-opacity background for the dropdown.
-                backgroundColor: '#1E2329', // Fallback to a safe dark color if we can't easily resolve a solid custom one. 
-                // actually the user wants it to look like the rest.
-                // Let's us the customStyles.bgColor BUT make it opaque? No, we don't know the color value easily to manipulate it here without logic.
-                // Let's revert to a safe dark background if we detect custom theme is dark-ish?
-                // We can accept a `dropdownBgColor` in customStyles too?
-                // For now, let's use the `bgColor` but with `backdrop-filter: blur(20px)` (added in classname) to help readability.
-                // And explicitly set border color.
-                backgroundColor: customStyles.bgColor, 
-                borderColor: customStyles.borderColor,
+              backgroundColor: customStyles.bgColor,
+              borderColor: customStyles.borderColor,
             } : undefined}
           >
             <div className="p-1">

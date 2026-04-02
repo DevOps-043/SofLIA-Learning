@@ -5,6 +5,7 @@ import {
   RefreshTokenError,
 } from '@/lib/auth/refresh-token.errors';
 import { RefreshTokenService } from '@/lib/auth/refreshToken.service';
+import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
 import { logger } from '@/lib/utils/logger';
 
 function clearSessionCookies(response: NextResponse) {
@@ -15,6 +16,11 @@ function clearSessionCookies(response: NextResponse) {
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitResponse = applyAuthRateLimit(request)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     logger.log('API Refresh: Iniciando renovacion de token');
 
     const sessionInfo = await RefreshTokenService.refreshSession();
@@ -60,6 +66,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const rateLimitResponse = applyAuthRateLimit(request)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+
     logger.log('API Refresh: Obteniendo estado de sesion');
 
     const accessToken = request.cookies.get('access_token')?.value;

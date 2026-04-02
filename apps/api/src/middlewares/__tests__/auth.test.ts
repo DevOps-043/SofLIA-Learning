@@ -13,6 +13,10 @@ vi.mock('../../config/env', () => ({
 }))
 
 vi.mock('jsonwebtoken', () => ({
+  __esModule: true,
+  JsonWebTokenError: MockJsonWebTokenError,
+  TokenExpiredError: MockTokenExpiredError,
+  verify: jwtVerifyMock,
   default: {
     JsonWebTokenError: MockJsonWebTokenError,
     TokenExpiredError: MockTokenExpiredError,
@@ -60,7 +64,7 @@ describe('auth middleware', () => {
 
     jwtVerifyMock.mockReturnValue({
       email: 'security@example.com',
-      id: 'user-1',
+      sub: 'user-1',
       role: 'admin',
     })
 

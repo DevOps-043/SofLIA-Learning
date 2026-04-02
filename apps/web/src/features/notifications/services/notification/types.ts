@@ -34,6 +34,19 @@ export interface NotificationFilters {
   priority?: 'critical' | 'high' | 'medium' | 'low'
   limit?: number
   offset?: number
+  cursor?: string
   orderBy?: 'created_at' | 'priority' | 'status'
   orderDirection?: 'asc' | 'desc'
+}
+
+export interface NotificationCursor {
+  createdAt: string
+  notificationId: string
+}
+
+export interface NotificationQueryResult {
+  notifications: Notification[]
+  total: number
+  hasMore: boolean
+  nextCursor: string | null
 }

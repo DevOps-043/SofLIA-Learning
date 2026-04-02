@@ -72,14 +72,14 @@ export class UserIdentityService {
 
     return {
       id: data.id,
-      username: data.username,
-      email: data.email,
-      firstName: data.first_name,
-      lastName: data.last_name,
-      displayName: data.display_name,
-      profilePictureUrl: data.profile_picture_url,
-      cargoRol: data.cargo_rol,
-      typeRol: data.type_rol,
+      username: data.username ?? undefined,
+      email: data.email ?? undefined,
+      firstName: data.first_name ?? undefined,
+      lastName: data.last_name ?? undefined,
+      displayName: data.display_name ?? undefined,
+      profilePictureUrl: data.profile_picture_url ?? undefined,
+      cargoRol: data.cargo_rol ?? undefined,
+      typeRol: data.type_rol ?? undefined,
     };
   }
 
@@ -123,10 +123,10 @@ export class UserIdentityService {
     }
 
     const profile: UserProfessionalProfile = {
-      cargoTitulo: data.cargo_titulo,
-      pais: data.pais,
-      dificultadId: data.dificultad_id,
-      usoIaRespuesta: data.uso_ia_respuesta,
+      cargoTitulo: data.cargo_titulo ?? undefined,
+      pais: data.pais ?? undefined,
+      dificultadId: data.dificultad_id ?? undefined,
+      usoIaRespuesta: data.uso_ia_respuesta ?? undefined,
     };
 
     // Mapear rol

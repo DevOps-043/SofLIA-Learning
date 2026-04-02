@@ -13,6 +13,7 @@ vi.mock('../course-analysis/db', async () => {
     fetchCourseLessonCountRows: vi.fn(),
     fetchCourseInfoRow: vi.fn(),
     fetchCourseModulesRows: vi.fn(),
+    fetchCourseModulesRowsByCourseIds: vi.fn(),
     fetchLessonActivityRows: vi.fn(),
     fetchLessonEstimateRows: vi.fn(),
     fetchLessonMaterialRows: vi.fn(),

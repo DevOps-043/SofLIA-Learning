@@ -1,0 +1,351 @@
+import type {
+  BusinessAnalyticsApiResponse,
+  BusinessAnalyticsCourseBreakdownItem,
+} from '../../types/analytics.types'
+import type { GlobalAnalyticsQueryData } from './global-analytics-query.service'
+
+type UserAnalyticsEntry = BusinessAnalyticsApiResponse['user_analytics'][number]
+type UserScopedItems<T extends { user_id: string }> = Map<string, T[]>
+type ConversationScopedItems<T extends { conversation_id: string }> = Map<string, T[]>
+
+export interface BuildGlobalUserAnalyticsInput {
+  orgUsers: GlobalAnalyticsQueryData['orgUsers']
+  enrollmentsByUserId: UserScopedItems<GlobalAnalyticsQueryData['enrollments'][number]>
+  certificatesByUserId: UserScopedItems<GlobalAnalyticsQueryData['certificates'][number]>
+  lessonProgressByUserId: UserScopedItems<GlobalAnalyticsQueryData['lessonProgress'][number]>
+  dailyProgressByUserId: UserScopedItems<GlobalAnalyticsQueryData['dailyProgress'][number]>
+  studySessionsByUserId: UserScopedItems<GlobalAnalyticsQueryData['studySessions'][number]>
+  studyPlanProgressByUserId: UserScopedItems<GlobalAnalyticsQueryData['studyPlanProgress'][number]>
+  liaConversationsByUserId: UserScopedItems<GlobalAnalyticsQueryData['liaConversations'][number]>
+  liaMessagesByConversationId: ConversationScopedItems<
+    GlobalAnalyticsQueryData['liaMessages'][number]
+  >
+  userNotesByUserId: UserScopedItems<GlobalAnalyticsQueryData['userNotes'][number]>
+}
+
+export function buildGlobalUserAnalytics(
+  input: BuildGlobalUserAnalyticsInput,
+): UserAnalyticsEntry[] {
+  return input.orgUsers.map((organizationUser) => {
+    const userId = organizationUser.user_id
+    const profile = getGlobalAnalyticsProfile(organizationUser)
+    const userEnrollments = input.enrollmentsByUserId.get(userId) || []
+    const userCertificates = input.certificatesByUserId.get(userId) || []
+    const userLessonProgress = input.lessonProgressByUserId.get(userId) || []
+    const userDailyProgress = sortGlobalDailyProgress(input.dailyProgressByUserId.get(userId) || [])
+    const userStudySessions = input.studySessionsByUserId.get(userId) || []
+    const userPlanProgress = input.studyPlanProgressByUserId.get(userId) || []
+    const userConversations = input.liaConversationsByUserId.get(userId) || []
+    const userNotes = input.userNotesByUserId.get(userId) || []
+    const courseSummary = summarizeEnrollments(userEnrollments)
+    const lessonSummary = summarizeLessonProgress(userLessonProgress)
+    const plannerSummary = summarizePlanProgress(userPlanProgress, userStudySessions.length)
+    const noteSummary = summarizeUserNotes(userNotes)
+    const messageSummary = summarizeConversationMessages(
+      userConversations,
+      input.liaMessagesByConversationId,
+    )
+    const conversationSummary = summarizeUserConversations(userConversations)
+
+    return {
+      user_id: userId,
+      display_name:
+        profile?.display_name ||
+        profile?.first_name ||
+        profile?.email?.split('@')[0] ||
+        'Usuario',
+      name:
+        profile?.first_name || profile?.last_name
+          ? `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim()
+          : null,
+      first_name: profile?.first_name || null,
+      last_name: profile?.last_name || null,
+      email: profile?.email || '',
+      username: profile?.username || '',
+      role: organizationUser.job_title || organizationUser.role || 'member',
+      profile_picture_url: profile?.profile_picture_url || null,
+      courses_assigned: userEnrollments.length,
+      courses_completed: courseSummary.completedCourses,
+      average_progress: roundToSingleDecimal(courseSummary.averageProgress),
+      total_time_hours: roundToTwoDecimals(lessonSummary.userTimeMinutes / 60),
+      total_time_minutes: lessonSummary.userTimeMinutes,
+      certificates_count: userCertificates.length,
+      last_login_at: profile?.last_login_at || null,
+      last_active: userDailyProgress[0]?.progress_date || profile?.last_login_at || null,
+      joined_at: organizationUser.joined_at,
+      stats: {
+        current_streak: userDailyProgress[0]?.streak_count || 0,
+        planner: {
+          adherence: plannerSummary.adherence,
+          total_sessions: plannerSummary.totalSessions,
+          completed_sessions: plannerSummary.completedSessions,
+          completed: plannerSummary.completedSessions,
+          pending: plannerSummary.pendingSessions,
+        },
+        activity_calendar: buildActivityCalendar(userDailyProgress),
+        hourly_distribution: buildGlobalHourlyDistribution(userStudySessions),
+        courses: {
+          total_lesson_time_minutes: lessonSummary.userTimeMinutes,
+          lessons_started: lessonSummary.lessonsStarted,
+          lessons_completed: lessonSummary.lessonsCompleted,
+          quizzes_completed: lessonSummary.quizzesCompleted,
+          quizzes_passed: lessonSummary.quizzesPassed,
+          notes_count: noteSummary.totalNotes,
+          notes_auto_generated: noteSummary.autoGeneratedNotes,
+          breakdown: courseSummary.breakdown,
+        },
+        lia: {
+          total_conversations: userConversations.length,
+          total_messages: messageSummary.totalMessages,
+          user_messages: messageSummary.userMessages,
+          assistant_responses: messageSummary.assistantResponses,
+          contexts: {
+            ai_chat: conversationSummary.aiChatConversations,
+            course: conversationSummary.courseConversations,
+          },
+        },
+      },
+    }
+  })
+}
+
+export function getGlobalAnalyticsProfile(
+  user: GlobalAnalyticsQueryData['orgUsers'][number],
+) {
+  const relation = user.users
+  if (Array.isArray(relation)) {
+    return relation[0] || null
+  }
+
+  return relation || null
+}
+
+export function sortGlobalDailyProgress(
+  records: GlobalAnalyticsQueryData['dailyProgress'],
+) {
+  return [...records].sort((left, right) => right.progress_date.localeCompare(left.progress_date))
+}
+
+export function buildGlobalHourlyDistribution(
+  sessions: GlobalAnalyticsQueryData['studySessions'],
+): number[] {
+  const distribution = new Array(24).fill(0)
+
+  for (const session of sessions) {
+    if (!session.start_time) continue
+
+    const date = new Date(session.start_time)
+    if (Number.isNaN(date.getTime())) continue
+
+    distribution[date.getHours()] += 1
+  }
+
+  return distribution
+}
+
+function buildActivityCalendar(
+  records: GlobalAnalyticsQueryData['dailyProgress'],
+) {
+  return records.map((entry) => ({
+    date: entry.progress_date,
+    count: entry.study_minutes || 0,
+    level: getActivityLevel(entry.study_minutes || 0, Boolean(entry.had_activity)),
+  }))
+}
+
+function summarizeEnrollments(
+  enrollments: GlobalAnalyticsQueryData['enrollments'],
+) {
+  let totalProgress = 0
+  let completedCourses = 0
+  const breakdown: BusinessAnalyticsCourseBreakdownItem[] = []
+
+  for (const enrollment of enrollments) {
+    const progress = enrollment.overall_progress_percentage || 0
+    const status: BusinessAnalyticsCourseBreakdownItem['status'] =
+      enrollment.enrollment_status === 'completed'
+        ? 'completed'
+        : progress > 0
+          ? 'active'
+          : 'enrolled'
+
+    totalProgress += progress
+    if (enrollment.enrollment_status === 'completed') {
+      completedCourses += 1
+    }
+
+    breakdown.push({
+      course_id: enrollment.course_id,
+      course_title: getEnrollmentCourseTitle(enrollment),
+      progress,
+      status,
+    })
+  }
+
+  return {
+    averageProgress: enrollments.length > 0 ? totalProgress / enrollments.length : 0,
+    completedCourses,
+    breakdown,
+  }
+}
+
+function summarizeLessonProgress(
+  progressRecords: GlobalAnalyticsQueryData['lessonProgress'],
+) {
+  let userTimeMinutes = 0
+  let lessonsStarted = 0
+  let lessonsCompleted = 0
+  let quizzesCompleted = 0
+  let quizzesPassed = 0
+
+  for (const progress of progressRecords) {
+    userTimeMinutes += progress.time_spent_minutes || 0
+    if (progress.started_at) {
+      lessonsStarted += 1
+    }
+    if (progress.is_completed) {
+      lessonsCompleted += 1
+    }
+    if (progress.quiz_completed) {
+      quizzesCompleted += 1
+    }
+    if (progress.quiz_passed) {
+      quizzesPassed += 1
+    }
+  }
+
+  return {
+    userTimeMinutes,
+    lessonsStarted,
+    lessonsCompleted,
+    quizzesCompleted,
+    quizzesPassed,
+  }
+}
+
+function summarizePlanProgress(
+  progressRecords: GlobalAnalyticsQueryData['studyPlanProgress'],
+  fallbackTotalSessions: number,
+) {
+  let totalSessions = 0
+  let completedSessions = 0
+  let pendingSessions = 0
+
+  for (const progress of progressRecords) {
+    totalSessions += progress.total_sessions || 0
+    completedSessions += progress.sessions_completed || 0
+    pendingSessions += progress.sessions_pending || 0
+  }
+
+  return {
+    totalSessions: totalSessions || fallbackTotalSessions,
+    completedSessions,
+    pendingSessions,
+    adherence: totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0,
+  }
+}
+
+function summarizeUserNotes(
+  notes: GlobalAnalyticsQueryData['userNotes'],
+) {
+  let autoGeneratedNotes = 0
+
+  for (const note of notes) {
+    if (note.is_auto_generated) {
+      autoGeneratedNotes += 1
+    }
+  }
+
+  return {
+    totalNotes: notes.length,
+    autoGeneratedNotes,
+  }
+}
+
+function summarizeConversationMessages(
+  conversations: GlobalAnalyticsQueryData['liaConversations'],
+  messagesByConversationId: ConversationScopedItems<GlobalAnalyticsQueryData['liaMessages'][number]>,
+) {
+  let totalMessages = 0
+  let userMessages = 0
+  let assistantResponses = 0
+
+  for (const conversation of conversations) {
+    const messages = messagesByConversationId.get(conversation.id) || []
+    totalMessages += messages.length
+
+    for (const message of messages) {
+      if (message.role === 'user') {
+        userMessages += 1
+      } else if (message.role === 'assistant') {
+        assistantResponses += 1
+      }
+    }
+  }
+
+  return {
+    totalMessages,
+    userMessages,
+    assistantResponses,
+  }
+}
+
+function summarizeUserConversations(
+  conversations: GlobalAnalyticsQueryData['liaConversations'],
+) {
+  let aiChatConversations = 0
+  let courseConversations = 0
+
+  for (const conversation of conversations) {
+    if (conversation.context_type === 'ai_chat' || !conversation.context_type) {
+      aiChatConversations += 1
+    }
+    if (conversation.context_type?.includes('course')) {
+      courseConversations += 1
+    }
+  }
+
+  return {
+    aiChatConversations,
+    courseConversations,
+  }
+}
+
+function getEnrollmentCourseTitle(
+  enrollment: GlobalAnalyticsQueryData['enrollments'][number],
+) {
+  const relation = enrollment.courses
+  if (Array.isArray(relation)) {
+    return relation[0]?.title || 'Curso'
+  }
+
+  return relation?.title || 'Curso'
+}
+
+function getActivityLevel(studyMinutes: number, hadActivity: boolean) {
+  if (!hadActivity) {
+    return 0
+  }
+
+  if (studyMinutes <= 15) {
+    return 1
+  }
+
+  if (studyMinutes <= 45) {
+    return 2
+  }
+
+  if (studyMinutes <= 90) {
+    return 3
+  }
+
+  return 4
+}
+
+function roundToSingleDecimal(value: number) {
+  return Math.round(value * 10) / 10
+}
+
+function roundToTwoDecimals(value: number) {
+  return Math.round(value * 100) / 100
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "../apps/web/tsconfig.json",
+  "include": [
+    "../apps/web/src/lib/supabase/pool.ts",
+    "../apps/web/src/app/api/study-planner/calendar/events/calendar-events.db.ts",
+    "../apps/web/src/app/api/study-planner/sessions/route.ts",
+    "../apps/web/src/app/api/study-planner/sessions/study-planner-sessions.types.ts",
+    "../apps/web/src/app/api/study-planner/sessions/study-planner-sessions.utils.ts",
+    "../apps/web/src/app/api/study-planner/sessions/study-planner-sessions.db.ts",
+    "../apps/web/src/app/api/study-planner/sessions/study-planner-sessions.server.service.ts",
+    "../apps/web/src/app/api/study-planner/sessions/update/route.ts"
+  ]
+}

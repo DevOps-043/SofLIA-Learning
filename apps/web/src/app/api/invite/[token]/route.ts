@@ -2,6 +2,46 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { consumeBulkInvitationAction } from '@/features/auth/actions/invitation'
+import { fromLoose } from '@/lib/supabase/looseQuery'
+
+interface BulkInviteOrganizationRow {
+  id: string
+  name: string | null
+  slug: string | null
+  logo_url: string | null
+  brand_logo_url: string | null
+  brand_favicon_url: string | null
+  brand_color_primary: string | null
+  brand_color_accent: string | null
+  google_login_enabled: boolean | null
+  microsoft_login_enabled: boolean | null
+}
+
+interface BulkInviteLinkRow {
+  id: string
+  token: string
+  name: string | null
+  max_uses: number | null
+  current_uses: number | null
+  role: string | null
+  expires_at: string
+  status: string
+  organization_id: string
+  organizations: BulkInviteOrganizationRow | BulkInviteOrganizationRow[] | null
+}
+
+function bulkInviteLinksTable(client: unknown) {
+  return fromLoose<BulkInviteLinkRow, { status?: string }>(
+    client,
+    'bulk_invite_links'
+  )
+}
+
+function normalizeOrganization(
+  organization: BulkInviteLinkRow['organizations']
+): BulkInviteOrganizationRow | null {
+  return Array.isArray(organization) ? organization[0] ?? null : organization
+}
 
 /**
  * SECURITY: Obtiene el userId autenticado del servidor verificando ambos sistemas de sesión:
@@ -67,8 +107,7 @@ export async function GET(
     const supabase = await createClient()
 
     // Get the invite link and organization details
-    const { data: link, error } = await supabase
-      .from('bulk_invite_links')
+    const { data: link, error } = await bulkInviteLinksTable(supabase)
       .select(`
         id,
         token,
@@ -132,8 +171,7 @@ export async function GET(
     // Check expiration
     if (new Date(link.expires_at) <= new Date()) {
       // Update status to expired
-      await supabase
-        .from('bulk_invite_links')
+      await bulkInviteLinksTable(supabase)
         .update({ status: 'expired' })
         .eq('id', link.id)
 
@@ -149,10 +187,9 @@ export async function GET(
     }
 
     // Check if max uses reached
-    if (link.current_uses >= link.max_uses) {
+    if ((link.current_uses ?? 0) >= (link.max_uses ?? Number.POSITIVE_INFINITY)) {
       // Update status to exhausted
-      await supabase
-        .from('bulk_invite_links')
+      await bulkInviteLinksTable(supabase)
         .update({ status: 'exhausted' })
         .eq('id', link.id)
 
@@ -168,7 +205,7 @@ export async function GET(
     }
 
     // Link is valid
-    const organization = link.organizations as any
+    const organization = normalizeOrganization(link.organizations)
 
     return NextResponse.json({
       success: true,
@@ -177,7 +214,7 @@ export async function GET(
         id: link.id,
         name: link.name,
         role: link.role,
-        remainingUses: link.max_uses - link.current_uses,
+        remainingUses: (link.max_uses ?? 0) - (link.current_uses ?? 0),
         expiresAt: link.expires_at
       },
       organization: organization ? {
@@ -262,4 +299,3 @@ export async function POST(
     )
   }
 }
-

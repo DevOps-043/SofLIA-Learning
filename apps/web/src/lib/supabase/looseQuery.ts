@@ -30,6 +30,7 @@ type LooseMutationResult = {
 
 export interface LooseQueryChain<T> extends Promise<LooseQueryResult<T>> {
   eq(column: string, value: LoosePrimitive): LooseQueryChain<T>
+  is(column: string, value: LoosePrimitive): LooseQueryChain<T>
   neq(column: string, value: LoosePrimitive): LooseQueryChain<T>
   ilike(column: string, value: string): LooseQueryChain<T>
   in(column: string, values: readonly LoosePrimitive[]): LooseQueryChain<T>
@@ -51,6 +52,7 @@ export interface LooseQueryChain<T> extends Promise<LooseQueryResult<T>> {
 
 export interface LooseMutationChain<T> extends Promise<LooseMutationResult> {
   eq(column: string, value: LoosePrimitive): LooseMutationChain<T>
+  is(column: string, value: LoosePrimitive): LooseMutationChain<T>
   neq(column: string, value: LoosePrimitive): LooseMutationChain<T>
   ilike(column: string, value: string): LooseMutationChain<T>
   in(column: string, values: readonly LoosePrimitive[]): LooseMutationChain<T>

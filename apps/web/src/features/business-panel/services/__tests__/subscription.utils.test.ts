@@ -121,14 +121,14 @@ describe('calculateYearlySavings', () => {
 
 describe('calculateEndDate', () => {
   it('adds 1 month for monthly billing', () => {
-    const start = new Date('2025-06-01');
+    const start = new Date(2025, 5, 1);
     const end = calculateEndDate('monthly', start);
     expect(end.getMonth()).toBe(6); // July
     expect(end.getFullYear()).toBe(2025);
   });
 
   it('adds 1 year for yearly billing', () => {
-    const start = new Date('2025-06-01');
+    const start = new Date(2025, 5, 1);
     const end = calculateEndDate('yearly', start);
     expect(end.getFullYear()).toBe(2026);
     expect(end.getMonth()).toBe(5); // June
@@ -141,7 +141,7 @@ describe('calculateEndDate', () => {
   });
 
   it('end date is after start date', () => {
-    const start = new Date('2025-01-15');
+    const start = new Date(2025, 0, 15);
     const endMonthly = calculateEndDate('monthly', start);
     const endYearly = calculateEndDate('yearly', start);
     expect(endMonthly.getTime()).toBeGreaterThan(start.getTime());
@@ -149,7 +149,7 @@ describe('calculateEndDate', () => {
   });
 
   it('yearly end is later than monthly end', () => {
-    const start = new Date('2025-06-01');
+    const start = new Date(2025, 5, 1);
     const monthly = calculateEndDate('monthly', start);
     const yearly = calculateEndDate('yearly', start);
     expect(yearly.getTime()).toBeGreaterThan(monthly.getTime());

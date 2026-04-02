@@ -6,7 +6,116 @@ import {
   roundToSingleDecimal,
   type ReportRuntime,
   type ReportSupabaseClient,
+  type ReportUserProfile,
 } from './shared'
+
+interface CourseLookup {
+  id: string
+  title: string | null
+  category: string | null
+  level?: string | null
+}
+
+interface CompletionAssignment {
+  course_id: string
+  user_id: string
+  status: string | null
+  completion_percentage: number | null
+  completed_at: string | null
+  assigned_at: string | null
+  due_date: string | null
+}
+
+interface CompletionReportRow extends CompletionAssignment {
+  course_title: string
+  course_category: string
+  course_level: string
+}
+
+interface CompletionByCourseSummary {
+  course_id: string
+  course_title: string
+  total: number
+  completed: number
+  in_progress: number
+  not_started: number
+  average_completion: number
+}
+
+interface LessonProgressRecord {
+  user_id: string
+  lesson_id: string
+  time_spent_minutes: number | null
+  completed_at: string | null
+  started_at: string | null
+  last_accessed_at: string | null
+  lesson_status: string | null
+}
+
+interface LessonCourseLookup {
+  lesson_id: string
+  lesson_title: string | null
+  course_modules?: {
+    courses?: {
+      id: string
+      title: string | null
+    } | null
+  } | null
+}
+
+interface TimeByUserSummary {
+  user_id: string
+  user_name: string
+  user_email: string
+  total_minutes: number
+  total_hours: number
+  lessons_completed: number
+  lessons_in_progress: number
+  lessons_not_started: number
+}
+
+interface TimeByCourseSummary {
+  course_id: string
+  course_title: string
+  total_minutes: number
+  total_hours: number
+}
+
+interface CertificateRecord {
+  user_id: string
+  course_id: string
+  issued_at: string | null
+  certificate_url: string | null
+}
+
+interface EnrichedCertificate extends CertificateRecord {
+  user_name: string
+  user_email: string
+  course_title: string
+  course_category: string
+  course_level: string
+}
+
+interface CertificatesByCourseSummary {
+  course_id: string
+  course_title: string
+  count: number
+}
+
+interface CertificatesByUserSummary {
+  user_id: string
+  user_name: string
+  user_email: string
+  count: number
+}
+
+function buildUserMap(
+  organizationUsers: Awaited<ReturnType<typeof getActiveOrganizationUsers>>,
+): Map<string, ReportUserProfile | null> {
+  return new Map(
+    organizationUsers.map((organizationUser) => [organizationUser.user_id, organizationUser.users]),
+  )
+}
 
 export async function generateCompletionReport(
   supabase: ReportSupabaseClient,
@@ -27,7 +136,8 @@ export async function generateCompletionReport(
   }
 
   const { data: assignments } = await assignmentsQuery
-  const courseIds = [...new Set((assignments || []).map((assignment: any) => assignment.course_id))]
+  const assignmentRows = (assignments || []) as CompletionAssignment[]
+  const courseIds = [...new Set(assignmentRows.map((assignment) => assignment.course_id))]
   const courses =
     courseIds.length > 0
       ? (
@@ -38,9 +148,10 @@ export async function generateCompletionReport(
         ).data
       : []
 
-  const courseMap = new Map((courses || []).map((course: any) => [course.id, course]))
+  const courseRows = (courses || []) as CourseLookup[]
+  const courseMap = new Map(courseRows.map((course) => [course.id, course]))
 
-  const completionData = (assignments || []).map((assignment: any) => {
+  const completionData: CompletionReportRow[] = assignmentRows.map((assignment) => {
     const course = courseMap.get(assignment.course_id)
 
     return {
@@ -51,36 +162,36 @@ export async function generateCompletionReport(
     }
   })
 
-  const completed = completionData.filter((assignment: any) => assignment.status === 'completed')
-  const inProgress = completionData.filter((assignment: any) => assignment.status === 'in_progress')
-  const notStarted = completionData.filter((assignment: any) => assignment.status === 'not_started')
+  const completed = completionData.filter((assignment) => assignment.status === 'completed')
+  const inProgress = completionData.filter((assignment) => assignment.status === 'in_progress')
+  const notStarted = completionData.filter((assignment) => assignment.status === 'not_started')
 
-  const completionByCourse = new Map()
-  completionData.forEach((completion: any) => {
-    if (!completionByCourse.has(completion.course_id)) {
-      completionByCourse.set(completion.course_id, {
-        course_id: completion.course_id,
-        course_title: completion.course_title,
-        total: 0,
-        completed: 0,
-        in_progress: 0,
-        not_started: 0,
-        average_completion: 0,
-      })
+  const completionByCourse = new Map<string, CompletionByCourseSummary>()
+  completionData.forEach((completion) => {
+    const currentCourse = completionByCourse.get(completion.course_id) || {
+      course_id: completion.course_id,
+      course_title: completion.course_title,
+      total: 0,
+      completed: 0,
+      in_progress: 0,
+      not_started: 0,
+      average_completion: 0,
     }
 
-    const course = completionByCourse.get(completion.course_id)
-    course.total++
+    currentCourse.total++
     if (completion.status === 'completed') {
-      course.completed++
+      currentCourse.completed++
     } else if (completion.status === 'in_progress') {
-      course.in_progress++
+      currentCourse.in_progress++
     } else {
-      course.not_started++
+      currentCourse.not_started++
     }
-    course.average_completion =
-      ((course.average_completion * (course.total - 1)) + (completion.completion_percentage || 0)) /
-      course.total
+    currentCourse.average_completion =
+      ((currentCourse.average_completion * (currentCourse.total - 1)) +
+        (completion.completion_percentage || 0)) /
+      currentCourse.total
+
+    completionByCourse.set(completion.course_id, currentCourse)
   })
 
   const completionRate =
@@ -95,7 +206,7 @@ export async function generateCompletionReport(
     average_completion_percentage:
       completionData.length > 0
         ? completionData.reduce(
-            (sum: number, completion: any) => sum + (completion.completion_percentage || 0),
+            (sum, completion) => sum + (completion.completion_percentage || 0),
             0,
           ) / completionData.length
         : 0,
@@ -111,7 +222,7 @@ export async function generateTimeSpentReport(
   runtime: ReportRuntime,
 ) {
   const organizationUsers = await getActiveOrganizationUsers(supabase, organizationId, runtime)
-  const organizationUserIds = organizationUsers.map((organizationUser: any) => organizationUser.user_id)
+  const organizationUserIds = organizationUsers.map((organizationUser) => organizationUser.user_id)
   const userIds = getFilteredUserIds(organizationUserIds, filters)
 
   if (userIds.length === 0) {
@@ -121,15 +232,15 @@ export async function generateTimeSpentReport(
       total_hours: 0,
       average_minutes_per_user: 0,
       average_hours_per_user: 0,
-      time_data: [],
-      time_by_course: [],
+      time_data: [] as TimeByUserSummary[],
+      time_by_course: [] as TimeByCourseSummary[],
     }
   }
 
   let lessonProgressQuery = supabase
     .from('user_lesson_progress')
     .select(
-      'user_id, lesson_id, time_spent_minutes, completed_at, started_at, last_accessed_at, completion_status',
+      'user_id, lesson_id, time_spent_minutes, completed_at, started_at, last_accessed_at, lesson_status',
     )
     .in('user_id', userIds)
 
@@ -142,7 +253,8 @@ export async function generateTimeSpentReport(
   }
 
   const { data: lessonProgress } = await lessonProgressQuery
-  const lessonIds = [...new Set((lessonProgress || []).map((progress: any) => progress.lesson_id))]
+  const lessonProgressRows = (lessonProgress || []) as LessonProgressRecord[]
+  const lessonIds = [...new Set(lessonProgressRows.map((progress) => progress.lesson_id))]
   const lessons =
     lessonIds.length > 0
       ? (
@@ -155,77 +267,74 @@ export async function generateTimeSpentReport(
         ).data
       : []
 
-  const lessonMap = new Map()
-  lessons?.forEach((lesson: any) => {
-    lessonMap.set(lesson.lesson_id, {
-      lesson_title: lesson.lesson_title,
-      course_id: lesson.course_modules?.courses?.id,
-      course_title: lesson.course_modules?.courses?.title || 'Curso desconocido',
-    })
-  })
-
-  const userMap = new Map(
-    organizationUsers.map((organizationUser: any) => [organizationUser.user_id, organizationUser.users]),
+  const lessonRows = (lessons || []) as LessonCourseLookup[]
+  const lessonMap = new Map(
+    lessonRows.map((lesson) => [
+      lesson.lesson_id,
+      {
+        lesson_title: lesson.lesson_title,
+        course_id: lesson.course_modules?.courses?.id,
+        course_title: lesson.course_modules?.courses?.title || 'Curso desconocido',
+      },
+    ]),
   )
 
-  const timeByUser = new Map()
-  lessonProgress?.forEach((progress: any) => {
-    if (!timeByUser.has(progress.user_id)) {
-      const user = userMap.get(progress.user_id)
-      timeByUser.set(progress.user_id, {
-        user_id: progress.user_id,
-        user_name: getUserDisplayName(user),
-        user_email: user?.email || '',
-        total_minutes: 0,
-        total_hours: 0,
-        lessons_completed: 0,
-        lessons_in_progress: 0,
-        lessons_not_started: 0,
-      })
+  const userMap = buildUserMap(organizationUsers)
+
+  const timeByUser = new Map<string, TimeByUserSummary>()
+  lessonProgressRows.forEach((progress) => {
+    const currentUser = timeByUser.get(progress.user_id) || {
+      user_id: progress.user_id,
+      user_name: getUserDisplayName(userMap.get(progress.user_id)),
+      user_email: userMap.get(progress.user_id)?.email || '',
+      total_minutes: 0,
+      total_hours: 0,
+      lessons_completed: 0,
+      lessons_in_progress: 0,
+      lessons_not_started: 0,
     }
 
-    const user = timeByUser.get(progress.user_id)
-    user.total_minutes += progress.time_spent_minutes || 0
-    if (progress.completion_status === 'completed') {
-      user.lessons_completed++
-    } else if (progress.completion_status === 'in_progress') {
-      user.lessons_in_progress++
+    currentUser.total_minutes += progress.time_spent_minutes || 0
+    if (progress.lesson_status === 'completed') {
+      currentUser.lessons_completed++
+    } else if (progress.lesson_status === 'in_progress') {
+      currentUser.lessons_in_progress++
     } else {
-      user.lessons_not_started++
+      currentUser.lessons_not_started++
     }
+
+    timeByUser.set(progress.user_id, currentUser)
   })
 
-  timeByUser.forEach((user: any) => {
+  timeByUser.forEach((user) => {
     user.total_hours = roundToSingleDecimal(user.total_minutes / 60)
   })
 
   const totalMinutes =
-    lessonProgress?.reduce(
-      (sum: number, progress: any) => sum + (progress.time_spent_minutes || 0),
+    lessonProgressRows.reduce(
+      (sum, progress) => sum + (progress.time_spent_minutes || 0),
       0,
-    ) || 0
+    )
 
-  const timeByCourse = new Map()
-  lessonProgress?.forEach((progress: any) => {
+  const timeByCourse = new Map<string, TimeByCourseSummary>()
+  lessonProgressRows.forEach((progress) => {
     const lesson = lessonMap.get(progress.lesson_id)
     if (!lesson?.course_id) {
       return
     }
 
-    if (!timeByCourse.has(lesson.course_id)) {
-      timeByCourse.set(lesson.course_id, {
-        course_id: lesson.course_id,
-        course_title: lesson.course_title,
-        total_minutes: 0,
-        total_hours: 0,
-      })
+    const currentCourse = timeByCourse.get(lesson.course_id) || {
+      course_id: lesson.course_id,
+      course_title: lesson.course_title,
+      total_minutes: 0,
+      total_hours: 0,
     }
 
-    const course = timeByCourse.get(lesson.course_id)
-    course.total_minutes += progress.time_spent_minutes || 0
+    currentCourse.total_minutes += progress.time_spent_minutes || 0
+    timeByCourse.set(lesson.course_id, currentCourse)
   })
 
-  timeByCourse.forEach((course: any) => {
+  timeByCourse.forEach((course) => {
     course.total_hours = roundToSingleDecimal(course.total_minutes / 60)
   })
 
@@ -249,16 +358,16 @@ export async function generateCertificatesReport(
   runtime: ReportRuntime,
 ) {
   const organizationUsers = await getActiveOrganizationUsers(supabase, organizationId, runtime)
-  const organizationUserIds = organizationUsers.map((organizationUser: any) => organizationUser.user_id)
+  const organizationUserIds = organizationUsers.map((organizationUser) => organizationUser.user_id)
   const userIds = getFilteredUserIds(organizationUserIds, filters)
 
   if (userIds.length === 0) {
     return {
       total_certificates: 0,
       total_users_with_certificates: 0,
-      certificates: [],
-      certificates_by_course: [],
-      certificates_by_user: [],
+      certificates: [] as EnrichedCertificate[],
+      certificates_by_course: [] as CertificatesByCourseSummary[],
+      certificates_by_user: [] as CertificatesByUserSummary[],
     }
   }
 
@@ -277,7 +386,8 @@ export async function generateCertificatesReport(
   }
 
   const { data: certificates } = await certificatesQuery
-  const courseIds = [...new Set((certificates || []).map((certificate: any) => certificate.course_id))]
+  const certificateRows = (certificates || []) as CertificateRecord[]
+  const courseIds = [...new Set(certificateRows.map((certificate) => certificate.course_id))]
   const courses =
     courseIds.length > 0
       ? (
@@ -288,12 +398,11 @@ export async function generateCertificatesReport(
         ).data
       : []
 
-  const courseMap = new Map((courses || []).map((course: any) => [course.id, course]))
-  const userMap = new Map(
-    organizationUsers.map((organizationUser: any) => [organizationUser.user_id, organizationUser.users]),
-  )
+  const courseRows = (courses || []) as CourseLookup[]
+  const courseMap = new Map(courseRows.map((course) => [course.id, course]))
+  const userMap = buildUserMap(organizationUsers)
 
-  const enrichedCertificates = (certificates || []).map((certificate: any) => {
+  const enrichedCertificates: EnrichedCertificate[] = certificateRows.map((certificate) => {
     const course = courseMap.get(certificate.course_id)
     const user = userMap.get(certificate.user_id)
 
@@ -307,29 +416,27 @@ export async function generateCertificatesReport(
     }
   })
 
-  const certificatesByCourse = new Map()
-  enrichedCertificates.forEach((certificate: any) => {
-    if (!certificatesByCourse.has(certificate.course_id)) {
-      certificatesByCourse.set(certificate.course_id, {
-        course_id: certificate.course_id,
-        course_title: certificate.course_title,
-        count: 0,
-      })
+  const certificatesByCourse = new Map<string, CertificatesByCourseSummary>()
+  enrichedCertificates.forEach((certificate) => {
+    const currentCourse = certificatesByCourse.get(certificate.course_id) || {
+      course_id: certificate.course_id,
+      course_title: certificate.course_title,
+      count: 0,
     }
-    certificatesByCourse.get(certificate.course_id).count++
+    currentCourse.count++
+    certificatesByCourse.set(certificate.course_id, currentCourse)
   })
 
-  const certificatesByUser = new Map()
-  enrichedCertificates.forEach((certificate: any) => {
-    if (!certificatesByUser.has(certificate.user_id)) {
-      certificatesByUser.set(certificate.user_id, {
-        user_id: certificate.user_id,
-        user_name: certificate.user_name,
-        user_email: certificate.user_email,
-        count: 0,
-      })
+  const certificatesByUser = new Map<string, CertificatesByUserSummary>()
+  enrichedCertificates.forEach((certificate) => {
+    const currentUser = certificatesByUser.get(certificate.user_id) || {
+      user_id: certificate.user_id,
+      user_name: certificate.user_name,
+      user_email: certificate.user_email,
+      count: 0,
     }
-    certificatesByUser.get(certificate.user_id).count++
+    currentUser.count++
+    certificatesByUser.set(certificate.user_id, currentUser)
   })
 
   return {

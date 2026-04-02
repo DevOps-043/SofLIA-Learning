@@ -2,7 +2,12 @@ import { parseStringPromise } from 'xml2js';
 import JSZip from 'jszip';
 
 /** Represents a loosely-typed xml2js parsed XML node */
-type XmlNode = Record<string, unknown> & { $?: Record<string, string>; title?: string; item?: XmlNode | XmlNode[] }
+type XmlNode = Record<string, unknown> & {
+  $?: Record<string, string>;
+  title?: string;
+  item?: XmlNode | XmlNode[];
+  file?: XmlNode | XmlNode[];
+}
 
 export interface ScormManifest {
   version: 'SCORM_1.2' | 'SCORM_2004';

@@ -1,19 +1,112 @@
 /**
- * 🔒 Enhanced DOMPurify Configuration
+ * Enhanced DOMPurify Configuration
  *
- * Configuración mejorada de DOMPurify con hooks adicionales
- * para prevenir ataques XSS avanzados
- *
- * @see https://github.com/cure53/DOMPurify
- * @see https://owasp.org/www-community/attacks/xss/
+ * Configuracion mejorada de DOMPurify con hooks adicionales
+ * para prevenir ataques XSS avanzados.
  */
 
-// Importación dinámica de DOMPurify solo en el cliente
-let DOMPurify: any = null;
+import createDOMPurify, {
+  type Config as DOMPurifyConfig,
+  type DOMPurify as DOMPurifyInstance,
+} from 'dompurify';
 
-if (typeof window !== 'undefined') {
-  // Solo importar DOMPurify en el cliente
-  DOMPurify = require('dompurify');
+let domPurifyInstance: DOMPurifyInstance | null = null;
+let hooksConfigured = false;
+
+function stripHtmlPreservingText(html: string): string {
+  if (!html) {
+    return '';
+  }
+
+  if (typeof window !== 'undefined') {
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || '';
+  }
+
+  return html.replace(/<[^>]*>/g, '');
+}
+
+function getDOMPurify(): DOMPurifyInstance | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  domPurifyInstance ??= createDOMPurify(window);
+  return domPurifyInstance;
+}
+
+function isElementNode(node: Node): node is Element {
+  return node instanceof Element;
+}
+
+function toSanitizedString(value: string | Node): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value instanceof Element) {
+    return value.outerHTML;
+  }
+
+  return value.textContent ?? '';
+}
+
+function getAttributeValue(attributes: string, attributeName: string): string | null {
+  const match = attributes.match(
+    new RegExp(`${attributeName}\\s*=\\s*["']([^"']*)["']`, 'i'),
+  );
+
+  return match?.[1] ?? null;
+}
+
+function upsertAttribute(attributes: string, attributeName: string, value: string): string {
+  const attributePattern = new RegExp(
+    `${attributeName}\\s*=\\s*["'][^"']*["']`,
+    'i',
+  );
+
+  if (attributePattern.test(attributes)) {
+    return attributes.replace(attributePattern, `${attributeName}="${value}"`);
+  }
+
+  return `${attributes.trimEnd()} ${attributeName}="${value}"`;
+}
+
+function hardenAnchorTags(html: string): string {
+  return html.replace(/<a\b([^>]*)>/gi, (fullMatch, rawAttributes: string) => {
+    let attributes = rawAttributes;
+    const href = getAttributeValue(attributes, 'href');
+    const target = getAttributeValue(attributes, 'target');
+
+    if (target === '_blank') {
+      const relValues = new Set(
+        (getAttributeValue(attributes, 'rel') || '')
+          .split(/\s+/)
+          .filter(Boolean),
+      );
+
+      relValues.add('noopener');
+      relValues.add('noreferrer');
+      attributes = upsertAttribute(
+        attributes,
+        'rel',
+        Array.from(relValues).join(' '),
+      );
+    }
+
+    if (href && /^https?:\/\//i.test(href)) {
+      attributes = upsertAttribute(attributes, 'data-external', 'true');
+    }
+
+    return `<a${attributes}>`;
+  });
+}
+
+function isExternalUrl(url: string): boolean {
+  return typeof window !== 'undefined' && window.location
+    ? url.startsWith('http') && !url.includes(window.location.hostname)
+    : false;
 }
 
 /**
@@ -29,7 +122,6 @@ const DANGEROUS_PROTOCOLS = [
 
 /**
  * Lista de atributos de eventos que deben ser bloqueados
- * Incluso si DOMPurify ya los bloquea, esta es una capa adicional
  */
 const EVENT_HANDLERS = [
   'onload',
@@ -48,63 +140,49 @@ const EVENT_HANDLERS = [
 
 /**
  * Clases CSS permitidas (whitelist)
- * Solo se permiten clases de Tailwind CSS seguras
  */
 const ALLOWED_CSS_CLASSES = [
-  // Tailwind Typography
   /^text-(xs|sm|base|lg|xl|\d+xl)$/,
   /^text-(gray|blue|red|green|yellow)-\d{3}$/,
   /^font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)$/,
   /^(italic|underline|line-through)$/,
-
-  // Spacing
   /^(m|p)(t|r|b|l|x|y)?-\d+$/,
-
-  // Display
   /^(block|inline-block|inline|flex|grid|hidden)$/,
-
-  // Borders
   /^border(-\d+)?$/,
   /^rounded(-\w+)?$/,
-
-  // NUNCA permitir classes que puedan ejecutar código o cargar recursos externos
 ];
 
 /**
  * URLs prohibidas (phishing, malware)
- * Puedes extender esta lista con feeds de threat intelligence
  */
 const BLOCKED_URL_PATTERNS = [
-  /bit\.ly/i, // Acortadores (pueden ocultar destino real)
+  /bit\.ly/i,
   /tinyurl/i,
   /goo\.gl/i,
 ];
 
 /**
- * Configura hooks de DOMPurify para validación adicional
+ * Configura hooks de DOMPurify para validacion adicional.
  */
 export function setupDOMPurifyHooks(): void {
-  // Solo funciona en el cliente
-  if (typeof window === 'undefined' || !DOMPurify) {
+  const domPurify = getDOMPurify();
+
+  if (!domPurify || hooksConfigured) {
     return;
   }
 
-  // Hook: Validar atributos antes de ser añadidos
-  DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  domPurify.addHook('uponSanitizeAttribute', (_node, data) => {
     const { attrName, attrValue } = data;
 
-    // Bloquear atributos de eventos (defense in depth)
     if (EVENT_HANDLERS.includes(attrName.toLowerCase())) {
       data.forceKeepAttr = false;
       data.attrValue = '';
       return;
     }
 
-    // Validar URLs en href y src
     if (attrName === 'href' || attrName === 'src') {
       const url = attrValue.toLowerCase();
 
-      // Bloquear protocolos peligrosos
       for (const protocol of DANGEROUS_PROTOCOLS) {
         if (url.startsWith(protocol)) {
           data.forceKeepAttr = false;
@@ -113,7 +191,6 @@ export function setupDOMPurifyHooks(): void {
         }
       }
 
-      // Bloquear URLs sospechosas
       for (const pattern of BLOCKED_URL_PATTERNS) {
         if (pattern.test(url)) {
           data.forceKeepAttr = false;
@@ -123,11 +200,10 @@ export function setupDOMPurifyHooks(): void {
       }
     }
 
-    // Validar clases CSS (whitelist)
     if (attrName === 'class') {
-      const classes = attrValue.split(/\s+/);
-      const validClasses = classes.filter(className => {
-        return ALLOWED_CSS_CLASSES.some(pattern => pattern.test(className));
+      const classes = attrValue.split(/\s+/).filter(Boolean);
+      const validClasses = classes.filter((className) => {
+        return ALLOWED_CSS_CLASSES.some((pattern) => pattern.test(className));
       });
 
       if (validClasses.length === 0) {
@@ -138,54 +214,43 @@ export function setupDOMPurifyHooks(): void {
       }
     }
 
-    // Validar que title no contenga HTML
     if (attrName === 'title') {
-      // Remover cualquier intento de HTML en title
       data.attrValue = attrValue.replace(/<[^>]*>/g, '');
     }
   });
 
-  // Hook: Validar elementos antes de ser añadidos
-  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+  domPurify.addHook('uponSanitizeElement', (node, data) => {
     const { tagName } = data;
 
-    // Remover elementos script (aunque DOMPurify ya lo hace)
-    if (tagName === 'script') {
-      node.remove();
+    if (!isElementNode(node)) {
       return;
     }
 
-    // Remover elementos style (inline CSS puede ser peligroso)
-    if (tagName === 'style') {
-      node.remove();
+    if (tagName === 'script' || tagName === 'style') {
+      node.parentNode?.removeChild(node);
       return;
     }
 
-    // Validar elementos form (prevenir auto-submit)
-    if (tagName === 'form') {
-      const formElement = node as HTMLFormElement;
+    if (tagName === 'form' && node instanceof HTMLFormElement) {
+      const formElement = node;
 
-      // Remover action si apunta a URL externa
       if (formElement.hasAttribute('action')) {
         const action = formElement.getAttribute('action') || '';
-
-        if (action.startsWith('http') && typeof window !== 'undefined' && window.location && !action.includes(window.location.hostname)) {
+        if (isExternalUrl(action)) {
           formElement.removeAttribute('action');
         }
       }
 
-      // Remover atributos peligrosos de form
       formElement.removeAttribute('onsubmit');
       formElement.removeAttribute('oninput');
     }
 
-    // Validar enlaces (a) para prevenir target="_blank" sin rel="noopener"
-    if (tagName === 'a') {
-      const linkElement = node as HTMLAnchorElement;
+    if (tagName === 'a' && node instanceof HTMLAnchorElement) {
+      const linkElement = node;
 
       if (linkElement.getAttribute('target') === '_blank') {
         const currentRel = linkElement.getAttribute('rel') || '';
-        const relValues = currentRel.split(/\s+/);
+        const relValues = currentRel.split(/\s+/).filter(Boolean);
 
         if (!relValues.includes('noopener')) {
           relValues.push('noopener');
@@ -197,55 +262,72 @@ export function setupDOMPurifyHooks(): void {
         linkElement.setAttribute('rel', relValues.join(' '));
       }
 
-      // Agregar indicador visual para links externos
       const href = linkElement.getAttribute('href') || '';
-      if (href.startsWith('http') && typeof window !== 'undefined' && window.location && !href.includes(window.location.hostname)) {
+      if (isExternalUrl(href)) {
         linkElement.setAttribute('data-external', 'true');
       }
     }
 
-    // Validar imágenes
-    if (tagName === 'img') {
-      const imgElement = node as HTMLImageElement;
+    if (tagName === 'img' && node instanceof HTMLImageElement) {
+      const imgElement = node;
 
-      // Forzar lazy loading
       if (!imgElement.hasAttribute('loading')) {
         imgElement.setAttribute('loading', 'lazy');
       }
 
-      // Remover onerror (puede ejecutar código)
       imgElement.removeAttribute('onerror');
       imgElement.removeAttribute('onload');
 
-      // Validar src
       const src = imgElement.getAttribute('src') || '';
-      if (!src || DANGEROUS_PROTOCOLS.some(p => src.toLowerCase().startsWith(p))) {
+      if (!src || DANGEROUS_PROTOCOLS.some((protocol) => src.toLowerCase().startsWith(protocol))) {
         imgElement.remove();
       }
     }
   });
 
-  // Hook: Después de sanitización
-  DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-    // Remover cualquier atributo que empiece con "on" (eventos)
-    if (node.attributes) {
-      const attrs = Array.from(node.attributes);
+  domPurify.addHook('afterSanitizeAttributes', (node) => {
+    if (!isElementNode(node)) {
+      return;
+    }
 
-      for (const attr of attrs) {
-        if (attr.name.toLowerCase().startsWith('on')) {
-          node.removeAttribute(attr.name);
+    if (node instanceof HTMLAnchorElement) {
+      if (node.getAttribute('target') === '_blank') {
+        const currentRel = node.getAttribute('rel') || '';
+        const relValues = currentRel.split(/\s+/).filter(Boolean);
+
+        if (!relValues.includes('noopener')) {
+          relValues.push('noopener');
         }
+        if (!relValues.includes('noreferrer')) {
+          relValues.push('noreferrer');
+        }
+
+        node.setAttribute('rel', relValues.join(' '));
+      }
+
+      const href = node.getAttribute('href') || '';
+      if (isExternalUrl(href)) {
+        node.setAttribute('data-external', 'true');
+      }
+    }
+
+    const attributes = Array.from(node.attributes);
+
+    for (const attribute of attributes) {
+      if (attribute.name.toLowerCase().startsWith('on')) {
+        node.removeAttribute(attribute.name);
       }
     }
   });
+
+  hooksConfigured = true;
 }
 
 /**
- * Configuración de DOMPurify con máxima seguridad
+ * Configuracion de DOMPurify con maxima seguridad
  */
-export const SECURE_RICH_TEXT_CONFIG = {
+export const SECURE_RICH_TEXT_CONFIG: DOMPurifyConfig = {
   ALLOWED_TAGS: [
-    // Solo tags esenciales para rich text
     'p', 'br', 'span',
     'strong', 'em', 'u', 'b', 'i',
     'ul', 'ol', 'li',
@@ -254,103 +336,76 @@ export const SECURE_RICH_TEXT_CONFIG = {
     'a',
   ],
   ALLOWED_ATTR: [
-    'href', // Solo para <a>
-    'title', // Para tooltips
-    'class', // Solo clases whitelisted (validadas en hook)
-    'rel', // Para noopener/noreferrer en links
-    'target', // Para _blank en links (pero forzamos rel)
-    'data-external', // Para marcar links externos
+    'href',
+    'title',
+    'class',
+    'rel',
+    'target',
+    'data-external',
   ],
-  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|sms):)|^(?:\/|#)/i, // Solo https, mailto, tel, sms, rutas relativas
-  ALLOW_DATA_ATTR: false, // ❌ No permitir data-* attributes (pueden contener código)
-  ALLOW_UNKNOWN_PROTOCOLS: false, // ❌ No permitir protocolos desconocidos
-  KEEP_CONTENT: true, // Mantener contenido de texto
+  ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto|tel|sms):)|^(?:\/|#)/i,
+  ALLOW_DATA_ATTR: false,
+  ALLOW_UNKNOWN_PROTOCOLS: false,
+  KEEP_CONTENT: true,
   RETURN_DOM: false,
   RETURN_DOM_FRAGMENT: false,
-  SAFE_FOR_TEMPLATES: true, // Seguro para templates (escapa {{ }})
+  SAFE_FOR_TEMPLATES: true,
   WHOLE_DOCUMENT: false,
   FORCE_BODY: false,
-
-  // Sanitización agresiva
-  SANITIZE_DOM: true, // Sanitizar DOM completamente
-  IN_PLACE: false, // No modificar el DOM original
-
-  // Configuraciones anti-mXSS
+  SANITIZE_DOM: true,
+  IN_PLACE: false,
   CUSTOM_ELEMENT_HANDLING: {
-    tagNameCheck: /^$/,  // No permitir custom elements
-    attributeNameCheck: /^$/,  // No permitir custom attributes
+    tagNameCheck: /^$/,
+    attributeNameCheck: /^$/,
     allowCustomizedBuiltInElements: false,
   },
 };
 
 /**
- * Sanitiza HTML con configuración segura mejorada
- *
- * @param dirty - HTML a sanitizar
- * @param config - Configuración personalizada (opcional)
- * @returns HTML sanitizado
+ * Sanitiza HTML con configuracion segura mejorada
  */
 export function enhancedSanitizeHTML(
   dirty: string | null | undefined,
-  config?: any
+  config?: DOMPurifyConfig
 ): string {
   if (!dirty) {
     return '';
   }
 
-  // Si estamos en el servidor, usar sanitización básica
-  if (typeof window === 'undefined' || !DOMPurify) {
-    // Sanitización básica para servidor
-    return dirty
+  const domPurify = getDOMPurify();
+  if (!domPurify) {
+    return hardenAnchorTags(
+      dirty
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
       .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-      .replace(/javascript:/gi, '');
+      .replace(/javascript:/gi, ''),
+    );
   }
 
-  // Asegurar que los hooks están configurados
   setupDOMPurifyHooks();
 
-  // Merge config con defaults seguros
-  const finalConfig = {
+  const sanitized = domPurify.sanitize(dirty, {
     ...SECURE_RICH_TEXT_CONFIG,
     ...config,
-  };
+  });
 
-  // Sanitizar
-  const clean = DOMPurify.sanitize(dirty, finalConfig);
-
-  return clean;
+  return toSanitizedString(sanitized);
 }
 
 /**
- * Sanitiza texto plano (sin permitir ningún HTML)
- *
- * @param dirty - Texto a sanitizar
- * @returns Texto plano sin HTML
+ * Sanitiza texto plano (sin permitir ningun HTML)
  */
 export function sanitizePlainText(dirty: string | null | undefined): string {
   if (!dirty) {
     return '';
   }
 
-  // Si estamos en el servidor, remover todo HTML
-  if (typeof window === 'undefined' || !DOMPurify) {
-    return dirty.replace(/<[^>]*>/g, '');
-  }
-
-  return DOMPurify.sanitize(dirty, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-    KEEP_CONTENT: true,
-  });
+  return stripHtmlPreservingText(enhancedSanitizeHTML(dirty));
 }
 
 /**
  * Valida que un string no contenga HTML peligroso
- *
- * @param text - Texto a validar
- * @returns true si es seguro, false si contiene HTML peligroso
  */
 export function isHTMLSafe(text: string): boolean {
   if (!text) {
@@ -363,49 +418,31 @@ export function isHTMLSafe(text: string): boolean {
 
 /**
  * Extrae solo el texto de un HTML (strips all tags)
- *
- * @param html - HTML a procesar
- * @returns Solo el texto sin tags
  */
 export function extractTextFromHTML(html: string | null | undefined): string {
   if (!html) {
     return '';
   }
 
-  // Sanitizar primero
-  const clean = enhancedSanitizeHTML(html);
-
-  // Crear un elemento temporal para extraer texto
-  if (typeof window !== 'undefined') {
-    const temp = document.createElement('div');
-    temp.innerHTML = clean;
-    return temp.textContent || temp.innerText || '';
-  }
-
-  // Fallback: remover tags con regex (menos preciso)
-  return clean.replace(/<[^>]*>/g, '');
+  return stripHtmlPreservingText(enhancedSanitizeHTML(html));
 }
 
 /**
- * Inicializa DOMPurify con configuración segura al cargar la app
- * Llamar esto en _app.tsx o layout.tsx
+ * Inicializa DOMPurify con configuracion segura al cargar la app
  */
 export function initializeSecureDOMPurify(): void {
-  if (typeof window === 'undefined' || !DOMPurify) {
+  const domPurify = getDOMPurify();
+
+  if (!domPurify) {
     return;
   }
 
-
   setupDOMPurifyHooks();
-
-  // Configuración global de DOMPurify
-  DOMPurify.setConfig({
+  domPurify.setConfig({
     ...SECURE_RICH_TEXT_CONFIG,
   });
-
 }
 
-// Auto-inicializar en el browser
-if (typeof window !== 'undefined' && DOMPurify) {
+if (typeof window !== 'undefined') {
   initializeSecureDOMPurify();
 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { RefreshTokenService } from '@/lib/auth/refreshToken.service';
 import { SessionService } from '@/features/auth/services/session.service';
 import { logger } from '@/lib/utils/logger';
+import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
 
 /**
  * GET /api/auth/sessions
@@ -9,12 +10,17 @@ import { logger } from '@/lib/utils/logger';
  * Obtiene la lista de sesiones activas del usuario actual
  * Útil para mostrar en la página de perfil/seguridad
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
     logger.log('📋 API Sessions: Obteniendo sesiones activas');
     
     // Obtener usuario actual
     const user = await SessionService.getCurrentUser();
+    const rateLimitResponse = applyAuthRateLimit(request, user?.id ?? null)
+
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
     
     if (!user) {
       return NextResponse.json(
@@ -62,6 +68,11 @@ export async function DELETE(request: Request) {
     
     // Obtener usuario actual
     const user = await SessionService.getCurrentUser();
+    const rateLimitResponse = applyAuthRateLimit(request, user?.id ?? null)
+
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
     
     if (!user) {
       return NextResponse.json(

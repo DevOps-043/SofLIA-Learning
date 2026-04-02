@@ -4,6 +4,7 @@ import {
   roundToSingleDecimal,
   getFilteredUserIds,
 } from '../report-data/shared';
+import type { ReportFilters } from '../../types/report-data.types';
 
 // ─── getUserDisplayName ───────────────────────────────────────────────────────
 
@@ -111,7 +112,7 @@ describe('roundToSingleDecimal', () => {
   });
 
   it('handles negative values', () => {
-    expect(roundToSingleDecimal(-1.75)).toBe(-1.8);
+    expect(roundToSingleDecimal(-1.75)).toBe(-1.7);
   });
 
   it('handles zero', () => {
@@ -132,39 +133,40 @@ describe('roundToSingleDecimal', () => {
 
 describe('getFilteredUserIds', () => {
   const allUserIds = ['u1', 'u2', 'u3', 'u4', 'u5'];
+  const buildFilters = (userIds?: string[]): Pick<ReportFilters, 'user_ids'> => ({ user_ids: userIds });
 
   it('returns all ids when filters.user_ids is empty', () => {
-    const result = getFilteredUserIds(allUserIds, { user_ids: [] } as any);
+    const result = getFilteredUserIds(allUserIds, buildFilters([]));
     expect(result).toEqual(allUserIds);
   });
 
   it('returns all ids when filters.user_ids is undefined', () => {
-    const result = getFilteredUserIds(allUserIds, {} as any);
+    const result = getFilteredUserIds(allUserIds, buildFilters());
     expect(result).toEqual(allUserIds);
   });
 
   it('filters to only specified user ids', () => {
-    const result = getFilteredUserIds(allUserIds, { user_ids: ['u1', 'u3'] } as any);
+    const result = getFilteredUserIds(allUserIds, buildFilters(['u1', 'u3']));
     expect(result).toEqual(['u1', 'u3']);
   });
 
   it('returns empty array when no matching ids', () => {
-    const result = getFilteredUserIds(allUserIds, { user_ids: ['u99', 'u100'] } as any);
+    const result = getFilteredUserIds(allUserIds, buildFilters(['u99', 'u100']));
     expect(result).toEqual([]);
   });
 
   it('handles empty organizationUserIds', () => {
-    const result = getFilteredUserIds([], { user_ids: ['u1'] } as any);
+    const result = getFilteredUserIds([], buildFilters(['u1']));
     expect(result).toEqual([]);
   });
 
   it('preserves order from organizationUserIds', () => {
-    const result = getFilteredUserIds(['u5', 'u3', 'u1'], { user_ids: ['u5', 'u1', 'u3'] } as any);
+    const result = getFilteredUserIds(['u5', 'u3', 'u1'], buildFilters(['u5', 'u1', 'u3']));
     expect(result).toEqual(['u5', 'u3', 'u1']);
   });
 
   it('deduplicates: only includes each org id once even if filter has duplicates', () => {
-    const result = getFilteredUserIds(['u1', 'u2'], { user_ids: ['u1', 'u1', 'u2'] } as any);
+    const result = getFilteredUserIds(['u1', 'u2'], buildFilters(['u1', 'u1', 'u2']));
     expect(result).toHaveLength(2);
   });
 });

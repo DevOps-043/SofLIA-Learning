@@ -11,7 +11,7 @@ export * from './learning-route.service';
 export * from './plan-generator.service';
 export * from './session-generator.service';
 export * from './calendar-sync.service';
-export * from './soflia-context.service';
+export * from './lia-context.service';
 export * from './lesson-distribution.service';
 export * from './plan-parser.service';
 export * from './study-plan-persistence.service';

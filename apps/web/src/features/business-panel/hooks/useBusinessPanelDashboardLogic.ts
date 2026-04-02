@@ -15,12 +15,85 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 
+type DashboardChange = number | string | null | undefined
+
+interface DashboardMetricValue {
+  value: string | number
+  change?: DashboardChange
+  linksCount?: number
+}
+
+type DashboardMetric = DashboardMetricValue | string | number | null | undefined
+
+interface DashboardStats {
+  activeUsers?: DashboardMetric
+  assignedCourses?: DashboardMetric
+  completedCourses?: DashboardMetric
+  completed?: DashboardMetric
+  inProgress?: DashboardMetric
+  certificates?: DashboardMetric
+  engagement?: DashboardMetric
+  invitedUsers?: DashboardMetric
+  usersChange?: DashboardChange
+  assignmentsChange?: DashboardChange
+  completedChange?: DashboardChange
+  progressChange?: DashboardChange
+  certificateGrowth?: DashboardChange
+  engagementGrowth?: DashboardChange
+  averageProgress?: number
+  engagementRate?: number
+}
+
+interface DashboardActivityApiRow {
+  action?: string | null
+  user?: string | null
+  time?: string | null
+  icon?: string | null
+}
+
+interface DashboardActivity {
+  title: string
+  description: string
+  user: string
+  timestamp: string
+  type: 'certificate' | 'user' | 'course' | 'progress'
+}
+
+interface DashboardStatsResponse {
+  success?: boolean
+  stats?: DashboardStats
+}
+
+interface DashboardActivitiesResponse {
+  success?: boolean
+  activities?: DashboardActivityApiRow[]
+}
+
+function parseChange(change: DashboardChange): number {
+  if (typeof change === 'number') return change
+  if (typeof change === 'string') {
+    const parsed = parseFloat(change.replace(/[+\-%]/g, ''))
+    return isNaN(parsed) ? 0 : parsed
+  }
+  return 0
+}
+
+function getStatValue(stat: DashboardMetric, fallback: string | number = 0): string | number {
+  if (stat && typeof stat === 'object' && 'value' in stat) return stat.value
+  return stat || fallback
+}
+
+function getStatChange(stat: DashboardMetric, fallbackChange: DashboardChange = 0): number {
+  if (stat && typeof stat === 'object' && 'change' in stat) return parseChange(stat.change)
+  return parseChange(fallbackChange)
+}
+
 export function useBusinessPanelDashboardLogic() {
   const { user } = useAuth()
   const params = useParams()
   const orgSlug = params?.orgSlug as string || 'org'
-  const [stats, setStats] = useState<any>(null)
-  const [activities, setActivities] = useState<any[]>([])
+  const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [activities, setActivities] = useState<DashboardActivity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activitiesLoading, setActivitiesLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
@@ -39,7 +112,7 @@ export function useBusinessPanelDashboardLogic() {
     cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
     borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
     background: panelStyles?.background_value || (isDark ? '#0F172A' : '#F8FAFC'),
-    backgroundType: panelStyles?.background_type || 'color'
+    backgroundType: panelStyles?.background_type || 'color',
   }), [panelStyles, isDark])
 
   const getGreeting = () => {
@@ -69,17 +142,19 @@ export function useBusinessPanelDashboardLogic() {
     if (diffHours < 24) return t('dashboard.recentActivity.time.hoursAgo', { time: diffHours })
     if (diffDays === 1) return t('dashboard.recentActivity.time.daysAgo', { time: 1 })
     if (diffDays < 7) return t('dashboard.recentActivity.time.daysAgo', { time: diffDays })
-    return date.toLocaleDateString(t('dashboard.recentActivity.time.locale', { defaultValue: 'es-ES' }), { day: 'numeric', month: 'short' })
+    return date.toLocaleDateString(t('dashboard.recentActivity.time.locale', { defaultValue: 'es-ES' }), {
+      day: 'numeric',
+      month: 'short',
+    })
   }
 
-  // Load dashboard stats
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setIsLoading(true)
         const response = await fetch(`/api/${orgSlug}/business/dashboard/stats`, { credentials: 'include' })
-        if (!response.ok) throw new Error('Error al cargar estadísticas')
-        const data = await response.json()
+        if (!response.ok) throw new Error('Error al cargar estadisticas')
+        const data = await response.json() as DashboardStatsResponse
         if (data.success && data.stats) setStats(data.stats)
       } catch (error) {
         console.error('Error loading stats:', error)
@@ -90,23 +165,26 @@ export function useBusinessPanelDashboardLogic() {
     fetchStats()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load recent activities
   useEffect(() => {
     const fetchActivities = async () => {
       try {
         setActivitiesLoading(true)
         const response = await fetch(`/api/${orgSlug}/business/dashboard/activity`, { credentials: 'include' })
         if (!response.ok) throw new Error('Error al cargar actividades')
-        const data = await response.json()
+        const data = await response.json() as DashboardActivitiesResponse
         if (data.success && data.activities) {
-          setActivities(data.activities.map((activity: any) => ({
+          setActivities(data.activities.map((activity) => ({
             title: activity.action || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' }),
-            description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' }),
+            description: activity.action || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripcion' }),
             user: activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' }),
             timestamp: activity.time || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' }),
-            type: activity.icon === 'CheckCircle' ? 'certificate' :
-              activity.icon === 'Users' ? 'user' :
-                activity.icon === 'BookOpen' ? 'course' : 'progress'
+            type: activity.icon === 'CheckCircle'
+              ? 'certificate'
+              : activity.icon === 'Users'
+                ? 'user'
+                : activity.icon === 'BookOpen'
+                  ? 'course'
+                  : 'progress',
           })))
         }
       } catch (error) {
@@ -118,30 +196,10 @@ export function useBusinessPanelDashboardLogic() {
     fetchActivities()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Clock tick
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(new Date()), 60000)
     return () => clearInterval(interval)
   }, [])
-
-  const parseChange = (change: any): number => {
-    if (typeof change === 'number') return change
-    if (typeof change === 'string') {
-      const parsed = parseFloat(change.replace(/[+\-%]/g, ''))
-      return isNaN(parsed) ? 0 : parsed
-    }
-    return 0
-  }
-
-  const getStatValue = (stat: any, fallback: any = 0): any => {
-    if (stat && typeof stat === 'object' && 'value' in stat) return stat.value
-    return stat || fallback
-  }
-
-  const getStatChange = (stat: any, fallbackChange: any = 0): number => {
-    if (stat && typeof stat === 'object' && 'change' in stat) return parseChange(stat.change)
-    return parseChange(fallbackChange)
-  }
 
   const statsData = useMemo(() => stats ? [
     {
@@ -151,7 +209,7 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/users-card-bg.png',
       gradient: `bg-gradient-to-br from-[${themeColors.primary}] to-[${themeColors.primary}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.primary}, ${themeColors.primary}cc)` },
-      href: `/${orgSlug}/business-panel/users`
+      href: `/${orgSlug}/business-panel/users`,
     },
     {
       title: t('dashboard.stats.assignedCourses'),
@@ -161,7 +219,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: `bg-gradient-to-br from-[${themeColors.secondary}] to-[${themeColors.secondary}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.secondary}, ${themeColors.secondary}cc)` },
       href: `/${orgSlug}/business-panel/courses`,
-      id: 'tour-stat-courses'
+      id: 'tour-stat-courses',
     },
     {
       title: t('dashboard.stats.completed'),
@@ -177,7 +235,7 @@ export function useBusinessPanelDashboardLogic() {
       change: getStatChange(stats.inProgress, stats.progressChange),
       backgroundImage: '/images/dashboard-cards/progress-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #F59E0B, #F59E0Bcc)` },
+      gradientStyle: { background: 'linear-gradient(to bottom right, #F59E0B, #F59E0Bcc)' },
     },
     {
       title: t('dashboard.stats.certificates'),
@@ -185,8 +243,8 @@ export function useBusinessPanelDashboardLogic() {
       change: getStatChange(stats.certificates, stats.certificateGrowth),
       backgroundImage: '/images/dashboard-cards/certificates-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #8B5CF6, #8B5CF6cc)` },
-      id: 'tour-stat-certificates'
+      gradientStyle: { background: 'linear-gradient(to bottom right, #8B5CF6, #8B5CF6cc)' },
+      id: 'tour-stat-certificates',
     },
     {
       title: t('dashboard.stats.engagement'),
@@ -194,7 +252,7 @@ export function useBusinessPanelDashboardLogic() {
       change: getStatChange(stats.engagement, stats.engagementGrowth),
       backgroundImage: '/images/dashboard-cards/engagement-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#EC4899] to-[#EC4899]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #EC4899, #EC4899cc)` },
+      gradientStyle: { background: 'linear-gradient(to bottom right, #EC4899, #EC4899cc)' },
     },
     {
       title: t('dashboard.stats.invitedUsers', 'Usuarios Invitados'),
@@ -202,17 +260,20 @@ export function useBusinessPanelDashboardLogic() {
       change: getStatChange(stats.invitedUsers),
       backgroundImage: '/images/dashboard-cards/users-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#6366F1] to-[#6366F1]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #6366F1, #6366F1cc)` },
-      href: `/${orgSlug}/business-panel/users?tab=invitations`
+      gradientStyle: { background: 'linear-gradient(to bottom right, #6366F1, #6366F1cc)' },
+      href: `/${orgSlug}/business-panel/users?tab=invitations`,
     },
     {
-      title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitación'),
-      value: stats.invitedUsers && typeof stats.invitedUsers === 'object' ? stats.invitedUsers.linksCount || 0 : 0,
+      title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitacion'),
+      value:
+        stats.invitedUsers && typeof stats.invitedUsers === 'object'
+          ? stats.invitedUsers.linksCount || 0
+          : 0,
       change: 0,
       backgroundImage: '/images/dashboard-cards/courses-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
-      gradientStyle: { background: `linear-gradient(to bottom right, #10B981, #10B981cc)` },
-      href: `/${orgSlug}/business-panel/users?tab=links`
+      gradientStyle: { background: 'linear-gradient(to bottom right, #10B981, #10B981cc)' },
+      href: `/${orgSlug}/business-panel/users?tab=links`,
     },
   ] : [], [stats, themeColors, t, orgSlug]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -222,40 +283,41 @@ export function useBusinessPanelDashboardLogic() {
       description: t('dashboard.quickActions.manageUsers.desc'),
       icon: UsersIcon,
       href: `/${orgSlug}/business-panel/users`,
-      color: themeColors.primary
+      color: themeColors.primary,
     },
     {
       title: t('dashboard.quickActions.assignCourses.title'),
       description: t('dashboard.quickActions.assignCourses.desc'),
       icon: PlusIcon,
       href: `/${orgSlug}/business-panel/courses`,
-      color: themeColors.secondary
+      color: themeColors.secondary,
     },
     {
       title: t('dashboard.quickActions.viewReports.title'),
       description: t('dashboard.quickActions.viewReports.desc'),
       icon: ChartBarIcon,
       href: `/${orgSlug}/business-panel/reports`,
-      color: themeColors.accent
+      color: themeColors.accent,
     },
     {
       title: t('dashboard.quickActions.settings.title'),
       description: t('dashboard.quickActions.settings.desc'),
       icon: Cog6ToothIcon,
       href: `/${orgSlug}/business-panel/settings`,
-      color: '#8B5CF6'
+      color: '#8B5CF6',
     },
   ], [themeColors, t, orgSlug])
 
   const getBackgroundStyles = () => {
     if (themeColors.backgroundType === 'gradient' && themeColors.background) {
       return { background: themeColors.background }
-    } else if (themeColors.backgroundType === 'image' && themeColors.background) {
+    }
+    if (themeColors.backgroundType === 'image' && themeColors.background) {
       return {
         backgroundImage: `url(${themeColors.background})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
       }
     }
     return { backgroundColor: themeColors.background }

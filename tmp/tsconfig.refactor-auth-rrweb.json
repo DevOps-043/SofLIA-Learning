@@ -1,0 +1,22 @@
+{
+  "extends": "../apps/web/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": false,
+    "tsBuildInfoFile": "./tsconfig.refactor-auth-rrweb.tsbuildinfo"
+  },
+  "include": [
+    "../apps/web/src/features/auth/actions/invitation.ts",
+    "../apps/web/src/features/auth/actions/invitation/**/*.ts",
+    "../apps/web/src/features/auth/components/OrganizationAuth/OrganizationRegisterForm.tsx",
+    "../apps/web/src/features/auth/components/OrganizationAuth/organization-register-form/**/*.ts",
+    "../apps/web/src/features/auth/components/OrganizationAuth/organization-register-form/**/*.tsx",
+    "../apps/web/src/features/auth/components/OrganizationAuth/organization-auth.styles.ts",
+    "../apps/web/src/features/auth/components/OrganizationAuth/useOrganizationAuthStyles.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.types.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.utils.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.options.ts",
+    "../apps/web/src/lib/rrweb/session-recorder.metadata.ts"
+  ]
+}

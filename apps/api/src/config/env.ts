@@ -29,6 +29,9 @@ const envSchema = z.object({
   USER_JWT_SECRET: z.string().min(32, {
     message: 'USER_JWT_SECRET debe tener al menos 32 caracteres para ser seguro'
   }).optional(),
+  SUPABASE_JWT_SECRET: z.string().min(32, {
+    message: 'SUPABASE_JWT_SECRET debe tener al menos 32 caracteres para ser seguro'
+  }).optional(),
   JWT_SECRET: z.string().min(32, {
     message: 'JWT_SECRET debe tener al menos 32 caracteres para ser seguro'
   }).optional(),
@@ -46,10 +49,14 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url({
     message: 'SUPABASE_URL debe ser una URL válida'
   }).optional(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url({
+    message: 'NEXT_PUBLIC_SUPABASE_URL debe ser una URL válida'
+  }).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20, {
     message: 'SUPABASE_SERVICE_ROLE_KEY requerida (mínimo 20 caracteres)'
   }).optional(),
   SUPABASE_ANON_KEY: z.string().optional(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
 
   // External APIs
   OPENAI_API_KEY: z.string().min(20, {
@@ -105,10 +112,17 @@ function validateEnv() {
     const parsed = envSchema.parse(process.env);
 
     // ✅ Resolver JWT_SECRET con fallback
-    const jwtSecret = parsed.USER_JWT_SECRET || parsed.JWT_SECRET || 'dev-secret-key-change-in-production';
+    const jwtSecret =
+      parsed.SUPABASE_JWT_SECRET ||
+      parsed.USER_JWT_SECRET ||
+      parsed.JWT_SECRET ||
+      'dev-secret-key-change-in-production';
     const refreshSecret = parsed.REFRESH_TOKEN_SECRET || parsed.API_SECRET_KEY || 'dev-refresh-secret';
     const sessionSecret = parsed.SESSION_SECRET || 'your-session-secret';
-    const supabaseUrl = parsed.SUPABASE_URL || 'https://dev-project.supabase.co';
+    const supabaseUrl =
+      parsed.SUPABASE_URL ||
+      parsed.NEXT_PUBLIC_SUPABASE_URL ||
+      'https://dev-project.supabase.co';
     const supabaseKey = parsed.SUPABASE_SERVICE_ROLE_KEY || 'dev-service-key';
 
     // ✅ Validaciones críticas en producción
@@ -157,12 +171,12 @@ function validateEnv() {
       }
 
       // Verificar que las credenciales críticas existen
-      if (!parsed.USER_JWT_SECRET && !parsed.JWT_SECRET) {
-        throw new Error('❌ USER_JWT_SECRET o JWT_SECRET es requerido en producción');
+      if (!parsed.SUPABASE_JWT_SECRET && !parsed.USER_JWT_SECRET && !parsed.JWT_SECRET) {
+        throw new Error('❌ SUPABASE_JWT_SECRET, USER_JWT_SECRET o JWT_SECRET es requerido en producción');
       }
 
-      if (!parsed.SUPABASE_URL) {
-        throw new Error('❌ SUPABASE_URL es requerida en producción');
+      if (!parsed.SUPABASE_URL && !parsed.NEXT_PUBLIC_SUPABASE_URL) {
+        throw new Error('❌ SUPABASE_URL o NEXT_PUBLIC_SUPABASE_URL es requerida en producción');
       }
 
       if (!parsed.SUPABASE_SERVICE_ROLE_KEY) {
@@ -188,11 +202,13 @@ function validateEnv() {
     return {
       ...parsed,
       JWT_SECRET: jwtSecret,
+      SUPABASE_JWT_SECRET: jwtSecret,
       REFRESH_TOKEN_SECRET: refreshSecret,
       SESSION_SECRET: sessionSecret,
       SUPABASE_URL: supabaseUrl,
       SUPABASE_SERVICE_ROLE_KEY: supabaseKey,
-      SUPABASE_ANON_KEY: parsed.SUPABASE_ANON_KEY || '',
+      SUPABASE_ANON_KEY:
+        parsed.SUPABASE_ANON_KEY || parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       ALLOWED_FILE_TYPES: parsed.ALLOWED_FILE_TYPES?.split(',') || [
         'image/jpeg',
         'image/png',

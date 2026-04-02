@@ -74,7 +74,8 @@
       "Bash(find 'c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src' \\\\\\(-name *.tsx -o -name *.ts \\\\\\) -exec wc -l {} +)",
       "Bash(wc -l \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/lib/lia-context/__tests__/\"*.test.ts)",
       "Bash(grep \"total$\")",
-      "Read(//c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/**)"
+      "Read(//c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/**)",
+      "Bash(grep -v \"//.*console\")"
     ],
     "deny": [],
     "ask": []

@@ -131,7 +131,10 @@ export function validateBucket(bucket: string): ValidationResult {
  * ✅ Genera un nombre de archivo seguro y único
  */
 export function generateSafeFileName(originalName: string): string {
-  const fileExt = originalName.split('.').pop()?.toLowerCase() || 'bin';
+  const lastDotIndex = originalName.lastIndexOf('.');
+  const rawExtension =
+    lastDotIndex > 0 ? originalName.slice(lastDotIndex + 1).toLowerCase() : '';
+  const fileExt = rawExtension.replace(/[^a-z0-9]/g, '') || 'bin';
   const timestamp = Date.now();
   const randomString = Math.random().toString(36).substring(2, 10);
   return `${timestamp}-${randomString}.${fileExt}`;

@@ -8,8 +8,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "vitest --configLoader runner run",
+    "test:watch": "vitest --configLoader runner",
     "lint": "eslint src --ext .ts",
     "type-check": "tsc --noEmit"
   },

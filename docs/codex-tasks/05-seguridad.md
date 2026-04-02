@@ -1,121 +1,100 @@
 # CODEX TASK — Seguridad
 
-**Peso en TDI:** 10% | **Deuda residual estimada:** ~50-55%
-**Fecha de corte:** 2026-04-01
-**Estado:** Parcialmente resuelto — secretos del cliente eliminados, pero auth/session
-y session recording siguen con deuda crítica.
+**Peso en TDI:** 10% | **Deuda residual actual:** ~28%
+**Fecha de corte:** 2026-04-02 (worktree real)
 
 ---
 
-## Lo que ya está hecho (NO tocar)
+## Ya resuelto — NO tocar
 
-- ElevenLabs API key eliminada de todos los clientes ✅
-- Proxy server-side `/api/tts` con validación Zod y rate limiting ✅
-- `lib/supabase/server.ts` — cache global por cookies eliminado, cliente stateless ✅
-- `useProfile.ts` — ya no accede Supabase directo desde el cliente ✅
-- OAuth flow modularizado (`oauth-flow/` con servicios separados) ✅
-- `OnboardingAgent`, `useLiaSidePanelLogic`, `useContextualVoiceGuideLogic` — sin secretos embebidos ✅
-- `useAIChatVoice.ts` y `useStudyPlannerVoiceInteraction.ts` usan `/api/tts` ✅
+| Área | Archivo / Acción | Estado |
+|---|---|---|
+| Secretos cliente | ElevenLabs API key eliminada de todos los clientes | ✅ |
+| Proxy TTS | `/api/tts` con Zod + rate limiting | ✅ |
+| Supabase client | `lib/supabase/server.ts` — stateless, sin cache global | ✅ |
+| OAuth | OAuth flow modularizado (`oauth-flow/` con servicios separados) | ✅ |
+| Invitaciones | `invitation.ts` 789 → **120** líneas — modularizado | ✅ |
+| Auth utils | `lib/auth/requireBusiness.ts` 684 → **50** líneas | ✅ |
+| Auth utils | `lib/auth/hierarchicalAccess.ts` 627 → **1** línea | ✅ |
+| Email service | `features/auth/services/email.service.ts` 630 → **145** líneas | ✅ |
+| Rate limiting auth | `app/api/auth/{logout,me,refresh,sessions,questionnaire-status}` | ✅ |
+| Rate limiting AI | `app/api/ai-chat/route.ts` + `dashboard/chat/route.ts` | ✅ |
 
 ---
 
 ## Pendiente — ordenado por riesgo
 
-### BLOQUE 1 — Crítico: Auth y Session
+### BLOQUE 1 — Session Recording (rrweb) — PRIORIDAD ALTA
 
-**TAREA 1A — `features/auth/actions/invitation.ts` (789 líneas) — PRIORIDAD MÁXIMA**
+**TAREA 1A — `lib/rrweb/session-recorder.ts` (328 líneas — reducido de 701, aún pendiente)**
 
-> ⚠️ Este archivo combina lógica sensible (auth + invitaciones + SSO) sin tests.
-> Un bug aquí afecta el proceso de onboarding completo de cada empresa cliente.
+> El archivo graba sesiones de usuario (clicks, inputs, navegación). La reducción a 328 líneas
+> fue parcial. Faltan: modularizar los filtros de privacidad y crear tests obligatorios.
 
-Problemas de seguridad específicos:
-- Validación de tokens de invitación inline sin servicio dedicado y testeable
-- Incremento de `bulk_invite_links.current_uses` puede tener race condition
-- Manejo de errores inconsistente — algunos errores se tragan silenciosamente
-- Sin límite de intentos de canjeo de invitación
-
-Acciones requeridas:
-1. Extraer a `invitation/` (ver `01-arquitectura-modularidad.md` TAREA 1A)
-2. En `invitation-validation.service.ts`: validar expiración, estado, usos máximos
-3. En `invitation-redemption.service.ts`: update atómico de `current_uses` con check previo
-4. Agregar tests para el flujo de validación y canjeo
-5. Documentar en tests los casos edge: token expirado, ya canjeado, usos agotados
-
-**TAREA 1B — `features/auth/components/OrganizationAuth/OrganizationLoginForm.tsx` (660 líneas)**
-
-- Lógica de autenticación mezclada con render UI
-- Side effects (redirect, token storage) inline en el componente
-- Ver `01-arquitectura-modularidad.md` TAREA 2D para la extracción
-
----
-
-### BLOQUE 2 — Crítico: Session Recording (rrweb)
-
-**TAREA 2A — `lib/rrweb/session-recorder.ts` (701 líneas reales — doc dice 643)**
-
-> ⚠️ Este archivo graba sesiones de usuario (clicks, inputs, navegación). Sin tests.
-> El ANALISIS_RRWEB.md y CHECKLIST_RRWEB.md en `docs/` contienen contexto adicional.
-
-Problemas identificados:
-- Sin modularizar — toda la lógica de capture, filtrado y upload en un archivo
-- Sin tests — no hay forma de verificar que datos sensibles se filtran correctamente
-- El filtrado de inputs sensibles (contraseñas, tarjetas) es crítico y debe ser testeable
-
-Separación esperada:
+Separación pendiente:
 ```
 lib/rrweb/
-├── session-recorder.ts                # orquestador ≤150 líneas
-├── session-recorder-config.ts         # configuración de captura
-├── session-recorder-filters.ts        # filtrar campos sensibles (inputs password, etc.)
-├── session-recorder-upload.ts         # subida de eventos al servidor
-├── session-recorder-privacy.ts        # máscaras y exclusiones de privacidad
+├── session-recorder.ts                 # orquestador ≤150 líneas
+├── session-recorder-filters.ts         # filtrar campos sensibles (inputs password, etc.)
+├── session-recorder-privacy.ts         # máscaras y exclusiones de privacidad
+├── session-recorder-upload.ts          # subida de eventos al servidor
 └── __tests__/
-    ├── session-recorder-filters.test.ts   # CRÍTICO — verificar que passwords se filtran
-    └── session-recorder-privacy.test.ts   # CRÍTICO — verificar máscaras
+    ├── session-recorder-filters.test.ts    # CRÍTICO — verificar que passwords se filtran
+    └── session-recorder-privacy.test.ts    # CRÍTICO — verificar máscaras
 ```
 
-Tests obligatorios para `session-recorder-filters.test.ts`:
+Tests no negociables para `session-recorder-filters.test.ts`:
 ```typescript
-it('should mask input[type=password] values', ...)
-it('should not capture credit card number inputs', ...)
-it('should respect data-no-record attribute', ...)
-it('should filter sensitive URL params', ...)
+it('masks value of input[type=password]')
+it('does not capture credit card number inputs')
+it('respects data-no-record attribute')
+it('filters sensitive URL params')
+it('does NOT mask regular text inputs')
+it('masks inputs inside forms with class sensitive')
 ```
+
+Leer `docs/ANALISIS_RRWEB.md` antes de tocar este archivo.
 
 ---
 
-### BLOQUE 3 — Medio: Type-check en archivos de seguridad
+### BLOQUE 2 — Type-check en archivos de seguridad
 
-Los siguientes archivos de seguridad/infraestructura tienen errores de TypeScript activos:
+Los siguientes archivos tienen errores de TypeScript activos que afectan seguridad:
 
 | Archivo | Error | Riesgo |
 |---|---|---|
-| `lib/supabase/pool.ts` | TS2345 | Pool de conexiones mal tipado |
 | `lib/validation/password-security.ts` | TS2558 | Validación de contraseñas con tipo incorrecto |
-| `lib/sanitize/enhanced-dom-purify.ts` | TS18046 | Sanitizador con tipo desconocido |
+| `lib/sanitize/enhanced-dom-purify.ts` | TS18046 | Sanitizador con tipo `unknown` sin narrowing |
+| `lib/supabase/pool.ts` | TS2345 | Pool de conexiones mal tipado |
 
-**TAREA 3A — Corregir errores TS en archivos de seguridad**
+**TAREA 2A — Corregir `lib/validation/password-security.ts` (TS2558)**
 
-Orden de corrección:
-1. `lib/validation/password-security.ts` — validación de contraseñas es crítica
-2. `lib/sanitize/enhanced-dom-purify.ts` — sanitizador de HTML
-3. `lib/supabase/pool.ts` — pool de conexiones
-
-Para cada uno: corregir el error TS sin cambiar comportamiento. Si el tipo correcto
-requiere un cambio de API, documentarlo antes de implementar.
+TS2558 = "Expected X type arguments but got Y". Un genérico recibe más tipos de los que acepta.
 
 ```bash
-# Verificar errores actuales
-npm run type-check --workspace=apps/web 2>&1 | grep -E "password|sanitize|pool"
+npm run type-check --workspace=apps/web 2>&1 | grep -A 8 "password-security"
 ```
+
+**TAREA 2B — Corregir `lib/sanitize/enhanced-dom-purify.ts` (TS18046)**
+
+TS18046 = "X is of type 'unknown'". Una variable se usa sin type guard previo.
+
+```typescript
+// Fix patrón:
+function sanitize(input: unknown) {
+  if (typeof input !== 'string') return ''
+  return DOMPurify.sanitize(input)
+}
+```
+
+Nota: hay 1 test fallando en `enhanced-dom-purify.test.ts` — corregirlo junto con el tipo.
 
 ---
 
-### BLOQUE 4 — Bajo: Headers de seguridad HTTP
+### BLOQUE 3 — Security headers HTTP
 
-**TAREA 4A — Agregar security headers en `next.config.js`**
+**TAREA 3A — Agregar security headers en `next.config.js`**
 
-Headers que deben configurarse:
 ```javascript
 // next.config.js
 const securityHeaders = [
@@ -131,66 +110,58 @@ const securityHeaders = [
 ]
 ```
 
-> ⚠️ NO agregar CSP (Content Security Policy) aún — requiere análisis de todos los scripts
-> externos (Supabase, ElevenLabs, etc.) para no romper funcionalidades.
+> NO agregar CSP aún — requiere análisis de todos los scripts externos (Supabase, ElevenLabs).
 
-**TAREA 4B — Verificar que no quedan secretos hardcodeados**
+**TAREA 3B — Verificar que no quedan secretos hardcodeados**
 
 ```bash
-# Buscar posibles secretos hardcodeados
 grep -r "sk-" apps/web/src --include="*.ts" --include="*.tsx" -l
 grep -r "ELEVEN" apps/web/src --include="*.ts" --include="*.tsx" -l
 grep -r "service_role" apps/web/src --include="*.ts" --include="*.tsx" -l
 ```
 
-Si algún resultado aparece fuera de `.env*` o archivos de ejemplo: corregir inmediatamente.
-
 ---
 
-### BLOQUE 5 — Rate limiting ampliado
+### BLOQUE 4 — Auth form con lógica mezclada
 
-**TAREA 5A — Rate limiting en endpoints de autenticación**
+**TAREA 4A — `features/auth/components/OrganizationAuth/OrganizationLoginForm.tsx` (435 líneas)**
 
-Los endpoints de login/registro no tienen rate limiting:
-```
-app/api/auth/*/route.ts  — verificar si existen y si tienen rate limit
-```
+Reducido de 660 pero aún en 435 líneas. Lógica de autenticación mezclada con render UI.
+Ver `02-frontend-componentes.md` BLOQUE 4 para la extracción completa.
 
-Patrón a usar (igual que `/api/tts`):
-```typescript
-import { rateLimit } from '@/lib/rate-limit'
-const limiter = rateLimit({ max: 5, windowMs: 15 * 60 * 1000 }) // 5 intentos / 15 min
-```
+Objetivo: ≤150 líneas (shell UI) + `useOrganizationLoginFormLogic.ts` separado.
 
 ---
 
 ## Reglas para Codex en este módulo
 
-1. **Los tests de seguridad son obligatorios**, no opcionales. Especialmente para filtros de datos sensibles.
+1. **Tests de seguridad son obligatorios**, no opcionales. Especialmente filtros de datos sensibles.
 2. **No cambiar el comportamiento de auth** sin entender el flujo completo primero.
 3. **Leer `docs/ANALISIS_RRWEB.md`** antes de tocar `session-recorder.ts`.
-4. **Los errores TS en `lib/` deben corregirse sin cambiar la API pública** del módulo.
+4. **Errores TS en `lib/` deben corregirse sin cambiar la API pública** del módulo.
 5. **No agregar logging de datos sensibles** (passwords, tokens) en ningún nuevo código.
 6. **Rate limits son por userId cuando hay sesión**, por IP cuando no hay.
+7. **Correr tests de seguridad primero** — si rompen, revertir y diagnosticar.
 
 ## Verificación
 
 ```bash
-# Tests de seguridad críticos
-npx vitest run --reporter=verbose apps/web/src/lib/rrweb/__tests__/
-npx vitest run --reporter=verbose apps/web/src/features/auth/actions/invitation/
+# Tests críticos de seguridad
+cd apps/web && npx vitest run --reporter=verbose src/lib/rrweb/__tests__/
+npx vitest run --reporter=verbose src/features/auth/actions/
 
-# Verificar type-check de archivos de seguridad
+# Type-check de archivos de seguridad
 npm run type-check --workspace=apps/web 2>&1 | grep -E "password-security|enhanced-dom|pool"
 
 # Buscar secretos
-grep -rn "sk-\|ELEVEN\|service_role\|anon_key" apps/web/src --include="*.ts" --include="*.tsx"
+grep -rn "sk-\|service_role\|anon_key" apps/web/src --include="*.ts" --include="*.tsx"
 ```
 
 ## Métrica de éxito
 
 - `session-recorder.ts` ≤ 150 líneas con tests de filtrado de datos sensibles
-- `invitation.ts` (789) modularizado con tests de validación y canjeo
-- 0 errores TS en `lib/validation/` y `lib/sanitize/`
+- `lib/validation/password-security.ts` sin errores TS
+- `lib/sanitize/enhanced-dom-purify.ts` sin errores TS + test verde
 - Security headers configurados en `next.config.js`
 - 0 secretos hardcodeados en `apps/web/src`
+- TDI Seguridad: de ~28% a ~15%

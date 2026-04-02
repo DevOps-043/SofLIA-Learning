@@ -12,11 +12,12 @@ import { SessionService } from '../../../../../features/auth/services/session.se
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
+import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
 
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
  */
-function createAdminClient() {
+export function createLegacyAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       );
     }
 
-    const supabase = createAdminClient();
+    const supabase = createSharedAdminClient();
 
     // Verificar que el plan pertenece al usuario
     const { data: plan, error: planError } = await supabase

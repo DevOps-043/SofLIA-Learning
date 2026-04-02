@@ -1,39 +1,54 @@
 # CODEX TASK — Base de Datos (Supabase / PostgreSQL)
 
-**Peso en TDI:** 10% | **Deuda residual estimada:** ~55-58%
-**Fecha de corte:** 2026-04-01
-**Estado:** Sin intervención en todo el programa de refactorización. Aporta 5.8pp de piso
-mínimo al TDI que no puede reducirse sin trabajo directo en esta área.
+**Peso en TDI:** 10% | **Deuda residual actual:** ~40%
+**Fecha de corte:** 2026-04-02 (worktree real)
 
 ---
 
-## Lo que ya está hecho
+## Ya resuelto — NO tocar
 
-- `lib/supabase/server.ts` — cliente stateless (sin cache global) ✅
-- `lib/supabase/looseQuery.ts` — abstracción para tablas/vistas fuera de `types.ts` ✅
-- Algunos N+1 eliminados en queries de communities y course detail ✅
-- Schema completo en `lib/supabase/types.ts` (generado automáticamente) ✅
-- 40+ migraciones en `supabase/migrations/`
+| Área | Estado |
+|---|---|
+| `lib/supabase/server.ts` — cliente stateless sin cache global | ✅ |
+| `lib/supabase/looseQuery.ts` — abstracción para tablas fuera de `types.ts` | ✅ |
+| N+1 eliminados en communities y course detail | ✅ |
+| Schema completo en `lib/supabase/types.ts` (generado) | ✅ |
 
-**Lo que NO se ha hecho:**
-- Sin análisis de índices
-- Sin migraciones de limpieza/consolidación
-- Sin RLS policies verificadas programáticamente
-- `lib/supabase/pool.ts` tiene error TS2345 activo
-- Sin paginación cursor-based en ningún dominio
+### Índices de performance creados ✅
+
+Migración: `supabase/migrations/20260402113000_planner_notifications_query_indexes.sql`
+
+```sql
+-- Integración de calendario: lookup por usuario + provider
+CREATE INDEX IF NOT EXISTS idx_calendar_integrations_user_provider_updated_at
+ON public.calendar_integrations (user_id, provider, updated_at DESC);
+
+-- Sesiones del planner: queries por plan y tiempo
+CREATE INDEX IF NOT EXISTS idx_study_sessions_user_plan_start_time
+ON public.study_sessions (user_id, plan_id, start_time ASC);
+
+-- Sesiones con evento externo (calendar sync)
+CREATE INDEX IF NOT EXISTS idx_study_sessions_calendar_sync_lookup
+ON public.study_sessions (user_id, calendar_provider, start_time ASC, end_time ASC)
+WHERE external_event_id IS NOT NULL;
+
+-- Notificaciones no leídas por prioridad
+CREATE INDEX IF NOT EXISTS idx_user_notifications_unread_priority_expires_at
+ON public.user_notifications (user_id, priority, expires_at)
+WHERE status = 'unread';
+```
 
 ---
 
 ## Pendiente — por área
 
-### BLOQUE 1 — Errores activos en infraestructura de BD
+### BLOQUE 1 — Error activo en infraestructura de BD
 
 **TAREA 1A — Corregir `lib/supabase/pool.ts` (TS2345)**
 
 Este archivo maneja connection pooling y tiene un error de tipo activo.
 
 ```bash
-# Ver el error exacto
 npm run type-check --workspace=apps/web 2>&1 | grep -A 3 "pool.ts"
 ```
 
@@ -43,61 +58,24 @@ Pasos:
 3. Corregir el tipo sin cambiar la lógica de pooling
 4. Agregar test mínimo que verifique que el pool se crea correctamente
 
-```
-lib/supabase/__tests__/
-└── pool.test.ts   # verificar creación y reutilización del cliente
-```
-
 ---
 
-### BLOQUE 2 — Migraciones y schema drift
+### BLOQUE 2 — RLS Policies en tablas críticas
 
-**TAREA 2A — Auditoría de migraciones acumuladas**
+**TAREA 2A — Verificar y crear RLS en 6 tablas críticas**
 
-El directorio `supabase/migrations/` tiene 40+ archivos. Muchas migraciones tempranas
-pueden estar obsoletas o ser candidatas a consolidación.
+Las siguientes tablas manejan datos sensibles y deben tener RLS habilitado:
 
-```bash
-# Listar migraciones ordenadas
-ls -la supabase/migrations/ | sort
-```
-
-Acciones:
-1. Identificar migraciones que agregan columnas que luego se borran en otra migración
-2. Identificar tablas que ya no se usan en el código (`grep -r "nombre_tabla" apps/web/src`)
-3. Crear documento `supabase/MIGRATION_AUDIT.md` con el resultado
-4. **NO borrar migraciones existentes** — solo documentar las candidatas a consolidar
-
-**TAREA 2B — Sincronizar `lib/supabase/looseQuery.ts` con tipos generados**
-
-Algunas tablas/vistas están en `looseQuery.ts` porque no están en los tipos generados.
-Verificar cuáles ya deberían estar en `lib/supabase/types.ts`:
-
-```bash
-# Ver qué tablas usa looseQuery
-cat apps/web/src/lib/supabase/looseQuery.ts
-```
-
-Si alguna tabla en `looseQuery.ts` ya existe en `types.ts`, migrarla a los tipos generados.
-
----
-
-### BLOQUE 3 — RLS Policies
-
-**TAREA 3A — Verificar RLS en tablas críticas**
-
-Las siguientes tablas manejan datos sensibles y deben tener RLS habilitado y correctamente configurado:
-
-| Tabla | Dato sensible | RLS requerido |
+| Tabla | Dato sensible | Policy requerida |
 |---|---|---|
-| `usuarios` | Datos personales | Sí — usuario solo ve su propio registro |
-| `lia_conversations` | Conversaciones con AI | Sí — usuario solo ve las suyas |
-| `study_sessions` | Hábitos de estudio | Sí — usuario solo ve las suyas |
-| `calendar_integrations` | Tokens OAuth | Sí — usuario solo ve las suyas |
-| `organization_users` | Membresía a org | Sí — admin org o propio usuario |
-| `user_lesson_progress` | Progreso educativo | Sí — usuario o admin org |
+| `usuarios` | Datos personales | Usuario solo ve su propio registro |
+| `lia_conversations` | Conversaciones con AI | Usuario solo ve las suyas |
+| `study_sessions` | Hábitos de estudio | Usuario solo ve las suyas |
+| `calendar_integrations` | Tokens OAuth | Usuario solo ve las suyas |
+| `organization_users` | Membresía a org | Admin org o propio usuario |
+| `user_lesson_progress` | Progreso educativo | Usuario o admin org |
 
-Verificación:
+Verificación actual:
 ```sql
 -- En Supabase Studio o psql:
 SELECT schemaname, tablename, rowsecurity
@@ -106,98 +84,80 @@ WHERE schemaname = 'public'
 ORDER BY tablename;
 ```
 
-Para cada tabla sin RLS en la lista de arriba: crear migración que habilite RLS
-y agregue las policies correspondientes.
+**TAREA 2B — Crear migración para RLS faltante**
 
-**TAREA 3B — Crear migration para RLS faltante**
-
-Patrón de migración:
+Patrón de migración (una por tabla que no tenga RLS):
 ```sql
 -- supabase/migrations/YYYYMMDDHHMMSS_rls_[tabla].sql
 ALTER TABLE [tabla] ENABLE ROW LEVEL SECURITY;
 
--- Policy de lectura: usuario solo ve sus registros
+-- Lectura: usuario solo ve sus registros
 CREATE POLICY "[tabla]_select_own"
 ON [tabla] FOR SELECT
 TO authenticated
 USING (user_id = auth.uid());
 
--- Policy de inserción: usuario solo inserta sus registros
+-- Inserción: usuario solo inserta sus registros
 CREATE POLICY "[tabla]_insert_own"
 ON [tabla] FOR INSERT
 TO authenticated
 WITH CHECK (user_id = auth.uid());
 ```
 
+> No borrar policies existentes — solo agregar las que falten.
+
 ---
 
-### BLOQUE 4 — Índices en queries críticas
+### BLOQUE 3 — Índices pendientes (segunda ronda)
 
-**TAREA 4A — Identificar queries sin índice**
-
-Las siguientes queries son candidatas a tener índices faltantes basado en los filtros
-que usan los servicios del frontend:
+Los 4 índices creados en la migración `20260402...` cubren los casos más críticos.
+Índices adicionales probablemente faltantes:
 
 ```sql
--- Verificar índices existentes en tablas principales
-SELECT
-    indexname,
-    tablename,
-    indexdef
-FROM pg_indexes
-WHERE schemaname = 'public'
-AND tablename IN (
-    'study_sessions',
-    'user_lesson_progress',
-    'lia_conversations',
-    'calendar_integrations',
-    'notification'  -- o como se llame la tabla
-)
-ORDER BY tablename, indexname;
-```
-
-Índices probablemente faltantes:
-```sql
--- study_sessions por usuario (filtro más frecuente)
-CREATE INDEX IF NOT EXISTS idx_study_sessions_user_id
-ON study_sessions(user_id);
-
--- study_sessions por fecha (filtros de rango en el planner)
-CREATE INDEX IF NOT EXISTS idx_study_sessions_user_date
-ON study_sessions(user_id, scheduled_date);
-
--- lia_conversations por usuario
+-- lia_conversations por usuario (queries frecuentes en el chat)
 CREATE INDEX IF NOT EXISTS idx_lia_conversations_user_id
-ON lia_conversations(user_id);
+ON lia_conversations(user_id, created_at DESC);
 
--- calendar_integrations por usuario y provider
-CREATE INDEX IF NOT EXISTS idx_calendar_integrations_user_provider
-ON calendar_integrations(user_id, provider);
+-- lia_messages por conversación
+CREATE INDEX IF NOT EXISTS idx_lia_messages_conversation_id
+ON lia_messages(conversation_id, created_at ASC);
+
+-- user_lesson_progress por usuario y curso
+CREATE INDEX IF NOT EXISTS idx_user_lesson_progress_user_course
+ON user_lesson_progress(user_id, course_id);
 ```
 
-**TAREA 4B — Crear migración con índices**
-
+Verificar que estas queries existen en el código antes de crear los índices:
+```bash
+grep -r "lia_conversations\|lia_messages" apps/web/src --include="*.ts" -l
+grep -r "user_lesson_progress" apps/web/src --include="*.ts" -l
 ```
-supabase/migrations/YYYYMMDDHHMMSS_performance_indexes.sql
+
+---
+
+### BLOQUE 4 — Auditoría de migraciones
+
+**TAREA 4A — Crear `supabase/MIGRATION_AUDIT.md`**
+
+El directorio tiene 40+ migraciones. Identificar:
+1. Migraciones que agregan columnas que luego se borran en otra migración
+2. Tablas que ya no se usan en el código
+3. Migraciones candidatas a consolidación
+
+```bash
+ls supabase/migrations/ | sort
 ```
 
-Solo crear índices que se puedan verificar que se usan en el código.
-Documentar cada índice con el servicio que genera la query.
+**NO borrar migraciones existentes** — solo documentar candidatas a consolidar.
 
 ---
 
 ### BLOQUE 5 — Paginación cursor-based
 
-**TAREA 5A — Migrar endpoints de alto volumen a cursor-based pagination**
+**TAREA 5A — Migrar endpoint de notificaciones a cursor-based**
 
-Actualmente todo usa offset/limit. Para listas grandes (notificaciones, sesiones) esto
-es ineficiente en páginas altas.
+Actualmente usa offset/limit. Para listas grandes esto es ineficiente en páginas altas.
 
-Candidatos prioritarios:
-1. `GET /api/notifications` — puede crecer indefinidamente
-2. `GET /api/study-planner/sessions` — sesiones históricas
-
-Patrón cursor-based con Supabase:
 ```typescript
 // En vez de: .range(from, to)
 // Usar: .gt('created_at', cursor).limit(pageSize).order('created_at')
@@ -210,17 +170,21 @@ Patrón cursor-based con Supabase:
 }
 ```
 
+Candidatos (en orden de prioridad):
+1. `GET /api/notifications` — puede crecer indefinidamente
+2. `GET /api/study-planner/sessions` — historial de sesiones
+
 ---
 
 ## Reglas para Codex en este módulo
 
 1. **Nunca modificar migraciones existentes.** Siempre crear una nueva migración.
-2. **Cada migración = un archivo separado** con timestamp en el nombre.
+2. **Cada migración = un archivo separado** con timestamp en el nombre (`YYYYMMDDHHMMSS_descripcion.sql`).
 3. **RLS policies deben ser additive** — no borrar policies existentes.
-4. **Verificar con `supabase db push --dry-run`** antes de aplicar migraciones.
-5. **Los índices deben tener `IF NOT EXISTS`** para que sean idempotentes.
-6. **Documentar cada índice** con el servicio/query que lo justifica.
-7. **No agregar índices especulativos** — solo para queries que existen en el código.
+4. **Los índices deben tener `IF NOT EXISTS`** para que sean idempotentes.
+5. **Documentar cada índice** con el servicio/query que lo justifica.
+6. **No agregar índices especulativos** — solo para queries que existen en el código.
+7. **Verificar con `supabase db push --dry-run`** antes de aplicar migraciones.
 
 ## Verificación
 
@@ -228,8 +192,8 @@ Patrón cursor-based con Supabase:
 # Verificar que las migraciones son válidas
 supabase db push --dry-run
 
-# Verificar RLS habilitado
-# (En Supabase Studio: Database > Tables > verificar el ícono de candado)
+# Verificar los índices creados en la migración más reciente
+grep -r "idx_" supabase/migrations/ --include="*.sql" | tail -20
 
 # Type check de infraestructura BD
 npm run type-check --workspace=apps/web 2>&1 | grep -E "pool|supabase"
@@ -238,7 +202,8 @@ npm run type-check --workspace=apps/web 2>&1 | grep -E "pool|supabase"
 ## Métrica de éxito
 
 - `lib/supabase/pool.ts` sin errores TS
-- RLS habilitado en las 6 tablas críticas listadas
-- Índices creados para queries de `study_sessions` y `calendar_integrations`
+- RLS habilitado y verificado en las 6 tablas críticas
+- Índices adicionales creados para `lia_conversations` y `user_lesson_progress`
 - Documento `supabase/MIGRATION_AUDIT.md` creado
 - Al menos 1 endpoint migrado a cursor-based pagination
+- TDI BD: de ~40% a ~25%

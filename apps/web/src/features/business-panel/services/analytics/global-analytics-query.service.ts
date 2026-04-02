@@ -18,6 +18,40 @@ import type {
 type GlobalAnalyticsSupabaseClient = Awaited<ReturnType<typeof createClient>>
 type Relation<T> = T | T[] | null
 
+const ORGANIZATION_USERS_SELECT = `
+  user_id,
+  role,
+  status,
+  joined_at,
+  job_title,
+  users!organization_users_user_id_fkey (
+    id,
+    username,
+    email,
+    first_name,
+    last_name,
+    display_name,
+    profile_picture_url,
+    last_login_at
+  )
+`
+
+const ENROLLMENTS_SELECT = `
+  enrollment_id,
+  user_id,
+  course_id,
+  overall_progress_percentage,
+  enrollment_status,
+  completed_at,
+  started_at,
+  enrolled_at,
+  last_accessed_at,
+  courses (
+    id,
+    title
+  )
+`
+
 interface AnalyticsCourseRecord {
   id: string
   title: string | null
@@ -96,6 +130,13 @@ interface GlobalAnalyticsTeamMemberRecord {
   user_id: string
 }
 
+interface GlobalAnalyticsConversationRow {
+  conversation_id: string
+  user_id: string
+  context_type: string | null
+  created_at: string | null
+}
+
 export interface GlobalAnalyticsQueryData {
   orgUsers: OrganizationUserRecord[]
   assignments: CourseAssignmentRecord[]
@@ -119,26 +160,7 @@ export async function fetchGlobalAnalyticsQueryData(
 ): Promise<GlobalAnalyticsQueryData> {
   const orgUsersResult = await supabase
     .from('organization_users')
-    .select(`
-      user_id,
-      role,
-      status,
-      joined_at,
-      job_title,
-      users!organization_users_user_id_fkey (
-        id,
-        username,
-        email,
-        first_name,
-        last_name,
-        display_name,
-        profile_picture_url,
-        last_login_at,
-        updated_at,
-        created_at,
-        cargo_rol
-      )
-    `)
+    .select(ORGANIZATION_USERS_SELECT)
     .eq('organization_id', organizationId)
     .eq('status', 'active')
     .order('joined_at', { ascending: false })
@@ -153,9 +175,7 @@ export async function fetchGlobalAnalyticsQueryData(
   }
 
   const userIds = orgUsers.map((user) => user.user_id)
-  const orgEmails = orgUsers
-    .map((user) => unwrapRelation(user.users)?.email || null)
-    .filter(Boolean) as string[]
+  const orgEmails = getUniqueOrganizationEmails(orgUsers)
 
   const allUsersWithEmailsResult =
     orgEmails.length > 0
@@ -208,22 +228,7 @@ export async function fetchGlobalAnalyticsQueryData(
 
     supabase
       .from('user_course_enrollments')
-      .select(`
-        enrollment_id,
-        user_id,
-        course_id,
-        overall_progress_percentage,
-        enrollment_status,
-        completed_at,
-        started_at,
-        enrolled_at,
-        last_accessed_at,
-        courses (
-          id,
-          title,
-          slug
-        )
-      `)
+      .select(ENROLLMENTS_SELECT)
       .in('user_id', expandedUserIds),
 
     supabase
@@ -266,7 +271,7 @@ export async function fetchGlobalAnalyticsQueryData(
 
     supabase
       .from('lia_conversations')
-      .select('id, user_id, context_type, created_at')
+      .select('conversation_id, user_id, context_type, created_at')
       .in('user_id', expandedUserIds),
 
     supabase
@@ -302,26 +307,25 @@ export async function fetchGlobalAnalyticsQueryData(
 
   const workTeams = (workTeamsResult.data || []) as unknown as GlobalAnalyticsWorkTeamRecord[]
   const teamIds = workTeams.map((team) => team.team_id)
-  const conversationIds = ((liaConversationsResult.data || []) as Array<{ id: string }>).map(
-    (conversation) => conversation.id,
+  const conversationIds = ((liaConversationsResult.data || []) as GlobalAnalyticsConversationRow[]).map(
+    (conversation) => conversation.conversation_id,
   )
 
-  const teamMembersResult =
+  const [teamMembersResult, liaMessagesResult] = await Promise.all([
     teamIds.length > 0
-      ? await supabase
+      ? supabase
           .from('work_team_members')
           .select('team_id, user_id')
           .in('team_id', teamIds)
           .eq('status', 'active')
-      : { data: [], error: null }
-
-  const liaMessagesResult =
+      : { data: [], error: null },
     conversationIds.length > 0
-      ? await supabase
+      ? supabase
           .from('lia_messages')
           .select('id, conversation_id, role, user_id')
           .in('conversation_id', conversationIds)
-      : { data: [], error: null }
+      : { data: [], error: null },
+  ])
 
   if (teamMembersResult.error) logger.error('Error fetching team members:', teamMembersResult.error)
   if (liaMessagesResult.error) logger.error('Error fetching LIA messages:', liaMessagesResult.error)
@@ -371,7 +375,14 @@ export async function fetchGlobalAnalyticsQueryData(
     primaryUserIdMap,
   )
   const liaConversations = normalizeUserScopedItems(
-    ((liaConversationsResult.data || []) as unknown as LiaConversationRecord[]),
+    ((liaConversationsResult.data || []) as GlobalAnalyticsConversationRow[]).map(
+      (conversation) => ({
+        id: conversation.conversation_id,
+        user_id: conversation.user_id,
+        context_type: conversation.context_type,
+        created_at: conversation.created_at,
+      }),
+    ),
     primaryUserIdMap,
   )
   const liaMessages = normalizeUserScopedItems(
@@ -474,6 +485,17 @@ function getEmptyGlobalAnalyticsQueryData(): GlobalAnalyticsQueryData {
     userNotes: [],
     thirtyDaysAgoStr: new Date().toISOString().split('T')[0],
   }
+}
+
+function getUniqueOrganizationEmails(orgUsers: OrganizationUserRecord[]): string[] {
+  return Array.from(
+    new Set(
+      orgUsers.flatMap((user) => {
+        const email = unwrapRelation(user.users)?.email
+        return email ? [email] : []
+      }),
+    ),
+  )
 }
 
 function unwrapRelation<T>(relation: Relation<T>): T | null {

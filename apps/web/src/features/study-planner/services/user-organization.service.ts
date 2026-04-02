@@ -56,13 +56,13 @@ export class UserOrganizationService {
     return {
       id: data.id,
       name: data.name,
-      slug: data.slug,
-      logoUrl: data.logo_url,
-      // industry no existe en la tabla, usar null
-      industry: null,
+      slug: data.slug ?? undefined,
+      logoUrl: data.logo_url ?? undefined,
+      // industry no existe en la tabla
+      industry: undefined,
       // size no existe, usar max_users como referencia
-      size: data.max_users ? `${data.max_users} usuarios` : null,
-      plan: data.subscription_plan,
+      size: data.max_users ? `${data.max_users} usuarios` : undefined,
+      plan: data.subscription_plan ?? undefined,
     };
   }
 
@@ -103,10 +103,10 @@ export class UserOrganizationService {
       return {
         teamId: team.team_id,
         name: team.name,
-        description: team.description,
+        description: team.description ?? undefined,
         role: item.role as 'member' | 'leader' | 'co-leader',
         status: item.status as 'active' | 'inactive',
-        courseId: team.course_id,
+        courseId: team.course_id ?? undefined,
       };
     });
   }

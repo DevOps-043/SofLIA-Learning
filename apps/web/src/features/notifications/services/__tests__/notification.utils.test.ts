@@ -1,10 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   attachUsersToNotifications,
+  buildNextNotificationCursor,
   buildNotificationInsertPayload,
+  encodeNotificationCursor,
   filterExpiredNotifications,
   getDuplicateNotificationWindow,
   normalizeNotificationFilters,
+  parseNotificationCursor,
+  shouldUseNotificationCursorPagination,
 } from '../notification/utils'
 
 describe('notification.utils', () => {
@@ -41,13 +45,46 @@ describe('notification.utils', () => {
       normalizeNotificationFilters({
         limit: 500,
         offset: -4,
+        cursor: 'cursor-1',
       }),
     ).toMatchObject({
       limit: 100,
       offset: 0,
+      cursor: 'cursor-1',
       orderBy: 'created_at',
       orderDirection: 'desc',
     })
+  })
+
+  it('encodes and decodes notification cursors', () => {
+    const cursor = encodeNotificationCursor({
+      created_at: '2026-04-02T10:00:00.000Z',
+      notification_id: 'notif-2',
+    })
+
+    expect(cursor).toBe('2026-04-02T10:00:00.000Z::notif-2')
+    expect(parseNotificationCursor(cursor)).toEqual({
+      createdAt: '2026-04-02T10:00:00.000Z',
+      notificationId: 'notif-2',
+    })
+    expect(buildNextNotificationCursor([])).toBeNull()
+  })
+
+  it('enables cursor pagination only for created_at feeds', () => {
+    expect(
+      shouldUseNotificationCursorPagination({
+        cursor: undefined,
+        offset: 0,
+        orderBy: 'created_at',
+      }),
+    ).toBe(true)
+    expect(
+      shouldUseNotificationCursorPagination({
+        cursor: 'cursor',
+        offset: 10,
+        orderBy: 'priority',
+      }),
+    ).toBe(false)
   })
 
   it('filters expired notifications and enriches with users', () => {

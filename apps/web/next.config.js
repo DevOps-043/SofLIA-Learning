@@ -102,6 +102,10 @@ const nextConfig = {
         // Aplicar headers de seguridad a todas las rutas
         source: '/:path*',
         headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
           // Content Security Policy - Protege contra XSS
           {
             key: 'Content-Security-Policy',
@@ -140,7 +144,7 @@ const nextConfig = {
           // Control de permisos del navegador
           {
             key: 'Permissions-Policy',
-            value: 'camera=(self), microphone=(self), geolocation=(self), interest-cohort=()'
+            value: 'camera=(), microphone=(self), geolocation=(), interest-cohort=()'
           },
           // Previene ataques XSS en navegadores antiguos
           {

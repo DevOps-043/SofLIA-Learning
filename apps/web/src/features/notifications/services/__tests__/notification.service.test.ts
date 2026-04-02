@@ -64,7 +64,12 @@ describe('NotificationService.createNotification', () => {
 
 describe('NotificationService.getUserNotifications', () => {
   it('delegates to getUserNotifications with userId', async () => {
-    const expected = { notifications: [makeNotification()], total: 1 }
+    const expected = {
+      notifications: [makeNotification()],
+      total: 1,
+      hasMore: false,
+      nextCursor: null,
+    }
     vi.mocked(getUserNotifications).mockResolvedValue(expected)
 
     const result = await NotificationService.getUserNotifications('user-1')
@@ -74,7 +79,12 @@ describe('NotificationService.getUserNotifications', () => {
   })
 
   it('passes filters to getUserNotifications', async () => {
-    vi.mocked(getUserNotifications).mockResolvedValue({ notifications: [], total: 0 })
+    vi.mocked(getUserNotifications).mockResolvedValue({
+      notifications: [],
+      total: 0,
+      hasMore: false,
+      nextCursor: null,
+    })
     const filters = { type: 'info', unreadOnly: true }
 
     await NotificationService.getUserNotifications('user-1', filters)

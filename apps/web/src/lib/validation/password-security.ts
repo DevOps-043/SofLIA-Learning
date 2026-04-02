@@ -131,6 +131,13 @@ export interface PasswordValidationResult {
   suggestions: string[];
 }
 
+export interface PasswordPersonalInfo {
+  email?: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 /**
  * Verifica si una contraseña está en la lista de contraseñas comunes
  *
@@ -173,12 +180,7 @@ export function hasDangerousPattern(password: string): boolean {
  */
 export function containsPersonalInfo(
   password: string,
-  personalInfo?: {
-    email?: string;
-    username?: string;
-    firstName?: string;
-    lastName?: string;
-  }
+  personalInfo?: PasswordPersonalInfo
 ): boolean {
   const lowerPassword = password.toLowerCase();
 
@@ -250,7 +252,7 @@ export function calculatePasswordEntropy(password: string): number {
  */
 export function calculatePasswordScore(
   password: string,
-  personalInfo?: Parameters<typeof containsPersonalInfo>[1]
+  personalInfo?: PasswordPersonalInfo
 ): number {
   if (!password) {
     return 0;
@@ -308,7 +310,7 @@ export function getPasswordStrengthLevel(score: number): PasswordStrength {
  */
 export function validatePassword(
   password: string,
-  personalInfo?: Parameters<typeof containsPersonalInfo>[1]
+  personalInfo?: PasswordPersonalInfo
 ): PasswordValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -493,27 +495,3 @@ export function generateSecurePassword(length: number = 16): string {
  *   </div>
  * )}
  */
-export function usePasswordValidation(personalInfo?: Parameters<typeof validatePassword>[1]) {
-  const [validation, setValidation] = React.useState<PasswordValidationResult | null>(null);
-
-  const checkPassword = React.useCallback(
-    (password: string) => {
-      if (!password) {
-        setValidation(null);
-        return;
-      }
-
-      const result = validatePassword(password, personalInfo);
-      setValidation(result);
-    },
-    [personalInfo]
-  );
-
-  return { validation, checkPassword };
-}
-
-// Placeholder para React (ya que esto es un archivo de utilidad)
-const React = {
-  useState: (initial: any) => [initial, () => {}],
-  useCallback: (fn: any, deps: any[]) => fn,
-};

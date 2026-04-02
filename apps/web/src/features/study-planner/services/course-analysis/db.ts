@@ -43,10 +43,22 @@ export async function fetchCourseInfoRow(
 export async function fetchCourseModulesRows(
   courseId: string,
 ): Promise<CourseModuleRow[]> {
+  const moduleRows = await fetchCourseModulesRowsByCourseIds([courseId])
+  return moduleRows.filter((module) => module.course_id === courseId)
+}
+
+export async function fetchCourseModulesRowsByCourseIds(
+  courseIds: string[],
+): Promise<CourseModuleRow[]> {
+  if (courseIds.length === 0) {
+    return []
+  }
+
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('course_modules')
     .select(`
+      course_id,
       module_id,
       module_title,
       module_description,
@@ -63,8 +75,9 @@ export async function fetchCourseModulesRows(
         is_published
       )
     `)
-    .eq('course_id', courseId)
+    .in('course_id', courseIds)
     .eq('is_published', true)
+    .order('course_id', { ascending: true })
     .order('module_order_index', { ascending: true })
 
   if (error || !data) {
