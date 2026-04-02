@@ -1,7 +1,11 @@
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { logger } from '../../../lib/utils/logger';
 import { calculateCost, logOpenAIUsage } from '../../../lib/openai/usage-monitor';
-
-type SupportedLanguage = 'es' | 'en' | 'pt';
+import {
+  LANGUAGE_CONFIG,
+  type SupportedLanguage,
+} from './services/language-detection.service'
+import { sanitizeAssistantResponse } from './services/response-sanitizer.service'
 
 export async function callOpenAI(
   message: string,
@@ -222,11 +226,7 @@ ${antiMarkdownInstructions}
   // Obtener respuesta del modelo
   const rawResponse = data.choices[0]?.message?.content || languageConfig.fallback;
 
-  // Aplicar filtro de prompt del sistema primero
-  const filteredResponse = filterSystemPromptFromResponse(rawResponse);
-
-  // Luego aplicar limpieza de Markdown
-  let cleanedResponse = cleanMarkdownFromResponse(filteredResponse);
+  let cleanedResponse = sanitizeAssistantResponse(rawResponse);
 
   // Log si se detectó y limpió Markdown (solo en desarrollo)
   if (process.env.NODE_ENV === 'development' && rawResponse !== cleanedResponse) {
@@ -234,36 +234,6 @@ ${antiMarkdownInstructions}
       originalLength: rawResponse.length,
       cleanedLength: cleanedResponse.length
     });
-  }
-
-  // Normalización de enlaces: usar dominio de ALLOWED_ORIGINS y mapear rutas renombradas
-  try {
-    // Tomar el primer origen válido de ALLOWED_ORIGINS (separado por comas)
-    const allowed = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-    // Fallbacks: PUBLIC_APP_URL o https://aprendeyaplica.ai como último recurso
-    const baseUrl = allowed[0] || process.env.PUBLIC_APP_URL || 'https://aprendeyaplica.ai';
-
-    // No remapear rutas por defecto; mantener exactamente la ruta provista
-    const pathMap: Record<string, string> = {};
-
-    // 1) Enlaces markdown con rutas relativas → absolutas + mapeo
-    cleanedResponse = cleanedResponse.replace(/\[([^\]]+)\]\((\/[^\)]+)\)/g, (_m, label, path) => {
-      const mapped = pathMap[path] || path;
-      return `[${label}](${baseUrl}${mapped})`;
-    });
-
-    // 2) Reemplazar dominios placeholder por el permitido
-    cleanedResponse = cleanedResponse.replace(/https?:\/\/tusitio\.com\/dashboard/gi, `${baseUrl}/dashboard`);
-    cleanedResponse = cleanedResponse.replace(/https?:\/\/tusitio\.com(\/[^\s\)]*)?/gi, (_m, p1) => {
-      const path = typeof p1 === 'string' ? p1 : '';
-      const mapped = pathMap[path] || path;
-      return `${baseUrl}${mapped || ''}`;
-    });
-
-    // 3) Fallback para texto plano "( /dashboard )"
-    cleanedResponse = cleanedResponse.replace(/\(\/dashboard\)/g, `(${baseUrl}/dashboard)`);
-  } catch {
-    // Ignorar errores de normalización
   }
 
   // Preparar metadatos para retornar

@@ -1,97 +1,25 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import type {
+  BusinessAnalyticsCourseMetric as CourseMetrics,
+  BusinessAnalyticsData as AnalyticsData,
+  BusinessAnalyticsGeneralMetrics as GeneralMetrics,
+  BusinessAnalyticsRoleDistribution as RoleData,
+  BusinessAnalyticsTeam as TeamAnalytics,
+  BusinessAnalyticsTeamsData as TeamsData,
+  BusinessAnalyticsTrendData as TrendData,
+  BusinessAnalyticsUser as UserAnalytics,
+} from '../types/analytics.types'
 
-export interface GeneralMetrics {
-  total_users: number
-  total_courses_assigned: number
-  completed_courses: number
-  average_progress: number
-  total_time_hours: number
-  total_certificates: number
-  active_users: number
-  retention_rate: number
-}
-
-export interface UserAnalytics {
-  user_id: string
-  display_name: string
-  email: string
-  username: string
-  role: string
-  profile_picture_url: string | null
-  courses_assigned: number
-  courses_completed: number
-  average_progress: number
-  total_time_hours: number
-  certificates_count: number
-  last_login_at: string | null
-  joined_at: string
-}
-
-export interface TrendData {
-  month: string
-  count: number
-  label: string
-}
-
-export interface RoleData {
-  role: string
-  count?: number
-  average_progress?: number
-  total_completed?: number
-  average_hours?: number
-}
-
-export interface CourseMetrics {
-  status: string
-  count: number
-}
-
-export interface TeamStats {
-  average_progress: number
-  courses_completed: number
-  total_enrollments: number
-  total_time_hours: number
-  lia_conversations: number
-}
-
-export interface TeamAnalytics {
-  team_id: string
-  name: string
-  description: string | null
-  image_url: string | null
-  member_count: number
-  stats: TeamStats
-}
-
-export interface TeamsData {
-  total_teams: number
-  teams: TeamAnalytics[]
-  ranking: TeamAnalytics[]
-}
-
-export interface AnalyticsData {
-  general_metrics: GeneralMetrics
-  user_analytics: UserAnalytics[]
-  trends: {
-    enrollments_by_month: TrendData[]
-    completions_by_month: TrendData[]
-    time_by_month: TrendData[]
-    active_users_by_month: TrendData[]
-  }
-  by_role: {
-    distribution: RoleData[]
-    progress_comparison: RoleData[]
-    completions: RoleData[]
-    time_spent: RoleData[]
-  }
-  course_metrics: {
-    distribution: CourseMetrics[]
-    top_by_time: any[]
-  }
-  teams?: TeamsData
-  study_planner?: any
-  engagement_metrics?: any
+export type {
+  AnalyticsData,
+  CourseMetrics,
+  GeneralMetrics,
+  RoleData,
+  TeamAnalytics,
+  TeamsData,
+  TrendData,
+  UserAnalytics,
 }
 
 /**
@@ -163,7 +91,13 @@ export function useBusinessAnalytics() {
             ranking: []
           },
           study_planner: result.study_planner,
-          engagement_metrics: result.engagement_metrics
+          engagement_metrics: result.engagement_metrics || {
+            stickiness: [],
+            frequency: [],
+            streaks: [],
+            heatmap: [],
+            duration: []
+          }
         })
       } else {
         throw new Error(result.error || 'Error al obtener datos de analytics')

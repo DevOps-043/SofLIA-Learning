@@ -3,6 +3,14 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { createError } from './errorHandler';
 
+interface JWTPayload {
+  id: string;
+  email: string;
+  role: string;
+  iat?: number;
+  exp?: number;
+}
+
 // Extender el tipo Request para incluir el usuario
 declare global {
   namespace Express {
@@ -14,6 +22,29 @@ declare global {
       };
     }
   }
+}
+
+function isJWTPayload(value: unknown): value is JWTPayload {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const payload = value as Partial<JWTPayload>;
+  return (
+    typeof payload.id === 'string' &&
+    typeof payload.email === 'string' &&
+    typeof payload.role === 'string'
+  );
+}
+
+function verifyJWTPayload(token: string): JWTPayload {
+  const decoded = jwt.verify(token, config.JWT_SECRET);
+
+  if (!isJWTPayload(decoded)) {
+    throw createError('Token inválido', 401, 'INVALID_TOKEN');
+  }
+
+  return decoded;
 }
 
 export const authenticate = (
@@ -34,7 +65,7 @@ export const authenticate = (
     }
 
     // Verificar JWT
-    const decoded = jwt.verify(token, config.JWT_SECRET) as any;
+    const decoded = verifyJWTPayload(token);
     
     // Añadir información del usuario a la request
     req.user = {
@@ -85,7 +116,7 @@ export const optionalAuth = (
     const token = authHeader?.replace('Bearer ', '');
 
     if (token) {
-      const decoded = jwt.verify(token, config.JWT_SECRET) as any;
+      const decoded = verifyJWTPayload(token);
       req.user = {
         id: decoded.id,
         email: decoded.email,
@@ -99,4 +130,3 @@ export const optionalAuth = (
     next();
   }
 };
-

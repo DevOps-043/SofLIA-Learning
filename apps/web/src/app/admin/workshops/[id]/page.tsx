@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { CourseManagementPage } from '@/features/admin/components/CourseManagementPage'
+import { CourseManagementPage } from '../../../../features/admin/components/CourseManagementPage'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -18,4 +18,3 @@ export default async function WorkshopDetailPage({ params }: PageProps) {
   const { id } = await params
   return <CourseManagementPage courseId={id} />
 }
-

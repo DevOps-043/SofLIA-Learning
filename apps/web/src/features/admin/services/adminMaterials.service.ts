@@ -7,7 +7,7 @@ export interface AdminMaterial {
   material_type: 'pdf' | 'link' | 'document' | 'quiz' | 'exercise' | 'reading'
   file_url: string | null
   external_url: string | null
-  content_data: any | null
+  content_data: Record<string, unknown> | null
   material_order_index: number
   is_downloadable: boolean
   estimated_time_minutes: number | null
@@ -21,7 +21,7 @@ export interface CreateMaterialData {
   material_type: 'pdf' | 'link' | 'document' | 'quiz' | 'exercise' | 'reading'
   file_url?: string
   external_url?: string
-  content_data?: any
+  content_data?: Record<string, unknown>
   is_downloadable?: boolean
   estimated_time_minutes?: number
 }
@@ -32,7 +32,7 @@ export interface UpdateMaterialData {
   material_type?: 'pdf' | 'link' | 'document' | 'quiz' | 'exercise' | 'reading'
   file_url?: string
   external_url?: string
-  content_data?: any
+  content_data?: Record<string, unknown>
   is_downloadable?: boolean
   estimated_time_minutes?: number
 }
@@ -90,7 +90,7 @@ export class AdminMaterialsService {
 
       const nextOrderIndex = (count || 0) + 1
 
-      const insertData: any = {
+      const insertData: Record<string, unknown> = {
         lesson_id: lessonId,
         material_title: materialData.material_title,
         material_description: materialData.material_description,
@@ -150,7 +150,7 @@ export class AdminMaterialsService {
     const supabase = await createClient()
 
     try {
-      const updateData: any = { ...materialData }
+      const updateData: Record<string, unknown> = { ...materialData }
 
       // Si cambia el tipo, resetear URLs no relevantes
       if (materialData.material_type === 'link') {
@@ -201,7 +201,7 @@ export class AdminMaterialsService {
         .eq('material_id', materialId)
         .single()
 
-      const lessonId = (material as any)?.lesson_id
+      const lessonId = (material as { lesson_id: string } | null)?.lesson_id
 
       const { error } = await supabase
         .from('lesson_materials')
@@ -296,10 +296,10 @@ export class AdminMaterialsService {
         .eq('lesson_id', lessonId)
         .single()
 
-      if ((lesson as any)?.module_id) {
-        // Importar el servicio de lecciones para recalcular la duración del módulo
+      const lessonRow = lesson as { module_id?: string } | null
+      if (lessonRow?.module_id) {
         const { AdminLessonsService } = await import('./adminLessons.service')
-        await AdminLessonsService.updateModuleDuration((lesson as any).module_id)
+        await AdminLessonsService.updateModuleDuration(lessonRow.module_id)
       }
     } catch (error) {
       // No fallar si hay error recalculando duración
@@ -322,7 +322,8 @@ export class AdminMaterialsService {
         .eq('lesson_id', lessonId)
         .single()
 
-      const videoSeconds = (lesson as any)?.duration_seconds || 0
+      const lessonForDuration = lesson as { duration_seconds?: number } | null
+      const videoSeconds = lessonForDuration?.duration_seconds || 0
       const videoMinutes = Math.round(videoSeconds / 60)
 
       // 2. Sumar tiempo estimado de todos los materiales de esta lección
@@ -331,8 +332,8 @@ export class AdminMaterialsService {
         .select('estimated_time_minutes')
         .eq('lesson_id', lessonId)
 
-      const materialsMinutes = (materials as any[] || []).reduce(
-        (sum: number, m: any) => sum + (m.estimated_time_minutes || 0),
+      const materialsMinutes = (materials || []).reduce(
+        (sum: number, m: { estimated_time_minutes?: number | null }) => sum + (m.estimated_time_minutes || 0),
         0
       )
 
@@ -342,8 +343,8 @@ export class AdminMaterialsService {
         .select('estimated_time_minutes')
         .eq('lesson_id', lessonId)
 
-      const activitiesMinutes = (activities as any[] || []).reduce(
-        (sum: number, a: any) => sum + (a.estimated_time_minutes || 0),
+      const activitiesMinutes = (activities || []).reduce(
+        (sum: number, a: { estimated_time_minutes?: number | null }) => sum + (a.estimated_time_minutes || 0),
         0
       )
 
@@ -355,7 +356,7 @@ export class AdminMaterialsService {
         .update({
           total_duration_minutes: totalDurationMinutes,
           updated_at: new Date().toISOString()
-        } as any)
+        })
         .eq('lesson_id', lessonId)
 
     } catch (error) {

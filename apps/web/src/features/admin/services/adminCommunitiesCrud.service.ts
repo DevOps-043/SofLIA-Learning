@@ -4,20 +4,46 @@ import { logger } from '../../../lib/logger'
 import { AuditLogService } from './auditLog.service'
 import {
   AdminCommunity,
+  CommunityRow,
   CommunityStats,
   PaginationParams,
   PaginatedResponse,
   mapRowToAdminCommunity,
 } from './adminCommunities.types'
+import {
+  communityAccessRequestsTable,
+  communityCommentsTable,
+  communityMembersTable,
+  communityPostsTable,
+  communityReactionsTable,
+  communitiesTable,
+  communityStatsTable,
+  communityVideosTable,
+} from './adminCommunities.db'
+
+function mapCommunityRowToAdminCommunity(row: CommunityRow): AdminCommunity {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    slug: row.slug,
+    image_url: row.image_url || undefined,
+    member_count: row.member_count || 0,
+    is_active: row.is_active,
+    visibility: row.visibility,
+    access_type: row.access_type,
+    course_id: row.course_id || undefined,
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  }
+}
 
 export class AdminCommunitiesCrudService {
   static async getAllCommunities(): Promise<AdminCommunity[]> {
     const supabase = await createClient()
 
     try {
-      // ✅ OPTIMIZACIÓN: Usar VIEW community_stats (1 query en lugar de N+1)
-      const { data, error } = await supabase
-        .from('community_stats')
+      const { data, error } = await communityStatsTable(supabase)
         .select('*')
         .order('created_at', { ascending: false })
 
@@ -28,15 +54,13 @@ export class AdminCommunitiesCrudService {
 
       return (data || []).map(mapRowToAdminCommunity)
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.getAllCommunities', { error: error instanceof Error ? error.message : String(error) })
+      logger.error('Error in AdminCommunitiesService.getAllCommunities', {
+        error: error instanceof Error ? error.message : String(error)
+      })
       throw error
     }
   }
 
-  /**
-   * ✅ ISSUE #19: Obtener comunidades con paginación cursor-based
-   * Optimizado para manejar miles de comunidades sin degradar performance
-   */
   static async getCommunitiesPaginated(
     params: PaginationParams = {}
   ): Promise<PaginatedResponse<AdminCommunity>> {
@@ -44,17 +68,12 @@ export class AdminCommunitiesCrudService {
     const { limit = 20, cursor, search, visibility, isActive } = params
 
     try {
-      // Construir query base desde la VIEW optimizada
-      let query = supabase
-        .from('community_stats')
+      let query = communityStatsTable(supabase)
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .limit(limit + 1)  // +1 para detectar si hay más páginas
 
-      // ✅ Cursor-based pagination: buscar desde el último visto
       if (cursor) {
-        const { data: cursorCommunity, error: cursorError } = await supabase
-          .from('communities')
+        const { data: cursorCommunity, error: cursorError } = await communitiesTable(supabase)
           .select('created_at')
           .eq('id', cursor)
           .single()
@@ -62,35 +81,30 @@ export class AdminCommunitiesCrudService {
         if (cursorError) {
           logger.error('Error fetching cursor community', { cursor, error: cursorError.message })
         } else if (cursorCommunity) {
-          // Obtener comunidades DESPUÉS del cursor
           query = query.lt('created_at', cursorCommunity.created_at)
         }
       }
 
-      // ✅ Filtro de búsqueda por nombre o descripción
       if (search && search.trim()) {
         const searchTerm = search.trim()
         query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
       }
 
-      // ✅ Filtro por visibilidad (public, private)
       if (visibility) {
         query = query.eq('visibility', visibility)
       }
 
-      // ✅ Filtro por estado activo
       if (isActive !== undefined) {
         query = query.eq('is_active', isActive)
       }
 
-      const { data, error, count } = await query
+      const { data, error, count } = await query.limit(limit + 1)
 
       if (error) {
         logger.error('Error fetching paginated communities', { error: error.message, params })
         throw error
       }
 
-      // Verificar si hay más páginas
       const hasMore = (data?.length || 0) > limit
       const communities = hasMore ? (data || []).slice(0, limit) : (data || [])
       const nextCursor = hasMore && communities.length > 0
@@ -98,7 +112,7 @@ export class AdminCommunitiesCrudService {
         : null
 
       return {
-        data: communities.map((row: any) => mapRowToAdminCommunity(row)),
+        data: communities.map(mapRowToAdminCommunity),
         nextCursor,
         hasMore,
         total: count || 0
@@ -116,17 +130,14 @@ export class AdminCommunitiesCrudService {
     const supabase = await createClient()
 
     try {
-      // ✅ OPTIMIZACIÓN: Usar VIEW community_stats para agregaciones
-      const { data, error } = await supabase
-        .from('community_stats')
-        .select('*')
+      const { data, error } = await communityStatsTable(supabase).select('*')
 
       if (error) {
         logger.error('Error fetching community stats', { error: error.message })
         throw error
       }
 
-      const stats = (data || []).reduce(
+      return (data || []).reduce(
         (acc, row) => ({
           totalCommunities: acc.totalCommunities + 1,
           activeCommunities: acc.activeCommunities + (row.is_active ? 1 : 0),
@@ -146,56 +157,49 @@ export class AdminCommunitiesCrudService {
           totalAccessRequests: 0
         }
       )
-
-      return stats
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.getCommunityStats', { error: error instanceof Error ? error.message : String(error) })
+      logger.error('Error in AdminCommunitiesService.getCommunityStats', {
+        error: error instanceof Error ? error.message : String(error)
+      })
       throw error
     }
   }
 
-  static async createCommunity(communityData: Partial<AdminCommunity>, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminCommunity> {
+  static async createCommunity(
+    communityData: Partial<AdminCommunity>,
+    adminUserId: string,
+    requestInfo?: { ip?: string, userAgent?: string }
+  ): Promise<AdminCommunity> {
     const supabase = await createClient()
 
     try {
-      logger.info('AdminCommunitiesService.createCommunity: Starting')
-
-      // ✅ SEGURIDAD: Sanitizar y generar slug único
-      let slug: string;
+      let slug: string
 
       if (communityData.slug) {
-        slug = sanitizeSlug(communityData.slug);
+        slug = sanitizeSlug(communityData.slug)
       } else if (communityData.name) {
-        slug = sanitizeSlug(communityData.name);
+        slug = sanitizeSlug(communityData.name)
       } else {
-        throw new Error('Se requiere nombre o slug para crear la comunidad');
+        throw new Error('Se requiere nombre o slug para crear la comunidad')
       }
 
       slug = await generateUniqueSlugAsync(slug, async (testSlug) => {
-        const { data } = await supabase
-          .from('communities')
+        const { data } = await communitiesTable(supabase)
           .select('slug')
           .eq('slug', testSlug)
-          .single();
-        return !!data;
-      });
+          .single()
 
-      logger.debug('Data to insert', {
-        name: communityData.name,
-        slug,
-        visibility: communityData.visibility || 'public',
-        access_type: communityData.access_type || 'open'
+        return !!data
       })
 
-      const { data, error } = await supabase
-        .from('communities')
+      const { data, error } = await communitiesTable(supabase)
         .insert({
-          name: communityData.name,
-          description: communityData.description,
+          name: communityData.name || '',
+          description: communityData.description || '',
           slug,
-          image_url: communityData.image_url,
+          image_url: communityData.image_url || null,
           member_count: 0,
-          is_active: communityData.is_active || true,
+          is_active: communityData.is_active ?? true,
           visibility: communityData.visibility || 'public',
           access_type: communityData.access_type || 'open',
           course_id: communityData.course_id || null,
@@ -218,70 +222,66 @@ export class AdminCommunitiesCrudService {
         `)
         .single()
 
-      if (error) {
+      if (error || !data) {
         logger.error('Error creating community', {
-          message: error.message,
-          code: error.code,
-          details: error.details
+          message: error?.message || 'Unknown error',
+          code: error?.code,
+          details: error?.details
         })
-        throw error
+        throw error || new Error('No se pudo crear la comunidad')
       }
 
-      logger.info('Community created successfully', { communityId: data.id, slug: data.slug })
+      await AuditLogService.logAction({
+        user_id: adminUserId,
+        admin_user_id: adminUserId,
+        action: 'CREATE',
+        table_name: 'communities',
+        record_id: data.id,
+        old_values: undefined,
+        new_values: communityData,
+        ip_address: requestInfo?.ip,
+        user_agent: requestInfo?.userAgent
+      })
 
-      try {
-        await AuditLogService.logAction({
-          user_id: adminUserId,
-          admin_user_id: adminUserId,
-          action: 'CREATE',
-          table_name: 'communities',
-          record_id: data.id,
-          old_values: null,
-          new_values: communityData,
-          ip_address: requestInfo?.ip,
-          user_agent: requestInfo?.userAgent
-        })
-        logger.info('Audit log registered')
-      } catch (auditError) {
-        logger.warn('Error in audit log (non-critical)', { error: auditError instanceof Error ? auditError.message : String(auditError) })
-        // No lanzar error por problemas de auditoría
-      }
-
-      return data
+      return mapCommunityRowToAdminCommunity(data)
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.createCommunity', { error: error instanceof Error ? error.message : String(error) })
+      logger.error('Error in AdminCommunitiesService.createCommunity', {
+        error: error instanceof Error ? error.message : String(error)
+      })
       throw error
     }
   }
 
-  static async updateCommunity(communityId: string, communityData: Partial<AdminCommunity>, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminCommunity> {
+  static async updateCommunity(
+    communityId: string,
+    communityData: Partial<AdminCommunity>,
+    adminUserId: string,
+    requestInfo?: { ip?: string, userAgent?: string }
+  ): Promise<AdminCommunity> {
     const supabase = await createClient()
 
     try {
-      const { data: oldData } = await supabase
-        .from('communities')
+      const { data: oldData } = await communitiesTable(supabase)
         .select('*')
         .eq('id', communityId)
         .single()
 
-      // ✅ SEGURIDAD: Sanitizar slug si se proporciona
-      let slug = communityData.slug;
+      let slug = communityData.slug
       if (slug) {
-        slug = sanitizeSlug(slug);
+        slug = sanitizeSlug(slug)
 
         slug = await generateUniqueSlugAsync(slug, async (testSlug) => {
-          const { data } = await supabase
-            .from('communities')
+          const { data } = await communitiesTable(supabase)
             .select('slug')
             .eq('slug', testSlug)
-            .neq('id', communityId)  // Excluir la comunidad actual
-            .single();
-          return !!data;
-        });
+            .neq('id', communityId)
+            .single()
+
+          return !!data
+        })
       }
 
-      const { data, error } = await supabase
-        .from('communities')
+      const { data, error } = await communitiesTable(supabase)
         .update({
           name: communityData.name,
           description: communityData.description,
@@ -309,9 +309,9 @@ export class AdminCommunitiesCrudService {
         `)
         .single()
 
-      if (error) {
-        logger.error('Error updating community', { error: error.message, communityId })
-        throw error
+      if (error || !data) {
+        logger.error('Error updating community', { error: error?.message || 'Unknown error', communityId })
+        throw error || new Error('No se pudo actualizar la comunidad')
       }
 
       await AuditLogService.logAction({
@@ -320,15 +320,18 @@ export class AdminCommunitiesCrudService {
         action: 'UPDATE',
         table_name: 'communities',
         record_id: communityId,
-        old_values: oldData,
+        old_values: oldData || undefined,
         new_values: communityData,
         ip_address: requestInfo?.ip,
         user_agent: requestInfo?.userAgent
       })
 
-      return data
+      return mapCommunityRowToAdminCommunity(data)
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.updateCommunity', { error: error instanceof Error ? error.message : String(error), communityId })
+      logger.error('Error in AdminCommunitiesService.updateCommunity', {
+        error: error instanceof Error ? error.message : String(error),
+        communityId
+      })
       throw error
     }
   }
@@ -341,8 +344,7 @@ export class AdminCommunitiesCrudService {
     const supabase = await createClient()
 
     try {
-      const { data: currentCommunity, error: fetchError } = await supabase
-        .from('communities')
+      const { data: currentCommunity, error: fetchError } = await communitiesTable(supabase)
         .select('*')
         .eq('id', communityId)
         .single()
@@ -353,22 +355,34 @@ export class AdminCommunitiesCrudService {
 
       const newActiveState = !currentCommunity.is_active
 
-      const { data: updatedCommunity, error: updateError } = await supabase
-        .from('communities')
+      const { data: updatedCommunity, error: updateError } = await communitiesTable(supabase)
         .update({
           is_active: newActiveState,
           updated_at: new Date().toISOString()
         })
         .eq('id', communityId)
-        .select()
+        .select(`
+          id,
+          name,
+          description,
+          slug,
+          image_url,
+          member_count,
+          is_active,
+          visibility,
+          access_type,
+          course_id,
+          created_at,
+          updated_at
+        `)
         .single()
 
-      if (updateError) {
-        throw new Error(`Error al actualizar visibilidad: ${updateError.message}`)
+      if (updateError || !updatedCommunity) {
+        throw new Error(`Error al actualizar visibilidad: ${updateError?.message || 'Unknown error'}`)
       }
 
       await AuditLogService.logAction({
-        user_id: null,
+        user_id: adminUserId,
         admin_user_id: adminUserId,
         action: 'UPDATE',
         table_name: 'communities',
@@ -379,9 +393,12 @@ export class AdminCommunitiesCrudService {
         user_agent: requestInfo?.userAgent
       })
 
-      return updatedCommunity as AdminCommunity
+      return mapCommunityRowToAdminCommunity(updatedCommunity)
     } catch (error) {
-      logger.error('Error toggling community visibility', { error: error instanceof Error ? error.message : String(error) })
+      logger.error('Error toggling community visibility', {
+        error: error instanceof Error ? error.message : String(error),
+        communityId
+      })
       throw error
     }
   }
@@ -390,9 +407,7 @@ export class AdminCommunitiesCrudService {
     const supabase = await createClient()
 
     try {
-      // ✅ OPTIMIZACIÓN: Usar VIEW community_stats (1 query en lugar de 6)
-      const { data: row, error } = await supabase
-        .from('community_stats')
+      const { data: row, error } = await communityStatsTable(supabase)
         .select('*')
         .eq('slug', slug)
         .single()
@@ -403,56 +418,35 @@ export class AdminCommunitiesCrudService {
 
       return mapRowToAdminCommunity(row)
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.getCommunityBySlug', { error: error instanceof Error ? error.message : String(error), slug })
+      logger.error('Error in AdminCommunitiesService.getCommunityBySlug', {
+        error: error instanceof Error ? error.message : String(error),
+        slug
+      })
       return null
     }
   }
 
-  static async deleteCommunity(communityId: string, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<void> {
+  static async deleteCommunity(
+    communityId: string,
+    adminUserId: string,
+    requestInfo?: { ip?: string, userAgent?: string }
+  ): Promise<void> {
     const supabase = await createClient()
 
     try {
-      const { data: communityData } = await supabase
-        .from('communities')
+      const { data: communityData } = await communitiesTable(supabase)
         .select('*')
         .eq('id', communityId)
         .single()
 
-      // Eliminar en cascada
-      await supabase
-        .from('community_reactions')
-        .delete()
-        .eq('post_id', communityId)
+      await communityReactionsTable(supabase).delete().eq('post_id', communityId)
+      await communityCommentsTable(supabase).delete().eq('community_id', communityId)
+      await communityPostsTable(supabase).delete().eq('community_id', communityId)
+      await communityVideosTable(supabase).delete().eq('community_id', communityId)
+      await communityAccessRequestsTable(supabase).delete().eq('community_id', communityId)
+      await communityMembersTable(supabase).delete().eq('community_id', communityId)
 
-      await supabase
-        .from('community_comments')
-        .delete()
-        .eq('community_id', communityId)
-
-      await supabase
-        .from('community_posts')
-        .delete()
-        .eq('community_id', communityId)
-
-      await supabase
-        .from('community_videos')
-        .delete()
-        .eq('community_id', communityId)
-
-      await supabase
-        .from('community_access_requests')
-        .delete()
-        .eq('community_id', communityId)
-
-      await supabase
-        .from('community_members')
-        .delete()
-        .eq('community_id', communityId)
-
-      const { error } = await supabase
-        .from('communities')
-        .delete()
-        .eq('id', communityId)
+      const { error } = await communitiesTable(supabase).delete().eq('id', communityId)
 
       if (error) {
         logger.error('Error deleting community', { error: error.message, communityId })
@@ -465,13 +459,16 @@ export class AdminCommunitiesCrudService {
         action: 'DELETE',
         table_name: 'communities',
         record_id: communityId,
-        old_values: communityData,
-        new_values: null,
+        old_values: communityData || undefined,
+        new_values: undefined,
         ip_address: requestInfo?.ip,
         user_agent: requestInfo?.userAgent
       })
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.deleteCommunity', { error: error instanceof Error ? error.message : String(error), communityId })
+      logger.error('Error in AdminCommunitiesService.deleteCommunity', {
+        error: error instanceof Error ? error.message : String(error),
+        communityId
+      })
       throw error
     }
   }

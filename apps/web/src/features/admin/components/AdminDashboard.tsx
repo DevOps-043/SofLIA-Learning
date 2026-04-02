@@ -600,7 +600,7 @@ export function AdminDashboard() {
                   <p style={{ color: themeColors.textSecondary }}>No hay actividad reciente</p>
                 </div>
               ) : (
-                <div className="divide-y" style={{ divideColor: `${themeColors.borderColor}10` }}>
+                <div className="divide-y">
                   {activities.map((activity, index) => {
                     const user = activity.users || {}
                     const userName = user.display_name ||

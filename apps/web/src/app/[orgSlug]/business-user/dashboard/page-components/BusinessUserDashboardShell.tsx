@@ -1,0 +1,445 @@
+'use client'
+
+import type { CSSProperties } from 'react'
+import { Suspense, lazy } from 'react'
+import { motion } from 'framer-motion'
+import Image from 'next/image'
+import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp } from 'lucide-react'
+import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
+import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
+import type { ModernNavbarStyleConfig } from '../components/modern-navbar/types'
+import { formatBusinessUserDashboardDate } from '../services/business-user-dashboard.service'
+import type {
+  AssignedCourse,
+  BusinessUserDashboardColors,
+  BusinessUserDashboardStatItem,
+  Organization,
+  OrgRole,
+} from '../types'
+
+const ModernNavbar = lazy(() =>
+  import('../components/ModernNavbar').then((module) => ({ default: module.ModernNavbar }))
+)
+const ModernStatsCard = lazy(() =>
+  import('../components/ModernStatsCard').then((module) => ({ default: module.ModernStatsCard }))
+)
+const CourseCard3D = lazy(() =>
+  import('../components/CourseCard3D').then((module) => ({ default: module.CourseCard3D }))
+)
+
+interface BusinessUserDashboardShellProps {
+  orgSlug?: string
+  user: {
+    first_name?: string
+    last_name?: string
+    display_name?: string
+    username?: string
+  } | null
+  organization: Organization | null
+  orgRole: OrgRole
+  userDashboardStyles: ModernNavbarStyleConfig | null | undefined
+  backgroundStyle: CSSProperties
+  cssVariables: CSSProperties
+  orgColors: BusinessUserDashboardColors
+  currentTime: Date
+  language: string
+  greeting: string
+  displayName: string
+  initials: string
+  myStats: BusinessUserDashboardStatItem[]
+  stats: { certificates: number }
+  assignedCourses: AssignedCourse[]
+  restartTour: () => void
+  handleProfileClick: () => void
+  handleLogout: () => void
+  handleCertificatesClick: () => void
+  handleCourseClick: (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => void
+  showVideoIntro: boolean
+  handleVideoComplete: () => void
+  introVideos: string[]
+  t: (key: string, defaultValue?: string) => string
+}
+
+export function BusinessUserDashboardShell({
+  orgSlug,
+  user,
+  organization,
+  orgRole,
+  userDashboardStyles,
+  backgroundStyle,
+  cssVariables,
+  orgColors,
+  currentTime,
+  language,
+  greeting,
+  displayName,
+  initials,
+  myStats,
+  stats,
+  assignedCourses,
+  restartTour,
+  handleProfileClick,
+  handleLogout,
+  handleCertificatesClick,
+  handleCourseClick,
+  showVideoIntro,
+  handleVideoComplete,
+  introVideos,
+  t,
+}: BusinessUserDashboardShellProps) {
+  return (
+    <div
+      className="min-h-screen"
+      style={{
+        ...cssVariables,
+        background: backgroundStyle.background || backgroundStyle.backgroundColor || orgColors.sidebarBg,
+      }}
+    >
+      <Suspense
+        fallback={
+          <nav
+            className="sticky top-0 z-50 w-full backdrop-blur-xl h-16"
+            style={{
+              backgroundColor: orgColors.sidebarBg,
+              borderBottom: `1px solid ${orgColors.border}`,
+            }}
+          />
+        }
+      >
+        <ModernNavbar
+          organization={organization}
+          user={user}
+          orgRole={orgRole}
+          getDisplayName={() => displayName}
+          getInitials={() => initials}
+          onProfileClick={handleProfileClick}
+          onLogout={handleLogout}
+          styles={userDashboardStyles}
+          onRestartTour={restartTour}
+        />
+      </Suspense>
+
+      <main className="relative overflow-hidden min-h-[calc(100vh-4rem)]">
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: `radial-gradient(ellipse at 50% 0%, ${orgColors.primary}08 0%, transparent 50%)`,
+          }}
+        />
+
+        <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-20 py-8">
+          <TeamRequiredBanner orgSlug={orgSlug} />
+
+          <div id="tour-hero-section" className="scroll-mt-28 mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative overflow-hidden rounded-3xl p-8 group"
+            >
+              <div
+                className="absolute inset-0 z-0 overflow-hidden"
+                style={{
+                  backgroundColor: orgColors.primary !== '#FFFFFF' ? orgColors.primary : '#0A2540',
+                }}
+              >
+                <Image
+                  src="/images/teams-header.png"
+                  alt="Learning Panel Background"
+                  fill
+                  className="object-cover opacity-50"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/20 to-transparent pointer-events-none z-0" />
+                <div
+                  className="absolute inset-0 opacity-[0.1]"
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '50px 50px',
+                  }}
+                />
+                <div
+                  className="absolute -right-20 top-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-[120px]"
+                  style={{ backgroundColor: `${orgColors.accent}20` }}
+                />
+                <div
+                  className="absolute right-1/4 bottom-0 w-64 h-64 rounded-full blur-[100px]"
+                  style={{ backgroundColor: `${orgColors.primary}15` }}
+                />
+              </div>
+
+              <div
+                className="absolute top-6 right-12 w-2 h-2 rounded-full z-10"
+                style={{ backgroundColor: orgColors.accent }}
+              />
+              <div
+                className="absolute bottom-8 right-24 w-1.5 h-1.5 rounded-full z-10 opacity-60"
+                style={{ backgroundColor: orgColors.primary }}
+              />
+              <div
+                className="absolute top-1/2 right-16 w-1 h-1 rounded-full z-10 opacity-40"
+                style={{ backgroundColor: orgColors.primary }}
+              />
+              <div
+                className="absolute bottom-12 right-32 w-3 h-3 rounded-full"
+                style={{ backgroundColor: `${orgColors.primary}40` }}
+              />
+
+              <div className="relative z-10">
+                <motion.h1
+                  className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-3"
+                  style={{ color: '#FFFFFF' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  {greeting}, <span className="text-white">{user?.first_name || 'Usuario'}</span>
+                </motion.h1>
+
+                <motion.p
+                  className="text-lg max-w-xl mb-6"
+                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  {t('dashboard.subtitle')}
+                </motion.p>
+
+                <motion.div
+                  className="flex flex-wrap items-center gap-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <Clock className="w-4 h-4" />
+                    {formatBusinessUserDashboardDate(currentTime, language)}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: orgColors.accent }} />
+                    <span className="text-sm font-medium" style={{ color: orgColors.accent }}>
+                      {t('dashboard.systemActive')}
+                    </span>
+                  </div>
+                </motion.div>
+              </div>
+
+              <div
+                className="absolute inset-0 rounded-3xl pointer-events-none"
+                style={{
+                  background: `linear-gradient(135deg, ${orgColors.primary}50, transparent, ${orgColors.primary}30)`,
+                  padding: '1px',
+                  mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  maskComposite: 'exclude',
+                  WebkitMaskComposite: 'xor',
+                }}
+              />
+            </motion.div>
+          </div>
+
+          <div id="tour-stats-section" className="scroll-mt-32 relative">
+            <section className="mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center justify-between mb-6"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="p-2 rounded-xl border"
+                    style={{
+                      background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
+                      borderColor: `${orgColors.iconColor}30`,
+                    }}
+                  >
+                    <TrendingUp className="w-5 h-5" style={{ color: orgColors.iconColor }} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
+                      {t('dashboard.generalStats', 'Tu Progreso')}
+                    </h2>
+                    <p className="text-sm" style={{ color: orgColors.textSecondary }}>
+                      {t('dashboard.keyMetrics', 'Metricas de tu aprendizaje')}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                <Suspense
+                  fallback={
+                    <>
+                      {myStats.map((stat) => (
+                        <div
+                          key={stat.label}
+                          className="rounded-2xl p-5 animate-pulse h-32"
+                          style={{
+                            backgroundColor: orgColors.cardBg,
+                            border: `1px solid ${orgColors.border}`,
+                          }}
+                        />
+                      ))}
+                    </>
+                  }
+                >
+                  {myStats.map((stat, index) => {
+                    const isCertificates = stat.label === 'Certificados'
+                    return (
+                      <ModernStatsCard
+                        key={stat.label}
+                        label={stat.label}
+                        value={stat.value}
+                        icon={stat.icon}
+                        color={stat.color}
+                        index={index}
+                        onClick={isCertificates && stats.certificates > 0 ? handleCertificatesClick : undefined}
+                        isClickable={isCertificates && stats.certificates > 0}
+                        styles={userDashboardStyles}
+                        id={index === 0 ? 'tour-stat-courses' : index === 3 ? 'tour-stat-certificates' : undefined}
+                      />
+                    )
+                  })}
+                </Suspense>
+              </div>
+            </section>
+          </div>
+
+          <section>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex items-center justify-between mb-6"
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="p-2 rounded-xl border"
+                  style={{
+                    background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
+                    borderColor: `${orgColors.iconColor}30`,
+                  }}
+                >
+                  <GraduationCap className="w-5 h-5" style={{ color: orgColors.iconColor }} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
+                    {t('sidebar.courses')}
+                  </h2>
+                  <p className="text-sm" style={{ color: orgColors.textSecondary }}>
+                    {t('dashboard.quickActions.assignCourses.desc', 'Continua donde lo dejaste')}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {assignedCourses.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="relative overflow-hidden rounded-2xl backdrop-blur-xl p-12 text-center"
+                style={{
+                  backgroundColor: orgColors.cardBg,
+                  border: `1px solid ${orgColors.border}`,
+                }}
+              >
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(circle at 50% 50%, ${orgColors.primary}15, transparent 60%)`,
+                  }}
+                />
+
+                <motion.div
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring' }}
+                  className="relative z-10"
+                >
+                  <div
+                    className="mx-auto w-20 h-20 rounded-2xl flex items-center justify-center mb-6 border"
+                    style={{
+                      backgroundColor: `${orgColors.iconColor}15`,
+                      borderColor: `${orgColors.iconColor}30`,
+                    }}
+                  >
+                    <BookOpen className="w-10 h-10" style={{ color: orgColors.iconColor }} />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2" style={{ color: orgColors.text }}>
+                    {t('dashboard.emptyCourses.title', 'No tienes cursos asignados aun')}
+                  </h3>
+                  <p className="max-w-md mx-auto" style={{ color: orgColors.textSecondary }}>
+                    {t(
+                      'dashboard.emptyCourses.description',
+                      'Tu organizacion te asignara cursos proximamente. Mientras tanto, explora lo que tenemos preparado para ti.'
+                    )}
+                  </p>
+
+                  <div className="absolute top-6 right-6">
+                    <Sparkles className="w-5 h-5" style={{ color: `${orgColors.iconColor}50` }} />
+                  </div>
+                  <div className="absolute bottom-8 left-8">
+                    <GraduationCap className="w-6 h-6" style={{ color: `${orgColors.iconColor}50` }} />
+                  </div>
+                </motion.div>
+
+                <div
+                  className="absolute inset-0 rounded-2xl pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, ${orgColors.primary}30, transparent, ${orgColors.accent}15)`,
+                    padding: '1px',
+                    mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    maskComposite: 'exclude',
+                    WebkitMaskComposite: 'xor',
+                  }}
+                />
+              </motion.div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                <Suspense
+                  fallback={
+                    <>
+                      {assignedCourses.map((_, index) => (
+                        <div
+                          key={index}
+                          className="rounded-2xl animate-pulse h-80"
+                          style={{
+                            backgroundColor: orgColors.cardBg,
+                            border: `1px solid ${orgColors.border}`,
+                          }}
+                        />
+                      ))}
+                    </>
+                  }
+                >
+                  {assignedCourses.map((course, index) => (
+                    <CourseCard3D
+                      key={course.id}
+                      course={course}
+                      index={index}
+                      onClick={() => handleCourseClick(course)}
+                      onCertificateClick={
+                        course.progress === 100 && course.has_certificate
+                          ? () => handleCourseClick(course, 'certificate')
+                          : undefined
+                      }
+                      styles={userDashboardStyles}
+                    />
+                  ))}
+                </Suspense>
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+
+      {showVideoIntro && introVideos.length > 0 && (
+        <OnboardingVideoPlayer videos={introVideos} onComplete={handleVideoComplete} />
+      )}
+    </div>
+  )
+}

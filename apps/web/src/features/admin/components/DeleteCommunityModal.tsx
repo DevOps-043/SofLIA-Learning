@@ -14,23 +14,10 @@ import {
   Trash2,
   AlertCircle
 } from 'lucide-react'
+import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
 import { AdminCommunity } from '../services/adminCommunities.service'
 
-// ============================================
-// SOFLIA DESIGN SYSTEM COLORS
-// ============================================
-const colors = {
-  primary: '#0A2540',
-  accent: '#00D4B3',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  bgPrimary: '#0F1419',
-  bgSecondary: '#1E2329',
-  bgTertiary: '#0A0D12',
-  grayLight: '#E9ECEF',
-  grayMedium: '#6C757D',
-}
+const colors = SOFLIA_ADMIN_COLORS
 
 interface DeleteCommunityModalProps {
   community: AdminCommunity | null

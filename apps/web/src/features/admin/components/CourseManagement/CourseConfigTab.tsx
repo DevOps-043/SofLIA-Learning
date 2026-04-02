@@ -2,24 +2,37 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Book, FileText, Flag, Clock, BarChart3, Users2, DollarSign, Settings, Award, CheckCircle2 } from 'lucide-react'
-import { ImageUploadCourse } from '@/features/instructor/components/ImageUploadCourse'
-import { CourseSkillsSelector, CourseSkill } from '@/features/courses/components/CourseSkillsSelector'
-import type { useCourseManagementLogic } from './hooks/useCourseManagementLogic'
+import { ImageUploadCourse } from '../../../instructor/components/ImageUploadCourse'
+import { CourseSkillsSelector, CourseSkill } from '../../../courses/components/CourseSkillsSelector'
+import {
+  COURSE_MANAGEMENT_ACTION_BUTTON_CLASS,
+  COURSE_MANAGEMENT_ACCENT_ICON_CLASS,
+  COURSE_MANAGEMENT_DIVIDER_CLASS,
+  COURSE_MANAGEMENT_FIELD_CARD_CLASS,
+  COURSE_MANAGEMENT_FIELD_ICON_CLASS,
+  COURSE_MANAGEMENT_INPUT_WITH_ICON_CLASS,
+  COURSE_MANAGEMENT_LABEL_CLASS,
+  COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS,
+  COURSE_MANAGEMENT_MUTED_TEXT_CLASS,
+  COURSE_MANAGEMENT_PANEL_CARD_CLASS,
+  COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS,
+  COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS,
+  COURSE_MANAGEMENT_STICKY_CARD_CLASS,
+  COURSE_MANAGEMENT_TEXTAREA_CLASS,
+} from './courseManagementTheme'
+import { useCourseManagementContext } from './CourseManagementContext'
 
-type CourseManagementState = ReturnType<typeof useCourseManagementLogic>
-
-interface CourseConfigTabProps extends CourseManagementState {}
-
-export function CourseConfigTab(props: CourseConfigTabProps) {
+export function CourseConfigTab() {
   const {
     isNewCourse,
-    configData, handleConfigChange, handleSaveConfig, savingConfig,
+    configData, setConfigData, handleConfigChange, handleSaveConfig, savingConfig,
     instructors,
     selectedCertificateTemplate, setSelectedCertificateTemplate,
     instructorSignatureUrl, instructorSignatureName,
     courseSkills, setCourseSkills, savingSkills,
     showTemplatePreview, setShowTemplatePreview,
-  } = props
+  } = useCourseManagementContext().state
+  const { courseId } = useCourseManagementContext()
 
   return (
     <motion.div
@@ -38,18 +51,18 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+            className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
           >
-            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
               Título *
             </label>
             <div className="relative">
-              <Book className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+              <Book className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
               <input
                 name="title"
                 value={configData.title}
                 onChange={handleConfigChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                className={COURSE_MANAGEMENT_INPUT_WITH_ICON_CLASS}
                 placeholder="Ej: IA Esencial para Principiantes"
               />
             </div>
@@ -60,9 +73,9 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+            className={COURSE_MANAGEMENT_PANEL_CARD_CLASS}
           >
-            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
               Descripción *
             </label>
             <textarea
@@ -70,7 +83,7 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
               value={configData.description}
               onChange={handleConfigChange}
               rows={6}
-              className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
+              className={COURSE_MANAGEMENT_TEXTAREA_CLASS}
               placeholder="Describe el contenido y objetivos del curso..."
             />
           </motion.div>
@@ -81,18 +94,18 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+              className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
-              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+              <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
                 Categoría *
               </label>
               <div className="relative">
-                <Flag className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                <Flag className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
                 <select
                   name="category"
                   value={configData.category}
                   onChange={handleConfigChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                  className={COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS}
                   title="Selecciona la categoría del curso"
                 >
                   <option value="ia">Inteligencia Artificial</option>
@@ -107,18 +120,18 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.25 }}
-              className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+              className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
-              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+              <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
                 Nivel *
               </label>
               <div className="relative">
-                <BarChart3 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                <BarChart3 className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
                 <select
                   name="level"
                   value={configData.level}
                   onChange={handleConfigChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                  className={COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS}
                   title="Selecciona el nivel del curso"
                 >
                   <option value="beginner">Principiante</option>
@@ -135,19 +148,19 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+              className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
-              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+              <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
                 Duración (minutos) *
               </label>
               <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                <Clock className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
                 <input
                   type="number"
                   name="duration_total_minutes"
                   value={configData.duration_total_minutes}
                   onChange={handleConfigChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                  className={COURSE_MANAGEMENT_INPUT_WITH_ICON_CLASS}
                   placeholder="60"
                 />
               </div>
@@ -156,20 +169,20 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.35 }}
-              className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+              className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
             >
-              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+              <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
                 Precio
               </label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                <DollarSign className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
                 <input
                   type="number"
                   step="0.01"
                   name="price"
                   value={configData.price}
                   onChange={handleConfigChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                  className={COURSE_MANAGEMENT_INPUT_WITH_ICON_CLASS}
                   placeholder="0.00"
                 />
               </div>
@@ -181,9 +194,9 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+            className={COURSE_MANAGEMENT_PANEL_CARD_CLASS}
           >
-            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
               Imagen del Curso
             </label>
             <ImageUploadCourse
@@ -198,18 +211,18 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.45 }}
-            className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+            className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
           >
-            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
               Slug (URL)
             </label>
             <div className="relative">
-              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+              <FileText className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
               <input
                 name="slug"
                 value={configData.slug}
                 onChange={handleConfigChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                className={COURSE_MANAGEMENT_INPUT_WITH_ICON_CLASS}
                 placeholder="ia-esencial-principiantes"
               />
             </div>
@@ -220,18 +233,18 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.48 }}
-            className="group bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+            className={COURSE_MANAGEMENT_FIELD_CARD_CLASS}
           >
-            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            <label className={COURSE_MANAGEMENT_LABEL_WITH_MARGIN_CLASS}>
               Instructor *
             </label>
             <div className="relative">
-              <Users2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+              <Users2 className={COURSE_MANAGEMENT_FIELD_ICON_CLASS} />
               <select
                 name="instructor_id"
                 value={configData.instructor_id}
                 onChange={handleConfigChange}
-                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                className={COURSE_MANAGEMENT_SELECT_WITH_ICON_CLASS}
               >
                 <option value="">Selecciona un instructor</option>
                 {instructors.map((instructor) => (
@@ -248,15 +261,15 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 hover:border-[#00D4B3]/30 transition-all duration-200"
+            className={COURSE_MANAGEMENT_PANEL_CARD_CLASS}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Award className="w-4 h-4 text-[#00D4B3]" />
-              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wide">
+              <Award className={`w-4 h-4 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS}`} />
+              <label className={COURSE_MANAGEMENT_LABEL_CLASS}>
                 Skills que se Aprenden en este Curso
               </label>
             </div>
-            <p className="text-xs text-[#6C757D] dark:text-white/60 mb-4 ml-6">
+            <p className={`mb-4 ml-6 text-xs ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
               Selecciona las skills que los estudiantes obtendrán al completar este curso. Estas aparecerán en su perfil.
             </p>
             <CourseSkillsSelector
@@ -274,18 +287,18 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 sticky top-5"
+            className={COURSE_MANAGEMENT_STICKY_CARD_CLASS}
           >
-            <div className="flex items-center gap-2 mb-4 pb-4 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
-              <Settings className="w-4 h-4 text-[#00D4B3]" />
-              <div className="text-sm font-bold text-[#0A2540] dark:text-white">Acciones</div>
+            <div className={`mb-4 flex items-center gap-2 border-b pb-4 ${COURSE_MANAGEMENT_DIVIDER_CLASS}`}>
+              <Settings className={`w-4 h-4 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS}`} />
+              <div className={`text-sm font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>Acciones</div>
             </div>
             <motion.button
               type="submit"
               disabled={savingConfig}
               whileHover={{ scale: savingConfig ? 1 : 1.02, y: savingConfig ? 0 : -2 }}
               whileTap={{ scale: savingConfig ? 1 : 0.98 }}
-              className="w-full px-4 py-3 rounded-lg bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 hover:from-[#0d2f4d] hover:to-[#0A2540] text-white disabled:opacity-50 transition-all font-medium text-sm shadow-md hover:shadow-lg disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className={COURSE_MANAGEMENT_ACTION_BUTTON_CLASS}
             >
               {savingConfig ? (
                 <>
@@ -305,3 +318,5 @@ export function CourseConfigTab(props: CourseConfigTabProps) {
     </motion.div>
   )
 }
+
+

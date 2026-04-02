@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useStudyPlannerDashboardSofLIA } from '@/features/study-planner/hooks/useStudyPlannerDashboardSofLIA';
-import { useStudyPlannerDashboardTour } from '@/features/study-planner/hooks/useStudyPlannerDashboardTour';
+import { useStudyPlannerDashboardSofLIA } from './useStudyPlannerDashboardSofLIA';
+import { useStudyPlannerDashboardTour } from './useStudyPlannerDashboardTour';
 
 export function useStudyPlannerDashboardLogic() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export function useStudyPlannerDashboardLogic() {
     isSending,
     error,
     sendMessage,
+    clearMessages,
     clearError,
   } = useStudyPlannerDashboardSofLIA();
 
@@ -473,6 +474,7 @@ export function useStudyPlannerDashboardLogic() {
     messages,
     isSending,
     error,
+    clearMessages,
     clearError,
     // Tour
     restartTour,

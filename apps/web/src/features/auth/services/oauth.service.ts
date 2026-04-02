@@ -1,5 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
-import { OAuthAccount, OAuthProvider, OAuthTokens } from '../types/oauth.types';
+import { createClient } from '../../../lib/supabase/server';
+import {
+  OAuthAccount,
+  OAuthProvider,
+  OAuthTokens,
+  OAuthUserRecord,
+} from '../types/oauth.types';
 
 export class OAuthService {
   /**
@@ -110,7 +115,7 @@ export class OAuthService {
   /**
    * Verifica si un email ya está registrado
    */
-  static async findUserByEmail(email: string): Promise<any | null> {
+  static async findUserByEmail(email: string): Promise<OAuthUserRecord | null> {
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -126,7 +131,7 @@ export class OAuthService {
       throw new Error(`Error buscando usuario: ${error.message}`);
     }
 
-    return data;
+    return data as OAuthUserRecord;
   }
 
   /**

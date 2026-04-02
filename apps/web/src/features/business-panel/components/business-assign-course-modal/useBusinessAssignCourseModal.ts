@@ -1,0 +1,247 @@
+import { useEffect, useState } from 'react'
+import type { TFunction } from 'i18next'
+import { useBusinessUsers } from '../../hooks/useBusinessUsers'
+import {
+  areAllUsersSelected,
+  buildBusinessAssignCoursePayload,
+  filterBusinessAssignableUsers,
+  getSelectedUsers,
+  getSelectableUserIds,
+  normalizeLiaSuggestedDate,
+  toggleSelectedUserId,
+} from './service'
+
+interface UseBusinessAssignCourseModalParams {
+  isOpen: boolean
+  courseId: string
+  courseTitle: string
+  orgSlug: string
+  onAssignComplete: () => void
+  onClose: () => void
+  t: TFunction
+}
+
+export function useBusinessAssignCourseModal({
+  isOpen,
+  courseId,
+  courseTitle,
+  orgSlug,
+  onAssignComplete,
+  onClose,
+  t,
+}: UseBusinessAssignCourseModalParams) {
+  const { users, isLoading: loadingUsers, syncOrgData: refetchUsers } =
+    useBusinessUsers(orgSlug)
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
+  const [dueDate, setDueDate] = useState('')
+  const [isAssigning, setIsAssigning] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [alreadyAssignedUserIds, setAlreadyAssignedUserIds] = useState<Set<string>>(
+    new Set(),
+  )
+  const [isSuggesting, setIsSuggesting] = useState(false)
+  const [suggestionReason, setSuggestionReason] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      refetchUsers()
+    }
+  }, [isOpen, refetchUsers])
+
+  useEffect(() => {
+    if (!isOpen || !courseId) {
+      return
+    }
+
+    let isCancelled = false
+
+    async function fetchAssignedUsers() {
+      try {
+        const response = await fetch(
+          `/api/${orgSlug}/business/courses/${courseId}/assigned-users`,
+          {
+            credentials: 'include',
+          },
+        )
+
+        if (!response.ok) {
+          return
+        }
+
+        const data = (await response.json()) as { user_ids?: string[]; success?: boolean }
+        if (!isCancelled && data.success && Array.isArray(data.user_ids)) {
+          setAlreadyAssignedUserIds(new Set(data.user_ids))
+        }
+      } catch (fetchError) {
+        console.error('Error fetching assigned users:', fetchError)
+      }
+    }
+
+    fetchAssignedUsers()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [courseId, isOpen, orgSlug])
+
+  const availableUsers = filterBusinessAssignableUsers(users, searchTerm)
+  const selectableUserIds = getSelectableUserIds(availableUsers, alreadyAssignedUserIds)
+  const availableUserCount = selectableUserIds.length
+  const allUsersSelected = areAllUsersSelected(selectableUserIds, selectedUserIds)
+  const selectedUserCount = selectableUserIds.filter((userId) =>
+    selectedUserIds.has(userId),
+  ).length
+  const selectedUsers = getSelectedUsers(users, selectedUserIds)
+
+  function resetState() {
+    setSelectedUserIds(new Set())
+    setDueDate('')
+    setError(null)
+    setSearchTerm('')
+    setSuggestionReason(null)
+    setIsSuggesting(false)
+  }
+
+  function handleToggleUser(userId: string) {
+    if (alreadyAssignedUserIds.has(userId)) {
+      return
+    }
+
+    setSelectedUserIds((currentSelectedUserIds) =>
+      toggleSelectedUserId(currentSelectedUserIds, userId),
+    )
+  }
+
+  function handleSelectAllUsers() {
+    if (selectableUserIds.length === 0) {
+      return
+    }
+
+    setSelectedUserIds(
+      allUsersSelected ? new Set() : new Set(selectableUserIds),
+    )
+  }
+
+  async function handleAssign() {
+    if (selectedUserIds.size === 0) {
+      setError(t('assignCourse.errors.selectUser'))
+      return
+    }
+
+    setIsAssigning(true)
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(
+          buildBusinessAssignCoursePayload({
+            selectedUserIds,
+            dueDate,
+          }),
+        ),
+      })
+
+      const data = (await response.json()) as { error?: string }
+      if (!response.ok) {
+        throw new Error(data.error || t('assignCourse.errors.assignFailed'))
+      }
+
+      resetState()
+      onAssignComplete()
+      onClose()
+    } catch (assignError) {
+      setError(
+        assignError instanceof Error
+          ? assignError.message
+          : t('assignCourse.errors.assignFailed'),
+      )
+    } finally {
+      setIsAssigning(false)
+    }
+  }
+
+  async function handleSuggestLiaDate() {
+    setIsSuggesting(true)
+    setSuggestionReason(null)
+
+    try {
+      const today = new Date().toLocaleDateString('es-MX')
+      const response = await fetch('/api/lia/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'user',
+              content: `Actúa como un planificador de formación experto (LIA).
+Estoy asignando el curso "${courseTitle}" (ID: ${courseId}).
+Analiza la duración típica y complejidad de un curso con este título.
+Sugiere una fecha límite realista (deadline) contando desde hoy (${today}), asumiendo un ritmo de estudio profesional (2-3 horas semanales).
+
+IMPORTANTE: Tu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido con este formato exacto (sin bloques de código markdown):
+{ "suggested_date": "YYYY-MM-DD", "reason": "breve explicación de 15 palabras máximo" }`,
+            },
+          ],
+          stream: false,
+        }),
+      })
+
+      const data = (await response.json()) as { message?: { content?: string } }
+      const content = data.message?.content || ''
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) {
+        return
+      }
+
+      const parsed = JSON.parse(jsonMatch[0]) as {
+        suggested_date?: string
+        reason?: string
+      }
+      const suggestedDate = normalizeLiaSuggestedDate(parsed.suggested_date)
+      if (!suggestedDate) {
+        return
+      }
+
+      setDueDate(suggestedDate)
+      setSuggestionReason(parsed.reason || null)
+    } catch (suggestError) {
+      console.error('Error obteniendo sugerencia de LIA:', suggestError)
+    } finally {
+      setIsSuggesting(false)
+    }
+  }
+
+  function handleClose() {
+    resetState()
+    onClose()
+  }
+
+  return {
+    availableUsers,
+    availableUserCount,
+    allUsersSelected,
+    alreadyAssignedUserIds,
+    dueDate,
+    error,
+    handleAssign,
+    handleClose,
+    handleSelectAllUsers,
+    handleSuggestLiaDate,
+    handleToggleUser,
+    isAssigning,
+    isSuggesting,
+    loadingUsers,
+    searchTerm,
+    selectedUserCount,
+    selectedUserIds,
+    selectedUsers,
+    setDueDate,
+    setSearchTerm,
+    setSuggestionReason,
+    suggestionReason,
+  }
+}

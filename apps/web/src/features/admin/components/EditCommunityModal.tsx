@@ -19,23 +19,10 @@ import {
   Check,
   AlertCircle
 } from 'lucide-react'
+import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
 import { AdminCommunity } from '../services/adminCommunities.service'
 
-// ============================================
-// SOFLIA DESIGN SYSTEM COLORS
-// ============================================
-const colors = {
-  primary: '#0A2540',
-  accent: '#00D4B3',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  bgPrimary: '#0F1419',
-  bgSecondary: '#1E2329',
-  bgTertiary: '#0A0D12',
-  grayLight: '#E9ECEF',
-  grayMedium: '#6C757D',
-}
+const colors = SOFLIA_ADMIN_COLORS
 
 interface EditCommunityModalProps {
   community: AdminCommunity | null
@@ -357,7 +344,7 @@ export function EditCommunityModal({ community, isOpen, onClose, onSave }: EditC
             {/* Decorative glow */}
             <div 
               className="absolute -top-40 -right-40 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none"
-              style={{ background: '#8B5CF6' }}
+              style={{ background: colors.purple }}
             />
 
             {/* Header */}
@@ -373,7 +360,7 @@ export function EditCommunityModal({ community, isOpen, onClose, onSave }: EditC
                     transition={{ type: "spring", delay: 0.1 }}
                     className="p-3 rounded-2xl"
                     style={{ 
-                      background: 'linear-gradient(135deg, #8B5CF6 0%, #0A2540 100%)',
+                      background: `linear-gradient(135deg, ${colors.purple} 0%, ${colors.primary} 100%)`,
                       boxShadow: '0 10px 40px rgba(139, 92, 246, 0.3)'
                     }}
                   >
@@ -491,10 +478,10 @@ export function EditCommunityModal({ community, isOpen, onClose, onSave }: EditC
               {/* Section 2: Privacy Settings */}
               <div>
                 <SectionHeader 
-                  icon={<Shield className="w-5 h-5" style={{ color: '#8B5CF6' }} />}
+                  icon={<Shield className="w-5 h-5" style={{ color: colors.purple }} />}
                   title="Configuración de Privacidad"
                   subtitle="Controla quién puede ver y acceder a la comunidad"
-                  color="#8B5CF6"
+                  color={colors.purple}
                 />
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -636,7 +623,7 @@ export function EditCommunityModal({ community, isOpen, onClose, onSave }: EditC
                   disabled={isLoading}
                   className="px-8 py-3 rounded-xl font-semibold text-white flex items-center gap-2 disabled:opacity-50"
                   style={{ 
-                    background: 'linear-gradient(135deg, #8B5CF6 0%, #0A2540 100%)',
+                    background: `linear-gradient(135deg, ${colors.purple} 0%, ${colors.primary} 100%)`,
                     boxShadow: '0 5px 20px rgba(139, 92, 246, 0.2)'
                   }}
                 >

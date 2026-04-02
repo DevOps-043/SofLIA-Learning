@@ -1,13 +1,23 @@
 import { createClient } from '../../../lib/supabase/server'
 import { logger } from '../../../lib/logger'
+import { fromLoose } from '../../../lib/supabase/looseQuery'
+import {
+  buildCommunityPosts,
+  type CommunityBuiltPost,
+  type CommunityCommentRecord,
+  type CommunityPostRecord,
+  type CommunityReactionRecord,
+  type CommunityVideoRecord,
+  groupCommentsByPost,
+  groupReactionsByPost
+} from './adminCommunityContent.helpers'
 
 export class AdminCommunityContentService {
-  static async getCommunityVideos(communityId: string, page: number = 1, limit: number = 10): Promise<any[]> {
+  static async getCommunityVideos(communityId: string, page: number = 1, limit: number = 10): Promise<CommunityVideoRecord[]> {
     const supabase = await createClient()
 
     try {
-      const { data: videos, error } = await supabase
-        .from('community_videos')
+      const { data: videos, error } = await fromLoose<CommunityVideoRecord>(supabase, 'community_videos')
         .select(`
           id,
           video_type,
@@ -40,12 +50,11 @@ export class AdminCommunityContentService {
     }
   }
 
-  static async getCommunityPosts(communityId: string): Promise<any[]> {
+  static async getCommunityPosts(communityId: string): Promise<CommunityBuiltPost[]> {
     const supabase = await createClient()
 
     try {
-      const { data: posts, error: postsError } = await supabase
-        .from('community_posts')
+      const { data: posts, error: postsError } = await fromLoose<CommunityPostRecord>(supabase, 'community_posts')
         .select(`
           id,
           content,
@@ -74,80 +83,54 @@ export class AdminCommunityContentService {
         return []
       }
 
-      const userIds = [...new Set(posts.map(post => post.user_id).filter(Boolean))]
-      const { data: users, error: usersError } = await supabase
-        .from('users')
-        .select('id, display_name, first_name, last_name, profile_picture_url')
-        .in('id', userIds)
+      const postIds = posts.map(post => post.id)
+      const userIds = [...new Set(posts.map(post => post.user_id).filter((userId): userId is string => Boolean(userId)))]
+
+      const [{ data: users, error: usersError }, { data: comments, error: commentsError }, { data: reactions, error: reactionsError }] = await Promise.all([
+        userIds.length
+          ? supabase.from('users').select('id, display_name, first_name, last_name, profile_picture_url').in('id', userIds)
+          : Promise.resolve({ data: [], error: null }),
+        fromLoose<CommunityCommentRecord>(supabase, 'community_comments')
+          .select(`
+            id,
+            post_id,
+            content,
+            created_at,
+            author_id,
+            users!inner(id, display_name, first_name, last_name, profile_picture_url)
+          `)
+          .in('post_id', postIds)
+          .order('created_at', { ascending: true })
+          .limit(postIds.length * 10 || 10),
+        fromLoose<CommunityReactionRecord>(supabase, 'community_reactions')
+          .select(`
+            id,
+            post_id,
+            reaction_type,
+            emoji,
+            users!inner(id, display_name, first_name, last_name)
+          `)
+          .in('post_id', postIds)
+          .limit(postIds.length * 10 || 10)
+      ])
 
       if (usersError) {
         logger.error('Error fetching users for posts', { error: usersError.message })
       }
 
-      const usersMap = new Map()
-      if (users) {
-        users.forEach(user => {
-          usersMap.set(user.id, user)
-        })
+      if (commentsError) {
+        logger.error('Error fetching comments for posts', { error: commentsError.message, communityId })
       }
 
-      const postsWithDetails = await Promise.all(
-        posts.map(async (post) => {
-          const { data: comments } = await supabase
-            .from('community_comments')
-            .select(`
-              id,
-              content,
-              created_at,
-              author_id,
-              users!inner(display_name, first_name, last_name, profile_picture_url)
-            `)
-            .eq('post_id', post.id)
-            .order('created_at', { ascending: true })
-            .limit(10)
+      if (reactionsError) {
+        logger.error('Error fetching reactions for posts', { error: reactionsError.message, communityId })
+      }
 
-          const { data: reactions } = await supabase
-            .from('community_reactions')
-            .select(`
-              id,
-              reaction_type,
-              emoji,
-              users!inner(display_name, first_name, last_name)
-            `)
-            .eq('post_id', post.id)
+      const usersById = new Map((users || []).map(user => [user.id, user]))
+      const commentsByPost = groupCommentsByPost(comments || [])
+      const reactionsByPost = groupReactionsByPost(reactions || [])
 
-          const reactionsGrouped = new Map()
-          if (reactions) {
-            reactions.forEach(reaction => {
-              const key = reaction.reaction_type || 'like'
-              if (!reactionsGrouped.has(key)) {
-                reactionsGrouped.set(key, {
-                  type: key,
-                  emoji: reaction.emoji || '👍',
-                  count: 0,
-                  users: []
-                })
-              }
-              const group = reactionsGrouped.get(key)
-              group.count++
-              group.users.push(reaction.users)
-            })
-          }
-
-          return {
-            ...post,
-            users: usersMap.get(post.user_id) || null,
-            comments: comments || [],
-            reactions: Array.from(reactionsGrouped.values()),
-            attachments: post.attachment_url ? [{ url: post.attachment_url, type: post.attachment_type, name: 'Archivo adjunto' }] : [],
-            links: [],
-            views_count: 0,
-            post_type: 'text'
-          }
-        })
-      )
-
-      return postsWithDetails
+      return buildCommunityPosts(posts, usersById, commentsByPost, reactionsByPost)
     } catch (error) {
       logger.error('Error in AdminCommunitiesService.getCommunityPosts', { error: error instanceof Error ? error.message : String(error), communityId })
       throw error

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
-import type { HierarchyChatType } from '@/features/business-panel/types/hierarchy.types'
+import { useThemeStore } from '../../../../../core/stores/themeStore'
+import { useOrganizationStylesContext } from '../../../contexts/OrganizationStylesContext'
+import type { HierarchyChatType } from '../../../types/hierarchy.types'
 import { useChatLogic } from './hooks/useChatLogic'
 import { ChatMessages } from './ChatMessages'
 import { ChatInput } from './ChatInput'
@@ -23,10 +23,11 @@ export function HierarchyChat({
   title,
   className = ''
 }: HierarchyChatProps) {
-  const { styles } = useOrganizationStylesContext()
+  const { effectiveStyles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
   const [modalImage, setModalImage] = useState<string | null>(null)
+  const panelStyles = effectiveStyles?.panel
 
   const {
     chat,
@@ -76,8 +77,8 @@ export function HierarchyChat({
     )
   }
 
-  const primaryColor = styles?.primaryColor || '#3B82F6'
-  const accentColor = styles?.accentColor || '#10B981'
+  const primaryColor = panelStyles?.primary_button_color || '#3B82F6'
+  const accentColor = panelStyles?.accent_color || '#10B981'
 
   return (
     <div
@@ -89,7 +90,7 @@ export function HierarchyChat({
     >
       <ChatHeader
         title={title || chat?.name || 'Chat de Equipo'}
-        description={chat?.description}
+        description={chat?.description || undefined}
         participantsCount={chat?.participants_count || 0}
         onlineCount={0}
       />
@@ -140,4 +141,3 @@ export function HierarchyChat({
     </div>
   )
 }
-

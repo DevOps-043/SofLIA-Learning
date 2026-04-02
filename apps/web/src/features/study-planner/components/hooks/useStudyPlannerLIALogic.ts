@@ -251,7 +251,7 @@ export function useStudyPlannerLIALogic() {
     setSavedPlanId,
     speakText,
     studyApproach,
-    userType: userContext?.userType,
+    userType: userContext?.userType === 'b2b' ? 'b2b' : null,
   });
 
   const {
@@ -341,12 +341,12 @@ export function useStudyPlannerLIALogic() {
   } = useStudyPlannerCalendarActions({
     availableCourses,
     assignedCourses,
-    connectedCalendar,
     isAudioEnabled,
     isProcessing,
     pendingLessonsRef,
     pendingLessonsWithNames,
     selectedCourseIds,
+    setCalendarSkipped,
     setConnectedCalendar,
     setConversationHistory,
     setIsConnectingCalendar,

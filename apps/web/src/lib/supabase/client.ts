@@ -1,4 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { getSupabaseRuntimeConfig } from './config'
+import { createBrowserCookieAdapter, type SupabaseCookieAdapter } from './cookies'
 import type { Database } from './types'
 
 /**
@@ -9,34 +11,21 @@ import type { Database } from './types'
  * este helper para asegurar que la sesión del usuario se envíe correctamente.
  */
 export function createClient() {
+  const { url, anonKey } = getSupabaseRuntimeConfig()
+  const browserCookieAdapter = createBrowserCookieAdapter(document) as SupabaseCookieAdapter
+
   return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return document.cookie.split('; ').map(cookie => {
-            const [name, ...rest] = cookie.split('=')
-            return { name, value: decodeURIComponent(rest.join('=')) }
-          })
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            let cookieString = `${name}=${encodeURIComponent(value)}`
-            if (options?.path) cookieString += `; path=${options.path}`
-            if (options?.maxAge) cookieString += `; max-age=${options.maxAge}`
-            if (options?.domain) cookieString += `; domain=${options.domain}`
-            if (options?.secure) cookieString += `; secure`
-            if (options?.sameSite) cookieString += `; samesite=${options.sameSite}`
-            document.cookie = cookieString
-          })
-        },
-      },
+    url,
+    anonKey,
+    ({
+      // The adapter is implemented in local helpers to make cookie parsing testable.
+      // Cast keeps compatibility with the SSR helper's cookie contract.
+      cookies: browserCookieAdapter,
       auth: {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
       },
-    }
+    } as never)
   )
 }

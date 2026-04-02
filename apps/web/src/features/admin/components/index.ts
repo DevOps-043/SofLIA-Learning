@@ -16,9 +16,12 @@ export { AdminReelsPage } from './AdminReelsPage'
 export { AdminReportesPage } from './AdminReportesPage'
 export { AdminAccessRequestsPage } from './AdminAccessRequestsPage'
 export { AdminUserStatsPage } from './AdminUserStatsPage'
+export { LessonModal } from './LessonModal'
 export { CourseManagementPage } from './CourseManagementPage'
 export { CoursesSection } from './CoursesSection'
 export { AdminCompaniesPage } from './AdminCompaniesPage'
+export * from './admin-companies'
+export * from './lesson-modal'
 export { LiaAnalyticsPage } from './LiaAnalyticsPage'
 
 // LIA Analytics Widgets

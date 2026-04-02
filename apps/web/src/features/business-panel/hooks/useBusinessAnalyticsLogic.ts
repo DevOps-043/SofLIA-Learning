@@ -4,8 +4,16 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessAnalytics } from './useBusinessAnalytics'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
+import type { BusinessAnalyticsUser } from '../types/analytics.types'
+import {
+    getBusinessAnalyticsHeatmapColor,
+    getBusinessAnalyticsMaxHour,
+    getBusinessAnalyticsUserDisplayName,
+    getBusinessAnalyticsUserInitials,
+} from '../services/business-analytics-display.service'
 
 export type ActiveTab = 'overview' | 'engagement' | 'users' | 'teams'
+export type UserDetailSubTab = 'activity' | 'planner' | 'courses'
 
 export function useBusinessAnalyticsLogic() {
     const { t } = useTranslation('business')
@@ -14,7 +22,7 @@ export function useBusinessAnalyticsLogic() {
     const panelStyles = styles?.panel
 
     const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
-    const [selectedUser, setSelectedUser] = useState<any>(null)
+    const [selectedUser, setSelectedUser] = useState<BusinessAnalyticsUser | null>(null)
 
     const cardBg = panelStyles?.card_background
     const cardBorder = panelStyles?.border_color
@@ -40,35 +48,14 @@ export function useBusinessAnalyticsLogic() {
     }
 }
 
-export function useUserDetailModalLogic(user: any) {
+export function useUserDetailModalLogic(user: BusinessAnalyticsUser) {
     const { t } = useTranslation('business')
-    const [subTab, setSubTab] = useState<'activity' | 'planner' | 'courses'>('activity')
+    const [subTab, setSubTab] = useState<UserDetailSubTab>('activity')
 
-    const displayName =
-        user.name ||
-        user.display_name ||
-        (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}`.trim() : null) ||
-        user.first_name ||
-        user.username ||
-        user.email?.split('@')[0] ||
-        t('analytics.usersTable.noName')
-
-    const initials =
-        displayName && displayName !== t('analytics.usersTable.noName')
-            ? displayName.charAt(0).toUpperCase()
-            : user.email?.charAt(0).toUpperCase() || '?'
-
-    const getHeatmapColor = (level: number) => {
-        if (!level) return 'bg-gray-200 dark:bg-white/5'
-        if (level === 1) return 'bg-emerald-500/20'
-        if (level === 2) return 'bg-emerald-500/40'
-        if (level === 3) return 'bg-emerald-500/60'
-        return 'bg-emerald-500'
-    }
-
-    const maxHour = user.stats?.hourly_distribution
-        ? Math.max(...user.stats.hourly_distribution)
-        : 1
+    const noNameLabel = t('analytics.usersTable.noName')
+    const displayName = getBusinessAnalyticsUserDisplayName(user, noNameLabel)
+    const initials = getBusinessAnalyticsUserInitials(user, noNameLabel)
+    const maxHour = getBusinessAnalyticsMaxHour(user.stats?.hourly_distribution)
 
     return {
         t,
@@ -76,7 +63,7 @@ export function useUserDetailModalLogic(user: any) {
         setSubTab,
         displayName,
         initials,
-        getHeatmapColor,
+        getHeatmapColor: getBusinessAnalyticsHeatmapColor,
         maxHour,
     }
 }

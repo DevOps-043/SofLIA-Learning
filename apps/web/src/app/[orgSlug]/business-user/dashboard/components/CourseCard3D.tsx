@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 import { Award, Play, BookOpen, CheckCircle2 } from 'lucide-react'
-import { hexToRgb } from '@/features/business-panel/utils/styles'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
+import { useThemeStore } from '../../../../../core/stores/themeStore'
 
 interface AssignedCourse {
   id: string

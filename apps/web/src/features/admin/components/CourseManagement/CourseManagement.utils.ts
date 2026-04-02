@@ -1,3 +1,5 @@
+import type { ActiveTab } from './types'
+
 /**
  * Formats duration in minutes to a human-readable string.
  * - Less than 60 min: "X min"
@@ -18,4 +20,18 @@ export function formatDuration(minutes: number): string {
   }
 
   return `${hours}h ${remainingMinutes}min`
+}
+
+export const COURSE_MANAGEMENT_TABS: Array<{
+  key: Exclude<ActiveTab, 'certificates'>
+  label: string
+}> = [
+  { key: 'modules', label: 'Modulos' },
+  { key: 'config', label: 'Configuracion' },
+  { key: 'preview', label: 'Vista Previa' },
+  { key: 'stats', label: 'Estadisticas' },
+]
+
+export function isCourseManagementTabDisabled(tab: ActiveTab, isNewCourse: boolean): boolean {
+  return isNewCourse && tab !== 'config'
 }

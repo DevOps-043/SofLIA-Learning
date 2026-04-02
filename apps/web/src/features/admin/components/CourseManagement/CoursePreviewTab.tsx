@@ -1,18 +1,96 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
-import { Eye, TrendingUp, Rocket, Target, Lightbulb, Sprout, BarChart3 } from 'lucide-react'
-import type { useCourseManagementLogic } from './hooks/useCourseManagementLogic'
+import { motion } from 'framer-motion'
+import {
+  BarChart3,
+  Clock,
+  DollarSign,
+  Eye,
+  Lightbulb,
+  Rocket,
+  Sprout,
+  Target,
+  TrendingUp,
+} from 'lucide-react'
 
-type CourseManagementState = ReturnType<typeof useCourseManagementLogic>
+import { useCourseManagementContext } from './CourseManagementContext'
+import {
+  COURSE_MANAGEMENT_ACCENT_BADGE_CLASS,
+  COURSE_MANAGEMENT_ACCENT_ICON_CLASS,
+  COURSE_MANAGEMENT_ACCENT_ICON_GRADIENT_CLASS,
+  COURSE_MANAGEMENT_CODE_BADGE_CLASS,
+  COURSE_MANAGEMENT_DIVIDER_TOP_CLASS,
+  COURSE_MANAGEMENT_EMPTY_STATE_CLASS,
+  COURSE_MANAGEMENT_INFO_PANEL_CLASS,
+  COURSE_MANAGEMENT_INSET_SURFACE_CLASS,
+  COURSE_MANAGEMENT_ICON_GRADIENT_CLASS,
+  COURSE_MANAGEMENT_LEVEL_BADGE_CLASSES,
+  COURSE_MANAGEMENT_LOADING_SPINNER_CLASS,
+  COURSE_MANAGEMENT_MUTED_TEXT_CLASS,
+  COURSE_MANAGEMENT_PREVIEW_ACTION_CARD_CLASS,
+  COURSE_MANAGEMENT_PREVIEW_BUTTON_GLOW_CLASS,
+  COURSE_MANAGEMENT_PREVIEW_FALLBACK_CLASS,
+  COURSE_MANAGEMENT_PREVIEW_OVERLAY_CLASS,
+  COURSE_MANAGEMENT_PREVIEW_PRIMARY_BUTTON_CLASS,
+  COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS,
+  COURSE_MANAGEMENT_SOFT_PRIMARY_GRADIENT_CLASS,
+  COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES,
+  COURSE_MANAGEMENT_STATUS_BADGE_CLASS,
+  COURSE_MANAGEMENT_SURFACE_CARD_CLASS,
+  COURSE_MANAGEMENT_SURFACE_CARD_HOVER_CLASS,
+} from './courseManagementTheme'
 
-interface CoursePreviewTabProps extends CourseManagementState {}
+type PreviewStat = {
+  Icon: typeof Clock
+  label: string
+  gradient: string
+  getValue: (
+    durationTotalMinutes: number,
+    level: string,
+    category: string,
+    price: number
+  ) => string
+}
 
-export function CoursePreviewTab(props: CoursePreviewTabProps) {
-  const {
-    workshopPreview,
-    previewLoading,
-  } = props
+const previewStats: PreviewStat[] = [
+  {
+    Icon: Clock,
+    label: 'Duracion',
+    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.accent,
+    getValue: (durationTotalMinutes) => `${durationTotalMinutes} min`,
+  },
+  {
+    Icon: BarChart3,
+    label: 'Nivel',
+    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.primary,
+    getValue: (durationTotalMinutes, level) =>
+      level === 'beginner'
+        ? 'Principiante'
+        : level === 'intermediate'
+          ? 'Intermedio'
+          : 'Avanzado',
+  },
+  {
+    Icon: Target,
+    label: 'Categoria',
+    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.success,
+    getValue: (durationTotalMinutes, level, category) => category || 'General',
+  },
+  {
+    Icon: DollarSign,
+    label: 'Precio',
+    gradient: COURSE_MANAGEMENT_STAT_GRADIENT_CLASSES.warning,
+    getValue: (
+      durationTotalMinutes: number,
+      level: string,
+      category: string,
+      price: number
+    ) => (price > 0 ? `$${price}` : 'Gratis'),
+  },
+] as const
+
+export function CoursePreviewTab() {
+  const { workshopPreview, previewLoading } = useCourseManagementContext().state
 
   return (
     <motion.div
@@ -27,103 +105,106 @@ export function CoursePreviewTab(props: CoursePreviewTabProps) {
         <div className="flex flex-col items-center justify-center py-32">
           <motion.div
             animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-16 h-16 border-4 border-[#00D4B3]/20 border-t-[#00D4B3] rounded-full mb-4"
+            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            className={`mb-4 h-16 w-16 ${COURSE_MANAGEMENT_LOADING_SPINNER_CLASS}`}
           />
-          <p className="text-[#6C757D] dark:text-white/60 text-sm font-medium">Cargando vista previa...</p>
+          <p className={`text-sm font-medium ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
+            Cargando vista previa...
+          </p>
         </div>
       ) : workshopPreview ? (
         <div className="space-y-6">
-          {/* Header con imagen destacada */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="relative group"
+            className="group relative"
           >
-            <div className="relative rounded-2xl overflow-hidden border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#1E2329] shadow-lg hover:shadow-2xl transition-all duration-500">
-              {/* Imagen de portada con overlay */}
+            <div
+              className={`relative overflow-hidden shadow-lg transition-all duration-500 hover:shadow-2xl ${COURSE_MANAGEMENT_SURFACE_CARD_CLASS}`}
+            >
               <div className="relative h-80 overflow-hidden">
                 {workshopPreview.thumbnail_url ? (
                   <>
                     <motion.img
                       src={workshopPreview.thumbnail_url}
                       alt={workshopPreview.title}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-cover"
                       whileHover={{ scale: 1.05 }}
                       transition={{ duration: 0.6 }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0A2540]/90 via-[#0A2540]/40 to-transparent" />
+                    <div className={COURSE_MANAGEMENT_PREVIEW_OVERLAY_CLASS} />
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-[#0A2540] via-[#0A2540]/90 to-[#00D4B3]/20 flex items-center justify-center">
+                  <div className={COURSE_MANAGEMENT_PREVIEW_FALLBACK_CLASS}>
                     <motion.div
                       animate={{
-                        scale: [1, 1.1, 1],
-                        rotate: [0, 5, -5, 0]
+                        scale: [1, 1.08, 1],
+                        rotate: [0, 5, -5, 0],
                       }}
                       transition={{ duration: 4, repeat: Infinity }}
-                      className="text-[#00D4B3]/30 text-9xl"
                     >
-                      ðŸ“š
+                      <Eye className={`h-24 w-24 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS} opacity-30`} />
                     </motion.div>
                   </div>
                 )}
 
-                {/* Badge de categoría */}
                 <motion.div
                   initial={{ x: -20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="absolute top-6 left-6"
+                  className="absolute left-6 top-6"
                 >
-                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00D4B3]/90 backdrop-blur-md text-white text-sm font-semibold shadow-lg">
-                    <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  <span className={COURSE_MANAGEMENT_ACCENT_BADGE_CLASS}>
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
                     {workshopPreview.category || 'Curso'}
                   </span>
                 </motion.div>
 
-                {/* Badge de nivel */}
                 <motion.div
                   initial={{ x: 20, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="absolute top-6 right-6"
+                  className="absolute right-6 top-6"
                 >
-                  <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full backdrop-blur-md text-white text-sm font-semibold shadow-lg ${workshopPreview.level === 'beginner' ? 'bg-[#10B981]/90' :
-                    workshopPreview.level === 'intermediate' ? 'bg-[#F59E0B]/90' :
-                      'bg-[#0A2540]/90'
-                    }`}>
+                  <span
+                    className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg backdrop-blur-md ${
+                      workshopPreview.level === 'beginner'
+                        ? COURSE_MANAGEMENT_LEVEL_BADGE_CLASSES.beginner
+                        : workshopPreview.level === 'intermediate'
+                          ? COURSE_MANAGEMENT_LEVEL_BADGE_CLASSES.intermediate
+                          : COURSE_MANAGEMENT_LEVEL_BADGE_CLASSES.advanced
+                    }`}
+                  >
                     {workshopPreview.level === 'beginner' ? (
                       <span className="flex items-center gap-1.5">
-                        <Sprout className="w-4 h-4" />
+                        <Sprout className="h-4 w-4" />
                         Principiante
                       </span>
                     ) : workshopPreview.level === 'intermediate' ? (
                       <span className="flex items-center gap-1.5">
-                        <TrendingUp className="w-4 h-4" />
+                        <TrendingUp className="h-4 w-4" />
                         Intermedio
                       </span>
                     ) : (
                       <span className="flex items-center gap-1.5">
-                        <Rocket className="w-4 h-4" />
+                        <Rocket className="h-4 w-4" />
                         Avanzado
                       </span>
                     )}
                   </span>
                 </motion.div>
 
-                {/* Título sobre la imagen */}
                 <motion.div
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.5 }}
                   className="absolute bottom-0 left-0 right-0 p-8"
                 >
-                  <h1 className="text-4xl font-bold text-white mb-3 drop-shadow-2xl">
+                  <h1 className="mb-3 text-4xl font-bold text-white drop-shadow-2xl">
                     {workshopPreview.title}
                   </h1>
-                  <p className="text-white/90 text-lg leading-relaxed drop-shadow-lg line-clamp-2">
+                  <p className="line-clamp-2 text-lg leading-relaxed text-white/90 drop-shadow-lg">
                     {workshopPreview.description}
                   </p>
                 </motion.div>
@@ -131,58 +212,31 @@ export function CoursePreviewTab(props: CoursePreviewTabProps) {
             </div>
           </motion.div>
 
-          {/* Grid de información y detalles */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Columna principal - Detalles del curso */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6 }}
-              className="lg:col-span-2 space-y-6"
+              className="space-y-6 lg:col-span-2"
             >
-              {/* Descripción completa */}
-              <div className="bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-8 shadow-sm hover:shadow-lg transition-all duration-300">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center">
-                    <span className="text-2xl">ðŸ“–</span>
+              <div className={`p-8 ${COURSE_MANAGEMENT_SURFACE_CARD_HOVER_CLASS}`}>
+                <div className="mb-6 flex items-center gap-3">
+                  <div className={`h-12 w-12 rounded-xl ${COURSE_MANAGEMENT_ICON_GRADIENT_CLASS}`}>
+                    <span className="text-2xl text-white">CP</span>
                   </div>
-                  <h2 className="text-2xl font-bold text-[#0A2540] dark:text-white">Sobre este curso</h2>
+                  <h2 className={`text-2xl font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
+                    Sobre este curso
+                  </h2>
                 </div>
-                <p className="text-[#6C757D] dark:text-white/70 leading-relaxed text-base">
+                <p className={`text-base leading-relaxed ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
                   {workshopPreview.description}
                 </p>
               </div>
 
-              {/* Estadísticas del curso */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  {
-                    Icon: Clock,
-                    label: 'Duración',
-                    value: `${workshopPreview.duration_total_minutes} min`,
-                    color: 'from-[#00D4B3] to-[#10B981]'
-                  },
-                  {
-                    Icon: BarChart3,
-                    label: 'Nivel',
-                    value: workshopPreview.level === 'beginner' ? 'Principiante' :
-                      workshopPreview.level === 'intermediate' ? 'Intermedio' : 'Avanzado',
-                    color: 'from-[#0A2540] to-[#00D4B3]'
-                  },
-                  {
-                    Icon: Target,
-                    label: 'Categoría',
-                    value: workshopPreview.category || 'General',
-                    color: 'from-[#10B981] to-[#00D4B3]'
-                  },
-                  {
-                    Icon: DollarSign,
-                    label: 'Precio',
-                    value: workshopPreview.price > 0 ? `$${workshopPreview.price}` : 'Gratis',
-                    color: 'from-[#F59E0B] to-[#10B981]'
-                  }
-                ].map((stat, index) => {
-                  const IconComponent = stat.Icon
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {previewStats.map((stat, index) => {
+                  const Icon = stat.Icon
+
                   return (
                     <motion.div
                       key={stat.label}
@@ -190,19 +244,30 @@ export function CoursePreviewTab(props: CoursePreviewTabProps) {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.7 + index * 0.1 }}
                       whileHover={{ y: -4, scale: 1.02 }}
-                      className="relative group"
+                      className="group relative"
                     >
-                      <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-5 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                      <div
+                        className={`relative overflow-hidden p-5 shadow-sm transition-all duration-300 hover:shadow-xl ${COURSE_MANAGEMENT_INSET_SURFACE_CLASS}`}
+                      >
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`}
+                        />
                         <div className="relative">
                           <div className="mb-2">
-                            <IconComponent className="w-6 h-6 text-[#00D4B3]" />
+                            <Icon className={`h-6 w-6 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS}`} />
                           </div>
-                          <div className="text-xs font-semibold text-[#6C757D] dark:text-white/60 uppercase tracking-wide mb-1">
+                          <div
+                            className={`mb-1 text-xs font-semibold uppercase tracking-wide ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}
+                          >
                             {stat.label}
                           </div>
-                          <div className="text-lg font-bold text-[#0A2540] dark:text-white">
-                            {stat.value}
+                          <div className={`text-lg font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
+                            {stat.getValue(
+                              workshopPreview.duration_total_minutes,
+                              workshopPreview.level,
+                              workshopPreview.category,
+                              workshopPreview.price
+                            )}
                           </div>
                         </div>
                       </div>
@@ -212,74 +277,75 @@ export function CoursePreviewTab(props: CoursePreviewTabProps) {
               </div>
             </motion.div>
 
-            {/* Sidebar - Acciones y detalles adicionales */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8 }}
               className="space-y-4"
             >
-              {/* Card de acciones */}
-              <div className="bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-6 shadow-sm sticky top-6">
+              <div className={COURSE_MANAGEMENT_PREVIEW_ACTION_CARD_CLASS}>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#00D4B3] to-[#10B981] flex items-center justify-center">
-                      <Eye className="w-5 h-5 text-white" />
+                  <div className="mb-6 flex items-center gap-3">
+                    <div
+                      className={`h-10 w-10 ${COURSE_MANAGEMENT_ACCENT_ICON_GRADIENT_CLASS}`}
+                    >
+                      <Eye className="h-5 w-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-bold text-[#0A2540] dark:text-white">Vista Previa</h3>
+                    <h3 className={`text-lg font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
+                      Vista Previa
+                    </h3>
                   </div>
 
-                  {/* Botón principal */}
                   <motion.button
                     onClick={() => {
-                      if (workshopPreview.slug) window.open(`/courses/${workshopPreview.slug}`, '_blank')
+                      if (workshopPreview.slug) {
+                        window.open(`/courses/${workshopPreview.slug}`, '_blank')
+                      }
                     }}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className="group relative w-full px-6 py-4 bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 hover:from-[#0d2f4d] hover:to-[#0A2540] text-white rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-[#0A2540]/20 hover:shadow-xl hover:shadow-[#0A2540]/30 transition-all duration-300 overflow-hidden font-semibold"
+                    className={COURSE_MANAGEMENT_PREVIEW_PRIMARY_BUTTON_CLASS}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#00D4B3]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <Eye className="w-5 h-5 relative z-10" />
-                    <span className="relative z-10">Ver Página Pública</span>
+                    <div className={COURSE_MANAGEMENT_PREVIEW_BUTTON_GLOW_CLASS} />
+                    <Eye className="relative z-10 h-5 w-5" />
+                    <span className="relative z-10">Ver Pagina Publica</span>
                   </motion.button>
 
-                  {/* Información adicional */}
-                  <div className="pt-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30 space-y-3">
+                  <div className={`space-y-3 ${COURSE_MANAGEMENT_DIVIDER_TOP_CLASS}`}>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-[#6C757D] dark:text-white/60">Estado</span>
-                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#10B981]/10 dark:bg-[#10B981]/20 text-[#10B981] text-xs font-semibold">
-                        <span className="w-2 h-2 bg-[#10B981] rounded-full animate-pulse" />
+                      <span className={COURSE_MANAGEMENT_MUTED_TEXT_CLASS}>Estado</span>
+                      <span className={COURSE_MANAGEMENT_STATUS_BADGE_CLASS}>
+                        <span className="h-2 w-2 animate-pulse rounded-full bg-current" />
                         Publicado
                       </span>
                     </div>
 
-                    {workshopPreview.slug && (
+                    {workshopPreview.slug ? (
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-[#6C757D] dark:text-white/60">URL</span>
-                        <code className="px-2 py-1 rounded bg-[#E9ECEF] dark:bg-[#0A0D12] text-[#00D4B3] text-xs font-mono">
+                        <span className={COURSE_MANAGEMENT_MUTED_TEXT_CLASS}>URL</span>
+                        <code className={COURSE_MANAGEMENT_CODE_BADGE_CLASS}>
                           /{workshopPreview.slug}
                         </code>
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
-                  {/* Tip */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1 }}
-                    className="mt-6 p-4 rounded-xl bg-[#00D4B3]/5 dark:bg-[#00D4B3]/10 border border-[#00D4B3]/20"
+                    className={COURSE_MANAGEMENT_INFO_PANEL_CLASS}
                   >
                     <div className="flex gap-3">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-[#00D4B3]/20 flex items-center justify-center">
-                        <Lightbulb className="w-4 h-4 text-[#00D4B3]" />
+                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white/60 dark:bg-white/10">
+                        <Lightbulb className={`h-4 w-4 ${COURSE_MANAGEMENT_ACCENT_ICON_CLASS}`} />
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-[#0A2540] dark:text-white mb-1">
+                        <p className={`mb-1 text-xs font-semibold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
                           Vista Previa en Tiempo Real
                         </p>
-                        <p className="text-xs text-[#6C757D] dark:text-white/60 leading-relaxed">
-                          Esta es una vista previa de cómo se verá tu curso para los estudiantes.
+                        <p className={`text-xs leading-relaxed ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
+                          Esta es una vista previa de como se vera tu curso para los estudiantes.
                         </p>
                       </div>
                     </div>
@@ -293,13 +359,19 @@ export function CoursePreviewTab(props: CoursePreviewTabProps) {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center py-32 bg-white dark:bg-[#1E2329] rounded-2xl border-2 border-dashed border-[#E9ECEF] dark:border-[#6C757D]/30"
+          className={COURSE_MANAGEMENT_EMPTY_STATE_CLASS}
         >
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0A2540]/10 to-[#00D4B3]/10 dark:from-[#0A2540]/20 dark:to-[#00D4B3]/20 flex items-center justify-center mb-6">
-            <Eye className="w-10 h-10 text-[#6C757D] dark:text-white/40" />
+          <div
+            className={`mb-6 flex h-20 w-20 items-center justify-center rounded-2xl ${COURSE_MANAGEMENT_SOFT_PRIMARY_GRADIENT_CLASS}`}
+          >
+            <Eye className={`h-10 w-10 ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`} />
           </div>
-          <p className="text-[#0A2540] dark:text-white text-lg font-semibold mb-2">No se encontró el curso</p>
-          <p className="text-[#6C757D] dark:text-white/60 text-sm">Guarda la configuración primero para ver la vista previa</p>
+          <p className={`mb-2 text-lg font-semibold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>
+            No se encontro el curso
+          </p>
+          <p className={`text-sm ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>
+            Guarda la configuracion primero para ver la vista previa
+          </p>
         </motion.div>
       )}
     </motion.div>

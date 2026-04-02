@@ -1,6 +1,6 @@
-import type { AdminModule } from '@/features/admin/services/adminModules.service'
-import type { AdminLesson } from '@/features/admin/services/adminLessons.service'
-import type { CourseSkill } from '@/features/courses/components/CourseSkillsSelector'
+import type { AdminModule } from '../../../admin/services/adminModules.service'
+import type { AdminLesson } from '../../../admin/services/adminLessons.service'
+import type { CourseSkill } from '../../../courses/components/CourseSkillsSelector'
 import type { Dispatch, SetStateAction, FormEvent, ChangeEvent } from 'react'
 
 export type ActiveTab = 'modules' | 'config' | 'certificates' | 'preview' | 'stats'

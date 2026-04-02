@@ -1,0 +1,94 @@
+import type { SupabaseServerClient } from './oauth-flow.types';
+
+interface UserRoleRow {
+  cargo_rol?: string | null;
+}
+
+interface OrganizationMembershipRow {
+  organizations?: unknown;
+  role?: string | null;
+}
+
+interface OrganizationRelation {
+  slug?: string | null;
+}
+
+export function normalizeCargoRole(role?: string | null): string {
+  return role?.toLowerCase().trim() || '';
+}
+
+export function isBusinessCargoRole(role?: string | null): boolean {
+  const normalizedRole = normalizeCargoRole(role);
+
+  return normalizedRole === 'business' || normalizedRole === 'business user';
+}
+
+export function buildBusinessDashboardDestination(
+  organizationSlug: string,
+  organizationRole?: string | null
+): string {
+  if (organizationRole === 'owner' || organizationRole === 'admin') {
+    return `/${organizationSlug}/business-panel/dashboard`;
+  }
+
+  return `/${organizationSlug}/business-user/dashboard`;
+}
+
+function extractOrganizationSlug(organization: unknown): string | undefined {
+  if (!organization || typeof organization !== 'object') {
+    return undefined;
+  }
+
+  const relation = organization as OrganizationRelation;
+
+  return typeof relation.slug === 'string' ? relation.slug : undefined;
+}
+
+export async function resolveOAuthDashboardDestination(
+  supabase: SupabaseServerClient,
+  userId: string
+): Promise<string> {
+  const { data: user } = await supabase
+    .from('users')
+    .select('cargo_rol')
+    .eq('id', userId)
+    .single();
+
+  const userRole = user as UserRoleRow | null;
+
+  const normalizedRole = normalizeCargoRole(userRole?.cargo_rol);
+
+  if (normalizedRole === 'administrador') {
+    return '/admin/dashboard';
+  }
+
+  if (normalizedRole === 'instructor') {
+    return '/instructor/dashboard';
+  }
+
+  if (!isBusinessCargoRole(normalizedRole)) {
+    return '/dashboard';
+  }
+
+  const { data: membership } = await supabase
+    .from('organization_users')
+    .select('role, organizations!inner(slug)')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  const organizationMembership = membership as OrganizationMembershipRow | null;
+
+  const organizationSlug = extractOrganizationSlug(
+    organizationMembership?.organizations
+  );
+
+  if (!organizationSlug) {
+    return '/dashboard';
+  }
+
+  return buildBusinessDashboardDestination(
+    organizationSlug,
+    organizationMembership?.role
+  );
+}

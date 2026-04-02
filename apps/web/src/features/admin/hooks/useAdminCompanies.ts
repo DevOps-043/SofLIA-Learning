@@ -1,28 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { AdminCompany, CompanyStats } from '../services/adminCompanies.service'
-
-interface CreateCompanyPayload {
-  name: string
-  slug: string
-  description?: string
-  contact_email?: string
-  contact_phone?: string
-  website_url?: string
-  subscription_plan?: string
-  max_users?: number
-  is_active?: boolean
-  brand_logo_url?: string
-  brand_banner_url?: string
-  brand_favicon_url?: string
-  brand_color_primary?: string
-  brand_color_secondary?: string
-  brand_color_accent?: string
-  brand_font_family?: string
-  owner_email?: string
-  owner_position?: string
-}
+import type { AdminCompany, CompanyCreatePayload, CompanyStats } from '../types/admin-companies.types'
 
 interface UseAdminCompaniesReturn {
   companies: AdminCompany[]
@@ -32,7 +11,7 @@ interface UseAdminCompaniesReturn {
   refetch: () => void
   updatingId: string | null
   updateCompany: (companyId: string, payload: Partial<Pick<AdminCompany, 'is_active' | 'subscription_plan' | 'subscription_status' | 'max_users'>>) => Promise<void>
-  createCompany: (payload: CreateCompanyPayload) => Promise<void>
+  createCompany: (payload: CompanyCreatePayload) => Promise<void>
   actionError: string | null
 }
 
@@ -95,7 +74,7 @@ export function useAdminCompanies(): UseAdminCompaniesReturn {
   )
 
   const createCompany = useCallback(
-    async (payload: CreateCompanyPayload) => {
+    async (payload: CompanyCreatePayload) => {
       try {
         setActionError(null)
         const response = await fetch('/api/admin/companies', {

@@ -2,7 +2,7 @@
  * Tipos para autenticación OAuth
  */
 
-export type OAuthProvider = 'google' | 'github' | 'facebook';
+export type OAuthProvider = 'google' | 'github' | 'facebook' | 'microsoft';
 
 export interface OAuthProfile {
   id: string;
@@ -37,8 +37,18 @@ export interface OAuthAccount {
   updated_at: Date;
 }
 
+export interface OAuthUserRecord {
+  cargo_rol?: string | null;
+  email: string;
+  email_verified?: boolean | null;
+  first_name?: string | null;
+  id: string;
+  last_name?: string | null;
+  username: string;
+}
+
 export interface OAuthCallbackParams {
-  code: string;
+  code?: string;
   state?: string;
   error?: string;
   error_description?: string;

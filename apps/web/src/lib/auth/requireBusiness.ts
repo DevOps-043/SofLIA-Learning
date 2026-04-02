@@ -359,8 +359,8 @@ export async function requireBusiness(options?: RequireBusinessOptions): Promise
 
     return {
       userId: user.id,
-      userEmail: user.email,
-      userRole: user.cargo_rol,
+      userEmail: user.email ?? '',
+      userRole: user.cargo_rol ?? '',
       organizationId: organizationId,
       organizationSlug: organizationSlug,
       organizationRole: organizationRole,
@@ -662,8 +662,8 @@ export async function requireBusinessUser(options?: RequireBusinessUserOptions):
 
     return {
       userId: user.id,
-      userEmail: user.email,
-      userRole: user.cargo_rol,
+      userEmail: user.email ?? '',
+      userRole: user.cargo_rol ?? '',
       organizationId: organizationId,
       organizationSlug: organizationSlug,
       organizationRole: organizationRole,
@@ -681,4 +681,3 @@ export async function requireBusinessUser(options?: RequireBusinessUserOptions):
     );
   }
 }
-

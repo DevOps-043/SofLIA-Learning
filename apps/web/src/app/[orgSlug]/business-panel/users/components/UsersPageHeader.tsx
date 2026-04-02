@@ -1,0 +1,190 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { Download, Mail, Plus, Sparkles, Upload } from 'lucide-react'
+import type { TFunction } from 'i18next'
+
+interface UsersPageHeaderProps {
+  primaryColor: string
+  secondaryColor: string
+  accentColor: string
+  isDark: boolean
+  t: TFunction
+  onDownloadTemplate: () => void
+  onImportClick: () => void
+  onInviteClick: () => void
+  onAddClick: () => void
+}
+
+export function UsersPageHeader({
+  primaryColor,
+  secondaryColor,
+  accentColor,
+  isDark,
+  t,
+  onDownloadTemplate,
+  onImportClick,
+  onInviteClick,
+  onAddClick,
+}: UsersPageHeaderProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      className="relative overflow-hidden rounded-3xl p-8 group"
+    >
+      {/* Background Gradient */}
+      <div
+        className="absolute inset-0 z-0"
+        style={{
+          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+          opacity: isDark ? 0.3 : 1,
+        }}
+      />
+
+      {/* Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundSize: '32px 32px',
+          }}
+        />
+      </div>
+
+      {/* Animated Particles */}
+      <motion.div
+        animate={{ y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 3, repeat: Infinity }}
+        className="absolute top-10 right-20 w-2 h-2 rounded-full"
+        style={{ backgroundColor: accentColor }}
+      />
+      <motion.div
+        animate={{ y: [0, 10, 0], opacity: [0.3, 0.8, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity, delay: 1 }}
+        className="absolute bottom-10 right-40 w-3 h-3 rounded-full"
+        style={{ backgroundColor: accentColor }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+              >
+                <Sparkles className="w-6 h-6" style={{ color: accentColor }} />
+              </motion.div>
+              <span
+                className="text-sm font-semibold tracking-wider uppercase"
+                style={{ color: accentColor }}
+              >
+                {t('sidebar.users')}
+              </span>
+            </div>
+
+            <motion.h1
+              className="text-3xl lg:text-4xl font-bold mb-2"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
+            >
+              {t('users.title')}
+            </motion.h1>
+
+            <motion.p
+              className="text-lg max-w-xl"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              style={{ color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.8)' }}
+            >
+              {t('users.subtitle')}
+            </motion.p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              onClick={onDownloadTemplate}
+              className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+              style={{
+                color: isDark ? '#FFFFFF' : '#0F172A',
+                borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+              }}
+              whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Download className="w-4 h-4" />
+              {t('users.buttons.template')}
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.45 }}
+              onClick={onImportClick}
+              className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+              style={{
+                color: isDark ? '#FFFFFF' : '#0F172A',
+                borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+              }}
+              whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Upload className="w-4 h-4" />
+              {t('users.buttons.import', 'Importar')}
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.45 }}
+              onClick={onInviteClick}
+              className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+              style={{
+                color: isDark ? '#FFFFFF' : '#0F172A',
+                borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+              }}
+              whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Mail className="w-4 h-4" />
+              {t('users.buttons.invite', 'Invitar')}
+            </motion.button>
+
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.55 }}
+              onClick={onAddClick}
+              className="px-6 py-2.5 rounded-xl font-bold text-sm !text-white transition-all flex items-center gap-2"
+              style={{
+                backgroundColor: primaryColor,
+                color: '#FFFFFF',
+                boxShadow: `0 8px 30px ${primaryColor}40`,
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Plus className="w-5 h-5 !text-white" color="#FFFFFF" strokeWidth={3} />
+              <span className="!text-white font-bold" style={{ color: '#FFFFFF' }}>
+                {t('users.buttons.add')}
+              </span>
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}

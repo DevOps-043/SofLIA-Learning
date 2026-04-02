@@ -1,0 +1,8 @@
+export { CourseDetailContentTab } from './CourseDetailContentTab'
+export { CourseDetailErrorState, CourseDetailLoadingState } from './CourseDetailStates'
+export { CourseDetailHero } from './CourseDetailHero'
+export { CourseDetailInfoTab } from './CourseDetailInfoTab'
+export { CourseDetailInstructorTab } from './CourseDetailInstructorTab'
+export { CourseDetailPageContent } from './CourseDetailPageContent'
+export { CourseDetailSidebar } from './CourseDetailSidebar'
+export { CourseDetailTabs } from './CourseDetailTabs'

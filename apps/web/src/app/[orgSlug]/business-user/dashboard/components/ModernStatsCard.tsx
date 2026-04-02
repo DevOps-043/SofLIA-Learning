@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { hexToRgb } from '@/features/business-panel/utils/styles'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
+import { useThemeStore } from '../../../../../core/stores/themeStore'
 
 interface ModernStatsCardProps {
   label: string

@@ -1,1122 +1,131 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { cookies, headers } from 'next/headers';
-import validator from 'validator';
-import crypto from 'crypto';
-import { getBaseUrl } from '@/lib/env';
-import { logger } from '@/lib/logger';
-import { GoogleOAuthService } from '../services/google-oauth.service';
-import { OAuthService } from '../services/oauth.service';
-import { SessionService } from '../services/session.service';
-import { RefreshTokenService } from '../../../lib/auth/refreshToken.service';
-import { SECURE_COOKIE_OPTIONS, getCustomCookieOptions } from '../../../lib/auth/cookie-config';
-import { AuthService } from '../services/auth.service';
-import { OAuthCallbackParams } from '../types/oauth.types';
-import { MicrosoftOAuthService } from '../services/microsoft-oauth.service';
-import { createClient } from '../../../lib/supabase/server';
+import { redirect } from 'next/navigation';
+import { logger } from '../../../lib/logger';
+import { getGoogleAuthUrl } from '../../../lib/oauth/google';
+import { getMicrosoftAuthUrl } from '../../../lib/oauth/microsoft';
 import {
-  validateInvitationAction,
-  findInvitationByEmailAction,
-  consumeInvitationAction
-} from './invitation';
+  getRequestMetadata,
+  writeServerAuthSessionCookies,
+} from '../services/auth-session.service';
+import { GoogleOAuthService } from '../services/google-oauth.service';
+import { MicrosoftOAuthService } from '../services/microsoft-oauth.service';
+import {
+  initiateOAuthLoginFlow,
+  normalizeGoogleOAuthProfile,
+  normalizeMicrosoftOAuthProfile,
+  normalizeMicrosoftOAuthTokens,
+  OAUTH_ORG_CONTEXT_COOKIE_NAME,
+  OAUTH_STATE_COOKIE_NAME,
+  processOAuthCallback,
+} from '../services/oauth-flow';
+import type {
+  OAuthInitParams,
+  OAuthProviderAdapter,
+} from '../services/oauth-flow';
+import type {
+  OAuthCallbackParams,
+  OAuthTokens,
+} from '../types/oauth.types';
+import type { MicrosoftTokens } from '../services/microsoft-oauth.service';
 
-/**
- * Parámetros para iniciar OAuth con contexto de organización
- */
-interface OAuthInitParams {
-  organizationId?: string;
-  organizationSlug?: string;
-  invitationToken?: string;
-  bulkInviteToken?: string;
-}
+const googleOAuthAdapter: OAuthProviderAdapter<OAuthTokens> = {
+  exchangeCodeForTokens: GoogleOAuthService.exchangeCodeForTokens,
+  getProfile: async (tokens) =>
+    normalizeGoogleOAuthProfile(
+      await GoogleOAuthService.getUserProfile(tokens.access_token)
+    ),
+  provider: 'google',
+  providerLabel: 'Google',
+  shouldNotifyLoginSuccess: true,
+  toOAuthTokens: (tokens) => tokens,
+};
 
-/**
- * Inicia el flujo de autenticación con Google
- */
-export async function initiateGoogleLogin(params: OAuthInitParams = {}) {
-  const { getGoogleAuthUrl } = await import('@/lib/oauth/google');
+const microsoftOAuthAdapter: OAuthProviderAdapter<MicrosoftTokens> = {
+  exchangeCodeForTokens: MicrosoftOAuthService.exchangeCodeForTokens,
+  getProfile: async (tokens) =>
+    normalizeMicrosoftOAuthProfile(
+      await MicrosoftOAuthService.getUserProfile(tokens.access_token)
+    ),
+  provider: 'microsoft',
+  providerLabel: 'Microsoft',
+  toOAuthTokens: normalizeMicrosoftOAuthTokens,
+};
 
-  // ✅ SEGURIDAD: Generar state CSRF con 32 bytes de entropía
-  const stateBuffer = crypto.randomBytes(32);
-  const csrfToken = stateBuffer.toString('base64url');
-
-  // Crear state con contexto de organización (si existe)
-  let state: string;
-  if (params.organizationId || params.invitationToken || params.bulkInviteToken) {
-    // Incluir contexto de organización en el state
-    const stateData = {
-      csrf: csrfToken,
-      orgId: params.organizationId,
-      orgSlug: params.organizationSlug,
-      invToken: params.invitationToken,
-      bulkToken: params.bulkInviteToken,
-    };
-    state = Buffer.from(JSON.stringify(stateData)).toString('base64url');
-  } else {
-    state = csrfToken;
-  }
-
-  logger.auth('OAuth: Generando state CSRF', { stateLength: state.length, hasOrgContext: !!params.organizationId, hasBulkToken: !!params.bulkInviteToken });
-
-  // ✅ SEGURIDAD: Guardar CSRF token en cookie HttpOnly para validación posterior
-  const cookieStore = await cookies();
-  cookieStore.set('oauth_state', csrfToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 10 * 60, // 10 minutos (expira si no se completa el flujo)
-    path: '/',
-  });
-
-  // Guardar contexto de organización en cookie separada (si existe)
-  if (params.organizationId || params.invitationToken || params.bulkInviteToken) {
-    const orgContext = {
-      orgId: params.organizationId,
-      orgSlug: params.organizationSlug,
-      invToken: params.invitationToken,
-      bulkToken: params.bulkInviteToken,
-    };
-    cookieStore.set('oauth_org_context', JSON.stringify(orgContext), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 10 * 60,
-      path: '/',
-    });
-  }
-
-  logger.debug('State CSRF guardado en cookie');
-
-  const authUrl = getGoogleAuthUrl(state);
-
-  // redirect() lanza un error especial NEXT_REDIRECT que es manejado por Next.js
-  // No necesitamos try-catch aquí porque es el comportamiento esperado
-  redirect(authUrl);
-}
-
-/**
- * Maneja el callback de Google OAuth
- */
-export async function handleGoogleCallback(params: OAuthCallbackParams) {
+async function handleOAuthProviderCallback<TProviderTokens>(
+  params: OAuthCallbackParams,
+  provider: OAuthProviderAdapter<TProviderTokens>
+) {
   try {
-    logger.auth('Iniciando OAuth callback');
-
-    // Validar que no haya errores
-    if (params.error) {
-      logger.error('Error del proveedor OAuth', undefined, { error: params.error });
-      return {
-        error: params.error_description || 'Error de autenticación',
-      };
-    }
-
-    if (!params.code) {
-      logger.error('Código de autorización no recibido');
-      return { error: 'Código de autorización no recibido' };
-    }
-
-    logger.debug('Código de autorización recibido');
-
-    // ✅ SEGURIDAD: Validar state CSRF para prevenir ataques
     const cookieStore = await cookies();
-    const storedState = cookieStore.get('oauth_state')?.value;
-    const receivedState = params.state;
-    const orgContextCookie = cookieStore.get('oauth_org_context')?.value;
+    const storedState = cookieStore.get(OAUTH_STATE_COOKIE_NAME)?.value;
+    const orgContextCookie = cookieStore.get(OAUTH_ORG_CONTEXT_COOKIE_NAME)?.value;
 
-    logger.debug('Validando state CSRF', {
-      hasStoredState: !!storedState,
-      hasReceivedState: !!receivedState,
-      hasOrgContext: !!orgContextCookie
+    cookieStore.delete(OAUTH_STATE_COOKIE_NAME);
+    cookieStore.delete(OAUTH_ORG_CONTEXT_COOKIE_NAME);
+
+    const result = await processOAuthCallback({
+      orgContextCookie,
+      params,
+      provider,
+      requestMetadata: getRequestMetadata(await headers()),
+      storedState,
     });
 
-    if (!storedState) {
-      logger.error('CSRF: State no encontrado en cookie (posible ataque o sesión expirada)');
+    if (result.error || !result.session || !result.destination) {
       return {
-        error: 'Sesión de autenticación expirada. Por favor, inicia el proceso nuevamente.'
+        error:
+          result.error ||
+          'Error procesando autenticacion. Intentalo de nuevo.',
       };
     }
 
-    if (!receivedState) {
-      logger.error('CSRF: State no recibido del proveedor OAuth (posible manipulación)');
-      return {
-        error: 'Error de validación de seguridad. Intenta nuevamente.'
-      };
-    }
-
-    // Extraer CSRF token del state (puede ser simple o con contexto de organización)
-    let csrfFromState = receivedState;
-    try {
-      const decoded = Buffer.from(receivedState, 'base64url').toString('utf-8');
-      const stateData = JSON.parse(decoded);
-      if (stateData.csrf) {
-        csrfFromState = stateData.csrf;
-      }
-    } catch {
-      // El state es el token CSRF simple
-      csrfFromState = receivedState;
-    }
-
-    if (storedState !== csrfFromState) {
-      logger.error('CSRF: State mismatch detectado', {
-        storedLength: storedState.length,
-        receivedLength: csrfFromState.length
-      });
-      return {
-        error: 'Error de validación de seguridad. Posible ataque CSRF detectado.'
-      };
-    }
-
-    logger.auth('State CSRF validado exitosamente');
-
-    // Obtener contexto de organización de la cookie
-    let orgContext: { orgId?: string; orgSlug?: string; invToken?: string; bulkToken?: string } = {};
-    if (orgContextCookie) {
-      try {
-        orgContext = JSON.parse(orgContextCookie);
-        logger.info('📋 OAuth: Contexto de organización encontrado', {
-          orgId: orgContext.orgId,
-          orgSlug: orgContext.orgSlug,
-          hasInvToken: !!orgContext.invToken,
-          hasBulkToken: !!orgContext.bulkToken
-        });
-      } catch {
-        logger.warn('No se pudo parsear contexto de organización');
-      }
-    }
-
-    // ✅ SEGURIDAD: Limpiar cookies de state después de validación
-    cookieStore.delete('oauth_state');
-    cookieStore.delete('oauth_org_context');
-    logger.debug('Cookies de state CSRF y contexto eliminadas');
-
-    // PASO 1: Intercambiar código por tokens
-    logger.info('OAuth: Intercambiando código por tokens');
-    const tokens = await GoogleOAuthService.exchangeCodeForTokens(params.code);
-    logger.info('OAuth: Tokens obtenidos exitosamente');
-
-    // PASO 2: Obtener perfil de usuario
-    logger.info('OAuth: Obteniendo perfil de usuario');
-    const profile = await GoogleOAuthService.getUserProfile(tokens.access_token);
-    logger.auth('Perfil obtenido', { hasEmail: !!profile.email, hasName: !!profile.name });
-
-    // Validar que el email existe y tiene formato válido
-    if (!profile.email) {
-      logger.error('Email no disponible en el perfil OAuth');
-      return { error: 'No se pudo obtener el email del usuario' };
-    }
-
-    if (!validator.isEmail(profile.email)) {
-      logger.error('Email con formato inválido');
-      return { error: 'El email proporcionado no tiene un formato válido' };
-    }
-
-    // ============================================================================
-    // VALIDACIÓN DE INVITACIÓN PARA OAUTH
-    // ============================================================================
-    let invitedRole: string | undefined;
-    let invitedPosition: string | undefined;
-    let bulkInviteLinkId: string | undefined; // Para registrar el uso del enlace masivo
-    const supabase = await createClient();
-
-    if (orgContext.orgId) {
-      logger.info('🔍 OAuth: Validando invitación para organización', { orgId: orgContext.orgId });
-
-      if (orgContext.bulkToken) {
-        // Caso 0: OAuth con token de enlace de invitación masiva
-        logger.info('🔗 OAuth: Validando enlace de invitación masiva', { bulkToken: orgContext.bulkToken });
-
-        const { data: bulkLink, error: bulkError } = await supabase
-          .from('bulk_invite_links')
-          .select('*')
-          .eq('token', orgContext.bulkToken)
-          .single();
-
-        if (bulkError || !bulkLink) {
-          logger.error('OAuth: Enlace de invitación masiva no encontrado', { error: bulkError });
-          return { error: 'Enlace de invitación inválido o no encontrado' };
-        }
-
-        // Verificar que el enlace pertenece a la organización
-        if (bulkLink.organization_id !== orgContext.orgId) {
-          logger.error('OAuth: Enlace no pertenece a la organización');
-          return { error: 'Este enlace de invitación no es para esta organización' };
-        }
-
-        // Verificar que el enlace está activo (usando campo status)
-        if (bulkLink.status !== 'active') {
-          logger.error('OAuth: Enlace de invitación no activo', { status: bulkLink.status });
-          if (bulkLink.status === 'paused') {
-            return { error: 'Este enlace de invitación está pausado' };
-          } else if (bulkLink.status === 'expired') {
-            return { error: 'Este enlace de invitación ha expirado' };
-          } else if (bulkLink.status === 'exhausted') {
-            return { error: 'Este enlace de invitación ha alcanzado el límite de usos' };
-          }
-          return { error: 'Este enlace de invitación no está activo' };
-        }
-
-        // Verificar expiración
-        if (bulkLink.expires_at && new Date(bulkLink.expires_at) < new Date()) {
-          logger.error('OAuth: Enlace de invitación expirado');
-          return { error: 'Este enlace de invitación ha expirado' };
-        }
-
-        // Verificar límite de usos
-        if (bulkLink.max_uses && bulkLink.current_uses >= bulkLink.max_uses) {
-          logger.error('OAuth: Enlace de invitación agotado');
-          return { error: 'Este enlace de invitación ha alcanzado el límite de usos' };
-        }
-
-        // Enlace válido - asignar rol del enlace
-        invitedRole = bulkLink.role || 'member';
-        bulkInviteLinkId = bulkLink.id;
-        logger.info('✅ OAuth: Enlace de invitación masiva validado', { role: invitedRole, linkId: bulkInviteLinkId });
-
-      } else if (orgContext.invToken) {
-        // Caso 1: OAuth con token de invitación individual
-        const validation = await validateInvitationAction(orgContext.invToken);
-
-        if (!validation.valid) {
-          logger.error('OAuth: Invitación inválida', { error: validation.error });
-          return { error: validation.error || 'Invitación inválida o expirada' };
-        }
-
-        // Verificar que el email coincide con la invitación
-        if (validation.email?.toLowerCase() !== profile.email.toLowerCase()) {
-          logger.error('OAuth: Email no coincide con invitación', {
-            invitationEmail: validation.email,
-            oauthEmail: profile.email
-          });
-          return { error: 'El email de tu cuenta de Google no coincide con la invitación' };
-        }
-
-        // Verificar que la invitación es para esta organización
-        if (validation.organizationId !== orgContext.orgId) {
-          return { error: 'Esta invitación no es para esta organización' };
-        }
-
-        invitedRole = validation.role;
-        invitedPosition = validation.position;
-
-        logger.info('✅ OAuth: Invitación validada', { role: invitedRole, position: invitedPosition });
-      } else {
-        // Caso 2: OAuth desde página de organización sin token - buscar invitación por email
-        const { hasInvitation, role, position, error: invError } = await findInvitationByEmailAction(
-          profile.email,
-          orgContext.orgId
-        );
-
-        if (!hasInvitation) {
-          logger.error('OAuth: Email no invitado a la organización');
-          return {
-            error: invError || 'Tu correo no ha sido invitado a esta organización. Contacta al administrador para solicitar una invitación.'
-          };
-        }
-
-        invitedRole = role;
-        invitedPosition = position;
-        logger.info('✅ OAuth: Invitación encontrada por email', { role: invitedRole });
-      }
-    }
-
-    // ============================================================================
-    // BUSCAR INVITACIONES PENDIENTES (sin orgContext - login global)
-    // ============================================================================
-    // Si el usuario usa SSO desde login global, buscar si tiene invitaciones pendientes
-    if (!orgContext.orgId) {
-      const { data: pendingInvitations } = await supabase
-        .from('user_invitations')
-        .select('id, organization_id, role, metadata')
-        .eq('email', profile.email.toLowerCase())
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (pendingInvitations && pendingInvitations.length > 0) {
-        const invitation = pendingInvitations[0];
-        const metadata = invitation.metadata as { position?: string } | null;
-        logger.info('🔍 OAuth: Invitación pendiente encontrada para usuario sin orgContext', {
-          email: profile.email,
-          orgId: invitation.organization_id,
-          role: invitation.role
-        });
-
-        // Asignar contexto de organización desde la invitación
-        orgContext.orgId = invitation.organization_id;
-        invitedRole = invitation.role;
-        invitedPosition = metadata?.position || undefined;
-      }
-    }
-
-    // PASO 3: Buscar si el usuario ya existe
-    logger.info('OAuth: Buscando usuario existente');
-    let userId: string;
-    let isNewUser = false;
-
-    const existingUser = await OAuthService.findUserByEmail(profile.email);
-
-    if (existingUser) {
-      logger.auth('Usuario existente encontrado');
-      userId = existingUser.id;
-
-      // Si es usuario existente y viene de invitación, actualizar su rol
-      if (orgContext.orgId && invitedRole) {
-        // Después de migración: solo 'Business' es válido (no 'Business User')
-        const cargoRol = 'Business';
-
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({ cargo_rol: cargoRol })
-          .eq('id', userId);
-
-        if (updateError) {
-          logger.warn('No se pudo actualizar rol de usuario existente:', updateError);
-        } else {
-          logger.info('✅ OAuth: Rol de usuario actualizado', { cargoRol });
-        }
-      }
-    } else {
-      // PASO 4: Crear nuevo usuario
-      logger.info('OAuth: Creando nuevo usuario');
-
-      // Determinar cargo_rol basado en invitación
-      // Después de migración: solo 'Business' es válido para usuarios de organización
-      let cargoRol = 'Usuario';
-      if (orgContext.orgId && invitedRole) {
-        cargoRol = 'Business';
-      }
-
-      userId = await OAuthService.createUserFromOAuth(
-        profile.email,
-        profile.given_name || profile.name.split(' ')[0] || 'Usuario',
-        profile.family_name || profile.name.split(' ').slice(1).join(' ') || '',
-        profile.picture,
-        cargoRol,
-        undefined // No pasamos position aquí, va en organization_users.job_title
-      );
-      logger.auth('Nuevo usuario creado exitosamente', { cargoRol });
-      isNewUser = true;
-    }
-
-    // ============================================================================
-    // VINCULAR USUARIO A ORGANIZACIÓN
-    // ============================================================================
-    if (orgContext.orgId) {
-      // Verificar si ya está vinculado
-      const { data: existingOrgUser } = await supabase
-        .from('organization_users')
-        .select('id')
-        .eq('organization_id', orgContext.orgId)
-        .eq('user_id', userId)
-        .single();
-
-      if (!existingOrgUser) {
-        logger.info('🔗 OAuth: Vinculando usuario a organización', {
-          orgId: orgContext.orgId,
-          userId,
-          role: invitedRole || 'member'
-        });
-
-        const { error: orgUserError } = await supabase
-          .from('organization_users')
-          .insert({
-            organization_id: orgContext.orgId,
-            user_id: userId,
-            role: invitedRole || 'member',
-            status: 'active',
-            joined_at: new Date().toISOString(),
-            job_title: invitedPosition || 'Miembro' // Cargo/posición del usuario
-          });
-
-        if (orgUserError) {
-          logger.error('❌ OAuth: Error vinculando a organización:', orgUserError);
-        } else {
-          logger.info('✅ OAuth: Usuario vinculado exitosamente a la organización');
-        }
-
-        // Si es un enlace de invitación masiva, registrar el uso y actualizar contador
-        if (bulkInviteLinkId) {
-          logger.info('📝 OAuth: Registrando uso de enlace de invitación masiva', { bulkInviteLinkId, userId });
-
-          // Registrar en bulk_invite_registrations
-          const { error: regError } = await supabase
-            .from('bulk_invite_registrations')
-            .insert({
-              bulk_invite_link_id: bulkInviteLinkId,
-              user_id: userId,
-              registered_at: new Date().toISOString()
-            });
-
-          if (regError) {
-            logger.warn('⚠️ OAuth: Error registrando uso del enlace masivo:', regError);
-          } else {
-            logger.info('✅ OAuth: Registro de uso de enlace masivo creado');
-          }
-
-          // Incrementar current_uses en bulk_invite_links
-          // Obtener valor actual y sumar 1
-          const { data: currentLink } = await supabase
-            .from('bulk_invite_links')
-            .select('current_uses')
-            .eq('id', bulkInviteLinkId)
-            .single();
-
-          if (currentLink) {
-            const { error: updateError } = await supabase
-              .from('bulk_invite_links')
-              .update({ current_uses: (currentLink.current_uses || 0) + 1 })
-              .eq('id', bulkInviteLinkId);
-
-            if (updateError) {
-              logger.warn('⚠️ OAuth: Error actualizando contador del enlace:', updateError);
-            }
-          }
-
-          logger.info('✅ OAuth: Contador de usos del enlace masivo actualizado');
-        } else {
-          // Consumir la invitación individual
-          await consumeInvitationAction(
-            orgContext.invToken || profile.email,
-            orgContext.orgId,
-            userId
-          );
-          logger.info('✅ OAuth: Invitación consumida');
-        }
-      } else {
-        logger.info('OAuth: Usuario ya estaba vinculado a la organización');
-      }
-    }
-
-    // PASO 5: Guardar/actualizar cuenta OAuth
-    logger.info('OAuth: Guardando cuenta OAuth');
-    await OAuthService.upsertOAuthAccount(
-      userId,
-      'google',
-      profile.id,
-      tokens
-    );
-    logger.info('OAuth: Cuenta OAuth guardada');
-
-    // PASO 5.5: Actualizar last_login_at en la tabla users
-    const supabaseForLogin = await createClient();
-    const { error: updateLoginError } = await supabaseForLogin
-      .from('users')
-      .update({ last_login_at: new Date().toISOString() })
-      .eq('id', userId);
-
-    if (updateLoginError) {
-      logger.warn('No se pudo actualizar last_login_at:', updateLoginError);
-    } else {
-      logger.info('OAuth: last_login_at actualizado');
-    }
-
-    // PASO 6: Crear sesión usando el sistema existente
-    logger.info('OAuth: Creando sesión');
-    // Reutilizar cookieStore obtenido anteriormente para validar CSRF
-    const headersList = await headers();
-    const userAgent = headersList.get('user-agent') || 'unknown';
-    const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-               headersList.get('x-real-ip') ||
-               'unknown';
-
-    // Crear Request mock para RefreshTokenService
-    const requestHeaders = new Headers();
-    requestHeaders.set('user-agent', userAgent);
-    requestHeaders.set('x-real-ip', ip);
-    const mockRequest = new Request('http://localhost', {
-      headers: requestHeaders
-    });
-
-    // Crear sesión con refresh tokens
-    const sessionInfo = await RefreshTokenService.createSession(
-      userId,
-      false,
-      mockRequest
-    );
-
-    // Establecer cookies de refresh tokens directamente en el Server Action
-    cookieStore.set('access_token', sessionInfo.accessToken, {
-      ...SECURE_COOKIE_OPTIONS,
-      expires: sessionInfo.accessExpiresAt,
-    });
-
-    cookieStore.set('refresh_token', sessionInfo.refreshToken, {
-      ...SECURE_COOKIE_OPTIONS,
-      expires: sessionInfo.refreshExpiresAt,
-    });
-
-    // Crear sesión legacy (user_session) para compatibilidad
-    const legacySession = await SessionService.createLegacySession(userId, false);
-
-    // Establecer cookie legacy directamente en el Server Action
-    const maxAge = 7 * 24 * 60 * 60; // 7 días
-    cookieStore.set('aprende-y-aplica-session', legacySession.sessionToken, {
-      ...getCustomCookieOptions(maxAge),
-      expires: legacySession.expiresAt,
-    });
-
-    logger.auth('Sesión creada exitosamente');
-
-    // PASO 7: Limpiar sesiones expiradas
-    logger.debug('Limpiando sesiones expiradas');
-    await AuthService.clearExpiredSessions();
-    logger.debug('Sesiones expiradas limpiadas');
-
-    // PASO 8: Crear notificación de login (con timeout para no bloquear demasiado)
-    // Reutilizar ip y userAgent ya obtenidos en PASO 6
-    try {
-      logger.info('🔔 Iniciando creación de notificación de login OAuth', { userId });
-      const { AutoNotificationsService } = await import('../../notifications/services/auto-notifications.service');
-      
-      // Usar Promise.race con timeout para no bloquear más de 2 segundos
-      await Promise.race([
-        AutoNotificationsService.notifyLoginSuccess(userId, ip, userAgent, {
-          isOAuth: true,
-          isNewUser,
-          timestamp: new Date().toISOString()
-        }),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 2000)
-        )
-      ]).catch((error) => {
-        // Si es timeout, continuar sin bloquear
-        if (error instanceof Error && error.message === 'Timeout') {
-          logger.warn('⏱️ Timeout en notificación de login OAuth, continuando', { userId });
-        } else {
-          logger.error('❌ Error en notificación de login OAuth:', {
-            userId,
-            error: error instanceof Error ? error.message : String(error)
-          });
-        }
-      });
-      logger.info('✅ Notificación de login OAuth procesada', { userId });
-    } catch (notificationError) {
-      // Log del error pero no bloquear el flujo
-      logger.error('❌ Error en notificación de login OAuth:', {
-        userId,
-        error: notificationError instanceof Error ? notificationError.message : String(notificationError)
-      });
-    }
-
-    // PASO 9: Verificar si necesita cuestionario y redirigir apropiadamente
-    logger.info('OAuth: Proceso completado', { isNewUser });
-
-    // Verificar rol para redirección específica (B2B)
-    // Reutilizar supabase ya declarado anteriormente
-    const { data: user } = await supabase
-      .from('users')
-      .select('cargo_rol')
-      .eq('id', userId)
-      .single();
-    
-    const normalizedRole = user?.cargo_rol?.toLowerCase().trim();
-    let destination = '/dashboard';
-
-    if (normalizedRole === 'administrador') {
-      destination = '/admin/dashboard';
-    } else if (normalizedRole === 'instructor') {
-      destination = '/instructor/dashboard';
-    } else if (normalizedRole === 'business' || normalizedRole === 'business user') {
-      // Verificar organización activa y obtener slug
-      const { data: userOrg } = await supabase
-        .from('organization_users')
-        .select('organization_id, role, organizations!inner(slug)')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .single();
-      
-      if (userOrg) {
-        const orgSlug = (userOrg.organizations as any)?.slug;
-        const orgRole = userOrg.role; // Rol en la organización: 'owner', 'admin', 'member', etc.
-        
-        if (orgSlug) {
-          // Determinar destino según el rol en la organización
-          // owner y admin van a business-panel, member va a business-user
-          if (orgRole === 'owner' || orgRole === 'admin') {
-            destination = `/${orgSlug}/business-panel/dashboard`;
-          } else {
-            destination = `/${orgSlug}/business-user/dashboard`;
-          }
-        } else {
-          // Fallback sin slug
-          destination = '/dashboard';
-        }
-      }
-    }
-
-    logger.info(`Redirigiendo a ${destination} (Rol: ${normalizedRole})`);
-    redirect(destination);
+    writeServerAuthSessionCookies(cookieStore, result.session);
+    redirect(result.destination);
   } catch (error) {
-    // Verificar si es una redirección de Next.js (no es un error real)
     if (error && typeof error === 'object' && 'digest' in error) {
-      const digest = (error as any).digest;
+      const digest = (error as { digest?: unknown }).digest;
+
       if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
-        // Es una redirección exitosa, relanzar para que Next.js la maneje
         throw error;
       }
     }
 
-    // Solo es un error real si llegamos aquí
-    logger.error('Error en callback OAuth', error);
+    logger.error(`Error en callback ${provider.providerLabel} OAuth`, error);
+
     return {
-      error: 'Error procesando autenticación. Inténtalo de nuevo.',
+      error: 'Error procesando autenticacion. Intentalo de nuevo.',
     };
   }
 }
 
-/**
- * Inicia el flujo de autenticación con Microsoft
- */
-export async function initiateMicrosoftLogin(params: OAuthInitParams = {}) {
-  const { getMicrosoftAuthUrl } = await import('@/lib/oauth/microsoft');
-
-  // ✅ SEGURIDAD: Generar state CSRF con 32 bytes de entropía
-  const stateBuffer = crypto.randomBytes(32);
-  const csrfToken = stateBuffer.toString('base64url');
-
-  // Crear state con contexto de organización (si existe)
-  let state: string;
-  if (params.organizationId || params.invitationToken || params.bulkInviteToken) {
-    const stateData = {
-      csrf: csrfToken,
-      orgId: params.organizationId,
-      orgSlug: params.organizationSlug,
-      invToken: params.invitationToken,
-      bulkToken: params.bulkInviteToken,
-    };
-    state = Buffer.from(JSON.stringify(stateData)).toString('base64url');
-  } else {
-    state = csrfToken;
-  }
-
+export async function initiateGoogleLogin(params: OAuthInitParams = {}) {
   const cookieStore = await cookies();
-  cookieStore.set('oauth_state', csrfToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 10 * 60,
-    path: '/',
+  const authUrl = initiateOAuthLoginFlow({
+    authUrlFactory: getGoogleAuthUrl,
+    cookieStore,
+    params,
   });
 
-  // Guardar contexto de organización en cookie separada (si existe)
-  if (params.organizationId || params.invitationToken || params.bulkInviteToken) {
-    const orgContext = {
-      orgId: params.organizationId,
-      orgSlug: params.organizationSlug,
-      invToken: params.invitationToken,
-      bulkToken: params.bulkInviteToken,
-    };
-    cookieStore.set('oauth_org_context', JSON.stringify(orgContext), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 10 * 60,
-      path: '/',
-    });
-  }
-
-  const authUrl = getMicrosoftAuthUrl(state);
   redirect(authUrl);
 }
 
-/**
- * Maneja el callback de Microsoft OAuth
- */
-export async function handleMicrosoftCallback(params: { code?: string; state?: string; error?: string; error_description?: string; }) {
-  try {
-    if (params.error) return { error: params.error_description || 'Error de autenticación' };
-    if (!params.code) return { error: 'Código de autorización no recibido' };
+export async function handleGoogleCallback(params: OAuthCallbackParams) {
+  return handleOAuthProviderCallback(params, googleOAuthAdapter);
+}
 
-    const cookieStore = await cookies();
-    const storedState = cookieStore.get('oauth_state')?.value;
-    const orgContextCookie = cookieStore.get('oauth_org_context')?.value;
+export async function initiateMicrosoftLogin(params: OAuthInitParams = {}) {
+  const cookieStore = await cookies();
+  const authUrl = initiateOAuthLoginFlow({
+    authUrlFactory: getMicrosoftAuthUrl,
+    cookieStore,
+    params,
+  });
 
-    if (!storedState || !params.state) {
-      return { error: 'Error de validación de seguridad (CSRF). Intenta nuevamente.' };
-    }
+  redirect(authUrl);
+}
 
-    // Extraer CSRF token del state (puede ser simple o con contexto de organización)
-    let csrfFromState = params.state;
-    try {
-      const decoded = Buffer.from(params.state, 'base64url').toString('utf-8');
-      const stateData = JSON.parse(decoded);
-      if (stateData.csrf) {
-        csrfFromState = stateData.csrf;
-      }
-    } catch {
-      csrfFromState = params.state;
-    }
-
-    if (storedState !== csrfFromState) {
-      return { error: 'Error de validación de seguridad (CSRF). Intenta nuevamente.' };
-    }
-
-    // Obtener contexto de organización de la cookie
-    let orgContext: { orgId?: string; orgSlug?: string; invToken?: string; bulkToken?: string } = {};
-    if (orgContextCookie) {
-      try {
-        orgContext = JSON.parse(orgContextCookie);
-        logger.info('📋 Microsoft OAuth: Contexto de organización encontrado', {
-          orgId: orgContext.orgId,
-          orgSlug: orgContext.orgSlug,
-          hasInvToken: !!orgContext.invToken,
-          hasBulkToken: !!orgContext.bulkToken
-        });
-      } catch {
-        logger.warn('No se pudo parsear contexto de organización');
-      }
-    }
-
-    cookieStore.delete('oauth_state');
-    cookieStore.delete('oauth_org_context');
-
-    // Intercambiar código por tokens y obtener perfil
-    const tokens = await MicrosoftOAuthService.exchangeCodeForTokens(params.code);
-    const profile = await MicrosoftOAuthService.getUserProfile(tokens.access_token);
-    const email = (profile as any).mail || (profile as any).userPrincipalName;
-
-    if (!email || !validator.isEmail(email)) {
-      return { error: 'Email inválido o no disponible' };
-    }
-
-    // ============================================================================
-    // VALIDACIÓN DE INVITACIÓN PARA MICROSOFT OAUTH
-    // ============================================================================
-    let invitedRole: string | undefined;
-    let invitedPosition: string | undefined;
-    let bulkInviteLinkId: string | undefined; // Para registrar el uso del enlace masivo
-    const supabase = await createClient();
-
-    if (orgContext.orgId) {
-      logger.info('🔍 Microsoft OAuth: Validando invitación para organización', { orgId: orgContext.orgId });
-
-      if (orgContext.bulkToken) {
-        // Caso 0: OAuth con token de enlace de invitación masiva
-        logger.info('🔗 Microsoft OAuth: Validando enlace de invitación masiva', { bulkToken: orgContext.bulkToken });
-
-        const { data: bulkLink, error: bulkError } = await supabase
-          .from('bulk_invite_links')
-          .select('*')
-          .eq('token', orgContext.bulkToken)
-          .single();
-
-        if (bulkError || !bulkLink) {
-          logger.error('Microsoft OAuth: Enlace de invitación masiva no encontrado', { error: bulkError });
-          return { error: 'Enlace de invitación inválido o no encontrado' };
-        }
-
-        // Verificar que el enlace pertenece a la organización
-        if (bulkLink.organization_id !== orgContext.orgId) {
-          logger.error('Microsoft OAuth: Enlace no pertenece a la organización');
-          return { error: 'Este enlace de invitación no es para esta organización' };
-        }
-
-        // Verificar que el enlace está activo (usando campo status)
-        if (bulkLink.status !== 'active') {
-          logger.error('Microsoft OAuth: Enlace de invitación no activo', { status: bulkLink.status });
-          if (bulkLink.status === 'paused') {
-            return { error: 'Este enlace de invitación está pausado' };
-          } else if (bulkLink.status === 'expired') {
-            return { error: 'Este enlace de invitación ha expirado' };
-          } else if (bulkLink.status === 'exhausted') {
-            return { error: 'Este enlace de invitación ha alcanzado el límite de usos' };
-          }
-          return { error: 'Este enlace de invitación no está activo' };
-        }
-
-        // Verificar expiración
-        if (bulkLink.expires_at && new Date(bulkLink.expires_at) < new Date()) {
-          logger.error('Microsoft OAuth: Enlace de invitación expirado');
-          return { error: 'Este enlace de invitación ha expirado' };
-        }
-
-        // Verificar límite de usos
-        if (bulkLink.max_uses && bulkLink.current_uses >= bulkLink.max_uses) {
-          logger.error('Microsoft OAuth: Enlace de invitación agotado');
-          return { error: 'Este enlace de invitación ha alcanzado el límite de usos' };
-        }
-
-        // Enlace válido - asignar rol del enlace
-        invitedRole = bulkLink.role || 'member';
-        bulkInviteLinkId = bulkLink.id;
-        logger.info('✅ Microsoft OAuth: Enlace de invitación masiva validado', { role: invitedRole, linkId: bulkInviteLinkId });
-
-      } else if (orgContext.invToken) {
-        // Caso 1: OAuth con token de invitación individual
-        const validation = await validateInvitationAction(orgContext.invToken);
-
-        if (!validation.valid) {
-          logger.error('Microsoft OAuth: Invitación inválida', { error: validation.error });
-          return { error: validation.error || 'Invitación inválida o expirada' };
-        }
-
-        if (validation.email?.toLowerCase() !== email.toLowerCase()) {
-          return { error: 'El email de tu cuenta de Microsoft no coincide con la invitación' };
-        }
-
-        if (validation.organizationId !== orgContext.orgId) {
-          return { error: 'Esta invitación no es para esta organización' };
-        }
-
-        invitedRole = validation.role;
-        invitedPosition = validation.position;
-
-        logger.info('✅ Microsoft OAuth: Invitación validada', { role: invitedRole, position: invitedPosition });
-      } else {
-        // Caso 2: OAuth desde página de organización sin token - buscar invitación por email
-        const { hasInvitation, role, position, error: invError } = await findInvitationByEmailAction(
-          email,
-          orgContext.orgId
-        );
-
-        if (!hasInvitation) {
-          return {
-            error: invError || 'Tu correo no ha sido invitado a esta organización. Contacta al administrador para solicitar una invitación.'
-          };
-        }
-
-        invitedRole = role;
-        invitedPosition = position;
-        logger.info('✅ Microsoft OAuth: Invitación encontrada por email', { role: invitedRole });
-      }
-    }
-
-    // ============================================================================
-    // BUSCAR INVITACIONES PENDIENTES (sin orgContext - login global)
-    // ============================================================================
-    if (!orgContext.orgId) {
-      const { data: pendingInvitations } = await supabase
-        .from('user_invitations')
-        .select('id, organization_id, role, metadata')
-        .eq('email', email.toLowerCase())
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (pendingInvitations && pendingInvitations.length > 0) {
-        const invitation = pendingInvitations[0];
-        const metadata = invitation.metadata as { position?: string } | null;
-        logger.info('🔍 Microsoft OAuth: Invitación pendiente encontrada para usuario sin orgContext', {
-          email: email,
-          orgId: invitation.organization_id,
-          role: invitation.role
-        });
-
-        orgContext.orgId = invitation.organization_id;
-        invitedRole = invitation.role;
-        invitedPosition = metadata?.position || undefined;
-      }
-    }
-
-    // Usuario (crear o usar existente)
-    let userId: string; let isNewUser = false;
-    const existingUser = await OAuthService.findUserByEmail(email);
-
-    if (existingUser) {
-      userId = existingUser.id;
-
-      // Si es usuario existente y viene de invitación, actualizar su rol
-      if (orgContext.orgId && invitedRole) {
-        // Después de migración: solo 'Business' es válido
-        const cargoRol = 'Business';
-
-        await supabase
-          .from('users')
-          .update({ cargo_rol: cargoRol })
-          .eq('id', userId);
-
-        logger.info('✅ Microsoft OAuth: Rol de usuario actualizado', { cargoRol });
-      }
-    } else {
-      // Después de migración: solo 'Business' es válido para usuarios de organización
-      let cargoRol = 'Usuario';
-      if (orgContext.orgId && invitedRole) {
-        cargoRol = 'Business';
-      }
-
-      const first = (profile as any).givenName || ((profile as any).displayName?.split(' ')[0] ?? 'Usuario');
-      const last  = (profile as any).surname || ((profile as any).displayName?.split(' ').slice(1).join(' ') ?? '');
-      userId = await OAuthService.createUserFromOAuth(email, first, last, undefined, cargoRol, undefined);
-      isNewUser = true;
-    }
-
-    // ============================================================================
-    // VINCULAR USUARIO A ORGANIZACIÓN
-    // ============================================================================
-    if (orgContext.orgId) {
-      const { data: existingOrgUser } = await supabase
-        .from('organization_users')
-        .select('id')
-        .eq('organization_id', orgContext.orgId)
-        .eq('user_id', userId)
-        .single();
-
-      if (!existingOrgUser) {
-        logger.info('🔗 Microsoft OAuth: Vinculando usuario a organización', {
-          orgId: orgContext.orgId,
-          userId,
-          role: invitedRole || 'member'
-        });
-
-        const { error: orgUserError } = await supabase
-          .from('organization_users')
-          .insert({
-            organization_id: orgContext.orgId,
-            user_id: userId,
-            role: invitedRole || 'member',
-            status: 'active',
-            joined_at: new Date().toISOString(),
-            job_title: invitedPosition || 'Miembro'
-          });
-
-        if (orgUserError) {
-          logger.error('❌ Microsoft OAuth: Error vinculando a organización:', orgUserError);
-        } else {
-          logger.info('✅ Microsoft OAuth: Usuario vinculado exitosamente a la organización');
-        }
-
-        // Si es un enlace de invitación masiva, registrar el uso y actualizar contador
-        if (bulkInviteLinkId) {
-          logger.info('📝 Microsoft OAuth: Registrando uso de enlace de invitación masiva', { bulkInviteLinkId, userId });
-
-          // Registrar en bulk_invite_registrations
-          const { error: regError } = await supabase
-            .from('bulk_invite_registrations')
-            .insert({
-              bulk_invite_link_id: bulkInviteLinkId,
-              user_id: userId,
-              registered_at: new Date().toISOString()
-            });
-
-          if (regError) {
-            logger.warn('⚠️ Microsoft OAuth: Error registrando uso del enlace masivo:', regError);
-          } else {
-            logger.info('✅ Microsoft OAuth: Registro de uso de enlace masivo creado');
-          }
-
-          // Incrementar current_uses en bulk_invite_links
-          const { data: currentLink } = await supabase
-            .from('bulk_invite_links')
-            .select('current_uses')
-            .eq('id', bulkInviteLinkId)
-            .single();
-
-          if (currentLink) {
-            const { error: updateError } = await supabase
-              .from('bulk_invite_links')
-              .update({ current_uses: (currentLink.current_uses || 0) + 1 })
-              .eq('id', bulkInviteLinkId);
-
-            if (updateError) {
-              logger.warn('⚠️ Microsoft OAuth: Error actualizando contador del enlace:', updateError);
-            }
-          }
-
-          logger.info('✅ Microsoft OAuth: Contador de usos del enlace masivo actualizado');
-        } else {
-          // Consumir la invitación individual
-          await consumeInvitationAction(
-            orgContext.invToken || email,
-            orgContext.orgId,
-            userId
-          );
-          logger.info('✅ Microsoft OAuth: Invitación consumida');
-        }
-      }
-    }
-
-    // Guardar/actualizar cuenta OAuth
-    await OAuthService.upsertOAuthAccount(userId, 'microsoft', (profile as any).id, tokens as any);
-
-    // Actualizar last_login_at en la tabla users
-    const supabaseForLogin = await createClient();
-    await supabaseForLogin
-      .from('users')
-      .update({ last_login_at: new Date().toISOString() })
-      .eq('id', userId);
-
-    // Crear sesión
-    const headersList = await headers();
-    const userAgent = headersList.get('user-agent') || 'unknown';
-    const ip = headersList.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-               headersList.get('x-real-ip') ||
-               'unknown';
-
-    const requestHeaders = new Headers();
-    requestHeaders.set('user-agent', userAgent);
-    requestHeaders.set('x-real-ip', ip);
-    const mockRequest = new Request('http://localhost', { headers: requestHeaders });
-
-    const sessionInfo = await RefreshTokenService.createSession(userId, false, mockRequest);
-
-    cookieStore.set('access_token', sessionInfo.accessToken, {
-      ...SECURE_COOKIE_OPTIONS,
-      expires: sessionInfo.accessExpiresAt,
-    });
-
-    cookieStore.set('refresh_token', sessionInfo.refreshToken, {
-      ...SECURE_COOKIE_OPTIONS,
-      expires: sessionInfo.refreshExpiresAt,
-    });
-
-    const legacySession = await SessionService.createLegacySession(userId, false);
-    const maxAge = 7 * 24 * 60 * 60;
-    cookieStore.set('aprende-y-aplica-session', legacySession.sessionToken, {
-      ...getCustomCookieOptions(maxAge),
-      expires: legacySession.expiresAt,
-    });
-
-    // Verificar rol para redirección específica (B2B)
-    const { data: user } = await supabase
-      .from('users')
-      .select('cargo_rol')
-      .eq('id', userId)
-      .single();
-
-    const normalizedRole = user?.cargo_rol?.toLowerCase().trim();
-    let destination = '/dashboard';
-
-    if (normalizedRole === 'administrador') {
-      destination = '/admin/dashboard';
-    } else if (normalizedRole === 'instructor') {
-      destination = '/instructor/dashboard';
-    } else if (normalizedRole === 'business' || normalizedRole === 'business user') {
-      // Verificar organización activa y obtener slug
-      const { data: userOrg } = await supabase
-        .from('organization_users')
-        .select('organization_id, role, organizations!inner(slug)')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .single();
-
-      if (userOrg) {
-        const orgSlug = (userOrg.organizations as any)?.slug;
-        const orgRole = userOrg.role; // Rol en la organización: 'owner', 'admin', 'member', etc.
-        
-        if (orgSlug) {
-          // Determinar destino según el rol en la organización
-          // owner y admin van a business-panel, member va a business-user
-          if (orgRole === 'owner' || orgRole === 'admin') {
-            destination = `/${orgSlug}/business-panel/dashboard`;
-          } else {
-            destination = `/${orgSlug}/business-user/dashboard`;
-          }
-        } else {
-          // Fallback sin slug
-          destination = '/dashboard';
-        }
-      }
-    }
-    redirect(destination);
-  } catch (error) {
-    // Verificar si es una redirección de Next.js
-    if (error && typeof error === 'object' && 'digest' in error) {
-      const digest = (error as any).digest;
-      if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
-        throw error;
-      }
-    }
-    logger.error('Error en callback Microsoft OAuth', error);
-    return { error: 'Error procesando autenticación con Microsoft' };
-  }
+export async function handleMicrosoftCallback(params: OAuthCallbackParams) {
+  return handleOAuthProviderCallback(params, microsoftOAuthAdapter);
 }

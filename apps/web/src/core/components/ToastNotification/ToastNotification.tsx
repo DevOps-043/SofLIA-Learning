@@ -1,5 +1,6 @@
 'use client';
 
+import type { JSX } from 'react';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +22,7 @@ export function ToastNotification({
   message,
   type = 'error',
   duration = 5000,
-}: ToastNotificationProps) {
+}: ToastNotificationProps): JSX.Element | null {
   // Cerrar automáticamente después de la duración especificada
   useEffect(() => {
     if (isOpen && duration > 0) {
@@ -113,9 +114,8 @@ export function ToastNotification({
 
   // Renderizar en el body usando portal si estamos en el cliente
   if (typeof window !== 'undefined') {
-    return createPortal(toastContent, document.body);
+    return createPortal(toastContent, document.body) as unknown as JSX.Element;
   }
 
   return null;
 }
-

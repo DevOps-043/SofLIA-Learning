@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { ReportType, ReportFilters } from '@/app/api/[orgSlug]/business/reports/data/route'
+import type { ReportFilters, ReportType } from '../types/report-data.types'
 
 export interface ReportData {
   report_type: ReportType

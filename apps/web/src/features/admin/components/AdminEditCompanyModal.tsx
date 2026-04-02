@@ -16,25 +16,10 @@ import {
   CloudArrowUpIcon,
   PhotoIcon
 } from '@heroicons/react/24/outline'
-import { AdminCompany } from '../services/adminCompanies.service'
+import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
+import type { AdminCompany } from '../types/admin-companies.types'
 
-// ============================================
-// DESIGN SYSTEM - SOFLIA COLORS
-// ============================================
-const colors = {
-  primary: '#0A2540',
-  accent: '#00D4B3',
-  accentLight: '#00E5C4',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  purple: '#8B5CF6',
-  bgPrimary: '#0F1419',
-  bgSecondary: '#1E2329',
-  bgTertiary: '#0A0D12',
-  grayLight: '#E9ECEF',
-  grayMedium: '#6C757D',
-}
+const colors = SOFLIA_ADMIN_COLORS
 
 interface EditModalProps {
   company: AdminCompany
@@ -44,18 +29,18 @@ interface EditModalProps {
 }
 
 const PLAN_OPTIONS = [
-  { value: 'team', label: 'Team', color: '#3B82F6', description: 'Hasta 10 usuarios' },
-  { value: 'business', label: 'Business', color: '#8B5CF6', description: 'Hasta 50 usuarios' },
-  { value: 'enterprise', label: 'Enterprise', color: '#F59E0B', description: 'Usuarios ilimitados' }
+  { value: 'team', label: 'Team', color: colors.info, description: 'Hasta 10 usuarios' },
+  { value: 'business', label: 'Business', color: colors.purple, description: 'Hasta 50 usuarios' },
+  { value: 'enterprise', label: 'Enterprise', color: colors.warning, description: 'Usuarios ilimitados' }
 ]
 
 const THEME_PRESETS = [
-  { id: 'SOFLIA', name: 'SOFLIA Default', primary: '#0A2540', secondary: '#1E2329', accent: '#00D4B3', description: 'Tema profesional' },
-  { id: 'modern-blue', name: 'Moderno Azul', primary: '#1E40AF', secondary: '#1E3A8A', accent: '#3B82F6', description: 'Azul corporativo' },
-  { id: 'emerald', name: 'Esmeralda', primary: '#065F46', secondary: '#064E3B', accent: '#10B981', description: 'Verde empresarial' },
-  { id: 'purple', name: 'Violeta', primary: '#4C1D95', secondary: '#5B21B6', accent: '#8B5CF6', description: 'Morado elegante' },
+  { id: 'SOFLIA', name: 'SOFLIA Default', primary: colors.primary, secondary: colors.bgSecondary, accent: colors.accent, description: 'Tema profesional' },
+  { id: 'modern-blue', name: 'Moderno Azul', primary: '#1E40AF', secondary: '#1E3A8A', accent: colors.info, description: 'Azul corporativo' },
+  { id: 'emerald', name: 'Esmeralda', primary: '#065F46', secondary: '#064E3B', accent: colors.success, description: 'Verde empresarial' },
+  { id: 'purple', name: 'Violeta', primary: '#4C1D95', secondary: '#5B21B6', accent: colors.purple, description: 'Morado elegante' },
   { id: 'rose', name: 'Rosa', primary: '#9F1239', secondary: '#881337', accent: '#F43F5E', description: 'Rosa vibrante' },
-  { id: 'amber', name: 'Ãmbar', primary: '#92400E', secondary: '#78350F', accent: '#F59E0B', description: 'Naranja cálido' }
+  { id: 'amber', name: 'Ãmbar', primary: '#92400E', secondary: '#78350F', accent: colors.warning, description: 'Naranja cálido' }
 ]
 
 type EditTab = 'general' | 'members' | 'branding' | 'themes'
@@ -75,9 +60,9 @@ export function AdminEditCompanyModal({ company, onClose, onSave, isSaving }: Ed
     brand_logo_url: company.brand_logo_url || '',
     brand_banner_url: company.brand_banner_url || '',
     brand_favicon_url: company.brand_favicon_url || '',
-    brand_color_primary: company.brand_color_primary || '#0A2540',
-    brand_color_secondary: company.brand_color_secondary || '#1E2329',
-    brand_color_accent: company.brand_color_accent || '#00D4B3',
+    brand_color_primary: company.brand_color_primary || colors.primary,
+    brand_color_secondary: company.brand_color_secondary || colors.bgSecondary,
+    brand_color_accent: company.brand_color_accent || colors.accent,
     brand_font_family: company.brand_font_family || 'Inter'
   })
   const [isPlanOpen, setIsPlanOpen] = useState(false)

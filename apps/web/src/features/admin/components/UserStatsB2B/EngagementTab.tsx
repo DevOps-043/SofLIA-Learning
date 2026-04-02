@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { UserCheck, RefreshCw, Star, UserX, BarChart3, PieChart, Globe } from 'lucide-react'
 import { useEngagementStats } from '../../hooks/useUserStatsB2B'
 import { BarChartComponent, GroupedBarChartComponent, EmptyState } from './charts'
+import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
 
 export function EngagementTab() {
   const { data, isLoading, error } = useEngagementStats()
@@ -64,8 +65,8 @@ export function EngagementTab() {
               data={stats.newVsRecurring}
               nameKey="week"
               keys={[
-                { key: 'new', label: 'Nuevos', color: '#3B82F6' },
-                { key: 'recurring', label: 'Recurrentes', color: '#10B981' },
+                { key: 'new', label: 'Nuevos', color: SOFLIA_ADMIN_COLORS.info },
+                { key: 'recurring', label: 'Recurrentes', color: SOFLIA_ADMIN_COLORS.success },
               ]}
             />
           ) : (

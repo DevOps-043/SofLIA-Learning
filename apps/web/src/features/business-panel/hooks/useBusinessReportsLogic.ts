@@ -3,9 +3,9 @@
 import { useState, useCallback, useRef } from 'react'
 import { Sparkles, Users, Activity, Award } from 'lucide-react'
 import { useBusinessReports } from './useBusinessReports'
-import { ReportType } from '@/app/api/[orgSlug]/business/reports/data/route'
+import type { ReportType } from '../types/report-data.types'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useThemeStore } from '../../../core/stores/themeStore'
 import { useTranslation } from 'react-i18next'
 
 const getReportTypes = (accentColor: string, t: any) => [

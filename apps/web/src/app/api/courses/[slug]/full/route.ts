@@ -7,6 +7,7 @@ import { ContentTranslationService } from '@/core/services/contentTranslation.se
 import { SupportedLanguage } from '@/core/i18n/i18n';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 import { formatApiError, logError } from '@/core/utils/api-errors';
+import { fromLoose } from '@/lib/supabase/looseQuery';
 
 /**
  * GET /api/courses/[slug]/full
@@ -65,6 +66,7 @@ export async function GET(
       skillsResult,
       purchaseCheck,
       enrollmentResult,
+      instructorResult,
     ] = await Promise.all([
       // 1. Obtener módulos
       supabase
@@ -80,8 +82,7 @@ export async function GET(
         .order('module_order_index', { ascending: true }),
 
       // 2. Obtener skills
-      supabase
-        .from('course_skills')
+      fromLoose<CourseSkillRow>(supabase, 'course_skills')
         .select(`
           id,
           is_primary,
@@ -119,21 +120,68 @@ export async function GET(
             .eq('course_id', courseId)
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
+
+      courseData.instructor_id
+        ? supabase
+            .from('users')
+            .select(`
+              id,
+              first_name,
+              last_name,
+              display_name,
+              username,
+              email,
+              profile_picture_url,
+              bio,
+              linkedin_url,
+              github_url,
+              website_url,
+              cargo_rol,
+              type_rol,
+              location
+            `)
+            .eq('id', courseData.instructor_id)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     // Procesar módulos
-    const allModules = modulesResult.data || [];
-    const publishedModules = allModules.filter(m => m.is_published === true);
+    const allModules: Array<{
+      module_id: string
+      module_title: string
+      module_order_index: number
+      module_duration_minutes?: number | null
+      is_published?: boolean | null
+    }> = modulesResult.data || [];
+    const publishedModules = allModules.filter(module => module.is_published === true);
     const modules = publishedModules.length > 0 ? publishedModules : allModules;
 
     // ========================================
     // FASE 3: Obtener lecciones y progreso (si hay módulos)
     // ========================================
-    let modulesWithLessons: any[] = [];
+      let modulesWithLessons: Array<{
+        module_id: string
+        module_title: string
+        module_order_index: number
+        module_duration_minutes?: number | null
+        is_published?: boolean | null
+        lessons: Array<{
+          lesson_id: string
+          lesson_title: string
+          lesson_description?: string | null
+          lesson_order_index: number
+          duration_seconds?: number | null
+          total_duration_minutes: number
+          video_provider_id?: string | null
+          video_provider?: string | null
+          is_completed: boolean
+          progress_percentage: number
+        }>
+      }> = [];
     let overallProgress = 0;
 
     if (modules.length > 0) {
-      const moduleIds = modules.map(m => m.module_id);
+      const moduleIds = modules.map(module => module.module_id);
       const userEnrollment = enrollmentResult.data;
 
       // Consultas paralelas para lecciones y progreso
@@ -165,12 +213,27 @@ export async function GET(
           : Promise.resolve({ data: [], error: null }),
       ]);
 
-      const allLessons = lessonsResult.data || [];
-      const progressData = progressResult.data || [];
+      const allLessons: Array<{
+        lesson_id: string
+        lesson_title: string
+        lesson_description?: string | null
+        lesson_order_index: number
+        duration_seconds?: number | null
+        total_duration_minutes?: number | null
+        video_provider_id?: string | null
+        video_provider?: string | null
+        is_published?: boolean | null
+        module_id: string
+      }> = lessonsResult.data || [];
+      const progressData: Array<{
+        lesson_id: string
+        is_completed?: boolean | null
+        video_progress_percentage?: number | null
+      }> = progressResult.data || [];
 
       // Crear mapa de progreso
       const progressMap = new Map(
-        progressData.map(p => [p.lesson_id, p])
+        progressData.map(progress => [progress.lesson_id, progress])
       );
 
       // Agrupar lecciones por módulo
@@ -187,7 +250,7 @@ export async function GET(
       // Construir módulos con lecciones y progreso
       modulesWithLessons = modules.map(module => {
         const moduleLessons = lessonsByModule.get(module.module_id) || [];
-        const publishedLessons = moduleLessons.filter(l => l.is_published === true);
+        const publishedLessons = moduleLessons.filter(lesson => lesson.is_published === true);
         const lessons = publishedLessons.length > 0 ? publishedLessons : moduleLessons;
 
         const lessonsWithProgress = lessons.map(lesson => {
@@ -198,7 +261,7 @@ export async function GET(
             videoUrl = `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${videoUrl}`;
           }
 
-          const progress = progressMap.get(lesson.lesson_id) || {};
+          const progress = progressMap.get(lesson.lesson_id);
 
           return {
             lesson_id: lesson.lesson_id,
@@ -209,8 +272,8 @@ export async function GET(
             total_duration_minutes: lesson.total_duration_minutes || Math.ceil((lesson.duration_seconds || 0) / 60),
             video_provider_id: videoUrl,
             video_provider: lesson.video_provider,
-            is_completed: (progress as any)?.is_completed || false,
-            progress_percentage: (progress as any)?.video_progress_percentage || 0,
+            is_completed: progress?.is_completed || false,
+            progress_percentage: progress?.video_progress_percentage || 0,
           };
         });
 
@@ -230,7 +293,7 @@ export async function GET(
     }
 
     // Procesar skills
-    const skills = (skillsResult.data || []).map((cs: any) => ({
+    const skills = (skillsResult.data || []).map((cs) => ({
       id: cs.id,
       skill_id: cs.skills?.skill_id,
       name: cs.skills?.name,
@@ -282,6 +345,9 @@ export async function GET(
 
       // Skills
       skills,
+
+      // Instructor enriquecido
+      instructor: instructorResult.data || null,
     };
 
     return withCacheHeaders(
@@ -296,3 +362,22 @@ export async function GET(
     );
   }
 }
+    type CourseSkillRow = {
+      id: string
+      is_primary?: boolean | null
+      is_required?: boolean | null
+      proficiency_level?: string | null
+      display_order?: number | null
+      skills?: {
+        skill_id?: string
+        name?: string
+        slug?: string
+        description?: string
+        category?: string
+        icon_url?: string | null
+        icon_type?: string | null
+        icon_name?: string | null
+        color?: string | null
+        level?: string | null
+      } | null
+    }

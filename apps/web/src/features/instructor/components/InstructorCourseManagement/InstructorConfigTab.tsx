@@ -1,5 +1,5 @@
 import { ImageUploadCourse } from '../ImageUploadCourse'
-import { CourseSkillsSelector } from '@/features/courses/components/CourseSkillsSelector'
+import { CourseSkillsSelector } from '../../../courses/components/CourseSkillsSelector'
 import type { InstructorConfigTabProps } from './types'
 
 export function InstructorConfigTab({

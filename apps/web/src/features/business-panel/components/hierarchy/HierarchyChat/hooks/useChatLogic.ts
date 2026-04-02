@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useAuth } from '@/features/auth/hooks/useAuth'
-import { HierarchyChatsService } from '@/features/business-panel/services/hierarchyChats.service'
-import { supabaseStorageService } from '@/core/services/supabaseStorage'
+import { supabaseStorageService } from '../../../../../../core/services/supabaseStorage'
+import { useAuth } from '../../../../../auth/hooks/useAuth'
+import { HierarchyChatsService } from '../../../../services/hierarchyChats.service'
 import type {
   HierarchyChat,
   HierarchyChatMessage,
   HierarchyChatParticipant,
   HierarchyChatType
-} from '@/features/business-panel/types/hierarchy.types'
+} from '../../../../types/hierarchy.types'
 import type { EmojiCategory, FileAttachment } from '../types'
 
 interface UseChatLogicProps {

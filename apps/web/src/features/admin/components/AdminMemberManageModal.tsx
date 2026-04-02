@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, AlertTriangle, UserCog, Shield, Trash2, CheckCircle2, Loader2, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
 
 interface AdminMemberManageModalProps {
   isOpen: boolean
@@ -23,8 +24,8 @@ export function AdminMemberManageModal({
   member,
   companyId,
   mode,
-  primaryColor = '#0A2540',
-  accentColor = '#00D4B3'
+  primaryColor = SOFLIA_ADMIN_COLORS.primary,
+  accentColor = SOFLIA_ADMIN_COLORS.accent
 }: AdminMemberManageModalProps) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)

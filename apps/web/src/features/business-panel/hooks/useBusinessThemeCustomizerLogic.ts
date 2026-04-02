@@ -1,28 +1,19 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
 import type { StyleConfig } from '../contexts/OrganizationStylesContext';
-import { getAllThemes, ThemeConfig, generateBrandingTheme, BrandingColors } from '../config/preset-themes';
-
-type ActivePanel = 'panel' | 'userDashboard' | 'login';
-
-// Pure helper outside the hook – no hook-rule concerns
-const getDefaultStyle = (): StyleConfig => ({
-  background_type: 'gradient',
-  background_value: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1e40af 100%)',
-  primary_button_color: '#3b82f6',
-  secondary_button_color: '#2563eb',
-  accent_color: '#60a5fa',
-  sidebar_background: '#1e293b',
-  card_background: '#1e293b',
-  text_color: '#f8fafc',
-  border_color: '#334155',
-  modal_opacity: 0.95,
-  card_opacity: 1,
-  sidebar_opacity: 1
-});
+import { BrandingColors, ThemeConfig, generateBrandingTheme, getAllThemes } from '../config/preset-themes';
+import {
+  type ActivePanel,
+  buildGradientCss,
+  getBusinessThemeIcon,
+  getBusinessThemePreview,
+  getDefaultBusinessStyle,
+  matchesBusinessTheme,
+  parseGradientStyleValue,
+} from '../services/business-theme-customizer.service';
 
 export function useBusinessThemeCustomizerLogic() {
   const params = useParams();
@@ -36,45 +27,35 @@ export function useBusinessThemeCustomizerLogic() {
   const [brandingColors, setBrandingColors] = useState<BrandingColors | null>(null);
   const [loadingBranding, setLoadingBranding] = useState(true);
 
-  // Per-panel local style states
-  const [panelStyles, setPanelStyles] = useState<StyleConfig | null>(() => getDefaultStyle());
-  const [userDashboardStyles, setUserDashboardStyles] = useState<StyleConfig | null>(() => getDefaultStyle());
-  const [loginStyles, setLoginStyles] = useState<StyleConfig | null>(() => getDefaultStyle());
+  const [panelStyles, setPanelStyles] = useState<StyleConfig | null>(() => getDefaultBusinessStyle());
+  const [userDashboardStyles, setUserDashboardStyles] = useState<StyleConfig | null>(() =>
+    getDefaultBusinessStyle()
+  );
+  const [loginStyles, setLoginStyles] = useState<StyleConfig | null>(() => getDefaultBusinessStyle());
 
-  // Gradient visual selector state (must be declared before any conditional returns)
   const [copiedGradient, setCopiedGradient] = useState(false);
-  const [discardChanges, setDiscardChanges] = useState(false);
   const [gradientColors, setGradientColors] = useState<string[]>(['#1e3a8a', '#1e40af']);
-  const [gradientAngle, setGradientAngle] = useState<number>(135);
+  const [gradientAngle, setGradientAngle] = useState(135);
 
-  // Sync local state whenever context styles change
   useEffect(() => {
-    setPanelStyles(styles?.panel || getDefaultStyle());
-    setUserDashboardStyles(styles?.userDashboard || getDefaultStyle());
-    setLoginStyles(styles?.login || getDefaultStyle());
+    setPanelStyles(styles?.panel || getDefaultBusinessStyle());
+    setUserDashboardStyles(styles?.userDashboard || getDefaultBusinessStyle());
+    setLoginStyles(styles?.login || getDefaultBusinessStyle());
 
     const currentBgValue =
       activePanel === 'panel'
-        ? (styles?.panel || getDefaultStyle()).background_value || ''
+        ? (styles?.panel || getDefaultBusinessStyle()).background_value || ''
         : activePanel === 'userDashboard'
-        ? (styles?.userDashboard || getDefaultStyle()).background_value || ''
-        : (styles?.login || getDefaultStyle()).background_value || '';
+          ? (styles?.userDashboard || getDefaultBusinessStyle()).background_value || ''
+          : (styles?.login || getDefaultBusinessStyle()).background_value || '';
 
-    if (currentBgValue && currentBgValue.includes('linear-gradient')) {
-      const match = currentBgValue.match(/linear-gradient\((\d+)deg,\s*(.+)\)/);
-      if (match) {
-        const angle = parseInt(match[1]) || 135;
-        const colorsStr = match[2];
-        const colorMatches = colorsStr.match(/#[0-9a-fA-F]{6}/g);
-        if (colorMatches && colorMatches.length >= 2) {
-          setGradientAngle(angle);
-          setGradientColors(colorMatches);
-        }
-      }
+    const parsedGradient = parseGradientStyleValue(currentBgValue);
+    if (parsedGradient) {
+      setGradientAngle(parsedGradient.angle);
+      setGradientColors(parsedGradient.colors);
     }
-  }, [styles, activePanel]);
+  }, [activePanel, styles]);
 
-  // Fetch branding colors for auto-theme generation
   useEffect(() => {
     const fetchBrandingColors = async () => {
       try {
@@ -84,94 +65,93 @@ export function useBusinessThemeCustomizerLogic() {
           : '/api/business/settings/branding';
 
         const response = await fetch(fetchUrl, { credentials: 'include' });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.branding) {
-            setBrandingColors({
-              color_primary: result.branding.color_primary,
-              color_secondary: result.branding.color_secondary,
-              color_accent: result.branding.color_accent
-            });
-          }
+        if (!response.ok) {
+          return;
         }
-      } catch (err) {
-        console.error('Error fetching branding colors:', err);
+
+        const result = await response.json();
+        if (result.success && result.branding) {
+          setBrandingColors({
+            color_primary: result.branding.color_primary,
+            color_secondary: result.branding.color_secondary,
+            color_accent: result.branding.color_accent,
+          });
+        }
+      } catch {
+        // Silent fallback: the user can still work with preset themes.
       } finally {
         setLoadingBranding(false);
       }
     };
 
-    fetchBrandingColors();
-  }, []);
-
-  // --- Derived values ---
+    void fetchBrandingColors();
+  }, [orgSlug]);
 
   const currentStyles = useMemo(() => {
-    const defaultStyle = getDefaultStyle();
-    if (activePanel === 'panel') return panelStyles || defaultStyle;
-    if (activePanel === 'userDashboard') return userDashboardStyles || defaultStyle;
+    const defaultStyle = getDefaultBusinessStyle();
+    if (activePanel === 'panel') {
+      return panelStyles || defaultStyle;
+    }
+    if (activePanel === 'userDashboard') {
+      return userDashboardStyles || defaultStyle;
+    }
     return loginStyles || defaultStyle;
-  }, [activePanel, panelStyles, userDashboardStyles, loginStyles]);
+  }, [activePanel, loginStyles, panelStyles, userDashboardStyles]);
 
   const allThemes = useMemo(() => {
     const presetThemes = getAllThemes();
     if (brandingColors && !loadingBranding) {
-      const brandingTheme = generateBrandingTheme(brandingColors);
-      return [...presetThemes, brandingTheme];
+      return [...presetThemes, generateBrandingTheme(brandingColors)];
     }
     return presetThemes;
   }, [brandingColors, loadingBranding]);
 
-  // --- Gradient helpers ---
+  const generateGradientCSS = useCallback(() => {
+    return buildGradientCss(gradientColors, gradientAngle);
+  }, [gradientAngle, gradientColors]);
 
-  const generateGradientCSS = useCallback((): string => {
-    if (gradientColors.length < 2) return 'linear-gradient(135deg, #1e3a8a, #1e40af)';
-    const colorsWithStops = gradientColors
-      .map((color, index) => {
-        const stop = (index / (gradientColors.length - 1)) * 100;
-        return `${color} ${stop}%`;
-      })
-      .join(', ');
-    return `linear-gradient(${gradientAngle}deg, ${colorsWithStops})`;
-  }, [gradientColors, gradientAngle]);
-
-  // Sync gradient CSS into active panel background_value
-  useEffect(() => {
-    if (currentStyles.background_type === 'gradient' && gradientColors.length >= 2) {
-      const newGradient = generateGradientCSS();
-      const currentGradient = currentStyles.background_value || '';
-      if (newGradient !== currentGradient) {
-        updateStyle(activePanel, 'background_value', newGradient);
+  const updateStyle = useCallback(
+    (panel: ActivePanel, field: keyof StyleConfig, value: StyleConfig[keyof StyleConfig]) => {
+      switch (panel) {
+        case 'panel':
+          setPanelStyles((prev) => ({ ...(prev || getDefaultBusinessStyle()), [field]: value }));
+          break;
+        case 'userDashboard':
+          setUserDashboardStyles((prev) => ({
+            ...(prev || getDefaultBusinessStyle()),
+            [field]: value,
+          }));
+          break;
+        case 'login':
+          setLoginStyles((prev) => ({ ...(prev || getDefaultBusinessStyle()), [field]: value }));
+          break;
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gradientColors, gradientAngle, activePanel]);
 
-  // --- Style mutation ---
+      setSaveSuccess(null);
+      setSaveError(null);
+    },
+    []
+  );
 
-  const updateStyle = (panel: ActivePanel, field: keyof StyleConfig, value: any) => {
-    switch (panel) {
-      case 'panel':
-        setPanelStyles((prev) => ({ ...(prev || getDefaultStyle()), [field]: value }));
-        break;
-      case 'userDashboard':
-        setUserDashboardStyles((prev) => ({ ...(prev || getDefaultStyle()), [field]: value }));
-        break;
-      case 'login':
-        setLoginStyles((prev) => ({ ...(prev || getDefaultStyle()), [field]: value }));
-        break;
+  useEffect(() => {
+    if (currentStyles.background_type !== 'gradient' || gradientColors.length < 2) {
+      return;
     }
+
+    const nextGradient = generateGradientCSS();
+    if (nextGradient !== currentStyles.background_value) {
+      updateStyle(activePanel, 'background_value', nextGradient);
+    }
+  }, [activePanel, currentStyles.background_type, currentStyles.background_value, generateGradientCSS, gradientColors.length, updateStyle]);
+
+  const clearSaveState = () => {
     setSaveSuccess(null);
     setSaveError(null);
   };
 
-  // --- Action handlers ---
-
   const handleApplyTheme = async (themeId: string) => {
     setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
+    clearSaveState();
 
     try {
       const success = await applyTheme(themeId);
@@ -179,12 +159,14 @@ export function useBusinessThemeCustomizerLogic() {
         setSaveSuccess('Tema aplicado correctamente');
         setTimeout(() => setSaveSuccess(null), 3000);
         await refetch();
-      } else {
-        setSaveError('Error al aplicar tema');
-        setTimeout(() => setSaveError(null), 3000);
+        return;
       }
-    } catch (err: any) {
-      setSaveError(err.message || 'Error al aplicar tema');
+
+      setSaveError('Error al aplicar tema');
+      setTimeout(() => setSaveError(null), 3000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al aplicar tema';
+      setSaveError(message);
       setTimeout(() => setSaveError(null), 3000);
     } finally {
       setIsSaving(false);
@@ -193,8 +175,7 @@ export function useBusinessThemeCustomizerLogic() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    setSaveError(null);
-    setSaveSuccess(null);
+    clearSaveState();
 
     try {
       const success = await updateStyles(
@@ -207,12 +188,14 @@ export function useBusinessThemeCustomizerLogic() {
         setSaveSuccess('Estilos guardados correctamente');
         setTimeout(() => setSaveSuccess(null), 3000);
         await refetch();
-      } else {
-        setSaveError('Error al guardar estilos');
-        setTimeout(() => setSaveError(null), 3000);
+        return;
       }
-    } catch (err: any) {
-      setSaveError(err.message || 'Error al guardar estilos');
+
+      setSaveError('Error al guardar estilos');
+      setTimeout(() => setSaveError(null), 3000);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error al guardar estilos';
+      setSaveError(message);
       setTimeout(() => setSaveError(null), 3000);
     } finally {
       setIsSaving(false);
@@ -220,126 +203,89 @@ export function useBusinessThemeCustomizerLogic() {
   };
 
   const handleDiscard = () => {
-    if (styles) {
-      setPanelStyles(styles.panel || getDefaultStyle());
-      setUserDashboardStyles(styles.userDashboard || getDefaultStyle());
-      setLoginStyles(styles.login || getDefaultStyle());
-      setSaveError(null);
-      setSaveSuccess(null);
+    if (!styles) {
+      return;
     }
+
+    setPanelStyles(styles.panel || getDefaultBusinessStyle());
+    setUserDashboardStyles(styles.userDashboard || getDefaultBusinessStyle());
+    setLoginStyles(styles.login || getDefaultBusinessStyle());
+    clearSaveState();
   };
 
   const handleReset = () => {
-    const defaultStyle = getDefaultStyle();
+    const defaultStyle = getDefaultBusinessStyle();
     setPanelStyles(defaultStyle);
     setUserDashboardStyles(defaultStyle);
     setLoginStyles(defaultStyle);
-    setSaveError(null);
-    setSaveSuccess(null);
+    clearSaveState();
   };
 
   const copyGradientToClipboard = () => {
     const gradient = generateGradientCSS();
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(gradient).then(() => {
-        setCopiedGradient(true);
-        setTimeout(() => setCopiedGradient(false), 2000);
-      });
+    if (!navigator.clipboard?.writeText) {
+      return;
     }
+
+    void navigator.clipboard.writeText(gradient).then(() => {
+      setCopiedGradient(true);
+      setTimeout(() => setCopiedGradient(false), 2000);
+    });
   };
 
   const addGradientColor = () => {
     if (gradientColors.length < 5) {
-      setGradientColors([...gradientColors, '#3b82f6']);
+      setGradientColors((prev) => [...prev, '#3b82f6']);
     }
   };
 
   const removeGradientColor = (index: number) => {
     if (gradientColors.length > 2) {
-      setGradientColors(gradientColors.filter((_, i) => i !== index));
+      setGradientColors((prev) => prev.filter((_, colorIndex) => colorIndex !== index));
     }
   };
 
   const updateGradientColor = (index: number, color: string) => {
-    const newColors = [...gradientColors];
-    newColors[index] = color;
-    setGradientColors(newColors);
+    setGradientColors((prev) => {
+      const nextColors = [...prev];
+      nextColors[index] = color;
+      return nextColors;
+    });
   };
 
-  const getThemeIcon = (themeId: string) => {
-    const icons: Record<string, string> = {
-      'SOFLIA': 'T',
-      'SOFLIA-predeterminado': 'T',
-      'SOFLIA-claro': 'T',
-      'corporativo-azul': 'A',
-      'ejecutivo-oscuro': 'D',
-      'premium-dorado': 'B',
-      'elite-plateado': 'X',
-      'flexibilidad-verde': 'E',
-      'tecnologia-verde': 'B',
-      'financiero-proceso': 'B',
-      'recursos-procesado': 'K',
-      'branding-personalizado': '★'
-    };
-    return icons[themeId] || 'T';
-  };
-
-  const getThemeColor = (theme: ThemeConfig) => {
-    if (theme.id === 'branding-personalizado') {
-      return 'linear-gradient(135deg, #fbbf24, #f59e0b)';
-    }
-    return theme.panel.background_value;
-  };
-
-  const isThemeSelected = (themeId: string): boolean => {
-    const selectedTheme = styles?.selectedTheme;
-    if (!selectedTheme) return false;
-    if (selectedTheme === themeId) return true;
-    if (themeId === 'SOFLIA' && (selectedTheme === 'SOFLIA-predeterminado' || selectedTheme === 'SOFLIA-claro')) {
-      return true;
-    }
-    return false;
-  };
+  const getThemeIcon = (themeId: string) => getBusinessThemeIcon(themeId);
+  const getThemeColor = (theme: ThemeConfig) => getBusinessThemePreview(theme);
+  const isThemeSelected = (themeId: string) => matchesBusinessTheme(styles?.selectedTheme, themeId);
 
   return {
-    // Context passthrough
     styles,
     loading,
     error,
-    // Panel selector
     activePanel,
     setActivePanel,
-    // Styles state
     currentStyles,
     panelStyles,
     userDashboardStyles,
     loginStyles,
-    // Save state
     saveSuccess,
     saveError,
     isSaving,
-    // Branding
     brandingColors,
     loadingBranding,
-    // Themes
     allThemes,
-    // Gradient
     gradientColors,
     gradientAngle,
     setGradientAngle,
     copiedGradient,
-    discardChanges,
     generateGradientCSS,
     addGradientColor,
     removeGradientColor,
     updateGradientColor,
     copyGradientToClipboard,
-    // Helpers
     getThemeIcon,
     getThemeColor,
     isThemeSelected,
     updateStyle,
-    // Handlers
     handleApplyTheme,
     handleSave,
     handleDiscard,

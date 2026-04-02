@@ -8,13 +8,20 @@ import { useAdminMaterials } from '../../../hooks/useAdminMaterials'
 import { useAdminActivities } from '../../../hooks/useAdminActivities'
 import { AdminModule } from '../../../services/adminModules.service'
 import { AdminLesson } from '../../../services/adminLessons.service'
-import { CourseSkill } from '@/features/courses/components/CourseSkillsSelector'
+import { AdminMaterial } from '../../../services/adminMaterials.service'
+import { AdminActivity } from '../../../services/adminActivities.service'
+import { CourseSkill } from '../../../../courses/components/CourseSkillsSelector'
 import {
   ActiveTab,
+  CourseChartData,
+  CourseStudentDetails,
+  CourseUserStats,
+  CourseWorkshopPreview,
   FeedbackMessage,
   ConfigData,
-  Instructor,
   DEFAULT_CONFIG_DATA,
+  EnrolledUser,
+  Instructor,
 } from '../types'
 
 export function useCourseManagementLogic(courseId: string) {
@@ -46,17 +53,17 @@ export function useCourseManagementLogic(courseId: string) {
   const [selectedLesson, setSelectedLesson] = useState<AdminLesson | null>(null)
   const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null)
-  const [editingMaterial, setEditingMaterial] = useState<any | null>(null)
-  const [editingActivity, setEditingActivity] = useState<any | null>(null)
+  const [editingMaterial, setEditingMaterial] = useState<AdminMaterial | null>(null)
+  const [editingActivity, setEditingActivity] = useState<AdminActivity | null>(null)
   const [movingLesson, setMovingLesson] = useState<AdminLesson | null>(null)
 
   // ── Remote data ────────────────────────────────────────────────────────────
   const [instructors, setInstructors] = useState<Instructor[]>([])
-  const [userStats, setUserStats] = useState<any>(null)
-  const [enrolledUsers, setEnrolledUsers] = useState<any[]>([])
+  const [userStats, setUserStats] = useState<CourseUserStats | null>(null)
+  const [enrolledUsers, setEnrolledUsers] = useState<EnrolledUser[]>([])
   const [statsLoading, setStatsLoading] = useState<boolean>(false)
-  const [chartData, setChartData] = useState<any>(null)
-  const [workshopPreview, setWorkshopPreview] = useState<any>(null)
+  const [chartData, setChartData] = useState<CourseChartData | null>(null)
+  const [workshopPreview, setWorkshopPreview] = useState<CourseWorkshopPreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState<boolean>(false)
 
   // ── Config form ────────────────────────────────────────────────────────────
@@ -73,8 +80,8 @@ export function useCourseManagementLogic(courseId: string) {
   const [savingSkills, setSavingSkills] = useState(false)
 
   // ── Student details ────────────────────────────────────────────────────────
-  const [selectedStudent, setSelectedStudent] = useState<any>(null)
-  const [studentDetailsData, setStudentDetailsData] = useState<any>(null)
+  const [selectedStudent, setSelectedStudent] = useState<EnrolledUser | null>(null)
+  const [studentDetailsData, setStudentDetailsData] = useState<CourseStudentDetails | null>(null)
   const [loadingStudentDetails, setLoadingStudentDetails] = useState(false)
 
   // ── Recalculate durations ──────────────────────────────────────────────────
@@ -325,7 +332,7 @@ export function useCourseManagementLogic(courseId: string) {
         const data = await res.json().catch(() => ({}))
         if (data?.errors && Array.isArray(data.errors)) {
           const errorMessages = data.errors
-            .map((e: any) => `${e.field}: ${e.message}`)
+            .map((e: { field: string; message: string }) => `${e.field}: ${e.message}`)
             .join('\n')
           throw new Error(`Errores de validación:\n${errorMessages}`)
         }
@@ -384,15 +391,15 @@ export function useCourseManagementLogic(courseId: string) {
     })
   }
 
-  const handleCreateModule = async (data: any) => {
+  const handleCreateModule = async (data: Record<string, unknown>) => {
     await createModule(courseId, data)
   }
 
-  const handleEditModule = async (moduleId: string, data: any) => {
+  const handleEditModule = async (moduleId: string, data: Record<string, unknown>) => {
     await updateModule(moduleId, data)
   }
 
-  const handleCreateLesson = async (data: any) => {
+  const handleCreateLesson = async (data: Record<string, unknown>) => {
     if (!editingModuleId) {
       showFeedbackMessage('error', 'Selecciona un módulo antes de crear una lección')
       return

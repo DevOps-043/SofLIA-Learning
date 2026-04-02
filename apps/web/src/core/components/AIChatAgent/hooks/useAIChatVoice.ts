@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useSofLIAPersonalization } from '../../../hooks/useSofLIAPersonalization';
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../../utils/tts-voice-settings';
+import { isTTSAbortError, playAudioBlob, requestTTSAudio, speakWithWebSpeech } from '../../../services/tts';
 
 const SPEECH_LANGUAGE_MAP: Record<string, string> = {
   es: 'es-ES',
@@ -84,88 +85,53 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
     try {
       setIsSpeaking(true);
 
-      const apiKey = 'sk_dd0d1757269405cd26d5e22fb14c54d2f49c4019fd8e86d0';
-      const voiceId = process.env.NEXT_PUBLIC_ELEVENLABS_VOICE_ID || 'ay4iqk10DLwc8KGSrf2t';
-      const modelId = 'eleven_turbo_v2_5';
-
       const webSpeechSettings = getWebSpeechVoiceSettings(liaSettings);
       const elevenLabsSettings = getElevenLabsVoiceSettings(liaSettings);
-
-      if (!apiKey || !voiceId) {
-        const utterance = new SpeechSynthesisUtterance(cleanedText);
-        utterance.lang = SPEECH_LANGUAGE_MAP[language] || 'es-ES';
-        utterance.rate = webSpeechSettings.rate;
-        utterance.pitch = webSpeechSettings.pitch;
-        utterance.volume = webSpeechSettings.volume;
-        utterance.onend = () => { setIsSpeaking(false); utteranceRef.current = null; };
-        utterance.onerror = () => { setIsSpeaking(false); utteranceRef.current = null; };
-        utteranceRef.current = utterance;
-        window.speechSynthesis.speak(utterance);
-        return;
-      }
-
       const controller = new AbortController();
       ttsAbortRef.current = controller;
 
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
+      const audioBlob = await requestTTSAudio(
         {
-          signal: controller.signal,
-          method: 'POST',
-          headers: {
-            Accept: 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': apiKey,
-          },
-          body: JSON.stringify({
-            text: cleanedText,
-            model_id: modelId,
-            voice_settings: elevenLabsSettings,
-            optimize_streaming_latency: 4,
-            output_format: 'mp3_22050_32',
-          }),
-        }
+          text: cleanedText,
+          voiceSettings: elevenLabsSettings,
+        },
+        controller.signal
       );
 
-      if (!response.ok) throw new Error(`ElevenLabs API error: ${response.status}`);
-
-      const audioBlob = await response.blob();
       if (ttsAbortRef.current && ttsAbortRef.current.signal.aborted) {
         ttsAbortRef.current = null;
         return;
       }
 
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.volume = 0.8;
-      audioRef.current = audio;
-
-      audio.onended = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-        if (audioRef.current === audio) audioRef.current = null;
-      };
-      audio.onerror = () => {
-        setIsSpeaking(false);
-        URL.revokeObjectURL(audioUrl);
-        if (audioRef.current === audio) audioRef.current = null;
-      };
-
-      try {
-        await audio.play();
-        if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
-      } catch {
-        setIsSpeaking(false);
+      if (!audioBlob) {
+        speakWithWebSpeech(
+          cleanedText,
+          utteranceRef,
+          {
+            lang: SPEECH_LANGUAGE_MAP[language] || 'es-ES',
+            ...webSpeechSettings,
+          },
+          () => setIsSpeaking(false)
+        );
+        if (ttsAbortRef.current === controller) {
+          ttsAbortRef.current = null;
+        }
+        return;
       }
+
+      await playAudioBlob(audioBlob, audioRef, {
+        onFinish: () => setIsSpeaking(false),
+      });
+
+      if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
     } catch (error: any) {
-      if (!(error?.name === 'AbortError' || error?.message?.includes('aborted'))) {
-        console.error('Error en síntesis de voz con ElevenLabs:', error);
+      if (!isTTSAbortError(error)) {
+        console.error('Error en sÃ­ntesis de voz con ElevenLabs:', error);
       }
       setIsSpeaking(false);
     }
   }, [isVoiceEnabled, language, stopAllAudio, cleanTextForTTS, liaSettings]);
 
-  // Initialize speech recognition
   useEffect(() => {
     if (typeof window === 'undefined') return;
 

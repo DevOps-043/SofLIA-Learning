@@ -139,9 +139,11 @@ Paso 7: Cierre y próximos pasos
 ### ElevenLabs (Producción)
 
 ```env
-NEXT_PUBLIC_ELEVENLABS_API_KEY=tu_api_key
-NEXT_PUBLIC_ELEVENLABS_VOICE_ID=ay4iqk10DLwc8KGSrf2t
+ELEVENLABS_API_KEY=tu_api_key
+ELEVENLABS_VOICE_ID=ay4iqk10DLwc8KGSrf2t
 ```
+
+El frontend debe consumir la voz a travÃ©s del proxy server-side `/api/tts` para no exponer secretos en cliente.
 
 **Optimizaciones aplicadas:**
 

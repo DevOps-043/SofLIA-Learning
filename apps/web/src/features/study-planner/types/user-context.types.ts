@@ -309,6 +309,9 @@ export interface CourseAssignment {
   assignedBy?: string;
   status: AssignmentStatus | 'active';
   completionPercentage: number;
+  completedLessons?: number;
+  totalLessons?: number;
+  lastAccessedAt?: string;
   source: 'organization' | 'team' | 'purchase';
 }
 
@@ -481,8 +484,6 @@ export interface UserContext {
   studyPreferences?: StudyPreferences;
   /** Integración de calendario */
   calendarIntegration?: CalendarIntegration;
-  /** Rutas de aprendizaje activas */
-  learningRoutes?: LearningRoute[];
 }
 
 // ============================================================================
@@ -678,4 +679,3 @@ export type SofLIAAnalysisResponse = ApiResponse<{
  * Respuesta de plan de estudio
  */
 export type StudyPlanResponse = ApiResponse<StudyPlan>;
-

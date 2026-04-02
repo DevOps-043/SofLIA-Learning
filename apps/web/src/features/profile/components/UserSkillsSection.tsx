@@ -3,8 +3,8 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Award, TrendingUp, Filter, Eye, EyeOff } from 'lucide-react'
-import { SkillBadgeList } from '@/features/skills/components/SkillBadgeList'
-import { SkillLevel, getLevelInfo } from '@/features/skills/constants/skillLevels'
+import { SkillBadgeList } from '../../skills/components/SkillBadgeList'
+import { SkillLevel, getLevelInfo } from '../../skills/constants/skillLevels'
 
 interface UserSkill {
   id: string
@@ -203,4 +203,3 @@ export function UserSkillsSection({
     </div>
   )
 }
-

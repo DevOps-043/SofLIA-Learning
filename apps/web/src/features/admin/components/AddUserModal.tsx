@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
+import {
   XMarkIcon,
   UserIcon,
   EnvelopeIcon,
@@ -20,6 +20,7 @@ import {
   CheckCircleIcon,
   LockClosedIcon
 } from '@heroicons/react/24/outline'
+import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
 
 interface AddUserModalProps {
   isOpen: boolean
@@ -37,9 +38,9 @@ function RoleSelect({ value, onChange }: { value: string; onChange: (value: stri
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   const roles = [
-    { value: 'Usuario', label: 'Usuario', icon: UserIcon, color: '#10B981' },
-    { value: 'Instructor', label: 'Instructor', icon: AcademicCapIcon, color: '#F59E0B' },
-    { value: 'Administrador', label: 'Administrador', icon: ShieldCheckIcon, color: '#0A2540' }
+    { value: 'Usuario', label: 'Usuario', icon: UserIcon, color: SOFLIA_ADMIN_COLORS.success },
+    { value: 'Instructor', label: 'Instructor', icon: AcademicCapIcon, color: SOFLIA_ADMIN_COLORS.warning },
+    { value: 'Administrador', label: 'Administrador', icon: ShieldCheckIcon, color: SOFLIA_ADMIN_COLORS.primary }
   ]
 
   const selectedRole = roles.find(r => r.value === value) || roles[0]

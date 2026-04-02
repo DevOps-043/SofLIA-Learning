@@ -20,9 +20,8 @@ import {
   Brain
 } from 'lucide-react'
 import Image from 'next/image'
-import { ReportType } from '@/app/api/[orgSlug]/business/reports/data/route'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useThemeStore } from '../../../core/stores/themeStore'
 import { PremiumSelect } from './PremiumSelect'
 import { ReportTable } from './ReportTable'
 import ReactMarkdown from 'react-markdown'
@@ -299,7 +298,7 @@ export function BusinessReports() {
                   <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.role')}</label>
                   <PremiumSelect
                     value={filters.role || 'all'}
-                    onValueChange={(value) => setFilters({ ...filters, role: value as any })}
+                    onValueChange={(value) => setFilters({ ...filters, role: value })}
                     placeholder={t('reports.filters.selectRole')}
                     options={[
                       { value: 'all', label: t('reports.status.all') },
@@ -313,7 +312,7 @@ export function BusinessReports() {
                   <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.status')}</label>
                   <PremiumSelect
                     value={filters.status || 'all'}
-                    onValueChange={(value) => setFilters({ ...filters, status: value as any })}
+                    onValueChange={(value) => setFilters({ ...filters, status: value })}
                     placeholder={t('reports.filters.selectStatus')}
                     options={[
                       { value: 'all', label: t('reports.status.all') },

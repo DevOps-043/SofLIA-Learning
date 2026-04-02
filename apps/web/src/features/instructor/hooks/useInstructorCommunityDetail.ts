@@ -1,39 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { InstructorCommunity } from '../services/instructorCommunities.service'
-
-export interface CommunityPost {
-  id: string
-  content: string
-  author_id: string
-  created_at: string
-  [key: string]: unknown
-}
-
-export interface CommunityMember {
-  id: string
-  user_id: string
-  role: string
-  joined_at: string
-  [key: string]: unknown
-}
-
-export interface CommunityAccessRequest {
-  id: string
-  user_id: string
-  status: string
-  created_at: string
-  [key: string]: unknown
-}
-
-export interface CommunityVideo {
-  id: string
-  title: string
-  url: string
-  created_at: string
-  [key: string]: unknown
-}
+import { useCallback, useEffect, useState } from 'react'
+import { InstructorCommunityDetailService } from '../services/instructorCommunityDetail.service'
+import type {
+  CommunityAccessRequest,
+  CommunityMember,
+  CommunityPost,
+  CommunityVideo,
+  InstructorCommunityDetailPayload
+} from '../types/instructor-community-detail.types'
+import type { InstructorCommunity } from '../services/instructorCommunities.service'
 
 interface InstructorCommunityDetailData {
   community: InstructorCommunity | null
@@ -43,109 +19,63 @@ interface InstructorCommunityDetailData {
   videos: CommunityVideo[]
   isLoading: boolean
   error: string | null
-  refetch: () => void
+  refetch: () => Promise<void>
   updateMembers: (updatedMembers: CommunityMember[]) => void
   updateAccessRequests: (updatedRequests: CommunityAccessRequest[]) => void
   updatePosts: (updatedPosts: CommunityPost[]) => void
+  updateVideos: (updatedVideos: CommunityVideo[]) => void
 }
 
+export type {
+  CommunityAccessRequest,
+  CommunityMember,
+  CommunityPost,
+  CommunityVideo
+} from '../types/instructor-community-detail.types'
+
 export function useInstructorCommunityDetail(slug: string): InstructorCommunityDetailData {
-  const [community, setCommunity] = useState<InstructorCommunity | null>(null)
-  const [posts, setPosts] = useState<CommunityPost[]>([])
-  const [members, setMembers] = useState<CommunityMember[]>([])
-  const [accessRequests, setAccessRequests] = useState<CommunityAccessRequest[]>([])
-  const [videos, setVideos] = useState<CommunityVideo[]>([])
+  const [detail, setDetail] = useState<InstructorCommunityDetailPayload | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchCommunityData = async () => {
-    if (!slug) return
+  const fetchCommunityData = useCallback(async () => {
+    if (!slug) {
+      return
+    }
 
     setIsLoading(true)
     setError(null)
 
     try {
-      // Fetch community basic info
-      const communityResponse = await fetch(`/api/instructor/communities/slug/${slug}`)
-      const communityData = await communityResponse.json()
-
-      if (!communityData.success) {
-        throw new Error(communityData.message || 'Error al obtener la comunidad')
-      }
-
-      setCommunity(communityData.community)
-
-      // Fetch related data if community exists
-      if (communityData.community) {
-        const communityId = communityData.community.id
-
-        // Fetch posts
-        const postsResponse = await fetch(`/api/admin/communities/${communityId}/posts`)
-        const postsData = await postsResponse.json()
-        if (postsData.success) {
-          setPosts(postsData.posts)
-        }
-
-        // Fetch members
-        const membersResponse = await fetch(`/api/admin/communities/${communityId}/members`)
-        const membersData = await membersResponse.json()
-        if (membersData.success) {
-          setMembers(membersData.members)
-        }
-
-        // Fetch access requests
-        const requestsResponse = await fetch(`/api/admin/communities/${communityId}/access-requests`)
-        const requestsData = await requestsResponse.json()
-        if (requestsData.success) {
-          setAccessRequests(requestsData.requests)
-        }
-
-        // Fetch videos
-        const videosResponse = await fetch(`/api/admin/communities/${communityId}/videos`)
-        const videosData = await videosResponse.json()
-        if (videosData.success) {
-          setVideos(videosData.videos)
-        }
-      }
+      const payload = await InstructorCommunityDetailService.getCommunityDetail(slug)
+      setDetail(payload)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar los datos')
     } finally {
       setIsLoading(false)
     }
-  }
-
-  useEffect(() => {
-    fetchCommunityData()
   }, [slug])
 
-  const refetch = () => {
-    fetchCommunityData()
-  }
+  useEffect(() => {
+    void fetchCommunityData()
+  }, [fetchCommunityData])
 
-  const updateMembers = (updatedMembers: CommunityMember[]) => {
-    setMembers(updatedMembers)
-  }
-
-  const updateAccessRequests = (updatedRequests: CommunityAccessRequest[]) => {
-    setAccessRequests(updatedRequests)
-  }
-
-  const updatePosts = (updatedPosts: CommunityPost[]) => {
-    setPosts(updatedPosts)
-  }
+  const updateDetail = useCallback((updater: (current: InstructorCommunityDetailPayload) => InstructorCommunityDetailPayload) => {
+    setDetail(current => (current ? updater(current) : current))
+  }, [])
 
   return {
-    community,
-    posts,
-    members,
-    accessRequests,
-    videos,
+    community: detail?.community || null,
+    posts: detail?.posts || [],
+    members: detail?.members || [],
+    accessRequests: detail?.accessRequests || [],
+    videos: detail?.videos || [],
     isLoading,
     error,
-    refetch,
-    updateMembers,
-    updateAccessRequests,
-    updatePosts
+    refetch: fetchCommunityData,
+    updateMembers: updatedMembers => updateDetail(current => ({ ...current, members: updatedMembers })),
+    updateAccessRequests: updatedRequests => updateDetail(current => ({ ...current, accessRequests: updatedRequests })),
+    updatePosts: updatedPosts => updateDetail(current => ({ ...current, posts: updatedPosts })),
+    updateVideos: updatedVideos => updateDetail(current => ({ ...current, videos: updatedVideos }))
   }
 }
-

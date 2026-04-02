@@ -1,5 +1,6 @@
-import { OAuthProvider } from '@/features/auth/types/oauth.types';
-import { GOOGLE_OAUTH_CONFIG, getGoogleAuthUrl } from './google';
+import { OAuthProvider } from '../../features/auth/types/oauth.types';
+import { getGoogleAuthUrl } from './google';
+import { getMicrosoftAuthUrl } from './microsoft';
 
 export interface OAuthProviderConfig {
   name: string;
@@ -34,6 +35,13 @@ export const OAUTH_PROVIDERS: Record<OAuthProvider, OAuthProviderConfig> = {
     getAuthUrl: () => {
       throw new Error('Facebook OAuth no implementado aún');
     },
+  },
+  microsoft: {
+    name: 'microsoft',
+    displayName: 'Microsoft',
+    icon: 'microsoft',
+    color: '#0078D4',
+    getAuthUrl: (state) => getMicrosoftAuthUrl(state || ''),
   },
 };
 

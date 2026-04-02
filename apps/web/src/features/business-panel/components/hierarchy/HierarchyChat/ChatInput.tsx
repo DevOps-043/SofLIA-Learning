@@ -14,8 +14,8 @@ interface ChatInputProps {
   onEmojiCategoryChange: (category: EmojiCategory) => void
   onEmojiSelect: (emoji: string) => void
   onFileClick: () => void
-  fileInputRef: React.RefObject<HTMLInputElement>
-  emojiPickerRef: React.RefObject<HTMLDivElement>
+  fileInputRef: React.RefObject<HTMLInputElement | null>
+  emojiPickerRef: React.RefObject<HTMLDivElement | null>
   onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   primaryColor: string
   isDark: boolean

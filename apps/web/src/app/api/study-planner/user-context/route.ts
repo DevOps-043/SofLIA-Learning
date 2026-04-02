@@ -1,74 +1,45 @@
 /**
  * API Endpoint: User Context for Study Planner
- * 
+ *
  * GET /api/study-planner/user-context
- * 
+ *
  * Obtiene el contexto completo del usuario para el planificador de estudios,
  * incluyendo tipo (B2B/B2C), perfil profesional, cursos y preferencias.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { SessionService } from '../../../../features/auth/services/session.service';
-import { UserContextService } from '../../../../features/study-planner/services/user-context.service';
-import { CourseAnalysisService } from '../../../../features/study-planner/services/course-analysis.service';
-import type { UserContext, UserContextResponse } from '../../../../features/study-planner/types/user-context.types';
+import { NextRequest, NextResponse } from 'next/server'
+import { SessionService } from '../../../../features/auth/services/session.service'
+import { buildStudyPlannerUserContext } from '../../../../features/study-planner/services/study-planner-user-context.server.service'
+import type { UserContextResponse } from '../../../../features/study-planner/types/user-context.types'
 
-export async function GET(request: NextRequest): Promise<NextResponse<UserContextResponse>> {
+export async function GET(
+  _request: NextRequest,
+): Promise<NextResponse<UserContextResponse>> {
   try {
-    // Verificar autenticación
-    const user = await SessionService.getCurrentUser();
+    const user = await SessionService.getCurrentUser()
 
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'No autenticado' },
-        { status: 401 }
-      );
+        { status: 401 },
+      )
     }
 
-    // Obtener contexto completo del usuario
-    const userContext = await UserContextService.getFullUserContext(user.id);
-
-    // Enriquecer con información adicional de cursos si es necesario
-    const enrichedCourses = await Promise.all(
-      userContext.courses.map(async (courseAssignment) => {
-        // Calcular tiempo restante para cada curso
-        const progress = await CourseAnalysisService.getUserCourseProgress(
-          user.id,
-          courseAssignment.courseId
-        );
-
-        return {
-          ...courseAssignment,
-          completionPercentage: progress.progressPercentage,
-          completedLessons: progress.completedLessons,
-          totalLessons: progress.totalLessons,
-          lastAccessedAt: progress.lastAccessedAt,
-        };
-      })
-    );
-
-    const enrichedContext: UserContext = {
-      ...userContext,
-      userId: user.id, // Incluir userId para detectar cambios de sesión
-      courses: enrichedCourses as any,
-    };
+    const userContext = await buildStudyPlannerUserContext(user.id)
 
     return NextResponse.json({
       success: true,
-      data: enrichedContext,
-    });
-
+      data: userContext,
+    })
   } catch (error) {
-    console.error('❌ [user-context] Error COMPLETO:', error);
-    console.error('❌ [user-context] Error stack:', error instanceof Error ? error.stack : 'No stack');
-    console.error('❌ [user-context] Error message:', error instanceof Error ? error.message : String(error));
+    console.error('[user-context] Error:', error)
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Error interno del servidor'
+        error: error instanceof Error ? error.message : 'Error interno del servidor',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }

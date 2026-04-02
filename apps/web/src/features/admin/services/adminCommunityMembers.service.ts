@@ -1,24 +1,33 @@
 import { createClient } from '../../../lib/supabase/server'
 import { logger } from '../../../lib/logger'
+import type { CommunityUserRow } from './adminCommunities.types'
+import { communityMembersTable, communityUsersTable } from './adminCommunities.db'
+
+function buildCommunityUserFallback(userId: string) {
+  return {
+    id: userId,
+    display_name: 'Usuario no encontrado',
+    first_name: 'Usuario',
+    last_name: 'No encontrado',
+    email: 'email@noencontrado.com',
+    profile_picture_url: null,
+    cargo_rol: 'Usuario'
+  }
+}
+
+function buildCommunityUserMap(users: CommunityUserRow[] | null | undefined) {
+  return new Map((users || []).map(user => [user.id, user]))
+}
 
 export class AdminCommunityMembersService {
-  /**
-   * Overload 1 (paginated): used by admin API routes that need pagination.
-   * Returns full member objects including user details.
-   */
   static async getCommunityMembers(communityId: string, page: number, limit: number): Promise<any[]>
-  /**
-   * Overload 2 (simple): used internally when only basic info is needed.
-   */
   static async getCommunityMembers(communityId: string): Promise<Array<{ id: string, name: string, role: string, joined_at: string }>>
   static async getCommunityMembers(communityId: string, page?: number, limit?: number): Promise<any[]> {
     const supabase = await createClient()
 
-    // Paginated variant
     if (page !== undefined && limit !== undefined) {
       try {
-        const { data: members, error } = await supabase
-          .from('community_members')
+        const { data: members, error } = await communityMembersTable(supabase)
           .select(`
             id,
             role,
@@ -37,64 +46,52 @@ export class AdminCommunityMembersService {
         }
 
         if (!members || members.length === 0) {
-          logger.debug('No members found for community', { communityId })
           return []
         }
 
         const userIds = [...new Set(members.map(member => member.user_id))]
-
-        const { data: users, error: usersError } = await supabase
-          .from('users')
+        const { data: users, error: usersError } = await communityUsersTable(supabase)
           .select('id, display_name, first_name, last_name, email, profile_picture_url, cargo_rol')
           .in('id', userIds)
 
         if (usersError) {
-          logger.error('Error fetching users for members', { error: usersError.message })
+          logger.error('Error fetching users for members', { error: usersError.message, communityId })
           return members.map(member => ({
             ...member,
-            users: {
-              id: member.user_id,
-              display_name: 'Usuario no encontrado',
-              first_name: 'Usuario',
-              last_name: 'No encontrado',
-              email: 'email@noencontrado.com',
-              profile_picture_url: null,
-              cargo_rol: 'Usuario'
-            }
+            users: buildCommunityUserFallback(member.user_id)
           }))
         }
 
+        const usersById = buildCommunityUserMap(users)
+
         return members.map(member => {
-          const user = users?.find(u => u.id === member.user_id)
+          const user = usersById.get(member.user_id)
+          const resolvedUser = user || buildCommunityUserFallback(member.user_id)
+
           return {
             ...member,
-            name: user?.display_name || `${user?.first_name} ${user?.last_name}` || 'Usuario no encontrado',
-            users: user || {
-              id: member.user_id,
-              display_name: 'Usuario no encontrado',
-              first_name: 'Usuario',
-              last_name: 'No encontrado',
-              email: 'email@noencontrado.com',
-              profile_picture_url: null,
-              cargo_rol: 'Usuario'
-            }
+            name: resolvedUser.display_name ||
+              `${resolvedUser.first_name || ''} ${resolvedUser.last_name || ''}`.trim() ||
+              'Usuario no encontrado',
+            users: resolvedUser
           }
         })
       } catch (error) {
-        logger.error('Error in AdminCommunitiesService.getCommunityMembers', { error: error instanceof Error ? error.message : String(error), communityId })
+        logger.error('Error in AdminCommunitiesService.getCommunityMembers', {
+          error: error instanceof Error ? error.message : String(error),
+          communityId
+        })
         return []
       }
     }
 
-    // Simple variant (no pagination)
     try {
-      const { data, error } = await supabase
-        .from('community_members')
+      const { data: members, error } = await communityMembersTable(supabase)
         .select(`
           id,
           role,
           joined_at,
-          users!inner(display_name, first_name, last_name)
+          user_id
         `)
         .eq('community_id', communityId)
         .eq('is_active', true)
@@ -105,16 +102,42 @@ export class AdminCommunityMembersService {
         throw error
       }
 
-      return (data || []).map(member => ({
-        id: member.id,
-        name: member.users?.display_name ||
-              `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.trim() ||
-              'Usuario sin nombre',
-        role: member.role,
-        joined_at: member.joined_at
-      }))
+      const activeMembers = members || []
+      if (activeMembers.length === 0) {
+        return []
+      }
+
+      const userIds = [...new Set(activeMembers.map(member => member.user_id))]
+      const { data: users, error: usersError } = await communityUsersTable(supabase)
+        .select('id, display_name, first_name, last_name')
+        .in('id', userIds)
+
+      if (usersError) {
+        logger.error('Error fetching users for active community members', {
+          error: usersError.message,
+          communityId
+        })
+      }
+
+      const usersById = buildCommunityUserMap(users)
+
+      return activeMembers.map(member => {
+        const user = usersById.get(member.user_id)
+
+        return {
+          id: member.id,
+          name: user?.display_name ||
+            `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
+            'Usuario sin nombre',
+          role: member.role,
+          joined_at: member.joined_at
+        }
+      })
     } catch (error) {
-      logger.error('Error in AdminCommunitiesService.getCommunityMembers', { error: error instanceof Error ? error.message : String(error), communityId })
+      logger.error('Error in AdminCommunitiesService.getCommunityMembers', {
+        error: error instanceof Error ? error.message : String(error),
+        communityId
+      })
       throw error
     }
   }

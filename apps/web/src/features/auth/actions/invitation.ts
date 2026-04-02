@@ -1,209 +1,367 @@
-'use server';
+'use server'
 
-import { z } from 'zod';
-import crypto from 'crypto';
-import { cookies } from 'next/headers';
-import { createClient } from '../../../lib/supabase/server';
-import { emailService } from '../services/email.service';
-import { logger } from '../../../lib/logger';
+import { createHash, randomBytes } from 'crypto'
+import { cookies } from 'next/headers'
+import { z } from 'zod'
 
-// ============================================================================
-// SCHEMAS DE VALIDACIÓN
-// ============================================================================
+import { logger } from '../../../lib/logger'
+import { fromLoose } from '../../../lib/supabase/looseQuery'
+import { createClient } from '../../../lib/supabase/server'
+import { emailService } from '../services/email.service'
 
 const inviteUserSchema = z.object({
-  email: z.string().email('Email inválido'),
+  email: z.string().email('Email invalido'),
   role: z.enum(['owner', 'admin', 'member']).default('member'),
-  organizationId: z.string().uuid('ID de organización inválido'),
+  organizationId: z.string().uuid('ID de organizacion invalido'),
   customMessage: z.string().max(500).optional(),
   position: z.string().max(100).optional(),
-});
+})
 
 const validateInvitationSchema = z.object({
-  token: z.string().min(64, 'Token inválido').max(64, 'Token inválido'),
-});
+  token: z.string().min(64, 'Token invalido').max(64, 'Token invalido'),
+})
 
-// ============================================================================
-// TIPOS
-// ============================================================================
+type InvitationRole = z.infer<typeof inviteUserSchema>['role']
+type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'revoked'
 
 interface InviteResult {
-  success: boolean;
-  error?: string;
-  invitationId?: string;
+  success: boolean
+  error?: string
+  invitationId?: string
 }
 
 interface ValidateResult {
-  valid: boolean;
-  email?: string;
-  role?: string;
-  position?: string;
-  organizationId?: string;
-  organizationName?: string;
-  organizationSlug?: string;
-  error?: string;
+  valid: boolean
+  email?: string
+  role?: string
+  position?: string
+  organizationId?: string
+  organizationName?: string
+  organizationSlug?: string
+  error?: string
 }
 
 interface ConsumeResult {
-  success: boolean;
-  error?: string;
+  success: boolean
+  error?: string
 }
 
 interface FindInvitationResult {
-  hasInvitation: boolean;
-  role?: string;
-  position?: string;
-  error?: string;
+  hasInvitation: boolean
+  role?: string
+  position?: string
+  error?: string
 }
 
-// ============================================================================
-// ACTION: ENVIAR INVITACIÓN
-// ============================================================================
+interface UserRow {
+  id: string
+  cargo_rol?: string | null
+}
+
+interface OrganizationRow {
+  id?: string
+  name?: string | null
+  slug?: string | null
+  logo_url?: string | null
+}
+
+interface OrganizationUserRow {
+  id: string
+}
+
+interface OrganizationUserWrite {
+  organization_id: string
+  user_id: string
+  role: string
+  status: string
+  joined_at: string
+}
+
+interface UserInvitationMetadata {
+  position?: string | null
+  custom_message?: string | null
+}
+
+interface UserInvitationRow {
+  id: string
+  email: string
+  token: string
+  role: string
+  status: InvitationStatus | string
+  expires_at: string
+  organization_id: string
+  metadata: UserInvitationMetadata | null
+  created_at: string | null
+  organizations?: OrganizationRow | null
+}
+
+interface UserInvitationWrite {
+  email?: string
+  token?: string
+  role?: string
+  organization_id?: string
+  expires_at?: string
+  metadata?: UserInvitationMetadata | null
+  status?: string
+  accepted_at?: string
+}
+
+interface UserSessionRow {
+  user_id: string
+}
+
+interface RefreshTokenRow {
+  user_id: string
+}
+
+interface BulkInviteLinkRow {
+  id: string
+  role: string | null
+  max_uses: number | null
+  current_uses: number | null
+  expires_at: string
+  status: string
+  organization_id: string
+}
+
+interface BulkInviteLinkWrite {
+  status?: string
+  current_uses?: number
+}
+
+interface BulkInviteRegistrationWrite {
+  bulk_invite_link_id: string
+  user_id: string
+}
+
+function usersTable(client: unknown) {
+  return fromLoose<UserRow, Partial<UserRow>>(client, 'users')
+}
+
+function organizationsTable(client: unknown) {
+  return fromLoose<OrganizationRow>(client, 'organizations')
+}
+
+function organizationUsersTable(client: unknown) {
+  return fromLoose<OrganizationUserRow, OrganizationUserWrite>(
+    client,
+    'organization_users'
+  )
+}
+
+function userInvitationsTable(client: unknown) {
+  return fromLoose<UserInvitationRow, UserInvitationWrite>(
+    client,
+    'user_invitations'
+  )
+}
+
+function userSessionsTable(client: unknown) {
+  return fromLoose<UserSessionRow>(client, 'user_session')
+}
+
+function refreshTokensTable(client: unknown) {
+  return fromLoose<RefreshTokenRow>(client, 'refresh_tokens')
+}
+
+function bulkInviteLinksTable(client: unknown) {
+  return fromLoose<BulkInviteLinkRow, BulkInviteLinkWrite>(
+    client,
+    'bulk_invite_links'
+  )
+}
+
+function bulkInviteRegistrationsTable(client: unknown) {
+  return fromLoose<never, BulkInviteRegistrationWrite>(
+    client,
+    'bulk_invite_registrations'
+  )
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase()
+}
+
+function isInvitationToken(value: string) {
+  return value.length === 64 && /^[a-f0-9]+$/i.test(value)
+}
+
+function getInvitationPosition(metadata?: UserInvitationMetadata | null) {
+  return metadata?.position ?? undefined
+}
+
+async function resolveAuthenticatedUserId(supabase: unknown) {
+  const cookieStore = await cookies()
+  const sessionCookie = cookieStore.get('aprende-y-aplica-session')
+
+  if (sessionCookie?.value) {
+    const { data: session } = await userSessionsTable(supabase)
+      .select('user_id')
+      .eq('jwt_id', sessionCookie.value)
+      .eq('revoked', false)
+      .gt('expires_at', new Date().toISOString())
+      .single()
+
+    if (session?.user_id) {
+      return session.user_id
+    }
+  }
+
+  const refreshTokenCookie = cookieStore.get('refresh_token')
+  const accessTokenCookie = cookieStore.get('access_token')
+
+  if (!refreshTokenCookie?.value || !accessTokenCookie?.value) {
+    return null
+  }
+
+  const tokenHash = createHash('sha256')
+    .update(refreshTokenCookie.value)
+    .digest('hex')
+
+  const { data: refreshToken } = await refreshTokensTable(supabase)
+    .select('user_id')
+    .eq('token_hash', tokenHash)
+    .eq('is_revoked', false)
+    .gt('expires_at', new Date().toISOString())
+    .single()
+
+  return refreshToken?.user_id ?? null
+}
 
 export async function inviteUserAction(
-  input: {
-    email: string;
-    role?: 'owner' | 'admin' | 'member';
-    organizationId: string;
-    customMessage?: string;
-    position?: string;
-  } | FormData
+  input:
+    | {
+        email: string
+        role?: InvitationRole
+        organizationId: string
+        customMessage?: string
+        position?: string
+      }
+    | FormData
 ): Promise<InviteResult> {
   try {
-    // 1. Parsear y validar datos
-    let data: z.infer<typeof inviteUserSchema>;
+    const data =
+      input instanceof FormData
+        ? inviteUserSchema.parse({
+            email: input.get('email'),
+            role: input.get('role') || 'member',
+            organizationId: input.get('organizationId'),
+            customMessage: input.get('customMessage') || undefined,
+            position: input.get('position') || undefined,
+          })
+        : inviteUserSchema.parse({
+            ...input,
+            role: input.role || 'member',
+          })
 
-    if (input instanceof FormData) {
-      data = inviteUserSchema.parse({
-        email: input.get('email'),
-        role: input.get('role') || 'member',
-        organizationId: input.get('organizationId'),
-        customMessage: input.get('customMessage') || undefined,
-        position: input.get('position') || undefined,
-      });
-    } else {
-      data = inviteUserSchema.parse({
-        ...input,
-        role: input.role || 'member',
-      });
-    }
+    const supabase = await createClient()
+    const normalizedEmail = normalizeEmail(data.email)
 
-    const supabase = await createClient();
-
-    // 2. Verificar que el email no esté ya registrado en la organización
-    const { data: existingUser } = await supabase
-      .from('users')
+    const { data: existingUser } = await usersTable(supabase)
       .select('id')
       .ilike('email', data.email.trim())
-      .single();
+      .single()
 
     if (existingUser) {
-      // Verificar si ya está en la organización
-      const { data: orgUser } = await supabase
-        .from('organization_users')
+      const { data: orgUser } = await organizationUsersTable(supabase)
         .select('id')
         .eq('user_id', existingUser.id)
         .eq('organization_id', data.organizationId)
-        .single();
+        .single()
 
       if (orgUser) {
-        return { success: false, error: 'Este usuario ya pertenece a la organización' };
+        return {
+          success: false,
+          error: 'Este usuario ya pertenece a la organizacion',
+        }
       }
     }
 
-    // 3. Verificar si ya existe invitación pendiente
-    const { data: existingInvitation } = await supabase
-      .from('user_invitations')
+    const { data: existingInvitation } = await userInvitationsTable(supabase)
       .select('id')
       .ilike('email', data.email.trim())
       .eq('organization_id', data.organizationId)
       .eq('status', 'pending')
-      .single();
+      .single()
 
     if (existingInvitation) {
-      return { success: false, error: 'Ya existe una invitación pendiente para este email' };
+      return {
+        success: false,
+        error: 'Ya existe una invitacion pendiente para este email',
+      }
     }
 
-    // 4. Generar token seguro (64 caracteres hexadecimales)
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 días
+    const token = randomBytes(32).toString('hex')
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    // 5. Crear invitación
-    const { data: invitation, error: insertError } = await supabase
-      .from('user_invitations')
+    const { data: invitation, error: insertError } = await userInvitationsTable(
+      supabase
+    )
       .insert({
-        email: data.email.toLowerCase().trim(),
+        email: normalizedEmail,
         token,
         role: data.role,
         organization_id: data.organizationId,
         expires_at: expiresAt.toISOString(),
         metadata: {
-          position: data.position || null,
-          custom_message: data.customMessage || null,
+          position: data.position ?? null,
+          custom_message: data.customMessage ?? null,
         },
       })
       .select('id')
-      .single();
+      .single()
 
-    if (insertError) {
-      logger.error('Error creando invitación:', insertError);
-      return { success: false, error: 'Error al crear invitación' };
+    if (insertError || !invitation) {
+      logger.error('Error creating invitation:', insertError)
+      return { success: false, error: 'Error al crear invitacion' }
     }
 
-    // 6. Obtener info de organización para el email
-    const { data: org } = await supabase
-      .from('organizations')
+    const { data: organization } = await organizationsTable(supabase)
       .select('name, slug, logo_url')
       .eq('id', data.organizationId)
-      .single();
+      .single()
 
-    // 7. Enviar email de invitación
     try {
       await emailService.sendOrganizationInvitationEmail(
         data.email,
         token,
-        org?.name || 'Organización',
-        org?.slug || '',
+        organization?.name ?? 'Organizacion',
+        organization?.slug ?? '',
         data.customMessage,
-        org?.logo_url || undefined
-      );
+        organization?.logo_url ?? undefined
+      )
 
-      logger.info('Invitación enviada exitosamente', {
+      logger.info('Invitation sent successfully', {
         email: data.email,
         organizationId: data.organizationId,
         invitationId: invitation.id,
-      });
+      })
     } catch (emailError) {
-      // Log error pero no fallar la invitación (ya está creada en DB)
-      logger.error('Error enviando email de invitación:', emailError);
-      // La invitación existe, el admin puede reenviarla después
+      logger.error('Error sending invitation email:', emailError)
     }
 
-    return { success: true, invitationId: invitation.id };
+    return {
+      success: true,
+      invitationId: invitation.id,
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { success: false, error: error.errors[0].message };
+      return { success: false, error: error.errors[0]?.message ?? 'Datos invalidos' }
     }
-    logger.error('Error en inviteUserAction:', error);
-    return { success: false, error: 'Error procesando invitación' };
+
+    logger.error('Error in inviteUserAction:', error)
+    return { success: false, error: 'Error procesando invitacion' }
   }
 }
-
-// ============================================================================
-// ACTION: VALIDAR TOKEN DE INVITACIÓN
-// ============================================================================
 
 export async function validateInvitationAction(
   token: string
 ): Promise<ValidateResult> {
   try {
-    const parsed = validateInvitationSchema.parse({ token });
+    const parsed = validateInvitationSchema.parse({ token })
+    const supabase = await createClient()
 
-    const supabase = await createClient();
-
-    // 1. Buscar invitación por token con JOIN a organizations
-    const { data: invitation, error } = await supabase
-      .from('user_invitations')
+    const { data: invitation, error } = await userInvitationsTable(supabase)
       .select(`
         id,
         email,
@@ -220,59 +378,48 @@ export async function validateInvitationAction(
         )
       `)
       .eq('token', parsed.token)
-      .single();
+      .single()
 
     if (error || !invitation) {
-      return { valid: false, error: 'Invitación no encontrada' };
+      return { valid: false, error: 'Invitacion no encontrada' }
     }
 
-    // 2. Verificar estado
     if (invitation.status !== 'pending') {
       if (invitation.status === 'accepted') {
-        return { valid: false, error: 'Esta invitación ya fue utilizada' };
+        return { valid: false, error: 'Esta invitacion ya fue utilizada' }
       }
       if (invitation.status === 'revoked') {
-        return { valid: false, error: 'Esta invitación fue revocada' };
+        return { valid: false, error: 'Esta invitacion fue revocada' }
       }
-      return { valid: false, error: 'Esta invitación ya no es válida' };
+      return { valid: false, error: 'Esta invitacion ya no es valida' }
     }
 
-    // 3. Verificar expiración
     if (new Date(invitation.expires_at) < new Date()) {
-      // Marcar como expirada
-      await supabase
-        .from('user_invitations')
+      await userInvitationsTable(supabase)
         .update({ status: 'expired' })
-        .eq('id', invitation.id);
+        .eq('id', invitation.id)
 
-      return { valid: false, error: 'Esta invitación ha expirado' };
+      return { valid: false, error: 'Esta invitacion ha expirado' }
     }
-
-    // 4. Retornar datos de la invitación
-    const org = invitation.organizations as any;
-    const metadata = invitation.metadata as any;
 
     return {
       valid: true,
       email: invitation.email,
       role: invitation.role,
-      position: metadata?.position || undefined,
+      position: getInvitationPosition(invitation.metadata),
       organizationId: invitation.organization_id,
-      organizationName: org?.name,
-      organizationSlug: org?.slug,
-    };
+      organizationName: invitation.organizations?.name ?? undefined,
+      organizationSlug: invitation.organizations?.slug ?? undefined,
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return { valid: false, error: 'Token inválido' };
+      return { valid: false, error: 'Token invalido' }
     }
-    logger.error('Error en validateInvitationAction:', error);
-    return { valid: false, error: 'Error validando invitación' };
+
+    logger.error('Error in validateInvitationAction:', error)
+    return { valid: false, error: 'Error validando invitacion' }
   }
 }
-
-// ============================================================================
-// ACTION: CONSUMIR INVITACIÓN (marcar como aceptada)
-// ============================================================================
 
 export async function consumeInvitationAction(
   tokenOrEmail: string,
@@ -280,196 +427,174 @@ export async function consumeInvitationAction(
   userId: string
 ): Promise<ConsumeResult> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    // Buscar por token o por email
-    let invitation;
-
-    // Si parece un token (64 chars hex)
-    if (tokenOrEmail.length === 64 && /^[a-f0-9]+$/i.test(tokenOrEmail)) {
-      const { data } = await supabase
-        .from('user_invitations')
-        .select('id, email, role, organization_id')
-        .eq('token', tokenOrEmail)
-        .eq('status', 'pending')
-        .single();
-      invitation = data;
-    } else {
-      // Buscar por email
-      const { data } = await supabase
-        .from('user_invitations')
-        .select('id, email, role, organization_id')
-        .ilike('email', tokenOrEmail.trim())
-        .eq('organization_id', organizationId)
-        .eq('status', 'pending')
-        .single();
-      invitation = data;
-    }
+    const { data: invitation } = isInvitationToken(tokenOrEmail)
+      ? await userInvitationsTable(supabase)
+          .select('id, email, role, organization_id')
+          .eq('token', tokenOrEmail)
+          .eq('status', 'pending')
+          .single()
+      : await userInvitationsTable(supabase)
+          .select('id, email, role, organization_id')
+          .ilike('email', tokenOrEmail.trim())
+          .eq('organization_id', organizationId)
+          .eq('status', 'pending')
+          .single()
 
     if (!invitation) {
-      // No es un error crítico si no se encuentra - puede que ya fue consumida
-      logger.warn('Invitación no encontrada para consumir', { tokenOrEmail, organizationId });
-      return { success: true }; // Retornamos success para no bloquear el registro
+      logger.warn('Invitation not found during consume', {
+        tokenOrEmail,
+        organizationId,
+      })
+      return { success: true }
     }
 
-    // Marcar como aceptada
-    const { error: updateError } = await supabase
-      .from('user_invitations')
+    const { error: updateError } = await userInvitationsTable(supabase)
       .update({
         status: 'accepted',
         accepted_at: new Date().toISOString(),
       })
-      .eq('id', invitation.id);
+      .eq('id', invitation.id)
 
     if (updateError) {
-      logger.error('Error actualizando invitación:', updateError);
-      return { success: false, error: 'Error actualizando invitación' };
+      logger.error('Error updating invitation:', updateError)
+      return { success: false, error: 'Error actualizando invitacion' }
     }
 
-    logger.info('Invitación consumida exitosamente', {
+    logger.info('Invitation consumed successfully', {
       invitationId: invitation.id,
       userId,
       organizationId,
-    });
+    })
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    logger.error('Error en consumeInvitationAction:', error);
-    return { success: false, error: 'Error consumiendo invitación' };
+    logger.error('Error in consumeInvitationAction:', error)
+    return { success: false, error: 'Error consumiendo invitacion' }
   }
 }
-
-// ============================================================================
-// ACTION: BUSCAR INVITACIÓN POR EMAIL (para SSO/registro manual)
-// ============================================================================
 
 export async function findInvitationByEmailAction(
   email: string,
   organizationId: string
 ): Promise<FindInvitationResult> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    const { data: invitation } = await supabase
-      .from('user_invitations')
+    const { data: invitation } = await userInvitationsTable(supabase)
       .select('id, role, expires_at, metadata')
       .ilike('email', email.trim())
       .eq('organization_id', organizationId)
       .eq('status', 'pending')
-      .single();
+      .single()
 
     if (!invitation) {
-      return { hasInvitation: false };
+      return { hasInvitation: false }
     }
 
-    // Verificar expiración
     if (new Date(invitation.expires_at) < new Date()) {
-      // Marcar como expirada
-      await supabase
-        .from('user_invitations')
+      await userInvitationsTable(supabase)
         .update({ status: 'expired' })
-        .eq('id', invitation.id);
+        .eq('id', invitation.id)
 
-      return { hasInvitation: false, error: 'La invitación ha expirado' };
+      return { hasInvitation: false, error: 'La invitacion ha expirado' }
     }
 
-    // Extraer position del metadata
-    const metadata = invitation.metadata as { position?: string } | null;
-    const position = metadata?.position || undefined;
-
-    return { hasInvitation: true, role: invitation.role, position };
+    return {
+      hasInvitation: true,
+      role: invitation.role,
+      position: getInvitationPosition(invitation.metadata),
+    }
   } catch (error) {
-    logger.error('Error en findInvitationByEmailAction:', error);
-    return { hasInvitation: false, error: 'Error buscando invitación' };
+    logger.error('Error in findInvitationByEmailAction:', error)
+    return { hasInvitation: false, error: 'Error buscando invitacion' }
   }
 }
-
-// ============================================================================
-// ACTION: REVOCAR INVITACIÓN
-// ============================================================================
 
 export async function revokeInvitationAction(
   invitationId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    const { error } = await supabase
-      .from('user_invitations')
+    const { error } = await userInvitationsTable(supabase)
       .update({ status: 'revoked' })
       .eq('id', invitationId)
-      .eq('status', 'pending');
+      .eq('status', 'pending')
 
     if (error) {
-      return { success: false, error: 'Error revocando invitación' };
+      return { success: false, error: 'Error revocando invitacion' }
     }
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    logger.error('Error en revokeInvitationAction:', error);
-    return { success: false, error: 'Error revocando invitación' };
+    logger.error('Error in revokeInvitationAction:', error)
+    return { success: false, error: 'Error revocando invitacion' }
   }
 }
-
-// ============================================================================
-// ACTION: LISTAR INVITACIONES DE UNA ORGANIZACIÓN
-// ============================================================================
 
 export async function listOrganizationInvitationsAction(
   organizationId: string,
-  status?: 'pending' | 'accepted' | 'expired' | 'revoked'
+  status?: InvitationStatus
 ): Promise<{
-  success: boolean;
+  success: boolean
   invitations?: Array<{
-    id: string;
-    email: string;
-    role: string;
-    status: string;
-    created_at: string;
-    expires_at: string;
-    metadata: any;
-  }>;
-  error?: string;
+    id: string
+    email: string
+    role: string
+    status: string
+    created_at: string
+    expires_at: string
+    metadata: UserInvitationMetadata | null
+  }>
+  error?: string
 }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    let query = supabase
-      .from('user_invitations')
+    let query = userInvitationsTable(supabase)
       .select('id, email, role, status, created_at, expires_at, metadata')
       .eq('organization_id', organizationId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
 
     if (status) {
-      query = query.eq('status', status);
+      query = query.eq('status', status)
     }
 
-    const { data: invitations, error } = await query;
+    const { data: invitations, error } = await query
 
     if (error) {
-      return { success: false, error: 'Error obteniendo invitaciones' };
+      return { success: false, error: 'Error obteniendo invitaciones' }
     }
 
-    return { success: true, invitations: invitations || [] };
+    return {
+      success: true,
+      invitations: (invitations ?? []).map((invitation) => ({
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        status: invitation.status,
+        created_at: invitation.created_at ?? '',
+        expires_at: invitation.expires_at,
+        metadata: invitation.metadata,
+      })),
+    }
   } catch (error) {
-    logger.error('Error en listOrganizationInvitationsAction:', error);
-    return { success: false, error: 'Error listando invitaciones' };
+    logger.error('Error in listOrganizationInvitationsAction:', error)
+    return { success: false, error: 'Error listando invitaciones' }
   }
 }
-
-// ============================================================================
-// ACTION: REENVIAR INVITACIÓN
-// ============================================================================
 
 export async function resendInvitationAction(
   invitationId: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    // Obtener invitación
-    const { data: invitation, error: fetchError } = await supabase
-      .from('user_invitations')
+    const { data: invitation, error: fetchError } = await userInvitationsTable(
+      supabase
+    )
       .select(`
         id,
         email,
@@ -484,120 +609,79 @@ export async function resendInvitationAction(
         )
       `)
       .eq('id', invitationId)
-      .single();
+      .single()
 
     if (fetchError || !invitation) {
-      return { success: false, error: 'Invitación no encontrada' };
+      return { success: false, error: 'Invitacion no encontrada' }
     }
 
     if (invitation.status !== 'pending') {
-      return { success: false, error: 'Solo se pueden reenviar invitaciones pendientes' };
+      return {
+        success: false,
+        error: 'Solo se pueden reenviar invitaciones pendientes',
+      }
     }
 
-    // Generar nuevo token y extender expiración
-    const newToken = crypto.randomBytes(32).toString('hex');
-    const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const newToken = randomBytes(32).toString('hex')
+    const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
-    const { error: updateError } = await supabase
-      .from('user_invitations')
+    const { error: updateError } = await userInvitationsTable(supabase)
       .update({
         token: newToken,
         expires_at: newExpiry.toISOString(),
       })
-      .eq('id', invitationId);
+      .eq('id', invitationId)
 
     if (updateError) {
-      return { success: false, error: 'Error actualizando invitación' };
+      return { success: false, error: 'Error actualizando invitacion' }
     }
-
-    // Reenviar email
-    const org = invitation.organizations as any;
-    const customMessage = (invitation.metadata as any)?.custom_message;
 
     try {
       await emailService.sendOrganizationInvitationEmail(
         invitation.email,
         newToken,
-        org?.name || 'Organización',
-        org?.slug || '',
-        customMessage,
-        org?.logo_url || undefined
-      );
+        invitation.organizations?.name ?? 'Organizacion',
+        invitation.organizations?.slug ?? '',
+        invitation.metadata?.custom_message ?? undefined,
+        invitation.organizations?.logo_url ?? undefined
+      )
     } catch (emailError) {
-      logger.error('Error reenviando email:', emailError);
-      return { success: false, error: 'Error enviando email' };
+      logger.error('Error resending invitation email:', emailError)
+      return { success: false, error: 'Error enviando email' }
     }
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    logger.error('Error en resendInvitationAction:', error);
-    return { success: false, error: 'Error reenviando invitación' };
+    logger.error('Error in resendInvitationAction:', error)
+    return { success: false, error: 'Error reenviando invitacion' }
   }
 }
-
-// ============================================================================
-// ACTION: CONSUMIR INVITACIÓN MASIVA (link de invitación)
-// ============================================================================
 
 export async function consumeBulkInvitationAction(
   token: string,
   userId: string
 ): Promise<{ success: boolean; error?: string; organizationSlug?: string }> {
   try {
-    const supabase = await createClient();
+    const supabase = await createClient()
+    const authenticatedUserId = await resolveAuthenticatedUserId(supabase)
 
-    // SECURITY: Verificar que el userId proporcionado coincide con la sesión activa del servidor.
-    // Esta función es un Server Action y puede ser invocada directamente desde el cliente,
-    // por lo que NO debemos confiar ciegamente en el userId recibido como parámetro.
-    const cookieStore = await cookies();
-    let authenticatedUserId: string | null = null;
-
-    // Sistema legacy
-    const sessionCookie = cookieStore.get('aprende-y-aplica-session');
-    if (sessionCookie) {
-      const { data: session } = await supabase
-        .from('user_session')
-        .select('user_id')
-        .eq('jwt_id', sessionCookie.value)
-        .eq('revoked', false)
-        .gt('expires_at', new Date().toISOString())
-        .single();
-      if (session?.user_id) authenticatedUserId = session.user_id;
-    }
-
-    // Sistema nuevo (refresh tokens)
     if (!authenticatedUserId) {
-      const refreshTokenCookie = cookieStore.get('refresh_token');
-      const accessTokenCookie = cookieStore.get('access_token');
-      if (refreshTokenCookie && accessTokenCookie) {
-        const tokenHash = crypto.createHash('sha256').update(refreshTokenCookie.value).digest('hex');
-        const { data: tokenData } = await supabase
-          .from('refresh_tokens')
-          .select('user_id')
-          .eq('token_hash', tokenHash)
-          .eq('is_revoked', false)
-          .gt('expires_at', new Date().toISOString())
-          .single();
-        if (tokenData?.user_id) authenticatedUserId = tokenData.user_id;
+      logger.warn('consumeBulkInvitationAction called without a valid session')
+      return {
+        success: false,
+        error: 'No autenticado. Por favor inicia sesion.',
       }
     }
 
-    if (!authenticatedUserId) {
-      logger.warn('consumeBulkInvitationAction called without valid session');
-      return { success: false, error: 'No autenticado. Por favor inicia sesión.' };
-    }
-
     if (authenticatedUserId !== userId) {
-      logger.error('consumeBulkInvitationAction userId mismatch', {
+      logger.error('consumeBulkInvitationAction user mismatch', {
         sessionUser: authenticatedUserId,
-        requestedUser: userId
-      });
-      return { success: false, error: 'No autorizado.' };
+        requestedUser: userId,
+      })
+      return { success: false, error: 'No autorizado.' }
     }
 
-    // 1. Validar el enlace de invitación
-    const { data: link, error: linkError } = await supabase
-      .from('bulk_invite_links')
+    const { data: link, error: linkError } = await bulkInviteLinksTable(supabase)
       .select(`
         id,
         role,
@@ -608,100 +692,98 @@ export async function consumeBulkInvitationAction(
         organization_id
       `)
       .eq('token', token)
-      .single();
+      .single()
 
     if (linkError || !link) {
-      return { success: false, error: 'Enlace de invitación no encontrado' };
+      return { success: false, error: 'Enlace de invitacion no encontrado' }
     }
 
     if (link.status !== 'active') {
-      return { success: false, error: 'Este enlace de invitación no está activo' };
+      return { success: false, error: 'Este enlace de invitacion no esta activo' }
     }
 
     if (new Date(link.expires_at) <= new Date()) {
-      await supabase.from('bulk_invite_links').update({ status: 'expired' }).eq('id', link.id);
-      return { success: false, error: 'Este enlace de invitación ha expirado' };
+      await bulkInviteLinksTable(supabase)
+        .update({ status: 'expired' })
+        .eq('id', link.id)
+
+      return { success: false, error: 'Este enlace de invitacion ha expirado' }
     }
 
-    if (link.current_uses >= link.max_uses) {
-      await supabase.from('bulk_invite_links').update({ status: 'exhausted' }).eq('id', link.id);
-      return { success: false, error: 'Este enlace ha alcanzado el límite de registros' };
+    const currentUses = link.current_uses ?? 0
+    const maxUses = link.max_uses ?? Number.POSITIVE_INFINITY
+
+    if (currentUses >= maxUses) {
+      await bulkInviteLinksTable(supabase)
+        .update({ status: 'exhausted' })
+        .eq('id', link.id)
+
+      return {
+        success: false,
+        error: 'Este enlace ha alcanzado el limite de registros',
+      }
     }
 
-    // 2. Verificar que el usuario existe
-    const { data: user, error: userError } = await supabase
-      .from('users')
+    const { data: user, error: userError } = await usersTable(supabase)
       .select('id')
       .eq('id', userId)
-      .single();
+      .single()
 
     if (userError || !user) {
-      return { success: false, error: 'Usuario no encontrado' };
+      return { success: false, error: 'Usuario no encontrado' }
     }
 
-    // 3. Verificar si ya pertenece a la organización
-    const { data: existingMember } = await supabase
-      .from('organization_users')
+    const { data: existingMember } = await organizationUsersTable(supabase)
       .select('id')
       .eq('user_id', userId)
       .eq('organization_id', link.organization_id)
-      .single();
+      .single()
 
     if (existingMember) {
-      return { success: false, error: 'Ya perteneces a esta organización' };
+      return { success: false, error: 'Ya perteneces a esta organizacion' }
     }
 
-    // 4. Unir al usuario a la organización
-    const { error: insertError } = await supabase
-      .from('organization_users')
-      .insert({
-        organization_id: link.organization_id,
-        user_id: userId,
-        role: link.role || 'member',
-        status: 'active',
-        joined_at: new Date().toISOString(),
-      });
+    const { error: insertError } = await organizationUsersTable(supabase).insert({
+      organization_id: link.organization_id,
+      user_id: userId,
+      role: link.role ?? 'member',
+      status: 'active',
+      joined_at: new Date().toISOString(),
+    })
 
     if (insertError) {
-      logger.error('Error al unir usuario a organización (bulk):', insertError);
-      return { success: false, error: 'Error al unirte a la organización' };
+      logger.error('Error joining user to organization from bulk invite:', insertError)
+      return { success: false, error: 'Error al unirte a la organizacion' }
     }
 
-    // 5. Actualizar cargo_rol del usuario
-    await supabase
-      .from('users')
+    await usersTable(supabase)
       .update({ cargo_rol: 'Business' })
       .eq('id', userId)
-      .neq('cargo_rol', 'Administrador');
+      .neq('cargo_rol', 'Administrador')
 
-    // 6. Incrementar contador de usos
-    await supabase
-      .from('bulk_invite_links')
-      .update({ current_uses: link.current_uses + 1 })
-      .eq('id', link.id);
+    await bulkInviteLinksTable(supabase)
+      .update({ current_uses: currentUses + 1 })
+      .eq('id', link.id)
 
-    // 7. Registrar unión
-    await supabase
-      .from('bulk_invite_registrations')
-      .insert({
-        bulk_invite_link_id: link.id,
-        user_id: userId,
-      });
+    await bulkInviteRegistrationsTable(supabase).insert({
+      bulk_invite_link_id: link.id,
+      user_id: userId,
+    })
 
-    // 8. Obtener slug de organización
-    const { data: org } = await supabase
-      .from('organizations')
+    const { data: organization } = await organizationsTable(supabase)
       .select('slug')
       .eq('id', link.organization_id)
-      .single();
+      .single()
 
     return {
       success: true,
-      organizationSlug: org?.slug || undefined
-    };
-
+      organizationSlug: organization?.slug ?? undefined,
+    }
   } catch (error) {
-    logger.error('Error en consumeBulkInvitationAction:', error);
-    return { success: false, error: 'Error interno al procesar invitación' };
+    logger.error('Error in consumeBulkInvitationAction:', error)
+    return {
+      success: false,
+      error: 'Error interno al procesar invitacion',
+    }
   }
 }

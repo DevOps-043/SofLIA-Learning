@@ -1,6 +1,7 @@
 export { useAdminStats } from './useAdminStats'
 export { useAdminUsers } from './useAdminUsers'
 export { useAdminWorkshops } from './useAdminWorkshops'
+export { useAdminWorkshopsPageLogic } from './useAdminWorkshopsPageLogic'
 export { useAdminCommunities, useCommunitiesPaginated } from './useAdminCommunities'
 export { useAdminApps } from './useAdminApps'
 export { useAdminNews } from './useAdminNews'

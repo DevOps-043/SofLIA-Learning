@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Clock, CheckCircle, Calendar, BarChart3, PieChart } from 'lucide-react'
 import { useLearningStats } from '../../hooks/useUserStatsB2B'
 import { BarChartComponent, PieChartComponent, GroupedBarChartComponent, EmptyState } from './charts'
+import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
 
 export function LearningTab() {
   const { data, isLoading, error } = useLearningStats()
@@ -66,8 +67,8 @@ export function LearningTab() {
               data={stats.sessionsPlannedVsCompleted}
               nameKey="week"
               keys={[
-                { key: 'planned', label: 'Planificadas', color: '#3B82F6' },
-                { key: 'completed', label: 'Completadas', color: '#10B981' },
+                { key: 'planned', label: 'Planificadas', color: SOFLIA_ADMIN_COLORS.info },
+                { key: 'completed', label: 'Completadas', color: SOFLIA_ADMIN_COLORS.success },
               ]}
             />
           ) : (

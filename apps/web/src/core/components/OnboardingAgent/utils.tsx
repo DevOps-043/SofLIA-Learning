@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { clearOnboardingSeen, hasSeenOnboarding } from './onboarding-agent/storage';
 
 /**
  * Utilidad para resetear el onboarding
@@ -8,8 +9,7 @@ import React from 'react';
  */
 export function resetOnboarding() {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem('has-seen-onboarding');
-
+    clearOnboardingSeen(window.localStorage);
   }
 }
 
@@ -18,7 +18,7 @@ export function resetOnboarding() {
  */
 export function useHasSeenOnboarding() {
   if (typeof window === 'undefined') return true;
-  return localStorage.getItem('has-seen-onboarding') === 'true';
+  return hasSeenOnboarding(window.localStorage);
 }
 
 /**

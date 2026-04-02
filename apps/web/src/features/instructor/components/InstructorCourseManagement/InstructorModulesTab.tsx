@@ -1,6 +1,6 @@
 import { Plus, ChevronDown, ChevronRight, Clock, FileText, ClipboardList, Edit3, Trash2 } from 'lucide-react'
-import type { AdminModule } from '@/features/admin/services/adminModules.service'
-import type { AdminLesson } from '@/features/admin/services/adminLessons.service'
+import type { AdminModule } from '../../../admin/services/adminModules.service'
+import type { AdminLesson } from '../../../admin/services/adminLessons.service'
 import type { InstructorModulesTabProps } from './types'
 
 export function InstructorModulesTab({

@@ -20,7 +20,7 @@ export function JoyrideTooltip({
   step,
   tooltipProps,
   size,
-}: TooltipRenderProps): React.ReactNode {
+}: TooltipRenderProps): React.JSX.Element {
   // Extract onClick handlers to ensure they are called properly
   const handleClose = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -72,7 +72,7 @@ export function JoyrideTooltip({
           <h3
             className="text-lg font-bold leading-tight text-gray-900 dark:text-white"
           >
-            {typeof step.title === 'object' && 'props' in step.title 
+            {step.title && typeof step.title === 'object' && 'props' in step.title 
               ? step.title.props.children[1]?.props?.children || step.title
               : step.title}
           </h3>

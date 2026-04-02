@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+import { fetchStudyPlannerUserContext } from '../services/planner-user-context-client.service';
 
 import type {
   StudyApproach,
@@ -36,90 +37,6 @@ interface UseStudyPlannerInitializationFlowParams {
   setUserContext: StateSetter<StudyPlannerUserContext | null>;
 }
 
-interface StudyPlannerUserContextApiResponse {
-  data?: {
-    courses?: any[];
-    professionalProfile?: {
-      area?: { nombre?: string | null } | null;
-      nivel?: { nombre?: string | null } | null;
-      rol?: { nombre?: string | null } | null;
-      tamanoEmpresa?: {
-        maxEmpleados?: number | null;
-        minEmpleados?: number | null;
-        nombre?: string | null;
-      } | null;
-    } | null;
-    organization?: { name?: string | null } | null;
-    user?: {
-      displayName?: string | null;
-      firstName?: string | null;
-      username?: string | null;
-    } | null;
-    userId?: string | null;
-    userType?: string | null;
-    workTeams?: Array<{ name?: string | null; role?: string | null }> | null;
-  };
-  success?: boolean;
-}
-
-function mapAssignedCourses(courses: any[] | undefined): StudyPlannerAssignedCourse[] {
-  if (!Array.isArray(courses)) {
-    return [];
-  }
-
-  return courses
-    .map((course) => ({
-      courseId: course.courseId || course.course?.id || course.id,
-      dueDate: course.dueDate || course.course?.dueDate || null,
-      title: course.course?.title || course.title || 'Curso',
-    }))
-    .filter((course) => Boolean(course.courseId))
-    .sort((a, b) => {
-      if (a.dueDate && b.dueDate) {
-        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      }
-
-      if (a.dueDate && !b.dueDate) {
-        return -1;
-      }
-
-      if (!a.dueDate && b.dueDate) {
-        return 1;
-      }
-
-      return 0;
-    });
-}
-
-function mapUserContext(userProfile: StudyPlannerUserContextApiResponse['data']): StudyPlannerUserContext | null {
-  if (!userProfile) {
-    return null;
-  }
-
-  const workTeams =
-    userProfile.workTeams?.map((team) => ({
-      name: team.name || 'Equipo',
-      role: team.role || 'member',
-    })) || null;
-
-  return {
-    area: userProfile.professionalProfile?.area?.nombre || null,
-    maxEmpleados: userProfile.professionalProfile?.tamanoEmpresa?.maxEmpleados || null,
-    minEmpleados: userProfile.professionalProfile?.tamanoEmpresa?.minEmpleados || null,
-    nivel: userProfile.professionalProfile?.nivel?.nombre || null,
-    organizationName: userProfile.organization?.name || null,
-    rol: userProfile.professionalProfile?.rol?.nombre || null,
-    tamanoEmpresa: userProfile.professionalProfile?.tamanoEmpresa?.nombre || null,
-    userName:
-      userProfile.user?.firstName ||
-      userProfile.user?.displayName ||
-      userProfile.user?.username ||
-      null,
-    userType: 'b2b',
-    workTeams,
-  };
-}
-
 export function useStudyPlannerInitializationFlow({
   currentUserId,
   getAnalyzeCalendarAndSuggest,
@@ -139,37 +56,32 @@ export function useStudyPlannerInitializationFlow({
   useEffect(() => {
     const checkUserAndCalendarStatus = async () => {
       try {
-        const userResponse = await fetch('/api/study-planner/user-context');
-        if (userResponse.ok) {
-          const userData = (await userResponse.json()) as StudyPlannerUserContextApiResponse;
-          const userId = userData.data?.userId;
+        const userData = await fetchStudyPlannerUserContext();
+        const userId = userData.userId;
 
-          if (currentUserId && userId && currentUserId !== userId) {
-            setConnectedCalendar(null);
-            setUserContext(null);
-            setConversationHistory([]);
-            setShowConversation(true);
-            setIsVisible(false);
-            hasAttemptedOpenRef.current = false;
-            setHasShownFinalSummary(false);
-            setSavedLessonDistribution([]);
-          }
+        if (currentUserId && userId && currentUserId !== userId) {
+          setConnectedCalendar(null);
+          setUserContext(null);
+          setConversationHistory([]);
+          setShowConversation(true);
+          setIsVisible(false);
+          hasAttemptedOpenRef.current = false;
+          setHasShownFinalSummary(false);
+          setSavedLessonDistribution([]);
+        }
 
-          if (userId) {
-            setCurrentUserId(userId);
-          }
+        if (userId) {
+          setCurrentUserId(userId);
+        }
 
-          if (userData.success && userData.data) {
-            const assignedCourses = mapAssignedCourses(userData.data.courses);
+        if (userData.success) {
+          setUserContext(userData.userContext);
+          setAssignedCourses(userData.assignedCourses);
 
-            setUserContext(mapUserContext(userData.data));
-            setAssignedCourses(assignedCourses);
-
-            if (assignedCourses.length > 0) {
-              setSelectedCourseIds(
-                assignedCourses.map((course) => course.courseId).filter(Boolean),
-              );
-            }
+          if (userData.assignedCourses.length > 0) {
+            setSelectedCourseIds(
+              userData.assignedCourses.map((course) => course.courseId).filter(Boolean),
+            );
           }
         }
 

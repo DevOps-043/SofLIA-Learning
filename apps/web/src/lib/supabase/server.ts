@@ -2,148 +2,59 @@ import 'server-only'
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getSupabaseRuntimeConfig } from './config'
+import { createServerCookieAdapter, type SupabaseCookieAdapter } from './cookies'
 import type { Database } from './types'
 
 /**
- * ⚡ OPTIMIZACIÓN: Connection Pooling integrado
- *
- * ESTRATEGIA:
- * - Para Server Components con cookies (auth): Usa createServerClient con pooling
- * - Reutiliza clientes basados en clave de autenticación
- * - Reduce overhead de creación de ~50-100ms a ~0ms en cache hits
- *
- * NOTA: El pooling en server-side reutiliza objetos de cliente, no conexiones DB
- * (Supabase ya maneja connection pooling a nivel de base de datos con PgBouncer)
+ * Server-side Supabase clients must remain request-scoped.
+ * Caching client instances by auth cookies is fragile and can leak request
+ * context or stale cookie adapters across concurrent renders.
  */
 
-// Cache simple en memoria para clientes del servidor (con cookies)
-const serverClientCache = new Map<string, any>()
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutos
-const cacheTimestamps = new Map<string, number>()
-
-let cacheHits = 0
-let cacheMisses = 0
+const SERVER_CLIENT_STATS = {
+  hits: 0,
+  misses: 0,
+  hitRate: '0.00%',
+  size: 0,
+  maxSize: 0,
+  cacheKeys: 0,
+  mode: 'stateless',
+} as const
 
 export async function createClient() {
   const cookieStore = await cookies()
+  const { url, anonKey } = getSupabaseRuntimeConfig()
+  const cookieAdapter = createServerCookieAdapter(cookieStore as unknown as {
+    getAll(): ReadonlyArray<{ name: string; value: string }>
+    set?(name: string, value: string, options?: Record<string, unknown>): void
+  })
 
-  // Validar que las variables de entorno estén definidas
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      `Variables de entorno faltantes:
-      NEXT_PUBLIC_SUPABASE_URL: ${supabaseUrl ? '✅' : '❌'}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${supabaseAnonKey ? '✅' : '❌'}
-
-      Asegúrate de crear apps/web/.env.local con:
-      NEXT_PUBLIC_SUPABASE_URL=https://miwbzotcuaywpdbidpwo.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_aqui`
-    )
-  }
-
-  // ⚡ OPTIMIZACIÓN: Generar cache key basado en cookies de autenticación
-  // Esto permite reutilizar el cliente para el mismo usuario
-  const authCookies = cookieStore.getAll()
-    .filter(c => c.name.includes('supabase') || c.name.includes('auth'))
-    .map(c => `${c.name}=${c.value}`)
-    .sort()
-    .join('|')
-
-  const cacheKey = `${supabaseUrl}:${authCookies || 'anonymous'}`
-
-  // Verificar si hay un cliente en cache y si no ha expirado
-  const cachedClient = serverClientCache.get(cacheKey)
-  const cacheTime = cacheTimestamps.get(cacheKey) || 0
-  const now = Date.now()
-
-  if (cachedClient && (now - cacheTime) < CACHE_TTL) {
-    cacheHits++
-    if (process.env.NODE_ENV === 'development') {
-      const hitRate = ((cacheHits / (cacheHits + cacheMisses)) * 100).toFixed(2)
-    }
-    return cachedClient
-  }
-
-  // Si expiró, eliminar del cache
-  if (cachedClient) {
-    serverClientCache.delete(cacheKey)
-    cacheTimestamps.delete(cacheKey)
-  }
-
-  cacheMisses++
-  if (process.env.NODE_ENV === 'development') {
-    const hitRate = cacheHits + cacheMisses > 0
-      ? ((cacheHits / (cacheHits + cacheMisses)) * 100).toFixed(2)
-      : '0.00'
-  }
-
-  // ✅ OPTIMIZACIÓN: Crear nuevo cliente con configuración optimizada
-  const client = createServerClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            )
-          } catch {
-            // Server Component - ignore
-          }
-        },
-      },
+  return createServerClient<Database>(
+    url,
+    anonKey,
+    ({
+      cookies: cookieAdapter as SupabaseCookieAdapter,
       auth: {
         autoRefreshToken: true,
-        persistSession: false, // Server-side no necesita persistencia
+        persistSession: false,
       },
       db: {
         schema: 'public',
       },
       global: {
         headers: {
-          'x-server-client-pool': 'true',
+          'x-server-client-pool': 'stateless',
         },
       },
-    }
+    } as never)
   )
-
-  // Guardar en cache
-  serverClientCache.set(cacheKey, client)
-  cacheTimestamps.set(cacheKey, now)
-
-  // Limitar tamaño del cache (máximo 50 clientes)
-  if (serverClientCache.size > 50) {
-    // Eliminar el más antiguo
-    const oldestKey = Array.from(cacheTimestamps.entries())
-      .sort((a, b) => a[1] - b[1])[0][0]
-    serverClientCache.delete(oldestKey)
-    cacheTimestamps.delete(oldestKey)
-  }
-
-  return client
 }
 
 /**
- * Obtener estadísticas del pool de clientes del servidor
- * Útil para monitoreo y debugging
+ * Kept for observability endpoints that already report pool metrics.
+ * The server client is now stateless by design.
  */
 export function getServerClientPoolStats() {
-  const hitRate = cacheHits + cacheMisses > 0
-    ? ((cacheHits / (cacheHits + cacheMisses)) * 100).toFixed(2)
-    : '0.00'
-
-  return {
-    hits: cacheHits,
-    misses: cacheMisses,
-    hitRate: `${hitRate}%`,
-    size: serverClientCache.size,
-    maxSize: 50,
-    cacheKeys: Array.from(serverClientCache.keys()).length
-  }
+  return { ...SERVER_CLIENT_STATS }
 }

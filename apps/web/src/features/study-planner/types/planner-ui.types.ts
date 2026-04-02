@@ -21,7 +21,7 @@ export interface StudyPlannerWorkTeamSummary {
 }
 
 export interface StudyPlannerUserContext {
-  userType: 'b2b' | null;
+  userType: UserType | null;
   userName: string | null;
   rol: string | null;
   area: string | null;

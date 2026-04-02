@@ -1,13 +1,13 @@
 'use client'
 
 import { ArrowLeft, Book, Settings, Eye, BarChart3, CheckCircle2, AlertTriangle } from 'lucide-react'
-import { ModuleModal } from '@/features/admin/components/ModuleModal'
-import { LessonModal } from '@/features/admin/components/LessonModal'
-import { MaterialModal } from '@/features/admin/components/MaterialModal'
-import { ActivityModal } from '@/features/admin/components/ActivityModal'
-import { CertificateTemplatePreview } from '@/features/admin/components/CertificateTemplatePreview'
-import { useInstructorCourseManagementLogic } from '@/features/instructor/hooks/useInstructorCourseManagementLogic'
-import type { AdminLesson } from '@/features/admin/services/adminLessons.service'
+import { ModuleModal } from '../../admin/components/ModuleModal'
+import { LessonModal } from '../../admin/components/LessonModal'
+import { MaterialModal } from '../../admin/components/MaterialModal'
+import { ActivityModal } from '../../admin/components/ActivityModal'
+import { CertificateTemplatePreview } from '../../admin/components/CertificateTemplatePreview'
+import { useInstructorCourseManagementLogic } from '../hooks/useInstructorCourseManagementLogic'
+import type { AdminLesson } from '../../admin/services/adminLessons.service'
 import {
   InstructorModulesTab,
   InstructorConfigTab,

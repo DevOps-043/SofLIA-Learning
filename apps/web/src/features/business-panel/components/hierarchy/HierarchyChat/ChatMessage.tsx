@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Edit2, Trash2, Paperclip, File, Image as ImageIcon, Download, Maximize2 } from 'lucide-react'
-import type { HierarchyChatMessage } from '@/features/business-panel/types/hierarchy.types'
+import type { HierarchyChatMessage } from '../../../types/hierarchy.types'
 import type { FileAttachment } from './types'
 
 interface ChatMessageProps {

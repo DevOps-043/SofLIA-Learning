@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { useThemeStore } from '@/core/stores/themeStore';
-import { useOrganizationStore } from '@/core/stores/organizationStore';
+import { useThemeStore } from '../../../core/stores/themeStore';
+import { useOrganizationStore } from '../../../core/stores/organizationStore';
 import { getThemeStylesForMode } from '../config/preset-themes';
 
 export interface OrganizationStyles {
@@ -40,10 +40,14 @@ export function useOrganizationStyles() {
   const urlOrgSlug = params?.orgSlug as string | undefined;
   
   // Usar el slug del store como fallback
-  const currentOrgSlug = useOrganizationStore(state => state.currentOrganization?.slug);
+  const currentOrgSlug = useOrganizationStore(
+    (state: ReturnType<typeof useOrganizationStore.getState>) => state.currentOrganization?.slug
+  );
   const orgSlug = urlOrgSlug || currentOrgSlug;
 
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
+  const resolvedTheme = useThemeStore(
+    (state: ReturnType<typeof useThemeStore.getState>) => state.resolvedTheme
+  );
   const [styles, setStyles] = useState<OrganizationStyles | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

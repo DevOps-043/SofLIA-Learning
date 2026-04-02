@@ -1,6 +1,6 @@
 import { LayoutDashboard, Users2, DollarSign, Star, Sigma, Briefcase, LineChart as LineChartIcon, ListChecks } from 'lucide-react'
-import { EnrollmentTrendChart, ProgressDistributionChart, EngagementScatterChart, CompletionRateChart, DonutPieChart } from '@/features/admin/components/AdvancedCharts'
-import type { AdminModule } from '@/features/admin/services/adminModules.service'
+import { EnrollmentTrendChart, ProgressDistributionChart, EngagementScatterChart, CompletionRateChart, DonutPieChart } from '../../../admin/components/AdvancedCharts'
+import type { AdminModule } from '../../../admin/services/adminModules.service'
 import type { InstructorStatsTabProps } from './types'
 
 export function InstructorStatsTab({ modules, userStats, enrolledUsers, statsLoading, chartData }: InstructorStatsTabProps) {

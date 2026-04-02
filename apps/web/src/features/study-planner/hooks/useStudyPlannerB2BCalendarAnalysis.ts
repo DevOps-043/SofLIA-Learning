@@ -9,12 +9,12 @@ import type {
 interface StudyPlannerB2BProfile {
   organization?: {
     name?: string | null;
-  };
+  } | null;
   professionalProfile?: {
-    area?: { nombre?: string | null };
-    nivel?: { nombre?: string | null };
-    rol?: { nombre?: string | null };
-  };
+    area?: { nombre?: string | null } | null;
+    nivel?: { nombre?: string | null } | null;
+    rol?: { nombre?: string | null } | null;
+  } | null;
 }
 
 interface StudyPlannerMetadataLesson {

@@ -1,241 +1,121 @@
-import { createClient } from '../../../lib/supabase/client'
+import {
+  PROFILE_CURRICULUM_ALLOWED_TYPES,
+  PROFILE_IMAGE_ALLOWED_TYPES,
+  PROFILE_UPLOAD_MAX_SIZE_BYTES,
+  normalizeUserStats,
+  resolveProfileApiError
+} from './profile.shared'
+import type { UpdateProfileRequest, UserProfile, UserStats } from '../types/profile.types'
 
-export interface UserProfile {
-  id: string
-  username: string
-  email: string
-  first_name: string
-  last_name: string
-  display_name: string
-  phone: string
-  bio: string
-  location: string
-  cargo_rol: string
-  type_rol: string
-  profile_picture_url: string
-  curriculum_url: string
-  linkedin_url: string
-  github_url: string
-  website_url: string
-  country_code: string
-  points: number
-  created_at: string
-  last_login_at: string
-  email_verified: boolean
+async function parseJsonResponse(response: Response) {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
 }
 
-export interface UpdateProfileRequest {
-  username?: string
-  email?: string
-  first_name?: string
-  last_name?: string
-  display_name?: string
-  phone?: string
-  bio?: string
-  location?: string
-  cargo_rol?: string
-  type_rol?: string
-  profile_picture_url?: string
-  curriculum_url?: string
-  linkedin_url?: string
-  github_url?: string
-  website_url?: string
-  country_code?: string
+async function ensureOk(response: Response, fallbackMessage: string) {
+  if (response.ok) {
+    return
+  }
+
+  const payload = await parseJsonResponse(response)
+  throw new Error(resolveProfileApiError(payload, fallbackMessage))
+}
+
+function validateUpload(file: File, allowedTypes: readonly string[], invalidTypeMessage: string) {
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error(invalidTypeMessage)
+  }
+
+  if (file.size > PROFILE_UPLOAD_MAX_SIZE_BYTES) {
+    throw new Error('El archivo es demasiado grande. Máximo 10MB.')
+  }
 }
 
 export class ProfileService {
-  static async getProfile(userId: string): Promise<UserProfile> {
-    try {
-      const supabase = createClient()
-      
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
+  static async getProfile(): Promise<UserProfile> {
+    const response = await fetch('/api/profile', {
+      method: 'GET',
+      credentials: 'include'
+    })
 
-      if (error) {
-        throw new Error(`Error al obtener perfil: ${error.message}`)
-      }
-
-      if (!data) {
-        throw new Error('Perfil no encontrado')
-      }
-
-      return {
-        id: data.id,
-        username: data.username || '',
-        email: data.email || '',
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        display_name: data.display_name || '',
-        phone: data.phone || '',
-        bio: data.bio || '',
-        location: data.location || '',
-        cargo_rol: data.cargo_rol || '',
-        type_rol: data.type_rol || '',
-        profile_picture_url: data.profile_picture_url || '',
-        curriculum_url: data.curriculum_url || '',
-        linkedin_url: data.linkedin_url || '',
-        github_url: data.github_url || '',
-        website_url: data.website_url || '',
-        country_code: data.country_code || '',
-        points: data.points || 0,
-        created_at: data.created_at,
-        last_login_at: data.last_login_at || data.created_at,
-        email_verified: data.email_verified || false
-      }
-    } catch (error) {
-      throw error
-    }
+    await ensureOk(response, 'Error al obtener el perfil')
+    return await response.json()
   }
 
-  static async updateProfile(userId: string, updates: UpdateProfileRequest): Promise<UserProfile> {
-    try {
-      const supabase = createClient()
-      
-      const { data, error } = await supabase
-        .from('users')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId)
-        .select()
-        .single()
+  static async getStats(): Promise<UserStats> {
+    const response = await fetch('/api/profile/stats', {
+      method: 'GET',
+      credentials: 'include'
+    })
 
-      if (error) {
-        throw new Error(`Error al actualizar perfil: ${error.message}`)
-      }
-
-      if (!data) {
-        throw new Error('Error al actualizar perfil')
-      }
-
-      return {
-        id: data.id,
-        username: data.username || '',
-        email: data.email || '',
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        display_name: data.display_name || '',
-        phone: data.phone || '',
-        bio: data.bio || '',
-        location: data.location || '',
-        cargo_rol: data.cargo_rol || '',
-        type_rol: data.type_rol || '',
-        profile_picture_url: data.profile_picture_url || '',
-        curriculum_url: data.curriculum_url || '',
-        linkedin_url: data.linkedin_url || '',
-        github_url: data.github_url || '',
-        website_url: data.website_url || '',
-        country_code: data.country_code || '',
-        points: data.points || 0,
-        created_at: data.created_at,
-        last_login_at: data.last_login_at || data.created_at,
-        email_verified: data.email_verified || false
-      }
-    } catch (error) {
-      throw error
+    if (!response.ok) {
+      return normalizeUserStats(null)
     }
+
+    return normalizeUserStats(await response.json())
   }
 
-  static async uploadProfilePicture(userId: string, file: File): Promise<string> {
-    try {
-      const supabase = createClient()
-      
-      // Validar tipo de archivo (coincide con configuración del bucket: image/png, image/jpeg, image/jpg, image/gif)
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error('Tipo de archivo no válido. Solo se permiten PNG, JPEG, JPG y GIF.')
-      }
+  static async updateProfile(updates: UpdateProfileRequest): Promise<UserProfile> {
+    const response = await fetch('/api/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify(updates)
+    })
 
-      // Validar tamaño (máximo 10MB según configuración del bucket)
-      const maxSize = 10 * 1024 * 1024 // 10MB
-      if (file.size > maxSize) {
-        throw new Error('El archivo es demasiado grande. Máximo 10MB.')
-      }
-      
-      // Generar nombre único para el archivo
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${userId}-${Date.now()}.${fileExt}`
-      const filePath = `profile-pictures/${fileName}`
-
-      // Subir archivo a Supabase Storage (bucket: avatars)
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
-      if (error) {
-        throw new Error(`Error al subir imagen: ${error.message}`)
-      }
-
-      // Obtener URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath)
-
-      // Actualizar perfil con nueva URL
-      await this.updateProfile(userId, { profile_picture_url: publicUrl })
-
-      return publicUrl
-    } catch (error) {
-      throw error
-    }
+    await ensureOk(response, 'Error al actualizar perfil')
+    return await response.json()
   }
 
-  static async uploadCurriculum(userId: string, file: File): Promise<string> {
-    try {
-      const supabase = createClient()
-      
-      // Generar nombre único para el archivo
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${userId}-cv-${Date.now()}.${fileExt}`
-      const filePath = `curriculums/${fileName}`
+  static async uploadProfilePicture(file: File): Promise<string> {
+    validateUpload(file, PROFILE_IMAGE_ALLOWED_TYPES, 'Tipo de archivo no válido. Solo se permiten PNG, JPEG, JPG y GIF.')
 
-      // Subir archivo a Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('curriculums')
-        .upload(filePath, file)
+    const formData = new FormData()
+    formData.append('file', file)
 
-      if (error) {
-        throw new Error(`Error al subir curriculum: ${error.message}`)
-      }
+    const response = await fetch('/api/profile/upload-picture', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
 
-      // Obtener URL pública
-      const { data: { publicUrl } } = supabase.storage
-        .from('curriculums')
-        .getPublicUrl(filePath)
-
-      // Actualizar perfil con nueva URL
-      await this.updateProfile(userId, { curriculum_url: publicUrl })
-
-      return publicUrl
-    } catch (error) {
-      throw error
-    }
+    await ensureOk(response, 'Error al subir imagen')
+    const payload = await response.json()
+    return payload.imageUrl
   }
 
-  static async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
-    try {
-      const response = await fetch('/api/profile/password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ currentPassword, newPassword })
-      });
+  static async uploadCurriculum(file: File): Promise<string> {
+    validateUpload(file, PROFILE_CURRICULUM_ALLOWED_TYPES, 'Tipo de archivo no válido. Solo se permiten PDF y documentos Word.')
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || 'Error al cambiar la contraseña');
-      }
-    } catch (error) {
-      throw error
-    }
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch('/api/profile/upload-curriculum', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    })
+
+    await ensureOk(response, 'Error al subir curriculum')
+    const payload = await response.json()
+    return payload.cvUrl
   }
 
+  static async changePassword(_userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const response = await fetch('/api/profile/password', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+      body: JSON.stringify({ currentPassword, newPassword })
+    })
+
+    await ensureOk(response, 'Error al cambiar la contraseña')
+  }
 }

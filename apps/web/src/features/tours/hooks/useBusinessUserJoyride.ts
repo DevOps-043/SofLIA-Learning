@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTourProgress } from './useTourProgress';
 import { businessUserJoyrideSteps, DASHBOARD_TOUR_ID } from '../config/business-user-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
-import { useTourRestart } from '@/core/contexts/TourRestartContext';
+import { useTourRestart } from '../../../core/contexts/TourRestartContext';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;

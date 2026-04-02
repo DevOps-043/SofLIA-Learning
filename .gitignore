@@ -101,6 +101,8 @@ logs
 
 # SQL
 *.sql
+!supabase/scripts/
+!supabase/scripts/*.sql
   
 # Backups  
 Backup*.sql  

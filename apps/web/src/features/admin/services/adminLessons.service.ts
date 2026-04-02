@@ -76,7 +76,7 @@ export class AdminLessonsService {
 
       // Obtener nombres de instructores y reconstruir URLs de Supabase Storage
       const lessonsWithInstructors = await Promise.all(
-        (data || []).map(async (lesson: any) => {
+        (data || []).map(async (lesson: AdminLesson) => {
           let instructorName = 'Instructor no asignado'
 
           if (lesson.instructor_id) {
@@ -87,8 +87,9 @@ export class AdminLessonsService {
               .single()
 
             if (instructor) {
-              instructorName = (instructor as any).display_name ||
-                `${(instructor as any).first_name || ''} ${(instructor as any).last_name || ''}`.trim() ||
+              const typedInstructor = instructor as { display_name?: string; first_name?: string; last_name?: string } | null
+              instructorName = typedInstructor?.display_name ||
+                `${typedInstructor?.first_name || ''} ${typedInstructor?.last_name || ''}`.trim() ||
                 'Instructor'
             }
           }
@@ -138,16 +139,18 @@ export class AdminLessonsService {
       }
 
       // Obtener nombre del instructor
-      if ((data as any)?.instructor_id) {
+      const typedData = data as { instructor_id?: string; instructor_name?: string } | null
+      if (typedData?.instructor_id) {
         const { data: instructor } = await supabase
           .from('users')
           .select('display_name, first_name, last_name')
-          .eq('id', (data as any).instructor_id)
+          .eq('id', typedData.instructor_id)
           .single()
 
         if (instructor) {
-          (data as any).instructor_name = (instructor as any).display_name ||
-            `${(instructor as any).first_name || ''} ${(instructor as any).last_name || ''}`.trim() ||
+          const typedInstructor = instructor as { display_name?: string; first_name?: string; last_name?: string } | null
+          typedData.instructor_name = typedInstructor?.display_name ||
+            `${typedInstructor?.first_name || ''} ${typedInstructor?.last_name || ''}`.trim() ||
             'Instructor'
         }
       }
@@ -217,7 +220,7 @@ export class AdminLessonsService {
           instructor_id: lessonData.instructor_id,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        } as any)
+        })
         .select()
         .single()
 
@@ -225,7 +228,7 @@ export class AdminLessonsService {
         throw error
       }
 
-      const createdLesson = data as any
+      const createdLesson = data as AdminLesson
 
       // Recalcular duración del módulo
       await this.updateModuleDuration(moduleId)
@@ -257,13 +260,14 @@ export class AdminLessonsService {
           .single()
 
         if (instructor) {
-          createdLesson.instructor_name = (instructor as any).display_name ||
-            `${(instructor as any).first_name || ''} ${(instructor as any).last_name || ''}`.trim() ||
+          const typedInstructor = instructor as { display_name?: string; first_name?: string; last_name?: string } | null
+          createdLesson.instructor_name = typedInstructor?.display_name ||
+            `${typedInstructor?.first_name || ''} ${typedInstructor?.last_name || ''}`.trim() ||
             'Instructor'
         }
       }
 
-      return createdLesson as AdminLesson
+      return createdLesson
     } catch (error) {
       throw error
     }
@@ -296,7 +300,7 @@ export class AdminLessonsService {
         videoProviderId = videoProviderId.substring(0, 50)
       }
 
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       }
 
@@ -321,7 +325,7 @@ export class AdminLessonsService {
         throw error
       }
 
-      const updatedLesson = data as any
+      const updatedLesson = data as AdminLesson
 
       // Recalcular duración del módulo
       if (updatedLesson?.module_id) {
@@ -337,13 +341,14 @@ export class AdminLessonsService {
           .single()
 
         if (instructor) {
-          updatedLesson.instructor_name = (instructor as any).display_name ||
-            `${(instructor as any).first_name || ''} ${(instructor as any).last_name || ''}`.trim() ||
+          const typedInstructor = instructor as { display_name?: string; first_name?: string; last_name?: string } | null
+          updatedLesson.instructor_name = typedInstructor?.display_name ||
+            `${typedInstructor?.first_name || ''} ${typedInstructor?.last_name || ''}`.trim() ||
             'Instructor'
         }
       }
 
-      return updatedLesson as AdminLesson
+      return updatedLesson
     } catch (error) {
       throw error
     }
@@ -370,7 +375,7 @@ export class AdminLessonsService {
       }
 
       // Recalcular duración del módulo si existía
-      const lessonData = lesson as any
+      const lessonData = lesson as AdminLesson | null
       if (lessonData?.module_id) {
         await this.updateModuleDuration(lessonData.module_id)
       }
@@ -439,8 +444,9 @@ export class AdminLessonsService {
         throw new Error('Lección no encontrada')
       }
 
+      const typedCurrentLesson = currentLesson as { is_published: boolean } | null
       const updateData = {
-        is_published: !(currentLesson as any).is_published,
+        is_published: !typedCurrentLesson?.is_published,
         updated_at: new Date().toISOString()
       }
       const { data, error } = await supabase
@@ -454,7 +460,7 @@ export class AdminLessonsService {
         throw error
       }
 
-      return (data as any) as AdminLesson
+      return data as AdminLesson
     } catch (error) {
       throw error
     }
@@ -470,11 +476,11 @@ export class AdminLessonsService {
         .select('lesson_id, duration_seconds')
         .eq('module_id', moduleId)
 
-      const lessonsList = lessons as any[] || []
-      const lessonIds = lessonsList.map((l: any) => l.lesson_id)
+      const lessonsList = lessons as { lesson_id: string; duration_seconds?: number }[] || []
+      const lessonIds = lessonsList.map((l) => l.lesson_id)
 
       // Sumar duración de videos (en segundos, convertidos a minutos)
-      const totalVideoSeconds = lessonsList.reduce((sum: number, lesson: any) => sum + (lesson.duration_seconds || 0), 0)
+      const totalVideoSeconds = lessonsList.reduce((sum: number, lesson) => sum + (lesson.duration_seconds || 0), 0)
       const videoMinutes = Math.round(totalVideoSeconds / 60)
 
       let materialsMinutes = 0
@@ -487,7 +493,7 @@ export class AdminLessonsService {
           .select('estimated_time_minutes')
           .in('lesson_id', lessonIds)
 
-        materialsMinutes = (materials as any[] || []).reduce((sum: number, m: any) => sum + (m.estimated_time_minutes || 0), 0)
+        materialsMinutes = (materials || []).reduce((sum: number, m: { estimated_time_minutes?: number }) => sum + (m.estimated_time_minutes || 0), 0)
 
         // Sumar tiempo estimado de actividades
         const { data: activities } = await supabase
@@ -495,7 +501,7 @@ export class AdminLessonsService {
           .select('estimated_time_minutes')
           .in('lesson_id', lessonIds)
 
-        activitiesMinutes = (activities as any[] || []).reduce((sum: number, a: any) => sum + (a.estimated_time_minutes || 0), 0)
+        activitiesMinutes = (activities || []).reduce((sum: number, a: { estimated_time_minutes?: number }) => sum + (a.estimated_time_minutes || 0), 0)
       }
 
       // Total = videos + materiales + actividades
@@ -518,8 +524,9 @@ export class AdminLessonsService {
         .eq('module_id', moduleId)
         .single()
 
-      if ((module as any)?.course_id) {
-        await this.updateCourseDuration((module as any).course_id)
+      const typedModule = module as { course_id?: string; module_duration_minutes?: number } | null
+      if (typedModule?.course_id) {
+        await this.updateCourseDuration(typedModule.course_id)
       }
     } catch (error) {
       throw error
@@ -536,7 +543,7 @@ export class AdminLessonsService {
         .select('module_duration_minutes')
         .eq('course_id', courseId)
 
-      const totalMinutes = (modules as any[])?.reduce((sum: number, module: any) => sum + (module.module_duration_minutes || 0), 0) || 0
+      const totalMinutes = (modules as { module_duration_minutes?: number }[] | null)?.reduce((sum: number, module) => sum + (module.module_duration_minutes || 0), 0) || 0
 
       // Actualizar duración del curso
       const courseUpdateData = {
@@ -584,7 +591,7 @@ export class AdminLessonsService {
 
 
       // Obtener TODOS los materiales y actividades de una sola vez (más eficiente)
-      const lessonIds = lessons.map((l: any) => l.lesson_id)
+      const lessonIds = lessons.map((l) => l.lesson_id)
 
       const { data: allMaterials } = await supabase
         .from('lesson_materials')
@@ -601,15 +608,15 @@ export class AdminLessonsService {
       const activitiesByLesson = new Map<string, number>()
 
       // Agrupar tiempos de materiales por lección
-      for (const m of (allMaterials || [])) {
-        const current = materialsByLesson.get((m as any).lesson_id) || 0
-        materialsByLesson.set((m as any).lesson_id, current + ((m as any).estimated_time_minutes || 0))
+      for (const m of (allMaterials || []) as { lesson_id: string; estimated_time_minutes?: number }[]) {
+        const current = materialsByLesson.get(m.lesson_id) || 0
+        materialsByLesson.set(m.lesson_id, current + (m.estimated_time_minutes || 0))
       }
 
       // Agrupar tiempos de actividades por lección
-      for (const a of (allActivities || [])) {
-        const current = activitiesByLesson.get((a as any).lesson_id) || 0
-        activitiesByLesson.set((a as any).lesson_id, current + ((a as any).estimated_time_minutes || 0))
+      for (const a of (allActivities || []) as { lesson_id: string; estimated_time_minutes?: number }[]) {
+        const current = activitiesByLesson.get(a.lesson_id) || 0
+        activitiesByLesson.set(a.lesson_id, current + (a.estimated_time_minutes || 0))
       }
 
       // Actualizar cada lección
@@ -617,9 +624,9 @@ export class AdminLessonsService {
 
       for (const lesson of lessons) {
         try {
-          const lessonId = (lesson as any).lesson_id
-          const moduleId = (lesson as any).module_id
-          const videoSeconds = (lesson as any).duration_seconds || 0
+          const lessonId = lesson.lesson_id
+          const moduleId = lesson.module_id
+          const videoSeconds = lesson.duration_seconds || 0
           const videoMinutes = Math.round(videoSeconds / 60)
 
           const materialsMinutes = materialsByLesson.get(lessonId) || 0
@@ -632,7 +639,7 @@ export class AdminLessonsService {
             .update({
               total_duration_minutes: totalDurationMinutes,
               updated_at: new Date().toISOString()
-            } as any)
+            })
             .eq('lesson_id', lessonId)
 
           if (updateError) {
@@ -645,7 +652,7 @@ export class AdminLessonsService {
             }
           }
         } catch (err) {
-          errors.push(`Lesson ${(lesson as any).lesson_id}: ${err instanceof Error ? err.message : String(err)}`)
+          errors.push(`Lesson ${lesson.lesson_id}: ${err instanceof Error ? err.message : String(err)}`)
         }
       }
 
