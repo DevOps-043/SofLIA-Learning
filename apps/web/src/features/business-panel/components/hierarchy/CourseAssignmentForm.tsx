@@ -1,11 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { Dialog } from '@headlessui/react'
 import { X, Calendar, Clock, MessageSquare, BookOpen } from 'lucide-react'
 import { CourseSelectorModal } from './CourseSelectorModal'
 import { HierarchyAssignmentsService } from '@/features/business-panel/services/hierarchy-assignments.service'
-import type { HierarchyEntityType, CreateHierarchyAssignmentRequest, HierarchyCourseAssignment } from '@/features/business-panel/types/hierarchy-assignments.types'
+import type {
+  HierarchyEntityType,
+  CreateHierarchyAssignmentRequest,
+  HierarchyCourseAssignment,
+  UpdateHierarchyAssignmentRequest,
+} from '@/features/business-panel/types/hierarchy-assignments.types'
 import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
 
 interface CourseAssignmentFormProps {
@@ -67,7 +71,7 @@ export function CourseAssignmentForm({
     try {
       if (isEditMode) {
         // Modo edición: actualizar asignación existente
-        const updateData: any = {}
+        const updateData: UpdateHierarchyAssignmentRequest = {}
         if (dueDate) updateData.due_date = dueDate
         if (startDate) updateData.start_date = startDate
         if (approach) updateData.approach = approach
@@ -94,8 +98,8 @@ export function CourseAssignmentForm({
 
       onSuccess?.()
       handleClose()
-    } catch (err: any) {
-      setError(err.message || 'Error al guardar la asignación')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al guardar la asignación')
       console.error('Error en asignación:', err)
     } finally {
       setIsSubmitting(false)
@@ -281,4 +285,3 @@ export function CourseAssignmentForm({
     </>
   )
 }
-

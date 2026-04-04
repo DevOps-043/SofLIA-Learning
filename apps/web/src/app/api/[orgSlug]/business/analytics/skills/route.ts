@@ -3,6 +3,35 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface OrganizationSkillUser {
+  id: string
+  cargo_rol?: string | null
+  type_rol?: string | null
+  display_name?: string | null
+  username?: string | null
+}
+
+interface OrganizationSkillUserRow {
+  user_id: string
+  users: OrganizationSkillUser | null
+}
+
+interface CompletedCourseInfo {
+  id: string
+  title: string
+  category: string | null
+  learning_objectives?: string[] | null
+  level?: string | null
+}
+
+interface CompletedEnrollmentRow {
+  user_id: string
+  course_id: string
+  overall_progress_percentage?: number | null
+  completed_at?: string | null
+  courses: CompletedCourseInfo | null
+}
+
 /**
  * GET /api/[orgSlug]/business/analytics/skills
  * Obtiene análisis de habilidades y gaps de conocimiento para la organización
@@ -105,7 +134,10 @@ export async function GET(
       courses: Array<{ id: string; title: string; category: string }>
     }> = {}
 
-    completedCourses?.forEach((enrollment: any) => {
+    const organizationUsers: OrganizationSkillUserRow[] = orgUsers || []
+    const completedEnrollmentRows: CompletedEnrollmentRow[] = completedCourses || []
+
+    completedEnrollmentRows.forEach((enrollment) => {
       const uId = enrollment.user_id
       if (!userSkills[uId]) {
         userSkills[uId] = { learned: new Set(), courses: [] }
@@ -143,9 +175,9 @@ export async function GET(
       learned_skills: string[]
     }> = []
 
-    orgUsers?.forEach(orgUser => {
+    organizationUsers.forEach(orgUser => {
       const uId = orgUser.user_id
-      const user = (orgUser as any).users
+      const user = orgUser.users
       if (!user || !targetUserIds.includes(uId)) return
 
       const roleName = user.type_rol || user.cargo_rol || 'General'
@@ -167,7 +199,7 @@ export async function GET(
 
     const skillToCourses: Record<string, Array<{ id: string; title: string; category: string }>> = {}
 
-    completedCourses?.forEach((e: any) => {
+    completedEnrollmentRows.forEach((e) => {
       const course = e.courses
       if (!course) return
 

@@ -267,7 +267,7 @@ export function AIChatAgent({
             draft={generatedPrompt as PromptDraft}
             onSave={handleSavePrompt}
             onClose={() => setIsPromptPanelOpen(false)}
-            onEdit={(editedDraft) => { setGeneratedPrompt(editedDraft as any) }}
+            onEdit={(editedDraft) => { setGeneratedPrompt(editedDraft) }}
             isSaving={isSavingPrompt}
           />
         )}

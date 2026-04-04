@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { UserCheck, RefreshCw, Star, UserX, BarChart3, PieChart, Globe } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useEngagementStats } from '../../hooks/useUserStatsB2B'
 import { BarChartComponent, GroupedBarChartComponent, EmptyState } from './charts'
 import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
@@ -106,7 +107,7 @@ export function EngagementTab() {
   )
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: LucideIcon; color: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -124,7 +125,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
   )
 }
 
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

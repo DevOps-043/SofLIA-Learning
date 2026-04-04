@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 
+interface StartActivityRequest {
+  conversationId?: string | null
+  activityId?: string | null
+  activityType?: string
+  totalSteps?: number
+}
+
+interface ActivityCompletionInsert {
+  conversation_id: string | null
+  user_id: string
+  activity_id: string
+  status: 'started'
+  total_steps: number
+  current_step: number
+  completed_steps: number
+  lia_had_to_redirect: number
+  started_at: string
+}
+
+interface ActivityCompletionIdRow {
+  completion_id: string
+}
+
 /**
  * POST /api/lia/start-activity
  * 
@@ -20,7 +43,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener datos del body
-    const { conversationId, activityId, activityType, totalSteps = 1 } = await request.json();
+    const {
+      conversationId,
+      activityId,
+      activityType,
+      totalSteps = 1,
+    }: StartActivityRequest = await request.json();
 
     if (!activityType) {
       return NextResponse.json(
@@ -32,21 +60,23 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
 
     // Crear registro de actividad directamente
+    const insertData: ActivityCompletionInsert = {
+      conversation_id: conversationId || null,
+      user_id: user.id,
+      activity_id: activityId || activityType,
+      status: 'started',
+      total_steps: totalSteps,
+      current_step: 1,
+      completed_steps: 0,
+      lia_had_to_redirect: 0,
+      started_at: new Date().toISOString()
+    }
+
     const { data, error } = await supabase
       .from('lia_activity_completions')
-      .insert({
-        conversation_id: conversationId || null,
-        user_id: user.id,
-        activity_id: activityId || activityType, // Usar activityType como ID si no hay activityId
-        status: 'started',
-        total_steps: totalSteps,
-        current_step: 1,
-        completed_steps: 0,
-        lia_had_to_redirect: 0,
-        started_at: new Date().toISOString()
-      } as any)
+      .insert(insertData)
       .select('completion_id')
-      .single();
+      .single<ActivityCompletionIdRow>();
 
     if (error) {
       console.error('Error starting activity:', error);
@@ -58,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      completionId: (data as any)?.completion_id,
+      completionId: data?.completion_id,
       activityId: activityId || activityType,
       totalSteps,
     });

@@ -1,4 +1,5 @@
 import { logger } from '../../../../lib/logger';
+import { fromLoose } from '../../../../lib/supabase/looseQuery';
 import type {
   OAuthBulkInviteLinkContext,
   OAuthOrganizationContext,
@@ -32,6 +33,12 @@ interface BulkInviteLinkRow {
   organization_id: string;
   role?: string | null;
   status: string;
+}
+
+interface BulkInviteRegistrationInsert {
+  bulk_invite_link_id: string;
+  registered_at: string;
+  user_id: string;
 }
 
 interface OrganizationRelation {
@@ -104,10 +111,17 @@ async function resolveBulkInviteContext({
     'bulkInviteLink' | 'invitedRole'
   >;
 }> {
-  const { data: bulkInviteLink, error } = await supabase
-    .from('bulk_invite_links')
+  const bulkToken = orgContext.bulkToken;
+  if (!bulkToken) {
+    return { error: 'Enlace de invitacion invalido o no encontrado' };
+  }
+
+  const { data: bulkInviteLink, error } = await fromLoose<BulkInviteLinkRow>(
+    supabase,
+    'bulk_invite_links'
+  )
     .select('id, organization_id, role, status, expires_at, max_uses, current_uses')
-    .eq('token', orgContext.bulkToken)
+    .eq('token', bulkToken)
     .maybeSingle();
 
   const link = bulkInviteLink as BulkInviteLinkRow | null;
@@ -170,10 +184,15 @@ async function resolveTokenInvitationContext({
     'invitedPosition' | 'invitedRole'
   >;
 }> {
+  const invitationToken = orgContext.invToken;
+  if (!invitationToken) {
+    return { error: 'Invitacion invalida o expirada' };
+  }
+
   const { data: invitation, error } = await supabase
     .from('user_invitations')
     .select('id, email, role, status, expires_at, organization_id, metadata')
-    .eq('token', orgContext.invToken)
+    .eq('token', invitationToken)
     .maybeSingle();
 
   const record = invitation as UserInvitationRow | null;
@@ -220,11 +239,19 @@ async function resolveEmailInvitationContext({
     'invitedPosition' | 'invitedRole'
   >;
 }> {
+  const organizationId = orgContext.orgId;
+  if (!organizationId) {
+    return {
+      error:
+        'Tu correo no ha sido invitado a esta organizacion. Contacta al administrador para solicitar una invitacion.',
+    };
+  }
+
   const { data: invitation } = await supabase
     .from('user_invitations')
     .select('id, role, expires_at, metadata')
     .ilike('email', email.trim())
-    .eq('organization_id', orgContext.orgId)
+    .eq('organization_id', organizationId)
     .eq('status', 'pending')
     .maybeSingle();
 
@@ -423,23 +450,26 @@ export async function linkOAuthUserToOrganization({
   }
 
   if (bulkInviteLink) {
-    await supabase.from('bulk_invite_registrations').insert({
+    await fromLoose<BulkInviteRegistrationInsert, BulkInviteRegistrationInsert>(
+      supabase,
+      'bulk_invite_registrations'
+    ).insert({
       bulk_invite_link_id: bulkInviteLink.id,
       registered_at: new Date().toISOString(),
       user_id: userId,
     });
 
-    await supabase
-      .from('bulk_invite_links')
+    await fromLoose<BulkInviteLinkRow>(supabase, 'bulk_invite_links')
       .update({ current_uses: bulkInviteLink.currentUses + 1 })
       .eq('id', bulkInviteLink.id);
 
     return;
   }
 
-  await consumeInvitation(
-    supabase,
-    orgContext.invToken || email,
-    orgContext.orgId
-  );
+  const organizationId = orgContext.orgId;
+  if (!organizationId) {
+    return;
+  }
+
+  await consumeInvitation(supabase, orgContext.invToken ?? email, organizationId);
 }

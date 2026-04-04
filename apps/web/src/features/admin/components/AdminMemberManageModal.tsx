@@ -5,12 +5,21 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, AlertTriangle, UserCog, Shield, Trash2, CheckCircle2, Loader2, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
+import type { AdminCompanyMember } from '../types/admin-companies.types'
+
+type ManageableCompanyMember = AdminCompanyMember & {
+  email?: string | null
+}
+
+const getErrorMessage = (error: unknown, fallback: string): string => (
+  error instanceof Error ? error.message : fallback
+)
 
 interface AdminMemberManageModalProps {
   isOpen: boolean
   onClose: () => void
   onUpdate: () => void
-  member: any
+  member: ManageableCompanyMember | null
   companyId: string
   mode: 'edit' | 'delete' | null
   primaryColor?: string
@@ -57,8 +66,8 @@ export function AdminMemberManageModal({
 
       onUpdate()
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'Error al guardar los cambios')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al guardar los cambios'))
     } finally {
       setLoading(false)
     }
@@ -81,8 +90,8 @@ export function AdminMemberManageModal({
 
       onUpdate()
       onClose()
-    } catch (err: any) {
-      setError(err.message || 'Error al eliminar usuario')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al eliminar usuario'))
     } finally {
       setLoading(false)
     }

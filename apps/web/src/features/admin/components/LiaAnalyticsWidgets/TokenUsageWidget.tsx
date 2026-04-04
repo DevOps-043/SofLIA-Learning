@@ -27,6 +27,18 @@ interface TokenUsageWidgetProps {
   isLoading?: boolean;
 }
 
+type TokenChartDataPoint = ModelUsage & {
+  color: string;
+  displayName: string;
+};
+
+interface TokenTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: TokenChartDataPoint;
+  }>;
+}
+
 const MODEL_COLORS: Record<string, string> = {
   'gpt-4o-mini': '#10b981',
   'gpt-4o': '#6366f1',
@@ -50,7 +62,7 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
     return value.toString();
   };
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const CustomTooltip = ({ active, payload }: TokenTooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -173,4 +185,3 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
     </div>
   );
 }
-

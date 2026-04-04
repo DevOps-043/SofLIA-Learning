@@ -2,15 +2,52 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Settings, Save, RefreshCw } from 'lucide-react'
-import dynamic from 'next/dynamic'
+interface GridLayoutItem {
+  h: number
+  i: string
+  minH?: number
+  minW?: number
+  w: number
+  x: number
+  y: number
+}
+
+type GridLayouts = {
+  lg?: GridLayoutItem[]
+} & Record<string, GridLayoutItem[] | undefined>
+
+interface ResponsiveLayoutComponentProps {
+  children: React.ReactNode
+  className: string
+  cols: Record<string, number>
+  compactType: null | 'horizontal' | 'vertical'
+  draggableHandle: string
+  isDraggable: boolean
+  isResizable: boolean
+  layouts: GridLayouts
+  margin: [number, number]
+  onLayoutChange: (layout: GridLayoutItem[], layouts: GridLayouts) => void
+  preventCollision: boolean
+  rowHeight: number
+}
+
+type ResponsiveLayoutComponent = React.ComponentType<ResponsiveLayoutComponentProps>
+
+interface ReactGridLayoutModule {
+  Responsive?: ResponsiveLayoutComponent
+  WidthProvider?: (component: ResponsiveLayoutComponent) => ResponsiveLayoutComponent
+  default?: ResponsiveLayoutComponent
+}
+
+type WidgetChildElement = React.ReactElement<{ 'data-swapy-item'?: string }>
 
 // Importación dinámica de react-grid-layout para evitar problemas SSR
-let ResponsiveGridLayout: any = null
-let ResponsiveLayoutWithWidth: any = null
+let ResponsiveGridLayout: ResponsiveLayoutComponent | null = null
+let ResponsiveLayoutWithWidth: ResponsiveLayoutComponent | null = null
 
 if (typeof window !== 'undefined') {
   try {
-    const ReactGridLayout = require('react-grid-layout')
+    const ReactGridLayout = require('react-grid-layout') as ReactGridLayoutModule
     ResponsiveGridLayout = ReactGridLayout.Responsive || ReactGridLayout.default
     if (ResponsiveGridLayout && ReactGridLayout.WidthProvider) {
       ResponsiveLayoutWithWidth = ReactGridLayout.WidthProvider(ResponsiveGridLayout)
@@ -53,14 +90,14 @@ export function DashboardLayoutManager({
 }: DashboardLayoutManagerProps) {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [currentLayout, setCurrentLayout] = useState<any[]>([])
+  const [currentLayout, setCurrentLayout] = useState<GridLayoutItem[]>([])
   
   // Convertir children a un mapa para acceso rápido
   const childrenMap = React.useMemo(() => {
     const map = new Map<string, React.ReactElement>()
     React.Children.forEach(children, (child) => {
       if (React.isValidElement(child)) {
-        const childProps = child.props as any
+        const childProps = (child as WidgetChildElement).props
         const widgetId = childProps?.['data-swapy-item']
         if (widgetId) {
           map.set(widgetId, child as React.ReactElement)
@@ -88,13 +125,13 @@ export function DashboardLayoutManager({
     }
   }, [widgets])
 
-  const handleLayoutChange = useCallback((newLayout: any, allLayouts: any) => {
+  const handleLayoutChange = useCallback((newLayout: GridLayoutItem[], allLayouts: GridLayouts) => {
     if (!onLayoutChange) return
     
     // ResponsiveGridLayout puede pasar el layout directamente o como objeto con breakpoints
-    const layoutToProcess = Array.isArray(newLayout) ? newLayout : (allLayouts?.lg || newLayout || [])
+    const layoutToProcess = allLayouts?.lg || newLayout || []
     
-    const updatedWidgets = layoutToProcess.map((layoutItem: any) => {
+    const updatedWidgets = layoutToProcess.map((layoutItem: GridLayoutItem) => {
       const originalWidget = widgets.find(w => w.id === layoutItem.i)
       if (originalWidget) {
         return {
@@ -329,4 +366,3 @@ export function DashboardLayoutManager({
     </div>
   )
 }
-

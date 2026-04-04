@@ -46,6 +46,16 @@ interface InsertEventsRequest {
     planName?: string;
 }
 
+interface CalendarIntegrationRow {
+    provider: 'google' | 'microsoft';
+    access_token: string;
+    expires_at: string | null;
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : 'Error interno del servidor';
+}
+
 /**
  * POST /api/study-planner/calendar/insert-events
  * Inserta eventos de estudio en el calendario secundario de Google/Microsoft
@@ -86,7 +96,7 @@ export async function POST(request: NextRequest) {
             }, { status: 400 });
         }
 
-        const integration = integrations[0];
+        const integration = integrations[0] as CalendarIntegrationRow;
 
         // Verificar y refrescar token si es necesario
         let accessToken = integration.access_token;
@@ -190,9 +200,9 @@ export async function POST(request: NextRequest) {
                 if (i < eventsToInsert.length - 1) {
                     await new Promise(resolve => setTimeout(resolve, THROTTLE_MS));
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error(`âŒ [Insert Events] Error insertando evento ${i + 1}:`, error);
-                results.push({ success: false, error: error.message || 'Error desconocido', index: i });
+                results.push({ success: false, error: getErrorMessage(error), index: i });
             }
         }
 
@@ -215,10 +225,10 @@ export async function POST(request: NextRequest) {
                 : `Se insertaron ${insertedCount} de ${eventsToInsert.length} eventos. ${failedCount} fallaron.`
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('âŒ [Insert Events] Error general:', error);
         return NextResponse.json({
-            error: error.message || 'Error interno del servidor',
+            error: getErrorMessage(error),
             success: false
         }, { status: 500 });
     }

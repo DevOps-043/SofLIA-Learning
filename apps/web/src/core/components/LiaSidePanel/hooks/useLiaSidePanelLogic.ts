@@ -220,7 +220,10 @@ export function useLiaSidePanelLogic() {
     );
   };
 
-  const handleSaveEdit = async (conversationId: string, event: React.MouseEvent) => {
+  const handleSaveEdit = async (
+    conversationId: string,
+    event: React.MouseEvent | React.KeyboardEvent
+  ) => {
     event.stopPropagation();
     if (!editingTitle.trim()) {
       return;
@@ -245,7 +248,7 @@ export function useLiaSidePanelLogic() {
     }
   };
 
-  const handleCancelEdit = (event: React.MouseEvent) => {
+  const handleCancelEdit = (event: React.MouseEvent | React.KeyboardEvent) => {
     event.stopPropagation();
     setEditingConversationId(null);
   };
@@ -317,7 +320,7 @@ export function useLiaSidePanelLogic() {
 
     const message = inputValue.trim();
     setInputValue('');
-    await sendMessage(message, false, pageContext);
+    await sendMessage(message, false, pageContext ?? undefined);
   }, [inputValue, isLoading, sendMessage, pageContext]);
 
   const quickActions: LiaQuickAction[] = [

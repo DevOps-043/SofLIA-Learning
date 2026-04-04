@@ -4,10 +4,19 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, BarChart3, Plus, Trash2, Clock } from 'lucide-react';
 
+export interface PollAttachmentData {
+  question: string;
+  options: string[];
+  duration: number;
+  type: 'poll';
+  votes: Record<string, string[]>;
+  userVotes: Record<string, string>;
+}
+
 interface PollModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (pollData: any) => void;
+  onConfirm: (pollData: PollAttachmentData) => void;
 }
 
 interface PollOption {
@@ -59,7 +68,7 @@ export function PollModal({ isOpen, onClose, onConfirm }: PollModalProps) {
         initialVotes[optionText] = [];
       });
 
-      const pollData = {
+      const pollData: PollAttachmentData = {
         question: question.trim(),
         options: optionTexts,
         duration: parseInt(duration),

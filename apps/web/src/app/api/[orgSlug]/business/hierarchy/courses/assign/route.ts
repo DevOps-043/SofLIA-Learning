@@ -8,6 +8,18 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>;
 }
 
+interface OrganizationNodeUserRow {
+  user_id: string
+}
+
+interface OrganizationCoursePurchaseRow {
+  course_id: string
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error desconocido'
+}
+
 /**
  * POST /api/[orgSlug]/business/hierarchy/courses/assign
  */
@@ -68,6 +80,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .from('organization_node_users')
       .select('user_id')
       .eq('node_id', entity_id)
+      .returns<OrganizationNodeUserRow[]>()
 
     if (usersError) {
       return NextResponse.json({
@@ -76,7 +89,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       }, { status: 500 })
     }
 
-    const user_ids = nodeUsers?.map((u: any) => u.user_id) || []
+    const user_ids = nodeUsers?.map((user) => user.user_id) || []
 
     // 3. Validar compras
     const { data: orgPurchases, error: purchaseError } = await supabase
@@ -85,6 +98,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       .eq('organization_id', organizationId)
       .in('course_id', course_ids)
       .eq('access_status', 'active')
+      .returns<OrganizationCoursePurchaseRow[]>()
 
     if (purchaseError) {
       return NextResponse.json({
@@ -93,7 +107,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       }, { status: 500 })
     }
 
-    const purchasedCourseIds = orgPurchases?.map((p: any) => p.course_id) || []
+    const purchasedCourseIds = orgPurchases?.map((purchase) => purchase.course_id) || []
     const missingCourses = course_ids.filter((id: string) => !purchasedCourseIds.includes(id))
 
     if (missingCourses.length > 0) {
@@ -119,7 +133,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
           assigned_at: new Date().toISOString(),
           due_date: due_date || null,
           message: message || null
-        }, { onConflict: 'node_id, course_id' as any })
+        }, { onConflict: 'node_id, course_id' })
 
       if (user_ids.length > 0) {
         const assignmentsToUpsert = user_ids.map((uid: string) => ({
@@ -138,7 +152,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
         await supabase
           .from('organization_course_assignments')
-          .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' as any })
+          .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' })
 
         const enrollmentsToUpsert = user_ids.map((uid: string) => ({
           user_id: uid,
@@ -172,11 +186,11 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       }
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error en POST assign:', error)
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: getErrorMessage(error)
     }, { status: 500 })
   }
 }

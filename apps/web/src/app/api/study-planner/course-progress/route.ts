@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { logger } from '@/lib/logger';
+
+interface EnrollmentRow {
+  enrollment_id: string
+}
+
+interface CourseModuleRow {
+  module_id: string
+}
+
+interface CourseLessonRow {
+  lesson_id: string
+}
+
+interface CompletedLessonRow {
+  lesson_id: string
+  is_completed: boolean
+  enrollment_id: string | null
+}
 
 /**
  * GET /api/study-planner/course-progress
@@ -94,7 +113,7 @@ export async function GET(request: NextRequest) {
 
     // Obtener lecciones completadas del usuario para este curso
     // Primero intentar con enrollment_id si está disponible
-    let completedLessons: any[] = [];
+    let completedLessons: CompletedLessonRow[] = [];
 
     if (finalEnrollmentId) {
 
@@ -161,11 +180,10 @@ export async function GET(request: NextRequest) {
       completedLessonIds
     });
   } catch (error) {
-    console.error('Error en course-progress:', error);
+    logger.error('Error en course-progress:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', completedLessonsCount: 0 },
       { status: 500 }
     );
   }
 }
-

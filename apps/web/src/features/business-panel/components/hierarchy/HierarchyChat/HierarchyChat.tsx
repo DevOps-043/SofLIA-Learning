@@ -64,7 +64,7 @@ export function HierarchyChat({
     fileInputRef,
     emojiPickerRef
   } = useChatLogic({
-    entityType: entityType as any,
+    entityType,
     entityId,
     chatType
   })

@@ -3,6 +3,15 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface ChangePlanUpdatePayload {
+  subscription_plan: string
+  subscription_start_date: string
+  subscription_end_date: string
+  billing_cycle: 'monthly' | 'yearly'
+  max_users: number
+  updated_at: string
+}
+
 /**
  * POST /api/[orgSlug]/business/settings/subscription/change-plan
  * Cambia el plan de suscripción de la organización activa
@@ -65,7 +74,7 @@ export async function POST(
     const newMaxUsers = maxUsersByPlan[planId.toLowerCase()] || 10
 
     // Preparar actualización
-    const updateData: Record<string, any> = {
+    const updateData: ChangePlanUpdatePayload = {
       subscription_plan: planId.toLowerCase(),
       subscription_start_date: startDate.toISOString(),
       subscription_end_date: endDate.toISOString(),

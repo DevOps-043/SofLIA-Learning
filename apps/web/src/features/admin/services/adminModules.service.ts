@@ -210,7 +210,7 @@ export class AdminModulesService {
 
       // Eliminar todas las lecciones asociadas (y sus materiales/actividades en cascada si están configurados)
       if (lessons && lessons.length > 0) {
-        const lessonIds = lessons.map((lesson: any) => lesson.lesson_id)
+        const lessonIds = lessons.map((lesson: { lesson_id: string }) => lesson.lesson_id)
 
         // Eliminar materiales de todas las lecciones
         for (const lessonId of lessonIds) {

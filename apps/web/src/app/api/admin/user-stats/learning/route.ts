@@ -49,7 +49,7 @@ export async function GET() {
     const coursesMap = new Map((coursesRes.data || []).map(c => [c.id, c.title]))
     const lessonToCourse = new Map<string, string>()
     for (const cl of (courseLessonsRes.data || [])) {
-      const courseId = (cl as any).course_modules?.course_id
+      const courseId = (cl.course_modules as { course_id?: string | null } | null)?.course_id
       if (courseId) lessonToCourse.set(cl.lesson_id, courseId)
     }
     const courseTimeMap = new Map<string, number>()

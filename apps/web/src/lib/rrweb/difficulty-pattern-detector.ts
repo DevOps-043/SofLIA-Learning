@@ -20,7 +20,7 @@ export interface DifficultyPattern {
   severity: 'low' | 'medium' | 'high';
   description: string;
   timestamp: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DetectionThresholds {
@@ -52,6 +52,22 @@ const DEFAULT_THRESHOLDS: DetectionThresholds = {
   erroneousClicksThreshold: 5,
   analysisWindow: 180000 // 3 minutos
 };
+
+interface IncrementalEventData {
+  source?: number;
+  id?: string | number;
+  key?: string;
+  x?: number;
+  y?: number;
+}
+
+function getIncrementalEventData(event: eventWithTime): IncrementalEventData | null {
+  if (event.type !== 3 || !event.data || typeof event.data !== 'object') {
+    return null;
+  }
+
+  return event.data as IncrementalEventData;
+}
 
 export class DifficultyPatternDetector {
   private thresholds: DetectionThresholds;
@@ -146,7 +162,7 @@ export class DifficultyPatternDetector {
     const interactionEvents = events.filter(e => {
       // IncrementalSnapshot (type=3) con source específicos
       if (e.type === 3 && e.data && typeof e.data === 'object' && 'source' in e.data) {
-        const source = (e.data as any).source;
+        const source = getIncrementalEventData(e)?.source;
         // source: 2=MouseInteraction (clicks), 3=Scroll, 5=Input
         return [2, 3, 5].includes(source);
       }
@@ -195,7 +211,7 @@ export class DifficultyPatternDetector {
         timestamp: now,
         metadata: {
           inactivityDuration: timeSinceLastActivity,
-          lastInteractionType: (lastInteraction.data as any)?.source,
+          lastInteractionType: getIncrementalEventData(lastInteraction)?.source,
           lastInteractionTime: new Date(lastInteraction.timestamp).toLocaleTimeString(),
           totalEvents: events.length,
           interactionEvents: interactionEvents.length,
@@ -214,7 +230,8 @@ export class DifficultyPatternDetector {
     // Contar eventos de navegación hacia atrás o clicks en "anterior"
     const backNavigationEvents = events.filter(event => {
       if (event.type === 3) { // MouseInteraction
-        const data = event.data as any;
+        const data = getIncrementalEventData(event);
+        if (!data) return false;
         // Detectar clicks en botones de navegación
         if (data.source === 2) { // Click
           const target = data.id?.toString() || '';
@@ -229,14 +246,15 @@ export class DifficultyPatternDetector {
     // Estrategia: detectar clicks repetidos alternando entre un conjunto pequeño de IDs
     const clickEvents = events.filter(event => {
       if (event.type === 3) { // MouseInteraction
-        const data = event.data as any;
+        const data = getIncrementalEventData(event);
+        if (!data) return false;
         return data.source === 2; // Solo clicks
       }
       return false;
     });
 
     // Extraer secuencia de IDs clickeados
-    const clickedIds = clickEvents.map(e => (e.data as any).id);
+    const clickedIds = clickEvents.map(e => getIncrementalEventData(e)?.id);
 
     // Detectar patrón de ciclos: si hay muchos clicks alternando entre pocos IDs únicos
     // Ejemplo: [177, 184, 192, 177, 184, 192] = cambio entre tabs
@@ -284,7 +302,8 @@ export class DifficultyPatternDetector {
     // Contar eventos de submit/enviar
     const submitEvents = events.filter(event => {
       if (event.type === 3) { // MouseInteraction
-        const data = event.data as any;
+        const data = getIncrementalEventData(event);
+        if (!data) return false;
         if (data.source === 2) { // Click
           const target = data.id?.toString() || '';
           return target.includes('submit') || target.includes('enviar') || target.includes('verify');
@@ -329,7 +348,8 @@ export class DifficultyPatternDetector {
     // Si no hay suficientes interacciones, el usuario está AFK y los eventos son solo ruido del DOM
     const interactionEvents = events.filter(event => {
       if (event.type !== 3) return false;
-      const data = event.data as any;
+      const data = getIncrementalEventData(event);
+      if (!data) return false;
       // Solo MouseMove, Click, o Input
       return data.source === 1 || data.source === 2 || data.source === 5;
     });
@@ -414,12 +434,13 @@ export class DifficultyPatternDetector {
    */
   private detectFrequentDeletion(events: eventWithTime[]): DifficultyPattern | null {
     // Contar eventos de teclado (backspace/delete)
-    const keyboardEvents = events.filter(event => event.type === 3 && (event.data as any).source === 5);
+    const keyboardEvents = events.filter(event => event.type === 3 && getIncrementalEventData(event)?.source === 5);
     
     let deleteCount = 0;
     
     keyboardEvents.forEach(event => {
-      const data = event.data as any;
+      const data = getIncrementalEventData(event);
+      if (!data) return;
       if (data.key === 'Backspace' || data.key === 'Delete') {
         deleteCount++;
       }
@@ -445,14 +466,14 @@ export class DifficultyPatternDetector {
    */
   private detectErroneousClicks(events: eventWithTime[]): DifficultyPattern | null {
     const clickEvents = events.filter(event => 
-      event.type === 3 && (event.data as any).source === 2
+      event.type === 3 && getIncrementalEventData(event)?.source === 2
     );
 
     if (clickEvents.length < 5) return null;
 
     // Detectar clicks en el mismo lugar repetidamente (probablemente elemento no responde)
     const clickPositions = clickEvents.map(event => {
-      const data = event.data as any;
+      const data = getIncrementalEventData(event);
       return `${data.x || 0},${data.y || 0}`;
     });
 

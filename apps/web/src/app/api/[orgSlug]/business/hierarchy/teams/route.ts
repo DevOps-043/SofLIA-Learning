@@ -7,6 +7,29 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>;
 }
 
+interface OrganizationRegionRef {
+  id: string;
+  name: string;
+  code: string | null;
+}
+
+interface OrganizationZoneRef {
+  id: string;
+  name: string;
+  code: string | null;
+  region?: OrganizationRegionRef | null;
+}
+
+interface OrganizationTeamRow {
+  id: string;
+  zone?: OrganizationZoneRef | null;
+  [key: string]: unknown;
+}
+
+interface OrganizationUserTeamRow {
+  team_id: string | null;
+}
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/teams
  * Lista todos los equipos de la organización
@@ -68,11 +91,11 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    let filteredTeams = teams || [];
+    let filteredTeams = (teams || []) as OrganizationTeamRow[];
 
     // Filtrar por región si se especifica
     if (regionId && filteredTeams.length > 0) {
-      filteredTeams = filteredTeams.filter((team: any) =>
+      filteredTeams = filteredTeams.filter((team) =>
         team.zone?.region?.id === regionId
       );
     }
@@ -80,18 +103,19 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     let teamsWithCounts = filteredTeams;
 
     if (withCounts && filteredTeams.length > 0) {
-      const teamIds = filteredTeams.map((t: any) => t.id);
+      const teamIds = filteredTeams.map((team) => team.id);
 
       // Contar miembros por equipo
       const { data: memberCounts } = await supabase
         .from('organization_users')
         .select('team_id')
         .in('team_id', teamIds)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .returns<OrganizationUserTeamRow[]>();
 
-      teamsWithCounts = filteredTeams.map((team: any) => ({
+      teamsWithCounts = filteredTeams.map((team) => ({
         ...team,
-        members_count: memberCounts?.filter((m: any) => m.team_id === team.id).length || 0
+        members_count: memberCounts?.filter((member) => member.team_id === team.id).length || 0
       }));
     }
 

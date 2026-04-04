@@ -19,7 +19,7 @@ import {
 import { useLiaPersonalization } from '@/core/hooks/useLiaPersonalization';
 import type {
   BaseStyle,
-  LiaPersonalizationSettingsInput,
+  SofLIAPersonalizationSettingsInput,
 } from '@/core/types/lia-personalization.types';
 
 interface LiaPersonalizationSettingsProps {
@@ -39,7 +39,7 @@ const BASE_STYLES: { value: BaseStyle; label: string; description: string }[] = 
 export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizationSettingsProps) {
   const { settings, loading, error, updateSettings, resetSettings } = useLiaPersonalization();
   
-  const [formData, setFormData] = useState<LiaPersonalizationSettingsInput>({
+  const [formData, setFormData] = useState<SofLIAPersonalizationSettingsInput>({
     base_style: 'professional',
     is_friendly: true,
     is_enthusiastic: true,
@@ -91,8 +91,11 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
       setTimeout(() => {
         setSaveMessage(null);
       }, 3000);
-    } catch (error: any) {
-      setSaveMessage({ type: 'error', text: error.message || 'Error al guardar configuración' });
+    } catch (error: unknown) {
+      setSaveMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Error al guardar configuración',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -119,8 +122,11 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
       setTimeout(() => {
         setSaveMessage(null);
       }, 3000);
-    } catch (error: any) {
-      setSaveMessage({ type: 'error', text: error.message || 'Error al restablecer configuración' });
+    } catch (error: unknown) {
+      setSaveMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Error al restablecer configuración',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -428,4 +434,3 @@ function ToggleField({ label, description, checked, onChange }: ToggleFieldProps
     </div>
   );
 }
-

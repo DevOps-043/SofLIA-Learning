@@ -23,12 +23,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import type { DifficultyAnalysis } from '../../../../lib/rrweb/difficulty-pattern-detector';
-import { SessionAnalyzer } from '../../../../lib/rrweb/session-analyzer';
+import type { eventWithTime } from '@rrweb/types';
+import { SessionAnalyzer, type SessionContext } from '../../../../lib/rrweb/session-analyzer';
 import { trackOpenAICall, calculateOpenAIMetadata } from '../../../../lib/openai/usage-monitor';
+
+type ProactiveResource = NonNullable<ProactiveHelpResponse['resources']>[number];
 
 interface ProactiveHelpRequest {
   analysis: DifficultyAnalysis;
-  sessionEvents: any[];
+  sessionEvents: eventWithTime[];
   workshopId?: string;
   activityId?: string;
   userId?: string;
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
     // Llamar a OpenAI (o servicio de LIA)
     let liaResponse: string;
     let suggestions: string[];
-    let resources: any[] = [];
+    let resources: ProactiveResource[] = [];
     let nextSteps: string[] = [];
 
     const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -169,7 +172,7 @@ export async function POST(request: NextRequest) {
  */
 function buildProactivePrompt(
   analysis: DifficultyAnalysis,
-  sessionContext: any,
+  sessionContext: SessionContext | null,
   workshopId?: string,
   activityId?: string
 ): string {
@@ -189,11 +192,11 @@ ${patternDescriptions}
 
 ${sessionContext ? `
 ## Análisis de sesión:
-- Tiempo total: ${Math.round(sessionContext.totalTime / 1000)}s
+- Tiempo total: ${Math.round(sessionContext.sessionDuration / 1000)}s
 - Clicks totales: ${sessionContext.clickCount}
-- Scrolls: ${sessionContext.scrollCount}
-- Inputs escritos: ${sessionContext.inputCount}
-- Intentos detectados: ${sessionContext.retryCount}
+- Scrolls: ${sessionContext.scrollEvents}
+- Inputs escritos: ${sessionContext.inputEvents}
+- Intentos detectados: ${sessionContext.attemptsMade}
 - Nivel de dificultad: ${sessionContext.difficultyScore.toFixed(2)}
 ` : ''}
 
@@ -263,8 +266,8 @@ function extractNextSteps(response: string): string[] {
 /**
  * Genera recursos relevantes según los patrones detectados
  */
-function generateResources(patterns: any[]): any[] {
-  const resources: any[] = [];
+function generateResources(patterns: DifficultyAnalysis['patterns']): ProactiveResource[] {
+  const resources: ProactiveResource[] = [];
   
   patterns.forEach(pattern => {
     switch (pattern.type) {
@@ -301,7 +304,7 @@ function generateResources(patterns: any[]): any[] {
  */
 function generateMockProactiveResponse(
   analysis: DifficultyAnalysis,
-  sessionContext: any
+  sessionContext: SessionContext | null
 ): ProactiveHelpResponse {
   const primaryPattern = analysis.patterns[0];
   
@@ -339,7 +342,7 @@ Mientras tanto, aquí hay algunas cosas que podrían ayudarte:
       success: true,
       response: `¡Hey! Veo que has intentado varias veces esta actividad. ¡Eso muestra perseverancia! 🎯
 
-He notado los ${sessionContext?.retryCount || 3} intentos que has hecho. A menudo, cuando esto pasa, puede ayudar:
+He notado los ${sessionContext?.attemptsMade || 3} intentos que has hecho. A menudo, cuando esto pasa, puede ayudar:
 
 • Revisar la estructura del ejemplo dado - compara tu respuesta con el patrón mostrado
 • Verificar que estás incluyendo todos los elementos clave (rol, contexto, objetivo)

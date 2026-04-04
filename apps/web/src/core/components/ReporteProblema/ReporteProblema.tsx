@@ -2,19 +2,20 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, 
-  AlertCircle, 
-  Lightbulb, 
-  FileText, 
-  Zap, 
-  Palette, 
+import {
+  X,
+  AlertCircle,
+  Lightbulb,
+  FileText,
+  Zap,
+  Palette,
   HelpCircle,
   Upload,
   Send,
   CheckCircle,
   Loader2,
-  Video
+  Video,
+  type LucideIcon
 } from 'lucide-react';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { sessionRecorder } from '../../../lib/rrweb/session-recorder';
@@ -29,7 +30,7 @@ interface ReporteProblemProps {
 type Categoria = 'bug' | 'sugerencia' | 'contenido' | 'performance' | 'ui-ux' | 'otro';
 type Prioridad = 'baja' | 'media' | 'alta' | 'critica';
 
-const categorias: { value: Categoria; label: string; icon: any; color: string; bgColor: string; borderColor: string }[] = [
+const categorias: { value: Categoria; label: string; icon: LucideIcon; color: string; bgColor: string; borderColor: string }[] = [
   { value: 'bug', label: 'Bug / Error', icon: AlertCircle, color: 'text-red-600 dark:text-red-400', bgColor: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-500' },
   { value: 'sugerencia', label: 'Sugerencia', icon: Lightbulb, color: 'text-[#F59E0B] dark:text-[#F59E0B]', bgColor: 'bg-amber-50 dark:bg-amber-900/20', borderColor: 'border-[#F59E0B]' },
   { value: 'contenido', label: 'Problema de Contenido', icon: FileText, color: 'text-[#0A2540] dark:text-[#00D4B3]', bgColor: 'bg-blue-50 dark:bg-blue-900/20', borderColor: 'border-[#0A2540] dark:border-[#00D4B3]' },

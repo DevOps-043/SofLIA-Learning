@@ -3,6 +3,35 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface OrganizationAnalyticsUser {
+  id: string
+  cargo_rol: string | null
+  type_rol: string | null
+  display_name: string | null
+  username: string | null
+}
+
+interface OrganizationUserRow {
+  user_id: string
+  users: OrganizationAnalyticsUser | null
+}
+
+interface AnalyticsCourseRow {
+  id: string
+  title: string
+  category: string | null
+  learning_objectives: string[] | null
+  level: string | null
+}
+
+interface CompletedEnrollmentRow {
+  user_id: string
+  course_id: string
+  overall_progress_percentage: number | null
+  completed_at: string | null
+  courses: AnalyticsCourseRow | null
+}
+
 /**
  * GET /api/business/analytics/skills
  * Obtiene análisis de habilidades y gaps de conocimiento para la organización
@@ -103,7 +132,7 @@ export async function GET(request: NextRequest) {
       courses: Array<{ id: string; title: string; category: string }>
     }> = {}
 
-    completedCourses?.forEach((enrollment: any) => {
+    (completedCourses as CompletedEnrollmentRow[] | null)?.forEach((enrollment) => {
       const userId = enrollment.user_id
       if (!userSkills[userId]) {
         userSkills[userId] = { learned: new Set(), courses: [] }
@@ -145,9 +174,9 @@ export async function GET(request: NextRequest) {
       learned_skills: string[]
     }> = []
 
-    orgUsers?.forEach(orgUser => {
+    (orgUsers as OrganizationUserRow[] | null)?.forEach((orgUser) => {
       const userId = orgUser.user_id
-      const user = (orgUser as any).users
+      const user = orgUser.users
       if (!user || !targetUserIds.includes(userId)) return
 
       const roleName = user.type_rol || user.cargo_rol || 'General'
@@ -172,7 +201,7 @@ export async function GET(request: NextRequest) {
     // Después: O(completedCourses) para indexar + O(gaps * missing_skills) para lookup = O(n²)
     const skillToCourses: Record<string, Array<{ id: string; title: string; category: string }>> = {}
 
-    completedCourses?.forEach((e: any) => {
+    (completedCourses as CompletedEnrollmentRow[] | null)?.forEach((e) => {
       const course = e.courses
       if (!course) return
 
@@ -298,4 +327,3 @@ export async function GET(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

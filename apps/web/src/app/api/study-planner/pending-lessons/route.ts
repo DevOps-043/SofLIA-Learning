@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/study-planner/pending-lessons
@@ -32,8 +33,30 @@ export async function GET(request: NextRequest) {
       course_id: string;
       due_date: string | null;
       source: 'enrollment' | 'org_assignment' | 'hierarchy_assignment';
-      courseInfo?: { id: string; title: string; description?: string };
+      courseInfo?: CourseInfo;
     }
+
+    interface CourseInfo {
+      id: string;
+      title: string;
+      description?: string | null;
+    }
+
+    interface CourseAssignmentRow {
+      course_id: string;
+      due_date: string | null;
+      courses: CourseInfo | CourseInfo[] | null;
+    }
+
+    interface EnrollmentRow {
+      course_id: string;
+      courses: CourseInfo | CourseInfo[] | null;
+    }
+
+    const normalizeCourseInfo = (value: CourseInfo | CourseInfo[] | null): CourseInfo | undefined => {
+      if (!value) return undefined;
+      return Array.isArray(value) ? value[0] : value;
+    };
 
     interface ModuleData {
       module_id: string;
@@ -108,7 +131,7 @@ export async function GET(request: NextRequest) {
       } else if (orgAssignments && orgAssignments.length > 0) {
 
         // Filtrar asignaciones vencidas
-        const validAssignments = orgAssignments.filter((assignment: any) => {
+        const validAssignments = (orgAssignments as CourseAssignmentRow[]).filter((assignment) => {
           // Si no tiene due_date, incluir (sin fecha límite)
           if (!assignment.due_date) {
             return true;
@@ -125,7 +148,7 @@ export async function GET(request: NextRequest) {
 
 
         for (const assignment of validAssignments) {
-          const courseData = assignment.courses as any;
+          const courseData = normalizeCourseInfo(assignment.courses);
           allCourseSources.push({
             course_id: assignment.course_id,
             due_date: assignment.due_date,
@@ -182,7 +205,7 @@ export async function GET(request: NextRequest) {
         } else if (hierarchyAssignments && hierarchyAssignments.length > 0) {
 
           // Filtrar asignaciones jerárquicas vencidas
-          const validHierarchyAssignments = hierarchyAssignments.filter((assignment: any) => {
+          const validHierarchyAssignments = (hierarchyAssignments as CourseAssignmentRow[]).filter((assignment) => {
             if (!assignment.due_date) {
               return true; // Sin fecha límite = incluir
             }
@@ -200,7 +223,7 @@ export async function GET(request: NextRequest) {
           for (const assignment of validHierarchyAssignments) {
             const exists = allCourseSources.some(c => c.course_id === assignment.course_id);
             if (!exists) {
-              const courseData = assignment.courses as any;
+              const courseData = normalizeCourseInfo(assignment.courses);
               allCourseSources.push({
                 course_id: assignment.course_id,
                 due_date: assignment.due_date,
@@ -238,7 +261,7 @@ export async function GET(request: NextRequest) {
       for (const enrollment of enrollments) {
         const exists = allCourseSources.some(c => c.course_id === enrollment.course_id);
         if (!exists) {
-          const courseData = enrollment.courses as any;
+          const courseData = normalizeCourseInfo((enrollment as EnrollmentRow).courses);
           allCourseSources.push({
             course_id: enrollment.course_id,
             due_date: null,
@@ -418,7 +441,7 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('❌ Error en pending-lessons:', error);
+    logger.error('Error en pending-lessons:', error);
     return NextResponse.json(
       { error: 'Error interno del servidor', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

@@ -5,9 +5,29 @@
  * cargas duplicadas y problemas de sincronización.
  */
 
+import type { eventWithTime } from '@rrweb/types'
+
+type DynamicImportModule = Record<string, unknown> & {
+  default?: unknown
+  record?: unknown
+}
+
+export interface RrwebPlayerInstance {
+  pause?: () => void
+  destroy?: () => void
+  [key: string]: unknown
+}
+
+export interface RrwebPlayerConstructor {
+  new (options: {
+    target: HTMLElement
+    props: Record<string, unknown>
+  }): RrwebPlayerInstance
+}
+
 // Tipos personalizados para rrweb sin usar typeof import (evita análisis estático de webpack)
 export interface RrwebRecordOptions {
-  emit: (event: any) => void;
+  emit: (event: eventWithTime) => void;
   checkoutEveryNms?: number;
   checkoutEveryNth?: number;
   recordCanvas?: boolean;
@@ -56,21 +76,28 @@ export interface RrwebRecordOptions {
 export interface RrwebModule {
   record: (options: RrwebRecordOptions) => () => void;
   EventType?: Record<string, number>;
-  [key: string]: any;
-}
-
-export interface RrwebPlayerModule {
-  default: any;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Estado global para evitar cargas duplicadas
 let rrwebModule: RrwebModule | null = null;
-let rrwebPlayerModule: RrwebPlayerModule | null = null;
+let rrwebPlayerModule: RrwebPlayerConstructor | null = null;
 let isRrwebLoading = false;
 let isRrwebPlayerLoading = false;
 let rrwebLoadPromise: Promise<RrwebModule | null> | null = null;
-let rrwebPlayerLoadPromise: Promise<RrwebPlayerModule | null> | null = null;
+let rrwebPlayerLoadPromise: Promise<RrwebPlayerConstructor | null> | null = null;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isRrwebModule(value: unknown): value is RrwebModule {
+  return isRecord(value) && typeof value.record === 'function'
+}
+
+function isRrwebPlayerConstructor(value: unknown): value is RrwebPlayerConstructor {
+  return typeof value === 'function'
+}
 
 /**
  * Verifica que estamos en un entorno de navegador válido
@@ -113,24 +140,19 @@ export async function loadRrweb(): Promise<RrwebModule | null> {
   rrwebLoadPromise = (async () => {
     try {
       // Usar import dinámico con verificación adicional
-      // Usar 'any' para evitar que TypeScript intente analizar el módulo
-      const importedModule = await import('rrweb') as any;
+      const importedModule = await import('rrweb') as DynamicImportModule;
       
       // El módulo puede tener diferentes estructuras de exportación
       // Intentar acceder a record de diferentes maneras
       let module: RrwebModule | null = null;
       
       // Caso 1: Exportación nombrada directa { record, ... }
-      if (importedModule && typeof importedModule.record === 'function') {
-        module = importedModule as RrwebModule;
+      if (isRrwebModule(importedModule)) {
+        module = importedModule;
       }
       // Caso 2: Exportación por defecto con record
-      else if (importedModule?.default && typeof importedModule.default.record === 'function') {
-        module = importedModule.default as RrwebModule;
-      }
-      // Caso 3: El módulo mismo es el objeto con record
-      else if (importedModule && typeof (importedModule as any).record === 'function') {
-        module = importedModule as RrwebModule;
+      else if (isRrwebModule(importedModule.default)) {
+        module = importedModule.default;
       }
       
       // Verificar que el módulo tiene la función record
@@ -140,8 +162,8 @@ export async function loadRrweb(): Promise<RrwebModule | null> {
           hasDefault: !!importedModule?.default,
           hasRecord: typeof importedModule?.record,
           hasDefaultRecord: typeof importedModule?.default?.record,
-          moduleKeys: importedModule ? Object.keys(importedModule) : [],
-          defaultKeys: importedModule?.default ? Object.keys(importedModule.default) : [],
+          moduleKeys: Object.keys(importedModule),
+          defaultKeys: isRecord(importedModule.default) ? Object.keys(importedModule.default) : [],
         });
         throw new Error('rrweb.record no está disponible en la estructura del módulo');
       }
@@ -197,7 +219,7 @@ async function loadRrwebPlayerStyles(): Promise<void> {
  * 
  * @returns Promise que resuelve con el módulo rrweb-player o null si falla
  */
-export async function loadRrwebPlayer(): Promise<any | null> {
+export async function loadRrwebPlayer(): Promise<RrwebPlayerConstructor | null> {
   // Solo cargar en el cliente - verificación estricta
   if (!isBrowserEnvironment()) {
     return null;
@@ -208,13 +230,12 @@ export async function loadRrwebPlayer(): Promise<any | null> {
 
   // Si ya está cargado, retornarlo
   if (rrwebPlayerModule) {
-    return rrwebPlayerModule.default || rrwebPlayerModule;
+    return rrwebPlayerModule;
   }
 
   // Si ya está en proceso de carga, esperar a que termine
   if (isRrwebPlayerLoading && rrwebPlayerLoadPromise) {
-    const module = await rrwebPlayerLoadPromise;
-    return module ? (module.default || module) : null;
+    return rrwebPlayerLoadPromise;
   }
 
   // Iniciar carga con manejo robusto de errores
@@ -222,33 +243,33 @@ export async function loadRrwebPlayer(): Promise<any | null> {
   rrwebPlayerLoadPromise = (async () => {
     try {
       // Usar import dinámico
-      const importedModule = await import('rrweb-player') as any;
+      const importedModule = await import('rrweb-player') as DynamicImportModule;
       
       // El módulo puede tener diferentes estructuras de exportación
-      let module: RrwebPlayerModule | null = null;
+      let playerConstructor: RrwebPlayerConstructor | null = null;
       
       // Caso 1: Exportación por defecto
-      if (importedModule?.default) {
-        module = importedModule;
+      if (isRrwebPlayerConstructor(importedModule.default)) {
+        playerConstructor = importedModule.default;
       }
       // Caso 2: Exportación nombrada
-      else if (importedModule) {
-        module = importedModule;
+      else if (isRrwebPlayerConstructor(importedModule)) {
+        playerConstructor = importedModule;
       }
       
-      if (!module) {
+      if (!playerConstructor) {
         console.error('❌ [rrweb-loader] rrweb-player module structure:', {
           hasModule: !!importedModule,
           hasDefault: !!importedModule?.default,
-          moduleKeys: importedModule ? Object.keys(importedModule) : [],
+          moduleKeys: Object.keys(importedModule),
         });
         throw new Error('rrweb-player no está disponible en la estructura del módulo');
       }
       
-      rrwebPlayerModule = module;
+      rrwebPlayerModule = playerConstructor;
       isRrwebPlayerLoading = false;
 
-      return module;
+      return playerConstructor;
     } catch (error) {
       console.error('❌ [rrweb-loader] Error cargando rrweb-player:', error);
       isRrwebPlayerLoading = false;
@@ -258,8 +279,7 @@ export async function loadRrwebPlayer(): Promise<any | null> {
     }
   })();
 
-  const module = await rrwebPlayerLoadPromise;
-  return module ? (module.default || module) : null;
+  return rrwebPlayerLoadPromise;
 }
 
 /**

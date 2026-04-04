@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { handleGoogleCallback } from '@/features/auth/actions/oauth';
 
+function getRedirectDigest(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('digest' in error)) {
+    return null;
+  }
+
+  const { digest } = error;
+  return typeof digest === 'string' ? digest : null;
+}
+
 /**
  * GET /api/auth/callback/google
  *
@@ -37,7 +46,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     // Verificar si es una redirección de Next.js (no es un error real)
     if (error && typeof error === 'object' && 'digest' in error) {
-      const digest = (error as any).digest;
+      const digest = getRedirectDigest(error);
       if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
         // Es una redirección exitosa, relanzar para que Next.js la maneje
         throw error;

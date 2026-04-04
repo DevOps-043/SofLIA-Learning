@@ -163,7 +163,7 @@ function StatsSection({ company }: { company: CompanyData }) {
                                     paddingAngle={5}
                                     dataKey="value"
                                 >
-                                    {teamDistribution.map((entry: any, index: number) => (
+                                    {teamDistribution.map((entry, index: number) => (
                                         <Cell key={`cell-${index}`} fill={COLORS_CHART[index % COLORS_CHART.length]} />
                                     ))}
                                 </Pie>

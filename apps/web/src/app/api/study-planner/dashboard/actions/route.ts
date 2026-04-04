@@ -42,16 +42,76 @@ type ActionType =
   | 'complete_session'
   | 'reschedule_sessions';
 
-interface ActionRequest {
-  action: ActionType;
-  planId: string;
-  data: any;
+type StudySessionUpdateFields = Pick<
+  Database['public']['Tables']['study_sessions']['Update'],
+  'title' | 'description' | 'notes'
+>;
+
+interface MoveSessionData {
+  sessionId: string;
+  newStartTime: string;
+  newEndTime: string;
 }
+
+interface DeleteSessionData {
+  sessionId: string;
+}
+
+interface ResizeSessionData {
+  sessionId: string;
+  newDurationMinutes: number;
+}
+
+interface CreateSessionData {
+  title: string;
+  startTime: string;
+  endTime: string;
+  courseId?: string | null;
+  lessonId?: string | null;
+  description?: string | null;
+}
+
+type UpdateSessionData = {
+  sessionId: string;
+} & StudySessionUpdateFields;
+
+interface CompleteSessionData {
+  sessionId: string;
+  selfEvaluation?: Database['public']['Tables']['study_sessions']['Update']['self_evaluation'];
+  notes?: Database['public']['Tables']['study_sessions']['Update']['notes'];
+}
+
+interface RescheduleSessionItem {
+  sessionId: string;
+  newStartTime: string;
+  newEndTime: string;
+}
+
+interface RescheduleSessionsData {
+  sessionIds: string[];
+  newSchedule: RescheduleSessionItem[];
+}
+
+type ActionPayloadMap = {
+  move_session: MoveSessionData;
+  delete_session: DeleteSessionData;
+  resize_session: ResizeSessionData;
+  create_session: CreateSessionData;
+  update_session: UpdateSessionData;
+  complete_session: CompleteSessionData;
+  reschedule_sessions: RescheduleSessionsData;
+};
+
+type ActionRequest<T extends ActionType = ActionType> = {
+  action: T;
+  planId: string;
+  data: ActionPayloadMap[T];
+};
 
 interface ActionResponse {
   success: boolean;
   message?: string;
-  data?: any;
+  data?: Record<string, unknown>;
   error?: string;
 }
 
@@ -75,7 +135,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       );
     }
 
-    const body: ActionRequest = await request.json();
+    const body = (await request.json()) as Partial<ActionRequest> & { data?: unknown };
     const { action, planId, data } = body;
 
     if (!action || !planId) {
@@ -105,7 +165,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
     // Ejecutar acción según el tipo
     switch (action) {
       case 'move_session': {
-        const { sessionId, newStartTime, newEndTime } = data;
+        const { sessionId, newStartTime, newEndTime } = (data ?? {}) as Partial<MoveSessionData>;
         
         if (!sessionId || !newStartTime || !newEndTime) {
           return NextResponse.json(
@@ -165,7 +225,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       }
 
       case 'delete_session': {
-        const { sessionId } = data;
+        const { sessionId } = (data ?? {}) as Partial<DeleteSessionData>;
         
         if (!sessionId) {
           return NextResponse.json(
@@ -195,7 +255,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       }
 
       case 'resize_session': {
-        const { sessionId, newDurationMinutes } = data;
+        const { sessionId, newDurationMinutes } = (data ?? {}) as Partial<ResizeSessionData>;
         
         if (!sessionId || !newDurationMinutes) {
           return NextResponse.json(
@@ -254,7 +314,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       }
 
       case 'create_session': {
-        const { title, startTime, endTime, courseId, lessonId, description } = data;
+        const { title, startTime, endTime, courseId, lessonId, description } = (data ?? {}) as Partial<CreateSessionData>;
         
         if (!title || !startTime || !endTime) {
           return NextResponse.json(
@@ -319,7 +379,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       }
 
       case 'update_session': {
-        const { sessionId, ...updates } = data;
+        const { sessionId, ...updates } = (data ?? {}) as Partial<UpdateSessionData>;
         
         if (!sessionId) {
           return NextResponse.json(
@@ -329,8 +389,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
         }
 
         // Filtrar solo campos permitidos
-        const allowedFields = ['title', 'description', 'notes'];
-        const filteredUpdates: Record<string, any> = {};
+        const allowedFields: Array<keyof StudySessionUpdateFields> = ['title', 'description', 'notes'];
+        const filteredUpdates: StudySessionUpdateFields = {};
         
         for (const key of allowedFields) {
           if (updates[key] !== undefined) {
@@ -369,7 +429,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       }
 
       case 'complete_session': {
-        const { sessionId, selfEvaluation, notes } = data;
+        const { sessionId, selfEvaluation, notes } = (data ?? {}) as Partial<CompleteSessionData>;
         
         if (!sessionId) {
           return NextResponse.json(
@@ -405,7 +465,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
       }
 
       case 'reschedule_sessions': {
-        const { sessionIds, newSchedule } = data;
+        const { sessionIds, newSchedule } = (data ?? {}) as Partial<RescheduleSessionsData>;
 
         if (!sessionIds || !Array.isArray(sessionIds) || !newSchedule) {
           return NextResponse.json(
@@ -419,7 +479,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ActionRes
         // Ahora: N queries en paralelo con Promise.allSettled (rápido)
         const now = new Date().toISOString();
 
-        const updatePromises = newSchedule.map((item: { sessionId: string; newStartTime: string; newEndTime: string }) => {
+        const updatePromises = newSchedule.map((item: RescheduleSessionItem) => {
           const { sessionId, newStartTime, newEndTime } = item;
           return supabase
             .from('study_sessions')

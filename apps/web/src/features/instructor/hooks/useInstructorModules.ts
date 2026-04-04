@@ -1,15 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { AdminModule } from '@/features/admin/services/adminModules.service'
+import {
+  AdminModule,
+  CreateModuleData,
+  UpdateModuleData
+} from '@/features/admin/services/adminModules.service'
 
 interface UseInstructorModulesReturn {
   modules: AdminModule[]
   loading: boolean
   error: string | null
   fetchModules: (courseId: string) => Promise<void>
-  createModule: (courseId: string, data: any) => Promise<AdminModule>
-  updateModule: (courseId: string, moduleId: string, data: any) => Promise<AdminModule>
+  createModule: (courseId: string, data: CreateModuleData) => Promise<AdminModule>
+  updateModule: (courseId: string, moduleId: string, data: UpdateModuleData) => Promise<AdminModule>
   deleteModule: (courseId: string, moduleId: string) => Promise<void>
   togglePublished: (courseId: string, moduleId: string) => Promise<void>
 }
@@ -68,7 +72,7 @@ export function useInstructorModules(): UseInstructorModulesReturn {
     }
   }
 
-  const createModule = async (courseId: string, moduleData: any): Promise<AdminModule> => {
+  const createModule = async (courseId: string, moduleData: CreateModuleData): Promise<AdminModule> => {
     try {
       const response = await fetchWithRetry(`/api/instructor/courses/${courseId}/modules`, {
         method: 'POST',
@@ -96,7 +100,7 @@ export function useInstructorModules(): UseInstructorModulesReturn {
     }
   }
 
-  const updateModule = async (courseId: string, moduleId: string, moduleData: any): Promise<AdminModule> => {
+  const updateModule = async (courseId: string, moduleId: string, moduleData: UpdateModuleData): Promise<AdminModule> => {
     try {
       const response = await fetchWithRetry(`/api/instructor/courses/${courseId}/modules/${moduleId}`, {
         method: 'PUT',

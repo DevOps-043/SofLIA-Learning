@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 
+interface LiaActivityUpdatePayload {
+  updated_at: string
+  current_step?: number
+  completed_steps?: number
+  status?: string
+  completed_at?: string
+  generated_output?: unknown
+}
+
 /**
  * POST /api/lia/update-activity
  * 
@@ -31,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createClient();
 
-    const updateData: any = {
+    const updateData: LiaActivityUpdatePayload = {
       updated_at: new Date().toISOString()
     };
 

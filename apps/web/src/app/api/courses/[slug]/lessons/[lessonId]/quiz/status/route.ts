@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
+interface QuizSubmissionRow {
+  material_id?: string | null;
+  activity_id?: string | null;
+  percentage_score?: number | null;
+  is_passed?: boolean | null;
+  completed_at?: string | null;
+}
+
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/quiz/status
  * Verifica el estado de los quizzes obligatorios de una lección
@@ -108,7 +116,7 @@ export async function GET(
       console.error('Error obteniendo submissions:', submissionsError);
     }
 
-    const submissionsList = submissions || [];
+    const submissionsList: QuizSubmissionRow[] = submissions || [];
 
     // Construir información detallada de cada quiz
     const quizzesStatus = [];
@@ -116,7 +124,7 @@ export async function GET(
     // Procesar quizzes de materiales
     for (const materialQuiz of materialQuizzesList) {
       const submission = submissionsList.find(
-        (s: any) => s.material_id === materialQuiz.material_id
+        (submissionRow) => submissionRow.material_id === materialQuiz.material_id
       );
 
       quizzesStatus.push({
@@ -133,7 +141,7 @@ export async function GET(
     // Procesar quizzes de actividades
     for (const activityQuiz of activityQuizzesList) {
       const submission = submissionsList.find(
-        (s: any) => s.activity_id === activityQuiz.activity_id
+        (submissionRow) => submissionRow.activity_id === activityQuiz.activity_id
       );
 
       quizzesStatus.push({
@@ -172,4 +180,3 @@ export async function GET(
     );
   }
 }
-

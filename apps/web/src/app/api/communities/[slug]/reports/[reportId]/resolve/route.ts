@@ -186,7 +186,7 @@ export async function PATCH(
     }
 
     // Actualizar el reporte
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
       reviewed_by_user_id: user.id,
       reviewed_at: new Date().toISOString(),
@@ -226,7 +226,7 @@ export async function PATCH(
     }
 
     // Enriquecer el reporte con información relacionada
-    const enrichedReport: any = { ...updatedReport }
+    const enrichedReport: Record<string, unknown> = { ...updatedReport }
 
     // Obtener información del post
     if (post) {
@@ -295,4 +295,3 @@ export async function PATCH(
     )
   }
 }
-

@@ -2,6 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../../../../lib/supabase/server';
 import { SessionService } from '../../../../../../../features/auth/services/session.service';
 
+interface PollAttachmentData {
+  options: string[];
+  votes?: Record<string, string[]>;
+  userVotes?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+interface CommunityPollPostRow {
+  id: string;
+  attachment_type: string | null;
+  attachment_data: PollAttachmentData | null;
+}
+
+interface CommunityPollAttachmentRow {
+  attachment_data: PollAttachmentData | null;
+}
+
+function isPollAttachmentData(value: unknown): value is PollAttachmentData {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as PollAttachmentData;
+  return Array.isArray(candidate.options);
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string; postId: string }> }
@@ -32,18 +55,18 @@ export async function POST(
       .from('community_posts')
       .select('id, attachment_type, attachment_data')
       .eq('id', postId)
-      .single();
+      .single<CommunityPollPostRow>();
 
     if (postError || !post) {
       return NextResponse.json({ error: 'Post no encontrado' }, { status: 404 });
     }
 
-    if ((post as any).attachment_type !== 'poll') {
+    if (post.attachment_type !== 'poll') {
       return NextResponse.json({ error: 'Este post no es una encuesta' }, { status: 400 });
     }
 
-    let pollData = (post as any).attachment_data;
-    if (!pollData || !pollData.options) {
+    let pollData = post.attachment_data;
+    if (!isPollAttachmentData(pollData)) {
       return NextResponse.json({ error: 'Datos de encuesta inválidos' }, { status: 400 });
     }
 
@@ -132,7 +155,7 @@ export async function POST(
     updatedPollData.userVotes = updatedUserVotes;
 
     // Actualizar el post con los nuevos datos de la encuesta
-    const { error: updatePostError } = await (supabase as any)
+    const { error: updatePostError } = await supabase
       .from('community_posts')
       .update({
         attachment_data: updatedPollData,
@@ -180,16 +203,16 @@ export async function GET(
       .from('community_posts')
       .select('attachment_data')
       .eq('id', postId)
-      .single();
+      .single<CommunityPollAttachmentRow>();
 
     if (postError || !post) {
       return NextResponse.json({ error: 'Post no encontrado' }, { status: 404 });
     }
 
-    let pollData = (post as any).attachment_data;
+    let pollData = post.attachment_data;
 
     // Si no tiene estructura votes, inicializarla automáticamente
-    if (pollData && pollData.options && (!pollData.votes || typeof pollData.votes !== 'object')) {
+    if (isPollAttachmentData(pollData) && (!pollData.votes || typeof pollData.votes !== 'object')) {
       const initialVotes: Record<string, string[]> = {};
       pollData.options.forEach((option: string) => {
         initialVotes[option] = [];

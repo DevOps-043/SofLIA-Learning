@@ -2,6 +2,7 @@ import { NotificationService } from './notification.service'
 import { getNotificationPriority } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
 import { getServerClient } from './auto-notifications-server-client'
+import type { NotificationMetadata } from './auto-notifications.shared'
 
 /**
  * Notificaciones automáticas relacionadas con cursos.
@@ -13,7 +14,7 @@ export class CourseNotificationsService {
   static async notifyCoursePublished(
     courseId: string,
     courseTitle: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -71,7 +72,7 @@ export class CourseNotificationsService {
     userId: string,
     courseId: string,
     courseTitle: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ): Promise<void> {
     try {
       await NotificationService.createNotification({
@@ -101,7 +102,7 @@ export class CourseNotificationsService {
     courseTitle: string,
     lessonId: string,
     lessonTitle: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ): Promise<void> {
     try {
       await NotificationService.createNotification({
@@ -138,7 +139,7 @@ export class CourseNotificationsService {
     courseId: string,
     courseTitle: string,
     hasCertificate: boolean = false,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ): Promise<void> {
     try {
       const message = hasCertificate
@@ -181,7 +182,7 @@ export class CourseNotificationsService {
     courseId: string,
     courseTitle: string,
     answerPreview: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ): Promise<void> {
     try {
       if (questionAuthorId === answerAuthorId) {

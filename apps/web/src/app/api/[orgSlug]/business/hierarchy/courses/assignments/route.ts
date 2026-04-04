@@ -3,6 +3,25 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface HierarchyEntityInfo {
+  id: string
+  name: string
+  code: string | null
+  description: string | null
+}
+
+interface HierarchyAssignmentUpdateData {
+  due_date?: string | null
+  start_date?: string | null
+  approach?: string | null
+  message?: string | null
+  status?: string
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error interno'
+}
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/courses/assignments/[id]
  */
@@ -69,7 +88,7 @@ export async function GET(
 
     let entity_type: string | null = null
     let entity_id: string | null = null
-    let entity: any = null
+    let entity: HierarchyEntityInfo | null = null
 
     const { data: regionData } = await supabase
       .from('region_course_assignments')
@@ -111,9 +130,9 @@ export async function GET(
       success: true,
       data: { ...assignment, entity_type, entity_id, entity }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en GET [orgSlug]/hierarchy/courses/assignments/[id]:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }
 }
 
@@ -145,7 +164,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Asignación no encontrada' }, { status: 404 })
     }
 
-    const updateData: any = {}
+    const updateData: HierarchyAssignmentUpdateData = {}
     if (due_date !== undefined) updateData.due_date = due_date || null
     if (start_date !== undefined) updateData.start_date = start_date || null
     if (approach !== undefined) updateData.approach = approach || null
@@ -165,9 +184,9 @@ export async function PUT(
     }
 
     return NextResponse.json({ success: true, data: updatedAssignment })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en PUT [orgSlug]/hierarchy/courses/assignments/[id]:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }
 }
 
@@ -207,8 +226,8 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true, message: 'Asignación cancelada exitosamente' })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en DELETE [orgSlug]/hierarchy/courses/assignments/[id]:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    return NextResponse.json({ success: false, error: getErrorMessage(error) }, { status: 500 })
   }
 }

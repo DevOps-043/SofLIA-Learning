@@ -15,7 +15,7 @@ interface EmbeddedLiaModeDropdownProps {
   currentMode: EmbeddedLiaChatMode;
   onClose: () => void;
   onSelectMode: (mode: EmbeddedLiaChatMode) => void;
-  dropdownRef: RefObject<HTMLDivElement | null>;
+  dropdownRef: RefObject<HTMLDivElement>;
 }
 
 export function EmbeddedLiaModeDropdown({

@@ -7,10 +7,11 @@
  * - Calcular métricas de uso y calidad
  * - Facilitar minería de datos
  * 
- * NOTA: Este archivo usa 'as any' porque las tablas lia_* no están en los tipos generados de Supabase.
- * Los tipos se generarán automáticamente cuando se ejecute el comando de regeneración de tipos.
+ * NOTA: Este archivo usa tablas `lia_*` fuera del esquema generado de Supabase.
+ * Se tipan de forma local mientras se regeneran los contratos oficiales.
  */
 
+import { fromLoose } from '../supabase/looseQuery';
 import { createClient } from '../supabase/server';
 import type { CourseLessonContext } from '../../core/types/lia.types';
 
@@ -41,7 +42,60 @@ export interface ActivityProgress {
   totalSteps: number;
   completedSteps: number;
   currentStep: number;
-  generatedOutput?: any;
+  generatedOutput?: unknown;
+}
+
+interface LiaConversationRow {
+  conversation_id: string;
+  started_at?: string | null;
+  total_messages?: number | null;
+  total_lia_messages?: number | null;
+}
+
+interface LiaMessageRow {
+  message_id: string;
+  message_sequence?: number | null;
+  cost_usd?: number | null;
+}
+
+interface LiaActivityCompletionRow {
+  completion_id: string;
+  started_at?: string | null;
+  total_steps?: number | null;
+  lia_had_to_redirect?: number | null;
+}
+
+type LooseWriteRow = Record<string, unknown>;
+
+function conversationsTable(client: unknown) {
+  return fromLoose<LiaConversationRow, LooseWriteRow>(client, 'lia_conversations');
+}
+
+function messagesTable(client: unknown) {
+  return fromLoose<LiaMessageRow, LooseWriteRow>(client, 'lia_messages');
+}
+
+function activityCompletionsTable(client: unknown) {
+  return fromLoose<LiaActivityCompletionRow, LooseWriteRow>(
+    client,
+    'lia_activity_completions'
+  );
+}
+
+function userFeedbackTable(client: unknown) {
+  return fromLoose<Record<string, unknown>, LooseWriteRow>(client, 'lia_user_feedback');
+}
+
+function conversationAnalyticsTable(client: unknown) {
+  return fromLoose<Record<string, unknown>>(client, 'lia_conversation_analytics');
+}
+
+function activityPerformanceTable(client: unknown) {
+  return fromLoose<Record<string, unknown>>(client, 'lia_activity_performance');
+}
+
+function commonQuestionsTable(client: unknown) {
+  return fromLoose<Record<string, unknown>>(client, 'lia_common_questions');
 }
 
 // ============================================================================
@@ -69,8 +123,7 @@ export class SofLIALogger {
     const MAX_CONVERSATIONS_PER_CONTEXT = 5;
 
     // Verificar cuántas conversaciones tiene el usuario para este contexto
-    const { data: existingConversations, error: countError } = await supabase
-      .from('lia_conversations' as any)
+    const { data: existingConversations, error: countError } = await conversationsTable(supabase)
       .select('conversation_id, started_at')
       .eq('user_id', this.userId)
       .eq('context_type', metadata.contextType)
@@ -79,25 +132,22 @@ export class SofLIALogger {
     if (!countError && existingConversations && existingConversations.length >= MAX_CONVERSATIONS_PER_CONTEXT) {
       // Eliminar las conversaciones más antiguas (mantener solo las 4 más recientes)
       const conversationsToDelete = existingConversations.slice(MAX_CONVERSATIONS_PER_CONTEXT - 1);
-      const conversationIdsToDelete = conversationsToDelete.map((conv: any) => conv.conversation_id);
+      const conversationIdsToDelete = conversationsToDelete.map((conv) => conv.conversation_id);
 
       if (conversationIdsToDelete.length > 0) {
         // Primero eliminar los mensajes de esas conversaciones
-        await supabase
-          .from('lia_messages' as any)
+        await messagesTable(supabase)
           .delete()
           .in('conversation_id', conversationIdsToDelete);
 
         // Luego eliminar las conversaciones
-        await supabase
-          .from('lia_conversations' as any)
+        await conversationsTable(supabase)
           .delete()
           .in('conversation_id', conversationIdsToDelete);
       }
     }
 
-    const { data, error } = await supabase
-      .from('lia_conversations' as any)
+    const { data, error } = await conversationsTable(supabase)
       .insert({
         user_id: this.userId,
         context_type: metadata.contextType,
@@ -108,7 +158,7 @@ export class SofLIALogger {
         device_type: metadata.deviceType || null,
         browser: metadata.browser || null,
         ip_address: metadata.ipAddress || null,
-      } as any)
+      })
       .select('conversation_id')
       .single();
 
@@ -117,7 +167,7 @@ export class SofLIALogger {
       throw error;
     }
 
-    this.conversationId = (data as any)?.conversation_id || null;
+    this.conversationId = data?.conversation_id || null;
     this.messageSequence = 0; // Reset secuencia para nueva conversación
     return this.conversationId!
   }
@@ -142,8 +192,7 @@ export class SofLIALogger {
     this.messageSequence++;
 
     // Usar INSERT directo para mayor confiabilidad
-    const { data, error } = await supabase
-      .from('lia_messages' as any)
+    const { data, error } = await messagesTable(supabase)
       .insert({
         conversation_id: this.conversationId,
         role: role,
@@ -155,7 +204,7 @@ export class SofLIALogger {
         response_time_ms: metadata?.responseTimeMs || null,
         message_sequence: this.messageSequence, // ✅ Campo requerido
         created_at: new Date().toISOString()
-      } as any)
+      })
       .select('message_id')
       .single();
 
@@ -173,14 +222,13 @@ export class SofLIALogger {
     // Actualizar contadores en la conversación
     try {
       // Obtener contadores actuales
-      const { data: convData } = await supabase
-        .from('lia_conversations' as any)
+      const { data: convData } = await conversationsTable(supabase)
         .select('total_messages, total_lia_messages')
         .eq('conversation_id', this.conversationId)
         .single();
 
       if (convData) {
-        const updates: any = {
+        const updates: LooseWriteRow = {
           total_messages: (convData.total_messages || 0) + 1
         };
 
@@ -188,8 +236,7 @@ export class SofLIALogger {
           updates.total_lia_messages = (convData.total_lia_messages || 0) + 1;
         }
 
-        await supabase
-          .from('lia_conversations' as any)
+        await conversationsTable(supabase)
           .update(updates)
           .eq('conversation_id', this.conversationId);
       }
@@ -197,7 +244,7 @@ export class SofLIALogger {
       // Ignorar errores de actualización de contadores, no son críticos
     }
 
-    return (data as any)?.message_id;
+    return data?.message_id || '';
   }
 
   /**
@@ -211,12 +258,11 @@ export class SofLIALogger {
     const supabase = await createClient();
 
     // Usar UPDATE directo para mayor confiabilidad
-    const { error } = await supabase
-      .from('lia_conversations' as any)
+    const { error } = await conversationsTable(supabase)
       .update({
         ended_at: new Date().toISOString(),
         is_completed: completed
-      } as any)
+      })
       .eq('conversation_id', this.conversationId);
 
     if (error) {
@@ -239,8 +285,7 @@ export class SofLIALogger {
 
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from('lia_activity_completions' as any)
+    const { data, error } = await activityCompletionsTable(supabase)
       .insert({
         conversation_id: this.conversationId,
         user_id: this.userId,
@@ -248,7 +293,7 @@ export class SofLIALogger {
         status: 'started',
         total_steps: totalSteps,
         current_step: 1,
-      } as any)
+      })
       .select('completion_id')
       .single();
 
@@ -256,7 +301,7 @@ export class SofLIALogger {
       throw error;
     }
 
-    return (data as any).completion_id;
+    return data?.completion_id || '';
   }
 
   /**
@@ -268,7 +313,7 @@ export class SofLIALogger {
   ): Promise<void> {
     const supabase = await createClient();
 
-    const updateData: any = {
+    const updateData: LooseWriteRow = {
       updated_at: new Date().toISOString(),
     };
 
@@ -292,8 +337,7 @@ export class SofLIALogger {
       }
     }
 
-    const { error } = await supabase
-      .from('lia_activity_completions' as any)
+    const { error } = await activityCompletionsTable(supabase)
       .update(updateData)
       .eq('completion_id', completionId);
 
@@ -307,13 +351,12 @@ export class SofLIALogger {
    */
   async completeActivity(
     completionId: string,
-    generatedOutput?: any
+    generatedOutput?: unknown
   ): Promise<void> {
     const supabase = await createClient();
 
     // Primero obtener la actividad para calcular tiempo
-    const { data: activity } = await supabase
-      .from('lia_activity_completions' as any)
+    const { data: activity } = await activityCompletionsTable(supabase)
       .select('started_at, total_steps')
       .eq('completion_id', completionId)
       .single();
@@ -322,12 +365,12 @@ export class SofLIALogger {
       throw new Error('Activity not found');
     }
 
-    const timeToComplete = Math.floor(
-      (new Date().getTime() - new Date(activity.started_at).getTime()) / 1000
-    );
+    const startedAtMs = activity.started_at
+      ? new Date(activity.started_at).getTime()
+      : Date.now();
+    const timeToComplete = Math.floor((Date.now() - startedAtMs) / 1000);
 
-    const { error } = await supabase
-      .from('lia_activity_completions' as any)
+    const { error } = await activityCompletionsTable(supabase)
       .update({
         status: 'completed',
         completed_steps: activity.total_steps,
@@ -335,7 +378,7 @@ export class SofLIALogger {
         time_to_complete_seconds: timeToComplete,
         generated_output: generatedOutput || null,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('completion_id', completionId);
 
     if (error) {
@@ -349,12 +392,11 @@ export class SofLIALogger {
   async abandonActivity(completionId: string): Promise<void> {
     const supabase = await createClient();
 
-    const { error } = await supabase
-      .from('lia_activity_completions' as any)
+    const { error } = await activityCompletionsTable(supabase)
       .update({
         status: 'abandoned',
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('completion_id', completionId);
 
     if (error) {
@@ -377,8 +419,7 @@ export class SofLIALogger {
 
     const supabase = await createClient();
 
-    const { error } = await supabase
-      .from('lia_user_feedback' as any)
+    const { error } = await userFeedbackTable(supabase)
       .insert({
         message_id: messageId,
         conversation_id: this.conversationId,
@@ -386,7 +427,7 @@ export class SofLIALogger {
         feedback_type: feedbackType,
         rating: rating || null,
         comment: comment || null,
-      } as any);
+      });
 
     if (error) {
       throw error;
@@ -400,8 +441,7 @@ export class SofLIALogger {
     const supabase = await createClient();
 
     // Obtener valor actual
-    const { data } = await supabase
-      .from('lia_activity_completions' as any)
+    const { data } = await activityCompletionsTable(supabase)
       .select('lia_had_to_redirect')
       .eq('completion_id', completionId)
       .single();
@@ -409,12 +449,11 @@ export class SofLIALogger {
     if (!data) return;
 
     // Incrementar
-    const { error } = await supabase
-      .from('lia_activity_completions' as any)
+    const { error } = await activityCompletionsTable(supabase)
       .update({
         lia_had_to_redirect: (data.lia_had_to_redirect || 0) + 1,
         updated_at: new Date().toISOString(),
-      } as any)
+      })
       .eq('completion_id', completionId);
 
     if (error) {
@@ -445,8 +484,7 @@ export class SofLIALogger {
     if (!this.conversationId) return;
 
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from('lia_messages' as any)
+    const { data, error } = await messagesTable(supabase)
       .select('message_sequence')
       .eq('conversation_id', this.conversationId)
       .order('message_sequence', { ascending: false })
@@ -469,6 +507,9 @@ export class SofLIALogger {
   }
 }
 
+// Compatibilidad retroactiva mientras se termina de migrar el naming histórico.
+export const LiaLogger = SofLIALogger;
+
 // ============================================================================
 // FUNCIONES HELPER PARA ANÁLISIS
 // ============================================================================
@@ -479,8 +520,7 @@ export class SofLIALogger {
 export async function getUserConversationStats(userId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from('lia_conversation_analytics' as any)
+  const { data, error } = await conversationAnalyticsTable(supabase)
     .select('*')
     .eq('user_id', userId)
     .order('started_at', { ascending: false });
@@ -498,8 +538,7 @@ export async function getUserConversationStats(userId: string) {
 export async function getActivityPerformance(activityId: string) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from('lia_activity_performance' as any)
+  const { data, error } = await activityPerformanceTable(supabase)
     .select('*')
     .eq('activity_id', activityId)
     .single();
@@ -517,8 +556,7 @@ export async function getActivityPerformance(activityId: string) {
 export async function getCommonQuestionsForLesson(lessonId: string, limit: number = 10) {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from('lia_common_questions' as any)
+  const { data, error } = await commonQuestionsTable(supabase)
     .select('*')
     .eq('lesson_id', lessonId)
     .order('times_asked', { ascending: false })
@@ -538,35 +576,32 @@ export async function getLiaGlobalMetrics(startDate: Date, endDate: Date) {
   const supabase = await createClient();
 
   // Total de conversaciones
-  const { count: totalConversations } = await supabase
-    .from('lia_conversations' as any)
+  const { count: totalConversations } = await conversationsTable(supabase)
     .select('*', { count: 'exact', head: true })
     .gte('started_at', startDate.toISOString())
     .lte('started_at', endDate.toISOString());
 
   // Total de mensajes
-  const { count: totalMessages } = await supabase
-    .from('lia_messages' as any)
+  const { count: totalMessages } = await messagesTable(supabase)
     .select('*', { count: 'exact', head: true })
     .gte('created_at', startDate.toISOString())
     .lte('created_at', endDate.toISOString());
 
   // Actividades completadas
-  const { count: completedActivities } = await supabase
-    .from('lia_activity_completions' as any)
+  const { count: completedActivities } = await activityCompletionsTable(supabase)
     .select('*', { count: 'exact', head: true })
     .eq('status', 'completed')
     .gte('completed_at', startDate.toISOString())
     .lte('completed_at', endDate.toISOString());
 
   // Costo total
-  const { data: costData } = await supabase
-    .from('lia_messages' as any)
+  const { data: costData } = await messagesTable(supabase)
     .select('cost_usd')
     .gte('created_at', startDate.toISOString())
     .lte('created_at', endDate.toISOString());
 
-  const totalCost = costData?.reduce((sum, row) => sum + (row.cost_usd || 0), 0) || 0;
+  const totalCost =
+    costData?.reduce((sum: number, row: LiaMessageRow) => sum + (row.cost_usd || 0), 0) || 0;
 
   return {
     totalConversations: totalConversations || 0,
@@ -575,4 +610,3 @@ export async function getLiaGlobalMetrics(startDate: Date, endDate: Date) {
     totalCostUsd: totalCost,
   };
 }
-

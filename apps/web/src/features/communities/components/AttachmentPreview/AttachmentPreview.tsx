@@ -14,12 +14,39 @@ import {
   Download,
   ExternalLink
 } from 'lucide-react';
+import type { InlineAttachmentPayload } from '../InlineAttachmentButtons/InlineAttachmentButtons';
 
 interface AttachmentPreviewProps {
   type: string;
-  data: any;
+  data: InlineAttachmentPayload;
   onRemove: () => void;
   className?: string;
+}
+
+function getStringValue(
+  data: InlineAttachmentPayload,
+  key: keyof InlineAttachmentPayload
+): string | undefined {
+  const value = data[key];
+  return typeof value === 'string' ? value : undefined;
+}
+
+function getNumberValue(
+  data: InlineAttachmentPayload,
+  key: keyof InlineAttachmentPayload
+): number | undefined {
+  const value = data[key];
+  return typeof value === 'number' ? value : undefined;
+}
+
+function getStringArrayValue(
+  data: InlineAttachmentPayload,
+  key: keyof InlineAttachmentPayload
+): string[] | undefined {
+  const value = data[key];
+  return Array.isArray(value) && value.every((entry) => typeof entry === 'string')
+    ? value
+    : undefined;
 }
 
 const getAttachmentIcon = (type: string) => {
@@ -75,21 +102,24 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
   const renderContent = () => {
     switch (type) {
       case 'image':
+        const imageUrl = getStringValue(data, 'url') ?? '';
+        const imageName = getStringValue(data, 'name') ?? 'Imagen';
+        const imageSize = getNumberValue(data, 'size') ?? 0;
         return (
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-slate-700">
               <img 
-                src={data.url} 
-                alt={data.name}
+                src={imageUrl} 
+                alt={imageName}
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {data.name}
+                {imageName}
               </p>
               <p className="text-xs text-gray-600 dark:text-slate-400">
-                {formatFileSize(data.size)}
+                {formatFileSize(imageSize)}
               </p>
             </div>
           </div>
@@ -97,6 +127,8 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
 
       case 'document':
       case 'video':
+        const fileName = getStringValue(data, 'name') ?? 'Archivo';
+        const fileSize = getNumberValue(data, 'size') ?? 0;
         return (
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
@@ -104,16 +136,17 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {data.name}
+                {fileName}
               </p>
               <p className="text-xs text-gray-600 dark:text-slate-400">
-                {formatFileSize(data.size)}
+                {formatFileSize(fileSize)}
               </p>
             </div>
           </div>
         );
 
       case 'youtube':
+        const videoUrl = getStringValue(data, 'url') ?? '';
         return (
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
@@ -124,13 +157,14 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
                 Video de YouTube
               </p>
               <p className="text-xs text-gray-600 dark:text-slate-400 truncate">
-                {data.url}
+                {videoUrl}
               </p>
             </div>
           </div>
         );
 
       case 'link':
+        const linkUrl = getStringValue(data, 'url') ?? '';
         return (
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
@@ -141,13 +175,15 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
                 Enlace web
               </p>
               <p className="text-xs text-gray-600 dark:text-slate-400 truncate">
-                {data.url}
+                {linkUrl}
               </p>
             </div>
           </div>
         );
 
       case 'poll':
+        const pollQuestion = getStringValue(data, 'question') ?? 'Nueva encuesta';
+        const pollOptions = getStringArrayValue(data, 'options') ?? [];
         return (
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colorClass} flex items-center justify-center`}>
@@ -155,10 +191,10 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {data.question || 'Nueva encuesta'}
+                {pollQuestion}
               </p>
               <p className="text-xs text-gray-600 dark:text-slate-400">
-                {data.options?.length || 0} opciones
+                {pollOptions.length} opciones
               </p>
             </div>
           </div>
@@ -197,7 +233,12 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
           {/* Botón de acción (opcional) */}
           {(type === 'youtube' || type === 'link') && (
             <button
-              onClick={() => window.open(data.url, '_blank')}
+              onClick={() => {
+                const url = getStringValue(data, 'url');
+                if (url) {
+                  window.open(url, '_blank');
+                }
+              }}
               className="p-1 text-gray-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               title="Abrir enlace"
             >
@@ -209,9 +250,14 @@ export function AttachmentPreview({ type, data, onRemove, className = '' }: Atta
           {(type === 'image' || type === 'document' || type === 'video') && (
             <button
               onClick={() => {
+                const url = getStringValue(data, 'url');
+                const name = getStringValue(data, 'name');
+                if (!url || !name) {
+                  return;
+                }
                 const link = document.createElement('a');
-                link.href = data.url;
-                link.download = data.name;
+                link.href = url;
+                link.download = name;
                 link.click();
               }}
               className="p-1 text-gray-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"

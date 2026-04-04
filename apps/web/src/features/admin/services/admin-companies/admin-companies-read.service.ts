@@ -1,4 +1,5 @@
 import { createClient } from '../../../../lib/supabase/server'
+import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
 
 import type {
@@ -11,6 +12,7 @@ import {
 } from './admin-companies.mapper'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type UserProfileRow = Omit<AdminCompanyUserProfile, 'email'> & { email: string | null }
 
 const ORGANIZATION_SELECT = `
   id,
@@ -61,8 +63,11 @@ async function buildUsersMap(
     .in('id', userIds)
 
   const usersMap = new Map<string, AdminCompanyUserProfile>()
-  usersData?.forEach((user: AdminCompanyUserProfile) => {
-    usersMap.set(user.id, user)
+  usersData?.forEach((user: UserProfileRow) => {
+    usersMap.set(user.id, {
+      ...user,
+      email: user.email ?? '',
+    })
   })
 
   return usersMap
@@ -163,7 +168,9 @@ export async function getAdminCompanyById(id: string): Promise<AdminCompany | nu
       .select('*')
       .eq('organization_id', id)
       .eq('status', 'pending'),
-    supabase.from('bulk_invite_links').select('*').eq('organization_id', id),
+    fromLoose<Record<string, unknown>>(supabase, 'bulk_invite_links')
+      .select('*')
+      .eq('organization_id', id),
   ])
 
   return mapOrganizationRow(organization, {

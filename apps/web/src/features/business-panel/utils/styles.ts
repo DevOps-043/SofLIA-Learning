@@ -4,7 +4,7 @@ import { StyleConfig } from '../hooks/useOrganizationStyles';
 /**
  * Genera estilos inline desde un objeto StyleConfig
  */
-export function generateInlineStyles(style: StyleConfig | null): React.CSSProperties {
+export function generateInlineStyles(style: StyleConfig | null | undefined): React.CSSProperties {
   if (!style) {
     return {};
   }
@@ -60,7 +60,7 @@ export function hexToRgb(hex: string): string {
 /**
  * Genera CSS variables dinámicas desde un objeto StyleConfig
  */
-export function generateCSSVariables(style: StyleConfig | null): Record<string, string> {
+export function generateCSSVariables(style: StyleConfig | null | undefined): Record<string, string> {
   if (!style) {
     return {};
   }
@@ -112,7 +112,7 @@ export function generateCSSVariables(style: StyleConfig | null): Record<string, 
  */
 export function applyBackgroundStyles(
   element: HTMLElement | null,
-  style: StyleConfig | null
+  style: StyleConfig | null | undefined
 ): void {
   if (!element || !style) return;
 
@@ -157,7 +157,7 @@ export function stylesToCSSString(variables: Record<string, string>): string {
 /**
  * Obtiene el valor de background para usar en className o style
  */
-export function getBackgroundStyle(style: StyleConfig | null): React.CSSProperties {
+export function getBackgroundStyle(style: StyleConfig | null | undefined): React.CSSProperties {
   if (!style) {
     return {};
   }
@@ -187,4 +187,3 @@ export function getBackgroundStyle(style: StyleConfig | null): React.CSSProperti
 
   return bgStyle;
 }
-

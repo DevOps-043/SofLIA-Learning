@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { ChartPieIcon } from '@heroicons/react/24/outline';
 
 interface ContextData {
@@ -17,14 +17,35 @@ interface ContextDistributionWidgetProps {
   isLoading?: boolean;
 }
 
+interface ChartContextData extends ContextData {
+  name: string;
+  color: string;
+}
+
+interface ContextTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: ChartContextData;
+  }>;
+}
+
+interface ContextLabelProps {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  innerRadius?: number;
+  outerRadius?: number;
+  percent?: number;
+}
+
 const CONTEXT_COLORS: Record<string, string> = {
-  course: '#8b5cf6',     // Violeta
-  general: '#6366f1',    // Indigo
-  workshop: '#14b8a6',   // Teal
-  prompts: '#f97316',    // Naranja
-  community: '#ec4899',  // Rosa
-  news: '#3b82f6',       // Azul
-  default: '#9ca3af',    // Gris
+  course: '#8b5cf6',
+  general: '#6366f1',
+  workshop: '#14b8a6',
+  prompts: '#f97316',
+  community: '#ec4899',
+  news: '#3b82f6',
+  default: '#9ca3af',
 };
 
 const CONTEXT_LABELS: Record<string, string> = {
@@ -37,7 +58,7 @@ const CONTEXT_LABELS: Record<string, string> = {
 };
 
 export function ContextDistributionWidget({ data, isLoading }: ContextDistributionWidgetProps) {
-  const chartData = useMemo(() => {
+  const chartData = useMemo<ChartContextData[]>(() => {
     return data.map((item) => ({
       ...item,
       name: CONTEXT_LABELS[item.contextType] || item.contextType,
@@ -53,34 +74,34 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
     return data.reduce((sum, item) => sum + item.cost, 0);
   }, [data]);
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
+  const CustomTooltip = ({ active, payload }: ContextTooltipProps) => {
+    const tooltipData = payload?.[0]?.payload;
+    if (active && tooltipData) {
       return (
         <div className="bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
           <div className="flex items-center gap-2 mb-2">
             <div
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: data.color }}
-            ></div>
-            <p className="text-white font-medium">{data.name}</p>
+              style={{ backgroundColor: tooltipData.color }}
+            />
+            <p className="text-white font-medium">{tooltipData.name}</p>
           </div>
           <div className="space-y-1 text-sm">
             <p className="text-violet-400">
               <span className="text-gray-400">Conversaciones:</span>{' '}
-              <span className="font-semibold">{data.count}</span>
+              <span className="font-semibold">{tooltipData.count}</span>
             </p>
             <p className="text-emerald-400">
               <span className="text-gray-400">Costo:</span>{' '}
-              <span className="font-semibold">${data.cost.toFixed(4)}</span>
+              <span className="font-semibold">${tooltipData.cost.toFixed(4)}</span>
             </p>
             <p className="text-amber-400">
               <span className="text-gray-400">Tokens:</span>{' '}
-              <span className="font-semibold">{data.tokens.toLocaleString()}</span>
+              <span className="font-semibold">{tooltipData.tokens.toLocaleString()}</span>
             </p>
             <p className="text-blue-400">
               <span className="text-gray-400">Porcentaje:</span>{' '}
-              <span className="font-semibold">{data.percentage}%</span>
+              <span className="font-semibold">{tooltipData.percentage}%</span>
             </p>
           </div>
         </div>
@@ -96,14 +117,19 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
     innerRadius,
     outerRadius,
     percent,
-    name,
-  }: any) => {
-    if (percent < 0.05) return null; // No mostrar etiquetas para segmentos muy pequeños
-    
+  }: ContextLabelProps) => {
+    const safePercent = percent ?? 0;
+    if (safePercent < 0.05) return null;
+
     const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    const safeCx = cx ?? 0;
+    const safeCy = cy ?? 0;
+    const safeMidAngle = midAngle ?? 0;
+    const safeInnerRadius = innerRadius ?? 0;
+    const safeOuterRadius = outerRadius ?? 0;
+    const radius = safeInnerRadius + (safeOuterRadius - safeInnerRadius) * 0.5;
+    const x = safeCx + radius * Math.cos(-safeMidAngle * RADIAN);
+    const y = safeCy + radius * Math.sin(-safeMidAngle * RADIAN);
 
     return (
       <text
@@ -114,7 +140,7 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
         dominantBaseline="central"
         className="text-xs font-medium"
       >
-        {`${(percent * 100).toFixed(0)}%`}
+        {`${(safePercent * 100).toFixed(0)}%`}
       </text>
     );
   };
@@ -123,8 +149,8 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto w-64"></div>
+          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto w-64" />
         </div>
       </div>
     );
@@ -136,10 +162,10 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
             <ChartPieIcon className="w-5 h-5 text-violet-500" />
-            Distribución por Contexto
+            Distribucion por Contexto
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {totalConversations} conversaciones • ${totalCost.toFixed(4)} total
+            {totalConversations} conversaciones - ${totalCost.toFixed(4)} total
           </p>
         </div>
       </div>
@@ -169,7 +195,6 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
             </ResponsiveContainer>
           </div>
 
-          {/* Leyenda detallada */}
           <div className="w-full lg:w-1/2 space-y-2">
             {chartData.map((item) => (
               <div
@@ -180,7 +205,7 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
                   <div
                     className="w-3 h-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: item.color }}
-                  ></div>
+                  />
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
                     {item.name}
                   </span>
@@ -197,10 +222,9 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
         </div>
       ) : (
         <div className="h-56 flex items-center justify-center text-gray-500 dark:text-gray-400">
-          No hay datos de distribución
+          No hay datos de distribucion
         </div>
       )}
     </div>
   );
 }
-

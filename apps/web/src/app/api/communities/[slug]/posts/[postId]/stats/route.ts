@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../../../../lib/supabase/server';
 
+interface TopUserRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+  profile_picture_url: string | null;
+}
+
+interface CommunityReactionUserRow {
+  user_id: string;
+  user: TopUserRow;
+}
+
+interface ReactionCountByUser {
+  user: TopUserRow;
+  count: number;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string; postId: string }> }
@@ -62,11 +80,12 @@ export async function GET(
         )
       `)
       .eq('post_id', postId)
-      .then(data => {
+      .returns<CommunityReactionUserRow[]>()
+      .then((data) => {
         if (data.error) return data;
         
         // Agrupar por usuario y contar reacciones
-        const userCounts = data.data.reduce((acc: any, reaction: any) => {
+        const userCounts = (data.data || []).reduce<Record<string, ReactionCountByUser>>((acc, reaction) => {
           const userId = reaction.user_id;
           if (!acc[userId]) {
             acc[userId] = {
@@ -80,7 +99,7 @@ export async function GET(
 
         // Ordenar por cantidad de reacciones
         const sortedUsers = Object.values(userCounts)
-          .sort((a: any, b: any) => b.count - a.count)
+          .sort((a, b) => b.count - a.count)
           .slice(0, 5);
 
         return { data: sortedUsers, error: null };

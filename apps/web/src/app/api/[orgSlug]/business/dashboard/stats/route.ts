@@ -3,6 +3,16 @@ import { logger } from '@/lib/utils/logger';
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 
+interface OrganizationUserStatsRow {
+  status: 'active' | 'invited' | string
+  joined_at: string | null
+  created_at: string | null
+}
+
+interface BulkInviteLinkRow {
+  current_uses: number | null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ orgSlug: string }> }
@@ -44,7 +54,8 @@ export async function GET(
         .from('organization_users')
         .select('status, joined_at, created_at')
         .eq('organization_id', organizationId)
-        .in('status', ['active', 'invited']),
+        .in('status', ['active', 'invited'])
+        .returns<OrganizationUserStatsRow[]>(),
       supabase
         .from('organization_course_assignments')
         .select('id, status, completion_percentage, assigned_at, completed_at')
@@ -52,7 +63,8 @@ export async function GET(
       supabase
         .from('bulk_invite_links')
         .select('current_uses')
-        .eq('organization_id', organizationId),
+        .eq('organization_id', organizationId)
+        .returns<BulkInviteLinkRow[]>(),
       supabase
         .from('user_invitations')
         .select('id, created_at')
@@ -66,18 +78,24 @@ export async function GET(
     if (invError) logger.error('Error fetching pending invitations:', invError)
 
     // Filtrar usuarios activos e invitados
-    const activeOrgUsers = orgUsers?.filter((u: any) => u.status === 'active') || []
-    const invitedOrgUsers = orgUsers?.filter((u: any) => u.status === 'invited') || []
+    const activeOrgUsers = orgUsers?.filter((user) => user.status === 'active') || []
+    const invitedOrgUsers = orgUsers?.filter((user) => user.status === 'invited') || []
     
     const activeUsers = activeOrgUsers.length
     const invitedUsersCount = invitedOrgUsers.length + (pendingInvitations?.length || 0)
 
-    const bulkLinkUsage = (bulkLinks || []).reduce((sum: number, link: any) => sum + (link.current_uses || 0), 0)
+    const bulkLinkUsage = (bulkLinks || []).reduce(
+      (sum, link) => sum + (link.current_uses || 0),
+      0
+    )
 
     // Calcular cambio de usuarios activos
-    const recentActive = activeOrgUsers.filter((u: any) => new Date(u.joined_at) >= thirtyDaysAgo).length
-    const previousActive = activeOrgUsers.filter((u: any) => {
-      const joinedAt = new Date(u.joined_at)
+    const recentActive = activeOrgUsers.filter(
+      (user) => user.joined_at && new Date(user.joined_at) >= thirtyDaysAgo
+    ).length
+    const previousActive = activeOrgUsers.filter((user) => {
+      if (!user.joined_at) return false
+      const joinedAt = new Date(user.joined_at)
       return joinedAt >= previousPeriodStart && joinedAt < thirtyDaysAgo
     }).length
 
@@ -87,9 +105,12 @@ export async function GET(
     const usersChangeType = recentActive >= previousActive ? 'positive' : 'negative'
 
     // Calcular cambio de usuarios invitados
-    const recentInvited = invitedOrgUsers.filter((u: any) => new Date(u.created_at) >= thirtyDaysAgo).length
-    const previousInvited = invitedOrgUsers.filter((u: any) => {
-      const createdAt = new Date(u.created_at)
+    const recentInvited = invitedOrgUsers.filter(
+      (user) => user.created_at && new Date(user.created_at) >= thirtyDaysAgo
+    ).length
+    const previousInvited = invitedOrgUsers.filter((user) => {
+      if (!user.created_at) return false
+      const createdAt = new Date(user.created_at)
       return createdAt >= previousPeriodStart && createdAt < thirtyDaysAgo
     }).length
 

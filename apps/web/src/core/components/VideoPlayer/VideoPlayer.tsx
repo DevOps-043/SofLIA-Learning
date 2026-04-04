@@ -117,7 +117,7 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
   lessonId,
   trackingId
 }, ref) => {
-  // 🐛 DEBUG: SYNC log (runs immediately, before any hooks)
+  // 🐛 DEBUG: SYNC log (runs immediately, before hooks)
 
   // 🐛 DEBUG: Log props received (async, after first render)
   useEffect(() => {

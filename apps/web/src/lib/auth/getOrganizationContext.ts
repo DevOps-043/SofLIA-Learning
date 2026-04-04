@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * Organization context returned from getOrganizationContext
@@ -91,7 +91,7 @@ export async function getOrganizationContext(
   }
 
   // Create Supabase client
-  const supabase = await createServerClient();
+  const supabase = await createClient();
 
   // Fetch organization and verify membership
   let orgQuery = supabase.from('organizations').select('id, slug, name');

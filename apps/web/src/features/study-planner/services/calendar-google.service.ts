@@ -14,6 +14,55 @@ import { CalendarDbService } from './calendar-db.service';
 // Nombre del calendario secundario de la plataforma
 export const PLATFORM_CALENDAR_NAME = 'SofLIA - Sesiones de Estudio';
 
+interface GoogleCalendarListItem {
+  id: string;
+  summary?: string;
+  primary?: boolean;
+  accessRole?: string;
+  backgroundColor?: string;
+}
+
+interface GoogleCalendarListResponse {
+  items?: GoogleCalendarListItem[];
+}
+
+interface GoogleEventDate {
+  dateTime?: string;
+  date?: string;
+}
+
+interface GoogleCalendarEventRow {
+  id: string;
+  summary?: string;
+  description?: string;
+  start?: GoogleEventDate;
+  end?: GoogleEventDate;
+  recurringEventId?: string;
+  location?: string;
+  status?: string;
+}
+
+interface GoogleCalendarEventsResponse {
+  items?: GoogleCalendarEventRow[];
+}
+
+interface GoogleCreatedEventResponse {
+  id: string;
+  htmlLink?: string;
+}
+
+interface GoogleEventUpdatePayload {
+  summary?: string;
+  description?: string;
+  location?: string;
+  start?: { dateTime: string; timeZone: string };
+  end?: { dateTime: string; timeZone: string };
+}
+
+interface GoogleUserInfoResponse {
+  email?: string | null;
+}
+
 export class CalendarGoogleService {
   /**
    * Obtiene la lista de todos los calendarios del usuario de Google
@@ -40,8 +89,8 @@ export class CalendarGoogleService {
         return [];
       }
 
-      const data = await response.json();
-      return (data.items || []).map((cal: any) => ({
+      const data: GoogleCalendarListResponse = await response.json();
+      return (data.items || []).map((cal) => ({
         id: cal.id,
         summary: cal.summary || 'Sin nombre',
         primary: cal.primary || false,
@@ -177,7 +226,7 @@ export class CalendarGoogleService {
         return await this.getEventsFromSingleCalendar(accessToken, 'primary', startDate, endDate);
       }
 
-      const calendarsData = await calendarsResponse.json();
+      const calendarsData: GoogleCalendarListResponse = await calendarsResponse.json();
       const calendars = calendarsData.items || [];
 
       const allEvents: CalendarEvent[] = [];
@@ -234,9 +283,9 @@ export class CalendarGoogleService {
         return [];
       }
 
-      const data = await response.json();
+      const data: GoogleCalendarEventsResponse = await response.json();
 
-      return (data.items || []).map((event: any) => ({
+      return (data.items || []).map((event) => ({
         id: event.id,
         title: event.summary || 'Sin título',
         description: event.description,
@@ -310,7 +359,7 @@ export class CalendarGoogleService {
         return null;
       }
 
-      const data = await response.json();
+      const data: GoogleCreatedEventResponse = await response.json();
       return { id: data.id, htmlLink: data.htmlLink };
     } catch (error) {
       console.error('[Calendar] Error creando evento:', error);
@@ -337,7 +386,7 @@ export class CalendarGoogleService {
     try {
       const targetCalendarId = calendarId || 'primary';
 
-      const updateData: any = {};
+      const updateData: GoogleEventUpdatePayload = {};
       if (event.title) updateData.summary = event.title;
       if (event.description !== undefined) updateData.description = event.description;
       if (event.location !== undefined) updateData.location = event.location;
@@ -458,7 +507,7 @@ export class CalendarGoogleService {
         return null;
       }
 
-      const data = await response.json();
+      const data: GoogleCreatedEventResponse = await response.json();
       return data.id;
     } catch (error) {
       console.error('[Calendar] Error creando calendario secundario:', error);
@@ -497,7 +546,7 @@ export class CalendarGoogleService {
         return null;
       }
 
-      const data = await response.json();
+      const data: GoogleUserInfoResponse = await response.json();
       return data.email || null;
     } catch (error) {
       console.error('Error obteniendo email de Google:', error);

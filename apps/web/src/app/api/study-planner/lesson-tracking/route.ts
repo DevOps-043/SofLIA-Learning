@@ -79,10 +79,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       hasActiveTracking: !!tracking
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en GET /api/study-planner/lesson-tracking:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ 
-      error: error.message,
+      error: message,
       tracking: null
     }, { status: 500 });
   }
@@ -216,10 +217,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       completed: completedCount
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en POST /api/study-planner/lesson-tracking:', error);
+    const message = error instanceof Error ? error.message : 'Error desconocido';
     return NextResponse.json({ 
-      error: error.message,
+      error: message,
       success: false
     }, { status: 500 });
   }

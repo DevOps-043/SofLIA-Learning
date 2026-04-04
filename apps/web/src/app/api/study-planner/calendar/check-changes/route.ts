@@ -13,6 +13,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 
+type AdminCalendarClient = ReturnType<typeof createAdminClient>;
+
+interface CalendarIntegrationRow {
+  id: string;
+  provider: 'google' | 'microsoft' | string;
+  access_token: string | null;
+  refresh_token: string | null;
+  expires_at: string | null;
+}
+
+interface StudySessionRow {
+  id: string;
+  title: string;
+  start_time: string;
+  end_time: string;
+  external_event_id: string | null;
+}
+
+interface ExternalCalendarEvent {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+}
+
+interface TokenRefreshResponse {
+  access_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
+}
+
 // Crear cliente admin para bypass de RLS
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -130,7 +161,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
       });
     }
     
-    const integration = integrations[0];
+    const integration = (integrations as CalendarIntegrationRow[])[0];
     
     // 4. Refrescar token si es necesario
     let accessToken = integration.access_token;
@@ -164,7 +195,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
       const eventMap = new Map(calendarEvents.map(e => [e.id, e]));
       
       // Verificar cada sesión
-      for (const session of sessions) {
+      for (const session of sessions as StudySessionRow[]) {
         const eventId = session.external_event_id;
         if (!eventId) continue;
         
@@ -216,7 +247,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
       
       const eventMap = new Map(calendarEvents.map(e => [e.id, e]));
       
-      for (const session of sessions) {
+      for (const session of sessions as StudySessionRow[]) {
         const eventId = session.external_event_id;
         if (!eventId) continue;
         
@@ -283,7 +314,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
       }
     });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error verificando cambios en calendario:', error);
     return NextResponse.json(
       { 
@@ -298,7 +329,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
 /**
  * Refresca el access token
  */
-async function refreshAccessToken(integration: any): Promise<{ success: boolean; accessToken?: string }> {
+async function refreshAccessToken(integration: CalendarIntegrationRow): Promise<{ success: boolean; accessToken?: string }> {
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID || 
                            process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID ||
                            process.env.GOOGLE_CLIENT_ID || '';
@@ -324,7 +355,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
       });
 
       if (!response.ok) return { success: false };
-      const tokens = await response.json();
+      const tokens = await response.json() as TokenRefreshResponse;
       if (!tokens.access_token) return { success: false };
       
       const supabase = createAdminClient();
@@ -353,7 +384,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
       });
 
       if (!response.ok) return { success: false };
-      const tokens = await response.json();
+      const tokens = await response.json() as TokenRefreshResponse;
       if (!tokens.access_token) return { success: false };
       
       const supabase = createAdminClient();
@@ -379,7 +410,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
 /**
  * Obtiene eventos de Google Calendar
  */
-async function getGoogleCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<any[]> {
+async function getGoogleCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<ExternalCalendarEvent[]> {
   try {
     const response = await fetch(
       `https://www.googleapis.com/calendar/v3/calendars/primary/events?` +
@@ -400,8 +431,8 @@ async function getGoogleCalendarEvents(accessToken: string, startDate: Date, end
       return [];
     }
 
-    const data = await response.json();
-    return (data.items || []).map((event: any) => ({
+    const data = await response.json() as { items?: Array<{ id: string; summary?: string; start?: { dateTime?: string; date?: string }; end?: { dateTime?: string; date?: string } }> };
+    return (data.items || []).map((event) => ({
       id: event.id,
       title: event.summary || 'Sin título',
       start: event.start?.dateTime || event.start?.date,
@@ -416,7 +447,7 @@ async function getGoogleCalendarEvents(accessToken: string, startDate: Date, end
 /**
  * Obtiene eventos de Microsoft Calendar
  */
-async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<any[]> {
+async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<ExternalCalendarEvent[]> {
   try {
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/me/calendarview?` +
@@ -436,8 +467,8 @@ async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, 
       return [];
     }
 
-    const data = await response.json();
-    return (data.value || []).map((event: any) => ({
+    const data = await response.json() as { value?: Array<{ id: string; subject?: string; start?: { dateTime?: string }; end?: { dateTime?: string } }> };
+    return (data.value || []).map((event) => ({
       id: event.id,
       title: event.subject || 'Sin título',
       start: event.start?.dateTime,
@@ -448,4 +479,3 @@ async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, 
     return [];
   }
 }
-

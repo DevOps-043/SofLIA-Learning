@@ -1,9 +1,14 @@
 import { createClient } from '../../../lib/supabase/server'
 import { logger } from '../../../lib/logger'
 import { communityAccessRequestsTable, communityUsersTable } from './adminCommunities.db'
+import type { AdminCommunityAccessRequest } from '../types/admin-community-detail.types'
 
 export class AdminCommunityAccessRequestsService {
-  static async getCommunityAccessRequests(communityId: string, page: number = 1, limit: number = 10): Promise<any[]> {
+  static async getCommunityAccessRequests(
+    communityId: string,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<AdminCommunityAccessRequest[]> {
     const supabase = await createClient()
 
     try {

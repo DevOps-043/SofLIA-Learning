@@ -72,7 +72,7 @@ export function BusinessJoinRequests() {
       {/* Requests list */}
       <AnimatePresence>
         {requests.map((request) => {
-          const user = request.user
+          const user = request.users
           const displayName = user
             ? [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username
             : 'Usuario'
@@ -96,8 +96,8 @@ export function BusinessJoinRequests() {
                     className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0"
                     style={{ backgroundColor: `${primaryColor}30` }}
                   >
-                    {user?.profile_picture_url ? (
-                      <img src={user.profile_picture_url} alt={displayName} className="w-full h-full rounded-xl object-cover" />
+                    {user?.avatar_url ? (
+                      <img src={user.avatar_url} alt={displayName} className="w-full h-full rounded-xl object-cover" />
                     ) : (
                       <span style={{ color: primaryColor }}>{initials}</span>
                     )}

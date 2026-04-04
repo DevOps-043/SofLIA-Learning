@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 
+interface CourseModuleRow {
+  module_id: string
+  course_id: string
+  module_duration_minutes?: number | null
+}
+
+interface CourseLessonDurationRow {
+  lesson_id: string
+  duration_seconds: number | null
+}
+
+interface EstimatedTimeRow {
+  estimated_time_minutes: number | null
+}
+
 /**
  * POST /api/admin/courses/recalculate-durations
  * Recalcula las duraciones de todos los módulos de un curso o de todos los cursos
@@ -56,10 +71,10 @@ export async function POST(request: NextRequest) {
                 .eq('module_id', module.module_id)
 
             const lessonsList = lessons || []
-            const lessonIds = lessonsList.map((l: any) => l.lesson_id)
+            const lessonIds = (lessonsList as CourseLessonDurationRow[]).map((l) => l.lesson_id)
 
             // Sum video duration (seconds -> minutes)
-            const totalVideoSeconds = lessonsList.reduce((sum: number, lesson: any) =>
+            const totalVideoSeconds = (lessonsList as CourseLessonDurationRow[]).reduce((sum: number, lesson) =>
                 sum + (lesson.duration_seconds || 0), 0)
             const videoMinutes = Math.round(totalVideoSeconds / 60)
 
@@ -73,7 +88,7 @@ export async function POST(request: NextRequest) {
                     .select('estimated_time_minutes')
                     .in('lesson_id', lessonIds)
 
-                materialsMinutes = (materials || []).reduce((sum: number, m: any) =>
+                materialsMinutes = ((materials as EstimatedTimeRow[] | null) || []).reduce((sum: number, m) =>
                     sum + (m.estimated_time_minutes || 0), 0)
 
                 // Sum activities estimated time
@@ -82,7 +97,7 @@ export async function POST(request: NextRequest) {
                     .select('estimated_time_minutes')
                     .in('lesson_id', lessonIds)
 
-                activitiesMinutes = (activities || []).reduce((sum: number, a: any) =>
+                activitiesMinutes = ((activities as EstimatedTimeRow[] | null) || []).reduce((sum: number, a) =>
                     sum + (a.estimated_time_minutes || 0), 0)
             }
 
@@ -108,7 +123,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Also update course total duration
-        const courseIds = [...new Set(modules.map(m => m.course_id))]
+        const courseIds = [...new Set((modules as CourseModuleRow[]).map(m => m.course_id))]
 
         for (const cId of courseIds) {
             const { data: courseModules } = await supabase
@@ -116,7 +131,7 @@ export async function POST(request: NextRequest) {
                 .select('module_duration_minutes')
                 .eq('course_id', cId)
 
-            const totalCourseDuration = (courseModules || []).reduce((sum: number, m: any) =>
+            const totalCourseDuration = ((courseModules as CourseModuleRow[] | null) || []).reduce((sum: number, m) =>
                 sum + (m.module_duration_minutes || 0), 0)
 
             await supabase

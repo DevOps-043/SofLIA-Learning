@@ -1,6 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+interface EnrollmentRow {
+  enrollment_id: string
+  enrollment_status: string
+  overall_progress_percentage: number | null
+  enrolled_at: string | null
+  started_at: string | null
+  completed_at: string | null
+  last_accessed_at: string | null
+  user_id: string
+  users: {
+    id: string
+    username: string | null
+    display_name: string | null
+    first_name: string | null
+    last_name: string | null
+    email: string | null
+    profile_picture_url: string | null
+  } | null
+}
+
+interface EnrolledUser {
+  enrollment_id: string
+  user_id: string
+  username: string
+  display_name: string
+  email: string
+  profile_picture: string | null
+  enrollment_status: string
+  progress_percentage: number
+  enrolled_at: string | null
+  started_at: string | null
+  completed_at: string | null
+  last_accessed_at: string | null
+}
+
+interface PurchaseRow { final_price_cents: number | null; purchased_at: string | null; access_status: string | null }
+interface ReviewRow { rating: number | null; review_id: string }
+interface HistoricalEnrollmentRow { enrolled_at: string; completed_at: string | null; enrollment_status: string }
+interface ProfileRow { user_id: string; rol: { nombre: string } | null; area: { nombre: string } | null }
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -43,7 +83,7 @@ export async function GET(
     let progress_sum = 0
 
     // Lista de usuarios inscritos
-    const enrolledUsers = (enrollments || []).map((enr: any) => {
+    const enrolledUsers = (enrollments || [] as EnrollmentRow[]).map((enr: EnrollmentRow) => {
       const user = enr.users
       const p = Number(enr.overall_progress_percentage) || 0
       progress_sum += p
@@ -91,7 +131,7 @@ export async function GET(
     const certificates = certificatesRes.data || []
 
     const total_purchases = purchases.length
-    const activePurchaseList = purchases.filter((p: any) => p.access_status === 'active')
+    const activePurchaseList = (purchases as PurchaseRow[]).filter((p) => p.access_status === 'active')
     const active_purchases = activePurchaseList.length
     // Precio oficial del curso
     const { data: courseRow } = await supabase
@@ -105,7 +145,7 @@ export async function GET(
 
     const total_reviews = reviews.length
     const average_rating = reviews.length > 0
-      ? reviews.reduce((sum: number, r: any) => sum + (r.rating || 0), 0) / reviews.length
+      ? (reviews as ReviewRow[]).reduce((sum: number, r) => sum + (r.rating || 0), 0) / reviews.length
       : 0
 
     const total_certificates = certificates.length
@@ -183,7 +223,7 @@ export async function GET(
       dateMap.set(dateStr, { enrollments: 0, completions: 0 })
     }
     
-    historicalEnrollments?.forEach((enr: any) => {
+    ;(historicalEnrollments as HistoricalEnrollmentRow[] | null)?.forEach((enr) => {
       const enrollDate = new Date(enr.enrolled_at).toISOString().split('T')[0]
       const entry = dateMap.get(enrollDate)
       if (entry) {
@@ -213,7 +253,7 @@ export async function GET(
       { range: '81-100%', count: 0 },
     ]
     
-    enrolledUsers.forEach((user: any) => {
+    enrolledUsers.forEach((user: EnrolledUser) => {
       const progress = user.progress_percentage
       if (progress <= 20) progressDistribution[0].count++
       else if (progress <= 40) progressDistribution[1].count++
@@ -223,7 +263,7 @@ export async function GET(
     })
 
     // Datos de engagement para scatter chart (sin conteo de notas por usuario)
-    const engagementData = enrolledUsers.map((user: any) => {
+    const engagementData = enrolledUsers.map((user: EnrolledUser) => {
       const enrolledDate = user.enrolled_at ? new Date(user.enrolled_at) : new Date()
       const lastAccessDate = user.last_accessed_at ? new Date(user.last_accessed_at) : enrolledDate
       const daysActive = Math.max(0, Math.floor((lastAccessDate.getTime() - enrolledDate.getTime()) / (1000 * 60 * 60 * 24)))
@@ -237,8 +277,8 @@ export async function GET(
     })
 
     // Análisis estadístico profundo
-    const progressValues = enrolledUsers.map((u: any) => u.progress_percentage).filter((p: number) => p !== null)
-    const sortedProgress = [...progressValues].sort((a: number, b: number) => a - b)
+    const progressValues = enrolledUsers.map((u: EnrolledUser) => u.progress_percentage).filter((p) => p !== null)
+    const sortedProgress = [...progressValues].sort((a, b) => a - b)
     
     const median = sortedProgress.length > 0
       ? sortedProgress.length % 2 === 0
@@ -247,7 +287,7 @@ export async function GET(
       : 0
 
     const variance = progressValues.length > 0
-      ? progressValues.reduce((acc: number, val: number) => acc + Math.pow(val - average_progress, 2), 0) / progressValues.length
+      ? progressValues.reduce((acc: number, val) => acc + Math.pow(val - average_progress, 2), 0) / progressValues.length
       : 0
 
     const stdDeviation = Math.sqrt(variance)
@@ -264,7 +304,7 @@ export async function GET(
     const completion_rate = total_enrolled > 0 ? (completed / total_enrolled) * 100 : 0
     
     // Tasa de inscripción por período (para gráfica de líneas)
-    const enrollmentRate = enrollmentTrend.map((entry: any) => ({
+    const enrollmentRate = enrollmentTrend.map((entry) => ({
       period: entry.date,
       enrollment_rate: entry.enrollments,
       completion_rate: entry.completions,
@@ -272,8 +312,8 @@ export async function GET(
     }))
 
     // Análisis temporal (días activos promedio, tiempo de finalización promedio)
-    const completedUsers = enrolledUsers.filter((u: any) => u.enrollment_status === 'completed' && u.completed_at && u.started_at)
-    const completionTimes = completedUsers.map((u: any) => {
+    const completedUsers = enrolledUsers.filter((u: EnrolledUser) => u.enrollment_status === 'completed' && u.completed_at && u.started_at)
+    const completionTimes = completedUsers.map((u: EnrolledUser) => {
       const start = new Date(u.started_at).getTime()
       const complete = new Date(u.completed_at).getTime()
       return Math.floor((complete - start) / (1000 * 60 * 60 * 24)) // días
@@ -289,7 +329,7 @@ export async function GET(
     let rolesPie: Array<{ name: string, count: number }> = []
     let areasPie: Array<{ name: string, count: number }> = []
     if (enrolledUsers.length > 0) {
-      const enrolledIds = enrolledUsers.map((u: any) => u.user_id)
+      const enrolledIds = enrolledUsers.map((u: EnrolledUser) => u.user_id)
       const { data: perfiles } = await supabase
         .from('user_perfil')
         .select(`
@@ -299,7 +339,7 @@ export async function GET(
         `)
         .in('user_id', enrolledIds)
 
-      ;(perfiles || []).forEach((p: any) => {
+      ;(perfiles as ProfileRow[] | null || []).forEach((p) => {
         const roleName = (p.rol?.nombre || 'Sin rol').toString()
         const areaName = (p.area?.nombre || 'Sin área').toString()
         rolesCount.set(roleName, (rolesCount.get(roleName) || 0) + 1)
@@ -372,8 +412,9 @@ export async function GET(
         student_status_by_month: studentStatusByMonth,
       },
     })
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error?.message || 'Error obteniendo estadísticas' }, { status: 500 })
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Error obteniendo estadísticas'
+    return NextResponse.json({ success: false, error: msg }, { status: 500 })
   }
 }
 

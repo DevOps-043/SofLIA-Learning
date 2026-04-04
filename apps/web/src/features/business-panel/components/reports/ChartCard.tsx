@@ -1,6 +1,9 @@
 'use client'
 
+import { motion } from 'framer-motion'
+import { PieChart as PieChartIcon } from 'lucide-react'
 import { useThemeStore } from '@/core/stores/themeStore'
+import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   const { styles } = useOrganizationStylesContext()

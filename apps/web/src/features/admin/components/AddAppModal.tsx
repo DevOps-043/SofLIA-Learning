@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { AdminApp, AdminAppsService } from '../services/adminApps.service'
+import type { AdminApp, AdminCategory } from '../services/adminApps.service'
+import { AdminAppsService } from '../services/adminApps.service'
 
 interface AddAppModalProps {
   isOpen: boolean
@@ -36,7 +37,7 @@ export function AddAppModal({ isOpen, onClose, onSave }: AddAppModalProps) {
     is_active: true
   })
 
-  const [categories, setCategories] = useState<any[]>([])
+  const [categories, setCategories] = useState<AdminCategory[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

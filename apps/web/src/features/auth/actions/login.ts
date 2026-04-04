@@ -43,12 +43,58 @@ interface OrganizationMembershipRedirectRow {
     | null
 }
 
+interface OrganizationSummary {
+  id?: string
+  is_active?: boolean | null
+  name?: string | null
+  slug: string | null
+}
+
+interface ActiveOrganizationMembershipRow {
+  organization_id: string
+  organizations: OrganizationSummary | OrganizationSummary[] | null
+  role: string | null
+}
+
+interface UserOrganizationMembershipRow {
+  organization_id: string
+  organizations: OrganizationSummary | OrganizationSummary[] | null
+  role: string | null
+  status: string
+}
+
+interface ErrorWithDigest {
+  digest: string
+}
+
+function hasDigest(error: unknown): error is ErrorWithDigest {
+  return typeof error === 'object' && error !== null && 'digest' in error && typeof (error as ErrorWithDigest).digest === 'string'
+}
+
+function getUnknownErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error ? error.message : fallback
+}
+
+function getUnknownErrorStack(error: unknown): string | undefined {
+  return error instanceof Error ? error.stack : undefined
+}
+
 function getRedirectMembershipSlug(record: OrganizationMembershipRedirectRow): string | null {
   if (Array.isArray(record.organizations)) {
     return record.organizations[0]?.slug ?? null
   }
 
   return record.organizations?.slug ?? null
+}
+
+function getOrganizationSlug(
+  organizations: OrganizationSummary | OrganizationSummary[] | null | undefined,
+): string | null {
+  if (Array.isArray(organizations)) {
+    return organizations[0]?.slug ?? null
+  }
+
+  return organizations?.slug ?? null
 }
 
 async function handleNoBelongingRedirect(
@@ -344,8 +390,8 @@ export async function loginAction(formData: FormData) {
       // Log del error para debugging
       console.error('âŒ [loginAction] Error crítico creando sesión:', {
         error: sessionError,
-        message: (sessionError as any)?.message,
-        stack: (sessionError as any)?.stack
+        message: getUnknownErrorMessage(sessionError, 'Error desconocido'),
+        stack: getUnknownErrorStack(sessionError)
       })
       return { error: 'Error al crear la sesión. Por favor, intenta nuevamente.' }
     }
@@ -394,7 +440,7 @@ export async function loginAction(formData: FormData) {
         .eq('status', 'active')
         .eq('organizations.is_active', true)
         .limit(1)
-        .maybeSingle()
+        .maybeSingle<ActiveOrganizationMembershipRow>()
 
       if (activeOrg) {
         // Promote user to Business
@@ -403,7 +449,7 @@ export async function loginAction(formData: FormData) {
           .update({ cargo_rol: 'Business' })
           .eq('id', user.id)
 
-        const orgSlug = (activeOrg.organizations as any)?.slug
+        const orgSlug = getOrganizationSlug(activeOrg.organizations)
         if (orgSlug) {
           redirectTo = `/${orgSlug}/dashboard`
         }
@@ -425,6 +471,7 @@ export async function loginAction(formData: FormData) {
         .eq('status', 'active')
         .eq('organizations.is_active', true)
         .order('joined_at', { ascending: true })
+        .returns<UserOrganizationMembershipRow[]>()
 
       if (orgError || !userOrgs || userOrgs.length === 0) {
         redirectTo = '/dashboard'; // Sin organización, ir al dashboard normal
@@ -434,7 +481,7 @@ export async function loginAction(formData: FormData) {
       } else {
         // Usuario pertenece a UNA sola organización - redirigir directamente
         const userOrg = userOrgs[0]
-        const orgSlug = (userOrg.organizations as any)?.slug
+        const orgSlug = getOrganizationSlug(userOrg.organizations)
 
 
         // Redirigir a la ruta de la organización
@@ -452,8 +499,8 @@ export async function loginAction(formData: FormData) {
     return { success: true, redirectTo }
   } catch (error) {
     // Manejar redirect de Next.js (no es un error real)
-    if (error && typeof error === 'object' && 'digest' in error) {
-      const digest = (error as any).digest
+    if (hasDigest(error)) {
+      const digest = error.digest
       if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
         // Es una redirección, no un error - re-lanzar para que Next.js la maneje
         throw error
@@ -478,7 +525,7 @@ export async function loginAction(formData: FormData) {
     }
 
     // Proporcionar mensaje de error más descriptivo
-    const errorMessage = (error as any)?.message || 'Error inesperado al iniciar sesión';
+    const errorMessage = getUnknownErrorMessage(error, 'Error inesperado al iniciar sesión');
     return { error: errorMessage }
   }
 }

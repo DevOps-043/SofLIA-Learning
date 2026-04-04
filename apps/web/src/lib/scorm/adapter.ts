@@ -1,4 +1,17 @@
-import { SCORMVersion, SCORMAdapterConfig } from './types';
+import {
+  SCORMVersion,
+  SCORMAdapterConfig,
+  type ScormInitializeResponse,
+} from './types';
+
+interface ScormWindow extends Window {
+  API?: SCORMAPIAdapter;
+  API_1484_11?: SCORMAPIAdapter;
+}
+
+function getScormWindow(win: Window): ScormWindow {
+  return win as ScormWindow;
+}
 
 export class SCORMAPIAdapter {
   private attemptId: string | null = null;
@@ -36,11 +49,11 @@ export class SCORMAPIAdapter {
         body: JSON.stringify({ packageId: this.config.packageId })
       });
 
-      const data = await res.json();
+      const data: ScormInitializeResponse = await res.json();
       if (data.success) {
         this.attemptId = data.attemptId;
-        Object.entries(data.cmiData).forEach(([key, value]) => {
-          this.cache.set(key, value as string);
+        Object.entries(data.cmiData || {}).forEach(([key, value]) => {
+          this.cache.set(key, value);
         });
       } else {
         this.config.onError?.('Failed to initialize: ' + data.error);
@@ -257,38 +270,41 @@ export class SCORMAPIAdapter {
 // Inyectar en window
 export function initializeSCORMAPI(config: SCORMAdapterConfig): SCORMAPIAdapter {
   const adapter = new SCORMAPIAdapter(config);
+  const scormWindow = getScormWindow(window);
 
   if (config.version === 'SCORM_2004') {
-    (window as any).API_1484_11 = adapter;
+    scormWindow.API_1484_11 = adapter;
   } else {
-    (window as any).API = adapter;
+    scormWindow.API = adapter;
   }
 
   return adapter;
 }
 
 export function cleanupSCORMAPI() {
-  delete (window as any).API;
-  delete (window as any).API_1484_11;
+  const scormWindow = getScormWindow(window);
+  delete scormWindow.API;
+  delete scormWindow.API_1484_11;
 }
 
 // Función para que el SCO encuentre el API
-export function findAPI(win: Window): any {
+export function findAPI(win: Window): SCORMAPIAdapter | null {
   let findAttempts = 0;
   const findAttemptLimit = 500;
+  let currentWindow = getScormWindow(win);
 
   while (
-    (win as any).API == null &&
-    (win as any).API_1484_11 == null &&
-    win.parent != null &&
-    win.parent != win
+    currentWindow.API == null &&
+    currentWindow.API_1484_11 == null &&
+    currentWindow.parent != null &&
+    currentWindow.parent != currentWindow
   ) {
     findAttempts++;
     if (findAttempts > findAttemptLimit) {
       return null;
     }
-    win = win.parent;
+    currentWindow = getScormWindow(currentWindow.parent);
   }
 
-  return (win as any).API_1484_11 || (win as any).API;
+  return currentWindow.API_1484_11 || currentWindow.API || null;
 }

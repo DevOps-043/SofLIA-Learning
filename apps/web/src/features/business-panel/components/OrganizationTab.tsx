@@ -7,6 +7,10 @@ import { Building2, Globe, Mail, AlertCircle, Check, CheckCircle, Copy, Info, Lo
 import { useThemeStore } from '@/core/stores/themeStore'
 import { type OrganizationData } from '../hooks/useBusinessSettings'
 
+type BrandingData = {
+  banner_url?: string
+} & Record<string, unknown>
+
 export function OrganizationTab({
   organization,
   updateOrganization,
@@ -19,8 +23,8 @@ export function OrganizationTab({
 }: {
   organization: OrganizationData | null
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
-  branding: any | null
-  updateBranding: (data: any) => Promise<boolean>
+  branding: BrandingData | null
+  updateBranding: (data: BrandingData) => Promise<boolean>
   saveSuccess: string | null
   setSaveSuccess: (msg: string | null) => void
   saveError: string | null
@@ -652,4 +656,3 @@ export function OrganizationTab({
     </form>
   )
 }
-

@@ -5,23 +5,122 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Loader2 } from 'lucide-react'
 import { InlineAttachmentButtons } from '../InlineAttachmentButtons'
+import type {
+  InlineAttachmentPayload,
+  InlineAttachmentTypeId,
+} from '../InlineAttachmentButtons/InlineAttachmentButtons'
 import { AttachmentPreview } from '../AttachmentPreview'
 import { YouTubeLinkModal } from '../AttachmentModals'
 import { PollModal } from '../AttachmentModals'
+import type { PollAttachmentData } from '../AttachmentModals/PollModal'
 import { useAttachments } from '../../hooks/useAttachments'
+import type { ProcessedAttachment } from '../../hooks/useAttachments'
+import type { AttachmentData } from '@/core/services/supabaseStorage'
+
+interface EditablePost {
+  id: string
+  content: string
+  attachment_url?: string | null
+  attachment_type?: string | null
+  attachment_data?: Record<string, unknown> | null
+  is_edited?: boolean
+  updated_at?: string
+}
+
+interface EditPostResponse {
+  post?: EditablePost
+  error?: string
+}
+
+interface DraftAttachment {
+  type: InlineAttachmentTypeId
+  data: InlineAttachmentPayload
+  id: string
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isEditablePost(value: unknown): value is EditablePost {
+  return (
+    isRecord(value) &&
+    typeof value.id === 'string' &&
+    typeof value.content === 'string'
+  )
+}
+
+function getStringValue(
+  data: Record<string, unknown> | null | undefined,
+  key: string
+): string | undefined {
+  if (!data) {
+    return undefined
+  }
+
+  const value = data[key]
+  return typeof value === 'string' ? value : undefined
+}
+
+function getAttachmentPayload(
+  value: Record<string, unknown> | null | undefined,
+  fallbackUrl?: string | null
+): InlineAttachmentPayload {
+  if (value) {
+    return value
+  }
+
+  return fallbackUrl ? { url: fallbackUrl } : {}
+}
+
+function hasFileAttachment(
+  data: InlineAttachmentPayload
+): data is InlineAttachmentPayload & { file: File } {
+  return data.file instanceof File
+}
+
+function getAttachmentInput(
+  type: InlineAttachmentTypeId,
+  data: InlineAttachmentPayload
+): AttachmentData {
+  const optionsValue = data.options
+
+  return {
+    type,
+    file: data.file instanceof File ? data.file : undefined,
+    url: typeof data.url === 'string' ? data.url : undefined,
+    name: typeof data.name === 'string' ? data.name : undefined,
+    size: typeof data.size === 'number' ? data.size : undefined,
+    mimeType: typeof data.mimeType === 'string' ? data.mimeType : undefined,
+    question: typeof data.question === 'string' ? data.question : undefined,
+    options:
+      Array.isArray(optionsValue) && optionsValue.every((option) => typeof option === 'string')
+        ? optionsValue
+        : undefined,
+    duration: typeof data.duration === 'number' ? data.duration : undefined,
+    videoId: typeof data.videoId === 'string' ? data.videoId : undefined,
+    title: typeof data.title === 'string' ? data.title : undefined,
+    thumbnail: typeof data.thumbnail === 'string' ? data.thumbnail : undefined,
+  }
+}
+
+function parseEditPostResponse(value: unknown): EditPostResponse {
+  if (!isRecord(value)) {
+    return {}
+  }
+
+  return {
+    post: isEditablePost(value.post) ? value.post : undefined,
+    error: typeof value.error === 'string' ? value.error : undefined,
+  }
+}
 
 interface EditPostModalProps {
   isOpen: boolean
   onClose: () => void
-  post: {
-    id: string
-    content: string
-    attachment_url?: string | null
-    attachment_type?: string | null
-    attachment_data?: any
-  }
+  post: EditablePost
   communitySlug: string
-  onSave: (updatedPost?: any) => void
+  onSave: (updatedPost?: EditablePost) => void
 }
 
 export function EditPostModal({
@@ -37,10 +136,10 @@ export function EditPostModal({
   const [content, setContent] = useState(post.content || '')
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [postAttachments, setPostAttachments] = useState<Array<{ type: string; data: any; id: string }>>([])
+  const [postAttachments, setPostAttachments] = useState<DraftAttachment[]>([])
   const [showYouTubeModal, setShowYouTubeModal] = useState(false)
   const [showPollModal, setShowPollModal] = useState(false)
-  const [pendingAttachmentType, setPendingAttachmentType] = useState<string | null>(null)
+  const [pendingAttachmentType, setPendingAttachmentType] = useState<'youtube' | 'link' | null>(null)
   const [mounted, setMounted] = useState(false)
   const [isProcessingAttachment, setIsProcessingAttachment] = useState(false)
 
@@ -73,8 +172,8 @@ export function EditPostModal({
       // Si el post tiene attachments, convertirlos al formato esperado
       if (initialPost.attachment_type && initialPost.attachment_url) {
         const existingAttachment = {
-          type: initialPost.attachment_type,
-          data: initialPost.attachment_data || { url: initialPost.attachment_url },
+          type: initialPost.attachment_type as InlineAttachmentTypeId,
+          data: getAttachmentPayload(initialPost.attachment_data, initialPost.attachment_url),
           id: `existing-${initialPost.attachment_type}-${Date.now()}`
         }
         setPostAttachments([existingAttachment])
@@ -84,7 +183,10 @@ export function EditPostModal({
     }
   }, [isOpen, initialPost?.id]) // Solo inicializar cuando se abre el modal
 
-  const handleAttachmentSelect = (type: string, data: any) => {
+  const handleAttachmentSelect = (
+    type: InlineAttachmentTypeId,
+    data: InlineAttachmentPayload | null
+  ) => {
     if (postAttachments.length >= 3) {
       alert('Máximo 3 adjuntos por publicación')
       return
@@ -102,7 +204,7 @@ export function EditPostModal({
     } else {
       const newAttachment = {
         type,
-        data,
+        data: data ?? {},
         id: `${type}-${Date.now()}-${Math.random()}`
       }
       setPostAttachments(prev => [...prev, newAttachment])
@@ -127,7 +229,7 @@ export function EditPostModal({
     setPendingAttachmentType(null)
   }
 
-  const handlePollConfirm = (pollData: any) => {
+  const handlePollConfirm = (pollData: PollAttachmentData) => {
     if (postAttachments.some(att => att.type === 'poll')) {
       alert('Solo puedes agregar una encuesta por publicación')
       setShowPollModal(false)
@@ -185,9 +287,9 @@ export function EditPostModal({
 
         const reader = new FileReader()
         reader.onload = (event) => {
-          const data = {
+          const data: InlineAttachmentPayload = {
             file,
-            url: event.target?.result,
+            url: typeof event.target?.result === 'string' ? event.target.result : null,
             name: file.name || `imagen-${Date.now()}.${file.type.split('/')[1]}`,
             size: file.size,
             mimeType: file.type,
@@ -232,23 +334,20 @@ export function EditPostModal({
 
       if (postAttachments.length > 0) {
         // Procesar attachments que tienen archivos nuevos
-        const hasNewFiles = postAttachments.some(att => att.data?.file)
+        const hasNewFiles = postAttachments.some(att => hasFileAttachment(att.data))
         
         if (hasNewFiles) {
           // Procesar cada attachment con archivo
-          const processedAttachments = []
-          const filesToProcess = postAttachments.filter(att => att.data?.file)
+          const processedAttachments: ProcessedAttachment[] = []
+          const filesToProcess = postAttachments.filter(att => hasFileAttachment(att.data))
           
           
           for (const att of postAttachments) {
-            if (att.data?.file) {
+            if (hasFileAttachment(att.data)) {
               try {
 
                 setIsProcessingAttachment(true)
-                const processed = await processAttachment({
-                  type: att.type,
-                  ...att.data
-                })
+                const processed = await processAttachment(getAttachmentInput(att.type, att.data))
                 setIsProcessingAttachment(false)
                 
                 if (processed) {
@@ -264,13 +363,16 @@ export function EditPostModal({
                 console.error('❌ Error procesando attachment:', attError)
                 const errorMessage = attError instanceof Error 
                   ? attError.message 
-                  : `Error al subir el archivo ${att.data?.name || att.type}. Por favor, intenta de nuevo.`
+                  : `Error al subir el archivo ${getStringValue(att.data, 'name') || att.type}. Por favor, intenta de nuevo.`
                 throw new Error(errorMessage)
               }
             } else {
               // Para attachments sin archivo (poll, youtube, link), usar datos directamente
               processedAttachments.push({
-                attachment_url: att.type === 'youtube' || att.type === 'link' ? att.data.url : null,
+                attachment_url:
+                  att.type === 'youtube' || att.type === 'link'
+                    ? getStringValue(att.data, 'url') || null
+                    : null,
                 attachment_type: att.type,
                 attachment_data: att.data
               })
@@ -309,7 +411,7 @@ export function EditPostModal({
             attachment_url = null
           } else if (firstAttachment.type === 'youtube' || firstAttachment.type === 'link') {
             attachment_type = firstAttachment.type
-            attachment_url = firstAttachment.data.url
+            attachment_url = getStringValue(firstAttachment.data, 'url') || null
             attachment_data = firstAttachment.data
           }
         }
@@ -336,11 +438,11 @@ export function EditPostModal({
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        const errorData = parseEditPostResponse(await response.json())
         throw new Error(errorData.error || 'Error al actualizar el post')
       }
 
-      const result = await response.json()
+      const result = parseEditPostResponse(await response.json())
       
       // Cerrar modal y actualizar con el post editado
       const updatedPost = result.post || {
@@ -536,7 +638,7 @@ export function EditPostModal({
               setPendingAttachmentType(null)
             }}
             onConfirm={handleYouTubeLinkConfirm}
-            type={pendingAttachmentType as 'youtube' | 'link' || 'link'}
+            type={pendingAttachmentType || 'link'}
           />
         </div>
       )}

@@ -3,15 +3,33 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Save, Upload, Image as ImageIcon, Loader2 } from 'lucide-react'
-import { AdminSkill } from '../services/adminSkills.service'
+import {
+  AdminSkill,
+  CreateSkillData,
+  UpdateSkillData
+} from '../services/adminSkills.service'
 import { SkillBadgeUpload } from './SkillBadgeUpload'
 import { SkillLevel } from '@/features/skills/constants/skillLevels'
+
+interface SkillBadgeRow {
+  level?: string
+  badge_url?: string
+}
+
+interface SkillBadgesResponse {
+  success?: boolean
+  badges?: SkillBadgeRow[]
+}
+
+interface SkillListResponse {
+  skills?: AdminSkill[]
+}
 
 interface SkillModalProps {
   isOpen: boolean
   onClose: () => void
   skill: AdminSkill | null
-  onSave: (skillData: any) => Promise<void>
+  onSave: (skillData: CreateSkillData | UpdateSkillData) => Promise<void>
 }
 
 const CATEGORIES = [
@@ -141,7 +159,7 @@ export function SkillModal({ isOpen, onClose, skill, onSave }: SkillModalProps) 
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const data: SkillBadgesResponse = await response.json()
         if (data.success && data.badges) {
           // Mapear badges a nuestro formato
           const badgesMap: Record<SkillLevel, string | null> = {
@@ -152,7 +170,7 @@ export function SkillModal({ isOpen, onClose, skill, onSave }: SkillModalProps) 
             diamond: null
           }
           
-          data.badges.forEach((badge: any) => {
+          data.badges.forEach((badge) => {
             if (badge.level && badgesMap.hasOwnProperty(badge.level)) {
               badgesMap[badge.level as SkillLevel] = badge.badge_url
             }
@@ -290,8 +308,8 @@ export function SkillModal({ isOpen, onClose, skill, onSave }: SkillModalProps) 
             })
             
             if (skillResponse.ok) {
-              const skillData = await skillResponse.json()
-              const savedSkill = skillData.skills?.find((s: any) => s.slug === formData.slug)
+              const skillData: SkillListResponse = await skillResponse.json()
+              const savedSkill = skillData.skills?.find((savedSkillItem) => savedSkillItem.slug === formData.slug)
               
               if (savedSkill?.skill_id) {
                 // Asociar cada badge pendiente
@@ -619,4 +637,3 @@ export function SkillModal({ isOpen, onClose, skill, onSave }: SkillModalProps) 
     </AnimatePresence>
   )
 }
-

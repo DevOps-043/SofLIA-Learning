@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, X, Check, CheckCheck, Archive, Trash2, AlertCircle, Info, CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react'
 import { useNotifications } from '@/features/notifications/hooks/useNotifications'
+import type { Notification } from '@/features/notifications/services/notification.service'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
@@ -185,7 +186,9 @@ export function NotificationBell({
   }
 
   // Manejar click en notificación
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (
+    notification: Pick<Notification, 'metadata' | 'notification_id' | 'status'>
+  ) => {
     // Marcar como leída si no está leída
     if (notification.status === 'unread') {
       try {
@@ -195,8 +198,13 @@ export function NotificationBell({
     }
 
     // Navegar a la URL de acción si existe
-    if (notification.metadata?.action_url) {
-      router.push(notification.metadata.action_url)
+    const actionUrl =
+      typeof notification.metadata?.action_url === 'string'
+        ? notification.metadata.action_url
+        : null
+
+    if (actionUrl) {
+      router.push(actionUrl)
       setIsDropdownOpen(false)
     }
   }
@@ -512,4 +520,3 @@ export function NotificationBell({
     </div>
   )
 }
-

@@ -66,7 +66,7 @@ export async function GET(
     }
 
     // ⚡ OPTIMIZACIÓN: Agregar cache headers (datos estáticos - 1 hora)
-    const normalizedMaterials = (materials || []).map((material: any) =>
+    const normalizedMaterials = (materials || []).map((material) =>
       normalizeLessonMaterialRecord(material)
     );
 

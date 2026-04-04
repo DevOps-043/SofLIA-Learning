@@ -5,6 +5,66 @@ import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
 
+interface AssignCoursesRequest {
+  entity_id: string
+  course_ids: string[]
+  start_date?: string | null
+  due_date?: string | null
+  approach?: string | null
+  message?: string | null
+}
+
+interface HierarchyNodeRow {
+  id: string
+  name: string
+  type: string
+}
+
+interface NodeUserRow {
+  user_id: string
+}
+
+interface CoursePurchaseRow {
+  course_id: string
+}
+
+interface CourseTitleRow {
+  title: string | null
+}
+
+interface OrganizationNodeCourseUpsert {
+  node_id: string
+  course_id: string
+  assigned_by: string
+  status: 'active'
+  assigned_at: string
+  due_date: string | null
+  message: string | null
+}
+
+interface OrganizationCourseAssignmentUpsert {
+  organization_id: string
+  user_id: string
+  course_id: string
+  assigned_by: string
+  assigned_at: string
+  due_date: string | null
+  start_date: string | null
+  approach: string | null
+  message: string | null
+  status: 'assigned'
+  completion_percentage: number
+}
+
+interface UserCourseEnrollmentUpsert {
+  user_id: string
+  course_id: string
+  organization_id: string
+  enrollment_status: 'active'
+  enrolled_at: string
+  last_accessed_at: string
+}
+
 /**
  * POST /api/business/hierarchy/courses/assign
  * Asigna cursos a todos los usuarios de una entidad de jerarquía (región, zona o equipo)
@@ -41,7 +101,7 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    const body = await request.json()
+    const body: AssignCoursesRequest = await request.json()
     const { entity_id, course_ids, start_date, due_date, approach, message } = body
 
     // entity_type es opcional/ignorado ya que usamos nodos unificados, pero si viene lo validamos básico
@@ -103,7 +163,7 @@ export async function POST(request: NextRequest) {
       // Vamos a permitirlo, pero avisando.
     }
 
-    const user_ids = nodeUsers?.map((u: { user_id: string }) => u.user_id) || []
+    const user_ids = ((nodeUsers || []) as NodeUserRow[]).map((user) => user.user_id)
 
     // 3. Validar que la organización haya adquirido los cursos
     const { data: orgPurchases, error: purchaseError } = await supabase
@@ -120,7 +180,7 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    const purchasedCourseIds = orgPurchases?.map((p: { course_id: string }) => p.course_id) || []
+    const purchasedCourseIds = ((orgPurchases || []) as CoursePurchaseRow[]).map((purchase) => purchase.course_id)
     const missingCourses = course_ids.filter((id: string) => !purchasedCourseIds.includes(id))
 
     if (missingCourses.length > 0) {
@@ -147,22 +207,28 @@ export async function POST(request: NextRequest) {
 
     for (const courseId of course_ids) {
       // Obtener info curso
-      const { data: course } = await supabase.from('courses').select('title').eq('id', courseId).single()
+      const { data: course } = await supabase
+        .from('courses')
+        .select('title')
+        .eq('id', courseId)
+        .single<CourseTitleRow>()
       const courseTitle = course?.title || 'Curso'
 
       // A. Crear registro en organization_node_courses
       // Esto define que "Este nodo tiene asignado este curso"
+      const nodeAssignment: OrganizationNodeCourseUpsert = {
+        node_id: entity_id,
+        course_id: courseId,
+        assigned_by: currentUser.id,
+        status: 'active',
+        assigned_at: new Date().toISOString(),
+        due_date: due_date || null,
+        message: message || null
+      }
+
       const { error: nodeAssignError } = await supabase
         .from('organization_node_courses')
-        .upsert({
-          node_id: entity_id,
-          course_id: courseId,
-          assigned_by: currentUser.id,
-          status: 'active',
-          assigned_at: new Date().toISOString(),
-          due_date: due_date || null,
-          message: message || null
-        }, { onConflict: 'node_id, course_id' as any }) // Asumiendo que hay constraint, sino insert normal
+        .upsert(nodeAssignment, { onConflict: 'node_id, course_id' }) // Asumiendo que hay constraint, sino insert normal
 
       if (nodeAssignError) {
         logger.error(`Error guardando assignment en organization_node_courses:`, nodeAssignError)
@@ -171,7 +237,7 @@ export async function POST(request: NextRequest) {
 
       // B. Crear enrollments individuales para los usuarios
       if (user_ids.length > 0) {
-        const assignmentsToUpsert = user_ids.map((uid: string) => ({
+        const assignmentsToUpsert: OrganizationCourseAssignmentUpsert[] = user_ids.map((uid) => ({
           organization_id: organizationId,
           user_id: uid,
           course_id: courseId,
@@ -191,12 +257,12 @@ export async function POST(request: NextRequest) {
         // Mantendremos esa lógica para compatibilidad máxima.
 
         // 1. Organization Course Assignments (Tracking de negocio)
-        const { error: ocaError } = await supabase
+        await supabase
           .from('organization_course_assignments')
-          .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' as any })
+          .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' })
 
         // 2. User Course Enrollments (Acceso LMS)
-        const enrollmentsToUpsert = user_ids.map((uid: string) => ({
+        const enrollmentsToUpsert: UserCourseEnrollmentUpsert[] = user_ids.map((uid) => ({
           user_id: uid,
           course_id: courseId,
           organization_id: organizationId,
@@ -207,7 +273,7 @@ export async function POST(request: NextRequest) {
 
         // Upsert enrollments (preserve progress if exists using ignore/do nothing?)
         // Mejor usamos insert con onConflict do nothing para no borrar progreso
-        const { error: uceError } = await supabase
+        await supabase
           .from('user_course_enrollments')
           .upsert(enrollmentsToUpsert, { onConflict: 'user_id, course_id', ignoreDuplicates: true })
       }
@@ -231,12 +297,11 @@ export async function POST(request: NextRequest) {
       }
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error en POST assign:', error)
     return NextResponse.json({
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Error interno del servidor'
     }, { status: 500 })
   }
 }
-

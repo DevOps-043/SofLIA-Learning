@@ -5,6 +5,23 @@ import { useSofLIAPersonalization } from '../../../hooks/useSofLIAPersonalizatio
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../../utils/tts-voice-settings';
 import { isTTSAbortError, playAudioBlob, requestTTSAudio, speakWithWebSpeech } from '../../../services/tts';
 
+interface SpeechErrorEvent { error: string }
+interface SpeechResultEvent { results: Array<Array<{ transcript: string }>> }
+interface BrowserSpeechRecognition {
+  lang: string
+  continuous: boolean
+  interimResults: boolean
+  start: () => void
+  stop: () => void
+  onerror: ((event: SpeechErrorEvent) => void) | null
+  onend: (() => void) | null
+  onresult: ((event: SpeechResultEvent) => void) | null
+}
+
+interface BrowserSpeechRecognitionConstructor {
+  new (): BrowserSpeechRecognition
+}
+
 const SPEECH_LANGUAGE_MAP: Record<string, string> = {
   es: 'es-ES',
   en: 'en-US',
@@ -29,7 +46,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ttsAbortRef = useRef<AbortController | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
 
   const stopAllAudio = useCallback(() => {
     try {
@@ -124,7 +141,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
       });
 
       if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (!isTTSAbortError(error)) {
         console.error('Error en sÃ­ntesis de voz con ElevenLabs:', error);
       }
@@ -135,7 +152,11 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const speechWindow = window as Window & {
+      SpeechRecognition?: BrowserSpeechRecognitionConstructor
+      webkitSpeechRecognition?: BrowserSpeechRecognitionConstructor
+    };
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
@@ -143,7 +164,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
     recognition.continuous = false;
     recognition.interimResults = false;
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechErrorEvent) => {
       console.warn('Speech recognition error:', event.error);
       setIsRecording(false);
       if (event.error === 'not-allowed') {
@@ -175,7 +196,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
         await navigator.mediaDevices.getUserMedia({ audio: true });
         recognitionRef.current.lang = SPEECH_LANGUAGE_MAP[language] || 'es-ES';
 
-        recognitionRef.current.onresult = (event: any) => {
+        recognitionRef.current.onresult = (event: SpeechResultEvent) => {
           const transcript = event.results[0][0].transcript;
           if (transcript.trim() && onTranscript) {
             onTranscript(transcript);
@@ -185,10 +206,10 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
 
         recognitionRef.current.start();
         setIsRecording(true);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error starting speech recognition:', error);
         setIsRecording(false);
-        if (error?.name === 'NotAllowedError') {
+        if (error instanceof Error && error.name === 'NotAllowedError') {
           alert(tCommon('aiChat.voice.microphoneError'));
         }
       }

@@ -33,6 +33,14 @@ export interface SessionContext {
   lastInputValues: Record<string, string>;
 }
 
+interface SessionEventData {
+  source?: number
+  type?: number
+  href?: string
+  text?: string
+  id?: string | number
+}
+
 export class SessionAnalyzer {
   /**
    * Analiza eventos de una sesión y extrae contexto útil
@@ -179,11 +187,21 @@ export class SessionAnalyzer {
     return events.filter(e => this.matchesEventType(e, type)).length;
   }
 
+  private getEventData(event: eventWithTime): SessionEventData | undefined {
+    const maybeData = (event as eventWithTime & { data?: unknown }).data
+
+    if (typeof maybeData === 'object' && maybeData !== null) {
+      return maybeData as SessionEventData
+    }
+
+    return undefined
+  }
+
   private matchesEventType(event: eventWithTime, type: string): boolean {
     // Tipo 3 = IncrementalSnapshot (mutaciones, clicks, inputs, etc.)
     if (event.type !== 3) return false;
 
-    const data = (event as any).data;
+    const data = this.getEventData(event);
     
     switch (type) {
       case 'click':
@@ -201,12 +219,12 @@ export class SessionAnalyzer {
 
   private isNavigationEvent(event: eventWithTime): boolean {
     // Detectar cambios de URL o navegación
-    const data = (event as any).data;
+    const data = this.getEventData(event);
     return data?.href !== undefined || event.type === 4; // Meta event (navegación)
   }
 
   private extractPageFromEvent(event: eventWithTime): string {
-    const data = (event as any).data;
+    const data = this.getEventData(event);
     if (data?.href) {
       try {
         const url = new URL(data.href);
@@ -285,7 +303,7 @@ export class SessionAnalyzer {
   private countAttempts(events: eventWithTime[]): number {
     // Contar eventos de submit, click en botón "enviar", etc.
     const submitEvents = events.filter(e => {
-      const data = (event as any).data;
+      const data = this.getEventData(e);
       return data?.source === 2 && data?.type === 2; // Clicks
     });
     
@@ -315,7 +333,7 @@ export class SessionAnalyzer {
     const resources = new Set<string>();
     
     events.forEach(event => {
-      const data = (event as any).data;
+      const data = this.getEventData(event);
       
       // Detectar clicks en links de recursos
       if (data?.source === 2 && data?.type === 2) { // Click
@@ -351,7 +369,7 @@ export class SessionAnalyzer {
     const inputs: Record<string, string> = {};
     
     events.forEach(event => {
-      const data = (event as any).data;
+      const data = this.getEventData(event);
       
       if (data?.source === 5) { // Input event
         const text = data?.text || '';

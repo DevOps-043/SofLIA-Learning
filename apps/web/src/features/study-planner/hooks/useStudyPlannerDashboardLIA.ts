@@ -20,7 +20,7 @@ export interface DashboardMessage {
   content: string;
   timestamp: Date;
   actionType?: StudyPlannerAction;
-  actionData?: any;
+  actionData?: Record<string, unknown>;
   actionStatus?: 'pending' | 'success' | 'error';
 }
 
@@ -92,7 +92,7 @@ export interface StudyPlannerDashboardState {
 // Acciones disponibles
 export interface StudyPlannerDashboardActions {
   sendMessage: (message: string) => Promise<void>;
-  executeAction: (action: StudyPlannerAction, data: any) => Promise<void>;
+  executeAction: (action: StudyPlannerAction, data: Record<string, unknown>) => Promise<void>;
   checkCalendarChanges: () => Promise<void>;
   loadActivePlan: () => Promise<void>;
   clearMessages: () => void;
@@ -113,6 +113,9 @@ const initialState: StudyPlannerDashboardState = {
 
 // Constante para el check de calendario (verificar cada vez, pero no más de cada hora)
 const CALENDAR_CHECK_INTERVAL = 60 * 60 * 1000; // 1 hora
+
+const isAbortError = (error: unknown): error is DOMException =>
+  error instanceof DOMException && error.name === 'AbortError';
 
 /**
  * Hook para manejar la interacción con LIA en el dashboard del planificador
@@ -506,8 +509,8 @@ Puedo ayudarte a:
       if (data.action?.status === 'success') {
         await loadActivePlan();
       }
-    } catch (error: any) {
-      if (error.name === 'AbortError') return;
+    } catch (error: unknown) {
+      if (isAbortError(error)) return;
 
       console.error('Error enviando mensaje:', error);
       setState(prev => ({
@@ -519,7 +522,7 @@ Puedo ayudarte a:
   }, [state.messages, state.activePlan, state.isSending, loadActivePlan]);
 
   // Ejecutar una acción específica
-  const executeAction = useCallback(async (action: StudyPlannerAction, data: any) => {
+  const executeAction = useCallback(async (action: StudyPlannerAction, data: Record<string, unknown>) => {
     if (!user || !state.activePlan) return;
 
     setState(prev => ({ ...prev, isSending: true }));

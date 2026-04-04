@@ -2,8 +2,14 @@
  * Tipos para el sistema de asignaciones jerárquicas de cursos
  */
 
-import { Course } from '@/features/courses/types/course.types'
-import { User } from '@/features/auth/types/user.types'
+interface HierarchyCourseSummary {
+  id: string
+  title: string
+  slug?: string | null
+  thumbnail_url?: string | null
+  category?: string | null
+  level?: string | null
+}
 
 /**
  * Tipo de entidad jerárquica
@@ -41,7 +47,7 @@ export interface HierarchyCourseAssignment {
   updated_at: string
   
   // Relaciones expandidas
-  course?: Course
+  course?: HierarchyCourseSummary
   assigner?: {
     id: string
     display_name?: string | null
@@ -86,6 +92,7 @@ export interface UpdateHierarchyAssignmentRequest {
  */
 export interface CreateHierarchyAssignmentResponse {
   success: boolean
+  error?: string
   message?: string
   data?: {
     entity_type: HierarchyEntityType
@@ -148,4 +155,3 @@ export interface HierarchyAssignmentStats {
   completion_rate: number // Porcentaje de completados sobre asignados
   pending_count: number // Usuarios asignados pero no completados
 }
-

@@ -3,6 +3,44 @@ import { createClient } from '../../../../../lib/supabase/server'
 import { logger } from '../../../../../lib/logger'
 import { SessionService } from '../../../../../features/auth/services/session.service'
 
+interface CourseSkillDetails {
+  skill_id: string
+  name?: string | null
+  slug?: string | null
+  description?: string | null
+  category?: string | null
+  icon_url?: string | null
+  icon_type?: string | null
+  icon_name?: string | null
+  color?: string | null
+  level?: string | null
+}
+
+interface CourseSkillRow {
+  id: string
+  is_primary: boolean
+  is_required: boolean
+  proficiency_level: string | null
+  display_order: number
+  skills: CourseSkillDetails | null
+  user_level?: string | null
+  user_course_count?: number
+  user_badge_url?: string | null
+}
+
+interface UserSkillLevelRow {
+  level?: string | null
+  course_count?: number | null
+}
+
+interface CourseSkillInput {
+  skill_id: string
+  is_primary?: boolean
+  is_required?: boolean
+  proficiency_level?: string
+  display_order?: number
+}
+
 /**
  * Función helper para detectar si un string es UUID
  */
@@ -116,10 +154,10 @@ export async function GET(
     }
 
     // Si hay usuario autenticado, obtener niveles para cada skill
-    let skillsWithUserLevels = courseSkills || []
+    let skillsWithUserLevels: CourseSkillRow[] = courseSkills || []
     if (auth && auth.user) {
       skillsWithUserLevels = await Promise.all(
-        (courseSkills || []).map(async (cs: any) => {
+        (courseSkills || []).map(async (cs: CourseSkillRow) => {
           const skillId = cs.skills?.skill_id
           if (!skillId) return cs
 
@@ -130,7 +168,8 @@ export async function GET(
               p_skill_id: skillId
             })
 
-          const levelInfo = levelData && levelData.length > 0 ? levelData[0] : null
+          const userLevels: UserSkillLevelRow[] = levelData || []
+          const levelInfo = userLevels.length > 0 ? userLevels[0] : null
           const userLevel = levelInfo?.level || null
           const courseCount = levelInfo?.course_count || 0
 
@@ -159,7 +198,7 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      skills: skillsWithUserLevels.map((cs: any) => ({
+      skills: skillsWithUserLevels.map((cs) => ({
         id: cs.id,
         skill_id: cs.skills?.skill_id,
         name: cs.skills?.name,
@@ -302,7 +341,7 @@ export async function POST(
 
     // Insertar nuevas skills
     if (skills.length > 0) {
-      const courseSkillsToInsert = skills.map((skill: any, index: number) => ({
+      const courseSkillsToInsert = (skills as CourseSkillInput[]).map((skill, index: number) => ({
         course_id: courseId,
         skill_id: skill.skill_id,
         is_primary: skill.is_primary || false,
@@ -336,4 +375,3 @@ export async function POST(
     }, { status: 500 })
   }
 }
-

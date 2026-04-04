@@ -13,7 +13,8 @@ import { UserContextService } from '../../../../features/study-planner/services/
 import type { 
   SofLIAAvailabilityAnalysis,
   TimeBlock,
-  CalendarEvent 
+  CalendarEvent,
+  UserContext,
 } from '../../../../features/study-planner/types/user-context.types';
 
 interface CalculateAvailabilityRequest {
@@ -26,6 +27,22 @@ interface CalculateAvailabilityResponse {
   success: boolean;
   data?: SofLIAAvailabilityAnalysis;
   error?: string;
+}
+
+interface AvailabilityProfileData {
+  userType: UserContext['userType']
+  rol: string
+  area: string
+  nivel: string
+  tamanoEmpresa: string
+  minEmpleados?: number
+  maxEmpleados?: number
+  sector: string
+  organizacion?: string
+  tieneCalendarioConectado: boolean
+  calendarEvents: CalendarEvent[]
+  preferredDays?: number[]
+  preferredTimeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night'
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<CalculateAvailabilityResponse>> {
@@ -88,7 +105,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Calculate
 /**
  * Construye el prompt para que LIA analice la disponibilidad
  */
-function buildAvailabilityPrompt(profileData: any): string {
+function buildAvailabilityPrompt(profileData: AvailabilityProfileData): string {
   return `
 Analiza la disponibilidad de tiempo para estudios del siguiente usuario y proporciona recomendaciones personalizadas.
 
@@ -138,7 +155,7 @@ Proporciona tu análisis en formato JSON con la siguiente estructura:
  */
 async function callLIAForAvailabilityAnalysis(
   prompt: string,
-  profileData: any
+  profileData: AvailabilityProfileData
 ): Promise<SofLIAAvailabilityAnalysis> {
   try {
     // Llamar al endpoint de AI chat con contexto especializado
@@ -187,7 +204,7 @@ async function callLIAForAvailabilityAnalysis(
 /**
  * Genera disponibilidad por defecto basada en el perfil
  */
-function generateDefaultAvailability(profileData: any): SofLIAAvailabilityAnalysis {
+function generateDefaultAvailability(profileData: AvailabilityProfileData): SofLIAAvailabilityAnalysis {
   // Estimar disponibilidad basada en nivel jerárquico
   let estimatedWeeklyMinutes = 300; // 5 horas base
   let suggestedMinSessionMinutes = 20;

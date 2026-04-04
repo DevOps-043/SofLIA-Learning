@@ -6,6 +6,30 @@ import { SupportedLanguage } from '../../../../core/i18n/i18n'
 
 export const dynamic = 'force-dynamic'
 
+interface CourseLessonTranslationRow {
+  lesson_id: string
+  lesson_title: string
+  lesson_description: string | null
+}
+
+interface TranslationLanguageRow {
+  language_code: SupportedLanguage
+}
+
+type LessonTranslationStatus = 'ok' | 'translated' | 'needs_translation'
+
+interface LessonTranslationAnalysis {
+  lesson_id: string
+  lesson_title: string
+  lesson_description: string | null
+  detectedLanguage: SupportedLanguage
+  expectedTargetLanguages: SupportedLanguage[]
+  translationsInDB: SupportedLanguage[]
+  hasSpanishTranslation: boolean
+  spanishTranslationTitle: string | null
+  status: LessonTranslationStatus
+}
+
 /**
  * Endpoint para listar todas las lecciones de un curso y verificar sus traducciones
  * GET /api/test-translation/course-lessons?courseId=xxx
@@ -48,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     // Analizar cada lección
     const lessonsAnalysis = await Promise.all(
-      lessons.map(async (lesson: any) => {
+      (lessons as CourseLessonTranslationRow[]).map(async (lesson) => {
         // Detectar idioma
         const textsToAnalyze: string[] = [lesson.lesson_title]
         if (lesson.lesson_description) textsToAnalyze.push(lesson.lesson_description)
@@ -62,7 +86,7 @@ export async function GET(request: NextRequest) {
           .eq('entity_type', 'lesson')
           .eq('entity_id', lesson.lesson_id)
 
-        const translationLanguages = translations?.map((t: any) => t.language_code) || []
+        const translationLanguages = (translations as TranslationLanguageRow[] | null)?.map((t) => t.language_code) || []
         
         // Probar carga de traducción a español
         const spanishTranslation = await ContentTranslationService.loadTranslations(
@@ -96,12 +120,12 @@ export async function GET(request: NextRequest) {
     // Resumen
     const summary = {
       totalLessons: lessonsAnalysis.length,
-      lessonsInSpanish: lessonsAnalysis.filter((l: any) => l.detectedLanguage === 'es').length,
-      lessonsInEnglish: lessonsAnalysis.filter((l: any) => l.detectedLanguage === 'en').length,
-      lessonsInPortuguese: lessonsAnalysis.filter((l: any) => l.detectedLanguage === 'pt').length,
-      lessonsNeedingTranslation: lessonsAnalysis.filter((l: any) => l.status === 'needs_translation').length,
-      lessonsTranslated: lessonsAnalysis.filter((l: any) => l.status === 'translated').length,
-      lessonsOK: lessonsAnalysis.filter((l: any) => l.status === 'ok').length
+      lessonsInSpanish: lessonsAnalysis.filter((l: LessonTranslationAnalysis) => l.detectedLanguage === 'es').length,
+      lessonsInEnglish: lessonsAnalysis.filter((l: LessonTranslationAnalysis) => l.detectedLanguage === 'en').length,
+      lessonsInPortuguese: lessonsAnalysis.filter((l: LessonTranslationAnalysis) => l.detectedLanguage === 'pt').length,
+      lessonsNeedingTranslation: lessonsAnalysis.filter((l: LessonTranslationAnalysis) => l.status === 'needs_translation').length,
+      lessonsTranslated: lessonsAnalysis.filter((l: LessonTranslationAnalysis) => l.status === 'translated').length,
+      lessonsOK: lessonsAnalysis.filter((l: LessonTranslationAnalysis) => l.status === 'ok').length
     }
 
     return NextResponse.json({
@@ -110,15 +134,15 @@ export async function GET(request: NextRequest) {
       summary: summary,
       lessons: lessonsAnalysis,
       recommendations: lessonsAnalysis
-        .filter((l: any) => l.status === 'needs_translation')
-        .map((l: any) => ({
+        .filter((l: LessonTranslationAnalysis) => l.status === 'needs_translation')
+        .map((l: LessonTranslationAnalysis) => ({
           lesson_id: l.lesson_id,
           lesson_title: l.lesson_title,
           detectedLanguage: l.detectedLanguage,
           action: `Ejecutar: /api/test-translation/lesson?lessonId=${l.lesson_id} para traducir esta lección`
         }))
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[TEST-COURSE-LESSONS] ❌ Error:', error)
     return NextResponse.json(
       {
@@ -130,4 +154,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

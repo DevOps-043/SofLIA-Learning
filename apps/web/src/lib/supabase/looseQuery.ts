@@ -37,6 +37,7 @@ export interface LooseQueryChain<T> extends Promise<LooseQueryResult<T>> {
   gt(column: string, value: string | number): LooseQueryChain<T>
   lt(column: string, value: string | number): LooseQueryChain<T>
   gte(column: string, value: string | number): LooseQueryChain<T>
+  lte(column: string, value: string | number): LooseQueryChain<T>
   not(
     column: string,
     operator: string,
@@ -56,6 +57,7 @@ export interface LooseMutationChain<T> extends Promise<LooseMutationResult> {
   neq(column: string, value: LoosePrimitive): LooseMutationChain<T>
   ilike(column: string, value: string): LooseMutationChain<T>
   in(column: string, values: readonly LoosePrimitive[]): LooseMutationChain<T>
+  lte(column: string, value: string | number): LooseMutationChain<T>
   not(
     column: string,
     operator: string,

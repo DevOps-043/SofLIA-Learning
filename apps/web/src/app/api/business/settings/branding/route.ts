@@ -3,6 +3,30 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface OrganizationBrandingRow {
+  id?: string
+  name?: string
+  logo_url?: string | null
+  brand_logo_url?: string | null
+  brand_favicon_url?: string | null
+  brand_banner_url?: string | null
+  brand_color_primary?: string | null
+  brand_color_secondary?: string | null
+  brand_color_accent?: string | null
+  brand_font_family?: string | null
+}
+
+interface BrandingUpdateData {
+  updated_at: string
+  brand_logo_url?: string | null
+  brand_favicon_url?: string | null
+  brand_banner_url?: string | null
+  brand_color_primary?: string
+  brand_color_secondary?: string
+  brand_color_accent?: string
+  brand_font_family?: string
+}
+
 /**
  * GET /api/business/settings/branding
  * Obtiene la configuración de branding de la organización
@@ -22,8 +46,8 @@ export async function GET() {
     const supabase = await createClient()
 
     // Intentar obtener brand_banner_url si existe, si no, usar null
-    let organization: any
-    let orgError: any
+    let organization: OrganizationBrandingRow | null = null
+    let orgError: Error | { message?: string } | null = null
 
     // Primero intentar con brand_banner_url
     const { data: orgWithBanner, error: errorWithBanner } = await supabase
@@ -134,7 +158,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Preparar datos de actualización
-    const updateData: any = {
+    const updateData: BrandingUpdateData = {
       updated_at: new Date().toISOString()
     }
 
@@ -147,8 +171,8 @@ export async function PUT(request: NextRequest) {
     if (font_family !== undefined) updateData.brand_font_family = font_family || 'Inter'
 
     // Actualizar organización
-    let updatedOrg: any
-    let updateError: any
+    let updatedOrg: OrganizationBrandingRow | null = null
+    let updateError: Error | { message?: string } | null = null
 
     // Intentar actualizar con brand_banner_url primero
     const { data: updatedWithBanner, error: errorWithBanner } = await supabase
@@ -209,4 +233,3 @@ export async function PUT(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

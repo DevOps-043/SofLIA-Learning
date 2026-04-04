@@ -12,15 +12,35 @@ import {
   Upload
 } from 'lucide-react';
 
+export type InlineAttachmentTypeId =
+  | 'image'
+  | 'document'
+  | 'video'
+  | 'youtube'
+  | 'link'
+  | 'poll';
+
+export interface InlineAttachmentPayload extends Record<string, unknown> {
+  file?: File;
+  url?: string | ArrayBuffer | null;
+  name?: string;
+  size?: number;
+  mimeType?: string;
+  type?: string;
+}
+
 interface InlineAttachmentButtonsProps {
-  onAttachmentSelect: (type: string, data: any) => void;
+  onAttachmentSelect: (
+    type: InlineAttachmentTypeId,
+    data: InlineAttachmentPayload | null
+  ) => void;
   className?: string;
   currentAttachmentsCount?: number;
   maxAttachments?: number;
 }
 
 interface AttachmentType {
-  id: string;
+  id: InlineAttachmentTypeId;
   name: string;
   icon: React.ElementType;
   color: string;
@@ -78,7 +98,7 @@ export function InlineAttachmentButtons({
   currentAttachmentsCount = 0,
   maxAttachments = 3
 }: InlineAttachmentButtonsProps) {
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<InlineAttachmentTypeId | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAttachmentTypeSelect = (type: AttachmentType) => {
@@ -119,7 +139,7 @@ export function InlineAttachmentButtons({
           actualType = 'document';
         }
 
-        const data = {
+        const data: InlineAttachmentPayload = {
           file,
           url: e.target?.result,
           name: file.name,

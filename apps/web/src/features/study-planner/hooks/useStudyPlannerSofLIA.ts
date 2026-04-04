@@ -143,14 +143,15 @@ export function useStudyPlannerSofLIA(): StudyPlannerSofLIAState & StudyPlannerS
       const data = await response.json();
 
       if (data.success && data.data) {
+        const userContext = data.data as UserContext
         setState(prev => ({
           ...prev,
           phaseData: {
             ...prev.phaseData,
-            userContext: data.data,
-            selectedCourseIds: data.data.courses.map((c: any) => c.courseId),
-            calendarConnected: data.data.calendarIntegration?.isConnected,
-            calendarProvider: data.data.calendarIntegration?.provider,
+            userContext,
+            selectedCourseIds: userContext.courses.map((course) => course.courseId),
+            calendarConnected: userContext.calendarIntegration?.isConnected,
+            calendarProvider: userContext.calendarIntegration?.provider,
           },
           isLoading: false,
         }));
@@ -253,8 +254,8 @@ export function useStudyPlannerSofLIA(): StudyPlannerSofLIAState & StudyPlannerS
 
       return data.response;
 
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
         return;
       }
 

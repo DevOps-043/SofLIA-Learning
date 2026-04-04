@@ -28,6 +28,8 @@ function getDOMPurify(): typeof DOMPurifyLib | null {
   return DOMPurify;
 }
 
+type SanitizerConfig = { ALLOWED_TAGS?: string[] } & Record<string, unknown>
+
 /**
  * Configuraciones de sanitización por contexto
  */
@@ -110,7 +112,7 @@ export type SanitizationLevel = 'strict' | 'basic' | 'rich' | 'full';
  */
 export interface SanitizeOptions {
   level?: SanitizationLevel;
-  customConfig?: any;
+  customConfig?: Record<string, unknown>;
   maxLength?: number; // Longitud máxima del texto
 }
 
@@ -182,7 +184,7 @@ export function sanitizeHtml(
   }
 
   // Seleccionar configuración según nivel
-  let config: any;
+  let config: SanitizerConfig;
   switch (level) {
     case 'strict':
       config = STRICT_CONFIG;

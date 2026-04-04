@@ -10,6 +10,47 @@ import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 export const dynamic = 'force-dynamic';
 
+interface LiaAnalyticsMessageRow {
+  message_id: string
+  conversation_id: string
+  role: string
+  content: string | null
+  tokens_used: number | null
+  cost_usd: number | null
+  response_time_ms: number | null
+  created_at: string
+  model_used: string | null
+}
+
+interface LiaAnalyticsConversationRow {
+  conversation_id: string
+  user_id: string
+  context_type: string | null
+  started_at: string | null
+  total_messages: number | null
+  course_id: string | null
+  lesson_id: string | null
+}
+
+interface LiaAnalyticsUserRow {
+  id: string
+  username: string | null
+  first_name: string | null
+  last_name: string | null
+  display_name: string | null
+  email: string | null
+  profile_picture_url: string | null
+}
+
+interface UserActivityEntry {
+  user: LiaAnalyticsUserRow | undefined
+  messageCount: number
+  conversations: string[]
+  questions: string[]
+  tokens: number
+  cost: number
+}
+
 export async function GET(request: NextRequest) {
   try {
     const auth = await requireAdmin();
@@ -82,7 +123,7 @@ export async function GET(request: NextRequest) {
     const conversationIds = [...new Set(filteredMessages.map(m => m.conversation_id))];
 
     // Obtener detalles de las conversaciones
-    let conversations: any[] = [];
+    let conversations: LiaAnalyticsConversationRow[] = [];
     if (conversationIds.length > 0) {
       const { data: convData } = await supabase
         .from('lia_conversations')
@@ -102,7 +143,7 @@ export async function GET(request: NextRequest) {
 
     // Obtener información de usuarios
     const userIds = [...new Set(conversations.map(c => c.user_id))];
-    let usersMap = new Map();
+    let usersMap = new Map<string, LiaAnalyticsUserRow>();
     
     if (userIds.length > 0) {
       const { data: users } = await supabase
@@ -114,7 +155,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Helper para nombre de usuario
-    const getUserName = (u: any) => {
+    const getUserName = (u: LiaAnalyticsUserRow | undefined) => {
       if (!u) return 'Usuario desconocido';
       if (u.display_name) return u.display_name;
       const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim();
@@ -133,14 +174,7 @@ export async function GET(request: NextRequest) {
       : 0;
 
     // Agrupar por usuario con detalles
-    const userActivity = new Map<string, {
-      user: any;
-      messageCount: number;
-      conversations: string[];
-      questions: string[];
-      tokens: number;
-      cost: number;
-    }>();
+    const userActivity = new Map<string, UserActivityEntry>();
 
     filteredMessages.forEach(msg => {
       const conv = conversations.find(c => c.conversation_id === msg.conversation_id);

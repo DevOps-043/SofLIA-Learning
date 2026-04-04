@@ -3,6 +3,19 @@ import { requireUser } from '@/lib/auth/requireUser'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/logger'
 
+interface OrganizationStatusInfo {
+  id?: string
+  name: string
+  slug?: string | null
+  is_active?: boolean
+  subscription_status?: string | null
+}
+
+function getOrganizationStatusInfo(value: OrganizationStatusInfo | OrganizationStatusInfo[] | null): OrganizationStatusInfo | null {
+  if (!value) return null
+  return Array.isArray(value) ? value[0] ?? null : value
+}
+
 export async function GET() {
   const auth = await requireUser({ allowBanned: true })
   if (auth instanceof NextResponse) return auth
@@ -34,7 +47,10 @@ export async function GET() {
       .maybeSingle()
 
     if (ownershipData) {
-      const org = ownershipData.organizations as any
+      const org = getOrganizationStatusInfo(ownershipData.organizations)
+      if (!org) {
+        return NextResponse.json({ success: false, error: 'Organización no encontrada.' }, { status: 500 })
+      }
       if (org.is_active && org.subscription_status !== 'pending') {
         // Organization was approved
         return NextResponse.json({
@@ -63,7 +79,10 @@ export async function GET() {
       .maybeSingle()
 
     if (membershipData) {
-      const org = membershipData.organizations as any
+      const org = getOrganizationStatusInfo(membershipData.organizations)
+      if (!org) {
+        return NextResponse.json({ success: false, error: 'Organización no encontrada.' }, { status: 500 })
+      }
       return NextResponse.json({
         success: true,
         status: 'approved',
@@ -82,7 +101,10 @@ export async function GET() {
       .maybeSingle()
 
     if (suspendedMembership) {
-      const org = suspendedMembership.organizations as any
+      const org = getOrganizationStatusInfo(suspendedMembership.organizations)
+      if (!org) {
+        return NextResponse.json({ success: false, error: 'Organización no encontrada.' }, { status: 500 })
+      }
       return NextResponse.json({
         success: true,
         status: 'suspended',
@@ -101,7 +123,10 @@ export async function GET() {
       .maybeSingle()
 
     if (joinRequest) {
-      const org = joinRequest.organizations as any
+      const org = getOrganizationStatusInfo(joinRequest.organizations)
+      if (!org) {
+        return NextResponse.json({ success: false, error: 'Organización no encontrada.' }, { status: 500 })
+      }
       if (joinRequest.status === 'pending') {
         return NextResponse.json({
           success: true,

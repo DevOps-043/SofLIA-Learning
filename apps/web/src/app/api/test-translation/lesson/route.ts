@@ -7,6 +7,18 @@ import { SupportedLanguage } from '../../../../core/i18n/i18n'
 
 export const dynamic = 'force-dynamic'
 
+interface TranslationLoadTestResult {
+  success: boolean
+  hasTranslations?: boolean
+  translationKeys?: string[]
+  sampleTranslation?: string
+  error?: string
+}
+
+interface ContentTranslationRow {
+  language_code: string
+}
+
 /**
  * Endpoint de prueba para verificar traducción de lecciones específicas
  * GET /api/test-translation/lesson?lessonId=xxx
@@ -82,7 +94,7 @@ export async function GET(request: NextRequest) {
 
     // PASO 5: Probar carga de traducciones para cada idioma
 
-    const translationLoadTests: Record<string, any> = {}
+    const translationLoadTests: Record<string, TranslationLoadTestResult> = {}
     
     for (const lang of ['es', 'en', 'pt'] as SupportedLanguage[]) {
       try {
@@ -128,8 +140,8 @@ export async function GET(request: NextRequest) {
       summary: {
         originalLanguage: detectedLanguage,
         expectedTargetLanguages: expectedTargetLanguages,
-        actualTranslationsInDB: translationsAfter?.map((t: any) => t.language_code) || [],
-        allTranslationsLoaded: Object.values(translationLoadTests).every((t: any) => t.success),
+        actualTranslationsInDB: (translationsAfter as ContentTranslationRow[] | null)?.map((translation) => translation.language_code) || [],
+        allTranslationsLoaded: Object.values(translationLoadTests).every((translationTest) => translationTest.success),
         hasSpanishTranslation: translationLoadTests.es?.hasTranslations || false,
         recommendation: detectedLanguage === 'en' 
           ? (translationLoadTests.es?.hasTranslations 
@@ -158,4 +170,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

@@ -4,6 +4,11 @@ import { BusinessUsersServerService } from '@/features/business-panel/services/b
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 
+interface OrganizationUserSummary {
+  id: string
+  organization_id?: string | null
+}
+
 export async function GET() {
   try {
     // Verificar autenticación y autorización de Business
@@ -44,7 +49,7 @@ export async function GET() {
     logger.log('🔒 Validación de seguridad: Solo usuarios de organización', auth.organizationId)
 
     // Validación final: asegurar que todos los usuarios pertenecen a la organización correcta
-    const validatedUsers = (users || []).filter((user: any) => {
+    const validatedUsers = (users || []).filter((user: OrganizationUserSummary) => {
       const belongsToOrg = !user.organization_id || user.organization_id === auth.organizationId
       if (!belongsToOrg) {
         logger.error('🚨 ERROR DE SEGURIDAD: Usuario con organization_id incorrecto filtrado', {
@@ -125,4 +130,3 @@ export async function POST(request: Request) {
     )
   }
 }
-

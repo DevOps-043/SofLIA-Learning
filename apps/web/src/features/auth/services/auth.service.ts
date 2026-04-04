@@ -45,8 +45,8 @@ export class AuthService {
     try {
       const supabase = await createClient()
       
-      await (supabase
-        .from('user_session') as any)
+      await supabase
+        .from('user_session')
         .update({ revoked: true })
         .lt('expires_at', new Date().toISOString())
     } catch (error) {

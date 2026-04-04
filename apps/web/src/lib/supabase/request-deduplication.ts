@@ -23,13 +23,13 @@ interface CacheEntry<T> {
 }
 
 class RequestDeduplicator {
-  private cache: Map<string, CacheEntry<any>> = new Map()
+  private cache: Map<string, CacheEntry<unknown>> = new Map()
   private readonly DEFAULT_TTL = 2000 // 2 segundos
 
   /**
    * Deduplicar fetch requests
    */
-  async fetch<T = any>(
+  async fetch<T = unknown>(
     url: string,
     options?: RequestInit,
     ttl: number = this.DEFAULT_TTL
@@ -41,7 +41,7 @@ class RequestDeduplicator {
     if (cached) {
       const age = Date.now() - cached.timestamp
       if (age < ttl) {
-        return cached.promise
+        return cached.promise as Promise<T>
       } else {
         // Expiró, eliminar del cache
         this.cache.delete(cacheKey)
@@ -75,7 +75,7 @@ class RequestDeduplicator {
   /**
    * Deduplicar queries de Supabase
    */
-  async supabaseQuery<T = any>(
+  async supabaseQuery<T = unknown>(
     queryFn: () => Promise<T>,
     queryKey: string,
     ttl: number = this.DEFAULT_TTL
@@ -87,7 +87,7 @@ class RequestDeduplicator {
     if (cached) {
       const age = Date.now() - cached.timestamp
       if (age < ttl) {
-        return cached.promise
+        return cached.promise as Promise<T>
       } else {
         this.cache.delete(cacheKey)
       }
@@ -144,7 +144,7 @@ const deduplicator = new RequestDeduplicator()
  * @example
  * const data = await dedupedFetch('/api/courses')
  */
-export async function dedupedFetch<T = any>(
+export async function dedupedFetch<T = unknown>(
   url: string,
   options?: RequestInit,
   ttl?: number
@@ -161,7 +161,7 @@ export async function dedupedFetch<T = any>(
  *   'courses:all'
  * )
  */
-export async function dedupedSupabaseQuery<T = any>(
+export async function dedupedSupabaseQuery<T = unknown>(
   queryFn: () => Promise<T>,
   queryKey: string,
   ttl?: number

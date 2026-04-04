@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
-import { resendInvitationAction } from '@/features/auth/actions/invitation'
+import {
+  createInvitationRuntime,
+  resendInvitation,
+} from '@/features/auth/actions/invitation/index'
 
 export async function POST(
   req: NextRequest,
@@ -36,8 +39,10 @@ export async function POST(
       return NextResponse.json({ success: false, error: 'Invitación no encontrada' }, { status: 404 })
     }
 
-    // Usar la acción existente para reenviar
-    const result = await resendInvitationAction(invitationId)
+    const result = await resendInvitation(
+      invitationId,
+      await createInvitationRuntime(),
+    )
 
     if (!result.success) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 })

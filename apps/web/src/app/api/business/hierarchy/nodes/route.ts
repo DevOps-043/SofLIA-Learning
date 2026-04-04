@@ -1,25 +1,60 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { NextResponse } from 'next/server';
+import type { BusinessAuth } from '@/lib/auth/requireBusiness';
 
-// helper to build tree
-function buildTree(nodes: any[]) {
-    const map = new Map();
-    const roots: any[] = [];
+interface OrganizationNodeManager {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    profile_picture_url: string | null;
+}
 
-    nodes.forEach(node => {
-        map.set(node.id, { ...node, children: [] });
-    });
+interface OrganizationNodeRow {
+    id: string;
+    structure_id: string;
+    organization_id: string;
+    parent_id: string | null;
+    name: string;
+    type: string;
+    path: string;
+    depth: number;
+    position: number | null;
+    is_active?: boolean | null;
+    manager: OrganizationNodeManager | null;
+}
 
-    nodes.forEach(node => {
-        if (node.parent_id && map.has(node.parent_id)) {
-            map.get(node.parent_id).children.push(map.get(node.id));
-        } else {
-            roots.push(map.get(node.id));
-        }
-    });
+interface StructureOrganizationRow {
+    organization_id: string;
+}
 
-    return roots;
+interface ParentNodeRow {
+    path: string;
+    depth: number;
+}
+
+interface CreateNodeRequest {
+    structure_id: string;
+    parent_id?: string | null;
+    name: string;
+    type: string;
+    position?: number | null;
+    manager_id?: string | null;
+    metadata?: Record<string, unknown> | null;
+}
+
+interface OrganizationNodeInsert {
+    structure_id: string;
+    parent_id: string | null;
+    name: string;
+    type: string;
+    position?: number | null;
+    manager_id?: string | null;
+    metadata?: Record<string, unknown> | null;
+    organization_id: string;
+    path: string;
+    depth: number;
 }
 
 export async function GET(request: Request) {
@@ -51,8 +86,7 @@ export async function GET(request: Request) {
     // Let's return flat list to let client build tree or build it here?
     // Let's return flat nodes, easier for client storage/manipulation sometimes, 
     // but if we want simple, let's return flat. The frontend service seemed to expect "nodes" array.
-
-    return NextResponse.json({ nodes });
+    return NextResponse.json({ nodes: (nodes || []) as OrganizationNodeRow[] });
 }
 
 export async function POST(request: Request) {
@@ -62,9 +96,17 @@ export async function POST(request: Request) {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
-    const { organizationId } = auth as any;
+    const { organizationId } = auth as BusinessAuth;
 
-    const body = await request.json(); // { structure_id, parent_id, name, type, ... }
+    if (!organizationId) {
+        return NextResponse.json({ error: 'Organization ID required' }, { status: 403 });
+    }
+
+    const body: CreateNodeRequest = await request.json();
+
+    if (!body.structure_id || !body.name || !body.type) {
+        return NextResponse.json({ error: 'structure_id, name y type son requeridos' }, { status: 400 });
+    }
 
     // Logic to calculate path and depth
     let path = '';
@@ -75,7 +117,7 @@ export async function POST(request: Request) {
         .from('organization_structures')
         .select('organization_id')
         .eq('id', body.structure_id)
-        .single();
+        .single<StructureOrganizationRow>();
 
     if (!structure) return NextResponse.json({ error: 'Structure not found' }, { status: 404 });
 
@@ -86,7 +128,11 @@ export async function POST(request: Request) {
 
     // 2. Calculate Path
     if (body.parent_id) {
-        const { data: parent } = await supabase.from('organization_nodes').select('path, depth').eq('id', body.parent_id).single();
+        const { data: parent } = await supabase
+            .from('organization_nodes')
+            .select('path, depth')
+            .eq('id', body.parent_id)
+            .single<ParentNodeRow>();
         if (!parent) return NextResponse.json({ error: 'Parent not found' }, { status: 404 });
 
         // Sanitize slug
@@ -102,14 +148,22 @@ export async function POST(request: Request) {
         depth = 0;
     }
 
+    const insertData: OrganizationNodeInsert = {
+        structure_id: body.structure_id,
+        parent_id: body.parent_id || null,
+        name: body.name,
+        type: body.type,
+        position: body.position ?? null,
+        manager_id: body.manager_id ?? null,
+        metadata: body.metadata ?? null,
+        organization_id: organizationId,
+        path,
+        depth
+    };
+
     const { data, error } = await supabase
         .from('organization_nodes')
-        .insert({
-            ...body,
-            organization_id: organizationId, // Enforce from auth context
-            path,
-            depth
-        })
+        .insert(insertData)
         .select()
         .single();
 

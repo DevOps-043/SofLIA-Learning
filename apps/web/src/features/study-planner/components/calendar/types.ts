@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
-import type moment from 'moment'
+
+export type CalendarDate = Date
 
 export type CalendarView = 'month' | 'week' | 'day'
 
@@ -39,18 +40,19 @@ export interface ConfirmDialogState {
 }
 
 export interface MonthDayInfo {
-  date: ReturnType<typeof moment>
+  date: CalendarDate
   isCurrentMonth: boolean
   isToday: boolean
+  dayNumber: number
 }
 
 export interface WeekRange {
-  start: ReturnType<typeof moment>
-  end: ReturnType<typeof moment>
+  start: CalendarDate
+  end: CalendarDate
 }
 
 export interface CalendarHeaderProps {
-  currentDate: ReturnType<typeof moment>
+  currentDate: CalendarDate
   view: CalendarView
   setView: Dispatch<SetStateAction<CalendarView>>
   weekRange: WeekRange | null
@@ -72,31 +74,31 @@ export interface CalendarHeaderProps {
 export interface CalendarMonthViewProps {
   monthDays: MonthDayInfo[]
   weekDayNames: string[]
-  today: ReturnType<typeof moment>
-  getEventsForDay: (date: ReturnType<typeof moment>) => CalendarEvent[]
+  today: CalendarDate
+  getEventsForDay: (date: CalendarDate) => CalendarEvent[]
   getEventColor: (event: CalendarEvent) => string
-  setCurrentDate: Dispatch<SetStateAction<ReturnType<typeof moment>>>
+  setCurrentDate: Dispatch<SetStateAction<CalendarDate>>
   handleCreateEvent: () => void
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>
 }
 
 export interface CalendarWeekViewProps {
-  weekDays: ReturnType<typeof moment>[]
-  today: ReturnType<typeof moment>
+  weekDays: CalendarDate[]
+  today: CalendarDate
   hours: number[]
-  getEventsForDay: (date: ReturnType<typeof moment>) => CalendarEvent[]
-  getEventPosition: (event: CalendarEvent, day: ReturnType<typeof moment>) => { top: number; height: number; isAllDay: boolean } | null
+  getEventsForDay: (date: CalendarDate) => CalendarEvent[]
+  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; isAllDay: boolean } | null
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>
 }
 
 export interface CalendarDayViewProps {
-  currentDate: ReturnType<typeof moment>
-  today: ReturnType<typeof moment>
+  currentDate: CalendarDate
+  today: CalendarDate
   hours: number[]
-  getEventsForDay: (date: ReturnType<typeof moment>) => CalendarEvent[]
-  getEventPosition: (event: CalendarEvent, day: ReturnType<typeof moment>) => { top: number; height: number; isAllDay: boolean } | null
+  getEventsForDay: (date: CalendarDate) => CalendarEvent[]
+  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; isAllDay: boolean } | null
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>
 }

@@ -20,6 +20,7 @@ export interface UploadResult {
 
 export interface AttachmentData {
   type: string;
+  file?: File;
   url?: string;
   name?: string;
   size?: number;
@@ -110,7 +111,7 @@ class SupabaseStorageService {
   async processAttachment(attachmentData: AttachmentData): Promise<{
     attachment_url: string | null;
     attachment_type: string;
-    attachment_data: any;
+    attachment_data: Record<string, unknown> | null;
   }> {
     const { type } = attachmentData;
 

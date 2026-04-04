@@ -5,6 +5,14 @@ import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { initiateGoogleLogin } from '../../actions/oauth';
 
+function getRedirectDigest(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('digest' in error)) {
+    return null;
+  }
+
+  return typeof error.digest === 'string' ? error.digest : null;
+}
+
 // SVG del logo de Google
 const GoogleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
@@ -58,7 +66,7 @@ export function GoogleLoginButton({
     } catch (error) {
       // Verificar si es una redirección de Next.js (no es un error real)
       if (error && typeof error === 'object' && 'digest' in error) {
-        const digest = (error as any).digest;
+        const digest = getRedirectDigest(error);
         if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
           // Es una redirección exitosa, dejar que Next.js la maneje
           // No resetear isLoading - la página se redirigirá

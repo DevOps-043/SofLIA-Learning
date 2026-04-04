@@ -19,7 +19,7 @@ export interface AdminWorkshop {
   average_rating?: number
   student_count: number // Cambiado de 'current_students' a 'student_count'
   review_count: number
-  learning_objectives?: any // JSONB
+  learning_objectives?: string[] | null
   approval_status?: 'pending' | 'approved' | 'rejected'
   approved_by?: string
   approved_at?: string
@@ -83,8 +83,8 @@ export class AdminWorkshopsService {
       }
 
       // 🚀 PASO 2: Recopilar IDs únicos para batch queries
-      const courseIds = courses.map((c: any) => c.id)
-      const instructorIds = [...new Set(courses.map((c: any) => c.instructor_id).filter(Boolean))]
+      const courseIds = courses.map((c: { id: string }) => c.id)
+      const instructorIds = [...new Set(courses.map((c: { instructor_id: string | null }) => c.instructor_id).filter(Boolean))]
 
       // 🚀 PASO 3: Ejecutar queries en paralelo (no secuenciales)
       const [instructorsResult, modulesResult, assignmentsResult] = await Promise.all([
@@ -112,7 +112,7 @@ export class AdminWorkshopsService {
       ])
 
       // 🚀 PASO 4: Crear mapas para búsqueda O(1)
-      const instructorsMap = new Map<string, {name: string, picture: string | null}>((instructorsResult.data || []).map((instructor: any) => [
+      const instructorsMap = new Map<string, {name: string, picture: string | null}>((instructorsResult.data || []).map((instructor: { id: string; display_name: string | null; first_name: string | null; last_name: string | null; profile_picture_url: string | null }) => [
         instructor.id,
         {
           name: instructor.display_name ||
@@ -138,7 +138,7 @@ export class AdminWorkshopsService {
       }
 
       // 🚀 PASO 5: Enriquecer cursos sin queries adicionales
-      const workshopsWithData = courses.map((workshop: any): AdminWorkshop => {
+      const workshopsWithData = (courses as AdminWorkshop[]).map((workshop): AdminWorkshop => {
         const instructor = workshop.instructor_id ? instructorsMap.get(workshop.instructor_id) : null
         const calculatedDuration = durationMap.get(workshop.id) || 0
 
@@ -389,7 +389,7 @@ export class AdminWorkshopsService {
         .single()
 
       // Preparar datos de actualización
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       }
 
@@ -508,7 +508,7 @@ export class AdminWorkshopsService {
         .select('module_id')
         .eq('course_id', workshopId)
 
-      const moduleIds = modules?.map((m: any) => m.module_id) || []
+      const moduleIds = modules?.map((m: { module_id: string }) => m.module_id) || []
 
       if (moduleIds.length > 0) {
         // 3. Obtener todas las lecciones de estos módulos
@@ -517,7 +517,7 @@ export class AdminWorkshopsService {
           .select('lesson_id')
           .in('module_id', moduleIds)
 
-        const lessonIds = lessons?.map((l: any) => l.lesson_id) || []
+        const lessonIds = lessons?.map((l: { lesson_id: string }) => l.lesson_id) || []
 
         if (lessonIds.length > 0) {
           // 4. ELIMINAR DEPENDENCIAS DE LECCIONES
@@ -629,7 +629,7 @@ export class AdminWorkshopsService {
         throw error
       }
 
-      return (data || []).map((user: any) => ({
+      return (data || []).map((user: { id: string; display_name: string | null; first_name: string | null; last_name: string | null }) => ({
         id: user.id,
         name: user.display_name ||
           `${user.first_name || ''} ${user.last_name || ''}`.trim() ||

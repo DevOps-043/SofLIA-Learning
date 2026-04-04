@@ -10,6 +10,17 @@ import { requireAdmin } from '@/lib/auth/requireAdmin';
 
 export const dynamic = 'force-dynamic';
 
+interface AnalyticsUserInfo {
+  id: string
+  username?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  display_name?: string | null
+  email?: string | null
+  profile_picture_url?: string | null
+  cargo_rol?: string | null
+}
+
 export async function GET(request: NextRequest) {
   try {
     // ✅ SEGURIDAD: Verificar autenticación y autorización de admin
@@ -151,7 +162,7 @@ export async function GET(request: NextRequest) {
       const userInfo = usersMap.get(stats.userId);
       
       // Construir nombre: priorizar display_name, luego first_name + last_name, luego username
-      const getUserName = (u: any) => {
+      const getUserName = (u: AnalyticsUserInfo) => {
         if (u.display_name) return u.display_name;
         const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim();
         if (fullName) return fullName;

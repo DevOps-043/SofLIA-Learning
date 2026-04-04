@@ -67,7 +67,7 @@ export function useAdminPrompts() {
         
         // Si hay errores de validación, formatearlos
         if (data.errors && Array.isArray(data.errors)) {
-          const validationErrors = data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ')
+          const validationErrors = data.errors.map((e: { field: string; message: string }) => `${e.field}: ${e.message}`).join(', ')
           throw new Error(`${errorMessage}: ${validationErrors}`)
         }
         
@@ -82,7 +82,7 @@ export function useAdminPrompts() {
         
         // Si hay errores de validación, formatearlos
         if (data.errors && Array.isArray(data.errors)) {
-          const validationErrors = data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ')
+          const validationErrors = data.errors.map((e: { field: string; message: string }) => `${e.field}: ${e.message}`).join(', ')
           throw new Error(`${errorMessage}: ${validationErrors}`)
         }
         
@@ -112,7 +112,7 @@ export function useAdminPrompts() {
         
         // Si hay errores de validación, formatearlos
         if (data.errors && Array.isArray(data.errors)) {
-          const validationErrors = data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ')
+          const validationErrors = data.errors.map((e: { field: string; message: string }) => `${e.field}: ${e.message}`).join(', ')
           throw new Error(`${errorMessage}: ${validationErrors}`)
         }
         
@@ -127,7 +127,7 @@ export function useAdminPrompts() {
         
         // Si hay errores de validación, formatearlos
         if (data.errors && Array.isArray(data.errors)) {
-          const validationErrors = data.errors.map((e: any) => `${e.field}: ${e.message}`).join(', ')
+          const validationErrors = data.errors.map((e: { field: string; message: string }) => `${e.field}: ${e.message}`).join(', ')
           throw new Error(`${errorMessage}: ${validationErrors}`)
         }
         

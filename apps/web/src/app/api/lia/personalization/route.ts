@@ -4,6 +4,10 @@ import { SofLIAPersonalizationService } from '@/core/services/soflia-personaliza
 import type { SofLIAPersonalizationSettingsInput } from '@/core/types/soflia-personalization.types';
 import { logger } from '@/lib/utils/logger';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error desconocido'
+}
+
 /**
  * GET /api/lia/personalization
  * Obtiene la configuración de personalización del usuario actual
@@ -24,12 +28,12 @@ export async function GET(request: NextRequest) {
       settings,
       success: true,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error obteniendo configuración de personalización:', error);
     return NextResponse.json(
       { 
         error: 'Error al obtener configuración',
-        message: error.message,
+        message: getErrorMessage(error),
         success: false 
       },
       { status: 500 }
@@ -131,14 +135,14 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Configuración actualizada correctamente',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error actualizando configuración de personalización:', error);
     
     // Manejar errores de validación
-    if (error.message.includes('exceder')) {
+    if (getErrorMessage(error).includes('exceder')) {
       return NextResponse.json(
         { 
-          error: error.message,
+          error: getErrorMessage(error),
           success: false 
         },
         { status: 400 }
@@ -148,7 +152,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Error al actualizar configuración',
-        message: error.message,
+        message: getErrorMessage(error),
         success: false 
       },
       { status: 500 }
@@ -176,12 +180,12 @@ export async function DELETE(request: NextRequest) {
       success: true,
       message: 'Configuración eliminada correctamente',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error eliminando configuración de personalización:', error);
     return NextResponse.json(
       { 
         error: 'Error al eliminar configuración',
-        message: error.message,
+        message: getErrorMessage(error),
         success: false 
       },
       { status: 500 }

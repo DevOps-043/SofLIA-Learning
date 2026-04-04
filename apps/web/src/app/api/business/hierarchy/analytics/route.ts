@@ -3,6 +3,10 @@ import { NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { logger } from '@/lib/utils/logger'
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
 export async function GET(request: Request) {
   try {
     // Verificar autenticación business
@@ -86,10 +90,10 @@ export async function GET(request: Request) {
       success: true,
       data: { analytics: data }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en GET /api/business/hierarchy/analytics:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Error interno del servidor' },
+      { success: false, error: getErrorMessage(error, 'Error interno del servidor') },
       { status: 500 }
     )
   }

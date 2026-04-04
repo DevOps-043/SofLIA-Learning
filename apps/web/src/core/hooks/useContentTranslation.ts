@@ -37,7 +37,7 @@ export function useContentTranslation() {
    * @param entity Objeto con los datos originales
    * @param fields Campos a traducir
    */
-  const translateEntity = <T extends Record<string, any>>(
+  const translateEntity = <T extends Record<string, unknown>>(
     entityType: 'courses' | 'modules' | 'lessons',
     entity: T,
     fields: string[]
@@ -48,7 +48,7 @@ export function useContentTranslation() {
       return entity;
     }
 
-    const translated = { ...entity };
+    const translated: Record<string, unknown> = { ...entity };
 
     fields.forEach(field => {
       if (entity[field]) {
@@ -61,7 +61,7 @@ export function useContentTranslation() {
       }
     });
 
-    return translated;
+    return translated as T;
   };
 
   /**
@@ -70,7 +70,7 @@ export function useContentTranslation() {
    * @param entities Array de objetos
    * @param fields Campos a traducir
    */
-  const translateEntities = <T extends Record<string, any>>(
+  const translateEntities = <T extends Record<string, unknown>>(
     entityType: 'courses' | 'modules' | 'lessons',
     entities: T[],
     fields: string[]

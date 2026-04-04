@@ -1,12 +1,38 @@
 import { createClient } from '../../../../lib/supabase/server'
+import { fromLoose } from '../../../../lib/supabase/looseQuery'
 import { logger } from '../../../../lib/utils/logger'
 
 import { buildCompanyDetailedStats } from './admin-companies-detailed-stats.service'
 
+interface HierarchyCourseAssignmentRow {
+  id: string
+  course_id: string
+  assigned_at?: string | null
+  due_date?: string | null
+  status?: string | null
+  courses?: {
+    id: string
+    title?: string | null
+    slug?: string | null
+    thumbnail_url?: string | null
+    category?: string | null
+    level?: string | null
+  } | null
+}
+
+interface HierarchyCourseAssignmentWrite {
+  organization_id: string
+  course_id: string
+  assigned_by?: string | null
+  status?: string | null
+}
+
 export async function getCompanyCourses(id: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('hierarchy_course_assignments')
+  const { data, error } = await fromLoose<
+    HierarchyCourseAssignmentRow,
+    HierarchyCourseAssignmentWrite
+  >(supabase, 'hierarchy_course_assignments')
     .select(`
       id,
       course_id,
@@ -34,8 +60,10 @@ export async function getCompanyCourses(id: string) {
 
 export async function assignCourseToCompany(companyId: string, courseId: string, adminId: string) {
   const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('hierarchy_course_assignments')
+  const { data, error } = await fromLoose<
+    HierarchyCourseAssignmentRow,
+    HierarchyCourseAssignmentWrite
+  >(supabase, 'hierarchy_course_assignments')
     .insert({
       organization_id: companyId,
       course_id: courseId,
@@ -55,8 +83,10 @@ export async function assignCourseToCompany(companyId: string, courseId: string,
 
 export async function removeCourseFromCompany(companyId: string, courseId: string) {
   const supabase = await createClient()
-  const { error } = await supabase
-    .from('hierarchy_course_assignments')
+  const { error } = await fromLoose<
+    HierarchyCourseAssignmentRow,
+    HierarchyCourseAssignmentWrite
+  >(supabase, 'hierarchy_course_assignments')
     .delete()
     .eq('organization_id', companyId)
     .eq('course_id', courseId)
@@ -154,8 +184,19 @@ export async function getCompanyDetailedStats(companyId: string) {
       .eq('organization_id', companyId)
       .eq('status', 'completed')
       .order('completed_at', { ascending: true }),
-    supabase
-      .from('organization_users')
+    fromLoose<
+      {
+        status?: string | null
+        organization_teams?:
+          | {
+              name?: string | null
+            }
+          | Array<{
+              name?: string | null
+            }>
+          | null
+      }
+    >(supabase, 'organization_users')
       .select('status, organization_teams(name)')
       .eq('organization_id', companyId),
     supabase

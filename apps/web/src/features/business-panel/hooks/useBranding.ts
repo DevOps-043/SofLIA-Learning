@@ -22,6 +22,10 @@ export interface UseBrandingReturn {
   refetch: () => Promise<void>
 }
 
+const getErrorMessage = (error: unknown, fallback: string): string => (
+  error instanceof Error ? error.message : fallback
+)
+
 /**
  * Hook para obtener y actualizar la configuración de branding.
  *
@@ -62,8 +66,8 @@ export function useBranding(): UseBrandingReturn {
       }
 
       setBranding(data.branding)
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar branding')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al cargar branding'))
       setBranding(null)
     } finally {
       setIsLoading(false)
@@ -97,8 +101,8 @@ export function useBranding(): UseBrandingReturn {
 
       setBranding(result.branding)
       return true
-    } catch (err: any) {
-      setError(err.message || 'Error al actualizar branding')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al actualizar branding'))
       return false
     }
   }, [orgSlug])
@@ -127,8 +131,8 @@ export function useBranding(): UseBrandingReturn {
       }
 
       return colors
-    } catch (err: any) {
-      const errorMessage = err.message || 'Error al detectar colores de la imagen'
+    } catch (err: unknown) {
+      const errorMessage = getErrorMessage(err, 'Error al detectar colores de la imagen')
       setError(errorMessage)
       console.error('Error detectando colores:', err)
       return null
@@ -148,4 +152,3 @@ export function useBranding(): UseBrandingReturn {
     refetch: fetchBranding
   }
 }
-

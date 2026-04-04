@@ -1,7 +1,7 @@
 import { SupportedLanguage } from '../i18n/i18n';
 import { createClient } from '@/lib/supabase/client';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, Json } from '@/lib/supabase/types';
 
 /**
  * Servicio para manejar traducciones de contenido dinámico desde la base de datos
@@ -16,6 +16,24 @@ interface ContentTranslations {
 
 export class ContentTranslationService {
   private static cache: Map<string, ContentTranslations> = new Map();
+
+  private static isStringArray(value: Json): value is string[] {
+    return Array.isArray(value) && value.every(item => typeof item === 'string');
+  }
+
+  private static isContentTranslations(value: Json | null): value is ContentTranslations {
+    if (!value || Array.isArray(value) || typeof value !== 'object') {
+      return false;
+    }
+
+    return Object.values(value).every(
+      entry => typeof entry === 'string' || this.isStringArray(entry as Json)
+    );
+  }
+
+  private static normalizeTranslations(value: Json | null): ContentTranslations {
+    return this.isContentTranslations(value) ? value : {};
+  }
 
   /**
    * Genera clave de caché
@@ -40,7 +58,7 @@ export class ContentTranslationService {
     entityType: EntityType,
     entityId: string,
     language: SupportedLanguage,
-    supabaseClient?: any
+    supabaseClient?: ReturnType<typeof createServiceClient<Database>>
   ): Promise<ContentTranslations> {
     // IMPORTANTE: Ya no retornamos vacío para español
     // Si el contenido original está en inglés/portugués, necesitamos la traducción a español
@@ -73,7 +91,7 @@ export class ContentTranslationService {
       }
 
       // Guardar en caché
-      const translations = data.translations as ContentTranslations;
+      const translations = this.normalizeTranslations(data.translations);
       this.cache.set(cacheKey, translations);
       return translations;
     } catch (error) {
@@ -107,12 +125,12 @@ export class ContentTranslationService {
    * porque el contenido original puede estar en inglés/portugués
    * @param supabaseClient Cliente opcional de Supabase (para uso en servidor)
    */
-  static async translateObject<T extends Record<string, any>>(
+  static async translateObject<T extends Record<string, unknown>>(
     entityType: EntityType,
     obj: T,
     fields: string[],
     language: SupportedLanguage,
-    supabaseClient?: any
+    supabaseClient?: ReturnType<typeof createServiceClient<Database>>
   ): Promise<T> {
     if (!obj.id) {
       return obj;
@@ -127,26 +145,26 @@ export class ContentTranslationService {
     }
 
     // Aplicar traducciones
-    const translated = { ...obj } as any;
+    const translated = { ...obj } as Record<string, unknown>;
     fields.forEach(field => {
       if (translations[field]) {
         translated[field] = translations[field];
       }
     });
 
-    return translated;
+    return translated as T;
   }
 
   /**
    * Traduce un array de objetos (batch)
    * @param supabaseClient Cliente opcional de Supabase (para uso en servidor)
    */
-  static async translateArray<T extends Record<string, any>>(
+  static async translateArray<T extends Record<string, unknown>>(
     entityType: EntityType,
     array: T[],
     fields: string[],
     language: SupportedLanguage,
-    supabaseClient?: any
+    supabaseClient?: ReturnType<typeof createServiceClient<Database>>
   ): Promise<T[]> {
     // IMPORTANTE: Ya no retornamos el array original para español
     // Si el contenido original está en inglés/portugués, necesitamos traducir a español
@@ -180,11 +198,12 @@ export class ContentTranslationService {
 
       // Crear mapa de traducciones
       const translationsMap = new Map<string, ContentTranslations>();
-      data.forEach((item: any) => {
-        translationsMap.set(item.entity_id, item.translations as ContentTranslations);
+      data.forEach(item => {
+        const translations = this.normalizeTranslations(item.translations);
+        translationsMap.set(item.entity_id, translations);
         // Guardar en caché
         const cacheKey = this.getCacheKey(entityType, item.entity_id, language);
-        this.cache.set(cacheKey, item.translations as ContentTranslations);
+        this.cache.set(cacheKey, translations);
       });
 
       // Aplicar traducciones
@@ -199,15 +218,13 @@ export class ContentTranslationService {
           return item;
         }
 
-        const translated = { ...item } as any;
+        const translated = { ...item } as Record<string, unknown>;
         fields.forEach(field => {
           if (translations[field]) {
-            const originalValue = translated[field];
             translated[field] = translations[field];
-
           }
         });
-        return translated;
+        return translated as T;
       });
     } catch (error) {
       console.error('Error translating array:', error);
@@ -225,7 +242,7 @@ export class ContentTranslationService {
     language: SupportedLanguage,
     translations: ContentTranslations,
     userId?: string,
-    supabaseClient?: any // Cliente de Supabase opcional (para uso en servidor)
+    supabaseClient?: ReturnType<typeof createServiceClient<Database>> // Cliente de Supabase opcional (para uso en servidor)
   ): Promise<boolean> {
     // IMPORTANTE: Ahora guardamos traducciones a TODOS los idiomas, incluyendo español
     // La lógica de "no traducir a español" se maneja en las funciones de traducción

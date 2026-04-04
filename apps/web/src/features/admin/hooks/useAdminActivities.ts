@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AdminActivity } from '../services/adminActivities.service'
+import { AdminActivity, CreateActivityData, UpdateActivityData } from '../services/adminActivities.service'
 
 interface UseAdminActivitiesReturn {
   activities: AdminActivity[] // Para compatibilidad
@@ -9,8 +9,8 @@ interface UseAdminActivitiesReturn {
   loading: boolean
   error: string | null
   fetchActivities: (lessonId: string) => Promise<void>
-  createActivity: (lessonId: string, data: any) => Promise<AdminActivity>
-  updateActivity: (activityId: string, data: any) => Promise<AdminActivity>
+  createActivity: (lessonId: string, data: CreateActivityData) => Promise<AdminActivity>
+  updateActivity: (activityId: string, data: UpdateActivityData) => Promise<AdminActivity>
   deleteActivity: (activityId: string) => Promise<void>
 }
 
@@ -58,7 +58,7 @@ export function useAdminActivities(): UseAdminActivitiesReturn {
     }
   }
 
-  const createActivity = async (lessonId: string, activityData: any): Promise<AdminActivity> => {
+  const createActivity = async (lessonId: string, activityData: CreateActivityData | UpdateActivityData): Promise<AdminActivity> => {
     try {
       const response = await fetch(`/api/admin/courses/0/modules/0/lessons/${lessonId}/activities`, {
         method: 'POST',
@@ -86,7 +86,7 @@ export function useAdminActivities(): UseAdminActivitiesReturn {
     }
   }
 
-  const updateActivity = async (activityId: string, activityData: any): Promise<AdminActivity> => {
+  const updateActivity = async (activityId: string, activityData: CreateActivityData | UpdateActivityData): Promise<AdminActivity> => {
     try {
       // Buscar la lección que contiene esta actividad
       let lessonId: string | null = null;

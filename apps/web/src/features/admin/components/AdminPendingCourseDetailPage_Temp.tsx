@@ -1,7 +1,48 @@
+import { CheckCircleIcon } from '@heroicons/react/24/solid'
 
-function ActivityItem({ activity }: { activity: any }) {
-    let parsedContent = null
-    let error = null
+interface PendingCourseActivity {
+    activity_type: string
+    activity_title: string
+    activity_content: string | QuizViewerData | ScriptViewerData | Record<string, unknown> | null
+}
+
+interface QuizViewerItem {
+    id?: string | number
+    question?: string
+    options?: string[]
+    correct_answer?: number | string
+    explanation?: string
+}
+
+interface QuizViewerData {
+    passing_score?: number
+    items: QuizViewerItem[]
+}
+
+interface ScriptViewerScene {
+    character?: string
+    emotion?: string
+    message?: string
+}
+
+interface ScriptViewerData {
+    introduction?: string
+    scenes: ScriptViewerScene[]
+    conclusion?: string
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null
+
+const isQuizViewerData = (value: unknown): value is QuizViewerData =>
+    isRecord(value) && Array.isArray(value.items)
+
+const isScriptViewerData = (value: unknown): value is ScriptViewerData =>
+    isRecord(value) && Array.isArray(value.scenes)
+
+function ActivityItem({ activity }: { activity: PendingCourseActivity }) {
+    let parsedContent: unknown = null
+    let error: string | null = null
 
     try {
         if (typeof activity.activity_content === 'string') {
@@ -9,7 +50,7 @@ function ActivityItem({ activity }: { activity: any }) {
         } else {
             parsedContent = activity.activity_content
         }
-    } catch (e) {
+    } catch {
         error = 'Error parsing JSON content'
     }
 
@@ -34,10 +75,9 @@ function ActivityItem({ activity }: { activity: any }) {
                     </div>
                 ) : (
                     <div className="text-sm">
-                        {(activity.activity_type === 'quiz') && <QuizViewer data={parsedContent} />}
+                        {activity.activity_type === 'quiz' && <QuizViewer data={parsedContent} />}
                         {(activity.activity_type === 'lia_script' || activity.activity_type === 'ai_chat') && <ScriptViewer data={parsedContent} />}
 
-                        {/* Fallback for other types */}
                         {activity.activity_type !== 'quiz' && activity.activity_type !== 'lia_script' && activity.activity_type !== 'ai_chat' && (
                             <pre className="text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded overflow-x-auto">
                                 {JSON.stringify(parsedContent, null, 2)}
@@ -50,8 +90,8 @@ function ActivityItem({ activity }: { activity: any }) {
     )
 }
 
-function QuizViewer({ data }: { data: any }) {
-    if (!data || !data.items) return <p className="text-gray-400 italic">Datos de Quiz inválidos</p>
+function QuizViewer({ data }: { data: unknown }) {
+    if (!isQuizViewerData(data)) return <p className="text-gray-400 italic">Datos de Quiz invalidos</p>
 
     return (
         <div className="space-y-4">
@@ -60,17 +100,15 @@ function QuizViewer({ data }: { data: any }) {
                 <span>{data.items.length} Preguntas</span>
             </div>
 
-            {data.items.map((item: any, idx: number) => (
+            {data.items.map((item, idx: number) => (
                 <div key={item.id || idx} className="bg-white dark:bg-gray-900/50 p-3 rounded border border-gray-100 dark:border-gray-800">
                     <p className="font-medium text-gray-800 dark:text-gray-200 mb-2">
                         {idx + 1}. {item.question}
                     </p>
                     <div className="space-y-1 pl-2">
                         {item.options?.map((opt: string, optIdx: number) => {
-                            // Check if this option is the correct answer
-                            // correct_answer can be index (number) or string value
                             const isCorrect = (typeof item.correct_answer === 'number' && item.correct_answer === optIdx) ||
-                                (item.correct_answer === opt)
+                                item.correct_answer === opt
 
                             return (
                                 <div key={optIdx} className={`flex items-center gap-2 text-xs ${isCorrect ? 'text-green-600 dark:text-green-400 font-medium' : 'text-gray-600 dark:text-gray-400'}`}>
@@ -82,7 +120,7 @@ function QuizViewer({ data }: { data: any }) {
                     </div>
                     {item.explanation && (
                         <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10 p-2 rounded">
-                            <span className="font-bold">Explicación:</span> {item.explanation}
+                            <span className="font-bold">Explicacion:</span> {item.explanation}
                         </div>
                     )}
                 </div>
@@ -91,8 +129,8 @@ function QuizViewer({ data }: { data: any }) {
     )
 }
 
-function ScriptViewer({ data }: { data: any }) {
-    if (!data || !data.scenes) return <p className="text-gray-400 italic">Datos de Script inválidos</p>
+function ScriptViewer({ data }: { data: unknown }) {
+    if (!isScriptViewerData(data)) return <p className="text-gray-400 italic">Datos de Script invalidos</p>
 
     return (
         <div className="space-y-4">
@@ -103,7 +141,7 @@ function ScriptViewer({ data }: { data: any }) {
             )}
 
             <div className="space-y-3">
-                {data.scenes.map((scene: any, idx: number) => (
+                {data.scenes.map((scene, idx: number) => (
                     <div key={idx} className={`flex gap-3 ${scene.character === 'Usuario' ? 'flex-row-reverse' : ''}`}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${scene.character === 'Lia' ? 'bg-purple-500' : 'bg-gray-500'
                             }`}>
@@ -125,7 +163,7 @@ function ScriptViewer({ data }: { data: any }) {
 
             {data.conclusion && (
                 <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded border-l-4 border-green-500 text-sm text-green-900 dark:text-green-100">
-                    <span className="font-bold">Conclusión:</span> {data.conclusion}
+                    <span className="font-bold">Conclusion:</span> {data.conclusion}
                 </div>
             )}
         </div>

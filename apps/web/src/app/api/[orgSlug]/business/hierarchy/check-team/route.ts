@@ -7,6 +7,33 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>;
 }
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
+
+interface OrganizationHierarchyRow {
+  id: string;
+  slug: string;
+  hierarchy_enabled: boolean | null;
+  hierarchy_config: Record<string, unknown> | null;
+}
+
+interface OrganizationUserCheckRow {
+  organization_id: string;
+  role: string;
+  organizations: OrganizationHierarchyRow;
+}
+
+interface NodeReferenceRow {
+  id: string;
+  name: string;
+  type: string;
+}
+
+interface NodeAssignmentRow {
+  id: string;
+  node_id: string;
+  organization_nodes: NodeReferenceRow;
+}
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/check-team
  * Checks if the current user needs a team assignment based on org config.
@@ -30,7 +57,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
 }
 
-async function checkTeamForUser(supabase: any, userId: string, orgSlug: string) {
+async function checkTeamForUser(supabase: SupabaseServerClient, userId: string, orgSlug: string) {
     // Find user's organization entry
     const { data: orgUser } = await supabase
         .from('organization_users')
@@ -47,7 +74,7 @@ async function checkTeamForUser(supabase: any, userId: string, orgSlug: string) 
         .eq('user_id', userId)
         .eq('organizations.slug', orgSlug)
         .eq('status', 'active')
-        .single();
+        .single<OrganizationUserCheckRow>();
 
     if (!orgUser) {
         return NextResponse.json({
@@ -66,7 +93,7 @@ async function checkTeamForUser(supabase: any, userId: string, orgSlug: string) 
         });
     }
 
-    const org = orgUser.organizations as any;
+    const org = orgUser.organizations;
     const config = org?.hierarchy_config as Record<string, unknown> | null;
     const requireTeam = org?.hierarchy_enabled && config?.require_team_assignment === true;
 
@@ -92,11 +119,11 @@ async function checkTeamForUser(supabase: any, userId: string, orgSlug: string) 
         `)
         .eq('user_id', userId)
         .limit(1)
-        .maybeSingle();
+        .maybeSingle<NodeAssignmentRow>();
 
     const hasTeam = !!nodeAssignment;
     const teamName = hasTeam
-        ? (nodeAssignment.organization_nodes as any)?.name || undefined
+        ? nodeAssignment.organization_nodes?.name || undefined
         : undefined;
 
     return NextResponse.json({

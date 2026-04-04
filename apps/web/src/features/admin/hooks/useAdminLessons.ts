@@ -1,15 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { AdminLesson } from '../services/adminLessons.service'
+import { AdminLesson, CreateLessonData, UpdateLessonData } from '../services/adminLessons.service'
 
 interface UseAdminLessonsReturn {
   lessons: AdminLesson[]
   loading: boolean
   error: string | null
   fetchLessons: (moduleId: string, courseId?: string, options?: { silent?: boolean }) => Promise<void>
-  createLesson: (moduleId: string, data: any, courseId?: string) => Promise<AdminLesson>
-  updateLesson: (lessonId: string, data: any, courseId?: string) => Promise<AdminLesson>
+  createLesson: (moduleId: string, data: CreateLessonData, courseId?: string) => Promise<AdminLesson>
+  updateLesson: (lessonId: string, data: UpdateLessonData, courseId?: string) => Promise<AdminLesson>
   deleteLesson: (lessonId: string, courseId?: string) => Promise<void>
   togglePublished: (lessonId: string, courseId?: string) => Promise<void>
   refetchLessons: (moduleId: string, courseId?: string, options?: { silent?: boolean }) => Promise<void>
@@ -110,7 +110,7 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
     await fetchLessons(moduleId, providedCourseId, options)
   }
 
-  const createLesson = async (moduleId: string, lessonData: any, providedCourseId?: string): Promise<AdminLesson> => {
+  const createLesson = async (moduleId: string, lessonData: CreateLessonData, providedCourseId?: string): Promise<AdminLesson> => {
     const actualCourseId = getCourseId(providedCourseId)
     
     try {
@@ -185,7 +185,7 @@ export function useAdminLessons(courseId?: string): UseAdminLessonsReturn {
     }
   }
 
-  const updateLesson = async (lessonId: string, lessonData: any, providedCourseId?: string): Promise<AdminLesson> => {
+  const updateLesson = async (lessonId: string, lessonData: UpdateLessonData, providedCourseId?: string): Promise<AdminLesson> => {
     const actualCourseId = getCourseId(providedCourseId)
     
     try {

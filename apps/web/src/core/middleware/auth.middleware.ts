@@ -110,14 +110,14 @@ function createForbiddenResponse(request: NextRequest): NextResponse {
 /**
  * Valida que el rol sea uno de los roles válidos del sistema
  */
-function isValidRole(role: any): role is ValidRole {
+function isValidRole(role: unknown): role is ValidRole {
   return VALID_ROLES.includes(role as ValidRole);
 }
 
 /**
  * Normaliza el rol eliminando espacios y validando formato
  */
-function normalizeRole(role: any): ValidRole | null {
+function normalizeRole(role: unknown): ValidRole | null {
   if (typeof role !== 'string') {
     return null;
   }
@@ -214,6 +214,13 @@ interface ValidationResult {
   error?: string;
 }
 
+interface AuthUserRow {
+  id: string;
+  cargo_rol: string | null;
+  email: string | null;
+  username: string | null;
+}
+
 /**
  * Valida el acceso basado en el rol del usuario
  * Esta es la función principal que se debe usar en el middleware
@@ -289,13 +296,15 @@ export async function validateRoleAccess(
       return { isValid: false, error: 'User not found' };
     }
 
+    const authUser = userData as AuthUserRow;
+
     // 6. Validar y normalizar el rol
-    const normalizedRole = normalizeRole((userData as any).cargo_rol);
+    const normalizedRole = normalizeRole(authUser.cargo_rol);
 
     if (!normalizedRole) {
       await logSecurityEvent('INVALID_ROLE', {
-        userId: (userData as any).id,
-        role: (userData as any).cargo_rol,
+        userId: authUser.id,
+        role: authUser.cargo_rol ?? undefined,
         path: pathname
       });
 
@@ -307,7 +316,7 @@ export async function validateRoleAccess(
       // Comparación case-sensitive después de normalización
       if (normalizedRole !== requiredRole) {
         await logSecurityEvent('INSUFFICIENT_PERMISSIONS', {
-          userId: (userData as any).id,
+          userId: authUser.id,
           role: normalizedRole,
           attemptedPath: pathname,
           ip: clientIp
@@ -315,7 +324,7 @@ export async function validateRoleAccess(
 
         return {
           isValid: false,
-          userId: (userData as any).id,
+          userId: authUser.id,
           role: normalizedRole,
           error: 'Insufficient permissions'
         };
@@ -325,7 +334,7 @@ export async function validateRoleAccess(
     // 8. Verificar permisos basados en la ruta
     if (!hasRoleAccess(normalizedRole, pathname)) {
       await logSecurityEvent('INSUFFICIENT_PERMISSIONS', {
-        userId: (userData as any).id,
+        userId: authUser.id,
         role: normalizedRole,
         attemptedPath: pathname,
         ip: clientIp
@@ -333,7 +342,7 @@ export async function validateRoleAccess(
 
       return {
         isValid: false,
-        userId: (userData as any).id,
+        userId: authUser.id,
         role: normalizedRole,
         error: 'Route access denied'
       };
@@ -341,14 +350,14 @@ export async function validateRoleAccess(
 
     // ✅ Validación exitosa
     await logSecurityEvent('ROLE_VALIDATION_SUCCESS', {
-      userId: (userData as any).id,
+      userId: authUser.id,
       role: normalizedRole,
       path: pathname
     });
 
     return {
       isValid: true,
-      userId: (userData as any).id,
+      userId: authUser.id,
       role: normalizedRole
     };
 

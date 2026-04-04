@@ -3,6 +3,19 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface UpdateUserGroupBody {
+  name?: string
+  description?: string
+  color?: string
+}
+
+interface UserGroupUpdatePayload {
+  updated_at: string
+  name?: string
+  description?: string | null
+  color?: string
+}
+
 /**
  * GET /api/[orgSlug]/business/user-groups/[id]
  * Obtiene un grupo específico con sus miembros
@@ -83,7 +96,7 @@ export async function PUT(
     }
 
     const supabase = await createClient()
-    const body = await request.json()
+    const body: UpdateUserGroupBody = await request.json()
     const { name, description, color } = body
 
     // Verificar que el grupo exista y pertenezca a la organización
@@ -120,7 +133,7 @@ export async function PUT(
     }
 
     // Actualizar el grupo
-    const updateData: any = {
+    const updateData: UserGroupUpdatePayload = {
       updated_at: new Date().toISOString()
     }
 

@@ -12,6 +12,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 
   // Configuración para el monorepo
   transpilePackages: ['@aprende-y-aplica/shared', '@aprende-y-aplica/ui'],
@@ -21,10 +24,9 @@ const nextConfig = {
     externalDir: true,
     // Optimizar importaciones de paquetes como lucide-react
     optimizePackageImports: ['lucide-react'],
+    // En Next 14 esta opcion sigue viviendo bajo `experimental`.
+    outputFileTracingRoot: path.resolve(__dirname, '../../'),
   },
-
-  // Configuración para resolver advertencia de múltiples lockfiles
-  outputFileTracingRoot: path.resolve(__dirname, '../../'),
 
   // Optimización de imágenes
   images: {

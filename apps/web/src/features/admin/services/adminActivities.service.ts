@@ -185,7 +185,7 @@ export class AdminActivitiesService {
         .eq('activity_id', activityId)
         .single()
 
-      const lessonId = (activity as any)?.lesson_id
+      const lessonId = (activity as { lesson_id: string } | null)?.lesson_id
 
       const { error } = await supabase
         .from('lesson_activities')
@@ -248,10 +248,11 @@ export class AdminActivitiesService {
         .eq('lesson_id', lessonId)
         .single()
 
-      if ((lesson as any)?.module_id) {
+      const lessonData = lesson as { module_id: string } | null
+      if (lessonData?.module_id) {
         // Importar el servicio de lecciones para recalcular la duración del módulo
         const { AdminLessonsService } = await import('./adminLessons.service')
-        await AdminLessonsService.updateModuleDuration((lesson as any).module_id)
+        await AdminLessonsService.updateModuleDuration(lessonData.module_id)
       }
     } catch (error) {
       // No fallar si hay error recalculando duración
@@ -277,7 +278,8 @@ export class AdminActivitiesService {
         .eq('lesson_id', lessonId)
         .single()
 
-      const videoSeconds = (lesson as any)?.duration_seconds || 0
+      const lessonRow = lesson as { duration_seconds: number } | null
+      const videoSeconds = lessonRow?.duration_seconds || 0
       const videoMinutes = Math.round(videoSeconds / 60)
 
       // 2. Sumar tiempo estimado de todos los materiales de esta lección
@@ -286,8 +288,8 @@ export class AdminActivitiesService {
         .select('estimated_time_minutes')
         .eq('lesson_id', lessonId)
 
-      const materialsMinutes = (materials as any[] || []).reduce(
-        (sum: number, m: any) => sum + (m.estimated_time_minutes || 0),
+      const materialsMinutes = (materials ?? []).reduce(
+        (sum: number, m: { estimated_time_minutes: number | null }) => sum + (m.estimated_time_minutes || 0),
         0
       )
 
@@ -297,8 +299,8 @@ export class AdminActivitiesService {
         .select('estimated_time_minutes')
         .eq('lesson_id', lessonId)
 
-      const activitiesMinutes = (activities as any[] || []).reduce(
-        (sum: number, a: any) => sum + (a.estimated_time_minutes || 0),
+      const activitiesMinutes = (activities ?? []).reduce(
+        (sum: number, a: { estimated_time_minutes: number | null }) => sum + (a.estimated_time_minutes || 0),
         0
       )
 
@@ -310,7 +312,7 @@ export class AdminActivitiesService {
         .update({
           total_duration_minutes: totalDurationMinutes,
           updated_at: new Date().toISOString()
-        } as any)
+        })
         .eq('lesson_id', lessonId)
 
       logger.debug('Lesson duration recalculated', {

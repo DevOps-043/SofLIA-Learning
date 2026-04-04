@@ -153,7 +153,7 @@ export function useApiTracking(options: UseApiTrackingOptions = {}) {
   /**
    * Obtiene llamadas en formato para SofLIA
    */
-  const getCallsForSofLIA = useCallback(() => {
+  const getCallsForLia = useCallback(() => {
     return apiCalls.slice(0, 10).map(call => ({
       endpoint: new URL(call.url, window.location.origin).pathname,
       method: call.method,
@@ -163,6 +163,8 @@ export function useApiTracking(options: UseApiTrackingOptions = {}) {
       timestamp: call.timestamp.toISOString(),
     }));
   }, [apiCalls]);
+
+  const getCallsForSofLIA = getCallsForLia;
 
   /**
    * Configura la intercepción de fetch
@@ -257,13 +259,14 @@ export function useApiTracking(options: UseApiTrackingOptions = {}) {
     getApiSummary,
     /** Obtiene llamadas en formato para SofLIA */
     getCallsForLia,
+    /** Alias retrocompatible */
+    getCallsForSofLIA,
     /** Agrega una llamada manualmente */
     addApiCall,
   };
 }
 
 export default useApiTracking;
-
 
 
 

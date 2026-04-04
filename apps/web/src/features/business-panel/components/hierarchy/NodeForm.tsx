@@ -1,15 +1,67 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { OrganizationNode } from '../../types/dynamicHierarchy.types';
+import { OrganizationNode, OrganizationNodeProperties } from '../../types/dynamicHierarchy.types';
 import { HierarchyService } from '../../services/hierarchy.service';
 import { Search, X, Loader2, User } from 'lucide-react';
 import type { UserWithHierarchy } from '../../types/hierarchy.types';
 
+type NodeManagerUser = UserWithHierarchy['user']
+
+interface GeocodeResponse {
+    coordinates?: {
+        lat: string | number
+        lon: string | number
+    }
+    error?: string
+    success?: boolean
+}
+
+interface ReverseGeocodeAddress {
+    city?: string
+    country?: string
+    house_number?: string
+    municipality?: string
+    neighbourhood?: string
+    pedestrian?: string
+    postcode?: string
+    road?: string
+    state?: string
+    street?: string
+    suburb?: string
+    town?: string
+    village?: string
+}
+
+interface ReverseGeocodeResponse {
+    address?: ReverseGeocodeAddress
+    display_name?: string
+    error?: string
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error ? error.message : fallback;
+}
+
+function toManagerUser(manager: OrganizationNode['manager']): NodeManagerUser | null {
+    if (!manager) {
+        return null;
+    }
+
+    return {
+        id: manager.id,
+        first_name: manager.first_name,
+        last_name: manager.last_name,
+        email: manager.email,
+        profile_picture_url: manager.profile_picture_url ?? null,
+        username: manager.email,
+    };
+}
+
 export interface NodeFormProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (name: string, type: string, properties?: Record<string, any>, managerId?: string) => Promise<void>;
+    onSave: (name: string, type: string, properties?: OrganizationNodeProperties, managerId?: string) => Promise<void>;
     mode: 'create' | 'edit';
     parentNode?: OrganizationNode; // Only for create mode
     nodeToEdit?: OrganizationNode; // Only for edit mode
@@ -78,15 +130,15 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                     setStreet(props.address); // Dumping full string to street as fallback
                 }
 
-                setLatitude(props.latitude || '');
-                setLongitude(props.longitude || '');
+                setLatitude(props.latitude ? String(props.latitude) : '');
+                setLongitude(props.longitude ? String(props.longitude) : '');
 
                 if (nodeToEdit.manager_id) {
                     setManagerId(nodeToEdit.manager_id);
                     // Pre-fill display if manager object exists (requires checking if nodeToEdit includes manager relation data)
                     // Currently OrganizationNode interface has manager?: {...}
                     if (nodeToEdit.manager) {
-                        setSelectedManager(nodeToEdit.manager as any);
+                        setSelectedManager(toManagerUser(nodeToEdit.manager));
                     }
                 } else {
                     setManagerId(null);
@@ -172,7 +224,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 state
             ].filter(Boolean).join(', ');
 
-            const properties: Record<string, any> = {
+            const properties: OrganizationNodeProperties = {
                 street,
                 external_number: externalNumber,
                 internal_number: internalNumber,
@@ -240,16 +292,16 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 throw new Error(errData.error || 'Error en servicio de geocodificación');
             }
 
-            const data = await res.json();
+            const data = await res.json() as GeocodeResponse;
             if (data.success && data.coordinates) {
-                setLatitude(data.coordinates.lat);
-                setLongitude(data.coordinates.lon);
+                setLatitude(String(data.coordinates.lat));
+                setLongitude(String(data.coordinates.lon));
             } else {
                 alert('No se encontraron coordenadas para esta dirección');
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            alert('Error: ' + e.message);
+            alert('Error: ' + getErrorMessage(e, 'Intente nuevamente'));
         } finally {
             setLoading(false);
         }
@@ -268,7 +320,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 throw new Error(`Error ${res.status}: ${errText}`);
             }
 
-            const data = await res.json();
+            const data = await res.json() as ReverseGeocodeResponse;
 
             if (data.error) throw new Error(data.error);
 
@@ -285,9 +337,9 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 // Fallback if structured address not clear
                 setStreet(data.display_name);
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            alert('Error al obtener dirección: ' + (e.message || 'Intente nuevamente'));
+            alert('Error al obtener dirección: ' + getErrorMessage(e, 'Intente nuevamente'));
         } finally {
             setLoading(false);
         }
@@ -584,7 +636,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Latitud</label>
                             <input
                                 type="number"
-                                step="any"
+                                step={0.000001}
                                 value={latitude}
                                 onChange={(e) => setLatitude(e.target.value)}
                                 placeholder="-34.6037"
@@ -595,7 +647,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                             <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Longitud</label>
                             <input
                                 type="number"
-                                step="any"
+                                step={0.000001}
                                 value={longitude}
                                 onChange={(e) => setLongitude(e.target.value)}
                                 placeholder="-58.3816"

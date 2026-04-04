@@ -32,7 +32,7 @@ const fetcher = async (url: string) => {
   
   // Si la respuesta no es ok, lanzar error con info
   if (!res.ok) {
-    const error: any = new Error('An error occurred while fetching the data.');
+    const error = new Error('An error occurred while fetching the data.') as Error & { info?: unknown; status?: number };
     try {
       error.info = await res.json();
     } catch {

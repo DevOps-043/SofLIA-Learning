@@ -7,6 +7,7 @@ import { ResponsiveLine } from '@nivo/line'
 import { ResponsivePie } from '@nivo/pie'
 import { ResponsiveBar } from '@nivo/bar'
 import { useTheme } from '@/core/hooks/useTheme'
+import type { Feature, FeatureCollection, Geometry, GeoJsonProperties } from 'geojson'
 
 // Colores para las gráficas
 const CHART_COLORS = {
@@ -75,6 +76,38 @@ function getChartTheme(isDark: boolean) {
   }
 }
 
+interface GeoCountryProperties extends GeoJsonProperties {
+  NAME?: string
+  name?: string
+  NAME_LONG?: string
+  name_long?: string
+  ADMIN?: string
+  admin?: string
+  ISO_A3?: string
+  ISO3?: string
+  iso_a3?: string
+  iso3?: string
+  ISO_A2?: string
+  ISO2?: string
+  ISO?: string
+  id?: string
+}
+
+type WorldMapFeature = Feature<Geometry, GeoCountryProperties>
+type WorldMapCollection = FeatureCollection<Geometry, GeoCountryProperties>
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isWorldMapCollection(value: unknown): value is WorldMapCollection {
+  return (
+    isRecord(value) &&
+    value.type === 'FeatureCollection' &&
+    Array.isArray(value.features)
+  )
+}
+
 interface ChoroplethChartProps {
   data: Array<{ country: string; count: number }>
   height?: number
@@ -91,7 +124,7 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
   }))
 
   // Cargar GeoJSON desde nuestra API route (evita problemas de CORS)
-  const [worldMap, setWorldMap] = useState<any>(null)
+  const [worldMap, setWorldMap] = useState<WorldMapCollection | null>(null)
   const [mapLoading, setMapLoading] = useState(true)
   const [mapError, setMapError] = useState<string | null>(null)
 
@@ -104,23 +137,28 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
         }
         return res.json()
       })
-      .then(data => {
+      .then((data: unknown) => {
         // Verificar que es un GeoJSON válido
-        if (data.type === 'Topology') {
+        if (isRecord(data) && data.type === 'Topology') {
           // TopoJSON no es compatible directamente, necesitaríamos convertirlo
           setMapError('Formato de mapa no compatible. Por favor, intente más tarde.')
-          return { type: 'FeatureCollection', features: [] }
+          return null
         }
         
-        if (data.error) {
+        if (isRecord(data) && typeof data.error === 'string') {
           setMapError(data.error)
-          return { type: 'FeatureCollection', features: [] }
+          return null
         }
         
-        return data
+        if (isWorldMapCollection(data)) {
+          return data
+        }
+
+        setMapError('El formato del mapa no es válido. Por favor, intente más tarde.')
+        return null
       })
-      .then(data => {
-        if (data.features && data.features.length > 0) {
+      .then((data) => {
+        if (data?.features.length) {
           setWorldMap(data)
           setMapError(null)
         } else {
@@ -128,7 +166,7 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
         }
         setMapLoading(false)
       })
-      .catch(err => {
+      .catch(() => {
         setMapError('Error al cargar el mapa. Por favor, intente más tarde.')
         setMapLoading(false)
       })
@@ -196,7 +234,7 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
   }
 
   // Transformar features para que tengan un id que coincida con nuestros datos
-  const transformedFeatures = worldMap.features.map((feature: any) => {
+  const transformedFeatures: WorldMapFeature[] = worldMap.features.map((feature) => {
     const props = feature.properties || {}
     
     // Extraer el código de país de diferentes propiedades posibles
@@ -233,8 +271,8 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
   
   // Verificar si hay matches
   const matchedCountries = transformedFeatures
-    .filter((f: any) => transformedData.some(d => d.id === f.id))
-    .map((f: any) => f.id)
+    .filter((feature) => transformedData.some(dataPoint => dataPoint.id === feature.id))
+    .map((feature) => feature.id)
 
   return (
     <div className="w-full">
@@ -249,7 +287,7 @@ export function ChoroplethChart({ data, height = 400, title }: ChoroplethChartPr
           colors="purples"
           domain={[0, Math.max(...transformedData.map(d => d.value), 1)]}
           unknownColor={isDark ? '#374151' : '#e5e7eb'}
-          label={(feature: any) => {
+          label={(feature: WorldMapFeature) => {
             // Intentar obtener el nombre del país de diferentes propiedades
             return feature.properties?.NAME || 
                    feature.properties?.name || 
@@ -617,4 +655,3 @@ export function BarChart({ data, height = 300, title, xLabel, yLabel }: BarChart
     </div>
   )
 }
-

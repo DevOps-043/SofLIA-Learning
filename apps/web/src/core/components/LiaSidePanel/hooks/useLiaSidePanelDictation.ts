@@ -8,11 +8,59 @@ interface UseLiaSidePanelDictationOptions {
   isOpen: boolean;
   isDictationEnabled: boolean;
   language: string;
-  inputRef: RefObject<HTMLInputElement | null>;
+  inputRef: RefObject<HTMLInputElement>;
   setInputValue: Dispatch<SetStateAction<string>>;
 }
 
-function focusInputAtEnd(inputRef: RefObject<HTMLInputElement | null>) {
+type SpeechRecognitionErrorCode =
+  | 'aborted'
+  | 'audio-capture'
+  | 'network'
+  | 'no-speech'
+  | 'not-allowed'
+  | string;
+
+interface SpeechRecognitionAlternativeLike {
+  transcript: string;
+}
+
+interface SpeechRecognitionResultLike extends ArrayLike<SpeechRecognitionAlternativeLike> {
+  0: SpeechRecognitionAlternativeLike;
+  isFinal: boolean;
+}
+
+interface SpeechResultEvent {
+  resultIndex: number;
+  results: ArrayLike<SpeechRecognitionResultLike>;
+}
+
+interface SpeechErrorEvent {
+  error: SpeechRecognitionErrorCode;
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: SpeechResultEvent) => void) | null;
+  onerror: ((event: SpeechErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  onstart: (() => void) | null;
+  start(): void;
+  stop(): void;
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognitionLike;
+}
+
+type SpeechRecognitionWindow = Window & {
+  SpeechRecognition?: SpeechRecognitionConstructor;
+  webkitSpeechRecognition?: SpeechRecognitionConstructor;
+};
+
+function focusInputAtEnd(inputRef: RefObject<HTMLInputElement>) {
   setTimeout(() => {
     inputRef.current?.focus();
     if (inputRef.current) {
@@ -34,7 +82,7 @@ export function useLiaSidePanelDictation({
   const [interimTranscript, setInterimTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
 
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const silenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dictationTextToApplyRef = useRef('');
 
@@ -94,7 +142,9 @@ export function useLiaSidePanelDictation({
       return;
     }
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognitionWindow = window as SpeechRecognitionWindow;
+    const SpeechRecognition =
+      recognitionWindow.SpeechRecognition ?? recognitionWindow.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert('Tu navegador no soporta reconocimiento de voz. Por favor, usa Chrome, Edge o Safari.');
       return;
@@ -141,7 +191,7 @@ export function useLiaSidePanelDictation({
         }, 3000);
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechResultEvent) => {
         let nextInterim = '';
         let nextFinal = '';
         let hasNewText = false;
@@ -176,7 +226,7 @@ export function useLiaSidePanelDictation({
         stopDictation();
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechErrorEvent) => {
         console.error('Error en reconocimiento de voz:', event.error);
         if (event.error === 'no-speech') {
           stopDictation();
@@ -206,19 +256,22 @@ export function useLiaSidePanelDictation({
       };
 
       recognition.start();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error iniciando dictado:', error);
       setIsDictating(false);
       setIsProcessingDictation(false);
 
-      if (error?.name === 'NotAllowedError' || error?.message?.includes('not allowed')) {
+      const errorName = error instanceof Error ? error.name : '';
+      const errorMessage = error instanceof Error ? error.message : '';
+
+      if (errorName === 'NotAllowedError' || errorMessage.includes('not allowed')) {
         alert(
           'Se necesita permiso para usar el microfono. Por favor, permite el acceso al microfono en la configuracion del navegador.'
         );
         return;
       }
 
-      if (error?.message?.includes('already started')) {
+      if (errorMessage.includes('already started')) {
         setIsDictating(true);
         return;
       }

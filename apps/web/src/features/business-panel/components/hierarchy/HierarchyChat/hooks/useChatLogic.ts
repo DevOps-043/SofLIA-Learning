@@ -11,9 +11,55 @@ import type {
 import type { EmojiCategory, FileAttachment } from '../types'
 
 interface UseChatLogicProps {
-  entityType: 'region' | 'zone' | 'team'
+  entityType: 'region' | 'zone' | 'team' | 'node'
   entityId: string
   chatType: HierarchyChatType
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  if (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string') {
+    return error.error
+  }
+
+  return fallback
+}
+
+function toFileAttachment(metadata: HierarchyChatMessage['metadata']): FileAttachment | null {
+  if (!metadata || typeof metadata !== 'object' || !('attachment' in metadata)) {
+    return null
+  }
+
+  const attachment = metadata.attachment
+  if (!attachment || typeof attachment !== 'object') {
+    return null
+  }
+
+  const attachmentRecord = attachment as Record<string, unknown>
+  if (typeof attachmentRecord.url !== 'string') {
+    return null
+  }
+
+  const fallbackMimeType =
+    typeof attachmentRecord.mimeType === 'string'
+      ? attachmentRecord.mimeType
+      : typeof attachmentRecord.type === 'string'
+        ? attachmentRecord.type
+        : 'application/octet-stream'
+
+  return {
+    url: attachmentRecord.url,
+    name:
+      typeof attachmentRecord.name === 'string' && attachmentRecord.name.trim()
+        ? attachmentRecord.name
+        : 'Archivo',
+    size: typeof attachmentRecord.size === 'number' ? attachmentRecord.size : 0,
+    type: typeof attachmentRecord.type === 'string' ? attachmentRecord.type : fallbackMimeType,
+    mimeType: fallbackMimeType,
+  }
 }
 
 export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicProps) => {
@@ -102,8 +148,8 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         } else {
           setError('No se pudo crear o cargar el chat.')
         }
-      } catch (error: any) {
-        setError(error?.message || error?.error || 'Error al cargar el chat.')
+      } catch (error: unknown) {
+        setError(getErrorMessage(error, 'Error al cargar el chat.'))
       } finally {
         setIsLoading(false)
       }
@@ -280,19 +326,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
   }
 
   const getMessageAttachment = (message: HierarchyChatMessage): FileAttachment | null => {
-    if (message.metadata && typeof message.metadata === 'object') {
-      const attachment = (message.metadata as any).attachment
-      if (attachment && attachment.url) {
-        return {
-          url: attachment.url as string,
-          name: attachment.name as string || 'Archivo',
-          size: attachment.size as number,
-          type: attachment.type as string || attachment.mimeType as string || 'application/octet-stream',
-          mimeType: attachment.mimeType as string || attachment.type as string || 'application/octet-stream'
-        }
-      }
-    }
-    return null
+    return toFileAttachment(message.metadata)
   }
 
   // Funciones wrappers para compatibilidad

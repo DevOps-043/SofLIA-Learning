@@ -71,7 +71,7 @@ export async function PATCH(request: NextRequest) {
 
     // Validar que solo se actualicen campos permitidos
     const allowedFields = ['estado', 'admin_asignado', 'notas_admin', 'prioridad']
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     
     for (const field of allowedFields) {
       if (updates[field] !== undefined) {
@@ -102,4 +102,3 @@ export async function PATCH(request: NextRequest) {
     )
   }
 }
-

@@ -4,8 +4,19 @@ import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
 import { emailService } from '../services/email.service';
 import { logger } from '../../../lib/logger';
-import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+
+type LooseRpcClient = {
+  rpc<T>(
+    fn: string,
+    params?: Record<string, unknown>
+  ): Promise<{ data: T | null; error: { message: string } | null }>;
+};
+
+interface PasswordChangeRpcResult {
+  success?: boolean;
+  error?: string | null;
+}
 
 // ============================================================================
 // SCHEMAS DE VALIDACIÓN
@@ -176,8 +187,14 @@ export async function requestPasswordResetAction(
         return { success: true, message: successMessage };
       }
 
-      const username = user.first_name || user.username || user.email.split('@')[0];
-      await emailService.sendPasswordResetEmail(user.email, resetToken, username);
+      const userEmail = user.email?.trim();
+      if (!userEmail) {
+        logger.error('User found without email, skipping reset email', { userId: user.id });
+        return { success: true, message: successMessage };
+      }
+
+      const username = user.first_name || user.username || userEmail.split('@')[0];
+      await emailService.sendPasswordResetEmail(userEmail, resetToken, username);
 
     } catch (emailError) {
       logger.error('Error sending password reset email', emailError);
@@ -265,10 +282,13 @@ export async function resetPasswordAction(
     }
 
     // 8. ACTUALIZAR CONTRASEÑA VIA RPC (usa pgcrypto para compatibilidad con el ecosistema)
-    const { data: rpcResult, error: rpcError } = await supabase.rpc('change_user_password', {
-      p_user_id: tokenData.user_id,
-      p_new_password: newPassword,
-    });
+    const { data: rpcResult, error: rpcError } = await (supabase as unknown as LooseRpcClient).rpc<PasswordChangeRpcResult>(
+      'change_user_password',
+      {
+        p_user_id: tokenData.user_id,
+        p_new_password: newPassword,
+      }
+    );
 
     if (rpcError) {
       return { error: 'Error actualizando contraseña.' };

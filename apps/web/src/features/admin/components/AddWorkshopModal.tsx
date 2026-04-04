@@ -26,6 +26,11 @@ interface AddWorkshopModalProps {
 
 type TabType = 'basic' | 'details' | 'media'
 
+interface InstructorOption {
+  id: string
+  name: string
+}
+
 export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalProps) {
   const [formData, setFormData] = useState({
     title: '',
@@ -73,7 +78,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
       const response = await fetch('/api/admin/instructors')
       const data = await response.json()
       if (data.success && data.instructors) {
-        setInstructors(data.instructors.map((instructor: any) => ({
+        setInstructors((data.instructors as InstructorOption[]).map((instructor) => ({
           id: instructor.id,
           name: instructor.name
         })))

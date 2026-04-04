@@ -26,8 +26,58 @@ interface AssignedCourse {
   source?: 'direct'
 }
 
+interface CourseAssignmentCourse {
+  id: string
+  title: string | null
+  slug: string | null
+  thumbnail_url: string | null
+  instructor_id: string | null
+}
+
+interface DirectAssignmentRow {
+  id: string
+  course_id: string
+  status: string | null
+  completion_percentage: number | null
+  assigned_at: string
+  due_date: string | null
+  completed_at: string | null
+  courses: CourseAssignmentCourse | null
+  source?: 'direct'
+}
+
+interface CertificateRow {
+  certificate_id: string
+  course_id: string
+}
+
+interface EnrollmentRow {
+  enrollment_id: string
+  course_id: string
+  overall_progress_percentage: number | null
+  enrollment_status: string | null
+  completed_at: string | null
+}
+
+interface InstructorRow {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  username: string | null
+}
+
+interface InstructorSummary {
+  name: string
+}
+
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
+}
+
+function hasCourse(
+  assignment: DirectAssignmentRow
+): assignment is DirectAssignmentRow & { courses: CourseAssignmentCourse } {
+  return assignment.courses !== null
 }
 
 /**
@@ -116,6 +166,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         .eq('organization_id', organizationId) // ✅ FILTRO CRÍTICO
         .in('status', ['assigned', 'in_progress', 'completed'])
         .order('assigned_at', { ascending: false })
+        .returns<DirectAssignmentRow[]>()
         .limit(100),
 
       // PASO 2: Obtener certificados (en paralelo, límite 100)
@@ -123,6 +174,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         .from('user_course_certificates')
         .select('certificate_id, course_id')
         .eq('user_id', userId)
+        .returns<CertificateRow[]>()
         .limit(100)
     ])
 
@@ -133,12 +185,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
       logger.error('❌ Error fetching certificates:', certificatesError)
     }
 
-    let enrollmentsMap = new Map<string, any>()
-    const instructorMap = new Map()
+    let enrollmentsMap = new Map<string, EnrollmentRow>()
+    const instructorMap = new Map<string, InstructorSummary>()
 
     // Preparar IDs de cursos de asignaciones directas
     const directCourseIds = new Set<string>()
-    const combinedAssignments: any[] = []
+    const combinedAssignments: DirectAssignmentRow[] = []
 
     for (const assignment of (directAssignments || [])) {
       if (assignment.courses) {
@@ -156,8 +208,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // 🚀 OPTIMIZACIÓN: FASE 3 - Enrollments e instructores en paralelo
     // =====================================================
     const instructorIds = [...new Set(combinedAssignments
-      .map((a: any) => a.courses?.instructor_id)
-      .filter(Boolean))]
+      .map((assignment) => assignment.courses?.instructor_id)
+      .filter((instructorId): instructorId is string => Boolean(instructorId)))]
 
     const [
       { data: enrollments, error: enrollmentsError },
@@ -170,6 +222,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
             .select('enrollment_id, course_id, overall_progress_percentage, enrollment_status, completed_at')
             .eq('user_id', userId)
             .in('course_id', courseIds)
+            .returns<EnrollmentRow[]>()
             .limit(100)
         : Promise.resolve({ data: [], error: null }),
 
@@ -179,11 +232,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
             .from('users')
             .select('id, first_name, last_name, username')
             .in('id', instructorIds)
+            .returns<InstructorRow[]>()
         : Promise.resolve({ data: [] })
     ])
 
     if (!enrollmentsError && enrollments) {
-      enrollments.forEach((enrollment: any) => {
+      enrollments.forEach((enrollment) => {
         enrollmentsMap.set(enrollment.course_id, enrollment)
       })
     } else if (enrollmentsError) {
@@ -191,7 +245,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     if (instructors) {
-      instructors.forEach((instructor: any) => {
+      instructors.forEach((instructor) => {
         const fullName = `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim()
         instructorMap.set(instructor.id, {
           name: fullName || instructor.username || 'Instructor'
@@ -201,7 +255,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // Crear mapa de certificados
     const certificatesMap = new Map<string, boolean>()
-    certificates?.forEach((cert: any) => {
+    certificates?.forEach((cert) => {
       certificatesMap.set(cert.course_id, true)
     })
 
@@ -233,8 +287,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // Transformar asignaciones a formato de cursos
     const courses: AssignedCourse[] = combinedAssignments
-      .filter((assignment: any) => assignment.courses)
-      .map((assignment: any) => {
+      .filter(hasCourse)
+      .map((assignment) => {
         const course = assignment.courses
         const instructor = course?.instructor_id ? instructorMap.get(course.instructor_id) : null
         const enrollment = enrollmentsMap.get(assignment.course_id)
@@ -314,4 +368,3 @@ export async function GET(request: NextRequest, context: RouteContext) {
     )
   }
 }
-

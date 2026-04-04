@@ -3,6 +3,10 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '@/features/auth/services/session.service';
 import { CalendarIntegrationService } from '@/features/study-planner/services/calendar-integration.service';
 
+function getErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error && error.message ? error.message : fallback;
+}
+
 // Función helper para crear cliente con service role key (bypass RLS)
 function createAdminClient() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -85,8 +89,8 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, deletedCount });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error en delete-plan-events:', error);
-        return NextResponse.json({ success: false, error: error.message || 'Error interno' }, { status: 500 });
+        return NextResponse.json({ success: false, error: getErrorMessage(error, 'Error interno') }, { status: 500 });
     }
 }

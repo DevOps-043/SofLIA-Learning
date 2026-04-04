@@ -27,7 +27,7 @@ import {
   removeCourseFromCompany,
   removeCourseFromUser,
   updateAdminCompany,
-} from './admin-companies'
+} from './admin-companies/server'
 
 export class AdminCompaniesService {
   static async getCompanies(): Promise<AdminCompany[]> {

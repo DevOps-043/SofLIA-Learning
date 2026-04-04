@@ -3,9 +3,31 @@
 import useSWR from 'swr'
 import { useAuth } from './useAuth'
 import { createClient } from '../../../lib/supabase/client'
+import { fromLoose } from '../../../lib/supabase/looseQuery'
 import type { Database } from '../../../lib/supabase/types'
 
-type UserProfile = Database['public']['Tables']['users']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+
+interface UserProfile
+  extends Pick<
+    UserRow,
+    | 'id'
+    | 'first_name'
+    | 'last_name'
+    | 'display_name'
+    | 'username'
+    | 'email'
+    | 'profile_picture_url'
+    | 'bio'
+    | 'location'
+    | 'cargo_rol'
+    | 'created_at'
+    | 'updated_at'
+  > {
+  linkedin_url: string | null
+  github_url: string | null
+  website_url: string | null
+}
 
 interface UseUserProfileReturn {
   userProfile: UserProfile | null
@@ -24,8 +46,7 @@ const userProfileFetcher = async (key: string): Promise<UserProfile | null> => {
 
   const supabase = createClient()
 
-  const { data, error } = await supabase
-    .from('users')
+  const { data, error } = await fromLoose<UserProfile>(supabase, 'users')
     .select(USER_PROFILE_FIELDS)
     .eq('id', userId)
     .single()

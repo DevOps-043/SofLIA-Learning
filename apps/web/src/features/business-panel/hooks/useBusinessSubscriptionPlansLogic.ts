@@ -251,6 +251,7 @@ export function useBusinessSubscriptionPlansLogic() {
     planLoading,
     billingCycle, setBillingCycle,
     selectedPlan,
+    setSelectedPlan,
     isChangingPlan,
     changeError,
     changeSuccess,

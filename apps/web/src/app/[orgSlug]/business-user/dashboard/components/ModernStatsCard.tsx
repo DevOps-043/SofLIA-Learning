@@ -3,6 +3,7 @@
 import React from 'react'
 import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
+import type { StyleConfig } from '../../../../../features/business-panel/contexts/OrganizationStylesContext'
 
 interface ModernStatsCardProps {
   label: string
@@ -12,7 +13,7 @@ interface ModernStatsCardProps {
   index: number
   onClick?: () => void
   isClickable?: boolean
-  styles?: any
+  styles?: Partial<StyleConfig> | null
   id?: string
 }
 

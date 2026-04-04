@@ -2,6 +2,12 @@
 
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
+import type { AdminCommunityPost } from '../types/admin-community-detail.types'
+import type {
+  CommunityCommentRecord,
+  CommunityPostAttachment,
+  CommunityReactionGroup,
+} from '../services/adminCommunityContent.helpers'
 import { 
   XMarkIcon, 
   UserIcon, 
@@ -18,10 +24,29 @@ import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 
+interface PostDetailLink {
+  title?: string | null
+  url?: string | null
+}
+
+type PostDetailComment = CommunityCommentRecord & {
+  reactions?: CommunityReactionGroup[]
+}
+
+type PostDetailPost = AdminCommunityPost & {
+  attachments?: CommunityPostAttachment[]
+  comments?: PostDetailComment[]
+  links?: PostDetailLink[]
+  post_type?: string | null
+  reactions?: CommunityReactionGroup[]
+  updated_at?: string | null
+  views_count?: number | null
+}
+
 interface PostDetailModalProps {
   isOpen: boolean
   onClose: () => void
-  post: any
+  post: PostDetailPost | null
 }
 
 export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps) {
@@ -162,7 +187,7 @@ export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps)
                             <p className="font-medium mb-2">{post.poll_data.question || 'Pregunta de la encuesta'}</p>
                             {post.poll_data.options && (
                               <div className="space-y-2">
-                                {post.poll_data.options.map((option: any, index: number) => (
+                                {post.poll_data.options.map((option: string, index: number) => (
                                   <div key={index} className="flex items-center space-x-2">
                                     <span className="text-sm text-gray-400">{index + 1}.</span>
                                     <span>{option}</span>
@@ -217,7 +242,7 @@ export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps)
                         Archivos Adjuntos
                       </h4>
                       <div className="space-y-2">
-                        {post.attachments.map((attachment: any, index: number) => (
+                        {post.attachments.map((attachment: CommunityPostAttachment, index: number) => (
                           <div key={index} className="flex items-center space-x-3 p-3 bg-gray-600/50 rounded-lg">
                             <PaperClipIcon className="h-5 w-5 text-orange-400" />
                             <div className="flex-1">
@@ -246,7 +271,7 @@ export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps)
                         Enlaces
                       </h4>
                       <div className="space-y-2">
-                        {post.links.map((link: any, index: number) => (
+                        {post.links.map((link: PostDetailLink, index: number) => (
                           <div key={index} className="flex items-center space-x-3 p-3 bg-gray-600/50 rounded-lg">
                             <LinkIcon className="h-5 w-5 text-cyan-400" />
                             <div className="flex-1">
@@ -275,7 +300,7 @@ export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps)
                         Reacciones
                       </h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {post.reactions.map((reaction: any, index: number) => (
+                        {post.reactions.map((reaction: CommunityReactionGroup, index: number) => (
                           <div key={index} className="flex items-center space-x-2 p-2 bg-gray-600/50 rounded-lg">
                             <span className="text-lg">{reaction.emoji || '👍'}</span>
                             <span className="text-white font-medium">{reaction.count || 0}</span>
@@ -294,7 +319,7 @@ export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps)
                         Comentarios ({post.comments.length})
                       </h4>
                       <div className="space-y-4 max-h-96 overflow-y-auto">
-                        {post.comments.map((comment: any, index: number) => (
+                        {post.comments.map((comment: PostDetailComment, index: number) => (
                           <div key={index} className="p-4 bg-gray-600/50 rounded-lg">
                             <div className="flex items-center space-x-2 mb-2">
                               {comment.users?.profile_picture_url ? (
@@ -319,7 +344,7 @@ export function PostDetailModal({ isOpen, onClose, post }: PostDetailModalProps)
                             <p className="text-gray-300">{comment.content}</p>
                             {comment.reactions && comment.reactions.length > 0 && (
                               <div className="flex items-center space-x-2 mt-2">
-                                {comment.reactions.map((reaction: any, rIndex: number) => (
+                                {comment.reactions.map((reaction: CommunityReactionGroup, rIndex: number) => (
                                   <span key={rIndex} className="text-sm text-gray-400">
                                     {reaction.emoji} {reaction.count}
                                   </span>

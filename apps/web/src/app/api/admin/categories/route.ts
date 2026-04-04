@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       success: true,
       categories: categories || []
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('💥 Error in GET /api/admin/categories:', error)
     return NextResponse.json(
       { 

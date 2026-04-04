@@ -19,6 +19,7 @@ import { SystemNotificationsService } from './auto-notifications-system.service'
 import { CommunityNotificationsService } from './auto-notifications-community.service'
 import { CourseNotificationsService } from './auto-notifications-courses.service'
 import { ContentNotificationsService } from './auto-notifications-content.service'
+import type { NotificationMetadata } from './auto-notifications.shared'
 
 /**
  * Unified facade that mirrors the original AutoNotificationsService API.
@@ -27,27 +28,27 @@ import { ContentNotificationsService } from './auto-notifications-content.servic
 export class AutoNotificationsService {
   // ── System / Auth ──────────────────────────────────────────────────────────
 
-  static notifyPasswordChanged(userId: string, metadata?: Record<string, any>) {
+  static notifyPasswordChanged(userId: string, metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifyPasswordChanged(userId, metadata)
   }
 
-  static notifyProfileUpdated(userId: string, changes: string[], metadata?: Record<string, any>) {
+  static notifyProfileUpdated(userId: string, changes: string[], metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifyProfileUpdated(userId, changes, metadata)
   }
 
-  static notifyLoginSuccess(userId: string, ip?: string, userAgent?: string, metadata?: Record<string, any>) {
+  static notifyLoginSuccess(userId: string, ip?: string, userAgent?: string, metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifyLoginSuccess(userId, ip, userAgent, metadata)
   }
 
-  static notifyLoginFailed(userId: string, ip?: string, userAgent?: string, metadata?: Record<string, any>) {
+  static notifyLoginFailed(userId: string, ip?: string, userAgent?: string, metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifyLoginFailed(userId, ip, userAgent, metadata)
   }
 
-  static notifyEmailVerified(userId: string, metadata?: Record<string, any>) {
+  static notifyEmailVerified(userId: string, metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifyEmailVerified(userId, metadata)
   }
 
-  static notifySecurityAlert(userId: string, message: string, metadata?: Record<string, any>) {
+  static notifySecurityAlert(userId: string, message: string, metadata?: NotificationMetadata) {
     return SystemNotificationsService.notifySecurityAlert(userId, message, metadata)
   }
 
@@ -58,7 +59,7 @@ export class AutoNotificationsService {
     communityId: string,
     authorId: string,
     postTitle: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CommunityNotificationsService.notifyCommunityPostCreated(postId, communityId, authorId, postTitle, metadata)
   }
@@ -70,7 +71,7 @@ export class AutoNotificationsService {
     commentAuthorId: string,
     commentPreview: string,
     communityId: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CommunityNotificationsService.notifyCommunityPostComment(
       postId, commentId, postAuthorId, commentAuthorId, commentPreview, communityId, metadata
@@ -83,7 +84,7 @@ export class AutoNotificationsService {
     reactionAuthorId: string,
     reactionType: string,
     communityId: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CommunityNotificationsService.notifyCommunityPostReaction(
       postId, postAuthorId, reactionAuthorId, reactionType, communityId, metadata
@@ -94,18 +95,18 @@ export class AutoNotificationsService {
     communityId: string,
     newMemberId: string,
     communityName: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CommunityNotificationsService.notifyCommunityMemberJoined(communityId, newMemberId, communityName, metadata)
   }
 
   // ── Courses ────────────────────────────────────────────────────────────────
 
-  static notifyCoursePublished(courseId: string, courseTitle: string, metadata?: Record<string, any>) {
+  static notifyCoursePublished(courseId: string, courseTitle: string, metadata?: NotificationMetadata) {
     return CourseNotificationsService.notifyCoursePublished(courseId, courseTitle, metadata)
   }
 
-  static notifyCourseEnrolled(userId: string, courseId: string, courseTitle: string, metadata?: Record<string, any>) {
+  static notifyCourseEnrolled(userId: string, courseId: string, courseTitle: string, metadata?: NotificationMetadata) {
     return CourseNotificationsService.notifyCourseEnrolled(userId, courseId, courseTitle, metadata)
   }
 
@@ -115,7 +116,7 @@ export class AutoNotificationsService {
     courseTitle: string,
     lessonId: string,
     lessonTitle: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CourseNotificationsService.notifyCourseLessonCompleted(
       userId, courseId, courseTitle, lessonId, lessonTitle, metadata
@@ -127,7 +128,7 @@ export class AutoNotificationsService {
     courseId: string,
     courseTitle: string,
     hasCertificate: boolean = false,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CourseNotificationsService.notifyCourseCompleted(userId, courseId, courseTitle, hasCertificate, metadata)
   }
@@ -139,7 +140,7 @@ export class AutoNotificationsService {
     courseId: string,
     courseTitle: string,
     answerPreview: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return CourseNotificationsService.notifyCourseQuestionAnswered(
       questionId, questionAuthorId, answerAuthorId, courseId, courseTitle, answerPreview, metadata
@@ -148,19 +149,19 @@ export class AutoNotificationsService {
 
   // ── Content (news, reels, prompts) ─────────────────────────────────────────
 
-  static notifyNewsPublished(newsId: string, newsTitle: string, metadata?: Record<string, any>) {
+  static notifyNewsPublished(newsId: string, newsTitle: string, metadata?: NotificationMetadata) {
     return ContentNotificationsService.notifyNewsPublished(newsId, newsTitle, metadata)
   }
 
-  static notifyNewsFeatured(newsId: string, newsAuthorId: string, newsTitle: string, metadata?: Record<string, any>) {
+  static notifyNewsFeatured(newsId: string, newsAuthorId: string, newsTitle: string, metadata?: NotificationMetadata) {
     return ContentNotificationsService.notifyNewsFeatured(newsId, newsAuthorId, newsTitle, metadata)
   }
 
-  static notifyReelCreated(reelId: string, reelTitle: string, authorId: string, metadata?: Record<string, any>) {
+  static notifyReelCreated(reelId: string, reelTitle: string, authorId: string, metadata?: NotificationMetadata) {
     return ContentNotificationsService.notifyReelCreated(reelId, reelTitle, authorId, metadata)
   }
 
-  static notifyReelLiked(reelId: string, reelAuthorId: string, likeAuthorId: string, metadata?: Record<string, any>) {
+  static notifyReelLiked(reelId: string, reelAuthorId: string, likeAuthorId: string, metadata?: NotificationMetadata) {
     return ContentNotificationsService.notifyReelLiked(reelId, reelAuthorId, likeAuthorId, metadata)
   }
 
@@ -170,14 +171,14 @@ export class AutoNotificationsService {
     reelAuthorId: string,
     commentAuthorId: string,
     commentPreview: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return ContentNotificationsService.notifyReelComment(
       reelId, commentId, reelAuthorId, commentAuthorId, commentPreview, metadata
     )
   }
 
-  static notifyPromptCreated(promptId: string, promptTitle: string, authorId: string, metadata?: Record<string, any>) {
+  static notifyPromptCreated(promptId: string, promptTitle: string, authorId: string, metadata?: NotificationMetadata) {
     return ContentNotificationsService.notifyPromptCreated(promptId, promptTitle, authorId, metadata)
   }
 
@@ -186,7 +187,7 @@ export class AutoNotificationsService {
     promptAuthorId: string,
     favoritedByUserId: string,
     promptTitle: string,
-    metadata?: Record<string, any>
+    metadata?: NotificationMetadata
   ) {
     return ContentNotificationsService.notifyPromptFavorited(
       promptId, promptAuthorId, favoritedByUserId, promptTitle, metadata

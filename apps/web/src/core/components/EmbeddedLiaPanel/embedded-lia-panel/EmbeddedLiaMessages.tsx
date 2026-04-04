@@ -17,7 +17,7 @@ interface EmbeddedLiaMessagesProps {
   userProfilePictureUrl?: string | null;
   userDisplayName?: string | null;
   onNavigate: (href: string) => void;
-  messagesEndRef: RefObject<HTMLDivElement | null>;
+  messagesEndRef: RefObject<HTMLDivElement>;
 }
 
 export function EmbeddedLiaMessages({

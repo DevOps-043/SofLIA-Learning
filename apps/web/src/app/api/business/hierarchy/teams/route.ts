@@ -3,6 +3,57 @@ import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 
+interface TeamRegionRow {
+  id: string
+  name: string
+  code: string | null
+}
+
+interface TeamZoneRow {
+  id: string
+  name: string
+  code: string | null
+  region: TeamRegionRow | null
+}
+
+interface TeamRow {
+  id: string
+  name: string
+  zone_id: string
+  organization_id: string
+  zone: TeamZoneRow | null
+  is_active?: boolean | null
+}
+
+interface TeamMemberRow {
+  team_id: string | null
+}
+
+interface TeamWithCounts extends TeamRow {
+  members_count: number
+}
+
+interface CreateTeamRequest {
+  zone_id: string
+  name: string
+  description?: string
+  code?: string
+  max_members?: number | null
+  metadata?: Record<string, unknown>
+  address?: string
+  city?: string
+  state?: string
+  country?: string
+  postal_code?: string
+  latitude?: string | number | null
+  longitude?: string | number | null
+  phone?: string
+  email?: string
+  leader_id?: string | null
+  target_goal?: string
+  monthly_target?: number | null
+}
+
 /**
  * GET /api/business/hierarchy/teams
  * Lista todos los equipos de la organización
@@ -63,19 +114,19 @@ export async function GET(request: Request) {
       );
     }
 
-    let filteredTeams = teams || [];
+    let filteredTeams: TeamRow[] = (teams || []) as TeamRow[];
 
     // Filtrar por región si se especifica
     if (regionId && filteredTeams.length > 0) {
-      filteredTeams = filteredTeams.filter((team: any) =>
+      filteredTeams = filteredTeams.filter((team) =>
         team.zone?.region?.id === regionId
       );
     }
 
-    let teamsWithCounts = filteredTeams;
+    let teamsWithCounts: Array<TeamRow | TeamWithCounts> = filteredTeams;
 
     if (withCounts && filteredTeams.length > 0) {
-      const teamIds = filteredTeams.map((t: any) => t.id);
+      const teamIds = filteredTeams.map((team) => team.id);
 
       // Contar miembros por equipo
       const { data: memberCounts } = await supabase
@@ -84,9 +135,10 @@ export async function GET(request: Request) {
         .in('team_id', teamIds)
         .eq('status', 'active');
 
-      teamsWithCounts = filteredTeams.map((team: any) => ({
+      const members = (memberCounts || []) as TeamMemberRow[];
+      teamsWithCounts = filteredTeams.map((team) => ({
         ...team,
-        members_count: memberCounts?.filter(m => m.team_id === team.id).length || 0
+        members_count: members.filter((member) => member.team_id === team.id).length
       }));
     }
 
@@ -126,7 +178,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = await request.json();
+    const body: CreateTeamRequest = await request.json();
 
     if (!body.zone_id) {
       return NextResponse.json(

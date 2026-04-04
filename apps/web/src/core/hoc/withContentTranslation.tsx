@@ -5,7 +5,7 @@ import { ContentTranslationService } from '../services/contentTranslation.servic
 /**
  * Hook que traduce automáticamente un array de entidades desde la BD
  */
-export function useTranslatedContent<T extends Record<string, any>>(
+export function useTranslatedContent<T extends Record<string, unknown>>(
   entityType: 'course' | 'module' | 'lesson',
   data: T[] | null | undefined,
   fields: string[]
@@ -65,7 +65,7 @@ export function useTranslatedContent<T extends Record<string, any>>(
 /**
  * Hook que traduce automáticamente un objeto desde la BD
  */
-export function useTranslatedObject<T extends Record<string, any>>(
+export function useTranslatedObject<T extends Record<string, unknown>>(
   entityType: 'course' | 'module' | 'lesson',
   data: T | null | undefined,
   fields: string[]

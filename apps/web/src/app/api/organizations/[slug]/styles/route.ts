@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getOrganizationBySlug } from '@/features/auth/services/organization.service';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error && error.message ? error.message : 'Error al obtener estilos'
+}
+
 /**
  * GET /api/organizations/[slug]/styles
  * Obtiene los estilos personalizados de una organización por su slug (público)
@@ -37,11 +41,10 @@ export async function GET(
         login: organization.login_styles || null
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: 'Error al obtener estilos' },
+      { success: false, error: getErrorMessage(error) },
       { status: 500 }
     );
   }
 }
-

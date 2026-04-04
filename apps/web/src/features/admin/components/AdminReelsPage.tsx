@@ -3,7 +3,11 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { useAdminReels } from '../hooks/useAdminReels'
-import { AdminReel } from '../services/adminReels.service'
+import {
+  AdminReel,
+  CreateReelData,
+  UpdateReelData
+} from '../services/adminReels.service'
 
 // Lazy loading de modales de Reels
 const AddReelModal = dynamic(() => import('./AddReelModal').then(mod => ({ default: mod.AddReelModal })), {
@@ -40,6 +44,10 @@ import {
   Clock,
   Globe
 } from 'lucide-react'
+
+const isStatusFilter = (value: string): value is 'all' | 'active' | 'inactive' => (
+  value === 'all' || value === 'active' || value === 'inactive'
+)
 
 export function AdminReelsPage() {
   const { 
@@ -79,7 +87,7 @@ export function AdminReelsPage() {
 
   const categories = Array.from(new Set(reels.map(reel => reel.category)))
 
-  const handleAddReel = async (data: any) => {
+  const handleAddReel = async (data: CreateReelData) => {
     try {
       await createReel(data)
       setShowAddModal(false)
@@ -87,7 +95,7 @@ export function AdminReelsPage() {
     }
   }
 
-  const handleEditReel = async (data: any) => {
+  const handleEditReel = async (data: UpdateReelData) => {
     if (!selectedReel) return
     try {
       await updateReel(selectedReel.id, data)
@@ -231,7 +239,7 @@ export function AdminReelsPage() {
           
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) => setStatusFilter(isStatusFilter(e.target.value) ? e.target.value : 'all')}
             className="px-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="all">Todos los estados</option>

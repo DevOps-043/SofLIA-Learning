@@ -24,7 +24,15 @@ function generateSlug(title: string): string {
 }
 
 // Función para validar datos del prompt
-function validatePromptData(data: any): { valid: boolean; errors: string[] } {
+function validatePromptData(data: {
+  title?: string
+  description?: string
+  content?: string
+  tags?: unknown
+  use_cases?: unknown
+  tips?: unknown
+  difficulty_level?: string
+}): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   if (!data.title || data.title.trim().length === 0) {
@@ -199,4 +207,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

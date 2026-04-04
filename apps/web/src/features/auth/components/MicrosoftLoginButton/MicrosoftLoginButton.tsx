@@ -5,6 +5,10 @@ import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { initiateMicrosoftLogin } from '../../actions/oauth';
 
+function hasRedirectDigest(error: unknown): boolean {
+  return Boolean(error && typeof error === 'object' && 'digest' in error);
+}
+
 const MicrosoftIcon = () => (
   <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
     <rect width="10" height="10" x="1" y="1" fill="#F25022" />
@@ -42,8 +46,8 @@ export function MicrosoftLoginButton({
         invitationToken,
         bulkInviteToken,
       });
-    } catch (error: any) {
-      if (error && typeof error === 'object' && 'digest' in error) return;
+    } catch (error: unknown) {
+      if (hasRedirectDigest(error)) return;
       setIsLoading(false);
     }
   };
@@ -77,5 +81,4 @@ export function MicrosoftLoginButton({
     </motion.button>
   );
 }
-
 

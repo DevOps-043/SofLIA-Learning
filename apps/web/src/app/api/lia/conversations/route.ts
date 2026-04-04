@@ -2,6 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
+interface LiaConversationRow {
+  conversation_id: string;
+  conversation_title?: string | null;
+  context_type?: string | null;
+  started_at?: string | null;
+  ended_at?: string | null;
+  total_messages?: number | null;
+  course_id?: string | null;
+  lesson_id?: string | null;
+  courses?: {
+    slug?: string | null;
+    title?: string | null;
+  } | null;
+}
+
 /**
  * GET /api/lia/conversations
  * Obtiene el historial de conversaciones de Lia para el usuario actual
@@ -142,7 +157,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Formatear sin conversation_title
-        const formattedConversations = (retryConversations || []).map((conv: any) => ({
+        const formattedConversations = ((retryConversations || []) as LiaConversationRow[]).map((conv) => ({
           conversation_id: conv.conversation_id,
           conversation_title: null,
           context_type: conv.context_type,
@@ -176,7 +191,7 @@ export async function GET(request: NextRequest) {
 
     // Formatear conversaciones para el frontend
     // conversation_title puede no existir aún en la BD
-    const formattedConversations = (conversations || []).map((conv: any) => ({
+    const formattedConversations = ((conversations || []) as LiaConversationRow[]).map((conv) => ({
       conversation_id: conv.conversation_id,
       conversation_title: conv.conversation_title ?? null,
       context_type: conv.context_type,
@@ -251,4 +266,3 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Error actualizando conversación' }, { status: 500 });
   }
 }
-

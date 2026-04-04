@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     // Build lookup maps
     const orgUserMap = new Map<string, { org: string; role: string }>()
     for (const ou of (orgUsersRes.data || [])) {
-      const orgName = (ou as any).organizations?.name || null
+      const orgName = (ou.organizations as { name?: string | null } | null)?.name || null
       if (orgName) orgUserMap.set(ou.user_id, { org: orgName, role: ou.role || 'member' })
     }
 

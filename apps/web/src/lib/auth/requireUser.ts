@@ -111,8 +111,8 @@ export async function requireUser(options: { allowBanned?: boolean } = {}): Prom
 
     return {
       userId: user.id,
-      userEmail: user.email,
-      userRole: user.cargo_rol,
+      userEmail: user.email ?? '',
+      userRole: user.cargo_rol ?? '',
     };
 
   } catch (error) {

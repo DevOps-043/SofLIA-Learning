@@ -7,6 +7,23 @@ interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
 }
 
+interface OrganizationNodeUserRow {
+  user_id: string;
+}
+
+interface AvailableUserRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  profile_picture_url: string | null;
+  username: string | null;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Internal server error';
+}
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/nodes/[nodeId]/members/available
  */
@@ -31,23 +48,25 @@ export async function GET(
             const { data: currentMembers } = await supabase
                 .from('organization_node_users')
                 .select('user_id')
-                .eq('node_id', nodeId);
+                .eq('node_id', nodeId)
+                .returns<OrganizationNodeUserRow[]>();
 
-            excludedUserIds = (currentMembers || []).map((m: any) => m.user_id);
+            excludedUserIds = (currentMembers || []).map((member) => member.user_id);
         }
 
         const { data: orgMembers, error: orgError } = await supabase
             .from('organization_users')
             .select('user_id')
             .eq('organization_id', auth.organizationId)
-            .eq('status', 'active');
+            .eq('status', 'active')
+            .returns<OrganizationNodeUserRow[]>();
 
         if (orgError) {
             logger.error('Error fetching org members:', orgError);
             return NextResponse.json({ success: false, error: 'Failed to fetch organization members' }, { status: 500 });
         }
 
-        const orgUserIds = orgMembers.map((m: any) => m.user_id);
+        const orgUserIds = orgMembers.map((member) => member.user_id);
 
         if (orgUserIds.length === 0) {
             return NextResponse.json({ success: true, users: [] });
@@ -56,7 +75,8 @@ export async function GET(
         let dbQuery = supabase
             .from('users')
             .select('id, first_name, last_name, email, profile_picture_url, username')
-            .in('id', orgUserIds);
+            .in('id', orgUserIds)
+            .returns<AvailableUserRow[]>();
 
         if (query) {
             dbQuery = dbQuery.or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%,email.ilike.%${query}%,username.ilike.%${query}%`);
@@ -69,17 +89,17 @@ export async function GET(
             return NextResponse.json({ success: false, error: `Failed to fetch user details: ${usersError.message}` }, { status: 500 });
         }
 
-        const availableUsers = users.filter((u: any) => !excludedUserIds.includes(u.id));
+        const availableUsers = (users || []).filter((user) => !excludedUserIds.includes(user.id));
 
         return NextResponse.json({
             success: true,
             users: availableUsers
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         logger.error('Error in GET /api/[orgSlug]/business/hierarchy/nodes/[nodeId]/members/available:', error);
         return NextResponse.json(
-            { success: false, error: `Internal server error: ${error.message}` },
+            { success: false, error: `Internal server error: ${getErrorMessage(error)}` },
             { status: 500 }
         );
     }

@@ -20,7 +20,7 @@ interface UseNotesEditorStateResult {
   canRedo: boolean;
   canUndo: boolean;
   content: string;
-  editorRef: React.RefObject<HTMLDivElement | null>;
+  editorRef: React.RefObject<HTMLDivElement>;
   execCommand: (command: string, value?: string) => void;
   handleSave: () => Promise<void>;
   handleShortcutKeyDown: (event: React.KeyboardEvent) => void;

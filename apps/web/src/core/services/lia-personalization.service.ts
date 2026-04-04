@@ -5,13 +5,20 @@
  * Similar a las opciones de personalización de ChatGPT
  */
 
-import { createClient } from '../../lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type {
   SofLIAPersonalizationSettings,
   SofLIAPersonalizationSettingsInput,
   BaseStyle,
 } from '../types/lia-personalization.types';
+import type { Database } from '../../lib/supabase/types';
+import { fromLoose } from '../../lib/supabase/looseQuery';
+
+type LiaPersonalizationRow = SofLIAPersonalizationSettings;
+type LiaPersonalizationWriteRow = Partial<SofLIAPersonalizationSettings> & {
+  user_id?: string;
+};
+type UserLookupRow = { id: string };
 
 /**
  * Crea un cliente de Supabase con permisos de administrador (bypass RLS)
@@ -25,12 +32,19 @@ function createAdminClient() {
     throw new Error('Missing Supabase environment variables for admin client');
   }
 
-  return createSupabaseClient(supabaseUrl, supabaseServiceKey, {
+  return createSupabaseClient<Database>(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
   });
+}
+
+function personalizationSettingsTable(client: unknown) {
+  return fromLoose<LiaPersonalizationRow, LiaPersonalizationWriteRow>(
+    client,
+    'lia_personalization_settings'
+  );
 }
 
 // ============================================================================
@@ -46,8 +60,7 @@ export class SofLIAPersonalizationService {
     // Usar cliente admin para bypass de RLS, pero validamos manualmente el userId
     const adminSupabase = createAdminClient();
 
-    const { data, error } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { data, error } = await personalizationSettingsTable(adminSupabase)
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -96,8 +109,7 @@ export class SofLIAPersonalizationService {
       dictation_enabled: false,
     };
 
-    const { data, error } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { data, error } = await personalizationSettingsTable(adminSupabase)
       .insert(defaultSettings)
       .select()
       .single();
@@ -134,6 +146,7 @@ export class SofLIAPersonalizationService {
     // Verificar que el usuario existe
     const { data: userCheck, error: userCheckError } = await adminSupabase
       .from('users')
+      .returns<UserLookupRow[]>()
       .select('id')
       .eq('id', userId)
       .single();
@@ -143,8 +156,7 @@ export class SofLIAPersonalizationService {
     }
 
     // Intentar actualizar primero
-    const { data: updatedData, error: updateError } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { data: updatedData, error: updateError } = await personalizationSettingsTable(adminSupabase)
       .update(settings)
       .eq('user_id', userId)
       .select()
@@ -153,8 +165,7 @@ export class SofLIAPersonalizationService {
     if (updateError) {
       // Si no existe, crear con los valores proporcionados
       if (updateError.code === 'PGRST116') {
-        const { data: createdData, error: createError } = await adminSupabase
-          .from('lia_personalization_settings' as any)
+        const { data: createdData, error: createError } = await personalizationSettingsTable(adminSupabase)
           .insert({
             user_id: userId,
             ...settings,
@@ -185,8 +196,7 @@ export class SofLIAPersonalizationService {
     // Usar cliente admin para bypass de RLS, pero validamos manualmente el userId
     const adminSupabase = createAdminClient();
 
-    const { error } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { error } = await personalizationSettingsTable(adminSupabase)
       .delete()
       .eq('user_id', userId);
 
@@ -264,4 +274,3 @@ export class SofLIAPersonalizationService {
     return prompt;
   }
 }
-

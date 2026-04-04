@@ -37,13 +37,6 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    // Log detallado del error
-    console.error('💥 Error in /api/admin/users:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined,
-      error
-    })
     logger.error('💥 Error in /api/admin/users:', error)
     return NextResponse.json(
       {

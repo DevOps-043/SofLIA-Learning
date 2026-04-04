@@ -261,7 +261,7 @@ export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, 
                         color: isActive ? '#FFFFFF' : textColor,
                         boxShadow: isActive ? `0 4px 20px -5px ${primaryColor}60` : 'none',
                         opacity: isActive ? 1 : 0.7
-                      } as any}
+                      }}
                       onMouseEnter={(e) => {
                         if (!isActive) {
                           e.currentTarget.style.backgroundColor = hoverBg;

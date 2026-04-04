@@ -77,6 +77,15 @@ export function HeatmapDetailModal({ isOpen, onClose, dayOfWeek, hour, period }:
   const [data, setData] = useState<HourDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'questions'>('overview');
+  const tabs: Array<{
+    icon: typeof ChartPieIcon;
+    id: 'overview' | 'users' | 'questions';
+    label: string;
+  }> = [
+    { id: 'overview', label: 'Resumen', icon: ChartPieIcon },
+    { id: 'users', label: 'Usuarios', icon: UserGroupIcon },
+    { id: 'questions', label: 'Preguntas', icon: ChatBubbleLeftRightIcon },
+  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -223,14 +232,10 @@ export function HeatmapDetailModal({ isOpen, onClose, dayOfWeek, hour, period }:
 
                     {/* Tabs */}
                     <div className="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700">
-                      {[
-                        { id: 'overview', label: 'Resumen', icon: ChartPieIcon },
-                        { id: 'users', label: 'Usuarios', icon: UserGroupIcon },
-                        { id: 'questions', label: 'Preguntas', icon: ChatBubbleLeftRightIcon },
-                      ].map(tab => (
+                      {tabs.map(tab => (
                         <button
                           key={tab.id}
-                          onClick={() => setActiveTab(tab.id as any)}
+                          onClick={() => setActiveTab(tab.id)}
                           className={`
                             flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-t-lg transition-colors
                             ${activeTab === tab.id

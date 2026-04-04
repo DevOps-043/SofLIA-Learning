@@ -3,16 +3,17 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useBusinessUsers } from '@/features/business-panel/hooks/useBusinessUsers'
-import { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
+import { BusinessUser, CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
 import { useThemeStore } from '@/core/stores/themeStore'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 
 export function useBusinessUsersPageLogic() {
+  type BusinessUsersTab = 'users' | 'invitations' | 'links'
   const { orgSlug } = useParams<{ orgSlug: string }>()
   const searchParams = useSearchParams()
-  const initialTab = searchParams.get('tab') as 'users' | 'invitations' | 'links'
+  const initialTab = searchParams.get('tab') as BusinessUsersTab | null
   const { styles } = useOrganizationStylesContext()
   const panelStyles = styles?.panel
   const {
@@ -47,7 +48,7 @@ export function useBusinessUsersPageLogic() {
   }
 
   // Wrapped actions with notifications
-  const handleSaveNewUser = async (userData: any) => {
+  const handleSaveNewUser = async (userData: CreateBusinessUserRequest) => {
     try {
       const result = await createUser(userData)
       if (result.success) {
@@ -179,7 +180,7 @@ export function useBusinessUsersPageLogic() {
   }
 
   // View mode and Tabs state
-  const [activeTab, setActiveTab] = useState<'users' | 'invitations' | 'links'>(initialTab || 'users')
+  const [activeTab, setActiveTab] = useState<BusinessUsersTab>(initialTab || 'users')
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
 
   // Effect to sync tab from URL
@@ -191,9 +192,10 @@ export function useBusinessUsersPageLogic() {
 
   // Effect to handle custom tab changes
   useEffect(() => {
-    const handleTabChange = (e: any) => {
-      if (e.detail && ['users', 'invitations', 'links'].includes(e.detail)) {
-        setActiveTab(e.detail)
+    const handleTabChange = (event: Event) => {
+      const customEvent = event as CustomEvent<BusinessUsersTab>
+      if (customEvent.detail && ['users', 'invitations', 'links'].includes(customEvent.detail)) {
+        setActiveTab(customEvent.detail)
         // Scroll to top if needed or just switch
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }

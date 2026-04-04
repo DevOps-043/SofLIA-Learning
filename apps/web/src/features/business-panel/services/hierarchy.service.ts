@@ -621,7 +621,7 @@ export class HierarchyService {
     if (query) params.set('query', query);
     if (includeCurrentMembers) params.set('includeCurrentMembers', 'true');
 
-    const result = await fetchApi<{ users: any[] }>(`/nodes/${nodeId}/members/available?${params.toString()}`, {}, orgSlug);
+    const result = await fetchApi<{ users: UserWithHierarchy['user'][] }>(`/nodes/${nodeId}/members/available?${params.toString()}`, {}, orgSlug);
     return result.success ? result.data?.users ?? [] : [];
   }
   /**
@@ -631,7 +631,7 @@ export class HierarchyService {
     const params = new URLSearchParams();
     if (query) params.set('query', query);
 
-    const result = await fetchApi<{ users: any[] }>(`/users/search?${params.toString()}`, {}, orgSlug);
+    const result = await fetchApi<{ users: UserWithHierarchy['user'][] }>(`/users/search?${params.toString()}`, {}, orgSlug);
     return result.success ? result.data?.users ?? [] : [];
   }
 }

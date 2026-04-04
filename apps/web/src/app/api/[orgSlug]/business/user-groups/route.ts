@@ -3,6 +3,17 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface UserGroupSummary {
+  id: string
+  organization_id: string
+  name: string
+  description: string | null
+  color: string | null
+  created_by: string | null
+  created_at: string
+  updated_at: string
+}
+
 /**
  * GET /api/[orgSlug]/business/user-groups
  * Obtiene todos los grupos de usuarios de la organización
@@ -52,7 +63,7 @@ export async function GET(
 
     // Contar miembros para cada grupo
     const groupsWithCount = await Promise.all(
-      (groups || []).map(async (group: any) => {
+      (groups || []).map(async (group: UserGroupSummary) => {
         const { count } = await supabase
           .from('user_group_members')
           .select('*', { count: 'exact', head: true })

@@ -1,5 +1,11 @@
 import type { NextWebVitalsMetric } from 'next/app'
 
+type Gtag = (command: 'event', eventName: string, params: Record<string, unknown>) => void
+
+type AnalyticsWindow = Window & {
+  gtag?: Gtag
+}
+
 /**
  * Reporta Web Vitals a servicio de analytics
  * Se puede integrar con Google Analytics, Vercel Analytics, Sentry, etc.
@@ -12,13 +18,15 @@ export function reportWebVitals(metric: NextWebVitalsMetric) {
   const body = JSON.stringify({
     name: metric.name,
     value: metric.value,
-    rating: metric.rating,
     id: metric.id,
-    navigationType: metric.navigationType,
+    label: metric.label,
+    startTime: metric.startTime,
+    attribution: metric.attribution,
   })
 
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    ;(window as any).gtag('event', metric.name, {
+  const analyticsWindow = typeof window !== 'undefined' ? (window as AnalyticsWindow) : null
+  if (analyticsWindow?.gtag) {
+    analyticsWindow.gtag('event', metric.name, {
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
       event_category: 'Web Vitals',
       event_label: metric.id,

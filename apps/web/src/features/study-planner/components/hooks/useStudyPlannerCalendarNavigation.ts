@@ -1,8 +1,16 @@
 'use client';
 
 import { useCallback, useMemo, useState } from 'react';
-import moment from 'moment';
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  subDays,
+  subMonths,
+  subWeeks,
+} from 'date-fns';
 
+import type { CalendarDate } from '../calendar/types';
 import {
   STUDY_PLANNER_HOURS,
   STUDY_PLANNER_WEEKDAY_NAMES,
@@ -15,9 +23,9 @@ import {
 } from './study-planner-calendar.utils';
 
 export function useStudyPlannerCalendarNavigation() {
-  const [currentDate, setCurrentDate] = useState(moment());
+  const [currentDate, setCurrentDate] = useState<CalendarDate>(() => new Date());
   const [view, setView] = useState<ViewType>('month');
-  const today = useMemo(() => moment(), []);
+  const today = useMemo<CalendarDate>(() => new Date(), []);
 
   const monthDays = useMemo(
     () => (view === 'month' ? buildMonthDays(currentDate, today) : []),
@@ -33,31 +41,31 @@ export function useStudyPlannerCalendarNavigation() {
   );
 
   const goToPreviousMonth = useCallback(() => {
-    setCurrentDate((previousDate) => previousDate.clone().subtract(1, 'month'));
+    setCurrentDate((previousDate) => subMonths(previousDate, 1));
   }, []);
 
   const goToNextMonth = useCallback(() => {
-    setCurrentDate((previousDate) => previousDate.clone().add(1, 'month'));
+    setCurrentDate((previousDate) => addMonths(previousDate, 1));
   }, []);
 
   const goToToday = useCallback(() => {
-    setCurrentDate(moment());
+    setCurrentDate(new Date());
   }, []);
 
   const goToPreviousWeek = useCallback(() => {
-    setCurrentDate((previousDate) => previousDate.clone().subtract(1, 'week'));
+    setCurrentDate((previousDate) => subWeeks(previousDate, 1));
   }, []);
 
   const goToNextWeek = useCallback(() => {
-    setCurrentDate((previousDate) => previousDate.clone().add(1, 'week'));
+    setCurrentDate((previousDate) => addWeeks(previousDate, 1));
   }, []);
 
   const goToPreviousDay = useCallback(() => {
-    setCurrentDate((previousDate) => previousDate.clone().subtract(1, 'day'));
+    setCurrentDate((previousDate) => subDays(previousDate, 1));
   }, []);
 
   const goToNextDay = useCallback(() => {
-    setCurrentDate((previousDate) => previousDate.clone().add(1, 'day'));
+    setCurrentDate((previousDate) => addDays(previousDate, 1));
   }, []);
 
   return {

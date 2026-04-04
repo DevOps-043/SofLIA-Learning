@@ -8,6 +8,14 @@ export interface ChatMessage {
   content: string;
 }
 
+interface UserCourse { title: string | undefined; slug: string | undefined; progress: number | null; status: string }
+interface UserLessonProgressItem {
+  lessonTitle: string | undefined; lessonDescription: string | undefined; lessonOrder: number | undefined
+  moduleName: string | undefined; moduleOrder: number | undefined; courseName: string | undefined; courseSlug: string | undefined
+  status: string; isCompleted: boolean; videoProgress: number | null; timeSpentMinutes: number | null; durationMinutes: number
+}
+interface CourseWithContent { title: string | undefined; slug: string | undefined; description: string | undefined; level: string | undefined; durationMinutes: number | undefined; isAssigned: boolean }
+
 export interface PlatformContext {
   userName?: string;
   userRole?: string;
@@ -18,17 +26,18 @@ export interface PlatformContext {
   pageType?: string;
   organizationName?: string; // ✅ Campo nuevo
   organizationSlug?: string; // ✅ Campo para rutas dinámicas
-  [key: string]: any;
+  noCoursesAssigned?: boolean;
+  [key: string]: unknown;
   // Datos de la plataforma
   totalCourses?: number;
   totalUsers?: number;
   totalOrganizations?: number;
-  userCourses?: any[];
-  recentActivity?: any[];
-  platformStats?: any;
+  userCourses?: UserCourse[];
+  recentActivity?: Record<string, unknown>[];
+  platformStats?: Record<string, unknown>;
   // Información detallada de cursos
-  coursesWithContent?: any[];
-  userLessonProgress?: any[];
+  coursesWithContent?: CourseWithContent[];
+  userLessonProgress?: UserLessonProgressItem[];
   // Contexto específico de la lección actual (inyectado desde frontend)
   currentLessonContext?: {
     lessonId?: string;
@@ -56,9 +65,59 @@ export interface ChatRequest {
   context?: PlatformContext;
   stream?: boolean;
   sessionSnapshot?: string; // Base64 de rrweb
-  enrichedMetadata?: any;
+  enrichedMetadata?: Record<string, unknown>;
   isBugReport?: boolean;
   recordingStatus?: string;
+}
+
+interface UserEnrollmentRow {
+  overall_progress_percentage: number | null;
+  enrollment_status: string;
+  course: {
+    title: string | null;
+    slug: string | null;
+  } | null;
+}
+
+interface LessonProgressRow {
+  lesson_status: string;
+  is_completed: boolean;
+  video_progress_percentage: number | null;
+  time_spent_minutes: number | null;
+  lesson: {
+    lesson_id: string;
+    lesson_title: string | null;
+    lesson_description: string | null;
+    lesson_order_index: number | null;
+    duration_seconds: number | null;
+    summary_content: string | null;
+    module: {
+      module_title: string | null;
+      module_order_index: number | null;
+      course: {
+        title: string | null;
+        slug: string | null;
+      } | null;
+    } | null;
+  } | null;
+}
+
+interface UserOrganizationRow {
+  organizations: {
+    name: string;
+    slug: string;
+  } | null;
+}
+
+interface AssignedCourseRow {
+  course: {
+    id: string;
+    title: string | null;
+    slug: string | null;
+    description: string | null;
+    level: string | null;
+    duration_total_minutes: number | null;
+  } | null;
 }
 
 // ============================================
@@ -96,7 +155,7 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
         .limit(5);
 
       if (userEnrollments) {
-        context.userCourses = userEnrollments.map((ue: any) => ({
+        context.userCourses = (userEnrollments as UserEnrollmentRow[]).map((ue) => ({
           title: ue.course?.title,
           slug: ue.course?.slug,
           progress: ue.overall_progress_percentage,
@@ -113,7 +172,7 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
         .limit(15);
 
       if (lessonProgress && lessonProgress.length > 0) {
-        context.userLessonProgress = lessonProgress.map((lp: any) => ({
+        context.userLessonProgress = (lessonProgress as LessonProgressRow[]).map((lp) => ({
           lessonTitle: lp.lesson?.lesson_title,
           lessonDescription: lp.lesson?.lesson_description,
           lessonOrder: lp.lesson?.lesson_order_index,
@@ -151,9 +210,9 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
           .maybeSingle();
 
         if (userOrg?.organizations) {
-          // @ts-ignore - Supabase tipos anidados a veces dan falsos positivos
-          context.organizationName = userOrg.organizations.name;
-          context.organizationSlug = userOrg.organizations.slug;
+          const organization = (userOrg as UserOrganizationRow).organizations;
+          context.organizationName = organization?.name;
+          context.organizationSlug = organization?.slug;
         }
       }
     }
@@ -170,7 +229,7 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
         .limit(20);
 
       if (assignedCourses && assignedCourses.length > 0) {
-        context.coursesWithContent = assignedCourses.map((assignment: any) => ({
+        context.coursesWithContent = (assignedCourses as AssignedCourseRow[]).map((assignment) => ({
           title: assignment.course?.title,
           slug: assignment.course?.slug,
           description: assignment.course?.description,

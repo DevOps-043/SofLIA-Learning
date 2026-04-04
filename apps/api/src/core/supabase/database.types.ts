@@ -139,17 +139,83 @@ export interface Database {
       }
       courses: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
+          average_rating: number | null
+          category: string
+          created_at: string | null
+          description: string | null
+          duration_total_minutes: number | null
           id: string
-          title: string | null
+          instructor_id: string | null
+          is_active: boolean | null
+          learning_objectives: Json | null
+          level: string
+          price: number | null
+          rejection_reason: string | null
+          review_count: number | null
+          slug: string
+          student_count: number | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          average_rating?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          duration_total_minutes?: number | null
           id?: string
-          title?: string | null
+          instructor_id?: string | null
+          is_active?: boolean | null
+          learning_objectives?: Json | null
+          level?: string
+          price?: number | null
+          rejection_reason?: string | null
+          review_count?: number | null
+          slug: string
+          student_count?: number | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
         }
         Update: {
-          title?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          average_rating?: number | null
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          duration_total_minutes?: number | null
+          id?: string
+          instructor_id?: string | null
+          is_active?: boolean | null
+          learning_objectives?: Json | null
+          level?: string
+          price?: number | null
+          rejection_reason?: string | null
+          review_count?: number | null
+          slug?: string
+          student_count?: number | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_courses_instructor"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       daily_progress: {
         Row: {
@@ -218,29 +284,217 @@ export interface Database {
       }
       study_sessions: {
         Row: {
-          id: string
-          user_id: string
-          start_time: string | null
           actual_duration_minutes: number | null
-          status: string | null
+          break_duration_minutes: number | null
+          calendar_conflict_checked: boolean | null
+          calendar_provider: string | null
+          calendar_synced_at: string | null
           completed_at: string | null
+          completion_method: string | null
+          course_complexity: Json | null
+          course_id: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          duration_minutes: number | null
+          end_time: string
+          external_event_id: string | null
+          focus_area: string | null
+          id: string
+          is_ai_generated: boolean | null
+          lesson_id: string | null
+          lesson_min_time_minutes: number | null
+          lia_suggested: boolean | null
+          metrics: Json | null
+          notes: string | null
+          organization_id: string | null
+          plan_id: string | null
+          recurrence: Json | null
+          rescheduled_from: string | null
+          self_evaluation: number | null
           session_type: string | null
+          start_time: string
+          started_at: string | null
+          status: string
+          streak_day: number | null
+          title: string
+          updated_at: string
+          user_id: string
+          was_rescheduled: boolean | null
         }
         Insert: {
-          id?: string
-          user_id: string
-          start_time?: string | null
           actual_duration_minutes?: number | null
-          status?: string | null
+          break_duration_minutes?: number | null
+          calendar_conflict_checked?: boolean | null
+          calendar_provider?: string | null
+          calendar_synced_at?: string | null
           completed_at?: string | null
+          completion_method?: string | null
+          course_complexity?: Json | null
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          duration_minutes?: number | null
+          end_time: string
+          external_event_id?: string | null
+          focus_area?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          lesson_id?: string | null
+          lesson_min_time_minutes?: number | null
+          lia_suggested?: boolean | null
+          metrics?: Json | null
+          notes?: string | null
+          organization_id?: string | null
+          plan_id?: string | null
+          recurrence?: Json | null
+          rescheduled_from?: string | null
+          self_evaluation?: number | null
           session_type?: string | null
+          start_time: string
+          started_at?: string | null
+          status?: string
+          streak_day?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+          was_rescheduled?: boolean | null
         }
         Update: {
-          start_time?: string | null
           actual_duration_minutes?: number | null
-          status?: string | null
+          break_duration_minutes?: number | null
+          calendar_conflict_checked?: boolean | null
+          calendar_provider?: string | null
+          calendar_synced_at?: string | null
           completed_at?: string | null
+          completion_method?: string | null
+          course_complexity?: Json | null
+          course_id?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          duration_minutes?: number | null
+          end_time?: string
+          external_event_id?: string | null
+          focus_area?: string | null
+          id?: string
+          is_ai_generated?: boolean | null
+          lesson_id?: string | null
+          lesson_min_time_minutes?: number | null
+          lia_suggested?: boolean | null
+          metrics?: Json | null
+          notes?: string | null
+          organization_id?: string | null
+          plan_id?: string | null
+          recurrence?: Json | null
+          rescheduled_from?: string | null
+          self_evaluation?: number | null
           session_type?: string | null
+          start_time?: string
+          started_at?: string | null
+          status?: string
+          streak_day?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          was_rescheduled?: boolean | null
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          ai_generation_metadata: Json | null
+          break_duration_minutes: number | null
+          break_intervals: Json | null
+          calendar_analyzed: boolean | null
+          calendar_provider: string | null
+          course_ids: string[] | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          generation_mode: string | null
+          goal_hours_per_week: number
+          id: string
+          lia_availability_analysis: Json | null
+          lia_time_analysis: Json | null
+          max_session_minutes: number | null
+          max_study_session_minutes: number | null
+          min_rest_minutes: number | null
+          min_session_minutes: number | null
+          min_study_minutes: number | null
+          name: string
+          organization_id: string | null
+          preferred_days: number[]
+          preferred_session_type: string | null
+          preferred_time_blocks: Json | null
+          start_date: string | null
+          timezone: string
+          updated_at: string
+          user_id: string
+          user_type: string | null
+        }
+        Insert: {
+          ai_generation_metadata?: Json | null
+          break_duration_minutes?: number | null
+          break_intervals?: Json | null
+          calendar_analyzed?: boolean | null
+          calendar_provider?: string | null
+          course_ids?: string[] | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          generation_mode?: string | null
+          goal_hours_per_week?: number
+          id?: string
+          lia_availability_analysis?: Json | null
+          lia_time_analysis?: Json | null
+          max_session_minutes?: number | null
+          max_study_session_minutes?: number | null
+          min_rest_minutes?: number | null
+          min_session_minutes?: number | null
+          min_study_minutes?: number | null
+          name: string
+          organization_id?: string | null
+          preferred_days?: number[]
+          preferred_session_type?: string | null
+          preferred_time_blocks?: Json | null
+          start_date?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id: string
+          user_type?: string | null
+        }
+        Update: {
+          ai_generation_metadata?: Json | null
+          break_duration_minutes?: number | null
+          break_intervals?: Json | null
+          calendar_analyzed?: boolean | null
+          calendar_provider?: string | null
+          course_ids?: string[] | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          generation_mode?: string | null
+          goal_hours_per_week?: number
+          id?: string
+          lia_availability_analysis?: Json | null
+          lia_time_analysis?: Json | null
+          max_session_minutes?: number | null
+          max_study_session_minutes?: number | null
+          min_rest_minutes?: number | null
+          min_session_minutes?: number | null
+          min_study_minutes?: number | null
+          name?: string
+          organization_id?: string | null
+          preferred_days?: number[]
+          preferred_session_type?: string | null
+          preferred_time_blocks?: Json | null
+          start_date?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          user_type?: string | null
         }
         Relationships: []
       }
@@ -306,37 +560,64 @@ export interface Database {
       }
       user_lesson_progress: {
         Row: {
-          progress_id: string
-          user_id: string
-          lesson_id: string
-          enrollment_id: string | null
-          time_spent_minutes: number | null
-          is_completed: boolean | null
           completed_at: string | null
+          created_at: string | null
+          current_time_seconds: number | null
+          enrollment_id: string
+          is_completed: boolean | null
           last_accessed_at: string | null
+          lesson_id: string
+          lesson_status: string | null
+          organization_id: string | null
+          progress_id: string
           quiz_completed: boolean | null
           quiz_passed: boolean | null
+          quiz_progress_percentage: number | null
+          started_at: string | null
+          time_spent_minutes: number | null
+          updated_at: string | null
+          user_id: string
+          video_progress_percentage: number | null
         }
         Insert: {
-          progress_id?: string
-          user_id: string
-          lesson_id: string
-          enrollment_id?: string | null
-          time_spent_minutes?: number | null
-          is_completed?: boolean | null
           completed_at?: string | null
+          created_at?: string | null
+          current_time_seconds?: number | null
+          enrollment_id: string
+          is_completed?: boolean | null
           last_accessed_at?: string | null
+          lesson_id: string
+          lesson_status?: string | null
+          organization_id?: string | null
+          progress_id?: string
           quiz_completed?: boolean | null
           quiz_passed?: boolean | null
+          quiz_progress_percentage?: number | null
+          started_at?: string | null
+          time_spent_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+          video_progress_percentage?: number | null
         }
         Update: {
-          enrollment_id?: string | null
-          time_spent_minutes?: number | null
-          is_completed?: boolean | null
           completed_at?: string | null
+          created_at?: string | null
+          current_time_seconds?: number | null
+          enrollment_id?: string
+          is_completed?: boolean | null
           last_accessed_at?: string | null
+          lesson_id?: string
+          lesson_status?: string | null
+          organization_id?: string | null
+          progress_id?: string
           quiz_completed?: boolean | null
           quiz_passed?: boolean | null
+          quiz_progress_percentage?: number | null
+          started_at?: string | null
+          time_spent_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          video_progress_percentage?: number | null
         }
         Relationships: []
       }

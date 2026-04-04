@@ -2,8 +2,28 @@ import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
 // Import dinámico de jsPDF para evitar problemas en servidor
-let jsPDF: any = null
-async function getJsPDF() {
+type JsPdfDocument = {
+  ellipse?: (x: number, y: number, rx: number, ry: number, style?: 'F' | 'D' | 'FD') => void
+  line: (x1: number, y1: number, x2: number, y2: number) => void
+  rect: (x: number, y: number, width: number, height: number, style?: 'F' | 'D' | 'FD') => void
+  setFillColor: (...color: number[]) => void
+  setDrawColor: (...color: number[]) => void
+  setLineWidth: (width: number) => void
+  setFontSize: (size: number) => void
+  setTextColor: (...color: number[]) => void
+  setFont: (fontName: string, fontStyle: string) => void
+  text: (text: string, x: number, y: number, options?: Record<string, unknown>) => void
+  output: (type: 'arraybuffer') => ArrayBuffer
+}
+
+type JsPdfConstructor = new (options: {
+  orientation: 'landscape' | 'portrait'
+  unit: string
+  format: [number, number]
+}) => JsPdfDocument
+
+let jsPDF: JsPdfConstructor | null = null
+async function getJsPDF(): Promise<JsPdfConstructor> {
   if (!jsPDF) {
     jsPDF = (await import('jspdf')).default
   }
@@ -13,7 +33,7 @@ async function getJsPDF() {
 /**
  * Dibuja un círculo usando métodos básicos de jsPDF (compatible estándar)
  */
-function drawCircle(doc: any, x: number, y: number, radius: number, style: 'F' | 'D' | 'FD' = 'FD') {
+function drawCircle(doc: JsPdfDocument, x: number, y: number, radius: number, style: 'F' | 'D' | 'FD' = 'FD') {
   try {
     // Intentar usar ellipse si está disponible (jsPDF 2.x+)
     if (typeof doc.ellipse === 'function') {
@@ -60,7 +80,7 @@ function drawCircle(doc: any, x: number, y: number, radius: number, style: 'F' |
 /**
  * Versión simplificada: dibuja un círculo pequeño (punto decorativo)
  */
-function drawCircleSimple(doc: any, x: number, y: number, radius: number) {
+function drawCircleSimple(doc: JsPdfDocument, x: number, y: number, radius: number) {
   // Para círculos pequeños, usar un rectángulo pequeño como aproximación
   doc.rect(x - radius, y - radius, radius * 2, radius * 2, 'F')
 }
@@ -449,4 +469,3 @@ export class CertificateService {
     }
   }
 }
-

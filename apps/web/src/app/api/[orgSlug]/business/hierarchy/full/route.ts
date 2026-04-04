@@ -7,6 +7,20 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>;
 }
 
+type TeamWithMembersCount = Record<string, unknown> & {
+  id: string;
+  zone_id: string;
+  members_count: number;
+};
+
+type ZoneWithTeams = Record<string, unknown> & {
+  id: string;
+  region_id: string;
+  teams_count: number;
+  users_count: number;
+  teams: TeamWithMembersCount[];
+};
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/full
  * Obtiene la jerarquía completa en estructura de árbol
@@ -81,8 +95,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       .not('team_id', 'is', null);
 
     // Construir el árbol
-    const teamsByZone = new Map<string, any[]>();
-    const zonesByRegion = new Map<string, any[]>();
+    const teamsByZone = new Map<string, TeamWithMembersCount[]>();
+    const zonesByRegion = new Map<string, ZoneWithTeams[]>();
 
     // Agrupar equipos por zona con conteo de miembros
     (teams || []).forEach(team => {

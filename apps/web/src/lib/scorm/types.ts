@@ -1,3 +1,5 @@
+import type { Json } from '@/lib/supabase/types'
+
 export type SCORMVersion = 'SCORM_1.2' | 'SCORM_2004';
 
 export interface ScormPackage {
@@ -7,7 +9,7 @@ export interface ScormPackage {
   title: string;
   description?: string;
   version: SCORMVersion;
-  manifest_data: any;
+  manifest_data: Json;
   entry_point: string;
   storage_path: string;
   file_size: number;

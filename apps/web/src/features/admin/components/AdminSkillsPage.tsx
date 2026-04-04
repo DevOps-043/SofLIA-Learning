@@ -15,7 +15,11 @@ import {
   Tag
 } from 'lucide-react'
 import { useAdminSkills } from '../hooks/useAdminSkills'
-import { AdminSkill } from '../services/adminSkills.service'
+import {
+  AdminSkill,
+  CreateSkillData,
+  UpdateSkillData
+} from '../services/adminSkills.service'
 import { SkillModal } from './SkillModal'
 import { DeleteSkillModal } from './DeleteSkillModal'
 
@@ -52,6 +56,10 @@ const CATEGORY_LABELS: Record<string, string> = {
   communication: 'Comunicación',
   other: 'Otros'
 }
+
+const isStatusFilter = (value: string): value is 'all' | 'active' | 'inactive' => (
+  value === 'all' || value === 'active' || value === 'inactive'
+)
 
 export function AdminSkillsPage() {
   const {
@@ -104,7 +112,7 @@ export function AdminSkillsPage() {
     setIsDeleteModalOpen(true)
   }
 
-  const handleSaveSkill = async (skillData: any) => {
+  const handleSaveSkill = async (skillData: CreateSkillData | UpdateSkillData) => {
     try {
       if (editingSkill) {
         await updateSkill(editingSkill.skill_id, skillData)
@@ -227,7 +235,7 @@ export function AdminSkillsPage() {
             </select>
             <select
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value as any)}
+              onChange={(e) => setSelectedStatus(isStatusFilter(e.target.value) ? e.target.value : 'all')}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">Todos los estados</option>
@@ -420,4 +428,3 @@ export function AdminSkillsPage() {
     </div>
   )
 }
-

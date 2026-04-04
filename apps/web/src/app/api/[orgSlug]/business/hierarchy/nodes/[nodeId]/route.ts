@@ -7,6 +7,25 @@ interface RouteContext {
   params: Promise<{ orgSlug: string; nodeId: string }>;
 }
 
+interface NodeChildManager {
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  profile_picture_url: string | null;
+}
+
+interface NodeChildRow extends Record<string, unknown> {
+  users_count: Array<{ count: number | null }> | null;
+  manager: NodeChildManager | NodeChildManager[] | null;
+}
+
+interface NodeCourseAssignmentRow {
+  id: string;
+  status: string | null;
+  due_date: string | null;
+  course: Record<string, unknown> | null;
+}
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/nodes/[nodeId]
  * Obtiene un nodo por ID
@@ -82,7 +101,7 @@ export async function GET(
             .eq('organization_id', auth.organizationId)
             .order('created_at', { ascending: true });
 
-        const formattedChildren = children?.map((child: any) => {
+        const formattedChildren = children?.map((child: NodeChildRow) => {
             const manager = Array.isArray(child.manager) ? child.manager[0] : child.manager;
             return {
                 ...child,
@@ -107,11 +126,11 @@ export async function GET(
       `)
             .eq('node_id', nodeId);
 
-        const formattedCourses = courses?.map((c: any) => ({
+        const formattedCourses = courses?.map((c: NodeCourseAssignmentRow) => ({
             assignment_id: c.id,
             status: c.status,
             due_date: c.due_date,
-            ...c.course
+            ...(c.course ?? {})
         })) || [];
 
         return NextResponse.json({

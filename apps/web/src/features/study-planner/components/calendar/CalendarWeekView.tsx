@@ -1,4 +1,8 @@
-import moment from 'moment'
+import {
+  formatCalendarLabel,
+  formatCalendarTime,
+  isSameCalendarDay,
+} from '../hooks/study-planner-calendar.date'
 import type { CalendarWeekViewProps } from './types'
 
 function getEventColor(event: { color?: string; source?: string; provider?: string }): string {
@@ -22,15 +26,15 @@ export function CalendarWeekView({
             <div className="w-16 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 flex-shrink-0"></div>
             <div className="flex flex-1">
               {weekDays.map((dayDate, index) => {
-                const isToday = dayDate.isSame(today, 'day')
+                const isToday = isSameCalendarDay(dayDate, today)
                 return (
                   <div key={index} className="flex-1 px-3 py-3 border-r border-[#E9ECEF] dark:border-[#6C757D]/30 last:border-r-0">
                     <div className="text-center">
                       <div className="text-xs font-medium text-[#6C757D] dark:text-gray-400 uppercase tracking-wider mb-1">
-                        {dayDate.format('ddd')}
+                        {formatCalendarLabel(dayDate, 'EEE')}
                       </div>
                       <div className={`w-8 h-8 mx-auto rounded-full flex items-center justify-center text-sm font-medium ${isToday ? 'bg-[#0A2540] text-white' : 'text-[#0A2540] dark:text-white'}`}>
-                        {dayDate.format('D')}
+                        {formatCalendarLabel(dayDate, 'd')}
                       </div>
                     </div>
                   </div>
@@ -53,7 +57,7 @@ export function CalendarWeekView({
 
               <div className="flex flex-1 relative">
                 {weekDays.map((dayDate, dayIndex) => {
-                  const isToday = dayDate.isSame(today, 'day')
+                  const isToday = isSameCalendarDay(dayDate, today)
                   const dayEvents = getEventsForDay(dayDate)
 
                   return (
@@ -90,12 +94,12 @@ export function CalendarWeekView({
                             onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); setIsEventModalOpen(true) }}
                             style={{ top: `${position.top}px`, height: `${position.height}px`, backgroundColor: eventColor, borderColor: eventColor }}
                             className="absolute left-0 right-0 px-2.5 py-1.5 text-xs font-medium rounded-md border-l-[3px] cursor-pointer transition-all duration-200 z-10 mx-1.5 overflow-hidden hover:opacity-90 hover:shadow-md min-h-[24px] text-white"
-                            title={`${event.title} - ${moment(event.start).format('h:mm A')} - ${moment(event.end).format('h:mm A')}`}
+                            title={`${event.title} - ${formatCalendarTime(event.start)} - ${formatCalendarTime(event.end)}`}
                           >
                             <div className="font-semibold truncate leading-tight">{event.title}</div>
                             {position.height > 35 && (
                               <div className="text-[10px] opacity-90 truncate mt-0.5 leading-tight">
-                                {moment(event.start).format('h:mm A')} - {moment(event.end).format('h:mm A')}
+                                {formatCalendarTime(event.start)} - {formatCalendarTime(event.end)}
                               </div>
                             )}
                           </div>

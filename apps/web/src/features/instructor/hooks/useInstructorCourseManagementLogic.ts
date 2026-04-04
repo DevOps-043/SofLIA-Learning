@@ -11,10 +11,31 @@ import { AdminLesson } from '@/features/admin/services/adminLessons.service'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { CourseSkill } from '@/features/courses/components/CourseSkillsSelector'
 import { InstructorWorkshop } from '@/features/instructor/services/instructorWorkshops.service'
+import type {
+  InstructorChartData,
+  InstructorEnrolledUser,
+  InstructorUserStats,
+} from '@/features/instructor/components/InstructorCourseManagement/types'
 
 interface InstructorCourseManagementPageProps {
   courseId: string
 }
+
+interface InstructorCourseStatsApiSuccess {
+  success: true
+  stats: InstructorUserStats
+  enrolled_users: InstructorEnrolledUser[]
+  charts: InstructorChartData
+}
+
+interface InstructorCourseStatsApiError {
+  success: false
+  error: string
+}
+
+type InstructorCourseStatsApiResponse =
+  | InstructorCourseStatsApiSuccess
+  | InstructorCourseStatsApiError
 
 export function useInstructorCourseManagementLogic({ courseId }: InstructorCourseManagementPageProps) {
   const router = useRouter()
@@ -46,10 +67,10 @@ export function useInstructorCourseManagementLogic({ courseId }: InstructorCours
 
   const [workshopPreview, setWorkshopPreview] = useState<InstructorWorkshop | null>(null)
   const [previewLoading, setPreviewLoading] = useState<boolean>(false)
-  const [userStats, setUserStats] = useState<Record<string, unknown> | null>(null)
-  const [enrolledUsers, setEnrolledUsers] = useState<Record<string, unknown>[]>([])
+  const [userStats, setUserStats] = useState<InstructorUserStats | null>(null)
+  const [enrolledUsers, setEnrolledUsers] = useState<InstructorEnrolledUser[]>([])
   const [statsLoading, setStatsLoading] = useState<boolean>(false)
-  const [chartData, setChartData] = useState<Record<string, unknown> | null>(null)
+  const [chartData, setChartData] = useState<InstructorChartData | null>(null)
   const [savingConfig, setSavingConfig] = useState<boolean>(false)
   const [showTemplatePreview, setShowTemplatePreview] = useState<boolean>(false)
   const [selectedCertificateTemplate, setSelectedCertificateTemplate] = useState<string>('default')
@@ -128,11 +149,11 @@ export function useInstructorCourseManagementLogic({ courseId }: InstructorCours
         try {
           setStatsLoading(true)
           const res = await fetch(`/api/instructor/workshops/${courseId}/stats`)
-          const data = await res.json()
-          if (res.ok && data?.stats) {
+          const data = (await res.json()) as InstructorCourseStatsApiResponse
+          if (res.ok && data.success && data.stats) {
             setUserStats(data.stats)
-            setEnrolledUsers(data.enrolled_users || [])
-            setChartData(data.charts || null)
+            setEnrolledUsers(data.enrolled_users ?? [])
+            setChartData(data.charts ?? null)
           }
         } catch (e) {
         } finally {

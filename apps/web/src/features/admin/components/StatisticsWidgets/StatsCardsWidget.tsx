@@ -18,7 +18,7 @@ interface StatCard {
   value: string
   change: string
   changeType: 'increase' | 'decrease'
-  icon: React.ComponentType<any>
+  icon: typeof UsersIcon
   color: string
 }
 
@@ -170,4 +170,3 @@ export function StatsCardsWidget() {
     </div>
   )
 }
-

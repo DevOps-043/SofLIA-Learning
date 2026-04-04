@@ -16,6 +16,10 @@ interface CourseAssignmentsProps {
   onCancel?: (assignment: HierarchyCourseAssignment) => void
 }
 
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback
+}
+
 export function CourseAssignments({
   entityType,
   entityId,
@@ -38,9 +42,9 @@ export function CourseAssignments({
       setError(null)
       const data = await HierarchyAssignmentsService.getEntityAssignments(entityType, entityId)
       setAssignments(data)
-    } catch (err: any) {
-      setError(err.message || 'Error al cargar asignaciones')
-      console.error('Error cargando asignaciones:', err)
+    } catch (error: unknown) {
+      setError(getErrorMessage(error, 'Error al cargar asignaciones'))
+      console.error('Error cargando asignaciones:', error)
     } finally {
       setIsLoading(false)
     }
@@ -57,8 +61,8 @@ export function CourseAssignments({
         await loadAssignments()
         onCancel?.(assignment)
       }
-    } catch (err: any) {
-      alert('Error al cancelar la asignación: ' + (err.message || 'Error desconocido'))
+    } catch (error: unknown) {
+      alert('Error al cancelar la asignación: ' + getErrorMessage(error, 'Error desconocido'))
     }
   }
 
@@ -273,4 +277,3 @@ export function CourseAssignments({
     </div>
   )
 }
-

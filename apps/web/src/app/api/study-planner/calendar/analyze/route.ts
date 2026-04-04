@@ -13,8 +13,10 @@ import { UserContextService } from '../../../../../features/study-planner/servic
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
 import type { 
   CalendarEvent,
+  CalendarAvailability,
   TimeBlock,
-  SofLIAAvailabilityAnalysis 
+  SofLIAAvailabilityAnalysis,
+  UserContext,
 } from '../../../../../features/study-planner/types/user-context.types';
 
 interface AnalyzeCalendarRequest {
@@ -166,9 +168,9 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeCa
  * Genera análisis de disponibilidad usando LIA
  */
 async function generateLIAAnalysis(
-  userContext: any,
+  userContext: UserContext,
   events: CalendarEvent[],
-  availability: any[],
+  availability: CalendarAvailability[],
   config: {
     minSessionMinutes: number;
     maxSessionMinutes: number;
@@ -299,9 +301,9 @@ async function generateLIAAnalysis(
  * Genera texto de razonamiento para el análisis
  */
 function generateReasoningText(
-  userContext: any,
+  userContext: UserContext,
   events: CalendarEvent[],
-  availability: any[],
+  availability: CalendarAvailability[],
   weeklyMinutes: number
 ): string {
   const hours = Math.round(weeklyMinutes / 60 * 10) / 10;
@@ -321,7 +323,7 @@ function generateReasoningText(
   }
   
   const avgFreePerDay = availability.length > 0
-    ? availability.reduce((sum, d) => sum + d.totalFreeMinutes, 0) / availability.length
+    ? availability.reduce((sum, day) => sum + day.totalFreeMinutes, 0) / availability.length
     : 0;
   
   if (avgFreePerDay < 60) {
@@ -334,4 +336,3 @@ function generateReasoningText(
   
   return reasoning;
 }
-

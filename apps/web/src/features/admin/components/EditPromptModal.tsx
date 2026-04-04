@@ -13,8 +13,20 @@ interface EditPromptModalProps {
   prompt: AdminPrompt | null
 }
 
+interface PromptFormData {
+  title: string
+  description: string
+  content: string
+  tags: string
+  difficulty_level: string
+  is_featured: boolean
+  is_verified: boolean
+  is_active: boolean
+  category_id: string
+}
+
 export function EditPromptModal({ isOpen, onClose, onSave, prompt }: EditPromptModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PromptFormData>({
     title: '',
     description: '',
     content: '',
@@ -66,7 +78,7 @@ export function EditPromptModal({ isOpen, onClose, onSave, prompt }: EditPromptM
     })
   }
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = <K extends keyof PromptFormData>(field: K, value: PromptFormData[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

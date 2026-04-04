@@ -3,6 +3,13 @@ import { logger } from '@/lib/utils/logger';
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 
+interface DashboardAssignment {
+  status: string | null
+  completion_percentage: number | null
+  assigned_at: string
+  completed_at: string | null
+}
+
 export async function GET() {
   try {
     const auth = await requireBusiness()
@@ -84,7 +91,7 @@ export async function GET() {
     let previousProgressSum = 0
     let previousProgressCount = 0
 
-    ;(assignments || []).forEach((a: any) => {
+    ;(assignments || []).forEach((a: DashboardAssignment) => {
       totalAssignments++
       const completion = a.completion_percentage || 0
       const isCompleted = a.status === 'completed' || completion >= 100

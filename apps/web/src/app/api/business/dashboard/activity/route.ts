@@ -11,6 +11,41 @@ interface ActivityItem {
   icon: string;
 }
 
+interface ActivityUserRow {
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+}
+
+interface ActivityCourseRow {
+  title: string | null;
+}
+
+interface CompletedCourseRow {
+  completed_at: string | null;
+  completion_percentage: number | null;
+  user: ActivityUserRow | null;
+  course: ActivityCourseRow | null;
+}
+
+interface NewUserRow {
+  joined_at: string | null;
+  user: ActivityUserRow | null;
+}
+
+interface StartedCourseRow {
+  assigned_at: string | null;
+  completion_percentage: number | null;
+  user: ActivityUserRow | null;
+  course: ActivityCourseRow | null;
+}
+
+function getDisplayName(user: ActivityUserRow | null): string {
+  return user?.display_name ||
+    `${user?.first_name || ''} ${user?.last_name || ''}`.trim() ||
+    'Usuario';
+}
+
 export async function GET() {
   try {
     const auth = await requireBusiness()
@@ -109,10 +144,8 @@ export async function GET() {
 
     // Procesar cursos completados
     if (completedCourses) {
-      completedCourses.forEach((item: any) => {
-        const userName = item.user?.display_name || 
-          `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() || 
-          'Usuario'
+      (completedCourses as CompletedCourseRow[]).forEach((item) => {
+        const userName = getDisplayName(item.user)
         const courseTitle = item.course?.title || 'curso'
         
         activities.push({
@@ -127,10 +160,8 @@ export async function GET() {
 
     // Procesar nuevos usuarios
     if (newUsers) {
-      newUsers.forEach((item: any) => {
-        const userName = item.user?.display_name || 
-          `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() || 
-          'Usuario'
+      (newUsers as NewUserRow[]).forEach((item) => {
+        const userName = getDisplayName(item.user)
         
         activities.push({
           user: userName,
@@ -144,10 +175,8 @@ export async function GET() {
 
     // Procesar cursos iniciados
     if (startedCourses) {
-      startedCourses.forEach((item: any) => {
-        const userName = item.user?.display_name || 
-          `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() || 
-          'Usuario'
+      (startedCourses as StartedCourseRow[]).forEach((item) => {
+        const userName = getDisplayName(item.user)
         const courseTitle = item.course?.title || 'curso'
         
         activities.push({

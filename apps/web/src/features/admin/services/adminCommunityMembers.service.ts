@@ -19,10 +19,30 @@ function buildCommunityUserMap(users: CommunityUserRow[] | null | undefined) {
   return new Map((users || []).map(user => [user.id, user]))
 }
 
+type CommunityFallbackUser = ReturnType<typeof buildCommunityUserFallback>
+
+interface PaginatedCommunityMember {
+  id: string
+  role: string
+  joined_at: string
+  is_active: boolean
+  updated_at: string | null
+  user_id: string
+  name: string
+  users: CommunityUserRow | CommunityFallbackUser
+}
+
+interface SimpleCommunityMember {
+  id: string
+  name: string
+  role: string
+  joined_at: string
+}
+
 export class AdminCommunityMembersService {
-  static async getCommunityMembers(communityId: string, page: number, limit: number): Promise<any[]>
-  static async getCommunityMembers(communityId: string): Promise<Array<{ id: string, name: string, role: string, joined_at: string }>>
-  static async getCommunityMembers(communityId: string, page?: number, limit?: number): Promise<any[]> {
+  static async getCommunityMembers(communityId: string, page: number, limit: number): Promise<PaginatedCommunityMember[]>
+  static async getCommunityMembers(communityId: string): Promise<SimpleCommunityMember[]>
+  static async getCommunityMembers(communityId: string, page?: number, limit?: number): Promise<PaginatedCommunityMember[] | SimpleCommunityMember[]> {
     const supabase = await createClient()
 
     if (page !== undefined && limit !== undefined) {

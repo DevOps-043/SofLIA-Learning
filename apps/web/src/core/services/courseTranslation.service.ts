@@ -26,7 +26,7 @@ export async function translateCourseOnCreate(
   courseData: {
     title: string;
     description?: string | null;
-    learning_objectives?: any[] | null;
+    learning_objectives?: string[] | null;
   },
   userId?: string,
   supabaseClient?: Awaited<ReturnType<typeof createClient>>
@@ -379,7 +379,7 @@ export async function translateMaterialOnCreate(
   materialData: {
     material_title: string;
     material_description?: string | null;
-    content_data?: any;
+    content_data?: Record<string, unknown>;
   },
   userId?: string
 ): Promise<TranslationResult> {

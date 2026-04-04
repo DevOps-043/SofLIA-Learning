@@ -105,7 +105,7 @@ export async function GET(
     return NextResponse.json({
       reel: {
         ...reel,
-        hashtags: hashtags?.map((h: any) => h.reel_hashtags.name) || []
+        hashtags: hashtags?.map((hashtag) => hashtag.reel_hashtags.name) || []
       },
       comments: comments || []
     });

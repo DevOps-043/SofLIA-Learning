@@ -3,6 +3,54 @@ import { logger } from '@/lib/utils/logger';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
+interface StatisticsQuestionData {
+  section?: string | null;
+  bloque?: string | null;
+  peso?: number | null;
+  escala?: Record<string, number> | null;
+  respuesta_correcta?: string | null;
+  texto?: string | null;
+  dimension?: string[] | null;
+}
+
+interface StatisticsResponseRow {
+  valor: unknown;
+  preguntas?: StatisticsQuestionData | null;
+}
+
+interface StatisticsUserProfile {
+  dificultad_id?: number | null;
+}
+
+interface RadarDimensionScore {
+  dimension: string;
+  score: number;
+  rawScore: number;
+  maxPossibleScore: number;
+}
+
+interface AnalysisSummary {
+  adoption: {
+    score: number;
+    level: string;
+    description: string;
+    totalQuestions: number;
+  };
+  knowledge: {
+    score: number;
+    correct: number;
+    total: number;
+    level: string;
+    description: string;
+  };
+}
+
+interface RecommendationItem {
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -149,7 +197,7 @@ function normalizeScoreByDifficulty(score: number, userDifficulty: number | null
   return Math.round(normalizedScore);
 }
 
-function processRadarData(responses: any[], userDifficulty: number | null | undefined = null) {
+function processRadarData(responses: StatisticsResponseRow[], userDifficulty: number | null | undefined = null): RadarDimensionScore[] {
   const dimensions = ['Conocimiento', 'Aplicación', 'Productividad', 'Estrategia', 'Inversión'];
 
   const scores = dimensions.map(dimension => {
@@ -248,7 +296,7 @@ function processRadarData(responses: any[], userDifficulty: number | null | unde
   return scores;
 }
 
-function processAnalysis(responses: any[], userProfile: any) {
+function processAnalysis(responses: StatisticsResponseRow[], userProfile: StatisticsUserProfile): AnalysisSummary {
   const adoptionResponses = responses.filter(r => 
     r.preguntas?.section === 'Adopción' || 
     r.preguntas?.bloque === 'Adopción' ||
@@ -355,8 +403,8 @@ function getKnowledgeDescription(score: number, correct: number, total: number) 
   return `Comprensión principiante de IA. Respondiste correctamente ${correct} de ${total} preguntas (${score}%). Hay oportunidades significativas para expandir tu entendimiento técnico.`;
 }
 
-function generateRecommendations(radarData: any[], analysis: any) {
-  const recommendations = [];
+function generateRecommendations(radarData: RadarDimensionScore[], analysis: AnalysisSummary): RecommendationItem[] {
+  const recommendations: RecommendationItem[] = [];
   
   // Recomendación basada en la dimensión más baja
   const lowestDimension = radarData.reduce((min, current) => 

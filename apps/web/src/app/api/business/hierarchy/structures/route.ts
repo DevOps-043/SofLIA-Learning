@@ -9,8 +9,7 @@ export async function GET(request: Request) {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
-    // Explicitly cast or access safely
-    const { organizationId } = auth as any;
+    const { organizationId } = auth;
 
     // Additional safety: if organizationId is missing even after auth success
     if (!organizationId) {
@@ -38,7 +37,7 @@ export async function POST(request: Request) {
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
 
-    const { organizationId } = auth as any;
+    const { organizationId } = auth;
 
     const { name } = await request.json();
 

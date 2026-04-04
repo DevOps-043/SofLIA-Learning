@@ -1,37 +1,25 @@
-import type { Moment } from 'moment';
+import type {
+  CalendarDate,
+  CalendarEvent as SharedCalendarEvent,
+  CalendarView as SharedCalendarView,
+  ConfirmDialogState,
+  EventForm,
+} from '../calendar/types';
 
-export type ViewType = 'month' | 'week' | 'day';
+export type ViewType = SharedCalendarView;
 
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string;
-  start: string;
-  end: string;
-  location?: string;
-  isAllDay?: boolean;
-  provider?: 'google' | 'microsoft' | 'study' | 'local';
-  source?: 'calendar' | 'study_session';
+export type CalendarEvent = SharedCalendarEvent & {
   googleEventId?: string;
   localEventId?: string;
   externalEventId?: string;
-  color?: string;
-}
+};
 
 export interface StudyPlannerCalendarProps {
   showOnlyPlanEvents?: boolean;
   refreshTrigger?: number;
 }
 
-export interface StudyPlannerCalendarEventForm {
-  title: string;
-  description: string;
-  start: string;
-  end: string;
-  location: string;
-  isAllDay: boolean;
-  color: string;
-}
+export type StudyPlannerCalendarEventForm = EventForm;
 
 export interface StudyPlannerCalendarToastState {
   isOpen: boolean;
@@ -39,23 +27,18 @@ export interface StudyPlannerCalendarToastState {
   type: 'error' | 'success' | 'info';
 }
 
-export interface StudyPlannerCalendarConfirmDialogState {
-  isOpen: boolean;
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
+export type StudyPlannerCalendarConfirmDialogState = ConfirmDialogState;
 
 export interface StudyPlannerCalendarMonthDay {
-  date: Moment;
+  date: CalendarDate;
   isCurrentMonth: boolean;
   isToday: boolean;
   dayNumber: number;
 }
 
 export interface StudyPlannerCalendarWeekRange {
-  start: Moment;
-  end: Moment;
+  start: CalendarDate;
+  end: CalendarDate;
 }
 
 export interface StudyPlannerCalendarEventPosition {

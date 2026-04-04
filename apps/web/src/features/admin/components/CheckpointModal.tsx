@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { X, CheckCircle, Clock } from 'lucide-react'
-import { AdminCheckpoint } from '../services/adminCheckpoints.service'
+import type { AdminCheckpoint, CreateCheckpointData } from '../services/adminCheckpoints.service'
 
 interface CheckpointModalProps {
   checkpoint?: AdminCheckpoint | null
   lessonId: string
   onClose: () => void
-  onSave: (data: any) => Promise<void>
+  onSave: (data: CreateCheckpointData) => Promise<void>
 }
 
-export function CheckpointModal({ checkpoint, lessonId, onClose, onSave }: CheckpointModalProps) {
+export function CheckpointModal({ checkpoint, lessonId: _lessonId, onClose, onSave }: CheckpointModalProps) {
   const [formData, setFormData] = useState({
     checkpoint_time_seconds: 0,
     checkpoint_label: '',
@@ -161,4 +161,3 @@ export function CheckpointModal({ checkpoint, lessonId, onClose, onSave }: Check
     </div>
   )
 }
-

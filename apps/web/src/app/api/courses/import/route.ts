@@ -1,6 +1,3 @@
-
-declare const process: any;
-
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
@@ -8,6 +5,25 @@ import {
     normalizeImportedActivityContent,
     normalizeImportedMaterialContent,
 } from '@/lib/course-content'
+
+interface QuizQuestionLike {
+    id?: string
+    question?: string
+    questionText?: string
+    questionType?: string
+    type?: string
+    options?: unknown
+    correctAnswer?: string | number
+    correct_answer?: string | number
+    explanation?: string
+    points?: number | string
+}
+
+interface QuizSourceData extends Record<string, unknown> {
+    questions?: QuizQuestionLike[]
+    items?: QuizQuestionLike[]
+    passing_score?: number | string
+}
 
 // ✅ Cliente administrativo para API routes externas (sin cookies)
 // Usa Service Role Key en vez de cookies de sesión del navegador
@@ -48,20 +64,20 @@ function extractVideoInfo(url: string): { provider: 'youtube' | 'vimeo' | 'custo
  * para que sea compatible con los componentes de SofLIA-Learning.
  * Maneja field names como 'questions' vs 'items', y mapea índices de respuesta correcta a texto.
  */
-function normalizeQuizData(data: any) {
+function normalizeQuizData(data?: QuizSourceData | null) {
     if (!data) return null;
 
     // 1. Obtener lista de preguntas (soporta 'questions' o 'items')
     const rawItems = Array.isArray(data.questions) ? data.questions : (Array.isArray(data.items) ? data.items : []);
 
     // 2. Mapear preguntas al formato estándar
-    const normalizedQuestions = rawItems.map((q: any) => {
+    const normalizedQuestions = rawItems.map((q) => {
         // Normalizar tipo de pregunta (MULTIPLE_CHOICE -> multiple_choice)
         let qType = (q.questionType || q.type || 'multiple_choice').toLowerCase();
 
         // Asegurar que las opciones sean un array de strings
         const options = Array.isArray(q.options)
-            ? q.options.map((opt: any) => typeof opt === 'string' ? opt : String(opt))
+            ? q.options.map((opt) => typeof opt === 'string' ? opt : String(opt))
             : [];
 
         // Manejar respuesta correcta (CourseForge a veces envía el índice como número)
@@ -97,7 +113,7 @@ function normalizeQuizData(data: any) {
 const ActivitySchema = z.object({
     title: z.string(),
     type: z.enum(['quiz', 'lia_script', 'puzzle', 'reflection']), // Ajustable según lo que llegue
-    data: z.record(z.any()),
+    data: z.record(z.unknown()),
 })
 
 const NewMaterialSchema = z.object({
@@ -105,7 +121,7 @@ const NewMaterialSchema = z.object({
     url: z.string().optional(),
     type: z.enum(['link', 'download', 'pdf', 'document', 'quiz']),
     description: z.string().optional(),
-    data: z.record(z.any()).optional(),
+    data: z.record(z.unknown()).optional(),
 })
 
 const ContentBlockSchema = z.object({
@@ -404,19 +420,19 @@ export async function POST(request: Request) {
                 message: 'Course imported successfully with enhanced details.'
             })
 
-        } catch (insertError: any) {
+        } catch (insertError: unknown) {
             console.error('[IMPORT API] Error inserting modules/lessons:', insertError)
             // Rollback manual
             await supabase.from('courses').delete().eq('id', newCourse.id)
 
             return NextResponse.json(
-                { error: 'Partial processing failure. Rolled back.', details: insertError.message || String(insertError) },
+                { error: 'Partial processing failure. Rolled back.', details: insertError instanceof Error ? insertError.message : String(insertError) },
                 { status: 500 }
             )
         }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('[IMPORT API] Unexpected error:', error)
-        return NextResponse.json({ error: 'Internal Server Error', details: error.message }, { status: 500 })
+        return NextResponse.json({ error: 'Internal Server Error', details: error instanceof Error ? error.message : String(error) }, { status: 500 })
     }
 }

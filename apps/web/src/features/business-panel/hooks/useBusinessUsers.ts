@@ -1,12 +1,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
-import { BusinessUsersService, BusinessUser, BusinessUserStats, BusinessInvitation, BulkInviteLink } from '../services/businessUsers.service'
+import {
+  BusinessUsersService,
+  BusinessUser,
+  BusinessUserStats,
+  BusinessInvitation,
+  BulkInviteLink,
+  CreateBusinessUserRequest
+} from '../services/businessUsers.service'
+
+type OrganizationStoreState = ReturnType<typeof useOrganizationStore.getState>
 
 export function useBusinessUsers(orgSlugProp?: string) {
   const params = useParams()
   const urlOrgSlug = params?.orgSlug as string | undefined
-  const currentOrgSlug = useOrganizationStore((state: any) => state.currentOrganization?.slug)
+  const currentOrgSlug = useOrganizationStore((state: OrganizationStoreState) => state.currentOrganization?.slug)
   const orgSlug = orgSlugProp || urlOrgSlug || currentOrgSlug || ''
   
   const [users, setUsers] = useState<BusinessUser[]>([])
@@ -23,7 +32,7 @@ export function useBusinessUsers(orgSlugProp?: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orgData, setOrgData] = useState<{ id: string, name: string, logo_url?: string } | null>(null)
-  const getOrgBySlug = useOrganizationStore((state: any) => state.getOrganizationBySlug)
+  const getOrgBySlug = useOrganizationStore((state: OrganizationStoreState) => state.getOrganizationBySlug)
 
   // Sincronizar datos de la organización desde el store basándose en el slug
   useEffect(() => {
@@ -89,19 +98,9 @@ export function useBusinessUsers(orgSlugProp?: string) {
     fetchUsers()
   }, [fetchUsers])
 
-  const createUser = async (userData: {
-    username: string
-    email: string
-    password?: string
-    first_name?: string
-    last_name?: string
-    display_name?: string
-    job_title: string
-    org_role?: 'owner' | 'admin' | 'member'
-    send_invitation?: boolean
-  }) => {
+  const createUser = async (userData: CreateBusinessUserRequest) => {
     try {
-      const newUser = await BusinessUsersService.createUser(orgSlug, userData as any)
+      const newUser = await BusinessUsersService.createUser(orgSlug, userData)
 
       // Actualizar orgData si no lo teníamos
       if (!orgData && newUser.organization_id) {
@@ -131,8 +130,15 @@ export function useBusinessUsers(orgSlugProp?: string) {
     first_name?: string
     last_name?: string
     display_name?: string
+    email?: string
+    cargo_rol?: string
+    job_title?: string
     org_role?: 'owner' | 'admin' | 'member'
     org_status?: 'active' | 'invited' | 'suspended' | 'removed'
+    profile_picture_url?: string
+    bio?: string
+    location?: string
+    phone?: string
   }) => {
     try {
       const updatedUser = await BusinessUsersService.updateUser(orgSlug, userId, userData)
@@ -309,4 +315,3 @@ export function useBusinessUsers(orgSlugProp?: string) {
     deleteInviteLink
   }
 }
-

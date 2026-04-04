@@ -46,6 +46,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from 'react-i18next'
 import { useBusinessReportsLogic } from '../hooks/useBusinessReportsLogic'
 import { ReportContent } from './reports/ReportContent'
+import type { ReportData } from './reports/types'
 
 export function BusinessReports() {
   const {
@@ -377,7 +378,7 @@ export function BusinessReports() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <ReportContent reportType={reportType} data={reportData.data} />
+          <ReportContent reportType={reportType} data={reportData.data as ReportData} />
         </motion.div>
       )}
     </div>

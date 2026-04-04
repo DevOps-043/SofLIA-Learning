@@ -44,10 +44,36 @@ const THEME_PRESETS = [
 ]
 
 type EditTab = 'general' | 'members' | 'branding' | 'themes'
+type BrandingColorKey = 'brand_color_primary' | 'brand_color_secondary' | 'brand_color_accent'
+
+interface CompanyFormData {
+  name: string
+  slug: string
+  description: string
+  contact_email: string
+  contact_phone: string
+  website_url: string
+  subscription_plan: string
+  max_users: number
+  is_active: boolean
+  brand_logo_url: string
+  brand_banner_url: string
+  brand_favicon_url: string
+  brand_color_primary: string
+  brand_color_secondary: string
+  brand_color_accent: string
+  brand_font_family: string
+}
+
+const BRANDING_COLOR_FIELDS: Array<{ k: BrandingColorKey; l: string }> = [
+  { k: 'brand_color_primary', l: 'Primario' },
+  { k: 'brand_color_secondary', l: 'Secundario' },
+  { k: 'brand_color_accent', l: 'Acento' }
+]
 
 export function AdminEditCompanyModal({ company, onClose, onSave, isSaving }: EditModalProps) {
   const [activeTab, setActiveTab] = useState<EditTab>('general')
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CompanyFormData>({
     name: company.name || '',
     slug: company.slug || '',
     description: company.description || '',
@@ -134,6 +160,10 @@ export function AdminEditCompanyModal({ company, onClose, onSave, isSaving }: Ed
       brand_color_secondary: preset.secondary,
       brand_color_accent: preset.accent
     }))
+  }
+
+  const updateBrandingColor = (key: BrandingColorKey, value: string) => {
+    setFormData(prev => ({ ...prev, [key]: value }))
   }
 
   // Derived data
@@ -601,15 +631,15 @@ export function AdminEditCompanyModal({ company, onClose, onSave, isSaving }: Ed
                         <div>
                            <label className="text-xs text-gray-400 mb-4 block uppercase tracking-wider font-bold border-b border-white/5 pb-2">Paleta de Colores Personalizada</label>
                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              {[{k:'brand_color_primary', l:'Primario'}, {k:'brand_color_secondary', l:'Secundario'}, {k:'brand_color_accent', l:'Acento'}].map((c) => (
+                              {BRANDING_COLOR_FIELDS.map((c) => (
                                  <div key={c.k} className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
                                     <p className="text-[10px] text-gray-400 mb-2 uppercase font-medium">{c.l}</p>
                                     <div className="flex items-center gap-3">
                                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/20 shrink-0 relative shadow-lg">
-                                          <input type="color" value={(formData as any)[c.k]} onChange={(e) => setFormData({...formData, [c.k]: e.target.value} as any)} className="absolute inset-0 w-full h-full p-0 border-none cursor-pointer scale-150" />
+                                          <input type="color" value={formData[c.k]} onChange={(e) => updateBrandingColor(c.k, e.target.value)} className="absolute inset-0 w-full h-full p-0 border-none cursor-pointer scale-150" />
                                        </div>
                                        <div className="flex-1 min-w-0">
-                                          <input type="text" value={(formData as any)[c.k]} onChange={(e) => setFormData({...formData, [c.k]: e.target.value} as any)} className="w-full bg-transparent text-sm font-mono text-white outline-none border-b border-transparent focus:border-white/30" />
+                                          <input type="text" value={formData[c.k]} onChange={(e) => updateBrandingColor(c.k, e.target.value)} className="w-full bg-transparent text-sm font-mono text-white outline-none border-b border-transparent focus:border-white/30" />
                                        </div>
                                     </div>
                                  </div>

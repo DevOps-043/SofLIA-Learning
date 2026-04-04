@@ -8,6 +8,8 @@ import {
 } from './player/types';
 import { useCustomVideoPlayerState } from './player/useCustomVideoPlayerState';
 
+export type { CustomVideoPlayerRef } from './player/types';
+
 export const CustomVideoPlayer = forwardRef<
   CustomVideoPlayerRef,
   CustomVideoPlayerProps

@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, Plus, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { formatCalendarLabel } from '../hooks/study-planner-calendar.date'
 import type { CalendarHeaderProps } from './types'
 
 export function CalendarHeader({
@@ -23,12 +24,12 @@ export function CalendarHeader({
 }: CalendarHeaderProps) {
   const title =
     view === 'month'
-      ? currentDate.format('MMMM YYYY')
+      ? formatCalendarLabel(currentDate, 'MMMM yyyy')
       : view === 'week'
       ? weekRange
-        ? `${weekRange.start.format('D MMM')} - ${weekRange.end.format('D MMM YYYY')}`
+        ? `${formatCalendarLabel(weekRange.start, 'd MMM')} - ${formatCalendarLabel(weekRange.end, 'd MMM yyyy')}`
         : ''
-      : currentDate.format('dddd, D [de] MMMM [de] YYYY')
+      : formatCalendarLabel(currentDate, "EEEE, d 'de' MMMM 'de' yyyy")
 
   const goPrevious = view === 'month' ? goToPreviousMonth : view === 'week' ? goToPreviousWeek : goToPreviousDay
   const goNext = view === 'month' ? goToNextMonth : view === 'week' ? goToNextWeek : goToNextDay

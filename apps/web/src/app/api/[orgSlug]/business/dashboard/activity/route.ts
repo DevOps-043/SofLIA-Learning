@@ -11,6 +11,35 @@ interface ActivityItem {
   icon: string;
 }
 
+interface ActivityUserRow {
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+}
+
+interface ActivityCourseRow {
+  title: string | null;
+}
+
+interface CompletedCourseActivityRow {
+  completed_at: string | null;
+  completion_percentage: number | null;
+  user: ActivityUserRow | null;
+  course: ActivityCourseRow | null;
+}
+
+interface NewUserActivityRow {
+  joined_at: string | null;
+  user: ActivityUserRow | null;
+}
+
+interface StartedCourseActivityRow {
+  assigned_at: string | null;
+  completion_percentage: number | null;
+  user: ActivityUserRow | null;
+  course: ActivityCourseRow | null;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ orgSlug: string }> }
@@ -67,7 +96,8 @@ export async function GET(
         .or('status.eq.completed,completion_percentage.gte.100')
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false })
-        .limit(5),
+        .limit(5)
+        .returns<CompletedCourseActivityRow[]>(),
 
       // Usuarios que se unieron recientemente
       supabase
@@ -83,7 +113,8 @@ export async function GET(
         .eq('organization_id', organizationId)
         .not('joined_at', 'is', null)
         .order('joined_at', { ascending: false })
-        .limit(3),
+        .limit(3)
+        .returns<NewUserActivityRow[]>(),
 
       // Cursos iniciados recientemente
       supabase
@@ -105,6 +136,7 @@ export async function GET(
         .lt('completion_percentage', 100)
         .order('assigned_at', { ascending: false })
         .limit(3)
+        .returns<StartedCourseActivityRow[]>()
     ])
 
     const orgName = orgData?.name || 'tu organización'
@@ -112,7 +144,7 @@ export async function GET(
 
     // Procesar cursos completados
     if (completedCourses) {
-      completedCourses.forEach((item: any) => {
+      completedCourses.forEach((item) => {
         const userName = item.user?.display_name ||
           `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() ||
           'Usuario'
@@ -130,7 +162,7 @@ export async function GET(
 
     // Procesar nuevos usuarios
     if (newUsers) {
-      newUsers.forEach((item: any) => {
+      newUsers.forEach((item) => {
         const userName = item.user?.display_name ||
           `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() ||
           'Usuario'
@@ -147,7 +179,7 @@ export async function GET(
 
     // Procesar cursos iniciados
     if (startedCourses) {
-      startedCourses.forEach((item: any) => {
+      startedCourses.forEach((item) => {
         const userName = item.user?.display_name ||
           `${item.user?.first_name || ''} ${item.user?.last_name || ''}`.trim() ||
           'Usuario'

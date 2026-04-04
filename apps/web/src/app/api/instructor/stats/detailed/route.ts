@@ -441,8 +441,12 @@ export async function GET(request: NextRequest) {
     }
 
     ;(instructorNews || []).forEach(news => {
-      const views = (news.metrics as any)?.views || 0
-      const comments = (news.metrics as any)?.comments || 0
+      const metrics =
+        news.metrics && typeof news.metrics === 'object'
+          ? (news.metrics as { views?: number; comments?: number })
+          : {}
+      const views = metrics.views || 0
+      const comments = metrics.comments || 0
 
       newsData.totalViews += views
       newsData.totalComments += comments
@@ -545,4 +549,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '@/lib/supabase/server';
 
+type QuestionnaireKey = string | number | null;
+
+interface QuestionnaireUserProfileRow {
+  id: string;
+  area_id: QuestionnaireKey;
+  rol_id: QuestionnaireKey;
+  dificultad_id: QuestionnaireKey;
+}
+
+interface QuestionnaireQuestionRow extends Record<string, unknown> {
+  id: number;
+  bloque: string | null;
+  dificultad: QuestionnaireKey;
+  area_id: QuestionnaireKey;
+  exclusivo_rol_id: QuestionnaireKey;
+}
+
+interface QuestionnaireAnswerRow {
+  pregunta_id: number;
+  valor: unknown;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient();
@@ -112,8 +134,10 @@ export async function GET(request: NextRequest) {
     // 1. Priorizar preguntas específicas del rol (exclusivo_rol_id = rol_id)
     // 2. Luego preguntas específicas del área (area_id = area_id)
     // 3. Finalmente preguntas generales (area_id = null, exclusivo_rol_id = null)
-    const adopcionFiltered = allQuestionsByDifficulty
-      .filter((q: any) => {
+    const typedQuestions = (allQuestionsByDifficulty as QuestionnaireQuestionRow[] | null) || [];
+
+    const adopcionFiltered = typedQuestions
+      .filter((q) => {
         // Verificar bloque
         if (!q.bloque) return false;
         const bloqueLower = q.bloque.toLowerCase();
@@ -134,7 +158,7 @@ export async function GET(request: NextRequest) {
         
         return areaMatch && rolMatch;
       })
-      .sort((a: any, b: any) => {
+      .sort((a, b) => {
         // Prioridad 1: Preguntas específicas del rol (mayor prioridad)
         const aIsRolSpecific = a.exclusivo_rol_id === userProfile.rol_id;
         const bIsRolSpecific = b.exclusivo_rol_id === userProfile.rol_id;
@@ -154,8 +178,8 @@ export async function GET(request: NextRequest) {
     
     // Filtrar preguntas de Conocimiento que coincidan con área y rol
     // Misma estrategia de filtrado que Adopción
-    const conocimientoFiltered = allQuestionsByDifficulty
-      .filter((q: any) => {
+    const conocimientoFiltered = typedQuestions
+      .filter((q) => {
         // Verificar bloque
         if (!q.bloque) return false;
         const isConocimiento = q.bloque.toLowerCase().includes('conocimiento');
@@ -173,7 +197,7 @@ export async function GET(request: NextRequest) {
         
         return areaMatch && rolMatch;
       })
-      .sort((a: any, b: any) => {
+      .sort((a, b) => {
         // Prioridad 1: Preguntas específicas del rol (mayor prioridad)
         const aIsRolSpecific = a.exclusivo_rol_id === userProfile.rol_id;
         const bIsRolSpecific = b.exclusivo_rol_id === userProfile.rol_id;
@@ -249,10 +273,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Mapear respuestas existentes
-    const answersMap = existingAnswers?.reduce((acc: Record<number, any>, answer: any) => {
+    const answersMap = (existingAnswers as QuestionnaireAnswerRow[] | null)?.reduce((acc: Record<number, unknown>, answer) => {
       acc[answer.pregunta_id] = answer.valor;
       return acc;
-    }, {} as Record<number, any>) || {};
+    }, {} as Record<number, unknown>) || {};
 
     // Combinar preguntas con respuestas existentes
     const questionsWithAnswers = questions?.map(question => ({

@@ -3,6 +3,20 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface OrganizationUpdatePayload {
+  updated_at: string
+  name?: string
+  description?: string | null
+  contact_email?: string | null
+  contact_phone?: string | null
+  website_url?: string | null
+  logo_url?: string | null
+  slug?: string | null
+  max_users?: number
+  google_login_enabled?: boolean
+  microsoft_login_enabled?: boolean
+}
+
 /**
  * GET /api/business/settings/organization
  * Obtiene los datos de la organización del usuario autenticado
@@ -151,7 +165,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Preparar datos para actualizar
-    const updateData: any = {
+    const updateData: OrganizationUpdatePayload = {
       updated_at: new Date().toISOString()
     }
 
@@ -203,4 +217,3 @@ export async function PUT(request: NextRequest) {
     }, { status: 500 })
   }
 }
-

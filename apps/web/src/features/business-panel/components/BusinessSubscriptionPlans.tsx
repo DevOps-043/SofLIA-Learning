@@ -20,6 +20,7 @@ import {
   Info
 } from 'lucide-react'
 import { useBusinessSubscriptionPlansLogic } from '../hooks/useBusinessSubscriptionPlansLogic'
+import { formatPlanPrice, type BusinessPlanId } from '../services/subscription.utils'
 
 export function BusinessSubscriptionPlans() {
   const {
@@ -29,6 +30,7 @@ export function BusinessSubscriptionPlans() {
     planLoading,
     billingCycle, setBillingCycle,
     selectedPlan,
+    setSelectedPlan,
     isChangingPlan,
     changeError,
     changeSuccess,
@@ -618,4 +620,3 @@ export function BusinessSubscriptionPlans() {
     </div>
   )
 }
-

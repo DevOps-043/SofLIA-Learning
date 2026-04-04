@@ -7,6 +7,18 @@ import { SupportedLanguage } from '../../../core/i18n/i18n'
 
 export const dynamic = 'force-dynamic'
 
+interface TranslationLoadTestResult {
+  success: boolean
+  hasTranslations?: boolean
+  translationKeys?: string[]
+  sampleTranslation?: string
+  error?: string
+}
+
+interface ContentTranslationRow {
+  language_code: string
+}
+
 /**
  * Endpoint de prueba para verificar que el sistema de traducción funciona
  * GET /api/test-translation?courseId=xxx
@@ -92,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     // PASO 3: Probar carga de traducciones para cada idioma
 
-    const translationTests: Record<string, any> = {}
+    const translationTests: Record<string, TranslationLoadTestResult> = {}
     
     for (const lang of ['es', 'en', 'pt'] as SupportedLanguage[]) {
       try {
@@ -131,8 +143,8 @@ export async function GET(request: NextRequest) {
       summary: {
         originalLanguage: detectedLanguage,
         expectedTargetLanguages: detectedLanguage === 'es' ? ['en', 'pt'] : detectedLanguage === 'en' ? ['es', 'pt'] : ['es', 'en'],
-        actualTranslationsInDB: translations?.map((t: any) => t.language_code) || [],
-        allTranslationsLoaded: Object.values(translationTests).every((t: any) => t.success)
+        actualTranslationsInDB: (translations as ContentTranslationRow[] | null)?.map((translation) => translation.language_code) || [],
+        allTranslationsLoaded: Object.values(translationTests).every((translationTest) => translationTest.success)
       },
       environment: {
         hasOpenAIKey: !!process.env.OPENAI_API_KEY,
@@ -151,4 +163,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

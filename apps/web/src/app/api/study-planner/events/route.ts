@@ -12,6 +12,66 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../features/study-planner/services/calendar-integration.service';
 
+type AdminCalendarClient = ReturnType<typeof createAdminClient>;
+
+interface CalendarIntegrationMetadata {
+  secondary_calendar_id?: string;
+}
+
+interface CalendarIntegrationRow {
+  id: string;
+  access_token: string | null;
+  provider: 'google' | 'microsoft' | string;
+  refresh_token?: string | null;
+  expires_at?: string | null;
+  metadata?: CalendarIntegrationMetadata | null;
+}
+
+interface LocalCalendarEventRow {
+  id: string;
+  google_event_id?: string | null;
+  microsoft_event_id?: string | null;
+}
+
+interface StudySessionCalendarRow {
+  external_event_id: string | null;
+  calendar_provider: string | null;
+}
+
+interface ExternalCalendarEvent {
+  id: string;
+  summary?: string;
+  description?: string | null;
+  start?: { dateTime?: string; date?: string };
+  end?: { dateTime?: string; date?: string };
+  location?: string | null;
+  status?: string | null;
+}
+
+interface TokenRefreshResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+}
+
+interface CreateCalendarEventBody {
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  location?: string;
+  isAllDay?: boolean;
+  color?: string;
+}
+
+interface CreatedGoogleCalendarEvent {
+  id: string;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error interno del servidor';
+}
+
 // Crear cliente admin para bypass de RLS
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -113,10 +173,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       events: events || [],
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en GET /api/study-planner/events:', error);
     return NextResponse.json(
-      { error: error.message || 'Error interno del servidor' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -126,9 +186,9 @@ export async function GET(request: NextRequest) {
  * Sincroniza eventos eliminados: elimina eventos locales que fueron eliminados en Google/Microsoft Calendar
  */
 async function syncDeletedEvents(
-  supabase: any,
+  supabase: AdminCalendarClient,
   userId: string,
-  localEvents: any[],
+  localEvents: LocalCalendarEventRow[],
   startDate: string,
   endDate: string
 ) {
@@ -161,7 +221,7 @@ async function syncDeletedEvents(
     }
 
     // Obtener eventos actuales del calendario externo
-    let externalEvents: any[] = [];
+    let externalEvents: ExternalCalendarEvent[] = [];
     
     if (integration.provider === 'google') {
       externalEvents = await getGoogleCalendarEvents(accessToken, new Date(startDate), new Date(endDate));
@@ -171,11 +231,11 @@ async function syncDeletedEvents(
 
     // Crear un Set con los IDs de eventos externos que existen
     const externalEventIds = new Set(
-      externalEvents.map((e: any) => e.id)
+      externalEvents.map((e) => e.id)
     );
 
     // Encontrar eventos locales que tienen google_event_id pero ya no existen en el calendario externo
-    const eventsToDelete = localEvents.filter((localEvent: any) => {
+    const eventsToDelete = localEvents.filter((localEvent) => {
       const googleEventId = localEvent.google_event_id;
       const microsoftEventId = localEvent.microsoft_event_id;
       
@@ -197,7 +257,7 @@ async function syncDeletedEvents(
     // Eliminar eventos que fueron eliminados en el calendario externo
     if (eventsToDelete.length > 0) {
 
-      const eventIdsToDelete = eventsToDelete.map((e: any) => e.id);
+      const eventIdsToDelete = eventsToDelete.map((e) => e.id);
       
       const { error: deleteError } = await supabase
         .from('user_calendar_events')
@@ -220,7 +280,7 @@ async function syncDeletedEvents(
 /**
  * Limpia eventos huérfanos en user_calendar_events que corresponden a sesiones eliminadas
  */
-async function cleanupOrphanedPlanEvents(supabase: any, userId: string): Promise<void> {
+async function cleanupOrphanedPlanEvents(supabase: AdminCalendarClient, userId: string): Promise<void> {
   try {
     // Obtener todos los external_event_id de las sesiones activas
     const { data: activeSessions } = await supabase
@@ -231,7 +291,7 @@ async function cleanupOrphanedPlanEvents(supabase: any, userId: string): Promise
 
     // Crear un Set con los IDs de eventos activos (limpiando formato de recurrencia)
     const activeEventIds = new Set(
-      (activeSessions || []).map(s => {
+      ((activeSessions as StudySessionCalendarRow[] | null) || []).map((s) => {
         const eventId = s.external_event_id;
         return typeof eventId === 'string' ? eventId.split('_')[0] : eventId;
       })
@@ -287,7 +347,7 @@ async function cleanupOrphanedPlanEvents(supabase: any, userId: string): Promise
  * Obtiene eventos de Google Calendar
  * IMPORTANTE: Consulta TODOS los calendarios del usuario para detectar conflictos de horarios
  */
-async function getGoogleCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<any[]> {
+async function getGoogleCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<ExternalCalendarEvent[]> {
   try {
     // Usar el servicio centralizado que consulta todos los calendarios
     const events = await CalendarIntegrationService.getGoogleCalendarEvents(accessToken, startDate, endDate);
@@ -311,7 +371,7 @@ async function getGoogleCalendarEvents(accessToken: string, startDate: Date, end
 /**
  * Obtiene eventos de Microsoft Calendar
  */
-async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<any[]> {
+async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, endDate: Date): Promise<ExternalCalendarEvent[]> {
   try {
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/me/calendarview?` +
@@ -330,7 +390,7 @@ async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, 
       return [];
     }
 
-    const data = await response.json();
+    const data = await response.json() as { value?: ExternalCalendarEvent[] };
     return data.value || [];
   } catch (error) {
     console.error('Error obteniendo eventos de Microsoft Calendar:', error);
@@ -341,7 +401,7 @@ async function getMicrosoftCalendarEvents(accessToken: string, startDate: Date, 
 /**
  * Refresca el access token
  */
-async function refreshAccessToken(integration: any): Promise<{ success: boolean; accessToken?: string }> {
+async function refreshAccessToken(integration: CalendarIntegrationRow): Promise<{ success: boolean; accessToken?: string }> {
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID || 
                            process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID ||
                            process.env.GOOGLE_CLIENT_ID ||
@@ -374,7 +434,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
         return { success: false };
       }
 
-      const tokens = await response.json();
+      const tokens = await response.json() as TokenRefreshResponse;
       const supabase = createAdminClient();
       await supabase
         .from('calendar_integrations')
@@ -401,7 +461,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
         return { success: false };
       }
 
-      const tokens = await response.json();
+      const tokens = await response.json() as TokenRefreshResponse;
       const supabase = createAdminClient();
       await supabase
         .from('calendar_integrations')
@@ -433,7 +493,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await request.json() as CreateCalendarEventBody;
     const { title, description, start, end, location, isAllDay, color } = body;
 
     if (!title || !start || !end) {
@@ -454,13 +514,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     let googleEventId: string | null = null;
-    let provider = 'local';
+    let provider: 'local' | 'google' = 'local';
 
     // Si hay integración de Google, crear el evento en el calendario secundario de la plataforma
     if (integration?.access_token) {
       try {
         // Obtener el calendarId del calendario secundario
-        const metadata = integration.metadata as { secondary_calendar_id?: string } | null;
+        const metadata = integration.metadata as CalendarIntegrationMetadata | null;
         let secondaryCalendarId = metadata?.secondary_calendar_id || null;
 
         // Si no hay calendario secundario guardado, intentar crearlo
@@ -534,10 +594,10 @@ export async function POST(request: NextRequest) {
       success: true,
       event,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en POST /api/study-planner/events:', error);
     return NextResponse.json(
-      { error: error.message || 'Error interno del servidor' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -558,7 +618,7 @@ async function createGoogleCalendarEvent(
     isAllDay?: boolean;
   },
   calendarId: string | null = null
-) {
+) : Promise<CreatedGoogleCalendarEvent> {
   // Usar el calendario secundario de la plataforma si está disponible
   const targetCalendarId = calendarId || 'primary';
 
@@ -588,5 +648,5 @@ async function createGoogleCalendarEvent(
     throw new Error('Error creando evento en Google Calendar');
   }
 
-  return await response.json();
+  return await response.json() as CreatedGoogleCalendarEvent;
 }

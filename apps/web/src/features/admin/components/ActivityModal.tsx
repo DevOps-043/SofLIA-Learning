@@ -4,22 +4,40 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { Plus, Trash2, ClipboardList, Brain, Lightbulb, FileQuestion, MessageSquare, Bot, Clock } from 'lucide-react'
-import { AdminActivity } from '../services/adminActivities.service'
+import type { AdminActivity, CreateActivityData } from '../services/adminActivities.service'
 
 interface ActivityModalProps {
   activity?: AdminActivity | null
   lessonId: string
   onClose: () => void
-  onSave: (data: any) => Promise<void>
+  onSave: (data: CreateActivityData) => Promise<void>
 }
 
 type TabType = 'basic' | 'content'
+type ActivityType = AdminActivity['activity_type']
 
-export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityModalProps) {
-  const [formData, setFormData] = useState({
+interface ActivityFormData extends CreateActivityData {
+  activity_description: string
+  ai_prompts: string
+  estimated_time_minutes: number
+  is_required: boolean
+}
+
+function isActivityType(value: string): value is ActivityType {
+  return (
+    value === 'reflection' ||
+    value === 'exercise' ||
+    value === 'quiz' ||
+    value === 'discussion' ||
+    value === 'ai_chat'
+  )
+}
+
+export function ActivityModal({ activity, lessonId: _lessonId, onClose, onSave }: ActivityModalProps) {
+  const [formData, setFormData] = useState<ActivityFormData>({
     activity_title: '',
     activity_description: '',
-    activity_type: 'reflection' as 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat',
+    activity_type: 'reflection',
     activity_content: '',
     ai_prompts: '',
     is_required: false,
@@ -249,7 +267,14 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
                               <ActivityTypeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
                               <select
                                 value={formData.activity_type}
-                                onChange={(e) => setFormData(prev => ({ ...prev, activity_type: e.target.value as any }))}
+                                onChange={(e) => {
+                                  const nextType = e.target.value
+                                  if (!isActivityType(nextType)) {
+                                    return
+                                  }
+
+                                  setFormData(prev => ({ ...prev, activity_type: nextType }))
+                                }}
                                 className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
                               >
                                 <option value="reflection">Reflexión</option>
@@ -447,4 +472,3 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
     </AnimatePresence>
   )
 }
-

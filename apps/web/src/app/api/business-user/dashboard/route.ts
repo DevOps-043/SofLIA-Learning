@@ -26,6 +26,70 @@ interface AssignedCourse {
   source?: 'direct' | 'team'
 }
 
+interface RelatedCourseSummary {
+  id: string
+  title: string
+  slug: string | null
+  thumbnail_url: string | null
+  instructor_id: string | null
+}
+
+type RelatedCourseValue = RelatedCourseSummary | RelatedCourseSummary[] | null
+
+interface DirectAssignmentRow {
+  id: string
+  course_id: string
+  status: string
+  completion_percentage: number | null
+  assigned_at: string
+  due_date: string | null
+  completed_at: string | null
+  courses: RelatedCourseValue
+}
+
+interface TeamAssignmentRow {
+  id: string
+  team_id: string
+  course_id: string
+  status: string
+  assigned_at: string
+  due_date: string | null
+  message: string | null
+  courses: RelatedCourseValue
+}
+
+interface CombinedAssignmentRow extends DirectAssignmentRow {
+  source: 'direct' | 'team'
+}
+
+interface EnrollmentRow {
+  enrollment_id: string
+  course_id: string
+  overall_progress_percentage: number | null
+  enrollment_status: string | null
+  completed_at: string | null
+}
+
+interface InstructorRow {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  username: string | null
+}
+
+interface CertificateRow {
+  certificate_id: string
+  course_id: string
+}
+
+function getRelatedCourseSummary(value: RelatedCourseValue): RelatedCourseSummary | null {
+  if (Array.isArray(value)) {
+    return value[0] ?? null
+  }
+
+  return value
+}
+
 export async function GET() {
   try {
     const auth = await requireBusinessUser()
@@ -137,9 +201,9 @@ export async function GET() {
     // =====================================================
     // 🚀 OPTIMIZACIÓN: FASE 2 - Consultas dependientes en paralelo
     // =====================================================
-    let teamCourseAssignments: any[] = []
-    let enrollmentsMap = new Map<string, any>()
-    const instructorMap = new Map()
+    let teamCourseAssignments: TeamAssignmentRow[] = []
+    let enrollmentsMap = new Map<string, EnrollmentRow>()
+    const instructorMap = new Map<string, { name: string }>()
 
     // Preparar IDs de cursos de asignaciones directas
     const directCourseIds = new Set<string>()
@@ -194,7 +258,7 @@ export async function GET() {
     // Combinar ambas fuentes evitando duplicados
     // =====================================================
     const courseIdSet = new Set<string>()
-    const combinedAssignments: any[] = []
+    const combinedAssignments: CombinedAssignmentRow[] = []
 
     // Primero agregar asignaciones directas
     for (const assignment of (directAssignments || [])) {
@@ -231,8 +295,8 @@ export async function GET() {
     // 🚀 OPTIMIZACIÓN: FASE 3 - Enrollments e instructores en paralelo
     // =====================================================
     const instructorIds = [...new Set(combinedAssignments
-      .map((a: any) => a.courses?.instructor_id)
-      .filter(Boolean))]
+      .map((a) => getRelatedCourseSummary(a.courses)?.instructor_id)
+      .filter((id): id is string => Boolean(id)))]
 
     const [
       { data: enrollments, error: enrollmentsError },
@@ -258,7 +322,7 @@ export async function GET() {
     ])
 
     if (!enrollmentsError && enrollments) {
-      enrollments.forEach((enrollment: any) => {
+      ;(enrollments as EnrollmentRow[]).forEach((enrollment) => {
         enrollmentsMap.set(enrollment.course_id, enrollment)
       })
     } else if (enrollmentsError) {
@@ -266,7 +330,7 @@ export async function GET() {
     }
 
     if (instructors) {
-      instructors.forEach((instructor: any) => {
+      ;(instructors as InstructorRow[]).forEach((instructor) => {
         const fullName = `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim()
         instructorMap.set(instructor.id, {
           name: fullName || instructor.username || 'Instructor'
@@ -276,7 +340,7 @@ export async function GET() {
 
     // Crear mapa de certificados
     const certificatesMap = new Map<string, boolean>()
-    certificates?.forEach((cert: any) => {
+    ;(certificates as CertificateRow[] | null)?.forEach((cert) => {
       certificatesMap.set(cert.course_id, true)
     })
 
@@ -308,9 +372,15 @@ export async function GET() {
 
     // Transformar asignaciones a formato de cursos
     const courses: AssignedCourse[] = combinedAssignments
-      .filter((assignment: any) => assignment.courses)
-      .map((assignment: any) => {
-        const course = assignment.courses
+      .map((assignment) => ({
+        assignment,
+        course: getRelatedCourseSummary(assignment.courses)
+      }))
+      .filter(
+        (entry): entry is { assignment: CombinedAssignmentRow; course: RelatedCourseSummary } =>
+          entry.course !== null
+      )
+      .map(({ assignment, course }) => {
         const instructor = course?.instructor_id ? instructorMap.get(course.instructor_id) : null
         const enrollment = enrollmentsMap.get(assignment.course_id)
 

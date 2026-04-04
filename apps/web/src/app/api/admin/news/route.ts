@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     logger.log('🔄 Creando nueva noticia con datos:', JSON.stringify(body, null, 2))
 
     // Parsear campos JSON
-    const parseJsonField = (field: any) => {
+    const parseJsonField = (field: unknown) => {
       if (field === undefined || field === null || field === '') return null
       if (typeof field !== 'string') return field // Si ya es un objeto/array, devolverlo tal como está
       try {

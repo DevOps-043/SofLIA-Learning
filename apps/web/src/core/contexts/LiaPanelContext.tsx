@@ -7,15 +7,15 @@ interface LiaPanelContextType {
   openPanel: () => void;
   closePanel: () => void;
   togglePanel: () => void;
-  pageContext: any;
-  setPageContext: (data: any) => void;
+  pageContext: Record<string, unknown> | null;
+  setPageContext: (data: Record<string, unknown> | null) => void;
 }
 
 export const LiaPanelContext = createContext<LiaPanelContextType | undefined>(undefined);
 
 export function LiaPanelProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [pageContext, setPageContext] = useState<any>(null);
+  const [pageContext, setPageContext] = useState<Record<string, unknown> | null>(null);
 
   const openPanel = useCallback(() => {
     setIsOpen(true);

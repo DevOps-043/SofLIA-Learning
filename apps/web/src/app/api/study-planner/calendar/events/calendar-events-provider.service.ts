@@ -2,7 +2,12 @@ import {
   mapGoogleCalendarEvent,
   mapMicrosoftCalendarEvent,
 } from './calendar-events.utils'
-import type { ExternalCalendarEvent } from './calendar-events.types'
+import type {
+  ExternalCalendarEvent,
+  GoogleCalendarEventsResponse,
+  GoogleCalendarListResponse,
+  MicrosoftCalendarEventsResponse,
+} from './calendar-events.types'
 
 async function getEventsFromGoogleCalendar(
   accessToken: string,
@@ -29,8 +34,8 @@ async function getEventsFromGoogleCalendar(
       return []
     }
 
-    const data = await response.json()
-    return (data.items || []).map((event: Record<string, any>) =>
+    const data: GoogleCalendarEventsResponse = await response.json()
+    return (data.items || []).map((event) =>
       mapGoogleCalendarEvent(event, calendarId),
     )
   } catch {
@@ -78,7 +83,7 @@ export async function getGoogleCalendarEvents(
       )
     }
 
-    const calendarsData = await calendarsResponse.json()
+    const calendarsData: GoogleCalendarListResponse = await calendarsResponse.json()
     const calendars = calendarsData.items || []
     const allEvents: ExternalCalendarEvent[] = []
 
@@ -149,9 +154,9 @@ export async function getMicrosoftCalendarEvents(
           continue
         }
 
-        const data = await response.json()
+        const data: MicrosoftCalendarEventsResponse = await response.json()
         allEvents.push(
-          ...(data.value || []).map((event: Record<string, any>) =>
+          ...(data.value || []).map((event) =>
             mapMicrosoftCalendarEvent(event),
           ),
         )
@@ -177,8 +182,8 @@ export async function getMicrosoftCalendarEvents(
       return []
     }
 
-    const data = await response.json()
-    return (data.value || []).map((event: Record<string, any>) =>
+    const data: MicrosoftCalendarEventsResponse = await response.json()
+    return (data.value || []).map((event) =>
       mapMicrosoftCalendarEvent(event),
     )
   } catch {

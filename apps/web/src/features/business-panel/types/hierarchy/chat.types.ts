@@ -8,7 +8,7 @@ export interface HierarchyChat {
   created_at: string;
   description?: string | null;
   entity_id: string;
-  entity_type: 'region' | 'zone' | 'team';
+  entity_type: 'region' | 'zone' | 'team' | 'node';
   id: string;
   is_active: boolean;
   last_message_at?: string | null;
@@ -71,7 +71,7 @@ export interface CreateHierarchyChatRequest {
   chat_type: HierarchyChatType;
   description?: string;
   entity_id: string;
-  entity_type: 'region' | 'zone' | 'team';
+  entity_type: 'region' | 'zone' | 'team' | 'node';
   name?: string;
 }
 

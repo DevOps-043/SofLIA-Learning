@@ -5,6 +5,56 @@ import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
 
+interface CourseModuleRow {
+  module_id: string
+  module_title: string | null
+  module_description: string | null
+  module_order_index: number | null
+  module_duration_minutes: number | null
+  is_required: boolean | null
+  is_published: boolean | null
+}
+
+interface CourseLessonRow {
+  lesson_id: string
+  lesson_title: string | null
+  lesson_description: string | null
+  lesson_order_index: number | null
+  duration_seconds: number | null
+  total_duration_minutes: number | null
+  video_provider: string | null
+  video_provider_id: string | null
+  is_published: boolean | null
+}
+
+interface EstimatedMinutesRow {
+  estimated_time_minutes: number | null
+}
+
+interface CourseReviewUserRow {
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  username: string | null
+  profile_picture_url: string | null
+}
+
+interface CourseReviewRow {
+  review_id: string
+  review_title: string | null
+  review_content: string | null
+  rating: number | null
+  is_verified: boolean | null
+  created_at: string
+  user_id: string
+  users: CourseReviewUserRow | null
+}
+
+interface ModuleWithLessons extends CourseModuleRow {
+  lessons: CourseLessonRow[]
+  calculated_duration_minutes: number
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -172,10 +222,11 @@ export async function GET(
       .eq('course_id', course.id)
       .eq('is_published', true)
       .order('module_order_index', { ascending: true })
+      .returns<CourseModuleRow[]>()
 
     // Obtener lecciones para cada módulo
     const modulesWithLessons = await Promise.all(
-      (modules || []).map(async (module: any) => {
+      (modules || []).map(async (module): Promise<ModuleWithLessons> => {
         const { data: lessons, error: lessonsError } = await supabase
           .from('course_lessons')
           .select(`
@@ -192,9 +243,10 @@ export async function GET(
           .eq('module_id', module.module_id)
           .eq('is_published', true)
           .order('lesson_order_index', { ascending: true })
+          .returns<CourseLessonRow[]>()
 
         const lessonsList = lessons || []
-        const lessonIds = lessonsList.map((l: any) => l.lesson_id)
+        const lessonIds = lessonsList.map((lesson) => lesson.lesson_id)
 
         // Calcular duración usando total_duration_minutes de cada lección (prioridad)
         // Este campo ya incluye video + materiales + actividades
@@ -219,18 +271,24 @@ export async function GET(
             .from('lesson_materials')
             .select('estimated_time_minutes')
             .in('lesson_id', lessonIds)
+            .returns<EstimatedMinutesRow[]>()
 
-          const materialsMinutes = (materials || []).reduce((sum: number, m: any) =>
-            sum + (m.estimated_time_minutes || 0), 0)
+          const materialsMinutes = (materials || []).reduce(
+            (sum, material) => sum + (material.estimated_time_minutes || 0),
+            0
+          )
 
           // Obtener tiempo de actividades
           const { data: activities } = await supabase
             .from('lesson_activities')
             .select('estimated_time_minutes')
             .in('lesson_id', lessonIds)
+            .returns<EstimatedMinutesRow[]>()
 
-          const activitiesMinutes = (activities || []).reduce((sum: number, a: any) =>
-            sum + (a.estimated_time_minutes || 0), 0)
+          const activitiesMinutes = (activities || []).reduce(
+            (sum, activity) => sum + (activity.estimated_time_minutes || 0),
+            0
+          )
 
           totalModuleDuration += materialsMinutes + activitiesMinutes
         }
@@ -245,7 +303,7 @@ export async function GET(
     )
 
     // Obtener reviews recientes (usar course.id, no el parámetro id)
-    let reviews: any[] = []
+    let reviews: CourseReviewRow[] = []
     try {
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('course_reviews')
@@ -263,6 +321,7 @@ export async function GET(
         .eq('is_public', true)
         .order('created_at', { ascending: false })
         .limit(10)
+        .returns<CourseReviewRow[]>()
 
       if (reviewsError) {
         logger.warn('⚠️ Error fetching reviews (non-critical):', reviewsError)
@@ -277,10 +336,13 @@ export async function GET(
 
     // Calcular estadísticas de módulos y lecciones
     const totalModules = modulesWithLessons.length
-    const totalLessons = modulesWithLessons.reduce((sum: number, m: any) => sum + (m.lessons?.length || 0), 0)
+    const totalLessons = modulesWithLessons.reduce(
+      (sum, module) => sum + (module.lessons?.length || 0),
+      0
+    )
     // Usar calculated_duration_minutes que ya incluye videos + materiales + actividades
-    const totalDuration = modulesWithLessons.reduce((sum: number, m: any) => {
-      return sum + (m.calculated_duration_minutes || m.module_duration_minutes || 0)
+    const totalDuration = modulesWithLessons.reduce((sum, module) => {
+      return sum + (module.calculated_duration_minutes || module.module_duration_minutes || 0)
     }, 0)
 
     // Verificar membresía y estado de compra a nivel de organización
@@ -364,7 +426,7 @@ export async function GET(
           total_duration_minutes: totalDuration
         },
         modules: modulesWithLessons,
-        reviews: (reviews || []).map((review: any) => ({
+        reviews: (reviews || []).map((review) => ({
           id: review.review_id,
           title: review.review_title,
           content: review.review_content,
@@ -407,4 +469,3 @@ export async function GET(
     }, { status: 500 })
   }
 }
-

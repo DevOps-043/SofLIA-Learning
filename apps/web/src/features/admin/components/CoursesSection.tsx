@@ -148,7 +148,7 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
       const cData = await cRes.json()
       if (cData.success) {
           // FILTER: Only active and approved
-          const approvedCourses = cData.courses.filter((course: any) => 
+          const approvedCourses = (cData.courses as Course[]).filter((course) => 
             course.is_active === true && (course.approval_status === 'approved' || !course.approval_status)
           )
           setAllCourses(approvedCourses)

@@ -21,7 +21,7 @@ export interface AdminReporte {
   created_at: string
   updated_at: string
   resuelto_at?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   // 🎬 NUEVO: Campos de rrweb
   session_recording?: string
   recording_size?: string
@@ -117,7 +117,7 @@ export class AdminReportesService {
 
       // Obtener información de usuarios
       const reportesConUsuarios = await Promise.all(
-        (data || []).map(async (reporte: any) => {
+        (data || []).map(async (reporte: AdminReporte) => {
           // Obtener información del usuario que reportó
           let usuarioInfo = null
           if (reporte.user_id) {
@@ -253,7 +253,7 @@ export class AdminReportesService {
     const supabase = await createClient()
 
     try {
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       }
 
@@ -316,7 +316,7 @@ export class AdminReportesService {
       }
 
       // Contar por estado
-      reportes?.forEach((reporte: any) => {
+      reportes?.forEach((reporte: AdminReporte) => {
         switch (reporte.estado) {
           case 'pendiente':
             stats.pendientes++

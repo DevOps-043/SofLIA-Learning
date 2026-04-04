@@ -9,6 +9,7 @@ import {
   ChevronDown, ChevronRight, CheckCircle, Circle, PlayCircle, Lock,
   GraduationCap, Video, FileQuestion
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { UserDetail, UserProgressResponse, UserCourseProgress, UserLessonDetail } from './types'
 
 const fetcher = async (url: string) => {
@@ -150,7 +151,7 @@ export function UserProgressModal({ user, isOpen, onClose }: UserProgressModalPr
   )
 }
 
-function SidebarStat({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function SidebarStat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm dark:shadow-none border border-gray-100 dark:border-none">
       <div className="flex items-center gap-2">
@@ -290,7 +291,7 @@ function CourseCard({ course, formatDate }: { course: UserCourseProgress; format
   )
 }
 
-const LESSON_STATUS_ICON: Record<string, { icon: any; color: string }> = {
+const LESSON_STATUS_ICON: Record<string, { icon: LucideIcon; color: string }> = {
   completed: { icon: CheckCircle, color: 'text-green-400' },
   in_progress: { icon: PlayCircle, color: 'text-blue-400' },
   not_started: { icon: Circle, color: 'text-gray-500' },

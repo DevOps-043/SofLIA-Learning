@@ -7,8 +7,22 @@ import bcrypt from 'bcryptjs'
 
 interface ImportResult {
   success: number
-  errors: Array<{ row: number; error: string; data: any }>
+  errors: Array<{ row: number; error: string; data: Record<string, unknown> }>
   total: number
+}
+
+type ParsedImportUserRow = Record<string, string>
+
+interface UserInsertData {
+  username: string
+  email: string
+  first_name: string | null
+  last_name: string | null
+  display_name: string | null
+  cargo_rol: string
+  type_rol: string
+  organization_id: string
+  password_hash: string
 }
 
 export async function POST(request: NextRequest) {
@@ -180,7 +194,7 @@ export async function POST(request: NextRequest) {
         const values = parseCSVLine(line)
 
         // Crear objeto con los valores
-        const userData: any = {}
+        const userData: ParsedImportUserRow = {}
         headers.forEach((header, index) => {
           userData[header] = values[index]?.trim() || ''
         })
@@ -290,7 +304,7 @@ export async function POST(request: NextRequest) {
 
         const passwordHash = await bcrypt.hash(password, 10)
 
-        const userInsertData: any = {
+        const userInsertData: UserInsertData = {
           username: userData.username,
           email: userData.email,
           first_name: userData.first_name || null,

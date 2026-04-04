@@ -14,6 +14,12 @@ interface PromptFavoritesContextType {
 
 const PromptFavoritesContext = createContext<PromptFavoritesContextType | undefined>(undefined)
 
+interface ToggleFavoriteResponse {
+  error?: string
+  isFavorite?: boolean
+  message?: string
+}
+
 export function PromptFavoritesProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
@@ -107,7 +113,7 @@ export function PromptFavoritesProvider({ children }: { children: React.ReactNod
       
       // Leer el cuerpo de la respuesta una sola vez
       const responseText = await response.text()
-      let data: any
+      let data: ToggleFavoriteResponse
       
       try {
         data = JSON.parse(responseText)
@@ -208,4 +214,3 @@ export function usePromptFavorites() {
   }
   return context
 }
-

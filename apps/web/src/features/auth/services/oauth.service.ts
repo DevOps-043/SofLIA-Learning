@@ -1,10 +1,29 @@
 import { createClient } from '../../../lib/supabase/server';
+import type { Database } from '../../../lib/supabase/types';
 import {
   OAuthAccount,
   OAuthProvider,
   OAuthTokens,
   OAuthUserRecord,
 } from '../types/oauth.types';
+
+type OAuthAccountRow = Database['public']['Tables']['oauth_accounts']['Row'];
+
+function mapOAuthAccount(row: OAuthAccountRow): OAuthAccount {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    provider: row.provider as OAuthProvider,
+    provider_account_id: row.provider_account_id,
+    access_token: row.access_token ?? undefined,
+    refresh_token: row.refresh_token ?? undefined,
+    token_expires_at: row.token_expires_at ? new Date(row.token_expires_at) : undefined,
+    scope: row.scope ?? undefined,
+    token_type: row.token_type ?? undefined,
+    created_at: row.created_at ? new Date(row.created_at) : new Date(0),
+    updated_at: row.updated_at ? new Date(row.updated_at) : new Date(0),
+  };
+}
 
 export class OAuthService {
   /**
@@ -29,7 +48,7 @@ export class OAuthService {
           provider_account_id: providerAccountId,
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token || null,
-          token_expires_at: expiresAt,
+          token_expires_at: expiresAt?.toISOString() ?? null,
           scope: tokens.scope,
           token_type: tokens.token_type,
           updated_at: new Date().toISOString(),
@@ -45,7 +64,7 @@ export class OAuthService {
       throw new Error(`Error guardando cuenta OAuth: ${error.message}`);
     }
 
-    return data as OAuthAccount;
+    return mapOAuthAccount(data);
   }
 
   /**
@@ -71,7 +90,7 @@ export class OAuthService {
       throw new Error(`Error buscando cuenta OAuth: ${error.message}`);
     }
 
-    return data as OAuthAccount;
+    return mapOAuthAccount(data);
   }
 
   /**
@@ -89,7 +108,7 @@ export class OAuthService {
       throw new Error(`Error buscando cuentas OAuth: ${error.message}`);
     }
 
-    return data as OAuthAccount[];
+    return data.map(mapOAuthAccount);
   }
 
   /**

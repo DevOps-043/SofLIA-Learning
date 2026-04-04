@@ -14,7 +14,7 @@ interface EmbeddedLiaPanelHeaderProps {
   onToggleModeDropdown: () => void;
   onClearHistory: () => void;
   onCollapse: () => void;
-  modeButtonRef: RefObject<HTMLButtonElement | null>;
+  modeButtonRef: RefObject<HTMLButtonElement>;
 }
 
 export function EmbeddedLiaPanelHeader({

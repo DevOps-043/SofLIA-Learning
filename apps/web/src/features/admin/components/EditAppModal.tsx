@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { XMarkIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { AdminApp, AdminAppsService } from '../services/adminApps.service'
+import type { AdminApp, AdminCategory } from '../services/adminApps.service'
+import { AdminAppsService } from '../services/adminApps.service'
 
 interface EditAppModalProps {
   isOpen: boolean
@@ -13,7 +14,7 @@ interface EditAppModalProps {
 
 export function EditAppModal({ isOpen, onClose, onSave, app }: EditAppModalProps) {
   const [formData, setFormData] = useState<Partial<AdminApp>>({})
-  const [categories, setCategories] = useState<any[]>([])
+  const [categories, setCategories] = useState<AdminCategory[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

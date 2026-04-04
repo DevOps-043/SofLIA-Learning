@@ -1,4 +1,10 @@
-export function isMultipleAttachmentData(attachmentData?: any) {
+interface AttachmentMetadata extends Record<string, unknown> {
+  isMultiple?: boolean
+  attachments?: unknown[]
+  videoId?: string | null
+}
+
+export function isMultipleAttachmentData(attachmentData?: AttachmentMetadata) {
   return Boolean(
     attachmentData?.isMultiple &&
       attachmentData?.attachments &&
@@ -16,7 +22,7 @@ export function hasValidAttachmentUrl(attachmentUrl?: string) {
   return Boolean(attachmentUrl && attachmentUrl.trim() !== '')
 }
 
-export function extractYouTubeVideoId(attachmentUrl?: string, attachmentData?: any) {
+export function extractYouTubeVideoId(attachmentUrl?: string, attachmentData?: AttachmentMetadata) {
   let videoId = attachmentData?.videoId
 
   if (!videoId && attachmentUrl) {

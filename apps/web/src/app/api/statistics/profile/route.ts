@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     if (existingProfile) {
       // Preparar datos de actualización
       // IMPORTANTE: Asegurar que rol_id se guarde correctamente
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         cargo_titulo,
         rol_id: rol_id, // Siempre guardar rol_id (ya validado arriba)
         nivel_id,
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Preparar datos de inserción
       // IMPORTANTE: Asegurar que rol_id se guarde correctamente
-      const insertData: any = {
+      const insertData: Record<string, unknown> = {
         user_id: user.id,
         cargo_titulo,
         rol_id: rol_id, // Siempre guardar rol_id (ya validado arriba)

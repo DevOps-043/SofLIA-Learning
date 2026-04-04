@@ -38,7 +38,7 @@ export interface BusinessInvitation {
   status: string
   created_at: string
   expires_at: string
-  metadata?: any
+  metadata?: Record<string, unknown>
 }
 
 export interface BulkInviteLink {
@@ -66,7 +66,7 @@ export interface BusinessUserStats {
 export interface CreateBusinessUserRequest {
   username: string
   email: string
-  password: string
+  password?: string
   first_name?: string
   last_name?: string
   display_name?: string
@@ -244,4 +244,3 @@ export class BusinessUsersService {
     }
   }
 }
-

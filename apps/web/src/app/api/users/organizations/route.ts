@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/users/organizations
@@ -83,7 +84,7 @@ export async function GET(request: NextRequest) {
       organizations,
     });
   } catch (error) {
-    console.error('Error in /api/users/organizations:', error);
+    logger.error('Error in /api/users/organizations:', error);
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
       { status: 500 }

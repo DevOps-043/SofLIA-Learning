@@ -235,7 +235,7 @@ export function ZoneForm({ zone, regions, selectedRegionId, isOpen, onClose, onS
                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Latitud</label>
                <input
                  type="number"
-                 step="any"
+                step={0.000001}
                  value={formData.latitude}
                  onChange={(e) => updateField('latitude', e.target.value)}
                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -247,7 +247,7 @@ export function ZoneForm({ zone, regions, selectedRegionId, isOpen, onClose, onS
                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Longitud</label>
                <input
                  type="number"
-                 step="any"
+                step={0.000001}
                  value={formData.longitude}
                  onChange={(e) => updateField('longitude', e.target.value)}
                  className="w-full px-3 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -320,4 +320,3 @@ interface TeamFormProps {
   isLoading?: boolean;
   availableLeaders?: ManagerInfo[];
 }
-

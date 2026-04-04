@@ -3,6 +3,25 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface HierarchyEntityInfo {
+  id: string
+  name: string
+  code: string | null
+  description: string | null
+}
+
+interface HierarchyAssignmentUpdateData {
+  due_date?: string | null
+  start_date?: string | null
+  approach?: string | null
+  message?: string | null
+  status?: string
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error interno del servidor'
+}
+
 /**
  * GET /api/business/hierarchy/courses/assignments/[id]
  * Obtiene el detalle de una asignación jerárquica
@@ -74,7 +93,7 @@ export async function GET(
     // Determinar tipo de entidad y obtener información
     let entity_type: string | null = null
     let entity_id: string | null = null
-    let entity: any = null
+    let entity: HierarchyEntityInfo | null = null
 
     const { data: regionData } = await supabase
       .from('region_course_assignments')
@@ -145,11 +164,11 @@ export async function GET(
         entity
       }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en GET /api/business/hierarchy/courses/assignments/[id]:', error)
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error interno del servidor'
+      error: getErrorMessage(error)
     }, { status: 500 })
   }
 }
@@ -194,7 +213,7 @@ export async function PUT(
     }
 
     // Preparar datos de actualización
-    const updateData: any = {}
+    const updateData: HierarchyAssignmentUpdateData = {}
 
     if (due_date !== undefined) updateData.due_date = due_date || null
     if (start_date !== undefined) updateData.start_date = start_date || null
@@ -238,11 +257,11 @@ export async function PUT(
       success: true,
       data: updatedAssignment
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en PUT /api/business/hierarchy/courses/assignments/[id]:', error)
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error interno del servidor'
+      error: getErrorMessage(error)
     }, { status: 500 })
   }
 }
@@ -309,12 +328,11 @@ export async function DELETE(
       success: true,
       message: 'Asignación cancelada exitosamente'
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en DELETE /api/business/hierarchy/courses/assignments/[id]:', error)
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error interno del servidor'
+      error: getErrorMessage(error)
     }, { status: 500 })
   }
 }
-

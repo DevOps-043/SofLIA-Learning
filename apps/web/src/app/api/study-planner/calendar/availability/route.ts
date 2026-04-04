@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
 import type { CalendarAvailability, CalendarEvent } from '../../../../../features/study-planner/types/user-context.types';
+import { logger } from '@/lib/logger';
 
 interface AvailabilityResponse {
   success: boolean;
@@ -127,7 +128,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<Availabili
     });
     
   } catch (error) {
-    console.error('Error obteniendo disponibilidad del calendario:', error);
+    logger.error('Error obteniendo disponibilidad del calendario:', error);
     return NextResponse.json(
       { 
         success: false, 
@@ -137,4 +138,3 @@ export async function GET(request: NextRequest): Promise<NextResponse<Availabili
     );
   }
 }
-

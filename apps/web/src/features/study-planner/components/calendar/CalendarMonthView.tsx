@@ -62,7 +62,7 @@ export function CalendarMonthView({
                         }
                       `}
                     >
-                      {dayInfo.date.format('D')}
+                      {dayInfo.dayNumber}
                     </span>
                   </div>
 

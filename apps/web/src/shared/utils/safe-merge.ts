@@ -4,6 +4,8 @@
  * @see https://owasp.org/www-community/attacks/Prototype_Pollution
  */
 
+type SafeMergeRecord = Record<string, unknown>
+
 /**
  * Lista de keys peligrosas que pueden contaminar prototipos
  */
@@ -15,39 +17,42 @@ const DANGEROUS_KEYS = [
   '__defineSetter__',
   '__lookupGetter__',
   '__lookupSetter__',
-] as const;
+] as const
+
+function isMergeableRecord(value: unknown): value is SafeMergeRecord {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
 
 /**
  * Verifica si una key es peligrosa para el prototipo
  */
 export function isDangerousKey(key: string): boolean {
-  return (DANGEROUS_KEYS as readonly string[]).includes(key);
+  return (DANGEROUS_KEYS as readonly string[]).includes(key)
 }
 
 /**
  * Filtra un objeto removiendo keys peligrosas
  */
-export function sanitizeObject<T extends Record<string, any>>(obj: T): Partial<T> {
-  if (!obj || typeof obj !== 'object') {
-    return obj;
+export function sanitizeObject<T extends SafeMergeRecord>(obj: T): Partial<T> {
+  if (!isMergeableRecord(obj)) {
+    return obj
   }
 
-  const sanitized: Record<string, any> = {};
+  const sanitized: Partial<T> = {}
 
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key) && !isDangerousKey(key)) {
-      const value = obj[key];
+      const value = obj[key]
 
-      // Sanitizar recursivamente si es un objeto
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        sanitized[key] = sanitizeObject(value);
+      if (isMergeableRecord(value)) {
+        sanitized[key as keyof T] = sanitizeObject(value) as T[keyof T]
       } else {
-        sanitized[key] = value;
+        sanitized[key as keyof T] = value as T[keyof T]
       }
     }
   }
 
-  return sanitized as Partial<T>;
+  return sanitized
 }
 
 /**
@@ -63,65 +68,64 @@ export function sanitizeObject<T extends Record<string, any>>(obj: T): Partial<T
  * const result = safeMerge(user, maliciousData);
  * // result = { name: 'John' } (sin __proto__)
  */
-export function safeMerge<T extends Record<string, any>>(
+export function safeMerge<T extends SafeMergeRecord>(
   target: T,
-  ...sources: Array<Record<string, any> | null | undefined>
+  ...sources: Array<SafeMergeRecord | null | undefined>
 ): T {
-  const result = { ...target };
+  const result = { ...target }
 
   for (const source of sources) {
-    if (!source || typeof source !== 'object') {
-      continue;
+    if (!isMergeableRecord(source)) {
+      continue
     }
 
-    const sanitizedSource = sanitizeObject(source);
+    const sanitizedSource = sanitizeObject(source)
 
     for (const key in sanitizedSource) {
       if (Object.prototype.hasOwnProperty.call(sanitizedSource, key)) {
-        result[key as keyof T] = sanitizedSource[key] as any;
+        result[key as keyof T] = sanitizedSource[key] as T[keyof T]
       }
     }
   }
 
-  return result;
+  return result
 }
 
 /**
  * Assign seguro que previene Prototype Pollution
- * Similar a Object.assign pero con validación de keys peligrosas
+ * Similar a Object.assign pero con validaciÃ³n de keys peligrosas
  *
  * @param target - Objeto destino
  * @param sources - Objetos fuente
  * @returns Objeto destino modificado
  */
-export function safeAssign<T extends Record<string, any>>(
+export function safeAssign<T extends SafeMergeRecord>(
   target: T,
-  ...sources: Array<Record<string, any> | null | undefined>
+  ...sources: Array<SafeMergeRecord | null | undefined>
 ): T {
   for (const source of sources) {
-    if (!source || typeof source !== 'object') {
-      continue;
+    if (!isMergeableRecord(source)) {
+      continue
     }
 
     for (const key in source) {
       if (Object.prototype.hasOwnProperty.call(source, key) && !isDangerousKey(key)) {
-        const value = source[key];
+        const value = source[key]
 
-        // Sanitizar recursivamente si es un objeto
-        if (value && typeof value === 'object' && !Array.isArray(value)) {
-          target[key as keyof T] = sanitizeObject(value) as any;
+        if (isMergeableRecord(value)) {
+          target[key as keyof T] = sanitizeObject(value) as T[keyof T]
         } else {
-          target[key as keyof T] = value;
+          target[key as keyof T] = value as T[keyof T]
         }
       }
     }
   }
 
-  return target;
+  return target
 }
 
 /**
- * Crea un objeto sin prototipo (más seguro para datos externos)
+ * Crea un objeto sin prototipo (mÃ¡s seguro para datos externos)
  *
  * @param obj - Objeto fuente
  * @returns Objeto sin prototipo con los mismos datos
@@ -130,48 +134,45 @@ export function safeAssign<T extends Record<string, any>>(
  * const safe = createSafeObject({ name: 'John' });
  * console.log(safe.__proto__); // undefined
  */
-export function createSafeObject<T extends Record<string, any>>(obj: T): T {
-  const safe = Object.create(null);
-  const sanitized = sanitizeObject(obj);
+export function createSafeObject<T extends SafeMergeRecord>(obj: T): T {
+  const safe: SafeMergeRecord = Object.create(null)
+  const sanitized = sanitizeObject(obj)
 
   for (const key in sanitized) {
     if (Object.prototype.hasOwnProperty.call(sanitized, key)) {
-      safe[key] = sanitized[key];
+      safe[key] = sanitized[key]
     }
   }
 
-  return safe;
+  return safe as T
 }
 
 /**
  * Valida que un objeto no contenga keys peligrosas
- * Útil para validación de entrada antes de procesamiento
+ * Ãštil para validaciÃ³n de entrada antes de procesamiento
  *
  * @param obj - Objeto a validar
  * @returns true si el objeto es seguro, false si contiene keys peligrosas
  */
-export function isObjectSafe(obj: Record<string, any>): boolean {
-  if (!obj || typeof obj !== 'object') {
-    return true;
+export function isObjectSafe(obj: SafeMergeRecord): boolean {
+  if (!isMergeableRecord(obj)) {
+    return true
   }
 
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       if (isDangerousKey(key)) {
-        return false;
+        return false
       }
 
-      // Validar recursivamente
-      const value = obj[key];
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        if (!isObjectSafe(value)) {
-          return false;
-        }
+      const value = obj[key]
+      if (isMergeableRecord(value) && !isObjectSafe(value)) {
+        return false
       }
     }
   }
 
-  return true;
+  return true
 }
 
 /**
@@ -181,9 +182,9 @@ export function isObjectSafe(obj: Record<string, any>): boolean {
  * @param context - Contexto para el mensaje de error (opcional)
  * @throws Error si el objeto contiene keys peligrosas
  */
-export function validateObject(obj: Record<string, any>, context?: string): void {
+export function validateObject(obj: SafeMergeRecord, context?: string): void {
   if (!isObjectSafe(obj)) {
-    const contextMsg = context ? ` (${context})` : '';
-    throw new Error(`Objeto contiene keys peligrosas que pueden causar Prototype Pollution${contextMsg}`);
+    const contextMsg = context ? ` (${context})` : ''
+    throw new Error(`Objeto contiene keys peligrosas que pueden causar Prototype Pollution${contextMsg}`)
   }
 }

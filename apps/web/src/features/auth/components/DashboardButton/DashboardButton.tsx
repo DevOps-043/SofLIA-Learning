@@ -5,6 +5,14 @@ import { Loader2, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { redirectToDashboard } from '../../actions/dashboard-redirect';
 
+function getRedirectDigest(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('digest' in error)) {
+    return null;
+  }
+
+  return typeof error.digest === 'string' ? error.digest : null;
+}
+
 export function DashboardButton() {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -15,7 +23,7 @@ export function DashboardButton() {
     } catch (error) {
       // Verificar si es una redirección de Next.js (no es un error real)
       if (error && typeof error === 'object' && 'digest' in error) {
-        const digest = (error as any).digest;
+        const digest = getRedirectDigest(error);
         if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
           // Es una redirección exitosa, dejar que Next.js la maneje
           return;
@@ -58,4 +66,3 @@ export function DashboardButton() {
     </motion.button>
   );
 }
-

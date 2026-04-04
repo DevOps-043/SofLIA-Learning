@@ -10,6 +10,7 @@ interface OrganizationAuthLayoutProps {
   organization: {
     id: string;
     name: string;
+    slug?: string | null;
     logo_url: string | null;
     description?: string | null;
     brand_color_primary?: string | null;
@@ -48,7 +49,7 @@ export function OrganizationAuthLayout({
   useEffect(() => {
     const fetchLoginStyles = async () => {
       try {
-        const slug = (organization as any).slug;
+        const slug = organization.slug;
         if (!slug) return;
 
         const response = await fetch(`/api/organizations/${slug}/styles`, {
@@ -107,7 +108,10 @@ export function OrganizationAuthLayout({
 
   // Si hay imagen de fondo definida en loginStyles, backgroundStyle la tendrá.
   // Si no, usamos el color de fondo por defecto adaptativo.
-  const pageBackground = !loginStyles?.background_image ? { backgroundColor: defaultPageBg } : {};
+  const pageBackground =
+    loginStyles?.background_type === 'image' && loginStyles.background_value
+      ? {}
+      : { backgroundColor: defaultPageBg };
 
   return (
     <div 

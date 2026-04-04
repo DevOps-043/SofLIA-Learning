@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import { consumeBulkInvitationAction } from '@/features/auth/actions/invitation'
+import {
+  consumeBulkInvitation,
+  createInvitationRuntime,
+} from '@/features/auth/actions/invitation/index'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 
 interface BulkInviteOrganizationRow {
@@ -276,7 +279,11 @@ export async function POST(
       )
     }
 
-    const result = await consumeBulkInvitationAction(token, authenticatedUserId);
+    const result = await consumeBulkInvitation(
+      token,
+      authenticatedUserId,
+      await createInvitationRuntime(),
+    );
 
     if (!result.success) {
       const status = result.error?.includes('encontrado') ? 404 : 400;

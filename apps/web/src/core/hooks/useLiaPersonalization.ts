@@ -3,21 +3,21 @@
 import { useState, useCallback } from 'react';
 import useSWR from 'swr';
 import type {
-  LiaPersonalizationSettings,
-  LiaPersonalizationSettingsInput,
+  SofLIAPersonalizationSettings,
+  SofLIAPersonalizationSettingsInput,
 } from '../types/lia-personalization.types';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 interface UseLiaPersonalizationReturn {
-  settings: LiaPersonalizationSettings | null;
+  settings: SofLIAPersonalizationSettings | null;
   loading: boolean;
   error: string | null;
-  updateSettings: (settings: LiaPersonalizationSettingsInput) => Promise<void>;
+  updateSettings: (settings: SofLIAPersonalizationSettingsInput) => Promise<void>;
   resetSettings: () => Promise<void>;
   refetch: () => Promise<void>;
 }
 
-const fetcher = async (url: string): Promise<LiaPersonalizationSettings | null> => {
+const fetcher = async (url: string): Promise<SofLIAPersonalizationSettings | null> => {
   const res = await fetch(url, {
     credentials: 'include',
     headers: {
@@ -31,7 +31,7 @@ const fetcher = async (url: string): Promise<LiaPersonalizationSettings | null> 
     }
     const errorData = await res.json().catch(() => ({ error: res.statusText }));
     const error = new Error(errorData.error || errorData.message || 'Error al cargar configuración');
-    (error as any).status = res.status;
+    (error as Error & { status?: number }).status = res.status;
     throw error;
   }
 
@@ -43,7 +43,7 @@ export function useLiaPersonalization(): UseLiaPersonalizationReturn {
   const { user } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: settings, error, isLoading, mutate } = useSWR<LiaPersonalizationSettings | null>(
+  const { data: settings, error, isLoading, mutate } = useSWR<SofLIAPersonalizationSettings | null>(
     user?.id ? '/api/lia/personalization' : null,
     fetcher,
     {
@@ -58,7 +58,7 @@ export function useLiaPersonalization(): UseLiaPersonalizationReturn {
   );
 
   const updateSettings = useCallback(
-    async (newSettings: LiaPersonalizationSettingsInput) => {
+    async (newSettings: SofLIAPersonalizationSettingsInput) => {
       if (!user?.id) {
         throw new Error('Usuario no autenticado');
       }
@@ -127,4 +127,3 @@ export function useLiaPersonalization(): UseLiaPersonalizationReturn {
     refetch,
   };
 }
-

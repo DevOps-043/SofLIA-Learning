@@ -10,10 +10,34 @@
 
 export type DiffStatus = 'added' | 'removed' | 'modified' | 'unchanged'
 
+interface CourseDiffLessonSnapshot {
+    lesson_order_index: number
+    lesson_title: string
+    video_provider_id?: string | null
+    duration_seconds?: number | null
+    transcript_content?: string | null
+    summary_content?: string | null
+}
+
+interface CourseDiffModuleSnapshot extends Record<string, unknown> {
+    module_order_index: number
+    module_title: string
+    lessons?: CourseDiffLessonSnapshot[]
+}
+
+interface CourseDiffCourseSnapshot extends Record<string, unknown> {
+    title?: string
+    description?: string
+    level?: string
+    category?: string
+    thumbnail_url?: string | null
+    modules?: CourseDiffModuleSnapshot[]
+}
+
 export interface FieldChange {
     field: string
-    oldValue: any
-    newValue: any
+    oldValue: unknown
+    newValue: unknown
 }
 
 export interface DiffLesson {
@@ -22,9 +46,9 @@ export interface DiffLesson {
     original_title?: string
     changes: FieldChange[]
     /** Full proposed lesson data (for rendering) */
-    proposed?: any
+    proposed?: CourseDiffLessonSnapshot
     /** Full original lesson data (for rendering) */
-    original?: any
+    original?: CourseDiffLessonSnapshot
 }
 
 export interface DiffModule {
@@ -50,7 +74,7 @@ export interface CourseDiff {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function normalizeValue(val: any): any {
+function normalizeValue(val: unknown): unknown {
     if (val === undefined || val === null) return null
     if (typeof val === 'string') {
         const trimmed = val.trim()
@@ -60,8 +84,8 @@ function normalizeValue(val: any): any {
 }
 
 function compareFields(
-    original: Record<string, any>,
-    proposed: Record<string, any>,
+    original: Record<string, unknown>,
+    proposed: Record<string, unknown>,
     fields: string[]
 ): FieldChange[] {
     const changes: FieldChange[] = []
@@ -78,8 +102,8 @@ function compareFields(
 // ─── Main diff function ──────────────────────────────────────────────────────
 
 export function buildCourseDiff(
-    originalCourse: any,
-    proposedPreview: any
+    originalCourse: CourseDiffCourseSnapshot,
+    proposedPreview: CourseDiffCourseSnapshot
 ): CourseDiff {
     // ── Course-level changes ─────────────────────────────────────────────
     const courseFields = ['title', 'description', 'level', 'category', 'thumbnail_url']
@@ -90,16 +114,16 @@ export function buildCourseDiff(
     )
 
     // ── Module & Lesson diff ─────────────────────────────────────────────
-    const originalModules: any[] = originalCourse.modules ?? []
-    const proposedModules: any[] = proposedPreview.modules ?? []
+    const originalModules = originalCourse.modules ?? []
+    const proposedModules = proposedPreview.modules ?? []
 
     // Match modules by order_index (the canonical key from CourseEngine)
-    const originalByOrder = new Map<number, any>()
+    const originalByOrder = new Map<number, CourseDiffModuleSnapshot>()
     for (const m of originalModules) {
         originalByOrder.set(m.module_order_index, m)
     }
 
-    const proposedByOrder = new Map<number, any>()
+    const proposedByOrder = new Map<number, CourseDiffModuleSnapshot>()
     for (const m of proposedModules) {
         proposedByOrder.set(m.module_order_index, m)
     }
@@ -121,7 +145,7 @@ export function buildCourseDiff(
         if (!orig && prop) {
             // Entire module is NEW
             modulesAdded++
-            const newLessons = (prop.lessons ?? []).map((l: any) => ({
+            const newLessons = (prop.lessons ?? []).map((l) => ({
                 status: 'added' as DiffStatus,
                 lesson_title: l.lesson_title,
                 changes: [],
@@ -137,7 +161,7 @@ export function buildCourseDiff(
         } else if (orig && !prop) {
             // Entire module was REMOVED
             modulesRemoved++
-            const removedLessons = (orig.lessons ?? []).map((l: any) => ({
+            const removedLessons = (orig.lessons ?? []).map((l) => ({
                 status: 'removed' as DiffStatus,
                 lesson_title: l.lesson_title,
                 changes: [],
@@ -155,11 +179,11 @@ export function buildCourseDiff(
             const modChanges = compareFields(orig, prop, ['module_title'])
 
             // Lessons diff within this module
-            const origLessons: any[] = orig.lessons ?? []
-            const propLessons: any[] = prop.lessons ?? []
-            const origLessonByOrder = new Map<number, any>()
+            const origLessons = orig.lessons ?? []
+            const propLessons = prop.lessons ?? []
+            const origLessonByOrder = new Map<number, CourseDiffLessonSnapshot>()
             for (const l of origLessons) origLessonByOrder.set(l.lesson_order_index, l)
-            const propLessonByOrder = new Map<number, any>()
+            const propLessonByOrder = new Map<number, CourseDiffLessonSnapshot>()
             for (const l of propLessons) propLessonByOrder.set(l.lesson_order_index, l)
 
             const allLessonOrders = new Set<number>([

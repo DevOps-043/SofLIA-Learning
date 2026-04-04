@@ -4,8 +4,14 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BarChart3 } from 'lucide-react'
 
+interface PollAttachmentData {
+  question?: string
+  options?: string[]
+  votes?: Record<string, string[]>
+}
+
 interface InteractivePollProps {
-  attachmentData: any
+  attachmentData: PollAttachmentData
   postId?: string
   communitySlug?: string
 }
@@ -91,7 +97,7 @@ export function InteractivePoll({
     }
 
     const totalVotes = Object.values(pollData.votes).reduce(
-      (total: number, votes: any) =>
+      (total: number, votes: string[]) =>
         total + (Array.isArray(votes) ? votes.length : 0),
       0,
     )
@@ -110,7 +116,7 @@ export function InteractivePoll({
     }
 
     return Object.values(pollData.votes).reduce(
-      (total: number, votes: any) =>
+      (total: number, votes: string[]) =>
         total + (Array.isArray(votes) ? votes.length : 0),
       0,
     )

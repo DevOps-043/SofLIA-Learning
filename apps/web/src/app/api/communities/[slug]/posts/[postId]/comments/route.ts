@@ -1,6 +1,80 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { fromLoose } from '@/lib/supabase/looseQuery';
+
+interface CommunityCommentRow {
+  id: string;
+  post_id: string;
+  community_id: string;
+  user_id: string;
+  content: string;
+  parent_comment_id: string | null;
+  is_deleted: boolean | null;
+  created_at: string;
+  [key: string]: unknown;
+}
+
+interface CommunityCommentInsertRow {
+  post_id: string;
+  community_id: string;
+  user_id: string;
+  content: string;
+  parent_comment_id?: string | null;
+}
+
+interface CommunityLookupRow {
+  id: string;
+}
+
+interface CommentUserSummary {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  username: string | null;
+}
+
+function commentsTable(client: unknown) {
+  return fromLoose<CommunityCommentRow, CommunityCommentInsertRow>(
+    client,
+    'community_comments'
+  );
+}
+
+function communitiesTable(client: unknown) {
+  return fromLoose<CommunityLookupRow>(client, 'communities');
+}
+
+function getFallbackUser(userId: string): CommentUserSummary {
+  return {
+    id: userId,
+    full_name: 'Usuario',
+    avatar_url: null,
+    username: 'usuario',
+  };
+}
+
+function buildCommentUser(user: {
+  id: string;
+  display_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  profile_picture_url?: string | null;
+  username?: string | null;
+}): CommentUserSummary {
+  return {
+    id: user.id,
+    full_name:
+      user.display_name ||
+      (user.first_name && user.last_name
+        ? `${user.first_name} ${user.last_name}`
+        : null) ||
+      user.username ||
+      'usuario',
+    avatar_url: user.profile_picture_url ?? null,
+    username: user.username ?? 'usuario',
+  };
+}
 async function createClient() {
   const cookieStore = await cookies();
   
@@ -57,8 +131,7 @@ export async function GET(
     const offset = (page - 1) * limit;
 
     // Obtener comentarios del post
-    const { data: comments, error } = await (supabase as any)
-      .from('community_comments')
+    const { data: comments, error } = await commentsTable(supabase)
       .select('*')
       .eq('post_id', postId)
       .eq('is_deleted', false)
@@ -71,7 +144,8 @@ export async function GET(
     }
 
     // Obtener información de usuarios para los comentarios (optimizado)
-    const userIds = [...new Set(comments.map(comment => comment.user_id))];
+    const topLevelComments = comments ?? [];
+    const userIds = [...new Set(topLevelComments.map((comment) => comment.user_id))];
     const { data: users, error: usersError } = await supabase
       .from('users')
       .select('id, username, first_name, last_name, display_name, profile_picture_url')
@@ -81,25 +155,17 @@ export async function GET(
     }
 
     // Crear mapa de usuarios para acceso rápido (optimizado)
-    const usersMap = new Map();
+    const usersMap = new Map<string, CommentUserSummary>();
     if (users) {
-      users.forEach(user => {
-        usersMap.set(user.id, {
-          id: user.id,
-          full_name: user.display_name || 
-                    (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : null) ||
-                    user.username,
-          avatar_url: user.profile_picture_url,
-          username: user.username
-        });
+      users.forEach((user) => {
+        usersMap.set(user.id, buildCommentUser(user));
       });
     }
 
     // Obtener respuestas para cada comentario
     const commentsWithReplies = await Promise.all(
-      comments.map(async (comment: any) => {
-        const { data: replies, error: repliesError } = await (supabase as any)
-          .from('community_comments')
+      topLevelComments.map(async (comment) => {
+        const { data: replies, error: repliesError } = await commentsTable(supabase)
           .select('*')
           .eq('parent_comment_id', comment.id)
           .eq('is_deleted', false)
@@ -109,22 +175,21 @@ export async function GET(
         }
 
         // Agregar información del usuario a las respuestas
-        const repliesWithUsers = (replies || []).map(reply => ({
+        const repliesWithUsers = (replies || []).map((reply) => ({
           ...reply,
-          user: usersMap.get(reply.user_id) || { id: reply.user_id, full_name: 'Usuario', avatar_url: null, username: 'usuario' }
+          user: usersMap.get(reply.user_id) || getFallbackUser(reply.user_id)
         }));
 
         return {
           ...comment,
-          user: usersMap.get(comment.user_id) || { id: comment.user_id, full_name: 'Usuario', avatar_url: null, username: 'usuario' },
+          user: usersMap.get(comment.user_id) || getFallbackUser(comment.user_id),
           replies: repliesWithUsers
         };
       })
     );
 
     // Obtener total de comentarios para paginación
-    const { count: totalComments, error: countError } = await (supabase as any)
-      .from('community_comments')
+    const { count: totalComments, error: countError } = await commentsTable(supabase)
       .select('*', { count: 'exact', head: true })
       .eq('post_id', postId)
       .eq('is_deleted', false)
@@ -219,8 +284,7 @@ export async function POST(
     }
 
     // Obtener el community_id desde el slug
-    const { data: community, error: communityError } = await (supabase as any)
-      .from('communities')
+    const { data: community, error: communityError } = await communitiesTable(supabase)
       .select('id')
       .eq('slug', slug)
       .single();
@@ -230,15 +294,15 @@ export async function POST(
     }
 
     // Crear el comentario
-    const { data: newComment, error: insertError } = await (supabase as any)
-      .from('community_comments')
-      .insert({
-        post_id: postId,
-        community_id: community.id,
-        user_id: user.id,
-        content: content.trim(),
-        parent_comment_id: parent_comment_id || null
-      })
+    const newCommentPayload: CommunityCommentInsertRow = {
+      post_id: postId,
+      community_id: community.id,
+      user_id: user.id,
+      content: content.trim(),
+      parent_comment_id: parent_comment_id || null,
+    };
+    const { data: newComment, error: insertError } = await commentsTable(supabase)
+      .insert(newCommentPayload)
       .select('*')
       .single();
 
@@ -249,18 +313,11 @@ export async function POST(
     // Agregar información del usuario al comentario (optimizado)
     const commentWithUser = {
       ...newComment,
-      user: {
-        id: user.id,
-        full_name: user.display_name || 
-                  (user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : null) ||
-                  user.username,
-        avatar_url: user.profile_picture_url,
-        username: user.username
-      }
+      user: buildCommentUser(user)
     };
 
     // Actualizar contador de comentarios en el post
-    const { error: updateError } = await (supabase as any).rpc('increment_comment_count', {
+    const { error: updateError } = await supabase.rpc('increment_comment_count', {
       post_id: postId
     });
 
@@ -332,7 +389,7 @@ export async function POST(
           if (deleteError) {
           } else {
             // Decrementar el contador de comentarios
-            const { error: decrementError } = await (supabase as any).rpc('decrement_comment_count', {
+            const { error: decrementError } = await supabase.rpc('decrement_comment_count', {
               post_id: postId
             });
             

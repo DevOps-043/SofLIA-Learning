@@ -1,5 +1,21 @@
-import moment, { type Moment } from 'moment';
+import {
+  addDays,
+  differenceInMinutes,
+  endOfDay,
+  endOfWeek,
+  isAfter,
+  isBefore,
+  isSameDay,
+  isSameMonth,
+  setHours,
+  setMinutes,
+  setSeconds,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
 
+import type { CalendarDate } from '../calendar/types';
 import {
   DEFAULT_EVENT_COLOR,
   DEFAULT_EVENT_FORM,
@@ -12,6 +28,7 @@ import type {
   StudyPlannerCalendarWeekRange,
   ViewType,
 } from './study-planner-calendar.types';
+import { toCalendarDate } from './study-planner-calendar.date';
 
 export function getEventColor(event: CalendarEvent): string {
   if (event.color) {
@@ -29,94 +46,66 @@ export function getEventColor(event: CalendarEvent): string {
   return DEFAULT_EVENT_COLOR;
 }
 
-export function buildWeekRange(currentDate: Moment): StudyPlannerCalendarWeekRange {
+export function buildWeekRange(
+  currentDate: CalendarDate
+): StudyPlannerCalendarWeekRange {
   return {
-    start: currentDate.clone().startOf('week'),
-    end: currentDate.clone().endOf('week'),
+    start: startOfWeek(currentDate, { weekStartsOn: 1 }),
+    end: endOfWeek(currentDate, { weekStartsOn: 1 }),
   };
 }
 
-export function buildWeekDays(currentDate: Moment): Moment[] {
-  const startOfWeek = currentDate.clone().startOf('week');
-  return Array.from({ length: 7 }, (_, index) =>
-    startOfWeek.clone().add(index, 'days')
-  );
+export function buildWeekDays(currentDate: CalendarDate): CalendarDate[] {
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
 }
 
 export function buildMonthDays(
-  currentDate: Moment,
-  today: Moment
+  currentDate: CalendarDate,
+  today: CalendarDate
 ): StudyPlannerCalendarMonthDay[] {
-  const startOfMonth = currentDate.clone().startOf('month');
-  const endOfMonth = currentDate.clone().endOf('month');
-  const daysInMonth = currentDate.daysInMonth();
-  const firstDayOfWeek = startOfMonth.day() === 0 ? 7 : startOfMonth.day();
+  const monthStart = startOfMonth(currentDate);
+  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
 
-  const days: StudyPlannerCalendarMonthDay[] = [];
-  const daysFromPrevMonth = firstDayOfWeek - 1;
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = addDays(gridStart, index);
 
-  for (let index = daysFromPrevMonth - 1; index >= 0; index -= 1) {
-    const date = startOfMonth.clone().subtract(index + 1, 'days');
-    days.push({
+    return {
       date,
-      isCurrentMonth: false,
-      isToday: false,
-      dayNumber: date.date(),
-    });
-  }
-
-  for (let index = 1; index <= daysInMonth; index += 1) {
-    const date = startOfMonth.clone().date(index);
-    days.push({
-      date,
-      isCurrentMonth: true,
-      isToday: date.isSame(today, 'day'),
-      dayNumber: index,
-    });
-  }
-
-  const remainingDays = 42 - days.length;
-  for (let index = 1; index <= remainingDays; index += 1) {
-    const date = endOfMonth.clone().add(index, 'days');
-    days.push({
-      date,
-      isCurrentMonth: false,
-      isToday: false,
-      dayNumber: date.date(),
-    });
-  }
-
-  return days;
+      isCurrentMonth: isSameMonth(date, currentDate),
+      isToday: isSameDay(date, today),
+      dayNumber: date.getDate(),
+    };
+  });
 }
 
 export function resolveCalendarRange(
-  currentDate: Moment,
+  currentDate: CalendarDate,
   view: ViewType
-): { startDate: Moment; endDate: Moment } | null {
+): { startDate: CalendarDate; endDate: CalendarDate } | null {
   if (view === 'month') {
-    const startOfMonth = currentDate.clone().startOf('month');
-    const firstDayOfWeek = startOfMonth.day() === 0 ? 7 : startOfMonth.day();
-    const daysFromPrevMonth = firstDayOfWeek - 1;
-    const startDate = startOfMonth.clone().subtract(daysFromPrevMonth, 'days');
+    const startDate = startOfWeek(startOfMonth(currentDate), {
+      weekStartsOn: 1,
+    });
 
     return {
       startDate,
-      endDate: startDate.clone().add(41, 'days'),
+      endDate: addDays(startDate, 41),
     };
   }
 
   if (view === 'week') {
     const weekRange = buildWeekRange(currentDate);
     return {
-      startDate: weekRange.start.clone().startOf('day'),
-      endDate: weekRange.end.clone().endOf('day'),
+      startDate: startOfDay(weekRange.start),
+      endDate: endOfDay(weekRange.end),
     };
   }
 
   if (view === 'day') {
     return {
-      startDate: currentDate.clone().startOf('day'),
-      endDate: currentDate.clone().endOf('day'),
+      startDate: startOfDay(currentDate),
+      endDate: endOfDay(currentDate),
     };
   }
 
@@ -138,10 +127,17 @@ export function buildEventFormFromEvent(
 }
 
 export function buildDefaultEventFormForDate(
-  currentDate: Moment
+  currentDate: CalendarDate
 ): StudyPlannerCalendarEventForm {
-  const defaultStart = currentDate.clone().hour(9).minute(0).second(0);
-  const defaultEnd = currentDate.clone().hour(10).minute(0).second(0);
+  const baseDate = startOfDay(currentDate);
+  const defaultStart = setSeconds(
+    setMinutes(setHours(baseDate, 9), 0),
+    0
+  );
+  const defaultEnd = setSeconds(
+    setMinutes(setHours(baseDate, 10), 0),
+    0
+  );
 
   return {
     ...DEFAULT_EVENT_FORM,
@@ -152,49 +148,59 @@ export function buildDefaultEventFormForDate(
 
 export function getEventsForDay(
   events: CalendarEvent[],
-  date: Moment
+  date: CalendarDate
 ): CalendarEvent[] {
   return events.filter((event) => {
-    const eventStart = moment(event.start);
-    const eventEnd = moment(event.end);
-    const dayStart = date.clone().startOf('day');
-    const dayEnd = date.clone().endOf('day');
+    const eventStart = toCalendarDate(event.start);
+    const eventEnd = toCalendarDate(event.end);
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
 
     if (event.isAllDay) {
-      const eventStartDay = eventStart.clone().startOf('day');
-      const eventEndDay = eventEnd.clone().startOf('day');
+      const eventStartDay = startOfDay(eventStart);
+      const eventEndDay = startOfDay(eventEnd);
       return (
-        date.isSameOrAfter(eventStartDay, 'day')
-        && date.isSameOrBefore(eventEndDay, 'day')
+        (isSameDay(date, eventStartDay) || isAfter(date, eventStartDay))
+        && (isSameDay(date, eventEndDay) || isBefore(date, eventEndDay))
       );
     }
 
-    return eventStart.isSameOrBefore(dayEnd) && eventEnd.isSameOrAfter(dayStart);
+    return (
+      (isSameDay(eventStart, dayEnd) || isBefore(eventStart, dayEnd))
+      && (isSameDay(eventEnd, dayStart) || isAfter(eventEnd, dayStart))
+    );
   });
 }
 
 export function getEventPosition(
   event: CalendarEvent,
-  date: Moment
+  date: CalendarDate
 ): StudyPlannerCalendarEventPosition | null {
   if (event.isAllDay) {
     return { top: 0, height: 16, isAllDay: true };
   }
 
-  const eventStart = moment(event.start);
-  const eventEnd = moment(event.end);
+  const eventStart = toCalendarDate(event.start);
+  const eventEnd = toCalendarDate(event.end);
+  const dayStart = startOfDay(date);
+  const dayEnd = endOfDay(date);
+  const overlapsDay = (
+    (isSameDay(eventStart, dayEnd) || isBefore(eventStart, dayEnd))
+    && (isSameDay(eventEnd, dayStart) || isAfter(eventEnd, dayStart))
+  );
 
-  if (!date.isSame(eventStart, 'day') && !date.isSame(eventEnd, 'day')) {
-    const dayStart = date.clone().startOf('day');
-    const dayEnd = date.clone().endOf('day');
-    if (!(eventStart.isBefore(dayEnd) && eventEnd.isAfter(dayStart))) {
-      return null;
-    }
+  if (!overlapsDay) {
+    return null;
   }
 
-  const startMinutes = eventStart.hour() * 60 + eventStart.minute();
-  const endMinutes = eventEnd.hour() * 60 + eventEnd.minute();
-  const durationMinutes = endMinutes - startMinutes;
+  const visibleStart = isBefore(eventStart, dayStart) ? dayStart : eventStart;
+  const visibleEnd = isAfter(eventEnd, dayEnd) ? dayEnd : eventEnd;
+  const startMinutes =
+    visibleStart.getHours() * 60 + visibleStart.getMinutes();
+  const durationMinutes = Math.max(
+    differenceInMinutes(visibleEnd, visibleStart),
+    0
+  );
 
   return {
     top: (startMinutes / 60) * 64,

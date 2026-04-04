@@ -232,11 +232,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       );
     }
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en callback de calendario:', error);
     return NextResponse.redirect(
       new URL('/study-planner/create?calendar_error=server_error', request.url)
     );
   }
 }
-

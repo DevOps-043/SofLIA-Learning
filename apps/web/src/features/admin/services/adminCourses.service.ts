@@ -1,5 +1,39 @@
 import { createClient } from '../../../lib/supabase/server'
 
+interface CourseInstructor {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  display_name: string | null
+  profile_picture_url?: string | null
+}
+
+interface CourseRow {
+  id: string
+  title: string
+  description: string
+  slug: string
+  category: string
+  level: string
+  instructor_id: string
+  duration_total_minutes: number
+  thumbnail_url?: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  price?: number | null
+  average_rating?: number | null
+  student_count: number
+  review_count: number
+  learning_objectives?: string[] | null
+  approval_status?: string | null
+  instructor?: CourseInstructor | null
+}
+
+interface MaterialRow { material_order_index: number }
+interface LessonRow { lesson_order_index: number; materials?: MaterialRow[] }
+interface ModuleRow { module_order_index: number; lessons?: LessonRow[] }
+
 export interface AdminCourse {
   id: string
   title: string
@@ -17,7 +51,7 @@ export interface AdminCourse {
   average_rating?: number
   student_count: number
   review_count: number
-  learning_objectives?: any
+  learning_objectives?: string[] | null
   // Campos calculados para mostrar
   instructor_name?: string
   duration_hours?: number
@@ -66,7 +100,7 @@ export class AdminCoursesService {
 
 
       // Mapear datos con instructor ya incluido
-      const courses = (data || []).map((course: any) => {
+      const courses = (data || []).map((course: CourseRow) => {
         const instructor = course.instructor
         const instructorName = instructor
           ? (instructor.display_name ||
@@ -146,7 +180,7 @@ export class AdminCoursesService {
 
 
       // Mapear datos con instructor ya incluido
-      const courses = (data || []).map((course: any) => {
+      const courses = (data || []).map((course: CourseRow) => {
         const instructor = course.instructor
         const instructorName = instructor
           ? (instructor.display_name ||
@@ -224,7 +258,7 @@ export class AdminCoursesService {
         return []
       }
 
-      return (data || []).map((course: any) => {
+      return (data || []).map((course: CourseRow) => {
         const instructor = course.instructor
         const instructorName = instructor
           ? (instructor.display_name ||
@@ -298,7 +332,7 @@ export class AdminCoursesService {
   }
 
   // NUEVO: Obtener detalle completo del curso (Módulos -> Lecciones -> Materiales)
-  static async getCourseFullDetails(courseId: string): Promise<any> {
+  static async getCourseFullDetails(courseId: string): Promise<CourseRow & { modules?: ModuleRow[] } | null> {
     const supabase = await createClient()
 
     const { data, error } = await supabase
@@ -330,13 +364,13 @@ export class AdminCoursesService {
 
     // Ordenar jerarquía
     if (data.modules) {
-      data.modules.sort((a: any, b: any) => a.module_order_index - b.module_order_index)
-      data.modules.forEach((mod: any) => {
+      data.modules.sort((a: ModuleRow, b: ModuleRow) => a.module_order_index - b.module_order_index)
+      data.modules.forEach((mod: ModuleRow) => {
         if (mod.lessons) {
-          mod.lessons.sort((a: any, b: any) => a.lesson_order_index - b.lesson_order_index)
-          mod.lessons.forEach((lesson: any) => {
+          mod.lessons.sort((a: LessonRow, b: LessonRow) => a.lesson_order_index - b.lesson_order_index)
+          mod.lessons.forEach((lesson: LessonRow) => {
             if (lesson.materials) {
-              lesson.materials.sort((a: any, b: any) => a.material_order_index - b.material_order_index)
+              lesson.materials.sort((a: MaterialRow, b: MaterialRow) => a.material_order_index - b.material_order_index)
             }
           })
         }

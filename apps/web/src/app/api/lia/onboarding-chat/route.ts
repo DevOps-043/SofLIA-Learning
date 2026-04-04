@@ -14,7 +14,7 @@ interface OnboardingChatRequest {
     conversationHistory: Array<{ role: string; content: string }>;
   };
   userName?: string;
-  pageContext?: any;
+  pageContext?: Record<string, unknown>;
 }
 
 export async function POST(request: NextRequest) {

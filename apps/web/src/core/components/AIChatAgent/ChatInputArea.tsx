@@ -17,7 +17,7 @@ interface ChatInputAreaProps {
   theme: { ring: string; bubbleUser: string }
   adjustTextareaHeight: () => void
   handleSendMessage: () => void
-  handleKeyPress: (e: React.KeyboardEvent) => void
+  handleKeyPress: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
   handleToggleRecording: () => void
 }
 

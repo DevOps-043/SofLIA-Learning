@@ -7,12 +7,12 @@ export interface AdminNews {
   subtitle?: string
   language: string
   hero_image_url?: string
-  tldr?: any
+  tldr?: unknown
   intro?: string
-  sections?: any
-  metrics?: any
-  links?: any
-  cta?: any
+  sections?: unknown
+  metrics?: unknown
+  links?: unknown
+  cta?: unknown
   status: string
   published_at?: string
   created_by: string

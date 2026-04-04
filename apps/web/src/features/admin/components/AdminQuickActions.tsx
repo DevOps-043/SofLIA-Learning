@@ -17,7 +17,7 @@ interface QuickAction {
   name: string
   description: string
   href: string
-  icon: React.ComponentType<any>
+  icon: typeof PlusIcon
   color: string
 }
 

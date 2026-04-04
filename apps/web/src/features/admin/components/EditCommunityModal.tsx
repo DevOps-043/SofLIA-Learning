@@ -20,7 +20,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
-import { AdminCommunity } from '../services/adminCommunities.service'
+import type { AdminCommunity } from '../services/adminCommunities.service'
 
 const colors = SOFLIA_ADMIN_COLORS
 
@@ -28,7 +28,17 @@ interface EditCommunityModalProps {
   community: AdminCommunity | null
   isOpen: boolean
   onClose: () => void
-  onSave: (communityData: any) => Promise<void>
+  onSave: (communityData: CommunityFormData) => Promise<void>
+}
+
+interface CommunityFormData {
+  access_type: string
+  description: string
+  image_url: string
+  is_active: boolean
+  name: string
+  slug: string
+  visibility: string
 }
 
 // ============================================
@@ -265,7 +275,7 @@ function SectionHeader({ icon, title, subtitle, color }: SectionHeaderProps) {
 // MAIN MODAL COMPONENT
 // ============================================
 export function EditCommunityModal({ community, isOpen, onClose, onSave }: EditCommunityModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CommunityFormData>({
     name: '',
     description: '',
     slug: '',

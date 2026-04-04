@@ -107,16 +107,17 @@ export function formatApiError(
  * ```
  */
 export function formatDatabaseError(
-  error: any,
+  error: unknown,
   operation: string
 ): ApiErrorResponse {
   const isDevelopment = process.env.NODE_ENV === 'development'
+  const err = error as { code?: string; message?: string; hint?: string; details?: string; stack?: string } | null
 
   // Extract Supabase/PostgreSQL error details
-  const code = error?.code || 'DATABASE_ERROR'
-  const message = error?.message || 'Database operation failed'
-  const hint = error?.hint
-  const details = error?.details
+  const code = err?.code || 'DATABASE_ERROR'
+  const message = err?.message || 'Database operation failed'
+  const hint = err?.hint
+  const details = err?.details
 
   const response: ApiErrorResponse = {
     success: false,
@@ -132,7 +133,7 @@ export function formatDatabaseError(
       code,
       hint,
       details,
-      ...(error?.stack && { stack: error.stack })
+      ...(err?.stack && { stack: err.stack })
     }
   }
 

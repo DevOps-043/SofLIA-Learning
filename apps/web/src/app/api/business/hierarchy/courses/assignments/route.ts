@@ -3,6 +3,10 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
 /**
  * GET /api/business/hierarchy/courses/assignments
  * Lista asignaciones jerárquicas de cursos
@@ -222,12 +226,11 @@ export async function GET(request: NextRequest) {
         total: assignmentsWithEntities.length
       }
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en GET /api/business/hierarchy/courses/assignments:', error)
     return NextResponse.json({
       success: false,
-      error: error.message || 'Error interno del servidor'
+      error: getErrorMessage(error, 'Error interno del servidor')
     }, { status: 500 })
   }
 }
-

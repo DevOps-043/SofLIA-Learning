@@ -23,6 +23,63 @@ export interface PurchasedCourse {
   difficulty?: string;
 }
 
+interface PurchasedCourseInstructorRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  username: string | null;
+}
+
+interface PurchasedCourseDetailsRow {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  slug: string;
+  category: string;
+  duration_total_minutes: number | null;
+  level: string | null;
+  instructor_id: string | null;
+  instructor: PurchasedCourseInstructorRow | null;
+}
+
+interface PurchasedCourseEnrollmentRow {
+  enrollment_status: string | null;
+  overall_progress_percentage: number | null;
+  last_accessed_at: string | null;
+  started_at: string | null;
+}
+
+interface PurchasedCourseRow {
+  purchase_id: string;
+  access_status: PurchasedCourse['access_status'];
+  purchased_at: string;
+  access_granted_at: string;
+  expires_at: string | null;
+  enrollment_id: string | null;
+  courses: PurchasedCourseDetailsRow;
+  user_course_enrollments: PurchasedCourseEnrollmentRow[] | null;
+}
+
+interface LearningStatsCourseRow {
+  id: string;
+  duration_total_minutes: number | null;
+}
+
+interface LearningStatsPurchaseRow {
+  purchase_id: string;
+  enrollment_id: string | null;
+  course_id: string | null;
+  courses: LearningStatsCourseRow;
+}
+
+interface LearningStatsEnrollmentRow {
+  enrollment_id: string;
+  enrollment_status: string | null;
+  overall_progress_percentage: number | null;
+  course_id: string;
+}
+
 export class PurchasedCoursesService {
   /**
    * Obtiene todos los cursos comprados por el usuario
@@ -67,6 +124,7 @@ export class PurchasedCoursesService {
             started_at
           )
         `)
+        .returns<PurchasedCourseRow[]>()
         .eq('user_id', userId)
         .eq('access_status', 'active')
         .order('purchased_at', { ascending: false });
@@ -76,7 +134,7 @@ export class PurchasedCoursesService {
       }
 
       // Transformar los datos al formato esperado
-      const purchasedCourses: PurchasedCourse[] = (data || []).map((purchase: any) => {
+      const purchasedCourses: PurchasedCourse[] = (data || []).map((purchase) => {
         const course = purchase.courses;
         const enrollment = purchase.user_course_enrollments?.[0] || {};
 
@@ -167,6 +225,7 @@ export class PurchasedCoursesService {
             duration_total_minutes
           )
         `)
+        .returns<LearningStatsPurchaseRow[]>()
         .eq('user_id', userId)
         .eq('access_status', 'active');
 
@@ -186,16 +245,17 @@ export class PurchasedCoursesService {
 
       // Obtener los course_ids de los purchases para buscar enrollments
       const courseIds = purchases
-        .map((p: any) => p.course_id)
+        .map((purchase) => purchase.course_id)
         .filter((id: string | null) => id !== null && id !== undefined);
 
       // Obtener todos los enrollments del usuario para los cursos comprados
       // Esto asegura que encontremos enrollments incluso si el purchase no tiene enrollment_id
-      let enrollmentsMap = new Map();
+      let enrollmentsMap = new Map<string, LearningStatsEnrollmentRow>();
       if (courseIds.length > 0) {
         const { data: enrollments, error: enrollmentsError } = await supabase
           .from('user_course_enrollments')
           .select('enrollment_id, enrollment_status, overall_progress_percentage, course_id')
+          .returns<LearningStatsEnrollmentRow[]>()
           .eq('user_id', userId)
           .in('course_id', courseIds);
 
@@ -206,7 +266,7 @@ export class PurchasedCoursesService {
         // Crear un mapa usando course_id como clave para acceso rápido
         // Si hay múltiples enrollments para el mismo curso, usamos el más reciente
         if (enrollments) {
-          enrollments.forEach((enrollment: any) => {
+          enrollments.forEach((enrollment) => {
             const existing = enrollmentsMap.get(enrollment.course_id);
             // Si ya existe uno, mantener el que tenga mayor progreso o sea 'completed'
             if (!existing || 
@@ -224,7 +284,7 @@ export class PurchasedCoursesService {
       let total_time = 0;
       let enrollments_with_progress = 0;
 
-      purchases.forEach((purchase: any) => {
+      purchases.forEach((purchase) => {
         const course = purchase.courses;
         
         if (course) {
@@ -275,4 +335,3 @@ export class PurchasedCoursesService {
     }
   }
 }
-

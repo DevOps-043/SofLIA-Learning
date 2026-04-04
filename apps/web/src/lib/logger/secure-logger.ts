@@ -66,7 +66,7 @@ const REDACTED = '[REDACTED]';
  * Interfaz para metadatos de log
  */
 interface LogMetadata {
-  [key: string]: any;
+  [key: string]: unknown;
   timestamp?: string;
   userId?: string;
   requestId?: string;
@@ -90,27 +90,28 @@ interface LoggerOptions {
  * @param deep - Si debe sanitizar recursivamente (default: true)
  * @returns Objeto sanitizado
  */
-export function sanitizeData<T extends Record<string, any>>(
+export function sanitizeData<T>(
   data: T,
   deep: boolean = true
-): Partial<T> {
+): T {
   if (!data || typeof data !== 'object') {
     return data;
   }
 
   if (Array.isArray(data)) {
-    return data.map((item) => sanitizeData(item, deep)) as any;
+    return data.map((item) => sanitizeData(item, deep)) as T;
   }
 
-  const sanitized: Record<string, any> = {};
+  const sanitized: Record<string, unknown> = {};
+  const record = data as Record<string, unknown>;
 
-  for (const key in data) {
-    if (!Object.prototype.hasOwnProperty.call(data, key)) {
+  for (const key in record) {
+    if (!Object.prototype.hasOwnProperty.call(record, key)) {
       continue;
     }
 
     const lowerKey = key.toLowerCase();
-    const value = data[key];
+    const value = record[key];
 
     // Redactar campos sensibles
     if (SENSITIVE_FIELDS.some((field) => lowerKey.includes(field))) {
@@ -129,7 +130,7 @@ export function sanitizeData<T extends Record<string, any>>(
     }
   }
 
-  return sanitized as Partial<T>;
+  return sanitized as T;
 }
 
 /**

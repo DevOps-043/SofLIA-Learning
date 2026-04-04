@@ -40,7 +40,7 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
   };
 
   // Filtrar explícitamente focusedField de props para evitar que se pase al DOM
-  const { focusedField, ...inputProps } = props as any;
+  const inputProps = props;
   
   return (
     <div className="w-full">
@@ -102,4 +102,3 @@ export const TextInput = React.forwardRef<HTMLInputElement, TextInputProps>(({
 });
 
 TextInput.displayName = 'TextInput'; // Importante para devtools
-

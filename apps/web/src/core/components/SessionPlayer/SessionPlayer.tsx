@@ -6,6 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { RecordingSession } from '../../../lib/rrweb/session-recorder';
 import { loadRrwebPlayer } from '../../../lib/rrweb/rrweb-loader';
+import type { RrwebPlayerInstance } from '../../../lib/rrweb/rrweb-loader';
 // Estilos de rrweb-player
 import 'rrweb-player/dist/style.css';
 // Estilos personalizados para el reproductor
@@ -31,7 +32,7 @@ export function SessionPlayer({
   speed = 1,
 }: SessionPlayerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<RrwebPlayerInstance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,7 +81,7 @@ export function SessionPlayer({
         }
 
         // Verificar que tenemos snapshot inicial (tipo 2)
-        const hasSnapshot = session.events.some((e: any) => e.type === 2);
+        const hasSnapshot = session.events.some((e: { type: number }) => e.type === 2);
         if (!hasSnapshot) {
           console.warn('⚠️ No se encontró snapshot inicial en los eventos');
         }
@@ -99,7 +100,7 @@ export function SessionPlayer({
         }
 
         // Crear nuevo player usando el módulo cargado dinámicamente
-        const PlayerClass = RrwebPlayer.default || RrwebPlayer;
+        const PlayerClass = RrwebPlayer;
         
         // Usar dimensiones fijas para asegurar escalado correcto
         playerRef.current = new PlayerClass({

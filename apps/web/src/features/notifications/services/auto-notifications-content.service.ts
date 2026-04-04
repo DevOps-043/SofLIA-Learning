@@ -6,6 +6,7 @@ import {
   dispatchNotifications,
   dispatchNotificationsInChunks,
   fetchNotificationActorName,
+  type NotificationMetadata,
   truncateNotificationPreview,
 } from './auto-notifications.shared'
 
@@ -27,7 +28,7 @@ export class ContentNotificationsService {
   static async notifyNewsPublished(
     newsId: string,
     newsTitle: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -80,7 +81,7 @@ export class ContentNotificationsService {
     newsId: string,
     newsAuthorId: string,
     newsTitle: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       await dispatchNotifications([
@@ -115,7 +116,7 @@ export class ContentNotificationsService {
     reelId: string,
     reelTitle: string,
     authorId: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -172,7 +173,7 @@ export class ContentNotificationsService {
     reelId: string,
     reelAuthorId: string,
     likeAuthorId: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       if (reelAuthorId === likeAuthorId) {
@@ -225,7 +226,7 @@ export class ContentNotificationsService {
     reelAuthorId: string,
     commentAuthorId: string,
     commentPreview: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       if (reelAuthorId === commentAuthorId) {
@@ -279,7 +280,7 @@ export class ContentNotificationsService {
     promptId: string,
     promptTitle: string,
     authorId: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -337,7 +338,7 @@ export class ContentNotificationsService {
     promptAuthorId: string,
     favoritedByUserId: string,
     promptTitle: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       if (promptAuthorId === favoritedByUserId) {

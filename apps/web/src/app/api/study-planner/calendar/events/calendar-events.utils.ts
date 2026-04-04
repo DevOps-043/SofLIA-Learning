@@ -1,6 +1,8 @@
 import type {
   CalendarDateRange,
   ExternalCalendarEvent,
+  GoogleCalendarEvent,
+  MicrosoftCalendarEvent,
 } from './calendar-events.types'
 
 const DEFAULT_RANGE_DAYS = 14
@@ -59,7 +61,7 @@ export function normalizeExternalEventId(eventId: unknown): string {
 }
 
 export function mapGoogleCalendarEvent(
-  event: Record<string, any>,
+  event: GoogleCalendarEvent,
   calendarId: string,
 ): ExternalCalendarEvent {
   const isAllDay = !event.start?.dateTime
@@ -95,7 +97,7 @@ export function mapGoogleCalendarEvent(
 }
 
 export function mapMicrosoftCalendarEvent(
-  event: Record<string, any>,
+  event: MicrosoftCalendarEvent,
 ): ExternalCalendarEvent {
   let start = event.start?.dateTime || ''
   let end = event.end?.dateTime || ''

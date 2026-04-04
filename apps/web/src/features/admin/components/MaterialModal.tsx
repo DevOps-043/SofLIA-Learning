@@ -4,19 +4,91 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { FileText, Link as LinkIcon, BookOpen, FileQuestion, PenTool, Clock, Sparkles, Type } from 'lucide-react'
-import { AdminMaterial } from '../services/adminMaterials.service'
+import type {
+  AdminMaterial,
+  CreateMaterialData,
+  UpdateMaterialData,
+} from '../services/adminMaterials.service'
 import { PDFUpload } from './PDFUpload'
 import { QuizBuilder } from './QuizBuilder'
-import { calculateReadingTimeDetailed, countWords, READING_SPEEDS } from '@/lib/utils/readingTime'
+import type { QuizQuestion } from './QuizBuilder'
+import { calculateReadingTimeDetailed, READING_SPEEDS } from '@/lib/utils/readingTime'
 
 interface MaterialModalProps {
   material?: AdminMaterial | null
   lessonId: string
   onClose: () => void
-  onSave: (data: any) => Promise<void>
+  onSave: (data: CreateMaterialData | UpdateMaterialData) => Promise<void>
 }
 
 type TabType = 'basic' | 'content'
+type MaterialType = AdminMaterial['material_type']
+
+interface MaterialFormData {
+  material_title: string
+  material_description: string
+  material_type: MaterialType
+  file_url: string
+  external_url: string
+  content_data: Record<string, unknown> | null
+  is_downloadable: boolean
+  estimated_time_minutes: number
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isQuizQuestion(value: unknown): value is QuizQuestion {
+  if (!isRecord(value)) {
+    return false
+  }
+
+  const questionType = value.questionType
+  const options = value.options
+
+  return (
+    typeof value.id === 'string' &&
+    typeof value.question === 'string' &&
+    typeof questionType === 'string' &&
+    ['multiple_choice', 'true_false', 'short_answer'].includes(questionType) &&
+    (options === undefined || (Array.isArray(options) && options.every(option => typeof option === 'string'))) &&
+    typeof value.correctAnswer === 'string' &&
+    (value.explanation === undefined || typeof value.explanation === 'string') &&
+    typeof value.points === 'number'
+  )
+}
+
+function getQuizQuestions(contentData: Record<string, unknown> | null): QuizQuestion[] {
+  if (!isRecord(contentData) || !Array.isArray(contentData.questions)) {
+    return []
+  }
+
+  return contentData.questions.filter(isQuizQuestion)
+}
+
+function normalizeQuizQuestions(questions: QuizQuestion[]): QuizQuestion[] {
+  return questions.map((question) => {
+    if (question.questionType !== 'true_false') {
+      return question
+    }
+
+    const options = question.options
+    if (
+      !options ||
+      options.length !== 2 ||
+      !['Verdadero', 'Falso'].includes(options[0]) ||
+      !['Verdadero', 'Falso'].includes(options[1])
+    ) {
+      return {
+        ...question,
+        options: ['Verdadero', 'Falso'],
+      }
+    }
+
+    return question
+  })
+}
 
 /**
  * Componente para editar contenido de lectura con cálculo automático de tiempo.
@@ -132,17 +204,17 @@ function ReadingContentEditor({ value, onChange }: ReadingContentEditorProps) {
 
 
 export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<MaterialFormData>({
     material_title: '',
     material_description: '',
     material_type: 'pdf' as 'pdf' | 'link' | 'document' | 'quiz' | 'exercise' | 'reading',
     file_url: '',
     external_url: '',
-    content_data: null as any,
+    content_data: null,
     is_downloadable: false,
     estimated_time_minutes: 10 // Default 10 minutes
   })
-  const [quizQuestions, setQuizQuestions] = useState<any[]>([])
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
@@ -167,23 +239,7 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
       })
       // Cargar preguntas del quiz si existe
       if (material.material_type === 'quiz' && material.content_data) {
-        const loadedQuestions = material.content_data.questions || []
-        // Normalizar preguntas de verdadero/falso: asegurar que tengan las opciones correctas
-        const normalizedQuestions = loadedQuestions.map((q: any) => {
-          if (q.questionType === 'true_false') {
-            // Si no tiene opciones o tiene opciones incorrectas, inicializar con las correctas
-            if (!q.options || q.options.length !== 2 ||
-              (q.options[0] !== 'Verdadero' && q.options[0] !== 'Falso') ||
-              (q.options[1] !== 'Verdadero' && q.options[1] !== 'Falso')) {
-              return {
-                ...q,
-                options: ['Verdadero', 'Falso']
-              }
-            }
-          }
-          return q
-        })
-        setQuizQuestions(normalizedQuestions)
+        setQuizQuestions(normalizeQuizQuestions(getQuizQuestions(material.content_data)))
       }
     }
   }, [material])
@@ -380,7 +436,7 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
                                 value={formData.material_type}
                                 onChange={(e) => setFormData(prev => ({
                                   ...prev,
-                                  material_type: e.target.value as any,
+                                  material_type: e.target.value as MaterialType,
                                   file_url: '',
                                   external_url: ''
                                 }))}
@@ -606,4 +662,3 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
     </AnimatePresence>
   )
 }
-

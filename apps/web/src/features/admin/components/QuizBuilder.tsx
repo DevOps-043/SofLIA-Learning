@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, X, Trash2, GripVertical, FileQuestion, CheckCircle2, Circle } from 'lucide-react'
 
-interface QuizQuestion {
+export interface QuizQuestion {
   id: string
   question: string
   questionType: 'multiple_choice' | 'true_false' | 'short_answer'
@@ -18,6 +18,8 @@ interface QuizBuilderProps {
   questions: QuizQuestion[]
   onChange: (questions: QuizQuestion[]) => void
 }
+
+type QuizQuestionValue = QuizQuestion[keyof QuizQuestion]
 
 export function QuizBuilder({ questions, onChange }: QuizBuilderProps) {
   const addQuestion = () => {
@@ -33,10 +35,14 @@ export function QuizBuilder({ questions, onChange }: QuizBuilderProps) {
     onChange([...questions, newQuestion])
   }
 
-  const updateQuestion = (id: string, field: keyof QuizQuestion, value: any) => {
+  const updateQuestion = (
+    id: string,
+    field: keyof QuizQuestion,
+    value: QuizQuestionValue
+  ) => {
     onChange(questions.map(q => {
       if (q.id === id) {
-        const updated = { ...q, [field]: value }
+        const updated = { ...q, [field]: value } as QuizQuestion
         
         // Si se cambia el tipo a true_false, inicializar opciones automáticamente
         if (field === 'questionType' && value === 'true_false') {
@@ -332,4 +338,3 @@ export function QuizBuilder({ questions, onChange }: QuizBuilderProps) {
     </div>
   )
 }
-

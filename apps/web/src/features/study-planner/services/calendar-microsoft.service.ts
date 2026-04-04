@@ -9,6 +9,51 @@
 
 import type { CalendarEvent } from '../types/user-context.types';
 
+interface MicrosoftUserProfile {
+  mail?: string | null;
+  userPrincipalName?: string | null;
+}
+
+interface MicrosoftCalendarSummary {
+  id: string;
+  name?: string | null;
+  isDefaultCalendar?: boolean;
+  canEdit?: boolean;
+  hexColor?: string;
+}
+
+interface MicrosoftCalendarsResponse {
+  value?: MicrosoftCalendarSummary[];
+}
+
+interface MicrosoftEventDateTime {
+  dateTime?: string;
+}
+
+interface MicrosoftEventLocation {
+  displayName?: string;
+}
+
+interface MicrosoftCalendarEventRow {
+  id: string;
+  subject?: string | null;
+  bodyPreview?: string | null;
+  start?: MicrosoftEventDateTime | null;
+  end?: MicrosoftEventDateTime | null;
+  isAllDay?: boolean;
+  seriesMasterId?: string | null;
+  location?: MicrosoftEventLocation | null;
+  showAs?: string | null;
+}
+
+interface MicrosoftCalendarEventsResponse {
+  value?: MicrosoftCalendarEventRow[];
+}
+
+interface MicrosoftCreatedEventResponse {
+  id: string;
+}
+
 export class CalendarMicrosoftService {
   /**
    * Obtiene el email del usuario de Microsoft usando el access token
@@ -26,7 +71,7 @@ export class CalendarMicrosoftService {
         return null;
       }
 
-      const data = await response.json();
+      const data: MicrosoftUserProfile = await response.json();
       return data.mail || data.userPrincipalName || null;
     } catch (error) {
       console.error('Error obteniendo email de Microsoft:', error);
@@ -59,8 +104,8 @@ export class CalendarMicrosoftService {
         return [];
       }
 
-      const data = await response.json();
-      return (data.value || []).map((cal: any) => ({
+      const data: MicrosoftCalendarsResponse = await response.json();
+      return (data.value || []).map((cal) => ({
         id: cal.id,
         name: cal.name || 'Sin nombre',
         isDefaultCalendar: cal.isDefaultCalendar || false,
@@ -83,7 +128,7 @@ export class CalendarMicrosoftService {
     selectedCalendarIds?: string[]
   ): Promise<CalendarEvent[]> {
     try {
-      const mapMicrosoftEvent = (event: any, calId?: string): CalendarEvent => ({
+      const mapMicrosoftEvent = (event: MicrosoftCalendarEventRow, calId?: string): CalendarEvent => ({
         id: event.id,
         title: event.subject || 'Sin título',
         description: event.bodyPreview,
@@ -122,8 +167,8 @@ export class CalendarMicrosoftService {
             continue;
           }
 
-          const data = await response.json();
-          allEvents.push(...(data.value || []).map((e: any) => mapMicrosoftEvent(e, calId)));
+          const data: MicrosoftCalendarEventsResponse = await response.json();
+          allEvents.push(...(data.value || []).map((event) => mapMicrosoftEvent(event, calId)));
         }
         return allEvents;
       }
@@ -150,8 +195,8 @@ export class CalendarMicrosoftService {
         return [];
       }
 
-      const data = await response.json();
-      return (data.value || []).map((e: any) => mapMicrosoftEvent(e));
+      const data: MicrosoftCalendarEventsResponse = await response.json();
+      return (data.value || []).map((event) => mapMicrosoftEvent(event));
 
     } catch (error) {
       console.error('Error obteniendo eventos de Microsoft:', error);
@@ -206,7 +251,7 @@ export class CalendarMicrosoftService {
         return null;
       }
 
-      const data = await response.json();
+      const data: MicrosoftCreatedEventResponse = await response.json();
       return { id: data.id };
     } catch (error) {
       console.error('[Calendar] Error creando evento en Microsoft:', error);

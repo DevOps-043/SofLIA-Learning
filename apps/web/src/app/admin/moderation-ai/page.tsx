@@ -25,6 +25,13 @@ interface Stats {
   average_processing_time_ms: number;
 }
 
+interface ModerationStatsRpcClient {
+  rpc: (
+    fn: 'get_ai_moderation_stats',
+    args: { p_days: number }
+  ) => Promise<{ data: Stats | null; error: unknown }>
+}
+
 export default function AIModerationPanel() {
   const [pending, setPending] = useState<PendingReview[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
@@ -61,7 +68,7 @@ export default function AIModerationPanel() {
     const supabase = createClient();
     
     try {
-      const { data, error } = await (supabase as any).rpc('get_ai_moderation_stats', {
+      const { data, error } = await (supabase as ModerationStatsRpcClient).rpc('get_ai_moderation_stats', {
         p_days: 30
       });
 

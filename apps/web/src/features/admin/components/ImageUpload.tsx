@@ -4,6 +4,10 @@ import { useState, useRef } from 'react'
 import { PhotoIcon, XMarkIcon, CloudArrowUpIcon } from '@heroicons/react/24/outline'
 import { createClient } from '../../../lib/supabase/client'
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
 interface ImageUploadProps {
   value?: string
   onChange: (url: string) => void
@@ -77,8 +81,8 @@ export function ImageUpload({
       setUploadProgress(100)
       onChange(result.url)
       
-    } catch (err: any) {
-      setError(err.message || 'Error al subir la imagen')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al subir la imagen'))
     } finally {
       setIsUploading(false)
       setUploadProgress(0)

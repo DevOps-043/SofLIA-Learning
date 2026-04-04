@@ -153,7 +153,7 @@ export function ProactiveLIAAssistant({
 
   // Icono según severidad - usando colores del sistema SOFLIA
   const getSeverityIcon = () => {
-    const highSeverityPattern = analysis.patterns.find((p: any) => p.severity === 'high');
+    const highSeverityPattern = analysis.patterns.find((pattern) => pattern.severity === 'high');
     if (highSeverityPattern) {
       return <AlertCircle className="w-5 h-5" style={{ color: '#F59E0B' }} />; // Ãmbar suave
     }

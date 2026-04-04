@@ -36,11 +36,17 @@ const ViewNewsModal = dynamic(() => import('./ViewNewsModal').then(mod => ({ def
   ssr: false
 })
 
+type NewsStatusFilter = 'all' | 'draft' | 'published' | 'archived'
+
+function isNewsStatusFilter(value: string): value is NewsStatusFilter {
+  return value === 'all' || value === 'draft' || value === 'published' || value === 'archived'
+}
+
 export function AdminNewsPage() {
   const { news, stats, isLoading, error, createNews, updateNews, deleteNews, toggleNewsStatus } = useAdminNews()
   
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'published' | 'archived'>('all')
+  const [statusFilter, setStatusFilter] = useState<NewsStatusFilter>('all')
   const [selectedNews, setSelectedNews] = useState<AdminNews | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -267,7 +273,12 @@ export function AdminNewsPage() {
           <div className="flex gap-2">
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
+              onChange={(e) => {
+                const nextStatus = e.target.value
+                if (isNewsStatusFilter(nextStatus)) {
+                  setStatusFilter(nextStatus)
+                }
+              }}
               className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">Todos los estados</option>

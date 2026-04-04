@@ -126,7 +126,7 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
     }
   }
 
-  const handleInputChange = (field: keyof AdminWorkshop, value: any) => {
+  const handleInputChange = <K extends keyof AdminWorkshop>(field: K, value: AdminWorkshop[K]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

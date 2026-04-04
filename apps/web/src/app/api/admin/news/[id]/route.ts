@@ -81,7 +81,7 @@ export async function PUT(
     const body = bodyRaw
 
     // Parsear campos JSON
-    const parseJsonField = (field: any) => {
+    const parseJsonField = (field: unknown): unknown => {
       if (field === undefined || field === null || field === '') return null
       if (typeof field !== 'string') return field // Si ya es un objeto/array, devolverlo tal como está
       try {
@@ -91,7 +91,7 @@ export async function PUT(
       }
     }
 
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     }
 

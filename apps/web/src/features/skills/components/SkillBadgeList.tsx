@@ -7,7 +7,13 @@ import { SkillBadge, SkillBadgeProps } from './SkillBadge'
 import { SkillLevel } from '../constants/skillLevels'
 
 export interface SkillBadgeListProps {
-  skills: Array<SkillBadgeProps['skill'] & { icon_url?: string | null }>
+  skills: Array<
+    SkillBadgeProps['skill'] & {
+      icon_url?: string | null
+      description?: string | null
+      category?: string | null
+    }
+  >
   showFilter?: boolean
   showHideOption?: boolean
   onSkillClick?: (skill: SkillBadgeProps['skill']) => void
@@ -242,4 +248,3 @@ export function SkillBadgeList({
     </div>
   )
 }
-

@@ -211,8 +211,9 @@ export async function detectColorsFromImage(imageUrl: string): Promise<ColorPale
           color_secondary: rgbToHex(muted.r, muted.g, muted.b),
           color_accent: rgbToHex(darkVibrant.r, darkVibrant.g, darkVibrant.b)
         })
-      } catch (error: any) {
-        reject(new Error(`Error al procesar la imagen: ${error.message}`))
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Error desconocido'
+        reject(new Error(`Error al procesar la imagen: ${message}`))
       }
     }
 
@@ -224,9 +225,9 @@ export async function detectColorsFromImage(imageUrl: string): Promise<ColorPale
     // Establecer src después de configurar los handlers
     try {
       img.src = imageUrl
-    } catch (error: any) {
-      reject(new Error(`Error al establecer la URL de la imagen: ${error.message || 'URL inválida'}`))
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'URL inválida'
+      reject(new Error(`Error al establecer la URL de la imagen: ${message}`))
     }
   })
 }
-

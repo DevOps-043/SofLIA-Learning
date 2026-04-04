@@ -3,6 +3,23 @@ import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { calculateCombinedLessonProgress } from '@/lib/utils/lesson-progress';
 
+interface QuizQuestionRow {
+  id?: string;
+  question_id?: string;
+  correctAnswer?: string | number;
+  options?: string[];
+  questionType?: string;
+  points?: number;
+}
+
+interface QuizSubmissionMatch {
+  user_id: string;
+  lesson_id: string;
+  enrollment_id: string;
+  material_id?: string;
+  activity_id?: string;
+}
+
 /**
  * POST /api/courses/[slug]/lessons/[lessonId]/quiz/submit
  * Guarda las respuestas de un quiz y calcula el resultado
@@ -112,7 +129,7 @@ export async function POST(
     };
 
     // Función para verificar si una respuesta es correcta
-    const isAnswerCorrect = (question: any, selectedAnswer: string | number): boolean => {
+    const isAnswerCorrect = (question: QuizQuestionRow, selectedAnswer: string | number): boolean => {
       const correctAnswer = question.correctAnswer;
       const options = question.options || [];
 
@@ -162,7 +179,7 @@ export async function POST(
     };
 
     // Calcular respuestas correctas
-    questions.forEach((question: any) => {
+    questions.forEach((question: QuizQuestionRow) => {
       const questionId = question.id || question.question_id;
       const selectedAnswer = answers[questionId];
 
@@ -181,13 +198,15 @@ export async function POST(
     const isPassed = percentageScore >= 80;
 
     // Calcular puntos totales
-    const calculatedTotalPoints = totalPoints || questions.reduce((sum: number, q: any) => sum + (q.points || 1), 0);
+    const calculatedTotalPoints =
+      totalPoints ||
+      questions.reduce((sum: number, question: QuizQuestionRow) => sum + (question.points || 1), 0);
 
     // Guardar o actualizar submission
     const now = new Date().toISOString();
     
     // Verificar si ya existe una submission
-    const submissionQuery: any = {
+    const submissionQuery: QuizSubmissionMatch = {
       user_id: currentUser.id,
       lesson_id: lessonId,
       enrollment_id: enrollmentId,
@@ -407,4 +426,3 @@ export async function POST(
     );
   }
 }
-

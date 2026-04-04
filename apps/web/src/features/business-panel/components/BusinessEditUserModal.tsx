@@ -19,7 +19,7 @@ interface BusinessEditUserModalProps {
     display_name?: string
     email?: string
     cargo_rol?: string
-    type_rol?: string
+    job_title?: string
     org_role?: 'owner' | 'admin' | 'member'
     org_status?: 'active' | 'invited' | 'suspended' | 'removed'
     profile_picture_url?: string
@@ -47,7 +47,7 @@ export function BusinessEditUserModal({ user, isOpen, onClose, onSave }: Busines
     display_name: '',
     email: '',
     cargo_rol: '',
-    type_rol: '',
+    job_title: '',
     org_role: 'member' as 'owner' | 'admin' | 'member',
     org_status: 'active' as 'active' | 'invited' | 'suspended' | 'removed',
     profile_picture_url: '',
@@ -68,7 +68,7 @@ export function BusinessEditUserModal({ user, isOpen, onClose, onSave }: Busines
         display_name: user.display_name || '',
         email: user.email || '',
         cargo_rol: user.cargo_rol || '',
-        type_rol: user.type_rol || '',
+        job_title: user.job_title || '',
         org_role: user.org_role || 'member',
         org_status: user.org_status || 'active',
         profile_picture_url: user.profile_picture_url || '',
@@ -332,10 +332,10 @@ export function BusinessEditUserModal({ user, isOpen, onClose, onSave }: Busines
                   </div>
 
                   {/* Type Role Badge */}
-                  {formData.type_rol && (
+                  {formData.job_title && (
                     <div className="mt-4 flex items-center gap-2 text-white/50 text-sm">
                       <Briefcase className="w-4 h-4" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }} />
-                      <span>{formData.type_rol}</span>
+                      <span>{formData.job_title}</span>
                     </div>
                   )}
 
@@ -460,8 +460,8 @@ export function BusinessEditUserModal({ user, isOpen, onClose, onSave }: Busines
                         <label className="block text-sm font-medium text-white/70 mb-2">{t('users.modals.edit.fields.typeRole')}</label>
                         <input
                           type="text"
-                          name="type_rol"
-                          value={formData.type_rol}
+                          name="job_title"
+                          value={formData.job_title}
                           onChange={handleChange}
                           className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
                           placeholder={t('users.modals.edit.placeholders.typeRole')}

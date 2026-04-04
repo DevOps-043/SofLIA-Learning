@@ -8,8 +8,48 @@ import {
 import { Users, Zap, Clock, Calendar, BarChart2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+interface StickinessDatum {
+  name: string;
+  dau: number;
+  mau: number;
+  ratio: number;
+}
+
+interface FrequencyDatum {
+  name: string;
+  users: number;
+}
+
+interface StreakDatum {
+  name: string;
+  value: number;
+  fill: string;
+}
+
+interface HeatmapDatum {
+  day: string;
+  hour: string;
+  value: number;
+}
+
+interface DurationDatum {
+  role: string;
+  median: number;
+  max: number;
+}
+
+interface EngagementMetrics {
+  stickiness?: StickinessDatum[];
+  frequency?: FrequencyDatum[];
+  streaks?: StreakDatum[];
+  heatmap?: HeatmapDatum[];
+  duration?: DurationDatum[];
+}
+
 interface EngagementAnalyticsProps {
-  data?: any;
+  data?: {
+    engagement_metrics?: EngagementMetrics;
+  };
 }
 
 export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
@@ -111,7 +151,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                     contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
                   <Bar dataKey="users" name={t('analytics.engagement.frequency.users')} fill={colors.secondary} radius={[6, 6, 0, 0]} barSize={40}>
-                    {frequencyData.map((entry: any, index: number) => (
+                    {frequencyData.map((entry, index: number) => (
                       <Cell key={`cell-${index}`} fill={[colors.primary, colors.secondary, colors.tertiary, colors.quaternary][index % 4]} />
                     ))}
                   </Bar>
@@ -150,7 +190,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                     outerRadius={90}
                     paddingAngle={5}
                   >
-                    {streaksData.map((entry: any, index: number) => (
+                    {streaksData.map((entry, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
@@ -161,7 +201,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
               </ResponsiveContainer>
             </div>
             <div className="w-full md:w-1/2 flex flex-col justify-center space-y-4 pl-4">
-              {streaksData.map((item: any, index: number) => (
+              {streaksData.map((item, index: number) => (
                 <div key={index} className="flex items-center">
                   <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: item.fill }}></div>
                   <div>

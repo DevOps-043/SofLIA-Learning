@@ -1,8 +1,13 @@
 # CODEX — Índice de Tareas de Deuda Técnica
 
-**TDI verificado (worktree actual):** ~14%
-**Fecha de corte:** 2026-04-02 (post-commit `7cb0e492`)
-**Objetivo próximo sprint:** Bajar de ~14% a ~10-11%
+**Snapshot vigente para ejecución:** ~11%
+**Fecha de corte vigente:** 2026-04-03
+**Fuente de verdad:** `docs/refactor-program.md` (snapshot post-sprint type safety + arch + testing)
+**Objetivo operativo siguiente:** bajar de ~11% a <10% y destrabar verificación funcional completa
+
+> Nota: este índice conserva tablas históricas del corte `2026-04-02` para trazabilidad.
+> Mientras no se rehaga el barrido completo del worktree, usar `docs/refactor-program.md`
+> como baseline activa del programa.
 
 ---
 

@@ -7,7 +7,20 @@ import { MemoryCache } from '@/lib/cache/memory-cache';
 import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
 
 // ⚡ OPTIMIZACIÓN: Cache de organizaciones (5MB, 5min TTL)
-const orgCache = new MemoryCache<any>(5, 5 * 60 * 1000);
+interface CachedOrganizationData {
+  organization: {
+    id: string
+    name: string
+    logo_url?: string | null
+    brand_logo_url?: string | null
+    brand_favicon_url?: string | null
+    favicon_url?: string | null
+    slug?: string | null
+  } | null
+  jobTitle: string | null
+}
+
+const orgCache = new MemoryCache<CachedOrganizationData>(5, 5 * 60 * 1000);
 
 export async function GET(request: Request) {
   try {

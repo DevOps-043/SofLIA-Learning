@@ -21,6 +21,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useInstructorCommunities } from '../hooks/useInstructorCommunities'
 import { InstructorCommunity } from '../services/instructorCommunities.service'
+import type { AdminCommunityMutationInput } from '../../admin/components/admin-communities/shared'
 import { useRouter } from 'next/navigation'
 
 // Lazy loading de modales de Communities
@@ -79,7 +80,7 @@ export function InstructorCommunitiesPage() {
     }
   }
 
-  const handleSaveCommunity = async (communityData: any) => {
+  const handleSaveCommunity = async (communityData: AdminCommunityMutationInput) => {
     try {
       const response = await fetch(`/api/admin/communities/${editingCommunity?.id}`, {
         method: 'PUT',
@@ -121,7 +122,7 @@ export function InstructorCommunitiesPage() {
     setIsAddModalOpen(true)
   }
 
-  const handleSaveNewCommunity = async (communityData: any) => {
+  const handleSaveNewCommunity = async (communityData: AdminCommunityMutationInput) => {
     try {
       
       // ✅ Ahora usamos el endpoint de instructor que crea solicitudes en lugar de comunidades directamente
@@ -533,4 +534,3 @@ export function InstructorCommunitiesPage() {
     </div>
   )
 }
-

@@ -13,6 +13,46 @@ import { buildCourseDiff } from '../../../lib/courseDiff'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface StagingInstructor {
+    first_name: string | null
+    last_name: string | null
+    email: string
+}
+
+interface StagingCourseRef {
+    title: string
+    slug: string
+    thumbnail_url?: string | null
+    level: string
+    category: string
+    description?: string
+    instructor?: StagingInstructor | null
+}
+
+interface CoursePayload {
+    title?: string
+    description?: string
+    level?: string
+    category?: string
+    thumbnail_url?: string | null
+    instructor_email?: string
+    course?: CoursePayload
+    [key: string]: unknown
+}
+
+interface StagingRow {
+    id: string
+    course_id: string | null
+    source_slug: string
+    is_update: boolean
+    submitted_at: string
+    updated_at: string | null
+    status: string
+    rejection_reason: string | null
+    payload: CoursePayload
+    course: StagingCourseRef | null
+}
+
 export interface AdminCourse {
     id: string                  // courses_staging.id — usado como ID en toda la UI de revisiones
     title: string
@@ -30,6 +70,58 @@ export interface AdminCourse {
     approval_status: 'pending' | 'approved' | 'rejected'
     is_update: boolean
     rejection_reason?: string
+}
+
+interface CurrentCourseLesson {
+    lesson_id: string
+    lesson_title: string
+    lesson_order_index: number | null
+    duration_seconds: number | null
+    video_provider: string | null
+    video_provider_id: string | null
+    transcript_content: string | null
+    summary_content: string | null
+    materials: Array<{
+        material_id: string
+        material_title: string | null
+        material_type: string | null
+        external_url: string | null
+        file_url: string | null
+        content_data: unknown
+    }>
+    activities: Array<{
+        activity_id: string
+        activity_title: string | null
+        activity_type: string | null
+        activity_content: unknown
+        activity_order_index: number | null
+    }>
+}
+
+interface CurrentCourseModule {
+    module_id: string
+    module_title: string | null
+    module_order_index: number | null
+    is_published: boolean | null
+    lessons: CurrentCourseLesson[]
+}
+
+interface CurrentCourseStructure {
+    title: string
+    description: string | null
+    level: string | null
+    category: string | null
+    thumbnail_url: string | null
+    slug: string | null
+    instructor?: unknown
+    modules: CurrentCourseModule[]
+}
+
+type CoursePreview = ReturnType<typeof buildCoursePreviewFromPayload>
+
+interface CourseStagingDetails extends CoursePreview {
+    original_course?: CurrentCourseStructure
+    diff?: ReturnType<typeof buildCourseDiff>
 }
 
 // ─── Leer pendientes / rechazados ─────────────────────────────────────────────
@@ -66,9 +158,9 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
         throw new Error(error.message)
     }
 
-    return (data ?? []).map((row: any) => {
-        const coursePayload = row.payload?.course ?? {}
-        const existingCourse = row.course as any
+    return (data ?? []).map((row: StagingRow) => {
+        const coursePayload: CoursePayload = row.payload?.course ?? {}
+        const existingCourse = row.course
 
         const title = coursePayload.title || existingCourse?.title || 'Sin título'
         const description = coursePayload.description || existingCourse?.description || ''
@@ -78,7 +170,7 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
 
         let instructor_name = 'Desconocido'
         if (existingCourse?.instructor) {
-            const ins = existingCourse.instructor as any
+            const ins = existingCourse.instructor
             instructor_name = `${ins.first_name ?? ''} ${ins.last_name ?? ''}`.trim() || ins.email
         } else if (coursePayload.instructor_email) {
             instructor_name = coursePayload.instructor_email
@@ -110,7 +202,7 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
 async function getCurrentCourseStructure(
     supabase: ReturnType<typeof createAdminSupabase>,
     courseId: string
-): Promise<any> {
+): Promise<CurrentCourseStructure | null> {
     const { data: course, error: courseError } = await supabase
         .from('courses')
         .select(`
@@ -175,7 +267,7 @@ async function getCurrentCourseStructure(
 
 // ─── Detalle de un staging row (para la vista de revisión) ───────────────────
 
-export async function getStagingDetails(stagingId: string): Promise<any> {
+export async function getStagingDetails(stagingId: string): Promise<CourseStagingDetails> {
     const supabase = createAdminSupabase()
 
     const { data: staging, error } = await supabase
@@ -253,7 +345,7 @@ export async function approveCourse(stagingId: string, _adminId: string): Promis
         await supabase.from('course_modules').update({ is_published: true }).eq('course_id', courseId)
         const { data: modules } = await supabase.from('course_modules').select('module_id').eq('course_id', courseId)
         if (modules && modules.length > 0) {
-            const moduleIds = modules.map((m: any) => m.module_id)
+            const moduleIds = modules.map((m: { module_id: string }) => m.module_id)
             await supabase.from('course_lessons').update({ is_published: true }).in('module_id', moduleIds)
         }
 
@@ -265,8 +357,8 @@ export async function approveCourse(stagingId: string, _adminId: string): Promis
 
         revalidatePath('/admin/courses/pending')
         return true
-    } catch (err: any) {
-        console.error('[APPROVE_ERROR]', err.message)
+    } catch (err: unknown) {
+        console.error('[APPROVE_ERROR]', err instanceof Error ? err.message : String(err))
         return false
     }
 }

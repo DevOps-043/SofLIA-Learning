@@ -91,6 +91,8 @@ export async function GET(
       video_provider?: string;
       is_published: boolean;
       module_id: string;
+      transcript_content?: unknown;
+      summary_content?: unknown;
     }> = [];
 
     // IMPORTANTE: Siempre leer de course_lessons (tabla principal)
@@ -219,8 +221,7 @@ export async function GET(
             }
           }
 
-          const progress =
-            progressMap.get(lesson.lesson_id) || ({} as { is_completed?: boolean; video_progress_percentage?: number });
+          const progress = progressMap.get(lesson.lesson_id);
 
           return {
             lesson_id: lesson.lesson_id,
@@ -232,10 +233,10 @@ export async function GET(
             total_duration_minutes: lesson.total_duration_minutes || Math.ceil((lesson.duration_seconds || 0) / 60),
             video_provider_id: videoUrl,
             video_provider: lesson.video_provider,
-            is_completed: progress?.is_completed || false,
-            progress_percentage: progress?.video_progress_percentage || 0,
-            transcript_content: (lesson as any).transcript_content,
-            summary_content: (lesson as any).summary_content,
+            is_completed: progress?.is_completed ?? false,
+            progress_percentage: progress?.video_progress_percentage ?? 0,
+            transcript_content: lesson.transcript_content,
+            summary_content: lesson.summary_content,
           };
         });
 

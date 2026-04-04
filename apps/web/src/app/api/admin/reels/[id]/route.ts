@@ -66,7 +66,7 @@ export async function PUT(
     const bodyRaw = await request.json()
     const body = UpdateReelSchema.parse(bodyRaw)
 
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description

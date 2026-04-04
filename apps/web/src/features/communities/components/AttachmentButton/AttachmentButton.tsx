@@ -19,9 +19,14 @@ import {
 } from 'lucide-react';
 
 interface AttachmentButtonProps {
-  onAttachmentSelect: (type: string, data: any) => void;
+  onAttachmentSelect: (type: string, data: AttachmentSelectionData | null) => void;
   className?: string;
 }
+
+type AttachmentSelectionData = {
+  file?: File;
+  url?: string | ArrayBuffer | null;
+} & Record<string, unknown>;
 
 interface AttachmentType {
   id: string;
@@ -79,7 +84,7 @@ const attachmentTypes: AttachmentType[] = [
 export function AttachmentButton({ onAttachmentSelect, className = '' }: AttachmentButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [attachmentData, setAttachmentData] = useState<any>(null);
+  const [attachmentData, setAttachmentData] = useState<AttachmentSelectionData | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
   const [buttonPosition, setButtonPosition] = useState({ top: 0, left: 0, width: 0, openUpward: false });

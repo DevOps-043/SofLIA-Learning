@@ -17,6 +17,29 @@ import { SocialLoginButtons } from '../SocialLoginButtons';
 import Link from 'next/link';
 import { useAuthTab } from '../AuthTabs/AuthTabContext';
 
+function hasRedirectTarget(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined
+): boolean {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'redirectTo' in result &&
+    typeof result.redirectTo === 'string'
+  );
+}
+
+function isSuccessfulLoginResult(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined
+): result is { success: true; redirectTo: string } {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'success' in result &&
+    result.success === true &&
+    hasRedirectTarget(result)
+  );
+}
+
 export function LoginForm() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,14 +99,14 @@ export function LoginForm() {
       if (result?.error) {
         setError(result.error);
         setIsPending(false);
-      } else if (result?.success && result?.redirectTo) {
+      } else if (isSuccessfulLoginResult(result)) {
         // ✅ Login exitoso - navegar a la URL indicada
         // IMPORTANTE: Usar window.location.href en lugar de router.push
         // para forzar navegación completa y que las cookies del servidor se propaguen
         window.location.href = result.redirectTo;
         // No resetear isPending - la página recargará completamente
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Verificar si es una redirección de Next.js (no es un error real)
       if (error && typeof error === 'object') {
         // Next.js redirect lanza un error especial que debemos re-lanzar

@@ -1,6 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../../../../lib/supabase/server';
 
+interface CommunityReactionUserRow {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+  profile_picture_url: string | null;
+}
+
+interface CommunityReactionRow {
+  id: string;
+  reaction_type: string;
+  created_at: string;
+  user_id: string;
+  user: CommunityReactionUserRow;
+}
+
+interface GroupedReactionUser {
+  id: string;
+  name: string;
+  avatar: string | null;
+  reaction_type: string;
+  created_at: string;
+}
+
+interface GroupedReaction {
+  type: string;
+  count: number;
+  users: GroupedReactionUser[];
+  hasUserReacted: boolean;
+  emoji: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string; postId: string }> }
@@ -35,14 +67,17 @@ export async function GET(
         )
       `)
       .eq('post_id', postId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .returns<CommunityReactionRow[]>();
 
     if (reactionsError) {
       return NextResponse.json({ error: 'Error al obtener reacciones' }, { status: 500 });
     }
 
+    const reactionList = reactions || [];
+
     // Agrupar reacciones por tipo con información optimizada
-    const groupedReactions = reactions.reduce((acc: any, reaction: any) => {
+    const groupedReactions = reactionList.reduce<Record<string, GroupedReaction>>((acc, reaction) => {
       const type = reaction.reaction_type;
       if (!acc[type]) {
         acc[type] = {
@@ -72,7 +107,7 @@ export async function GET(
       }
       
       return acc;
-    }, {} as Record<string, any>);
+    }, {});
 
     // Obtener estadísticas adicionales si se solicitan
     let stats = null;
@@ -107,7 +142,7 @@ export async function GET(
 
     // Calcular total de reacciones
     const totalReactions = Object.values(groupedReactions).reduce(
-      (sum: number, reaction: any) => sum + reaction.count, 0
+      (sum, reaction) => sum + reaction.count, 0
     );
 
     return NextResponse.json({ 
@@ -115,7 +150,7 @@ export async function GET(
       totalReactions,
       stats,
       topReactions,
-      userReaction: getUserCurrentReaction(reactions, user.id)
+      userReaction: getUserCurrentReaction(reactionList, user.id)
     });
   } catch (error) {
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
@@ -136,8 +171,8 @@ function getReactionEmoji(type: string): string {
 }
 
 // Función auxiliar para obtener la reacción actual del usuario
-function getUserCurrentReaction(reactions: any[], userId: string): string | null {
-  const userReaction = reactions.find(r => r.user_id === userId);
+function getUserCurrentReaction(reactions: CommunityReactionRow[], userId: string): string | null {
+  const userReaction = reactions.find((reaction) => reaction.user_id === userId);
   return userReaction ? userReaction.reaction_type : null;
 }
 

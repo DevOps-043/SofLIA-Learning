@@ -50,7 +50,7 @@ export async function POST() {
             )
         }
 
-        const userRole = (userData as any).role
+        const userRole = userData.role
         if (userRole !== 'Admin' && userRole !== 'SuperAdmin') {
             return NextResponse.json(
                 { success: false, error: 'Solo los administradores pueden ejecutar esta acción.' },

@@ -1,15 +1,49 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Sparkles } from 'lucide-react'
+import Image from 'next/image'
+import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { Award, BarChart3, Brain, Download, RefreshCw, Sparkles, TrendingUp, Users } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
 import { useThemeStore } from '@/core/stores/themeStore'
+import { useAuth } from '@/features/auth/hooks/useAuth'
+import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from 'react-i18next'
+import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
+import { StatCard } from './StatCard'
 
-function LiaAnalysisReport({ data }: { data: any }) {
+interface LiaActivityRow {
+  last_accessed_at?: string | null
+}
+
+interface LiaAnalysisReportData {
+  analysis_text: string
+  raw_data?: {
+    activity?: {
+      activities?: LiaActivityRow[]
+    }
+    users?: {
+      total_users?: number
+    }
+    courses?: {
+      total_courses?: number
+    }
+    certificates?: {
+      total_certificates?: number
+    }
+  }
+}
+
+interface LiaChartProps {
+  height?: number
+  showTooltip?: boolean
+  barColor?: string
+}
+
+function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -57,9 +91,9 @@ function LiaAnalysisReport({ data }: { data: any }) {
     }
 
     // Llenar con datos reales
-    activities.forEach((a: any) => {
-      if (a.last_accessed_at) {
-        const d = new Date(a.last_accessed_at)
+    activities.forEach((activity) => {
+      if (activity.last_accessed_at) {
+        const d = new Date(activity.last_accessed_at)
         const key = d.toLocaleString('es-ES', { month: 'short' })
         if (months[key] !== undefined) {
           months[key]++
@@ -131,7 +165,7 @@ function LiaAnalysisReport({ data }: { data: any }) {
   }
 
   // Componente de Gráfica Reutilizable
-  const ChartComponent = ({ height = 200, showTooltip = true, barColor = accentColor }: any) => (
+  const ChartComponent = ({ height = 200, showTooltip = true, barColor = accentColor }: LiaChartProps) => (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={monthlyData}>
             <XAxis 
@@ -223,18 +257,22 @@ function LiaAnalysisReport({ data }: { data: any }) {
         <div style={{ position: 'relative', zIndex: 10, flex: 1 }}>
             <div className="prose max-w-none text-justify" style={{ color: '#334155', fontSize: '14px', lineHeight: '1.8', textAlign: 'justify' }}>
                 {/* Aplicamos estilos específicos a los elementos del markdown para asegurar el formato en PDF */}
-                <style jsx global>{`
-                    .prose h1, .prose h2, .prose h3 { color: #0A2540 !important; margin-top: 24px; margin-bottom: 12px; }
-                    .prose strong { color: #0f172a !important; font-weight: 700; }
-                    .prose p { margin-bottom: 16px; text-align: justify; }
-                    .prose ul, .prose ol { margin-bottom: 16px; padding-left: 20px; }
-                    .prose li { margin-bottom: 4px; }
-                    .prose table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
-                    .prose th { background-color: #0A2540; color: white; padding: 10px 12px; text-align: left; font-weight: 600; border: 1px solid #0A2540; }
-                    .prose td { padding: 8px 12px; border: 1px solid #e2e8f0; color: #334155; }
-                    .prose tr:nth-child(even) { background-color: #f8fafc; }
-                    .prose tr:hover { background-color: #f1f5f9; }
-                `}</style>
+                <style
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                      .prose h1, .prose h2, .prose h3 { color: #0A2540 !important; margin-top: 24px; margin-bottom: 12px; }
+                      .prose strong { color: #0f172a !important; font-weight: 700; }
+                      .prose p { margin-bottom: 16px; text-align: justify; }
+                      .prose ul, .prose ol { margin-bottom: 16px; padding-left: 20px; }
+                      .prose li { margin-bottom: 4px; }
+                      .prose table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 12px; }
+                      .prose th { background-color: #0A2540; color: white; padding: 10px 12px; text-align: left; font-weight: 600; border: 1px solid #0A2540; }
+                      .prose td { padding: 8px 12px; border: 1px solid #e2e8f0; color: #334155; }
+                      .prose tr:nth-child(even) { background-color: #f8fafc; }
+                      .prose tr:hover { background-color: #f1f5f9; }
+                    `,
+                  }}
+                />
                 <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.analysis_text}</ReactMarkdown>
             </div>
         </div>
@@ -295,26 +333,30 @@ function LiaAnalysisReport({ data }: { data: any }) {
                 </div>
 
                 <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg text-sm leading-relaxed">
-                  <style jsx global>{`
-                    .prose strong {
-                      color: ${isDark ? '#60a5fa' : '#2563eb'} !important;
-                      font-weight: 700 !important;
-                    }
-                    .prose h1, .prose h2, .prose h3, .prose h4 {
-                      color: ${isDark ? '#f8fafc' : '#0f172a'} !important;
-                      font-weight: 700 !important;
-                    }
-                    .prose p {
-                      color: ${isDark ? 'rgba(248, 250, 252, 0.9)' : '#334155'} !important;
-                    }
-                    .prose li {
-                      color: ${isDark ? 'rgba(248, 250, 252, 0.9)' : '#334155'} !important;
-                    }
-                    .prose code {
-                      color: ${isDark ? '#60a5fa' : '#2563eb'} !important;
-                      background-color: ${isDark ? 'rgba(96, 165, 250, 0.1)' : 'rgba(37, 99, 235, 0.1)'} !important;
-                    }
-                  `}</style>
+                  <style
+                    dangerouslySetInnerHTML={{
+                      __html: `
+                        .prose strong {
+                          color: ${isDark ? '#60a5fa' : '#2563eb'} !important;
+                          font-weight: 700 !important;
+                        }
+                        .prose h1, .prose h2, .prose h3, .prose h4 {
+                          color: ${isDark ? '#f8fafc' : '#0f172a'} !important;
+                          font-weight: 700 !important;
+                        }
+                        .prose p {
+                          color: ${isDark ? 'rgba(248, 250, 252, 0.9)' : '#334155'} !important;
+                        }
+                        .prose li {
+                          color: ${isDark ? 'rgba(248, 250, 252, 0.9)' : '#334155'} !important;
+                        }
+                        .prose code {
+                          color: ${isDark ? '#60a5fa' : '#2563eb'} !important;
+                          background-color: ${isDark ? 'rgba(96, 165, 250, 0.1)' : 'rgba(37, 99, 235, 0.1)'} !important;
+                        }
+                      `,
+                    }}
+                  />
                    <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.analysis_text}</ReactMarkdown>
                 </div>
                 

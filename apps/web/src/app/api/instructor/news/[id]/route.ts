@@ -117,7 +117,7 @@ export async function PUT(
     logger.log('🔄 Actualizando noticia del instructor:', id)
 
     // Parsear campos JSON
-    const parseJsonField = (field: any) => {
+    const parseJsonField = (field: unknown): unknown => {
       if (field === undefined || field === null || field === '') return null
       if (typeof field !== 'string') return field
       try {
@@ -127,7 +127,7 @@ export async function PUT(
       }
     }
 
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     }
 
@@ -255,4 +255,3 @@ export async function DELETE(
     )
   }
 }
-

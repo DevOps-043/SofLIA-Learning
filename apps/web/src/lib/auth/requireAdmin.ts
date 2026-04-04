@@ -11,6 +11,23 @@ export interface AdminAuth {
   userRole: string;
 }
 
+interface DynamicServerUsageErrorLike {
+  digest?: string
+  message?: string
+}
+
+function isDynamicServerUsageError(error: unknown): error is DynamicServerUsageErrorLike {
+  if (typeof error !== 'object' || error === null) {
+    return false
+  }
+
+  const maybeError = error as DynamicServerUsageErrorLike
+  return (
+    maybeError.digest === 'DYNAMIC_SERVER_USAGE' ||
+    maybeError.message?.includes('Dynamic server usage') === true
+  )
+}
+
 /**
  * Verifica autenticación y autorización de administrador
  * Soporta tanto el sistema legacy como el nuevo via SessionService
@@ -59,15 +76,12 @@ export async function requireAdmin(): Promise<AdminAuth | NextResponse> {
 
     return {
       userId: user.id,
-      userEmail: user.email,
-      userRole: user.cargo_rol,
+      userEmail: user.email ?? '',
+      userRole: user.cargo_rol ?? '',
     };
 
   } catch (error) {
-    if (
-      (error as any)?.digest === 'DYNAMIC_SERVER_USAGE' || 
-      (error as any)?.message?.includes('Dynamic server usage')
-    ) {
+    if (isDynamicServerUsageError(error)) {
       throw error;
     }
 
@@ -126,15 +140,12 @@ export async function requireInstructor(): Promise<AdminAuth | NextResponse> {
 
     return {
       userId: user.id,
-      userEmail: user.email,
-      userRole: user.cargo_rol,
+      userEmail: user.email ?? '',
+      userRole: user.cargo_rol ?? '',
     };
 
   } catch (error) {
-    if (
-      (error as any)?.digest === 'DYNAMIC_SERVER_USAGE' || 
-      (error as any)?.message?.includes('Dynamic server usage')
-    ) {
+    if (isDynamicServerUsageError(error)) {
       throw error;
     }
 

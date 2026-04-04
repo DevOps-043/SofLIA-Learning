@@ -3,6 +3,64 @@ import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 
+interface LessonActivityRow {
+  activity_id: string;
+  activity_title: string | null;
+  activity_type: string | null;
+  is_required?: boolean | null;
+  [key: string]: unknown;
+}
+
+interface LessonMaterialRow {
+  material_id: string;
+  material_title: string | null;
+  material_type: string | null;
+  [key: string]: unknown;
+}
+
+interface EnrollmentRow {
+  enrollment_id: string;
+}
+
+interface LiaCompletionRow {
+  activity_id: string;
+  status: string;
+}
+
+interface QuizProgressRow {
+  activity_id: string | null;
+  is_passed: boolean | null;
+}
+
+interface QuizSubmissionRow {
+  submission_id: string;
+  material_id: string | null;
+  activity_id: string | null;
+  percentage_score: number | null;
+  is_passed: boolean | null;
+  completed_at: string | null;
+}
+
+interface QuizStatusItem {
+  id: string;
+  title: string | null;
+  type: 'material' | 'activity';
+  isRequired?: boolean | null;
+  isCompleted: boolean;
+  isPassed: boolean;
+  percentage: number;
+  completedAt: string | null;
+}
+
+interface QuizStatusResponse {
+  hasRequiredQuizzes: boolean;
+  totalRequiredQuizzes: number;
+  completedQuizzes: number;
+  passedQuizzes: number;
+  allQuizzesPassed: boolean;
+  quizzes: QuizStatusItem[];
+}
+
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/sidebar-data
  * 🚀 ENDPOINT UNIFICADO - Obtiene actividades, materiales y estado de quiz en UNA sola petición
@@ -75,21 +133,24 @@ export async function GET(
         .from('lesson_activities')
         .select('*')
         .eq('lesson_id', lessonId)
-        .order('activity_order_index', { ascending: true }),
+        .order('activity_order_index', { ascending: true })
+        .returns<LessonActivityRow[]>(),
 
       // Materiales
       supabase
         .from('lesson_materials')
         .select('*')
         .eq('lesson_id', lessonId)
-        .order('material_order_index', { ascending: true }),
+        .order('material_order_index', { ascending: true })
+        .returns<LessonMaterialRow[]>(),
 
       // Quizzes en materiales
       supabase
         .from('lesson_materials')
         .select('material_id, material_title, material_type')
         .eq('lesson_id', lessonId)
-        .eq('material_type', 'quiz'),
+        .eq('material_type', 'quiz')
+        .returns<LessonMaterialRow[]>(),
 
       // Quizzes en actividades (solo obligatorios)
       supabase
@@ -97,7 +158,8 @@ export async function GET(
         .select('activity_id, activity_title, activity_type, is_required')
         .eq('lesson_id', lessonId)
         .eq('activity_type', 'quiz')
-        .eq('is_required', true),
+        .eq('is_required', true)
+        .returns<LessonActivityRow[]>(),
 
       // Enrollment (solo si hay usuario autenticado)
       currentUser
@@ -106,7 +168,7 @@ export async function GET(
             .select('enrollment_id')
             .eq('user_id', currentUser.id)
             .eq('course_id', course.id)
-            .single()
+            .single<EnrollmentRow>()
         : Promise.resolve({ data: null, error: null }),
 
       // Completaciones de actividades LIA (para determinar is_completed por actividad)
@@ -116,6 +178,7 @@ export async function GET(
             .select('activity_id, status')
             .eq('user_id', currentUser.id)
             .eq('status', 'completed')
+            .returns<LiaCompletionRow[]>()
         : Promise.resolve({ data: null, error: null }),
 
       // Submissions de quizzes (para determinar is_completed en actividades tipo quiz)
@@ -125,6 +188,7 @@ export async function GET(
             .select('activity_id, is_passed')
             .eq('user_id', currentUser.id)
             .eq('lesson_id', lessonId)
+            .returns<QuizProgressRow[]>()
         : Promise.resolve({ data: null, error: null })
     ]);
 
@@ -149,28 +213,35 @@ export async function GET(
     const materials = materialsResult.data || [];
 
     // Paso 2.5: Enriquecer actividades con estado de completación del usuario
-    const activityIds = rawActivities.map((a: any) => a.activity_id);
+    const activityIds = rawActivities.map((activity) => activity.activity_id);
     const liaCompletions = (liaCompletionsResult.data || [])
-      .filter((c: any) => activityIds.includes(c.activity_id));
+      .filter((completion) => activityIds.includes(completion.activity_id));
     const quizSubmissions = (quizSubmissionsResult.data || [])
-      .filter((s: any) => activityIds.includes(s.activity_id));
+      .filter(
+        (submission) =>
+          submission.activity_id !== null &&
+          activityIds.includes(submission.activity_id)
+      );
 
     const completedActivityIds = new Set<string>([
       ...liaCompletions
-        .filter((c: any) => c.status === 'completed')
-        .map((c: any) => c.activity_id),
+        .filter((completion) => completion.status === 'completed')
+        .map((completion) => completion.activity_id),
       ...quizSubmissions
-        .filter((s: any) => s.is_passed && s.activity_id)
-        .map((s: any) => s.activity_id),
+        .filter(
+          (submission): submission is QuizProgressRow & { activity_id: string } =>
+            Boolean(submission.is_passed && submission.activity_id)
+        )
+        .map((submission) => submission.activity_id),
     ]);
 
-    const activities = rawActivities.map((a: any) => ({
-      ...a,
-      is_completed: completedActivityIds.has(a.activity_id),
+    const activities = rawActivities.map((activity) => ({
+      ...activity,
+      is_completed: completedActivityIds.has(activity.activity_id),
     }));
 
     // Paso 3: Procesar quiz status (solo si hay usuario autenticado)
-    let quizStatus = {
+    let quizStatus: QuizStatusResponse = {
       hasRequiredQuizzes: false,
       totalRequiredQuizzes: 0,
       completedQuizzes: 0,
@@ -191,15 +262,16 @@ export async function GET(
           .select('submission_id, material_id, activity_id, percentage_score, is_passed, completed_at')
           .eq('user_id', currentUser.id)
           .eq('lesson_id', lessonId)
-          .eq('enrollment_id', enrollmentResult.data.enrollment_id);
+          .eq('enrollment_id', enrollmentResult.data.enrollment_id)
+          .returns<QuizSubmissionRow[]>();
 
         const submissionsList = submissions || [];
-        const quizzesStatusArray = [];
+        const quizzesStatusArray: QuizStatusItem[] = [];
 
         // Procesar quizzes de materiales
         for (const materialQuiz of materialQuizzesList) {
           const submission = submissionsList.find(
-            (s: any) => s.material_id === materialQuiz.material_id
+            (item) => item.material_id === materialQuiz.material_id
           );
 
           quizzesStatusArray.push({
@@ -216,7 +288,7 @@ export async function GET(
         // Procesar quizzes de actividades
         for (const activityQuiz of activityQuizzesList) {
           const submission = submissionsList.find(
-            (s: any) => s.activity_id === activityQuiz.activity_id
+            (item) => item.activity_id === activityQuiz.activity_id
           );
 
           quizzesStatusArray.push({

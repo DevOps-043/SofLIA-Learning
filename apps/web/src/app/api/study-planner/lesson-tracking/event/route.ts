@@ -86,7 +86,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Preparar actualización según el tipo de evento
-    const updates: Record<string, any> = {
+    const updates: Record<string, unknown> = {
       last_activity_at: now.toISOString(),
       updated_at: now.toISOString()
     };
@@ -151,10 +151,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       eventType
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en POST /api/study-planner/lesson-tracking/event:', error);
+    const message = error instanceof Error ? error.message : 'Error interno del servidor';
     return NextResponse.json({ 
-      error: error.message || 'Error interno del servidor',
+      error: message,
       success: false
     }, { status: 500 });
   }

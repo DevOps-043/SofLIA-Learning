@@ -41,9 +41,9 @@ interface StatsData {
         totalSessions: number
         totalLearningHours: number
     }
-    activityMonthly: any[]
+    activityMonthly: Array<Record<string, unknown>>
     courseProgress: CourseProgress[]
-    teamDistribution: any[]
+    teamDistribution: Array<Record<string, unknown>>
 }
 
 // ============================================

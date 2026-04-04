@@ -3,6 +3,31 @@ import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 
+interface CourseQuestionUserRow {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  profile_picture_url: string | null;
+}
+
+interface CourseQuestionRow {
+  id: string;
+  response_count?: number | null;
+  user: CourseQuestionUserRow | null;
+  [key: string]: unknown;
+}
+
+interface QuestionResponseCountRow {
+  question_id: string;
+}
+
+interface QuestionUserReactionRow {
+  question_id: string;
+  reaction_type: string;
+}
+
 /**
  * GET /api/courses/[slug]/questions
  * Obtiene todas las preguntas de un curso
@@ -83,7 +108,8 @@ export async function GET(
 
     // OPTIMIZACIÓN CRÍTICA: Paralelizar todas las queries para reducir latencia
     if (questions && questions.length > 0) {
-      const questionIds = questions.map((q: any) => q.id);
+      const questionList = questions as CourseQuestionRow[];
+      const questionIds = questionList.map((question) => question.id);
 
       // Obtener usuario actual primero
       const currentUser = await SessionService.getCurrentUser();
@@ -95,6 +121,7 @@ export async function GET(
           .select('question_id')
           .in('question_id', questionIds)
           .eq('is_deleted', false)
+          .returns<QuestionResponseCountRow[]>()
       ];
 
       // Si hay usuario, agregar query de reacciones
@@ -105,6 +132,7 @@ export async function GET(
             .select('question_id, reaction_type')
             .eq('user_id', currentUser.id)
             .in('question_id', questionIds)
+            .returns<QuestionUserReactionRow[]>()
         );
       }
 
@@ -116,7 +144,7 @@ export async function GET(
       // Crear un mapa de conteos: questionId -> count
       const countsMap = new Map<string, number>();
       if (responseCountsResult.data && !responseCountsResult.error) {
-        responseCountsResult.data.forEach((response: any) => {
+        responseCountsResult.data.forEach((response) => {
           const questionId = response.question_id;
           countsMap.set(questionId, (countsMap.get(questionId) || 0) + 1);
         });
@@ -125,13 +153,13 @@ export async function GET(
       // Procesar reacciones del usuario
       let userReactionsMap = new Map<string, string>();
       if (userReactionsResult && userReactionsResult.data) {
-        userReactionsResult.data.forEach((reaction: any) => {
+        userReactionsResult.data.forEach((reaction) => {
           userReactionsMap.set(reaction.question_id, reaction.reaction_type);
         });
       }
 
       // Aplicar conteos y reacciones a las preguntas
-      const questionsWithCounts = questions.map((question: any) => ({
+      const questionsWithCounts = questionList.map((question) => ({
         ...question,
         response_count: countsMap.get(question.id) || question.response_count || 0,
         user_reaction: userReactionsMap.get(question.id) || null
@@ -251,4 +279,3 @@ export async function POST(
     );
   }
 }
-

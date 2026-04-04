@@ -7,6 +7,24 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
+function getErrorStatus(error: unknown): number | null {
+  if (!error || typeof error !== 'object' || !('status' in error)) {
+    return null;
+  }
+
+  const { status } = error;
+  return typeof status === 'number' ? status : null;
+}
+
+function getErrorMessage(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('message' in error)) {
+    return null;
+  }
+
+  const { message } = error;
+  return typeof message === 'string' ? message : null;
+}
+
 /**
  * POST /api/lia/dictation
  * Transcribe audio a texto usando Whisper de OpenAI
@@ -130,25 +148,25 @@ export async function POST(request: NextRequest) {
       success: true,
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error en transcripción de dictado:', error);
 
     // Manejar errores específicos de OpenAI
-    if (error?.status === 401) {
+    if (getErrorStatus(error) === 401) {
       return NextResponse.json(
         { error: 'Error de autenticación con el servicio de transcripción', success: false },
         { status: 500 }
       );
     }
 
-    if (error?.status === 413 || error?.message?.includes('too large')) {
+    if (getErrorStatus(error) === 413 || getErrorMessage(error)?.includes('too large')) {
       return NextResponse.json(
         { error: 'El archivo de audio es demasiado grande', success: false },
         { status: 400 }
       );
     }
 
-    if (error?.message?.includes('Invalid file format')) {
+    if (getErrorMessage(error)?.includes('Invalid file format')) {
       return NextResponse.json(
         { error: 'Formato de audio no válido', success: false },
         { status: 400 }
@@ -158,11 +176,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Error al transcribir audio',
-        message: error?.message || 'Error desconocido',
+        message: getErrorMessage(error) || 'Error desconocido',
         success: false 
       },
       { status: 500 }
     );
   }
 }
-

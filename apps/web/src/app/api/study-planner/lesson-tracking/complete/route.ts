@@ -36,6 +36,10 @@ interface CompleteRequest {
   endTrigger: EndTrigger;
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Verificar autenticación
@@ -150,10 +154,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       sessionClosed
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en POST /api/study-planner/lesson-tracking/complete:', error);
     return NextResponse.json({ 
-      error: error.message || 'Error interno del servidor',
+      error: getErrorMessage(error, 'Error interno del servidor'),
       success: false
     }, { status: 500 });
   }

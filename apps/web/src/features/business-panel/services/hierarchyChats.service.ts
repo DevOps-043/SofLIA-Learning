@@ -78,7 +78,7 @@ export class HierarchyChatsService {
    * Obtiene los chats de una entidad
    */
   static async getChats(
-    entityType: 'region' | 'zone' | 'team',
+    entityType: 'region' | 'zone' | 'team' | 'node',
     entityId: string,
     chatType?: HierarchyChatType
   ): Promise<HierarchyChat[]> {
@@ -204,4 +204,3 @@ export class HierarchyChatsService {
     return result.success;
   }
 }
-

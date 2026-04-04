@@ -451,7 +451,18 @@ export function normalizeMaterialContentForClient(
   return fallbackDescription ?? null
 }
 
-export function normalizeLessonActivityRecord<T extends Record<string, any>>(
+type LessonActivityLike = Record<string, unknown> & {
+  activity_type?: string | null
+  activity_content?: unknown
+}
+
+type LessonMaterialLike = Record<string, unknown> & {
+  material_type?: string | null
+  content_data?: unknown
+  material_description?: unknown
+}
+
+export function normalizeLessonActivityRecord<T extends LessonActivityLike>(
   activity: T
 ): T {
   return {
@@ -463,7 +474,7 @@ export function normalizeLessonActivityRecord<T extends Record<string, any>>(
   }
 }
 
-export function normalizeLessonMaterialRecord<T extends Record<string, any>>(
+export function normalizeLessonMaterialRecord<T extends LessonMaterialLike>(
   material: T
 ): T {
   return {

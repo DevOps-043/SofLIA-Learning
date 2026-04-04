@@ -3,6 +3,33 @@ import { logger } from '@/lib/utils/logger'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createClient } from '@/lib/supabase/server'
 
+interface CertificateCourseRow {
+  id: string
+  title?: string | null
+  slug?: string | null
+  thumbnail_url?: string | null
+  instructor_id?: string | null
+}
+
+interface CertificateRow {
+  certificate_id: string
+  certificate_url: string | null
+  certificate_hash: string | null
+  issued_at: string | null
+  expires_at: string | null
+  created_at: string
+  course_id: string | null
+  enrollment_id: string | null
+  courses?: CertificateCourseRow | null
+}
+
+interface CertificateInstructorInfo {
+  name: string
+  username: string | null
+  signature_url: string | null
+  signature_name: string | null
+}
+
 /**
  * GET /api/certificates
  * Obtiene todos los certificados del usuario autenticado
@@ -57,12 +84,13 @@ export async function GET(request: NextRequest) {
     }
 
     // Obtener IDs de instructores únicos
-    const instructorIds = [...new Set((certificates || [])
-      .map((cert: any) => cert.courses?.instructor_id)
+    const certificateRows: CertificateRow[] = certificates || []
+    const instructorIds = [...new Set(certificateRows
+      .map((cert) => cert.courses?.instructor_id)
       .filter(Boolean))]
 
     // Obtener información de instructores (incluyendo firma)
-    const instructorMap = new Map()
+    const instructorMap = new Map<string, CertificateInstructorInfo>()
     if (instructorIds.length > 0) {
       const { data: instructors } = await supabase
         .from('users')
@@ -95,7 +123,7 @@ export async function GET(request: NextRequest) {
         : currentUserData?.username || 'Estudiante')
 
     // Enriquecer certificados con datos del curso e instructor
-    const enrichedCertificates = (certificates || []).map((cert: any) => {
+    const enrichedCertificates = certificateRows.map((cert) => {
       const course = cert.courses || {}
       const instructor = course.instructor_id ? instructorMap.get(course.instructor_id) : null
       
@@ -137,4 +165,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

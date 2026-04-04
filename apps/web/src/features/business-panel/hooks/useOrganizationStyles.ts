@@ -27,6 +27,10 @@ export interface StyleConfig {
   sidebar_opacity?: number;
 }
 
+const getErrorMessage = (error: unknown, fallback: string): string => (
+  error instanceof Error ? error.message : fallback
+)
+
 /**
  * Hook para obtener y actualizar los estilos de la organización.
  *
@@ -122,8 +126,8 @@ export function useOrganizationStyles() {
       }
 
       setStyles(data.styles);
-    } catch (err: any) {
-      setError(err.message || 'Error al obtener estilos');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al obtener estilos'));
       setStyles(null);
     } finally {
       setLoading(false);
@@ -168,8 +172,8 @@ export function useOrganizationStyles() {
 
       setStyles(data.styles);
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Error al actualizar estilos');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al actualizar estilos'));
       return false;
     }
   }, [orgSlug]);
@@ -199,8 +203,8 @@ export function useOrganizationStyles() {
 
       setStyles(data.styles);
       return true;
-    } catch (err: any) {
-      setError(err.message || 'Error al aplicar tema');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Error al aplicar tema'));
       return false;
     }
   }, [orgSlug]);

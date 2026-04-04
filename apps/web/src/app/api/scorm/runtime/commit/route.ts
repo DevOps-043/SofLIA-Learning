@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getSessionCache } from '@/lib/scorm/session-cache';
 
+type ScormSupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -28,7 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Mapear CMI keys a columnas de DB
-    const updateData: Record<string, any> = {
+    const updateData: Record<string, unknown> = {
       last_accessed_at: new Date().toISOString(),
     };
 
@@ -133,7 +135,7 @@ function parseSessionTime(time: string): string {
 }
 
 async function saveInteractions(
-  supabase: any,
+  supabase: ScormSupabaseClient,
   attemptId: string,
   cache: Map<string, string>
 ) {

@@ -3,6 +3,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
 import type { CalendarListItem, CalendarIntegrationMetadata } from '../../../../../features/study-planner/types/user-context.types';
+import { logger } from '@/lib/logger';
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -40,10 +41,25 @@ const MICROSOFT_CLIENT_SECRET = process.env.MICROSOFT_CALENDAR_CLIENT_SECRET ||
   process.env.MICROSOFT_CLIENT_SECRET ||
   process.env.MICROSOFT_OAUTH_CLIENT_SECRET;
 
+interface CalendarIntegrationRow {
+  id: string
+  provider: 'google' | 'microsoft'
+  access_token: string | null
+  refresh_token: string | null
+  expires_at: string | null
+  metadata: CalendarIntegrationMetadata | null
+}
+
+interface TokenRefreshResponse {
+  access_token?: string
+  refresh_token?: string
+  expires_in?: number
+}
+
 /**
  * Refresca el token de acceso si ha expirado
  */
-async function refreshAccessToken(integration: any): Promise<{ success: boolean; accessToken?: string }> {
+async function refreshAccessToken(integration: CalendarIntegrationRow): Promise<{ success: boolean; accessToken?: string }> {
   try {
     if (integration.provider === 'google') {
       if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET || !integration.refresh_token) {
@@ -62,7 +78,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
       });
 
       if (!response.ok) return { success: false };
-      const tokens = await response.json();
+      const tokens: TokenRefreshResponse = await response.json();
       if (!tokens.access_token) return { success: false };
 
       const supabase = createAdminClient();
@@ -96,7 +112,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
       });
 
       if (!response.ok) return { success: false };
-      const tokens = await response.json();
+      const tokens: TokenRefreshResponse = await response.json();
       if (!tokens.access_token) return { success: false };
 
       const supabase = createAdminClient();
@@ -145,7 +161,7 @@ export async function GET() {
       return NextResponse.json({ error: 'No hay calendario conectado' }, { status: 404 });
     }
 
-    const integration = integrations[0];
+    const integration = integrations[0] as CalendarIntegrationRow;
     let accessToken = integration.access_token;
 
     // Refresh token si expirado
@@ -233,7 +249,7 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('[Calendar List] Error:', error);
+    logger.error('[Calendar List] Error:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

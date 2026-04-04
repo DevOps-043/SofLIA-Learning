@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error && error.message ? error.message : 'Error desconocido'
+}
+
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -45,7 +49,7 @@ export async function GET() {
       explicitMemberships: explicitMemberships || memError,
       apiMemberships: apiMemberships || apiError,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: getErrorMessage(error) });
   }
 }

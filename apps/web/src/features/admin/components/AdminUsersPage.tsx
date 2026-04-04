@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid'
 import { useAdminUsers } from '../hooks/useAdminUsers'
+import type { NewAdminUserData } from './AddUserModal'
 import { AdminUser } from '../services/adminUsers.service'
 
 const EditUserModal = dynamic(() => import('./EditUserModal').then(mod => ({ default: mod.EditUserModal })), {
@@ -171,7 +172,7 @@ export function AdminUsersPage() {
     setIsAddModalOpen(true)
   }
 
-  const handleSaveNewUser = async (userData: any) => {
+  const handleSaveNewUser = async (userData: NewAdminUserData) => {
     try {
       const response = await fetch('/api/admin/users/create', {
         method: 'POST',

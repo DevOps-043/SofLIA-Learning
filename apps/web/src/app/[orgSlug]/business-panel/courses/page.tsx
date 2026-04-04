@@ -22,7 +22,7 @@ import {
   Target,
   Layers
 } from 'lucide-react'
-import { useBusinessCourses } from '@/features/business-panel/hooks/useBusinessCourses'
+import { useBusinessCourses, type BusinessCourse } from '@/features/business-panel/hooks/useBusinessCourses'
 import { StarRating } from '@/features/courses/components/StarRating'
 import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
 import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
@@ -94,7 +94,7 @@ function CourseStatCard({ title, value, icon: Icon, color, delay, isDark }: Cour
 // COMPONENTE: CourseCard Premium
 // ============================================
 interface CourseCardProps {
-  course: any
+  course: BusinessCourse
   index: number
   primaryColor: string
   textColor: string
@@ -105,6 +105,7 @@ interface CourseCardProps {
 
 function CourseCard({ course, index, primaryColor, textColor, cardBg, onClick, isDark }: CourseCardProps) {
   const { t } = useTranslation('business')
+  type TranslateFn = (key: string) => string
   const formatDuration = (minutes: number | null) => {
     if (!minutes) return 'N/A'
     if (minutes < 60) return `${minutes} min`
@@ -113,17 +114,17 @@ function CourseCard({ course, index, primaryColor, textColor, cardBg, onClick, i
     return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
   }
 
-  const getLevelStyles = (level: string | null, t: any) => {
+  const getLevelStyles = (level: string | null, translate: TranslateFn) => {
     switch (level?.toLowerCase()) {
       case 'beginner':
       case 'principiante':
-        return { bg: 'rgba(34, 197, 94, 0.2)', color: '#22C55E', text: t('courses.levels.beginner') }
+        return { bg: 'rgba(34, 197, 94, 0.2)', color: '#22C55E', text: translate('courses.levels.beginner') }
       case 'intermediate':
       case 'intermedio':
-        return { bg: 'rgba(234, 179, 8, 0.2)', color: '#EAB308', text: t('courses.levels.intermediate') }
+        return { bg: 'rgba(234, 179, 8, 0.2)', color: '#EAB308', text: translate('courses.levels.intermediate') }
       case 'advanced':
       case 'avanzado':
-        return { bg: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', text: t('courses.levels.advanced') }
+        return { bg: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', text: translate('courses.levels.advanced') }
       default:
         return { bg: 'rgba(59, 130, 246, 0.2)', color: '#3B82F6', text: level || 'N/A' }
     }

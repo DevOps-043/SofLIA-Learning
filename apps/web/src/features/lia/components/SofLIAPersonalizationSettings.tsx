@@ -27,6 +27,10 @@ interface SofLIAPersonalizationSettingsProps {
   onClose: () => void;
 }
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 const BASE_STYLES: { value: BaseStyle; label: string; description: string }[] = [
   { value: 'professional', label: 'Profesional', description: 'Tono formal y directo, apropiado para trabajo' },
   { value: 'casual', label: 'Casual', description: 'Tono relajado y conversacional' },
@@ -91,7 +95,8 @@ export function SofLIAPersonalizationSettings({ isOpen, onClose }: SofLIAPersona
       setTimeout(() => {
         setSaveMessage(null);
       }, 3000);
-    } catch (error: any) {
+    } catch (caughtError: unknown) {
+      const error = { message: getErrorMessage(caughtError, 'Error al guardar configuraciÃ³n') };
       setSaveMessage({ type: 'error', text: error.message || 'Error al guardar configuración' });
     } finally {
       setIsSaving(false);
@@ -119,7 +124,8 @@ export function SofLIAPersonalizationSettings({ isOpen, onClose }: SofLIAPersona
       setTimeout(() => {
         setSaveMessage(null);
       }, 3000);
-    } catch (error: any) {
+    } catch (caughtError: unknown) {
+      const error = { message: getErrorMessage(caughtError, 'Error al restablecer configuraciÃ³n') };
       setSaveMessage({ type: 'error', text: error.message || 'Error al restablecer configuración' });
     } finally {
       setIsSaving(false);

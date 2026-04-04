@@ -36,7 +36,7 @@ export async function GET(
     // Verificar que el JOIN con users está funcionando correctamente
     if (replies && replies.length > 0) {
       logger.log(`📊 Respuestas obtenidas: ${replies.length}`)
-      replies.forEach((reply: any, index: number) => {
+      replies.forEach((reply, index: number) => {
         if (reply.users) {
           logger.log(`  ${index + 1}. Usuario: ${reply.users.username || reply.users.id} (${reply.users.id})`)
         } else {

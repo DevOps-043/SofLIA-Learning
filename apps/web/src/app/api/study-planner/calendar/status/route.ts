@@ -10,6 +10,7 @@ import { NextResponse } from 'next/server';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // Crear cliente admin para bypass de RLS
 export function createLegacyAdminClient() {
@@ -79,11 +80,10 @@ export async function GET(): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('Error verificando estado de calendario:', error);
+    logger.error('Error verificando estado de calendario:', error);
     return NextResponse.json({ 
       isConnected: false, 
       error: error instanceof Error ? error.message : 'Error interno' 
     }, { status: 500 });
   }
 }
-

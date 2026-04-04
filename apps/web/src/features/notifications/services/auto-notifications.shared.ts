@@ -3,6 +3,7 @@ import { NotificationService } from './notification.service'
 import type { CreateNotificationParams } from './notification.service'
 
 type NotificationServerClient = Awaited<ReturnType<typeof getServerClient>>
+export type NotificationMetadata = Record<string, unknown>
 
 interface NotificationActor {
   username: string | null

@@ -154,7 +154,7 @@ export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: Bu
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={onClose}
                   disabled={isLoading}
                   className="font-heading text-sm transition-all duration-200"
@@ -190,4 +190,3 @@ export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: Bu
     </AnimatePresence>
   )
 }
-

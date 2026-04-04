@@ -5,6 +5,7 @@ import { getServerClient } from './auto-notifications-server-client'
 import {
   dispatchNotifications,
   fetchNotificationActorName,
+  type NotificationMetadata,
   truncateNotificationPreview,
 } from './auto-notifications.shared'
 
@@ -29,7 +30,7 @@ export class CommunityNotificationsService {
     communityId: string,
     authorId: string,
     postTitle: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()
@@ -93,7 +94,7 @@ export class CommunityNotificationsService {
     commentAuthorId: string,
     commentPreview: string,
     communityId: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       if (postAuthorId === commentAuthorId) {
@@ -151,7 +152,7 @@ export class CommunityNotificationsService {
     reactionAuthorId: string,
     reactionType: string,
     communityId: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       if (postAuthorId === reactionAuthorId) {
@@ -216,7 +217,7 @@ export class CommunityNotificationsService {
     communityId: string,
     newMemberId: string,
     communityName: string,
-    metadata?: Record<string, any>,
+    metadata?: NotificationMetadata,
   ): Promise<void> {
     try {
       const supabase = await getServerClient()

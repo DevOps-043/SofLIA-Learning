@@ -4,6 +4,55 @@ import { createClient } from '@/lib/supabase/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
+interface CourseCategoryItem {
+  name: string
+}
+
+interface LessonTimeEstimate {
+  total_time_minutes?: number | null
+  video_minutes?: number | null
+  reading_time_minutes?: number | null
+  activities_time_minutes?: number | null
+  quiz_time_minutes?: number | null
+  exercise_time_minutes?: number | null
+}
+
+interface LessonDurationItem {
+  estimated_time_minutes?: number | null
+}
+
+interface DeadlineCourseLessonRow {
+  lesson_title: string | null
+  duration_seconds: number | null
+  lesson_time_estimates: LessonTimeEstimate[] | LessonTimeEstimate | null
+  lesson_activities: LessonDurationItem[] | null
+  lesson_materials: LessonDurationItem[] | null
+}
+
+interface DeadlineCourseModuleRow {
+  module_title: string | null
+  module_description: string | null
+  course_lessons: DeadlineCourseLessonRow[] | null
+}
+
+interface DeadlineCourseRow {
+  id: string
+  title: string
+  description: string | null
+  level: string | null
+  duration_total_minutes: number | null
+  category: CourseCategoryItem[] | CourseCategoryItem | null
+  course_modules: DeadlineCourseModuleRow[] | null
+}
+
+function getCategoryLabel(category: DeadlineCourseRow['category']): string {
+  if (Array.isArray(category)) {
+    return category.map((item) => item.name).join(', ')
+  }
+
+  return category?.name || 'General'
+}
+
 export const maxDuration = 60; // Allow more time for AI processing
 
 // Standard reference paces (used as baseline for AI)
@@ -66,7 +115,7 @@ export async function GET(
         )
       `)
       .eq('id', params.id)
-      .single()
+      .single<DeadlineCourseRow>()
 
     if (courseError || !course) {
       console.error("Error fetching course data:", courseError);
@@ -81,16 +130,16 @@ export async function GET(
     
     let syllabusContext = `COURSE: "${course.title}"\n`;
     syllabusContext += `LEVEL: ${course.level || 'Not specified'}\n`;
-    syllabusContext += `CATEGORY: ${Array.isArray(course.category) ? course.category.map((c:any) => c.name).join(', ') : (course.category as any)?.name || 'General'}\n`;
+    syllabusContext += `CATEGORY: ${getCategoryLabel(course.category)}\n`;
     syllabusContext += `DESCRIPTION: ${course.description || ''}\n\n`;
     syllabusContext += `CONTENT BREAKDOWN (Real Times):\n`;
 
     if (course.course_modules && Array.isArray(course.course_modules)) {
-      course.course_modules.forEach((module: any, i: number) => {
+      course.course_modules.forEach((module, i: number) => {
         syllabusContext += `\nMODULE ${i+1}: ${module.module_title}`;
         
         if (module.course_lessons && Array.isArray(module.course_lessons)) {
-          module.course_lessons.forEach((lesson: any) => {
+          module.course_lessons.forEach((lesson) => {
              const estimates = lesson.lesson_time_estimates; 
              const est = Array.isArray(estimates) ? estimates[0] : estimates;
 
@@ -101,14 +150,14 @@ export async function GET(
              // Reading
              let readMin = est?.reading_time_minutes ?? 0;
              if (!est && lesson.lesson_materials && Array.isArray(lesson.lesson_materials)) {
-                lesson.lesson_materials.forEach((m: any) => readMin += (m.estimated_time_minutes || 0));
+                lesson.lesson_materials.forEach((material) => readMin += (material.estimated_time_minutes || 0));
              }
              totalReadingMinutes += readMin;
 
              // Activity
              let actMin = (est?.activities_time_minutes || 0) + (est?.quiz_time_minutes || 0) + (est?.exercise_time_minutes || 0);
              if (!est && lesson.lesson_activities && Array.isArray(lesson.lesson_activities)) {
-                 lesson.lesson_activities.forEach((a: any) => actMin += (a.estimated_time_minutes || 0));
+                 lesson.lesson_activities.forEach((activity) => actMin += (activity.estimated_time_minutes || 0));
              }
              totalActivityMinutes += actMin;
 

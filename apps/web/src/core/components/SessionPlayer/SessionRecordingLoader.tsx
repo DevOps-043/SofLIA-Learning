@@ -121,7 +121,7 @@ export function SessionRecordingLoader({
       setProgress(80);
 
       // Parsear el JSON
-      let parsedData: any;
+      let parsedData: { events: Array<{ type: number }> };
       
       // Si el string empieza con "gzip:", es nuestro formato personalizado
       if (jsonString.startsWith('gzip:')) {
@@ -148,7 +148,7 @@ export function SessionRecordingLoader({
       }
 
       // Verificar que haya snapshot inicial
-      const hasSnapshot = parsedData.events.some((e: any) => e.type === 2);
+      const hasSnapshot = parsedData.events.some((e: { type: number }) => e.type === 2);
       if (!hasSnapshot) {
         console.warn('⚠️ La grabación no contiene snapshot inicial');
       }

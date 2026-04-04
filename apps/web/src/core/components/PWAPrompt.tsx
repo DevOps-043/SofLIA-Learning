@@ -3,6 +3,11 @@
 import { useEffect, useState } from 'react';
 import { Download, Wifi, WifiOff } from 'lucide-react';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 /**
  * PWA Install Prompt
  * 
@@ -10,7 +15,7 @@ import { Download, Wifi, WifiOff } from 'lucide-react';
  * y notificación de estado offline/online
  */
 export function PWAPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [showOfflineNotice, setShowOfflineNotice] = useState(false);
@@ -19,7 +24,7 @@ export function PWAPrompt() {
     // Detectar evento beforeinstallprompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 

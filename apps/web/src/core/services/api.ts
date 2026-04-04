@@ -1,5 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 
+interface RefreshSessionResponse {
+  accessToken?: string;
+}
+
 class ApiService {
   private client: AxiosInstance;
 
@@ -39,9 +43,12 @@ class ApiService {
           const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
           if (refreshToken) {
             try {
-              const response = await this.post('/auth/refresh', { refreshToken });
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('accessToken', response.data.accessToken);
+              const response = await this.post<RefreshSessionResponse, { refreshToken: string }>(
+                '/auth/refresh',
+                { refreshToken }
+              );
+              if (typeof window !== 'undefined' && response.accessToken) {
+                localStorage.setItem('accessToken', response.accessToken);
               }
               // Reintentar request original
               return this.client.request(error.config);
@@ -60,31 +67,42 @@ class ApiService {
     );
   }
 
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response: AxiosResponse<T> = await this.client.get(url, config);
     return response.data;
   }
 
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async post<T = unknown, TBody = unknown>(
+    url: string,
+    data?: TBody,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     const response: AxiosResponse<T> = await this.client.post(url, data, config);
     return response.data;
   }
 
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async put<T = unknown, TBody = unknown>(
+    url: string,
+    data?: TBody,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     const response: AxiosResponse<T> = await this.client.put(url, data, config);
     return response.data;
   }
 
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
     const response: AxiosResponse<T> = await this.client.delete(url, config);
     return response.data;
   }
 
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  async patch<T = unknown, TBody = unknown>(
+    url: string,
+    data?: TBody,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
     const response: AxiosResponse<T> = await this.client.patch(url, data, config);
     return response.data;
   }
 }
 
 export const apiService = new ApiService();
-

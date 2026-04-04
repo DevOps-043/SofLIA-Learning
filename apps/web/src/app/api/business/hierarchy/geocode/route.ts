@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (country) params.append('country', country);
     if (postal_code) params.append('postalcode', postal_code);
 
-    // Check if any location part was provided for the structured query
+    // Check whether at least one location part was provided for the structured query
     const hasStructuredParams = address || city || state || country || postal_code;
 
     if (!hasStructuredParams) {
@@ -198,8 +198,9 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('❌ Reverse Geocoding Error:', error);
-    return NextResponse.json({ error: error.message || 'Error fetching location' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Error fetching location';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

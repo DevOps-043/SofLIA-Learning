@@ -7,6 +7,15 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>;
 }
 
+interface OrganizationZoneRow {
+  id: string;
+  [key: string]: unknown;
+}
+
+interface ZoneCountRow {
+  zone_id: string | null;
+}
+
 /**
  * GET /api/[orgSlug]/business/hierarchy/zones
  * Lista todas las zonas de la organización
@@ -62,29 +71,31 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       );
     }
 
-    let zonesWithCounts = zones || [];
+    let zonesWithCounts = (zones || []) as OrganizationZoneRow[];
 
     if (withCounts && zones && zones.length > 0) {
-      const zoneIds = zones.map((z: any) => z.id);
+      const zoneIds = zones.map((zone) => zone.id);
 
       // Contar equipos por zona
       const { data: teamCounts } = await supabase
         .from('organization_teams')
         .select('zone_id')
         .in('zone_id', zoneIds)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .returns<ZoneCountRow[]>();
 
       // Contar usuarios por zona
       const { data: userCounts } = await supabase
         .from('organization_users')
         .select('zone_id')
         .in('zone_id', zoneIds)
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .returns<ZoneCountRow[]>();
 
-      zonesWithCounts = zones.map((zone: any) => ({
+      zonesWithCounts = zones.map((zone) => ({
         ...zone,
-        teams_count: teamCounts?.filter((t: any) => t.zone_id === zone.id).length || 0,
-        users_count: userCounts?.filter((u: any) => u.zone_id === zone.id).length || 0
+        teams_count: teamCounts?.filter((team) => team.zone_id === zone.id).length || 0,
+        users_count: userCounts?.filter((user) => user.zone_id === zone.id).length || 0
       }));
     }
 

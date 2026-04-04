@@ -37,6 +37,27 @@ export interface CourseData {
   pendingCount: number;
 }
 
+interface LessonDataResponse {
+  lessonId: string;
+  lessonTitle: string;
+  lessonOrderIndex?: number | null;
+  durationMinutes?: number | null;
+  moduleId?: string | null;
+  moduleTitle?: string | null;
+  moduleOrderIndex?: number | null;
+  courseId?: string | null;
+  courseTitle?: string | null;
+}
+
+interface CourseDataResponse {
+  courseId: string;
+  courseTitle: string;
+  dueDate?: string | null;
+  totalLessons?: number | null;
+  completedLessons?: number | null;
+  pendingCount?: number | null;
+}
+
 export interface LIADataState {
   lessons: LessonData[];
   courses: CourseData[];
@@ -89,7 +110,7 @@ export function useLIAData() {
       }
 
       // Mapear lecciones
-      const lessons: LessonData[] = (data.allPendingLessons || []).map((l: any) => ({
+      const lessons: LessonData[] = ((data.allPendingLessons || []) as LessonDataResponse[]).map((l) => ({
         lessonId: l.lessonId,
         lessonTitle: l.lessonTitle, // ⚠️ NOMBRE EXACTO DE LA BD
         lessonOrderIndex: l.lessonOrderIndex || 0,
@@ -102,7 +123,7 @@ export function useLIAData() {
       }));
 
       // Mapear cursos
-      const courses: CourseData[] = (data.courses || []).map((c: any) => ({
+      const courses: CourseData[] = ((data.courses || []) as CourseDataResponse[]).map((c) => ({
         courseId: c.courseId,
         courseTitle: c.courseTitle,
         dueDate: c.dueDate || null,

@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
 import { SessionService } from '../../../features/auth/services/session.service';
+import { fromLoose } from '../../../lib/supabase/looseQuery';
+
+interface LiaConversationInsert {
+  user_id: string;
+  context_type: string;
+  device_type: string;
+  browser: string;
+  ip_address: string;
+}
+
+interface LiaConversationRow extends LiaConversationInsert {
+  conversation_id: string;
+}
 
 /**
  * Endpoint de prueba para verificar que LIA Analytics funciona
@@ -23,7 +36,7 @@ export async function GET() {
     const supabase = await createClient();
 
     // 3. Intentar insertar en lia_conversations
-    const testData = {
+    const testData: LiaConversationInsert = {
       user_id: user.id,
       context_type: 'test',
       device_type: 'test',
@@ -31,9 +44,10 @@ export async function GET() {
       ip_address: '127.0.0.1'
     };
 
-    const { data, error } = await supabase
-      .from('lia_conversations' as any)
-      .insert(testData as any)
+    const liaConversations = fromLoose<LiaConversationRow, LiaConversationInsert>(supabase, 'lia_conversations');
+
+    const { data, error } = await liaConversations
+      .insert(testData)
       .select('conversation_id')
       .single();
 
@@ -51,11 +65,10 @@ export async function GET() {
     }
 
     // 4. Si llegamos aquí, funcionó
-    const conversationId = (data as any)?.conversation_id;
+    const conversationId = data?.conversation_id;
 
     // 5. Verificar que se guardó
-    const { data: checkData, error: checkError } = await supabase
-      .from('lia_conversations' as any)
+    const { data: checkData, error: checkError } = await liaConversations
       .select('*')
       .eq('conversation_id', conversationId)
       .single();
@@ -64,8 +77,7 @@ export async function GET() {
     }
 
     // 6. Limpiar (borrar el registro de prueba)
-    await supabase
-      .from('lia_conversations' as any)
+    await liaConversations
       .delete()
       .eq('conversation_id', conversationId);
 

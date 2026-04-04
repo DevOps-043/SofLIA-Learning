@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { Award, Play, BookOpen, CheckCircle2 } from 'lucide-react'
 import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
+import type { StyleConfig } from '../../../../../features/business-panel/contexts/OrganizationStylesContext'
 
 interface AssignedCourse {
   id: string
@@ -25,7 +26,7 @@ interface CourseCard3DProps {
   index: number
   onClick: () => void
   onCertificateClick?: () => void
-  styles?: any
+  styles?: Partial<StyleConfig> | null
 }
 
 /**

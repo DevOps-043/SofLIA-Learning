@@ -1,0 +1,188 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+import { NotFoundError } from '@/core/errors/app-error'
+
+import { CoursesService } from '../courses.service'
+import type { CoursesRepository } from '../courses.repository'
+import type { CourseListItem, LessonProgress } from '../courses.types'
+
+function makeCourse(overrides: Partial<CourseListItem> = {}): CourseListItem {
+  return {
+    id: 'course-1',
+    title: 'Test Course',
+    description: 'A test course',
+    category: 'technology',
+    level: 'beginner',
+    instructor_id: 'inst-1',
+    duration_total_minutes: 120,
+    thumbnail_url: null,
+    slug: 'test-course',
+    is_active: true,
+    price: 0,
+    average_rating: 4.5,
+    student_count: 100,
+    review_count: 20,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    instructor: null,
+    ...overrides,
+  }
+}
+
+function makeProgress(overrides: Partial<LessonProgress> = {}): LessonProgress {
+  return {
+    progress_id: 'progress-1',
+    lesson_id: 'lesson-1',
+    user_id: 'user-1',
+    enrollment_id: 'enrollment-1',
+    progress_percent: 50,
+    time_spent_seconds: 300,
+    is_completed: false,
+    last_position: 150,
+    completed_at: null,
+    updated_at: '2026-01-01T00:00:00Z',
+    last_accessed_at: '2026-01-01T00:00:00Z',
+    lesson_status: 'in_progress',
+    video_progress_percentage: 50,
+    quiz_completed: false,
+    quiz_passed: false,
+    ...overrides,
+  }
+}
+
+function makeRepository(
+  overrides: Partial<CoursesRepository> = {},
+): CoursesRepository {
+  return {
+    findCourses: vi.fn().mockResolvedValue({ courses: [], total: 0 }),
+    findCourseBySlug: vi.fn().mockResolvedValue(makeCourse()),
+    findLessonProgress: vi.fn().mockResolvedValue(null),
+    upsertLessonProgress: vi.fn().mockResolvedValue(makeProgress()),
+    findUserEnrollments: vi.fn().mockResolvedValue([]),
+    ...overrides,
+  }
+}
+
+describe('CoursesService', () => {
+  let service: CoursesService
+  let repository: CoursesRepository
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    repository = makeRepository()
+    service = new CoursesService(repository)
+  })
+
+  describe('getCourses', () => {
+    it('returns paginated courses list', async () => {
+      const courses = [makeCourse(), makeCourse({ id: 'course-2', slug: 'test-2' })]
+      vi.mocked(repository.findCourses).mockResolvedValue({ courses, total: 2 })
+
+      const result = await service.getCourses({ limit: 50, offset: 0, isActive: true, orderBy: 'created_at', orderDirection: 'desc' })
+
+      expect(result.courses).toHaveLength(2)
+      expect(result.total).toBe(2)
+      expect(result.page).toBe(1)
+    })
+
+    it('calculates total_pages correctly', async () => {
+      vi.mocked(repository.findCourses).mockResolvedValue({ courses: [], total: 105 })
+
+      const result = await service.getCourses({ limit: 50, offset: 0, isActive: true, orderBy: 'created_at', orderDirection: 'desc' })
+
+      expect(result.total_pages).toBe(3)
+    })
+
+    it('returns empty list when no courses', async () => {
+      const result = await service.getCourses({ limit: 50, offset: 0, isActive: true, orderBy: 'created_at', orderDirection: 'desc' })
+
+      expect(result.courses).toHaveLength(0)
+      expect(result.total).toBe(0)
+    })
+  })
+
+  describe('getCourseBySlug', () => {
+    it('returns course when found', async () => {
+      const course = makeCourse({ slug: 'my-course' })
+      vi.mocked(repository.findCourseBySlug).mockResolvedValue(course)
+
+      const result = await service.getCourseBySlug('my-course')
+
+      expect(result.slug).toBe('my-course')
+      expect(repository.findCourseBySlug).toHaveBeenCalledWith('my-course')
+    })
+
+    it('propagates NotFoundError from repository', async () => {
+      vi.mocked(repository.findCourseBySlug).mockRejectedValue(
+        new NotFoundError('Curso no encontrado: missing'),
+      )
+
+      await expect(service.getCourseBySlug('missing')).rejects.toThrow(NotFoundError)
+    })
+  })
+
+  describe('getLessonProgress', () => {
+    it('returns null when no progress exists', async () => {
+      const result = await service.getLessonProgress('user-1', 'course-1', 'lesson-1')
+      expect(result).toBeNull()
+    })
+
+    it('returns progress when found', async () => {
+      const progress = makeProgress({ progress_percent: 75 })
+      vi.mocked(repository.findLessonProgress).mockResolvedValue(progress)
+
+      const result = await service.getLessonProgress('user-1', 'course-1', 'lesson-1')
+
+      expect(result?.progress_percent).toBe(75)
+    })
+  })
+
+  describe('updateLessonProgress', () => {
+    it('upserts progress correctly', async () => {
+      const progress = makeProgress({ progress_percent: 100, is_completed: true })
+      vi.mocked(repository.upsertLessonProgress).mockResolvedValue(progress)
+
+      const result = await service.updateLessonProgress('user-1', 'course-1', 'lesson-1', {
+        progressPercent: 100,
+        isCompleted: true,
+      })
+
+      expect(result.is_completed).toBe(true)
+      expect(result.progress_percent).toBe(100)
+    })
+
+    it('passes all fields to repository', async () => {
+      await service.updateLessonProgress('user-1', 'course-1', 'lesson-1', {
+        progressPercent: 50,
+        timeSpentSeconds: 300,
+        lastPosition: 150,
+      })
+
+      expect(repository.upsertLessonProgress).toHaveBeenCalledWith(
+        'user-1',
+        'course-1',
+        'lesson-1',
+        expect.objectContaining({ progressPercent: 50 }),
+      )
+    })
+  })
+
+  describe('getUserEnrollments', () => {
+    it('returns empty array when no enrollments', async () => {
+      const result = await service.getUserEnrollments('user-1')
+      expect(result).toHaveLength(0)
+    })
+
+    it('returns enrollments list', async () => {
+      vi.mocked(repository.findUserEnrollments).mockResolvedValue([
+        { course_id: 'course-1', enrolled_at: '2026-01-01T00:00:00Z' },
+        { course_id: 'course-2', enrolled_at: '2026-01-15T00:00:00Z' },
+      ])
+
+      const result = await service.getUserEnrollments('user-1')
+
+      expect(result).toHaveLength(2)
+      expect(result[0].course_id).toBe('course-1')
+    })
+  })
+})

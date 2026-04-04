@@ -5,6 +5,13 @@ import { ContentTranslationService } from '@/core/services/contentTranslation.se
 import { SupportedLanguage } from '@/core/i18n/i18n';
 import { normalizeLessonActivityRecord } from '@/lib/course-content';
 
+type LessonActivityRecord = Record<string, unknown> & {
+  activity_content?: unknown
+  activity_id: string
+  activity_type?: string | null
+  id?: string
+}
+
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/activities
  * Obtiene todas las actividades de una lección (con traducción si está disponible)
@@ -77,12 +84,12 @@ export async function GET(
 
     // IMPORTANTE: Siempre intentar aplicar traducciones, incluso para español
     // Si el contenido original está en inglés/portugués, necesitamos las traducciones a español
-    let translatedActivities = activities || [];
+    let translatedActivities: LessonActivityRecord[] = (activities ?? []) as LessonActivityRecord[];
     if (translatedActivities.length > 0) {
       try {
         translatedActivities = await ContentTranslationService.translateArray(
           'activity',
-          translatedActivities.map((a: any) => ({ ...a, id: a.activity_id })),
+          translatedActivities.map((activity) => ({ ...activity, id: activity.activity_id })),
           ['activity_title', 'activity_description', 'activity_content', 'ai_prompts'],
           language,
           supabase // Pasar el cliente del servidor
@@ -95,7 +102,7 @@ export async function GET(
     }
 
     // ⚡ OPTIMIZACIÓN: Agregar cache headers (datos estáticos - 1 hora)
-    const normalizedActivities = translatedActivities.map((activity: any) =>
+    const normalizedActivities = translatedActivities.map((activity) =>
       normalizeLessonActivityRecord(activity)
     );
 

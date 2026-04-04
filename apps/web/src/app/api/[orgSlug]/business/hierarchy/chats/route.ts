@@ -7,6 +7,43 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>;
 }
 
+type HierarchyEntityType = 'region' | 'zone' | 'team' | 'node';
+type HierarchyChatType = 'horizontal' | 'vertical';
+
+interface HierarchyChatRow {
+  id: string;
+  entity_type: HierarchyEntityType;
+  entity_id: string;
+  chat_type: HierarchyChatType;
+  last_message_at?: string | null;
+  is_active: boolean;
+  [key: string]: unknown;
+}
+
+interface HierarchyChatParticipantRow {
+  id: string;
+  user_id: string;
+  is_active: boolean;
+  unread_count: number | null;
+  last_read_at: string | null;
+}
+
+interface HierarchyParticipantUser {
+  user_id: string;
+}
+
+function isHierarchyEntityType(value: string | null): value is HierarchyEntityType {
+  return value === 'region' || value === 'zone' || value === 'team' || value === 'node';
+}
+
+function isHierarchyChatType(value: string | null): value is HierarchyChatType {
+  return value === 'horizontal' || value === 'vertical';
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error desconocido';
+}
+
 function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -35,16 +72,18 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
 
     const { searchParams } = new URL(request.url);
-    const entityType = searchParams.get('entity_type') as any;
+    const entityTypeValue = searchParams.get('entity_type');
     const entityId = searchParams.get('entity_id');
-    const chatType = searchParams.get('chat_type') as any;
+    const chatTypeValue = searchParams.get('chat_type');
+    const chatType = isHierarchyChatType(chatTypeValue) ? chatTypeValue : null;
 
-    if (!entityType || !entityId) {
+    if (!isHierarchyEntityType(entityTypeValue) || !entityId) {
       return NextResponse.json(
         { success: false, error: 'entity_type y entity_id son requeridos' },
         { status: 400 }
       );
     }
+    const entityType = entityTypeValue;
 
     const supabase = createServiceClient();
 
@@ -60,7 +99,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       baseQuery = baseQuery.eq('chat_type', chatType);
     }
 
-    const { data: chats, error } = await baseQuery.order('last_message_at', { ascending: false, nullsFirst: false });
+    const { data: chats, error } = await baseQuery
+      .order('last_message_at', { ascending: false, nullsFirst: false })
+      .returns<HierarchyChatRow[]>();
 
     if (error) {
       return NextResponse.json(
@@ -73,15 +114,16 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
 
     const chatsWithCounts = await Promise.all(
-      (chats || []).map(async (chat: any) => {
+      (chats || []).map(async (chat) => {
         const { data: participants } = await supabase
           .from('hierarchy_chat_participants')
           .select('id, user_id, is_active, unread_count, last_read_at')
           .eq('chat_id', chat.id)
-          .eq('is_active', true);
+          .eq('is_active', true)
+          .returns<HierarchyChatParticipantRow[]>();
 
         const activeParticipants = participants || [];
-        const userParticipant = activeParticipants.find((p: any) => p?.user_id === auth.userId);
+        const userParticipant = activeParticipants.find((participant) => participant.user_id === auth.userId);
 
         return {
           ...chat,
@@ -95,12 +137,12 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       success: true,
       chats: chatsWithCounts
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error en GET chats:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Error al obtener chats'
+        error: getErrorMessage(error)
       },
       { status: 500 }
     );
@@ -192,14 +234,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     }
 
     // Obtener participantes
-    let participants: any[] = [];
+    let participants: HierarchyParticipantUser[] = [];
     try {
       if (entity_type === 'node') {
         const { data } = await supabase.rpc('get_node_chat_participants', {
           p_node_id: entity_id,
           p_organization_id: auth.organizationId
         });
-        participants = data || [];
+        participants = (data || []) as HierarchyParticipantUser[];
       } else {
         if (chat_type === 'horizontal') {
           const { data } = await supabase.rpc('get_horizontal_chat_participants', {
@@ -207,14 +249,14 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
             p_entity_id: entity_id,
             p_organization_id: auth.organizationId
           });
-          participants = data || [];
+          participants = (data || []) as HierarchyParticipantUser[];
         } else {
           const { data } = await supabase.rpc('get_vertical_chat_participants', {
             p_entity_type: entity_type,
             p_entity_id: entity_id,
             p_organization_id: auth.organizationId
           });
-          participants = data || [];
+          participants = (data || []) as HierarchyParticipantUser[];
         }
       }
     } catch (e) {}
@@ -241,12 +283,12 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       chat: newChat,
       created: true
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error en POST chats:', error);
     return NextResponse.json(
       {
         success: false,
-        error: 'Error al crear el chat'
+        error: getErrorMessage(error)
       },
       { status: 500 }
     );

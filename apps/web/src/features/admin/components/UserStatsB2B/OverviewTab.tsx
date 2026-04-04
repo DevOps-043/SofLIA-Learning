@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Users, CheckCircle, Clock, Award, PieChart, BarChart3 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useOverviewStats } from '../../hooks/useUserStatsB2B'
 import { BarChartComponent, PieChartComponent, EmptyState } from './charts'
 
@@ -94,7 +95,7 @@ export function OverviewTab() {
   )
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: LucideIcon; color: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -112,7 +113,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
   )
 }
 
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

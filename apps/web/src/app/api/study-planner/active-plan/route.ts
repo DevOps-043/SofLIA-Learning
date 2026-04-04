@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
+import { logger } from '@/lib/logger';
 
 // Crear cliente admin para bypass de RLS
 export function createLegacyAdminClient() {
@@ -64,12 +65,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     });
 
   } catch (error) {
-    console.error('Error en GET /api/study-planner/active-plan:', error);
+    logger.error('Error en GET /api/study-planner/active-plan:', error);
     return NextResponse.json({ 
       planId: null,
       error: error instanceof Error ? error.message : 'Error interno del servidor'
     }, { status: 500 });
   }
 }
-
 

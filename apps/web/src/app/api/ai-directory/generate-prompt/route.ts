@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 
     // Agregar historial de conversación (últimos 10 mensajes para mantener contexto)
     const recentHistory = conversationHistory ? conversationHistory.slice(-10) : [];
-    recentHistory.forEach((msg: any) => {
+    recentHistory.forEach((msg: ChatMessage) => {
       // Convertir del formato del frontend al formato de OpenAI
       const role = msg.sender === 'ai' ? 'assistant' : 'user';
       const content = msg.text;

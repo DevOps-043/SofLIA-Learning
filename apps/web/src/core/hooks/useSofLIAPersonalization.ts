@@ -31,7 +31,7 @@ const fetcher = async (url: string): Promise<SofLIAPersonalizationSettings | nul
     }
     const errorData = await res.json().catch(() => ({ error: res.statusText }));
     const error = new Error(errorData.error || errorData.message || 'Error al cargar configuración');
-    (error as any).status = res.status;
+    (error as Error & { status?: number }).status = res.status;
     throw error;
   }
 

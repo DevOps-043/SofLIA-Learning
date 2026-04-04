@@ -2,6 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 
+interface StudentUserSummary {
+  id: string
+  username: string | null
+  email: string | null
+  display_name: string | null
+  profile_picture?: string | null
+  profile_picture_url?: string | null
+}
+
+interface StudentEnrollment {
+  enrollment_id?: string | null
+  overall_progress_percentage?: number | null
+  progress_percentage?: number | null
+  enrollment_status?: string | null
+  enrolled_at?: string | null
+  last_accessed_at?: string | null
+  users?: StudentUserSummary | null
+}
+
+interface LiaConversationRow {
+  conversation_id: string
+  created_at: string
+  context_type: string | null
+  course_id?: string | null
+  lesson_id?: string | null
+  activity_id?: string | null
+}
+
+interface StudySessionRow {
+  course_id: string | null
+  lesson_id: string | null
+  start_time: string
+  end_time: string | null
+  duration_minutes: number | null
+  progress_made?: number | null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; userId: string }> | { id: string; userId: string } }
@@ -27,8 +64,7 @@ export async function GET(
 
     // 1. Obtener información básica del estudiante y su inscripción
     // Intentar primero con user_course_enrollments (vista/tabla principal)
-    let enrollment: any = null
-    let enrollmentError: any = null
+    let enrollment: StudentEnrollment | null = null
     
     const { data: enrollmentData, error: enrollmentErr } = await supabase
       .from('user_course_enrollments')
@@ -353,9 +389,9 @@ export async function GET(
 }
 
 // Funciones auxiliares
-function calculateWeeklyData(conversations: any[], weeks: number) {
+function calculateWeeklyData(conversations: LiaConversationRow[], weeks: number) {
   const now = new Date()
-  const weeklyData = []
+  const weeklyData: Array<{ week: string; count: number }> = []
 
   for (let i = weeks - 1; i >= 0; i--) {
     const weekStart = new Date(now)
@@ -377,7 +413,7 @@ function calculateWeeklyData(conversations: any[], weeks: number) {
   return weeklyData
 }
 
-function groupByContextType(conversations: any[]) {
+function groupByContextType(conversations: LiaConversationRow[]) {
   const topics: { [key: string]: number } = {
     'lesson': 0,
     'activity': 0,
@@ -402,7 +438,7 @@ function groupByContextType(conversations: any[]) {
   ]
 }
 
-function calculatePreferredTimeSlots(sessions: any[]) {
+function calculatePreferredTimeSlots(sessions: StudySessionRow[]) {
   const slots = {
     morning: 0,    // 6-12
     afternoon: 0,  // 12-18
@@ -427,7 +463,7 @@ function calculatePreferredTimeSlots(sessions: any[]) {
   ]
 }
 
-function calculateActiveDays(sessions: any[]) {
+function calculateActiveDays(sessions: StudySessionRow[]) {
   const days = ['D', 'L', 'M', 'X', 'J', 'V', 'S']
   const dayCounts = [0, 0, 0, 0, 0, 0, 0]
 
@@ -442,10 +478,10 @@ function calculateActiveDays(sessions: any[]) {
   }))
 }
 
-function calculateWeeklyFrequency(sessions: any[]) {
+function calculateWeeklyFrequency(sessions: StudySessionRow[]) {
   if (sessions.length === 0) return 0
 
-  const uniqueDays = new Set()
+  const uniqueDays = new Set<string>()
   sessions.forEach(s => {
     const date = new Date(s.start_time).toDateString()
     uniqueDays.add(date)
@@ -458,9 +494,9 @@ function calculateWeeklyFrequency(sessions: any[]) {
   return uniqueDays.size / weeks
 }
 
-function calculateWeeklyProgress(sessions: any[], days: number) {
+function calculateWeeklyProgress(sessions: StudySessionRow[], days: number) {
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-  const progress = []
+  const progress: Array<{ dia: string; progreso: number }> = []
   const now = new Date()
 
   for (let i = days - 1; i >= 0; i--) {
@@ -486,9 +522,9 @@ function calculateWeeklyProgress(sessions: any[], days: number) {
   return progress
 }
 
-function calculateDailyStudyTime(sessions: any[], days: number) {
+function calculateDailyStudyTime(sessions: StudySessionRow[], days: number) {
   const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-  const studyTime = []
+  const studyTime: Array<{ dia: string; horas: number }> = []
   const now = new Date()
 
   for (let i = days - 1; i >= 0; i--) {
@@ -518,10 +554,10 @@ function calculateDailyStudyTime(sessions: any[], days: number) {
   return studyTime
 }
 
-function calculateStudyStreak(sessions: any[]) {
+function calculateStudyStreak(sessions: StudySessionRow[]) {
   if (sessions.length === 0) return 0
 
-  const uniqueDates = new Set()
+  const uniqueDates = new Set<string>()
   sessions.forEach(s => {
     const date = new Date(s.start_time).toDateString()
     uniqueDates.add(date)

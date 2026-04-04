@@ -5,6 +5,13 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { CourseLessonContext, SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 
+interface LiaCourseChatUserProfile {
+  nombre?: string;
+  type_rol?: string;
+  area?: string;
+  tamano_empresa?: string;
+}
+
 export interface UseLiaCourseChatReturn {
   messages: SofLIAMessage[];
   isLoading: boolean;
@@ -18,6 +25,7 @@ export interface UseLiaCourseChatReturn {
 export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseChatReturn {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const userProfile = user as (typeof user & LiaCourseChatUserProfile) | null;
   const [messages, setMessages] = useState<SofLIAMessage[]>(
     initialMessage !== null && initialMessage !== undefined && initialMessage !== ''
       ? [
@@ -42,7 +50,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
   // ✅ ACTIVIDADES: Función para registrar actividad completada (Course Specific)
   const registerCompletedActivity = useCallback(async (
     activityType: string,
-    generatedOutput?: any
+    generatedOutput?: unknown
   ) => {
     if (!user) return;
     
@@ -114,12 +122,12 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
             { role: 'user', content: message }
           ],
           context: {
-            userName: user?.first_name || (user as any)?.nombre,
-            userRole: (user as any)?.type_rol || user?.cargo_rol, // Priorizar type_rol (cargo real) sobre cargo_rol (rol sistema)
+            userName: userProfile?.first_name || userProfile?.nombre,
+            userRole: userProfile?.type_rol || userProfile?.cargo_rol, // Priorizar type_rol (cargo real) sobre cargo_rol (rol sistema)
             userCheck: {
                // Datos adicionales de usuario para personalización (si useAuth los tuviera extendidos)
-               area: (user as any)?.area,
-               companySize: (user as any)?.tamano_empresa
+               area: userProfile?.area,
+               companySize: userProfile?.tamano_empresa
             },
             // Mapeo del contexto de lección usando activeContext
             currentLessonContext: activeContext ? {
@@ -127,7 +135,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
               lessonTitle: activeContext.lessonTitle,
               transcript: activeContext.transcriptContent,
               summary: activeContext.summaryContent,
-              description: activeContext.lessonContent
+              description: activeContext.lessonDescription
             } : undefined,
             // Mapeo del contexto de actividad using activeContext
             currentActivityContext: activeContext?.activitiesContext?.currentActivityFocus ? {
@@ -196,7 +204,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
 
       const data = await response.json();
       
-      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: any) => ({
+      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: { id: string; role: string; content: string; timestamp: string }) => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,

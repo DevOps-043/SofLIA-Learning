@@ -13,7 +13,7 @@ interface EmbeddedLiaComposerProps {
   colors: EmbeddedLiaColors;
   onSend: () => Promise<void>;
   onToggleRecording: () => void;
-  messageInputRef: RefObject<HTMLTextAreaElement | null>;
+  messageInputRef: RefObject<HTMLTextAreaElement>;
 }
 
 export function EmbeddedLiaComposer({

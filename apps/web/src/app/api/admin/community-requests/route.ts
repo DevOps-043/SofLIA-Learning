@@ -3,6 +3,94 @@ import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 import { createClient } from '@/lib/supabase/server'
 
+interface CommunityRequester {
+  id: string
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+  profile_picture_url: string | null
+  cargo_rol: string | null
+}
+
+interface CommunityReviewer {
+  id: string
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  email: string | null
+}
+
+interface CommunityCourse {
+  id: string
+  title: string | null
+  slug: string | null
+  thumbnail_url: string | null
+}
+
+interface CommunityRequestRow {
+  id: string
+  requester_id: string
+  requester: CommunityRequester | null
+  name: string
+  description: string | null
+  slug: string
+  image_url: string | null
+  visibility: string | null
+  access_type: string | null
+  course_id: string | null
+  course: CommunityCourse | null
+  status: 'pending' | 'approved' | 'rejected'
+  requester_note: string | null
+  rejection_reason: string | null
+  reviewed_by: string | null
+  reviewer: CommunityReviewer | null
+  reviewed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+interface MappedCommunityRequest {
+  id: string
+  requester_id: string
+  requester: {
+    id: string
+    display_name: string
+    email: string | null
+    profile_picture_url: string | null
+    role: string | null
+  } | null
+  name: string
+  description: string | null
+  slug: string
+  image_url: string | null
+  visibility: string | null
+  access_type: string | null
+  course_id: string | null
+  course: CommunityCourse | null
+  status: CommunityRequestRow['status']
+  requester_note: string | null
+  rejection_reason: string | null
+  reviewed_by: string | null
+  reviewer: {
+    id: string
+    display_name: string
+    email: string | null
+  } | null
+  reviewed_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+function formatDisplayName(
+  displayName: string | null,
+  firstName: string | null,
+  lastName: string | null,
+  fallback: string,
+): string {
+  return displayName || `${firstName || ''} ${lastName || ''}`.trim() || fallback
+}
+
 // ✅ GET: Listar todas las solicitudes de creación de comunidades
 export async function GET(request: NextRequest) {
   try {
@@ -62,14 +150,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Mapear datos
-    const mappedRequests = (requests || []).map((request: any) => ({
+    const mappedRequests: MappedCommunityRequest[] = ((requests || []) as CommunityRequestRow[]).map((request) => ({
       id: request.id,
       requester_id: request.requester_id,
       requester: request.requester ? {
         id: request.requester.id,
-        display_name: request.requester.display_name ||
-                     `${request.requester.first_name || ''} ${request.requester.last_name || ''}`.trim() ||
-                     'Usuario sin nombre',
+        display_name: formatDisplayName(
+          request.requester.display_name,
+          request.requester.first_name,
+          request.requester.last_name,
+          'Usuario sin nombre',
+        ),
         email: request.requester.email,
         profile_picture_url: request.requester.profile_picture_url,
         role: request.requester.cargo_rol
@@ -88,9 +179,12 @@ export async function GET(request: NextRequest) {
       reviewed_by: request.reviewed_by,
       reviewer: request.reviewer ? {
         id: request.reviewer.id,
-        display_name: request.reviewer.display_name ||
-                     `${request.reviewer.first_name || ''} ${request.reviewer.last_name || ''}`.trim() ||
-                     'Administrador',
+        display_name: formatDisplayName(
+          request.reviewer.display_name,
+          request.reviewer.first_name,
+          request.reviewer.last_name,
+          'Administrador',
+        ),
         email: request.reviewer.email
       } : null,
       reviewed_at: request.reviewed_at,
@@ -104,10 +198,10 @@ export async function GET(request: NextRequest) {
       success: true,
       requests: mappedRequests,
       counts: {
-        total: requests?.length || 0,
-        pending: requests?.filter((r: any) => r.status === 'pending').length || 0,
-        approved: requests?.filter((r: any) => r.status === 'approved').length || 0,
-        rejected: requests?.filter((r: any) => r.status === 'rejected').length || 0
+        total: mappedRequests.length,
+        pending: mappedRequests.filter((request) => request.status === 'pending').length,
+        approved: mappedRequests.filter((request) => request.status === 'approved').length,
+        rejected: mappedRequests.filter((request) => request.status === 'rejected').length
       }
     }, { status: 200 })
   } catch (error) {
@@ -122,4 +216,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

@@ -5,12 +5,48 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { sessionRecorder } from '../../lib/rrweb/session-recorder';
+import type { EnrichedMetadata } from '../../lib/rrweb/session-recorder';
+
+type LiaRecordingStatus = 'active' | 'inactive' | 'restarted' | 'unavailable' | 'error';
+
+type LiaChatMetadata = EnrichedMetadata & {
+  recordingInfo: EnrichedMetadata['recordingInfo'] & {
+    status?: LiaRecordingStatus;
+    error?: string;
+  };
+};
+
+type LegacyAuthUser = {
+  id?: string;
+  first_name?: string;
+  cargo_rol?: string;
+  job_title?: string;
+  nombre?: string;
+  type_rol?: string;
+};
+
+function buildLiaChatMetadata(
+  recordingStatus: LiaRecordingStatus,
+  session?: Parameters<typeof sessionRecorder.getEnrichedMetadata>[0],
+  errorMessage?: string
+): LiaChatMetadata {
+  const metadata = sessionRecorder.getEnrichedMetadata(session ?? null);
+
+  return {
+    ...metadata,
+    recordingInfo: {
+      ...metadata.recordingInfo,
+      status: recordingStatus,
+      ...(errorMessage ? { error: errorMessage } : {}),
+    },
+  };
+}
 
 export interface UseLiaGeneralChatReturn {
   messages: SofLIAMessage[];
   isLoading: boolean;
   error: Error | null;
-  sendMessage: (message: string, isSystemMessage?: boolean, pageContext?: any) => Promise<void>;
+  sendMessage: (message: string, isSystemMessage?: boolean, pageContext?: Record<string, unknown>) => Promise<void>;
   clearHistory: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
   currentConversationId: string | null;
@@ -19,6 +55,7 @@ export interface UseLiaGeneralChatReturn {
 export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneralChatReturn {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const legacyUser = user as LegacyAuthUser | null;
   const [messages, setMessages] = useState<SofLIAMessage[]>(
     initialMessage !== null && initialMessage !== undefined && initialMessage !== ''
       ? [
@@ -40,7 +77,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
   const sendMessage = useCallback(async (
     message: string,
     isSystemMessage: boolean = false,
-    pageContext?: any
+    pageContext?: Record<string, unknown>
   ) => {
     if (!message.trim() || isLoading) return;
 
@@ -65,8 +102,8 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
       
       // Preparar session data solo si es probable reporte de bug
       let sessionSnapshot: string | undefined;
-      let enrichedMetadata: any = undefined;
-      let recordingStatus: 'active' | 'inactive' | 'restarted' | 'unavailable' | 'error' = 'unavailable';
+      let enrichedMetadata: LiaChatMetadata | undefined;
+      let recordingStatus: LiaRecordingStatus = 'unavailable';
       
       if (isBugReport && sessionRecorder) {
         try {
@@ -119,53 +156,22 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             // Usar compresión para reducir tamaño 60-80%
             sessionSnapshot = await sessionRecorder.exportSessionCompressed(snapshot);
             // Incluir metadata enriquecida del entorno
-            enrichedMetadata = sessionRecorder.getEnrichedMetadata(snapshot);
+            enrichedMetadata = buildLiaChatMetadata(recordingStatus, snapshot);
           } else {
             console.warn('[SofLIA Chat] ⚠️ No hay eventos en el snapshot');
             // Generar metadata mínima sin grabación
-            enrichedMetadata = {
-              viewport: { width: window.innerWidth, height: window.innerHeight },
-              userAgent: navigator.userAgent,
-              platform: navigator.platform,
-              language: navigator.language,
-              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              currentUrl: window.location.href,
-              sessionDuration: 0,
-              errors: [],
-              errorSummary: { totalErrors: 0, byType: {}, recentErrors: [] },
-              contextMarkers: [],
-              sessionSummary: { totalMarkers: 0, pageVisits: [], modalsOpened: [], actionsCount: 0, errorsCount: 0, timeline: [] },
-              recordingInfo: {
-                eventCount: 0,
-                size: '0 B',
-                compressed: false,
-                status: recordingStatus
-              }
-            };
+            enrichedMetadata = buildLiaChatMetadata(recordingStatus);
           }
         } catch (err) {
           console.warn('[SofLIA Chat] ⚠️ Error capturando snapshot:', err);
           recordingStatus = 'error';
           
           // Generar metadata mínima en caso de error
-          enrichedMetadata = {
-            viewport: typeof window !== 'undefined' ? { width: window.innerWidth, height: window.innerHeight } : { width: 0, height: 0 },
-            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-            platform: typeof navigator !== 'undefined' ? navigator.platform : 'unknown',
-            language: typeof navigator !== 'undefined' ? navigator.language : 'unknown',
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            currentUrl: typeof window !== 'undefined' ? window.location.href : 'unknown',
-            sessionDuration: 0,
-            errors: [],
-            errorSummary: { totalErrors: 0, byType: {}, recentErrors: [] },
-            recordingInfo: {
-              eventCount: 0,
-              size: '0 B',
-              compressed: false,
-              status: recordingStatus,
-              error: err instanceof Error ? err.message : 'Unknown error'
-            }
-          };
+          enrichedMetadata = buildLiaChatMetadata(
+            recordingStatus,
+            null,
+            err instanceof Error ? err.message : 'Unknown error'
+          );
         }
       }
       
@@ -190,8 +196,8 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
             { role: 'user', content: message }
           ],
           context: {
-            userName: user?.first_name || (user as any)?.nombre,
-            userRole: (user as any)?.type_rol || (user as any)?.cargo_rol, // Priorizar type_rol (cargo real)
+            userName: legacyUser?.first_name || legacyUser?.nombre,
+            userRole: legacyUser?.job_title || legacyUser?.cargo_rol || legacyUser?.type_rol,
             userId: user?.id,
             currentPage: typeof window !== 'undefined' ? window.location.pathname : undefined,
             ...(pageContext || {}),
@@ -257,9 +263,6 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
         }
       }
       
-      // Actualizar ID de conversación si es nuevo
-      conversationIdRef.current = assistantId;
-
     } catch (err) {
       const errorMessage = err instanceof Error ? err : new Error('Error desconocido');
       setError(errorMessage);
@@ -275,7 +278,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, messages, user, language]);
+  }, [isLoading, legacyUser, messages, user, language]);
 
   const loadConversation = useCallback(async (conversationId: string) => {
     setIsLoading(true);
@@ -291,7 +294,7 @@ export function useLiaGeneralChat(initialMessage?: string | null): UseLiaGeneral
 
       const data = await response.json();
       
-      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: any) => ({
+      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: { id: string; role: string; content: string; timestamp: string }) => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,

@@ -52,7 +52,7 @@ export async function GET(
 
     // Para cada skill, calcular el nivel basado en cursos completados
     const skillsWithLevels = await Promise.all(
-      (userSkills || []).map(async (userSkill: any) => {
+      (userSkills || []).map(async (userSkill) => {
         const skillId = userSkill.skill_id
 
         // Llamar a la función SQL para obtener nivel
@@ -113,4 +113,3 @@ export async function GET(
     }, { status: 500 })
   }
 }
-

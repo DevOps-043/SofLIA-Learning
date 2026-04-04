@@ -3,17 +3,43 @@
  * Usa html2canvas para convertir HTML a imagen y luego jsPDF para crear el PDF
  */
 
-let html2canvas: any = null
-let jsPDF: any = null
+type Html2CanvasRenderer = (
+  element: HTMLElement,
+  options: Record<string, unknown>
+) => Promise<HTMLCanvasElement>
 
-async function getHtml2Canvas() {
+interface PdfDocument {
+  addImage: (
+    imageData: string,
+    format: 'PNG',
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    alias?: string,
+    compression?: 'NONE' | 'FAST' | 'MEDIUM' | 'SLOW'
+  ) => void
+  save: (fileName: string) => void
+}
+
+type PdfConstructor = new (options: {
+  orientation: 'portrait' | 'landscape'
+  unit: 'mm'
+  format: [number, number]
+  compress?: boolean
+}) => PdfDocument
+
+let html2canvas: Html2CanvasRenderer | null = null
+let jsPDF: PdfConstructor | null = null
+
+async function getHtml2Canvas(): Promise<Html2CanvasRenderer> {
   if (!html2canvas) {
     html2canvas = (await import('html2canvas')).default
   }
   return html2canvas
 }
 
-async function getJsPDF() {
+async function getJsPDF(): Promise<PdfConstructor> {
   if (!jsPDF) {
     jsPDF = (await import('jspdf')).default
   }
@@ -133,4 +159,3 @@ export async function generateCertificatePDF(
     throw error
   }
 }
-

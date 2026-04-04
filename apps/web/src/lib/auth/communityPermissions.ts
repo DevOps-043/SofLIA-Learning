@@ -1,17 +1,40 @@
-import { createClient } from '../supabase/server'
 import { logger } from '../logger'
+import { fromLoose } from '../supabase/looseQuery'
+import { createClient } from '../supabase/server'
+
+interface CommunityPermissionCommunityRow {
+  creator_id: string | null
+}
+
+interface CommunityPermissionMemberRow {
+  is_active?: boolean | null
+  role: string
+  user_id: string
+}
+
+function communitiesTable(client: unknown) {
+  return fromLoose<CommunityPermissionCommunityRow>(client, 'communities')
+}
+
+function communityMembersTable(client: unknown) {
+  return fromLoose<CommunityPermissionMemberRow>(client, 'community_members')
+}
+
+function normalizeRole(role: string | null | undefined): string {
+  return role?.trim().toLowerCase() ?? ''
+}
+
+function isNoRowsError(error: { code?: string } | null): boolean {
+  return error?.code === 'PGRST116'
+}
 
 /**
  * Verifica si un usuario puede gestionar solicitudes de acceso a una comunidad.
- * 
+ *
  * Un usuario puede gestionar solicitudes si:
- * 1. Es Administrador (cargo_rol = 'Administrador')
- * 2. Es Instructor Y es admin de la comunidad (role = 'admin' en community_members)
- * 3. Es Instructor Y es el creador de la comunidad (creator_id = user_id)
- * 
- * @param userId - ID del usuario
- * @param communityId - ID de la comunidad
- * @returns true si el usuario puede gestionar solicitudes, false en caso contrario
+ * 1. Es Administrador
+ * 2. Es Instructor y es admin de la comunidad
+ * 3. Es Instructor y es el creador de la comunidad
  */
 export async function canManageCommunityAccessRequests(
   userId: string,
@@ -20,7 +43,6 @@ export async function canManageCommunityAccessRequests(
   try {
     const supabase = await createClient()
 
-    // 1. Obtener información del usuario
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, cargo_rol')
@@ -28,73 +50,69 @@ export async function canManageCommunityAccessRequests(
       .single()
 
     if (userError || !user) {
-      logger.error('Error fetching user for community permissions', { userId, error: userError })
+      logger.error('Error fetching user for community permissions', {
+        error: userError,
+        userId,
+      })
       return false
     }
 
-    // 2. Si es Administrador, puede gestionar cualquier comunidad
-    const normalizedRole = user.cargo_rol?.toLowerCase().trim();
+    const normalizedRole = normalizeRole(user.cargo_rol)
     if (normalizedRole === 'administrador') {
       return true
     }
 
-    // 3. Si es Instructor, verificar si es admin de la comunidad o creador
-    if (normalizedRole === 'instructor') {
-      // Obtener información de la comunidad
-      const { data: community, error: communityError } = await supabase
-        .from('communities')
-        .select('creator_id')
-        .eq('id', communityId)
-        .single()
-
-      if (communityError || !community) {
-        logger.error('Error fetching community for permissions', { communityId, error: communityError })
-        return false
-      }
-
-      // Verificar si es el creador de la comunidad
-      if (community.creator_id === userId) {
-        return true
-      }
-
-      // Verificar si es admin de la comunidad
-      const { data: membership, error: membershipError } = await supabase
-        .from('community_members')
-        .select('role')
-        .eq('community_id', communityId)
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .single()
-
-      if (membershipError && membershipError.code !== 'PGRST116') {
-        logger.error('Error fetching community membership', { userId, communityId, error: membershipError })
-        return false
-      }
-
-      // Si es admin de la comunidad, puede gestionar
-      if (membership && membership.role === 'admin') {
-        return true
-      }
+    if (normalizedRole !== 'instructor') {
+      return false
     }
 
-    // Si no cumple ninguna condición, no puede gestionar
-    return false
+    const { data: community, error: communityError } = await communitiesTable(supabase)
+      .select('creator_id')
+      .eq('id', communityId)
+      .single()
+
+    if (communityError || !community) {
+      logger.error('Error fetching community for permissions', {
+        communityId,
+        error: communityError,
+      })
+      return false
+    }
+
+    if (community.creator_id === userId) {
+      return true
+    }
+
+    const { data: membership, error: membershipError } = await communityMembersTable(supabase)
+      .select('role')
+      .eq('community_id', communityId)
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .single()
+
+    if (membershipError && !isNoRowsError(membershipError)) {
+      logger.error('Error fetching community membership', {
+        communityId,
+        error: membershipError,
+        userId,
+      })
+      return false
+    }
+
+    return membership?.role === 'admin'
   } catch (error) {
-    logger.error('Error in canManageCommunityAccessRequests', error)
+    logger.error('Error in canManageCommunityAccessRequests', {
+      error,
+      communityId,
+      userId,
+    })
     return false
   }
 }
 
 /**
- * Obtiene los usuarios que deben recibir notificaciones cuando se crea una solicitud de acceso.
- * 
- * Retorna:
- * - Todos los Administradores
- * - Instructores que son admin de la comunidad
- * - El instructor que creó la comunidad
- * 
- * @param communityId - ID de la comunidad
- * @returns Array de IDs de usuarios que deben recibir notificaciones
+ * Obtiene los usuarios que deben recibir notificaciones cuando se crea una
+ * solicitud de acceso.
  */
 export async function getUsersToNotifyForAccessRequest(
   communityId: string
@@ -103,33 +121,32 @@ export async function getUsersToNotifyForAccessRequest(
     const supabase = await createClient()
     const userIds: string[] = []
 
-    // 1. Obtener todos los Administradores
-    const { data: admins, error: adminsError } = await supabase
+    const { data: users, error: usersError } = await supabase
       .from('users')
-      .select('id, cargo_rol')
+      .select('id, cargo_rol, is_banned')
       .eq('is_banned', false)
 
-    if (!adminsError && admins) {
-      // Filtrar administradores de forma insensible a mayúsculas
-      const adminIds = admins
-        .filter((u: { cargo_rol: string | null }) => u.cargo_rol?.toLowerCase().trim() === 'administrador')
-        .map((u: { id: string }) => u.id);
+    if (!usersError && users) {
+      const adminIds = users
+        .filter((user) => normalizeRole(user.cargo_rol) === 'administrador')
+        .map((user) => user.id)
+
       userIds.push(...adminIds)
     }
 
-    // 2. Obtener información de la comunidad (creator_id)
-    const { data: community, error: communityError } = await supabase
-      .from('communities')
+    const { data: community, error: communityError } = await communitiesTable(supabase)
       .select('creator_id')
       .eq('id', communityId)
       .single()
 
     if (communityError || !community) {
-      logger.error('Error fetching community for notifications', { communityId, error: communityError })
-      return userIds
+      logger.error('Error fetching community for notifications', {
+        communityId,
+        error: communityError,
+      })
+      return [...new Set(userIds)]
     }
 
-    // 3. Si hay un creador y es Instructor, agregarlo
     if (community.creator_id) {
       const { data: creator, error: creatorError } = await supabase
         .from('users')
@@ -137,59 +154,67 @@ export async function getUsersToNotifyForAccessRequest(
         .eq('id', community.creator_id)
         .single()
 
-      if (!creatorError && creator && creator.cargo_rol?.toLowerCase().trim() === 'instructor') {
-        // Solo agregar si no está ya en la lista (por si es admin)
+      if (!creatorError && creator && normalizeRole(creator.cargo_rol) === 'instructor') {
         if (!userIds.includes(creator.id)) {
           userIds.push(creator.id)
         }
       }
     }
 
-    // 4. Obtener Instructores que son admin de la comunidad
-    const { data: adminMembers, error: adminMembersError } = await supabase
-      .from('community_members')
+    const { data: adminMembers, error: adminMembersError } = await communityMembersTable(supabase)
       .select('user_id')
       .eq('community_id', communityId)
       .eq('role', 'admin')
       .eq('is_active', true)
 
-    if (!adminMembersError && adminMembers) {
-      // Verificar que sean Instructores
-      for (const member of adminMembers) {
-        const { data: memberUser, error: memberUserError } = await supabase
-          .from('users')
-          .select('id, cargo_rol')
-          .eq('id', member.user_id)
-          .single()
+    if (adminMembersError) {
+      logger.error('Error fetching community admin members', {
+        communityId,
+        error: adminMembersError,
+      })
+      return [...new Set(userIds)]
+    }
 
-        if (!memberUserError && memberUser && memberUser.cargo_rol?.toLowerCase().trim() === 'instructor') {
-          // Solo agregar si no está ya en la lista
-          if (!userIds.includes(memberUser.id)) {
-            userIds.push(memberUser.id)
-          }
-        }
+    const memberIds = [...new Set((adminMembers ?? []).map((member) => member.user_id))]
+    if (memberIds.length === 0) {
+      return [...new Set(userIds)]
+    }
+
+    const { data: memberUsers, error: memberUsersError } = await supabase
+      .from('users')
+      .select('id, cargo_rol')
+      .in('id', memberIds)
+
+    if (memberUsersError) {
+      logger.error('Error fetching community admin users', {
+        communityId,
+        error: memberUsersError,
+      })
+      return [...new Set(userIds)]
+    }
+
+    for (const memberUser of memberUsers ?? []) {
+      if (normalizeRole(memberUser.cargo_rol) !== 'instructor') {
+        continue
+      }
+
+      if (!userIds.includes(memberUser.id)) {
+        userIds.push(memberUser.id)
       }
     }
 
-    // Eliminar duplicados
     return [...new Set(userIds)]
   } catch (error) {
-    logger.error('Error in getUsersToNotifyForAccessRequest', error)
+    logger.error('Error in getUsersToNotifyForAccessRequest', {
+      communityId,
+      error,
+    })
     return []
   }
 }
 
 /**
- * Verifica si un usuario puede moderar una comunidad (ver y gestionar reportes).
- * 
- * Un usuario puede moderar si:
- * 1. Es Administrador (cargo_rol = 'Administrador')
- * 2. Es el creador de la comunidad (creator_id = user_id)
- * 3. Es admin o moderador de la comunidad (role = 'admin' o 'moderator' en community_members)
- * 
- * @param userId - ID del usuario
- * @param communityId - ID de la comunidad
- * @returns true si el usuario puede moderar, false en caso contrario
+ * Verifica si un usuario puede moderar una comunidad.
  */
 export async function canModerateCommunity(
   userId: string,
@@ -198,7 +223,6 @@ export async function canModerateCommunity(
   try {
     const supabase = await createClient()
 
-    // 1. Obtener información del usuario
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, cargo_rol')
@@ -206,57 +230,57 @@ export async function canModerateCommunity(
       .single()
 
     if (userError || !user) {
-      logger.error('Error fetching user for moderation permissions', { userId, error: userError })
+      logger.error('Error fetching user for moderation permissions', {
+        error: userError,
+        userId,
+      })
       return false
     }
 
-    // 2. Si es Administrador, puede moderar cualquier comunidad
-    const normalizedRole = user.cargo_rol?.toLowerCase().trim();
-    if (normalizedRole === 'administrador') {
+    if (normalizeRole(user.cargo_rol) === 'administrador') {
       return true
     }
 
-    // 3. Obtener información de la comunidad
-    const { data: community, error: communityError } = await supabase
-      .from('communities')
+    const { data: community, error: communityError } = await communitiesTable(supabase)
       .select('creator_id')
       .eq('id', communityId)
       .single()
 
     if (communityError || !community) {
-      logger.error('Error fetching community for moderation permissions', { communityId, error: communityError })
+      logger.error('Error fetching community for moderation permissions', {
+        communityId,
+        error: communityError,
+      })
       return false
     }
 
-    // 4. Si es el creador de la comunidad, puede moderar
     if (community.creator_id === userId) {
       return true
     }
 
-    // 5. Verificar si es admin o moderador de la comunidad
-    const { data: membership, error: membershipError } = await supabase
-      .from('community_members')
+    const { data: membership, error: membershipError } = await communityMembersTable(supabase)
       .select('role')
       .eq('community_id', communityId)
       .eq('user_id', userId)
       .eq('is_active', true)
       .single()
 
-    if (membershipError && membershipError.code !== 'PGRST116') {
-      logger.error('Error fetching community membership for moderation', { userId, communityId, error: membershipError })
+    if (membershipError && !isNoRowsError(membershipError)) {
+      logger.error('Error fetching community membership for moderation', {
+        communityId,
+        error: membershipError,
+        userId,
+      })
       return false
     }
 
-    // Si es admin o moderador de la comunidad, puede moderar
-    if (membership && (membership.role === 'admin' || membership.role === 'moderator')) {
-      return true
-    }
-
-    // Si no cumple ninguna condición, no puede moderar
-    return false
+    return membership?.role === 'admin' || membership?.role === 'moderator'
   } catch (error) {
-    logger.error('Error in canModerateCommunity', error)
+    logger.error('Error in canModerateCommunity', {
+      communityId,
+      error,
+      userId,
+    })
     return false
   }
 }
-

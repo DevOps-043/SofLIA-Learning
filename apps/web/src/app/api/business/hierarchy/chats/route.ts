@@ -3,6 +3,37 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 
+interface HierarchyChatRow {
+  id: string;
+  last_message_at?: string | null;
+}
+
+interface HierarchyChatParticipantRow {
+  id?: string;
+  user_id: string;
+  is_active?: boolean;
+  unread_count?: number | null;
+  last_read_at?: string | null;
+}
+
+interface HierarchyChatRpcParticipant {
+  user_id: string;
+}
+
+type ErrorWithDetails = {
+  message?: string;
+  stack?: string;
+  name?: string;
+};
+
+function getErrorDetails(error: unknown): ErrorWithDetails {
+  if (error && typeof error === 'object') {
+    return error as ErrorWithDetails;
+  }
+
+  return {};
+}
+
 // Crear cliente con service_role que bypasea RLS
 // Necesario porque el proyecto usa autenticación personalizada, no Supabase Auth
 function createServiceClient() {
@@ -103,7 +134,7 @@ export async function GET(request: Request) {
 
     // Obtener participantes para cada chat
     const chatsWithCounts = await Promise.all(
-      (chats || []).map(async (chat: any) => {
+      ((chats as HierarchyChatRow[] | null) || []).map(async (chat) => {
         // Obtener participantes del chat
         const { data: participants } = await supabase
           .from('hierarchy_chat_participants')
@@ -111,8 +142,8 @@ export async function GET(request: Request) {
           .eq('chat_id', chat.id)
           .eq('is_active', true);
 
-        const activeParticipants = participants || [];
-        const userParticipant = activeParticipants.find((p: any) => p?.user_id === auth.userId);
+        const activeParticipants = (participants as HierarchyChatParticipantRow[] | null) || [];
+        const userParticipant = activeParticipants.find((p) => p.user_id === auth.userId);
 
         return {
           ...chat,
@@ -126,18 +157,19 @@ export async function GET(request: Request) {
       success: true,
       chats: chatsWithCounts
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorDetails = getErrorDetails(error);
     logger.error('Error en GET /api/business/hierarchy/chats:', {
       error,
-      message: error?.message,
-      stack: error?.stack,
-      name: error?.name
+      message: errorDetails.message,
+      stack: errorDetails.stack,
+      name: errorDetails.name
     });
     return NextResponse.json(
       {
         success: false,
         error: 'Error al obtener chats',
-        details: error?.message || 'Error desconocido'
+        details: errorDetails.message || 'Error desconocido'
       },
       { status: 500 }
     );
@@ -307,7 +339,7 @@ export async function POST(request: Request) {
     }
 
     // Obtener participantes según el tipo de chat
-    let participants: any[] = [];
+    let participants: HierarchyChatRpcParticipant[] = [];
     try {
       if (entity_type === 'node') {
         // Usar nueva lógica para nodos
@@ -337,7 +369,7 @@ export async function POST(request: Request) {
           participants = data || [];
         }
       }
-    } catch (rpcException: any) {
+    } catch (rpcException: unknown) {
       logger.error('Excepción al llamar funciones RPC de chat:', rpcException);
       console.error(rpcException)
       // Continuar sin participantes (solo el usuario actual será agregado abajo)
@@ -402,20 +434,20 @@ export async function POST(request: Request) {
       chat: newChat,
       created: true
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorDetails = getErrorDetails(error);
     logger.error('Error en POST /api/business/hierarchy/chats:', {
       error,
-      message: error?.message,
-      stack: error?.stack
+      message: errorDetails.message,
+      stack: errorDetails.stack
     });
     return NextResponse.json(
       {
         success: false,
         error: 'Error al crear el chat',
-        details: error?.message || 'Error desconocido'
+        details: errorDetails.message || 'Error desconocido'
       },
       { status: 500 }
     );
   }
 }
-

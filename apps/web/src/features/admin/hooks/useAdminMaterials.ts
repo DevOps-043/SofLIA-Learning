@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AdminMaterial } from '../services/adminMaterials.service'
+import { AdminMaterial, CreateMaterialData, UpdateMaterialData } from '../services/adminMaterials.service'
 
 interface UseAdminMaterialsReturn {
   materials: AdminMaterial[] // Para compatibilidad
@@ -9,8 +9,8 @@ interface UseAdminMaterialsReturn {
   loading: boolean
   error: string | null
   fetchMaterials: (lessonId: string) => Promise<void>
-  createMaterial: (lessonId: string, data: any) => Promise<AdminMaterial>
-  updateMaterial: (materialId: string, data: any) => Promise<AdminMaterial>
+  createMaterial: (lessonId: string, data: CreateMaterialData) => Promise<AdminMaterial>
+  updateMaterial: (materialId: string, data: UpdateMaterialData) => Promise<AdminMaterial>
   deleteMaterial: (materialId: string) => Promise<void>
 }
 
@@ -58,7 +58,7 @@ export function useAdminMaterials(): UseAdminMaterialsReturn {
     }
   }
 
-  const createMaterial = async (lessonId: string, materialData: any): Promise<AdminMaterial> => {
+  const createMaterial = async (lessonId: string, materialData: CreateMaterialData | UpdateMaterialData): Promise<AdminMaterial> => {
     try {
       const response = await fetch(`/api/admin/courses/0/modules/0/lessons/${lessonId}/materials`, {
         method: 'POST',
@@ -86,7 +86,7 @@ export function useAdminMaterials(): UseAdminMaterialsReturn {
     }
   }
 
-  const updateMaterial = async (materialId: string, materialData: any): Promise<AdminMaterial> => {
+  const updateMaterial = async (materialId: string, materialData: CreateMaterialData | UpdateMaterialData): Promise<AdminMaterial> => {
     try {
       // Buscar la lección que contiene este material
       let lessonId: string | null = null;

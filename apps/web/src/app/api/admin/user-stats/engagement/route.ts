@@ -96,7 +96,7 @@ export async function GET() {
     for (const oa of (orgAnalyticsRes.data || [])) {
       if (orgSeen.has(oa.organization_id)) continue
       orgSeen.add(oa.organization_id)
-      const orgName = (oa as any).organizations?.name || 'Org desconocida'
+      const orgName = (oa.organizations as { name?: string | null } | null)?.name || 'Org desconocida'
       const total = oa.total_users || 0
       const active = oa.active_users || 0
       engagementByOrg.push({

@@ -2,6 +2,37 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+interface ReporteProblemaInsert {
+  user_id: string;
+  titulo: string;
+  descripcion: string;
+  categoria: string;
+  prioridad: string;
+  pagina_url: string;
+  pathname: string;
+  user_agent: string;
+  screen_resolution: string;
+  navegador: string;
+  pasos_reproducir: string | null;
+  comportamiento_esperado: string | null;
+  screenshot_url: string | null;
+  session_recording: unknown;
+  recording_size: unknown;
+  recording_duration: unknown;
+  metadata: {
+    from_lia: boolean;
+    timestamp: string;
+  };
+}
+
+interface ReporteProblemaResumen {
+  id: string;
+  titulo: string;
+  categoria: string;
+  estado: string;
+  created_at: string;
+}
+
 /**
  * POST /api/reportes
  * Crear un nuevo reporte de problema
@@ -150,7 +181,7 @@ export async function POST(request: NextRequest) {
           from_lia,
           timestamp: new Date().toISOString()
         }
-      } as any)
+      } as ReporteProblemaInsert)
       .select()
       .single();
 
@@ -165,14 +196,16 @@ export async function POST(request: NextRequest) {
     // TODO: Enviar notificación a administradores (opcional)
     // Puedes agregar aquí lógica para notificar por email o sistema de notificaciones
 
+    const reporteCreado = reporte as ReporteProblemaResumen;
+
     return NextResponse.json({
       success: true,
       reporte: {
-        id: (reporte as any).id,
-        titulo: (reporte as any).titulo,
-        categoria: (reporte as any).categoria,
-        estado: (reporte as any).estado,
-        created_at: (reporte as any).created_at
+        id: reporteCreado.id,
+        titulo: reporteCreado.titulo,
+        categoria: reporteCreado.categoria,
+        estado: reporteCreado.estado,
+        created_at: reporteCreado.created_at
       },
       message: 'Reporte creado exitosamente'
     }, { status: 201 });

@@ -11,6 +11,12 @@ interface AddNewsModalProps {
   onSave: (newsData: Partial<AdminNews>) => Promise<void>
 }
 
+type NewsStatus = 'draft' | 'published' | 'archived'
+
+const isNewsStatus = (value: string): value is NewsStatus => (
+  value === 'draft' || value === 'published' || value === 'archived'
+)
+
 export function AddNewsModal({ isOpen, onClose, onSave }: AddNewsModalProps) {
   const [formData, setFormData] = useState({
     title: '',
@@ -169,7 +175,7 @@ export function AddNewsModal({ isOpen, onClose, onSave }: AddNewsModalProps) {
           url: formData.ctaUrl
         } : null,
         metrics: formData.metrics.filter(metric => metric.name && metric.value).length > 0 ? 
-          formData.metrics.reduce((acc, metric, index) => {
+          formData.metrics.reduce<Record<number, { name: string; value: string; unit: string }>>((acc, metric, index) => {
             if (metric.name && metric.value) {
               acc[index] = {
                 name: metric.name,
@@ -178,7 +184,7 @@ export function AddNewsModal({ isOpen, onClose, onSave }: AddNewsModalProps) {
               }
             }
             return acc
-          }, {} as any) : null,
+          }, {}) : null,
         sections: formData.sections.filter(section => section.content || section.items.length > 0).length > 0 ?
           formData.sections.filter(section => section.content || section.items.length > 0).map(section => ({
             kind: section.type,
@@ -436,7 +442,7 @@ export function AddNewsModal({ isOpen, onClose, onSave }: AddNewsModalProps) {
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: isNewsStatus(e.target.value) ? e.target.value : 'draft' }))}
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="draft">Borrador</option>

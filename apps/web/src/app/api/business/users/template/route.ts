@@ -2,6 +2,27 @@ import { NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 
+interface OrganizationTemplateUser {
+  role: string | null
+  job_title: string | null
+  users:
+    | {
+        username: string | null
+        email: string | null
+        first_name: string | null
+        last_name: string | null
+        display_name: string | null
+      }
+    | Array<{
+        username: string | null
+        email: string | null
+        first_name: string | null
+        last_name: string | null
+        display_name: string | null
+      }>
+    | null
+}
+
 export async function GET() {
   try {
     const auth = await requireBusiness()
@@ -50,7 +71,7 @@ export async function GET() {
     ]
 
     // Construir filas del CSV
-    const csvRows = (orgUsers || []).map((orgUser: any) => {
+    const csvRows = (orgUsers || []).map((orgUser: OrganizationTemplateUser) => {
       // Supabase devuelve un array si la relación es one-to-many, pero user_id es FK única aquí.
       // Sin embargo, a veces devuelve array si no se especifica !inner o single. 
       // Asumiremos que 'users' es un objeto u objeto en array.

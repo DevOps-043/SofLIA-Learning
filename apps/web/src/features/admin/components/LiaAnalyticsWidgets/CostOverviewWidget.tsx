@@ -27,6 +27,19 @@ interface CostOverviewWidgetProps {
   chartType?: 'area' | 'bar';
 }
 
+type CostChartDataPoint = CostDataPoint & {
+  costFormatted: string;
+};
+
+interface CostTooltipProps {
+  active?: boolean;
+  label?: string;
+  payload?: Array<{
+    payload: CostChartDataPoint;
+    value?: number;
+  }>;
+}
+
 export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: CostOverviewWidgetProps) {
   const chartData = useMemo(() => {
     return data.map((item) => {
@@ -56,7 +69,7 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
     return data.length > 0 ? totalCost / data.length : 0;
   }, [data, totalCost]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: CostTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
@@ -181,4 +194,3 @@ export function CostOverviewWidget({ data, isLoading, chartType = 'area' }: Cost
     </div>
   );
 }
-

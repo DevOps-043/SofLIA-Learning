@@ -75,7 +75,12 @@
       "Bash(wc -l \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/lib/lia-context/__tests__/\"*.test.ts)",
       "Bash(grep \"total$\")",
       "Read(//c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/**)",
-      "Bash(grep -v \"//.*console\")"
+      "Bash(grep -v \"//.*console\")",
+      "Bash(xargs -I{} sh -c 'echo \"$\\(grep -c \": any\\\\|as any\" {}\\) {}\"')",
+      "Bash(xargs -I{} bash -c 'echo \"$\\(grep -c \": any\" {}\\) {}\"')",
+      "Bash(grep -n \": any\" app/api/courses/[slug]/lessons/[lessonId]/sidebar-data/route.ts)",
+      "Bash(grep -n \": any\" app/api/admin/courses/[id]/student-details/[userId]/route.ts)",
+      "Bash(grep -n \": any\" app/api/business/courses/[id]/route.ts)"
     ],
     "deny": [],
     "ask": []

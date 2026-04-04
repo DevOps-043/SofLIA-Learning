@@ -10,7 +10,7 @@ interface App {
   website_url: string;
   logo_url: string;
   pricing_model: string;
-  pricing_details: any;
+  pricing_details: Record<string, unknown> | null;
   features: string[];
   use_cases: string[];
   advantages: string[];

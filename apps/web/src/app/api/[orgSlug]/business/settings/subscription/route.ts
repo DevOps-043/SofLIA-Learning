@@ -3,6 +3,13 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
+interface SubscriptionUpdatePayload {
+  updated_at: string
+  subscription_plan?: string
+  billing_cycle?: 'monthly' | 'yearly'
+  max_users?: number
+}
+
 /**
  * GET /api/[orgSlug]/business/settings/subscription
  * Obtiene información de suscripción de la organización activa
@@ -99,7 +106,7 @@ export async function PUT(
     const supabase = await createClient()
 
     // Preparar actualización
-    const updateData: Record<string, any> = {
+    const updateData: SubscriptionUpdatePayload = {
       updated_at: new Date().toISOString()
     }
 

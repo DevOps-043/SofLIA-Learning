@@ -23,7 +23,7 @@ class DevLogger {
     return `[${context}]`
   }
 
-  private log(level: LogLevel, message: string, data?: any, options: LoggerOptions = {}) {
+  private log(level: LogLevel, message: string, data?: unknown, options: LoggerOptions = {}) {
     if (!this.isDevelopment) return
 
     const { context, timestamp = true, emoji = true } = options
@@ -68,28 +68,28 @@ class DevLogger {
   /**
    * Log general
    */
-  info(message: string, data?: any, options?: LoggerOptions) {
+  info(message: string, data?: unknown, options?: LoggerOptions) {
     this.log('log', message, data, options)
   }
 
   /**
    * Log de información
    */
-  debug(message: string, data?: any, options?: LoggerOptions) {
+  debug(message: string, data?: unknown, options?: LoggerOptions) {
     this.log('debug', message, data, options)
   }
 
   /**
    * Log de advertencia
    */
-  warn(message: string, data?: any, options?: LoggerOptions) {
+  warn(message: string, data?: unknown, options?: LoggerOptions) {
     this.log('warn', message, data, options)
   }
 
   /**
    * Log de error
    */
-  error(message: string, error?: Error | any, options?: LoggerOptions) {
+  error(message: string, error?: Error | unknown, options?: LoggerOptions) {
     this.log('error', message, error, options)
   }
 

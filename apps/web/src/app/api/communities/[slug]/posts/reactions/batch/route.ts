@@ -1,6 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../../../../lib/supabase/server';
 
+interface CommunityReactionRow {
+  id: string;
+  post_id: string;
+  reaction_type: string;
+  user_id: string;
+  created_at: string;
+}
+
+interface AggregatedReaction {
+  type: string;
+  count: number;
+  hasUserReacted: boolean;
+  emoji: string;
+}
+
+interface PostReactionSummary {
+  reactions: Record<string, AggregatedReaction>;
+  totalReactions: number;
+  userReaction: string | null;
+}
+
 /**
  * Endpoint optimizado para obtener reacciones de múltiples posts en una sola llamada
  * Resuelve el N+1 query problem al cargar comunidades
@@ -35,50 +56,55 @@ export async function POST(
         created_at
       `)
       .in('post_id', postIds)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .returns<CommunityReactionRow[]>();
 
     if (reactionsError) {
       return NextResponse.json({ error: 'Error al obtener reacciones' }, { status: 500 });
     }
 
     // Agrupar reacciones por post_id
-    const reactionsByPost: Record<string, any> = {};
+    const reactionsByPost: Record<string, PostReactionSummary> = {};
 
-    postIds.forEach(postId => {
+    postIds.forEach((postId: string) => {
       // Filtrar reacciones de este post
-      const postReactions = (allReactions as any[])?.filter((r: any) => r.post_id === postId) || [];
+      const postReactions =
+        (allReactions || []).filter((reaction) => reaction.post_id === postId);
 
       // Agrupar por tipo de reacción
-      const groupedReactions = postReactions.reduce((acc: any, reaction: any) => {
-        const type = reaction.reaction_type;
-        if (!acc[type]) {
-          acc[type] = {
-            type,
-            count: 0,
-            hasUserReacted: false,
-            emoji: getReactionEmoji(type)
-          };
-        }
-        acc[type].count++;
-        
-        // Verificar si el usuario actual ha reaccionado
-        if (user && reaction.user_id === user.id) {
-          acc[type].hasUserReacted = true;
-        }
-        
-        return acc;
-      }, {} as Record<string, any>);
+      const groupedReactions = postReactions.reduce<Record<string, AggregatedReaction>>(
+        (acc, reaction) => {
+          const type = reaction.reaction_type;
+          if (!acc[type]) {
+            acc[type] = {
+              type,
+              count: 0,
+              hasUserReacted: false,
+              emoji: getReactionEmoji(type)
+            };
+          }
+          acc[type].count++;
+          
+          // Verificar si el usuario actual ha reaccionado
+          if (user && reaction.user_id === user.id) {
+            acc[type].hasUserReacted = true;
+          }
+          
+          return acc;
+        },
+        {}
+      );
 
       // Calcular total de reacciones
       const totalReactions = Object.values(groupedReactions).reduce(
-        (sum: number, reaction: any) => sum + reaction.count, 
+        (sum, reaction) => sum + reaction.count, 
         0
       );
 
       // Determinar la reacción del usuario actual
       let userReaction = null;
       if (user) {
-        const userReactionData = postReactions.find((r: any) => r.user_id === user.id);
+        const userReactionData = postReactions.find((reaction) => reaction.user_id === user.id);
         userReaction = userReactionData?.reaction_type || null;
       }
 

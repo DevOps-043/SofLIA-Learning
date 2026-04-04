@@ -9,11 +9,93 @@
  *  - adminCourses.actions.ts (approve: staging → cursos reales)
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 import {
     normalizeImportedActivityContent,
     normalizeImportedMaterialContent,
 } from './course-content'
+
+interface QuizQuestionLike {
+    id?: string
+    question?: string
+    questionText?: string
+    questionType?: string
+    type?: string
+    options?: unknown
+    correctAnswer?: string | number
+    correct_answer?: string | number
+    explanation?: string
+    points?: number | string
+}
+
+interface QuizSourceData extends Record<string, unknown> {
+    questions?: QuizQuestionLike[]
+    items?: QuizQuestionLike[]
+    passing_score?: number | string
+}
+
+interface CourseEngineMaterial {
+    title: string
+    type: string
+    url?: string | null
+    description?: string | null
+    data?: unknown
+}
+
+interface CourseEngineActivity {
+    title: string
+    type: string
+    data?: unknown
+}
+
+interface CourseEngineLesson {
+    order_index: number
+    title: string
+    video_url?: string | null
+    duration?: number | null
+    transcription?: string | null
+    summary?: string | null
+    materials?: CourseEngineMaterial[]
+    activities?: CourseEngineActivity[]
+}
+
+interface CourseEngineModule {
+    order_index: number
+    title: string
+    description?: string | null
+    lessons?: CourseEngineLesson[]
+}
+
+interface CourseEngineCourseData {
+    title: string
+    description?: string | null
+    category?: string | null
+    level?: string | null
+    thumbnail_url?: string | null
+    slug?: string
+    price?: number | null
+    instructor_email?: string | null
+}
+
+interface CourseEnginePayload {
+    course: CourseEngineCourseData
+    modules?: CourseEngineModule[]
+}
+
+interface StagingCoursePreview {
+    id: string
+    status?: string
+    is_update?: boolean
+    payload?: Partial<CourseEnginePayload> | null
+    course?: {
+        instructor?: {
+            first_name?: string
+            last_name?: string
+            email?: string
+            display_name?: string
+        } | null
+    } | null
+}
 
 // ─── Admin client (service role, sin cookies) ────────────────────────────────
 
@@ -35,10 +117,10 @@ export function extractVideoInfo(url: string): { provider: 'youtube' | 'vimeo' |
     return { provider: 'custom', id: url }
 }
 
-export function normalizeQuizData(data: any) {
+export function normalizeQuizData(data?: QuizSourceData | null) {
     if (!data) return null
     const rawItems = Array.isArray(data.questions) ? data.questions : (Array.isArray(data.items) ? data.items : [])
-    const questions = rawItems.map((q: any) => {
+    const questions = rawItems.map((q) => {
         const options = Array.isArray(q.options) ? q.options.map(String) : []
         let correctAnswer = q.correctAnswer ?? q.correct_answer ?? ''
         if (typeof correctAnswer === 'number' && options[correctAnswer]) correctAnswer = options[correctAnswer]
@@ -75,9 +157,9 @@ export async function applyPayloadToCourse(
     supabase: ReturnType<typeof createAdminSupabase>,
     courseId: string,
     instructorId: string,
-    payload: any
+    payload: CourseEnginePayload
 ): Promise<void> {
-    const modules: any[] = payload.modules ?? []
+    const modules = payload.modules ?? []
 
     const validModuleIds: string[] = []
     const validLessonIds: string[] = []
@@ -138,7 +220,7 @@ export async function applyPayloadToCourse(
             await supabase.from('lesson_materials').delete().eq('lesson_id', lessonId)
             const materials = lesson.materials ?? []
             if (materials.length > 0) {
-                const rows = materials.map((mat: any, idx: number) => ({
+                const rows = materials.map((mat, idx: number) => ({
                     lesson_id: lessonId,
                     material_title: mat.title,
                     material_type:
@@ -168,7 +250,7 @@ export async function applyPayloadToCourse(
             await supabase.from('lesson_activities').delete().eq('lesson_id', lessonId)
             const activities = lesson.activities ?? []
             if (activities.length > 0) {
-                const rows = activities.map((act: any, idx: number) => ({
+                const rows = activities.map((act, idx: number) => ({
                     lesson_id: lessonId,
                     activity_title: act.title,
                     activity_type: act.type === 'lia_script' ? 'ai_chat' : act.type,
@@ -209,7 +291,7 @@ export async function applyPayloadToCourse(
 
 export async function createNewCourseFromPayload(
     supabase: ReturnType<typeof createAdminSupabase>,
-    payload: any,
+    payload: CourseEnginePayload,
     instructorId: string,
     adminId: string
 ): Promise<string> {
@@ -246,7 +328,7 @@ export async function createNewCourseFromPayload(
 export async function updateExistingCourseFromPayload(
     supabase: ReturnType<typeof createAdminSupabase>,
     courseId: string,
-    payload: any,
+    payload: CourseEnginePayload,
     instructorId: string,
     adminId: string
 ): Promise<void> {
@@ -277,10 +359,10 @@ export async function updateExistingCourseFromPayload(
 
 // ─── Build course-like object from payload for the detail review UI ───────────
 
-export function buildCoursePreviewFromPayload(staging: any) {
+export function buildCoursePreviewFromPayload(staging: StagingCoursePreview) {
     const payload = staging.payload ?? {}
     const courseData = payload.course ?? {}
-    const modules: any[] = payload.modules ?? []
+    const modules = payload.modules ?? []
 
     return {
         id: staging.id,                         // stagingId — used by approve/reject actions
@@ -298,12 +380,12 @@ export function buildCoursePreviewFromPayload(staging: any) {
             email: courseData.instructor_email ?? '',
             display_name: courseData.instructor_email ?? 'Instructor',
         },
-        modules: modules.map((mod: any, modIdx: number) => ({
+        modules: modules.map((mod, modIdx: number) => ({
             module_id: `staging-mod-${modIdx}`,
             module_title: mod.title,
             module_order_index: mod.order_index,
             is_published: false,
-            lessons: (mod.lessons ?? []).map((lesson: any, lesIdx: number) => {
+            lessons: (mod.lessons ?? []).map((lesson, lesIdx: number) => {
                 const videoInfo = extractVideoInfo(lesson.video_url ?? '')
                 return {
                     lesson_id: `staging-les-${modIdx}-${lesIdx}`,
@@ -314,7 +396,7 @@ export function buildCoursePreviewFromPayload(staging: any) {
                     video_provider_id: videoInfo.id || null,
                     transcript_content: lesson.transcription ?? null,
                     summary_content: lesson.summary ?? null,
-                    materials: (lesson.materials ?? []).map((mat: any, matIdx: number) => ({
+                    materials: (lesson.materials ?? []).map((mat, matIdx: number) => ({
                         material_id: `staging-mat-${modIdx}-${lesIdx}-${matIdx}`,
                         material_title: mat.title,
                         material_type:
@@ -328,7 +410,7 @@ export function buildCoursePreviewFromPayload(staging: any) {
                                 ? normalizeQuizData(mat.data)
                                 : normalizeImportedMaterialContent(mat.data),
                     })),
-                    activities: (lesson.activities ?? []).map((act: any, actIdx: number) => ({
+                    activities: (lesson.activities ?? []).map((act, actIdx: number) => ({
                         activity_id: `staging-act-${modIdx}-${lesIdx}-${actIdx}`,
                         activity_title: act.title,
                         activity_type: act.type === 'lia_script' ? 'ai_chat' : act.type,

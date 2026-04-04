@@ -1,5 +1,10 @@
 import useSWR from 'swr';
 
+interface CommunityFetchError extends Error {
+  status?: number
+  info?: Record<string, unknown>
+}
+
 /**
  * Hook para obtener lista de comunidades con cache inteligente
  * 
@@ -22,10 +27,11 @@ export function useCommunities() {
     
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({ error: res.statusText }));
-      const error = new Error(errorData.error || errorData.message || 'Error al cargar comunidades');
-      (error as any).status = res.status;
-      (error as any).info = errorData;
-      throw error;
+      const fetchError = Object.assign(
+        new Error(errorData.error || errorData.message || 'Error al cargar comunidades'),
+        { status: res.status, info: errorData }
+      ) as CommunityFetchError;
+      throw fetchError;
     }
     
     const result = await res.json();
@@ -45,7 +51,7 @@ export function useCommunities() {
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
     // Reintentar en caso de error (excepto 404)
-    shouldRetryOnError: (error: any) => {
+    shouldRetryOnError: (error: { status?: number }) => {
       return error?.status !== 404;
     },
     errorRetryCount: 3,

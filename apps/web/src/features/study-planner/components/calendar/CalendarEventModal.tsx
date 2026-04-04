@@ -1,6 +1,15 @@
 import { X, Edit2, Trash2, Clock, MapPin, Calendar as CalendarIcon, Save, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import moment from 'moment'
+import {
+  formatCalendarLabel,
+  formatCalendarTime,
+  fromDateOnlyEndValue,
+  fromDateOnlyStartValue,
+  fromDateTimeLocalValue,
+  isSameCalendarDay,
+  toDateTimeLocalValue,
+  toDateValue,
+} from '../hooks/study-planner-calendar.date'
 import type { CalendarEventModalProps } from './types'
 
 const EMPTY_FORM = {
@@ -104,22 +113,22 @@ export function CalendarEventModal({
                             <>
                               <div>
                                 <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Inicio</label>
-                                <input type="datetime-local" value={moment(eventForm.start).format('YYYY-MM-DDTHH:mm')} onChange={(e) => setEventForm({ ...eventForm, start: moment(e.target.value).toISOString() })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
+                                <input type="datetime-local" value={toDateTimeLocalValue(eventForm.start)} onChange={(e) => setEventForm({ ...eventForm, start: fromDateTimeLocalValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                               <div>
                                 <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Fin</label>
-                                <input type="datetime-local" value={moment(eventForm.end).format('YYYY-MM-DDTHH:mm')} onChange={(e) => setEventForm({ ...eventForm, end: moment(e.target.value).toISOString() })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
+                                <input type="datetime-local" value={toDateTimeLocalValue(eventForm.end)} onChange={(e) => setEventForm({ ...eventForm, end: fromDateTimeLocalValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                             </>
                           ) : (
                             <>
                               <div>
                                 <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Fecha inicio</label>
-                                <input type="date" value={moment(eventForm.start).format('YYYY-MM-DD')} onChange={(e) => setEventForm({ ...eventForm, start: moment(e.target.value).startOf('day').toISOString() })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
+                                <input type="date" value={toDateValue(eventForm.start)} onChange={(e) => setEventForm({ ...eventForm, start: fromDateOnlyStartValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                               <div>
                                 <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Fecha fin</label>
-                                <input type="date" value={moment(eventForm.end).format('YYYY-MM-DD')} onChange={(e) => setEventForm({ ...eventForm, end: moment(e.target.value).endOf('day').toISOString() })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
+                                <input type="date" value={toDateValue(eventForm.end)} onChange={(e) => setEventForm({ ...eventForm, end: fromDateOnlyEndValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                             </>
                           )}
@@ -221,14 +230,14 @@ export function CalendarEventModal({
                           {selectedEvent.isAllDay ? (
                             <div className="text-sm text-[#0A2540] dark:text-white">
                               <div className="font-semibold mb-1">Todo el día</div>
-                              <div className="text-[#6C757D] dark:text-gray-400">{moment(selectedEvent.start).format('dddd, D [de] MMMM [de] YYYY')}</div>
+                              <div className="text-[#6C757D] dark:text-gray-400">{formatCalendarLabel(selectedEvent.start, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
                             </div>
                           ) : (
                             <div className="text-sm text-[#0A2540] dark:text-white">
-                              <div className="font-semibold mb-1">{moment(selectedEvent.start).format('dddd, D [de] MMMM [de] YYYY')}</div>
-                              <div className="text-[#6C757D] dark:text-gray-400">{moment(selectedEvent.start).format('h:mm A')} - {moment(selectedEvent.end).format('h:mm A')}</div>
-                              {moment(selectedEvent.start).format('YYYY-MM-DD') !== moment(selectedEvent.end).format('YYYY-MM-DD') && (
-                                <div className="text-[#6C757D] dark:text-gray-400 text-xs mt-1">Hasta {moment(selectedEvent.end).format('dddd, D [de] MMMM [de] YYYY')}</div>
+                              <div className="font-semibold mb-1">{formatCalendarLabel(selectedEvent.start, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
+                              <div className="text-[#6C757D] dark:text-gray-400">{formatCalendarTime(selectedEvent.start)} - {formatCalendarTime(selectedEvent.end)}</div>
+                              {!isSameCalendarDay(selectedEvent.start, selectedEvent.end) && (
+                                <div className="text-[#6C757D] dark:text-gray-400 text-xs mt-1">Hasta {formatCalendarLabel(selectedEvent.end, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
                               )}
                             </div>
                           )}

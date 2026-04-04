@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { ComponentType, SVGProps } from 'react'
 import { 
   UserCircleIcon,
   BookOpenIcon,
@@ -16,6 +17,19 @@ import {
 import { formatRelativeTime } from '@/core/utils/date-utils'
 import type { Notification } from '@/features/notifications/services/notification.service'
 
+type ActivityIcon = ComponentType<SVGProps<SVGSVGElement>>
+
+interface ActivityNotificationUser {
+  display_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  username?: string | null
+}
+
+interface ActivityNotification extends Notification {
+  users?: ActivityNotificationUser | null
+}
+
 interface ActivityItem {
   id: string
   type: 'user' | 'workshop' | 'community' | 'prompt' | 'ai-app' | 'news' | 'system'
@@ -23,7 +37,7 @@ interface ActivityItem {
   description: string
   user: string
   timestamp: string
-  icon: React.ComponentType<any>
+  icon: ActivityIcon
   color: string
 }
 
@@ -54,8 +68,8 @@ function mapNotificationTypeToActivityType(notificationType: string): ActivityIt
 /**
  * Obtiene el icono según el tipo de actividad
  */
-function getActivityIcon(type: ActivityItem['type']): React.ComponentType<any> {
-  const iconMap: Record<ActivityItem['type'], React.ComponentType<any>> = {
+function getActivityIcon(type: ActivityItem['type']): ActivityIcon {
+  const iconMap: Record<ActivityItem['type'], ActivityIcon> = {
     'user': UserCircleIcon,
     'workshop': BookOpenIcon,
     'community': UserGroupIcon,
@@ -92,7 +106,7 @@ function getActivityColor(type: ActivityItem['type'], priority?: string): string
 /**
  * Mapea una notificación de la BD a un ActivityItem
  */
-function mapNotificationToActivityItem(notification: any): ActivityItem {
+function mapNotificationToActivityItem(notification: ActivityNotification): ActivityItem {
   const activityType = mapNotificationTypeToActivityType(notification.notification_type)
   const user = notification.users || {}
   

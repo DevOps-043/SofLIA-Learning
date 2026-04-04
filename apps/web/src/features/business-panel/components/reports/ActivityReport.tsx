@@ -1,16 +1,30 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
-} from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
 import { useThemeStore } from '@/core/stores/themeStore'
 import { useTranslation } from 'react-i18next'
 import { StatCard } from './StatCard'
 import { ChartCard } from './ChartCard'
-import { Activity, TrendingUp } from 'lucide-react'
+import { Activity, Users, TrendingUp, Award } from 'lucide-react'
+import { ReportTable } from '../ReportTable'
+import type { ColumnDef } from '@tanstack/react-table'
 import type { ActivityReportData } from './types'
+
+type ActivityStatusDatum = {
+  name: string
+  value: number
+}
+
+type ActivityTooltipProps = {
+  active?: boolean
+  payload?: Array<{
+    name?: string
+    value?: number | string
+  }>
+}
+
+type ActivityRow = NonNullable<ActivityReportData['activities']>[number]
 
 function ActivityReport({ data }: { data: ActivityReportData }) {
   const { t } = useTranslation('business')
@@ -22,19 +36,18 @@ function ActivityReport({ data }: { data: ActivityReportData }) {
   const accentColor = panelStyles?.accent_color || '#00D4B3'
   const cardBg = isDark ? (panelStyles?.card_background || 'rgba(30, 41, 59, 0.8)') : '#FFFFFF'
   const cardBorder = isDark ? (panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)') : '#E2E8F0'
-  
-  const CHART_COLORS = [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
 
-  const statusData = [
+  const chartColors = [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
+
+  const statusData: ActivityStatusDatum[] = [
     { name: t('reports.status.actives'), value: data.active_count || 0 },
     { name: t('reports.status.completedPlural'), value: data.completed_count || 0 },
     { name: t('reports.status.inactives'), value: data.inactive_count || 0 }
-  ].filter(s => s.value > 0)
+  ].filter((item) => item.value > 0)
 
-  // CustomTooltip para gráficos de pastel
-  const CustomPieTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0]
+  const CustomPieTooltip = ({ active, payload }: ActivityTooltipProps) => {
+    const tooltipData = payload?.[0]
+    if (active && tooltipData) {
       return (
         <div
           style={{
@@ -47,14 +60,14 @@ function ActivityReport({ data }: { data: ActivityReportData }) {
           }}
         >
           <p style={{ color: textColor, margin: 0, fontWeight: 600 }}>
-            {data.name || t('reports.messages.value')}
+            {tooltipData.name || t('reports.messages.value')}
           </p>
           <p style={{ color: textColor, margin: '4px 0 0 0', fontWeight: 500 }}>
-            {typeof data.value === 'number' 
-              ? data.value % 1 === 0 
-                ? data.value 
-                : data.value.toFixed(1)
-              : data.value}
+            {typeof tooltipData.value === 'number'
+              ? tooltipData.value % 1 === 0
+                ? tooltipData.value
+                : tooltipData.value.toFixed(1)
+              : tooltipData.value}
           </p>
         </div>
       )
@@ -62,20 +75,43 @@ function ActivityReport({ data }: { data: ActivityReportData }) {
     return null
   }
 
-  const columns: ColumnDef<any>[] = [
+  const columns: ColumnDef<ActivityRow>[] = [
     { accessorKey: 'user_name', header: t('reports.activityReport.columns.user') },
     { accessorKey: 'course_title', header: t('reports.activityReport.columns.course') },
-    { accessorKey: 'enrollment_status', header: t('reports.activityReport.columns.status'), cell: (info) => {
-      const status = info.getValue() as string
-      const colors: Record<string, string> = { active: '#10b981', completed: accentColor, inactive: '#6b7280' }
-      return (
-        <span className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: `${colors[status] || '#6b7280'}20`, color: colors[status] || '#6b7280' }}>
-          {status === 'active' ? t('reports.status.active') : status === 'completed' ? t('reports.status.completed') : t('reports.status.inactive')}
-        </span>
-      )
-    }},
-    { accessorKey: 'enrolled_at', header: t('reports.activityReport.columns.enrolledAt'), cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' },
-    { accessorKey: 'last_accessed_at', header: t('reports.activityReport.columns.lastAccess'), cell: (info) => info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-' }
+    {
+      accessorKey: 'enrollment_status',
+      header: t('reports.activityReport.columns.status'),
+      cell: (info) => {
+        const status = info.getValue() as string
+        const colors: Record<string, string> = {
+          active: '#10b981',
+          completed: accentColor,
+          inactive: '#6b7280'
+        }
+        return (
+          <span
+            className="px-2 py-1 rounded-lg text-xs"
+            style={{ backgroundColor: `${colors[status] || '#6b7280'}20`, color: colors[status] || '#6b7280' }}
+          >
+            {status === 'active'
+              ? t('reports.status.active')
+              : status === 'completed'
+                ? t('reports.status.completed')
+                : t('reports.status.inactive')}
+          </span>
+        )
+      }
+    },
+    {
+      accessorKey: 'enrolled_at',
+      header: t('reports.activityReport.columns.enrolledAt'),
+      cell: (info) => (info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-')
+    },
+    {
+      accessorKey: 'last_accessed_at',
+      header: t('reports.activityReport.columns.lastAccess'),
+      cell: (info) => (info.getValue() ? new Date(info.getValue() as string).toLocaleDateString('es-ES') : '-')
+    }
   ]
 
   return (
@@ -91,8 +127,17 @@ function ActivityReport({ data }: { data: ActivityReportData }) {
         <ChartCard title={t('reports.activityReport.charts.status')}>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={statusData} cx="50%" cy="50%" outerRadius={80} dataKey="value" label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}>
-                {statusData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+              <Pie
+                data={statusData}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+              >
+                {statusData.map((_, index) => (
+                  <Cell key={index} fill={chartColors[index % chartColors.length]} />
+                ))}
               </Pie>
               <Tooltip content={<CustomPieTooltip />} />
               <Legend wrapperStyle={{ color: textColor }} />

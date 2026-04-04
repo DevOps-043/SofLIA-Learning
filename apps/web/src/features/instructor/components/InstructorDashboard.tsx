@@ -25,6 +25,24 @@ interface InstructorStats {
   reelsThisMonth: number
 }
 
+interface DashboardStatCard {
+  name: string
+  value: number | string
+  icon: typeof BookOpenIcon
+  color: string
+  bgColor: string
+  change: string
+  suffix?: string
+}
+
+interface DashboardQuickAction {
+  name: string
+  description: string
+  icon: typeof BookOpenIcon
+  color: string
+  href: string
+}
+
 export function InstructorDashboard() {
   const { t } = useTranslation('instructor')
 
@@ -65,7 +83,7 @@ export function InstructorDashboard() {
     fetchStats()
   }, [])
 
-  const statCards = useMemo(() => [
+  const statCards = useMemo<DashboardStatCard[]>(() => [
     {
       name: t('dashboard.stats.courses'),
       value: stats.totalCourses,
@@ -109,7 +127,7 @@ export function InstructorDashboard() {
     }
   ], [stats, t])
 
-  const quickActions = useMemo(() => [
+  const quickActions = useMemo<DashboardQuickAction[]>(() => [
     { name: t('dashboard.actions.createCourse.title'), description: t('dashboard.actions.createCourse.desc'), icon: BookOpenIcon, color: 'from-blue-500 to-cyan-500', href: '/instructor/courses/new' },
     { name: t('dashboard.actions.manageWorkshops.title'), description: t('dashboard.actions.manageWorkshops.desc'), icon: AcademicCapIcon, color: 'from-purple-500 to-pink-500', href: '/instructor/workshops' },
     { name: t('dashboard.actions.uploadReel.title'), description: t('dashboard.actions.uploadReel.desc'), icon: VideoCameraIcon, color: 'from-green-500 to-emerald-500', href: '/instructor/reels/new' }
@@ -188,7 +206,7 @@ export function InstructorDashboard() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
             {/* Mostrar solo 5 tarjetas en lugar de 6 (eliminamos Talleres) */}
-            {statCards.map((card: any, index: number) => (
+            {statCards.map((card, index: number) => (
               <div
                 key={card.name}
                 className={`
@@ -244,7 +262,7 @@ export function InstructorDashboard() {
             <p className="text-indigo-300/70 ml-14 text-sm md:text-base">{t('dashboard.actions.subtitle')}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
-            {quickActions.map((action: any, index: number) => (
+            {quickActions.map((action, index: number) => (
               <a
                 key={action.name}
                 href={action.href}

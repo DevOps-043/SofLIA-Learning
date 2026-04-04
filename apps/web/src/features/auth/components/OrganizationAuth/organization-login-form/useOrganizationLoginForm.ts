@@ -24,6 +24,34 @@ interface UseOrganizationLoginFormParams {
   organizationSlug: string
 }
 
+function hasRedirectInfo(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined,
+): result is { error: string; redirectMessage: string; redirectTo: string } {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'error' in result &&
+    typeof result.error === 'string' &&
+    'redirectTo' in result &&
+    typeof result.redirectTo === 'string' &&
+    'redirectMessage' in result &&
+    typeof result.redirectMessage === 'string'
+  )
+}
+
+function isSuccessfulLoginResult(
+  result: Awaited<ReturnType<typeof loginAction>> | null | undefined,
+): result is { success: true; redirectTo: string } {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'success' in result &&
+    result.success === true &&
+    'redirectTo' in result &&
+    typeof result.redirectTo === 'string'
+  )
+}
+
 export function useOrganizationLoginForm({
   organizationId,
   organizationSlug,
@@ -156,7 +184,7 @@ export function useOrganizationLoginForm({
       )
 
       if (result?.error) {
-        if (result.redirectTo && result.redirectMessage) {
+        if (hasRedirectInfo(result)) {
           redirectUrlRef.current = result.redirectTo
 
           if (countdownIntervalRef.current) {
@@ -205,7 +233,7 @@ export function useOrganizationLoginForm({
         return
       }
 
-      if (result?.success && result.redirectTo) {
+      if (isSuccessfulLoginResult(result)) {
         window.location.href = result.redirectTo
         return
       }

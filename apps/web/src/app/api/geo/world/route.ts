@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
 
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError'
+}
+
 export async function GET() {
   try {
     // Intentar cargar desde múltiples fuentes de GeoJSON
@@ -36,9 +40,9 @@ export async function GET() {
             })
           }
         }
-      } catch (err: any) {
+      } catch (error: unknown) {
         // Limpiar timeout si existe
-        if (err.name !== 'AbortError') {
+        if (!isAbortError(error)) {
           // Continuar con la siguiente fuente si esta falla
           }
         continue
@@ -62,4 +66,3 @@ export async function GET() {
     )
   }
 }
-

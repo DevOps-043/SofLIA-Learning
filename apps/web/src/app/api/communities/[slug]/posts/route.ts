@@ -3,6 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import { cacheHeaders } from '@/lib/utils/cache-headers';
 import { logger } from '@/lib/utils/logger';
 
+interface CommunityPostRequestBody {
+  title?: string
+  content?: string
+  attachment_url?: string
+  attachment_type?: string
+  attachment_data?: Record<string, unknown> | string | null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
@@ -227,7 +235,7 @@ export async function POST(
 
 
 
-    let requestBody: any;
+    let requestBody: CommunityPostRequestBody;
     try {
       requestBody = await request.json();
     } catch (jsonError) {

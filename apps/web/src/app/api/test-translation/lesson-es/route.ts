@@ -8,6 +8,27 @@ import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 export const dynamic = 'force-dynamic'
 
+type TranslationValues = Record<string, unknown>
+
+interface SaveErrorDetails {
+  type?: string
+  message?: string
+  details?: string | null
+  hint?: string | null
+  code?: string | null
+  stack?: string
+  hasUrl?: boolean
+  hasKey?: boolean
+}
+
+function getSaveErrorType(error: SaveErrorDetails | null): string {
+  return error?.type || 'unknown'
+}
+
+function getSaveErrorMessage(error: SaveErrorDetails | null): string {
+  return error?.message || (error ? JSON.stringify(error) : 'Error desconocido')
+}
+
 /**
  * Endpoint de prueba específico para diagnosticar problemas con traducción a español
  * GET /api/test-translation/lesson-es?lessonId=xxx
@@ -54,7 +75,7 @@ export async function GET(request: NextRequest) {
 
     // PASO 1: Traducir usando AutoTranslationService
 
-    let translations: Record<string, any> = {}
+    let translations: TranslationValues = {}
     
     try {
       translations = await AutoTranslationService.translateEntity(
@@ -92,7 +113,7 @@ export async function GET(request: NextRequest) {
     // PASO 3: Intentar guardar directamente con Supabase para capturar el error
 
     let saved = false
-    let saveError: any = null
+    let saveError: SaveErrorDetails | null = null
     
     try {
       // Intentar guardar usando el servicio
@@ -204,7 +225,7 @@ export async function GET(request: NextRequest) {
       recommendation: saved 
         ? '✅ Traducción a español guardada exitosamente'
         : saveError
-        ? `❌ Error al guardar: ${saveError.type || 'unknown'} - ${saveError.message || JSON.stringify(saveError)}`
+        ? `❌ Error al guardar: ${getSaveErrorType(saveError)} - ${getSaveErrorMessage(saveError)}`
         : '❌ Error al guardar traducción a español. Revisa los logs del servidor para más detalles.'
     })
   } catch (error) {
@@ -219,4 +240,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

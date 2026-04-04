@@ -1,5 +1,7 @@
 'use client'
 
+import type { ComponentType } from 'react'
+import type * as ReactGridLayout from 'react-grid-layout'
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
@@ -14,32 +16,27 @@ import {
   Users,
   BookOpen,
   CheckCircle,
-  TrendingUp,
-  Clock,
-  Award,
   Activity
 } from 'lucide-react'
 import { Button } from '@aprende-y-aplica/ui'
 
 // Importación dinámica de react-grid-layout para evitar problemas SSR
-let ResponsiveGridLayout: any = null
-let WidthProvider: any = null
+type WidgetConfig = ReactGridLayout.Layout
+type ResponsiveGridLayoutProps = ReactGridLayout.ResponsiveProps
+type WidthProviderProps = ReactGridLayout.WidthProviderProps
 
-if (typeof window !== 'undefined') {
-  const ReactGridLayout = require('react-grid-layout')
-  ResponsiveGridLayout = ReactGridLayout.default
-  WidthProvider = ReactGridLayout.WidthProvider(ResponsiveGridLayout.default)
+interface ReactGridLayoutModule {
+  default: ComponentType<ResponsiveGridLayoutProps>
+  WidthProvider: <P>(
+    component: ComponentType<P>
+  ) => ComponentType<P & WidthProviderProps>
 }
 
-interface WidgetConfig {
-  i: string
-  x: number
-  y: number
-  w: number
-  h: number
-  minW?: number
-  minH?: number
-  static?: boolean
+let ResponsiveGrid: ComponentType<ResponsiveGridLayoutProps & WidthProviderProps> | null = null
+
+if (typeof window !== 'undefined') {
+  const reactGridLayout = require('react-grid-layout') as ReactGridLayoutModule
+  ResponsiveGrid = reactGridLayout.WidthProvider(reactGridLayout.default)
 }
 
 interface DashboardLayout {
@@ -274,7 +271,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
             </motion.div>
           )}
           <Button
-            variant={isEditMode ? 'gradient' : 'outline'}
+            variant={isEditMode ? 'gradient' : 'secondary'}
             onClick={() => setIsEditMode(!isEditMode)}
             className="flex items-center gap-2"
           >
@@ -284,7 +281,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
           {isEditMode && (
             <>
               <Button
-                variant="outline"
+                variant="secondary"
                 onClick={handleReset}
                 className="flex items-center gap-2"
               >
@@ -361,9 +358,8 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       )}
 
       {/* Dashboard Grid */}
-      {typeof window !== 'undefined' && ResponsiveGridLayout && WidthProvider ? (
-        <WidthProvider className="layout" cols={12} rowHeight={60}>
-          <ResponsiveGridLayout
+      {typeof window !== 'undefined' && ResponsiveGrid ? (
+        <ResponsiveGrid
             className="layout"
             layouts={{ lg: widgets }}
             cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
@@ -393,8 +389,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
                 <WidgetContent widgetId={widget.i} />
               </div>
             ))}
-          </ResponsiveGridLayout>
-        </WidthProvider>
+        </ResponsiveGrid>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {widgets.map(widget => (
@@ -480,4 +475,3 @@ function getWidgetName(widgetId: string): string {
   }
   return names[widgetType] || 'Widget Personalizado'
 }
-

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       success: true,
       activities: notifications
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in GET /api/admin/activity/recent:', error)
     return NextResponse.json(
       {
@@ -31,4 +31,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

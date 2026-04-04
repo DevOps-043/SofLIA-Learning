@@ -11,6 +11,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '../../../../features/auth/services/session.service'
 import { buildStudyPlannerUserContext } from '../../../../features/study-planner/services/study-planner-user-context.server.service'
 import type { UserContextResponse } from '../../../../features/study-planner/types/user-context.types'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   _request: NextRequest,
@@ -32,7 +33,7 @@ export async function GET(
       data: userContext,
     })
   } catch (error) {
-    console.error('[user-context] Error:', error)
+    logger.error('[user-context] Error:', error)
 
     return NextResponse.json(
       {

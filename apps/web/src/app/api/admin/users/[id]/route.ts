@@ -4,6 +4,15 @@ import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { UpdateUserSchema } from '@/lib/schemas/user.schema'
 import { z } from 'zod'
 
+function getErrorDetails(error: unknown): string | null {
+  if (!error || typeof error !== 'object' || !('details' in error)) {
+    return null
+  }
+
+  const { details } = error
+  return typeof details === 'string' ? details : null
+}
+
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -88,7 +97,7 @@ export async function DELETE(
       return NextResponse.json(
         { 
           error: 'No se puede eliminar el usuario porque tiene referencias activas en otras tablas. Por favor, elimine primero las referencias relacionadas.',
-          details: (error as any).details || 'Restricción de clave foránea'
+          details: getErrorDetails(error) || 'Restricción de clave foránea'
         },
         { status: 400 }
       )

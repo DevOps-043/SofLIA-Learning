@@ -21,7 +21,7 @@ const CourseImportPayloadSchema = z.object({
         thumbnail_url: z.string().nullable().optional(),
         slug: z.string().optional(),
     }),
-    modules: z.array(z.any()),
+    modules: z.array(z.unknown()),
 })
 
 // ============================================================
@@ -29,7 +29,7 @@ const CourseImportPayloadSchema = z.object({
 // ============================================================
 async function processInboxItem(
     supabase: ReturnType<typeof createAdminSupabase>,
-    item: { course_slug: string; payload: any }
+    item: { course_slug: string; payload: unknown }
 ) {
     const validation = CourseImportPayloadSchema.safeParse(item.payload)
     if (!validation.success) {
@@ -133,16 +133,17 @@ export async function GET(request: Request) {
 
             processed++
             details.push({ slug: item.course_slug, status: 'processed' })
-        } catch (err: any) {
-            console.error(`[INBOX CRON] ❌ Error en ${item.course_slug}:`, err.message)
+        } catch (err: unknown) {
+            const errorMessage = err instanceof Error ? err.message : 'Error desconocido'
+            console.error(`[INBOX CRON] ❌ Error en ${item.course_slug}:`, errorMessage)
 
             await supabase
                 .from('courseengine_inbox')
-                .update({ status: 'error', error_message: err.message, updated_at: new Date().toISOString() })
+                .update({ status: 'error', error_message: errorMessage, updated_at: new Date().toISOString() })
                 .eq('course_slug', item.course_slug)
 
             errors++
-            details.push({ slug: item.course_slug, status: 'error', error: err.message })
+            details.push({ slug: item.course_slug, status: 'error', error: errorMessage })
         }
     }
 

@@ -2,6 +2,47 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
+interface ResponseUserRow {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  profile_picture_url: string | null;
+}
+
+interface CourseQuestionResponseRow {
+  id: string;
+  question_id: string;
+  course_id: string;
+  user_id: string;
+  content: string;
+  parent_response_id: string | null;
+  is_deleted: boolean | null;
+  is_approved_answer?: boolean | null;
+  is_instructor_answer?: boolean | null;
+  created_at: string;
+  attachment_url?: string | null;
+  attachment_type?: string | null;
+  attachment_data?: Record<string, unknown> | null;
+  user: ResponseUserRow | null;
+}
+
+interface ResponseReactionCountRow {
+  response_id: string | null;
+}
+
+interface ResponseUserReactionRow {
+  response_id: string | null;
+  reaction_type: string | null;
+}
+
+interface ResponseTreeNode extends CourseQuestionResponseRow {
+  replies: ResponseTreeNode[];
+  reaction_count: number;
+  user_reaction: string | null;
+}
+
 /**
  * GET /api/courses/[slug]/questions/[questionId]/responses
  * Obtiene todas las respuestas de una pregunta con respuestas anidadas
@@ -60,7 +101,8 @@ export async function GET(
       `)
       .eq('question_id', questionId)
       .eq('is_deleted', false)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
+      .returns<CourseQuestionResponseRow[]>();
 
     // OPTIMIZACIÓN: Calcular contadores de reacciones Y reacciones del usuario en batch
     // Si hay respuestas, obtener los contadores de reacciones en una sola query
@@ -68,7 +110,7 @@ export async function GET(
     let userReactionsMap = new Map<string, string>();
 
     if (allResponses && allResponses.length > 0) {
-      const responseIds = allResponses.map((r: any) => r.id);
+      const responseIds = allResponses.map((response) => response.id);
 
       // Obtener usuario actual para cargar sus reacciones
       const user = await SessionService.getCurrentUser();
@@ -79,6 +121,7 @@ export async function GET(
           .from('course_question_reactions')
           .select('response_id')
           .in('response_id', responseIds)
+          .returns<ResponseReactionCountRow[]>()
       ];
 
       // Si hay usuario, agregar query para sus reacciones
@@ -89,6 +132,7 @@ export async function GET(
             .select('response_id, reaction_type')
             .eq('user_id', user.id)
             .in('response_id', responseIds)
+            .returns<ResponseUserReactionRow[]>()
         );
       }
 
@@ -96,7 +140,7 @@ export async function GET(
 
       // Procesar contadores de reacciones
       if (!reactionCountsResult.error && reactionCountsResult.data) {
-        reactionCountsResult.data.forEach((reaction: any) => {
+        reactionCountsResult.data.forEach((reaction) => {
           const responseId = reaction.response_id;
           if (responseId) {
             reactionCountsMap.set(responseId, (reactionCountsMap.get(responseId) || 0) + 1);
@@ -106,7 +150,7 @@ export async function GET(
 
       // Procesar reacciones del usuario
       if (userReactionsResult && !userReactionsResult.error && userReactionsResult.data) {
-        userReactionsResult.data.forEach((reaction: any) => {
+        userReactionsResult.data.forEach((reaction) => {
           if (reaction.response_id && reaction.reaction_type) {
             userReactionsMap.set(reaction.response_id, reaction.reaction_type);
           }
@@ -127,11 +171,11 @@ export async function GET(
 
     // Estructurar el árbol de respuestas en memoria (mucho más rápido que múltiples queries)
     // Separar respuestas por nivel
-    const responseMap = new Map<string, any>();
-    const topLevelResponses: any[] = [];
+    const responseMap = new Map<string, ResponseTreeNode>();
+    const topLevelResponses: ResponseTreeNode[] = [];
 
     // Primero, indexar todas las respuestas por ID e incluir contadores de reacciones y reacción del usuario
-    allResponses.forEach((response: any) => {
+    allResponses.forEach((response) => {
       const reactionCount = reactionCountsMap.get(response.id) || 0;
       const userReaction = userReactionsMap.get(response.id) || null;
       responseMap.set(response.id, {
@@ -143,7 +187,7 @@ export async function GET(
     });
 
     // Luego, construir el árbol
-    allResponses.forEach((response: any) => {
+    allResponses.forEach((response) => {
       const responseWithReplies = responseMap.get(response.id)!;
       
       if (!response.parent_response_id) {
@@ -174,8 +218,8 @@ export async function GET(
     });
 
     // Ordenar respuestas anidadas (ya están ordenadas por created_at desde la query)
-    const sortRepliesRecursively = (responses: any[]) => {
-      responses.forEach(response => {
+    const sortRepliesRecursively = (responses: ResponseTreeNode[]) => {
+      responses.forEach((response) => {
         if (response.replies && response.replies.length > 0) {
           sortRepliesRecursively(response.replies);
         }
@@ -304,4 +348,3 @@ export async function POST(
     );
   }
 }
-

@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Clock, CheckCircle, Calendar, BarChart3, PieChart } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useLearningStats } from '../../hooks/useUserStatsB2B'
 import { BarChartComponent, PieChartComponent, GroupedBarChartComponent, EmptyState } from './charts'
 import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
@@ -96,7 +97,7 @@ export function LearningTab() {
   )
 }
 
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: LucideIcon; color: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -114,7 +115,7 @@ function StatCard({ label, value, icon: Icon, color }: { label: string; value: s
   )
 }
 
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: any; children: React.ReactNode }) {
+function ChartCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

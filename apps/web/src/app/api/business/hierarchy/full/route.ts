@@ -3,6 +3,31 @@ import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 
+interface OrganizationRegionRow {
+  id: string;
+}
+
+interface OrganizationZoneRow {
+  id: string;
+  region_id: string;
+}
+
+interface OrganizationTeamRow {
+  id: string;
+  zone_id: string;
+}
+
+interface ActiveOrganizationUserRow {
+  team_id: string | null;
+}
+
+type TeamWithCounts = OrganizationTeamRow & { members_count: number };
+type ZoneWithTeams = OrganizationZoneRow & {
+  teams: TeamWithCounts[];
+  teams_count: number;
+  users_count: number;
+};
+
 /**
  * GET /api/business/hierarchy/full
  * Obtiene la jerarquía completa en estructura de árbol
@@ -76,41 +101,41 @@ export async function GET() {
       .not('team_id', 'is', null);
 
     // Construir el árbol
-    const teamsByZone = new Map<string, typeof teams>();
-    const zonesByRegion = new Map<string, typeof zones>();
+    const teamsByZone = new Map<string, TeamWithCounts[]>();
+    const zonesByRegion = new Map<string, ZoneWithTeams[]>();
 
     // Agrupar equipos por zona con conteo de miembros
-    (teams || []).forEach(team => {
+    ((teams as OrganizationTeamRow[] | null) || []).forEach(team => {
       const zoneTeams = teamsByZone.get(team.zone_id) || [];
       zoneTeams.push({
         ...team,
-        members_count: userCounts?.filter(u => u.team_id === team.id).length || 0
-      } as any);
+        members_count: ((userCounts as ActiveOrganizationUserRow[] | null) || []).filter(u => u.team_id === team.id).length || 0
+      });
       teamsByZone.set(team.zone_id, zoneTeams);
     });
 
     // Agrupar zonas por región con equipos
-    (zones || []).forEach(zone => {
+    ((zones as OrganizationZoneRow[] | null) || []).forEach(zone => {
       const regionZones = zonesByRegion.get(zone.region_id) || [];
       const zoneTeams = teamsByZone.get(zone.id) || [];
       regionZones.push({
         ...zone,
         teams: zoneTeams,
         teams_count: zoneTeams.length,
-        users_count: zoneTeams.reduce((acc: number, t: any) => acc + (t.members_count || 0), 0)
-      } as any);
+        users_count: zoneTeams.reduce((acc: number, t) => acc + (t.members_count || 0), 0)
+      });
       zonesByRegion.set(zone.region_id, regionZones);
     });
 
     // Construir árbol final con regiones
-    const hierarchyTree = (regions || []).map(region => {
+    const hierarchyTree = ((regions as OrganizationRegionRow[] | null) || []).map(region => {
       const regionZones = zonesByRegion.get(region.id) || [];
       return {
         ...region,
         zones: regionZones,
         zones_count: regionZones.length,
-        teams_count: regionZones.reduce((acc: number, z: any) => acc + (z.teams_count || 0), 0),
-        users_count: regionZones.reduce((acc: number, z: any) => acc + (z.users_count || 0), 0)
+        teams_count: regionZones.reduce((acc: number, z) => acc + (z.teams_count || 0), 0),
+        users_count: regionZones.reduce((acc: number, z) => acc + (z.users_count || 0), 0)
       };
     });
 

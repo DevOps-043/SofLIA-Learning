@@ -29,7 +29,7 @@ interface CacheStats {
   hitRate: string
 }
 
-class MemoryCache<T = any> {
+class MemoryCache<T = unknown> {
   private cache: Map<string, CacheEntry<T>>
   private stats: CacheStats
   private readonly maxSizeBytes: number
@@ -171,7 +171,7 @@ class MemoryCache<T = any> {
    * Estimar tamaño de un objeto en bytes
    * Aproximación simple pero efectiva
    */
-  private estimateSize(obj: any): number {
+  private estimateSize(obj: unknown): number {
     const str = JSON.stringify(obj)
     // Cada carácter en UTF-16 (JavaScript) usa 2 bytes
     return str.length * 2
@@ -233,7 +233,7 @@ export const courseValidationCache = new MemoryCache<{ courseId: string; slug: s
  * Caché para datos de usuario
  * Muy pequeño y corto TTL (500KB, 1 min)
  */
-export const userDataCache = new MemoryCache<any>(
+export const userDataCache = new MemoryCache<unknown>(
   0.5, // 500KB
   1 * 60 * 1000 // 1 minuto
 )
@@ -242,7 +242,7 @@ export const userDataCache = new MemoryCache<any>(
  * Caché para datos de curso (modules, lessons)
  * Más grande, TTL medio (5MB, 10 min)
  */
-export const courseDataCache = new MemoryCache<any>(
+export const courseDataCache = new MemoryCache<unknown>(
   5, // 5MB
   10 * 60 * 1000 // 10 minutos
 )
@@ -251,7 +251,7 @@ export const courseDataCache = new MemoryCache<any>(
  * Caché para queries frecuentes
  * Balanceado (3MB, 5 min)
  */
-export const queryCache = new MemoryCache<any>(
+export const queryCache = new MemoryCache<unknown>(
   3, // 3MB
   5 * 60 * 1000 // 5 minutos
 )

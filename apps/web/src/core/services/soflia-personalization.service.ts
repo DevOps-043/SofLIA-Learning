@@ -10,6 +10,13 @@ import type {
   SofLIAPersonalizationSettingsInput,
   BaseStyle,
 } from '../types/soflia-personalization.types';
+import type { Database } from '../../lib/supabase/types';
+import { fromLoose } from '../../lib/supabase/looseQuery';
+
+type SofliaPersonalizationRow = SofLIAPersonalizationSettings;
+type SofliaPersonalizationWriteRow = Partial<SofLIAPersonalizationSettings> & {
+  user_id?: string;
+};
 
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -19,12 +26,19 @@ function createAdminClient() {
     throw new Error('Missing Supabase environment variables for admin client');
   }
 
-  return createSupabaseClient(supabaseUrl, supabaseServiceKey, {
+  return createSupabaseClient<Database>(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
   });
+}
+
+function personalizationSettingsTable(client: unknown) {
+  return fromLoose<SofliaPersonalizationRow, SofliaPersonalizationWriteRow>(
+    client,
+    'lia_personalization_settings'
+  );
 }
 
 export class SofLIAPersonalizationService {
@@ -34,8 +48,7 @@ export class SofLIAPersonalizationService {
   static async getSettings(userId: string): Promise<SofLIAPersonalizationSettings | null> {
     const adminSupabase = createAdminClient();
 
-    const { data, error } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { data, error } = await personalizationSettingsTable(adminSupabase)
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -79,8 +92,7 @@ export class SofLIAPersonalizationService {
       dictation_enabled: false,
     };
 
-    const { data, error } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { data, error } = await personalizationSettingsTable(adminSupabase)
       .insert(defaultSettings)
       .select()
       .single();
@@ -110,8 +122,7 @@ export class SofLIAPersonalizationService {
       throw new Error('El apodo no puede exceder 50 caracteres');
     }
 
-    const { data: updatedData, error: updateError } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { data: updatedData, error: updateError } = await personalizationSettingsTable(adminSupabase)
       .update(settings)
       .eq('user_id', userId)
       .select()
@@ -119,8 +130,7 @@ export class SofLIAPersonalizationService {
 
     if (updateError) {
       if (updateError.code === 'PGRST116') {
-        const { data: createdData, error: createError } = await adminSupabase
-          .from('lia_personalization_settings' as any)
+        const { data: createdData, error: createError } = await personalizationSettingsTable(adminSupabase)
           .insert({
             user_id: userId,
             ...settings,
@@ -146,8 +156,7 @@ export class SofLIAPersonalizationService {
   static async deleteSettings(userId: string): Promise<void> {
     const adminSupabase = createAdminClient();
 
-    const { error } = await adminSupabase
-      .from('lia_personalization_settings' as any)
+    const { error } = await personalizationSettingsTable(adminSupabase)
       .delete()
       .eq('user_id', userId);
 

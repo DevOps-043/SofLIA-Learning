@@ -12,8 +12,89 @@ interface EditNewsModalProps {
   onSave: (newsData: Partial<AdminNews>) => Promise<void>
 }
 
+type NewsStatus = 'draft' | 'published' | 'archived'
+type NewsSectionType = 'text' | 'steps' | 'list' | 'tools' | 'examples'
+
+interface NewsLinkItem {
+  title: string
+  url: string
+}
+
+interface NewsMetricItem {
+  name: string
+  value: string
+  unit: string
+}
+
+interface NewsSectionItem {
+  type: NewsSectionType
+  content: string
+  items: string[]
+}
+
+interface EditNewsFormData {
+  title: string
+  slug: string
+  subtitle: string
+  language: string
+  hero_image_url: string
+  intro: string
+  status: NewsStatus
+  created_by: string
+  tldrSummary: string
+  links: NewsLinkItem[]
+  ctaText: string
+  ctaUrl: string
+  metrics: NewsMetricItem[]
+  sections: NewsSectionItem[]
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const isNewsStatus = (value: string): value is NewsStatus =>
+  value === 'draft' || value === 'published' || value === 'archived'
+
+const normalizeSectionType = (value: unknown): NewsSectionType => {
+  if (value === 'steps' || value === 'list' || value === 'tools' || value === 'examples') {
+    return value
+  }
+
+  return 'text'
+}
+
+const getObjectValues = (value: unknown): unknown[] => (
+  isRecord(value) ? Object.values(value) : []
+)
+
+const normalizeMetric = (metric: unknown): NewsMetricItem => {
+  if (!isRecord(metric)) {
+    return { name: '', value: '', unit: '' }
+  }
+
+  return {
+    name: typeof metric.name === 'string' ? metric.name : '',
+    value: typeof metric.value === 'string' ? metric.value : '',
+    unit: typeof metric.unit === 'string' ? metric.unit : ''
+  }
+}
+
+const normalizeSection = (section: unknown): NewsSectionItem => {
+  if (!isRecord(section)) {
+    return { type: 'text', content: '', items: [] }
+  }
+
+  return {
+    type: normalizeSectionType(section.kind ?? section.type),
+    content: typeof section.content === 'string' ? section.content : '',
+    items: Array.isArray(section.items)
+      ? section.items.filter((item): item is string => typeof item === 'string')
+      : []
+  }
+}
+
 export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EditNewsFormData>({
     title: '',
     slug: '',
     subtitle: '',
@@ -153,7 +234,7 @@ export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalPr
         language: news.language || 'es',
         hero_image_url: news.hero_image_url || '',
         intro: news.intro || '',
-        status: news.status || 'draft',
+        status: isNewsStatus(news.status) ? news.status : 'draft',
         created_by: news.created_by || crypto.randomUUID(),
         // Extraer datos de campos JSON
         tldrSummary: Array.isArray(news.tldr) && news.tldr.length > 0 
@@ -164,17 +245,9 @@ export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalPr
           : [{ title: '', url: '' }],
         ctaText: news.cta?.text || news.cta?.label || '',
         ctaUrl: news.cta?.url || '',
-        metrics: news.metrics ? Object.values(news.metrics).map((metric: any) => ({
-          name: metric.name || '',
-          value: metric.value || '',
-          unit: metric.unit || ''
-        })) : [{ name: '', value: '', unit: '' }],
+        metrics: news.metrics ? getObjectValues(news.metrics).map(normalizeMetric) : [{ name: '', value: '', unit: '' }],
         sections: Array.isArray(news.sections) && news.sections.length > 0 
-          ? news.sections.map((section: any) => ({
-              type: section.kind || section.type || 'text',
-              content: section.content || '',
-              items: section.items || []
-            }))
+          ? news.sections.map(normalizeSection)
           : [{ type: 'text', content: '', items: [] }]
       })
     }
@@ -206,7 +279,7 @@ export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalPr
           url: formData.ctaUrl
         } : null,
         metrics: formData.metrics.filter(metric => metric.name && metric.value).length > 0 ? 
-          formData.metrics.reduce((acc, metric, index) => {
+          formData.metrics.reduce<Record<number, NewsMetricItem>>((acc, metric, index) => {
             if (metric.name && metric.value) {
               acc[index] = {
                 name: metric.name,
@@ -215,7 +288,7 @@ export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalPr
               }
             }
             return acc
-          }, {} as any) : null,
+          }, {}) : null,
         sections: formData.sections.filter(section => section.content || section.items.length > 0).length > 0 ?
           formData.sections.filter(section => section.content || section.items.length > 0).map(section => ({
             kind: section.type,
@@ -443,7 +516,7 @@ export function EditNewsModal({ isOpen, onClose, news, onSave }: EditNewsModalPr
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: isNewsStatus(e.target.value) ? e.target.value : 'draft' }))}
                 className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="draft">Borrador</option>

@@ -5,6 +5,7 @@ export { CalendarDayView } from './CalendarDayView'
 export { CalendarEventModal } from './CalendarEventModal'
 export { CalendarDeleteConfirmDialog } from './CalendarDeleteConfirmDialog'
 export type {
+  CalendarDate,
   CalendarView,
   CalendarEvent,
   EventForm,

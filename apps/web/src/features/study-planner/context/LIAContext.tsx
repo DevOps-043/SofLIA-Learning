@@ -51,6 +51,26 @@ export interface CourseInfo {
   pendingLessons: PendingLesson[];
 }
 
+interface PendingLessonResponse {
+  lessonId: string;
+  lessonTitle: string;
+  lessonOrderIndex: number;
+  durationMinutes?: number | null;
+  moduleId: string;
+  moduleTitle: string;
+  moduleOrderIndex: number;
+}
+
+interface CourseInfoResponse {
+  courseId: string;
+  courseTitle: string;
+  dueDate?: string | null;
+  totalLessons?: number | null;
+  completedLessons?: number | null;
+  pendingCount?: number | null;
+  pendingLessons?: PendingLessonResponse[] | null;
+}
+
 /** Perfil del usuario */
 export interface UserProfile {
   userId: string;
@@ -246,14 +266,14 @@ export function LIAProvider({ children }: LIAProviderProps) {
       }
 
       // Mapear cursos
-      const courses: CourseInfo[] = (data.courses || []).map((c: any) => ({
+      const courses: CourseInfo[] = ((data.courses || []) as CourseInfoResponse[]).map((c) => ({
         courseId: c.courseId,
         courseTitle: c.courseTitle,
         dueDate: c.dueDate || null,
         totalLessons: c.totalLessons || 0,
         completedLessons: c.completedLessons || 0,
         pendingCount: c.pendingCount || 0,
-        pendingLessons: (c.pendingLessons || []).map((l: any) => ({
+        pendingLessons: (c.pendingLessons || []).map((l) => ({
           lessonId: l.lessonId,
           lessonTitle: l.lessonTitle, // NOMBRE EXACTO DE LA BD
           lessonOrderIndex: l.lessonOrderIndex,

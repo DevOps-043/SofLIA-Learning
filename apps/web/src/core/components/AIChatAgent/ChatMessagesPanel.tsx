@@ -7,7 +7,12 @@ import { User, Brain, Trash2, Sparkles, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { renderTextWithLinks } from './AIChatAgent.utils';
 import { MAX_CONTEXT_MESSAGES } from './types';
-import type { Message } from './types';
+import type { GeneratedPrompt, Message } from './types';
+import type {
+  NanoBananaDomain,
+  NanoBananaSchema,
+  OutputFormat,
+} from '../../../lib/nanobana/templates';
 
 interface ChatMessagesPanelProps {
   messages: Message[]
@@ -27,13 +32,13 @@ interface ChatMessagesPanelProps {
   clearContextLabel: string
   clearContextConfirmLabel: string
   clearContextMessages: () => void
-  setGeneratedPrompt: (v: unknown) => void
+  setGeneratedPrompt: (value: GeneratedPrompt | null) => void
   setIsPromptPanelOpen: (v: boolean) => void
   setSelectedPromptMessageId: (v: string | null) => void
-  setNanoBananaSchema: (v: unknown) => void
+  setNanoBananaSchema: (value: NanoBananaSchema | null) => void
   setNanoBananaJsonString: (v: string) => void
-  setNanoBananaDomain: (v: string) => void
-  setNanoBananaFormat: (v: string) => void
+  setNanoBananaDomain: (value: NanoBananaDomain) => void
+  setNanoBananaFormat: (value: OutputFormat) => void
   setIsNanoBananaPanelOpen: (v: boolean) => void
   onNavigate: (url: string) => void
 }

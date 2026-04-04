@@ -36,7 +36,7 @@ export async function GET(
     // Verificar que el JOIN con users está funcionando correctamente
     if (comments && comments.length > 0) {
       logger.log(`📊 Comentarios obtenidos: ${comments.length}`)
-      comments.forEach((comment: any, index: number) => {
+      comments.forEach((comment, index: number) => {
         if (comment.users) {
           logger.log(`  ${index + 1}. Usuario: ${comment.users.username || comment.users.id} (${comment.users.id})`)
         } else {

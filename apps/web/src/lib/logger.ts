@@ -66,6 +66,18 @@ class Logger {
     return sanitized;
   }
 
+  private isDynamicServerUsageError(error: unknown): boolean {
+    if (!error || typeof error !== 'object') {
+      return false;
+    }
+
+    const dynamicError = error as { digest?: string; message?: string };
+    return (
+      dynamicError.digest === 'DYNAMIC_SERVER_USAGE' ||
+      dynamicError.message?.includes('Dynamic server usage') === true
+    );
+  }
+
   /**
    * Log nivel DEBUG - solo en desarrollo
    */
@@ -94,6 +106,10 @@ class Logger {
    * Log nivel ERROR - errores
    */
   error(message: string, error?: Error | unknown, context?: LogContext): void {
+    if (this.isDynamicServerUsageError(error)) {
+      return;
+    }
+
     const errorContext: LogContext = {
       ...context,
       error: error instanceof Error ? {

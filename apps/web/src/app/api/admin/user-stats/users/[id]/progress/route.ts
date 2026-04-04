@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 
+interface ProgressCourseRow {
+  id: string
+  title?: string | null
+  level?: string | null
+  thumbnail_url?: string | null
+}
+
+interface ProgressLessonRow {
+  lesson_id: string
+  lesson_title?: string | null
+  lesson_order_index?: number | null
+  module_id?: string | null
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -54,12 +68,12 @@ export async function GET(
 
     // Build response
     const courses = enrollments.map(enrollment => {
-      const course = enrollment.courses as any
+      const course = enrollment.courses as ProgressCourseRow | null
       const enrollmentLessons = lessonsByEnrollment.get(enrollment.enrollment_id) || []
 
       const lessons = enrollmentLessons
         .map(lp => {
-          const lesson = lp.course_lessons as any
+          const lesson = lp.course_lessons as ProgressLessonRow | null
           return {
             lessonId: lp.lesson_id,
             lessonTitle: lesson?.lesson_title || 'Lección desconocida',

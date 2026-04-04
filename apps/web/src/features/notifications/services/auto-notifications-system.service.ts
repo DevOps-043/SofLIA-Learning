@@ -1,6 +1,7 @@
 import { NotificationService } from './notification.service'
 import { getNotificationPriority } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
+import type { NotificationMetadata } from './auto-notifications.shared'
 
 /**
  * Notificaciones automáticas del sistema (autenticación y perfil).
@@ -39,7 +40,7 @@ export class SystemNotificationsService {
   /**
    * Crea una notificación del sistema para cambio de contraseña
    */
-  static async notifyPasswordChanged(userId: string, metadata?: Record<string, any>): Promise<void> {
+  static async notifyPasswordChanged(userId: string, metadata?: NotificationMetadata): Promise<void> {
     try {
       await NotificationService.createNotification({
         userId,
@@ -61,7 +62,7 @@ export class SystemNotificationsService {
   /**
    * Crea una notificación del sistema para cambio de perfil
    */
-  static async notifyProfileUpdated(userId: string, changes: string[], metadata?: Record<string, any>): Promise<void> {
+  static async notifyProfileUpdated(userId: string, changes: string[], metadata?: NotificationMetadata): Promise<void> {
     try {
       const excludedFields = ['id', 'updated_at', 'created_at', 'last_login_at']
       const displayableChanges = changes.filter(field => !excludedFields.includes(field))
@@ -104,7 +105,7 @@ export class SystemNotificationsService {
   /**
    * Crea una notificación del sistema para inicio de sesión exitoso
    */
-  static async notifyLoginSuccess(userId: string, ip?: string, userAgent?: string, metadata?: Record<string, any>): Promise<void> {
+  static async notifyLoginSuccess(userId: string, ip?: string, userAgent?: string, metadata?: NotificationMetadata): Promise<void> {
     try {
       logger.info('🔔 notifyLoginSuccess llamado', { userId, ip })
       const location = ip || 'Ubicación desconocida'
@@ -131,7 +132,7 @@ export class SystemNotificationsService {
   /**
    * Crea una notificación del sistema para intento de inicio de sesión fallido
    */
-  static async notifyLoginFailed(userId: string, ip?: string, userAgent?: string, metadata?: Record<string, any>): Promise<void> {
+  static async notifyLoginFailed(userId: string, ip?: string, userAgent?: string, metadata?: NotificationMetadata): Promise<void> {
     try {
       const location = ip || 'Ubicación desconocida'
 
@@ -157,7 +158,7 @@ export class SystemNotificationsService {
   /**
    * Crea una notificación del sistema para verificación de email
    */
-  static async notifyEmailVerified(userId: string, metadata?: Record<string, any>): Promise<void> {
+  static async notifyEmailVerified(userId: string, metadata?: NotificationMetadata): Promise<void> {
     try {
       await NotificationService.createNotification({
         userId,
@@ -179,7 +180,7 @@ export class SystemNotificationsService {
   /**
    * Crea una notificación del sistema para alerta de seguridad
    */
-  static async notifySecurityAlert(userId: string, message: string, metadata?: Record<string, any>): Promise<void> {
+  static async notifySecurityAlert(userId: string, message: string, metadata?: NotificationMetadata): Promise<void> {
     try {
       await NotificationService.createNotification({
         userId,

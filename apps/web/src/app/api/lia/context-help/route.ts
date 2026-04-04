@@ -88,10 +88,18 @@ export async function POST(request: NextRequest) {
 /**
  * Construye un prompt enriquecido con contexto para LIA
  */
+interface ContextualHelpContext {
+  difficultyScore: number
+  timeOnPage: number
+  resourcesViewed: unknown[]
+  attemptsMade: number
+  lastInputValues: Record<string, string>
+}
+
 function buildContextualPrompt(
   userQuestion: string,
   contextSummary: string,
-  context: any,
+  context: ContextualHelpContext,
   metadata: { workshopId?: string; activityId?: string }
 ): string {
   let prompt = `Eres SofLIA, la asistente virtual de SofLIA. Un usuario está trabajando en un taller y necesita tu ayuda.
@@ -124,7 +132,7 @@ ${contextSummary}
 
   if (Object.keys(context.lastInputValues).length > 0) {
     prompt += `\n\n📝 IMPORTANTE: El usuario ha ingresado el siguiente contenido:\n`;
-    Object.entries(context.lastInputValues).forEach(([field, value]: [string, any]) => {
+    Object.entries(context.lastInputValues).forEach(([field, value]) => {
       const truncated = value.length > 100 ? value.substring(0, 100) + '...' : value;
       prompt += `   • ${field}: "${truncated}"\n`;
     });

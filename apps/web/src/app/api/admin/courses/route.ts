@@ -16,7 +16,7 @@ export async function GET() {
       success: true,
       courses
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error in GET /api/admin/courses:', error)
     return NextResponse.json(
       { 

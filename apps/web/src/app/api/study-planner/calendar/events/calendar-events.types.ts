@@ -27,6 +27,58 @@ export interface ExternalCalendarEvent {
   calendarId?: string
 }
 
+export interface GoogleCalendarDateTimeValue {
+  dateTime?: string
+  date?: string
+}
+
+export interface GoogleCalendarEvent {
+  id: string
+  summary?: string
+  description?: string
+  start?: GoogleCalendarDateTimeValue
+  end?: GoogleCalendarDateTimeValue
+  location?: string
+  status?: string
+}
+
+export interface GoogleCalendarListItem {
+  id: string
+  summary?: string
+  primary?: boolean
+}
+
+export interface GoogleCalendarEventsResponse {
+  items?: GoogleCalendarEvent[]
+}
+
+export interface GoogleCalendarListResponse {
+  items?: GoogleCalendarListItem[]
+}
+
+export interface MicrosoftCalendarDateTimeValue {
+  dateTime?: string
+}
+
+export interface MicrosoftCalendarLocation {
+  displayName?: string
+}
+
+export interface MicrosoftCalendarEvent {
+  id: string
+  subject?: string
+  bodyPreview?: string
+  start?: MicrosoftCalendarDateTimeValue
+  end?: MicrosoftCalendarDateTimeValue
+  location?: MicrosoftCalendarLocation
+  showAs?: string
+  isAllDay?: boolean
+}
+
+export interface MicrosoftCalendarEventsResponse {
+  value?: MicrosoftCalendarEvent[]
+}
+
 export interface CalendarDateRange {
   startDate: Date
   endDate: Date

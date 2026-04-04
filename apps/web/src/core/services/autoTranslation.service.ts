@@ -172,12 +172,12 @@ Traducción:`;
    * Traduce múltiples campos de un objeto
    */
   static async translateObject(
-    obj: Record<string, any>,
+    obj: Record<string, unknown>,
     fields: string[],
     targetLanguage: TargetLanguage,
     options: TranslationOptions = {}
-  ): Promise<Record<string, any>> {
-    const translations: Record<string, any> = {};
+  ): Promise<Record<string, unknown>> {
+    const translations: Record<string, unknown> = {};
 
     // Traducir cada campo en paralelo para mejor rendimiento
     const translationPromises = fields.map(async (field) => {
@@ -191,7 +191,7 @@ Traducción:`;
       // Si es un array, traducir cada elemento
       if (Array.isArray(value)) {
         const translatedArray = await Promise.all(
-          value.map(async (item: any) => {
+          value.map(async (item: unknown) => {
             if (typeof item === 'string' && item.trim().length > 0) {
               return await this.translateText(item, targetLanguage, {
                 ...options,
@@ -230,13 +230,13 @@ Traducción:`;
    * Traduce una entidad completa (objeto con múltiples campos)
    * Útil para traducir cursos, módulos, lecciones, etc.
    */
-  static async translateEntity<T extends Record<string, any>>(
+  static async translateEntity<T extends Record<string, unknown>>(
     entity: T,
     fields: string[],
     targetLanguage: TargetLanguage,
     entityType?: string,
     options: TranslationOptions = {}
-  ): Promise<Record<string, any>> {
+  ): Promise<Record<string, unknown>> {
     const context = entityType 
       ? `Este es un ${entityType} de una plataforma educativa sobre inteligencia artificial.`
       : options.context;
@@ -277,11 +277,11 @@ Traducción:`;
    * Traduce un objeto a múltiples idiomas simultáneamente
    */
   static async translateObjectToMultipleLanguages(
-    obj: Record<string, any>,
+    obj: Record<string, unknown>,
     fields: string[],
     targetLanguages: TargetLanguage[],
     options: TranslationOptions = {}
-  ): Promise<Record<TargetLanguage, Record<string, any>>> {
+  ): Promise<Record<TargetLanguage, Record<string, unknown>>> {
     const translations = await Promise.all(
       targetLanguages.map(async (lang) => {
         const translated = await this.translateObject(obj, fields, lang, options);
@@ -289,7 +289,7 @@ Traducción:`;
       })
     );
 
-    const result: Record<TargetLanguage, Record<string, any>> = {} as Record<TargetLanguage, Record<string, any>>;
+    const result: Record<TargetLanguage, Record<string, unknown>> = {} as Record<TargetLanguage, Record<string, unknown>>;
     translations.forEach(({ lang, translated }) => {
       result[lang] = translated;
     });
@@ -297,4 +297,3 @@ Traducción:`;
     return result;
   }
 }
-

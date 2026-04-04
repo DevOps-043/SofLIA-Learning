@@ -1,5 +1,4 @@
-import type { Moment } from 'moment';
-
+import type { CalendarDate } from '../calendar/types';
 import type {
   CalendarEvent,
   StudyPlannerCalendarEventForm,
@@ -78,8 +77,8 @@ function cleanExternalEventId(value?: string | null): string | null {
 
 async function fetchCalendarEvents(
   fetcher: typeof fetch,
-  startDate: Moment,
-  endDate: Moment
+  startDate: CalendarDate,
+  endDate: CalendarDate
 ): Promise<CalendarEvent[]> {
   const response = await fetcher(
     `/api/study-planner/calendar/events?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
@@ -109,8 +108,8 @@ async function fetchCalendarEvents(
 
 async function fetchStudySessions(
   fetcher: typeof fetch,
-  startDate: Moment,
-  endDate: Moment
+  startDate: CalendarDate,
+  endDate: CalendarDate
 ): Promise<{
   events: CalendarEvent[];
   externalIds: Set<string>;
@@ -149,8 +148,8 @@ async function fetchStudySessions(
 
 async function fetchCustomEvents(
   fetcher: typeof fetch,
-  startDate: Moment,
-  endDate: Moment
+  startDate: CalendarDate,
+  endDate: CalendarDate
 ): Promise<CalendarEvent[]> {
   const response = await fetcher(
     `/api/study-planner/events?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
@@ -211,7 +210,7 @@ function filterUniqueCalendarEvents(params: {
 }
 
 export async function loadStudyPlannerCalendarEvents(params: {
-  currentDate: Moment;
+  currentDate: CalendarDate;
   fetcher?: typeof fetch;
   view: ViewType;
 }): Promise<CalendarEvent[]> {

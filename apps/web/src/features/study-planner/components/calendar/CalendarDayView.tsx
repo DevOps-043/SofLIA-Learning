@@ -1,4 +1,8 @@
-import moment from 'moment'
+import {
+  formatCalendarLabel,
+  formatCalendarTime,
+  isSameCalendarDay,
+} from '../hooks/study-planner-calendar.date'
 import type { CalendarDayViewProps } from './types'
 
 function getEventColor(event: { color?: string; source?: string; provider?: string }): string {
@@ -14,7 +18,7 @@ export function CalendarDayView({
   setSelectedEvent,
   setIsEventModalOpen,
 }: CalendarDayViewProps) {
-  const isToday = currentDate.isSame(today, 'day')
+  const isToday = isSameCalendarDay(currentDate, today)
   const dayEvents = getEventsForDay(currentDate)
 
   return (
@@ -24,13 +28,13 @@ export function CalendarDayView({
         <div className="flex-1 px-4 py-3">
           <div>
             <div className="text-xs font-medium text-[#6C757D] dark:text-gray-400 uppercase tracking-wider mb-1">
-              {currentDate.format('dddd')}
+              {formatCalendarLabel(currentDate, 'EEEE')}
             </div>
             <div className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-medium ${isToday ? 'bg-[#0A2540] text-white' : 'text-[#0A2540] dark:text-white'}`}>
-                {currentDate.format('D')}
+                {formatCalendarLabel(currentDate, 'd')}
               </div>
-              <span className="text-sm text-[#6C757D] dark:text-gray-400">{currentDate.format('MMMM YYYY')}</span>
+              <span className="text-sm text-[#6C757D] dark:text-gray-400">{formatCalendarLabel(currentDate, 'MMMM yyyy')}</span>
             </div>
           </div>
         </div>
@@ -78,12 +82,12 @@ export function CalendarDayView({
                   onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); setIsEventModalOpen(true) }}
                   style={{ top: `${position.top}px`, height: `${position.height}px`, backgroundColor: eventColor, borderColor: eventColor }}
                   className="absolute left-0 right-0 px-2.5 py-1.5 text-xs font-medium rounded-md border-l-[3px] cursor-pointer transition-all duration-200 z-10 mx-1.5 overflow-hidden hover:opacity-90 hover:shadow-md min-h-[24px] text-white"
-                  title={`${event.title} - ${moment(event.start).format('h:mm A')} - ${moment(event.end).format('h:mm A')}`}
+                  title={`${event.title} - ${formatCalendarTime(event.start)} - ${formatCalendarTime(event.end)}`}
                 >
                   <div className="font-semibold truncate leading-tight">{event.title}</div>
                   {position.height > 35 && (
                     <div className="text-[10px] opacity-90 truncate mt-0.5 leading-tight">
-                      {moment(event.start).format('h:mm A')} - {moment(event.end).format('h:mm A')}
+                      {formatCalendarTime(event.start)} - {formatCalendarTime(event.end)}
                     </div>
                   )}
                   {position.height > 50 && event.description && (

@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Helper para aplicar filtro de proveedor
-    const applyProviderFilter = (query: any) => {
+    const applyProviderFilter = <T extends { ilike: (column: string, pattern: string) => T }>(query: T): T => {
       if (provider === 'openai') {
         return query.ilike('model_used', 'gpt%');
       } else if (provider === 'gemini') {
@@ -146,7 +146,12 @@ export async function GET(request: NextRequest) {
 
     // Consultar TODOS los mensajes del período
     // Supabase tiene un límite por defecto de 1000 registros, pero podemos obtener más con paginación
-    let allDailyCosts: any[] = [];
+    let allDailyCosts: Array<{
+      created_at: string
+      cost_usd: number | null
+      tokens_used: number | null
+      model_used: string | null
+    }> = [];
     let hasMore = true;
     let offset = 0;
     const limit = 1000; // Límite por página de Supabase

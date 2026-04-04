@@ -16,7 +16,7 @@ export interface OrganizationNode {
     type: string; // 'root' | 'region' | 'zone' | 'team' | 'custom'
     code?: string | null;
     manager_id?: string | null;
-    properties: Record<string, any>;
+    properties: OrganizationNodeProperties;
     path: string; // ltree path
     depth: number;
     position: number;
@@ -26,13 +26,29 @@ export interface OrganizationNode {
     // Relations
     children?: OrganizationNode[];
     members_count?: number;
-    manager?: {
-        id: string;
-        first_name: string;
-        last_name: string;
-        email: string;
-        profile_picture_url?: string;
-    };
+    manager?: OrganizationNodeManager;
+}
+
+export interface OrganizationNodeManager {
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    profile_picture_url?: string;
+}
+
+export interface OrganizationNodeProperties extends Record<string, unknown> {
+    address?: string;
+    city?: string;
+    country?: string;
+    external_number?: string;
+    internal_number?: string;
+    latitude?: number | string;
+    longitude?: number | string;
+    neighborhood?: string;
+    state?: string;
+    street?: string;
+    zip_code?: string;
 }
 
 export interface OrganizationNodeUser {
@@ -69,14 +85,14 @@ export interface CreateNodeRequest {
     name: string;
     type: string;
     manager_id?: string;
-    properties?: Record<string, any>;
+    properties?: OrganizationNodeProperties;
 }
 
 export interface UpdateNodeRequest {
     name?: string;
     type?: string; // Added to allow updating node type
     manager_id?: string | null;
-    properties?: Record<string, any>;
+    properties?: OrganizationNodeProperties;
     position?: number;
 }
 

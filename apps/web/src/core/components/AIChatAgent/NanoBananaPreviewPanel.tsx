@@ -137,6 +137,10 @@ export const NanoBananaPreviewPanel: React.FC<NanoBananaPreviewPanelProps> = ({
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState<'visual' | 'json'>('visual');
 
+  if (!isOpen || !schema) {
+    return null;
+  }
+
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(jsonString);
@@ -160,9 +164,6 @@ export const NanoBananaPreviewPanel: React.FC<NanoBananaPreviewPanelProps> = ({
     URL.revokeObjectURL(url);
     onDownload?.();
   }, [jsonString, domain, onDownload]);
-
-  // La condición de visibilidad ya se maneja en el componente padre
-  // if (!isOpen || !schema) return null;
 
   const entityCount = schema.entities?.length || 0;
   const hasVariations = (schema.variations?.length || 0) > 0;
@@ -409,4 +410,3 @@ export const NanoBananaPreviewPanel: React.FC<NanoBananaPreviewPanelProps> = ({
 };
 
 export default NanoBananaPreviewPanel;
-

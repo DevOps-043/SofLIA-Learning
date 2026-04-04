@@ -54,27 +54,27 @@ export class AdminStatsService {
 
       // 🚀 Calcular totales y growth en cliente (más rápido que queries separadas)
       const totalUsers = usersResult.count || 0
-      const usersGrowth = usersResult.data?.filter((u: any) => new Date(u.created_at) >= thirtyDaysAgo).length || 0
+      const usersGrowth = usersResult.data?.filter((u: { created_at: string }) => new Date(u.created_at) >= thirtyDaysAgo).length || 0
 
       const totalCourses = coursesResult.count || 0
-      const coursesGrowth = coursesResult.data?.filter((c: any) => new Date(c.created_at) >= thirtyDaysAgo).length || 0
+      const coursesGrowth = coursesResult.data?.filter((c: { created_at: string }) => new Date(c.created_at) >= thirtyDaysAgo).length || 0
 
       const totalOrgs = orgsResult.count || 0
-      const orgsGrowth = orgsResult.data?.filter((o: any) => new Date(o.created_at) >= thirtyDaysAgo).length || 0
+      const orgsGrowth = orgsResult.data?.filter((o: { created_at: string }) => new Date(o.created_at) >= thirtyDaysAgo).length || 0
 
       const totalAIApps = aiAppsResult.count || 0
-      const aiAppsGrowth = aiAppsResult.data?.filter((a: any) => new Date(a.created_at) >= thirtyDaysAgo).length || 0
+      const aiAppsGrowth = aiAppsResult.data?.filter((a: { created_at: string }) => new Date(a.created_at) >= thirtyDaysAgo).length || 0
 
       const totalNews = newsResult.count || 0
-      const newsGrowth = newsResult.data?.filter((n: any) => new Date(n.created_at) >= thirtyDaysAgo).length || 0
+      const newsGrowth = newsResult.data?.filter((n: { created_at: string }) => new Date(n.created_at) >= thirtyDaysAgo).length || 0
 
       const totalReels = reelsResult.count || 0
-      const reelsGrowth = reelsResult.data?.filter((r: any) => new Date(r.created_at) >= thirtyDaysAgo).length || 0
+      const reelsGrowth = reelsResult.data?.filter((r: { created_at: string }) => new Date(r.created_at) >= thirtyDaysAgo).length || 0
 
       const totalFavorites = favoritesResult.count || 0
-      const favoritesGrowth = favoritesResult.data?.filter((f: any) => new Date(f.created_at) >= thirtyDaysAgo).length || 0
+      const favoritesGrowth = favoritesResult.data?.filter((f: { created_at: string }) => new Date(f.created_at) >= thirtyDaysAgo).length || 0
 
-      const activeUsers = new Set(activeUsersResult.data?.map((session: any) => session.user_id)).size
+      const activeUsers = new Set(activeUsersResult.data?.map((session: { user_id: string }) => session.user_id)).size
       const engagementRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
 
       // Calcular porcentajes de crecimiento

@@ -27,7 +27,11 @@ import {
 
 import { HierarchyService } from '../../services/hierarchy.service';
 import { useHierarchyAnalytics } from '../../hooks/useHierarchyAnalytics';
-import type { NodeDetails } from '../../types/dynamicHierarchy.types';
+import type {
+    NodeDetails,
+    OrganizationNodeProperties,
+    UpdateNodeRequest,
+} from '../../types/dynamicHierarchy.types';
 import { HierarchyMapWrapper } from './HierarchyMapWrapper';
 import { NodeForm } from './NodeForm';
 import { HierarchyChat } from './HierarchyChat'
@@ -37,9 +41,18 @@ import { HierarchyEntityType } from '../../types/hierarchy-assignments.types';
 import { MemberAssignmentModal } from './MemberAssignmentModal';
 import { BusinessAssignCourseModal } from '../BusinessAssignCourseModal'; // Import new modal
 import type { NodeMember } from '../../types/hierarchy.types';
+import type { NodeFormProps } from './NodeForm';
 
 interface NodeDashboardProps {
     nodeId: string;
+}
+
+function toHierarchyEntityType(value: string | undefined): HierarchyEntityType {
+    if (value === 'region' || value === 'zone' || value === 'team') {
+        return value;
+    }
+
+    return 'team';
 }
 
 export function NodeDashboard({ nodeId }: NodeDashboardProps) {
@@ -62,11 +75,11 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
     // New state for individual assignment modal
     const [selectedCourseForIndividual, setSelectedCourseForIndividual] = useState<{ id: string, title: string } | null>(null);
 
-    const { analytics } = useHierarchyAnalytics(
-        (data?.node.type as any) || 'team',
-        nodeId,
-        { disabled: !data }
-    );
+    const hierarchyEntityType = toHierarchyEntityType(data?.node.type);
+
+    const { analytics } = useHierarchyAnalytics(hierarchyEntityType, nodeId, {
+        disabled: !data
+    });
 
     const fetchData = async () => {
         setLoading(true);
@@ -104,9 +117,21 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
         }
     };
 
-    const handleEditSave = async (formData: any) => {
+    const handleEditSave: NodeFormProps['onSave'] = async (
+        name: string,
+        type: string,
+        properties?: OrganizationNodeProperties,
+        managerId?: string
+    ) => {
         try {
-            await DynamicHierarchyService.updateNode(nodeId, formData, orgSlug);
+            const payload: UpdateNodeRequest = {
+                name,
+                type,
+                properties,
+                manager_id: managerId ?? null,
+            };
+
+            await DynamicHierarchyService.updateNode(nodeId, payload);
             fetchData();
             setShowEditModal(false);
         } catch (error) {
@@ -593,7 +618,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                 <CourseAssignmentForm
                     isOpen={showAssignmentModal}
                     onClose={() => setShowAssignmentModal(false)}
-                    entityType={node.type as HierarchyEntityType}
+                    entityType={hierarchyEntityType}
                     entityId={node.id}
                     entityName={node.name}
                     onSuccess={() => {

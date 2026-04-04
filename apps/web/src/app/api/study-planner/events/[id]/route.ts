@@ -9,6 +9,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '@/features/auth/services/session.service';
 
+interface CalendarIntegrationRow {
+  id: string;
+  access_token: string;
+  refresh_token?: string | null;
+  provider: string;
+  expires_at?: string | null;
+  metadata?: { secondary_calendar_id?: string } | null;
+}
+
+interface GoogleRefreshTokenResponse {
+  access_token: string;
+  expires_in: number;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Error desconocido';
+}
+
 // Crear cliente admin para bypass de RLS
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -217,10 +235,10 @@ export async function PUT(
       success: true,
       event: updatedEvent,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en PUT /api/study-planner/events/[id]:', error);
     return NextResponse.json(
-      { error: error.message || 'Error interno del servidor' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -293,15 +311,16 @@ export async function DELETE(
           // Si falla (ej. 404), intentar en el calendario principal (por si el usuario lo movió o se creó ahí)
           try {
             await deleteGoogleCalendarEvent(accessToken, id, secondaryCalendarId);
-          } catch (error: any) {
-            console.warn(`[Delete Event] Falló eliminación en calendario secundario (${secondaryCalendarId}): ${error.message}`);
+          } catch (error: unknown) {
+            const secondaryCalendarError = getErrorMessage(error);
+            console.warn(`[Delete Event] Falló eliminación en calendario secundario (${secondaryCalendarId}): ${secondaryCalendarError}`);
 
             // Si el error indica que no se encontró, intentar en el primario
             // Google devuelve 404 Not Found o 410 Gone
-            if (error.message?.includes('404') || error.message?.includes('410') || error.message?.includes('Not Found') || error.message?.includes('Deleted')) {
+            if (secondaryCalendarError.includes('404') || secondaryCalendarError.includes('410') || secondaryCalendarError.includes('Not Found') || secondaryCalendarError.includes('Deleted')) {
               try {
                 await deleteGoogleCalendarEvent(accessToken, id, 'primary');
-              } catch (primaryError: any) {
+              } catch (primaryError: unknown) {
                 console.error('[Delete Event] Falló también en calendario principal:', primaryError);
                 throw primaryError; // Re-lanzar el error original o el nuevo
               }
@@ -314,9 +333,9 @@ export async function DELETE(
             success: true,
             message: 'Evento eliminado exitosamente',
           });
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error eliminando evento de Google Calendar:', error);
-          const errorMessage = error?.message || 'Error al eliminar el evento de Google Calendar';
+          const errorMessage = getErrorMessage(error);
           return NextResponse.json(
             { error: errorMessage },
             { status: 500 }
@@ -372,7 +391,7 @@ export async function DELETE(
             existingEvent.google_event_id,
             secondaryCalendarId
           );
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('Error eliminando de Google Calendar:', error);
           // Continuar con la eliminación local aunque falle en Google
         }
@@ -398,10 +417,10 @@ export async function DELETE(
       success: true,
       message: 'Evento eliminado exitosamente',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error en DELETE /api/study-planner/events/[id]:', error);
     return NextResponse.json(
-      { error: error.message || 'Error interno del servidor' },
+      { error: getErrorMessage(error) },
       { status: 500 }
     );
   }
@@ -485,7 +504,7 @@ async function updateGoogleCalendarEvent(
 /**
  * Refresca el access token usando el refresh token
  */
-async function refreshAccessToken(integration: any): Promise<{ success: boolean; accessToken?: string }> {
+async function refreshAccessToken(integration: CalendarIntegrationRow): Promise<{ success: boolean; accessToken?: string }> {
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID ||
     process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID ||
     process.env.GOOGLE_CLIENT_ID ||
@@ -513,7 +532,7 @@ async function refreshAccessToken(integration: any): Promise<{ success: boolean;
         return { success: false };
       }
 
-      const tokens = await response.json();
+      const tokens = (await response.json()) as GoogleRefreshTokenResponse;
 
       // Actualizar en base de datos
       const supabase = createAdminClient();
@@ -614,4 +633,3 @@ async function deleteGoogleCalendarEvent(
     throw new Error(errorMessage);
   }
 }
-

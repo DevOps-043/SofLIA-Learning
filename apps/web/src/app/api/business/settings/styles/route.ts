@@ -3,6 +3,25 @@ import { createClient } from '@/lib/supabase/server';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { PRESET_THEMES, getThemeById, generateBrandingTheme, getThemeStylesForMode } from '@/features/business-panel/config/preset-themes';
 
+interface ThemeStyleInput {
+  background_type: 'image' | 'color' | 'gradient';
+  background_value: string;
+  primary_button_color: string;
+  secondary_button_color: string;
+  accent_color: string;
+  [key: string]: unknown;
+}
+
+interface OrganizationStylesRow {
+  panel_styles?: ThemeStyleInput | null;
+  user_dashboard_styles?: ThemeStyleInput | null;
+  login_styles?: ThemeStyleInput | null;
+  selected_theme?: string | null;
+  brand_color_primary?: string | null;
+  brand_color_secondary?: string | null;
+  brand_color_accent?: string | null;
+}
+
 export async function GET(request: NextRequest) {
   try {
 
@@ -73,7 +92,7 @@ export async function GET(request: NextRequest) {
         supportsDualMode
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ [API] Error en GET /api/business/settings/styles:', error);
     return NextResponse.json(
       { success: false, error: 'Error al obtener estilos' },
@@ -94,7 +113,7 @@ export async function PUT(request: NextRequest) {
     const { panel, userDashboard, login } = body;
 
     // Validar estructura de estilos
-    const validateStyle = (style: any): boolean => {
+    const validateStyle = (style: unknown): style is ThemeStyleInput => {
       if (!style || typeof style !== 'object') return false;
 
       const requiredFields = ['background_type', 'background_value', 'primary_button_color', 'secondary_button_color', 'accent_color'];
@@ -146,7 +165,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Construir objeto de actualización
-    const updateData: any = {};
+    const updateData: Partial<OrganizationStylesRow> = {};
     if (panel !== undefined) updateData.panel_styles = panel;
     if (userDashboard !== undefined) updateData.user_dashboard_styles = userDashboard;
     if (login !== undefined) updateData.login_styles = login;
@@ -185,7 +204,7 @@ export async function PUT(request: NextRequest) {
         supportsDualMode
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       { success: false, error: 'Error al actualizar estilos' },
       { status: 500 }
@@ -283,11 +302,10 @@ export async function POST(request: NextRequest) {
         supportsDualMode: theme.supportsDualMode || false
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
       { success: false, error: 'Error al aplicar tema' },
       { status: 500 }
     );
   }
 }
-

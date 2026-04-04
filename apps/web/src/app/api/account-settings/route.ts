@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
 import { SessionService } from '../../../features/auth/services/session.service';
 
+interface AccountSettingsUpdateData {
+  profile_visibility?: string
+  show_email?: boolean
+  show_activity?: boolean
+  notification_email?: boolean
+  notification_push?: boolean
+  notification_marketing?: boolean
+  notification_course_updates?: boolean
+  notification_community_updates?: boolean
+}
+
 export async function GET(request: NextRequest) {
   try {
     const user = await SessionService.getCurrentUser();
@@ -80,7 +91,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     
     // Actualizar configuración en la base de datos
-    const updateData: any = {};
+    const updateData: AccountSettingsUpdateData = {};
     
     if (privacy.profileVisibility !== undefined) {
       updateData.profile_visibility = privacy.profileVisibility;
@@ -132,4 +143,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

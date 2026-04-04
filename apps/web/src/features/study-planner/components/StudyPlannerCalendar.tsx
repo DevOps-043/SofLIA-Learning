@@ -1,7 +1,5 @@
 'use client';
 
-import moment from 'moment';
-import 'moment/locale/es';
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification';
 import { useStudyPlannerCalendarLogic } from './hooks/useStudyPlannerCalendarLogic';
 import {
@@ -13,19 +11,15 @@ import {
   CalendarDeleteConfirmDialog,
 } from './calendar';
 
-// Configurar moment en español
-moment.locale('es', {
-  week: {
-    dow: 1, // Lunes como primer día de la semana
-  },
-});
-
 interface StudyPlannerCalendarProps {
   showOnlyPlanEvents?: boolean;
   refreshTrigger?: number;
 }
 
-export function StudyPlannerCalendar({ showOnlyPlanEvents = false, refreshTrigger = 0 }: StudyPlannerCalendarProps) {
+export function StudyPlannerCalendar({
+  showOnlyPlanEvents = false,
+  refreshTrigger = 0,
+}: StudyPlannerCalendarProps) {
   const {
     currentDate,
     setCurrentDate,

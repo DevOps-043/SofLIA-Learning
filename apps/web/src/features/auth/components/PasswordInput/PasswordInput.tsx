@@ -46,7 +46,7 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
     onBlur?.(e);
   };
 
-  const { focusedField, ...inputProps } = props as any;
+  const inputProps = props;
 
   // Use custom colors if provided
   const bgColor = customColors?.bgColor;
@@ -185,4 +185,3 @@ export const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputPro
 });
 
 PasswordInput.displayName = 'PasswordInput'; // Importante para devtools
-

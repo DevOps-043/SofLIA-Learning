@@ -58,8 +58,8 @@ export interface CompanyData {
     google_login_enabled: boolean
     microsoft_login_enabled: boolean
     members: CompanyMember[]
-    pending_invitations: any[]
-    bulk_invite_links: any[]
+    pending_invitations: Record<string, unknown>[]
+    bulk_invite_links: Record<string, unknown>[]
     assigned_courses?: AssignedCourse[]
 }
 

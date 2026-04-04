@@ -32,7 +32,7 @@ export interface CustomVideoPlayerRef {
 export interface CustomVideoPlayerController {
   changePlaybackRate: (rate: number) => void;
   className: string;
-  containerRef: RefObject<HTMLDivElement | null>;
+  containerRef: RefObject<HTMLDivElement>;
   currentTime: number;
   duration: number;
   formatTime: (seconds: number) => string;
@@ -66,7 +66,7 @@ export interface CustomVideoPlayerController {
   onRootMouseMove: () => void;
   playbackRate: number;
   playbackRates: number[];
-  progressBarRef: RefObject<HTMLDivElement | null>;
+  progressBarRef: RefObject<HTMLDivElement>;
   setShowSettings: Dispatch<SetStateAction<boolean>>;
   setShowVolumeControl: Dispatch<SetStateAction<boolean>>;
   showControls: boolean;
@@ -79,7 +79,7 @@ export interface CustomVideoPlayerController {
   toggleMute: () => void;
   togglePictureInPicture: () => Promise<void>;
   togglePlay: () => Promise<void>;
-  videoRef: RefObject<HTMLVideoElement | null>;
+  videoRef: RefObject<HTMLVideoElement>;
   volume: number;
-  volumeBarRef: RefObject<HTMLDivElement | null>;
+  volumeBarRef: RefObject<HTMLDivElement>;
 }

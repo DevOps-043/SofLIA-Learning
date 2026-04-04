@@ -141,7 +141,7 @@ export async function PUT(
     }
 
     // Preparar datos para actualizar (convertir string vacío a null para icon_url)
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       ...body,
       updated_at: new Date().toISOString()
     }
@@ -326,4 +326,3 @@ export async function DELETE(
     }, { status: 500 })
   }
 }
-

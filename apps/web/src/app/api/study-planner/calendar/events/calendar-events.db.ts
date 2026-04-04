@@ -7,6 +7,17 @@ import type {
   CalendarProvider,
 } from './calendar-events.types'
 
+type CalendarAdminClient = ReturnType<typeof createAdminClient>
+
+interface StudySessionExternalEventRow {
+  external_event_id: string | null
+}
+
+interface UserCalendarEventRow {
+  google_event_id?: string | null
+  microsoft_event_id?: string | null
+}
+
 const CALENDAR_INTEGRATION_SELECT = `
   id,
   user_id,
@@ -26,7 +37,7 @@ export function createCalendarAdminClient() {
 }
 
 export async function getLatestCalendarIntegration(
-  supabase: any,
+  supabase: CalendarAdminClient,
   userId: string,
 ): Promise<CalendarIntegrationRecord | null> {
   const { data, error } = await supabase
@@ -44,7 +55,7 @@ export async function getLatestCalendarIntegration(
 }
 
 export async function getActiveStudySessionEventIds(
-  supabase: any,
+  supabase: CalendarAdminClient,
   userId: string,
   provider: CalendarProvider,
 ): Promise<Set<string>> {
@@ -56,9 +67,9 @@ export async function getActiveStudySessionEventIds(
     .eq('calendar_provider', provider)
 
   return new Set(
-    (data || [])
-      .filter((session: Record<string, unknown>) => session.external_event_id)
-      .map((session: Record<string, unknown>) =>
+    ((data || []) as StudySessionExternalEventRow[])
+      .filter((session) => session.external_event_id)
+      .map((session) =>
         normalizeExternalEventId(session.external_event_id),
       )
       .filter(Boolean),
@@ -66,7 +77,7 @@ export async function getActiveStudySessionEventIds(
 }
 
 export async function getOrphanedCalendarEventIds(
-  supabase: any,
+  supabase: CalendarAdminClient,
   userId: string,
   provider: CalendarProvider,
   activeEventIds: Set<string>,
@@ -81,8 +92,8 @@ export async function getOrphanedCalendarEventIds(
     .not(eventIdColumn, 'is', null)
 
   return new Set(
-    (data || [])
-      .map((event: Record<string, unknown>) =>
+    ((data || []) as UserCalendarEventRow[])
+      .map((event) =>
         normalizeExternalEventId(event[eventIdColumn]),
       )
       .filter((eventId: string) => Boolean(eventId) && !activeEventIds.has(eventId)),

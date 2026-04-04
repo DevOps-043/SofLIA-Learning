@@ -5,16 +5,26 @@ import { SOFLIA_ADMIN_CHART_COLORS } from '../../constants/admin-color-tokens'
 
 const COLORS = SOFLIA_ADMIN_CHART_COLORS
 
+type ChartDatum = Record<string, string | number | null | undefined>
+
+const getChartNumber = (value: ChartDatum[string]): number => (
+  typeof value === 'number' ? value : Number(value ?? 0)
+)
+
+const getChartLabel = (value: ChartDatum[string]): string => (
+  typeof value === 'string' || typeof value === 'number' ? String(value) : ''
+)
+
 interface BarChartProps {
-  data: Record<string, any>[]
+  data: ChartDatum[]
   dataKey: string
   nameKey: string
   color?: string
 }
 
 export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartProps) {
-  const validData = data.filter(d => d && d[dataKey] != null)
-  const maxValue = validData.length > 0 ? Math.max(...validData.map(d => d[dataKey])) : 1
+  const validData = data.filter(item => item && item[dataKey] != null)
+  const maxValue = validData.length > 0 ? Math.max(...validData.map(item => getChartNumber(item[dataKey]))) : 1
 
   if (validData.length === 0) {
     return (
@@ -27,8 +37,10 @@ export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartPro
   return (
     <div className="space-y-2">
       {validData.slice(0, 10).map((item, index) => {
-        const percentage = maxValue > 0 ? ((item[dataKey] / maxValue) * 100) : 0
-        const displayName = item[nameKey]?.length > 30 ? item[nameKey].substring(0, 30) + '...' : item[nameKey]
+        const dataValue = getChartNumber(item[dataKey])
+        const labelValue = getChartLabel(item[nameKey])
+        const percentage = maxValue > 0 ? ((dataValue / maxValue) * 100) : 0
+        const displayName = labelValue.length > 30 ? `${labelValue.substring(0, 30)}...` : labelValue
 
         return (
           <div
@@ -55,9 +67,9 @@ export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartPro
             </div>
             <div className="w-16 text-left">
               <span className="text-sm font-bold text-gray-700 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                {typeof item[dataKey] === 'number' && !Number.isInteger(item[dataKey])
-                  ? item[dataKey].toFixed(1)
-                  : item[dataKey]}
+                {Number.isFinite(dataValue) && !Number.isInteger(dataValue)
+                  ? dataValue.toFixed(1)
+                  : dataValue}
               </span>
             </div>
           </div>
@@ -68,14 +80,14 @@ export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartPro
 }
 
 interface PieChartProps {
-  data: Record<string, any>[]
+  data: ChartDatum[]
   dataKey: string
   nameKey: string
 }
 
 export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
-  const validData = data.filter(d => d && d[dataKey] != null && d[dataKey] > 0)
-  const total = validData.reduce((sum, item) => sum + item[dataKey], 0)
+  const validData = data.filter(item => item && item[dataKey] != null && getChartNumber(item[dataKey]) > 0)
+  const total = validData.reduce((sum, item) => sum + getChartNumber(item[dataKey]), 0)
 
   if (total === 0 || validData.length === 0) {
     return (
@@ -96,7 +108,8 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
         <svg width="200" height="200" viewBox="0 0 200 200" className="transform -rotate-90">
           <circle cx={centerX} cy={centerY} r={radius} fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
           {validData.map((item, index) => {
-            const percentage = (item[dataKey] / total) * 100
+            const itemValue = getChartNumber(item[dataKey])
+            const percentage = (itemValue / total) * 100
             const angle = (percentage / 100) * 360
 
             if (percentage >= 99.9) {
@@ -146,12 +159,13 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
 
       <div className="flex flex-col justify-center gap-3 flex-shrink-0">
         {validData.map((item, index) => {
-          const percentage = (item[dataKey] / total) * 100
+          const itemValue = getChartNumber(item[dataKey])
+          const percentage = (itemValue / total) * 100
           return (
             <div key={index} className="flex items-center gap-3 text-sm">
               <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-              <span className="text-gray-600 dark:text-gray-300 min-w-0 flex-1">{item[nameKey]}</span>
-              <span className="text-gray-900 dark:text-white font-semibold">{item[dataKey]}</span>
+              <span className="text-gray-600 dark:text-gray-300 min-w-0 flex-1">{getChartLabel(item[nameKey])}</span>
+              <span className="text-gray-900 dark:text-white font-semibold">{itemValue}</span>
               <span className="text-gray-500 dark:text-gray-400 text-xs">({percentage.toFixed(1)}%)</span>
             </div>
           )
@@ -162,13 +176,13 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
 }
 
 interface GroupedBarChartProps {
-  data: Record<string, any>[]
+  data: ChartDatum[]
   keys: { key: string; label: string; color: string }[]
   nameKey: string
 }
 
 export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChartProps) {
-  const maxValue = Math.max(...data.flatMap(d => keys.map(k => d[k.key] ?? 0)), 1)
+  const maxValue = Math.max(...data.flatMap(item => keys.map(key => getChartNumber(item[key.key]))), 1)
 
   if (data.length === 0) {
     return (
@@ -181,31 +195,31 @@ export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChar
   return (
     <div className="space-y-4">
       <div className="flex gap-4 justify-center mb-2">
-        {keys.map(k => (
-          <div key={k.key} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: k.color }} />
-            {k.label}
+        {keys.map(key => (
+          <div key={key.key} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: key.color }} />
+            {key.label}
           </div>
         ))}
       </div>
       {data.slice(0, 8).map((item, index) => (
         <div key={index} className="space-y-1">
-          <span className="text-xs text-gray-500 dark:text-gray-400">{item[nameKey]}</span>
-          {keys.map(k => {
-            const val = item[k.key] ?? 0
-            const pct = maxValue > 0 ? (val / maxValue) * 100 : 0
+          <span className="text-xs text-gray-500 dark:text-gray-400">{getChartLabel(item[nameKey])}</span>
+          {keys.map(key => {
+            const value = getChartNumber(item[key.key])
+            const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0
             return (
-              <div key={k.key} className="flex items-center gap-2">
+              <div key={key.key} className="flex items-center gap-2">
                 <div className="flex-1 bg-gray-100 dark:bg-white/10 rounded-full h-4 overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${pct}%` }}
+                    animate={{ width: `${percentage}%` }}
                     transition={{ delay: index * 0.05, duration: 0.8 }}
                     className="h-full rounded-full"
-                    style={{ backgroundColor: k.color }}
+                    style={{ backgroundColor: key.color }}
                   />
                 </div>
-                <span className="text-xs text-gray-900 dark:text-white w-8 text-right">{val}</span>
+                <span className="text-xs text-gray-900 dark:text-white w-8 text-right">{value}</span>
               </div>
             )
           })}

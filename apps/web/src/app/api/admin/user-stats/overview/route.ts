@@ -56,7 +56,7 @@ export async function GET() {
     // Users by organization
     const orgMap = new Map<string, number>()
     for (const ou of (orgUsersRes.data || [])) {
-      const orgName = (ou as any).organizations?.name || 'Sin organización'
+      const orgName = (ou.organizations as { name?: string | null } | null)?.name || 'Sin organización'
       orgMap.set(orgName, (orgMap.get(orgName) || 0) + 1)
     }
     const usersByOrganization = Array.from(orgMap.entries())
