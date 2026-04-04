@@ -304,7 +304,8 @@ export async function logAIModerationAnalysis(
 ): Promise<void> {
   try {
     
-    const { error } = await (supabase as any).rpc('register_ai_moderation_analysis', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase as unknown as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ error: unknown }> }).rpc('register_ai_moderation_analysis', {
       p_user_id: userId,
       p_content_type: contentType,
       p_content_id: contentId,

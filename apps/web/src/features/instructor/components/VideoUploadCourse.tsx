@@ -80,8 +80,8 @@ export function ImageUploadCourse({
         setUploadProgress(0)
       }, 1000)
 
-    } catch (err: any) {
-      setError(err.message || 'Error al subir la imagen')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al subir la imagen')
       setIsUploading(false)
       setUploadProgress(0)
     }

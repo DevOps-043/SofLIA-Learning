@@ -1,7 +1,7 @@
 export interface PostAttachmentProps {
   attachmentType: string
   attachmentUrl?: string
-  attachmentData?: any
+  attachmentData?: Record<string, unknown>
   className?: string
   postId?: string
   communitySlug?: string

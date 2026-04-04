@@ -48,7 +48,7 @@ export function AddPromptModal({ isOpen, onClose, onSave }: AddPromptModalProps)
     }
   }
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

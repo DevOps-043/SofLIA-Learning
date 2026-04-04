@@ -19,7 +19,7 @@ import {
 interface PostAttachmentRendererProps {
   attachmentType: string
   attachmentUrl: string
-  attachmentData?: any
+  attachmentData?: Record<string, unknown>
   showImageModal: boolean
   onOpenImage: () => void
   onCloseImage: () => void

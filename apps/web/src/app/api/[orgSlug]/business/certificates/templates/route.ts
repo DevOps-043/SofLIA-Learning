@@ -250,7 +250,7 @@ export async function PUT(
     }
 
     // Actualizar template
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     }
 

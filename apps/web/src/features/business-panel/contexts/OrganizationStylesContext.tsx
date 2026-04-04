@@ -229,10 +229,10 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
           // Silenciar error de localStorage
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Si ya teníamos cache, no mostrar error (datos ya están en pantalla)
       if (!cachedStyles) {
-        setError(err.message || 'Error al obtener estilos');
+        setError(err instanceof Error ? err.message : 'Error al obtener estilos');
 
         // Sin cache, usar tema por defecto
         const defaultTheme = PRESET_THEMES[DEFAULT_THEME];

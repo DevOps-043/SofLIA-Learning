@@ -73,7 +73,7 @@ function generateDeterministicPlan(lessons: Lesson[], preferences: Preferences, 
   let currentBlockIndex = 0;
 
   // Mapeo de slots por semana
-  const weeks: { [key: number]: { date: Date, slots: any[] }[] } = {};
+  const weeks: { [key: number]: { date: Date, slots: { date: Date; time: string; block: unknown }[] }[] } = {};
 
   // Tracking para límite de horas consecutivas
   let dailyStudyMinutes: { [dateStr: string]: number } = {};

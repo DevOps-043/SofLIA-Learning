@@ -33,7 +33,7 @@ export interface WorkshopFormData {
   thumbnail_url?: string
   slug: string
   price?: number
-  learning_objectives?: any
+  learning_objectives?: string[]
   is_active?: boolean
 }
 

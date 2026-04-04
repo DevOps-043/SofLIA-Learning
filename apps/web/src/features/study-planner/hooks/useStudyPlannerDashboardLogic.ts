@@ -151,7 +151,7 @@ export function useStudyPlannerDashboardLogic() {
             const url = new URL(authUrl);
             const stateParam = url.searchParams.get('state');
 
-            let stateData: any;
+            let stateData: Record<string, unknown>;
             if (stateParam) {
               // Intentar decodificar el state (puede estar codificado)
               try {

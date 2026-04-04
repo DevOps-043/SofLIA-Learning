@@ -81,7 +81,7 @@ export function EditReelModal({ reel, onClose, onSave }: EditReelModalProps) {
     }
   }
 
-  const handleInputChange = (field: keyof UpdateReelData, value: any) => {
+  const handleInputChange = (field: keyof UpdateReelData, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

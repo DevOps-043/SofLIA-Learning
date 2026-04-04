@@ -240,7 +240,7 @@ export async function GET(
     });
 
     // Contar reacciones recibidas por usuario
-    reactionsReceivedData.data?.forEach((post: any) => {
+    reactionsReceivedData.data?.forEach((post: Record<string, unknown>) => {
       if (post.community_reactions && Array.isArray(post.community_reactions)) {
         const count = post.community_reactions.length;
         reactionsReceivedMap.set(

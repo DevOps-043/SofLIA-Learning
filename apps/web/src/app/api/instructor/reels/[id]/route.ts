@@ -116,10 +116,10 @@ export async function PUT(
     
     logger.log('🔄 Actualizando reel del instructor:', id)
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     }
-    
+
     if (body.title !== undefined) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
     if (body.video_url !== undefined) updateData.video_url = body.video_url

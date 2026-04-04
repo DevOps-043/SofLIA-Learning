@@ -76,7 +76,7 @@ export class CourseContextProvider extends BaseContextProvider {
    */
   private extractCourseContext(
     currentPage?: string,
-    enrichedMetadata?: any
+    enrichedMetadata?: Record<string, unknown>
   ): CourseContext | null {
     const context: CourseContext = {};
 

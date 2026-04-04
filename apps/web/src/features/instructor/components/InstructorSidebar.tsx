@@ -35,7 +35,7 @@ interface InstructorSidebarProps {
   onTogglePin: () => void
 }
 
-const getNavigation = (t: any) => [
+const getNavigation = (t: (key: string) => string) => [
   { name: t('sidebar.nav.dashboard'), href: '/instructor/dashboard', icon: HomeIcon },
   { name: t('sidebar.nav.workshops'), href: '/instructor/workshops', icon: BookOpenIcon },
   { name: t('sidebar.nav.communities'), href: '/instructor/communities', icon: UserGroupIcon },

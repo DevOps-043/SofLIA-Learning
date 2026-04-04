@@ -197,7 +197,7 @@ export async function POST(
             member: resultData
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         return NextResponse.json(
             {
                 success: false,

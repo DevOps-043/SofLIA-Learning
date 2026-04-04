@@ -1,0 +1,1 @@
+export { EditNewsModal } from './EditNewsModal'

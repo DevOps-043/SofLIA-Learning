@@ -1,10 +1,10 @@
-/**
- * Servicio de Jerarquía Organizacional
- *
- * Cliente API para gestionar la estructura jerárquica de una organización
- * (Regiones, Zonas, Equipos)
- */
+// Barrel re-export — all logic lives in sub-files
+export * from './hierarchy-service'
 
+import { HierarchyCommonService, type ApiResponse } from './hierarchy-service/hierarchy-common.service'
+import { HierarchyRegionsService } from './hierarchy-service/hierarchy-regions.service'
+import { HierarchyZonesService } from './hierarchy-service/hierarchy-zones.service'
+import { HierarchyTeamsService } from './hierarchy-service/hierarchy-teams.service'
 import type {
   Region,
   Zone,
@@ -27,614 +27,171 @@ import type {
   ListZonesOptions,
   ListTeamsOptions,
   UserWithHierarchy,
-  HierarchyCourse
-} from '../types/hierarchy.types';
-
-const getApiBase = (orgSlug?: string) => 
-  orgSlug ? `/api/${orgSlug}/business/hierarchy` : '/api/business/hierarchy';
+  HierarchyCourse,
+} from '../types/hierarchy.types'
 
 /**
- * Respuesta genérica de la API
- */
-interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-  message?: string;
-}
-
-/**
- * Helper para hacer requests
- */
-async function fetchApi<T>(
-  endpoint: string,
-  options: RequestInit = {},
-  orgSlug?: string
-): Promise<ApiResponse<T>> {
-  try {
-    const apiBase = getApiBase(orgSlug);
-    const response = await fetch(`${apiBase}${endpoint}`, {
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-      },
-      ...options
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      return {
-        success: false,
-        error: data.error || data.message || `Error ${response.status}`
-      };
-    }
-
-    return {
-      success: true,
-      data: data.data ?? data,
-      message: data.message
-    };
-  } catch (error) {
-    console.error('API Error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Error de conexión'
-    };
-  }
-}
-
-/**
- * Servicio para gestionar la jerarquía organizacional
+ * Unified facade — preserves the original class name so all existing
+ * imports continue to work without changes.
  */
 export class HierarchyService {
-  // =============================================
-  // CONFIGURACIÓN Y CONTROL
-  // =============================================
-
-  /**
-   * Obtiene la configuración de jerarquía de la organización
-   */
-  static async getConfig(orgSlug?: string): Promise<HierarchyConfig | null> {
-    const result = await fetchApi<{ config: HierarchyConfig }>('/config', {}, orgSlug);
-    return result.success ? result.data?.config ?? null : null;
+  // Config & control
+  static getConfig(orgSlug?: string): Promise<HierarchyConfig | null> {
+    return HierarchyCommonService.getConfig(orgSlug)
   }
-
-  /**
-   * Actualiza la configuración de jerarquía
-   */
-  static async updateConfig(
-    config: Partial<HierarchyConfig>,
-    orgSlug?: string
-  ): Promise<ApiResponse<HierarchyConfig>> {
-    return fetchApi<HierarchyConfig>('/config', {
-      method: 'PUT',
-      body: JSON.stringify(config)
-    }, orgSlug);
+  static updateConfig(config: Partial<HierarchyConfig>, orgSlug?: string): Promise<ApiResponse<HierarchyConfig>> {
+    return HierarchyCommonService.updateConfig(config, orgSlug)
   }
-
-  /**
-   * Activa la jerarquía para la organización
-   */
-  static async enableHierarchy(orgSlug?: string): Promise<ApiResponse<{ enabled: boolean }>> {
-    return fetchApi<{ enabled: boolean }>('/enable', {
-      method: 'POST'
-    }, orgSlug);
+  static enableHierarchy(orgSlug?: string): Promise<ApiResponse<{ enabled: boolean }>> {
+    return HierarchyCommonService.enableHierarchy(orgSlug)
   }
-
-  /**
-   * Desactiva la jerarquía (vuelve a modo plano)
-   */
-  static async disableHierarchy(orgSlug?: string): Promise<ApiResponse<{ enabled: boolean }>> {
-    return fetchApi<{ enabled: boolean }>('/disable', {
-      method: 'POST'
-    }, orgSlug);
+  static disableHierarchy(orgSlug?: string): Promise<ApiResponse<{ enabled: boolean }>> {
+    return HierarchyCommonService.disableHierarchy(orgSlug)
   }
-
-  /**
-   * Crea la estructura default (1 región, 1 zona, 1 equipo)
-   */
-  static async seedDefaultStructure(orgSlug?: string): Promise<ApiResponse<SeedHierarchyResponse>> {
-    return fetchApi<SeedHierarchyResponse>('/seed', {
-      method: 'POST'
-    }, orgSlug);
+  static seedDefaultStructure(orgSlug?: string): Promise<ApiResponse<SeedHierarchyResponse>> {
+    return HierarchyCommonService.seedDefaultStructure(orgSlug)
   }
-
-  /**
-   * Obtiene estadísticas de la jerarquía
-   */
-  static async getStats(orgSlug?: string): Promise<HierarchyStats | null> {
-    const result = await fetchApi<{ stats: HierarchyStats }>('/stats', {}, orgSlug);
-    return result.success ? result.data?.stats ?? null : null;
+  static getStats(orgSlug?: string): Promise<HierarchyStats | null> {
+    return HierarchyCommonService.getStats(orgSlug)
   }
-
-  /**
-   * Obtiene analíticas visuales detalladas de una entidad
-   */
-  static async getVisualAnalytics(entityType: 'region' | 'zone' | 'team', entityId: string, orgSlug?: string): Promise<HierarchyAnalytics | null> {
-    const result = await fetchApi<{ analytics: HierarchyAnalytics }>(`/analytics?type=${entityType}&id=${entityId}`, {}, orgSlug);
-    return result.success ? result.data?.analytics ?? null : null;
+  static getVisualAnalytics(entityType: 'region' | 'zone' | 'team', entityId: string, orgSlug?: string): Promise<HierarchyAnalytics | null> {
+    return HierarchyCommonService.getVisualAnalytics(entityType, entityId, orgSlug)
   }
-
-  /**
-   * Obtiene los cursos asociados a una entidad
-   */
-  static async getEntityCourses(entityType: 'region' | 'zone' | 'team', entityId: string, orgSlug?: string): Promise<HierarchyCourse[]> {
-    const result = await fetchApi<{ courses: HierarchyCourse[] }>(`/courses?type=${entityType}&id=${entityId}`, {}, orgSlug);
-    return result.success ? result.data?.courses ?? [] : [];
+  static getEntityCourses(entityType: 'region' | 'zone' | 'team', entityId: string, orgSlug?: string): Promise<HierarchyCourse[]> {
+    return HierarchyCommonService.getEntityCourses(entityType, entityId, orgSlug)
   }
-
-  /**
-   * Obtiene las asignaciones de cursos de una entidad
-   */
-  static async getEntityAssignments(entityType: 'region' | 'zone' | 'team', entityId: string, orgSlug?: string) {
-    const { HierarchyAssignmentsService } = await import('./hierarchy-assignments.service');
-    return HierarchyAssignmentsService.getEntityAssignments(entityType, entityId, orgSlug);
+  static getEntityAssignments(entityType: 'region' | 'zone' | 'team', entityId: string, orgSlug?: string) {
+    return HierarchyCommonService.getEntityAssignments(entityType, entityId, orgSlug)
   }
-
-  /**
-   * Asigna cursos a todos los usuarios de una entidad de jerarquía
-   */
-  static async assignCoursesToEntity(
+  static assignCoursesToEntity(
     entityType: 'region' | 'zone' | 'team',
     entityId: string,
     courseIds: string[],
-    options?: {
-      start_date?: string
-      due_date?: string
-      approach?: 'fast' | 'balanced' | 'long' | 'custom'
-      message?: string
-    },
-    orgSlug?: string
-  ): Promise<ApiResponse<{
-    entity_type: string
-    entity_id: string
-    entity_name: string
-    total_users: number
-    results: Array<{
-      course_id: string
-      course_title?: string
-      success: boolean
-      assigned_count?: number
-      already_assigned_count?: number
-      error?: string
-      message?: string
-    }>
-  }>> {
-    return fetchApi(`/courses/assign`, {
-      method: 'POST',
-      body: JSON.stringify({
-        entity_type: entityType,
-        entity_id: entityId,
-        course_ids: courseIds,
-        ...options
-      })
-    }, orgSlug)
+    options?: { start_date?: string; due_date?: string; approach?: 'fast' | 'balanced' | 'long' | 'custom'; message?: string },
+    orgSlug?: string,
+  ) {
+    return HierarchyCommonService.assignCoursesToEntity(entityType, entityId, courseIds, options, orgSlug)
   }
 
-  // =============================================
-  // REGIONES
-  // =============================================
-
-  /**
-   * Lista todas las regiones de la organización
-   */
-  static async getRegions(options?: ListRegionsOptions, orgSlug?: string): Promise<Region[]> {
-    const params = new URLSearchParams();
-    if (options?.includeInactive) params.set('includeInactive', 'true');
-    if (options?.withCounts) params.set('withCounts', 'true');
-
-    const queryString = params.toString();
-    const endpoint = `/regions${queryString ? `?${queryString}` : ''}`;
-
-    const result = await fetchApi<{ regions: Region[] }>(endpoint, {}, orgSlug);
-    return result.success ? result.data?.regions ?? [] : [];
+  // Regions
+  static getRegions(options?: ListRegionsOptions, orgSlug?: string): Promise<Region[]> {
+    return HierarchyRegionsService.getRegions(options, orgSlug)
+  }
+  static getRegion(regionId: string, orgSlug?: string): Promise<Region | null> {
+    return HierarchyRegionsService.getRegion(regionId, orgSlug)
+  }
+  static createRegion(data: CreateRegionRequest, orgSlug?: string): Promise<ApiResponse<Region>> {
+    return HierarchyRegionsService.createRegion(data, orgSlug)
+  }
+  static updateRegion(regionId: string, data: UpdateRegionRequest, orgSlug?: string): Promise<ApiResponse<Region>> {
+    return HierarchyRegionsService.updateRegion(regionId, data, orgSlug)
+  }
+  static deleteRegion(regionId: string, orgSlug?: string): Promise<ApiResponse<void>> {
+    return HierarchyRegionsService.deleteRegion(regionId, orgSlug)
   }
 
-  /**
-   * Obtiene una región por ID
-   */
-  static async getRegion(regionId: string, orgSlug?: string): Promise<Region | null> {
-    const result = await fetchApi<{ region: Region }>(`/regions/${regionId}`, {}, orgSlug);
-    return result.success ? result.data?.region ?? null : null;
+  // Zones
+  static getZones(options?: ListZonesOptions, orgSlug?: string): Promise<Zone[]> {
+    return HierarchyZonesService.getZones(options, orgSlug)
+  }
+  static getZone(zoneId: string, orgSlug?: string): Promise<Zone | null> {
+    return HierarchyZonesService.getZone(zoneId, orgSlug)
+  }
+  static createZone(data: CreateZoneRequest, orgSlug?: string): Promise<ApiResponse<Zone>> {
+    return HierarchyZonesService.createZone(data, orgSlug)
+  }
+  static updateZone(zoneId: string, data: UpdateZoneRequest, orgSlug?: string): Promise<ApiResponse<Zone>> {
+    return HierarchyZonesService.updateZone(zoneId, data, orgSlug)
+  }
+  static deleteZone(zoneId: string, orgSlug?: string): Promise<ApiResponse<void>> {
+    return HierarchyZonesService.deleteZone(zoneId, orgSlug)
   }
 
-  /**
-   * Crea una nueva región
-   */
-  static async createRegion(data: CreateRegionRequest, orgSlug?: string): Promise<ApiResponse<Region>> {
-    return fetchApi<Region>('/regions', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }, orgSlug);
+  // Teams
+  static getTeams(options?: ListTeamsOptions, orgSlug?: string): Promise<Team[]> {
+    return HierarchyTeamsService.getTeams(options, orgSlug)
+  }
+  static getTeam(teamId: string, orgSlug?: string): Promise<Team | null> {
+    return HierarchyTeamsService.getTeam(teamId, orgSlug)
+  }
+  static createTeam(data: CreateTeamRequest, orgSlug?: string): Promise<ApiResponse<Team>> {
+    return HierarchyTeamsService.createTeam(data, orgSlug)
+  }
+  static updateTeam(teamId: string, data: UpdateTeamRequest, orgSlug?: string): Promise<ApiResponse<Team>> {
+    return HierarchyTeamsService.updateTeam(teamId, data, orgSlug)
+  }
+  static deleteTeam(teamId: string, orgSlug?: string): Promise<ApiResponse<void>> {
+    return HierarchyTeamsService.deleteTeam(teamId, orgSlug)
+  }
+  static getTeamMembers(teamId: string, orgSlug?: string): Promise<UserWithHierarchy[]> {
+    return HierarchyTeamsService.getTeamMembers(teamId, orgSlug)
   }
 
-  /**
-   * Actualiza una región existente
-   */
-  static async updateRegion(
-    regionId: string,
-    data: UpdateRegionRequest,
-    orgSlug?: string
-  ): Promise<ApiResponse<Region>> {
-    return fetchApi<Region>(`/regions/${regionId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }, orgSlug);
+  // User assignment
+  static assignUserToTeam(data: AssignUserToTeamRequest, orgSlug?: string): Promise<ApiResponse<UserWithHierarchy>> {
+    return HierarchyTeamsService.assignUserToTeam(data, orgSlug)
+  }
+  static removeUserFromTeam(userId: string, orgSlug?: string): Promise<ApiResponse<void>> {
+    return HierarchyTeamsService.removeUserFromTeam(userId, orgSlug)
+  }
+  static assignZoneManager(data: AssignZoneManagerRequest, orgSlug?: string): Promise<ApiResponse<UserWithHierarchy>> {
+    return HierarchyTeamsService.assignZoneManager(data, orgSlug)
+  }
+  static assignRegionalManager(data: AssignRegionalManagerRequest, orgSlug?: string): Promise<ApiResponse<UserWithHierarchy>> {
+    return HierarchyTeamsService.assignRegionalManager(data, orgSlug)
+  }
+  static getUnassignedUsers(orgSlug?: string): Promise<UserWithHierarchy[]> {
+    return HierarchyTeamsService.getUnassignedUsers(orgSlug)
+  }
+  static getUsersWithHierarchy(orgSlug?: string): Promise<UserWithHierarchy[]> {
+    return HierarchyTeamsService.getUsersWithHierarchy(orgSlug)
+  }
+  static getAvailableManagers(role?: 'regional_manager' | 'zone_manager' | 'team_leader', orgSlug?: string): Promise<UserWithHierarchy[]> {
+    return HierarchyTeamsService.getAvailableManagers(role, orgSlug)
   }
 
-  /**
-   * Elimina una región (y sus zonas/equipos en cascada)
-   */
-  static async deleteRegion(regionId: string, orgSlug?: string): Promise<ApiResponse<void>> {
-    return fetchApi<void>(`/regions/${regionId}`, {
-      method: 'DELETE'
-    }, orgSlug);
+  // Full hierarchy
+  static getFullHierarchy(orgSlug?: string): Promise<HierarchyTree> {
+    return HierarchyCommonService.getFullHierarchy(orgSlug)
+  }
+  static getHierarchySummary(orgSlug?: string) {
+    return HierarchyCommonService.getHierarchySummary(orgSlug)
   }
 
-  // =============================================
-  // ZONAS
-  // =============================================
-
-  /**
-   * Lista todas las zonas (opcionalmente filtradas por región)
-   */
-  static async getZones(options?: ListZonesOptions, orgSlug?: string): Promise<Zone[]> {
-    const params = new URLSearchParams();
-    if (options?.regionId) params.set('regionId', options.regionId);
-    if (options?.includeInactive) params.set('includeInactive', 'true');
-    if (options?.withCounts) params.set('withCounts', 'true');
-
-    const queryString = params.toString();
-    const endpoint = `/zones${queryString ? `?${queryString}` : ''}`;
-
-    const result = await fetchApi<{ zones: Zone[] }>(endpoint, {}, orgSlug);
-    return result.success ? result.data?.zones ?? [] : [];
+  // Validations
+  static canEnableHierarchy(orgSlug?: string): Promise<{ canEnable: boolean; issues: string[] }> {
+    return HierarchyCommonService.canEnableHierarchy(orgSlug)
+  }
+  static isRegionNameAvailable(name: string, orgSlug?: string): Promise<boolean> {
+    return HierarchyCommonService.isRegionNameAvailable(name, orgSlug)
+  }
+  static isZoneNameAvailable(name: string, regionId: string, orgSlug?: string): Promise<boolean> {
+    return HierarchyCommonService.isZoneNameAvailable(name, regionId, orgSlug)
+  }
+  static isTeamNameAvailable(name: string, zoneId: string, orgSlug?: string): Promise<boolean> {
+    return HierarchyCommonService.isTeamNameAvailable(name, zoneId, orgSlug)
   }
 
-  /**
-   * Obtiene una zona por ID
-   */
-  static async getZone(zoneId: string, orgSlug?: string): Promise<Zone | null> {
-    const result = await fetchApi<{ zone: Zone }>(`/zones/${zoneId}`, {}, orgSlug);
-    return result.success ? result.data?.zone ?? null : null;
+  // Nodes (V2)
+  static getNodeDetails(nodeId: string, orgSlug?: string) {
+    return HierarchyCommonService.getNodeDetails(nodeId, orgSlug)
   }
-
-  /**
-   * Crea una nueva zona
-   */
-  static async createZone(data: CreateZoneRequest, orgSlug?: string): Promise<ApiResponse<Zone>> {
-    return fetchApi<Zone>('/zones', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }, orgSlug);
+  static getNodeMembers(nodeId: string, orgSlug?: string) {
+    return HierarchyCommonService.getNodeMembers(nodeId, orgSlug)
   }
-
-  /**
-   * Actualiza una zona existente
-   */
-  static async updateZone(
-    zoneId: string,
-    data: UpdateZoneRequest,
-    orgSlug?: string
-  ): Promise<ApiResponse<Zone>> {
-    return fetchApi<Zone>(`/zones/${zoneId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }, orgSlug);
+  static assignUserToNode(nodeId: string, userId: string, role?: string, isPrimary?: boolean, orgSlug?: string) {
+    return HierarchyCommonService.assignUserToNode(nodeId, userId, role, isPrimary, orgSlug)
   }
-
-  /**
-   * Elimina una zona (y sus equipos en cascada)
-   */
-  static async deleteZone(zoneId: string, orgSlug?: string): Promise<ApiResponse<void>> {
-    return fetchApi<void>(`/zones/${zoneId}`, {
-      method: 'DELETE'
-    }, orgSlug);
+  static removeUserFromNode(nodeId: string, userId: string, orgSlug?: string) {
+    return HierarchyCommonService.removeUserFromNode(nodeId, userId, orgSlug)
   }
-
-  // =============================================
-  // EQUIPOS
-  // =============================================
-
-  /**
-   * Lista todos los equipos (opcionalmente filtrados)
-   */
-  static async getTeams(options?: ListTeamsOptions, orgSlug?: string): Promise<Team[]> {
-    const params = new URLSearchParams();
-    if (options?.zoneId) params.set('zoneId', options.zoneId);
-    if (options?.regionId) params.set('regionId', options.regionId);
-    if (options?.includeInactive) params.set('includeInactive', 'true');
-    if (options?.withCounts) params.set('withCounts', 'true');
-
-    const queryString = params.toString();
-    const endpoint = `/teams${queryString ? `?${queryString}` : ''}`;
-
-    const result = await fetchApi<{ teams: Team[] }>(endpoint, {}, orgSlug);
-    return result.success ? result.data?.teams ?? [] : [];
+  static getAvailableUsersForNode(nodeId: string, query?: string, includeCurrentMembers?: boolean, orgSlug?: string) {
+    return HierarchyCommonService.getAvailableUsersForNode(nodeId, query, includeCurrentMembers, orgSlug)
   }
-
-  /**
-   * Obtiene un equipo por ID
-   */
-  static async getTeam(teamId: string, orgSlug?: string): Promise<Team | null> {
-    const result = await fetchApi<{ team: Team }>(`/teams/${teamId}`, {}, orgSlug);
-    return result.success ? result.data?.team ?? null : null;
-  }
-
-  /**
-   * Crea un nuevo equipo
-   */
-  static async createTeam(data: CreateTeamRequest, orgSlug?: string): Promise<ApiResponse<Team>> {
-    return fetchApi<Team>('/teams', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }, orgSlug);
-  }
-
-  /**
-   * Actualiza un equipo existente
-   */
-  static async updateTeam(
-    teamId: string,
-    data: UpdateTeamRequest,
-    orgSlug?: string
-  ): Promise<ApiResponse<Team>> {
-    return fetchApi<Team>(`/teams/${teamId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }, orgSlug);
-  }
-
-  /**
-   * Elimina un equipo
-   */
-  static async deleteTeam(teamId: string, orgSlug?: string): Promise<ApiResponse<void>> {
-    return fetchApi<void>(`/teams/${teamId}`, {
-      method: 'DELETE'
-    }, orgSlug);
-  }
-
-  /**
-   * Obtiene los miembros de un equipo
-   */
-  static async getTeamMembers(teamId: string, orgSlug?: string): Promise<UserWithHierarchy[]> {
-    const result = await fetchApi<{ members: UserWithHierarchy[] }>(
-      `/teams/${teamId}/members`, {}, orgSlug
-    );
-    return result.success ? result.data?.members ?? [] : [];
-  }
-
-  // =============================================
-  // ASIGNACIÓN DE USUARIOS
-  // =============================================
-
-  /**
-   * Asigna un usuario a un equipo
-   */
-  static async assignUserToTeam(
-    data: AssignUserToTeamRequest,
-    orgSlug?: string
-  ): Promise<ApiResponse<UserWithHierarchy>> {
-    return fetchApi<UserWithHierarchy>('/users/assign', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }, orgSlug);
-  }
-
-  /**
-   * Remueve un usuario de su equipo actual
-   */
-  static async removeUserFromTeam(userId: string, orgSlug?: string): Promise<ApiResponse<void>> {
-    return fetchApi<void>(`/users/${userId}/unassign`, {
-      method: 'POST'
-    }, orgSlug);
-  }
-
-  /**
-   * Asigna un usuario como gerente de zona
-   */
-  static async assignZoneManager(
-    data: AssignZoneManagerRequest,
-    orgSlug?: string
-  ): Promise<ApiResponse<UserWithHierarchy>> {
-    return fetchApi<UserWithHierarchy>('/users/assign-zone-manager', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }, orgSlug);
-  }
-
-  /**
-   * Asigna un usuario como gerente regional
-   */
-  static async assignRegionalManager(
-    data: AssignRegionalManagerRequest,
-    orgSlug?: string
-  ): Promise<ApiResponse<UserWithHierarchy>> {
-    return fetchApi<UserWithHierarchy>('/users/assign-regional-manager', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }, orgSlug);
-  }
-
-  /**
-   * Obtiene usuarios sin equipo asignado
-   */
-  static async getUnassignedUsers(orgSlug?: string): Promise<UserWithHierarchy[]> {
-    const result = await fetchApi<{ users: UserWithHierarchy[] }>(
-      '/users/unassigned', {}, orgSlug
-    );
-    return result.success ? result.data?.users ?? [] : [];
-  }
-
-  /**
-   * Obtiene todos los usuarios con su información de jerarquía
-   */
-  static async getUsersWithHierarchy(orgSlug?: string): Promise<UserWithHierarchy[]> {
-    const result = await fetchApi<{ users: UserWithHierarchy[] }>('/users', {}, orgSlug);
-    return result.success ? result.data?.users ?? [] : [];
-  }
-
-  /**
-   * Obtiene usuarios disponibles para asignar como gerentes/líderes
-   * Filtra por roles que pueden ser gerentes (admin, regional_manager, zone_manager, team_leader)
-   */
-  static async getAvailableManagers(role?: 'regional_manager' | 'zone_manager' | 'team_leader', orgSlug?: string): Promise<UserWithHierarchy[]> {
-    const params = new URLSearchParams();
-    if (role) params.set('role', role);
-
-    const queryString = params.toString();
-    const endpoint = `/users/available-managers${queryString ? `?${queryString}` : ''}`;
-
-    const result = await fetchApi<{ users: UserWithHierarchy[] }>(endpoint, {}, orgSlug);
-    return result.success ? result.data?.users ?? [] : [];
-  }
-
-  // =============================================
-  // JERARQUÍA COMPLETA
-  // =============================================
-
-  /**
-   * Obtiene la jerarquía completa en estructura de árbol
-   */
-  static async getFullHierarchy(orgSlug?: string): Promise<HierarchyTree> {
-    const result = await fetchApi<HierarchyTree>('/full', {}, orgSlug);
-    return result.success && result.data
-      ? result.data
-      : { regions: [] };
-  }
-
-  /**
-   * Obtiene un resumen de la jerarquía para selectores
-   */
-  static async getHierarchySummary(orgSlug?: string): Promise<{
-    regions: Array<{ id: string; name: string; code?: string }>;
-    zones: Array<{ id: string; name: string; region_id: string; code?: string }>;
-    teams: Array<{ id: string; name: string; zone_id: string; code?: string }>;
-  }> {
-    const result = await fetchApi<{
-      regions: Array<{ id: string; name: string; code?: string }>;
-      zones: Array<{ id: string; name: string; region_id: string; code?: string }>;
-      teams: Array<{ id: string; name: string; zone_id: string; code?: string }>;
-    }>('/summary', {}, orgSlug);
-
-    return result.success && result.data
-      ? result.data
-      : { regions: [], zones: [], teams: [] };
-  }
-
-  // =============================================
-  // VALIDACIONES
-  // =============================================
-
-  /**
-   * Verifica si se puede activar la jerarquía
-   * (requiere al menos 1 equipo y todos los usuarios asignados)
-   */
-  static async canEnableHierarchy(orgSlug?: string): Promise<{
-    canEnable: boolean;
-    issues: string[];
-  }> {
-    const result = await fetchApi<{ canEnable: boolean; issues: string[] }>(
-      '/can-enable', {}, orgSlug
-    );
-    return result.success && result.data
-      ? result.data
-      : { canEnable: false, issues: ['Error al verificar'] };
-  }
-
-  /**
-   * Verifica si un nombre de región ya existe
-   */
-  static async isRegionNameAvailable(name: string, orgSlug?: string): Promise<boolean> {
-    const result = await fetchApi<{ available: boolean }>(
-      `/regions/check-name?name=${encodeURIComponent(name)}`, {}, orgSlug
-    );
-    return result.success ? result.data?.available ?? false : false;
-  }
-
-  /**
-   * Verifica si un nombre de zona ya existe en una región
-   */
-  static async isZoneNameAvailable(name: string, regionId: string, orgSlug?: string): Promise<boolean> {
-    const result = await fetchApi<{ available: boolean }>(
-      `/zones/check-name?name=${encodeURIComponent(name)}&regionId=${regionId}`, {}, orgSlug
-    );
-    return result.success ? result.data?.available ?? false : false;
-  }
-
-  /**
-   * Verifica si un nombre de equipo ya existe en una zona
-   */
-  static async isTeamNameAvailable(name: string, zoneId: string, orgSlug?: string): Promise<boolean> {
-    const result = await fetchApi<{ available: boolean }>(
-      `/teams/check-name?name=${encodeURIComponent(name)}&zoneId=${zoneId}`, {}, orgSlug
-    );
-    return result.success ? result.data?.available ?? false : false;
-  }
-
-  // =============================================
-  // NODOS UNIFICADOS (V2)
-  // =============================================
-
-  /**
-   * Obtiene los detalles completos de un nodo (unificado)
-   */
-  static async getNodeDetails(nodeId: string, orgSlug?: string): Promise<import('../types/dynamicHierarchy.types').NodeDetails | null> {
-    const result = await fetchApi<import('../types/dynamicHierarchy.types').NodeDetails>(`/nodes/${nodeId}`, {}, orgSlug);
-    return result.success ? result.data ?? null : null;
-  }
-
-  /**
-   * Obtiene los miembros de un nodo
-   */
-  static async getNodeMembers(nodeId: string, orgSlug?: string): Promise<import('../types/hierarchy.types').NodeMember[]> {
-    const result = await fetchApi<{ members: import('../types/hierarchy.types').NodeMember[] }>(`/nodes/${nodeId}/members`, {}, orgSlug);
-    return result.success ? result.data?.members ?? [] : [];
-  }
-
-  /**
-   * Asigna un usuario a un nodo
-   */
-  static async assignUserToNode(nodeId: string, userId: string, role: string = 'member', isPrimary: boolean = false, orgSlug?: string): Promise<ApiResponse<import('../types/hierarchy.types').NodeMember>> {
-    return fetchApi(`/nodes/${nodeId}/members`, {
-      method: 'POST',
-      body: JSON.stringify({ userId, role, isPrimary })
-    }, orgSlug);
-  }
-
-  /**
-   * Remueve un usuario de un nodo
-   */
-  static async removeUserFromNode(nodeId: string, userId: string, orgSlug?: string): Promise<ApiResponse<void>> {
-    return fetchApi<void>(`/nodes/${nodeId}/members/${userId}`, {
-      method: 'DELETE'
-    }, orgSlug);
-  }
-
-  /**
-   * Busca usuarios disponibles para asignar a un nodo (que no sean miembros ya)
-   */
-  static async getAvailableUsersForNode(nodeId: string, query: string = '', includeCurrentMembers?: boolean, orgSlug?: string): Promise<import('../types/hierarchy.types').UserWithHierarchy['user'][]> {
-    const params = new URLSearchParams();
-    if (query) params.set('query', query);
-    if (includeCurrentMembers) params.set('includeCurrentMembers', 'true');
-
-    const result = await fetchApi<{ users: UserWithHierarchy['user'][] }>(`/nodes/${nodeId}/members/available?${params.toString()}`, {}, orgSlug);
-    return result.success ? result.data?.users ?? [] : [];
-  }
-  /**
-   * Busca usuarios en toda la organización
-   */
-  static async searchOrganizationUsers(query: string = '', orgSlug?: string): Promise<import('../types/hierarchy.types').UserWithHierarchy['user'][]> {
-    const params = new URLSearchParams();
-    if (query) params.set('query', query);
-
-    const result = await fetchApi<{ users: UserWithHierarchy['user'][] }>(`/users/search?${params.toString()}`, {}, orgSlug);
-    return result.success ? result.data?.users ?? [] : [];
+  static searchOrganizationUsers(query?: string, orgSlug?: string) {
+    return HierarchyCommonService.searchOrganizationUsers(query, orgSlug)
   }
 }
 
-// Export por defecto
-export default HierarchyService;
+// Default export preserved for backward compatibility
+export default HierarchyService

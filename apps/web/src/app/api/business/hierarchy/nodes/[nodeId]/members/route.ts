@@ -214,7 +214,7 @@ export async function POST(
             member: resultData
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in POST /api/business/hierarchy/nodes/[nodeId]/members:', error);
         return NextResponse.json(
             {

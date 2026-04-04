@@ -52,7 +52,7 @@ export async function PATCH(
 
     logger.log('🔄 Cambiando estado de noticia del instructor con ID:', id, 'a:', status)
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       status,
       updated_at: new Date().toISOString()
     }

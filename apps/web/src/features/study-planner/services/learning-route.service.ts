@@ -3,6 +3,7 @@
  * Sugiere rutas de aprendizaje estructuradas basadas en los cursos del usuario
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server';
 import { CourseWithProgress } from './user-context.service';
 
@@ -292,7 +293,7 @@ export class LearningRouteService {
    */
   private static async findComplementaryCourses(
     userCourses: CourseWithProgress[],
-    supabase: any
+    supabase: SupabaseClient
   ): Promise<SuggestedCourse[]> {
     const suggestedCourses: SuggestedCourse[] = [];
 

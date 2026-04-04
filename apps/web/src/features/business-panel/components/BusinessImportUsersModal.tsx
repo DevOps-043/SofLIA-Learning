@@ -28,7 +28,7 @@ interface ImportResult {
   imported: number
   errors: number
   total: number
-  details: Array<{ row: number; error: string; data: any }>
+  details: Array<{ row: number; error: string; data: Record<string, unknown> }>
 }
 
 export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: BusinessImportUsersModalProps) {

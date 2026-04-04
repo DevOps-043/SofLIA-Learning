@@ -9,7 +9,7 @@ interface ImageModalProps {
   onClose: () => void;
   imageUrl: string;
   imageName?: string;
-  imageData?: any;
+  imageData?: Record<string, unknown>;
 }
 
 export function ImageModal({ isOpen, onClose, imageUrl, imageName, imageData }: ImageModalProps) {

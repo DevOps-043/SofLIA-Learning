@@ -57,10 +57,10 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       data: { courses: data || [] } 
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error('Error inesperado en GET courses:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Error interno del servidor' },
+      { success: false, error: error instanceof Error ? error.message : 'Error interno del servidor' },
       { status: 500 }
     );
   }

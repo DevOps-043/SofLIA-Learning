@@ -37,7 +37,7 @@ export function CourseAssignmentResultModal({
 
   if (!isOpen) return null
 
-  const totalAssigned = results.reduce((acc: number, r: any) => acc + (r.assigned_count || 0), 0)
+  const totalAssigned = results.reduce((acc: number, r: { assigned_count?: number; success?: boolean }) => acc + (r.assigned_count || 0), 0)
   const successfulResults = results.filter(r => r.success)
   const failedResults = results.filter(r => !r.success)
 

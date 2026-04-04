@@ -10,6 +10,15 @@ import { logger } from '../../../../../lib/utils/logger';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
 import type { CalendarEvent } from './types';
 
+interface CalendarIntegrationData {
+  id: string;
+  provider: 'google' | 'microsoft';
+  access_token: string;
+  refresh_token?: string | null;
+  expires_at?: string | null;
+  metadata?: { secondary_calendar_id?: string } | null;
+}
+
 export function createAdminClient() {
   return createSharedAdminClient();
 }
@@ -105,7 +114,7 @@ export async function getCalendarAccessToken(userId: string): Promise<{
 /**
  * Refresca el access token
  */
-export async function refreshAccessToken(integration: any): Promise<{ success: boolean; accessToken?: string }> {
+export async function refreshAccessToken(integration: CalendarIntegrationData): Promise<{ success: boolean; accessToken?: string }> {
   try {
     if (integration.provider === 'google') {
       const GOOGLE_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID ||

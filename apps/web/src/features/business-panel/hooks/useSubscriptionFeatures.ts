@@ -60,7 +60,7 @@ export function useSubscriptionFeatures(): UseSubscriptionFeaturesReturn {
 
       let planValue: string | null = null
       let billingCycleValue: string = 'yearly'
-      let subscriptionData: any = null
+      let subscriptionData: Record<string, unknown> | null = null
 
       if (response.ok) {
         const data = await response.json()

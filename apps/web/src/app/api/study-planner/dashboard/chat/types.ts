@@ -31,7 +31,7 @@ export type ActionType =
 
 export interface ActionResult {
   type: ActionType;
-  data?: any;
+  data?: unknown;
   status: 'success' | 'error' | 'pending' | 'confirmation_needed';
   message?: string;
 }

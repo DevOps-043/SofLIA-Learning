@@ -79,7 +79,7 @@ export async function GET(
     // Enriquecer reportes con información relacionada
     const enrichedReports = await Promise.all(
       (reports || []).map(async (report) => {
-        const enriched: any = { ...report }
+        const enriched: Record<string, unknown> = { ...report }
 
         // Obtener información del post
         if (report.post_id) {

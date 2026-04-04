@@ -61,7 +61,7 @@ export async function GET(
       students: number;
     }>()
 
-    assignments?.forEach((assignment: any) => {
+    assignments?.forEach((assignment: Record<string, unknown> & { course?: { title?: string }; course_id?: string; completion_percentage?: number }) => {
       const courseId = assignment.course_id
       const courseTitle = assignment.course?.title || 'Curso sin título'
       const progress = assignment.completion_percentage || 0

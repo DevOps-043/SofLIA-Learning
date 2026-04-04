@@ -66,7 +66,7 @@ export function AddReelModal({ onClose, onSave }: AddReelModalProps) {
     }
   }
 
-  const handleInputChange = (field: keyof CreateReelData, value: any) => {
+  const handleInputChange = (field: keyof CreateReelData, value: unknown) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

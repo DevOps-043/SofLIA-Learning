@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function buildCMIData(attempt: any, user: any, package_: any) {
+function buildCMIData(attempt: Record<string, unknown>, user: { id: string }, package_: Record<string, unknown>) {
   const isScorm2004 = package_.version === 'SCORM_2004';
 
   if (isScorm2004) {

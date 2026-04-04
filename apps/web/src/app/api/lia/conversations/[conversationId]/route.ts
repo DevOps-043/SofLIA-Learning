@@ -64,7 +64,7 @@ export async function PATCH(
 
     // Actualizar el título
     // Si conversation_title no existe en la BD, retornar error informativo
-    const updatePayload: any = {
+    const updatePayload: Record<string, unknown> = {
       updated_at: new Date().toISOString()
     };
     

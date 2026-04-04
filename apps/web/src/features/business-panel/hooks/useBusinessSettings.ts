@@ -35,7 +35,7 @@ export interface SubscriptionData {
   is_expired: boolean
   days_until_expiration?: number | null
   is_expiring_soon: boolean
-  user_subscriptions: any[]
+  user_subscriptions: Record<string, unknown>[]
 }
 
 export interface BusinessSettingsData {

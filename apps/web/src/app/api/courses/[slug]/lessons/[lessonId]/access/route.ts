@@ -87,7 +87,7 @@ export async function POST(
 
     if (existingProgress) {
       // Actualizar last_accessed_at y lesson_status si es necesario
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         last_accessed_at: now,
         updated_at: now,
       };

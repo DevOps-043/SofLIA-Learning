@@ -63,7 +63,7 @@ function CertificateEditor({
 }: {
   template: CertificateTemplate
   onUpdate: (template: CertificateTemplate) => void
-  updateDesignConfig: (path: string[], value: any) => void
+  updateDesignConfig: (path: string[], value: unknown) => void
 }) {
   const fontOptions = ['Inter', 'Montserrat', 'Roboto', 'Open Sans', 'Lato', 'Poppins', 'Raleway', 'Georgia', 'Times New Roman']
 

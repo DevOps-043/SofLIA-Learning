@@ -117,7 +117,7 @@ async function checkTeamForUser(supabase: Awaited<ReturnType<typeof createClient
 
     const hasTeam = !!nodeAssignment;
     const teamName = hasTeam
-        ? (nodeAssignment.organization_nodes as any)?.name || undefined
+        ? (nodeAssignment.organization_nodes as { name?: string } | null)?.name || undefined
         : undefined;
 
     return NextResponse.json({

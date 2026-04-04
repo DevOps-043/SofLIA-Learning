@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Mapear datos de la VIEW al formato AdminCommunity
-    const communities = (data || []).map((row: any) => ({
+    const communities = (data || []).map((row: Record<string, unknown>) => ({
       id: row.id,
       name: row.name,
       description: row.description,

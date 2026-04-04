@@ -61,7 +61,7 @@ export async function GET(
     }
 
     // Formatear mensajes para el frontend
-    const formattedMessages = (messages || []).map((msg: any) => ({
+    const formattedMessages = (messages || []).map((msg: Record<string, unknown>) => ({
       id: msg.message_id,
       role: msg.role,
       content: msg.content,

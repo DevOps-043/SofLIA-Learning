@@ -120,7 +120,7 @@ export async function getWorkshopMetadata(workshopId: string): Promise<WorkshopM
 
     // 4. Agrupar lecciones por módulo
     const lessonsByModule = new Map<string, LessonInfo[]>();
-    (allLessons || []).forEach((lesson: any) => {
+    (allLessons || []).forEach((lesson: Record<string, unknown>) => {
       if (!lessonsByModule.has(lesson.module_id)) {
         lessonsByModule.set(lesson.module_id, []);
       }

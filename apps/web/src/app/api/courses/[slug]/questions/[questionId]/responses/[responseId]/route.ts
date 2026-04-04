@@ -69,7 +69,7 @@ export async function PUT(
     const { content, is_approved_answer } = body;
 
     // Preparar datos de actualización
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (content !== undefined) updateData.content = content.trim();
     // Solo el autor de la pregunta puede aprobar respuestas
     if (is_approved_answer !== undefined) {

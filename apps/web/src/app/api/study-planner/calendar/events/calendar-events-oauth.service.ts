@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   CalendarIntegrationRecord,
   RefreshAccessTokenResult,
@@ -36,7 +37,7 @@ function getMicrosoftOAuthCredentials() {
 }
 
 export async function refreshCalendarAccessToken(
-  supabase: any,
+  supabase: SupabaseClient,
   integration: CalendarIntegrationRecord,
 ): Promise<RefreshAccessTokenResult> {
   try {

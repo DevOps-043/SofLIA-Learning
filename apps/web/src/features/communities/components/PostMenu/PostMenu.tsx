@@ -28,7 +28,7 @@ interface PostMenuProps {
     title?: string | null
     attachment_url?: string | null
     attachment_type?: string | null
-    attachment_data?: any
+    attachment_data?: Record<string, unknown>
   }
   communitySlug: string
   onEdit?: () => void

@@ -28,7 +28,7 @@ export const PostAttachment = memo(function PostAttachment({
   if (isMultipleAttachmentData(attachmentData)) {
     return (
       <div className={`space-y-3 ${className}`}>
-        {attachmentData.attachments.map((attachment: any, index: number) => (
+        {attachmentData.attachments.map((attachment: Record<string, unknown>, index: number) => (
           <PostAttachment
             key={index}
             attachmentType={attachment.attachment_type}

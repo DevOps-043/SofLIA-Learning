@@ -292,7 +292,7 @@ export async function callGemini(
   });
 
   // Configuración de generación
-  const generationConfig: any = {
+  const generationConfig: Record<string, unknown> = {
     temperature: parseFloat(process.env.GEMINI_TEMPERATURE || '0.7'),
     maxOutputTokens: parseInt(process.env.GEMINI_MAX_TOKENS || '8192'),
     topP: 0.95,

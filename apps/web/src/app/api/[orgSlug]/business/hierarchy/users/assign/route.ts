@@ -117,7 +117,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       }
     }
 
-    const zone = team.zone as any;
+    const zone = team.zone as { region_id?: string } | null;
     const zoneId = team.zone_id;
     const regionId = zone?.region_id;
 

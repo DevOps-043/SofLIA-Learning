@@ -142,7 +142,7 @@ export async function PUT(
     const { title, content, tags, is_pinned, is_resolved } = body;
 
     // Preparar datos de actualización
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (title !== undefined) updateData.title = title?.trim() || null;
     if (content !== undefined) updateData.content = content.trim();
     if (tags !== undefined) updateData.tags = tags || [];

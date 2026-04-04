@@ -10,6 +10,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../features/auth/services/session.service';
 
+interface CalendarIntegrationData {
+  id: string;
+  provider: 'google' | 'microsoft';
+  access_token: string;
+  refresh_token?: string | null;
+  expires_at?: string | null;
+  metadata?: { secondary_calendar_id?: string } | null;
+}
+
 // Función helper para crear cliente con service role key (bypass RLS)
 function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -192,7 +201,7 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
 /**
  * Refresca el access token usando el refresh token
  */
-async function refreshAccessToken(integration: any): Promise<{ success: boolean; accessToken?: string }> {
+async function refreshAccessToken(integration: CalendarIntegrationData): Promise<{ success: boolean; accessToken?: string }> {
   const GOOGLE_CLIENT_ID = process.env.GOOGLE_CALENDAR_CLIENT_ID || 
                            process.env.NEXT_PUBLIC_GOOGLE_CALENDAR_CLIENT_ID ||
                            process.env.GOOGLE_CLIENT_ID ||

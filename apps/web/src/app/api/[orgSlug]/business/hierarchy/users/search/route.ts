@@ -52,7 +52,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
 
     // Flatten logic
-    const formattedUsers = users?.map((u: any) => ({
+    const formattedUsers = users?.map((u: Record<string, unknown> & { users?: Record<string, unknown> }) => ({
       ...u,
       ...u.users
     })) || [];

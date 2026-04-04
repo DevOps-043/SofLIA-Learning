@@ -579,7 +579,7 @@ export function getLIASystemPrompt(context?: PlatformContext): string {
       prompt += 'NUNCA uses enlaces a /courses/[slug] - esas rutas NO existen.\n';
       prompt += 'Si el usuario pregunta por un curso que no está aquí, dile que no lo tiene asignado.\n\n';
 
-      context.coursesWithContent.forEach((course: any, courseIndex: number) => {
+      context.coursesWithContent.forEach((course: Record<string, unknown>, courseIndex: number) => {
         prompt += 'ðŸ"š CURSO ' + (courseIndex + 1) + ': ' + course.title + '\n';
         prompt += '   - Descripción: ' + (course.description || 'Sin descripción') + '\n';
         prompt += '   - Nivel: ' + (course.level || 'N/A') + '\n';

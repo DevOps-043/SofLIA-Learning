@@ -28,7 +28,7 @@ export function CTASection() {
       {/* Animated Background Effects */}
       <motion.div
         className="absolute inset-0"
-        style={{ opacity: opacity as any }}
+        style={{ opacity: opacity as React.CSSProperties['opacity'] }}
       >
         {/* Gradient Orbs - Extended beyond section bounds */}
         <motion.div

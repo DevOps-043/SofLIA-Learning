@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         if (error) {
           console.error('âš ï¸ Error cargando cursos asignados:', error);
         } else if (assignedCourses && assignedCourses.length > 0) {
-          fullContext.coursesWithContent = assignedCourses.map((assignment: any) => ({
+          fullContext.coursesWithContent = assignedCourses.map((assignment: Record<string, unknown> & { course?: Record<string, unknown> }) => ({
             title: assignment.course?.title,
             slug: assignment.course?.slug,
             description: assignment.course?.description,

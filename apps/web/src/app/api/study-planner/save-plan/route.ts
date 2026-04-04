@@ -186,7 +186,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
     }
     
     // Crear sesiones (validar y limpiar datos)
-    const sessionsToInsert: any[] = [];
+    const sessionsToInsert: Record<string, unknown>[] = [];
     const invalidSessions: Array<{ index: number; reason: string }> = [];
     
     for (let index = 0; index < body.sessions.length; index++) {

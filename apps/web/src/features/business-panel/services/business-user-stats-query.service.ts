@@ -1,9 +1,16 @@
+// Barrel re-export — completion and engagement logic live in sub-files
 import { logger } from '../../../lib/utils/logger'
 import { createClient } from '../../../lib/supabase/server'
+import { fetchCompletionData } from './business-user-stats-completion.service'
+import { fetchEngagementData } from './business-user-stats-engagement.service'
 
 type BusinessUserStatsSupabaseClient = Awaited<ReturnType<typeof createClient>>
 
 type Relation<T> = T | T[] | null
+
+// =============================================
+// TYPE DEFINITIONS (unchanged — preserved for backward compatibility)
+// =============================================
 
 interface BusinessUserStatsProfileRecord {
   id: string
@@ -214,11 +221,27 @@ export type BusinessUserStatsQueryResult =
   | { status: 'not_found'; error: string }
   | { status: 'ok'; data: BusinessUserStatsQueryData }
 
+// =============================================
+// HELPER
+// =============================================
+
+export function unwrapRelation<T>(relation: Relation<T>): T | null {
+  if (Array.isArray(relation)) {
+    return relation[0] || null
+  }
+  return relation || null
+}
+
+// =============================================
+// MAIN ORCHESTRATOR (delegates to sub-files)
+// =============================================
+
 export async function fetchBusinessUserStatsData(
   supabase: BusinessUserStatsSupabaseClient,
   organizationId: string,
   userId: string,
 ): Promise<BusinessUserStatsQueryResult> {
+  // Security validation: confirm user belongs to this org
   const organizationUserResult = await supabase
     .from('organization_users')
     .select(`
@@ -257,339 +280,29 @@ export async function fetchBusinessUserStatsData(
   const organizationUser =
     organizationUserResult.data as unknown as BusinessUserStatsOrganizationUserRecord
 
-  const [
-    enrollmentsResult,
-    lessonProgressResult,
-    activityCompletionsResult,
-    lessonNotesResult,
-    certificatesResult,
-    liaConversationsResult,
-    quizSubmissionsResult,
-    assignmentsResult,
-  ] = await Promise.all([
-    supabase
-      .from('user_course_enrollments')
-      .select(`
-        enrollment_id,
-        enrollment_status,
-        overall_progress_percentage,
-        enrolled_at,
-        started_at,
-        completed_at,
-        last_accessed_at,
-        course_id,
-        courses (
-          id,
-          title,
-          slug,
-          thumbnail_url,
-          category,
-          level
-        )
-      `)
-      .eq('user_id', userId)
-      .order('enrolled_at', { ascending: false }),
-
-    supabase
-      .from('user_lesson_progress')
-      .select(`
-        progress_id,
-        lesson_status,
-        is_completed,
-        time_spent_minutes,
-        completed_at,
-        started_at,
-        enrollment_id,
-        lesson_id,
-        quiz_progress_percentage,
-        quiz_completed,
-        quiz_passed,
-        user_course_enrollments!inner (
-          course_id,
-          courses (
-            id,
-            title
-          )
-        )
-      `)
-      .eq('user_id', userId),
-
-    supabase
-      .from('lia_activity_completions')
-      .select(`
-        completion_id,
-        activity_id,
-        status,
-        completed_steps,
-        total_steps,
-        time_to_complete_seconds,
-        attempts_to_complete,
-        completed_at,
-        lesson_activities (
-          activity_id,
-          activity_title,
-          activity_type,
-          lesson_id,
-          course_lessons (
-            lesson_id,
-            module_id,
-            course_modules (
-              module_id,
-              course_id
-            )
-          )
-        )
-      `)
-      .eq('user_id', userId)
-      .order('completed_at', { ascending: false }),
-
-    supabase
-      .from('user_lesson_notes')
-      .select(`
-        note_id,
-        lesson_id,
-        is_auto_generated,
-        course_lessons (
-          lesson_id,
-          module_id,
-          course_modules (
-            module_id,
-            course_id
-          )
-        )
-      `)
-      .eq('user_id', userId),
-
-    supabase
-      .from('user_course_certificates')
-      .select(`
-        certificate_id,
-        certificate_url,
-        certificate_hash,
-        course_id,
-        issued_at,
-        expires_at,
-        courses (
-          id,
-          title,
-          slug,
-          thumbnail_url,
-          instructor_id
-        )
-      `)
-      .eq('user_id', userId)
-      .order('issued_at', { ascending: false }),
-
-    supabase
-      .from('lia_conversations')
-      .select(`
-        conversation_id,
-        course_id,
-        lesson_id,
-        started_at,
-        ended_at,
-        total_messages,
-        conversation_completed
-      `)
-      .eq('user_id', userId)
-      .order('started_at', { ascending: false }),
-
-    supabase
-      .from('user_quiz_submissions')
-      .select(`
-        submission_id,
-        score,
-        total_points,
-        percentage_score,
-        is_passed,
-        completed_at,
-        created_at,
-        lesson_id,
-        enrollment_id,
-        user_course_enrollments!inner(course_id)
-      `)
-      .eq('user_id', userId)
-      .order('completed_at', { ascending: false }),
-
-    supabase
-      .from('organization_course_assignments')
-      .select(`
-        id,
-        course_id,
-        status,
-        completion_percentage,
-        assigned_at,
-        due_date,
-        completed_at,
-        courses (
-          id,
-          title
-        )
-      `)
-      .eq('organization_id', organizationId)
-      .eq('user_id', userId)
-      .order('assigned_at', { ascending: false }),
+  // Run completion and engagement queries in parallel
+  const [completionData, engagementData] = await Promise.all([
+    fetchCompletionData(supabase, organizationId, userId),
+    fetchEngagementData(supabase, userId),
   ])
-
-  if (enrollmentsResult.error) logger.error('Error fetching enrollments:', enrollmentsResult.error)
-  if (lessonProgressResult.error) {
-    logger.error('Error fetching lesson progress:', lessonProgressResult.error)
-  }
-  if (activityCompletionsResult.error) {
-    logger.error('Error fetching activity completions:', activityCompletionsResult.error)
-  }
-  if (lessonNotesResult.error) logger.error('Error fetching lesson notes:', lessonNotesResult.error)
-  if (certificatesResult.error) logger.error('Error fetching certificates:', certificatesResult.error)
-  if (liaConversationsResult.error) {
-    logger.error('Error fetching LIA conversations:', liaConversationsResult.error)
-  }
-  if (quizSubmissionsResult.error) {
-    logger.error('Error fetching quiz submissions:', quizSubmissionsResult.error)
-  }
-  if (assignmentsResult.error) logger.error('Error fetching assignments:', assignmentsResult.error)
-
-  const enrollments = (enrollmentsResult.data ||
-    []) as unknown as BusinessUserStatsEnrollmentRecord[]
-  const lessonProgress = (lessonProgressResult.data ||
-    []) as unknown as BusinessUserStatsLessonProgressRecord[]
-  const activityCompletions = (activityCompletionsResult.data ||
-    []) as unknown as BusinessUserStatsActivityCompletionRecord[]
-  const lessonNotes = (lessonNotesResult.data ||
-    []) as unknown as BusinessUserStatsLessonNoteRecord[]
-  const certificates = (certificatesResult.data ||
-    []) as unknown as BusinessUserStatsCertificateRecord[]
-  const liaConversations = (liaConversationsResult.data ||
-    []) as unknown as BusinessUserStatsLiaConversationRecord[]
-  const quizSubmissions = (quizSubmissionsResult.data ||
-    []) as unknown as BusinessUserStatsQuizSubmissionRecord[]
-  const assignments = (assignmentsResult.data ||
-    []) as unknown as BusinessUserStatsAssignmentRecord[]
-
-  const lessonIds = Array.from(
-    new Set(lessonProgress.map((progress) => progress.lesson_id).filter(Boolean)),
-  )
-  const courseIds = Array.from(
-    new Set(enrollments.map((enrollment) => enrollment.course_id).filter(Boolean)),
-  )
-  const instructorIds = Array.from(
-    new Set(
-      certificates
-        .map((certificate) => unwrapRelation(certificate.courses)?.instructor_id)
-        .filter(Boolean),
-    ),
-  ) as string[]
-  const conversationIds = liaConversations
-    .map((conversation) => conversation.conversation_id)
-    .filter(Boolean)
-
-  const lessonsResult =
-    lessonIds.length > 0
-      ? await supabase
-          .from('course_lessons')
-          .select(`
-            lesson_id,
-            lesson_title,
-            module_id,
-            course_modules (
-              module_id,
-              module_title,
-              module_order_index,
-              course_id
-            )
-          `)
-          .in('lesson_id', lessonIds)
-      : { data: [], error: null }
-
-  if (lessonsResult.error) logger.error('Error fetching lessons:', lessonsResult.error)
-  const lessons = (lessonsResult.data || []) as unknown as BusinessUserStatsLessonRecord[]
-
-  const courseModulesResult =
-    courseIds.length > 0
-      ? await supabase
-          .from('course_modules')
-          .select(`
-            module_id,
-            module_title,
-            module_order_index,
-            course_id
-          `)
-          .in('course_id', courseIds)
-          .order('module_order_index', { ascending: true })
-      : { data: [], error: null }
-
-  if (courseModulesResult.error) {
-    logger.error('Error fetching course modules:', courseModulesResult.error)
-  }
-  const courseModules =
-    (courseModulesResult.data || []) as unknown as BusinessUserStatsCourseModuleRecord[]
-
-  const moduleIds = courseModules.map((module) => module.module_id).filter(Boolean)
-  const lessonCountsResult =
-    moduleIds.length > 0
-      ? await supabase
-          .from('course_lessons')
-          .select('lesson_id, module_id')
-          .in('module_id', moduleIds)
-          .eq('is_published', true)
-      : { data: [], error: null }
-
-  if (lessonCountsResult.error) {
-    logger.error('Error fetching lesson counts:', lessonCountsResult.error)
-  }
-  const lessonCounts =
-    (lessonCountsResult.data || []) as unknown as BusinessUserStatsLessonCountRecord[]
-
-  const instructorsResult =
-    instructorIds.length > 0
-      ? await supabase
-          .from('users')
-          .select('id, first_name, last_name, username')
-          .in('id', instructorIds)
-      : { data: [], error: null }
-
-  if (instructorsResult.error) {
-    logger.error('Error fetching instructors:', instructorsResult.error)
-  }
-  const instructors =
-    (instructorsResult.data || []) as unknown as BusinessUserStatsInstructorRecord[]
-
-  const liaMessagesResult =
-    conversationIds.length > 0
-      ? await supabase
-          .from('lia_messages')
-          .select('message_id, conversation_id, role, created_at')
-          .in('conversation_id', conversationIds)
-      : { data: [], error: null }
-
-  if (liaMessagesResult.error) logger.error('Error fetching LIA messages:', liaMessagesResult.error)
-  const liaMessages =
-    (liaMessagesResult.data || []) as unknown as BusinessUserStatsLiaMessageRecord[]
 
   return {
     status: 'ok',
     data: {
       organizationUser,
-      enrollments,
-      lessonProgress,
-      lessons,
-      courseModules,
-      lessonCounts,
-      activityCompletions,
-      lessonNotes,
-      certificates,
-      instructors,
-      liaConversations,
-      liaMessages,
-      quizSubmissions,
-      assignments,
+      enrollments: completionData.enrollments,
+      lessonProgress: completionData.lessonProgress,
+      lessons: completionData.lessons,
+      courseModules: completionData.courseModules,
+      lessonCounts: completionData.lessonCounts,
+      activityCompletions: completionData.activityCompletions,
+      lessonNotes: completionData.lessonNotes,
+      certificates: completionData.certificates,
+      instructors: completionData.instructors,
+      assignments: completionData.assignments,
+      liaConversations: engagementData.liaConversations,
+      liaMessages: engagementData.liaMessages,
+      quizSubmissions: engagementData.quizSubmissions,
     },
   }
-}
-
-export function unwrapRelation<T>(relation: Relation<T>): T | null {
-  if (Array.isArray(relation)) {
-    return relation[0] || null
-  }
-
-  return relation || null
 }

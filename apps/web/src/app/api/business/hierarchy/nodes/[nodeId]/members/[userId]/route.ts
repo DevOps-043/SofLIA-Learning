@@ -88,7 +88,7 @@ export async function DELETE(
             message: 'User removed successfully'
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Error in DELETE /api/business/hierarchy/nodes/[nodeId]/members/[userId]:', error);
         return NextResponse.json(
             {

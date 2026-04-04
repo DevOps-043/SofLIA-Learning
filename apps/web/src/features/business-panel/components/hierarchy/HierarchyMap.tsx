@@ -14,7 +14,7 @@ const setupLeafletIcons = () => {
   const shadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png'
 
   /* eslint-disable no-underscore-dangle */
-  delete (L.Icon.Default.prototype as any)._getIconUrl
+  delete (L.Icon.Default.prototype as any)._getIconUrl // leaflet internal API — no public type available
   L.Icon.Default.mergeOptions({
     iconRetinaUrl,
     iconUrl,

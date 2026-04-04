@@ -77,7 +77,7 @@ export function useStudyPlannerCourseSelectionFlow({
         const courses = data.courses || data || [];
 
         setAvailableCourses(
-          courses.map((course: any) => ({
+          courses.map((course: Record<string, unknown> & { courses?: Record<string, unknown> }) => ({
             category: course.course_category || course.category || course.courses?.category || 'General',
             id: course.course_id || course.id,
             progress: course.progress_percentage || course.progress || 0,

@@ -24,6 +24,11 @@ interface SuggestLearningRouteRequest {
   maxCourses?: number;
 }
 
+interface UserProfileData {
+  area?: string;
+  [key: string]: unknown;
+}
+
 interface SuggestLearningRouteResponse {
   success: boolean;
   data?: {
@@ -136,7 +141,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SuggestLe
 async function generateLearningRouteSuggestions(
   userCourses: CourseInfo[],
   availableCourses: CourseInfo[],
-  profileData: any,
+  profileData: UserProfileData,
   focusArea?: string,
   targetSkills?: string[]
 ): Promise<LearningRouteSuggestion[]> {

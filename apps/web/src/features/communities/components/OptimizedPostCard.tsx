@@ -8,7 +8,7 @@ import { sanitizePost } from '../../../lib/sanitize/html-sanitizer'
 import { PostMenu } from './PostMenu'
 
 interface OptimizedPostCardProps {
-  post: any // Tipo flexible para aceptar diferentes estructuras de post
+  post: Record<string, unknown>
   communitySlug?: string
   onReact?: () => void
   onComment?: () => void

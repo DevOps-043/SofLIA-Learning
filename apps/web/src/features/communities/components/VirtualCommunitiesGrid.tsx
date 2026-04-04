@@ -48,7 +48,7 @@ export function VirtualCommunitiesGrid({
   const rowHeight = 280
   const rowCount = Math.ceil(communities.length / columnCount)
 
-  const CommunityCard = ({ columnIndex, rowIndex, style }: any) => {
+  const CommunityCard = ({ columnIndex, rowIndex, style }: { columnIndex: number; rowIndex: number; style: React.CSSProperties }) => {
     const index = rowIndex * columnCount + columnIndex
     if (index >= communities.length) return null
     

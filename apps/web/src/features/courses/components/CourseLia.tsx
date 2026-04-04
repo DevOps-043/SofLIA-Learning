@@ -9,6 +9,7 @@ import { useAuth } from '../../auth/hooks/useAuth';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useLiaCourse } from '../context/LiaCourseContext';
 import { useLiaCourseChat } from '../../../core/hooks/useLiaCourseChat';
+import type { CourseLessonContext } from '../../../core/types/lia.types';
 
 // Tipos necesarios
 interface CourseLiaProps {
@@ -272,7 +273,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
          3. Haz la primera pregunta o da la primera instrucción para empezar.
          NO esperes a que el usuario hable. TOMA LA INICIATIVA AHORA.`;
 
-         await sendMessage(systemTrigger, context as any, undefined, true);
+         await sendMessage(systemTrigger, context as CourseLessonContext, undefined, true);
       };
 
       triggerWelcomeByActivity();

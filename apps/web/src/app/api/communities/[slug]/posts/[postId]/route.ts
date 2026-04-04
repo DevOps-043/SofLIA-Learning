@@ -227,7 +227,7 @@ export async function PUT(
     }
 
     // Preparar datos de actualización
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
       is_edited: true
     }

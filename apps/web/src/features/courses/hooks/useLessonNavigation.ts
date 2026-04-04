@@ -206,13 +206,13 @@ export function useLessonNavigation({
             reason: "previous_lesson_not_completed",
           });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         if (pendingValidationRef.current === abortController) {
           pendingValidationRef.current = null;
         }
 
         if (
-          error?.name !== "AbortError" &&
+          (error as { name?: string })?.name !== "AbortError" &&
           process.env.NODE_ENV === "development"
         ) {
           console.warn(

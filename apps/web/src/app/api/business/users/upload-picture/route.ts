@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
                 .update({
                     profile_picture_url: publicUrl,
                     updated_at: new Date().toISOString()
-                } as any)
+                })
                 .eq('id', userId)
 
             if (updateError) {

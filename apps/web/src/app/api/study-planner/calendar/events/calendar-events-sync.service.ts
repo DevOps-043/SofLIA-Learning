@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   buildExternalEventIdSet,
   normalizeExternalEventId,
@@ -9,7 +10,7 @@ import {
 import type { CalendarIntegrationRecord } from './calendar-events.types'
 
 export async function syncDeletedStudySessions(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string,
   startDate: Date,
   endDate: Date,
