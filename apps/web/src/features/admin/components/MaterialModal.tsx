@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
-import { FileText, Link as LinkIcon, BookOpen, FileQuestion, PenTool, Clock, Sparkles, Type } from 'lucide-react'
+import { FileText, Link as LinkIcon, BookOpen, FileQuestion, PenTool, Clock, Sparkles, Type, Upload } from 'lucide-react'
 import { AdminMaterial } from '../services/adminMaterials.service'
 import { PDFUpload } from './PDFUpload'
-import { QuizBuilder } from './QuizBuilder'
+import { QuizBuilder, QuizQuestion } from './QuizBuilder'
+import { QuizImportModal } from './QuizImportModal'
 import { calculateReadingTimeDetailed, countWords, READING_SPEEDS } from '@/lib/utils/readingTime'
 
 interface MaterialModalProps {
@@ -142,11 +143,12 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
     is_downloadable: false,
     estimated_time_minutes: 10 // Default 10 minutes
   })
-  const [quizQuestions, setQuizQuestions] = useState<any[]>([])
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
   const [autoCalculatedTime, setAutoCalculatedTime] = useState(false)
+  const [showImportModal, setShowImportModal] = useState(false)
 
   const tabs: { id: TabType; label: string; icon: typeof FileText }[] = [
     { id: 'basic', label: 'Básica', icon: FileText },
@@ -214,6 +216,14 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
     }
   }
 
+  const handleQuizImport = (imported: QuizQuestion[], mode: 'append' | 'replace') => {
+    if (mode === 'replace') {
+      setQuizQuestions(imported)
+    } else {
+      setQuizQuestions(prev => [...prev, ...imported])
+    }
+  }
+
   const getMaterialTypeIcon = () => {
     switch (formData.material_type) {
       case 'pdf':
@@ -235,6 +245,13 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
   const MaterialTypeIcon = getMaterialTypeIcon()
 
   return (
+    <>
+      {showImportModal && (
+        <QuizImportModal
+          onImport={(imported, mode) => handleQuizImport(imported, mode)}
+          onClose={() => setShowImportModal(false)}
+        />
+      )}
     <AnimatePresence>
       {true && (
         <>
@@ -508,10 +525,27 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
                           )}
 
                           {formData.material_type === 'quiz' && (
-                            <QuizBuilder
-                              questions={quizQuestions}
-                              onChange={setQuizQuestions}
-                            />
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wide">
+                                  Preguntas del Quiz
+                                </label>
+                                <motion.button
+                                  type="button"
+                                  onClick={() => setShowImportModal(true)}
+                                  whileHover={{ scale: 1.03 }}
+                                  whileTap={{ scale: 0.97 }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 hover:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 text-[#00D4B3] text-xs font-medium border border-[#00D4B3]/20 dark:border-[#00D4B3]/30 transition-all duration-200"
+                                >
+                                  <Upload className="w-3.5 h-3.5" />
+                                  Importar (JSON / CSV)
+                                </motion.button>
+                              </div>
+                              <QuizBuilder
+                                questions={quizQuestions}
+                                onChange={setQuizQuestions}
+                              />
+                            </div>
                           )}
 
                           {formData.material_type === 'link' && (
@@ -604,6 +638,7 @@ export function MaterialModal({ material, lessonId, onClose, onSave }: MaterialM
         </>
       )}
     </AnimatePresence>
+    </>
   )
 }
 

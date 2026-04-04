@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
-import { Plus, Trash2, ClipboardList, Brain, Lightbulb, FileQuestion, MessageSquare, Bot, Clock } from 'lucide-react'
+import { Plus, Trash2, ClipboardList, Brain, Lightbulb, FileQuestion, MessageSquare, Bot, Clock, Upload } from 'lucide-react'
 import { AdminActivity } from '../services/adminActivities.service'
+import { QuizBuilder, QuizQuestion } from './QuizBuilder'
+import { QuizImportModal } from './QuizImportModal'
 
 interface ActivityModalProps {
   activity?: AdminActivity | null
@@ -29,6 +31,8 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
   const [aiPromptsList, setAiPromptsList] = useState<string[]>([''])
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
+  const [showImportModal, setShowImportModal] = useState(false)
 
   const tabs: { id: TabType; label: string; icon: typeof ClipboardList }[] = [
     { id: 'basic', label: 'Básica', icon: ClipboardList },
@@ -65,6 +69,7 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
         is_required: activity.is_required,
         estimated_time_minutes: activity.estimated_time_minutes || 5
       })
+
       // Intentar inicializar lista de prompts desde JSON o texto separado por nuevas líneas
       if (activity.ai_prompts) {
         try {
@@ -80,6 +85,18 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
       } else {
         setAiPromptsList([''])
       }
+
+      // Inicializar preguntas de quiz desde activity_content si el tipo es quiz
+      if (activity.activity_type === 'quiz' && activity.activity_content) {
+        try {
+          const parsed = JSON.parse(activity.activity_content)
+          if (Array.isArray(parsed)) {
+            setQuizQuestions(parsed as QuizQuestion[])
+          }
+        } catch {
+          // activity_content no es JSON válido: empezar con lista vacía
+        }
+      }
     }
   }, [activity])
 
@@ -90,10 +107,21 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
 
     try {
       const payload = { ...formData }
+
       if (formData.activity_type === 'ai_chat') {
         const normalized = aiPromptsList.map(p => p.trim()).filter(p => p.length > 0)
         payload.ai_prompts = JSON.stringify(normalized)
       }
+
+      if (formData.activity_type === 'quiz') {
+        if (quizQuestions.length === 0) {
+          setError('El quiz debe tener al menos una pregunta')
+          setLoading(false)
+          return
+        }
+        payload.activity_content = JSON.stringify(quizQuestions)
+      }
+
       await onSave(payload)
       onClose()
     } catch (error) {
@@ -104,7 +132,22 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
     }
   }
 
+  const handleQuizImport = (imported: QuizQuestion[], mode: 'append' | 'replace' = 'append') => {
+    if (mode === 'replace') {
+      setQuizQuestions(imported)
+    } else {
+      setQuizQuestions(prev => [...prev, ...imported])
+    }
+  }
+
   return (
+    <>
+      {showImportModal && (
+        <QuizImportModal
+          onImport={(imported, mode) => handleQuizImport(imported, mode)}
+          onClose={() => setShowImportModal(false)}
+        />
+      )}
     <AnimatePresence>
       {true && (
         <>
@@ -342,19 +385,44 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
                           transition={{ duration: 0.2 }}
                           className="space-y-4"
                         >
-                          <div>
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Contenido de la Actividad *
-                            </label>
-                            <textarea
-                              rows={8}
-                              required
-                              value={formData.activity_content}
-                              onChange={(e) => setFormData(prev => ({ ...prev, activity_content: e.target.value }))}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
-                              placeholder="Instrucciones o contenido de la actividad..."
-                            />
-                          </div>
+                          {/* Quiz: QuizBuilder + botón importar */}
+                          {formData.activity_type === 'quiz' ? (
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wide">
+                                  Preguntas del Quiz
+                                </label>
+                                <motion.button
+                                  type="button"
+                                  onClick={() => setShowImportModal(true)}
+                                  whileHover={{ scale: 1.03 }}
+                                  whileTap={{ scale: 0.97 }}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 hover:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 text-[#00D4B3] text-xs font-medium border border-[#00D4B3]/20 dark:border-[#00D4B3]/30 transition-all duration-200"
+                                >
+                                  <Upload className="w-3.5 h-3.5" />
+                                  Importar (JSON / CSV)
+                                </motion.button>
+                              </div>
+                              <QuizBuilder
+                                questions={quizQuestions}
+                                onChange={setQuizQuestions}
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+                                Contenido de la Actividad *
+                              </label>
+                              <textarea
+                                rows={8}
+                                required
+                                value={formData.activity_content}
+                                onChange={(e) => setFormData(prev => ({ ...prev, activity_content: e.target.value }))}
+                                className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
+                                placeholder="Instrucciones o contenido de la actividad..."
+                              />
+                            </div>
+                          )}
 
                           {/* AI Prompts múltiples (solo ai_chat) */}
                           {formData.activity_type === 'ai_chat' && (
@@ -445,6 +513,7 @@ export function ActivityModal({ activity, lessonId, onClose, onSave }: ActivityM
         </>
       )}
     </AnimatePresence>
+    </>
   )
 }
 

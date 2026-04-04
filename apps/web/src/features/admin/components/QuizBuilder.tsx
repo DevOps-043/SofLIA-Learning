@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, X, Trash2, GripVertical, FileQuestion, CheckCircle2, Circle } from 'lucide-react'
 
-interface QuizQuestion {
+export interface QuizQuestion {
   id: string
   question: string
   questionType: 'multiple_choice' | 'true_false' | 'short_answer'
