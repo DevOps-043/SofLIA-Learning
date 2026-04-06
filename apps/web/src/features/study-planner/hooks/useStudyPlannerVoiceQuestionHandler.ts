@@ -45,6 +45,7 @@ interface UseStudyPlannerVoiceQuestionHandlerParams {
   pendingLessonsRef: MutableRefObject<StudyPlannerPendingLesson[]>;
   processingRef: MutableRefObject<boolean>;
   savedLessonDistribution: StudyPlannerStoredLessonDistribution[];
+  selectedCourseIds: string[];
   setConversationHistory: StateSetter<StudyPlannerMessage[]>;
   setIsProcessing: StateSetter<boolean>;
   showDateModal: boolean;
@@ -77,6 +78,7 @@ export function useStudyPlannerVoiceQuestionHandler({
   pendingLessonsRef,
   processingRef,
   savedLessonDistribution,
+  selectedCourseIds,
   setConversationHistory,
   setIsProcessing,
   showDateModal,
@@ -153,6 +155,7 @@ export function useStudyPlannerVoiceQuestionHandler({
         totalPendingLessons,
         assignedCourses,
         connectedCalendar,
+        selectedCourseIds,
         studyApproach,
         savedLessonDistribution,
       });
@@ -241,6 +244,7 @@ export function useStudyPlannerVoiceQuestionHandler({
     pendingLessonsRef,
     processingRef,
     savedLessonDistribution,
+    selectedCourseIds,
     setConversationHistory,
     setIsProcessing,
     showDateModal,

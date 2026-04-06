@@ -56,28 +56,33 @@ interface DeterministicPlanContextResult {
   preCalculatedPlanContext: string;
 }
 
-function buildFallbackLessonsContext(pendingLessons: StudyPlannerPendingLesson[]): string {
-  if (pendingLessons.length === 0) {
+function buildFallbackLessonsContext(
+  pendingLessons: StudyPlannerPendingLesson[],
+  resolvedCourseIds?: string[],
+): string {
+  const filtered = resolvedCourseIds && resolvedCourseIds.length > 0
+    ? pendingLessons.filter((l) => resolvedCourseIds.includes(l.courseId))
+    : pendingLessons;
+
+  if (filtered.length === 0) {
     return 'No hay lecciones pendientes definidas aun.';
   }
 
-  return pendingLessons
+  return filtered
     .map((lesson) => `- ${lesson.lessonTitle} (${lesson.durationMinutes || 15} min) - Modulo: ${lesson.moduleTitle}`)
     .join('\n');
 }
 
-function buildDueDateContext(assignedCourses: StudyPlannerAssignedCourse[], resolvedCourseIds?: string[]): string {
-  let candidates = assignedCourses.filter((course) => course.dueDate);
+function buildDueDateContext(
+  assignedCourses: StudyPlannerAssignedCourse[],
+  resolvedCourseIds?: string[],
+): string {
+  const relevantCourses = resolvedCourseIds && resolvedCourseIds.length > 0
+    ? assignedCourses.filter((c) => resolvedCourseIds.includes(c.courseId))
+    : assignedCourses;
 
-  // Only use the selected course's due date, not all assigned courses.
-  if (resolvedCourseIds && resolvedCourseIds.length > 0) {
-    const filtered = candidates.filter((c) => resolvedCourseIds.includes(c.courseId));
-    if (filtered.length > 0) {
-      candidates = filtered;
-    }
-  }
-
-  if (candidates.length === 0) {
+  const coursesWithDueDates = relevantCourses.filter((course) => course.dueDate);
+  if (coursesWithDueDates.length === 0) {
     return '';
   }
 
@@ -225,17 +230,9 @@ function detectExplicitSessionDuration(message: string): number | null {
   return null;
 }
 
-function getNearestDeadlineDate(assignedCourses: StudyPlannerAssignedCourse[], resolvedCourseIds?: string[]): string | undefined {
-  let candidates = assignedCourses.filter((course) => course.dueDate);
-
-  if (resolvedCourseIds && resolvedCourseIds.length > 0) {
-    const filtered = candidates.filter((c) => resolvedCourseIds.includes(c.courseId));
-    if (filtered.length > 0) {
-      candidates = filtered;
-    }
-  }
-
-  if (candidates.length === 0) {
+function getNearestDeadlineDate(assignedCourses: StudyPlannerAssignedCourse[]): string | undefined {
+  const coursesWithDueDates = assignedCourses.filter((course) => course.dueDate);
+  if (coursesWithDueDates.length === 0) {
     return undefined;
   }
 
@@ -374,17 +371,14 @@ export async function buildStudyPlannerChatRequestContext(
     day: 'numeric',
   });
 
-  // selectedCourseIds may contain "courseUUID__OrgName" keys (from deduplication).
-  // Extract the actual course UUID (before "__") for lesson and due-date filtering.
-  const resolvedCourseIds = (params.selectedCourseIds ?? []).map((id) => id.split('__')[0]).filter(Boolean);
-
-  const filteredLessons = resolvedCourseIds.length > 0
-    ? params.lessons.filter((l) => resolvedCourseIds.includes(l.courseId))
+  // Filter lessons to only those from the selected course (BUG-A fix)
+  const filteredLessons = params.selectedCourseIds && params.selectedCourseIds.length > 0
+    ? params.lessons.filter(l => params.selectedCourseIds!.includes(l.courseId))
     : params.lessons;
 
   const lessonsContext =
     params.lessonsAreReady && filteredLessons.length > 0
-      ? params.getLessonsForPrompt(resolvedCourseIds)
+      ? params.getLessonsForPrompt(params.selectedCourseIds)
       : buildFallbackLessonsContext(params.pendingLessons);
 
   const filteredPendingCount = filteredLessons.length || params.totalPendingLessons;

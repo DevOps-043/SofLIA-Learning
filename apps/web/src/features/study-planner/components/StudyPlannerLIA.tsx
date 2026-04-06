@@ -69,6 +69,12 @@ export function StudyPlannerSofLIA() {
     handleResumeSession,
     savedSessionDate,
     showResumePrompt,
+    // Schedule Preview
+    showSchedulePreview,
+    showSchedulePreviewTab,
+    onSchedulePreviewClose,
+    onSchedulePreviewOpen,
+    savedLessonDistribution,
   } = useStudyPlannerLIALogic();
 
   return (
@@ -159,6 +165,11 @@ export function StudyPlannerSofLIA() {
           void handleSendMessage(message);
         }}
         onToggleListening={toggleListening}
+        savedLessonDistribution={savedLessonDistribution}
+        showSchedulePreview={showSchedulePreview}
+        showSchedulePreviewTab={showSchedulePreviewTab}
+        onSchedulePreviewClose={onSchedulePreviewClose}
+        onSchedulePreviewOpen={onSchedulePreviewOpen}
       />
     </>
   );
