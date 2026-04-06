@@ -1,5 +1,16 @@
 'use client';
 
+/**
+ * useStudyPlannerLIALogic – orchestrator
+ *
+ * State is split into two focused sub-hooks:
+ *   - useMessageProcessor  → conversation / processing state
+ *   - useResponseHandler   → UI response state (modals, courses, calendar, …)
+ *
+ * All business-logic is still delegated to the same domain hooks as before;
+ * the public API (return shape) is unchanged.
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useOrganizationStylesContext } from '../../../business-panel/contexts/OrganizationStylesContext';
@@ -18,26 +29,10 @@ import { useStudyPlannerMessageHandler } from '../../hooks/useStudyPlannerMessag
 import { useStudyPlannerVoiceQuestionHandler } from '../../hooks/useStudyPlannerVoiceQuestionHandler';
 import { useStudyPlannerCalendarActions } from './useStudyPlannerCalendarActions';
 import { useStudyPlannerNavigationHandlers } from './useStudyPlannerNavigationHandlers';
-import type {
-  StudyApproach,
-  StudyPlannerAssignedCourse,
-  StudyPlannerCalendarProvider,
-  StudyPlannerCourseOption,
-  StudyPlannerMessage,
-  StudyPlannerPendingLesson,
-  StudyPlannerUserContext,
-} from '../../types/planner-ui.types';
-import type {
-  StudyPlannerCalendarDataMap,
-  StudyPlannerStoredLessonDistribution,
-} from '../../types/planner-schedule.types';
-
-type AnalyzeCalendarAndSuggest = (
-  provider: string,
-  targetDateParam?: string,
-  approachParam?: StudyApproach | null,
-  skipB2BRedirect?: boolean
-) => Promise<void>;
+import { useMessageProcessor } from './useMessageProcessor';
+import { useResponseHandler } from './useResponseHandler';
+import { createPlannerRedirectScheduler, type AnalyzeCalendarAndSuggest } from './planner-redirect.utils';
+import type { StudyPlannerCalendarProvider } from '../../types/planner-ui.types';
 
 export function useStudyPlannerLIALogic() {
   const router = useRouter();
@@ -66,65 +61,60 @@ export function useStudyPlannerLIALogic() {
     }
   }, [styles]);
 
-  const [showConversation, setShowConversation] = useState(true);
-  const [userMessage, setUserMessage] = useState('');
+  // ── Sub-hook: message / conversation state ──────────────────────────────
+  const {
+    isProcessing, setIsProcessing,
+    conversationHistory, setConversationHistory,
+    liaConversationId, setLiaConversationId,
+    processingRef,
+    lastVoiceQuestionRef,
+    conversationHistoryRef,
+    pendingLessonsRef,
+  } = useMessageProcessor();
 
-  const [showCourseSelector, setShowCourseSelector] = useState(false);
-  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
-  const [availableCourses, setAvailableCourses] = useState<StudyPlannerCourseOption[]>([]);
-  const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
-  const [isLoadingCourses, setIsLoadingCourses] = useState(false);
-  const [courseSearchQuery, setCourseSearchQuery] = useState('');
-
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
-  const [isConnectingCalendar, setIsConnectingCalendar] = useState(false);
-  const [connectedCalendar, setConnectedCalendar] = useState<StudyPlannerCalendarProvider>(null);
-  const [calendarSkipped, setCalendarSkipped] = useState(false);
-  const [showCalendarConfig, setShowCalendarConfig] = useState(false);
-  const [hasConfiguredCalendars, setHasConfiguredCalendars] = useState(false);
-
-  const [studyApproach, setStudyApproach] = useState<StudyApproach | null>(null);
-  const [targetDate, setTargetDate] = useState<string | null>(null);
-  const [hasAskedApproach, setHasAskedApproach] = useState(false);
-  const [hasAskedTargetDate, setHasAskedTargetDate] = useState(false);
-  const [showApproachModal, setShowApproachModal] = useState(false);
-  const [showApproachButtons, setShowApproachButtons] = useState(false);
-  const [showDateModal, setShowDateModal] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [currentMonth, setCurrentMonth] = useState<Date | null>(null);
-
-  const [savedLessonDistribution, setSavedLessonDistribution] = useState<StudyPlannerStoredLessonDistribution[]>([]);
-  const [savedTargetDate, setSavedTargetDate] = useState<string | null>(null);
-  const [savedTotalLessons, setSavedTotalLessons] = useState<number>(0);
-  const [savedPlanId, setSavedPlanId] = useState<string | null>(null);
-
-  const [hasShownFinalSummary, setHasShownFinalSummary] = useState<boolean>(false);
-
-  const [savedCalendarData, setSavedCalendarData] = useState<StudyPlannerCalendarDataMap | null>(null);
-
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-  const [userContext, setUserContext] = useState<StudyPlannerUserContext | null>(null);
-
-  const [assignedCourses, setAssignedCourses] = useState<StudyPlannerAssignedCourse[]>([]);
-
-  const [pendingLessonsWithNames, setPendingLessonsWithNames] = useState<StudyPlannerPendingLesson[]>([]);
-
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [conversationHistory, setConversationHistory] = useState<StudyPlannerMessage[]>([]);
-
-  const [liaConversationId, setLiaConversationId] = useState<string | null>(null);
+  // ── Sub-hook: UI response / modal state ─────────────────────────────────
+  const {
+    showConversation, setShowConversation,
+    userMessage, setUserMessage,
+    hoveredButton, setHoveredButton,
+    showCourseSelector, setShowCourseSelector,
+    availableCourses, setAvailableCourses,
+    selectedCourseIds, setSelectedCourseIds,
+    isLoadingCourses, setIsLoadingCourses,
+    courseSearchQuery, setCourseSearchQuery,
+    showCalendarModal, setShowCalendarModal,
+    isConnectingCalendar, setIsConnectingCalendar,
+    connectedCalendar, setConnectedCalendar,
+    calendarSkipped, setCalendarSkipped,
+    showCalendarConfig, setShowCalendarConfig,
+    hasConfiguredCalendars, setHasConfiguredCalendars,
+    studyApproach, setStudyApproach,
+    targetDate, setTargetDate,
+    hasAskedApproach, setHasAskedApproach,
+    hasAskedTargetDate, setHasAskedTargetDate,
+    showApproachModal, setShowApproachModal,
+    showApproachButtons, setShowApproachButtons,
+    showDateModal, setShowDateModal,
+    selectedDate, setSelectedDate,
+    currentMonth, setCurrentMonth,
+    savedLessonDistribution, setSavedLessonDistribution,
+    savedTargetDate, setSavedTargetDate,
+    savedTotalLessons, setSavedTotalLessons,
+    savedPlanId, setSavedPlanId,
+    hasShownFinalSummary, setHasShownFinalSummary,
+    savedCalendarData, setSavedCalendarData,
+    currentUserId, setCurrentUserId,
+    userContext, setUserContext,
+    assignedCourses, setAssignedCourses,
+    pendingLessonsWithNames, setPendingLessonsWithNames,
+  } = useResponseHandler();
 
   const liaData = useSofLIAData();
 
-  const processingRef = useRef<boolean>(false);
-  const lastVoiceQuestionRef = useRef<{ text: string; ts: number }>({ text: '', ts: 0 });
-  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const conversationHistoryRef = useRef(conversationHistory);
   const handleVoiceQuestionRef = useRef<(question: string) => Promise<void>>(async () => {});
   const hasAttemptedOpenRef = useRef<boolean>(false);
   const isOpeningRef = useRef<boolean>(false);
-  const pendingLessonsRef = useRef<StudyPlannerPendingLesson[]>([]);
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
   // Forward-reference ref so hooks called before useStudyPlannerCalendarActions
   // can still invoke analyzeCalendarAndSuggest at call time (not at render time).
   const analyzeCalendarAndSuggestRef = useRef<AnalyzeCalendarAndSuggest>(async () => {});
@@ -190,29 +180,7 @@ export function useStudyPlannerLIALogic() {
     },
   });
 
-  const scheduleStudyPlannerRedirect = (delayMs: number) => {
-    if (redirectTimerRef.current) {
-      clearTimeout(redirectTimerRef.current);
-      redirectTimerRef.current = null;
-    }
-
-    redirectTimerRef.current = setTimeout(() => {
-      redirectTimerRef.current = null;
-
-      try {
-        if (router && typeof router.replace === 'function') {
-          router.replace('/study-planner/dashboard');
-        } else if (typeof window !== 'undefined') {
-          window.location.href = '/study-planner/dashboard';
-        }
-      } catch (redirectError) {
-        console.error('Error al redirigir:', redirectError);
-        if (typeof window !== 'undefined') {
-          window.location.href = '/study-planner/dashboard';
-        }
-      }
-    }, delayMs);
-  };
+  const scheduleStudyPlannerRedirect = createPlannerRedirectScheduler(router);
 
   const {
     clearStudyPlannerSessionStorage,

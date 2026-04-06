@@ -1,0 +1,1 @@
+export { AddNewsModal } from './AddNewsModal'
