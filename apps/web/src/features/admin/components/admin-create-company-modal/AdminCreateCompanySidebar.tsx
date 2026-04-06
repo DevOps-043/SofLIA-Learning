@@ -18,7 +18,7 @@ const navItems = [
     id: 'general' as CreateTab,
     label: 'General',
     icon: BuildingOffice2Icon,
-    description: 'Info bÃ¡sica y contacto',
+    description: 'Info básica y contacto',
   },
   {
     id: 'branding' as CreateTab,
@@ -30,7 +30,7 @@ const navItems = [
     id: 'owner' as CreateTab,
     label: 'Propietario',
     icon: UserCircleIcon,
-    description: 'Invitar al dueÃ±o',
+    description: 'Invitar al dueño',
   },
 ]
 
@@ -53,12 +53,12 @@ export function AdminCreateCompanySidebar({
 }: AdminCreateCompanySidebarProps) {
   return (
     <div
-      className="hidden lg:flex w-[320px] flex-col p-8 border-r border-white/5 relative shrink-0"
+      className="hidden lg:flex w-[320px] flex-col p-8 border-r border-gray-200 dark:border-white/5 relative shrink-0"
       style={{
         background: `linear-gradient(135deg, ${primaryColor}15, ${accentColor}10)`,
       }}
     >
-      <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-gray-200/50 dark:bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
       <div className="relative z-10 text-center mb-8">
         <motion.div
@@ -67,7 +67,7 @@ export function AdminCreateCompanySidebar({
           animate={{ scale: 1, opacity: 1 }}
         >
           <div
-            className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl border-2 border-white/10 mx-auto bg-white/5 backdrop-blur-sm"
+            className="w-24 h-24 rounded-2xl flex items-center justify-center overflow-hidden shadow-2xl border-2 border-gray-200 dark:border-white/10 mx-auto bg-gray-100 dark:bg-white/5 backdrop-blur-sm"
             style={{
               background: formData.brand_logo_url
                 ? '#fff'
@@ -102,7 +102,7 @@ export function AdminCreateCompanySidebar({
           </motion.div>
         </motion.div>
 
-        <h3 className="text-xl font-bold text-white mb-1 truncate px-2">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 truncate px-2">
           {formData.name || 'Nueva Empresa'}
         </h3>
         <div className="flex items-center justify-center gap-2 opacity-70">
@@ -110,7 +110,7 @@ export function AdminCreateCompanySidebar({
             className="w-3 h-3 text-current"
             style={{ color: accentColor }}
           />
-          <p className="text-xs font-mono text-white/80">
+          <p className="text-xs font-mono text-gray-600 dark:text-white/80">
             {formData.slug ? `/${formData.slug}` : '/...'}
           </p>
         </div>
@@ -125,21 +125,21 @@ export function AdminCreateCompanySidebar({
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={`w-full flex items-center gap-3 p-3.5 rounded-xl transition-all text-left relative overflow-hidden group ${
-                isActive ? 'shadow-lg' : 'hover:bg-white/5'
+                isActive ? 'shadow-lg' : 'hover:bg-gray-100 dark:hover:bg-white/5'
               }`}
             >
               {isActive && (
                 <motion.div
                   layoutId="activeCreateTabBg"
-                  className="absolute inset-0 bg-white/10 ring-1 ring-white/10"
+                  className="absolute inset-0 bg-gray-200/50 dark:bg-white/10 ring-1 ring-gray-300 dark:ring-white/10"
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                 />
               )}
               <item.icon
                 className={`w-5 h-5 relative z-10 transition-colors ${
                   isActive
-                    ? 'text-white'
-                    : 'text-gray-400 group-hover:text-white'
+                    ? 'text-gray-900 dark:text-white'
+                    : 'text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'
                 }`}
                 style={{ color: isActive ? accentColor : undefined }}
               />
@@ -147,15 +147,15 @@ export function AdminCreateCompanySidebar({
                 <p
                   className={`text-sm font-medium ${
                     isActive
-                      ? 'text-white'
-                      : 'text-gray-300 group-hover:text-white'
+                      ? 'text-gray-900 dark:text-white'
+                      : 'text-gray-600 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white'
                   }`}
                 >
                   {item.label}
                 </p>
                 <p
                   className={`text-[10px] ${
-                    isActive ? 'text-white/70' : 'text-gray-500'
+                    isActive ? 'text-gray-500 dark:text-white/70' : 'text-gray-500'
                   }`}
                 >
                   {item.description}
@@ -166,8 +166,8 @@ export function AdminCreateCompanySidebar({
         })}
       </nav>
 
-      <div className="mt-6 pt-6 border-t border-white/5 relative z-10">
-        <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/5 relative z-10">
+        <div className="bg-gray-100 dark:bg-white/5 rounded-xl p-3 border border-gray-200 dark:border-white/5">
           <div className="flex justify-between items-center mb-2">
             <p className="text-[10px] text-gray-400 uppercase tracking-wider">
               Plan Seleccionado
@@ -177,11 +177,11 @@ export function AdminCreateCompanySidebar({
               style={{ backgroundColor: selectedPlan.color }}
             />
           </div>
-          <p className="text-lg font-bold text-white leading-none">
+          <p className="text-lg font-bold text-gray-900 dark:text-white leading-none">
             {selectedPlan.label}
           </p>
           <p className="text-xs text-gray-500 mt-1">
-            {formData.max_users} usuarios mÃ¡x.
+            {formData.max_users} usuarios máx.
           </p>
         </div>
       </div>

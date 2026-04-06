@@ -3,6 +3,7 @@ import type {
   StudyPlannerScheduledLesson,
   StudyPlannerStoredLessonDistribution,
 } from '../types/planner-schedule.types';
+import type { OrganizationHoliday } from './organization-planner-config.service';
 
 const HOLIDAY_DATE_PARTS = ['-01-01', '-12-25', '-05-01', '-09-16', '-11-20'];
 const MONTH_MAP: Record<string, number> = {
@@ -166,7 +167,11 @@ export function formatPlannerTime24h(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-export function isHolidayDistributionDate(dateStr: string): boolean {
+export function isHolidayDistributionDate(
+  dateStr: string,
+  organizationHolidays?: OrganizationHoliday[],
+): boolean {
+  // Check national holidays
   if (HOLIDAY_DATE_PARTS.some(part => dateStr.includes(part))) {
     return true;
   }
@@ -176,13 +181,24 @@ export function isHolidayDistributionDate(dateStr: string): boolean {
     return false;
   }
 
-  return HOLIDAY_DATE_PARTS.some(part => buildIsoDate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()).includes(part));
+  const isoDate = buildIsoDate(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+  if (HOLIDAY_DATE_PARTS.some(part => isoDate.includes(part))) {
+    return true;
+  }
+
+  // Check organizational holidays (B2B)
+  if (organizationHolidays && organizationHolidays.length > 0) {
+    return organizationHolidays.some((h) => h.date === isoDate);
+  }
+
+  return false;
 }
 
 export function filterHolidayLessonDistributions(
-  distributions: StudyPlannerStoredLessonDistribution[]
+  distributions: StudyPlannerStoredLessonDistribution[],
+  organizationHolidays?: OrganizationHoliday[],
 ): StudyPlannerStoredLessonDistribution[] {
-  return distributions.filter(item => !isHolidayDistributionDate(item.dateStr));
+  return distributions.filter(item => !isHolidayDistributionDate(item.dateStr, organizationHolidays));
 }
 
 export function sortLessonDistributions(

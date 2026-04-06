@@ -1,14 +1,14 @@
-import { createClient } from '@/core/supabase/client'
+import { getServiceClient } from '@/core/supabase/service-client'
 import type { UpdateProfileInput, UserProfile } from './profile.types'
 
 export class ProfileRepository {
   private get supabase() {
-    return createClient()
+    return getServiceClient()
   }
 
   async findById(userId: string): Promise<UserProfile | null> {
     const { data, error } = await this.supabase
-      .from('usuarios')
+      .from('users')
       .select('id, username, email, first_name, last_name, display_name, bio, location, phone, profile_picture_url, last_login_at, created_at, updated_at')
       .eq('id', userId)
       .single()
@@ -19,7 +19,7 @@ export class ProfileRepository {
 
   async update(userId: string, input: UpdateProfileInput): Promise<UserProfile | null> {
     const { data, error } = await this.supabase
-      .from('usuarios')
+      .from('users')
       .update({ ...input, updated_at: new Date().toISOString() })
       .eq('id', userId)
       .select('id, username, email, first_name, last_name, display_name, bio, location, phone, profile_picture_url, last_login_at, created_at, updated_at')
@@ -31,7 +31,7 @@ export class ProfileRepository {
 
   async updateProfilePicture(userId: string, pictureUrl: string): Promise<UserProfile | null> {
     const { data, error } = await this.supabase
-      .from('usuarios')
+      .from('users')
       .update({ profile_picture_url: pictureUrl, updated_at: new Date().toISOString() })
       .eq('id', userId)
       .select('id, username, email, first_name, last_name, display_name, bio, location, phone, profile_picture_url, last_login_at, created_at, updated_at')

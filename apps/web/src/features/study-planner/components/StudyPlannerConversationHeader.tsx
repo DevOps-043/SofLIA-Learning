@@ -13,6 +13,7 @@ interface StudyPlannerConversationHeaderProps {
   isMobile: boolean;
   connectedCalendar: StudyPlannerCalendarProvider;
   isProcessing: boolean;
+  selectedCourseName?: string | null;
   showCalendarModal: boolean;
   hoveredButton: string | null;
   hasConfiguredCalendars: boolean;
@@ -87,6 +88,7 @@ export function StudyPlannerConversationHeader({
   isMobile,
   connectedCalendar,
   isProcessing,
+  selectedCourseName,
   showCalendarModal,
   hoveredButton,
   hasConfiguredCalendars,
@@ -122,7 +124,14 @@ export function StudyPlannerConversationHeader({
 
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-bold text-[#0A2540] dark:text-white sm:text-lg">SofLIA - Planificador</h1>
-            <p className="truncate text-xs text-[#6C757D] dark:text-gray-400 sm:text-sm">Tu asistente personal</p>
+            {selectedCourseName ? (
+              <p className="flex items-center gap-1.5 truncate text-xs text-[#0A2540] dark:text-[#00D4B3] sm:text-sm">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                {selectedCourseName}
+              </p>
+            ) : (
+              <p className="truncate text-xs text-[#6C757D] dark:text-gray-400 sm:text-sm">Tu asistente personal</p>
+            )}
           </div>
         </div>
 

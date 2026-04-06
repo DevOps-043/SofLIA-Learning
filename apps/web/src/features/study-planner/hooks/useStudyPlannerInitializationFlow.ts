@@ -79,9 +79,9 @@ export function useStudyPlannerInitializationFlow({
           setAssignedCourses(userData.assignedCourses);
 
           if (userData.assignedCourses.length > 0) {
-            setSelectedCourseIds(
-              userData.assignedCourses.map((course) => course.courseId).filter(Boolean),
-            );
+            // Courses are loaded for display, but NOT auto-selected.
+            // The user must explicitly choose which course to plan (RF-01, RF-02, BUG-02).
+            setSelectedCourseIds([]);
           }
         }
 

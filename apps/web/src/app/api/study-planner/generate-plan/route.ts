@@ -308,7 +308,7 @@ function generateTimeSlots(prefs: Preferences, minSlotsNeeded: number): { date: 
   const targetDays = prefs.days.map(d => dayMap[d.toLowerCase().trim()]).filter(d => d !== undefined);
   if (targetDays.length === 0) targetDays.push(1, 2, 3, 4, 5); // Default L-V
 
-  const timeMap: { [key: string]: string } = { 'mañana': '08:00', 'tarde': '14:00', 'noche': '20:00' };
+  const timeMap: { [key: string]: string } = { 'mañana': '08:00', 'manana': '08:00', 'tarde': '14:00', 'noche': '20:00' };
 
   const targetTimes = prefs.times.map(t => ({
     period: t.toLowerCase(),

@@ -32,7 +32,7 @@ interface UseStudyPlannerVoiceQuestionHandlerParams {
   assignedCourses: StudyPlannerAssignedCourse[];
   connectedCalendar: StudyPlannerCalendarProvider;
   conversationHistoryRef: MutableRefObject<StudyPlannerMessage[]>;
-  getLessonsForPrompt: () => string;
+  getLessonsForPrompt: (selectedCourseIds?: string[]) => string;
   hasAskedApproach: boolean;
   hasAskedTargetDate: boolean;
   isAudioEnabled: boolean;

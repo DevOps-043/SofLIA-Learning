@@ -117,14 +117,8 @@ export function pickAllowedProfileUpdates(updates: UpdateProfileRequest): Partia
     'phone',
     'bio',
     'location',
-    'cargo_rol',
-    'type_rol',
     'profile_picture_url',
     'country_code',
-    'curriculum_url',
-    'linkedin_url',
-    'github_url',
-    'website_url'
   ]
 
   return allowedFields.reduce<Partial<UpdateProfileRequest>>((accumulator, field) => {

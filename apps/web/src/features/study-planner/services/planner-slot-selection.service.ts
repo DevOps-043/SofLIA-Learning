@@ -6,11 +6,13 @@ import type {
 } from '../types/planner-schedule.types';
 import type { StudyApproach } from '../types/planner-ui.types';
 import type { StudyPlannerAvailabilityEstimate } from './planner-calendar-analysis.service';
+import type { OrganizationPlannerConfig } from './organization-planner-config.service';
 
 interface SelectStudyPlannerFinalSlotsInput {
   currentTime: Date;
   daysAnalysis: StudyPlannerCalendarDayAnalysis[];
   hasOrganizationalDeadlines: boolean;
+  organizationConfig?: OrganizationPlannerConfig | null;
   profileAvailability: StudyPlannerAvailabilityEstimate | null;
   skipB2BRedirect?: boolean;
   startDate: Date;
@@ -314,7 +316,8 @@ export function selectStudyPlannerFinalSlots(
     recommendedBreak,
   );
 
-  const maxSlotsPerDay = input.userType === 'b2b' && !input.skipB2BRedirect ? 4 : 2;
+  const maxSlotsPerDay = input.organizationConfig?.maxLessonsPerDay
+    ?? (input.userType === 'b2b' && !input.skipB2BRedirect ? 4 : 2);
   const slotsByDay = new Map<string, StudyPlannerCalendarFreeSlotWithDay[]>();
 
   dividedSlots.forEach((slot) => {

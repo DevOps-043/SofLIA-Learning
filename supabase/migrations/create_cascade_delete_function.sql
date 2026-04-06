@@ -2,6 +2,7 @@
 -- Ejecuta este script en el Editor SQL de Supabase
 -- IMPORTANTE: Esta función usa SECURITY DEFINER para bypass RLS
 -- y DESHABILITA temporalmente triggers para poder eliminar certificados
+-- ACTUALIZADO: 2026-04-04 — Solo referencia tablas existentes en la BD
 
 DROP FUNCTION IF EXISTS delete_user_cascade(UUID);
 
@@ -15,21 +16,17 @@ DECLARE
   deleted_count INTEGER := 0;
   result JSONB := '{}';
   enrollment_ids UUID[];
+  scorm_attempt_ids UUID[];
 BEGIN
   -- ============================================
-  -- DESHABILITAR TRIGGERS temporalmente en tablas problemáticas
+  -- DESHABILITAR TRIGGERS temporalmente
   -- ============================================
-  -- Esto es necesario porque certificate_ledger es append-only
-  -- y hay triggers que intentan escribir ahí al eliminar
-  
-  -- Deshabilitar triggers en user_course_certificates
   BEGIN
     ALTER TABLE user_course_certificates DISABLE TRIGGER ALL;
   EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'No se pudo deshabilitar triggers en user_course_certificates: %', SQLERRM;
   END;
-  
-  -- Deshabilitar triggers en user_course_enrollments
+
   BEGIN
     ALTER TABLE user_course_enrollments DISABLE TRIGGER ALL;
   EXCEPTION WHEN OTHERS THEN
@@ -42,7 +39,7 @@ BEGIN
   SELECT ARRAY_AGG(enrollment_id) INTO enrollment_ids
   FROM user_course_enrollments
   WHERE user_id = target_user_id;
-  
+
   result := result || jsonb_build_object('enrollment_ids_found', COALESCE(array_length(enrollment_ids, 1), 0));
 
   -- ============================================
@@ -60,10 +57,9 @@ BEGIN
   result := result || jsonb_build_object('certificates_deleted', deleted_count);
 
   -- ============================================
-  -- PASO 4: Quiz submissions (dependen de enrollments)
+  -- PASO 4: Quiz submissions
   -- ============================================
   DELETE FROM user_quiz_submissions WHERE user_id = target_user_id;
-  -- También eliminar por enrollment_id si existe
   IF enrollment_ids IS NOT NULL AND array_length(enrollment_ids, 1) > 0 THEN
     DELETE FROM user_quiz_submissions WHERE enrollment_id = ANY(enrollment_ids);
   END IF;
@@ -73,7 +69,6 @@ BEGIN
   -- ============================================
   DELETE FROM lesson_tracking WHERE user_id = target_user_id;
   DELETE FROM user_lesson_progress WHERE user_id = target_user_id;
-  -- También por enrollment_id
   IF enrollment_ids IS NOT NULL AND array_length(enrollment_ids, 1) > 0 THEN
     DELETE FROM user_lesson_progress WHERE enrollment_id = ANY(enrollment_ids);
   END IF;
@@ -97,7 +92,7 @@ BEGIN
   DELETE FROM user_streaks WHERE user_id = target_user_id;
 
   -- ============================================
-  -- PASO 8: Asignaciones y cursos
+  -- PASO 8: Asignaciones organizacionales
   -- ============================================
   DELETE FROM organization_course_assignments WHERE user_id = target_user_id;
   DELETE FROM organization_course_assignments WHERE assigned_by = target_user_id;
@@ -131,12 +126,13 @@ BEGIN
   -- ============================================
   -- PASO 12: SCORM
   -- ============================================
-  DELETE FROM scorm_interactions WHERE attempt_id IN (
-    SELECT id FROM scorm_attempts WHERE user_id = target_user_id
-  );
-  DELETE FROM scorm_objectives WHERE attempt_id IN (
-    SELECT id FROM scorm_attempts WHERE user_id = target_user_id
-  );
+  SELECT ARRAY_AGG(id) INTO scorm_attempt_ids
+  FROM scorm_attempts WHERE user_id = target_user_id;
+
+  IF scorm_attempt_ids IS NOT NULL AND array_length(scorm_attempt_ids, 1) > 0 THEN
+    DELETE FROM scorm_interactions WHERE attempt_id = ANY(scorm_attempt_ids);
+    DELETE FROM scorm_objectives WHERE attempt_id = ANY(scorm_attempt_ids);
+  END IF;
   DELETE FROM scorm_attempts WHERE user_id = target_user_id;
 
   -- ============================================
@@ -155,66 +151,69 @@ BEGIN
   DELETE FROM user_session WHERE user_id = target_user_id;
 
   -- ============================================
-  -- PASO 15: Work teams
-  -- ============================================
-  DELETE FROM work_team_feedback WHERE from_user_id = target_user_id;
-  DELETE FROM work_team_feedback WHERE to_user_id = target_user_id;
-  DELETE FROM work_team_messages WHERE sender_id = target_user_id;
-  DELETE FROM work_team_objectives WHERE created_by = target_user_id;
-  DELETE FROM work_team_course_assignments WHERE assigned_by = target_user_id;
-  DELETE FROM work_team_members WHERE user_id = target_user_id;
-  UPDATE work_teams SET team_leader_id = NULL WHERE team_leader_id = target_user_id;
-  UPDATE work_teams SET created_by = NULL WHERE created_by = target_user_id;
-
-  -- ============================================
-  -- PASO 16: Perfil y respuestas
-  -- ============================================
-  DELETE FROM respuestas WHERE user_perfil_id IN (
-    SELECT id FROM user_perfil WHERE user_id = target_user_id
-  );
-  DELETE FROM user_perfil WHERE user_id = target_user_id;
-
-  -- ============================================
-  -- PASO 17: Reportes y admin
+  -- PASO 15: Reportes y admin
   -- ============================================
   DELETE FROM reportes_problemas WHERE user_id = target_user_id;
   UPDATE reportes_problemas SET admin_asignado = NULL WHERE admin_asignado = target_user_id;
-  DELETE FROM admin_dashboard_layouts WHERE user_id = target_user_id;
-  DELETE FROM admin_dashboard_preferences WHERE user_id = target_user_id;
 
   -- ============================================
-  -- PASO 18: Activity logs y tours
+  -- PASO 15b: Perfil de onboarding
+  -- ============================================
+  DELETE FROM user_perfil WHERE user_id = target_user_id;
+
+  -- ============================================
+  -- PASO 16: Activity, tours, warnings, moderación
   -- ============================================
   DELETE FROM user_activity_log WHERE user_id = target_user_id;
   DELETE FROM user_tour_progress WHERE user_id = target_user_id;
-
-  -- ============================================
-  -- PASO 19: Warnings y moderación
-  -- ============================================
   DELETE FROM user_warnings WHERE user_id = target_user_id;
   DELETE FROM ai_moderation_logs WHERE user_id = target_user_id;
 
   -- ============================================
-  -- PASO 20: Audit logs
+  -- PASO 17: Audit logs
   -- ============================================
   DELETE FROM audit_logs WHERE user_id = target_user_id;
   DELETE FROM audit_logs WHERE admin_user_id = target_user_id;
 
   -- ============================================
-  -- PASO 21: Organization users
+  -- PASO 18: Favoritos de herramientas
   -- ============================================
+  DELETE FROM user_favorite_tools WHERE user_id = target_user_id;
+
+  -- ============================================
+  -- PASO 19: Hierarchy, jerarquía y organizaciones
+  -- ============================================
+  DELETE FROM hierarchy_chat_messages WHERE sender_id = target_user_id;
+  DELETE FROM hierarchy_chat_participants WHERE user_id = target_user_id;
+  DELETE FROM hierarchy_course_assignments WHERE assigned_by = target_user_id;
+  DELETE FROM lia_personalization_settings WHERE user_id = target_user_id;
+  DELETE FROM bulk_invite_links WHERE created_by = target_user_id;
+  DELETE FROM bulk_invite_registrations WHERE user_id = target_user_id;
+  DELETE FROM user_invitations WHERE created_by = target_user_id;
+  UPDATE organization_join_requests SET reviewed_by = NULL WHERE reviewed_by = target_user_id;
+  DELETE FROM organization_join_requests WHERE user_id = target_user_id;
+  UPDATE organization_nodes SET manager_id = NULL WHERE manager_id = target_user_id;
+  DELETE FROM organization_node_users WHERE user_id = target_user_id;
+  UPDATE organization_regions SET created_by = NULL WHERE created_by = target_user_id;
+  UPDATE organization_regions SET manager_id = NULL WHERE manager_id = target_user_id;
+  UPDATE organization_teams SET created_by = NULL WHERE created_by = target_user_id;
+  UPDATE organization_teams SET leader_id = NULL WHERE leader_id = target_user_id;
+  UPDATE organization_zones SET created_by = NULL WHERE created_by = target_user_id;
+  UPDATE organization_zones SET manager_id = NULL WHERE manager_id = target_user_id;
   UPDATE organization_users SET invited_by = NULL WHERE invited_by = target_user_id;
   DELETE FROM organization_users WHERE user_id = target_user_id;
 
   -- ============================================
-  -- PASO 22: Instructor references
+  -- PASO 20: Referencias de instructor y contenido
   -- ============================================
   UPDATE courses SET instructor_id = NULL WHERE instructor_id = target_user_id;
   UPDATE courses SET approved_by = NULL WHERE approved_by = target_user_id;
   UPDATE course_lessons SET instructor_id = NULL WHERE instructor_id = target_user_id;
-  UPDATE news SET created_by = NULL WHERE created_by = target_user_id;
   UPDATE content_translations SET created_by = NULL WHERE created_by = target_user_id;
   UPDATE scorm_packages SET created_by = NULL WHERE created_by = target_user_id;
+  -- course_lessons_en/pt tienen instructor_id NOT NULL → eliminar lecciones del instructor
+  DELETE FROM course_lessons_en WHERE instructor_id = target_user_id;
+  DELETE FROM course_lessons_pt WHERE instructor_id = target_user_id;
 
   -- ============================================
   -- RE-HABILITAR TRIGGERS
@@ -224,7 +223,7 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'No se pudo habilitar triggers en user_course_certificates: %', SQLERRM;
   END;
-  
+
   BEGIN
     ALTER TABLE user_course_enrollments ENABLE TRIGGER ALL;
   EXCEPTION WHEN OTHERS THEN
@@ -238,8 +237,12 @@ BEGIN
   GET DIAGNOSTICS deleted_count = ROW_COUNT;
   result := result || jsonb_build_object('user_deleted', deleted_count > 0);
 
+  IF deleted_count = 0 THEN
+    RAISE EXCEPTION 'No se pudo eliminar el usuario %. Posibles referencias pendientes.', target_user_id;
+  END IF;
+
   RETURN result;
-  
+
 EXCEPTION
   WHEN OTHERS THEN
     -- Re-habilitar triggers en caso de error
@@ -247,9 +250,9 @@ EXCEPTION
       ALTER TABLE user_course_certificates ENABLE TRIGGER ALL;
       ALTER TABLE user_course_enrollments ENABLE TRIGGER ALL;
     EXCEPTION WHEN OTHERS THEN
-      NULL; -- Ignorar errores al rehabilitar triggers
+      NULL;
     END;
-    
+
     RAISE EXCEPTION 'Error eliminando usuario %: % - %', target_user_id, SQLERRM, SQLSTATE;
 END;
 $$;
@@ -257,6 +260,3 @@ $$;
 -- Dar permisos de ejecución
 GRANT EXECUTE ON FUNCTION delete_user_cascade(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION delete_user_cascade(UUID) TO service_role;
-
--- Comentario de uso:
--- SELECT delete_user_cascade('bee6af85-60b2-4f62-ab8a-e195a89d0fd4');

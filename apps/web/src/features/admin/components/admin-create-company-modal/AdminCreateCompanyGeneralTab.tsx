@@ -8,7 +8,6 @@ import {
   ChevronDownIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline'
-import { SOFLIA_ADMIN_COLORS } from '../../constants/admin-color-tokens'
 import { PLAN_OPTIONS } from './service'
 import type { CreateCompanyData, PlanOption } from './types'
 
@@ -38,29 +37,29 @@ export function AdminCreateCompanyGeneralTab({
       className="space-y-8 max-w-3xl"
     >
       <div className="space-y-5">
-        <div className="flex items-center gap-2 text-sm font-bold text-white/50 uppercase tracking-wider pb-2 border-b border-white/5">
-          <BuildingOffice2Icon className="w-4 h-4" /> InformaciÃ³n BÃ¡sica
+        <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-white/50 uppercase tracking-wider pb-2 border-b border-gray-200 dark:border-white/5">
+          <BuildingOffice2Icon className="w-4 h-4" /> Información Básica
         </div>
         <div className="grid grid-cols-1 gap-5">
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-2 ml-1">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 ml-1">
               Nombre de la empresa <span className="text-red-400">*</span>
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => onNameChange(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 focus:ring-1 focus:ring-white/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:border-gray-300 dark:focus:border-white/20 focus:ring-1 focus:ring-gray-300 dark:focus:ring-white/20 outline-none transition-all"
               placeholder="Ej. Acme Corp"
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-2 ml-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 ml-1">
                 Slug (URL){' '}
                 <span className="text-xs text-gray-500">- auto-generado</span>
               </label>
-              <div className="flex items-center bg-white/5 border border-white/10 rounded-xl px-4 py-3 transition-colors focus-within:border-white/20 focus-within:ring-1 focus-within:ring-white/20">
+              <div className="flex items-center bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 transition-colors focus-within:border-gray-300 dark:focus-within:border-white/20 focus-within:ring-1 focus-within:ring-gray-300 dark:focus-within:ring-white/20">
                 <span className="text-gray-500 text-sm select-none mr-1">
                   app.SOFLIA.com/
                 </span>
@@ -73,13 +72,13 @@ export function AdminCreateCompanyGeneralTab({
                       slug: e.target.value,
                     }))
                   }
-                  className="flex-1 bg-transparent border-none text-white placeholder-white/20 focus:ring-0 outline-none p-0"
+                  className="flex-1 bg-transparent border-none text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:ring-0 outline-none p-0"
                   placeholder="acme"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-400 mb-2 ml-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 ml-1">
                 Estado Inicial
               </label>
               <button
@@ -90,11 +89,11 @@ export function AdminCreateCompanyGeneralTab({
                     is_active: !current.is_active,
                   }))
                 }
-                className="w-full h-[50px] flex items-center justify-between px-4 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group"
+                className="w-full h-[50px] flex items-center justify-between px-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors group"
               >
                 <span
                   className={`text-sm font-medium ${
-                    formData.is_active ? 'text-white' : 'text-gray-400'
+                    formData.is_active ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >
                   {formData.is_active ? 'Cuenta Activa' : 'Cuenta Pausada'}
@@ -114,8 +113,8 @@ export function AdminCreateCompanyGeneralTab({
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-2 ml-1">
-              DescripciÃ³n
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2 ml-1">
+              Descripción
             </label>
             <textarea
               rows={3}
@@ -126,20 +125,20 @@ export function AdminCreateCompanyGeneralTab({
                   description: e.target.value,
                 }))
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 focus:ring-1 focus:ring-white/20 outline-none resize-none transition-all"
-              placeholder="Breve descripciÃ³n de la empresa..."
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:border-gray-300 dark:focus:border-white/20 focus:ring-1 focus:ring-gray-300 dark:focus:ring-white/20 outline-none resize-none transition-all"
+              placeholder="Breve descripción de la empresa..."
             />
           </div>
         </div>
       </div>
 
       <div className="space-y-5">
-        <div className="flex items-center gap-2 text-sm font-bold text-white/50 uppercase tracking-wider pb-2 border-b border-white/5">
+        <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-white/50 uppercase tracking-wider pb-2 border-b border-gray-200 dark:border-white/5">
           <EnvelopeIcon className="w-4 h-4" /> Contacto
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div>
-            <label className="block text-xs text-gray-400 mb-2 ml-1">
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 ml-1">
               Email de Contacto
             </label>
             <input
@@ -151,13 +150,13 @@ export function AdminCreateCompanyGeneralTab({
                   contact_email: e.target.value,
                 }))
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:border-gray-300 dark:focus:border-white/20 outline-none transition-all"
               placeholder="contacto@empresa.com"
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-2 ml-1">
-              TelÃ©fono
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 ml-1">
+              Teléfono
             </label>
             <input
               type="tel"
@@ -168,12 +167,12 @@ export function AdminCreateCompanyGeneralTab({
                   contact_phone: e.target.value,
                 }))
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:border-gray-300 dark:focus:border-white/20 outline-none transition-all"
               placeholder="+52 55 1234 5678"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="block text-xs text-gray-400 mb-2 ml-1">
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 ml-1">
               Sitio Web
             </label>
             <input
@@ -185,7 +184,7 @@ export function AdminCreateCompanyGeneralTab({
                   website_url: e.target.value,
                 }))
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:border-gray-300 dark:focus:border-white/20 outline-none transition-all"
               placeholder="https://empresa.com"
             />
           </div>
@@ -193,16 +192,16 @@ export function AdminCreateCompanyGeneralTab({
       </div>
 
       <div className="space-y-5">
-        <div className="flex items-center gap-2 text-sm font-bold text-white/50 uppercase tracking-wider pb-2 border-b border-white/5">
-          <BoltIcon className="w-4 h-4" /> SuscripciÃ³n y Acceso
+        <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-white/50 uppercase tracking-wider pb-2 border-b border-gray-200 dark:border-white/5">
+          <BoltIcon className="w-4 h-4" /> Suscripción y Acceso
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="relative">
-            <label className="block text-xs text-gray-400 mb-2 ml-1">Plan</label>
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 ml-1">Plan</label>
             <button
               type="button"
               onClick={() => onPlanOpenChange(!isPlanOpen)}
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white flex items-center justify-between hover:bg-white/10 transition-colors"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white flex items-center justify-between hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
             >
               <div className="flex items-center gap-2">
                 <div
@@ -222,8 +221,7 @@ export function AdminCreateCompanyGeneralTab({
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute top-full left-0 w-full mt-2 rounded-xl border border-white/10 overflow-hidden z-20 shadow-2xl backdrop-blur-xl"
-                  style={{ backgroundColor: SOFLIA_ADMIN_COLORS.bgTertiary }}
+                  className="absolute top-full left-0 w-full mt-2 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden z-20 shadow-2xl backdrop-blur-xl bg-white dark:bg-carbon-950"
                 >
                   {PLAN_OPTIONS.map((option) => (
                     <div
@@ -235,14 +233,14 @@ export function AdminCreateCompanyGeneralTab({
                         }))
                         onPlanOpenChange(false)
                       }}
-                      className="px-4 py-3 hover:bg-white/10 cursor-pointer flex items-center gap-3 transition-colors"
+                      className="px-4 py-3 hover:bg-gray-100 dark:hover:bg-white/10 cursor-pointer flex items-center gap-3 transition-colors"
                     >
                       <div
                         className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: option.color }}
                       />
                       <div className="flex-1">
-                        <span className="text-sm text-white block">
+                        <span className="text-sm text-gray-900 dark:text-white block">
                           {option.label}
                         </span>
                         <span className="text-[10px] text-gray-500">
@@ -250,7 +248,7 @@ export function AdminCreateCompanyGeneralTab({
                         </span>
                       </div>
                       {formData.subscription_plan === option.value && (
-                        <CheckCircleIcon className="w-4 h-4 text-white" />
+                        <CheckCircleIcon className="w-4 h-4 text-gray-900 dark:text-white" />
                       )}
                     </div>
                   ))}
@@ -260,8 +258,8 @@ export function AdminCreateCompanyGeneralTab({
           </div>
 
           <div>
-            <label className="block text-xs text-gray-400 mb-2 ml-1">
-              Usuarios MÃ¡ximos
+            <label className="block text-xs text-gray-600 dark:text-gray-400 mb-2 ml-1">
+              Usuarios Máximos
             </label>
             <input
               type="number"
@@ -273,17 +271,17 @@ export function AdminCreateCompanyGeneralTab({
                   max_users: parseInt(e.target.value, 10) || 1,
                 }))
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/20 focus:border-white/20 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:border-gray-300 dark:focus:border-white/20 outline-none transition-all"
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
             <div className="flex items-center gap-2">
               <div
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: '#4285F4' }}
               />
-              <span className="text-sm text-white">Google SSO</span>
+              <span className="text-sm text-gray-900 dark:text-white">Google SSO</span>
             </div>
             <button
               type="button"
@@ -305,13 +303,13 @@ export function AdminCreateCompanyGeneralTab({
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+          <div className="flex items-center justify-between p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10">
             <div className="flex items-center gap-2">
               <div
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: '#00a6f0' }}
               />
-              <span className="text-sm text-white">Microsoft SSO</span>
+              <span className="text-sm text-gray-900 dark:text-white">Microsoft SSO</span>
             </div>
             <button
               type="button"

@@ -131,7 +131,11 @@ export function AdminUsersPage() {
     })
 
     if (!response.ok) {
-      throw new Error('Error al actualizar usuario')
+      const errorData = await response.json().catch(() => ({}))
+      if (errorData?.message === 'Datos inválidos' && errorData?.errors) {
+        throw new Error(errorData.errors.map((e: any) => `${e.field}: ${e.message}`).join(', '))
+      }
+      throw new Error(errorData?.error || errorData?.message || 'Error al actualizar usuario')
     }
 
     refetch()
@@ -150,7 +154,7 @@ export function AdminUsersPage() {
         throw new Error(errorData.error || 'Error al eliminar usuario')
       }
 
-      refetch()
+      await refetch()
       setIsDeleteModalOpen(false)
       setDeletingUser(null)
     } catch (error) {
@@ -183,7 +187,11 @@ export function AdminUsersPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Error al crear usuario')
+        const errorData = await response.json().catch(() => ({}))
+        if (errorData?.message === 'Datos inválidos' && errorData?.errors) {
+          throw new Error(errorData.errors.map((e: any) => `${e.field}: ${e.message}`).join(', '))
+        }
+        throw new Error(errorData?.error || errorData?.message || 'Error al crear usuario')
       }
 
       refetch()

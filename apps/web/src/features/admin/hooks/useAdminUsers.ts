@@ -17,7 +17,7 @@ interface UseAdminUsersReturn {
   totalPages: number
   isLoading: boolean
   error: string | null
-  refetch: () => void
+  refetch: () => Promise<void>
 }
 
 interface AdminUsersResponse {
@@ -73,6 +73,6 @@ export function useAdminUsers(options: UseAdminUsersOptions = {}): UseAdminUsers
     totalPages: data?.totalPages ?? 1,
     isLoading,
     error: error ? (error instanceof Error ? error.message : 'Error desconocido') : null,
-    refetch: () => mutate() // Permitir revalidación manual
+    refetch: async () => { await mutate() }
   }
 }

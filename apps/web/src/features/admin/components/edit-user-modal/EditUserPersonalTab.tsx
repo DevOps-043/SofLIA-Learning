@@ -113,7 +113,7 @@ export function EditUserPersonalTab({
 
         <div className="group">
           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            TelÃ©fono
+            Teléfono
           </label>
           <div className="relative">
             <PhoneIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
@@ -130,7 +130,7 @@ export function EditUserPersonalTab({
 
         <div className="group">
           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            UbicaciÃ³n
+            Ubicación
           </label>
           <div className="relative">
             <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
@@ -147,7 +147,7 @@ export function EditUserPersonalTab({
 
         <div className="group">
           <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-            CÃ³digo de paÃ­s
+            Código de país
           </label>
           <div className="relative">
             <FlagIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
@@ -166,14 +166,14 @@ export function EditUserPersonalTab({
 
       <div>
         <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-          BiografÃ­a
+          Biografía
         </label>
         <textarea
           value={formData.bio}
           onChange={(e) => onFieldChange('bio', e.target.value, e.target.type)}
           rows={3}
           className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
-          placeholder="Escribe una breve descripciÃ³n del usuario..."
+          placeholder="Escribe una breve descripción del usuario..."
         />
       </div>
     </motion.div>

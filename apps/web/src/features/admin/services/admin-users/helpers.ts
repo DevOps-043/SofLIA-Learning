@@ -25,20 +25,7 @@ export const ADMIN_USER_SELECT_FIELDS = `
   last_login_at
 `
 
-export const ADMIN_USER_LIST_SELECT_FIELDS = `
-  id,
-  username,
-  email,
-  first_name,
-  last_name,
-  display_name,
-  cargo_rol,
-  email_verified,
-  profile_picture_url,
-  created_at,
-  updated_at,
-  last_login_at
-`
+export const ADMIN_USER_LIST_SELECT_FIELDS = ADMIN_USER_SELECT_FIELDS
 
 export function normalizeUsersPagination(options: GetUsersOptions = {}) {
   const page = options.page && options.page > 0 ? options.page : 1
@@ -57,23 +44,26 @@ export function normalizeUsersPagination(options: GetUsersOptions = {}) {
 }
 
 export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {
+  const emptyToNull = (value: string | null | undefined): string | null =>
+    value === '' || value === undefined ? null : value
+
   return {
     username: userData.username,
     email: userData.email,
-    first_name: userData.first_name,
-    last_name: userData.last_name,
-    display_name: userData.display_name,
+    first_name: emptyToNull(userData.first_name),
+    last_name: emptyToNull(userData.last_name),
+    display_name: emptyToNull(userData.display_name),
     cargo_rol: userData.cargo_rol,
-    type_rol: userData.type_rol,
+    type_rol: emptyToNull(userData.type_rol),
     email_verified: userData.email_verified,
     email_verified_at: userData.email_verified
       ? new Date().toISOString()
       : userData.email_verified_at,
-    phone: userData.phone,
-    bio: userData.bio,
-    location: userData.location,
-    profile_picture_url: userData.profile_picture_url,
-    country_code: userData.country_code,
+    phone: emptyToNull(userData.phone),
+    bio: emptyToNull(userData.bio),
+    location: emptyToNull(userData.location),
+    profile_picture_url: emptyToNull(userData.profile_picture_url),
+    country_code: emptyToNull(userData.country_code),
     updated_at: new Date().toISOString(),
   }
 }

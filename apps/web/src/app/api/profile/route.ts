@@ -32,7 +32,8 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updatedProfile)
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Error desconocido'
     logger.error('Error in profile PUT API:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

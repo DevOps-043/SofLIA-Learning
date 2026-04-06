@@ -18,7 +18,7 @@ dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 // ✅ Schema completo de validación con Zod
 const envSchema = z.object({
   // Server
-  PORT: z.coerce.number().int().positive().default(3001),
+  PORT: z.coerce.number().int().positive().default(4000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   API_VERSION: z.string().default('v1'),
 

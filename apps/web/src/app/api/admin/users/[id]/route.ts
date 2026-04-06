@@ -103,8 +103,9 @@ export async function DELETE(
       )
     }
     
+    const message = error instanceof Error ? error.message : 'Error al eliminar usuario'
     return NextResponse.json(
-      { error: 'Error al eliminar usuario' },
+      { error: message },
       { status: 500 }
     )
   }

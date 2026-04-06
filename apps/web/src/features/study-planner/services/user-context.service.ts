@@ -2,13 +2,15 @@
  * UserContextService
  *
  * Orchestrates the full user context for the study planner by combining
- * identity, organisation, course assignments, and preferences data.
+ * identity, organisation, course assignments, preferences data,
+ * and B2B planner configuration.
  */
 
 import { UserIdentityService } from './user-identity.service';
 import { UserOrganizationService } from './user-organization.service';
 import { UserCourseAssignmentsService } from './user-course-assignments.service';
 import { UserPreferencesService } from './user-preferences.service';
+import { OrganizationPlannerConfigService } from './organization-planner-config.service';
 import type {
   UserType,
   UserContext,
@@ -23,6 +25,7 @@ import type {
   B2CCoursePurchase,
   TeamCourseAssignment,
 } from '../types/user-context.types';
+import type { OrganizationPlannerContext } from '../types/user-context.types';
 
 export { UserIdentityService } from './user-identity.service';
 export { UserOrganizationService } from './user-organization.service';
@@ -129,6 +132,26 @@ export class UserContextService {
       UserPreferencesService.getCalendarIntegration(userId),
     ]);
 
+    // Fetch B2B planner config if the user belongs to an organization
+    let organizationPlannerContext: OrganizationPlannerContext | undefined;
+
+    if (userType === 'b2b' && organization?.id) {
+      const today = new Date();
+      const sixMonthsLater = new Date();
+      sixMonthsLater.setMonth(today.getMonth() + 6);
+
+      const [config, holidays] = await Promise.all([
+        OrganizationPlannerConfigService.getOrganizationPlannerConfig(organization.id),
+        OrganizationPlannerConfigService.getOrganizationHolidays(
+          organization.id,
+          today,
+          sixMonthsLater,
+        ),
+      ]);
+
+      organizationPlannerContext = { config, holidays };
+    }
+
     return {
       user,
       userType,
@@ -138,6 +161,8 @@ export class UserContextService {
       courses,
       studyPreferences: studyPreferences || undefined,
       calendarIntegration: calendarIntegration || undefined,
+      organizationPlannerContext,
     };
   }
 }
+

@@ -21,14 +21,14 @@ export async function updateAdminUser(
   adminUserId: string,
   requestInfo?: AdminUserRequestInfo,
 ): Promise<AdminUser> {
-  const supabase = await createClient()
-  const { data: oldData } = await supabase
+  const adminSupabase = createAdminClient()
+  const { data: oldData } = await adminSupabase
     .from('users')
     .select('*')
     .eq('id', userId)
     .single()
 
-  const { data, error } = await supabase
+  const { data, error } = await adminSupabase
     .from('users')
     .update(buildAdminUserUpdatePayload(userData))
     .eq('id', userId)
@@ -55,8 +55,8 @@ export async function updateAdminUser(
 }
 
 export async function updateAdminUserRole(userId: string, newRole: string) {
-  const supabase = await createClient()
-  const { error } = await supabase
+  const adminSupabase = createAdminClient()
+  const { error } = await adminSupabase
     .from('users')
     .update({ cargo_rol: newRole })
     .eq('id', userId)

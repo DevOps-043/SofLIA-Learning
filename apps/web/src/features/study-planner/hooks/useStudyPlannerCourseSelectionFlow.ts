@@ -36,10 +36,10 @@ interface UseStudyPlannerCourseSelectionFlowResult {
 }
 
 const SKIP_WELCOME_MESSAGE =
-  'Perfecto! Vamos a crear tu plan de estudios. Que cursos te gustaria incluir?';
+  'Perfecto! Vamos a crear tu plan de estudios. Que curso te gustaria planificar?';
 
 const COMPLETE_WELCOME_MESSAGE =
-  'Perfecto! Ahora vamos a crear tu plan de estudios personalizado. Haz clic en "Seleccionar cursos" para elegir los cursos que quieres incluir en tu plan.';
+  'Perfecto! Ahora vamos a seleccionar el curso que quieres planificar. Haz clic en "Seleccionar curso" para elegir.';
 
 function scheduleSpeech(
   message: string,
@@ -87,21 +87,20 @@ export function useStudyPlannerCourseSelectionFlow({
       }
     } catch (error) {
       console.error('Error cargando cursos:', error);
-      setAvailableCourses([
-        { id: '1', title: 'Curso de ejemplo 1', category: 'IA', progress: 30 },
-        { id: '2', title: 'Curso de ejemplo 2', category: 'Desarrollo', progress: 0 },
-      ]);
+      setAvailableCourses([]);
     } finally {
       setIsLoadingCourses(false);
       setShowCourseSelector(true);
     }
   };
 
+  /**
+   * Single-select: replaces the previous selection entirely.
+   * Only one course can be planned at a time (RF-01, RF-03).
+   */
   const toggleCourseSelection = (courseId: string) => {
     setSelectedCourseIds((previousCourseIds) =>
-      previousCourseIds.includes(courseId)
-        ? previousCourseIds.filter((id) => id !== courseId)
-        : [...previousCourseIds, courseId],
+      previousCourseIds.includes(courseId) ? [] : [courseId],
     );
   };
 
@@ -128,12 +127,26 @@ export function useStudyPlannerCourseSelectionFlow({
     const selectedCourses = availableCourses.filter((course) =>
       selectedCourseIds.includes(course.id),
     );
-    const courseNames = selectedCourses.map((course) => course.title).join(', ');
 
-    const userMessage =
-      selectedCourses.length > 0
-        ? `He seleccionado estos cursos: ${courseNames}`
-        : 'No he seleccionado ningun curso todavia';
+    if (selectedCourses.length === 0) {
+      const emptySelectionMessage =
+        'Parece que no seleccionaste ningun curso. Te gustaria ver tus cursos disponibles de nuevo?';
+
+      setConversationHistory((previousHistory) => [
+        ...previousHistory,
+        { role: 'user', content: 'No he seleccionado ningun curso todavia' },
+        { role: 'assistant', content: emptySelectionMessage },
+      ]);
+
+      if (isAudioEnabled) {
+        void speakText(emptySelectionMessage);
+      }
+      return;
+    }
+
+    // Single course selected
+    const selectedCourse = selectedCourses[0];
+    const userMessage = `Quiero planificar el curso: ${selectedCourse.title}`;
 
     setConversationHistory((previousHistory) => [
       ...previousHistory,
@@ -144,40 +157,24 @@ export function useStudyPlannerCourseSelectionFlow({
       setIsProcessing(true);
 
       try {
-        if (selectedCourses.length > 0) {
-          const responseMessage =
-            `Excelente eleccion! Has seleccionado ${selectedCourses.length} curso${selectedCourses.length > 1 ? 's' : ''}: ${courseNames}.\n\n` +
-            'Antes de crear tu plan de estudios personalizado, necesito conocer tu preferencia de ritmo de estudio.';
-
-          setConversationHistory((previousHistory) => [
-            ...previousHistory,
-            { role: 'assistant', content: responseMessage },
-          ]);
-          setHasAskedApproach(true);
-
-          window.setTimeout(() => {
-            setShowApproachModal(true);
-          }, 500);
-
-          if (isAudioEnabled) {
-            await speakText(
-              'Excelente eleccion. Que tipo de sesiones de estudio prefieres?',
-            );
-          }
-
-          return;
-        }
-
-        const emptySelectionMessage =
-          'Parece que no seleccionaste ningun curso. Te gustaria ver tus cursos disponibles de nuevo o prefieres decirme que temas te interesan?';
+        const responseMessage =
+          `Excelente eleccion! Vamos a planificar **${selectedCourse.title}**.\n\n` +
+          'Antes de crear tu plan de estudios personalizado, necesito conocer tu preferencia de ritmo de estudio.';
 
         setConversationHistory((previousHistory) => [
           ...previousHistory,
-          { role: 'assistant', content: emptySelectionMessage },
+          { role: 'assistant', content: responseMessage },
         ]);
+        setHasAskedApproach(true);
+
+        window.setTimeout(() => {
+          setShowApproachModal(true);
+        }, 500);
 
         if (isAudioEnabled) {
-          await speakText(emptySelectionMessage);
+          await speakText(
+            'Excelente eleccion. Que tipo de sesiones de estudio prefieres?',
+          );
         }
       } finally {
         setIsProcessing(false);

@@ -22,11 +22,7 @@ function getSelectedCoursesLabel(selectedCount: number) {
     return 'Ningun curso seleccionado';
   }
 
-  if (selectedCount === 1) {
-    return '1 curso seleccionado';
-  }
-
-  return `${selectedCount} cursos seleccionados`;
+  return '1 curso seleccionado';
 }
 
 export function StudyPlannerCourseSelectorModal({
@@ -76,9 +72,9 @@ export function StudyPlannerCourseSelectorModal({
                   <BookOpen className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="mb-1 text-lg font-bold text-[#0A2540] dark:text-white">Selecciona tus cursos</h3>
+                  <h3 className="mb-1 text-lg font-bold text-[#0A2540] dark:text-white">¿Que curso quieres planificar?</h3>
                   <p className="text-xs text-[#6C757D] dark:text-gray-400">
-                    Elige los cursos que quieres incluir en tu plan de estudios
+                    Selecciona un curso a la vez para crear tu plan de estudios
                   </p>
                 </div>
               </div>
@@ -166,7 +162,7 @@ export function StudyPlannerCourseSelectorModal({
                               )}
 
                               <motion.div
-                                className={`relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg transition-all ${
+                                className={`relative flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full transition-all ${
                                   isSelected
                                     ? 'bg-[#0A2540] shadow-sm dark:bg-[#0A2540]'
                                     : 'border-2 border-[#6C757D]/30 bg-[#E9ECEF] dark:bg-[#6C757D]'
@@ -176,12 +172,11 @@ export function StudyPlannerCourseSelectorModal({
                               >
                                 {isSelected && (
                                   <motion.div
-                                    initial={{ scale: 0, rotate: -180 }}
-                                    animate={{ scale: 1, rotate: 0 }}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
                                     transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                  >
-                                    <Check className="h-4 w-4 text-white" strokeWidth={3} />
-                                  </motion.div>
+                                    className="h-3 w-3 rounded-full bg-white"
+                                  />
                                 )}
                               </motion.div>
 
@@ -241,7 +236,7 @@ export function StudyPlannerCourseSelectorModal({
                             {getSelectedCoursesLabel(selectedCourseIds.length)}
                           </p>
                           <p className="text-xs text-[#6C757D] dark:text-gray-400">
-                            {hasSelectedCourses ? 'Listo para crear tu plan' : 'Selecciona al menos un curso'}
+                            {hasSelectedCourses ? 'Listo para crear tu plan' : 'Selecciona un curso para continuar'}
                           </p>
                         </div>
                       </div>

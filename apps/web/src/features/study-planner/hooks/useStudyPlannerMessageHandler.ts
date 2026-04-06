@@ -30,7 +30,7 @@ import type {
 import { usePlanScheduleAdjuster } from './usePlanScheduleAdjuster';
 
 interface StudyPlannerMessageHandlerLiaData {
-  getLessonsForPrompt: () => string;
+  getLessonsForPrompt: (selectedCourseIds?: string[]) => string;
   isReady: boolean;
   lessons: LessonData[];
   totalPending: number;
@@ -155,6 +155,7 @@ export function useStudyPlannerMessageHandler(params: UseStudyPlannerMessageHand
         totalPendingLessons: params.liaData.totalPending || params.pendingLessonsRef.current.length,
         assignedCourses: params.assignedCourses,
         connectedCalendar: params.connectedCalendar,
+        selectedCourseIds: params.selectedCourseIds,
         studyApproach: params.studyApproach,
         savedLessonDistribution: params.savedLessonDistribution,
       });

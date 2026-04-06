@@ -38,6 +38,10 @@ export interface StudyPlannerAssignedCourse {
   id?: string;
   title: string;
   dueDate: string | null;
+  planningWindowStart?: string | null;
+  planningWindowEnd?: string | null;
+  hasActivePlan?: boolean;
+  progress?: number;
 }
 
 export interface StudyPlannerPendingLesson {

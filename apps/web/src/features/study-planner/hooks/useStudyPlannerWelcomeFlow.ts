@@ -20,7 +20,7 @@ type StateSetter<T> = Dispatch<SetStateAction<T>>;
 interface UseStudyPlannerWelcomeFlowParams {
   assignedCourses: StudyPlannerAssignedCourse[];
   conversationHistoryLength: number;
-  getLessonsForPrompt: () => string;
+  getLessonsForPrompt: (selectedCourseIds?: string[]) => string;
   isAudioEnabled: boolean;
   lessonsAreReady: boolean;
   savedCalendarData: StudyPlannerCalendarDataMap | null;
@@ -89,9 +89,9 @@ export function useStudyPlannerWelcomeFlow({
 
         setConversationHistory([{ role: 'assistant', content: result.response }]);
 
-        if (assignedCourses.length > 0) {
-          setShowApproachButtons(true);
-        }
+        // Do NOT show approach buttons here.
+        // The user must first select a course (RF-01, RUX-02).
+        // Approach selection happens after course selection in confirmCourseSelection().
 
         if (isAudioEnabled && assignedCourses.length > 0) {
           void speakText(getStudyPlannerWelcomeAudioMessage());
@@ -116,10 +116,6 @@ export function useStudyPlannerWelcomeFlow({
             content: getStudyPlannerWelcomeFallbackMessage(assignedCourses.length > 0),
           },
         ]);
-
-        if (assignedCourses.length > 0) {
-          setShowApproachButtons(true);
-        }
       } finally {
         clearTimeout(timeoutId);
 

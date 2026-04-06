@@ -13,11 +13,12 @@ interface BuildStudyPlannerChatRequestContextParams {
   userName?: string | null;
   lessonsAreReady: boolean;
   lessons: LessonData[];
-  getLessonsForPrompt: () => string;
+  getLessonsForPrompt: (selectedCourseIds?: string[]) => string;
   pendingLessons: StudyPlannerPendingLesson[];
   totalPendingLessons: number;
   assignedCourses: StudyPlannerAssignedCourse[];
   connectedCalendar: 'google' | 'microsoft' | null;
+  selectedCourseIds?: string[];
   studyApproach: StudyApproach | null;
   savedLessonDistribution: StudyPlannerStoredLessonDistribution[];
 }
@@ -99,21 +100,120 @@ function buildExistingPlanContext(savedLessonDistribution: StudyPlannerStoredLes
   return `\n\nPLAN EXISTENTE EN MEMORIA:\n${slots}\n\nSi el usuario esta confirmando o ajustando este plan, reutiliza exactamente estos horarios como base.`;
 }
 
-function detectPlannerDays(message: string): string[] {
-  const matches = message.match(
-    /lunes|lune|lun|mon|martes|mar|tue|miercoles|miércoles|mier|wed|jueves|jue|thu|viernes|vier|vie|fri|sabado|sábado|sab|sat|domingo|dom|sun/gi,
-  );
+/**
+ * Ordered day names for range expansion (lunes=0…domingo=6).
+ */
+const ORDERED_DAY_NAMES = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
 
-  return matches ? [...new Set(matches.map((day) => day.toLowerCase()))] : [];
+/**
+ * Detects study days from user message, with support for:
+ * - Individual days: "lunes y miercoles"
+ * - Day ranges: "lunes a viernes", "lunes a sabado"
+ * - BUG-D fix: expands ranges to include all intermediate days.
+ */
+function detectPlannerDays(message: string): string[] {
+  const normalizedMsg = message
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  // Try to detect a range pattern: "lunes a/al sabado"
+  const rangePattern = /(lunes|martes|miercoles|jueves|viernes|sabado|domingo)\s+(?:a|al|hasta)\s+(lunes|martes|miercoles|jueves|viernes|sabado|domingo)/i;
+  const rangeMatch = normalizedMsg.match(rangePattern);
+
+  if (rangeMatch) {
+    const startDay = rangeMatch[1].toLowerCase();
+    const endDay = rangeMatch[2].toLowerCase();
+    const startIdx = ORDERED_DAY_NAMES.indexOf(startDay);
+    const endIdx = ORDERED_DAY_NAMES.indexOf(endDay);
+
+    if (startIdx !== -1 && endIdx !== -1 && startIdx <= endIdx) {
+      return ORDERED_DAY_NAMES.slice(startIdx, endIdx + 1);
+    }
+  }
+
+  // Fallback: detect individual days
+  const dayPattern = /lunes|lune|lun|martes|mar|miercoles|miércoles|mier|jueves|jue|viernes|vier|vie|sabado|sábado|sab|domingo|dom/gi;
+  const matches = normalizedMsg.match(dayPattern);
+  if (!matches) {
+    return [];
+  }
+
+  // Normalize abbreviated day names to full names
+  const normMap: Record<string, string> = {
+    lun: 'lunes', lune: 'lunes', lunes: 'lunes',
+    mar: 'martes', martes: 'martes',
+    mier: 'miercoles', miercoles: 'miercoles',
+    jue: 'jueves', jueves: 'jueves',
+    vie: 'viernes', vier: 'viernes', viernes: 'viernes',
+    sab: 'sabado', sabado: 'sabado',
+    dom: 'domingo', domingo: 'domingo',
+  };
+
+  return [...new Set(
+    matches
+      .map(d => d.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+      .map(d => normMap[d] || d)
+  )];
 }
 
+/**
+ * Detects time-of-day preferences from user message.
+ * BUG-E fix: recognizes "horario laboral", "horario de trabajo", "jornada laboral"
+ * as a "mañana" + "tarde" preference (typical work hours 8-18).
+ */
 function detectPlannerTimes(message: string): string[] {
-  const matches = message.match(/manana|mañana|tarde|noche/gi);
+  const normalizedMsg = message
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  // Detect "horario laboral" / "jornada laboral" / "horario de trabajo"
+  if (
+    normalizedMsg.includes('horario laboral') ||
+    normalizedMsg.includes('jornada laboral') ||
+    normalizedMsg.includes('horario de trabajo') ||
+    normalizedMsg.includes('horas laborales')
+  ) {
+    return ['manana', 'tarde'];
+  }
+
+  const matches = normalizedMsg.match(/manana|mañana|tarde|noche/gi);
   if (!matches) {
     return ['manana'];
   }
 
-  return [...new Set(matches.map((time) => time.toLowerCase()))];
+  return [...new Set(
+    matches.map(t => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+  )];
+}
+
+/**
+ * Parses an explicit study duration from the user's message.
+ * BUG-C fix: when the user says "2 horas" or "120 minutos", this value
+ * should override the approach-based default.
+ *
+ * Returns null if no explicit duration was found.
+ */
+function detectExplicitSessionDuration(message: string): number | null {
+  const normalizedMsg = message
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  // Match "N hora(s)" pattern
+  const hoursMatch = normalizedMsg.match(/(\d+(?:\.\d+)?)\s*(?:hora|horas|hr|hrs)/i);
+  if (hoursMatch) {
+    return Math.round(parseFloat(hoursMatch[1]) * 60);
+  }
+
+  // Match "N minuto(s)" pattern
+  const minutesMatch = normalizedMsg.match(/(\d+)\s*(?:minuto|minutos|min|mins)/i);
+  if (minutesMatch) {
+    return parseInt(minutesMatch[1], 10);
+  }
+
+  return null;
 }
 
 function getNearestDeadlineDate(assignedCourses: StudyPlannerAssignedCourse[]): string | undefined {
@@ -148,7 +248,7 @@ async function buildDeterministicPlanContext(
   params: Pick<
     BuildStudyPlannerChatRequestContextParams,
     'assignedCourses' | 'lessons' | 'message' | 'studyApproach'
-  >,
+  > & { explicitSessionMinutes?: number | null },
 ): Promise<DeterministicPlanContextResult> {
   const uniqueDays = detectPlannerDays(params.message);
   if (uniqueDays.length === 0 || params.lessons.length === 0) {
@@ -160,6 +260,15 @@ async function buildDeterministicPlanContext(
 
   const uniqueTimes = detectPlannerTimes(params.message);
   const deadlineDate = getNearestDeadlineDate(params.assignedCourses);
+
+  // BUG-C: Explicit duration from user takes priority over approach-based default
+  const approachBasedMinutes = params.studyApproach === 'corto' ? 75 : params.studyApproach === 'largo' ? 25 : 45;
+  const maxSessionMinutes = params.explicitSessionMinutes ?? approachBasedMinutes;
+
+  // Compute maxConsecutiveHours from explicitSessionMinutes when available
+  const maxConsecutiveHours = params.explicitSessionMinutes
+    ? Math.max(1, Math.ceil(params.explicitSessionMinutes / 60))
+    : params.studyApproach === 'corto' ? 3 : 2;
 
   const response = await fetch('/api/study-planner/generate-plan', {
     method: 'POST',
@@ -175,10 +284,10 @@ async function buildDeterministicPlanContext(
             : params.studyApproach === 'largo'
               ? 'pomodoro'
               : 'balanced',
-        maxConsecutiveHours: params.studyApproach === 'corto' ? 3 : 2,
+        maxConsecutiveHours,
       },
       deadlineDate,
-      maxSessionMinutes: params.studyApproach === 'corto' ? 75 : params.studyApproach === 'largo' ? 25 : 45,
+      maxSessionMinutes,
     }),
   });
 
@@ -248,23 +357,35 @@ export async function buildStudyPlannerChatRequestContext(
     day: 'numeric',
   });
 
+  // Filter lessons to only those from the selected course (BUG-A fix)
+  const filteredLessons = params.selectedCourseIds && params.selectedCourseIds.length > 0
+    ? params.lessons.filter(l => params.selectedCourseIds!.includes(l.courseId))
+    : params.lessons;
+
   const lessonsContext =
-    params.lessonsAreReady && params.lessons.length > 0
-      ? params.getLessonsForPrompt()
+    params.lessonsAreReady && filteredLessons.length > 0
+      ? params.getLessonsForPrompt(params.selectedCourseIds)
       : buildFallbackLessonsContext(params.pendingLessons);
+
+  const filteredPendingCount = filteredLessons.length || params.totalPendingLessons;
 
   const dueDateContext = buildDueDateContext(params.assignedCourses);
   const existingPlanContext = buildExistingPlanContext(params.savedLessonDistribution);
+
+  // BUG-C fix: If user states explicit duration, use it instead of approach default
+  const explicitDuration = detectExplicitSessionDuration(params.message);
+
   const deterministicContext = await buildDeterministicPlanContext({
     message: params.message,
-    lessons: params.lessons,
+    lessons: filteredLessons,
     assignedCourses: params.assignedCourses,
     studyApproach: params.studyApproach,
+    explicitSessionMinutes: explicitDuration,
   });
 
   const finalStudyPlannerContext = deterministicContext.blockPlanGeneration
     ? `SISTEMA: INFORMACION DE LECCIONES OCULTA POR INSUFICIENCIA DE HORARIO.\n${deterministicContext.preCalculatedPlanContext}`
-    : `LECCIONES PENDIENTES (${params.totalPendingLessons} total):\n${lessonsContext}\n\nCALENDARIO: ${params.connectedCalendar ? `Conectado (${params.connectedCalendar})` : 'No conectado'}${dueDateContext}${deterministicContext.preCalculatedPlanContext}${existingPlanContext}`;
+    : `LECCIONES PENDIENTES (${filteredPendingCount} total):\n${lessonsContext}\n\nCALENDARIO: ${params.connectedCalendar ? `Conectado (${params.connectedCalendar})` : 'No conectado'}${dueDateContext}${deterministicContext.preCalculatedPlanContext}${existingPlanContext}`;
 
   return {
     systemPrompt: generateStudyPlannerPrompt({

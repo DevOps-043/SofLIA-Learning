@@ -162,30 +162,32 @@ export function useSofLIAData() {
     }
   }, []);
 
-  // -------------------------------------------------------------------------
-  // Generar lista de lecciones para el prompt
-  // -------------------------------------------------------------------------
-  const getLessonsForPrompt = useCallback((): string => {
-    const lessons = lessonsRef.current;
-    
-    if (lessons.length === 0) {
+  /**
+   * Generates a formatted lesson list for the AI prompt.
+   *
+   * @param selectedCourseIds - When provided, only lessons from these courses
+   *   are included. This is critical for single-course planning (RF-01) to
+   *   prevent the AI from hallucinating lessons from unselected courses.
+   */
+  const getLessonsForPrompt = useCallback((selectedCourseIds?: string[]): string => {
+    const allLessons = lessonsRef.current;
+
+    if (allLessons.length === 0) {
       return 'No hay lecciones pendientes definidas aún.';
     }
 
-    // Optimización: Limitar número de lecciones para no saturar el contexto
-    const MAX_LESSONS_IN_CONTEXT = 60;
-    const lessonsToShow = lessons.slice(0, MAX_LESSONS_IN_CONTEXT);
-    const remaining = lessons.length - MAX_LESSONS_IN_CONTEXT;
+    // Filter by selected courses when provided
+    const filteredLessons = selectedCourseIds && selectedCourseIds.length > 0
+      ? allLessons.filter(l => selectedCourseIds.includes(l.courseId))
+      : allLessons;
 
-    let lessonsString = lessonsToShow
-      .map(l => `- ${l.lessonTitle} (${l.durationMinutes} min) - Módulo: ${l.moduleTitle}`)
-      .join('\n');
-    
-    if (remaining > 0) {
-      lessonsString += `\n... y ${remaining} lecciones más.`;
+    if (filteredLessons.length === 0) {
+      return 'No hay lecciones pendientes para el curso seleccionado.';
     }
 
-    return lessonsString;
+    return filteredLessons
+      .map(l => `- ${l.lessonTitle} (${l.durationMinutes} min) - Módulo: ${l.moduleTitle}`)
+      .join('\n');
   }, []);
 
   // -------------------------------------------------------------------------

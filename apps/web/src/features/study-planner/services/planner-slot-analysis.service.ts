@@ -12,6 +12,7 @@ import {
   type StudyPlannerAvailabilityEstimate,
   type StudyPlannerEventContext,
 } from './planner-calendar-analysis.service';
+import type { OrganizationPlannerConfig, OrganizationHoliday } from './organization-planner-config.service';
 
 interface StudyPlannerProfileLike {
   userType?: 'b2b' | 'b2c' | null;
@@ -35,6 +36,8 @@ interface AnalyzeStudyPlannerSlotCalendarInput {
   currentTime: Date;
   effectiveApproach: StudyApproach | null;
   effectiveTargetDate?: string | null;
+  organizationConfig?: OrganizationPlannerConfig | null;
+  organizationHolidays?: OrganizationHoliday[];
   startDate: Date;
   targetDateObjForEvents: Date | null;
   userProfile: StudyPlannerProfileLike | null;
@@ -195,8 +198,26 @@ export function analyzeStudyPlannerSlotCalendar(
       break;
     }
 
+    // Skip national holidays
     if (isEffectivelyHoliday(date)) {
       continue;
+    }
+
+    // Skip organizational holidays (B2B)
+    if (input.organizationHolidays && input.organizationHolidays.length > 0) {
+      const dateKey = getDateKey(date);
+      const isOrgHoliday = input.organizationHolidays.some((h) => h.date === dateKey);
+      if (isOrgHoliday) {
+        continue;
+      }
+    }
+
+    // Skip non-work days if org config provides work_days (B2B)
+    if (input.organizationConfig?.workDays) {
+      const dayOfWeek = date.getDay();
+      if (!input.organizationConfig.workDays.includes(dayOfWeek)) {
+        continue;
+      }
     }
 
     const dateStr = getDateKey(date);

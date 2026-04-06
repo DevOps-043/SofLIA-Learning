@@ -49,7 +49,7 @@ export function AdminCreateCompanyBrandingTab({
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <label className="text-xs text-gray-400 mb-3 block uppercase tracking-wider font-bold ml-1">
+          <label className="text-xs text-gray-600 dark:text-gray-400 mb-3 block uppercase tracking-wider font-bold ml-1">
             Logo de la Empresa
           </label>
           <input
@@ -61,10 +61,10 @@ export function AdminCreateCompanyBrandingTab({
           />
           <div
             onClick={() => !uploadingLogo && logoInputRef.current?.click()}
-            className={`aspect-square rounded-2xl bg-black/20 border-2 border-dashed flex flex-col items-center justify-center p-4 mb-4 group transition-all relative overflow-hidden cursor-pointer ${
+            className={`aspect-square rounded-2xl bg-gray-50 dark:bg-black/20 border-2 border-dashed flex flex-col items-center justify-center p-4 mb-4 group transition-all relative overflow-hidden cursor-pointer ${
               uploadingLogo
                 ? 'border-accent/50 bg-accent/5'
-                : 'border-white/20 hover:border-accent/50 hover:bg-white/5'
+                : 'border-gray-300 dark:border-white/20 hover:border-accent/50 hover:bg-gray-100 dark:hover:bg-white/5'
             }`}
           >
             {uploadingLogo ? (
@@ -86,15 +86,15 @@ export function AdminCreateCompanyBrandingTab({
               </>
             ) : (
               <div className="flex flex-col items-center gap-3 group-hover:scale-105 transition-transform">
-                <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-accent/10 transition-colors">
+                <div className="p-4 rounded-2xl bg-gray-100 dark:bg-white/5 group-hover:bg-accent/10 transition-colors">
                   <PhotoIcon className="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-gray-400 group-hover:text-white transition-colors">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                     Subir logo
                   </p>
-                  <p className="text-[10px] text-gray-600">
-                    PNG, JPG, SVG (mÃ¡x. 5MB)
+                  <p className="text-[10px] text-gray-500 dark:text-gray-600">
+                    PNG, JPG, SVG (máx. 5MB)
                   </p>
                 </div>
               </div>
@@ -117,7 +117,7 @@ export function AdminCreateCompanyBrandingTab({
         </div>
 
         <div>
-          <label className="text-xs text-gray-400 mb-3 block uppercase tracking-wider font-bold ml-1">
+          <label className="text-xs text-gray-600 dark:text-gray-400 mb-3 block uppercase tracking-wider font-bold ml-1">
             Banner de Marca
           </label>
           <input
@@ -129,10 +129,10 @@ export function AdminCreateCompanyBrandingTab({
           />
           <div
             onClick={() => !uploadingBanner && bannerInputRef.current?.click()}
-            className={`aspect-square rounded-2xl bg-black/20 border-2 border-dashed flex flex-col items-center justify-center p-4 mb-4 group transition-all relative overflow-hidden cursor-pointer ${
+            className={`aspect-square rounded-2xl bg-gray-50 dark:bg-black/20 border-2 border-dashed flex flex-col items-center justify-center p-4 mb-4 group transition-all relative overflow-hidden cursor-pointer ${
               uploadingBanner
                 ? 'border-accent/50 bg-accent/5'
-                : 'border-white/20 hover:border-accent/50 hover:bg-white/5'
+                : 'border-gray-300 dark:border-white/20 hover:border-accent/50 hover:bg-gray-100 dark:hover:bg-white/5'
             }`}
           >
             {uploadingBanner ? (
@@ -154,15 +154,15 @@ export function AdminCreateCompanyBrandingTab({
               </>
             ) : (
               <div className="flex flex-col items-center gap-3 group-hover:scale-105 transition-transform">
-                <div className="p-4 rounded-2xl bg-white/5 group-hover:bg-accent/10 transition-colors">
+                <div className="p-4 rounded-2xl bg-gray-100 dark:bg-white/5 group-hover:bg-accent/10 transition-colors">
                   <GlobeAltIcon className="w-10 h-10 text-gray-500 group-hover:text-accent transition-colors" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm text-gray-400 group-hover:text-white transition-colors">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
                     Subir banner
                   </p>
-                  <p className="text-[10px] text-gray-600">
-                    PNG, JPG (mÃ¡x. 10MB)
+                  <p className="text-[10px] text-gray-500 dark:text-gray-600">
+                    PNG, JPG (máx. 10MB)
                   </p>
                 </div>
               </div>
@@ -186,20 +186,20 @@ export function AdminCreateCompanyBrandingTab({
       </div>
 
       <div>
-        <label className="text-xs text-gray-400 mb-4 block uppercase tracking-wider font-bold border-b border-white/5 pb-2">
+        <label className="text-xs text-gray-600 dark:text-gray-400 mb-4 block uppercase tracking-wider font-bold border-b border-gray-200 dark:border-white/5 pb-2">
           Paleta de Colores Personalizada
         </label>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {colorFields.map((colorField) => (
             <div
               key={colorField.key}
-              className="p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+              className="p-3 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-white/10 transition-colors"
             >
               <p className="text-[10px] text-gray-400 mb-2 uppercase font-medium">
                 {colorField.label}
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/20 shrink-0 relative shadow-lg">
+                <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-300 dark:border-white/20 shrink-0 relative shadow-lg">
                   <input
                     type="color"
                     value={formData[colorField.key]}
@@ -220,7 +220,7 @@ export function AdminCreateCompanyBrandingTab({
                         updateCompanyColor(current, colorField.key, e.target.value),
                       )
                     }
-                    className="w-full bg-transparent text-sm font-mono text-white outline-none border-b border-transparent focus:border-white/30"
+                    className="w-full bg-transparent text-sm font-mono text-gray-900 dark:text-white outline-none border-b border-transparent focus:border-gray-300 dark:focus:border-white/30"
                   />
                 </div>
               </div>

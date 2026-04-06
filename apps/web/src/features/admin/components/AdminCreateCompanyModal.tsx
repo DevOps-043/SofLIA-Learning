@@ -62,16 +62,14 @@ export function AdminCreateCompanyModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 backdrop-blur-md"
-          style={{ backgroundColor: 'rgba(10, 37, 64, 0.75)' }}
+          className="absolute inset-0 backdrop-blur-md bg-carbon-900/75"
         />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-5xl h-[700px] max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-white/10"
-          style={{ backgroundColor: '#0A0D12' }}
+          className="relative w-full max-w-5xl h-[700px] max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-carbon-950"
           onClick={(e) => e.stopPropagation()}
         >
           <AdminCreateCompanySidebar
@@ -83,8 +81,8 @@ export function AdminCreateCompanyModal({
             onTabChange={setActiveTab}
           />
 
-          <div className="flex-1 flex flex-col h-full bg-[#1E2329] min-w-0">
-            <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between shrink-0">
+          <div className="flex-1 flex flex-col h-full bg-white dark:bg-carbon-900 min-w-0">
+            <div className="px-8 py-6 border-b border-gray-200 dark:border-white/5 flex items-center justify-between shrink-0">
               <div>
                 <div className="flex items-center gap-3 mb-1">
                   <div
@@ -93,17 +91,17 @@ export function AdminCreateCompanyModal({
                   >
                     <PlusIcon className="w-5 h-5" style={{ color: accentColor }} />
                   </div>
-                  <h2 className="text-2xl font-bold text-white">
-                    Nueva OrganizaciÃ³n
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Nueva Organización
                   </h2>
                 </div>
-                <p className="text-sm text-gray-400 ml-12">
+                <p className="text-sm text-gray-500 dark:text-gray-400 ml-12">
                   Crea una nueva empresa en la plataforma SOFLIA
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-2.5 rounded-xl hover:bg-white/5 transition-colors text-gray-400 hover:text-white"
+                className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
                 <XMarkIcon className="w-6 h-6" />
               </button>
@@ -150,7 +148,7 @@ export function AdminCreateCompanyModal({
               </AnimatePresence>
             </div>
 
-            <div className="p-6 border-t border-white/5 shrink-0 flex items-center justify-between bg-[#1E2329]">
+            <div className="p-6 border-t border-gray-200 dark:border-white/5 shrink-0 flex items-center justify-between bg-white dark:bg-carbon-900">
               <p className="text-xs text-gray-500">
                 {isFormValid ? (
                   <span className="text-green-400 flex items-center gap-1">
@@ -165,7 +163,7 @@ export function AdminCreateCompanyModal({
               <div className="flex items-center gap-3">
                 <button
                   onClick={onClose}
-                  className="px-6 py-2.5 rounded-xl font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                  className="px-6 py-2.5 rounded-xl font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
                 >
                   Cancelar
                 </button>
@@ -179,7 +177,7 @@ export function AdminCreateCompanyModal({
                   }}
                 >
                   {isCreating && <ArrowPathIcon className="w-4 h-4 animate-spin" />}
-                  {isCreating ? 'Creando...' : 'Crear OrganizaciÃ³n'}
+                  {isCreating ? 'Creando...' : 'Crear Organización'}
                 </button>
               </div>
             </div>

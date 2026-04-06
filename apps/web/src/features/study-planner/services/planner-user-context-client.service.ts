@@ -26,6 +26,23 @@ export interface StudyPlannerUserContextApiData {
   organization?: {
     name?: string | null;
   } | null;
+  organizationPlannerContext?: {
+    config?: {
+      workStartTime?: string;
+      workEndTime?: string;
+      workDays?: number[];
+      maxLessonsPerDay?: number;
+      maxSessionMinutes?: number;
+      timezone?: string;
+    } | null;
+    holidays?: Array<{
+      id: string;
+      date: string;
+      name: string;
+      type: 'official' | 'internal';
+      isRecurring: boolean;
+    }> | null;
+  } | null;
   professionalProfile?: {
     area?: { nombre?: string | null } | null;
     nivel?: { nombre?: string | null } | null;
