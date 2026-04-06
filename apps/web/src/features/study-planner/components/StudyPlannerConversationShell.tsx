@@ -12,12 +12,14 @@ import { StudyPlannerCalendarModal } from './StudyPlannerCalendarModal';
 import { StudyPlannerConversationHeader } from './StudyPlannerConversationHeader';
 import { StudyPlannerCourseSelectorModal } from './StudyPlannerCourseSelectorModal';
 import { StudyPlannerTargetDateModal } from './StudyPlannerTargetDateModal';
+import { SchedulePreviewPanel } from './schedule-preview';
 import type {
   StudyApproach,
   StudyPlannerCalendarProvider,
   StudyPlannerCourseOption,
   StudyPlannerMessage,
 } from '../types/planner-ui.types';
+import type { StudyPlannerStoredLessonDistribution } from '../types/planner-schedule.types';
 import type { UserType } from '../types/user-context.types';
 
 interface StudyPlannerConversationShellProps {
@@ -71,6 +73,12 @@ interface StudyPlannerConversationShellProps {
   onUserMessageChange: (value: string) => void;
   onSubmitMessage: (message: string) => void;
   onToggleListening: () => void;
+  // Schedule Preview
+  savedLessonDistribution: StudyPlannerStoredLessonDistribution[];
+  showSchedulePreview: boolean;
+  showSchedulePreviewTab: boolean;
+  onSchedulePreviewClose: () => void;
+  onSchedulePreviewOpen: () => void;
 }
 
 export function StudyPlannerConversationShell({
@@ -124,6 +132,11 @@ export function StudyPlannerConversationShell({
   onUserMessageChange,
   onSubmitMessage,
   onToggleListening,
+  savedLessonDistribution,
+  showSchedulePreview,
+  showSchedulePreviewTab,
+  onSchedulePreviewClose,
+  onSchedulePreviewOpen,
 }: StudyPlannerConversationShellProps) {
   const hasComposerText = userMessage.trim().length > 0;
   const isComposerDisabled = isProcessing || (showApproachButtons && !studyApproach);
@@ -317,6 +330,15 @@ export function StudyPlannerConversationShell({
         onSelectDate={onSelectDate}
         onSkip={onSkipDate}
         onConfirm={onConfirmDate}
+      />
+
+      <SchedulePreviewPanel
+        isOpen={showSchedulePreview}
+        savedLessonDistribution={savedLessonDistribution}
+        connectedCalendar={connectedCalendar}
+        onClose={onSchedulePreviewClose}
+        onOpen={onSchedulePreviewOpen}
+        showReopenTab={showSchedulePreviewTab && !showSchedulePreview}
       />
 
       <div className="flex-shrink-0 border-t border-[#E9ECEF] bg-white px-3 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] backdrop-blur-xl dark:border-[#6C757D]/30 dark:bg-[#0F1419] sm:px-4 sm:py-4">

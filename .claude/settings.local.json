@@ -92,7 +92,11 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\" echo -e \"\\\\n=== Checking for study-planner hooks ===\" find apps/web/src -path \"*study-planner*\" -name \"*.ts\")",
       "Bash(grep -E \"hooks|use.*\\\\.\\(ts|tsx\\)$\" echo -e \"\\\\n=== Checking for courses hooks ===\" find apps/web/src -path \"*courses*\" -name \"useCustom*\" echo -e \"\\\\n=== Checking for difficulty-pattern-detector ===\" find apps/web/src -name \"*difficulty*\")",
       "Read(//tmp/**)",
-      "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning\" status --short)"
+      "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning\" status --short)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(grep -r \"fullcalendar\\\\|FullCalendar\" 'D:\\\\Pulse Hub\\\\SofLIA-Learning\\\\apps\\\\web' --include=*.ts --include=*.tsx --include=*.json)",
+      "Bash(grep -E \"\\\\.tsx$\")"
     ],
     "deny": [],
     "ask": []

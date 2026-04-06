@@ -11,7 +11,7 @@
  * the public API (return shape) is unchanged.
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useOrganizationStylesContext } from '../../../business-panel/contexts/OrganizationStylesContext';
 import { useAuth } from '../../../auth/hooks/useAuth';
@@ -110,6 +110,31 @@ export function useStudyPlannerLIALogic() {
   } = useResponseHandler();
 
   const liaData = useSofLIAData();
+
+  // ── Schedule Preview panel state ───────────────────────────────────────
+  const [showSchedulePreview, setShowSchedulePreview] = useState(false);
+  const [showSchedulePreviewTab, setShowSchedulePreviewTab] = useState(false);
+  const prevDistributionLengthRef = useRef(savedLessonDistribution.length);
+
+  // Auto-open panel when LIA generates a plan (distribution goes from 0 → N).
+  useEffect(() => {
+    const prevLen = prevDistributionLengthRef.current;
+    const currLen = savedLessonDistribution.length;
+    prevDistributionLengthRef.current = currLen;
+
+    if (prevLen === 0 && currLen > 0) {
+      setShowSchedulePreview(true);
+      setShowSchedulePreviewTab(true);
+    }
+  }, [savedLessonDistribution.length]);
+
+  const handleSchedulePreviewClose = useCallback(() => {
+    setShowSchedulePreview(false);
+  }, []);
+
+  const handleSchedulePreviewOpen = useCallback(() => {
+    setShowSchedulePreview(true);
+  }, []);
 
   const handleVoiceQuestionRef = useRef<(question: string) => Promise<void>>(async () => {});
   const hasAttemptedOpenRef = useRef<boolean>(false);
@@ -289,6 +314,9 @@ export function useStudyPlannerLIALogic() {
     getLessonsForPrompt: liaData.getLessonsForPrompt,
     isAudioEnabled,
     lessonsAreReady: liaData.isReady,
+    // After the welcome message renders, open the course selector automatically
+    // so the user doesn't have to type the course name (RUX-02, RF-03).
+    onWelcomeComplete: loadUserCourses,
     savedCalendarData,
     setConversationHistory,
     setIsProcessing,
@@ -395,6 +423,7 @@ export function useStudyPlannerLIALogic() {
     pendingLessonsRef,
     processingRef,
     savedLessonDistribution,
+    selectedCourseIds,
     setConversationHistory,
     setIsProcessing,
     showDateModal,
@@ -586,5 +615,10 @@ export function useStudyPlannerLIALogic() {
     showResumePrompt,
     // Redirect
     scheduleStudyPlannerRedirect,
+    // Schedule Preview
+    showSchedulePreview,
+    showSchedulePreviewTab,
+    onSchedulePreviewClose: handleSchedulePreviewClose,
+    onSchedulePreviewOpen: handleSchedulePreviewOpen,
   };
 }
