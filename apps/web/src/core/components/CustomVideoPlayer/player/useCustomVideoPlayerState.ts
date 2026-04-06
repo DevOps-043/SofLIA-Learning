@@ -1,10 +1,10 @@
 import {
   type ForwardedRef,
   useEffect,
-  useImperativeHandle,
   useRef,
   useState,
 } from 'react';
+import { useCustomVideoPlayerImperativeHandle } from './useCustomVideoPlayerImperativeHandle';
 import type {
   CustomVideoPlayerController,
   CustomVideoPlayerProps,
@@ -68,17 +68,9 @@ export function useCustomVideoPlayerState(
 
   useEffect(() => {
     const videoElement = videoRef.current;
-
     return () => {
-      if (!videoElement) {
-        return;
-      }
-
-      const isInPictureInPicture = document.pictureInPictureElement === videoElement;
-
-      if (!isInPictureInPicture) {
-        videoElement.pause();
-      }
+      if (!videoElement) return;
+      if (document.pictureInPictureElement !== videoElement) videoElement.pause();
     };
   }, []);
 
@@ -97,33 +89,7 @@ export function useCustomVideoPlayerState(
     setHasInitialTimeSet(false);
   }, [src]);
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      exitPiP: async () => {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-          setIsPiP(false);
-          onPiPChange?.(false);
-        }
-      },
-      getVideoElement: () => videoRef.current,
-      isPiPActive: () => isPiP,
-      isPlaying: () => isPlaying,
-      requestPiP: async () => {
-        const videoElement = videoRef.current;
-
-        if (!videoElement || document.pictureInPictureElement) {
-          return;
-        }
-
-        await videoElement.requestPictureInPicture();
-        setIsPiP(true);
-        onPiPChange?.(true);
-      },
-    }),
-    [isPiP, isPlaying, onPiPChange]
-  );
+  useCustomVideoPlayerImperativeHandle({ ref, isPiP, isPlaying, videoRef, setIsPiP, onPiPChange });
 
   useEffect(() => {
     const videoElement = videoRef.current;
