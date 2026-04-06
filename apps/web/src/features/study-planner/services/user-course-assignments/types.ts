@@ -16,6 +16,7 @@ export interface OrganizationAssignmentRow {
   message: string | null
   courses?: CourseRow | null
   assigner?: PersonNameRow | null
+  organization?: { name: string | null } | null
 }
 
 export interface OrganizationUserHierarchyRow {

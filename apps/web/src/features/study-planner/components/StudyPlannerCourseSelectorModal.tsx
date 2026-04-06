@@ -15,6 +15,7 @@ interface StudyPlannerCourseSelectorModalProps {
   onClearSearch: () => void;
   onToggleCourse: (courseId: string) => void;
   onConfirm: () => void;
+  onClose?: () => void;
 }
 
 function getSelectedCoursesLabel(selectedCount: number) {
@@ -35,6 +36,7 @@ export function StudyPlannerCourseSelectorModal({
   onClearSearch,
   onToggleCourse,
   onConfirm,
+  onClose,
 }: StudyPlannerCourseSelectorModalProps) {
   const filteredCourses = courses.filter((course) =>
     course.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -77,6 +79,17 @@ export function StudyPlannerCourseSelectorModal({
                     Selecciona un curso a la vez para crear tu plan de estudios
                   </p>
                 </div>
+                {onClose && (
+                  <motion.button
+                    onClick={onClose}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="rounded-lg p-1.5 text-[#6C757D] transition-colors hover:bg-[#E9ECEF] hover:text-[#0A2540] dark:hover:bg-[#0A2540]/20 dark:hover:text-white"
+                    title="Cerrar"
+                  >
+                    <X size={18} />
+                  </motion.button>
+                )}
               </div>
 
               {hasCourses && (
@@ -188,6 +201,11 @@ export function StudyPlannerCourseSelectorModal({
                                 >
                                   {course.title}
                                 </p>
+                                {course.organizationName && (
+                                  <p className="mb-1 text-xs font-medium text-[#00D4B3] dark:text-[#00D4B3]">
+                                    {course.organizationName}
+                                  </p>
+                                )}
                                 {course.progress > 0 && (
                                   <div className="mt-1 flex items-center gap-2">
                                     <div className="h-1.5 w-20 overflow-hidden rounded-full bg-[#E9ECEF] dark:bg-[#6C757D]/30">

@@ -5,8 +5,9 @@ import ReactMarkdown from 'react-markdown';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Mic, MicOff, Send } from 'lucide-react';
 
+import { BookOpen } from 'lucide-react';
+
 import { StudyPlannerApproachButtons } from './StudyPlannerApproachButtons';
-import { StudyPlannerApproachModal } from './StudyPlannerApproachModal';
 import { StudyPlannerCalendarConfigModal } from './StudyPlannerCalendarConfigModal';
 import { StudyPlannerCalendarModal } from './StudyPlannerCalendarModal';
 import { StudyPlannerConversationHeader } from './StudyPlannerConversationHeader';
@@ -39,7 +40,6 @@ interface StudyPlannerConversationShellProps {
   isLoadingCourses: boolean;
   courseSearchQuery: string;
   showCalendarConfig: boolean;
-  showApproachModal: boolean;
   showDateModal: boolean;
   currentMonth: Date | null;
   selectedDate: Date | null;
@@ -58,6 +58,8 @@ interface StudyPlannerConversationShellProps {
   onClearSearch: () => void;
   onToggleCourse: (courseId: string) => void;
   onConfirmCourseSelection: () => void;
+  onCloseCourseSelector: () => void;
+  onOpenCourseSelector: () => void;
   onConnectCalendar: (provider: 'google' | 'microsoft') => void;
   onSkipCalendar: () => void;
   onCalendarOverlayClick: () => void;
@@ -92,7 +94,6 @@ export function StudyPlannerConversationShell({
   isLoadingCourses,
   courseSearchQuery,
   showCalendarConfig,
-  showApproachModal,
   showDateModal,
   currentMonth,
   selectedDate,
@@ -111,6 +112,8 @@ export function StudyPlannerConversationShell({
   onClearSearch,
   onToggleCourse,
   onConfirmCourseSelection,
+  onCloseCourseSelector,
+  onOpenCourseSelector,
   onConnectCalendar,
   onSkipCalendar,
   onCalendarOverlayClick,
@@ -184,37 +187,52 @@ export function StudyPlannerConversationShell({
                   </div>
                 )}
 
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: index * 0.05 + 0.15, type: 'spring', stiffness: 300, damping: 20 }}
-                  className={`relative max-w-full overflow-hidden px-3.5 py-2.5 shadow-sm sm:px-5 sm:py-3 ${
-                    message.role === 'user'
-                      ? 'rounded-[18px] rounded-br-[6px] bg-[#0A2540] text-white shadow-[#0A2540]/25 sm:rounded-[22px]'
-                      : 'rounded-[18px] rounded-bl-[6px] border border-[#E9ECEF] bg-[#FFFFFF] text-[#0A2540] shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white sm:rounded-[22px]'
-                  }`}
-                >
-                  <div className="relative z-10 break-words">
-                    {message.role === 'assistant' ? (
-                      <div className="font-body text-[14px] leading-[1.6] tracking-wide text-[#0A2540] dark:text-white sm:text-[16px] sm:leading-[1.75]">
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                            strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                            ul: ({ children }) => <ul className="my-2 list-disc pl-5">{children}</ul>,
-                            li: ({ children }) => <li className="mb-1">{children}</li>,
-                          }}
-                        >
+                <div className="flex flex-col gap-2">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: index * 0.05 + 0.15, type: 'spring', stiffness: 300, damping: 20 }}
+                    className={`relative max-w-full overflow-hidden px-3.5 py-2.5 shadow-sm sm:px-5 sm:py-3 ${
+                      message.role === 'user'
+                        ? 'rounded-[18px] rounded-br-[6px] bg-[#0A2540] text-white shadow-[#0A2540]/25 sm:rounded-[22px]'
+                        : 'rounded-[18px] rounded-bl-[6px] border border-[#E9ECEF] bg-[#FFFFFF] text-[#0A2540] shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white sm:rounded-[22px]'
+                    }`}
+                  >
+                    <div className="relative z-10 break-words">
+                      {message.role === 'assistant' ? (
+                        <div className="font-body text-[14px] leading-[1.6] tracking-wide text-[#0A2540] dark:text-white sm:text-[16px] sm:leading-[1.75]">
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                              strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                              ul: ({ children }) => <ul className="my-2 list-disc pl-5">{children}</ul>,
+                              li: ({ children }) => <li className="mb-1">{children}</li>,
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="font-body whitespace-pre-wrap text-[14px] font-medium leading-[1.6] tracking-wide text-white sm:text-[16px] sm:leading-[1.75]">
                           {message.content}
-                        </ReactMarkdown>
-                      </div>
-                    ) : (
-                      <p className="font-body whitespace-pre-wrap text-[14px] font-medium leading-[1.6] tracking-wide text-white sm:text-[16px] sm:leading-[1.75]">
-                        {message.content}
-                      </p>
-                    )}
-                  </div>
-                </motion.div>
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+
+                  {index === 0 && message.role === 'assistant' && selectedCourseIds.length === 0 && !showCourseSelector && !isProcessing && (
+                    <motion.button
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.3 }}
+                      onClick={onOpenCourseSelector}
+                      className="flex items-center gap-2 self-start rounded-xl border border-[#0A2540]/20 bg-white px-3.5 py-2 text-sm font-medium text-[#0A2540] shadow-sm transition-all hover:border-[#00D4B3]/50 hover:bg-[#00D4B3]/5 hover:text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white dark:hover:border-[#00D4B3]/50 dark:hover:bg-[#00D4B3]/10"
+                    >
+                      <BookOpen size={15} className="text-[#00D4B3]" />
+                      Seleccionar taller
+                    </motion.button>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}
@@ -283,6 +301,7 @@ export function StudyPlannerConversationShell({
         onClearSearch={onClearSearch}
         onToggleCourse={onToggleCourse}
         onConfirm={onConfirmCourseSelection}
+        onClose={onCloseCourseSelector}
       />
 
       <StudyPlannerCalendarModal
@@ -301,12 +320,6 @@ export function StudyPlannerConversationShell({
         provider={connectedCalendar}
         onClose={onCloseCalendarConfig}
         onSaveSuccess={onCalendarConfigSaveSuccess}
-      />
-
-      <StudyPlannerApproachModal
-        isOpen={showApproachModal}
-        selectedApproach={studyApproach}
-        onSelect={onApproachSelect}
       />
 
       <StudyPlannerTargetDateModal

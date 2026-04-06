@@ -66,13 +66,22 @@ function buildFallbackLessonsContext(pendingLessons: StudyPlannerPendingLesson[]
     .join('\n');
 }
 
-function buildDueDateContext(assignedCourses: StudyPlannerAssignedCourse[]): string {
-  const coursesWithDueDates = assignedCourses.filter((course) => course.dueDate);
-  if (coursesWithDueDates.length === 0) {
+function buildDueDateContext(assignedCourses: StudyPlannerAssignedCourse[], resolvedCourseIds?: string[]): string {
+  let candidates = assignedCourses.filter((course) => course.dueDate);
+
+  // Only use the selected course's due date, not all assigned courses.
+  if (resolvedCourseIds && resolvedCourseIds.length > 0) {
+    const filtered = candidates.filter((c) => resolvedCourseIds.includes(c.courseId));
+    if (filtered.length > 0) {
+      candidates = filtered;
+    }
+  }
+
+  if (candidates.length === 0) {
     return '';
   }
 
-  const nearestDueDate = [...coursesWithDueDates]
+  const nearestDueDate = [...candidates]
     .sort((left, right) => new Date(left.dueDate!).getTime() - new Date(right.dueDate!).getTime())[0];
 
   const dueDateFormatted = new Date(nearestDueDate.dueDate!).toLocaleDateString('es-ES', {
@@ -216,13 +225,21 @@ function detectExplicitSessionDuration(message: string): number | null {
   return null;
 }
 
-function getNearestDeadlineDate(assignedCourses: StudyPlannerAssignedCourse[]): string | undefined {
-  const coursesWithDueDates = assignedCourses.filter((course) => course.dueDate);
-  if (coursesWithDueDates.length === 0) {
+function getNearestDeadlineDate(assignedCourses: StudyPlannerAssignedCourse[], resolvedCourseIds?: string[]): string | undefined {
+  let candidates = assignedCourses.filter((course) => course.dueDate);
+
+  if (resolvedCourseIds && resolvedCourseIds.length > 0) {
+    const filtered = candidates.filter((c) => resolvedCourseIds.includes(c.courseId));
+    if (filtered.length > 0) {
+      candidates = filtered;
+    }
+  }
+
+  if (candidates.length === 0) {
     return undefined;
   }
 
-  return [...coursesWithDueDates]
+  return [...candidates]
     .sort((left, right) => new Date(left.dueDate!).getTime() - new Date(right.dueDate!).getTime())[0]
     .dueDate ?? undefined;
 }
@@ -248,7 +265,7 @@ async function buildDeterministicPlanContext(
   params: Pick<
     BuildStudyPlannerChatRequestContextParams,
     'assignedCourses' | 'lessons' | 'message' | 'studyApproach'
-  > & { explicitSessionMinutes?: number | null },
+  > & { explicitSessionMinutes?: number | null; resolvedCourseIds?: string[] },
 ): Promise<DeterministicPlanContextResult> {
   const uniqueDays = detectPlannerDays(params.message);
   if (uniqueDays.length === 0 || params.lessons.length === 0) {
@@ -259,7 +276,7 @@ async function buildDeterministicPlanContext(
   }
 
   const uniqueTimes = detectPlannerTimes(params.message);
-  const deadlineDate = getNearestDeadlineDate(params.assignedCourses);
+  const deadlineDate = getNearestDeadlineDate(params.assignedCourses, params.resolvedCourseIds);
 
   // BUG-C: Explicit duration from user takes priority over approach-based default
   const approachBasedMinutes = params.studyApproach === 'corto' ? 75 : params.studyApproach === 'largo' ? 25 : 45;
@@ -357,19 +374,22 @@ export async function buildStudyPlannerChatRequestContext(
     day: 'numeric',
   });
 
-  // Filter lessons to only those from the selected course (BUG-A fix)
-  const filteredLessons = params.selectedCourseIds && params.selectedCourseIds.length > 0
-    ? params.lessons.filter(l => params.selectedCourseIds!.includes(l.courseId))
+  // selectedCourseIds may contain "courseUUID__OrgName" keys (from deduplication).
+  // Extract the actual course UUID (before "__") for lesson and due-date filtering.
+  const resolvedCourseIds = (params.selectedCourseIds ?? []).map((id) => id.split('__')[0]).filter(Boolean);
+
+  const filteredLessons = resolvedCourseIds.length > 0
+    ? params.lessons.filter((l) => resolvedCourseIds.includes(l.courseId))
     : params.lessons;
 
   const lessonsContext =
     params.lessonsAreReady && filteredLessons.length > 0
-      ? params.getLessonsForPrompt(params.selectedCourseIds)
+      ? params.getLessonsForPrompt(resolvedCourseIds)
       : buildFallbackLessonsContext(params.pendingLessons);
 
   const filteredPendingCount = filteredLessons.length || params.totalPendingLessons;
 
-  const dueDateContext = buildDueDateContext(params.assignedCourses);
+  const dueDateContext = buildDueDateContext(params.assignedCourses, resolvedCourseIds);
   const existingPlanContext = buildExistingPlanContext(params.savedLessonDistribution);
 
   // BUG-C fix: If user states explicit duration, use it instead of approach default
@@ -381,6 +401,7 @@ export async function buildStudyPlannerChatRequestContext(
     assignedCourses: params.assignedCourses,
     studyApproach: params.studyApproach,
     explicitSessionMinutes: explicitDuration,
+    resolvedCourseIds,
   });
 
   const finalStudyPlannerContext = deterministicContext.blockPlanGeneration

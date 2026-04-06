@@ -47,6 +47,7 @@ export function buildOrganizationAssignment(
   return {
     id: item.id,
     organizationId: item.organization_id,
+    organizationName: item.organization?.name ?? undefined,
     userId: item.user_id,
     courseId: item.course_id,
     course: mapCourseInfo(item.courses),

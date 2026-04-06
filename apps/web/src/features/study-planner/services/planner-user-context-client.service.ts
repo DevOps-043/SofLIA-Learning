@@ -13,6 +13,8 @@ export interface StudyPlannerUserContextApiCourse {
   courseId?: string | null;
   dueDate?: string | null;
   id?: string | null;
+  organizationId?: string | null;
+  organizationName?: string | null;
   title?: string | null;
 }
 
@@ -91,6 +93,8 @@ export function mapStudyPlannerAssignedCourses(
     .map((course) => ({
       courseId: course.courseId || course.course?.id || course.id || '',
       dueDate: course.dueDate || course.course?.dueDate || null,
+      organizationId: course.organizationId || null,
+      organizationName: course.organizationName || null,
       title: course.course?.title || course.title || 'Curso',
     }))
     .filter((course) => Boolean(course.courseId))

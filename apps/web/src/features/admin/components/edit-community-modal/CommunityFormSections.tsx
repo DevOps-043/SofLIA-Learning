@@ -11,7 +11,7 @@ import type { CommunityFormData } from './useEditCommunityFormState'
 
 const colors = SOFLIA_ADMIN_COLORS
 
-// ─── Primitive UI Components ──────────────────────────────────
+// --- Primitive UI Components ----------------------------------
 
 interface PremiumInputProps {
   label: string; name: string; value: string
@@ -142,11 +142,13 @@ function SectionHeader({ icon, title, subtitle, color }: SectionHeaderProps) {
   )
 }
 
-// ─── Exported Sections ─────────────────────────────────────────
+// --- Exported Sections ----------------------------------------
+
+type FormChangeEvent = React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
 
 interface CommunityFormSectionsProps {
   formData: CommunityFormData
-  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
+  handleChange: (e: FormChangeEvent) => void
 }
 
 export function CommunityFormSections({ formData, handleChange }: CommunityFormSectionsProps) {
@@ -197,7 +199,7 @@ export function CommunityFormSections({ formData, handleChange }: CommunityFormS
             onChange={handleChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
             icon={<Globe className="w-5 h-5" />}
             options={[
-              { value: 'public', label: 'ðŸŒ Pública - Visible para todos' },
+              { value: 'public', label: '🌍 Pública - Visible para todos' },
               { value: 'private', label: '🔒 Privada - Solo miembros' }
             ]} required />
           <PremiumSelect label="Tipo de Acceso" name="access_type" value={formData.access_type}
@@ -205,8 +207,8 @@ export function CommunityFormSections({ formData, handleChange }: CommunityFormS
             icon={<Lock className="w-5 h-5" />}
             options={[
               { value: 'open', label: '✅ Abierto - Cualquiera puede unirse' },
-              { value: 'moderated', label: 'ðŸ'€ Moderado - Requiere aprobación' },
-              { value: 'invite_only', label: 'âœ‰ï¸ Solo invitación' }
+              { value: 'moderated', label: '👀 Moderado - Requiere aprobación' },
+              { value: 'invite_only', label: '✉️ Solo invitación' }
             ]} required />
         </div>
       </div>

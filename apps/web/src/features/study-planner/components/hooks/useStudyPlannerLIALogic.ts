@@ -266,6 +266,7 @@ export function useStudyPlannerLIALogic() {
     loadUserCourses,
     toggleCourseSelection,
   } = useStudyPlannerCourseSelectionFlow({
+    assignedCourses,
     availableCourses,
     isAudioEnabled,
     selectedCourseIds,
@@ -276,7 +277,7 @@ export function useStudyPlannerLIALogic() {
     setIsProcessing,
     setIsVisible,
     setSelectedCourseIds,
-    setShowApproachModal,
+    setShowApproachButtons,
     setShowConversation,
     setShowCourseSelector,
     speakText,
@@ -289,6 +290,9 @@ export function useStudyPlannerLIALogic() {
     getLessonsForPrompt: liaData.getLessonsForPrompt,
     isAudioEnabled,
     lessonsAreReady: liaData.isReady,
+    // After the welcome message renders, open the course selector automatically
+    // so the user doesn't have to type the course name (RUX-02, RF-03).
+    onWelcomeComplete: loadUserCourses,
     savedCalendarData,
     setConversationHistory,
     setIsProcessing,

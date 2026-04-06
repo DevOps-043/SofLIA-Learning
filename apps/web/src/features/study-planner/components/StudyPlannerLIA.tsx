@@ -25,7 +25,6 @@ export function StudyPlannerSofLIA() {
     showCalendarConfig,
     hasConfiguredCalendars,
     studyApproach,
-    showApproachModal,
     showApproachButtons,
     showDateModal,
     selectedDate,
@@ -37,6 +36,7 @@ export function StudyPlannerSofLIA() {
     setHoveredButton,
     setShowCalendarModal,
     setShowCalendarConfig,
+    setShowCourseSelector,
     setCourseSearchQuery,
     setSelectedDate,
     setUserMessage,
@@ -62,6 +62,7 @@ export function StudyPlannerSofLIA() {
     handlePlannerBack,
     confirmCourseSelection,
     toggleCourseSelection,
+    loadUserCourses,
     skipCalendarConnection,
     // Session storage
     handleDiscardSession,
@@ -111,7 +112,6 @@ export function StudyPlannerSofLIA() {
         isLoadingCourses={isLoadingCourses}
         courseSearchQuery={courseSearchQuery}
         showCalendarConfig={showCalendarConfig}
-        showApproachModal={showApproachModal}
         showDateModal={showDateModal}
         currentMonth={currentMonth}
         selectedDate={selectedDate}
@@ -134,6 +134,8 @@ export function StudyPlannerSofLIA() {
         onClearSearch={() => setCourseSearchQuery('')}
         onToggleCourse={toggleCourseSelection}
         onConfirmCourseSelection={confirmCourseSelection}
+        onCloseCourseSelector={() => setShowCourseSelector(false)}
+        onOpenCourseSelector={() => { void loadUserCourses(); }}
         onConnectCalendar={handleCalendarConnect}
         onSkipCalendar={() => {
           void skipCalendarConnection();

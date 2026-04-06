@@ -65,6 +65,7 @@ export interface CourseComplexity {
 export interface B2BCourseAssignment {
   id: string;
   organizationId: string;
+  organizationName?: string;
   userId: string;
   courseId: string;
   course: CourseInfo;
@@ -109,6 +110,8 @@ export interface CourseAssignment {
   userType: UserType;
   dueDate?: string;
   assignedBy?: string;
+  organizationId?: string;
+  organizationName?: string;
   status: AssignmentStatus | 'active';
   completionPercentage: number;
   completedLessons?: number;

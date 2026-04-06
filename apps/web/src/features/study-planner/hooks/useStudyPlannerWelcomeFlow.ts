@@ -23,6 +23,7 @@ interface UseStudyPlannerWelcomeFlowParams {
   getLessonsForPrompt: (selectedCourseIds?: string[]) => string;
   isAudioEnabled: boolean;
   lessonsAreReady: boolean;
+  onWelcomeComplete?: () => void;
   savedCalendarData: StudyPlannerCalendarDataMap | null;
   setConversationHistory: StateSetter<StudyPlannerMessage[]>;
   setIsProcessing: StateSetter<boolean>;
@@ -40,6 +41,7 @@ export function useStudyPlannerWelcomeFlow({
   getLessonsForPrompt,
   isAudioEnabled,
   lessonsAreReady,
+  onWelcomeComplete,
   savedCalendarData,
   setConversationHistory,
   setIsProcessing,
@@ -93,6 +95,12 @@ export function useStudyPlannerWelcomeFlow({
         // The user must first select a course (RF-01, RUX-02).
         // Approach selection happens after course selection in confirmCourseSelection().
 
+        // After the welcome message renders, automatically open the course selector
+        // so the user can pick which course to plan without having to type it (RUX-02).
+        if (assignedCourses.length > 0 && onWelcomeComplete) {
+          window.setTimeout(onWelcomeComplete, 800);
+        }
+
         if (isAudioEnabled && assignedCourses.length > 0) {
           void speakText(getStudyPlannerWelcomeAudioMessage());
         }
@@ -138,6 +146,7 @@ export function useStudyPlannerWelcomeFlow({
     getLessonsForPrompt,
     isAudioEnabled,
     lessonsAreReady,
+    onWelcomeComplete,
     savedCalendarData,
     setConversationHistory,
     setIsProcessing,

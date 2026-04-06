@@ -290,10 +290,17 @@ export function buildStudyPlanPayload(
         || params.selectedCourseIds.includes(availableCourse.id),
     );
 
+    // Use the actual course UUID (courseId), not the selection key (id).
+    const resolvedCourseId =
+      course?.courseId
+      ?? params.availableCourses.find((c) => params.selectedCourseIds.includes(c.id))?.courseId
+      ?? params.selectedCourseIds[0]
+      ?? '';
+
     return {
       title: buildSessionTitle(slot.lessons),
       description: buildSessionDescription(slot.lessons),
-      courseId: course?.id ?? params.selectedCourseIds[0] ?? '',
+      courseId: resolvedCourseId,
       lessonId: undefined,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
@@ -316,7 +323,9 @@ export function buildStudyPlanPayload(
       name: `Plan de Estudios - ${new Date().toLocaleDateString('es-ES')}`,
       description: `Plan generado por SofLIA con ${sessions.length} sesiones${params.selectedCourseIds.length > 0 ? ` para ${params.selectedCourseIds.length} curso(s)` : ''}`,
       userType: params.userType || 'b2c',
-      courseIds: params.selectedCourseIds,
+      courseIds: params.selectedCourseIds.map(
+        (selId) => params.availableCourses.find((c) => c.id === selId)?.courseId ?? selId,
+      ),
       goalHoursPerWeek,
       startDate,
       endDate,

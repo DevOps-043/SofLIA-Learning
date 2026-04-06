@@ -69,9 +69,17 @@ function sortPendingLessons(
   pendingLessons: StudyPlannerPendingLesson[],
   selectedCourseIds: string[],
 ): StudyPlannerPendingLesson[] {
-  return [...pendingLessons].sort((left, right) => {
+  // Resolve actual course UUIDs from selection keys (may contain "__OrgName" suffix).
+  const resolvedIds = selectedCourseIds.map((id) => id.split('__')[0]);
+
+  // Filter to only include lessons from the selected course(s).
+  const filtered = resolvedIds.length > 0
+    ? pendingLessons.filter((l) => resolvedIds.includes(l.courseId))
+    : pendingLessons;
+
+  return [...filtered].sort((left, right) => {
     if (left.courseId !== right.courseId) {
-      return selectedCourseIds.indexOf(left.courseId) - selectedCourseIds.indexOf(right.courseId);
+      return resolvedIds.indexOf(left.courseId) - resolvedIds.indexOf(right.courseId);
     }
 
     if (left.moduleOrderIndex !== right.moduleOrderIndex) {

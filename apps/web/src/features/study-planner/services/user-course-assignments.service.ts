@@ -61,6 +61,9 @@ export class UserCourseAssignmentsService {
         ),
         assigner:assigned_by (
           ${PERSON_NAME_SELECT}
+        ),
+        organization:organization_id (
+          name
         )
       `)
       .eq('user_id', userId)
@@ -321,6 +324,8 @@ export class UserCourseAssignmentsService {
         userType: 'b2b',
         dueDate: assignment.dueDate,
         assignedBy: assignment.assignedByName,
+        organizationId: assignment.organizationId,
+        organizationName: assignment.organizationName,
         status: assignment.status,
         completionPercentage: assignment.completionPercentage,
         source: 'organization',

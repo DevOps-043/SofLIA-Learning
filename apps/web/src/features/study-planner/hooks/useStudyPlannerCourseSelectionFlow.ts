@@ -3,6 +3,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 import type {
+  StudyPlannerAssignedCourse,
   StudyPlannerCourseOption,
   StudyPlannerMessage,
 } from '../types/planner-ui.types';
@@ -10,6 +11,7 @@ import type {
 type StateSetter<T> = Dispatch<SetStateAction<T>>;
 
 interface UseStudyPlannerCourseSelectionFlowParams {
+  assignedCourses: StudyPlannerAssignedCourse[];
   availableCourses: StudyPlannerCourseOption[];
   isAudioEnabled: boolean;
   selectedCourseIds: string[];
@@ -20,7 +22,7 @@ interface UseStudyPlannerCourseSelectionFlowParams {
   setIsProcessing: StateSetter<boolean>;
   setIsVisible: StateSetter<boolean>;
   setSelectedCourseIds: StateSetter<string[]>;
-  setShowApproachModal: StateSetter<boolean>;
+  setShowApproachButtons: StateSetter<boolean>;
   setShowConversation: StateSetter<boolean>;
   setShowCourseSelector: StateSetter<boolean>;
   speakText: (text: string) => Promise<void>;
@@ -51,6 +53,7 @@ function scheduleSpeech(
 }
 
 export function useStudyPlannerCourseSelectionFlow({
+  assignedCourses,
   availableCourses,
   isAudioEnabled,
   selectedCourseIds,
@@ -61,33 +64,39 @@ export function useStudyPlannerCourseSelectionFlow({
   setIsProcessing,
   setIsVisible,
   setSelectedCourseIds,
-  setShowApproachModal,
+  setShowApproachButtons,
   setShowConversation,
   setShowCourseSelector,
   speakText,
   stopAllAudio,
 }: UseStudyPlannerCourseSelectionFlowParams): UseStudyPlannerCourseSelectionFlowResult {
+  /**
+   * Uses already-loaded assignedCourses from context instead of fetching /api/my-courses.
+   * This avoids a redundant API call and works correctly for B2B users whose courses
+   * come from organization_course_assignments, not course_purchases.
+   */
   const loadUserCourses = async () => {
     setIsLoadingCourses(true);
 
     try {
-      const response = await fetch('/api/my-courses');
-      if (response.ok) {
-        const data = await response.json();
-        const courses = data.courses || data || [];
-
-        setAvailableCourses(
-          courses.map((course: Record<string, unknown> & { courses?: Record<string, unknown> }) => ({
-            category: course.course_category || course.category || course.courses?.category || 'General',
-            id: course.course_id || course.id,
-            progress: course.progress_percentage || course.progress || 0,
-            title: course.course_title || course.title || course.courses?.title || 'Curso sin nombre',
-          })),
-        );
-      }
-    } catch (error) {
-      console.error('Error cargando cursos:', error);
-      setAvailableCourses([]);
+      setAvailableCourses(
+        assignedCourses.map((course) => {
+          const courseId = course.courseId || '';
+          // Generate a unique selection key so the same course assigned by
+          // different organizations appears as separate, independently selectable items.
+          const id = course.organizationName
+            ? `${courseId}__${course.organizationName}`
+            : courseId || course.id || '';
+          return {
+            category: 'General',
+            courseId,
+            id,
+            organizationName: course.organizationName ?? undefined,
+            progress: course.progress ?? 0,
+            title: course.title,
+          };
+        }),
+      );
     } finally {
       setIsLoadingCourses(false);
       setShowCourseSelector(true);
@@ -168,7 +177,7 @@ export function useStudyPlannerCourseSelectionFlow({
         setHasAskedApproach(true);
 
         window.setTimeout(() => {
-          setShowApproachModal(true);
+          setShowApproachButtons(true);
         }, 500);
 
         if (isAudioEnabled) {

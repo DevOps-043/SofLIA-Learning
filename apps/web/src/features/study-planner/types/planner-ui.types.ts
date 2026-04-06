@@ -3,10 +3,14 @@ import type { CalendarProvider, UserType } from './user-context.types';
 export type StudyApproach = 'corto' | 'balance' | 'largo';
 
 export interface StudyPlannerCourseOption {
+  /** Unique key per assignment (may include orgName suffix for deduplication). */
   id: string;
+  /** The actual course UUID used for planning and DB operations. */
+  courseId: string;
   title: string;
   category: string;
   progress: number;
+  organizationName?: string;
 }
 
 export interface StudyPlannerUserContextSummary {
@@ -41,6 +45,7 @@ export interface StudyPlannerAssignedCourse {
   planningWindowStart?: string | null;
   planningWindowEnd?: string | null;
   hasActivePlan?: boolean;
+  organizationName?: string | null;
   progress?: number;
 }
 
