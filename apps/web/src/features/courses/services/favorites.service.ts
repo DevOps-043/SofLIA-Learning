@@ -39,53 +39,22 @@ export class FavoritesService {
   static async addToFavorites(userId: string, courseId: string): Promise<void> {
     try {
       const supabase = await createClient()
-      
-      // Normalizar courseId para evitar problemas de comparación
       const normalizedCourseId = String(courseId).trim()
-      
-      // Verificar si ya existe antes de insertar
-      const { data: existing } = await supabase
-        .from('user_favorites')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', normalizedCourseId)
-        .maybeSingle()
 
-      if (existing) {
-        // Ya existe, no hacer nada
-        if (process.env.NODE_ENV === 'development') {
-
-        }
-        return
-      }
-
+      // Insertar directamente — manejar duplicado con ON CONFLICT
       const { error } = await supabase
         .from('user_favorites')
-        .insert({
-          user_id: userId,
-          course_id: normalizedCourseId
-        })
+        .upsert(
+          { user_id: userId, course_id: normalizedCourseId },
+          { onConflict: 'user_id, course_id', ignoreDuplicates: true }
+        )
 
       if (error) {
-        // Si es un error de duplicado, ignorarlo
-        if (error.code === '23505' || error.message.includes('duplicate') || error.message.includes('unique')) {
-          if (process.env.NODE_ENV === 'development') {
-          }
-          return
-        }
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error adding to favorites:', error)
-        }
+        // Duplicados son idempotentes, no son error real
+        if (error.code === '23505' || error.message.includes('duplicate')) return
         throw new Error(`Error al agregar a favoritos: ${error.message}`)
       }
-      
-      if (process.env.NODE_ENV === 'development') {
-
-      }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error in FavoritesService.addToFavorites:', error)
-      }
       throw error
     }
   }
@@ -96,55 +65,19 @@ export class FavoritesService {
   static async removeFromFavorites(userId: string, courseId: string): Promise<void> {
     try {
       const supabase = await createClient()
-      
-      // Normalizar courseId para evitar problemas de comparación
       const normalizedCourseId = String(courseId).trim()
-      
-      // Verificar que existe antes de eliminar
-      const { data: existing } = await supabase
-        .from('user_favorites')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('course_id', normalizedCourseId)
-        .maybeSingle()
 
-      if (!existing) {
-        // No existe, no hay nada que eliminar
-        if (process.env.NODE_ENV === 'development') {
-          console.warn(`Intento de eliminar favorito que no existe: userId=${userId}, courseId=${normalizedCourseId}`)
-        }
-        return
-      }
-
-      const { data, error } = await supabase
+      // Eliminar directamente — idempotente si no existe
+      const { error } = await supabase
         .from('user_favorites')
         .delete()
         .eq('user_id', userId)
         .eq('course_id', normalizedCourseId)
-        .select()
 
       if (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error removing from favorites:', error)
-        }
         throw new Error(`Error al remover de favoritos: ${error.message}`)
       }
-
-      // Verificar que se eliminó correctamente
-      if (!data || data.length === 0) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn(`No se eliminó ningún registro: userId=${userId}, courseId=${normalizedCourseId}`)
-        }
-        // No lanzar error, pero registrar la advertencia
-      } else {
-        if (process.env.NODE_ENV === 'development') {
-
-        }
-      }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error in FavoritesService.removeFromFavorites:', error)
-      }
       throw error
     }
   }
@@ -200,61 +133,53 @@ export class FavoritesService {
   }
 
   /**
-   * Alterna el estado de favorito de un curso
+   * Alterna el estado de favorito de un curso.
+   * Optimizado: 1-2 queries en vez de 4-5 secuenciales.
    */
   static async toggleFavorite(userId: string, courseId: string): Promise<boolean> {
     try {
-      // Verificar estado actual
-      const isCurrentlyFavorite = await this.isFavorite(userId, courseId)
-      
-      if (process.env.NODE_ENV === 'development') {
+      const supabase = await createClient()
+      const normalizedCourseId = String(courseId).trim()
 
+      // Intentar eliminar primero — si devuelve filas, el favorito existía
+      const { data: deleted, error: deleteError } = await supabase
+        .from('user_favorites')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', normalizedCourseId)
+        .select('id')
+
+      if (deleteError) {
+        throw new Error(`Error al gestionar favorito: ${deleteError.message}`)
       }
-      
-      if (isCurrentlyFavorite) {
-        // Remover de favoritos
-        await this.removeFromFavorites(userId, courseId)
-        
-        // Verificar que se eliminó correctamente
-        const stillFavorite = await this.isFavorite(userId, courseId)
-        if (stillFavorite) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error(`Error: El favorito no se eliminó correctamente. userId=${userId}, courseId=${courseId}`)
-          }
-          throw new Error('No se pudo remover el favorito')
-        }
-        
+
+      if (deleted && deleted.length > 0) {
+        // Se eliminó: era favorito, ya no lo es
         return false
-      } else {
-        // Agregar a favoritos
-        await this.addToFavorites(userId, courseId)
-        
-        // Verificar que se agregó correctamente
-        const nowFavorite = await this.isFavorite(userId, courseId)
-        if (!nowFavorite) {
-          if (process.env.NODE_ENV === 'development') {
-            console.error(`Error: El favorito no se agregó correctamente. userId=${userId}, courseId=${courseId}`)
-          }
-          throw new Error('No se pudo agregar el favorito')
-        }
-        
-        return true
-      }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error in FavoritesService.toggleFavorite:', error)
       }
 
-      // Si es un error de configuración de Supabase, simular comportamiento
+      // No existía — insertar como nuevo favorito
+      const { error: insertError } = await supabase
+        .from('user_favorites')
+        .insert({ user_id: userId, course_id: normalizedCourseId })
+
+      if (insertError) {
+        // Si es duplicado por race condition, considerar como éxito
+        if (insertError.code === '23505' || insertError.message.includes('duplicate')) {
+          return true
+        }
+        throw new Error(`Error al agregar a favoritos: ${insertError.message}`)
+      }
+
+      return true
+    } catch (error) {
       if (error instanceof Error && (
         error.message.includes('Variables de entorno') ||
         error.message.includes('NEXT_PUBLIC_SUPABASE_URL') ||
         error.message.includes('NEXT_PUBLIC_SUPABASE_ANON_KEY')
       )) {
-        // Simular que se agregó a favoritos (puedes cambiar esta lógica según necesites)
         return true
       }
-      
       throw error
     }
   }

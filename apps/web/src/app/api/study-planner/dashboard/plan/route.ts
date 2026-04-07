@@ -115,25 +115,37 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
       throw planError;
     }
 
-    // Obtener sesiones del plan
+    // Obtener sesiones del plan y calendario en paralelo
     const now = new Date();
-    const { data: allSessions, error: sessionsError } = await supabase
-      .from('study_sessions')
-      .select(`
-        id,
-        plan_id,
-        title,
-        description,
-        course_id,
-        lesson_id,
-        start_time,
-        end_time,
-        duration_minutes,
-        status,
-        is_ai_generated
-      `)
-      .eq('plan_id', plan.id)
-      .order('start_time', { ascending: true });
+    const [
+      { data: allSessions, error: sessionsError },
+      { data: calendarIntegration }
+    ] = await Promise.all([
+      supabase
+        .from('study_sessions')
+        .select(`
+          id,
+          plan_id,
+          title,
+          description,
+          course_id,
+          lesson_id,
+          start_time,
+          end_time,
+          duration_minutes,
+          status,
+          is_ai_generated
+        `)
+        .eq('plan_id', plan.id)
+        .order('start_time', { ascending: true })
+        .limit(2000),
+      supabase
+        .from('calendar_integrations')
+        .select('provider, updated_at')
+        .eq('user_id', user.id)
+        .limit(1)
+        .single(),
+    ]);
 
     if (sessionsError) {
       throw sessionsError;
@@ -156,17 +168,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
     const sessions: SessionRow[] = (allSessions || []) as SessionRow[];
     const totalSessions = sessions.length;
     const completedSessions = sessions.filter((s: SessionRow) => s.status === 'completed').length;
-    const upcomingSessions = sessions.filter((s: SessionRow) => 
+    const upcomingSessions = sessions.filter((s: SessionRow) =>
       s.status === 'planned' && new Date(s.start_time) > now
     ).length;
-
-    // Obtener información de integración de calendario
-    const { data: calendarIntegration } = await supabase
-      .from('calendar_integrations')
-      .select('provider, updated_at')
-      .eq('user_id', user.id)
-      .limit(1)
-      .single();
 
     // Formatear respuesta
     const formattedSessions = sessions.map((session: SessionRow) => ({

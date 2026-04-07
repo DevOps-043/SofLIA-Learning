@@ -332,8 +332,8 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                                   : 'px-3 md:px-4 py-2 gap-1 md:gap-2 min-w-fit'
                               } ${
                                 isActive
-                                  ? 'bg-[#0A2540] text-white shadow-lg shadow-[#0A2540]/25'
-                                  : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30'
+                                  ? 'bg-[#0A2540] dark:bg-[#00D4B3] text-white dark:text-[#0A2540] shadow-lg shadow-[#0A2540]/25 dark:shadow-[#00D4B3]/25'
+                                  : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-[#00D4B3] hover:bg-[#E9ECEF]/50 dark:hover:bg-[#00D4B3]/10'
                               }`}
                               style={{
                                 fontFamily: 'Inter, sans-serif',

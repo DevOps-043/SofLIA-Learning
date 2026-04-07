@@ -27,6 +27,7 @@ interface CourseCard3DProps {
   onClick: () => void
   onCertificateClick?: () => void
   styles?: Partial<StyleConfig> | null
+  viewMode?: 'grid' | 'list'
 }
 
 /**
@@ -38,7 +39,8 @@ export function CourseCard3D({
   index,
   onClick,
   onCertificateClick,
-  styles
+  styles,
+  viewMode = 'grid'
 }: CourseCard3DProps) {
   const { resolvedTheme } = useThemeStore()
   const isSystemLight = resolvedTheme === 'light'
@@ -89,50 +91,48 @@ export function CourseCard3D({
 
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl backdrop-blur-xl cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+      className={`group relative flex overflow-hidden rounded-[20px] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${viewMode === 'list' ? 'flex-col lg:flex-row items-stretch' : 'flex-col'}`}
       style={{
         backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
-        border: `1px solid ${isLightMode ? borderColor : 'rgba(255, 255, 255, 0.1)'}`,
-        animationDelay: `${index * 100}ms`
+        border: `1px solid ${isLightMode ? borderColor : 'rgba(255, 255, 255, 0.08)'}`,
+        boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.08)' : 'none',
+        animationDelay: `${index * 50}ms`
       }}
       onClick={onClick}
     >
       {/* Thumbnail */}
-      <div className="relative h-40 overflow-hidden">
+      <div 
+        className={`relative bg-black/5 overflow-hidden border-r shrink-0 ${viewMode === 'list' ? 'w-full lg:w-[35%] lg:min-w-[240px] lg:max-w-[300px] aspect-video' : 'aspect-video w-full'}`} 
+        style={{ 
+          backgroundColor: isLightMode ? '#F8FAFC' : '#0F172A',
+          borderColor: isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'
+        }}
+      >
         <Image
           src={course.thumbnail || '/images/course-placeholder.png'}
           alt={course.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         
-        {/* Overlay gradient */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: isLightMode 
-              ? 'linear-gradient(to top, rgba(255,255,255,0.9), transparent, transparent)'
-              : 'linear-gradient(to top, rgba(15,23,42,0.9), transparent, transparent)'
-          }}
-        />
+        {/* Subtle shadow inside image instead of massive gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
 
-        {/* Status badge */}
-        <div 
-          className={`absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white bg-gradient-to-r ${getStatusColor()}`}
-        >
+        {/* Minimalist Status badge */}
+        <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase text-white bg-black/40 backdrop-blur-md border border-white/20">
           {getStatusIcon()}
           {course.status}
         </div>
 
-        {/* Certificate button */}
+        {/* Minimalist Certificate button */}
         {course.has_certificate && course.progress === 100 && onCertificateClick && (
           <button
             onClick={(e) => {
               e.stopPropagation()
               onCertificateClick()
             }}
-            className="absolute top-3 right-3 p-2 rounded-full bg-yellow-500/90 text-white transition-all duration-200 hover:scale-110 hover:bg-yellow-500"
+            className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-yellow-400 transition-all duration-300 hover:scale-110 hover:bg-white hover:text-yellow-600 shadow-sm"
           >
             <Award className="w-4 h-4" />
           </button>
@@ -140,77 +140,65 @@ export function CourseCard3D({
       </div>
 
       {/* Content */}
-      <div className="p-4">
+      <div className={`flex flex-col flex-1 ${viewMode === 'list' ? 'p-4 sm:p-5' : 'p-3.5'}`}>
         <h3 
-          className="text-lg font-semibold mb-1 line-clamp-2 transition-colors"
-          style={{ 
-            color: textColor,
-          }}
+          className="text-sm font-bold leading-snug mb-1 transition-colors group-hover:opacity-80"
+          style={{ color: textColor }}
         >
           {course.title}
         </h3>
         <p 
-          className="text-sm mb-4"
+          className="text-[#9CA3AF] text-[10px] mb-2 line-clamp-1"
           style={{ color: isLightMode ? '#64748B' : '#9CA3AF' }}
         >
           {course.instructor}
         </p>
 
-        {/* Progress bar */}
-        <div className="relative">
-          <div className="flex items-center justify-between mb-2">
+        {/* Bottom Area: Progress bar & Due Date */}
+        <div className="mt-auto pt-3">
+          <div className="flex items-center justify-between mb-1.5">
             <span 
-              className="text-xs"
-              style={{ color: isLightMode ? '#64748B' : '#9CA3AF' }}
+              className="text-[9px] uppercase tracking-wider font-semibold"
+              style={{ color: isLightMode ? '#94A3B8' : '#858E9B' }}
             >
               Progreso
             </span>
-            <span className="text-xs font-medium" style={{ color: accentColor }}>
+            <span className="text-[10px] font-bold" style={{ color: accentColor }}>
               {course.progress}%
             </span>
           </div>
           <div 
-            className="h-2 rounded-full overflow-hidden"
+            className="h-1.5 w-full rounded-full overflow-hidden"
             style={{ 
-              backgroundColor: isLightMode ? '#E2E8F0' : 'rgba(55, 65, 81, 0.5)' 
+              backgroundColor: isLightMode ? '#F1F5F9' : 'rgba(255, 255, 255, 0.08)' 
             }}
           >
             <div
-              className="h-full rounded-full transition-all duration-500"
+              className="h-full rounded-full transition-all duration-700 ease-out"
               style={{
                 width: `${course.progress}%`,
                 background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})`
               }}
             />
           </div>
+
+          {/* Constant height container for Due date to keep progress bars aligned perfectly */}
+          <div className="h-[14px] mt-2">
+            {course.due_date && (
+              <p 
+                className="text-[9px] font-medium"
+                style={{ color: isLightMode ? '#94A3B8' : '#858E9B' }}
+              >
+                Vence: {new Date(course.due_date).toLocaleDateString('es-MX', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </p>
+            )}
+          </div>
         </div>
-
-        {/* Due date */}
-        {course.due_date && (
-          <p 
-            className="text-xs mt-3"
-            style={{ color: isLightMode ? '#94A3B8' : '#6B7280' }}
-          >
-            Fecha límite: {new Date(course.due_date).toLocaleDateString('es-MX', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric'
-            })}
-          </p>
-        )}
       </div>
-
-      {/* Border gradient */}
-      <div
-        className="absolute inset-0 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor}40, transparent, ${accentColor}25)`,
-          padding: '1px',
-          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          maskComposite: 'exclude',
-          WebkitMaskComposite: 'xor'
-        }}
-      />
     </div>
   )
 }

@@ -147,7 +147,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
       }}
     >
       <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
-        <div className="flex h-14 items-center justify-between">
+        <div className="flex h-16 items-center justify-between">
           {/* Left: Logo y Nombre */}
           <div className="flex items-center gap-3">
             <button
@@ -161,25 +161,25 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
             <div className="flex items-center gap-2.5">
               {/* Logo */}
               <div className="relative flex items-center justify-center">
-                {(organization?.brand_favicon_url || organization?.favicon_url) ? (
+                {(organization?.brand_logo_url || organization?.logo_url || organization?.brand_favicon_url || organization?.favicon_url) ? (
                   <Image
                     src={organization?.brand_logo_url || organization?.logo_url || organization?.brand_favicon_url || organization?.favicon_url || '/icono.png'}
                     alt={organization?.name || 'Organización'}
-                    width={36}
-                    height={36}
-                    className="object-contain h-9 w-9 rounded-lg"
+                    width={180}
+                    height={48}
+                    className="object-contain h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[180px] rounded-lg"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/icono.png';
                     }}
                   />
                 ) : (
                   <div
-                    className="h-9 w-9 flex items-center justify-center rounded-lg"
+                    className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-lg"
                     style={{
                       background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))'
                     }}
                   >
-                    <Building2 className="h-5 w-5 text-white" />
+                    <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                 )}
               </div>
@@ -187,7 +187,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               {/* Nombre de la Organización */}
               {organization?.show_navbar_name !== false && (
                 <h1
-                  className="hidden sm:block text-sm font-semibold truncate max-w-[200px]"
+                  className="hidden sm:block text-sm sm:text-base font-semibold truncate max-w-[200px] sm:max-w-[300px]"
                   style={{
                     color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.95)')
                   }}
@@ -241,7 +241,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     className="fixed inset-0 z-[998] bg-black/20 backdrop-blur-sm"
-                    style={{ top: '56px' }}
+                    style={{ top: '64px' }}
                     onClick={() => {
                       setUserDropdownOpen(false)
                       setActiveSubmenu(null)
@@ -376,21 +376,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         <span>{resolvedTheme === 'dark' ? t('common:menu.theme.light') : t('common:menu.theme.dark')}</span>
                       </motion.button>
 
-                      {/* Ver Tour button */}
-                      {tourContext && (
-                        <motion.button
-                          onClick={() => {
-                            tourContext.startTour()
-                            setUserDropdownOpen(false)
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/5"
-                          style={{ color: navbarStyle.color || 'rgba(255, 255, 255, 0.8)' }}
-                          whileHover={{ x: 2 }}
-                        >
-                          <Compass className="h-4 w-4 opacity-70" />
-                          <span>{t('common:menu.viewTour', 'Ver Tour')}</span>
-                        </motion.button>
-                      )}
+
 
                       <div className="relative">
                         <motion.button

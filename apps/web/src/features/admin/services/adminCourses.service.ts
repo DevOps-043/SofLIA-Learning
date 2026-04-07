@@ -338,19 +338,22 @@ export class AdminCoursesService {
     const { data, error } = await supabase
       .from('courses')
       .select(`
-        *,
+        id, title, description, slug, category, level, instructor_id,
+        duration_total_minutes, thumbnail_url, is_active, created_at, updated_at,
+        price, average_rating, student_count, review_count, learning_objectives,
+        approval_status,
         instructor:users!instructor_id (
-            id,
-            first_name,
-            last_name,
-            display_name,
-            profile_picture_url
+          id, first_name, last_name, display_name, profile_picture_url
         ),
         modules:course_modules (
-          *,
+          module_id, course_id, title, description, module_order_index,
+          module_duration_minutes, is_published,
           lessons:course_lessons (
-            *,
-            materials:lesson_materials (*)
+            lesson_id, module_id, title, description, lesson_order_index,
+            lesson_type, duration_minutes, is_published, is_free,
+            materials:lesson_materials (
+              material_id, lesson_id, title, material_type, material_order_index, file_url
+            )
           )
         )
       `)

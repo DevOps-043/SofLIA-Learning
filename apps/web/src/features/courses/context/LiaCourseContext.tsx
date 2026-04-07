@@ -24,6 +24,7 @@ export interface ActivityContextType {
   description: string;
   prompts?: string[]; // Prompts sugeridos específicos de esta actividad
   isCompleted?: boolean;
+  timestamp?: number;
 }
 
 const LiaCourseContext = createContext<LiaCourseContextType | undefined>(undefined);

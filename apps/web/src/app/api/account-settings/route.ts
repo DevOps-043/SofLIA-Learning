@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
 import { SessionService } from '../../../features/auth/services/session.service';
 
@@ -12,6 +13,21 @@ interface AccountSettingsUpdateData {
   notification_course_updates?: boolean
   notification_community_updates?: boolean
 }
+
+const AccountSettingsSchema = z.object({
+  privacy: z.object({
+    profileVisibility: z.enum(['public', 'private', 'friends']).optional(),
+    showEmail: z.boolean().optional(),
+    showActivity: z.boolean().optional(),
+  }).optional(),
+  notifications: z.object({
+    email: z.boolean().optional(),
+    push: z.boolean().optional(),
+    marketing: z.boolean().optional(),
+    courseUpdates: z.boolean().optional(),
+    communityUpdates: z.boolean().optional(),
+  }).optional(),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -78,15 +94,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { privacy, notifications } = body;
-
-    if (!privacy || !notifications) {
+    const rawBody = await request.json();
+    const parsed = AccountSettingsSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Datos incompletos' },
+        { error: 'Datos inválidos', details: parsed.error.format() },
         { status: 400 }
       );
     }
+    const { privacy, notifications } = parsed.data;
 
     const supabase = await createClient();
     

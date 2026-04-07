@@ -179,7 +179,8 @@ export function VideoContent({
       cancelled = true;
       retryIds.forEach((timeoutId) => clearTimeout(timeoutId));
     };
-  }, [hasVideo, lesson.lesson_id, videoPlayerContext]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasVideo, lesson.lesson_id]);
 
   useEffect(() => {
     let cleanupFn: (() => void) | undefined;
@@ -328,7 +329,8 @@ export function VideoContent({
         currentVideoElement.pause();
       }
     };
-  }, [lesson.lesson_id, videoPlayerContext]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.lesson_id]);
 
   const handleCompletionAction = async () => {
     if (!lesson.lesson_id || !canCompleteLesson(lesson.lesson_id)) {

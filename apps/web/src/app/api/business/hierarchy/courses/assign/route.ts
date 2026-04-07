@@ -203,16 +203,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Batch fetch course titles instead of N+1 per course
+    const { data: coursesData } = await supabase
+      .from('courses')
+      .select('id, title')
+      .in('id', course_ids)
+    const courseTitleMap = new Map(
+      (coursesData || []).map((c: { id: string; title: string }) => [c.id, c.title])
+    )
+
     const results = []
 
     for (const courseId of course_ids) {
-      // Obtener info curso
-      const { data: course } = await supabase
-        .from('courses')
-        .select('title')
-        .eq('id', courseId)
-        .single<CourseTitleRow>()
-      const courseTitle = course?.title || 'Curso'
+      const courseTitle = courseTitleMap.get(courseId) || 'Curso'
 
       // A. Crear registro en organization_node_courses
       // Esto define que "Este nodo tiene asignado este curso"

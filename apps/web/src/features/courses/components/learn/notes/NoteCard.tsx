@@ -20,7 +20,10 @@ export function NoteCard({
   deleteLabel,
 }: NoteCardProps) {
   return (
-    <div className="bg-white dark:bg-[#1E2329] rounded-xl p-3 border border-[#E9ECEF] dark:border-[#6C757D]/30 hover:bg-[#E9ECEF]/30 dark:hover:bg-[#0A2540]/30 transition-colors group">
+    <div 
+      className="bg-white dark:bg-[#1E2329] rounded-xl p-3 border border-[#E9ECEF] dark:border-[#6C757D]/30 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/50 transition-colors group cursor-pointer"
+      onClick={() => onEdit(note)}
+    >
       <div className="flex items-center justify-between mb-2">
         <span
           className="text-sm text-[#0A2540] dark:text-[#00D4B3] font-medium"

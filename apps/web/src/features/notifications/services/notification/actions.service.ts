@@ -76,7 +76,7 @@ export async function markNotificationAsRead(
   if (existing.status === 'read') {
     const { data } = await supabase
       .from('user_notifications')
-      .select('*')
+      .select('notification_id, user_id, type, title, message, status, priority, read_at, created_at, updated_at, expires_at, metadata, action_url')
       .eq('notification_id', notificationId)
       .single()
 

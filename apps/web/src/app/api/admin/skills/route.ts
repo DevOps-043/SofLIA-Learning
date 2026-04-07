@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('skills')
-      .select('*')
+      .select('skill_id, name, slug, description, category, icon_url, icon_type, icon_name, color, level, is_active, is_featured, display_order, created_at, updated_at')
       .order('display_order', { ascending: true })
       .order('name', { ascending: true })
 
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         is_featured,
         display_order
       })
-      .select()
+      .select('skill_id, name, slug, description, category, icon_url, icon_type, icon_name, color, level, is_active, is_featured, display_order, created_at, updated_at')
       .single()
 
     if (error) {

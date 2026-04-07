@@ -151,7 +151,7 @@ interface CommunityFormSectionsProps {
 
 export function CommunityFormSections({ formData, handleChange }: CommunityFormSectionsProps) {
   return (
-    <>
+    <div className="space-y-8">
       {/* Section 1: Basic Info */}
       <div>
         <SectionHeader
@@ -160,20 +160,20 @@ export function CommunityFormSections({ formData, handleChange }: CommunityFormS
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <PremiumInput label="Nombre de la comunidad" name="name" value={formData.name}
-            onChange={handleChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+            onChange={handleChange}
             placeholder="ej. Comunidad de Desarrolladores" icon={<Users className="w-5 h-5" />} required />
           <PremiumInput label="Slug (URL amigable)" name="slug" value={formData.slug}
-            onChange={handleChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+            onChange={handleChange}
             placeholder="ej. comunidad-desarrolladores" icon={<Link2 className="w-5 h-5" />} required />
         </div>
         <div className="mt-5">
           <PremiumTextarea label="Descripción" name="description" value={formData.description}
-            onChange={handleChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
+            onChange={handleChange}
             placeholder="Describe el propósito y objetivos de la comunidad..." required rows={3} />
         </div>
         <div className="mt-5">
           <PremiumInput label="URL de imagen" name="image_url" value={formData.image_url}
-            onChange={handleChange as (e: React.ChangeEvent<HTMLInputElement>) => void}
+            onChange={handleChange}
             placeholder="https://ejemplo.com/imagen.jpg" icon={<Image className="w-5 h-5" />} type="url" />
           {formData.image_url && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
@@ -194,19 +194,19 @@ export function CommunityFormSections({ formData, handleChange }: CommunityFormS
         />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <PremiumSelect label="Visibilidad" name="visibility" value={formData.visibility}
-            onChange={handleChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+            onChange={handleChange}
             icon={<Globe className="w-5 h-5" />}
             options={[
-              { value: 'public', label: 'ðŸŒ Pública - Visible para todos' },
+              { value: 'public', label: '🌍 Pública - Visible para todos' },
               { value: 'private', label: '🔒 Privada - Solo miembros' }
             ]} required />
           <PremiumSelect label="Tipo de Acceso" name="access_type" value={formData.access_type}
-            onChange={handleChange as (e: React.ChangeEvent<HTMLSelectElement>) => void}
+            onChange={handleChange}
             icon={<Lock className="w-5 h-5" />}
             options={[
               { value: 'open', label: '✅ Abierto - Cualquiera puede unirse' },
-              { value: 'moderated', label: 'ðŸ'€ Moderado - Requiere aprobación' },
-              { value: 'invite_only', label: 'âœ‰ï¸ Solo invitación' }
+              { value: 'moderated', label: '🛡️ Moderado - Requiere aprobación' },
+              { value: 'invite_only', label: '✉️ Solo invitación' }
             ]} required />
         </div>
       </div>
@@ -231,7 +231,7 @@ export function CommunityFormSections({ formData, handleChange }: CommunityFormS
           </div>
           <div className="relative">
             <input type="checkbox" name="is_active" checked={formData.is_active}
-              onChange={handleChange as (e: React.ChangeEvent<HTMLInputElement>) => void} className="sr-only" />
+              onChange={handleChange} className="sr-only" />
             <div className="w-14 h-8 rounded-full p-1 transition-colors duration-300" style={{ background: formData.is_active ? colors.success : 'rgba(255,255,255,0.1)' }}>
               <motion.div className="w-6 h-6 rounded-full bg-white shadow-lg flex items-center justify-center"
                 animate={{ x: formData.is_active ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }}>
@@ -256,6 +256,6 @@ export function CommunityFormSections({ formData, handleChange }: CommunityFormS
           </p>
         </div>
       </motion.div>
-    </>
+    </div>
   )
 }

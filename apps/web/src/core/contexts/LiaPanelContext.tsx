@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface LiaPanelContextType {
   isOpen: boolean;
@@ -16,6 +17,11 @@ export const LiaPanelContext = createContext<LiaPanelContextType | undefined>(un
 export function LiaPanelProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [pageContext, setPageContext] = useState<Record<string, unknown> | null>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
 
   const openPanel = useCallback(() => {
     setIsOpen(true);

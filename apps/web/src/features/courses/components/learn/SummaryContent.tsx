@@ -76,9 +76,9 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
         </div>
         <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02] p-12 flex flex-col items-center justify-center">
           <div className="relative w-16 h-16 mb-6">
-            <div className="absolute inset-0 rounded-full border-2 border-[#00D4B3]/20 animate-ping" />
-            <div className="relative w-full h-full bg-[#00D4B3]/10 rounded-full flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-[#00D4B3] animate-pulse" />
+            <div className="absolute inset-0 rounded-full border-2 border-[#0A2540]/20 dark:border-[#00D4B3]/20 animate-ping" />
+            <div className="relative w-full h-full bg-[#0A2540]/10 dark:bg-[#00D4B3]/10 rounded-full flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-[#0A2540] dark:text-[#00D4B3] animate-pulse" />
             </div>
           </div>
           <p className="text-gray-500 dark:text-white/60 font-medium">
@@ -125,7 +125,7 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 dark:border-white/5 pb-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#00D4B3]" />
+            <Sparkles className="w-5 h-5 text-[#0A2540] dark:text-[#00D4B3]" />
             Resumen Inteligente
           </h2>
           <p className="text-gray-500 dark:text-white/40 text-sm">
@@ -135,7 +135,7 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#0A2540]/30 border border-gray-200 dark:border-white/5 backdrop-blur-sm">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#00D4B3]" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540] dark:bg-[#00D4B3]" />
             <span className="text-sm font-medium text-gray-700 dark:text-white">
               {summaryContent?.split(/\s+/).length || 0}
             </span>
@@ -144,7 +144,7 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
             </span>
           </div>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#0A2540]/30 border border-gray-200 dark:border-white/5 backdrop-blur-sm">
-            <Clock className="w-3.5 h-3.5 text-[#00D4B3]" />
+            <Clock className="w-3.5 h-3.5 text-[#0A2540] dark:text-[#00D4B3]" />
             <span className="text-sm font-medium text-gray-700 dark:text-white">
               {estimatedReadingTime}
             </span>
@@ -161,8 +161,8 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
         transition={{ duration: 0.4 }}
         className="relative rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0F1419]/40 overflow-hidden shadow-sm dark:shadow-2xl backdrop-blur-sm group"
       >
-        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#00D4B3]/50 to-transparent opacity-50" />
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#00D4B3]/5 rounded-full blur-3xl pointer-events-none hidden dark:block" />
+        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#0A2540]/50 dark:via-[#00D4B3]/50 to-transparent opacity-50" />
+        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#0A2540]/5 dark:bg-[#00D4B3]/5 rounded-full blur-3xl pointer-events-none hidden dark:block" />
 
         <div className="relative p-8 prose prose-slate dark:prose-invert max-w-none">
           <ReactMarkdown components={summaryMarkdownComponents}>
@@ -178,7 +178,7 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
             onClick={() => {
               navigator.clipboard.writeText(summaryContent || "");
             }}
-            className="p-2 text-gray-400 dark:text-white/20 hover:text-[#00D4B3] transition-colors rounded-lg hover:bg-[#00D4B3]/10"
+            className="p-2 text-gray-400 dark:text-white/20 hover:text-[#0A2540] dark:hover:text-[#00D4B3] transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-[#00D4B3]/10"
             title="Copiar resumen"
           >
             <Copy className="w-4 h-4" />

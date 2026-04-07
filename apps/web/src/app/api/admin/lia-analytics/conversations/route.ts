@@ -43,7 +43,10 @@ export async function GET(request: NextRequest) {
     // Construir query base usando la VISTA en lugar de tablas crudas
     let query = supabase
       .from('lia_conversation_analytics')
-      .select('*', { count: 'exact' });
+      .select(
+        'conversation_id, user_id, user_name, user_email, user_avatar, context_type, course_title, lesson_title, started_at, ended_at, total_messages, total_lia_messages, total_tokens, total_cost_usd, avg_response_time_ms, duration_seconds, conversation_completed',
+        { count: 'exact' }
+      );
     
     // Aplicar filtros
     if (contextType) {

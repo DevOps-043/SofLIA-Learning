@@ -42,12 +42,13 @@ export async function GET(request: NextRequest) {
       logger.log('✅ User authenticated:', user.id);
     }
 
-    // Obtener todas las comunidades activas (incluye creator_id automáticamente)
+    // Obtener comunidades activas con campos explícitos y límite de seguridad
     const { data: communities, error: communitiesError } = await supabase
       .from('communities')
-      .select('*')
+      .select('id, name, description, slug, thumbnail_url, banner_url, visibility, is_active, created_at, creator_id, member_count, category, rules')
       .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(200);
 
     if (communitiesError) {
       logger.error('❌ Error fetching communities:', {
@@ -118,24 +119,26 @@ export async function GET(request: NextRequest) {
 
     logger.log('👤 User role:', userRole, { isAdmin, isInstructor });
 
-    // Obtener membresías del usuario (para comunidades donde es miembro/admin/moderator)
-    const { data: memberships, error: membershipsError } = await supabase
-      .from('community_members')
-      .select('community_id, role')
-      .eq('user_id', user.id)
-      .eq('is_active', true);
+    // Obtener membresías y solicitudes pendientes en paralelo
+    const [
+      { data: memberships, error: membershipsError },
+      { data: pendingRequests, error: requestsError }
+    ] = await Promise.all([
+      supabase
+        .from('community_members')
+        .select('community_id, role')
+        .eq('user_id', user.id)
+        .eq('is_active', true),
+      supabase
+        .from('community_access_requests')
+        .select('community_id')
+        .eq('requester_id', user.id)
+        .eq('status', 'pending'),
+    ]);
 
     if (membershipsError) {
       logger.error('❌ Error fetching memberships:', membershipsError);
     }
-
-    // Obtener solicitudes pendientes del usuario
-    const { data: pendingRequests, error: requestsError } = await supabase
-      .from('community_access_requests')
-      .select('community_id')
-      .eq('requester_id', user.id)
-      .eq('status', 'pending');
-
     if (requestsError) {
       logger.error('❌ Error fetching pending requests:', requestsError);
     }

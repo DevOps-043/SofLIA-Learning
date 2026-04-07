@@ -18,8 +18,14 @@ interface StudentActivitySectionProps {
   selectedStudent: Record<string, unknown>
 }
 
+interface StudentActivityData {
+  enrollment_status?: string
+  enrolled_at?: string | null
+  last_accessed_at?: string | null
+}
+
 export function StudentActivitySection({ selectedStudent }: StudentActivitySectionProps) {
-  const ss = selectedStudent as any
+  const ss = selectedStudent as StudentActivityData
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
