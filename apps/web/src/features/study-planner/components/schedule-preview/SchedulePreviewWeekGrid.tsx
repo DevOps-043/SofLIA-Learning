@@ -80,7 +80,7 @@ export function SchedulePreviewWeekGrid({
       {/* Day headers */}
       <div className="flex border-b border-gray-200 dark:border-white/10">
         {/* Time gutter */}
-        <div className="w-10 flex-shrink-0 border-r border-gray-200 dark:border-white/10" />
+        <div className="w-[50px] flex-shrink-0 border-r border-gray-200 dark:border-white/10" />
 
         {weekDays.map((day) => {
           const isToday = isSameDay(day, today);
@@ -109,7 +109,7 @@ export function SchedulePreviewWeekGrid({
       {/* All-day events row (only rendered when at least one exists) */}
       {weekDays.some((d) => getAllDayEventsForDay(d).length > 0) && (
         <div className="flex border-b border-gray-200 dark:border-white/10">
-          <div className="w-10 flex-shrink-0 border-r border-gray-200 px-0.5 py-1 text-right dark:border-white/10">
+          <div className="w-[50px] flex-shrink-0 border-r border-gray-200 px-0.5 py-1 text-right dark:border-white/10">
             <span className="text-[9px] text-gray-400">todo</span>
           </div>
           {weekDays.map((day) => (
@@ -136,15 +136,15 @@ export function SchedulePreviewWeekGrid({
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="flex">
           {/* Time gutter */}
-          <div className="w-10 flex-shrink-0 border-r border-gray-200 dark:border-white/10">
-            {hours.map((hour) => (
+          <div className="w-[50px] flex-shrink-0 border-r border-gray-200 dark:border-white/10 relative">
+            {hours.map((hour, index) => (
               <div
                 key={hour}
-                className="flex items-start justify-end border-b border-gray-100 pr-1 pt-0.5 dark:border-white/5"
+                className="flex items-start justify-end pr-1 border-b border-transparent"
                 style={{ height: `${ROW_HEIGHT_PX}px` }}
               >
-                <span className="text-[9px] text-gray-400 dark:text-gray-500">
-                  {hour.toString().padStart(2, '0')}
+                <span className="relative -top-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  {hour.toString().padStart(2, '0')}:00
                 </span>
               </div>
             ))}

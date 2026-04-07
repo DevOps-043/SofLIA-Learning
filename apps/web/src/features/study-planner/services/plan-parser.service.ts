@@ -118,7 +118,15 @@ function extractLessonFromLine(rawLine: string): StudyPlannerScheduledLesson | n
     }
 
     const lessonOrderIndex = pattern === patterns[2] ? 0 : Number.parseInt(match[1], 10) || 0;
-    const lessonTitle = (pattern === patterns[2] ? match[1] : match[2]).trim();
+    let lessonTitle = (pattern === patterns[2] ? match[1] : match[2]).trim();
+
+    let durationMinutes = 0;
+    const durationMatch = lessonTitle.match(/(?:\(|\[|-)?\s*(\d+)\s*(?:min|minuto|minutos)(?:\)|\])?/i);
+    if (durationMatch) {
+      durationMinutes = Number.parseInt(durationMatch[1], 10);
+      lessonTitle = lessonTitle.replace(durationMatch[0], '').trim();
+    }
+
     const comparableTitle = normalizeComparableText(lessonTitle);
 
     if (!comparableTitle || comparableTitle.length <= 3) {
@@ -133,7 +141,7 @@ function extractLessonFromLine(rawLine: string): StudyPlannerScheduledLesson | n
       courseTitle: 'Curso',
       lessonTitle,
       lessonOrderIndex,
-      durationMinutes: 0,
+      durationMinutes,
     };
   }
 

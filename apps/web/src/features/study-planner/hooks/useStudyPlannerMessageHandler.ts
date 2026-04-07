@@ -116,6 +116,19 @@ export function useStudyPlannerMessageHandler(params: UseStudyPlannerMessageHand
       savedCalendarData: params.savedCalendarData,
     };
 
+    if ((intentResolution.isConfirmingFinalSummary || (intentResolution.isConfirmingSchedules && params.hasShownFinalSummary)) && params.savedLessonDistribution.length > 0) {
+      params.setConversationHistory(prev => [
+        ...prev,
+        { role: 'user', content: rawMessage },
+        { role: 'assistant', content: '¡Excelente! Estoy guardando tu plan de estudios...' }
+      ]);
+      if (params.isAudioEnabled) {
+        await params.speakText('¡Excelente! Estoy guardando tu plan de estudios.');
+      }
+      setTimeout(() => { void params.executeFinalPlanSave(); }, 1500);
+      return;
+    }
+
     let enrichedMessage = intentResolution.resolvedMessage;
     if (intentResolution.isConfirmingSchedules && !params.hasShownFinalSummary) {
       enrichedMessage = `${intentResolution.resolvedMessage}${buildFinalPlanSummaryContext(plannerContextParams)}`;

@@ -262,8 +262,11 @@ export function buildStudyPlanPayload(
       params.savedLessonDistribution[params.savedLessonDistribution.length - 1].dateStr,
     )
     : null;
-  const endDate = params.savedTargetDate
-    ? new Date(params.savedTargetDate).toISOString()
+  const parsedTargetDate = params.savedTargetDate ? parsePlannerDateString(params.savedTargetDate) : null;
+  const validTargetDate = parsedTargetDate && !Number.isNaN(parsedTargetDate.getTime()) ? parsedTargetDate : null;
+
+  const endDate = validTargetDate
+    ? validTargetDate.toISOString()
     : lastSlotDate && !Number.isNaN(lastSlotDate.getTime())
       ? lastSlotDate.toISOString()
       : undefined;

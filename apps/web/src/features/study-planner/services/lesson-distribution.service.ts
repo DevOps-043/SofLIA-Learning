@@ -232,11 +232,16 @@ export function serializeLessonDistributionForStorage(
       const parsedDate = parsePlannerDateString(item.slot.dateStr);
       const dayName = item.slot.dayName || (parsedDate ? getDayName(parsedDate) : 'Lunes');
 
+      const sumDuration = lessons.reduce((sum, l) => sum + (l.durationMinutes || 0), 0);
+      const totalMinutes = sumDuration > 0 ? sumDuration : lessons.length * 15;
+      const actualEnd = new Date(item.slot.start.getTime() + totalMinutes * 60000);
+      const finalEnd = actualEnd.getTime() > item.slot.end.getTime() ? item.slot.end : actualEnd;
+
       return {
         dateStr: item.slot.dateStr,
         dayName,
         startTime: formatPlannerTime24h(item.slot.start),
-        endTime: formatPlannerTime24h(item.slot.end),
+        endTime: formatPlannerTime24h(finalEnd),
         lessons,
       };
     })

@@ -86,7 +86,7 @@ function buildDueDateContext(
     return '';
   }
 
-  const nearestDueDate = [...candidates]
+  const nearestDueDate = [...coursesWithDueDates]
     .sort((left, right) => new Date(left.dueDate!).getTime() - new Date(right.dueDate!).getTime())[0];
 
   const dueDateFormatted = new Date(nearestDueDate.dueDate!).toLocaleDateString('es-ES', {
@@ -230,13 +230,20 @@ function detectExplicitSessionDuration(message: string): number | null {
   return null;
 }
 
-function getNearestDeadlineDate(assignedCourses: StudyPlannerAssignedCourse[]): string | undefined {
-  const coursesWithDueDates = assignedCourses.filter((course) => course.dueDate);
+function getNearestDeadlineDate(
+  assignedCourses: StudyPlannerAssignedCourse[],
+  resolvedCourseIds?: string[],
+): string | undefined {
+  const relevantCourses = resolvedCourseIds && resolvedCourseIds.length > 0
+    ? assignedCourses.filter((c) => resolvedCourseIds.includes(c.courseId))
+    : assignedCourses;
+
+  const coursesWithDueDates = relevantCourses.filter((course) => course.dueDate);
   if (coursesWithDueDates.length === 0) {
     return undefined;
   }
 
-  return [...candidates]
+  return [...coursesWithDueDates]
     .sort((left, right) => new Date(left.dueDate!).getTime() - new Date(right.dueDate!).getTime())[0]
     .dueDate ?? undefined;
 }
@@ -382,6 +389,10 @@ export async function buildStudyPlannerChatRequestContext(
       : buildFallbackLessonsContext(params.pendingLessons);
 
   const filteredPendingCount = filteredLessons.length || params.totalPendingLessons;
+
+  const resolvedCourseIds = params.selectedCourseIds && params.selectedCourseIds.length > 0
+    ? params.selectedCourseIds
+    : undefined;
 
   const dueDateContext = buildDueDateContext(params.assignedCourses, resolvedCourseIds);
   const existingPlanContext = buildExistingPlanContext(params.savedLessonDistribution);

@@ -95,7 +95,16 @@ function distributionToEvents(
 ): SchedulePreviewEvent[] {
   return distributions.map((slot, index) => {
     const lessonNames = slot.lessons.map((l) => l.lessonTitle).join(', ');
-    const totalMinutes = slot.lessons.reduce((sum, l) => sum + l.durationMinutes, 0);
+    // Calculate total minutes: if stored durations are 0 (old parser bug), fallback to 15min per lesson
+    const sumDuration = slot.lessons.reduce((sum, l) => sum + (l.durationMinutes || 0), 0);
+    const totalMinutes = sumDuration > 0 ? sumDuration : slot.lessons.length * 15;
+
+    // Dynamic correction for previously stored plans
+    const [startH, startM] = slot.startTime.split(':').map(Number);
+    const startObj = new Date();
+    startObj.setHours(startH || 0, startM || 0, 0, 0);
+    const actualEnd = new Date(startObj.getTime() + totalMinutes * 60000);
+    const computedEndTime = `${String(actualEnd.getHours()).padStart(2, '0')}:${String(actualEnd.getMinutes()).padStart(2, '0')}`;
 
     return {
       id: `plan-${slot.dateStr}-${index}`,
@@ -104,7 +113,7 @@ function distributionToEvents(
         : `${slot.lessons.length} lecciones`,
       dateStr: slot.dateStr,
       startTime: slot.startTime,
-      endTime: slot.endTime,
+      endTime: computedEndTime,
       source: 'study_plan' as const,
       color: STUDY_SESSION_COLOR,
       description: `${lessonNames} (${totalMinutes} min)`,
