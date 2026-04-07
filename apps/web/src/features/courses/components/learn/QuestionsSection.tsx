@@ -99,8 +99,8 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
             <MessageCircle className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Preguntas</h2>
-            <p className="text-xs text-white/40">{questionCountLabel}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preguntas</h2>
+            <p className="text-xs text-gray-500 dark:text-white/40">{questionCountLabel}</p>
           </div>
         </div>
         <motion.button
@@ -115,7 +115,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
       </div>
 
       <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/30">
           <Search className="w-4 h-4" />
         </div>
         <input
@@ -124,12 +124,12 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           onKeyDown={handleSearchKeyDown}
-          className="w-full pl-11 pr-10 py-3 bg-white/[0.03] border border-white/10 rounded-xl text-white text-sm placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
+          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-gray-300 dark:focus:border-white/20 transition-colors shadow-sm dark:shadow-none"
         />
         {searchQuery && (
           <button
             onClick={handleClearSearch}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-white/30 dark:hover:text-white/60 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -140,7 +140,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl border border-white/10 bg-white/[0.02] p-12 flex flex-col items-center justify-center"
+          className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/[0.02] p-12 flex flex-col items-center justify-center"
         >
           <motion.div
             initial={{ scale: 0.8 }}
@@ -150,10 +150,10 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           >
             <MessageCircle className="w-8 h-8 text-white" />
           </motion.div>
-          <h3 className="text-white text-lg font-medium mb-2">
+          <h3 className="text-gray-900 dark:text-white text-lg font-medium mb-2">
             No hay preguntas
           </h3>
-          <p className="text-white/40 text-sm text-center mb-6 max-w-sm">
+          <p className="text-gray-500 dark:text-white/40 text-sm text-center mb-6 max-w-sm">
             {activeSearchQuery
               ? "No se encontraron resultados para tu búsqueda"
               : "Sé el primero en iniciar una conversación"}
@@ -323,7 +323,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                   void loadMoreQuestions();
                 }}
                 disabled={loadingMore}
-                className="px-4 py-2.5 text-sm font-medium text-white/60 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingMore ? (
                   <>

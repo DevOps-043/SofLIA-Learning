@@ -63,7 +63,7 @@ export class UserPreferencesService {
 
     const { data, error } = await supabase
       .from('study_preferences')
-      .select('*')
+      .select('id, user_id, timezone, preferred_time_of_day, preferred_days, daily_target_minutes, weekly_target_minutes, preferred_session_type, min_session_minutes, max_session_minutes, break_duration_minutes, calendar_connected, calendar_provider')
       .eq('user_id', userId)
       .single();
 
@@ -102,7 +102,7 @@ export class UserPreferencesService {
 
     const { data, error } = await supabase
       .from('calendar_integrations')
-      .select('*')
+      .select('id, user_id, provider, access_token, expires_at, scope')
       .eq('user_id', userId)
       .single();
 

@@ -1,10 +1,10 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp } from 'lucide-react'
+import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List } from 'lucide-react'
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
 import type { ModernNavbarStyleConfig } from '../components/modern-navbar/types'
@@ -87,6 +87,8 @@ export function BusinessUserDashboardShell({
   introVideos,
   t,
 }: BusinessUserDashboardShellProps) {
+  const [courseView, setCourseView] = useState<'grid' | 'list'>('grid')
+
   return (
     <div
       className="min-h-screen"
@@ -219,12 +221,6 @@ export function BusinessUserDashboardShell({
                     <Clock className="w-4 h-4" />
                     {formatBusinessUserDashboardDate(currentTime, language)}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: orgColors.accent }} />
-                    <span className="text-sm font-medium" style={{ color: orgColors.accent }}>
-                      {t('dashboard.systemActive')}
-                    </span>
-                  </div>
                 </motion.div>
               </div>
 
@@ -335,6 +331,23 @@ export function BusinessUserDashboardShell({
                   </p>
                 </div>
               </div>
+
+              {assignedCourses.length > 0 && (
+                <div className="flex items-center p-1 rounded-lg border shrink-0" style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}>
+                  <button
+                    onClick={() => setCourseView('grid')}
+                    className={`p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  >
+                    <LayoutGrid className="w-4 h-4" style={{ color: courseView === 'grid' ? orgColors.iconColor : orgColors.textSecondary }} />
+                  </button>
+                  <button
+                    onClick={() => setCourseView('list')}
+                    className={`p-1.5 rounded-md transition-colors ${courseView === 'list' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  >
+                    <List className="w-4 h-4" style={{ color: courseView === 'list' ? orgColors.iconColor : orgColors.textSecondary }} />
+                  </button>
+                </div>
+              )}
             </motion.div>
 
             {assignedCourses.length === 0 ? (
@@ -399,7 +412,7 @@ export function BusinessUserDashboardShell({
                 />
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+              <div className={`grid ${courseView === 'list' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
                 <Suspense
                   fallback={
                     <>
@@ -428,6 +441,7 @@ export function BusinessUserDashboardShell({
                           : undefined
                       }
                       styles={userDashboardStyles}
+                      viewMode={courseView}
                     />
                   ))}
                 </Suspense>

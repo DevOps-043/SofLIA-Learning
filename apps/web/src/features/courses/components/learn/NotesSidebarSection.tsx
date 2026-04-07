@@ -114,47 +114,6 @@ export function NotesSidebarSection({
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-[#10B981]/10 to-[#00D4B3]/10 border border-[#10B981]/30 rounded-xl p-4">
-              <h3 className="text-gray-900 dark:text-white font-semibold mb-3 flex items-center gap-2 text-sm">
-                <TrendingUp className="w-4 h-4 text-green-400" />
-                {t("leftPanel.notesSection.notesProgress")}
-              </h3>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700 dark:text-white/70">
-                    {t("leftPanel.notesSection.notesCreated")}
-                  </span>
-                  <span className="text-green-600 dark:text-green-400 font-medium">
-                    {notesStats.totalNotes}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700 dark:text-white/70">
-                    {t("leftPanel.notesSection.lessonsWithNotes")}
-                  </span>
-                  <span
-                    className="text-[#00D4B3] dark:text-[#00D4B3] font-medium"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
-                  >
-                    {notesStats.lessonsWithNotes}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-700 dark:text-white/70">
-                    {t("leftPanel.notesSection.lastUpdate")}
-                  </span>
-                  <span
-                    className="text-[#6C757D] dark:text-white/60"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-                  >
-                    {notesStats.lastUpdate}
-                  </span>
-                </div>
-              </div>
-            </div>
           </motion.div>
         )}
       </AnimatePresence>

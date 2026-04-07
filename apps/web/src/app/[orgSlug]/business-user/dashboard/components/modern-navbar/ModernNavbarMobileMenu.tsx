@@ -9,7 +9,6 @@ import {
   Moon,
   Sun,
   User,
-  Zap,
 } from 'lucide-react';
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
@@ -200,28 +199,7 @@ export function ModernNavbarMobileMenu({
               </div>
             </motion.button>
 
-            {onRestartTour && (
-              <motion.button
-                onClick={() => {
-                  onRestartTour();
-                  onClose();
-                }}
-                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  backgroundColor: `${colors.primary}10`,
-                  border: `1px solid ${colors.border}`,
-                }}
-              >
-                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `${colors.accent}20` }}>
-                  <Zap className="h-4 w-4" style={{ color: colors.accent }} />
-                </div>
-                <div className="text-left flex-1 min-w-0">
-                  <span className="text-white font-medium block text-sm">Ver Tour</span>
-                  <span className="text-xs text-white/50">Reiniciar el tour guiado</span>
-                </div>
-              </motion.button>
-            )}
+
 
             <div className="px-3 py-2">
               <div className="flex items-center gap-2 mb-2 px-1">

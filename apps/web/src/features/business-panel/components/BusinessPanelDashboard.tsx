@@ -91,10 +91,6 @@ export function BusinessPanelDashboard() {
                 {currentTime.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#00D4B3' }} />
-              <span className="text-sm font-medium" style={{ color: '#00D4B3' }}>{t('dashboard.systemActive')}</span>
-            </div>
           </motion.div>
         </div>
       </motion.div>
@@ -207,40 +203,6 @@ export function BusinessPanelDashboard() {
               </div>
             </div>
 
-            {/* System Health Card */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }} className="mt-6 p-6 rounded-2xl" style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 rounded-lg" style={{ backgroundColor: '#00D4B3' }}>
-                  <RocketLaunchIcon className="h-5 w-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold" style={{ color: 'var(--org-text-color, #FFFFFF)' }}>{t('dashboard.systemHealth.activeAccount')}</h3>
-                  <p className="text-xs" style={{ color: '#00D4B3' }}>{t('dashboard.systemHealth.servicesOperational')}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.8 }}>{t('dashboard.systemHealth.users')}</span>
-                  <span className="font-medium" style={{ color: '#00D4B3' }}>
-                    {renderMetricValue(stats?.activeUsers)} {t('dashboard.systemHealth.active')}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.8 }}>{t('dashboard.systemHealth.courses')}</span>
-                  <span className="font-medium" style={{ color: '#00D4B3' }}>
-                    {renderMetricValue(stats?.assignedCourses)} {t('dashboard.systemHealth.coursesAssigned', { defaultValue: 'asignados' })}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm items-center">
-                  <span style={{ color: 'var(--org-text-color, #FFFFFF)', opacity: 0.8 }}>{t('dashboard.systemHealth.systemLabel', { defaultValue: 'Sistema' })}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: '#00D4B3' }} />
-                    <span className="font-medium" style={{ color: '#00D4B3' }}>{t('dashboard.systemHealth.operationalLabel', { defaultValue: 'Operativo' })}</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
           </motion.div>
         </div>
       </div>

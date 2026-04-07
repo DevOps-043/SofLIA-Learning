@@ -11,7 +11,6 @@ import {
   Moon,
   Sun,
   User,
-  Zap,
 } from 'lucide-react';
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
@@ -201,20 +200,7 @@ export function ModernNavbarDesktopMenu({
                   <span>{t('header.editProfile')}</span>
                 </motion.button>
 
-                {onRestartTour && (
-                  <motion.button
-                    onClick={() => {
-                      onRestartTour();
-                      onClose();
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
-                    style={{ color: colors.text }}
-                    whileHover={{ x: 2, backgroundColor: hoverBackground }}
-                  >
-                    <Zap className="h-4 w-4 opacity-70" />
-                    <span>Ver Tour</span>
-                  </motion.button>
-                )}
+
 
                 <div className="relative">
                   <motion.button

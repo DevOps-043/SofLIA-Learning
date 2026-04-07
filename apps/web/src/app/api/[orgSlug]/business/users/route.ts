@@ -26,7 +26,7 @@ export async function GET(
       BusinessUsersServerService.getOrganizationUsers(auth.organizationId),
       BusinessUsersServerService.getOrganizationStats(auth.organizationId),
       (await createClient()).from('user_invitations').select('id, email, role, status, created_at, expires_at, metadata').eq('organization_id', auth.organizationId).eq('status', 'pending'),
-      (await createClient()).from('bulk_invite_links').select('*').eq('organization_id', auth.organizationId).order('created_at', { ascending: false }),
+      (await createClient()).from('bulk_invite_links').select('id, code, role, max_uses, used_count, expires_at, created_at, created_by, is_active').eq('organization_id', auth.organizationId).order('created_at', { ascending: false }).limit(100),
       (await createClient()).from('organizations').select('id, name, logo_url, brand_logo_url').eq('id', auth.organizationId).single()
     ])
 

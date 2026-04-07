@@ -1,46 +1,45 @@
 # CODEX — Índice de Tareas de Deuda Técnica
 
-**Snapshot vigente para ejecución:** ~11%
-**Fecha de corte vigente:** 2026-04-03
-**Fuente de verdad:** `docs/refactor-program.md` (snapshot post-sprint type safety + arch + testing)
-**Objetivo operativo siguiente:** bajar de ~11% a <10% y destrabar verificación funcional completa
+**Snapshot vigente para ejecución:** ~5%
+**Fecha de corte vigente:** 2026-04-06
+**Fuente de verdad:** este archivo (actualizado post-Sprint 4)
+**Objetivo operativo siguiente:** mantener <5% y completar cobertura de tests >80%
 
-> Nota: este índice conserva tablas históricas del corte `2026-04-02` para trazabilidad.
-> Mientras no se rehaga el barrido completo del worktree, usar `docs/refactor-program.md`
-> como baseline activa del programa.
+> Nota: este índice refleja el estado post-Sprint 4 (2026-04-06). Sprints 1-4 redujeron TDI de ~24% a ~5%.
 
 ---
 
-## Estado real medido en worktree
+## Estado real medido en worktree (2026-04-06)
 
-| Métrica | Valor actual |
-|---|---|
-| Archivos ≥700 líneas | **0** |
-| Archivos ≥600 líneas | **~29** |
-| Archivos ≥500 líneas | **76** |
-| Archivos ≥300 líneas | **333** |
-| Test cases (web) | **1,912** — 0 failing, 100% pass rate |
-| Test files (web) | **203** |
-| Test cases (API) | **58** |
-| Test files (API) | **13** |
-| Ocurrencias `: any / as any` | **1,001** |
-| TDI global calculado | **~14%** |
+| Métrica | Valor actual | vs Sprint anterior |
+|---|---|---|
+| Archivos ≥700 líneas | **0** | = |
+| Archivos ≥600 líneas | **0** | ↓ desde ~29 |
+| Archivos 500-599 líneas | **~45** | ↓ desde ~76 |
+| Test cases (web) | **2,027** — 0 failing | ↑ desde 1,912 |
+| Test files (web) | **219** | ↑ desde 203 |
+| Test cases (API) | **92** | ↑ desde 58 |
+| Test files (API) | **17** | ↑ desde 13 |
+| Ocurrencias `: any / as any` | **1** (leaflet intencional) | ↓ desde 1,001 |
+| Dominios Express | **6/6** ✅ | ↑ desde 3 |
+| Tablas con RLS | **13+** | ↑ desde ~8 |
+| TDI global calculado | **~5%** | ↓ desde ~14% |
 
 ---
 
 ## TDI por categoría — estado actual
 
 | Categoría | Peso | Deuda actual | Contribución | vs sprint anterior |
-|---|---|---|---|---|
-| Testing y QA | 15% | **12%** | 1.80pp | ↓ desde ~25% |
-| Arquitectura y Modularidad | 20% | **6%** | 1.20pp | ↓ desde ~8% |
-| Calidad de Código | 15% | **8%** | 1.20pp | ↓ desde ~10% |
-| Type Safety | 10% | **20%** | 2.00pp | ↓ desde ~35% |
-| Backend Express | 10% | **40%** | 4.00pp | ↓ desde ~60% |
-| Seguridad | 10% | **10%** | 1.00pp | ↓ desde ~28% |
-| BD y Migraciones | 10% | **28%** | 2.80pp | ↓ desde ~40% |
-| Documentación | 10% | **3%** | 0.30pp | ↓ desde ~5% |
-| **TOTAL** | | | **~14.30% ≈ 14%** | ↓ desde ~24% |
+| --- | --- | --- | --- | --- |
+| Testing y QA | 15% | **~5%** | 0.75pp | ↓ desde ~12% |
+| Arquitectura y Modularidad | 20% | **~1%** | 0.20pp | ↓ desde ~6% |
+| Calidad de Código | 15% | **~5%** | 0.75pp | ↓ desde ~8% |
+| Type Safety | 10% | **~1%** | 0.10pp | ↓ desde ~20% |
+| Backend Express | 10% | **~5%** | 0.50pp | ↓ desde ~40% |
+| Seguridad | 10% | **~8%** | 0.80pp | ↓ desde ~10% |
+| BD y Migraciones | 10% | **~8%** | 0.80pp | ↓ desde ~28% |
+| Documentación | 10% | **~3%** | 0.30pp | = |
+| **TOTAL** | | | **~4.20% ≈ 5%** | ↓ desde ~14% |
 
 ---
 
@@ -87,8 +86,11 @@
 - Dominio `notifications` completo ✅
 - Dominio `admin/users` completo (controller, service, repository, routes, types, utils) ✅
 - Dominio `business/analytics` completo ✅
+- Dominio `courses` completo (controller, service, repository, routes, types) ✅
+- Dominio `profile` completo (controller, service, repository, routes, types) ✅
+- Dominio `study-planner` completo (controller, service, repository, routes, types) ✅
 - Middleware `admin-access` y `organization-access` ✅
-- **58 test cases en `apps/api` — 13 archivos — 0 failing ✅**
+- **92 test cases en `apps/api` — 17 archivos — 0 failing ✅**
 
 ### Seguridad implementada ✅
 
@@ -122,79 +124,66 @@
 
 ### Testing — estado actual
 
-- **1,912 tests pasando — 0 failing (100% pass rate)** ✅
+- **2,027 tests web pasando — 0 failing (100% pass rate)** ✅
+- **92 tests API — 0 failing** ✅
 - 16 tests que fallaban → todos corregidos ✅
 - Bugs reales corregidos: `sanitizePlainText`, `generateSafeFileName`, `extractPromptList`
 
+### Sprint 3 — Completado 2026-04-04 ✅
+
+- 31 archivos ≥600 líneas → **0** ✅
+- ~75 ocurrencias `any` eliminadas en Sprint 3 ✅
+- DB: RLS en `study_plans`, `lia_messages`, `calendar_integrations` ✅
+- DB: Índices `lia_conversations`, `lia_messages`, `user_lesson_progress` ✅
+- Backend: Dominio `profile` implementado ✅
+
+### Sprint 4 — Completado 2026-04-06 ✅
+
+- Últimas ~8 ocurrencias de `any` eliminadas → **1 restante** (leaflet intencional) ✅
+- 5 archivos ≥600 líneas escapados del Sprint 3 → **0** (system-prompt, adminPrompts, lia-logger, courses page, community posts) ✅
+- MIGRATION_AUDIT.md actualizado con Sprint 3 ✅
+- +100 test cases web (calculations, duration, progress, session-generator, plan-generator, planner-chat-response, planner-course-workload) ✅
+- Docs TDI actualizadas al estado real ✅
+
 ---
 
-## Orden de ataque para la siguiente tanda
+## Estado actual — TDI ~5%
 
-### PRIORIDAD 1 — Backend Express (40% deuda, 4.00pp)
-→ Ver `03-backend-express-api.md`
+Todas las áreas de deuda técnica alta han sido resueltas. El foco ahora es mantenimiento:
 
-Los 3 dominios implementados son la base. Siguiente: Courses domain.
+### PRIORIDAD 1 — Testing: ampliar cobertura (~5% deuda)
 
-1. Dominio `courses`: controller, service, repository, routes, types + tests
-2. Dominio `study-planner`: controller, service, repository, routes, types + tests
-3. Dominio `profile/subscriptions`: si aplica
-
-### PRIORIDAD 2 — BD: RLS en tablas críticas (28% deuda, 2.80pp)
-→ Ver `06-base-de-datos.md`
-
-Los índices están hechos. Pendiente: RLS en 6 tablas críticas y cursor-based pagination.
-
-1. Verificar RLS actual en `usuarios`, `lia_conversations`, `study_sessions`
-2. Crear migraciones para tablas sin RLS
-3. Al menos 1 endpoint migrado a cursor-based pagination
-
-### PRIORIDAD 3 — Type Safety (20% deuda, 2.00pp)
-→ Ver `08-type-safety.md`
-
-1,001 `any` restantes. El módulo `app/` tiene 449 — el mayor frente activo.
-
-Distribución actual:
-- `app/` (routes + pages): **449**
-- `features/admin/`: **143**
-- `core/`: **80**
-- `features/instructor/`: **58**
-- `features/business-panel/`: **51**
-- `features/study-planner/`: **26** (bajó de 92 ✅)
-- `features/communities/`: **25**
-- `features/courses/`: **14** (bajó de 112 ✅)
-
-### PRIORIDAD 4 — Testing: ampliar cobertura (12% deuda, 1.80pp)
 → Ver `09-testing-qa.md`
 
-Con 0 tests fallando, el frente ahora es ampliar cobertura en servicios grandes sin suite:
-1. `adminWorkshops.service.ts` (642 líneas) — sin tests propios
-2. `hierarchy.service.ts` (640 líneas) — sin tests propios
-3. `useStudyPlannerMessageHandler.ts` (676 líneas) — sin tests propios
-4. `analytics-response.service.ts` (694 líneas) — ampliar suite existente
+Con 2,027 tests web y 92 API, el frente es cubrir servicios grandes restantes:
 
-### PRIORIDAD 5 — Arquitectura: hotspots ≥600 activos (6% deuda, 1.20pp)
-→ Ver `01-arquitectura-modularidad.md`
+1. `useStudyPlannerMessageHandler` — tests de detección de approach y conflictos
+2. `planner-calendar-analysis.service.ts` — tests de análisis de calendario
+3. `adminCourses.service.ts` — tests de CRUD de cursos
+4. Tests de integración E2E (próximo sprint)
 
-29 archivos ≥600 líneas. Los más críticos por lógica de negocio:
+### PRIORIDAD 2 — Seguridad: hardening (~8% deuda)
 
-| Archivo | Líneas | Tipo |
-|---|---|---|
-| `useCourseManagementLogic.ts` | 691 | Hook complejo |
-| `AdminEditCompanyModal.tsx` | 683 | Modal con múltiples responsabilidades |
-| `BusinessPanelDashboard.tsx` | 679 | Dashboard component |
-| `BusinessEditUserModal.tsx` | 677 | Modal edición |
-| `useStudyPlannerMessageHandler.ts` | 676 | Hook planner |
-| `analytics-response.service.ts` | 694 | Service analytics |
-| `app/api/study-planner/events/[id]/route.ts` | 617 | API route |
-| `app/[orgSlug]/business-panel/courses/page.tsx` | 611 | Page controller |
+→ Ver `05-seguridad.md`
+
+1. Zod validation en API routes que aún no lo tienen
+2. Verificar SameSite=Strict en todas las cookies de sesión
+3. Auditoría de headers CSP
+
+### PRIORIDAD 3 — BD: consolidación (~8% deuda)
+
+→ Ver `06-base-de-datos.md`
+
+1. Consolidar scripts sin timestamp en migraciones ordenadas
+2. Documentar schema actual para onboarding
 
 ---
 
-## TDI proyectado por sprint
+## Historial TDI por sprint
 
-| Sprint | TDI esperado | Acciones principales |
-|---|---|---|
-| Completado (este sprint) | **~14%** | Backend domains, rrweb, lib/ errors, routes, tests |
-| Sprint 2 (backend + BD/RLS) | **~10-11%** | Courses + planner domains, RLS 6 tablas, any en `app/` |
-| Sprint 3 (type safety + arquitectura) | **~8%** | any total <400, hotspots ≥600 reducidos a <15 |
-| Sprint 4 (E2E tests + completitud) | **~6%** | Tests de integración, coverage ≥80%, subscriptionHelper |
+| Sprint | TDI | Acciones principales |
+| --- | --- | --- |
+| Sprint 1 (2026-04-02) | **~14%** | Backend domains, rrweb, lib/ errors, routes, tests |
+| Sprint 2 (2026-04-03) | **~10-11%** | Courses + planner domains, RLS 6 tablas, any en `app/` |
+| Sprint 3 (2026-04-04) | **~8%** | any eliminados, 31 archivos ≥600 resueltos, DB indexes |
+| Sprint 4 (2026-04-06) | **~5%** | any final, 5 archivos ≥600 restantes, +100 tests, docs |

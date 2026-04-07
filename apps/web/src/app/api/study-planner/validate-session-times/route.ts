@@ -76,21 +76,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<ValidateS
     const warnings: string[] = [];
     const suggestions: string[] = [];
     
-    // Calcular tiempo mínimo de lección entre todos los cursos
+    // Calcular tiempo mínimo de lección y tiempo restante en paralelo para todos los cursos
+    const courseAnalysisResults = await Promise.all(
+      body.courseIds.map(async (courseId) => {
+        const [minTime, remaining] = await Promise.all([
+          CourseAnalysisService.getMinimumLessonTime(courseId),
+          CourseAnalysisService.calculateRemainingTime(user.id, courseId),
+        ]);
+        return { courseId, minTime, remainingMinutes: remaining.totalRemainingMinutes };
+      })
+    );
+
     let minimumLessonTime = Infinity;
     let totalEstimatedMinutes = 0;
-    
-    for (const courseId of body.courseIds) {
-      const minTime = await CourseAnalysisService.getMinimumLessonTime(courseId);
-      if (minTime < minimumLessonTime) {
-        minimumLessonTime = minTime;
+    for (const result of courseAnalysisResults) {
+      if (result.minTime < minimumLessonTime) {
+        minimumLessonTime = result.minTime;
       }
-      
-      // Calcular tiempo total del curso
-      const remaining = await CourseAnalysisService.calculateRemainingTime(user.id, courseId);
-      totalEstimatedMinutes += remaining.totalRemainingMinutes;
+      totalEstimatedMinutes += result.remainingMinutes;
     }
-    
+
     if (minimumLessonTime === Infinity) {
       minimumLessonTime = 15; // Default mínimo
     }
