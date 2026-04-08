@@ -6,19 +6,19 @@ import {
   executeMoveCalendarEvent,
 } from './actions/calendar-actions.service'
 import {
-  executeCreateMicroSession,
-  executeRebalancePlan,
-  executeRecoverMissedSession,
-  executeReduceSessionLoad,
+  executeCreateMicroSessionV2,
+  executeRebalancePlanV2,
+  executeRecoverMissedSessionV2,
+  executeReduceSessionLoadV2,
   executeUpdateCalendarSelection,
-} from './actions/planning-actions.service'
+} from './actions/planning-actions-v2.service'
 import {
-  executeCreateSession,
-  executeDeleteSession,
-  executeMoveSession,
-  executeResizeSession,
-  executeUpdateSession,
-} from './actions/session-actions.service'
+  executeCreateSessionV2,
+  executeDeleteSessionV2,
+  executeMoveSessionV2,
+  executeResizeSessionV2,
+  executeUpdateSessionV2,
+} from './actions/session-actions-v2.service'
 import type { ActionResult, ActionType } from './types'
 
 export function extractActionTags(response: string): {
@@ -61,18 +61,19 @@ export async function executeDashboardAction(
   userId: string,
   planId: string,
   action: ActionResult,
+  userMessage?: string,
 ): Promise<ActionResult> {
   switch (action.type) {
     case 'move_session':
-      return executeMoveSession(userId, planId, action)
+      return executeMoveSessionV2(userId, planId, action, userMessage)
     case 'delete_session':
-      return executeDeleteSession(userId, planId, action)
+      return executeDeleteSessionV2(userId, planId, action)
     case 'resize_session':
-      return executeResizeSession(userId, planId, action)
+      return executeResizeSessionV2(userId, planId, action, userMessage)
     case 'create_session':
-      return executeCreateSession(userId, planId, action)
+      return executeCreateSessionV2(userId, planId, action, userMessage)
     case 'update_session':
-      return executeUpdateSession(userId, planId, action)
+      return executeUpdateSessionV2(userId, planId, action)
     case 'list_calendar_events':
       return executeListCalendarEvents(userId, planId, action)
     case 'create_calendar_event':
@@ -82,22 +83,22 @@ export async function executeDashboardAction(
     case 'delete_calendar_event':
       return executeDeleteCalendarEvent(userId, planId, action)
     case 'create_micro_session':
-      return executeCreateMicroSession(userId, planId, action)
+      return executeCreateMicroSessionV2(userId, planId, action, userMessage)
     case 'recover_missed_session':
-      return executeRecoverMissedSession(userId, planId, action)
+      return executeRecoverMissedSessionV2(userId, planId, action, userMessage)
     case 'rebalance_plan':
-      return executeRebalancePlan(userId, planId, action)
+      return executeRebalancePlanV2(userId, planId, action, userMessage)
     case 'reduce_session_load':
-      return executeReduceSessionLoad(userId, planId, action)
+      return executeReduceSessionLoadV2(userId, planId, action, userMessage)
     case 'update_calendar_selection':
       return executeUpdateCalendarSelection(userId, planId, action)
     case 'rebalance':
     case 'rebalanzar':
     case 'redistribuir':
-      return executeRebalancePlan(userId, planId, {
+      return executeRebalancePlanV2(userId, planId, {
         ...action,
         type: 'rebalance_plan',
-      })
+      }, userMessage)
     default:
       return {
         ...action,
@@ -112,6 +113,7 @@ export async function resolveDashboardChatAction(
   activePlanId: string | undefined,
   actions: ActionResult[],
   fallbackAction: ActionResult | null,
+  userMessage?: string,
 ) {
   if (!activePlanId || actions.length === 0) {
     return fallbackAction || undefined
@@ -123,11 +125,19 @@ export async function resolveDashboardChatAction(
   )
 
   if (pendingActions.length > 0) {
-    const results = await Promise.all(
-      pendingActions.map((action) =>
-        executeDashboardAction(userId, activePlanId, action),
-      ),
-    )
+    const results: ActionResult[] = []
+
+    for (const pendingAction of pendingActions) {
+      results.push(
+        await executeDashboardAction(
+          userId,
+          activePlanId,
+          pendingAction,
+          userMessage,
+        ),
+      )
+    }
+
     const failedAction = results.find((result) => result.status === 'error')
     return failedAction || results[results.length - 1]
   }

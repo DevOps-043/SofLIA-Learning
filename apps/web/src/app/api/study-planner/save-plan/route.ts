@@ -44,8 +44,18 @@ interface SavePlanResponse {
     planId: string;
     sessionsCreated: number;
     sessionIds?: string[]; // IDs de las sesiones creadas para sincronización con calendario
+    sessions?: Array<{
+      id: string;
+      clientReferenceId?: string;
+      startTime?: string;
+      endTime?: string;
+    }>;
   };
   error?: string;
+}
+
+interface SessionMetricsPayload {
+  clientReferenceId?: string;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<SavePlanResponse>> {
@@ -267,6 +277,12 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
         status: 'planned',
         is_ai_generated: session.isAiGenerated !== undefined ? session.isAiGenerated : true,
         session_type: session.sessionType || 'medium',
+        metrics: {
+          clientReferenceId:
+            typeof (session as { clientReferenceId?: string }).clientReferenceId === 'string'
+              ? (session as { clientReferenceId?: string }).clientReferenceId
+              : undefined,
+        } satisfies SessionMetricsPayload,
       });
     }
     
@@ -294,7 +310,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
     const { data: createdSessions, error: sessionsError } = await supabase
       .from('study_sessions')
       .insert(sessionsToInsert)
-      .select('id');
+      .select('id, start_time, end_time, metrics');
     
     if (sessionsError) {
       console.error('Error creando sesiones:', sessionsError);
@@ -332,6 +348,15 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
         planId: plan.id,
         sessionsCreated: createdSessions?.length || 0,
         sessionIds: createdSessions?.map(s => s.id) || [],
+        sessions: createdSessions?.map((session) => ({
+          id: session.id,
+          clientReferenceId:
+            typeof (session.metrics as SessionMetricsPayload | null)?.clientReferenceId === 'string'
+              ? (session.metrics as SessionMetricsPayload).clientReferenceId
+              : undefined,
+          startTime: session.start_time,
+          endTime: session.end_time,
+        })) || [],
       },
     });
     

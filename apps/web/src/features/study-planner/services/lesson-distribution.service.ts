@@ -55,6 +55,14 @@ function getDistributionKey(item: Pick<StudyPlannerStoredLessonDistribution, 'da
   return `${item.dateStr}_${item.startTime}`;
 }
 
+function generateDistributionReferenceId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `dist_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function isInformativeLessonTitle(title: string): boolean {
   const normalized = normalizeComparableText(title);
   if (!normalized || normalized.length <= 3) {
@@ -101,6 +109,19 @@ function chooseLessonsToKeep(
   }
 
   return incoming.lessons;
+}
+
+export function ensureLessonDistributionIdentity(
+  distribution: Omit<StudyPlannerStoredLessonDistribution, 'clientReferenceId'> & {
+    clientReferenceId?: string;
+    sessionId?: string;
+  },
+): StudyPlannerStoredLessonDistribution {
+  return {
+    ...distribution,
+    clientReferenceId: distribution.clientReferenceId?.trim() || generateDistributionReferenceId(),
+    sessionId: distribution.sessionId?.trim() || undefined,
+  };
 }
 
 export function parsePlannerDateString(dateStr: string, contextDate?: Date): Date | null {
@@ -244,6 +265,7 @@ export function serializeLessonDistributionForStorage(
       const finalEnd = actualEnd.getTime() > item.slot.end.getTime() ? item.slot.end : actualEnd;
 
       return {
+        clientReferenceId: generateDistributionReferenceId(),
         dateStr: item.slot.dateStr,
         dayName,
         startTime: formatPlannerTime24h(item.slot.start),
@@ -266,10 +288,12 @@ export function mergeLessonDistributions(
     return sortLessonDistributions(
       incoming.map(item => {
         const current = existingMap.get(getDistributionKey(item));
-        return {
+        return ensureLessonDistributionIdentity({
           ...item,
+          clientReferenceId: current?.clientReferenceId || item.clientReferenceId,
+          sessionId: current?.sessionId || item.sessionId,
           lessons: chooseLessonsToKeep(current, item),
-        };
+        });
       })
     );
   }
@@ -280,10 +304,12 @@ export function mergeLessonDistributions(
     const key = getDistributionKey(item);
     const index = merged.findIndex(current => getDistributionKey(current) === key);
     const current = existingMap.get(key);
-    const nextItem = {
+    const nextItem = ensureLessonDistributionIdentity({
       ...item,
+      clientReferenceId: current?.clientReferenceId || item.clientReferenceId,
+      sessionId: current?.sessionId || item.sessionId,
       lessons: chooseLessonsToKeep(current, item),
-    };
+    });
 
     if (index >= 0) {
       merged[index] = nextItem;

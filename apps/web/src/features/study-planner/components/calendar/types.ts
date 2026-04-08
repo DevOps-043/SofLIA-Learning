@@ -88,8 +88,6 @@ export interface CalendarWeekViewProps {
   weekDays: CalendarDate[]
   today: CalendarDate
   hours: number[]
-  getEventsForDay: (date: CalendarDate) => CalendarEvent[]
-  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; left: number; width: number; isAllDay: boolean } | null
   getEventLayoutsForDay: (date: CalendarDate) => (CalendarEvent & { position: StudyPlannerCalendarEventPosition })[]
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>
@@ -99,8 +97,6 @@ export interface CalendarDayViewProps {
   currentDate: CalendarDate
   today: CalendarDate
   hours: number[]
-  getEventsForDay: (date: CalendarDate) => CalendarEvent[]
-  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; left: number; width: number; isAllDay: boolean } | null
   getEventLayoutsForDay: (date: CalendarDate) => (CalendarEvent & { position: StudyPlannerCalendarEventPosition })[]
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>

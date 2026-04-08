@@ -3,14 +3,14 @@ import {
   extractActionTags,
   resolveDashboardChatAction,
 } from '../chat-actions.service'
-import { executeRebalancePlan } from '../actions/planning-actions.service'
+import { executeRebalancePlanV2 } from '../actions/planning-actions-v2.service'
 
-vi.mock('../actions/session-actions.service', () => ({
-  executeCreateSession: vi.fn(),
-  executeDeleteSession: vi.fn(),
-  executeMoveSession: vi.fn(),
-  executeResizeSession: vi.fn(),
-  executeUpdateSession: vi.fn(),
+vi.mock('../actions/session-actions-v2.service', () => ({
+  executeCreateSessionV2: vi.fn(),
+  executeDeleteSessionV2: vi.fn(),
+  executeMoveSessionV2: vi.fn(),
+  executeResizeSessionV2: vi.fn(),
+  executeUpdateSessionV2: vi.fn(),
 }))
 
 vi.mock('../actions/calendar-actions.service', () => ({
@@ -20,11 +20,11 @@ vi.mock('../actions/calendar-actions.service', () => ({
   executeMoveCalendarEvent: vi.fn(),
 }))
 
-vi.mock('../actions/planning-actions.service', () => ({
-  executeCreateMicroSession: vi.fn(),
-  executeRebalancePlan: vi.fn(),
-  executeRecoverMissedSession: vi.fn(),
-  executeReduceSessionLoad: vi.fn(),
+vi.mock('../actions/planning-actions-v2.service', () => ({
+  executeCreateMicroSessionV2: vi.fn(),
+  executeRebalancePlanV2: vi.fn(),
+  executeRecoverMissedSessionV2: vi.fn(),
+  executeReduceSessionLoadV2: vi.fn(),
   executeUpdateCalendarSelection: vi.fn(),
 }))
 
@@ -44,7 +44,7 @@ describe('chat-actions.service', () => {
   })
 
   it('normalizes rebalance aliases during execution', async () => {
-    vi.mocked(executeRebalancePlan).mockResolvedValue({
+    vi.mocked(executeRebalancePlanV2).mockResolvedValue({
       type: 'rebalance_plan',
       status: 'success',
       data: {},
@@ -58,10 +58,11 @@ describe('chat-actions.service', () => {
       },
     ], null)
 
-    expect(executeRebalancePlan).toHaveBeenCalledWith(
+    expect(executeRebalancePlanV2).toHaveBeenCalledWith(
       'user-1',
       'plan-1',
       expect.objectContaining({ type: 'rebalance_plan' }),
+      undefined,
     )
     expect(result?.status).toBe('success')
   })

@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
-import {
-  parseUpdateSessionRequest,
-} from './study-planner-session-update.utils'
-import {
-  updateStudyPlannerSessionsForUser,
-} from './study-planner-session-update.server.service'
+import { parseStudyPlanApplyPatchRequest } from './study-plan-apply-patch.utils'
+import { applyStudyPlanPatchForUser } from './study-plan-apply-patch.server.service'
 
-export async function PUT(request: NextRequest): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await SessionService.getCurrentUser()
 
@@ -21,8 +17,8 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const payload = parseUpdateSessionRequest(await request.json())
-    const result = await updateStudyPlannerSessionsForUser({
+    const payload = parseStudyPlanApplyPatchRequest(await request.json())
+    const result = await applyStudyPlanPatchForUser({
       userId: user.id,
       request: payload,
     })
@@ -59,15 +55,12 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     })
   } catch (error) {
     const message =
-      error instanceof Error
-        ? error.message
-        : 'Error interno del servidor'
+      error instanceof Error ? error.message : 'Error interno del servidor'
 
     const status =
-      error instanceof SyntaxError ||
-      message === 'planId y updates son requeridos' ||
-      message ===
-        'Cada actualizacion requiere dateStr, originalStartTime, newStartTime y newEndTime'
+      message === 'planId y operations son requeridos' ||
+      message.includes('requiere') ||
+      message.includes('Operacion no soportada')
         ? 400
         : 500
 

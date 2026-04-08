@@ -95,28 +95,22 @@ function distributionToEvents(
 ): SchedulePreviewEvent[] {
   return distributions.map((slot, index) => {
     const lessonNames = slot.lessons.map((l) => l.lessonTitle).join(', ');
-    // Calculate total minutes: if stored durations are 0 (old parser bug), fallback to 15min per lesson
-    const sumDuration = slot.lessons.reduce((sum, l) => sum + (l.durationMinutes || 0), 0);
-    const totalMinutes = sumDuration > 0 ? sumDuration : slot.lessons.length * 15;
-
-    // Dynamic correction for previously stored plans
-    const [startH, startM] = slot.startTime.split(':').map(Number);
-    const startObj = new Date();
-    startObj.setHours(startH || 0, startM || 0, 0, 0);
-    const actualEnd = new Date(startObj.getTime() + totalMinutes * 60000);
-    const computedEndTime = `${String(actualEnd.getHours()).padStart(2, '0')}:${String(actualEnd.getMinutes()).padStart(2, '0')}`;
+    const eventTitle =
+      slot.lessons.length === 0
+        ? 'Sesion de estudio'
+        : slot.lessons.length === 1
+          ? slot.lessons[0].lessonTitle
+          : `${slot.lessons[0].lessonTitle} y ${slot.lessons.length - 1} mas`;
 
     return {
       id: `plan-${slot.dateStr}-${index}`,
-      title: slot.lessons.length === 1
-        ? slot.lessons[0].lessonTitle
-        : `${slot.lessons.length} lecciones`,
+      title: eventTitle,
       dateStr: slot.dateStr,
       startTime: slot.startTime,
-      endTime: computedEndTime,
+      endTime: slot.endTime,
       source: 'study_plan' as const,
       color: STUDY_SESSION_COLOR,
-      description: `${lessonNames} (${totalMinutes} min)`,
+      description: lessonNames,
     };
   });
 }

@@ -1,4 +1,5 @@
 import {
+  ensureLessonDistributionIdentity,
   parsePlannerDateString,
   parsePlannerTimeString,
   sortLessonDistributions,
@@ -232,6 +233,7 @@ export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLes
       currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
       currentDate = nextDate;
       currentSchedule = {
+        clientReferenceId: '',
         dateStr: nextDate.dateStr,
         dayName: nextDate.dayName,
         startTime: nextTimeRange.startTime,
@@ -245,6 +247,7 @@ export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLes
     } else if (nextTimeRange && currentDate) {
       currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
       currentSchedule = {
+        clientReferenceId: '',
         dateStr: currentDate.dateStr,
         dayName: currentDate.dayName,
         startTime: nextTimeRange.startTime,
@@ -271,6 +274,6 @@ export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLes
         Boolean(schedule.dateStr) &&
         Boolean(schedule.startTime) &&
         Boolean(schedule.endTime)
-    )
+    ).map((schedule) => ensureLessonDistributionIdentity(schedule))
   );
 }

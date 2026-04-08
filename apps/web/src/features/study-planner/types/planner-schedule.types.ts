@@ -8,6 +8,8 @@ export interface StudyPlannerScheduledLesson {
 }
 
 export interface StudyPlannerStoredLessonDistribution {
+  clientReferenceId: string;
+  sessionId?: string;
   dateStr: string;
   dayName: string;
   startTime: string;

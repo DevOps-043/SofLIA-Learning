@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { syncSessionWithCalendar } from '../../dashboard/chat/calendar.service'
 import {
   getOwnedStudyPlan,
   getStudySessionsForPlan,
@@ -13,6 +14,7 @@ import {
   parseSessionUpdateDate,
 } from './study-planner-session-update.utils'
 import type {
+  StudyPlannerSessionUpdateRecord,
   UpdateSessionRequest,
   UpdateStudyPlannerSessionsServiceResult,
 } from './study-planner-session-update.types'
@@ -44,6 +46,44 @@ function buildInvalidUpdatedWindowError(
   return `Hora de fin debe ser posterior a hora de inicio para ${dateStr}`
 }
 
+function windowsOverlap(
+  leftStartIso: string,
+  leftEndIso: string,
+  rightStartIso: string,
+  rightEndIso: string,
+): boolean {
+  return (
+    new Date(leftStartIso).getTime() < new Date(rightEndIso).getTime() &&
+    new Date(rightStartIso).getTime() < new Date(leftEndIso).getTime()
+  )
+}
+
+function findOverlappingSession(
+  sessionsById: Map<string, StudyPlannerSessionUpdateRecord>,
+  sessionId: string,
+  startTimeIso: string,
+  endTimeIso: string,
+): StudyPlannerSessionUpdateRecord | null {
+  for (const candidate of sessionsById.values()) {
+    if (candidate.id === sessionId) {
+      continue
+    }
+
+    if (
+      windowsOverlap(
+        startTimeIso,
+        endTimeIso,
+        candidate.start_time,
+        candidate.end_time,
+      )
+    ) {
+      return candidate
+    }
+  }
+
+  return null
+}
+
 export async function updateStudyPlannerSessionsForUser(
   params: UpdateStudyPlannerSessionsForUserParams,
 ): Promise<UpdateStudyPlannerSessionsServiceResult> {
@@ -69,8 +109,21 @@ export async function updateStudyPlannerSessionsForUser(
   }
 
   const lookup = buildStudyPlannerSessionLookup(sessions)
+  const plannedSessionsById = new Map(
+    sessions.map((session) => [session.id, { ...session }]),
+  )
   let updatedCount = 0
   const errors: string[] = []
+  const updatedSessions = new Map<
+    string,
+    {
+      id: string
+      clientReferenceId?: string
+      title?: string
+      startTime: string
+      endTime: string
+    }
+  >()
 
   for (const update of params.request.updates) {
     try {
@@ -107,14 +160,58 @@ export async function updateStudyPlannerSessionsForUser(
         continue
       }
 
+      const nextStartIso = updatedWindow.startDateTime.toISOString()
+      const nextEndIso = updatedWindow.endDateTime.toISOString()
+      const overlappingSession = findOverlappingSession(
+        plannedSessionsById,
+        matchingSession.id,
+        nextStartIso,
+        nextEndIso,
+      )
+
+      if (overlappingSession) {
+        errors.push(
+          `La sesion ${matchingSession.title || matchingSession.id} se traslapa con ${overlappingSession.title || overlappingSession.id}`,
+        )
+        continue
+      }
+
       await updateStudySessionTimeWindow(
         supabase,
         matchingSession.id,
         params.userId,
-        updatedWindow.startDateTime.toISOString(),
-        updatedWindow.endDateTime.toISOString(),
+        nextStartIso,
+        nextEndIso,
       )
 
+      const calendarSyncResult = await syncSessionWithCalendar(
+        params.userId,
+        matchingSession.id,
+        'update',
+        {
+          start_time: nextStartIso,
+          end_time: nextEndIso,
+        },
+      )
+
+      if (!calendarSyncResult.success) {
+        errors.push(
+          `Sesion ${matchingSession.id} actualizada en base de datos pero no sincronizada con calendario: ${calendarSyncResult.message || 'Error desconocido'}`,
+        )
+      }
+
+      plannedSessionsById.set(matchingSession.id, {
+        ...matchingSession,
+        start_time: nextStartIso,
+        end_time: nextEndIso,
+      })
+      updatedSessions.set(matchingSession.id, {
+        id: matchingSession.id,
+        clientReferenceId: matchingSession.client_reference_id,
+        title: matchingSession.title,
+        startTime: nextStartIso,
+        endTime: nextEndIso,
+      })
       updatedCount += 1
     } catch (error) {
       const message =
@@ -128,5 +225,6 @@ export async function updateStudyPlannerSessionsForUser(
     updatedCount,
     totalUpdates: params.request.updates.length,
     errors,
+    updatedSessions: Array.from(updatedSessions.values()),
   }
 }

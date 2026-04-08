@@ -27,7 +27,7 @@ import type {
   StudyPlannerCalendarDataMap,
   StudyPlannerStoredLessonDistribution,
 } from '../types/planner-schedule.types';
-import { usePlanScheduleAdjuster } from './usePlanScheduleAdjuster';
+import { usePlanScheduleAdjusterV2 } from './usePlanScheduleAdjusterV2';
 
 interface StudyPlannerMessageHandlerLiaData {
   getLessonsForPrompt: (selectedCourseIds?: string[]) => string;
@@ -76,7 +76,7 @@ interface UseStudyPlannerMessageHandlerParams {
 }
 
 export function useStudyPlannerMessageHandler(params: UseStudyPlannerMessageHandlerParams) {
-  const { handleTimeChange, handleDateChange } = usePlanScheduleAdjuster({
+  const { handleTimeChange, handleDateChange } = usePlanScheduleAdjusterV2({
     connectedCalendar: params.connectedCalendar,
     conversationHistory: params.conversationHistory,
     isAudioEnabled: params.isAudioEnabled,

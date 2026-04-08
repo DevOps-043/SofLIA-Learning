@@ -67,6 +67,7 @@ export function StudyPlannerCalendar({
     getEventsForDay,
     getEventColor,
     getEventPosition,
+    getEventLayoutsForDay,
   } = useStudyPlannerCalendarLogic({ showOnlyPlanEvents, refreshTrigger });
 
   if (!isMounted) {
@@ -114,8 +115,7 @@ export function StudyPlannerCalendar({
           weekDays={weekDays}
           today={today}
           hours={hours}
-          getEventsForDay={getEventsForDay}
-          getEventPosition={getEventPosition}
+          getEventLayoutsForDay={getEventLayoutsForDay}
           setSelectedEvent={setSelectedEvent}
           setIsEventModalOpen={setIsEventModalOpen}
         />
@@ -126,8 +126,7 @@ export function StudyPlannerCalendar({
           currentDate={currentDate}
           today={today}
           hours={hours}
-          getEventsForDay={getEventsForDay}
-          getEventPosition={getEventPosition}
+          getEventLayoutsForDay={getEventLayoutsForDay}
           setSelectedEvent={setSelectedEvent}
           setIsEventModalOpen={setIsEventModalOpen}
         />

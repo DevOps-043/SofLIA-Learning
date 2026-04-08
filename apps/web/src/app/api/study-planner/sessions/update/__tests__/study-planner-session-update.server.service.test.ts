@@ -7,6 +7,10 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(),
 }))
 
+vi.mock('../../../dashboard/chat/calendar.service', () => ({
+  syncSessionWithCalendar: vi.fn().mockResolvedValue({ success: true }),
+}))
+
 vi.mock('../study-planner-session-update.db', () => ({
   getOwnedStudyPlan: vi.fn(),
   getStudySessionsForPlan: vi.fn(),
@@ -14,6 +18,7 @@ vi.mock('../study-planner-session-update.db', () => ({
 }))
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { syncSessionWithCalendar } from '../../../dashboard/chat/calendar.service'
 import {
   getOwnedStudyPlan,
   getStudySessionsForPlan,
@@ -29,6 +34,7 @@ describe('study-planner-session-update.server.service', () => {
     vi.mocked(createAdminClient).mockReturnValue({
       from: vi.fn(),
     } as ReturnType<typeof createAdminClient>)
+    vi.mocked(syncSessionWithCalendar).mockResolvedValue({ success: true })
   })
 
   it('returns plan_not_found when the plan does not belong to the user', async () => {
@@ -80,7 +86,9 @@ describe('study-planner-session-update.server.service', () => {
     vi.mocked(getStudySessionsForPlan).mockResolvedValue([
       {
         id: 'session-1',
+        client_reference_id: 'dist-1',
         start_time: '2026-04-10T10:00:00.000Z',
+        end_time: '2026-04-10T11:00:00.000Z',
       },
     ])
 
@@ -112,6 +120,15 @@ describe('study-planner-session-update.server.service', () => {
       updatedCount: 1,
       totalUpdates: 1,
       errors: [],
+      updatedSessions: [
+        {
+          id: 'session-1',
+          clientReferenceId: 'dist-1',
+          title: undefined,
+          startTime: EXPECTED_UPDATED_START,
+          endTime: EXPECTED_UPDATED_END,
+        },
+      ],
     })
   })
 
@@ -120,7 +137,9 @@ describe('study-planner-session-update.server.service', () => {
     vi.mocked(getStudySessionsForPlan).mockResolvedValue([
       {
         id: 'session-1',
+        client_reference_id: 'dist-1',
         start_time: '2026-04-10T10:00:00.000Z',
+        end_time: '2026-04-10T11:00:00.000Z',
       },
     ])
 
@@ -152,6 +171,15 @@ describe('study-planner-session-update.server.service', () => {
       updatedCount: 1,
       totalUpdates: 2,
       errors: ['No se encontro sesion para 2026-04-10 a las 08:00'],
+      updatedSessions: [
+        {
+          id: 'session-1',
+          clientReferenceId: 'dist-1',
+          title: undefined,
+          startTime: EXPECTED_UPDATED_START,
+          endTime: EXPECTED_UPDATED_END,
+        },
+      ],
     })
   })
 
@@ -160,7 +188,9 @@ describe('study-planner-session-update.server.service', () => {
     vi.mocked(getStudySessionsForPlan).mockResolvedValue([
       {
         id: 'session-1',
+        client_reference_id: 'dist-1',
         start_time: '2026-04-10T10:00:00.000Z',
+        end_time: '2026-04-10T11:00:00.000Z',
       },
     ])
 
@@ -186,6 +216,51 @@ describe('study-planner-session-update.server.service', () => {
       updatedCount: 0,
       totalUpdates: 1,
       errors: ['Hora de fin debe ser posterior a hora de inicio para 2026-04-10'],
+      updatedSessions: [],
+    })
+  })
+
+  it('rejects updates that overlap another planned session', async () => {
+    vi.mocked(getOwnedStudyPlan).mockResolvedValue({ id: 'plan-1' })
+    vi.mocked(getStudySessionsForPlan).mockResolvedValue([
+      {
+        id: 'session-1',
+        client_reference_id: 'dist-1',
+        start_time: '2026-04-10T10:00:00.000Z',
+        end_time: '2026-04-10T11:00:00.000Z',
+      },
+      {
+        id: 'session-2',
+        client_reference_id: 'dist-2',
+        title: 'Sesion 2',
+        start_time: '2026-04-10T11:00:00.000Z',
+        end_time: '2026-04-10T12:00:00.000Z',
+      },
+    ])
+
+    const result = await updateStudyPlannerSessionsForUser({
+      userId: 'user-1',
+      request: {
+        planId: 'plan-1',
+        updates: [
+          {
+            sessionId: 'session-1',
+            dateStr: '2026-04-10',
+            originalStartTime: '10:00',
+            newStartTime: '10:30',
+            newEndTime: '11:30',
+          },
+        ],
+      },
+    })
+
+    expect(updateStudySessionTimeWindow).not.toHaveBeenCalled()
+    expect(result).toEqual({
+      kind: 'updated',
+      updatedCount: 0,
+      totalUpdates: 1,
+      errors: ['La sesion session-1 se traslapa con Sesion 2'],
+      updatedSessions: [],
     })
   })
 })
