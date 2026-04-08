@@ -33,6 +33,9 @@ REGLAS DE ORO:
 5. Se breve, directa y util. Cero charla vacia
 6. Usa Markdown (negritas) para datos clave
 7. NO uses emojis
+8. NUNCA programes una sesion sobre un evento que no sea de trabajo
+9. NUNCA uses tiempo libre o dias de descanso salvo que el usuario lo pida explicitamente
+10. NUNCA dupliques una sesion ni propongas dos cambios para el mismo bloque
 `
 
 const VALID_MODELS = [

@@ -73,7 +73,7 @@ export async function executeDashboardAction(
     case 'create_session':
       return executeCreateSessionV2(userId, planId, action, userMessage)
     case 'update_session':
-      return executeUpdateSessionV2(userId, planId, action)
+      return executeUpdateSessionV2(userId, planId, action, userMessage)
     case 'list_calendar_events':
       return executeListCalendarEvents(userId, planId, action)
     case 'create_calendar_event':
