@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AdminActivitiesService, CreateActivityData } from '@/features/admin/services/adminActivities.service'
+import { validateCreateActivityPayload } from '@/features/admin/services/adminActivityPayload.service'
 import { requireInstructor } from '@/lib/auth/requireAdmin'
 import { createClient } from '@/lib/supabase/server'
+import { ZodError } from 'zod'
 
 export async function GET(
   request: NextRequest,
@@ -78,7 +80,7 @@ export async function POST(
     
     const { id: courseId, lessonId } = await params
     const instructorId = auth.userId
-    const body = await request.json() as CreateActivityData
+    const body = validateCreateActivityPayload(await request.json()) as CreateActivityData
 
     if (!lessonId) {
       return NextResponse.json(
@@ -131,6 +133,23 @@ export async function POST(
       activity
     })
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: error.issues[0]?.message || 'Payload de actividad invalido',
+        },
+        { status: 400 }
+      )
+    }
+
+    if (error instanceof Error && error.message.includes('external_tool_key')) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
       { 
         success: false,
@@ -140,4 +159,3 @@ export async function POST(
     )
   }
 }
-

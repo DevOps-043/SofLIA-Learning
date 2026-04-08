@@ -14,6 +14,7 @@ import {
 import Image from 'next/image'
 import type { BusinessUser } from '../services/businessUsers.service'
 import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import {
   BusinessUserStatsActivityTab,
   BusinessUserStatsOverviewTab,
@@ -33,6 +34,7 @@ export function BusinessUserStatsModal({
   onClose,
   orgSlug,
 }: BusinessUserStatsModalProps) {
+  const panelTheme = useBusinessPanelTheme()
   const {
     t,
     isDark,
@@ -56,17 +58,23 @@ export function BusinessUserStatsModal({
 
   // Force strict theme standards
   const theme: BusinessUserStatsTheme = {
-    isDark,
-    modalBg: isDark ? '#0b0e14' : '#FFFFFF',
-    modalBorder: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-    textColor: isDark ? '#FFFFFF' : '#0F172A',
-    primaryColor: isDark ? '#00D4B3' : (primaryColor || '#0066FF'),
-    accentColor: isDark ? '#00D4B3' : (accentColor || '#00D4B3'),
-    secondaryColor,
+    isDark: panelTheme.isDark,
+    modalBg: panelTheme.panelBg,
+    modalBorder: panelTheme.borderColor,
+    cardBg: panelTheme.cardBg,
+    textColor: panelTheme.textColor,
+    mutedTextColor: panelTheme.mutedTextColor,
+    primaryColor: primaryColor || panelTheme.primaryColor,
+    accentColor: accentColor || panelTheme.accentColor,
+    secondaryColor: secondaryColor || panelTheme.secondaryColor,
+    onPrimaryColor: panelTheme.onPrimaryColor,
+    chartColors: panelTheme.chartColors,
+    successColor: panelTheme.successColor,
+    warningColor: panelTheme.warningColor,
   }
 
-  const mutedText = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)'
-  const inputBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.05)'
+  const mutedText = theme.mutedTextColor
+  const inputBg = panelTheme.inputBg
 
   // Simplified Tabs
   const tabs = [
@@ -150,7 +158,7 @@ export function BusinessUserStatsModal({
                             className={`p-2.5 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${safeActiveTab === tab.id ? 'shadow-xl' : 'opacity-30 grayscale hover:opacity-100 hover:grayscale-0'}`}
                             style={safeActiveTab === tab.id ? {
                                backgroundColor: theme.primaryColor,
-                               color: isDark ? '#000000' : '#FFFFFF',
+                               color: theme.onPrimaryColor,
                             } : {
                                backgroundColor: inputBg,
                                color: theme.textColor,
@@ -241,7 +249,7 @@ export function BusinessUserStatsModal({
                      <button
                         onClick={onClose}
                         className="flex-[2] sm:flex-none px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3"
-                        style={{ backgroundColor: theme.primaryColor, color: isDark ? '#000000' : '#FFFFFF' }}
+                        style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
                      >
                         <span className="font-black">{t('common.done', 'Finalizar')}</span>
                         <ChevronRight className="w-4 h-4" strokeWidth={3} />

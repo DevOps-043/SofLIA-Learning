@@ -1,6 +1,9 @@
 "use client";
 
-import { Copy } from "lucide-react";
+import { useState } from "react";
+import { Copy, ExternalLink } from "lucide-react";
+
+import type { ExternalToolDefinition } from "@/features/courses/config/external-tool-registry";
 
 type PromptSource = string | unknown;
 
@@ -9,84 +12,114 @@ function parsePrompts(prompts: PromptSource): string[] {
 
   try {
     if (typeof prompts === "string") {
+      const trimmedPrompts = prompts.trim();
+      if (!trimmedPrompts) {
+        return [];
+      }
+
       try {
-        const parsed = JSON.parse(prompts);
+        const parsed = JSON.parse(trimmedPrompts);
         if (Array.isArray(parsed)) {
-          promptsList = parsed;
+          promptsList = parsed.map((prompt) => String(prompt));
         } else {
-          promptsList = [prompts];
+          promptsList = [trimmedPrompts];
         }
       } catch {
-        if (prompts.trim().startsWith("[") && prompts.trim().endsWith("]")) {
-          try {
-            const parsed = JSON.parse(prompts);
-            if (Array.isArray(parsed)) {
-              promptsList = parsed;
-            }
-          } catch {
-            promptsList = [prompts];
-          }
-        } else {
-          promptsList = prompts.split("\n").filter((prompt) => prompt.trim());
-          if (promptsList.length === 0) {
-            promptsList = [prompts];
-          }
-        }
+        promptsList = trimmedPrompts
+          .split("\n")
+          .map((prompt) => prompt.trim())
+          .filter(Boolean);
       }
     } else if (Array.isArray(prompts)) {
       promptsList = prompts.map((prompt) => String(prompt));
-    } else {
+    } else if (prompts !== null && prompts !== undefined) {
       promptsList = [String(prompts)];
     }
   } catch {
-    promptsList = [String(prompts)];
+    promptsList = [];
   }
 
-  return promptsList;
+  return promptsList
+    .map((prompt) => prompt.replace(/^["']|["']$/g, "").trim())
+    .filter(Boolean);
 }
 
-export function PromptsRenderer({ prompts }: { prompts: PromptSource }) {
+export function PromptsRenderer({
+  externalTool,
+  prompts,
+}: {
+  externalTool?: ExternalToolDefinition | null;
+  prompts: PromptSource;
+}) {
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const promptsList = parsePrompts(prompts);
 
-  return (
-    <div className="bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 border border-[#00D4B3]/30 dark:border-[#00D4B3]/40 rounded-lg p-4">
-      <div className="space-y-2">
-        {promptsList.map((prompt, index) => {
-          const cleanPrompt = prompt.replace(/^["']|["']$/g, "").trim();
+  if (promptsList.length === 0) {
+    return null;
+  }
 
-          return (
+  return (
+    <div className="rounded-lg border border-[#0A2540]/15 bg-[#F5F8FC] p-4 dark:border-[#00D4B3]/20 dark:bg-[#0B1A20]">
+      {externalTool && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {externalTool.url && (
             <button
-              key={`${index}-${cleanPrompt.slice(0, 20)}`}
+              type="button"
               onClick={() => {
-                navigator.clipboard
-                  .writeText(cleanPrompt)
-                  .then(() => {
-                    alert("Prompt copiado al portapapeles");
-                  })
-                  .catch(() => undefined);
+                window.open(externalTool.url || "", "_blank", "noopener,noreferrer");
+                setActionMessage(`Abriendo ${externalTool.label} en una nueva ventana.`);
               }}
-              className="w-full text-left px-4 py-3 bg-white dark:bg-[#1E2329] hover:bg-[#00D4B3]/10 dark:hover:bg-[#00D4B3]/20 border border-[#00D4B3]/30 dark:border-[#00D4B3]/40 rounded-lg transition-all hover:border-[#00D4B3] dark:hover:border-[#00D4B3]/60 hover:shadow-lg hover:shadow-[#00D4B3]/20 group"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#0A2540]/10 bg-white px-3 py-2 text-xs font-medium text-[#0A2540] transition hover:border-[#0A2540]/20 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-white/5 dark:text-white"
             >
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#00D4B3]/20 dark:bg-[#00D4B3]/30 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-[#00D4B3]/30 dark:group-hover:bg-[#00D4B3]/50 transition-colors">
-                  <span
-                    className="text-[#00D4B3] text-xs font-bold"
-                    style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
-                  >
-                    {index + 1}
-                  </span>
-                </div>
-                <p
-                  className="text-[#0A2540] dark:text-white text-sm leading-relaxed flex-1 group-hover:text-[#0A2540] dark:group-hover:text-white transition-colors"
-                  style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-                >
-                  {cleanPrompt}
-                </p>
-                <Copy className="w-4 h-4 text-[#00D4B3] opacity-0 group-hover:opacity-100 transition-opacity shrink-0 mt-1" />
-              </div>
+              <ExternalLink className="h-3.5 w-3.5" />
+              Abrir {externalTool.label}
             </button>
-          );
-        })}
+          )}
+          {actionMessage && (
+            <span className="text-xs text-[#0F6A57] dark:text-[#9DE9D5]">
+              {actionMessage}
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {promptsList.map((prompt, index) => (
+          <button
+            key={`${index}-${prompt.slice(0, 20)}`}
+            type="button"
+            onClick={() => {
+              navigator.clipboard
+                .writeText(prompt)
+                .then(() => {
+                  setCopiedIndex(index);
+                  setActionMessage("Prompt copiado al portapapeles.");
+                })
+                .catch(() => {
+                  setActionMessage("No fue posible copiar el prompt.");
+                });
+            }}
+            className="group w-full rounded-lg border border-[#0A2540]/15 bg-white px-4 py-3 text-left transition hover:border-[#0A2540]/30 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-[#10161D] dark:hover:border-[#00D4B3]/30 dark:hover:bg-white/[0.03]"
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#0A2540]/10 text-xs font-bold text-[#0A2540] dark:bg-[#00D4B3]/15 dark:text-[#00D4B3]">
+                {index + 1}
+              </div>
+              <p className="flex-1 text-sm leading-relaxed text-[#0A2540] dark:text-white">
+                {prompt}
+              </p>
+              <span className="mt-1 shrink-0 text-[#0A2540] dark:text-[#00D4B3]">
+                <Copy className="h-4 w-4" />
+              </span>
+            </div>
+            {copiedIndex === index && (
+              <p className="mt-2 text-xs text-[#0F6A57] dark:text-[#9DE9D5]">
+                Prompt copiado.
+              </p>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { X, Save, RotateCw, ZoomIn, ZoomOut, Maximize2, Minimize2, Move } from '
 import Cropper from 'react-easy-crop';
 import { useTranslation } from 'react-i18next';
 import type { Area } from 'react-easy-crop';
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme';
 
 interface ImageAdjustmentModalProps {
   isOpen: boolean;
@@ -37,6 +38,8 @@ export function ImageAdjustmentModal({
   );
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const { t } = useTranslation('business');
+  const theme = useBusinessPanelTheme();
+  const cropperObjectFit = objectFit === 'fill' ? 'contain' : objectFit;
 
   const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
@@ -110,7 +113,7 @@ export function ImageAdjustmentModal({
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
-                objectFit={objectFit}
+                objectFit={cropperObjectFit}
                 style={{
                   containerStyle: {
                     width: '100%',
@@ -237,7 +240,7 @@ export function ImageAdjustmentModal({
               onClick={handleReset}
               className="px-6 py-3 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
               style={{
-                backgroundColor: 'var(--org-secondary-button-color, #2563eb)'
+                backgroundColor: theme.secondaryColor
               }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
@@ -250,7 +253,7 @@ export function ImageAdjustmentModal({
                 onClick={onClose}
                 className="px-6 py-3 text-white rounded-lg font-medium transition-colors"
                 style={{
-                  backgroundColor: 'var(--org-secondary-button-color, #2563eb)'
+                  backgroundColor: theme.secondaryColor
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
@@ -261,7 +264,8 @@ export function ImageAdjustmentModal({
                 onClick={handleSave}
                 className="px-6 py-3 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
                 style={{
-                  backgroundColor: 'var(--org-primary-button-color, #3b82f6)'
+                  backgroundColor: theme.actionColor,
+                  color: theme.onActionColor
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
@@ -276,4 +280,3 @@ export function ImageAdjustmentModal({
     </AnimatePresence>
   );
 }
-

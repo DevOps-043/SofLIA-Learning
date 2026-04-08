@@ -10,11 +10,13 @@ describe('branding-tab.service', () => {
     expect(createBrandingFormState()).toMatchObject({
       favicon_url: '',
       banner_url: '',
-      color_primary: '#3b82f6',
+      color_primary: '#0A2540',
+      color_secondary: '#00D4B3',
+      color_accent: '#FFFFFF',
     })
   })
 
-  it('solo autodetecta cuando el banner cambio despues de la carga inicial', () => {
+  it('solo autodetecta cuando el banner cambió después de la carga inicial', () => {
     expect(
       shouldAutoDetectBrandingColors({
         isInitialLoad: true,
@@ -32,7 +34,7 @@ describe('branding-tab.service', () => {
     ).toBe(true)
   })
 
-  it('valida que la paleta detectada este completa', () => {
+  it('valida que la paleta detectada esté completa', () => {
     expect(
       hasDetectedBrandingPalette({
         color_primary: '#111111',

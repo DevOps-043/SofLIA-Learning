@@ -103,6 +103,7 @@ interface LessonProgressRow {
 }
 
 interface UserOrganizationRow {
+  job_title: string | null;
   organizations: {
     name: string;
     slug: string;
@@ -188,31 +189,33 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
         }));
       }
 
-      // Información del usuario
+      // Información del usuario (solo nombre)
+      // NOTA: El cargo profesional viene de organization_users.job_title, NO de users.cargo_rol
       const { data: userData } = await supabase
         .from('users')
-        .select('nombre, first_name, cargo_rol, type_rol')
+        .select('nombre, first_name')
         .eq('id', userId)
         .single();
       if (userData) {
         context.userName = userData.first_name || userData.nombre;
-        context.userRole = userData.cargo_rol;
-        context.userJobTitle = userData.type_rol;
 
-        // ✅ OBTENER ORGANIZACIÓN ACTIVA (nombre y slug)
+        // ✅ OBTENER ORGANIZACIÓN ACTIVA (nombre, slug y job_title del usuario)
+        // NOTA: type_rol fue eliminado de la tabla users. El cargo profesional
+        // ahora vive en organization_users.job_title
         const { data: userOrg } = await supabase
           .from('organization_users')
-          .select('organizations!inner(name, slug)')
+          .select('job_title, organizations!inner(name, slug)')
           .eq('user_id', userId)
           .eq('status', 'active')
-          .order('joined_at', { ascending: false }) // Priorizar la más reciente
+          .order('joined_at', { ascending: false })
           .limit(1)
           .maybeSingle();
 
-        if (userOrg?.organizations) {
-          const organization = (userOrg as UserOrganizationRow).organizations;
-          context.organizationName = organization?.name;
-          context.organizationSlug = organization?.slug;
+        if (userOrg) {
+          const orgRow = userOrg as UserOrganizationRow;
+          context.organizationName = orgRow.organizations?.name;
+          context.organizationSlug = orgRow.organizations?.slug;
+          context.userJobTitle = orgRow.job_title || undefined;
         }
       }
     }

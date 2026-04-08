@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
-import { useThemeStore } from '../../../../../core/stores/themeStore'
-import { useOrganizationStylesContext } from '../../../contexts/OrganizationStylesContext'
+import { AnimatePresence } from 'framer-motion'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import type { HierarchyChatType } from '../../../types/hierarchy.types'
-import { useChatLogic } from './hooks/useChatLogic'
-import { ChatMessages } from './ChatMessages'
-import { ChatInput } from './ChatInput'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import { ChatHeader } from './ChatHeader'
+import { ChatInput } from './ChatInput'
+import { ChatMessages } from './ChatMessages'
+import { FilePreview } from './FilePreview'
+import { ImageModal } from './ImageModal'
+import { useChatLogic } from './hooks/useChatLogic'
 
 interface HierarchyChatProps {
   entityType: 'region' | 'zone' | 'team' | 'node'
@@ -21,27 +22,21 @@ export function HierarchyChat({
   entityId,
   chatType = 'vertical',
   title,
-  className = ''
+  className = '',
 }: HierarchyChatProps) {
-  const { effectiveStyles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-  const [modalImage, setModalImage] = useState<string | null>(null)
-  const panelStyles = effectiveStyles?.panel
+  const theme = useBusinessPanelTheme()
 
   const {
     chat,
     messages,
+    participants,
     loading,
+    error,
     sending,
     currentUser,
     handleSendMessage,
     handleEditMessage,
     handleDeleteMessage,
-    uploadFile,
-    loadMoreMessages,
-    hasMore,
-    markAsRead,
     editingMessageId,
     editContent,
     setEditContent,
@@ -50,8 +45,6 @@ export function HierarchyChat({
     getMessageAttachment,
     messagesEndRef,
     messagesContainerRef,
-    setImageModal,
-    // Input state
     messageContent,
     setMessageContent,
     showEmojiPicker,
@@ -61,83 +54,126 @@ export function HierarchyChat({
     insertEmoji,
     handleFileSelect,
     selectedFile,
+    filePreview,
+    imageModal,
+    setImageModal,
     fileInputRef,
-    emojiPickerRef
+    emojiPickerRef,
+    removeSelectedFile,
   } = useChatLogic({
     entityType,
     entityId,
-    chatType
+    chatType,
   })
 
   if (loading && !chat) {
     return (
-      <div className={`flex items-center justify-center h-[600px] rounded-2xl border ${className} ${isDark ? 'bg-[#0F1419] border-white/10' : 'bg-slate-50 border-slate-200'}`}>
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div
+        className={`flex h-[600px] items-center justify-center rounded-2xl border ${className}`}
+        style={{
+          backgroundColor: theme.panelBg,
+          borderColor: theme.borderColor,
+        }}
+      >
+        <Loader2 className="h-8 w-8 animate-spin" style={{ color: theme.primaryColor }} />
       </div>
     )
   }
 
-  const primaryColor = panelStyles?.primary_button_color || '#3B82F6'
-  const accentColor = panelStyles?.accent_color || '#10B981'
+  const handleDownload = (url: string, _name?: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 
   return (
-    <div
-      className={`flex flex-col h-[600px] rounded-2xl border overflow-hidden ${className}`}
-      style={{
-        backgroundColor: isDark ? '#0F1419' : '#F8FAFC',
-        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-      }}
-    >
-      <ChatHeader
-        title={title || chat?.name || 'Chat de Equipo'}
-        description={chat?.description || undefined}
-        participantsCount={chat?.participants_count || 0}
-        onlineCount={0}
-      />
+    <>
+      <div
+        className={`flex h-[600px] flex-col overflow-hidden rounded-2xl border ${className}`}
+        style={{
+          backgroundColor: theme.panelBg,
+          borderColor: theme.borderColor,
+        }}
+      >
+        <ChatHeader
+          title={title || chat?.name || 'Chat de equipo'}
+          description={chat?.description || undefined}
+          participantsCount={participants.length || chat?.participants_count || 0}
+          onlineCount={0}
+        />
 
-      <div className="flex-1 overflow-hidden relative flex flex-col">
-        <ChatMessages
-          messages={messages}
-          userId={currentUser?.id}
-          editingMessageId={editingMessageId}
-          editContent={editContent}
-          onEditChange={setEditContent}
-          onEditSubmit={handleEditMessage}
-          onEditCancel={() => {
-            setEditingMessageId(null)
-            setEditContent('')
-          }}
-          onStartEdit={startEditing}
-          onDelete={handleDeleteMessage}
-          onImageClick={(url, name) => setImageModal({ url, name })}
-          onDownload={(url) => window.open(url, '_blank')}
-          getAttachment={getMessageAttachment}
-          messagesEndRef={messagesEndRef}
-          messagesContainerRef={messagesContainerRef}
-          primaryColor={primaryColor}
-          accentColor={accentColor}
-          isDark={isDark}
+        <div className="relative flex flex-1 flex-col overflow-hidden">
+          {error && (
+            <div
+              className="mx-4 mt-4 flex items-start gap-2 rounded-xl border px-4 py-3 text-sm"
+              style={{
+                backgroundColor: theme.isDark
+                  ? 'rgba(239, 68, 68, 0.12)'
+                  : 'rgba(239, 68, 68, 0.08)',
+                borderColor: theme.dangerColor,
+                color: theme.dangerColor,
+              }}
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <ChatMessages
+            messages={messages}
+            userId={currentUser?.id}
+            editingMessageId={editingMessageId}
+            editContent={editContent}
+            onEditChange={setEditContent}
+            onEditSubmit={handleEditMessage}
+            onEditCancel={() => {
+              setEditingMessageId(null)
+              setEditContent('')
+            }}
+            onStartEdit={startEditing}
+            onDelete={handleDeleteMessage}
+            onImageClick={(url, name) => setImageModal({ url, name })}
+            onDownload={handleDownload}
+            getAttachment={getMessageAttachment}
+            messagesEndRef={messagesEndRef}
+            messagesContainerRef={messagesContainerRef}
+          />
+        </div>
+
+        {selectedFile && (
+          <FilePreview
+            file={selectedFile}
+            preview={filePreview}
+            onRemove={removeSelectedFile}
+          />
+        )}
+
+        <ChatInput
+          messageContent={messageContent}
+          onMessageChange={setMessageContent}
+          onSend={handleSendMessage}
+          isSending={sending}
+          hasFile={Boolean(selectedFile)}
+          showEmojiPicker={showEmojiPicker}
+          onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
+          activeEmojiCategory={activeEmojiCategory}
+          onEmojiCategoryChange={setActiveEmojiCategory}
+          onEmojiSelect={insertEmoji}
+          onFileClick={() => fileInputRef.current?.click()}
+          fileInputRef={fileInputRef}
+          emojiPickerRef={emojiPickerRef}
+          onFileChange={handleFileSelect}
         />
       </div>
 
-      <ChatInput
-        messageContent={messageContent}
-        onMessageChange={setMessageContent}
-        onSend={handleSendMessage}
-        isSending={sending}
-        hasFile={!!selectedFile}
-        showEmojiPicker={showEmojiPicker}
-        onToggleEmojiPicker={() => setShowEmojiPicker(!showEmojiPicker)}
-        activeEmojiCategory={activeEmojiCategory}
-        onEmojiCategoryChange={setActiveEmojiCategory}
-        onEmojiSelect={insertEmoji}
-        onFileClick={() => fileInputRef.current?.click()}
-        fileInputRef={fileInputRef}
-        emojiPickerRef={emojiPickerRef}
-        onFileChange={handleFileSelect}
-        primaryColor={primaryColor}
-        isDark={isDark}
-      />
-    </div>
+      <AnimatePresence>
+        {imageModal && (
+          <ImageModal
+            url={imageModal.url}
+            name={imageModal.name}
+            onClose={() => setImageModal(null)}
+            onDownload={handleDownload}
+          />
+        )}
+      </AnimatePresence>
+    </>
   )
 }

@@ -13,10 +13,7 @@ export function BusinessUserStatsActivityTab({
   theme,
   formatMonth,
 }: BusinessUserStatsTabProps) {
-  const isDark = theme.isDark;
-  const mutedText = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)';
-  const inputBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.03)';
-  const borderColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const mutedText = theme.mutedTextColor;
 
   const completionBars = buildBusinessUserStatsCompletionBars(stats.completed_by_month ?? [])
 
@@ -28,21 +25,21 @@ export function BusinessUserStatsActivityTab({
           icon={FileText}
           value={stats.notes_count}
           label={t('users.stats.activity.notesCreated', 'Notas Creadas')}
-          color={isDark ? '#10B981' : '#059669'}
+          color={theme.chartColors[0]}
           theme={theme}
         />
         <ActivitySummaryCard
           icon={Target}
           value={`${stats.completed_assignments || 0}/${stats.total_assignments || 0}`}
           label={t('users.stats.activity.assignments', 'Tareas Finalizadas')}
-          color={isDark ? '#3B82F6' : '#2563EB'}
+          color={theme.chartColors[1]}
           theme={theme}
         />
         <ActivitySummaryCard
           icon={Award}
           value={stats.certificates_count}
           label={t('users.stats.activity.certificates', 'Certificaciones')}
-          color={isDark ? '#F59E0B' : '#D97706'}
+          color={theme.chartColors[2]}
           theme={theme}
         />
       </div>
@@ -62,18 +59,18 @@ export function BusinessUserStatsActivityTab({
                         <div className="w-24 text-[10px] font-black uppercase tracking-widest opacity-40 group-hover:opacity-100 transition-opacity">
                            {formatMonth(item.month)}
                         </div>
-                        <div className="flex-1 relative h-10 rounded-2xl bg-white/5 border border-white/5 overflow-hidden">
+                        <div className="flex-1 relative h-10 rounded-2xl border overflow-hidden" style={{ backgroundColor: theme.cardBg, borderColor: theme.modalBorder }}>
                            <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${item.percentage}%` }}
                               transition={{ duration: 1.2, delay: 0.3 + index * 0.1 }}
-                              className="absolute inset-y-0 left-0 rounded-2xl flex items-center justify-end px-4 border-r border-white/20"
+                              className="absolute inset-y-0 left-0 rounded-2xl flex items-center justify-end px-4"
                               style={{
                                  background: `linear-gradient(90deg, ${theme.primaryColor}20, ${theme.primaryColor}80)`,
                                  minWidth: '60px',
                               }}
                            >
-                              <span className="text-[10px] font-black uppercase tracking-widest text-white shadow-xl">
+                              <span className="text-[10px] font-black uppercase tracking-widest shadow-xl" style={{ color: theme.onPrimaryColor }}>
                                  {item.count} {t('users.stats.activity.courses', 'CURSOS')}
                               </span>
                            </motion.div>
@@ -114,10 +111,9 @@ export function BusinessUserStatsActivityTab({
 }
 
 function ActivitySummaryCard({ icon: Icon, value, label, color, theme }: any) {
-   const isDark = theme.isDark;
    return (
       <div className="relative p-8 rounded-[2.5rem] border shadow-2xl overflow-hidden group transition-all hover:scale-[1.02]" 
-           style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderColor: 'rgba(255,255,255,0.05)' }}>
+           style={{ backgroundColor: theme.cardBg, borderColor: theme.modalBorder }}>
          <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] rounded-bl-full border-l border-b border-white/[0.05]" />
          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-xl transform group-hover:rotate-12 transition-transform duration-500" 
               style={{ backgroundColor: `${color}15` }}>
@@ -130,10 +126,9 @@ function ActivitySummaryCard({ icon: Icon, value, label, color, theme }: any) {
 }
 
 function EngagementCard({ icon: Icon, value, label, desc, theme }: any) {
-   const isDark = theme.isDark;
    return (
       <div className="flex items-center gap-6 p-6 rounded-[2.5rem] border shadow-lg" 
-           style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', borderColor: 'rgba(255,255,255,0.05)' }}>
+           style={{ backgroundColor: theme.cardBg, borderColor: theme.modalBorder }}>
          <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 border border-white/5">
             <Icon className="w-7 h-7" style={{ color: theme.primaryColor }} strokeWidth={2.5} />
          </div>

@@ -1,7 +1,9 @@
+import type { RefObject } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { MessageSquare } from 'lucide-react'
-import { ChatMessage } from './ChatMessage'
 import type { HierarchyChatMessage } from '../../../types/hierarchy.types'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
+import { ChatMessage } from './ChatMessage'
 import type { FileAttachment } from './types'
 
 interface ChatMessagesProps {
@@ -17,11 +19,8 @@ interface ChatMessagesProps {
   onImageClick: (url: string, name: string) => void
   onDownload: (url: string, name: string) => void
   getAttachment: (message: HierarchyChatMessage) => FileAttachment | null
-  messagesEndRef: React.RefObject<HTMLDivElement | null>
-  messagesContainerRef: React.RefObject<HTMLDivElement | null>
-  primaryColor: string
-  accentColor: string
-  isDark: boolean
+  messagesEndRef: RefObject<HTMLDivElement>
+  messagesContainerRef: RefObject<HTMLDivElement>
 }
 
 export function ChatMessages({
@@ -39,16 +38,15 @@ export function ChatMessages({
   getAttachment,
   messagesEndRef,
   messagesContainerRef,
-  primaryColor,
-  accentColor,
-  isDark
 }: ChatMessagesProps) {
+  const theme = useBusinessPanelTheme()
+
   const getSenderName = (message: HierarchyChatMessage) => {
     if (message.sender) {
       return (
-        message.sender.display_name ||
-        `${message.sender.first_name || ''} ${message.sender.last_name || ''}`.trim() ||
-        message.sender.email
+        message.sender.display_name
+        || `${message.sender.first_name || ''} ${message.sender.last_name || ''}`.trim()
+        || message.sender.email
       )
     }
     return 'Usuario'
@@ -59,12 +57,17 @@ export function ChatMessages({
   }
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    return name
+      .split(' ')
+      .map((segment) => segment[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
   }
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
   }
 
   const formatFileSize = (bytes: number) => {
@@ -78,20 +81,20 @@ export function ChatMessages({
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4"
-        style={{ backgroundColor: isDark ? '#0F1419' : '#F8FAFC' }}
+        style={{ backgroundColor: theme.panelBg }}
       >
-        <div className="flex flex-col items-center justify-center h-full">
+        <div className="flex h-full flex-col items-center justify-center">
           <div
-            className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
-            style={{ backgroundColor: `${primaryColor}15` }}
+            className="mb-4 flex h-20 w-20 items-center justify-center rounded-full"
+            style={{ backgroundColor: theme.hoverBg }}
           >
-            <MessageSquare className="w-10 h-10" style={{ color: primaryColor }} />
+            <MessageSquare className="h-10 w-10" style={{ color: theme.primaryColor }} />
           </div>
-          <p className="font-medium" style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}>
-            No hay mensajes aún
+          <p className="font-medium" style={{ color: theme.textColor }}>
+            No hay mensajes aun
           </p>
-          <p className="text-sm mt-1" style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}>
-            ¡Sé el primero en escribir!
+          <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>
+            Se el primero en escribir.
           </p>
         </div>
       </div>
@@ -101,14 +104,15 @@ export function ChatMessages({
   return (
     <div
       ref={messagesContainerRef}
-      className="flex-1 overflow-y-auto p-4 space-y-3"
-      style={{ backgroundColor: isDark ? '#0F1419' : '#F8FAFC' }}
+      className="flex-1 space-y-3 overflow-y-auto p-4"
+      style={{ backgroundColor: theme.panelBg }}
     >
       <AnimatePresence initial={false}>
         {messages.map((message, index) => {
           const isOwnMessage = message.sender_id === userId
           const isEditing = editingMessageId === message.id
-          const showAvatar = !isOwnMessage && (index === 0 || messages[index - 1]?.sender_id !== message.sender_id)
+          const showAvatar =
+            !isOwnMessage && (index === 0 || messages[index - 1]?.sender_id !== message.sender_id)
 
           return (
             <ChatMessage
@@ -131,9 +135,6 @@ export function ChatMessages({
               getInitials={getInitials}
               formatTime={formatTime}
               formatFileSize={formatFileSize}
-              primaryColor={primaryColor}
-              accentColor={accentColor}
-              isDark={isDark}
             />
           )
         })}

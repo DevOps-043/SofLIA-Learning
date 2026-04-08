@@ -7,9 +7,10 @@ interface BusinessCourseContentTabProps {
   expandedModules: Set<string>
   toggleModule: (moduleId: string) => void
   textColor: string
+  mutedTextColor: string
   borderColor: string
   primaryColor: string
-  isDark: boolean
+  onPrimaryColor: string
   formatDuration: (minutes: number | null) => string
   formatDurationSeconds: (seconds: number) => string
 }
@@ -19,9 +20,10 @@ export function BusinessCourseContentTab({
   expandedModules,
   toggleModule,
   textColor,
+  mutedTextColor,
   borderColor,
   primaryColor,
-  isDark,
+  onPrimaryColor,
   formatDuration,
   formatDurationSeconds
 }: BusinessCourseContentTabProps) {
@@ -30,15 +32,15 @@ export function BusinessCourseContentTab({
       <div className="space-y-4">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold" style={{ color: textColor }}>Contenido del Curso</h3>
-          <span className="text-sm" style={{ color: `${textColor}60` }}>
+          <span className="text-sm" style={{ color: mutedTextColor }}>
             {course.stats.total_modules} modulos • {course.stats.total_lessons} lecciones
           </span>
         </div>
 
         {course.modules.length === 0 ? (
-          <div className="text-center py-12 rounded-2xl border border-white/10" style={{ backgroundColor: `${primaryColor}05` }}>
-            <BookOpen className="w-16 h-16 mx-auto mb-4" style={{ color: `${textColor}30` }} />
-            <p style={{ color: `${textColor}50` }}>Este curso aun no tiene contenido disponible</p>
+          <div className="text-center py-12 rounded-2xl border" style={{ backgroundColor: `${primaryColor}08`, borderColor }}>
+            <BookOpen className="w-16 h-16 mx-auto mb-4" style={{ color: mutedTextColor }} />
+            <p style={{ color: mutedTextColor }}>Este curso aun no tiene contenido disponible</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -66,20 +68,20 @@ export function BusinessCourseContentTab({
                       <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center font-bold"
                         style={{
-                          backgroundColor: isExpanded ? primaryColor : `${primaryColor}40`,
-                          color: isExpanded ? '#FFFFFF' : (isDark ? '#FFFFFF' : primaryColor)
+                          backgroundColor: isExpanded ? primaryColor : `${primaryColor}18`,
+                          color: isExpanded ? onPrimaryColor : primaryColor
                         }}
                       >
                         {moduleIndex + 1}
                       </div>
                       <div className="text-left">
                         <h4 className="font-semibold" style={{ color: textColor }}>{module.module_title}</h4>
-                        <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}50` }}>
+                        <p className="text-sm" style={{ color: mutedTextColor }}>
                           {module.lessons.length} lecciones • {formatDuration(moduleDurationMinutes)}
                         </p>
                       </div>
                     </div>
-                    <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}50` }} />
+                    <ChevronDown className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} style={{ color: mutedTextColor }} />
                   </button>
 
                   <AnimatePresence>
@@ -94,15 +96,15 @@ export function BusinessCourseContentTab({
                         <div className="px-5 pb-4 space-y-2">
                           {module.lessons.map((lesson, lessonIndex) => (
                             <div key={lesson.lesson_id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors">
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: isDark ? `${primaryColor}40` : `${primaryColor}50` }}>
-                                <Play className="w-4 h-4" style={{ color: '#FFFFFF', strokeWidth: 3 }} />
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                                <Play className="w-4 h-4" style={{ color: onPrimaryColor, strokeWidth: 3 }} />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium" style={{ color: textColor }}>
                                   {lessonIndex + 1}. {lesson.lesson_title}
                                 </p>
                               </div>
-                              <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}50` }}>
+                              <span className="text-xs" style={{ color: mutedTextColor }}>
                                 {formatDurationSeconds(lesson.duration_seconds)}
                               </span>
                             </div>

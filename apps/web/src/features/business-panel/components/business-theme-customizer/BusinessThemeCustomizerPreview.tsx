@@ -1,22 +1,30 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { Image as ImageIcon } from 'lucide-react';
-import type { StyleConfig } from '../../contexts/OrganizationStylesContext';
+import { motion } from 'framer-motion'
+import { Image as ImageIcon } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import type { StyleConfig } from '../../contexts/OrganizationStylesContext'
 
 interface BusinessThemeCustomizerPreviewProps {
-  currentStyles: StyleConfig;
+  currentStyles: StyleConfig
 }
 
 export function BusinessThemeCustomizerPreview({
   currentStyles,
 }: BusinessThemeCustomizerPreviewProps) {
+  const theme = useBusinessPanelTheme()
+  const previewPrimary = currentStyles.primary_button_color || theme.actionColor
+  const previewSecondary = currentStyles.secondary_button_color || theme.secondaryColor
+  const previewText = currentStyles.text_color || theme.textColor
+  const previewBorder = currentStyles.border_color || theme.borderColor
+  const previewCard = currentStyles.card_background || theme.cardBg
+  const previewSidebar = currentStyles.sidebar_background || theme.panelBg
   const previewBackground =
     currentStyles.background_type === 'gradient' && currentStyles.background_value
       ? currentStyles.background_value
       : currentStyles.background_type === 'color' && currentStyles.background_value
         ? currentStyles.background_value
-        : '#0a0f1e';
+        : theme.heroBackground
 
   return (
     <motion.div
@@ -26,53 +34,54 @@ export function BusinessThemeCustomizerPreview({
       className="lg:col-span-2"
     >
       <div
-        className="rounded-2xl p-5 border backdrop-blur-xl sticky top-6"
+        className="sticky top-6 rounded-2xl border p-5 backdrop-blur-xl"
         style={{
-          backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-          borderColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: theme.cardBg,
+          borderColor: theme.borderColor,
         }}
       >
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
-            <ImageIcon className="w-4 h-4 text-emerald-400" />
+        <div className="mb-4 flex items-center gap-3">
+          <div
+            className="rounded-lg border p-2"
+            style={{
+              backgroundColor: theme.actionSurface,
+              borderColor: `${theme.actionColor}33`,
+            }}
+          >
+            <ImageIcon className="h-4 w-4" style={{ color: theme.actionColor }} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Vista Previa</h3>
-            <p className="text-xs text-white/50">Asi se vera tu panel</p>
+            <h3 className="text-base font-bold" style={{ color: theme.textColor }}>
+              Vista previa
+            </h3>
+            <p className="text-xs" style={{ color: theme.subtextColor }}>
+              Así se verá tu panel
+            </p>
           </div>
         </div>
 
         <div
-          className="rounded-xl overflow-hidden"
+          className="overflow-hidden rounded-xl"
           style={{
-            border: `1px solid ${currentStyles.border_color || '#334155'}`,
+            border: `1px solid ${previewBorder}`,
             background: previewBackground,
           }}
         >
           <div className="flex">
             <div
-              className="w-10 min-h-[180px] border-r flex flex-col items-center py-2 gap-1.5"
+              className="flex min-h-[180px] w-10 flex-col items-center gap-1.5 border-r py-2"
               style={{
-                backgroundColor: currentStyles.sidebar_background || '#1e293b',
-                borderColor: currentStyles.border_color || '#334155',
+                backgroundColor: previewSidebar,
+                borderColor: previewBorder,
               }}
             >
-              <div
-                className="w-5 h-5 rounded"
-                style={{ backgroundColor: currentStyles.primary_button_color || '#3b82f6' }}
-              />
-              <div
-                className="w-4 h-4 rounded opacity-30"
-                style={{ backgroundColor: currentStyles.text_color || '#fff' }}
-              />
-              <div
-                className="w-4 h-4 rounded opacity-30"
-                style={{ backgroundColor: currentStyles.text_color || '#fff' }}
-              />
+              <div className="h-5 w-5 rounded" style={{ backgroundColor: previewPrimary }} />
+              <div className="h-4 w-4 rounded opacity-30" style={{ backgroundColor: previewText }} />
+              <div className="h-4 w-4 rounded opacity-30" style={{ backgroundColor: previewText }} />
             </div>
 
-            <div className="flex-1 p-2 space-y-1.5">
-              <div className="text-[9px] font-bold mb-1" style={{ color: currentStyles.text_color || '#fff' }}>
+            <div className="flex-1 space-y-1.5 p-2">
+              <div className="mb-1 text-[9px] font-bold" style={{ color: previewText }}>
                 Dashboard
               </div>
 
@@ -80,11 +89,11 @@ export function BusinessThemeCustomizerPreview({
                 {['PMM', 'Tesis', 'Usuarios', 'Cursos'].map((item, index) => (
                   <div
                     key={item}
-                    className="p-1.5 rounded text-[8px]"
+                    className="rounded p-1.5 text-[8px]"
                     style={{
-                      backgroundColor: currentStyles.card_background || '#1e293b',
-                      color: currentStyles.text_color || '#fff',
-                      border: `1px solid ${currentStyles.border_color || '#334155'}`,
+                      backgroundColor: previewCard,
+                      color: previewText,
+                      border: `1px solid ${previewBorder}`,
                     }}
                   >
                     <span className="opacity-60">{item}</span>
@@ -94,23 +103,23 @@ export function BusinessThemeCustomizerPreview({
               </div>
 
               <div
-                className="p-1.5 rounded"
+                className="rounded p-1.5"
                 style={{
-                  backgroundColor: currentStyles.card_background || '#1e293b',
-                  border: `1px solid ${currentStyles.border_color || '#334155'}`,
+                  backgroundColor: previewCard,
+                  border: `1px solid ${previewBorder}`,
                 }}
               >
-                <div className="text-[8px] mb-1" style={{ color: currentStyles.text_color || '#fff', opacity: 0.6 }}>
+                <div className="mb-1 text-[8px]" style={{ color: previewText, opacity: 0.6 }}>
                   Progreso
                 </div>
                 <div
-                  className="h-1 rounded-full overflow-hidden"
-                  style={{ backgroundColor: currentStyles.border_color || '#334155' }}
+                  className="h-1 overflow-hidden rounded-full"
+                  style={{ backgroundColor: previewBorder }}
                 >
                   <div
                     className="h-full w-3/5 rounded-full"
                     style={{
-                      background: `linear-gradient(90deg, ${currentStyles.primary_button_color || '#3b82f6'}, ${currentStyles.secondary_button_color || '#8b5cf6'})`,
+                      background: `linear-gradient(90deg, ${previewPrimary}, ${previewSecondary})`,
                     }}
                   />
                 </div>
@@ -118,14 +127,16 @@ export function BusinessThemeCustomizerPreview({
 
               <div className="flex gap-1">
                 <button
-                  className="px-2 py-1 rounded text-[8px] font-medium text-white"
-                  style={{ backgroundColor: currentStyles.primary_button_color || '#3b82f6' }}
+                  type="button"
+                  className="rounded px-2 py-1 text-[8px] font-medium"
+                  style={{ backgroundColor: previewPrimary, color: theme.onActionColor }}
                 >
-                  Principal
+                  Primario
                 </button>
                 <button
-                  className="px-2 py-1 rounded text-[8px] font-medium text-white"
-                  style={{ backgroundColor: currentStyles.secondary_button_color || '#8b5cf6' }}
+                  type="button"
+                  className="rounded px-2 py-1 text-[8px] font-medium text-white"
+                  style={{ backgroundColor: previewSecondary }}
                 >
                   Secundario
                 </button>
@@ -135,5 +146,5 @@ export function BusinessThemeCustomizerPreview({
         </div>
       </div>
     </motion.div>
-  );
+  )
 }

@@ -9,15 +9,6 @@ export interface BusinessAssignCourseModalProps {
   onAssignComplete: () => void
 }
 
-export interface BusinessAssignCourseTheme {
-  primaryColor: string
-  accentColor: string
-  cardBackground: string
-  textColor: string
-  borderColor: string
-  isDark: boolean
-}
-
 export interface BusinessAssignCourseCopyProps {
   t: TFunction
 }

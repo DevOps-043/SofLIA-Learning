@@ -30,8 +30,7 @@ async function uploadBrandingImage(file: File, folder: string) {
 }
 
 export function useBrandingTabState() {
-  const { branding, isLoading, error, updateBranding, detectColors } =
-    useBranding()
+  const { branding, isLoading, error, updateBranding, detectColors } = useBranding()
   const { refetch: refetchStyles } = useOrganizationStylesContext()
   const [isSaving, setIsSaving] = useState(false)
   const [isDetecting, setIsDetecting] = useState(false)
@@ -44,11 +43,11 @@ export function useBrandingTabState() {
   const previousBannerUrl = useRef('')
 
   useEffect(() => {
-    if (branding) {
-      setLocalBranding(createBrandingFormState(branding))
-      previousBannerUrl.current = branding.banner_url || ''
-      isInitialLoad.current = false
-    }
+    if (!branding) return
+
+    setLocalBranding(createBrandingFormState(branding))
+    previousBannerUrl.current = branding.banner_url || ''
+    isInitialLoad.current = false
   }, [branding])
 
   useEffect(() => {
@@ -77,11 +76,11 @@ export function useBrandingTabState() {
             ...current,
             ...colors,
           }))
-          setSaveSuccess('Colores detectados automÃ¡ticamente')
+          setSaveSuccess('Colores detectados automáticamente')
           setTimeout(() => setSaveSuccess(null), 5000)
         }
       } catch (err) {
-        console.error('Error detectando colores automÃ¡ticamente:', err)
+        console.error('Error detectando colores automáticamente:', err)
       } finally {
         setIsDetecting(false)
       }
@@ -138,7 +137,7 @@ export function useBrandingTabState() {
 
       if (!hasDetectedBrandingPalette(colors)) {
         throw new Error(
-          'No se pudieron detectar colores del banner. AsegÃºrate de que la imagen sea accesible.',
+          'No se pudieron detectar colores del banner. Asegúrate de que la imagen sea accesible.',
         )
       }
 
@@ -146,7 +145,7 @@ export function useBrandingTabState() {
         ...current,
         ...colors,
       }))
-      setSaveSuccess('Colores detectados automÃ¡ticamente')
+      setSaveSuccess('Colores detectados automáticamente')
       setTimeout(() => setSaveSuccess(null), 5000)
     } catch (err) {
       console.error('Error detectando colores:', err)

@@ -10,9 +10,9 @@
 
 export type DiffStatus = 'added' | 'removed' | 'modified' | 'unchanged'
 
-interface CourseDiffLessonSnapshot {
-    lesson_order_index: number
-    lesson_title: string
+interface CourseDiffLessonSnapshot extends Record<string, unknown> {
+    lesson_order_index: number | null
+    lesson_title: string | null
     video_provider_id?: string | null
     duration_seconds?: number | null
     transcript_content?: string | null
@@ -20,16 +20,16 @@ interface CourseDiffLessonSnapshot {
 }
 
 interface CourseDiffModuleSnapshot extends Record<string, unknown> {
-    module_order_index: number
-    module_title: string
+    module_order_index: number | null
+    module_title: string | null
     lessons?: CourseDiffLessonSnapshot[]
 }
 
 interface CourseDiffCourseSnapshot extends Record<string, unknown> {
-    title?: string
-    description?: string
-    level?: string
-    category?: string
+    title?: string | null
+    description?: string | null
+    level?: string | null
+    category?: string | null
     thumbnail_url?: string | null
     modules?: CourseDiffModuleSnapshot[]
 }
@@ -120,12 +120,12 @@ export function buildCourseDiff(
     // Match modules by order_index (the canonical key from CourseEngine)
     const originalByOrder = new Map<number, CourseDiffModuleSnapshot>()
     for (const m of originalModules) {
-        originalByOrder.set(m.module_order_index, m)
+        originalByOrder.set(m.module_order_index ?? Number.MAX_SAFE_INTEGER, m)
     }
 
     const proposedByOrder = new Map<number, CourseDiffModuleSnapshot>()
     for (const m of proposedModules) {
-        proposedByOrder.set(m.module_order_index, m)
+        proposedByOrder.set(m.module_order_index ?? Number.MAX_SAFE_INTEGER, m)
     }
 
     const allOrderIndices = new Set<number>([
@@ -147,14 +147,14 @@ export function buildCourseDiff(
             modulesAdded++
             const newLessons = (prop.lessons ?? []).map((l) => ({
                 status: 'added' as DiffStatus,
-                lesson_title: l.lesson_title,
+                lesson_title: l.lesson_title ?? 'Sin título',
                 changes: [],
                 proposed: l,
             }))
             lessonsAdded += newLessons.length
             diffModules.push({
                 status: 'added',
-                module_title: prop.module_title,
+                module_title: prop.module_title ?? 'Sin título',
                 changes: [],
                 lessons: newLessons,
             })
@@ -163,14 +163,14 @@ export function buildCourseDiff(
             modulesRemoved++
             const removedLessons = (orig.lessons ?? []).map((l) => ({
                 status: 'removed' as DiffStatus,
-                lesson_title: l.lesson_title,
+                lesson_title: l.lesson_title ?? 'Sin título',
                 changes: [],
                 original: l,
             }))
             lessonsRemoved += removedLessons.length
             diffModules.push({
                 status: 'removed',
-                module_title: orig.module_title,
+                module_title: orig.module_title ?? 'Sin título',
                 changes: [],
                 lessons: removedLessons,
             })
@@ -182,9 +182,13 @@ export function buildCourseDiff(
             const origLessons = orig.lessons ?? []
             const propLessons = prop.lessons ?? []
             const origLessonByOrder = new Map<number, CourseDiffLessonSnapshot>()
-            for (const l of origLessons) origLessonByOrder.set(l.lesson_order_index, l)
+            for (const l of origLessons) {
+                origLessonByOrder.set(l.lesson_order_index ?? Number.MAX_SAFE_INTEGER, l)
+            }
             const propLessonByOrder = new Map<number, CourseDiffLessonSnapshot>()
-            for (const l of propLessons) propLessonByOrder.set(l.lesson_order_index, l)
+            for (const l of propLessons) {
+                propLessonByOrder.set(l.lesson_order_index ?? Number.MAX_SAFE_INTEGER, l)
+            }
 
             const allLessonOrders = new Set<number>([
                 ...origLessonByOrder.keys(),
@@ -200,7 +204,7 @@ export function buildCourseDiff(
                     lessonsAdded++
                     diffLessons.push({
                         status: 'added',
-                        lesson_title: pLesson.lesson_title,
+                        lesson_title: pLesson.lesson_title ?? 'Sin título',
                         changes: [],
                         proposed: pLesson,
                     })
@@ -208,7 +212,7 @@ export function buildCourseDiff(
                     lessonsRemoved++
                     diffLessons.push({
                         status: 'removed',
-                        lesson_title: oLesson.lesson_title,
+                        lesson_title: oLesson.lesson_title ?? 'Sin título',
                         changes: [],
                         original: oLesson,
                     })
@@ -224,8 +228,11 @@ export function buildCourseDiff(
                         lessonsModified++
                         diffLessons.push({
                             status: 'modified',
-                            lesson_title: pLesson.lesson_title,
-                            original_title: oLesson.lesson_title !== pLesson.lesson_title ? oLesson.lesson_title : undefined,
+                            lesson_title: pLesson.lesson_title ?? 'Sin título',
+                            original_title:
+                                oLesson.lesson_title !== pLesson.lesson_title
+                                    ? (oLesson.lesson_title ?? undefined)
+                                    : undefined,
                             changes: lessonChanges,
                             proposed: pLesson,
                             original: oLesson,
@@ -233,7 +240,7 @@ export function buildCourseDiff(
                     } else {
                         diffLessons.push({
                             status: 'unchanged',
-                            lesson_title: pLesson.lesson_title,
+                            lesson_title: pLesson.lesson_title ?? 'Sin título',
                             changes: [],
                             proposed: pLesson,
                             original: oLesson,
@@ -247,8 +254,11 @@ export function buildCourseDiff(
 
             diffModules.push({
                 status: moduleHasChanges ? 'modified' : 'unchanged',
-                module_title: prop.module_title,
-                original_title: modChanges.some(c => c.field === 'module_title') ? orig.module_title : undefined,
+                module_title: prop.module_title ?? 'Sin título',
+                original_title:
+                    modChanges.some(c => c.field === 'module_title')
+                        ? (orig.module_title ?? undefined)
+                        : undefined,
                 changes: modChanges,
                 lessons: diffLessons,
             })

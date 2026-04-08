@@ -51,7 +51,7 @@ export function ModuleAccordion({
       <div className="group-hover:bg-white/[0.02] flex items-start justify-between rounded-lg p-2 transition-colors">
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#00D4B3]">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-700 dark:text-[#00D4B3]">
               Módulo {moduleIndex + 1}
             </span>
             <div className="h-[1px] flex-1 bg-gray-200 dark:bg-white/10" />
@@ -91,12 +91,12 @@ export function ModuleAccordion({
           >
             <div className="mb-4 flex gap-3">
               <span
-                className="rounded-full border border-[#10B981]/30 bg-[#10B981]/10 px-3 py-1 text-xs font-medium text-[#10B981] dark:bg-[#10B981]/20"
+                className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:text-[#00D4B3]"
                 style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
               >
                 {completedLessons}/{totalLessons} {t("leftPanel.completed")}
               </span>
-              <span className="rounded-full border border-[#00D4B3]/30 bg-[#00D4B3]/20 px-3 py-1 text-xs font-medium text-[#00D4B3]">
+              <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:text-[#00D4B3]">
                 {completionPercentage}% {t("leftPanel.completedPercentage")}
               </span>
             </div>

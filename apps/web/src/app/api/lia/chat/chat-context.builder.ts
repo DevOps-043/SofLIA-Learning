@@ -21,7 +21,7 @@ export async function buildFullContext(
     ...platformContext,
     ...requestContext,
     userName: requestContext?.userName || platformContext.userName,
-    userRole: requestContext?.userRole || platformContext.userRole,
+    userJobTitle: requestContext?.userJobTitle || platformContext.userJobTitle,
   };
 
   // Fallback: extract organizationSlug from pathname when not available from DB

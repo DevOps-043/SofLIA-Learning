@@ -63,12 +63,12 @@ function InviteRoleSelector<TForm extends BulkInviteForm | IndividualInviteForm>
             >
                <div className="flex flex-col gap-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 min-w-0">
-                    <Shield className="w-5 h-5 shrink-0" style={{ color: isActive ? (theme.isDark ? '#000000' : '#FFFFFF') : theme.mutedText }} strokeWidth={2.5} />
-                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest truncate" style={{ color: isActive ? (theme.isDark ? '#000000' : '#FFFFFF') : theme.textColor }}>
+                    <Shield className="w-5 h-5 shrink-0" style={{ color: isActive ? theme.onPrimaryColor : theme.mutedText }} strokeWidth={2.5} />
+                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest truncate" style={{ color: isActive ? theme.onPrimaryColor : theme.textColor }}>
                        {roleLabels[role].label}
                     </span>
                   </div>
-                  <p className="text-[9px] sm:text-[10px] opacity-60 leading-tight hidden sm:block truncate" style={{ color: isActive ? (theme.isDark ? '#000000' : '#FFFFFF') : theme.mutedText }}>
+                  <p className="text-[9px] sm:text-[10px] opacity-60 leading-tight hidden sm:block truncate" style={{ color: isActive ? theme.onPrimaryColor : theme.mutedText }}>
                      {roleLabels[role].desc}
                   </p>
                </div>
@@ -103,7 +103,7 @@ export function UnifiedInviteFormsView({
     scrollbarWidth: 'thin' as const,
   };
 
-  const footerBg = theme.isDark ? '#0b0e14' : '#FFFFFF';
+  const footerBg = theme.surfaceColor;
 
   if (mode === 'individual') {
     return (
@@ -267,7 +267,7 @@ export function UnifiedInviteFormsView({
              <motion.button
                className="flex-[2] sm:flex-none px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg"
                disabled={status === 'loading'}
-               style={{ backgroundColor: theme.primaryColor, color: theme.isDark ? '#000000' : '#FFFFFF' }}
+               style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
                type="submit"
                whileHover={{ scale: 1.02 }}
                whileTap={{ scale: 0.98 }}
@@ -451,7 +451,7 @@ export function UnifiedInviteFormsView({
            <motion.button
              className="flex-[2] sm:flex-none px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 shadow-lg"
              disabled={status === 'loading'}
-             style={{ backgroundColor: theme.primaryColor, color: theme.isDark ? '#000000' : '#FFFFFF' }}
+             style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
              type="submit"
              whileHover={{ scale: 1.02 }}
              whileTap={{ scale: 0.98 }}

@@ -61,7 +61,7 @@ export function useInstructorActivities(): UseInstructorActivitiesReturn {
     try {
       // Necesitamos crear la ruta de instructor para actualizar actividades
       // Por ahora, usar la ruta de admin pero con validación de instructor
-      const response = await fetch(`/api/admin/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/activities/${activityId}`, {
+      const response = await fetch(`/api/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/activities/${activityId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(activityData)
@@ -84,7 +84,7 @@ export function useInstructorActivities(): UseInstructorActivitiesReturn {
     try {
       // Necesitamos crear la ruta de instructor para eliminar actividades
       // Por ahora, usar la ruta de admin pero con validación de instructor
-      const response = await fetch(`/api/admin/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/activities/${activityId}`, {
+      const response = await fetch(`/api/instructor/courses/${courseId}/modules/${moduleId}/lessons/${lessonId}/activities/${activityId}`, {
         method: 'DELETE'
       })
 
@@ -107,4 +107,3 @@ export function useInstructorActivities(): UseInstructorActivitiesReturn {
     deleteActivity
   }
 }
-

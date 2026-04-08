@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import { BusinessPanelStatCard } from '../shared/BusinessPanelStatCard'
 import type {
   BusinessAnalyticsMetricCardProps,
   BusinessAnalyticsTabButtonProps,
@@ -15,26 +17,33 @@ export function TabButton({
   label,
   icon: Icon,
 }: BusinessAnalyticsTabButtonProps) {
+  const { primaryColor, onPrimaryColor, borderColor, textColor, mutedTextColor } = useBusinessPanelTheme()
+
   return (
     <button
       onClick={onClick}
-      className={`
-        relative px-6 py-3 rounded-xl flex items-center gap-2 transition-all duration-300 overflow-hidden
-        ${isActive
-          ? 'font-semibold shadow-lg bg-[#0A2540] !text-white'
-          : 'text-gray-500 dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}
-      `}
+      className="relative px-5 py-3 rounded-[14px] flex items-center gap-2 transition-all duration-300 overflow-hidden"
+      style={{
+        backgroundColor: isActive ? primaryColor : 'transparent',
+        border: `1px solid ${isActive ? `${primaryColor}30` : borderColor}`,
+        color: isActive ? onPrimaryColor : textColor,
+        opacity: isActive ? 1 : 0.72,
+      }}
     >
       {isActive && (
         <motion.div
           layoutId="activeTabIndicator"
-          className="absolute inset-0 bg-white/10"
+          className="absolute inset-0"
+          style={{ backgroundColor: `${primaryColor}20` }}
           initial={false}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         />
       )}
-      <Icon className="w-4 h-4 relative z-10" />
-      <span className="relative z-10">{label}</span>
+      <Icon
+        className="w-4 h-4 relative z-10"
+        style={{ color: isActive ? onPrimaryColor : mutedTextColor }}
+      />
+      <span className="relative z-10 text-sm font-semibold">{label}</span>
     </button>
   )
 }
@@ -45,31 +54,7 @@ export function KPICard({
   value,
   color,
 }: BusinessAnalyticsMetricCardProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ y: -4 }}
-      className="relative p-5 rounded-2xl border overflow-hidden bg-white dark:bg-[#1E293B]/80 border-gray-200 dark:border-slate-700/30"
-    >
-      <div
-        className="absolute top-0 right-0 w-32 h-32 rounded-full opacity-10 blur-2xl"
-        style={{ backgroundColor: color }}
-      />
-
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${color}20` }}>
-            <Icon className="w-5 h-5" style={{ color }} />
-          </div>
-        </div>
-        <p className="text-3xl font-bold mb-1">
-          {typeof value === 'number' ? value.toLocaleString() : value}
-        </p>
-        <p className="text-sm opacity-60">{label}</p>
-      </div>
-    </motion.div>
-  )
+  return <BusinessPanelStatCard icon={<Icon className="w-5 h-5" />} title={label} value={value} iconColor={color} />
 }
 
 export function SmallMetricCard({
@@ -79,22 +64,13 @@ export function SmallMetricCard({
   color,
 }: BusinessAnalyticsMetricCardProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      className="flex items-center gap-4 p-4 rounded-2xl border bg-white dark:bg-[#1E293B]/80 border-gray-200 dark:border-slate-700/30"
-    >
-      <div className="p-2 rounded-xl" style={{ backgroundColor: `${color}15` }}>
-        <Icon className="w-4 h-4" style={{ color }} />
-      </div>
-      <div>
-        <p className="text-xl font-bold">
-          {typeof value === 'number' ? value.toLocaleString() : value}
-        </p>
-        <p className="text-xs opacity-60">{label}</p>
-      </div>
-    </motion.div>
+    <BusinessPanelStatCard
+      icon={<Icon className="w-4 h-4" />}
+      title={label}
+      value={value}
+      iconColor={color}
+      compact
+    />
   )
 }
 
@@ -105,6 +81,13 @@ export function BusinessAnalyticsUserAvatar({
   size,
   borderColor,
 }: BusinessAnalyticsUserAvatarProps) {
+  const {
+    primaryColor,
+    secondaryColor,
+    borderColor: themeBorderColor,
+    hoverBg,
+    onPrimaryColor,
+  } = useBusinessPanelTheme()
   const [hasImageError, setHasImageError] = useState(false)
   const sizeClasses = size === 'lg' ? 'w-20 h-20 rounded-2xl text-3xl' : 'w-10 h-10 rounded-full text-sm'
   const imageSizes = size === 'lg' ? '80px' : '40px'
@@ -113,8 +96,8 @@ export function BusinessAnalyticsUserAvatar({
   if (imageUrl && !hasImageError) {
     return (
       <div
-        className={`relative ${sizeClasses} overflow-hidden ${borderClasses} shadow-lg shrink-0 border-gray-200 dark:border-gray-700`}
-        style={{ ...(borderColor ? { borderColor } : {}) }}
+        className={`relative ${sizeClasses} overflow-hidden ${borderClasses} shadow-lg shrink-0`}
+        style={{ borderColor: borderColor ?? themeBorderColor }}
       >
         <Image
           src={imageUrl}
@@ -130,9 +113,13 @@ export function BusinessAnalyticsUserAvatar({
 
   return (
     <div
-      className={`${sizeClasses} flex items-center justify-center font-bold bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shrink-0`}
+      className={`${sizeClasses} flex items-center justify-center font-bold shadow-lg shrink-0`}
       style={{
-        ...(size === 'lg' && borderColor ? { border: '4px solid', borderColor } : {}),
+        background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
+        color: onPrimaryColor,
+        ...(size === 'lg'
+          ? { border: '4px solid', borderColor: borderColor ?? hoverBg }
+          : { border: '2px solid', borderColor: borderColor ?? themeBorderColor }),
       }}
     >
       {initials}

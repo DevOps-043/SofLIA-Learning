@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -7,6 +6,13 @@ import {
 } from 'recharts';
 import { Users, Zap, Clock, Calendar, BarChart2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme';
+import type {
+  BusinessAnalyticsData,
+  BusinessAnalyticsEngagementMetrics,
+  BusinessAnalyticsFrequencyPoint,
+  BusinessAnalyticsStreakPoint,
+} from '../types/analytics.types';
 
 interface StickinessDatum {
   name: string;
@@ -15,16 +21,8 @@ interface StickinessDatum {
   ratio: number;
 }
 
-interface FrequencyDatum {
-  name: string;
-  users: number;
-}
-
-interface StreakDatum {
-  name: string;
-  value: number;
-  fill: string;
-}
+type FrequencyDatum = BusinessAnalyticsFrequencyPoint;
+type StreakDatum = BusinessAnalyticsStreakPoint;
 
 interface HeatmapDatum {
   day: string;
@@ -38,24 +36,17 @@ interface DurationDatum {
   max: number;
 }
 
-interface EngagementMetrics {
-  stickiness?: StickinessDatum[];
-  frequency?: FrequencyDatum[];
-  streaks?: StreakDatum[];
-  heatmap?: HeatmapDatum[];
-  duration?: DurationDatum[];
-}
+type EngagementMetrics = Partial<BusinessAnalyticsEngagementMetrics>;
 
 interface EngagementAnalyticsProps {
-  data?: {
-    engagement_metrics?: EngagementMetrics;
-  };
+  data?: Pick<BusinessAnalyticsData, 'engagement_metrics'>;
 }
 
 export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
   const { t } = useTranslation('business');
+  const panelTheme = useBusinessPanelTheme();
   // Extraer métricas reales o usar fallbacks vacíos
-  const metrics = data?.engagement_metrics || {};
+  const metrics: EngagementMetrics = data?.engagement_metrics || {};
   
   const stickinessData = metrics.stickiness || [];
   const frequencyData = metrics.frequency || [];
@@ -71,23 +62,42 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
 
   // Colores del tema
   const colors = {
-    primary: '#00D4B3',
-    secondary: '#3B82F6',
-    tertiary: '#8B5CF6',
-    quaternary: '#F59E0B',
-    grid: '#e5e7eb',
-    text: '#6b7280'
+    primary: panelTheme.actionColor,
+    secondary: panelTheme.accentColor,
+    tertiary: panelTheme.secondaryColor,
+    quaternary: panelTheme.warningColor,
+    grid: panelTheme.dividerColor,
+    text: panelTheme.subtextColor
+  };
+
+  const surfaceStyle = {
+    backgroundColor: panelTheme.cardBg,
+    borderColor: panelTheme.borderColor,
+  };
+
+  const tooltipStyle = {
+    backgroundColor: panelTheme.panelBg,
+    borderRadius: '12px',
+    border: `1px solid ${panelTheme.borderColor}`,
+    boxShadow: '0 12px 28px rgba(0,0,0,0.18)',
+    color: panelTheme.textColor,
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 bg-[#00D4B3]/10 rounded-lg">
-          <Zap className="w-6 h-6 text-[#00D4B3]" />
+        <div
+          className="p-2 rounded-xl border"
+          style={{
+            backgroundColor: panelTheme.actionSurface,
+            borderColor: `${panelTheme.actionColor}24`,
+          }}
+        >
+          <Zap className="w-6 h-6" style={{ color: panelTheme.actionColor }} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-[#0A2540] dark:text-white">{t('analytics.engagement.title')}</h2>
-          <p className="text-sm text-[#6C757D] dark:text-gray-400">{t('analytics.engagement.subtitle')}</p>
+          <h2 className="text-xl font-bold" style={{ color: panelTheme.textColor }}>{t('analytics.engagement.title')}</h2>
+          <p className="text-sm" style={{ color: panelTheme.subtextColor }}>{t('analytics.engagement.subtitle')}</p>
         </div>
       </div>
 
@@ -97,10 +107,11 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
+          className="p-6 rounded-3xl shadow-sm border"
+          style={surfaceStyle}
         >
-          <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
-            <Users className="w-5 h-5 mr-2 text-[#00D4B3]" />
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{ color: panelTheme.textColor }}>
+            <Users className="w-5 h-5 mr-2" style={{ color: panelTheme.actionColor }} />
             {t('analytics.engagement.stickiness.title')}
           </h3>
           <div className="h-[300px]">
@@ -112,8 +123,8 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                   <YAxis yAxisId="left" stroke={colors.text} fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis yAxisId="right" orientation="right" stroke={colors.text} fontSize={12} tickLine={false} axisLine={false} unit="%" />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                    labelStyle={{ color: '#0A2540', fontWeight: 'bold' }}
+                    contentStyle={tooltipStyle}
+                    labelStyle={{ color: panelTheme.textColor, fontWeight: 'bold' }}
                   />
                   <Line yAxisId="left" type="monotone" dataKey="dau" name={t('analytics.engagement.stickiness.dau')} stroke={colors.primary} strokeWidth={3} dot={{ r: 4, fill: colors.primary }} activeDot={{ r: 6 }} />
                   <Line yAxisId="left" type="monotone" dataKey="mau" name={t('analytics.engagement.stickiness.mau')} stroke={colors.secondary} strokeWidth={3} dot={{ r: 4, fill: colors.secondary }} />
@@ -121,7 +132,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                <div className="flex items-center justify-center h-full text-sm" style={{ color: panelTheme.subtextColor }}>
                     {t('analytics.engagement.stickiness.noData')}
                 </div>
             )}
@@ -133,10 +144,11 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
+          className="p-6 rounded-3xl shadow-sm border"
+          style={surfaceStyle}
         >
-          <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
-            <Calendar className="w-5 h-5 mr-2 text-[#3B82F6]" />
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{ color: panelTheme.textColor }}>
+            <Calendar className="w-5 h-5 mr-2" style={{ color: panelTheme.actionColor }} />
             {t('analytics.engagement.frequency.title')}
           </h3>
           <div className="h-[300px]">
@@ -148,17 +160,17 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                   <YAxis stroke={colors.text} fontSize={12} tickLine={false} axisLine={false} />
                   <Tooltip 
                     cursor={{ fill: 'transparent' }}
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    contentStyle={tooltipStyle}
                   />
                   <Bar dataKey="users" name={t('analytics.engagement.frequency.users')} fill={colors.secondary} radius={[6, 6, 0, 0]} barSize={40}>
-                    {frequencyData.map((entry, index: number) => (
+                    {frequencyData.map((entry: FrequencyDatum, index: number) => (
                       <Cell key={`cell-${index}`} fill={[colors.primary, colors.secondary, colors.tertiary, colors.quaternary][index % 4]} />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                <div className="flex items-center justify-center h-full text-sm" style={{ color: panelTheme.subtextColor }}>
                     {t('analytics.engagement.frequency.noData')}
                 </div>
             )}
@@ -170,10 +182,11 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
+          className="p-6 rounded-3xl shadow-sm border"
+          style={surfaceStyle}
         >
-          <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
-            <Zap className="w-5 h-5 mr-2 text-[#F59E0B]" />
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{ color: panelTheme.textColor }}>
+            <Zap className="w-5 h-5 mr-2" style={{ color: panelTheme.warningColor }} />
             {t('analytics.engagement.streaks.title')}
           </h3>
           <div className="flex flex-col md:flex-row items-center justify-between h-[300px]">
@@ -181,7 +194,7 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={streaksData}
+                    data={streaksData as unknown as Array<Record<string, string | number>>}
                     nameKey="name"
                     dataKey="value"
                     cx="50%"
@@ -190,23 +203,21 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                     outerRadius={90}
                     paddingAngle={5}
                   >
-                    {streaksData.map((entry, index: number) => (
+                    {streaksData.map((entry: StreakDatum, index: number) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
                   </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                  />
+                  <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
             <div className="w-full md:w-1/2 flex flex-col justify-center space-y-4 pl-4">
-              {streaksData.map((item, index: number) => (
+              {streaksData.map((item: StreakDatum, index: number) => (
                 <div key={index} className="flex items-center">
                   <div className="w-4 h-4 rounded-full mr-3" style={{ backgroundColor: item.fill }}></div>
                   <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{item.name} {t('analytics.engagement.streaks.inARow')}</p>
-                    <p className="text-xl font-bold text-[#0A2540] dark:text-white">{item.value}% <span className="text-xs font-normal text-gray-400">{t('analytics.engagement.streaks.users')}</span></p>
+                    <p className="text-sm font-medium" style={{ color: panelTheme.subtextColor }}>{item.name} {t('analytics.engagement.streaks.inARow')}</p>
+                    <p className="text-xl font-bold" style={{ color: panelTheme.textColor }}>{item.value}% <span className="text-xs font-normal" style={{ color: panelTheme.mutedTextColor }}>{t('analytics.engagement.streaks.users')}</span></p>
                   </div>
                 </div>
               ))}
@@ -219,10 +230,11 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
+          className="p-6 rounded-3xl shadow-sm border"
+          style={surfaceStyle}
         >
-          <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-4 flex items-center">
-            <Clock className="w-5 h-5 mr-2 text-[#8B5CF6]" />
+          <h3 className="text-lg font-semibold mb-4 flex items-center" style={{ color: panelTheme.textColor }}>
+            <Clock className="w-5 h-5 mr-2" style={{ color: panelTheme.actionColor }} />
             {t('analytics.engagement.heatmap.title')}
           </h3>
           <div className="h-[300px]">
@@ -235,13 +247,13 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                   <ZAxis dataKey="value" range={[50, 400]} name={t('analytics.engagement.heatmap.activity')} />
                   <Tooltip 
                     cursor={{ strokeDasharray: '3 3' }} 
-                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    contentStyle={tooltipStyle}
                   />
                   <Scatter name={t('analytics.engagement.heatmap.activity')} data={heatmapData} fill={colors.primary} />
                 </ScatterChart>
               </ResponsiveContainer>
              ) : (
-                <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+                <div className="flex items-center justify-center h-full text-sm" style={{ color: panelTheme.subtextColor }}>
                     {t('analytics.engagement.heatmap.noData')}
                 </div>
              )}
@@ -254,11 +266,12 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
-        className="bg-white dark:bg-[#1E2329] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800"
+        className="p-6 rounded-3xl shadow-sm border"
+        style={surfaceStyle}
       >
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white flex items-center">
-            <BarChart2 className="w-5 h-5 mr-2 text-rose-500" />
+          <h3 className="text-lg font-semibold flex items-center" style={{ color: panelTheme.textColor }}>
+            <BarChart2 className="w-5 h-5 mr-2" style={{ color: panelTheme.actionColor }} />
             {t('analytics.engagement.duration.title')}
           </h3>
         </div>
@@ -272,19 +285,19 @@ export function EngagementAnalytics({ data }: EngagementAnalyticsProps) {
                 <YAxis dataKey="role" type="category" stroke={colors.text} width={100} />
                 <Tooltip 
                   cursor={{fill: 'transparent'}}
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                  contentStyle={tooltipStyle}
                 />
                 <Bar dataKey="median" name={t('analytics.engagement.duration.median')} fill={colors.primary} radius={[0, 4, 4, 0]} />
                 <Bar dataKey="max" name={t('analytics.engagement.duration.max')} fill={colors.text} opacity={0.3} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-             <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+             <div className="flex items-center justify-center h-full text-sm" style={{ color: panelTheme.subtextColor }}>
                 {t('analytics.engagement.duration.noData')}
             </div>
           )}
         </div>
-        <p className="text-xs text-center text-gray-500 mt-2">
+        <p className="text-xs text-center mt-2" style={{ color: panelTheme.subtextColor }}>
           {t('analytics.engagement.duration.note')}
         </p>
       </motion.div>

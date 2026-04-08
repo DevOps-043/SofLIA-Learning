@@ -1,4 +1,6 @@
-import { Send, Loader2, Smile, Paperclip } from 'lucide-react'
+import type { ChangeEvent, RefObject } from 'react'
+import { Loader2, Paperclip, Send, Smile } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import { EmojiPicker } from './EmojiPicker'
 import type { EmojiCategory } from './types'
 
@@ -14,11 +16,9 @@ interface ChatInputProps {
   onEmojiCategoryChange: (category: EmojiCategory) => void
   onEmojiSelect: (emoji: string) => void
   onFileClick: () => void
-  fileInputRef: React.RefObject<HTMLInputElement>
-  emojiPickerRef: React.RefObject<HTMLDivElement>
-  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  primaryColor: string
-  isDark: boolean
+  fileInputRef: RefObject<HTMLInputElement>
+  emojiPickerRef: RefObject<HTMLDivElement>
+  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void
 }
 
 export function ChatInput({
@@ -36,21 +36,19 @@ export function ChatInput({
   fileInputRef,
   emojiPickerRef,
   onFileChange,
-  primaryColor,
-  isDark
 }: ChatInputProps) {
-  const canSend = (messageContent?.trim() || hasFile) && !isSending
+  const theme = useBusinessPanelTheme()
+  const canSend = Boolean(messageContent.trim() || hasFile) && !isSending
 
   return (
     <div
-      className="p-4 border-t"
+      className="border-t p-4"
       style={{
-        backgroundColor: isDark ? '#1E2329' : '#FFFFFF',
-        borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+        backgroundColor: theme.cardBg,
+        borderColor: theme.dividerColor,
       }}
     >
       <div className="flex items-center gap-3">
-        {/* Botón de archivos */}
         <input
           type="file"
           ref={fileInputRef}
@@ -58,87 +56,100 @@ export function ChatInput({
           className="hidden"
           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
         />
+
         <button
+          type="button"
           onClick={onFileClick}
-          className="p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
+          className="rounded-full p-2 transition-colors"
           style={{
-            color: isDark ? '#FFFFFF' : '#64748B'
+            color: hasFile ? theme.primaryColor : theme.subtextColor,
+            backgroundColor: hasFile ? theme.hoverBg : 'transparent',
           }}
         >
-          <Paperclip className="w-5 h-5" />
+          <Paperclip className="h-5 w-5" />
         </button>
 
-        {/* Input */}
-        <div className="flex-1 relative">
+        <div className="relative flex-1">
           <input
             type="text"
             value={messageContent}
-            onChange={(e) => onMessageChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
+            onChange={(event) => onMessageChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
                 onSend()
               }
             }}
             placeholder="Escribe un mensaje..."
-            className="w-full px-4 py-3 pr-12 rounded-2xl text-sm focus:outline-none transition-colors border"
+            className="w-full rounded-2xl border px-4 py-3 pr-12 text-sm transition-colors focus:outline-none"
             style={{
-              backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6',
-              color: isDark ? '#FFFFFF' : '#1E293B',
-              borderColor: 'transparent'
+              backgroundColor: theme.inputBg,
+              color: theme.textColor,
+              borderColor: theme.dividerColor,
             }}
-            onFocus={(e) => e.currentTarget.style.borderColor = primaryColor}
-            onBlur={(e) => e.currentTarget.style.borderColor = 'transparent'}
+            onFocus={(event) => {
+              event.currentTarget.style.borderColor = theme.primaryColor
+            }}
+            onBlur={(event) => {
+              event.currentTarget.style.borderColor = theme.dividerColor
+            }}
             disabled={isSending}
           />
 
-          {/* Botón de emojis */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center" ref={emojiPickerRef}>
+          <div
+            className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center justify-center"
+            ref={emojiPickerRef}
+          >
             <button
+              type="button"
               onClick={onToggleEmojiPicker}
-              className="flex items-center justify-center transition-colors"
-              style={{ color: isDark ? '#FFFFFF' : '#64748B' }}
+              className="flex items-center justify-center rounded-full p-1 transition-colors"
+              style={{
+                color: showEmojiPicker ? theme.primaryColor : theme.subtextColor,
+                backgroundColor: showEmojiPicker ? theme.hoverBg : 'transparent',
+              }}
             >
-              <Smile className="w-5 h-5" />
+              <Smile className="h-5 w-5" />
             </button>
 
-            {/* Emoji Picker */}
             {showEmojiPicker && (
               <EmojiPicker
                 activeCategory={activeEmojiCategory}
                 onCategoryChange={onEmojiCategoryChange}
                 onEmojiSelect={onEmojiSelect}
-                primaryColor={primaryColor}
-                isDark={isDark}
               />
             )}
           </div>
         </div>
 
-        {/* Botón de enviar */}
         <button
+          type="button"
           onClick={onSend}
           disabled={!canSend}
-          className="p-3 rounded-2xl transition-all duration-200 flex items-center justify-center"
+          className="flex items-center justify-center rounded-2xl p-3 transition-all duration-200"
           style={{
-            backgroundColor: canSend ? primaryColor : (isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB'),
-            color: '#FFFFFF',
-            cursor: !canSend ? 'not-allowed' : 'pointer',
-            boxShadow: canSend ? `0 4px 14px ${primaryColor}40` : 'none'
+            backgroundColor: canSend ? theme.primaryColor : theme.hoverBg,
+            color: canSend ? theme.onPrimaryColor : theme.mutedTextColor,
+            cursor: canSend ? 'pointer' : 'not-allowed',
+            boxShadow: canSend
+              ? theme.isDark
+                ? '0 10px 24px rgba(0, 212, 179, 0.18)'
+                : '0 10px 24px rgba(15, 23, 42, 0.12)'
+              : 'none',
           }}
-          onMouseEnter={(e) => {
+          onMouseEnter={(event) => {
             if (canSend) {
-              e.currentTarget.style.transform = 'scale(1.05)'
+              event.currentTarget.style.transform = 'scale(1.05)'
             }
           }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)'
+          onMouseLeave={(event) => {
+            event.currentTarget.style.transform = 'scale(1)'
           }}
         >
           {isSending ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <Send className="w-5 h-5" />
+            <Send className="h-5 w-5" />
           )}
         </button>
       </div>

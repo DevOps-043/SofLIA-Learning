@@ -58,6 +58,7 @@ export interface UnifiedInviteTheme {
   isDark: boolean;
   menuBg: string;
   mutedText: string;
+  onPrimaryColor: string;
   primaryColor: string;
   surfaceColor: string;
   textColor: string;

@@ -7,7 +7,7 @@ import { useBusinessSettings } from '../../hooks/useBusinessSettings'
 import { useSubscriptionFeatures } from '../../hooks/useSubscriptionFeatures'
 import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
 import { useBranding } from '../../hooks/useBranding'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 export function useBusinessSettingsLogic() {
   const { data, isLoading, error, refetch, updateOrganization } = useBusinessSettings()
@@ -16,10 +16,9 @@ export function useBusinessSettingsLogic() {
   const { refetch: refetchStyles } = useOrganizationStylesContext()
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
+  const theme = useBusinessPanelTheme()
 
-  const [activeTab, setActiveTab] = useState<'organization' | 'branding' | 'personalization'>('organization')
+  const [activeTab, setActiveTab] = useState<'organization' | 'branding'>('organization')
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -44,8 +43,10 @@ export function useBusinessSettingsLogic() {
   }, [refetchSubscription, refetch])
 
   const tabs = [
-    { id: 'organization' as const, label: 'Datos de la Empresa', icon: Building2, color: '#3b82f6' },
-    ...(canUseBranding ? [{ id: 'branding' as const, label: 'Branding', icon: Palette, color: '#8b5cf6' }] : []),
+    { id: 'organization' as const, label: 'Datos de la Empresa', icon: Building2, color: theme.actionColor },
+    ...(canUseBranding
+      ? [{ id: 'branding' as const, label: 'Branding', icon: Palette, color: theme.secondaryColor }]
+      : []),
   ]
 
   return {
@@ -61,7 +62,7 @@ export function useBusinessSettingsLogic() {
     detectColors,
     refetchStyles,
     orgSlug,
-    isDark,
+    isDark: theme.isDark,
     // Tab state
     activeTab,
     setActiveTab,

@@ -10,7 +10,7 @@ export function LiaMobileButton() {
       onClick={toggleLia}
       className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all relative ${
         isOpen
-          ? "bg-[#00D4B3]/20 text-[#00D4B3]"
+          ? "bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 text-[#0A2540] dark:text-[#00D4B3]"
           : "text-[#6C757D] dark:text-white/60 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
       }`}
     >

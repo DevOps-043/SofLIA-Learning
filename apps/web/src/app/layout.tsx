@@ -16,6 +16,13 @@ import { ContentWrapper } from '../core/components/ContentWrapper';
 import { AuthSecurityGuard } from '../features/auth/components/AuthSecurityGuard';
 import { OrganizationStylesProvider } from '../features/business-panel/contexts/OrganizationStylesContext';
 import { OrganizationProvider } from '../core/providers/OrganizationProvider';
+import { AutomationSignalsReporter } from '../components/security/AutomationSignalsReporter';
+import {
+  AGENT_POLICY_ENTRYPOINT,
+  AGENT_POLICY_JSON,
+  AGENT_POLICY_META_CONTENT,
+  AGENT_POLICY_VERSION,
+} from '../lib/security/agent-policy';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -201,11 +208,37 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#3b82f6" />
+        <meta name="x-soflia-agent-policy" content={AGENT_POLICY_META_CONTENT} />
+        <meta name="x-soflia-agent-policy-version" content={AGENT_POLICY_VERSION} />
+        <meta name="x-soflia-agent-policy-entrypoint" content={AGENT_POLICY_ENTRYPOINT} />
+        <script
+          id="soflia-agent-policy"
+          type="application/json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(AGENT_POLICY_JSON),
+          }}
+        />
 
         {/* ðŸŽ¨ Splash Screens iOS */}
         <link rel="apple-touch-startup-image" href="/icon-512x512.png" />
       </head>
       <body className={`${inter.className} antialiased bg-[var(--color-bg-dark)] text-[var(--color-contrast)] transition-colors duration-300`} suppressHydrationWarning>
+        <a
+          href="/api/_agent-trap?source=layout"
+          rel="nofollow noreferrer"
+          aria-hidden="true"
+          tabIndex={-1}
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            width: '1px',
+            height: '1px',
+            overflow: 'hidden',
+          }}
+          data-agent-trap="true"
+        >
+          Internal diagnostics
+        </a>
         <GlobalRecorderProvider>
           <SWRProvider>
             <I18nProvider>
@@ -217,6 +250,7 @@ export default function RootLayout({
                         <TourRestartProvider>
                         <LiaPanelProvider>
                           <PrefetchManager />
+                          <AutomationSignalsReporter />
                           <AuthSecurityGuard>
                             <ContentWrapper>
                               {children}

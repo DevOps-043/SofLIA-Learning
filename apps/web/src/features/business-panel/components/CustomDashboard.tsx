@@ -1,42 +1,35 @@
 'use client'
 
-import type { ComponentType } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type * as ReactGridLayout from 'react-grid-layout'
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
-  Settings,
-  Save,
-  RefreshCw,
-  Layout,
-  X,
-  Plus,
+  Activity,
   BarChart3,
-  Users,
   BookOpen,
   CheckCircle,
-  Activity
+  Layout,
+  Plus,
+  RefreshCw,
+  Save,
+  Settings,
+  Users,
+  X,
 } from 'lucide-react'
-import { Button } from '@aprende-y-aplica/ui'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 
-// Importación dinámica de react-grid-layout para evitar problemas SSR
 type WidgetConfig = ReactGridLayout.Layout
 type ResponsiveGridLayoutProps = ReactGridLayout.ResponsiveProps
 type WidthProviderProps = ReactGridLayout.WidthProviderProps
+type WidgetType = 'stats' | 'users' | 'courses' | 'activity'
 
 interface ReactGridLayoutModule {
   default: ComponentType<ResponsiveGridLayoutProps>
   WidthProvider: <P>(
     component: ComponentType<P>
   ) => ComponentType<P & WidthProviderProps>
-}
-
-let ResponsiveGrid: ComponentType<ResponsiveGridLayoutProps & WidthProviderProps> | null = null
-
-if (typeof window !== 'undefined') {
-  const reactGridLayout = require('react-grid-layout') as ReactGridLayoutModule
-  ResponsiveGrid = reactGridLayout.WidthProvider(reactGridLayout.default)
 }
 
 interface DashboardLayout {
@@ -52,7 +45,132 @@ interface CustomDashboardProps {
   onClose?: () => void
 }
 
+const WIDGET_META: Record<
+  WidgetType,
+  {
+    label: string
+    description: string
+    icon: typeof BarChart3
+  }
+> = {
+  stats: {
+    label: 'Estadísticas',
+    description: 'Resumen de métricas clave',
+    icon: BarChart3,
+  },
+  users: {
+    label: 'Usuarios',
+    description: 'Actividad y crecimiento',
+    icon: Users,
+  },
+  courses: {
+    label: 'Cursos',
+    description: 'Avance y asignaciones',
+    icon: BookOpen,
+  },
+  activity: {
+    label: 'Actividad',
+    description: 'Eventos recientes del panel',
+    icon: Activity,
+  },
+}
+
+let ResponsiveGrid: ComponentType<ResponsiveGridLayoutProps & WidthProviderProps> | null = null
+
+if (typeof window !== 'undefined') {
+  const reactGridLayout = require('react-grid-layout') as ReactGridLayoutModule
+  ResponsiveGrid = reactGridLayout.WidthProvider(reactGridLayout.default)
+}
+
+function getWidgetType(widgetId: string): WidgetType | null {
+  const widgetType = widgetId.split('-')[0]
+  return widgetType in WIDGET_META ? (widgetType as WidgetType) : null
+}
+
+function DashboardActionButton({
+  children,
+  onClick,
+  disabled = false,
+  variant = 'secondary',
+}: {
+  children: ReactNode
+  onClick: () => void
+  disabled?: boolean
+  variant?: 'primary' | 'secondary' | 'ghost'
+}) {
+  const theme = useBusinessPanelTheme()
+
+  const styles =
+    variant === 'primary'
+      ? {
+          backgroundColor: theme.actionColor,
+          color: theme.onActionColor,
+          borderColor: `${theme.actionColor}33`,
+        }
+      : variant === 'ghost'
+        ? {
+            backgroundColor: 'transparent',
+            color: theme.subtextColor,
+            borderColor: theme.borderColor,
+          }
+        : {
+            backgroundColor: theme.inputBg,
+            color: theme.textColor,
+            borderColor: theme.borderColor,
+          }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
+      style={styles}
+    >
+      {children}
+    </button>
+  )
+}
+
+function WidgetContent({ widgetId }: { widgetId: string }) {
+  const theme = useBusinessPanelTheme()
+  const widgetType = getWidgetType(widgetId)
+
+  if (!widgetType) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm" style={{ color: theme.subtextColor }}>
+          Widget personalizado
+        </p>
+      </div>
+    )
+  }
+
+  const widgetMeta = WIDGET_META[widgetType]
+  const Icon = widgetMeta.icon
+
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="text-center">
+        <div
+          className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl"
+          style={{ backgroundColor: theme.actionSurface }}
+        >
+          <Icon className="h-7 w-7" style={{ color: theme.actionColor }} />
+        </div>
+        <p className="text-sm font-semibold" style={{ color: theme.textColor }}>
+          {widgetMeta.label}
+        </p>
+        <p className="mt-1 text-xs" style={{ color: theme.subtextColor }}>
+          {widgetMeta.description}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export function CustomDashboard({ onClose }: CustomDashboardProps) {
+  const theme = useBusinessPanelTheme()
   const params = useParams()
   const orgSlug = params?.orgSlug as string
   const [isEditMode, setIsEditMode] = useState(false)
@@ -63,7 +181,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
   const [saveSuccess, setSaveSuccess] = useState(false)
 
   useEffect(() => {
-    fetchLayout()
+    void fetchLayout()
   }, [])
 
   const fetchLayout = async () => {
@@ -72,7 +190,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       setError(null)
 
       const response = await fetch(`/api/${orgSlug}/business/dashboard/layout`, {
-        credentials: 'include'
+        credentials: 'include',
       })
 
       const data = await response.json()
@@ -80,28 +198,34 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       if (data.success && data.layout) {
         setLayout(data.layout)
       } else {
-        setError(data.error || 'Error al cargar layout')
+        setError(data.error || 'Error al cargar el layout')
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar layout')
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : 'Error al cargar el layout')
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleLayoutChange = useCallback((newLayout: WidgetConfig[]) => {
-    if (!layout) return
-    
-    setLayout({
-      ...layout,
-      layout_config: {
-        widgets: newLayout
+    setLayout(currentLayout => {
+      if (!currentLayout) {
+        return currentLayout
+      }
+
+      return {
+        ...currentLayout,
+        layout_config: {
+          widgets: newLayout,
+        },
       }
     })
-  }, [layout])
+  }, [])
 
   const handleSave = async () => {
-    if (!layout) return
+    if (!layout) {
+      return
+    }
 
     try {
       setIsSaving(true)
@@ -111,36 +235,40 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
       const response = await fetch(`/api/${orgSlug}/business/dashboard/layout`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
           name: layout.name,
           layout_config: layout.layout_config,
-          is_default: layout.is_default
-        })
+          is_default: layout.is_default,
+        }),
       })
 
       const data = await response.json()
 
       if (data.success) {
         setSaveSuccess(true)
-        setTimeout(() => {
+        window.setTimeout(() => {
           setSaveSuccess(false)
           setIsEditMode(false)
         }, 2000)
       } else {
-        setError(data.error || 'Error al guardar layout')
+        setError(data.error || 'Error al guardar el layout')
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar layout')
+    } catch (saveIssue) {
+      setError(saveIssue instanceof Error ? saveIssue.message : 'Error al guardar el layout')
     } finally {
       setIsSaving(false)
     }
   }
 
   const handleReset = async () => {
-    if (!confirm('¿Estás seguro de que deseas restablecer el layout por defecto? Esto eliminará tu personalización actual.')) {
+    const confirmed = window.confirm(
+      '¿Estás seguro de que deseas restablecer el layout por defecto? Esto eliminará tu personalización actual.'
+    )
+
+    if (!confirmed) {
       return
     }
 
@@ -150,7 +278,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
 
       const response = await fetch(`/api/${orgSlug}/business/dashboard/layout`, {
         method: 'DELETE',
-        credentials: 'include'
+        credentials: 'include',
       })
 
       const data = await response.json()
@@ -159,46 +287,54 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
         await fetchLayout()
         setIsEditMode(false)
         setSaveSuccess(true)
-        setTimeout(() => setSaveSuccess(false), 2000)
+        window.setTimeout(() => setSaveSuccess(false), 2000)
       } else {
-        setError(data.error || 'Error al restablecer layout')
+        setError(data.error || 'Error al restablecer el layout')
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al restablecer layout')
+    } catch (resetIssue) {
+      setError(resetIssue instanceof Error ? resetIssue.message : 'Error al restablecer el layout')
     } finally {
       setIsSaving(false)
     }
   }
 
-  const addWidget = (widgetType: string) => {
-    if (!layout) return
+  const addWidget = (widgetType: WidgetType) => {
+    setLayout(currentLayout => {
+      if (!currentLayout) {
+        return currentLayout
+      }
 
-    const widgets = layout.layout_config.widgets || []
-    const newWidget: WidgetConfig = {
-      i: `${widgetType}-${Date.now()}`,
-      x: 0,
-      y: widgets.length > 0 ? Math.max(...widgets.map(w => w.y + w.h)) : 0,
-      w: 4,
-      h: 3,
-      minW: 2,
-      minH: 2
-    }
+      const widgets = currentLayout.layout_config.widgets || []
+      const newWidget: WidgetConfig = {
+        i: `${widgetType}-${Date.now()}`,
+        x: 0,
+        y: widgets.length > 0 ? Math.max(...widgets.map(widget => widget.y + widget.h)) : 0,
+        w: 4,
+        h: 3,
+        minW: 2,
+        minH: 2,
+      }
 
-    setLayout({
-      ...layout,
-      layout_config: {
-        widgets: [...widgets, newWidget]
+      return {
+        ...currentLayout,
+        layout_config: {
+          widgets: [...widgets, newWidget],
+        },
       }
     })
   }
 
   const removeWidget = (widgetId: string) => {
-    if (!layout) return
+    setLayout(currentLayout => {
+      if (!currentLayout) {
+        return currentLayout
+      }
 
-    setLayout({
-      ...layout,
-      layout_config: {
-        widgets: layout.layout_config.widgets.filter(w => w.i !== widgetId)
+      return {
+        ...currentLayout,
+        layout_config: {
+          widgets: currentLayout.layout_config.widgets.filter(widget => widget.i !== widgetId),
+        },
       }
     })
   }
@@ -206,24 +342,31 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+        <div
+          className="h-16 w-16 animate-spin rounded-full border-4"
+          style={{
+            borderColor: `${theme.actionColor}33`,
+            borderTopColor: theme.actionColor,
+          }}
+        />
       </div>
     )
   }
 
   if (error && !layout) {
     return (
-      <div className="text-center py-20">
-        <div className="text-red-400 text-lg mb-4">{error}</div>
+      <div className="py-20 text-center">
+        <div className="mb-4 text-lg" style={{ color: theme.dangerColor }}>
+          {error}
+        </div>
         <button
-          onClick={fetchLayout}
-          className="px-4 py-2 text-white rounded-lg transition-colors"
+          type="button"
+          onClick={() => void fetchLayout()}
+          className="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           style={{
-            backgroundColor: 'var(--org-primary-button-color, #3b82f6)',
-            opacity: 0.2
+            backgroundColor: theme.actionColor,
+            color: theme.onActionColor,
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.3')}
-          onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.2')}
         >
           Reintentar
         </button>
@@ -239,239 +382,219 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Layout className="w-6 h-6 text-primary" />
-            Dashboard Personalizable
+          <h2 className="flex items-center gap-2 text-2xl font-bold" style={{ color: theme.textColor }}>
+            <Layout className="h-6 w-6" style={{ color: theme.actionColor }} />
+            Dashboard personalizable
           </h2>
-          <p className="text-carbon-400 mt-1">
-            Arrastra y organiza los widgets según tus necesidades
+          <p className="mt-1" style={{ color: theme.subtextColor }}>
+            Arrastra y organiza los widgets según tus necesidades.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {saveSuccess && (
+
+        <div className="flex flex-wrap items-center gap-3">
+          {saveSuccess ? (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 flex items-center gap-2"
+              className="flex items-center gap-2 rounded-lg border px-4 py-2"
+              style={{
+                backgroundColor: `${theme.successColor}12`,
+                borderColor: `${theme.successColor}33`,
+                color: theme.successColor,
+              }}
             >
-              <CheckCircle className="w-5 h-5" />
+              <CheckCircle className="h-5 w-5" />
               <span>Guardado exitosamente</span>
             </motion.div>
-          )}
-          {error && (
+          ) : null}
+
+          {error ? (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400"
+              className="rounded-lg border px-4 py-2"
+              style={{
+                backgroundColor: `${theme.dangerColor}12`,
+                borderColor: `${theme.dangerColor}33`,
+                color: theme.dangerColor,
+              }}
             >
               {error}
             </motion.div>
-          )}
-          <Button
-            variant={isEditMode ? 'gradient' : 'secondary'}
-            onClick={() => setIsEditMode(!isEditMode)}
-            className="flex items-center gap-2"
+          ) : null}
+
+          <DashboardActionButton
+            variant={isEditMode ? 'primary' : 'secondary'}
+            onClick={() => setIsEditMode(current => !current)}
           >
-            <Settings className="w-4 h-4" />
-            {isEditMode ? 'Vista Previa' : 'Personalizar'}
-          </Button>
-          {isEditMode && (
+            <Settings className="h-4 w-4" />
+            {isEditMode ? 'Vista previa' : 'Personalizar'}
+          </DashboardActionButton>
+
+          {isEditMode ? (
             <>
-              <Button
-                variant="secondary"
-                onClick={handleReset}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="w-4 h-4" />
+              <DashboardActionButton variant="secondary" onClick={() => void handleReset()} disabled={isSaving}>
+                <RefreshCw className="h-4 w-4" />
                 Restablecer
-              </Button>
-              <Button
-                variant="gradient"
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center gap-2"
-              >
+              </DashboardActionButton>
+              <DashboardActionButton variant="primary" onClick={() => void handleSave()} disabled={isSaving}>
                 {isSaving ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div
+                      className="h-4 w-4 animate-spin rounded-full border-2"
+                      style={{
+                        borderColor: `${theme.onActionColor}4D`,
+                        borderTopColor: theme.onActionColor,
+                      }}
+                    />
                     Guardando...
                   </>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
-                    Guardar Cambios
+                    <Save className="h-4 w-4" />
+                    Guardar cambios
                   </>
                 )}
-              </Button>
+              </DashboardActionButton>
             </>
-          )}
-          {onClose && (
-            <Button
-              variant="ghost"
-              onClick={onClose}
-              className="flex items-center gap-2"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          )}
+          ) : null}
+
+          {onClose ? (
+            <DashboardActionButton variant="ghost" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </DashboardActionButton>
+          ) : null}
         </div>
       </div>
 
-      {/* Agregar Widgets (solo en modo edición) */}
-      {isEditMode && (
-        <div className="bg-carbon-900 rounded-lg p-4 border border-carbon-700">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-carbon-300 font-medium">Agregar Widget:</span>
-            <button
-              onClick={() => addWidget('stats')}
-              className="px-3 py-2 bg-carbon-800 hover:bg-carbon-700 rounded-lg text-white flex items-center gap-2 transition-colors"
-            >
-              <BarChart3 className="w-4 h-4" />
-              Estadísticas
-            </button>
-            <button
-              onClick={() => addWidget('users')}
-              className="px-3 py-2 bg-carbon-800 hover:bg-carbon-700 rounded-lg text-white flex items-center gap-2 transition-colors"
-            >
-              <Users className="w-4 h-4" />
-              Usuarios
-            </button>
-            <button
-              onClick={() => addWidget('courses')}
-              className="px-3 py-2 bg-carbon-800 hover:bg-carbon-700 rounded-lg text-white flex items-center gap-2 transition-colors"
-            >
-              <BookOpen className="w-4 h-4" />
-              Cursos
-            </button>
-            <button
-              onClick={() => addWidget('activity')}
-              className="px-3 py-2 bg-carbon-800 hover:bg-carbon-700 rounded-lg text-white flex items-center gap-2 transition-colors"
-            >
-              <Activity className="w-4 h-4" />
-              Actividad
-            </button>
+      {isEditMode ? (
+        <div
+          className="rounded-2xl border p-4"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+          }}
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-medium" style={{ color: theme.textColor }}>
+              Agregar widget:
+            </span>
+            {(Object.keys(WIDGET_META) as WidgetType[]).map(widgetType => {
+              const widgetMeta = WIDGET_META[widgetType]
+              const Icon = widgetMeta.icon
+
+              return (
+                <button
+                  key={widgetType}
+                  type="button"
+                  onClick={() => addWidget(widgetType)}
+                  className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: theme.inputBg,
+                    borderColor: theme.borderColor,
+                    color: theme.textColor,
+                  }}
+                >
+                  <Plus className="h-4 w-4" style={{ color: theme.actionColor }} />
+                  <Icon className="h-4 w-4" style={{ color: theme.actionColor }} />
+                  {widgetMeta.label}
+                </button>
+              )
+            })}
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Dashboard Grid */}
       {typeof window !== 'undefined' && ResponsiveGrid ? (
         <ResponsiveGrid
-            className="layout"
-            layouts={{ lg: widgets }}
-            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-            rowHeight={60}
-            isDraggable={isEditMode}
-            isResizable={isEditMode}
-            onLayoutChange={handleLayoutChange}
-            draggableHandle={isEditMode ? undefined : '.drag-handle'}
-            margin={[16, 16]}
-            containerPadding={[0, 0]}
-          >
-            {widgets.map(widget => (
-              <div key={widget.i} className="bg-carbon-900 rounded-lg border border-carbon-700 p-4">
-                {isEditMode && (
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-carbon-400 text-sm font-medium">
-                      {getWidgetName(widget.i)}
+          className="layout"
+          layouts={{ lg: widgets }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          rowHeight={60}
+          isDraggable={isEditMode}
+          isResizable={isEditMode}
+          onLayoutChange={handleLayoutChange}
+          draggableHandle={isEditMode ? undefined : '.drag-handle'}
+          margin={[16, 16]}
+          containerPadding={[0, 0]}
+        >
+          {widgets.map(widget => {
+            const widgetType = getWidgetType(widget.i)
+            const widgetLabel = widgetType ? WIDGET_META[widgetType].label : 'Widget personalizado'
+
+            return (
+              <div
+                key={widget.i}
+                className="rounded-2xl border p-4"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                }}
+              >
+                {isEditMode ? (
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium" style={{ color: theme.subtextColor }}>
+                      {widgetLabel}
                     </span>
                     <button
+                      type="button"
                       onClick={() => removeWidget(widget.i)}
-                      className="w-6 h-6 bg-red-500/20 hover:bg-red-500/30 rounded text-red-400 flex items-center justify-center transition-colors"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+                      style={{
+                        backgroundColor: `${theme.dangerColor}12`,
+                        color: theme.dangerColor,
+                      }}
                     >
-                      <X className="w-4 h-4" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
-                )}
+                ) : null}
                 <WidgetContent widgetId={widget.i} />
               </div>
-            ))}
+            )
+          })}
         </ResponsiveGrid>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {widgets.map(widget => (
-            <div key={widget.i} className="bg-carbon-900 rounded-lg border border-carbon-700 p-4">
-              {isEditMode && (
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-carbon-400 text-sm font-medium">
-                    {getWidgetName(widget.i)}
-                  </span>
-                  <button
-                    onClick={() => removeWidget(widget.i)}
-                    className="w-6 h-6 bg-red-500/20 hover:bg-red-500/30 rounded text-red-400 flex items-center justify-center transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-              <WidgetContent widgetId={widget.i} />
-            </div>
-          ))}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {widgets.map(widget => {
+            const widgetType = getWidgetType(widget.i)
+            const widgetLabel = widgetType ? WIDGET_META[widgetType].label : 'Widget personalizado'
+
+            return (
+              <div
+                key={widget.i}
+                className="rounded-2xl border p-4"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                }}
+              >
+                {isEditMode ? (
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-sm font-medium" style={{ color: theme.subtextColor }}>
+                      {widgetLabel}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => removeWidget(widget.i)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+                      style={{
+                        backgroundColor: `${theme.dangerColor}12`,
+                        color: theme.dangerColor,
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : null}
+                <WidgetContent widgetId={widget.i} />
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
   )
-}
-
-function WidgetContent({ widgetId }: { widgetId: string }) {
-  const widgetType = widgetId.split('-')[0]
-
-  switch (widgetType) {
-    case 'stats':
-      return (
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center">
-            <BarChart3 className="w-12 h-12 text-primary mx-auto mb-2" />
-            <p className="text-carbon-400 text-sm">Widget de Estadísticas</p>
-          </div>
-        </div>
-      )
-    case 'users':
-      return (
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center">
-            <Users className="w-12 h-12 text-primary mx-auto mb-2" />
-            <p className="text-carbon-400 text-sm">Widget de Usuarios</p>
-          </div>
-        </div>
-      )
-    case 'courses':
-      return (
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center">
-            <BookOpen className="w-12 h-12 text-primary mx-auto mb-2" />
-            <p className="text-carbon-400 text-sm">Widget de Cursos</p>
-          </div>
-        </div>
-      )
-    case 'activity':
-      return (
-        <div className="h-full flex items-center justify-center">
-          <div className="text-center">
-            <Activity className="w-12 h-12 text-primary mx-auto mb-2" />
-            <p className="text-carbon-400 text-sm">Widget de Actividad</p>
-          </div>
-        </div>
-      )
-    default:
-      return (
-        <div className="h-full flex items-center justify-center">
-          <p className="text-carbon-400 text-sm">Widget personalizado</p>
-        </div>
-      )
-  }
-}
-
-function getWidgetName(widgetId: string): string {
-  const widgetType = widgetId.split('-')[0]
-  const names: Record<string, string> = {
-    'stats': 'Estadísticas',
-    'users': 'Usuarios',
-    'courses': 'Cursos',
-    'activity': 'Actividad'
-  }
-  return names[widgetType] || 'Widget Personalizado'
 }

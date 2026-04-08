@@ -2,6 +2,24 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from './src/lib/supabase/middleware'
 import { RefreshTokenService } from './src/lib/auth/refreshToken.service'
 import {
+  assessAgentTraffic,
+  shouldRequireAutomationChallenge,
+  shouldBlockAutomatedSensitiveAccess,
+} from './src/lib/security/agent-traffic-policy'
+import { recordSecurityEvent } from './src/lib/security/security-events'
+import {
+  createVerificationChallenge,
+  getVerificationChallengeCookieOptions,
+  isHumanVerificationActiveForPath,
+  readSecurityStateFromRequest,
+  serializeVerificationChallenge,
+  VERIFICATION_CHALLENGE_COOKIE_NAME,
+} from './src/lib/security/security-state'
+import {
+  validateTrustedAgentCookie,
+  validateTrustedAgentHeaders,
+} from './src/lib/security/trusted-agent-auth'
+import {
   validateAdminAccess,
   validateInstructorAccess,
   validateUserAccess,
@@ -12,6 +30,47 @@ import { applyRateLimit, RATE_LIMITS, addRateLimitHeaders, checkRateLimit } from
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const trafficAssessment = assessAgentTraffic(request)
+  const trustedAgentFromHeaders = validateTrustedAgentHeaders(request)
+  const trustedAgentFromCookie = validateTrustedAgentCookie(request)
+  const trustedAgent = trustedAgentFromHeaders.trusted
+    ? trustedAgentFromHeaders
+    : trustedAgentFromCookie
+  const securityState = readSecurityStateFromRequest(request)
+  const hasVerifiedHumanCookie = isHumanVerificationActiveForPath(
+    securityState,
+    pathname,
+  )
+
+  if (trustedAgent.trusted) {
+    recordSecurityEvent('trusted-agent-authenticated', {
+      pathname,
+      method: request.method,
+      userAgent: trafficAssessment.userAgent,
+      ip: trafficAssessment.ip,
+      metadata: {
+        agentId: trustedAgent.agentId,
+        source: trustedAgentFromHeaders.trusted ? 'headers' : 'cookie',
+      },
+    })
+  } else if (
+    trustedAgentFromHeaders.reasons.length > 0 ||
+    trustedAgentFromCookie.reasons.length > 0
+  ) {
+    recordSecurityEvent('trusted-agent-auth-failed', {
+      pathname,
+      method: request.method,
+      userAgent: trafficAssessment.userAgent,
+      ip: trafficAssessment.ip,
+      reasons: [
+        ...trustedAgentFromHeaders.reasons,
+        ...trustedAgentFromCookie.reasons,
+      ],
+      metadata: {
+        agentId: request.headers.get('x-soflia-agent-id') || undefined,
+      },
+    })
+  }
   
   // ✅ RATE LIMITING (Issue #20)
   // Aplicar rate limiting antes de cualquier procesamiento
@@ -102,6 +161,71 @@ export async function middleware(request: NextRequest) {
   const hasAccessToken = !!accessTokenCookie?.value;
   const hasRefreshToken = !!refreshTokenCookie?.value;
   const hasSession = hasLegacySession || hasAccessToken;
+
+  if (
+    shouldBlockAutomatedSensitiveAccess({
+      pathname,
+      assessment: trafficAssessment,
+      securityState,
+      trustedAgent,
+    })
+  ) {
+    recordSecurityEvent('automated-sensitive-access', {
+      pathname,
+      method: request.method,
+      userAgent: trafficAssessment.userAgent,
+      ip: trafficAssessment.ip,
+      reasons: trafficAssessment.reasons,
+    })
+
+    return new NextResponse('Forbidden', {
+      status: 403,
+      headers: {
+        'Cache-Control': 'private, no-store, max-age=0',
+        'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
+      },
+    })
+  }
+
+  if (
+    shouldRequireAutomationChallenge({
+      request,
+      pathname,
+      assessment: trafficAssessment,
+      securityState,
+      trustedAgent,
+      hasVerifiedHumanCookie,
+    })
+  ) {
+    const challenge = createVerificationChallenge({
+      returnTo: `${pathname}${request.nextUrl.search}`,
+      userAgent: trafficAssessment.userAgent,
+    })
+    const verificationUrl = new URL('/verification', request.url)
+    verificationUrl.searchParams.set('returnTo', challenge.returnTo)
+
+    recordSecurityEvent('automation-challenge-required', {
+      pathname,
+      method: request.method,
+      userAgent: trafficAssessment.userAgent,
+      ip: trafficAssessment.ip,
+      reasons: trafficAssessment.reasons,
+      metadata: {
+        agentId: trustedAgent.agentId,
+        automationSignalScore: securityState?.automationSignalScore || 0,
+        honeypotHitAt: securityState?.honeypotHitAt,
+      },
+    })
+
+    const challengeResponse = NextResponse.redirect(verificationUrl)
+    challengeResponse.cookies.set(
+      VERIFICATION_CHALLENGE_COOKIE_NAME,
+      serializeVerificationChallenge(challenge),
+      getVerificationChallengeCookieOptions(),
+    )
+
+    return challengeResponse
+  }
   
   // Para debugging: mostrar cookies
   // console.log('🍪 Cookies detectadas:', {

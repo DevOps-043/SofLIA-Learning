@@ -97,7 +97,9 @@
       "Bash(bc)",
       "Bash(wc -l \"/c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/supabase/migrations\"/*.sql)",
       "Bash(grep -l \"NextResponse.json\" \"/c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/app/api\"/**/route.ts)",
-      "Bash(wc -l \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/app/[orgSlug]/business-panel/users/components/\"*.tsx)"
+      "Bash(wc -l \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/app/[orgSlug]/business-panel/users/components/\"*.tsx)",
+      "Bash(grep -E \"\\('|\\\\\"\\)\\(#[0-9a-fA-F]{3,6}|rgba\\)\")",
+      "Bash(grep -oE \"'#[0-9a-fA-F]{3,6}'|\\\\\"#[0-9a-fA-F]{3,6}\\\\\"\")"
     ],
     "deny": [],
     "ask": []

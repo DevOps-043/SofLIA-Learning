@@ -1,7 +1,7 @@
 import type { OrganizationNode } from '../../../types/dynamicHierarchy.types'
 import type { UserWithHierarchy } from '../../../types/hierarchy.types'
 
-export type NodeManagerUser = UserWithHierarchy['user']
+export type NodeManagerUser = NonNullable<UserWithHierarchy['user']>
 
 export interface GeocodeResponse {
   coordinates?: {

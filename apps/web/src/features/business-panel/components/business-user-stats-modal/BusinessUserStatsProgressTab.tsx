@@ -68,18 +68,16 @@ export function BusinessUserStatsProgressTab({
                 <div
                   className="rounded-2xl border p-4"
                   style={{
-                    background: theme.isDark
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03))'
-                      : '#E9ECEF',
-                    borderColor: theme.isDark ? 'rgba(255, 255, 255, 0.15)' : '#6C757D',
+                    backgroundColor: theme.cardBg,
+                    borderColor: theme.modalBorder,
                   }}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <h4 className="text-base font-semibold mb-1 text-gray-900 dark:text-white">
+                      <h4 className="text-base font-semibold mb-1" style={{ color: theme.textColor }}>
                         {course.course_title}
                       </h4>
-                      <p className="text-xs text-gray-500 dark:text-white/50">
+                      <p className="text-xs" style={{ color: theme.mutedTextColor }}>
                         {course.status === 'completed'
                           ? `${t('users.stats.coursesList.completed')} ${formatDate(course.completed_at)}`
                           : course.progress > 0
@@ -91,14 +89,12 @@ export function BusinessUserStatsProgressTab({
                       <div
                         className="w-8 h-8 rounded-full flex items-center justify-center"
                         style={{
-                          backgroundColor: theme.isDark
-                            ? 'rgba(16, 185, 129, 0.3)'
-                            : 'rgba(16, 185, 129, 0.2)',
+                          backgroundColor: `${theme.successColor}20`,
                         }}
                       >
                         <CheckCircle
                           className="w-5 h-5"
-                          style={{ color: theme.isDark ? '#10B981' : '#059669' }}
+                          style={{ color: theme.successColor }}
                         />
                       </div>
                     ) : null}
@@ -107,9 +103,7 @@ export function BusinessUserStatsProgressTab({
                   <div
                     className="relative h-3 rounded-full overflow-hidden mb-4"
                     style={{
-                      backgroundColor: theme.isDark
-                        ? 'rgba(255, 255, 255, 0.15)'
-                        : 'rgba(0, 0, 0, 0.1)',
+                      backgroundColor: `${theme.textColor}15`,
                     }}
                   >
                     <motion.div
@@ -130,7 +124,7 @@ export function BusinessUserStatsProgressTab({
                         icon={Layers}
                         value={`${course.modules_completed || 0}/${course.modules_total}`}
                         label={t('users.stats.timeline.modules')}
-                        color={theme.isDark ? '#60A5FA' : '#3B82F6'}
+                        color={theme.chartColors[1]}
                       />
                     ) : null}
                     {course.lessons_total && course.lessons_total > 0 ? (
@@ -138,7 +132,7 @@ export function BusinessUserStatsProgressTab({
                         icon={BookOpen}
                         value={`${course.lessons_completed || 0}/${course.lessons_total}`}
                         label={t('users.stats.timeline.lessons')}
-                        color={theme.isDark ? '#A78BFA' : '#8B5CF6'}
+                        color={theme.chartColors[3]}
                       />
                     ) : null}
                     {course.quiz_total && course.quiz_total > 0 ? (
@@ -146,7 +140,7 @@ export function BusinessUserStatsProgressTab({
                         icon={HelpCircle}
                         value={`${course.quiz_passed || 0}/${course.quiz_total}`}
                         label={t('users.stats.timeline.quizzes')}
-                        color={theme.isDark ? '#FBBF24' : '#F59E0B'}
+                        color={theme.chartColors[2]}
                       />
                     ) : null}
                   </div>
@@ -174,8 +168,8 @@ function TimelineMetric({
   return (
     <div className="flex items-center gap-2">
       <Icon className="w-4 h-4" style={{ color }} />
-      <span className="text-sm text-gray-600 dark:text-white/80">
-        <span className="font-semibold text-gray-900 dark:text-white">{value}</span> {label}
+      <span className="text-sm" style={{ color: 'inherit' }}>
+        <span className="font-semibold" style={{ color }}>{value}</span> {label}
       </span>
     </div>
   )

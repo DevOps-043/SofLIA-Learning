@@ -7,9 +7,7 @@ import { useLanguage } from '../providers/I18nProvider';
 
 interface LiaCourseChatUserProfile {
   nombre?: string;
-  type_rol?: string;
-  area?: string;
-  tamano_empresa?: string;
+  job_title?: string; // Cargo profesional real (viene de organization_users.job_title)
 }
 
 export interface UseLiaCourseChatReturn {
@@ -132,13 +130,9 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
             { role: 'user', content: message }
           ],
           context: {
+            userId: user?.id, // Permite al backend cargar perfil completo desde DB
             userName: userProfile?.first_name || userProfile?.nombre,
-            userRole: userProfile?.type_rol || userProfile?.cargo_rol, // Priorizar type_rol (cargo real) sobre cargo_rol (rol sistema)
-            userCheck: {
-               // Datos adicionales de usuario para personalización (si useAuth los tuviera extendidos)
-               area: userProfile?.area,
-               companySize: userProfile?.tamano_empresa
-            },
+            userJobTitle: userProfile?.job_title, // Cargo profesional (de organization_users.job_title)
             // Mapeo del contexto de lección usando activeContext
             currentLessonContext: activeContext ? {
               lessonId: activeContext.lessonId,
@@ -147,7 +141,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
               summary: activeContext.summaryContent,
               description: activeContext.lessonDescription
             } : undefined,
-            // Mapeo del contexto de actividad using activeContext
+            // Mapeo del contexto de actividad usando activeContext
             currentActivityContext: activeContext?.activitiesContext?.currentActivityFocus ? {
               title: activeContext.activitiesContext.currentActivityFocus.title,
               type: activeContext.activitiesContext.currentActivityFocus.type,

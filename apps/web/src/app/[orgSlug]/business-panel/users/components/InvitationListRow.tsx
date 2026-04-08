@@ -1,26 +1,21 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Mail, XCircle, Activity, CheckCircle, AlertCircle } from 'lucide-react'
+import { Mail, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessInvitation } from '@/features/business-panel/services/businessUsers.service'
 
-// ============================================
-// COMPONENTE: InvitationListRow
-// ============================================
 interface InvitationListRowProps {
   invitation: BusinessInvitation
   index: number
-  primaryColor: string
   onResend: () => void
   onRevoke: () => void
 }
 
-function InvitationListRow({ invitation, index, primaryColor, onResend, onRevoke }: InvitationListRowProps) {
+function InvitationListRow({ invitation, index, onResend, onRevoke }: InvitationListRowProps) {
   const { t } = useTranslation('business')
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
+  const { accentColor, cardBg, textColor } = useBusinessPanelTheme()
 
   return (
     <motion.div
@@ -28,15 +23,17 @@ function InvitationListRow({ invitation, index, primaryColor, onResend, onRevoke
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.02 }}
       className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
-      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
+      style={{ backgroundColor: cardBg }}
     >
       <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 border border-white/10 flex-shrink-0">
-        <Mail className="w-5 h-5 opacity-60" style={{ color: primaryColor }} />
+        <Mail className="w-5 h-5 opacity-60" style={{ color: accentColor }} />
       </div>
 
       <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
         <div className="col-span-1 lg:col-span-2 min-w-0">
-          <div className="font-semibold text-sm truncate" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>{invitation.email}</div>
+          <div className="font-semibold text-sm truncate" style={{ color: textColor }}>
+            {invitation.email}
+          </div>
           <div className="text-xs opacity-40 uppercase font-bold tracking-wider">{invitation.role}</div>
         </div>
 

@@ -53,7 +53,7 @@ export function UnifiedInviteManageLinksView({
     t,
   } = controller;
 
-  const footerBg = theme.isDark ? '#0b0e14' : '#FFFFFF';
+  const footerBg = theme.surfaceColor;
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -113,12 +113,12 @@ export function UnifiedInviteManageLinksView({
               onClick={() => setMode('bulk')}
               style={{
                 backgroundColor: theme.primaryColor,
-                color: theme.isDark ? '#000000' : '#FFFFFF',
+                color: theme.onPrimaryColor,
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Plus className="w-4 h-4" color={theme.isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
+              <Plus className="w-4 h-4" color={theme.onPrimaryColor} strokeWidth={3} />
               {t('users.buttons.createLink', 'Crear enlace ahora')}
             </motion.button>
           </div>
@@ -296,11 +296,11 @@ export function UnifiedInviteManageLinksView({
            <motion.button
              className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-2xl"
              onClick={() => setMode('bulk')}
-             style={{ backgroundColor: theme.primaryColor, color: theme.isDark ? '#000000' : '#FFFFFF' }}
+             style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
              whileHover={{ scale: 1.02 }}
              whileTap={{ scale: 0.98 }}
            >
-             <Plus className="w-4 h-4" color={theme.isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
+             <Plus className="w-4 h-4" color={theme.onPrimaryColor} strokeWidth={3} />
              <span>{t('users.buttons.newLink', 'Nuevo Enlace')}</span>
              <ChevronRight className="w-4 h-4" />
            </motion.button>

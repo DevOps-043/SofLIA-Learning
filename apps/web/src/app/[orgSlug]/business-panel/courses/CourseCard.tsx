@@ -10,16 +10,13 @@ import {
   Play,
 } from 'lucide-react'
 import { type BusinessCourse } from '@/features/business-panel/hooks/useBusinessCourses'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useTranslation } from 'react-i18next'
 
 export interface CourseCardProps {
   course: BusinessCourse
   index: number
-  primaryColor: string
-  textColor: string
-  cardBg: string
   onClick: () => void
-  isDark?: boolean
 }
 
 type TranslateFn = (key: string) => string
@@ -32,26 +29,43 @@ function formatDuration(minutes: number | null): string {
   return mins > 0 ? `${hours}h ${mins}min` : `${hours}h`
 }
 
-function getLevelStyles(level: string | null, translate: TranslateFn) {
+function getLevelStyles(
+  level: string | null,
+  translate: TranslateFn,
+  difficultyColors: {
+    beginner: string
+    intermediate: string
+    advanced: string
+    default: string
+  }
+) {
   switch (level?.toLowerCase()) {
     case 'beginner':
     case 'principiante':
-      return { bg: 'rgba(34, 197, 94, 0.2)', color: '#22C55E', text: translate('courses.levels.beginner') }
+      return { bg: `${difficultyColors.beginner}20`, color: difficultyColors.beginner, text: translate('courses.levels.beginner') }
     case 'intermediate':
     case 'intermedio':
-      return { bg: 'rgba(234, 179, 8, 0.2)', color: '#EAB308', text: translate('courses.levels.intermediate') }
+      return { bg: `${difficultyColors.intermediate}20`, color: difficultyColors.intermediate, text: translate('courses.levels.intermediate') }
     case 'advanced':
     case 'avanzado':
-      return { bg: 'rgba(239, 68, 68, 0.2)', color: '#EF4444', text: translate('courses.levels.advanced') }
+      return { bg: `${difficultyColors.advanced}20`, color: difficultyColors.advanced, text: translate('courses.levels.advanced') }
     default:
-      return { bg: 'rgba(59, 130, 246, 0.2)', color: '#3B82F6', text: level || 'N/A' }
+      return { bg: `${difficultyColors.default}20`, color: difficultyColors.default, text: level || 'N/A' }
   }
 }
 
-export function CourseCard({ course, index, primaryColor, textColor, cardBg, onClick, isDark }: CourseCardProps) {
+export function CourseCard({ course, index, onClick }: CourseCardProps) {
   const { t } = useTranslation('business')
-  const levelStyles = getLevelStyles(course.level, t)
-  const mutedText = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)'
+  const {
+    primaryColor,
+    textColor,
+    cardBg,
+    borderColor,
+    dividerColor,
+    mutedTextColor,
+    difficultyColors,
+  } = useBusinessPanelTheme()
+  const levelStyles = getLevelStyles(course.level, t, difficultyColors)
 
   return (
     <motion.div
@@ -61,7 +75,7 @@ export function CourseCard({ course, index, primaryColor, textColor, cardBg, onC
       whileHover={{ y: -4, scale: 1.01 }}
       onClick={onClick}
       className="group cursor-pointer overflow-hidden rounded-[1.5rem] border transition-all duration-300 shadow-sm hover:shadow-xl relative"
-      style={{ backgroundColor: cardBg, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }}
+      style={{ backgroundColor: cardBg, borderColor }}
     >
       {/* Thumbnail - Standard Video Aspect Ratio for No Crop */}
       <div className="relative aspect-video overflow-hidden">
@@ -113,19 +127,19 @@ export function CourseCard({ course, index, primaryColor, textColor, cardBg, onC
           <h3 className="text-sm font-black tracking-tight line-clamp-2 leading-tight mb-1.5" style={{ color: textColor }}>
             {course.title}
           </h3>
-          <p className="text-[10px] font-medium" style={{ color: mutedText }}>
+          <p className="text-[10px] font-medium" style={{ color: mutedTextColor }}>
             {course.instructor.name}
           </p>
         </div>
 
         {/* Stats Row */}
-        <div className="flex items-center justify-between pt-3.5 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)' }}>
+        <div className="flex items-center justify-between pt-3.5 border-t" style={{ borderColor: dividerColor }}>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5" style={{ color: mutedText }}>
+            <div className="flex items-center gap-1.5" style={{ color: mutedTextColor }}>
               <Clock className="w-3 h-3" />
               <span className="text-[10px] font-bold tracking-tight">{formatDuration(course.duration)}</span>
             </div>
-            <div className="flex items-center gap-1.5" style={{ color: mutedText }}>
+            <div className="flex items-center gap-1.5" style={{ color: mutedTextColor }}>
               <Users className="w-3 h-3" />
               <span className="text-[10px] font-bold tracking-tight">{course.student_count || 0}</span>
             </div>

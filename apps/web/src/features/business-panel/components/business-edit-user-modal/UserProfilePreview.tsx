@@ -1,9 +1,10 @@
 'use client'
 
-import { Camera, Briefcase, MapPin, Edit3 } from 'lucide-react'
+import { Edit3, Briefcase, Camera, MapPin } from 'lucide-react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { UserFormData } from './useUserFormState'
 
 const ROLE_LABELS_FALLBACK = {
@@ -12,11 +13,11 @@ const ROLE_LABELS_FALLBACK = {
   owner: { label: 'Propietario', desc: '' },
 }
 
-const STATUS_LABELS_FALLBACK: Record<string, { label: string; color: string }> = {
-  active: { label: 'Activo', color: '#10B981' },
-  invited: { label: 'Invitado', color: '#F59E0B' },
-  suspended: { label: 'Suspendido', color: '#EF4444' },
-  removed: { label: 'Eliminado', color: '#6B7280' },
+const STATUS_LABELS_FALLBACK = {
+  active: 'Activo',
+  invited: 'Invitado',
+  suspended: 'Suspendido',
+  removed: 'Eliminado',
 }
 
 interface UserProfilePreviewProps {
@@ -28,9 +29,6 @@ interface UserProfilePreviewProps {
   isUploadingImage: boolean
   fileInputRef: React.RefObject<HTMLInputElement>
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  primaryColor: string
-  accentColor: string
-  isDark: boolean
 }
 
 export function UserProfilePreview({
@@ -42,38 +40,38 @@ export function UserProfilePreview({
   isUploadingImage,
   fileInputRef,
   onFileChange,
-  primaryColor,
-  accentColor,
-  isDark,
 }: UserProfilePreviewProps) {
   const { t } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
 
   const roleLabels = {
     member: { label: t('users.roles.member'), desc: t('users.modals.add.roleDesc.member') },
     admin: { label: t('users.roles.admin'), desc: t('users.modals.add.roleDesc.admin') },
     owner: { label: t('users.roles.owner'), desc: t('users.modals.add.roleDesc.owner') },
   }
-  const statusLabels: Record<string, { label: string; color: string }> = {
-    active: { label: t('users.status.active'), color: '#10B981' },
-    invited: { label: t('users.status.invited'), color: '#F59E0B' },
-    suspended: { label: t('users.status.suspended'), color: '#EF4444' },
-    removed: { label: t('users.status.removed'), color: '#6B7280' },
+
+  const statusLabels = {
+    active: { label: t('users.status.active'), color: theme.statusColors.active },
+    invited: { label: t('users.status.invited'), color: theme.statusColors.invited },
+    suspended: { label: t('users.status.suspended'), color: theme.statusColors.suspended },
+    removed: { label: t('users.status.removed'), color: theme.statusColors.removed },
   }
 
   const currentRole = roleLabels[formData.org_role] ?? ROLE_LABELS_FALLBACK[formData.org_role]
-  const currentStatus = statusLabels[formData.org_status] ?? STATUS_LABELS_FALLBACK[formData.org_status]
+  const currentStatus = statusLabels[formData.org_status] ?? {
+    label: STATUS_LABELS_FALLBACK[formData.org_status] ?? STATUS_LABELS_FALLBACK.removed,
+    color: theme.statusColors.removed,
+  }
 
   return (
     <div
-      className={`lg:w-80 w-full p-6 lg:p-10 flex flex-col border-b lg:border-b-0 lg:border-r shrink-0 items-center text-center ${isDark ? 'border-white/5' : 'border-black/5 bg-slate-50/50'}`}
-      style={{ 
-        background: isDark 
-          ? `linear-gradient(135deg, ${primaryColor}10, ${accentColor}05)` 
-          : `linear-gradient(135deg, ${primaryColor}08, ${accentColor}03)` 
+      className="lg:w-80 w-full shrink-0 items-center border-b p-6 text-center lg:border-b-0 lg:border-r lg:p-10"
+      style={{
+        borderColor: theme.borderColor,
+        background: `linear-gradient(135deg, ${theme.primaryColor}10, ${theme.accentColor}08)`,
       }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center w-full">
-        {/* Avatar with upload button */}
+      <div className="flex flex-1 flex-col items-center justify-center w-full">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -81,10 +79,11 @@ export function UserProfilePreview({
           className="relative mb-8"
         >
           <div
-            className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center text-4xl font-black overflow-hidden shadow-2xl border-4 ${isDark ? 'border-white/5' : 'border-white'}`}
+            className="h-32 w-32 overflow-hidden rounded-[2.5rem] border-4 text-4xl font-black shadow-2xl flex items-center justify-center"
             style={{
-              background: previewImage ? 'transparent' : `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-              color: '#FFFFFF',
+              background: previewImage ? 'transparent' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+              color: theme.onPrimaryColor,
+              borderColor: theme.dividerColor,
             }}
           >
             {previewImage ? (
@@ -100,16 +99,19 @@ export function UserProfilePreview({
             whileTap={{ scale: 0.9 }}
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingImage}
-            className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl disabled:opacity-50 transition-transform"
+            className="absolute -bottom-2 -right-2 flex h-12 w-12 items-center justify-center rounded-2xl shadow-2xl transition-transform disabled:opacity-50"
             style={{
-              backgroundColor: primaryColor,
-              color: isDark ? '#000000' : '#FFFFFF',
+              backgroundColor: theme.primaryColor,
+              color: theme.onPrimaryColor,
             }}
           >
             {isUploadingImage ? (
-              <div className={`w-5 h-5 border-2 ${isDark ? 'border-black/30 border-t-black' : 'border-white/30 border-t-white'} rounded-full animate-spin`} />
+              <div
+                className="h-5 w-5 animate-spin rounded-full border-2"
+                style={{ borderColor: `${theme.onPrimaryColor}4D`, borderTopColor: theme.onPrimaryColor }}
+              />
             ) : (
-              <Camera className="w-6 h-6" strokeWidth={2.5} />
+              <Camera className="h-6 w-6" style={{ color: theme.onPrimaryColor }} strokeWidth={2.5} />
             )}
           </motion.button>
 
@@ -124,30 +126,34 @@ export function UserProfilePreview({
           <motion.div
             animate={{ scale: [1, 1.1, 1], rotate: [0, 10, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
-            className="absolute -top-3 -left-3 w-10 h-10 rounded-2xl flex items-center justify-center shadow-xl box-content border-4"
-            style={{ 
-              backgroundColor: accentColor,
-              borderColor: isDark ? '#0f1218' : '#FFFFFF'
+            className="absolute -left-3 -top-3 box-content flex h-10 w-10 items-center justify-center rounded-2xl border-4 shadow-xl"
+            style={{
+              backgroundColor: theme.accentColor,
+              borderColor: theme.panelBg,
             }}
           >
-            <Edit3 className="w-5 h-5" style={{ color: isDark ? '#000000' : '#FFFFFF' }} strokeWidth={2.5} />
+            <Edit3 className="h-5 w-5" style={{ color: theme.onPrimaryColor }} strokeWidth={2.5} />
           </motion.div>
         </motion.div>
 
-        <h2 className={`text-2xl font-black tracking-tight mb-1 ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>{displayName}</h2>
-        <p className={`text-sm font-medium mb-6 ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{email}</p>
+        <h2 className="mb-1 text-2xl font-black tracking-tight" style={{ color: theme.textColor }}>
+          {displayName}
+        </h2>
+        <p className="mb-6 text-sm font-medium" style={{ color: theme.subtextColor }}>
+          {email}
+        </p>
 
-        <div className="w-full space-y-4 mb-8">
+        <div className="mb-8 w-full space-y-4">
           <div>
-            <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+            <div className="mb-2 text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
               {t('users.modals.edit.currentRole', 'Rol Actual')}
             </div>
             <div
-              className="px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg inline-block"
+              className="inline-block rounded-2xl px-6 py-3 text-sm font-black uppercase tracking-widest shadow-lg"
               style={{
-                background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-                color: isDark ? '#000000' : '#FFFFFF',
-                boxShadow: `0 10px 25px ${primaryColor}30`,
+                background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                color: theme.onPrimaryColor,
+                boxShadow: `0 10px 25px ${theme.primaryColor}30`,
               }}
             >
               {currentRole?.label}
@@ -155,39 +161,46 @@ export function UserProfilePreview({
           </div>
 
           <div
-            className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 border"
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-[10px] font-black uppercase tracking-widest"
             style={{
-              backgroundColor: `${currentStatus?.color ?? '#6B7280'}15`,
-              color: currentStatus?.color ?? '#6B7280',
-              borderColor: `${currentStatus?.color ?? '#6B7280'}30`,
+              backgroundColor: `${currentStatus.color}15`,
+              color: currentStatus.color,
+              borderColor: `${currentStatus.color}30`,
             }}
           >
-            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: currentStatus?.color }} />
-            {currentStatus?.label}
+            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentStatus.color }} />
+            {currentStatus.label}
           </div>
         </div>
 
-        <div className="w-full space-y-3 py-6 border-t border-dashed border-slate-200 dark:border-white/10 text-left">
-          {formData.job_title && (
+        <div className="w-full space-y-3 border-t border-dashed py-6 text-left" style={{ borderColor: theme.borderColor }}>
+          {formData.job_title ? (
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-500'}`}>
-                <Briefcase className="w-4 h-4" />
+              <div className="rounded-lg p-2" style={{ backgroundColor: theme.inputBg, color: theme.mutedTextColor }}>
+                <Briefcase className="h-4 w-4" />
               </div>
-              <span className={`text-sm font-bold ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{formData.job_title}</span>
+              <span className="text-sm font-bold" style={{ color: theme.subtextColor }}>
+                {formData.job_title}
+              </span>
             </div>
-          )}
-          {formData.location && (
+          ) : null}
+          {formData.location ? (
             <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-500'}`}>
-                <MapPin className="w-4 h-4" />
+              <div className="rounded-lg p-2" style={{ backgroundColor: theme.inputBg, color: theme.mutedTextColor }}>
+                <MapPin className="h-4 w-4" />
               </div>
-              <span className={`text-sm font-bold ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{formData.location}</span>
+              <span className="text-sm font-bold" style={{ color: theme.subtextColor }}>
+                {formData.location}
+              </span>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 
-      <div className={`w-full p-4 rounded-2xl border text-[11px] font-medium leading-relaxed ${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-blue-50/50 border-blue-100/50 text-slate-500'}`}>
+      <div
+        className="w-full rounded-2xl border p-4 text-[11px] font-medium leading-relaxed"
+        style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.subtextColor }}
+      >
         {t('users.modals.edit.infoNote', 'Los cambios realizados se guardarán y el usuario recibirá una notificación si es necesario.')}
       </div>
     </div>

@@ -40,7 +40,7 @@ export function UnifiedInviteSuccessView({
     t,
   } = controller;
 
-  const footerBg = theme.isDark ? '#0b0e14' : '#FFFFFF';
+  const footerBg = theme.surfaceColor;
 
   if (mode === 'individual') {
     return (
@@ -60,13 +60,13 @@ export function UnifiedInviteSuccessView({
             }}
             transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.1 }}
           >
-            <Check className="w-12 h-12 sm:w-16 sm:h-16 text-white" strokeWidth={3} />
+             <Check className="w-12 h-12 sm:w-16 sm:h-16" style={{ color: theme.onPrimaryColor }} strokeWidth={3} />
             <motion.div 
                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
                className="absolute -top-4 -right-4 w-12 h-12 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20"
                transition={{ duration: 4, repeat: Infinity }}
             >
-               <Sparkles className="w-6 h-6 text-white" />
+               <Sparkles className="w-6 h-6" style={{ color: theme.onPrimaryColor }} />
             </motion.div>
           </motion.div>
 
@@ -89,7 +89,7 @@ export function UnifiedInviteSuccessView({
           <button
              className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border w-full sm:w-auto"
              onClick={onClose}
-             style={{ backgroundColor: theme.primaryColor, color: theme.isDark ? '#000000' : '#FFFFFF' }}
+             style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
           >
              {t('users.buttons.done', 'Listo')}
           </button>
@@ -145,7 +145,7 @@ export function UnifiedInviteSuccessView({
             onClick={() => void handleCopy()}
             style={{
               backgroundColor: copied ? theme.primaryColor : theme.menuBg,
-              color: copied ? (theme.isDark ? '#000000' : '#FFFFFF') : theme.textColor,
+              color: copied ? theme.onPrimaryColor : theme.textColor,
               borderColor: theme.borderColor
             }}
           >
@@ -204,7 +204,7 @@ export function UnifiedInviteSuccessView({
         <button
            className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border shadow-2xl flex items-center gap-3"
            onClick={onClose}
-           style={{ backgroundColor: theme.primaryColor, color: theme.isDark ? '#000000' : '#FFFFFF' }}
+           style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
         >
            <span>{t('users.buttons.done', 'Finalizar')}</span>
            <ChevronRight className="w-4 h-4" />

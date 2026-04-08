@@ -105,7 +105,7 @@ export function CourseSidebarPanel({
                   className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white"
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
-                  <BookOpen className="h-4 w-4 text-[#00D4B3]" />
+                  <BookOpen className="h-4 w-4 text-[#0A2540] dark:text-[#00D4B3]" />
                   TEMARIO
                 </h2>
                 <button

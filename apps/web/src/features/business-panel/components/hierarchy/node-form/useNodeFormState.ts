@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
-import type { UserWithHierarchy } from '../../../types/hierarchy.types'
 import { HierarchyService } from '../../../services/hierarchy.service'
+import type { NodeManagerUser } from './node-form.utils'
 import { toManagerUser } from './node-form.utils'
 
 export interface NodeFormState {
@@ -22,9 +22,9 @@ export interface NodeFormState {
   longitude: string
   managerId: string | null
   managerSearch: string
-  managerResults: UserWithHierarchy['user'][]
+  managerResults: NodeManagerUser[]
   isSearchingManager: boolean
-  selectedManager: UserWithHierarchy['user'] | null
+  selectedManager: NodeManagerUser | null
   loading: boolean
 }
 
@@ -44,8 +44,8 @@ export interface NodeFormActions {
   setLongitude: (v: string) => void
   setManagerId: (v: string | null) => void
   setManagerSearch: (v: string) => void
-  setManagerResults: (v: UserWithHierarchy['user'][]) => void
-  setSelectedManager: (v: UserWithHierarchy['user'] | null) => void
+  setManagerResults: (v: NodeManagerUser[]) => void
+  setSelectedManager: (v: NodeManagerUser | null) => void
   setLoading: (v: boolean) => void
   handleSubmit: (e: React.FormEvent) => Promise<void>
 }
@@ -76,9 +76,9 @@ export function useNodeFormState(
 
   const [managerId, setManagerId] = useState<string | null>(null)
   const [managerSearch, setManagerSearch] = useState('')
-  const [managerResults, setManagerResults] = useState<UserWithHierarchy['user'][]>([])
+  const [managerResults, setManagerResults] = useState<NodeManagerUser[]>([])
   const [isSearchingManager, setIsSearchingManager] = useState(false)
-  const [selectedManager, setSelectedManager] = useState<UserWithHierarchy['user'] | null>(null)
+  const [selectedManager, setSelectedManager] = useState<NodeManagerUser | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -195,8 +195,8 @@ export function useNodeFormState(
         state: nodeState,
         country,
         address: addressParts,
-        latitude: latitude ? parseFloat(latitude) : null,
-        longitude: longitude ? parseFloat(longitude) : null,
+        latitude: latitude ? parseFloat(latitude) : undefined,
+        longitude: longitude ? parseFloat(longitude) : undefined,
       }
 
       Object.keys(properties).forEach(key => {

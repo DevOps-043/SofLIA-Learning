@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import {
+  buildSanitizedContextExcerpt,
+  sanitizeContextPayload,
+  sanitizeUntrustedString,
+} from '@/lib/security/context-sanitizer';
+import {
+  buildSecurityRefusalMessage,
+  buildPromptInjectionGuardrailPrompt,
+  enforceSecurityResponsePolicy,
+  evaluatePromptInjectionRisk,
+} from '@/lib/security/prompt-injection-detector';
+import { recordSecurityEvent } from '@/lib/security/security-events';
 import { fetchPlatformContext, PlatformContext, ChatRequest } from './platform-context.service';
 import { getLIASystemPrompt } from './system-prompt.service';
 import {
@@ -51,20 +63,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const sanitizedMessages = messages.map((entry) => ({
+      ...entry,
+      content: sanitizeUntrustedString(entry.content, 12000),
+    }));
+    const sanitizedRequestContext = requestContext
+      ? sanitizeContextPayload(requestContext)
+      : requestContext;
+    const sanitizedLastMessage = sanitizedMessages[sanitizedMessages.length - 1];
+    const securityAssessment = evaluatePromptInjectionRisk({
+      message: sanitizedLastMessage?.content || '',
+      contextExcerpt: buildSanitizedContextExcerpt(sanitizedRequestContext),
+    });
+
+    if (securityAssessment.action === 'block') {
+      recordSecurityEvent('prompt-injection-blocked', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        userAgent: request.headers.get('user-agent') || undefined,
+        ip:
+          request.headers.get('cf-connecting-ip') ||
+          request.headers.get('x-forwarded-for') ||
+          undefined,
+        reasons: securityAssessment.reasons,
+        metadata: {
+          score: securityAssessment.score,
+          categories: securityAssessment.categories,
+        },
+      });
+
+      if (shouldStream) {
+        const encoder = new TextEncoder();
+        const readable = new ReadableStream({
+          start(controller) {
+            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ content: buildSecurityRefusalMessage(securityAssessment), done: false }) + '\n\n'));
+            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'));
+            controller.close();
+          }
+        });
+        return new Response(readable, { headers: { 'Content-Type': 'text/event-stream' } });
+      }
+
+      return NextResponse.json({
+        message: { role: 'assistant', content: buildSecurityRefusalMessage(securityAssessment) }
+      });
+    }
+
     // Build enriched context
-    const platformContext = await fetchPlatformContext(requestContext?.userId);
-    const fullContext: PlatformContext = await buildFullContext(platformContext, requestContext);
+    const platformContext = await fetchPlatformContext(sanitizedRequestContext?.userId);
+    const fullContext: PlatformContext = await buildFullContext(platformContext, sanitizedRequestContext);
 
     // Build system prompt
     let systemPrompt = getLIASystemPrompt(fullContext);
+    systemPrompt += buildPromptInjectionGuardrailPrompt(securityAssessment);
 
     // Append personalization settings
-    if (requestContext?.userId) {
-      systemPrompt = await appendPersonalizationPrompt(systemPrompt, requestContext.userId);
+    if (sanitizedRequestContext?.userId) {
+      systemPrompt = await appendPersonalizationPrompt(systemPrompt, sanitizedRequestContext.userId);
     }
 
     // Validate last message
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = sanitizedLastMessage;
     if (!lastMessage || lastMessage.role !== 'user') {
       return NextResponse.json(
         { error: 'Se requiere un mensaje del usuario' },
@@ -95,7 +154,7 @@ export async function POST(request: NextRequest) {
       generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
     });
 
-    const cleanHistory = buildCleanHistory(messages);
+    const cleanHistory = buildCleanHistory(sanitizedMessages);
     const messageWithContext = systemPrompt + '\n\n---\n\nUsuario: ' + lastMessage.content;
 
     const chatSession = model.startChat({
@@ -110,16 +169,37 @@ export async function POST(request: NextRequest) {
     const { clientContent } = await processAIResponse(
       finalContent,
       body,
-      requestContext,
+      sanitizedRequestContext,
       request
     );
+    const securedClientContent = enforceSecurityResponsePolicy({
+      content: clientContent,
+      assessment: securityAssessment,
+    });
+
+    if (securedClientContent !== clientContent) {
+      recordSecurityEvent('security-response-rewritten', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        userAgent: request.headers.get('user-agent') || undefined,
+        ip:
+          request.headers.get('cf-connecting-ip') ||
+          request.headers.get('x-forwarded-for') ||
+          undefined,
+        reasons: securityAssessment.reasons,
+        metadata: {
+          score: securityAssessment.score,
+          categories: securityAssessment.categories,
+        },
+      });
+    }
 
     // Stream or JSON response
     if (shouldStream) {
       const encoder = new TextEncoder();
       const readable = new ReadableStream({
         start(controller) {
-          const text = clientContent;
+          const text = securedClientContent;
           const chunkSize = 50;
           let i = 0;
 
@@ -143,7 +223,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       return NextResponse.json({
-        message: { role: 'assistant', content: clientContent }
+        message: { role: 'assistant', content: securedClientContent }
       });
     }
 

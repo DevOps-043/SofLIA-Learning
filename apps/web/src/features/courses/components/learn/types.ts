@@ -1,3 +1,11 @@
+import type {
+  ActivityConfig,
+  ActivityEvaluationFeedback,
+  ActivityEvaluationResultStatus,
+  ActivitySubmissionStatus,
+} from '@/features/courses/types/activity-config';
+import type { ExternalToolDefinition } from '@/features/courses/config/external-tool-registry';
+
 export type LearnLesson = {
   lesson_id: string;
   lesson_title: string;
@@ -49,10 +57,39 @@ export type LearnActivity = {
   activity_description?: string;
   activity_type: LearnActivityType;
   activity_content: unknown;
+  activity_config?: ActivityConfig | null;
+  activity_schema_version?: number;
   ai_prompts?: unknown;
   activity_order_index: number;
+  external_tool?: ExternalToolDefinition | null;
+  external_tool_key?: string | null;
   is_required: boolean;
   is_completed?: boolean;
+  latest_submission_summary?: LearnActivitySubmissionSummary | null;
+  requires_soflia_validation?: boolean;
+};
+
+export type LearnActivityEvaluation = {
+  createdAt: string;
+  evaluationId: string;
+  feedback: ActivityEvaluationFeedback | null;
+  resultStatus: ActivityEvaluationResultStatus;
+};
+
+export type LearnActivitySubmissionSummary = {
+  completionSatisfied: boolean;
+  lastValidatedAt: string | null;
+  latestEvaluation: LearnActivityEvaluation | null;
+  status: ActivitySubmissionStatus;
+  submissionId: string;
+  submittedAt: string | null;
+  updatedAt: string | null;
+};
+
+export type LearnActivitySubmission = LearnActivitySubmissionSummary & {
+  evidencePayload: Record<string, unknown> | null;
+  responsePayload: Record<string, unknown>;
+  responseText: string | null;
 };
 
 export type LearnMaterial = {

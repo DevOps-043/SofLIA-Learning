@@ -67,4 +67,16 @@ describe('lesson-progress-completion.service', () => {
     expect(error.status).toBe(400)
     expect(error.details).toEqual({ passed: 1, totalRequired: 2 })
   })
+
+  it('supports the required activity completion error code', () => {
+    const error = new LessonProgressError(
+      'REQUIRED_ACTIVITY_NOT_COMPLETED',
+      400,
+      'Faltan actividades',
+      { completed: 1, totalRequired: 3 },
+    )
+
+    expect(error.code).toBe('REQUIRED_ACTIVITY_NOT_COMPLETED')
+    expect(error.details).toEqual({ completed: 1, totalRequired: 3 })
+  })
 })

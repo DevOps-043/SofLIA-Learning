@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { calculateCourseProgress } from '@/lib/utils/lesson-progress'
+import { computeLessonActivityProgress } from '@/features/courses/services/activity-submission.server.service'
 import {
   hasPassedRequiredQuizzes,
   LessonProgressError,
@@ -291,6 +292,45 @@ async function validateRequiredQuizzes(
   }
 }
 
+async function validateRequiredActivities(
+  supabase: SupabaseServerClient,
+  userId: string,
+  courseId: string,
+  courseTitle: string,
+  instructorId: string | null,
+  lessonId: string,
+  enrollmentId: string,
+) {
+  const activityProgress = await computeLessonActivityProgress(supabase, {
+    courseId,
+    courseTitle,
+    enrollmentId,
+    instructorId,
+    lessonId,
+    organizationId: null,
+    userId,
+  })
+
+  if (
+    activityProgress.requiredActivitiesTotal === 0 ||
+    activityProgress.requiredActivitiesCompleted >=
+      activityProgress.requiredActivitiesTotal
+  ) {
+    return
+  }
+
+  throw new LessonProgressError(
+    'REQUIRED_ACTIVITY_NOT_COMPLETED',
+    400,
+    'Hace falta realizar actividad',
+    {
+      totalRequired: activityProgress.requiredActivitiesTotal,
+      passed: activityProgress.requiredActivitiesCompleted,
+      message: `Debes completar todas las actividades obligatorias (${activityProgress.requiredActivitiesCompleted}/${activityProgress.requiredActivitiesTotal} completadas)`,
+    },
+  )
+}
+
 async function upsertLessonProgress(
   supabase: SupabaseServerClient,
   userId: string,
@@ -449,6 +489,15 @@ export async function completeLessonProgress(
     lessonIndex,
   )
   await validateRequiredQuizzes(supabase, userId, lessonId, enrollment.enrollment_id)
+  await validateRequiredActivities(
+    supabase,
+    userId,
+    course.id,
+    course.title,
+    course.instructor_id,
+    lessonId,
+    enrollment.enrollment_id,
+  )
 
   const now = new Date().toISOString()
   await upsertLessonProgress(

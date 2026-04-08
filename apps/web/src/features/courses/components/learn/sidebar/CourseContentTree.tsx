@@ -53,7 +53,7 @@ export function CourseContentTree({
           className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"
           style={{ fontFamily: "Inter, sans-serif" }}
         >
-          <Layers className="h-3 w-3 text-[#00D4B3]" />
+          <Layers className="h-3 w-3 text-[#0A2540] dark:text-[#00D4B3]" />
           {t("leftPanel.content")}
         </h3>
 

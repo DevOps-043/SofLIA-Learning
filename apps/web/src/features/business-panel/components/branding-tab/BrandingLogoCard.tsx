@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Image as ImageIcon, Loader2, Upload } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BrandingFormState } from './types'
 
 interface BrandingLogoCardProps {
@@ -17,18 +18,25 @@ export function BrandingLogoCard({
   onUpload,
   onDropUpload,
 }: BrandingLogoCardProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       className="relative overflow-hidden rounded-2xl p-5 border backdrop-blur-xl group"
       style={{
-        backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
       }}
     >
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-        <div className="absolute -top-16 -right-16 w-32 h-32 rounded-full bg-gradient-to-br from-blue-500/20 to-transparent blur-2xl" />
+        <div
+          className="absolute -top-16 -right-16 w-32 h-32 rounded-full blur-2xl"
+          style={{
+            background: `radial-gradient(circle, ${theme.actionColor}24 0%, transparent 70%)`,
+          }}
+        />
       </div>
 
       <div className="relative z-10">
@@ -43,8 +51,12 @@ export function BrandingLogoCard({
             <ImageIcon className="w-4 h-4 text-white" />
           </motion.div>
           <div>
-            <h3 className="text-base font-bold text-white">Logo Principal</h3>
-            <p className="text-xs text-white/50">Tu imagen de marca</p>
+            <h3 className="text-base font-bold" style={{ color: theme.textColor }}>
+              Logo Principal
+            </h3>
+            <p className="text-xs" style={{ color: theme.subtextColor }}>
+              Tu imagen de marca
+            </p>
           </div>
         </div>
 
@@ -52,7 +64,7 @@ export function BrandingLogoCard({
           className="relative mb-4 rounded-xl overflow-hidden"
           style={{
             background:
-              'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(245,245,245,0.95))',
+              'linear-gradient(135deg, rgba(255,255,255,0.96), rgba(245,245,245,0.96))',
             height: '120px',
           }}
         >
@@ -64,7 +76,7 @@ export function BrandingLogoCard({
             >
               <img
                 src={branding.banner_url}
-                alt="Logo preview"
+                alt="Vista previa del logo"
                 className="max-w-full max-h-full object-contain"
               />
             </motion.div>
@@ -109,11 +121,15 @@ export function BrandingLogoCard({
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           className="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-all duration-300"
-          style={{ borderColor: 'rgba(255, 255, 255, 0.15)' }}
+          style={{ borderColor: `${theme.actionColor}33` }}
         >
-          <Upload className="w-6 h-6 mx-auto mb-2 text-white/50" />
-          <p className="text-white/70 text-sm font-medium">Arrastra o haz clic</p>
-          <p className="text-white/40 text-xs mt-1">PNG, JPG hasta 5MB</p>
+          <Upload className="w-6 h-6 mx-auto mb-2" style={{ color: theme.actionColor }} />
+          <p className="text-sm font-medium" style={{ color: theme.textColor }}>
+            Arrastra o haz clic
+          </p>
+          <p className="text-xs mt-1" style={{ color: theme.subtextColor }}>
+            PNG, JPG hasta 5 MB
+          </p>
         </motion.div>
       </div>
     </motion.div>

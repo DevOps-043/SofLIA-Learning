@@ -9,14 +9,11 @@ import {
   Layers
 } from 'lucide-react'
 import { useBusinessCourses } from '@/features/business-panel/hooks/useBusinessCourses'
-import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useTranslation } from 'react-i18next'
 
 export function useCoursesPageLogic() {
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
   const { courses, stats, isLoading, error } = useBusinessCourses()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
@@ -25,15 +22,16 @@ export function useCoursesPageLogic() {
   const params = useParams()
   const orgSlug = params?.orgSlug as string
 
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-
-  const primaryColor = panelStyles?.primary_button_color || (isDark ? '#8B5CF6' : '#6366F1')
-  const accentColor = panelStyles?.accent_color || '#10B981'
-  const secondaryColor = panelStyles?.secondary_button_color || '#3B82F6'
-  const textColor = isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A'
-  const cardBg = isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF'
-  const borderColor = isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)'
+  const {
+    isDark,
+    primaryColor,
+    accentColor,
+    secondaryColor,
+    textColor,
+    cardBg,
+    borderColor,
+    warningColor,
+  } = useBusinessPanelTheme()
 
   const categories = useMemo(() => {
     const cats = new Set<string>()
@@ -88,9 +86,9 @@ export function useCoursesPageLogic() {
       title: t('courses.stats.totalStudents'),
       value: courses.reduce((acc, c) => acc + (c.student_count || 0), 0),
       icon: Users,
-      color: '#F59E0B'
+      color: warningColor
     },
-  ], [courses, categories, levels, primaryColor, secondaryColor, accentColor, t])
+  ], [courses, categories, levels, primaryColor, secondaryColor, accentColor, warningColor, t])
 
   const handleCourseClick = (courseId: string) => {
     router.push(`/${orgSlug}/business-panel/courses/${courseId}`)

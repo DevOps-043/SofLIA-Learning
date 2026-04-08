@@ -135,7 +135,7 @@ export function CoursesPageContent() {
       {/* Stats Grid - Minimalist Dashboard Pattern */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {courseStats.map((stat, index) => (
-          <CourseStatCard key={stat.title} {...stat} delay={index} isDark={isDark} />
+          <CourseStatCard key={stat.title} {...stat} delay={index} />
         ))}
       </div>
 
@@ -279,11 +279,7 @@ export function CoursesPageContent() {
                 key={course.id}
                 course={course}
                 index={index}
-                primaryColor={primaryColor}
-                textColor={textColor}
-                cardBg={cardBg}
                 onClick={() => handleCourseClick(course.id)}
-                isDark={isDark}
               />
             ))}
           </div>

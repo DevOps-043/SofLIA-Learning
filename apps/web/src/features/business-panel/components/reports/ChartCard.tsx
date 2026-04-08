@@ -1,31 +1,46 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import { PieChart as PieChartIcon } from 'lucide-react'
-import { useThemeStore } from '@/core/stores/themeStore'
-import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
+function ChartCard({
+  title,
+  children,
+}: {
+  title: string
+  children: ReactNode
+}) {
+  const panelTheme = useBusinessPanelTheme()
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-5 rounded-2xl border backdrop-blur-sm bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30"
+      className="rounded-[28px] border p-5"
+      style={{
+        backgroundColor: panelTheme.cardBg,
+        borderColor: panelTheme.borderColor,
+      }}
     >
       <div className="flex items-center gap-2 mb-4">
-        <PieChartIcon className="w-4 h-4" style={{ color: accentColor }} />
-        <h3 className="font-semibold text-gray-900 dark:text-white">{title}</h3>
+        <div
+          className="w-9 h-9 rounded-xl border flex items-center justify-center"
+          style={{
+            backgroundColor: panelTheme.actionSurface,
+            borderColor: `${panelTheme.actionColor}22`,
+          }}
+        >
+          <PieChartIcon className="w-4 h-4" style={{ color: panelTheme.actionColor }} />
+        </div>
+        <h3 className="font-semibold" style={{ color: panelTheme.textColor }}>
+          {title}
+        </h3>
       </div>
       {children}
     </motion.div>
   )
 }
-
-
-
 
 export { ChartCard }

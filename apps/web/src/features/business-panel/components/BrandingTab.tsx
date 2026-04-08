@@ -10,8 +10,10 @@ import {
   BrandingLogoCard,
   useBrandingTabState,
 } from './branding-tab'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 
 export function BrandingTab() {
+  const theme = useBusinessPanelTheme()
   const {
     isLoading,
     error,
@@ -78,12 +80,11 @@ export function BrandingTab() {
             disabled={isSaving}
             whileHover={{ scale: isSaving ? 1 : 1.02 }}
             whileTap={{ scale: isSaving ? 1 : 0.98 }}
-            className="relative overflow-hidden px-8 py-3.5 rounded-xl font-semibold text-sm text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
+            className="relative overflow-hidden px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
             style={{
-              background: `linear-gradient(135deg, ${localBranding.color_primary}, ${localBranding.color_secondary})`,
-              boxShadow: `0 8px 30px ${localBranding.color_primary}40`,
-              color: '#ffffff',
-              textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+              backgroundColor: theme.actionColor,
+              boxShadow: `0 8px 30px ${theme.actionColor}33`,
+              color: theme.onActionColor,
             }}
           >
             <motion.div

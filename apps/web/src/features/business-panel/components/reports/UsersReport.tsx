@@ -4,8 +4,6 @@ import {
   BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
-import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
 import { useTranslation } from 'react-i18next'
 import { StatCard } from './StatCard'
 import { ChartCard } from './ChartCard'
@@ -13,6 +11,7 @@ import { Users, TrendingUp, Award } from 'lucide-react'
 import { ReportTable } from '../ReportTable'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { UsersReportData } from './types'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 type UsersTooltipProps = {
   active?: boolean
@@ -26,16 +25,16 @@ type UserRow = NonNullable<UsersReportData['users']>[number]
 
 function UsersReport({ data }: { data: UsersReportData }) {
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-  const panelStyles = styles?.panel
-  const textColor = isDark ? (panelStyles?.text_color || '#f8fafc') : '#0F172A'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
-  const cardBg = isDark ? (panelStyles?.card_background || 'rgba(30, 41, 59, 0.8)') : '#FFFFFF'
-  const cardBorder = isDark ? (panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)') : '#E2E8F0'
+  const panelTheme = useBusinessPanelTheme()
 
-  const chartColors = [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']
+  const chartColors = [
+    panelTheme.actionColor,
+    panelTheme.brandColor,
+    panelTheme.successColor,
+    panelTheme.warningColor,
+    panelTheme.secondaryColor,
+    ...panelTheme.chartColors,
+  ]
 
   const roleData = Object.entries(data.summary?.by_job_title || {}).map(([name, value]) => ({
     name: name || t('reports.messages.unspecified'),
@@ -59,18 +58,18 @@ function UsersReport({ data }: { data: UsersReportData }) {
       return (
         <div
           style={{
-            backgroundColor: cardBg,
-            border: `1px solid ${cardBorder}`,
+            backgroundColor: panelTheme.panelBg,
+            border: `1px solid ${panelTheme.borderColor}`,
             borderRadius: '8px',
             padding: '8px 12px',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
             fontSize: '12px'
           }}
         >
-          <p style={{ color: textColor, margin: 0, fontWeight: 600 }}>
+          <p style={{ color: panelTheme.textColor, margin: 0, fontWeight: 600 }}>
             {tooltipData.name || 'Valor'}
           </p>
-          <p style={{ color: textColor, margin: '4px 0 0 0', fontWeight: 500 }}>
+          <p style={{ color: panelTheme.textColor, margin: '4px 0 0 0', fontWeight: 500 }}>
             {typeof tooltipData.value === 'number'
               ? tooltipData.value % 1 === 0
                 ? tooltipData.value
@@ -91,17 +90,27 @@ function UsersReport({ data }: { data: UsersReportData }) {
       accessorKey: 'job_title',
       header: t('reports.usersReport.columns.role'),
       cell: (info) => (
-        <span className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
+        <span
+          className="px-2 py-1 rounded-lg text-xs"
+          style={{
+            backgroundColor: panelTheme.actionSurface,
+            color: panelTheme.actionColor,
+          }}
+        >
           {(info.getValue() as string) || t('reports.messages.unspecified')}
         </span>
-      )
+      ),
     },
     {
       accessorKey: 'status',
       header: t('reports.usersReport.columns.status'),
       cell: (info) => {
         const status = info.getValue() as string
-        const colors: Record<string, string> = { active: '#10b981', invited: '#f59e0b', suspended: '#ef4444' }
+        const colors: Record<string, string> = {
+          active: panelTheme.successColor,
+          invited: panelTheme.warningColor,
+          suspended: panelTheme.dangerColor,
+        }
         return (
           <span className="px-2 py-1 rounded-lg text-xs" style={{ backgroundColor: `${colors[status] || '#6b7280'}20`, color: colors[status] || '#6b7280' }}>
             {status === 'active'
@@ -125,9 +134,9 @@ function UsersReport({ data }: { data: UsersReportData }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label={t('reports.usersReport.stats.totalUsers')} value={data.total_users || 0} icon={Users} color={accentColor} />
-        <StatCard label={t('reports.usersReport.stats.activeUsers')} value={data.summary?.by_status?.active || 0} icon={TrendingUp} color="#10b981" />
-        <StatCard label={t('reports.usersReport.stats.differentRoles')} value={Object.keys(data.summary?.by_job_title || {}).length} icon={Award} color="#8b5cf6" />
+        <StatCard label={t('reports.usersReport.stats.totalUsers')} value={data.total_users || 0} icon={Users} color={panelTheme.actionColor} />
+        <StatCard label={t('reports.usersReport.stats.activeUsers')} value={data.summary?.by_status?.active || 0} icon={TrendingUp} color={panelTheme.successColor} />
+        <StatCard label={t('reports.usersReport.stats.differentRoles')} value={Object.keys(data.summary?.by_job_title || {}).length} icon={Award} color={panelTheme.brandColor} />
       </div>
 
       {(roleData.length > 0 || statusData.length > 0) && (
@@ -157,20 +166,20 @@ function UsersReport({ data }: { data: UsersReportData }) {
             <ChartCard title={t('reports.usersReport.charts.statusDistribution')}>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={statusData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} opacity={0.3} />
-                  <XAxis dataKey="name" tick={{ fill: textColor, fontSize: 12 }} axisLine={{ stroke: cardBorder }} />
-                  <YAxis tick={{ fill: textColor, fontSize: 12 }} axisLine={{ stroke: cardBorder }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={panelTheme.borderColor} opacity={0.3} />
+                  <XAxis dataKey="name" tick={{ fill: panelTheme.textColor, fontSize: 12 }} axisLine={{ stroke: panelTheme.borderColor }} />
+                  <YAxis tick={{ fill: panelTheme.textColor, fontSize: 12 }} axisLine={{ stroke: panelTheme.borderColor }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: cardBg,
-                      border: `1px solid ${cardBorder}`,
+                      backgroundColor: panelTheme.panelBg,
+                      border: `1px solid ${panelTheme.borderColor}`,
                       borderRadius: '8px',
-                      color: textColor
+                      color: panelTheme.textColor
                     }}
-                    labelStyle={{ color: textColor }}
-                    cursor={{ fill: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
+                    labelStyle={{ color: panelTheme.textColor }}
+                    cursor={{ fill: panelTheme.hoverBg }}
                   />
-                  <Bar dataKey="value" fill={accentColor} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="value" fill={panelTheme.actionColor} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartCard>

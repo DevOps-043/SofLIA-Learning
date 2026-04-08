@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useThemeStore } from '../../../core/stores/themeStore'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import {
   getBusinessUserStatsDisplayName,
   getBusinessUserStatsInitials,
 } from '../services/business-user-stats-display.service'
+import type { BusinessUserStatsTranslateOptions } from '../components/business-user-stats-modal/types'
 import type { BusinessUser } from '../services/businessUsers.service'
 import type {
   BusinessUserStatsApiResponse,
@@ -88,10 +88,7 @@ export function useBusinessUserStatsModalLogic({
   orgSlug,
 }: BusinessUserStatsModalProps) {
   const { t: originalT } = useTranslation('business')
-  const { resolvedTheme } = useThemeStore()
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
-  const isDark = resolvedTheme === 'dark'
+  const theme = useBusinessPanelTheme()
 
   const [stats, setStats] = useState<BusinessUserStatsData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -100,14 +97,17 @@ export function useBusinessUserStatsModalLogic({
 
   const t = (
     key: string,
-    options?: { count?: number } & Record<string, unknown>,
+    options?: BusinessUserStatsTranslateOptions,
   ): string => {
-    const result = originalT(key, options)
+    const translationOptions = typeof options === 'string'
+      ? { defaultValue: options }
+      : options
+    const result = originalT(key, translationOptions)
     const resultString = typeof result === 'string' ? result : String(result)
 
     if (resultString === key || resultString.includes('.stats.')) {
-      let fallback = fallbackTranslations[key] || key
-      if (options?.count !== undefined && fallback.includes('{{count}}')) {
+      let fallback = fallbackTranslations[key] || (typeof options === 'string' ? options : key)
+      if (typeof options !== 'string' && options?.count !== undefined && fallback.includes('{{count}}')) {
         fallback = fallback.replace('{{count}}', String(options.count))
       }
       return fallback
@@ -116,14 +116,12 @@ export function useBusinessUserStatsModalLogic({
     return resultString
   }
 
-  const modalBg = isDark ? panelStyles?.card_background || 'rgba(30, 41, 59, 0.95)' : '#FFFFFF'
-  const modalBorder = isDark
-    ? panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)'
-    : 'rgba(226, 232, 240, 0.8)'
-  const textColor = isDark ? panelStyles?.text_color || '#f8fafc' : '#0F172A'
-  const primaryColor = panelStyles?.primary_button_color || '#3b82f6'
-  const accentColor = panelStyles?.accent_color || '#10B981'
-  const secondaryColor = panelStyles?.secondary_button_color || '#8b5cf6'
+  const modalBg = theme.panelBg
+  const modalBorder = theme.borderColor
+  const textColor = theme.textColor
+  const primaryColor = theme.primaryColor
+  const accentColor = theme.accentColor
+  const secondaryColor = theme.secondaryColor
 
   useEffect(() => {
     if (!isOpen || !user) return
@@ -171,7 +169,7 @@ export function useBusinessUserStatsModalLogic({
 
   return {
     t,
-    isDark,
+    isDark: theme.isDark,
     stats,
     loading,
     error,
@@ -212,7 +210,7 @@ function formatDate(dateString: string | null | undefined) {
 
 function formatRelativeTime(
   dateString: string | null | undefined,
-  t: (key: string, options?: { count?: number } & Record<string, unknown>) => string,
+  t: (key: string, options?: BusinessUserStatsTranslateOptions) => string,
   formatDateValue: (dateString: string | null | undefined) => string,
 ) {
   if (!dateString) return t('users.stats.time.never')

@@ -1,14 +1,15 @@
-'use client';
+'use client'
 
-import { AnimatePresence, motion } from 'framer-motion';
-import { useBusinessInviteModalLogic } from '../hooks/useBusinessInviteModalLogic';
+import { AnimatePresence, motion } from 'framer-motion'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { useBusinessInviteModalLogic } from '../hooks/useBusinessInviteModalLogic'
+import type { BusinessInviteModalProps } from '../services/business-invite-modal.service'
 import {
   BusinessInviteBulkTab,
   BusinessInviteIndividualTab,
   BusinessInviteManageTab,
   BusinessInviteModalHeader,
-} from './business-invite-modal';
-import type { BusinessInviteModalProps } from '../services/business-invite-modal.service';
+} from './business-invite-modal'
 
 export function BusinessInviteModal({
   isOpen,
@@ -18,14 +19,8 @@ export function BusinessInviteModal({
   organizationSlug,
   defaultTab = 'individual',
 }: BusinessInviteModalProps) {
+  const theme = useBusinessPanelTheme()
   const {
-    isDark,
-    textColor,
-    mutedText,
-    borderColor,
-    inputBg,
-    primaryColor,
-    accentColor,
     activeTab,
     setActiveTab,
     tabs,
@@ -65,10 +60,10 @@ export function BusinessInviteModal({
     organizationId,
     organizationSlug,
     defaultTab,
-  });
+  })
 
   if (!isOpen) {
-    return null;
+    return null
   }
 
   return (
@@ -79,7 +74,8 @@ export function BusinessInviteModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 backdrop-blur-sm"
+          style={{ backgroundColor: theme.overlayBg }}
         />
 
         <motion.div
@@ -87,28 +83,30 @@ export function BusinessInviteModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-2xl max-h-[90vh] flex flex-col"
+          className="relative flex max-h-[90vh] w-full max-w-2xl flex-col"
           onClick={(event) => event.stopPropagation()}
         >
           <div
-            className="rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-full"
-            style={{ backgroundColor: isDark ? '#1a1f2e' : '#FFFFFF', borderColor }}
+            className="flex max-h-full flex-col overflow-hidden rounded-2xl border shadow-2xl"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.borderColor,
+            }}
           >
             <BusinessInviteModalHeader
               activeTab={activeTab}
               tabs={tabs}
               onClose={onClose}
               onTabChange={setActiveTab}
-              primaryColor={primaryColor}
-              accentColor={accentColor}
-              borderColor={borderColor}
-              inputBg={inputBg}
-              mutedText={mutedText}
-              textColor={textColor}
-              isDark={isDark}
             />
 
-            <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+            <div
+              className="flex-1 overflow-y-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: `${theme.borderColor} transparent`,
+              }}
+            >
               <AnimatePresence mode="wait">
                 {activeTab === 'individual' && (
                   <motion.div
@@ -125,13 +123,6 @@ export function BusinessInviteModal({
                       error={individualError}
                       success={individualSuccess}
                       onSubmit={handleIndividualSubmit}
-                      isDark={isDark}
-                      textColor={textColor}
-                      mutedText={mutedText}
-                      borderColor={borderColor}
-                      inputBg={inputBg}
-                      primaryColor={primaryColor}
-                      accentColor={accentColor}
                       roleLabels={roleLabels}
                     />
                   </motion.div>
@@ -155,18 +146,11 @@ export function BusinessInviteModal({
                       onSubmit={handleBulkSubmit}
                       onCopyLink={handleCopyLink}
                       onCreateAnother={() => {
-                        setBulkStatus('idle');
-                        setCreatedLink(null);
+                        setBulkStatus('idle')
+                        setCreatedLink(null)
                       }}
                       onGoToManage={() => setActiveTab('manage')}
                       getInviteUrl={getInviteUrl}
-                      textColor={textColor}
-                      mutedText={mutedText}
-                      borderColor={borderColor}
-                      inputBg={inputBg}
-                      primaryColor={primaryColor}
-                      accentColor={accentColor}
-                      isDark={isDark}
                       roleLabels={roleLabels}
                     />
                   </motion.div>
@@ -187,12 +171,6 @@ export function BusinessInviteModal({
                       copiedId={copiedId}
                       actionLoading={actionLoading}
                       openMenuId={openMenuId}
-                      textColor={textColor}
-                      mutedText={mutedText}
-                      borderColor={borderColor}
-                      inputBg={inputBg}
-                      isDark={isDark}
-                      accentColor={accentColor}
                       roleLabels={roleLabels}
                       getInviteUrl={getInviteUrl}
                       getStatusConfig={getStatusConfig}
@@ -210,8 +188,14 @@ export function BusinessInviteModal({
           </div>
         </motion.div>
 
-        {openMenuId && <div className="fixed inset-0" style={{ zIndex: 99998 }} onClick={() => setOpenMenuId(null)} />}
+        {openMenuId && (
+          <div
+            className="fixed inset-0"
+            style={{ zIndex: 99998 }}
+            onClick={() => setOpenMenuId(null)}
+          />
+        )}
       </div>
     </AnimatePresence>
-  );
+  )
 }

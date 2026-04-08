@@ -2,13 +2,12 @@
 
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { useThemeStore } from '../../../core/stores/themeStore';
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import {
   useUnifiedInviteModalCore,
   type InviteTranslate,
   type UnifiedInviteTheme,
 } from '../../../shared/components/unified-invite-modal';
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
 
 interface Props {
   isOpen: boolean;
@@ -30,25 +29,20 @@ export function useBusinessUnifiedInviteModalLogic({
   const params = useParams();
   const orgSlug = organizationSlug || (params?.orgSlug as string | undefined);
   const { t } = useTranslation('business');
-  const { styles } = useOrganizationStylesContext();
-  const { resolvedTheme } = useThemeStore();
-  const panelStyles = styles?.panel;
-
-  const isDark = resolvedTheme === 'dark';
-  const primaryColor = isDark ? '#00D4B3' : (panelStyles?.primary_button_color || '#0066FF');
-  const accentColor = isDark ? '#00D4B3' : (panelStyles?.accent_color || '#00D4B3');
+  const panelTheme = useBusinessPanelTheme()
 
   const theme: UnifiedInviteTheme = {
-    accentColor,
-    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    accentColor: panelTheme.accentColor,
+    borderColor: panelTheme.borderColor,
     headerGradient: 'transparent',
-    inputBg: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.05)',
-    isDark,
-    menuBg: isDark ? '#0b0e14' : '#FFFFFF',
-    mutedText: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)',
-    primaryColor,
-    surfaceColor: isDark ? '#0b0e14' : '#FFFFFF',
-    textColor: isDark ? '#FFFFFF' : '#0F172A',
+    inputBg: panelTheme.inputBg,
+    isDark: panelTheme.isDark,
+    menuBg: panelTheme.cardBg,
+    mutedText: panelTheme.mutedTextColor,
+    onPrimaryColor: panelTheme.onPrimaryColor,
+    primaryColor: panelTheme.primaryColor,
+    surfaceColor: panelTheme.panelBg,
+    textColor: panelTheme.textColor,
   };
 
   const controller = useUnifiedInviteModalCore({

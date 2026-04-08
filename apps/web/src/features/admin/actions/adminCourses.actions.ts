@@ -26,7 +26,7 @@ interface StagingCourseRef {
     level: string
     category: string
     description?: string
-    instructor?: StagingInstructor | null
+    instructor?: StagingInstructor | StagingInstructor[] | null
 }
 
 interface CoursePayload {
@@ -50,7 +50,7 @@ interface StagingRow {
     status: string
     rejection_reason: string | null
     payload: CoursePayload
-    course: StagingCourseRef | null
+    course: StagingCourseRef | StagingCourseRef[] | null
 }
 
 export interface AdminCourse {
@@ -158,9 +158,12 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
         throw new Error(error.message)
     }
 
-    return (data ?? []).map((row: StagingRow) => {
+    return ((data ?? []) as StagingRow[]).map((row) => {
         const coursePayload: CoursePayload = row.payload?.course ?? {}
-        const existingCourse = row.course
+        const existingCourse = Array.isArray(row.course) ? row.course[0] ?? null : row.course
+        const existingInstructor = Array.isArray(existingCourse?.instructor)
+            ? existingCourse.instructor[0] ?? null
+            : existingCourse?.instructor
 
         const title = coursePayload.title || existingCourse?.title || 'Sin título'
         const description = coursePayload.description || existingCourse?.description || ''
@@ -169,8 +172,8 @@ export async function getPendingCourses(): Promise<AdminCourse[]> {
         const thumbnail_url = coursePayload.thumbnail_url ?? existingCourse?.thumbnail_url ?? undefined
 
         let instructor_name = 'Desconocido'
-        if (existingCourse?.instructor) {
-            const ins = existingCourse.instructor
+        if (existingInstructor) {
+            const ins = existingInstructor
             instructor_name = `${ins.first_name ?? ''} ${ins.last_name ?? ''}`.trim() || ins.email
         } else if (coursePayload.instructor_email) {
             instructor_name = coursePayload.instructor_email
@@ -292,7 +295,10 @@ export async function getStagingDetails(stagingId: string): Promise<CourseStagin
     if (staging.is_update && staging.course_id) {
         const originalCourse = await getCurrentCourseStructure(supabase, staging.course_id)
         if (originalCourse) {
-            const diff = buildCourseDiff(originalCourse, preview)
+            const diff = buildCourseDiff(
+                originalCourse as unknown as Parameters<typeof buildCourseDiff>[0],
+                preview as unknown as Parameters<typeof buildCourseDiff>[1],
+            )
             return {
                 ...preview,
                 original_course: originalCourse,

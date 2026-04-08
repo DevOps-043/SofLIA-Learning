@@ -57,7 +57,7 @@ export function LearnPageHeader({ courseTitle, courseProgress, onBack }: LearnPa
             </div>
           </div>
           <span
-            className="text-xs text-[#0A2540] dark:text-white font-medium bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
+            className="text-xs text-[#0A2540] dark:text-[#00D4B3] font-medium bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
           >
             {courseProgress}%

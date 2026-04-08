@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { LucideIcon } from 'lucide-react'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 
 export interface CourseStatCardProps {
   title: string
@@ -9,13 +10,11 @@ export interface CourseStatCardProps {
   icon: LucideIcon
   color: string
   delay: number
-  isDark?: boolean
 }
 
-export function CourseStatCard({ title, value, icon: Icon, color, delay, isDark }: CourseStatCardProps) {
-  const textColor = isDark ? '#FFFFFF' : '#0F172A'
-  const iconColor = isDark ? color : '#0A2540'
-  const isLightMode = !isDark
+export function CourseStatCard({ title, value, icon: Icon, color, delay }: CourseStatCardProps) {
+  const { isDark, textColor, subtextColor, cardBg, borderColor } = useBusinessPanelTheme()
+  const iconColor = isDark ? color : textColor
 
   return (
     <motion.div
@@ -25,10 +24,10 @@ export function CourseStatCard({ title, value, icon: Icon, color, delay, isDark 
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
       className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px] border"
       style={{
-        backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(15, 20, 25, 0.6)',
+        backgroundColor: cardBg,
         backdropFilter: 'blur(20px)',
-        borderColor: isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)',
-        boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.05)' : '0 10px 30px -10px rgba(0,0,0,0.4)',
+        borderColor,
+        boxShadow: isDark ? '0 10px 30px -10px rgba(0,0,0,0.4)' : '0 4px 20px -10px rgba(0,0,0,0.05)',
       }}
     >
       <div className="relative z-10 flex items-center gap-4 w-full">
@@ -47,7 +46,7 @@ export function CourseStatCard({ title, value, icon: Icon, color, delay, isDark 
         <div className="flex flex-col justify-center overflow-hidden">
           <p 
             className="text-[10px] uppercase tracking-widest font-bold mb-1 truncate w-full" 
-            style={{ color: isLightMode ? '#64748B' : '#858E9B', opacity: 0.9 }}
+            style={{ color: subtextColor, opacity: 0.9 }}
           >
             {title}
           </p>

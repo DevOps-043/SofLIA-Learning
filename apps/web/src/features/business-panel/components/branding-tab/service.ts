@@ -3,9 +3,9 @@ import type { BrandingFormState, BrandingPalette } from './types'
 const DEFAULT_BRANDING_STATE: BrandingFormState = {
   favicon_url: '',
   banner_url: '',
-  color_primary: '#3b82f6',
-  color_secondary: '#10b981',
-  color_accent: '#8b5cf6',
+  color_primary: '#0A2540',
+  color_secondary: '#00D4B3',
+  color_accent: '#FFFFFF',
 }
 
 export function createBrandingFormState(

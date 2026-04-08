@@ -5,17 +5,8 @@ import type {
   BusinessAnalyticsUser,
 } from '../../types/analytics.types'
 
-export interface BusinessAnalyticsThemeTokens {
-  cardBg?: string
-  cardBorder?: string
-  textColor?: string
-  accentColor: string
-  secondaryColor?: string
-}
-
 export interface BusinessAnalyticsOverviewProps {
   data: BusinessAnalyticsData
-  accentColor: string
 }
 
 export interface BusinessAnalyticsUsersTableProps {
@@ -25,14 +16,11 @@ export interface BusinessAnalyticsUsersTableProps {
 
 export interface BusinessAnalyticsTeamsProps {
   teams: BusinessAnalyticsData['teams']
-  accentColor: string
-  secondaryColor: string
 }
 
 export interface BusinessAnalyticsUserDetailModalProps {
   user: BusinessAnalyticsUser
   onClose: () => void
-  theme: BusinessAnalyticsThemeTokens
 }
 
 export interface BusinessAnalyticsTabButtonProps {

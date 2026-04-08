@@ -1,62 +1,25 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import type { ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  Users,
-  Activity,
-  Award,
-  Filter,
-  FileSpreadsheet,
-  Download,
   Calendar,
-  TrendingUp,
-  BarChart3,
-  PieChart as PieChartIcon,
+  Download,
+  FileSpreadsheet,
+  Filter,
   RefreshCw,
-  Eye,
-  X,
   Sparkles,
-  Brain
+  X,
 } from 'lucide-react'
-import Image from 'next/image'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '../../../core/stores/themeStore'
 import { PremiumSelect } from './PremiumSelect'
-import { ReportTable } from './ReportTable'
-import ReactMarkdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import remarkGfm from 'remark-gfm'
-import type { ColumnDef } from '@tanstack/react-table'
-import {
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from 'recharts'
-import { useAuth } from '@/features/auth/hooks/useAuth'
-import { createClient } from '@/lib/supabase/client'
-import { useTranslation } from 'react-i18next'
 import { useBusinessReportsLogic } from '../hooks/useBusinessReportsLogic'
 import { ReportContent } from './reports/ReportContent'
 import type { ReportData } from './reports/types'
+import { useTranslation } from 'react-i18next'
 
 export function BusinessReports() {
   const {
-    isDark,
-    cardBg,
-    cardBorder,
-    textColor,
-    accentColor,
-    primaryColor,
-    secondaryColor,
+    panelTheme,
     REPORT_TYPES,
     reportType,
     filters,
@@ -75,312 +38,416 @@ export function BusinessReports() {
     handleGenerateReport,
     handleExportExcel,
   } = useBusinessReportsLogic()
-
   const { t } = useTranslation('business')
 
   return (
-    <div className="w-full space-y-6" style={{ color: textColor }}>
-      {/* Header Premium */}
-      {/* Header Premium - Redesigned */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
+    <div className="w-full space-y-6" style={{ color: panelTheme.textColor }}>
+      <motion.section
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl p-8 shadow-xl"
-        style={{ 
-          backgroundColor: '#0A2540',
+        className="relative overflow-hidden rounded-[32px] border p-8 md:p-10"
+        style={{
+          background: panelTheme.heroBackground,
+          borderColor: panelTheme.heroBorderColor,
         }}
       >
-        {/* Background Image Layer */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/teams-header.png"
-            alt="Reports Header"
-            fill
-            className="object-cover"
-            style={{ opacity: 0.5 }}
-            priority
-          />
-        </div>
-        
-        {/* Blue Gradient Overlay - Crucial for the 'Blue' look while keeping image visible */}
-        <div 
-            className="absolute inset-0 bg-gradient-to-r from-[#0A2540]/90 via-[#0A2540]/50 to-transparent z-0 pointer-events-none"
-        />
-
-        {/* Decorative Particles/Grid - Subtle */}
-        <div 
-          className="absolute inset-0 opacity-10 z-0 pointer-events-none"
+        <div
+          className="absolute inset-0 opacity-[0.08] pointer-events-none"
           style={{
-            backgroundImage: 'radial-gradient(white 1px, transparent 1px)',
-            backgroundSize: '30px 30px'
+            backgroundImage: 'radial-gradient(currentColor 1px, transparent 1px)',
+            backgroundSize: '22px 22px',
+            color: '#FFFFFF',
           }}
         />
 
-        {/* Content Layer */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">
-              <BarChart3 className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+        <div className="relative z-10 max-w-3xl">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div
+              className="w-12 h-12 rounded-2xl border flex items-center justify-center backdrop-blur-sm"
+              style={{
+                backgroundColor: panelTheme.inverseSurface,
+                borderColor: panelTheme.inverseBorderColor,
+              }}
+            >
+              <FileSpreadsheet className="w-6 h-6" style={{ color: panelTheme.inverseTextColor }} />
             </div>
-            <span 
-              className="text-sm font-bold tracking-widest uppercase drop-shadow-sm"
-              style={{ color: 'rgba(219, 234, 254, 0.9)' }}
+            <span
+              className="text-sm font-bold uppercase tracking-[0.22em]"
+              style={{ color: panelTheme.inverseSubtextColor }}
             >
               {t('reports.subtitle')}
             </span>
           </div>
-          
-          <h1 
-            className="text-3xl md:text-4xl font-bold mb-3 tracking-tight drop-shadow-md"
-            style={{ color: '#FFFFFF' }}
+
+          <h1
+            className="text-3xl md:text-4xl font-bold tracking-tight mb-3"
+            style={{ color: panelTheme.inverseTextColor }}
           >
             {t('reports.title')}
           </h1>
-          
-          <p 
-            className="text-base max-w-2xl leading-relaxed drop-shadow-sm"
-            style={{ color: '#EFF6FF' }}
+          <p
+            className="text-base md:text-lg leading-relaxed"
+            style={{ color: panelTheme.inverseSubtextColor }}
           >
             {t('reports.description')}
           </p>
         </div>
-      </motion.div>
+      </motion.section>
 
-      {/* Selector de Tipo de Reporte */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {REPORT_TYPES.map((type, index) => {
           const Icon = type.icon
           const isSelected = reportType === type.value
+
           return (
             <motion.button
               key={type.value}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.05 }}
               onClick={() => handleReportTypeChange(type.value)}
               disabled={isLoading}
-              className={`relative group p-6 rounded-2xl border-2 text-left transition-all overflow-hidden
-                ${isSelected 
-                  ? '' 
-                  : 'bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30'}
-              `}
+              className="text-left rounded-[24px] border p-5 transition-all duration-200"
               style={{
-                ...(isSelected ? { backgroundColor: `${type.color}15`, borderColor: type.color } : {})
+                backgroundColor: isSelected ? panelTheme.actionSurface : panelTheme.cardBg,
+                borderColor: isSelected ? `${panelTheme.actionColor}30` : panelTheme.borderColor,
+                boxShadow: isSelected
+                  ? `0 22px 40px -30px ${panelTheme.actionColor}`
+                  : panelTheme.isDark
+                    ? '0 18px 34px -30px rgba(0,0,0,0.52)'
+                    : '0 18px 34px -30px rgba(15,23,42,0.16)',
               }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
             >
-              {isSelected && (
-                <motion.div
-                  layoutId="activeReport"
-                  className="absolute inset-0 rounded-2xl"
-                  style={{ backgroundColor: `${type.color}10` }}
+              <div
+                className="w-12 h-12 rounded-2xl border flex items-center justify-center mb-4"
+                style={{
+                  backgroundColor: isSelected ? panelTheme.actionSurface : panelTheme.hoverBg,
+                  borderColor: isSelected ? `${panelTheme.actionColor}28` : panelTheme.borderColor,
+                }}
+              >
+                <Icon
+                  className="w-6 h-6"
+                  style={{ color: isSelected ? panelTheme.actionColor : type.color }}
                 />
-              )}
-              <div className="relative z-10">
-                <div 
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-                  style={{ backgroundColor: `${type.color}20` }}
-                >
-                  <Icon className="w-6 h-6" style={{ color: type.color }} />
-                </div>
-                <h3 className="font-bold text-lg mb-1 text-gray-900 dark:text-white">{type.label}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">{type.description}</p>
               </div>
-              {isSelected && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-4 right-4 w-3 h-3 rounded-full"
-                  style={{ backgroundColor: type.color }}
-                />
-              )}
+
+              <h2 className="text-lg font-bold mb-1" style={{ color: panelTheme.textColor }}>
+                {type.label}
+              </h2>
+              <p className="text-sm leading-relaxed" style={{ color: panelTheme.subtextColor }}>
+                {type.description}
+              </p>
             </motion.button>
           )
         })}
       </div>
 
-      {/* Barra de Acciones */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30"
+      <div
+        className="rounded-[28px] border p-4 md:p-5 space-y-4"
+        style={{
+          backgroundColor: panelTheme.cardBg,
+          borderColor: panelTheme.borderColor,
+        }}
       >
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all hover:opacity-80
-              ${showFilters 
-                ? '' 
-                : 'bg-transparent border-gray-200 dark:border-slate-700/30 text-gray-700 dark:text-gray-300'}
-            `}
-            style={showFilters ? {
-              backgroundColor: `${accentColor}20`,
-              borderColor: accentColor,
-              color: accentColor
-            } : {}}
-          >
-            <Filter className="w-4 h-4" />
-            {t('reports.actions.filters')}
-            {showFilters && <X className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={handleGenerateReport}
-            disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-medium transition-all hover:opacity-80 disabled:opacity-50 bg-transparent border-gray-200 dark:border-slate-700/30 text-gray-700 dark:text-gray-300"
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            {isLoading ? t('reports.actions.generating') : t('reports.actions.update')}
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <ToolbarButton
+              icon={<Filter className="w-4 h-4" />}
+              label={t('reports.actions.filters')}
+              active={showFilters}
+              onClick={() => setShowFilters(!showFilters)}
+              panelTheme={panelTheme}
+              trailing={showFilters ? <X className="w-4 h-4" /> : null}
+            />
+
+            <ToolbarButton
+              icon={<RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />}
+              label={isLoading ? t('reports.actions.generating') : t('reports.actions.update')}
+              active={false}
+              onClick={handleGenerateReport}
+              panelTheme={panelTheme}
+            />
+          </div>
+
           {reportData && (
             <button
+              type="button"
               onClick={handleExportExcel}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all hover:opacity-90 hover:scale-105 active:scale-95 text-white"
+              className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-transform duration-200 hover:-translate-y-0.5"
               style={{
-                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-                boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.4)'
+                backgroundColor: panelTheme.actionColor,
+                color: panelTheme.onActionColor,
+                border: `1px solid ${panelTheme.actionColor}20`,
               }}
             >
-              <FileSpreadsheet className="w-4 h-4 text-white" />
+              <Download className="w-4 h-4" />
               {t('reports.actions.exportExcel')}
             </button>
           )}
         </div>
-      </motion.div>
 
-      {/* Panel de Filtros */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div
-              className="p-6 rounded-2xl border space-y-4 bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30"
+        <AnimatePresence initial={false}>
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
             >
-              <h3 className="font-semibold flex items-center gap-2">
-                <Calendar className="w-4 h-4" style={{ color: accentColor }} />
-                {t('reports.filters.title')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.startDate')}</label>
-                  <input
-                    type="date"
-                    value={localStartDate}
-                    onChange={(e) => setLocalStartDate(e.target.value)}
-                    className="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 transition-all"
-                    style={{ 
-                      borderColor: cardBorder,
-                      backgroundColor: `${cardBg}CC`,
-                      color: textColor
+              <div
+                className="rounded-[24px] border p-5 space-y-4"
+                style={{
+                  backgroundColor: panelTheme.hoverBg,
+                  borderColor: panelTheme.borderColor,
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-9 h-9 rounded-xl border flex items-center justify-center"
+                    style={{
+                      backgroundColor: panelTheme.actionSurface,
+                      borderColor: `${panelTheme.actionColor}22`,
                     }}
-                  />
+                  >
+                    <Calendar className="w-4 h-4" style={{ color: panelTheme.actionColor }} />
+                  </div>
+                  <h3 className="font-semibold" style={{ color: panelTheme.textColor }}>
+                    {t('reports.filters.title')}
+                  </h3>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.endDate')}</label>
-                  <input
-                    type="date"
-                    value={localEndDate}
-                    onChange={(e) => setLocalEndDate(e.target.value)}
-                    className="w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 transition-all"
-                    style={{ 
-                      borderColor: cardBorder,
-                      backgroundColor: `${cardBg}CC`,
-                      color: textColor
-                    }}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.role')}</label>
-                  <PremiumSelect
-                    value={filters.role || 'all'}
-                    onValueChange={(value) => setFilters({ ...filters, role: value })}
-                    placeholder={t('reports.filters.selectRole')}
-                    options={[
-                      { value: 'all', label: t('reports.status.all') },
-                      { value: 'owner', label: t('reports.status.owner') },
-                      { value: 'admin', label: t('reports.status.admin') },
-                      { value: 'member', label: t('reports.status.member') }
-                    ]}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2 opacity-70">{t('reports.filters.status')}</label>
-                  <PremiumSelect
-                    value={filters.status || 'all'}
-                    onValueChange={(value) => setFilters({ ...filters, status: value })}
-                    placeholder={t('reports.filters.selectStatus')}
-                    options={[
-                      { value: 'all', label: t('reports.status.all') },
-                      { value: 'active', label: t('reports.status.active') },
-                      { value: 'invited', label: t('reports.status.invited') },
-                      { value: 'suspended', label: t('reports.status.suspended') }
-                    ]}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  onClick={handleGenerateReport}
-                  disabled={isLoading}
-                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:opacity-90 text-white disabled:opacity-50"
-                  style={{ background: `linear-gradient(135deg, ${accentColor} 0%, ${secondaryColor} 100%)` }}
-                >
-                  {t('reports.actions.applyFilters')}
-                </button>
-                <button
-                  onClick={() => { resetFilters(); setLocalStartDate(''); setLocalEndDate('') }}
-                  className="px-4 py-2 rounded-xl border text-sm font-medium transition-all hover:opacity-80"
-                  style={{ borderColor: cardBorder, color: textColor }}
-                >
-                  {t('reports.actions.clear')}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Estado de Carga */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                  <FilterField
+                    label={t('reports.filters.startDate')}
+                    panelTheme={panelTheme}
+                    content={
+                      <input
+                        type="date"
+                        value={localStartDate}
+                        onChange={(event) => setLocalStartDate(event.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl border focus:outline-none"
+                        style={{
+                          backgroundColor: panelTheme.cardBg,
+                          borderColor: panelTheme.borderColor,
+                          color: panelTheme.textColor,
+                        }}
+                      />
+                    }
+                  />
+
+                  <FilterField
+                    label={t('reports.filters.endDate')}
+                    panelTheme={panelTheme}
+                    content={
+                      <input
+                        type="date"
+                        value={localEndDate}
+                        onChange={(event) => setLocalEndDate(event.target.value)}
+                        className="w-full px-4 py-3 rounded-2xl border focus:outline-none"
+                        style={{
+                          backgroundColor: panelTheme.cardBg,
+                          borderColor: panelTheme.borderColor,
+                          color: panelTheme.textColor,
+                        }}
+                      />
+                    }
+                  />
+
+                  <FilterField
+                    label={t('reports.filters.role')}
+                    panelTheme={panelTheme}
+                    content={
+                      <PremiumSelect
+                        value={filters.role || 'all'}
+                        onValueChange={(value) => setFilters({ ...filters, role: value })}
+                        placeholder={t('reports.filters.selectRole')}
+                        options={[
+                          { value: 'all', label: t('reports.status.all') },
+                          { value: 'owner', label: t('reports.status.owner') },
+                          { value: 'admin', label: t('reports.status.admin') },
+                          { value: 'member', label: t('reports.status.member') },
+                        ]}
+                      />
+                    }
+                  />
+
+                  <FilterField
+                    label={t('reports.filters.status')}
+                    panelTheme={panelTheme}
+                    content={
+                      <PremiumSelect
+                        value={filters.status || 'all'}
+                        onValueChange={(value) => setFilters({ ...filters, status: value })}
+                        placeholder={t('reports.filters.selectStatus')}
+                        options={[
+                          { value: 'all', label: t('reports.status.all') },
+                          { value: 'active', label: t('reports.status.active') },
+                          { value: 'invited', label: t('reports.status.invited') },
+                          { value: 'suspended', label: t('reports.status.suspended') },
+                        ]}
+                      />
+                    }
+                  />
+                </div>
+
+                <div className="flex flex-wrap gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleGenerateReport}
+                    disabled={isLoading}
+                    className="rounded-2xl px-4 py-2.5 text-sm font-semibold disabled:opacity-50"
+                    style={{
+                      backgroundColor: panelTheme.actionColor,
+                      color: panelTheme.onActionColor,
+                    }}
+                  >
+                    {t('reports.actions.applyFilters')}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetFilters()
+                      setLocalStartDate('')
+                      setLocalEndDate('')
+                    }}
+                    className="rounded-2xl px-4 py-2.5 text-sm font-semibold border"
+                    style={{
+                      backgroundColor: panelTheme.cardBg,
+                      borderColor: panelTheme.borderColor,
+                      color: panelTheme.textColor,
+                    }}
+                  >
+                    {t('reports.actions.clear')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {isLoading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-12 rounded-2xl border text-center bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30"
+        <div
+          className="rounded-[28px] border p-10 text-center"
+          style={{
+            backgroundColor: panelTheme.cardBg,
+            borderColor: panelTheme.borderColor,
+          }}
         >
           <div className="inline-flex items-center gap-3">
-            <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: primaryColor, borderTopColor: 'transparent' }} />
-            <span className="text-gray-500 dark:text-gray-400">{t('reports.messages.loading')}</span>
+            <div
+              className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: panelTheme.actionColor, borderTopColor: 'transparent' }}
+            />
+            <span style={{ color: panelTheme.subtextColor }}>{t('reports.messages.loading')}</span>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      {/* Error */}
       {error && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-4 rounded-2xl border bg-red-500/10 border-red-500/30"
+        <div
+          className="rounded-[28px] border p-5"
+          style={{
+            backgroundColor: `${panelTheme.dangerColor}10`,
+            borderColor: `${panelTheme.dangerColor}28`,
+            color: panelTheme.dangerColor,
+          }}
         >
-          <p className="text-red-400">{error}</p>
-        </motion.div>
+          {error}
+        </div>
       )}
 
-      {/* Contenido del Reporte */}
       {reportData && !isLoading && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
+          <div
+            className="rounded-[28px] border px-5 py-4 flex flex-wrap items-center gap-3"
+            style={{
+              backgroundColor: panelTheme.cardBg,
+              borderColor: panelTheme.borderColor,
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-2xl border flex items-center justify-center"
+              style={{
+                backgroundColor: panelTheme.actionSurface,
+                borderColor: `${panelTheme.actionColor}20`,
+              }}
+            >
+              <Sparkles className="w-4 h-4" style={{ color: panelTheme.actionColor }} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: panelTheme.textColor }}>
+                {REPORT_TYPES.find((type) => type.value === reportType)?.label}
+              </p>
+              <p className="text-xs" style={{ color: panelTheme.subtextColor }}>
+                {REPORT_TYPES.find((type) => type.value === reportType)?.description}
+              </p>
+            </div>
+          </div>
+
           <ReportContent reportType={reportType} data={reportData.data as ReportData} />
         </motion.div>
       )}
+    </div>
+  )
+}
+
+function ToolbarButton({
+  icon,
+  label,
+  active,
+  onClick,
+  panelTheme,
+  trailing,
+}: {
+  icon: ReactNode
+  label: string
+  active: boolean
+  onClick: () => void
+  panelTheme: ReturnType<typeof useBusinessReportsLogic>['panelTheme']
+  trailing?: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold border transition-colors"
+      style={{
+        backgroundColor: active ? panelTheme.actionSurface : panelTheme.cardBg,
+        borderColor: active ? `${panelTheme.actionColor}24` : panelTheme.borderColor,
+        color: active ? panelTheme.actionColor : panelTheme.textColor,
+      }}
+    >
+      {icon}
+      <span>{label}</span>
+      {trailing}
+    </button>
+  )
+}
+
+function FilterField({
+  label,
+  content,
+  panelTheme,
+}: {
+  label: string
+  content: ReactNode
+  panelTheme: ReturnType<typeof useBusinessReportsLogic>['panelTheme']
+}) {
+  return (
+    <div>
+      <label
+        className="block text-sm font-medium mb-2"
+        style={{ color: panelTheme.subtextColor }}
+      >
+        {label}
+      </label>
+      {content}
     </div>
   )
 }

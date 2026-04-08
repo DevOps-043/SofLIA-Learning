@@ -59,10 +59,10 @@ export function UnifiedInviteModal({
                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-[1.2rem] sm:rounded-[1.5rem] flex items-center justify-center shadow-2xl border-2 sm:border-2"
                        style={{
                           background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
-                          borderColor: theme.isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                          borderColor: theme.borderColor,
                        }}
                     >
-                       <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-white" strokeWidth={2.5} />
+                       <UserPlus className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.onPrimaryColor }} strokeWidth={2.5} />
                     </div>
                   </div>
 
@@ -93,7 +93,7 @@ export function UnifiedInviteModal({
                               className={`p-2 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all ${mode === tab.key ? 'shadow-lg' : 'opacity-30 grayscale hover:opacity-100 hover:grayscale-0'}`}
                               style={mode === tab.key ? {
                                  backgroundColor: theme.primaryColor,
-                                 color: theme.isDark ? '#000000' : '#FFFFFF',
+                                 color: theme.onPrimaryColor,
                               } : {
                                  backgroundColor: theme.inputBg,
                                  color: theme.textColor,

@@ -1,5 +1,6 @@
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Download } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Download, X } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 
 interface ImageModalProps {
   url: string
@@ -9,61 +10,79 @@ interface ImageModalProps {
 }
 
 export function ImageModal({ url, name, onClose, onDownload }: ImageModalProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
-    <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm"
+      style={{ backgroundColor: theme.overlayBg }}
+      onClick={onClose}
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/95"
-        onClick={onClose}
+        className="relative flex h-full w-full items-center justify-center"
+        onClick={(event) => event.stopPropagation()}
       >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full h-full flex items-center justify-center"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-4 top-4 z-10 rounded-full border p-3 backdrop-blur-sm transition-colors"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.dividerColor,
+            color: theme.textColor,
+          }}
+          title="Cerrar"
         >
-          {/* Botón de cerrar */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-3 rounded-full backdrop-blur-sm transition-colors hover:bg-white/20 bg-black/70"
-            title="Cerrar (ESC)"
+          <X className="h-6 w-6" />
+        </button>
+
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation()
+            onDownload(url, name)
+          }}
+          className="absolute right-20 top-4 z-10 rounded-full border p-3 backdrop-blur-sm transition-colors"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.dividerColor,
+            color: theme.textColor,
+          }}
+          title="Descargar imagen"
+        >
+          <Download className="h-6 w-6" />
+        </button>
+
+        <img
+          src={url}
+          alt={name}
+          className="h-auto max-h-[90vh] w-auto max-w-[95vw] rounded-lg object-contain shadow-2xl"
+          onClick={(event) => event.stopPropagation()}
+        />
+
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-lg border px-4 py-2 backdrop-blur-sm"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.dividerColor,
+          }}
+        >
+          <p
+            className="max-w-[80vw] truncate whitespace-nowrap text-center text-sm"
+            style={{ color: theme.textColor }}
           >
-            <X className="w-6 h-6 text-white" />
-          </button>
-
-          {/* Botón de descargar */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onDownload(url, name)
-            }}
-            className="absolute top-4 right-20 z-10 p-3 rounded-full backdrop-blur-sm transition-colors hover:bg-white/20 bg-black/70"
-            title="Descargar imagen"
-          >
-            <Download className="w-6 h-6 text-white" />
-          </button>
-
-          {/* Imagen */}
-          <img
-            src={url}
-            alt={name}
-            className="max-w-[95vw] max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-
-          {/* Nombre del archivo */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg backdrop-blur-sm bg-black/70">
-            <p className="text-sm text-white text-center whitespace-nowrap max-w-[80vw] truncate">
-              {name}
-            </p>
-          </div>
-        </motion.div>
+            {name}
+          </p>
+        </div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   )
 }

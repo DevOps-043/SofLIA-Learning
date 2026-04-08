@@ -3,12 +3,9 @@
 import { motion } from 'framer-motion'
 import { Download, Mail, Plus, Sparkles, Upload } from 'lucide-react'
 import type { TFunction } from 'i18next'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 
 interface UsersPageHeaderProps {
-  primaryColor: string
-  secondaryColor: string
-  accentColor: string
-  isDark: boolean
   t: TFunction
   onDownloadTemplate: () => void
   onImportClick: () => void
@@ -16,17 +13,9 @@ interface UsersPageHeaderProps {
   onAddClick: () => void
 }
 
-export function UsersPageHeader({
-  primaryColor,
-  secondaryColor,
-  accentColor,
-  isDark,
-  t,
-  onDownloadTemplate,
-  onImportClick,
-  onInviteClick,
-  onAddClick,
-}: UsersPageHeaderProps) {
+export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInviteClick, onAddClick }: UsersPageHeaderProps) {
+  const { primaryColor, secondaryColor, accentColor, isDark } = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
@@ -79,20 +68,16 @@ export function UsersPageHeader({
               >
                 <Sparkles className="w-6 h-6" style={{ color: accentColor }} />
               </motion.div>
-              <span
-                className="text-sm font-semibold tracking-wider uppercase"
-                style={{ color: accentColor }}
-              >
+              <span className="text-sm font-semibold tracking-wider uppercase" style={{ color: accentColor }}>
                 {t('sidebar.users')}
               </span>
             </div>
 
             <motion.h1
-              className="text-3xl lg:text-4xl font-bold mb-2"
+              className="text-3xl lg:text-4xl font-bold mb-2 text-white"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ color: '#FFFFFF' }}
             >
               {t('users.title')}
             </motion.h1>
@@ -109,66 +94,36 @@ export function UsersPageHeader({
           </div>
 
           <div className="flex items-center gap-3">
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-              onClick={onDownloadTemplate}
-              className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
-              style={{
-                color: '#FFFFFF',
-                borderColor: 'rgba(255,255,255,0.2)',
-                backgroundColor: 'rgba(255,255,255,0.05)',
-              }}
-              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Download className="w-4 h-4" />
-              {t('users.buttons.template')}
-            </motion.button>
-
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.45 }}
-              onClick={onImportClick}
-              className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
-              style={{
-                color: '#FFFFFF',
-                borderColor: 'rgba(255,255,255,0.2)',
-                backgroundColor: 'rgba(255,255,255,0.05)',
-              }}
-              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Upload className="w-4 h-4" />
-              {t('users.buttons.import', 'Importar')}
-            </motion.button>
-
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.45 }}
-              onClick={onInviteClick}
-              className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
-              style={{
-                color: '#FFFFFF',
-                borderColor: 'rgba(255,255,255,0.2)',
-                backgroundColor: 'rgba(255,255,255,0.05)',
-              }}
-              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <Mail className="w-4 h-4" />
-              {t('users.buttons.invite', 'Invitar')}
-            </motion.button>
+            {[
+              { icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, delay: 0.4 },
+              { icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, delay: 0.45 },
+              { icon: Mail, label: t('users.buttons.invite', 'Invitar'), onClick: onInviteClick, delay: 0.45 },
+            ].map(({ icon: Icon, label, onClick, delay }) => (
+              <motion.button
+                key={label}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay }}
+                onClick={onClick}
+                className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2 text-white"
+                style={{
+                  borderColor: 'rgba(255,255,255,0.2)',
+                  backgroundColor: 'rgba(255,255,255,0.05)',
+                }}
+                whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </motion.button>
+            ))}
 
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.55 }}
               onClick={onAddClick}
-              className="px-6 py-2.5 rounded-xl font-bold text-sm !text-white transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2"
               style={{
                 backgroundColor: primaryColor,
                 color: isDark ? '#000000' : '#FFFFFF',
@@ -178,9 +133,7 @@ export function UsersPageHeader({
               whileTap={{ scale: 0.95 }}
             >
               <Plus className="w-5 h-5" color={isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
-              <span className="font-bold" style={{ color: isDark ? '#000000' : '#FFFFFF' }}>
-                {t('users.buttons.add')}
-              </span>
+              <span style={{ color: isDark ? '#000000' : '#FFFFFF' }}>{t('users.buttons.add')}</span>
             </motion.button>
           </div>
         </div>
