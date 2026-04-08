@@ -35,19 +35,19 @@ export function useBusinessUnifiedInviteModalLogic({
   const panelStyles = styles?.panel;
 
   const isDark = resolvedTheme === 'dark';
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540';
-  const accentColor = panelStyles?.accent_color || '#00D4B3';
+  const primaryColor = isDark ? '#00D4B3' : (panelStyles?.primary_button_color || '#0066FF');
+  const accentColor = isDark ? '#00D4B3' : (panelStyles?.accent_color || '#00D4B3');
 
   const theme: UnifiedInviteTheme = {
     accentColor,
-    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-    headerGradient: `linear-gradient(135deg, ${primaryColor}20, ${accentColor}10)`,
-    inputBg: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    headerGradient: 'transparent',
+    inputBg: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.05)',
     isDark,
-    menuBg: isDark ? '#252b3b' : '#FFFFFF',
-    mutedText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
+    menuBg: isDark ? '#0b0e14' : '#FFFFFF',
+    mutedText: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)',
     primaryColor,
-    surfaceColor: isDark ? '#1a1f2e' : '#FFFFFF',
+    surfaceColor: isDark ? '#0b0e14' : '#FFFFFF',
     textColor: isDark ? '#FFFFFF' : '#0F172A',
   };
 

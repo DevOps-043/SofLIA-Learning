@@ -94,7 +94,7 @@ export function UsersFilterBar({
             className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === key ? 'shadow-lg' : isDark ? 'text-white/40 hover:text-white/60' : 'text-gray-400 hover:text-gray-600'}`}
             style={{
               backgroundColor: activeTab === key ? primaryColor : 'transparent',
-              color: activeTab === key ? '#FFFFFF' : undefined,
+              color: activeTab === key ? (isDark ? '#000000' : '#FFFFFF') : undefined,
             }}
           >
             {label}

@@ -37,7 +37,6 @@ export const BUSINESS_USER_SELECT = `
     bio,
     location,
     phone,
-    points,
     last_login_at,
     created_at,
     updated_at
@@ -103,7 +102,7 @@ export function mapOrganizationUserRecord(
     bio: profile.bio,
     location: profile.location,
     phone: profile.phone,
-    points: profile.points ?? 0,
+    points: 0,
     last_login_at: profile.last_login_at,
     created_at: profile.created_at,
     updated_at: profile.updated_at,

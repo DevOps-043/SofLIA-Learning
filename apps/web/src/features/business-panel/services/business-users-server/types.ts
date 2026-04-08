@@ -20,7 +20,6 @@ export interface BusinessUserProfileRow {
   bio: string | null
   location: string | null
   phone: string | null
-  points: number | null
   last_login_at: string | null
   created_at: string
   updated_at: string

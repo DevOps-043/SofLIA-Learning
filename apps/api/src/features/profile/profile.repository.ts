@@ -1,9 +1,9 @@
-import { createClient } from '@/core/supabase/client'
+import { getServiceClient } from '@/core/supabase/service-client'
 import type { UpdateProfileInput, UserProfile } from './profile.types'
 
 export class ProfileRepository {
   private get supabase() {
-    return createClient()
+    return getServiceClient()
   }
 
   async findById(userId: string): Promise<UserProfile | null> {

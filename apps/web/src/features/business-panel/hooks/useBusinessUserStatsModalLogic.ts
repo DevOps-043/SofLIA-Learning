@@ -19,6 +19,7 @@ interface BusinessUserStatsModalProps {
   user: BusinessUser | null
   isOpen: boolean
   onClose: () => void
+  orgSlug?: string
 }
 
 const fallbackTranslations: Record<string, string> = {
@@ -84,6 +85,7 @@ export function useBusinessUserStatsModalLogic({
   user,
   isOpen,
   onClose: _onClose,
+  orgSlug,
 }: BusinessUserStatsModalProps) {
   const { t: originalT } = useTranslation('business')
   const { resolvedTheme } = useThemeStore()
@@ -131,7 +133,10 @@ export function useBusinessUserStatsModalLogic({
       setError(null)
 
       try {
-        const response = await fetch(`/api/business/users/${user.id}/stats`, {
+        const statsUrl = orgSlug
+          ? `/api/${orgSlug}/business/users/${user.id}/stats`
+          : `/api/business/users/${user.id}/stats`
+        const response = await fetch(statsUrl, {
           credentials: 'include',
         })
         const data = (await response.json()) as
@@ -159,7 +164,7 @@ export function useBusinessUserStatsModalLogic({
     }
 
     void fetchUserStats()
-  }, [isOpen, user])
+  }, [isOpen, user, orgSlug])
 
   const displayName = getBusinessUserStatsDisplayName(user)
   const initials = getBusinessUserStatsInitials(user)

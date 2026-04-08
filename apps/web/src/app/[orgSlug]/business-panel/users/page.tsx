@@ -166,10 +166,50 @@ export default function BusinessPanelUsersPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title={t('users.stats.total')} value={stats.total} icon={<Users className="w-6 h-6" style={{ color: '#3B82F6' }} />} gradient="linear-gradient(135deg, #3B82F6, #1D4ED8)" delay={0} trend={12} isDark={isDark} />
-        <StatCard title={t('users.stats.active')} value={stats.active} icon={<CheckCircle className="w-6 h-6" style={{ color: '#10B981' }} />} gradient="linear-gradient(135deg, #10B981, #059669)" delay={1} trend={8} isDark={isDark} />
-        <StatCard title={t('users.stats.invited')} value={stats.invited} icon={<Mail className="w-6 h-6" style={{ color: '#F59E0B' }} />} gradient="linear-gradient(135deg, #F59E0B, #D97706)" delay={2} isDark={isDark} onClick={() => setActiveTab('invitations')} />
-        <StatCard title={t('users.stats.admins')} value={stats.admins} icon={<Shield className="w-6 h-6" style={{ color: '#A855F7' }} />} gradient="linear-gradient(135deg, #A855F7, #7C3AED)" delay={3} trend={5} isDark={isDark} />
+        <StatCard 
+          title={t('users.stats.total')} 
+          value={stats.total} 
+          icon={<Users className="w-5 h-5" />} 
+          gradient="linear-gradient(135deg, #3B82F6, #1D4ED8)" 
+          delay={0} 
+          trend={12} 
+          isDark={isDark} 
+          accentColor="#3B82F6" 
+          primaryColor={primaryColor} 
+        />
+        <StatCard 
+          title={t('users.stats.active')} 
+          value={stats.active} 
+          icon={<CheckCircle className="w-5 h-5" />} 
+          gradient="linear-gradient(135deg, #10B981, #059669)" 
+          delay={1} 
+          trend={8} 
+          isDark={isDark} 
+          accentColor="#10B981" 
+          primaryColor={primaryColor} 
+        />
+        <StatCard 
+          title={t('users.stats.invited')} 
+          value={stats.invited} 
+          icon={<Mail className="w-5 h-5" />} 
+          gradient="linear-gradient(135deg, #F59E0B, #D97706)" 
+          delay={2} 
+          isDark={isDark} 
+          onClick={() => setActiveTab('invitations')} 
+          accentColor="#F59E0B" 
+          primaryColor={primaryColor} 
+        />
+        <StatCard 
+          title={t('users.stats.admins')} 
+          value={stats.admins} 
+          icon={<Shield className="w-5 h-5" />} 
+          gradient="linear-gradient(135deg, #A855F7, #7C3AED)" 
+          delay={3} 
+          trend={5} 
+          isDark={isDark} 
+          accentColor="#A855F7" 
+          primaryColor={primaryColor} 
+        />
       </div>
 
       <UsersFilterBar
@@ -199,9 +239,9 @@ export default function BusinessPanelUsersPage() {
           filteredUsers.length === 0 ? (
             <EmptyState key="empty-users" onAddClick={() => setIsAddModalOpen(true)} primaryColor={primaryColor} secondaryColor={secondaryColor} />
           ) : viewMode === 'cards' ? (
-            <motion.div key="grid-users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
+            <motion.div key="grid-users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredUsers.map((user, index) => (
-                <UserCard key={user.id} user={user} index={index} primaryColor={primaryColor}
+                <UserCard key={user.id} user={user} index={index} primaryColor={primaryColor} accentColor={accentColor}
                   onEdit={() => { setEditingUser(user); setIsEditModalOpen(true) }}
                   onDelete={() => { setDeletingUser(user); setIsDeleteModalOpen(true) }}
                   onStats={() => { setStatsUser(user); setIsStatsModalOpen(true) }}
@@ -241,7 +281,7 @@ export default function BusinessPanelUsersPage() {
           ) : viewMode === 'cards' ? (
             <motion.div key="grid-invitations" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredInvitations.map((inv, index) => (
-                <InvitationCard key={inv.id} invitation={inv} index={index} primaryColor={primaryColor}
+                <InvitationCard key={inv.id} invitation={inv} index={index} primaryColor={primaryColor} accentColor={accentColor}
                   onResend={() => handleResendIndividualInvitation(inv.id)}
                   onRevoke={() => handleRevokeInvitation(inv.id)}
                 />
@@ -273,7 +313,7 @@ export default function BusinessPanelUsersPage() {
           ) : viewMode === 'cards' ? (
             <motion.div key="grid-links" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {inviteLinks.map((link, index) => (
-                <InviteLinkCard key={link.id} link={link} index={index} primaryColor={primaryColor}
+                <InviteLinkCard key={link.id} link={link} index={index} primaryColor={primaryColor} accentColor={accentColor}
                   onToggleStatus={() => updateInviteLinkStatus(link.id, link.status === 'active' ? 'pause' : 'resume')}
                   onDelete={() => deleteInviteLink(link.id)}
                 />
@@ -303,7 +343,7 @@ export default function BusinessPanelUsersPage() {
       <EditUserModal user={editingUser} isOpen={isEditModalOpen} onClose={() => { setIsEditModalOpen(false); setEditingUser(null) }} onSave={async (id, data) => { await updateUser(id, data) }} />
       <DeleteUserModal user={deletingUser} isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setDeletingUser(null) }} onConfirm={async () => { if (deletingUser) await deleteUser(deletingUser.id) }} />
       <ImportUsersModal isOpen={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} onImportComplete={() => { refetch(); setIsImportModalOpen(false) }} />
-      {statsUser && <UserStatsModal user={statsUser} isOpen={isStatsModalOpen} onClose={() => { setIsStatsModalOpen(false); setStatsUser(null) }} />}
+      {statsUser && <UserStatsModal user={statsUser} isOpen={isStatsModalOpen} onClose={() => { setIsStatsModalOpen(false); setStatsUser(null) }} orgSlug={orgSlug} />}
       <UnifiedInviteModal
         isOpen={isUnifiedInviteModalOpen}
         onClose={() => setIsUnifiedInviteModalOpen(false)}

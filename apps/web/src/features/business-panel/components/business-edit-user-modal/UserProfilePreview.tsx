@@ -65,27 +65,30 @@ export function UserProfilePreview({
 
   return (
     <div
-      className="lg:w-80 w-full p-4 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r border-white/5 shrink-0"
-      style={{ background: `linear-gradient(135deg, ${primaryColor}15, ${accentColor}10)` }}
+      className={`lg:w-80 w-full p-6 lg:p-10 flex flex-col border-b lg:border-b-0 lg:border-r shrink-0 items-center text-center ${isDark ? 'border-white/5' : 'border-black/5 bg-slate-50/50'}`}
+      style={{ 
+        background: isDark 
+          ? `linear-gradient(135deg, ${primaryColor}10, ${accentColor}05)` 
+          : `linear-gradient(135deg, ${primaryColor}08, ${accentColor}03)` 
+      }}
     >
-      <div className="flex-1 flex flex-col items-center justify-center py-2 lg:py-0">
+      <div className="flex-1 flex flex-col items-center justify-center w-full">
         {/* Avatar with upload button */}
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="relative mb-6"
+          className="relative mb-8"
         >
           <div
-            className="w-28 h-28 rounded-2xl flex items-center justify-center text-3xl font-bold overflow-hidden"
+            className={`w-32 h-32 rounded-[2.5rem] flex items-center justify-center text-4xl font-black overflow-hidden shadow-2xl border-4 ${isDark ? 'border-white/5' : 'border-white'}`}
             style={{
               background: previewImage ? 'transparent' : `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-              boxShadow: previewImage ? 'none' : `0 8px 30px ${primaryColor}40`,
-              color: previewImage ? 'transparent' : '#FFFFFF',
+              color: '#FFFFFF',
             }}
           >
             {previewImage ? (
-              <Image src={previewImage} alt="Preview" fill className="object-cover" sizes="112px" />
+              <Image src={previewImage} alt="Preview" fill className="object-cover" sizes="128px" />
             ) : (
               initials
             )}
@@ -93,20 +96,20 @@ export function UserProfilePreview({
 
           <motion.button
             type="button"
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingImage}
-            className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center border-2 shadow-lg disabled:opacity-50"
+            className="absolute -bottom-2 -right-2 w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl disabled:opacity-50 transition-transform"
             style={{
               backgroundColor: primaryColor,
-              borderColor: 'rgba(255,255,255,0.2)',
+              color: isDark ? '#000000' : '#FFFFFF',
             }}
           >
             {isUploadingImage ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className={`w-5 h-5 border-2 ${isDark ? 'border-black/30 border-t-black' : 'border-white/30 border-t-white'} rounded-full animate-spin`} />
             ) : (
-              <Camera className="w-5 h-5 text-white" />
+              <Camera className="w-6 h-6" strokeWidth={2.5} />
             )}
           </motion.button>
 
@@ -119,59 +122,73 @@ export function UserProfilePreview({
           />
 
           <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: accentColor }}
+            animate={{ scale: [1, 1.1, 1], rotate: [0, 10, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute -top-3 -left-3 w-10 h-10 rounded-2xl flex items-center justify-center shadow-xl box-content border-4"
+            style={{ 
+              backgroundColor: accentColor,
+              borderColor: isDark ? '#0f1218' : '#FFFFFF'
+            }}
           >
-            <Edit3 className="w-4 h-4 text-white" />
+            <Edit3 className="w-5 h-5" style={{ color: isDark ? '#000000' : '#FFFFFF' }} strokeWidth={2.5} />
           </motion.div>
         </motion.div>
 
-        <h2 className="text-xl font-bold text-white mb-1 text-center">{displayName}</h2>
-        <p className="text-sm text-white/50 text-center mb-3">{email}</p>
+        <h2 className={`text-2xl font-black tracking-tight mb-1 ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>{displayName}</h2>
+        <p className={`text-sm font-medium mb-6 ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{email}</p>
 
-        <div className="mb-2">
-          <div className="text-xs text-white/50 mb-1 text-center">{t('users.modals.edit.currentRole')}</div>
+        <div className="w-full space-y-4 mb-8">
+          <div>
+            <div className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${isDark ? 'text-white/30' : 'text-slate-400'}`}>
+              {t('users.modals.edit.currentRole', 'Rol Actual')}
+            </div>
+            <div
+              className="px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-widest shadow-lg inline-block"
+              style={{
+                background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
+                color: isDark ? '#000000' : '#FFFFFF',
+                boxShadow: `0 10px 25px ${primaryColor}30`,
+              }}
+            >
+              {currentRole?.label}
+            </div>
+          </div>
+
           <div
-            className="px-4 py-2 rounded-full text-sm font-semibold text-center"
+            className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 border"
             style={{
-              background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-              color: '#FFFFFF',
-              border: `1px solid ${primaryColor}80`,
-              boxShadow: isDark ? `0 4px 15px ${primaryColor}40` : `0 4px 15px ${primaryColor}30`,
+              backgroundColor: `${currentStatus?.color ?? '#6B7280'}15`,
+              color: currentStatus?.color ?? '#6B7280',
+              borderColor: `${currentStatus?.color ?? '#6B7280'}30`,
             }}
           >
-            {currentRole?.label}
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: currentStatus?.color }} />
+            {currentStatus?.label}
           </div>
         </div>
 
-        <div
-          className="px-3 py-1.5 rounded-full text-xs font-medium"
-          style={{
-            backgroundColor: `${currentStatus?.color ?? '#6B7280'}20`,
-            color: currentStatus?.color ?? '#6B7280',
-          }}
-        >
-          {currentStatus?.label}
+        <div className="w-full space-y-3 py-6 border-t border-dashed border-slate-200 dark:border-white/10 text-left">
+          {formData.job_title && (
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-500'}`}>
+                <Briefcase className="w-4 h-4" />
+              </div>
+              <span className={`text-sm font-bold ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{formData.job_title}</span>
+            </div>
+          )}
+          {formData.location && (
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${isDark ? 'bg-white/5 text-white/40' : 'bg-slate-100 text-slate-500'}`}>
+                <MapPin className="w-4 h-4" />
+              </div>
+              <span className={`text-sm font-bold ${isDark ? 'text-white/60' : 'text-slate-600'}`}>{formData.location}</span>
+            </div>
+          )}
         </div>
-
-        {formData.job_title && (
-          <div className="mt-4 flex items-center gap-2 text-white/50 text-sm">
-            <Briefcase className="w-4 h-4" />
-            <span>{formData.job_title}</span>
-          </div>
-        )}
-        {formData.location && (
-          <div className="mt-2 flex items-center gap-2 text-white/40 text-sm">
-            <MapPin className="w-4 h-4" />
-            <span>{formData.location}</span>
-          </div>
-        )}
       </div>
 
-      <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-sm text-white/50">
-        <p>{t('users.modals.edit.infoNote')}</p>
+      <div className={`w-full p-4 rounded-2xl border text-[11px] font-medium leading-relaxed ${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-blue-50/50 border-blue-100/50 text-slate-500'}`}>
+        {t('users.modals.edit.infoNote', 'Los cambios realizados se guardarán y el usuario recibirá una notificación si es necesario.')}
       </div>
     </div>
   )

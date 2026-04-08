@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import {
-  Shield,
   Edit,
   Trash,
   Mail,
@@ -11,15 +10,11 @@ import {
   XCircle,
   AlertCircle,
   Crown,
-  Activity,
-  Eye,
   MapPin,
   Building2,
   Network,
-  Pause,
-  Play,
-  Trash2,
-  BarChart3
+  BarChart3,
+  ChevronRight
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '@/core/stores/themeStore'
@@ -165,13 +160,13 @@ function UserListRow({ user, index, primaryColor, onEdit, onDelete, onStats, onR
               const tab = user.org_status === 'invited' ? 'invitations' : 'users';
               window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }));
             }}
-            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`}
+            className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-emerald-500/20' : 'hover:bg-blue-500/10'}`}
             title="Gestionar"
           >
-            <ChevronRight className="w-4 h-4 text-blue-400" />
+            <ChevronRight className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-blue-400'}`} />
           </button>
-          <button onClick={onStats} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-blue-500/20' : 'hover:bg-blue-500/10'}`} title="Ver estadísticas">
-            <BarChart3 className="w-4 h-4 text-blue-400" />
+          <button onClick={onStats} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-emerald-500/20' : 'hover:bg-blue-500/10'}`} title="Ver estadísticas">
+            <BarChart3 className={`w-4 h-4 ${isDark ? 'text-emerald-400' : 'text-blue-400'}`} />
           </button>
           <button onClick={onEdit} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`} title="Editar">
             <Edit className="w-4 h-4 opacity-70" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }} />

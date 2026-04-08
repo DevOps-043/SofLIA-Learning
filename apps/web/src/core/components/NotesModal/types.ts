@@ -14,4 +14,5 @@ export interface NotesModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (note: NoteDraft) => void | Promise<void>;
+  onDelete?: (id: string) => void | Promise<void>;
 }

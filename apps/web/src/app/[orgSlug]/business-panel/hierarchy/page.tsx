@@ -5,60 +5,82 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
+import { Network, Settings, LayoutGrid } from 'lucide-react';
 
 export default function BusinessPanelHierarchyPage() {
-  const params = useParams();
   const [activeTab, setActiveTab] = useState<'settings' | 'tree'>('tree');
+  
+  // Design tokens aligned with the premium system
+  const accentColor = '#10B981'; // Primary Aqua/Green
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="w-full space-y-8"
     >
-      {/* Tabs de navegación */}
-      <div className="flex items-center justify-between border-b border-neutral-200 dark:border-neutral-700">
-        <div className="flex gap-2">
-          <button
-            onClick={() => setActiveTab('tree')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'tree'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-          >
-            Vista de Árbol
-          </button>
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'settings'
-              ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-              : 'border-transparent text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
-              }`}
-          >
-            Configuración
-          </button>
+      {/* Premium Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 mb-1">
+             <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl">
+                <Network className="w-5 h-5 text-white" />
+             </div>
+             <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 leading-none mb-1">Estructura</span>
+                <h1 className="text-3xl font-black tracking-tight text-white leading-none">Jerarquía</h1>
+             </div>
+          </div>
+          <p className="text-xs font-medium text-white/40 max-w-md">
+            Gestiona los niveles organizacionales, equipos y regiones de tu empresa.
+          </p>
+        </div>
+
+        {/* Premium Tab Bar */}
+        <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
+          {[
+            { id: 'tree', label: 'VISTA DE ÁRBOL', icon: LayoutGrid },
+            { id: 'settings', label: 'CONFIGURACIÓN', icon: Settings },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-3 px-8 py-3.5 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-[#0A2540] dark:bg-[#00D4B3] shadow-lg shadow-[#00D4B3]/20 !text-white dark:!text-black scale-100' 
+                    : 'text-neutral-400 dark:text-white/30 hover:text-[#0A2540] dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5 scale-95'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? '!text-white dark:!text-black' : 'text-current'}`} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Contenido según tab activo */}
-      {activeTab === 'settings' ? (
-        <HierarchySettings />
-      ) : (
-        <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
-                Estructura Organizacional
-              </h2>
-              <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
-                Gestione la estructura jerárquica de su organización.
-              </p>
+      {/* Main Content Panel */}
+      <div className="px-4 pb-20">
+        <motion.div
+           key={activeTab}
+           initial={{ opacity: 0, y: 20 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="rounded-[2.5rem] border overflow-hidden shadow-2xl bg-white dark:bg-[#1E2329] border-neutral-200 dark:border-white/5"
+         >
+          {activeTab === 'settings' ? (
+            <div className="p-8 lg:p-12">
+              <HierarchySettings />
             </div>
-          </div>
-
-          <HierarchyTree />
-        </div>
-      )}
+          ) : (
+            <div className="p-8 lg:p-12">
+               <HierarchyTree />
+            </div>
+          )}
+        </motion.div>
+      </div>
     </motion.div>
   );
 }

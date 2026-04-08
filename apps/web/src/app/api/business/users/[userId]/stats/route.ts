@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { requireBusiness } from '../../../../../../lib/auth/requireBusiness'
-import { createClient } from '../../../../../../lib/supabase/server'
 import { logger } from '../../../../../../lib/utils/logger'
 import { buildBusinessUserStatsResponse } from '../../../../../../features/business-panel/services/business-user-stats-response.service'
 import { fetchBusinessUserStatsData } from '../../../../../../features/business-panel/services/business-user-stats-query.service'
+import { createBusinessUsersAdminClient } from '../../../../../../features/business-panel/services/business-users-server/client'
 
 interface RouteContext {
   params: Promise<{ userId: string }>
@@ -33,7 +33,7 @@ export async function GET(
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createBusinessUsersAdminClient()
     const result = await fetchBusinessUserStatsData(
       supabase,
       auth.organizationId,

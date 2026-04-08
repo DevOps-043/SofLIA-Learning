@@ -161,11 +161,15 @@ export function BusinessPanelSidebar({
     if (isMobile) onClose()
   }
 
-  const primaryColor = panelStyles?.primary_button_color || '#3b82f6'
-  const accentColor = panelStyles?.accent_color || '#10b981'
-  const textColor = panelStyles?.text_color || (resolvedTheme === 'light' ? '#1E293B' : '#FFFFFF')
-  const borderColor = panelStyles?.border_color || (resolvedTheme === 'light' ? '#E2E8F0' : 'rgba(255,255,255,0.1)')
-  const hoverBg = resolvedTheme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)'
+  const isDark = resolvedTheme === 'dark'
+  const primaryColor = isDark ? '#00D4B3' : (panelStyles?.primary_button_color || '#3b82f6')
+  const accentColor = isDark ? '#00D4B3' : (panelStyles?.accent_color || '#10b981')
+  const textColor = panelStyles?.text_color || (isDark ? '#FFFFFF' : '#1E293B')
+  const borderColor = panelStyles?.border_color || (isDark ? 'rgba(255,255,255,0.1)' : '#E2E8F0')
+  const hoverBg = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+
+  // Contrast check helper
+  const activeIconColor = isDark ? '#000000' : '#FFFFFF'
 
   // Determine X position: 
   // - Desktop (not mobile): Always 0 (visible)
@@ -303,7 +307,7 @@ export function BusinessPanelSidebar({
                     `}
                     style={{
                       backgroundColor: isActive ? primaryColor : undefined,
-                      color: isActive ? '#FFFFFF' : textColor,
+                      color: isActive ? activeIconColor : textColor,
                       opacity: isActive ? 1 : 0.7,
                       boxShadow: isActive ? `0 4px 20px -5px ${primaryColor}60` : undefined
                     }}

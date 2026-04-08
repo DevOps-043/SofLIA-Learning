@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, User, Mail, Shield, Lock, UserPlus, Camera, Sparkles, Briefcase } from 'lucide-react'
+import { X, User, Mail, Shield, Lock, UserPlus, Camera, Sparkles, Briefcase, ChevronRight, Info, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
@@ -18,7 +18,7 @@ interface BusinessAddUserModalProps {
     first_name?: string
     last_name?: string
     display_name?: string
-    job_title: string  // Antes type_rol - ahora se guarda en organization_users
+    job_title: string
     org_role?: 'owner' | 'admin' | 'member'
     profile_picture_url?: string
   }) => Promise<void>
@@ -27,14 +27,18 @@ interface BusinessAddUserModalProps {
 export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUserModalProps) {
   const { t } = useTranslation('business')
   const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Theme Colors
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
+  const primaryColor = isDark ? '#00D4B3' : (styles?.panel?.primary_button_color || '#0066FF')
+  const accentColor = isDark ? '#00D4B3' : (styles?.panel?.accent_color || '#00D4B3')
+  const textColor = isDark ? '#FFFFFF' : '#0F172A'
+  const mutedText = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)'
+  const borderColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
+  const inputBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.05)'
+  const surfaceColor = isDark ? '#0b0e14' : '#FFFFFF'
 
   const [formData, setFormData] = useState({
     username: '',
@@ -43,28 +47,23 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
     first_name: '',
     last_name: '',
     display_name: '',
-    job_title: '',  // Antes type_rol - ahora se guarda en organization_users
+    job_title: '',
     org_role: 'member' as 'owner' | 'admin' | 'member',
     profile_picture_url: ''
   })
   const [isLoading, setIsLoading] = useState(false)
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [pendingFile, setPendingFile] = useState<File | null>(null)
 
-  // Auto-fill display_name
   useEffect(() => {
-    // Actualizar siempre el display_name al cambiar nombre o apellido
     const fullName = `${formData.first_name} ${formData.last_name}`.trim()
     setFormData(prev => {
-      // Solo actualizar si cambia para evitar rerenders innecesarios
       if (prev.display_name === fullName) return prev
       return { ...prev, display_name: fullName }
     })
   }, [formData.first_name, formData.last_name])
 
-  // Reset on close
   useEffect(() => {
     if (!isOpen) {
       setFormData({
@@ -85,92 +84,39 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
   }, [isOpen])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }))
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
-    if (!allowedTypes.includes(file.type)) {
-      setError('Tipo de archivo no válido. Solo se permiten PNG, JPEG, JPG y GIF.')
-      return
-    }
-
-    // Validate size (max 10MB)
-    const maxSize = 10 * 1024 * 1024
-    if (file.size > maxSize) {
-      setError('El archivo es demasiado grande. Máximo 10MB.')
-      return
-    }
-
-    // Create preview
     const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreviewImage(reader.result as string)
-    }
+    reader.onloadend = () => setPreviewImage(reader.result as string)
     reader.readAsDataURL(file)
     setPendingFile(file)
     setError(null)
-  }
-
-  const uploadImage = async (file: File): Promise<string | null> => {
-    try {
-      setIsUploadingImage(true)
-      const formDataUpload = new FormData()
-      formDataUpload.append('file', file)
-
-      // Use a general upload endpoint that doesn't require user session
-      const response = await fetch('/api/business/users/upload-picture', {
-        method: 'POST',
-        body: formDataUpload,
-        credentials: 'include'
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Error al subir imagen')
-      }
-
-      const { imageUrl } = await response.json()
-      return imageUrl
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al subir imagen')
-      return null
-    } finally {
-      setIsUploadingImage(false)
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setError(null)
-
     try {
       let profilePictureUrl = formData.profile_picture_url
-
-      // Upload pending image first if exists
       if (pendingFile) {
-        const uploadedUrl = await uploadImage(pendingFile)
-        if (uploadedUrl) {
-          profilePictureUrl = uploadedUrl
+        const formDataUpload = new FormData()
+        formDataUpload.append('file', pendingFile)
+        const response = await fetch('/api/business/users/upload-picture', { method: 'POST', body: formDataUpload, credentials: 'include' })
+        if (response.ok) {
+          const { imageUrl } = await response.json()
+          profilePictureUrl = imageUrl
         }
       }
-
-      await onSave({
-        ...formData,
-        profile_picture_url: profilePictureUrl || undefined
-      })
+      await onSave({ ...formData, profile_picture_url: profilePictureUrl || undefined })
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al crear usuario')
+      setError(err instanceof Error ? err.message : 'Error.')
     } finally {
       setIsLoading(false)
     }
@@ -184,390 +130,84 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
     owner: { label: t('users.roles.owner'), desc: t('users.modals.add.roleDesc.owner') }
   }
 
-  const getInitials = () => {
-    if (formData.first_name && formData.last_name) {
-      return `${formData.first_name[0]}${formData.last_name[0]}`.toUpperCase()
-    }
-    if (formData.username) {
-      return formData.username[0].toUpperCase()
-    }
-    return null
-  }
-
   return (
     <AnimatePresence>
-      {/* Container - transparent backdrop */}
-      <div
-        className="fixed inset-0 flex items-center justify-center p-4"
-        style={{ zIndex: 99999 }}
-      >
-        {/* Backdrop - transparent, just for closing */}
+      <div className="fixed inset-0 flex items-center justify-center p-0 sm:p-4 isolate" style={{ zIndex: 99999 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-transparent" />
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0"
-          style={{ zIndex: 0 }}
-        />
-
-        {/* Modal */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
+           initial={{ opacity: 0, scale: 0.95, y: 20 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           exit={{ opacity: 0, scale: 0.95, y: 20 }}
+           className="relative w-full max-w-5xl h-full sm:h-[85vh] sm:max-h-[750px] flex flex-col bg-transparent overflow-hidden shadow-2xl sm:rounded-[2.5rem]"
+           onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className="rounded-2xl shadow-2xl overflow-hidden border border-white/10"
-            style={{ backgroundColor: 'var(--org-card-background, #1a1f2e)' }}
-          >
-            {/* Two Column Layout - Scrollable container */}
-            <div className="flex flex-col lg:flex-row max-h-[85vh] overflow-y-auto lg:overflow-hidden">
-
-              {/* Left Side - Preview */}
-              <div
-                className="lg:w-80 w-full p-4 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r border-white/5 shrink-0"
-                style={{ background: `linear-gradient(135deg, ${primaryColor}15, ${accentColor}10)` }}
-              >
-                <div className="flex-1 flex flex-col items-center justify-center py-2 lg:py-0">
-                  {/* Avatar Preview with Upload */}
-                  <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="relative mb-6"
-                  >
-                    <div
-                      className="w-28 h-28 rounded-2xl flex items-center justify-center text-3xl font-bold text-white overflow-hidden"
-                      style={{
-                        background: previewImage ? 'transparent' : `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-                        boxShadow: `0 8px 30px ${primaryColor}40`
-                      }}
-                    >
-                      {previewImage ? (
-                        <Image
-                          src={previewImage}
-                          alt="Preview"
-                          fill
-                          className="object-cover"
-                          sizes="112px"
-                        />
-                      ) : getInitials() ? (
-                        getInitials()
-                      ) : (
-                        <UserPlus className="w-12 h-12" />
-                      )}
+          <div className="flex flex-col h-full overflow-hidden border" style={{ backgroundColor: surfaceColor, borderColor }}>
+            <div className="relative shrink-0 pt-6 pb-4 px-6 lg:px-12 border-b border-white/5">
+               <div className="flex flex-col sm:flex-row items-center gap-8">
+                  <div className="relative shrink-0 group pointer-events-auto">
+                    <div onClick={() => fileInputRef.current?.click()} className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-2xl border-4 cursor-pointer overflow-hidden relative" style={{ background: previewImage ? 'transparent' : `linear-gradient(135deg, ${primaryColor}, ${accentColor})`, borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF' }}>
+                       {previewImage ? <Image src={previewImage} alt="Preview" fill className="object-cover" /> : <UserPlus className="w-8 h-8 text-white" strokeWidth={2.5} />}
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><Camera className="w-5 h-5 text-white" /></div>
                     </div>
-
-                    {/* Camera button */}
-                    <motion.button
-                      type="button"
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploadingImage}
-                      className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg disabled:opacity-50"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      {isUploadingImage ? (
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <Camera className="w-5 h-5 !text-white" color="#FFFFFF" strokeWidth={2} />
-                      )}
-                    </motion.button>
-
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/jpeg,image/jpg,image/png,image/gif"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-
-                    {/* Sparkle badge */}
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute -top-2 -left-2 w-8 h-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: accentColor }}
-                    >
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </motion.div>
-                  </motion.div>
-
-                  {/* User Info Preview */}
-                  <h2 className="text-xl font-bold text-white mb-1 text-center">
-                    {formData.display_name || formData.username || t('users.modals.add.title')}
-                  </h2>
-                  <p className="text-sm text-white/50 text-center mb-2">
-                    {formData.email || 'email@ejemplo.com'}
-                  </p>
-
-                  {/* Role Badge */}
-                  <div className="mb-2">
-                    <div className="text-xs text-white/50 mb-1 text-center">
-                      {t('users.modals.edit.currentRole', 'Rol actual')}
-                    </div>
-                  <div
-                      className="px-4 py-2 rounded-full text-sm font-semibold text-center"
-                      style={{ 
-                        background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
-                        color: '#FFFFFF',
-                        border: `1px solid ${primaryColor}80`,
-                        boxShadow: `0 4px 15px ${primaryColor}40`
-                      }}
-                  >
-                    {roleLabels[formData.org_role].label}
-                    </div>
+                    <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
                   </div>
-
-                  {/* Job Title Badge */}
-                  {formData.job_title && (
-                    <div className="mt-3 flex items-center gap-2 text-white/50 text-sm">
-                      <Briefcase className="w-4 h-4" />
-                      <span>{formData.job_title}</span>
-                    </div>
-                  )}
-
-                  {/* Image hint */}
-                  <p className="mt-6 text-xs text-white/30 text-center">
-                    {t('users.modals.add.hints.photo')}
-                  </p>
-                </div>
-
-                {/* Info Note */}
-                <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-sm text-white/50">
-                  <p>{t('users.modals.add.hints.creds')}</p>
-                </div>
-              </div>
-
-              {/* Right Side - Form */}
-              <div className="flex-1 flex flex-col min-w-0 max-h-[85vh] lg:max-h-full overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 lg:p-6 border-b border-white/5 shrink-0">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{t('users.modals.add.userInfoTitle')}</h3>
-                    <p className="text-sm text-white/40 mt-0.5">{t('users.modals.add.userInfoSubtitle')}</p>
+                  <div className="flex-1 text-center sm:text-left">
+                     <h2 className="text-2xl font-black tracking-tight mb-1" style={{ color: textColor }}>{formData.display_name || t('users.modals.add.title')}</h2>
+                     <div className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2" style={{ backgroundColor: inputBg, borderColor, color: mutedText }}><Info className="w-3.5 h-3.5" /><span>{t('users.modals.add.userInfoSubtitle')}</span></div>
                   </div>
-                  <button
-                    onClick={onClose}
-                    className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-                  >
-                    <X className="w-5 h-5 text-white/40" />
-                  </button>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 p-4 lg:p-6 overflow-y-auto space-y-5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
-                    {/* Error */}
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3"
-                      >
-                        <X className="w-5 h-5 text-red-400 flex-shrink-0" />
-                        <span className="text-sm text-red-400 flex-1">{error}</span>
-                      </motion.div>
-                    )}
-
-                    {/* Username & Email */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
-                          {t('users.modals.add.fields.username')} <span className="text-red-400">*</span>
-                        </label>
-                        <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }} />
-                          <input
-                            type="text"
-                            name="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                            placeholder={t('users.modals.add.placeholders.username')}
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">
-                          {t('users.modals.add.fields.email')} <span className="text-red-400">*</span>
-                        </label>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }} />
-                          <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                            placeholder={t('users.modals.add.placeholders.email')}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* First Name & Last Name */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">{t('users.modals.add.fields.firstName')}</label>
-                        <input
-                          type="text"
-                          name="first_name"
-                          value={formData.first_name}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                          placeholder={t('users.modals.add.placeholders.firstName')}
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-white/70 mb-2">{t('users.modals.add.fields.lastName')}</label>
-                        <input
-                          type="text"
-                          name="last_name"
-                          value={formData.last_name}
-                          onChange={handleChange}
-                          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                          placeholder={t('users.modals.add.placeholders.lastName')}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Password */}
-                    <div>
-                      <label className="block text-sm font-medium text-white/70 mb-2">
-                        {t('users.modals.add.fields.password')} <span className="text-red-400">*</span>
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }} />
-                        <input
-                          type="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                          minLength={6}
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                          placeholder={t('users.modals.add.placeholders.password')}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Job Title (Cargo/Puesto en la organización) */}
-                    <div>
-                      <label className="block text-sm font-medium text-white/70 mb-2">
-                        {t('users.modals.add.fields.position')} <span className="text-red-400">*</span>
-                      </label>
-                      <div className="relative">
-                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }} />
-                        <input
-                          type="text"
-                          name="job_title"
-                          value={formData.job_title}
-                          onChange={handleChange}
-                          required
-                          className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 focus:outline-none focus:border-white/20 transition-colors"
-                          placeholder={t('users.modals.add.placeholders.position')}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Org Role */}
-                    <div>
-                      <label className="block text-sm font-medium text-white/70 mb-2">
-                       {t('users.modals.add.fields.orgRole')} <span className="text-red-400">*</span>
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 lg:gap-3">
-                        {(['member', 'admin', 'owner'] as const).map((role) => (
-                          <button
-                            key={role}
-                            type="button"
-                            onClick={() => setFormData(prev => ({ ...prev, org_role: role }))}
-                            className={`p-2 lg:p-3 rounded-xl border text-left transition-all ${formData.org_role === role
-                              ? 'border-transparent'
-                              : 'border-white/10 hover:border-white/20 bg-white/5'
-                              }`}
-                            style={formData.org_role === role ? {
-                              background: `linear-gradient(135deg, ${primaryColor}30, ${accentColor}20)`,
-                              borderColor: primaryColor
-                            } : {}}
-                          >
-                            <div className="flex items-center gap-2 mb-1">
-                              <Shield className="w-4 h-4" style={{ 
-                                color: formData.org_role === role 
-                                  ? '#FFFFFF'
-                                  : (isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)')
-                              }} />
-                              <span className={`text-xs lg:text-sm font-medium ${formData.org_role === role ? 'text-white' : 'text-white/70'}`}>
-                                {roleLabels[role].label}
-                              </span>
-                            </div>
-                            <p className="text-xs text-white/40 hidden sm:block">{roleLabels[role].desc}</p>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Footer */}
-                  <div className="p-4 lg:p-6 border-t border-white/5 flex items-center justify-end gap-3 shrink-0">
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      disabled={isLoading}
-                      className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
-                      style={{
-                        color: isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isLoading) {
-                          e.currentTarget.style.color = isDark ? '#FFFFFF' : '#000000';
-                          e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)';
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      {t('users.buttons.cancel')}
-                    </button>
-                    <motion.button
-                      type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      disabled={isLoading || isUploadingImage}
-                      className="px-5 py-2.5 rounded-xl text-sm font-medium !text-white flex items-center gap-2 disabled:opacity-50"
-                      style={{
-                        backgroundColor: primaryColor,
-                        color: '#FFFFFF',
-                        boxShadow: `0 4px 15px ${primaryColor}40`
-                      }}
-                    >
-                      {isLoading || isUploadingImage ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span className="!text-white" style={{ color: '#FFFFFF' }}>
-                            {isUploadingImage ? t('users.buttons.uploading') : t('users.buttons.creating')}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4 !text-white" color="#FFFFFF" strokeWidth={2} />
-                          <span className="!text-white" style={{ color: '#FFFFFF' }}>{t('users.buttons.create')}</span>
-                        </>
-                      )}
-                    </motion.button>
-                  </div>
-                </form>
-              </div>
+                  <button onClick={onClose} className="p-3 rounded-2xl border transition-all" style={{ backgroundColor: inputBg, borderColor, color: mutedText }}><X className="w-5 h-5" /></button>
+               </div>
             </div>
+
+            <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
+               <div className="flex-1 overflow-y-auto pt-6 pb-12 px-6 lg:px-12 space-y-8" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.05) transparent' }}>
+                  {error && <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3"><AlertCircle className="w-5 h-5 text-red-400 shrink-0" /><span className="text-[10px] font-black uppercase text-red-400 flex-1">{error}</span></div>}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                     <div className="space-y-6">
+                        <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Información Personal</label>
+                        <div className="grid grid-cols-2 gap-4">
+                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="first_name" value={formData.first_name} onChange={handleChange} placeholder="Nombre" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Apellido" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                        </div>
+                        <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="username" value={formData.username} onChange={handleChange} required placeholder="Nombre de usuario" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                     </div>
+                     <div className="space-y-6">
+                        <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Credenciales y Cargo</label>
+                        <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="email" value={formData.email} onChange={handleChange} required type="email" placeholder="Correo electrónico" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="password" value={formData.password} onChange={handleChange} required type="password" placeholder="Contraseña" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="job_title" value={formData.job_title} onChange={handleChange} required placeholder="Cargo / Puesto" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                        </div>
+                     </div>
+                  </div>
+                  <div className="space-y-4">
+                     <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Permisos en la Organización</label>
+                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {(['member', 'admin', 'owner'] as const).map((role) => {
+                           const isActive = formData.org_role === role;
+                           return (
+                              <button key={role} type="button" onClick={() => setFormData(prev => ({ ...prev, org_role: role }))} className={`relative p-5 rounded-[1.8rem] text-left transition-all border ${isActive ? 'scale-[1.02] shadow-2xl' : 'opacity-60 grayscale hover:opacity-100'}`} style={{ backgroundColor: isActive ? primaryColor : inputBg, borderColor: isActive ? primaryColor : borderColor }}>
+                                 <div className="flex items-center gap-2 mb-2 min-w-0">
+                                    <Shield className="w-5 h-5 shrink-0" style={{ color: isActive ? (isDark ? '#000000' : '#FFFFFF') : mutedText }} strokeWidth={2.5} />
+                                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest truncate" style={{ color: isActive ? (isDark ? '#000000' : '#FFFFFF') : textColor }}>{roleLabels[role].label}</span>
+                                 </div>
+                                 <p className="text-[10px] opacity-60 leading-tight hidden sm:block truncate" style={{ color: isActive ? (isDark ? '#000000' : '#FFFFFF') : mutedText }}>{roleLabels[role].desc}</p>
+                              </button>
+                           );
+                        })}
+                     </div>
+                  </div>
+               </div>
+               <div className="shrink-0 p-5 px-8 flex items-center justify-between gap-4 border-t" style={{ backgroundColor: surfaceColor, borderColor }}>
+                  <div className="hidden sm:flex items-center gap-2 opacity-30 select-none"><UserPlus className="w-5 h-5" style={{ color: textColor }} /><span className="text-[9px] font-black uppercase tracking-widest" style={{ color: textColor }}>Registrar Miembro</span></div>
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                     <button type="button" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all" style={{ color: mutedText, backgroundColor: inputBg, borderColor }}>{t('users.buttons.cancel')}</button>
+                     <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-[2] sm:flex-none px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3" style={{ backgroundColor: primaryColor, color: isDark ? '#000000' : '#FFFFFF' }}>
+                        {isLoading ? <div className={`w-4 h-4 border-2 ${isDark ? 'border-black/30 border-t-black' : 'border-white/30 border-t-white'} rounded-full animate-spin`} /> : <><span className="font-black">{t('users.buttons.create')}</span><ChevronRight className="w-4 h-4" strokeWidth={3} /></>}
+                     </motion.button>
+                  </div>
+               </div>
+            </form>
           </div>
         </motion.div>
       </div>

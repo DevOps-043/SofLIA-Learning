@@ -22,6 +22,7 @@ export function NotesModal(props: NotesModalProps) {
           title: editor.title,
         })
       }
+      onDelete={() => props.onDelete && props.initialNote?.id ? props.onDelete(props.initialNote.id) : undefined}
       variant="native"
     />
   );

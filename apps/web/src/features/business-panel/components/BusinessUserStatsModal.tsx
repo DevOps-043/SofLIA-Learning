@@ -1,19 +1,22 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { BarChart3, BookOpen, Clock, TrendingUp } from 'lucide-react'
+import { 
+  BarChart3, 
+  Clock, 
+  X, 
+  User, 
+  Mail, 
+  ChevronRight, 
+  Sparkles,
+  Info
+} from 'lucide-react'
+import Image from 'next/image'
 import type { BusinessUser } from '../services/businessUsers.service'
-import {
-  buildBusinessUserStatsTabs,
-} from '../services/business-user-stats-display.service'
 import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsModalLogic'
 import {
   BusinessUserStatsActivityTab,
-  BusinessUserStatsCoursesTab,
-  BusinessUserStatsHeader,
   BusinessUserStatsOverviewTab,
-  BusinessUserStatsProgressTab,
-  BusinessUserStatsSidebar,
   type BusinessUserStatsTheme,
 } from './business-user-stats-modal'
 
@@ -21,12 +24,14 @@ interface BusinessUserStatsModalProps {
   user: BusinessUser | null
   isOpen: boolean
   onClose: () => void
+  orgSlug?: string
 }
 
 export function BusinessUserStatsModal({
   user,
   isOpen,
   onClose,
+  orgSlug,
 }: BusinessUserStatsModalProps) {
   const {
     t,
@@ -44,124 +49,165 @@ export function BusinessUserStatsModal({
     secondaryColor,
     formatMonth,
     formatDate,
-    formatRelativeTime,
     displayName,
-    initials,
-  } = useBusinessUserStatsModalLogic({ user, isOpen, onClose })
+  } = useBusinessUserStatsModalLogic({ user, isOpen, onClose, orgSlug })
 
   if (!isOpen || !user) return null
 
+  // Force strict theme standards
   const theme: BusinessUserStatsTheme = {
     isDark,
-    modalBg,
-    modalBorder,
-    textColor,
-    primaryColor,
-    accentColor,
+    modalBg: isDark ? '#0b0e14' : '#FFFFFF',
+    modalBorder: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+    textColor: isDark ? '#FFFFFF' : '#0F172A',
+    primaryColor: isDark ? '#00D4B3' : (primaryColor || '#0066FF'),
+    accentColor: isDark ? '#00D4B3' : (accentColor || '#00D4B3'),
     secondaryColor,
   }
 
-  const tabs = buildBusinessUserStatsTabs({
-    overview: 'Resumen',
-    courses: 'Cursos',
-    progress: 'Progreso',
-    activity: 'Actividad',
-  }).map((tab) => ({
-    ...tab,
-    icon:
-      tab.id === 'overview'
-        ? BarChart3
-        : tab.id === 'courses'
-          ? BookOpen
-          : tab.id === 'progress'
-            ? TrendingUp
-            : Clock,
-  }))
+  const mutedText = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(15,23,42,0.5)'
+  const inputBg = isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.05)'
+
+  // Simplified Tabs
+  const tabs = [
+    { id: 'overview', label: t('users.modals.stats.tabs.overview', 'Resumen'), icon: BarChart3 },
+    { id: 'activity', label: t('users.modals.stats.tabs.activity', 'Actividad'), icon: Clock },
+  ]
+
+  // Ensure active tab is valid after simplification
+  const safeActiveTab = activeTab === 'activity' ? 'activity' : 'overview'
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 flex items-center justify-center" style={{ zIndex: 99999 }}>
+      <div className="fixed inset-0 flex items-center justify-center p-0 sm:p-4 isolate" style={{ zIndex: 99999 }}>
+        {/* Backdrop - COMPLETELY TRANSPARENT */}
         <motion.div
-          initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          className="absolute inset-0 bg-transparent"
           exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0"
         />
 
+        {/* Modal Container - STREECT HEIGHT FOR 13" Laptops */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
-          className="relative w-full max-w-5xl mx-4 max-h-[90vh] flex"
-          onClick={(event) => event.stopPropagation()}
+           initial={{ opacity: 0, scale: 0.95, y: 20 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           exit={{ opacity: 0, scale: 0.95, y: 20 }}
+           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+           className="relative w-full max-w-5xl h-full sm:h-[85vh] sm:max-h-[750px] flex flex-col bg-transparent overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:rounded-[2.5rem]"
+           onClick={(event) => event.stopPropagation()}
         >
           <div
-            className="rounded-2xl shadow-2xl overflow-hidden border w-full flex flex-col"
-            style={{ backgroundColor: modalBg, borderColor: modalBorder }}
+            className="flex flex-col h-full bg-transparent overflow-hidden border"
+            style={{
+              backgroundColor: theme.modalBg,
+              borderColor: theme.modalBorder,
+            }}
           >
-            <div className="flex min-h-[500px] max-h-[85vh]">
-              <BusinessUserStatsSidebar
-                user={user}
-                displayName={displayName}
-                initials={initials}
-                t={t}
-                theme={theme}
-                formatDate={formatDate}
-                formatRelativeTime={formatRelativeTime}
-              />
+            {/* 1. Header Section - Top-Down architecture */}
+            <div className="relative shrink-0 pt-6 sm:pt-8 pb-4 sm:pb-6 px-6 lg:px-12 border-b border-white/5">
+                <div className="relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8">
+                   {/* Avatar Circle */}
+                   <div className="relative shrink-0">
+                     <div
+                        className="w-16 h-16 sm:w-20 sm:h-20 rounded-[1.5rem] sm:rounded-[2rem] flex items-center justify-center shadow-2xl border-2 sm:border-4"
+                        style={{
+                           background: user.profile_picture_url ? 'transparent' : `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                           borderColor: isDark ? 'rgba(255,255,255,0.05)' : '#FFFFFF',
+                        }}
+                     >
+                        {user.profile_picture_url ? (
+                           <Image src={user.profile_picture_url} alt={displayName} fill className="object-cover rounded-[1.5rem] sm:rounded-[2rem]" />
+                        ) : (
+                           <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" strokeWidth={2.5} />
+                        )}
+                     </div>
+                   </div>
 
-              <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <BusinessUserStatsHeader
-                  activeTab={activeTab}
-                  onChangeTab={setActiveTab}
-                  onClose={onClose}
-                  tabs={tabs}
-                  theme={theme}
-                />
+                   <div className="flex-1 text-center sm:text-left min-w-0">
+                      <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-1 truncate" style={{ color: theme.textColor }}>
+                         {displayName}
+                      </h2>
+                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                         <div className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2" style={{ backgroundColor: inputBg, borderColor: theme.modalBorder, color: mutedText }}>
+                            <Mail className="w-3.5 h-3.5" />
+                            <span className="truncate max-w-[150px] sm:max-w-none">{user.email}</span>
+                         </div>
+                         <div className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2 capitalize" style={{ backgroundColor: `${theme.primaryColor}15`, borderColor: `${theme.primaryColor}20`, color: theme.primaryColor }}>
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>{user.org_role}</span>
+                         </div>
+                      </div>
+                   </div>
 
-                <div
-                  className="flex-1 overflow-y-auto p-3 lg:p-4"
+                   {/* Tabs / Chips */}
+                   <div className="flex items-center gap-2 shrink-0">
+                      {tabs.map((tab) => (
+                         <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`p-2.5 rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${safeActiveTab === tab.id ? 'shadow-xl' : 'opacity-30 grayscale hover:opacity-100 hover:grayscale-0'}`}
+                            style={safeActiveTab === tab.id ? {
+                               backgroundColor: theme.primaryColor,
+                               color: isDark ? '#000000' : '#FFFFFF',
+                            } : {
+                               backgroundColor: inputBg,
+                               color: theme.textColor,
+                            }}
+                         >
+                            <tab.icon className="w-4 h-4" />
+                            <span className="hidden xs:inline">{tab.label}</span>
+                         </button>
+                      ))}
+                   </div>
+
+                   <button 
+                      onClick={onClose} 
+                      className="p-3 rounded-2xl transition-all border shrink-0"
+                      style={{
+                         backgroundColor: inputBg,
+                         borderColor: theme.modalBorder,
+                         color: mutedText,
+                      }}
+                   >
+                      <X className="w-5 h-5" />
+                   </button>
+                </div>
+            </div>
+
+            {/* 2. Content Area */}
+            <div className="flex-1 overflow-hidden relative">
+               <div
+                  className="h-full overflow-y-auto pt-6 pb-24 sm:pb-32 px-6 lg:px-12"
                   style={{
                     scrollbarWidth: 'thin',
-                    scrollbarColor: 'rgba(255,255,255,0.1) transparent',
+                    scrollbarColor: 'rgba(255,255,255,0.05) transparent',
                   }}
-                >
+               >
                   {loading ? (
-                    <div className="flex items-center justify-center py-12">
+                    <div className="flex flex-col items-center justify-center py-24 gap-4">
                       <div
-                        className="w-8 h-8 border-3 rounded-full animate-spin"
+                        className="w-12 h-12 border-[3px] rounded-full animate-spin"
                         style={{
-                          borderColor: `${primaryColor}30`,
-                          borderTopColor: primaryColor,
+                          borderColor: `${theme.primaryColor}20`,
+                          borderTopColor: theme.primaryColor,
                         }}
                       />
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{t('common.loading', 'Cargando datos...')}</span>
                     </div>
                   ) : error ? (
-                    <div className="text-center py-12 text-red-400">{error}</div>
+                    <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+                       <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2">
+                          <Info className="w-8 h-8 text-red-500" />
+                       </div>
+                       <p className="text-red-400 font-black uppercase text-xs">{error}</p>
+                    </div>
                   ) : stats ? (
-                    <>
-                      {activeTab === 'overview' ? (
+                    <div className="max-w-5xl mx-auto">
+                      {safeActiveTab === 'overview' ? (
                         <BusinessUserStatsOverviewTab stats={stats} t={t} theme={theme} />
-                      ) : null}
-                      {activeTab === 'courses' ? (
-                        <BusinessUserStatsCoursesTab
-                          stats={stats}
-                          t={t}
-                          theme={theme}
-                          formatDate={formatDate}
-                        />
-                      ) : null}
-                      {activeTab === 'progress' ? (
-                        <BusinessUserStatsProgressTab
-                          stats={stats}
-                          t={t}
-                          theme={theme}
-                          formatDate={formatDate}
-                        />
-                      ) : null}
-                      {activeTab === 'activity' ? (
+                      ) : (
                         <BusinessUserStatsActivityTab
                           stats={stats}
                           t={t}
@@ -169,11 +215,39 @@ export function BusinessUserStatsModal({
                           formatDate={formatDate}
                           formatMonth={formatMonth}
                         />
-                      ) : null}
-                    </>
+                      )}
+                    </div>
                   ) : null}
-                </div>
-              </div>
+               </div>
+
+               {/* Footer / Status Bar - ULTA COMPACT */}
+               <div 
+                  className="absolute bottom-0 left-0 right-0 p-5 px-8 flex items-center justify-between gap-4 border-t"
+                  style={{ backgroundColor: theme.modalBg, borderColor: theme.modalBorder }}
+               >
+                  <div className="hidden sm:flex items-center gap-3 opacity-30 select-none">
+                     <BarChart3 className="w-5 h-5" style={{ color: theme.textColor }} />
+                     <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.textColor }}>Panel de Analítica</span>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                     <button
+                        onClick={onClose}
+                        className="flex-1 sm:flex-none px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                        style={{ color: mutedText, backgroundColor: inputBg, borderColor: theme.modalBorder }}
+                     >
+                        {t('common.close', 'Cerrar')}
+                     </button>
+                     <button
+                        onClick={onClose}
+                        className="flex-[2] sm:flex-none px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-2xl flex items-center justify-center gap-3"
+                        style={{ backgroundColor: theme.primaryColor, color: isDark ? '#000000' : '#FFFFFF' }}
+                     >
+                        <span className="font-black">{t('common.done', 'Finalizar')}</span>
+                        <ChevronRight className="w-4 h-4" strokeWidth={3} />
+                     </button>
+                  </div>
+               </div>
             </div>
           </div>
         </motion.div>

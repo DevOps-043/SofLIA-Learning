@@ -48,98 +48,72 @@ export function useBusinessUsersPageLogic() {
   }
 
   // Wrapped actions with notifications
+  // These underlying functions throw on failure and return void on success,
+  // so we use try/catch instead of checking result.success.
   const handleSaveNewUser = async (userData: CreateBusinessUserRequest) => {
     try {
-      const result = await createUser(userData)
-      if (result.success) {
-        showToast('Usuario creado con éxito', 'success')
-        setIsAddModalOpen(false)
-        refetch()
-      } else {
-        showToast(result.error || 'Error al crear usuario', 'error')
-      }
+      await createUser(userData)
+      showToast('Usuario creado con éxito', 'success')
+      setIsAddModalOpen(false)
+      refetch()
     } catch (err) {
-      showToast('Error inesperado al crear usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al crear usuario', 'error')
     }
   }
 
   const resendInvitation = async (id: string) => {
     try {
-      const result = await originalResendInvitation(id)
-      if (result.success) {
-        showToast('Invitación reenviada con éxito', 'success')
-      } else {
-        showToast(result.error || 'Error al reenviar invitación', 'error')
-      }
+      await originalResendInvitation(id)
+      showToast('Invitación reenviada con éxito', 'success')
     } catch (err) {
-      showToast('Error inesperado al reenviar invitación', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al reenviar invitación', 'error')
     }
   }
 
   const suspendUser = async (id: string) => {
     try {
-      const result = await originalSuspendUser(id)
-      if (result.success) {
-        showToast('Usuario suspendido', 'success')
-      } else {
-        showToast(result.error || 'Error al suspender usuario', 'error')
-      }
+      await originalSuspendUser(id)
+      showToast('Usuario suspendido', 'success')
     } catch (err) {
-      showToast('Error inesperado al suspender usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al suspender usuario', 'error')
     }
   }
 
   const activateUser = async (id: string) => {
     try {
-      const result = await originalActivateUser(id)
-      if (result.success) {
-        showToast('Usuario activado', 'success')
-      } else {
-        showToast(result.error || 'Error al activar usuario', 'error')
-      }
+      await originalActivateUser(id)
+      showToast('Usuario activado', 'success')
     } catch (err) {
-      showToast('Error inesperado al activar usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al activar usuario', 'error')
     }
   }
 
   const deleteUser = async (id: string) => {
     try {
-      const result = await originalDeleteUser(id)
-      if (result.success) {
-        showToast('Usuario eliminado con éxito', 'success')
-        setIsDeleteModalOpen(false)
-        setDeletingUser(null)
-      } else {
-        showToast(result.error || 'Error al eliminar usuario', 'error')
-      }
+      await originalDeleteUser(id)
+      showToast('Usuario eliminado con éxito', 'success')
+      setIsDeleteModalOpen(false)
+      setDeletingUser(null)
     } catch (err) {
-      showToast('Error inesperado al eliminar usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al eliminar usuario', 'error')
     }
   }
 
   const updateInviteLinkStatus = async (id: string, action: 'pause' | 'resume') => {
     try {
-      const result = await originalUpdateInviteLinkStatus(id, action)
-      if (result.success) {
-        showToast(action === 'pause' ? 'Enlace pausado' : 'Enlace reactivado', 'success')
-      } else {
-        showToast(result.error || 'Error al actualizar enlace', 'error')
-      }
+      await originalUpdateInviteLinkStatus(id, action)
+      showToast(action === 'pause' ? 'Enlace pausado' : 'Enlace reactivado', 'success')
     } catch (err) {
-      showToast('Error inesperado al actualizar enlace', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al actualizar enlace', 'error')
     }
   }
 
   const deleteInviteLink = async (id: string) => {
     try {
-      const result = await originalDeleteInviteLink(id)
-      if (result.success) {
-        showToast('Enlace eliminado', 'success')
-      } else {
-        showToast(result.error || 'Error al eliminar enlace', 'error')
-      }
+      await originalDeleteInviteLink(id)
+      showToast('Enlace eliminado', 'success')
     } catch (err) {
-      showToast('Error inesperado al eliminar enlace', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al eliminar enlace', 'error')
     }
   }
 
@@ -271,15 +245,22 @@ export function useBusinessUsersPageLogic() {
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
 
-  const themeColors = useMemo(() => ({
-    text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
-    secondaryText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
-    cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
-    borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
-    primary: panelStyles?.primary_button_color || '#0A2540',
-    secondary: panelStyles?.secondary_button_color || '#1E2329',
-    accent: panelStyles?.accent_color || '#00D4B3'
-  }), [panelStyles, isDark])
+  const themeColors = useMemo(() => {
+    // In Dark Mode, the primary action color should ALWAYS be Green (#00D4B3) per Design System
+    // even if the organization has a different primary color for light mode.
+    const activePrimary = isDark ? '#00D4B3' : (panelStyles?.primary_button_color || '#0A2540')
+    const activeAccent = isDark ? '#00D4B3' : (panelStyles?.accent_color || '#00D4B3')
+
+    return {
+      text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
+      secondaryText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
+      cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
+      borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
+      primary: activePrimary,
+      secondary: panelStyles?.secondary_button_color || '#1E2329',
+      accent: activeAccent
+    }
+  }, [panelStyles, isDark])
 
   const { primary: primaryColor, secondary: secondaryColor, accent: accentColor } = themeColors
 

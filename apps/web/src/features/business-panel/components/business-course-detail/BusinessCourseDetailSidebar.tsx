@@ -38,8 +38,12 @@ export function BusinessCourseDetailSidebar({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="rounded-2xl p-4 sm:p-6 border sticky top-6 shadow-sm"
-      style={{ backgroundColor: cardBackground, borderColor }}
+      className="rounded-[2rem] lg:rounded-[2.5rem] p-6 lg:p-8 xl:p-10 border sticky top-8 shadow-2xl overflow-hidden"
+      style={{ 
+        backgroundColor: isDark ? 'rgba(30, 35, 41, 0.8)' : '#FFFFFF', 
+        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+        backdropBlur: '20px'
+      }}
     >
       <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b" style={{ borderColor }}>
         {course.subscription_status?.is_organization_purchased ? (
@@ -48,21 +52,21 @@ export function BusinessCourseDetailSidebar({
               <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: accentColor }} />
             </div>
             <div className="min-w-0">
-              <span className="text-xl sm:text-2xl font-bold block truncate" style={{ color: accentColor }}>Adquirido</span>
-              <p className="text-xs sm:text-sm truncate" style={{ color: `${textColor}60` }}>Listo para asignar</p>
+              <span className="text-xl lg:text-2xl font-bold block truncate" style={{ color: accentColor }}>Adquirido</span>
+              <p className="text-[10px] lg:text-sm truncate" style={{ color: `${textColor}60` }}>Listo para asignar</p>
             </div>
           </div>
         ) : course.subscription_status?.can_purchase_for_free ? (
           <div>
-            <span className="text-3xl font-bold" style={{ color: primaryColor }}>Gratis</span>
-            <p className="text-sm mt-1" style={{ color: `${textColor}60` }}>Incluido en tu membresia</p>
+            <span className="text-2xl lg:text-3xl font-bold" style={{ color: primaryColor }}>Gratis</span>
+            <p className="text-[10px] lg:text-sm mt-1" style={{ color: `${textColor}60` }}>Incluido en tu membresia</p>
           </div>
         ) : (
           <div>
-            <span className="text-3xl font-bold" style={{ color: textColor }}>
+            <span className="text-2xl lg:text-3xl font-bold" style={{ color: textColor }}>
               ${course.price?.toFixed(2) || '0.00'}
             </span>
-            <span className="text-sm ml-2" style={{ color: `${textColor}60` }}>USD</span>
+            <span className="text-xs lg:text-sm ml-2" style={{ color: `${textColor}60` }}>USD</span>
           </div>
         )}
       </div>
@@ -75,7 +79,7 @@ export function BusinessCourseDetailSidebar({
           style={{ backgroundColor: `${accentColor}15`, borderColor: `${accentColor}30` }}
         >
           <CheckCircle2 className="w-5 h-5" style={{ color: accentColor }} />
-          <span className="text-sm font-medium" style={{ color: accentColor }}>Curso adquirido exitosamente</span>
+          <span className="text-xs font-medium" style={{ color: accentColor }}>Curso adquirido exitosamente</span>
         </motion.div>
       ) : null}
 
@@ -87,7 +91,7 @@ export function BusinessCourseDetailSidebar({
           style={{ backgroundColor: 'rgba(239,68,68,0.15)', borderColor: 'rgba(239,68,68,0.3)' }}
         >
           <AlertCircle className="w-5 h-5 text-red-400" />
-          <span className="text-sm font-medium text-red-400">{purchaseError}</span>
+          <span className="text-xs font-medium text-red-400">{purchaseError}</span>
         </motion.div>
       ) : null}
 
@@ -96,33 +100,33 @@ export function BusinessCourseDetailSidebar({
         whileTap={{ scale: 0.98 }}
         onClick={course.subscription_status?.is_organization_purchased ? () => setIsAssignModalOpen(true) : onPurchase}
         disabled={isPurchasing || course.subscription_status?.has_subscription === false}
-        className="w-full py-4 rounded-xl font-semibold !text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+        className="w-full py-4 lg:py-5 rounded-2xl font-black uppercase tracking-widest text-white flex items-center justify-center gap-2 transition-all disabled:opacity-50 text-[10px] lg:text-xs"
         style={{
-          backgroundColor: primaryColor,
+          backgroundColor: accentColor,
           color: '#FFFFFF',
-          boxShadow: `0 8px 30px ${primaryColor}40`
+          boxShadow: `0 8px 30px ${accentColor}40`
         }}
       >
         {isPurchasing ? (
           <>
-            <Loader2 className="w-5 h-5 animate-spin !text-white" color="#FFFFFF" />
-            <span className="!text-white" style={{ color: '#FFFFFF' }}>Procesando...</span>
+            <Loader2 className="w-5 h-5 animate-spin text-white shrink-0" />
+            <span className="text-white">Procesando...</span>
           </>
         ) : course.subscription_status?.is_organization_purchased ? (
           <>
-            <Users className="w-5 h-5 !text-white" color="#FFFFFF" />
-            <span className="!text-white" style={{ color: '#FFFFFF' }}>Asignar a Usuarios</span>
+            <Users className="w-4 h-4 lg:w-5 lg:h-5 text-white shrink-0" />
+            <span className="text-white">Asignar a Usuarios</span>
           </>
         ) : (
           <>
-            <Zap className="w-5 h-5 !text-white" color="#FFFFFF" />
-            <span className="!text-white" style={{ color: '#FFFFFF' }}>Adquirir Curso</span>
+            <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-white shrink-0" />
+            <span className="text-white">Adquirir Curso</span>
           </>
         )}
       </motion.button>
 
       {course.subscription_status?.has_subscription === false ? (
-        <p className="text-center text-sm mt-3" style={{ color: `${textColor}50` }}>
+        <p className="text-center text-[10px] mt-3" style={{ color: `${textColor}50` }}>
           Requiere una membresia activa
         </p>
       ) : null}
@@ -135,8 +139,8 @@ export function BusinessCourseDetailSidebar({
           { icon: TrendingUp, text: `Actualizado ${formatDate(course.updated_at)}` }
         ].map(feature => (
           <div key={feature.text} className="flex items-center gap-3">
-            <feature.icon className="w-5 h-5" style={{ color: accentColor }} />
-            <span className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : `${textColor}80` }}>{feature.text}</span>
+            <feature.icon className="w-4 h-4 lg:w-5 lg:h-5" style={{ color: accentColor }} />
+            <span className="text-xs" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : `${textColor}80` }}>{feature.text}</span>
           </div>
         ))}
       </div>

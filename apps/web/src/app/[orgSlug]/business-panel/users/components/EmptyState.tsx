@@ -1,14 +1,17 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { UserPlus, Sparkles } from 'lucide-react'
+import { UserPlus, Plus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useThemeStore } from '@/core/stores/themeStore'
 
 // ============================================
 // COMPONENTE: Empty State Premium
 // ============================================
 function EmptyState({ onAddClick, primaryColor, secondaryColor }: { onAddClick: () => void, primaryColor: string, secondaryColor: string }) {
   const { t } = useTranslation('business')
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

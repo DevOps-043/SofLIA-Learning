@@ -1,60 +1,75 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { LucideIcon } from 'lucide-react'
 
 export interface CourseStatCardProps {
   title: string
   value: string | number
-  icon: React.ElementType
+  icon: LucideIcon
   color: string
   delay: number
   isDark?: boolean
 }
 
 export function CourseStatCard({ title, value, icon: Icon, color, delay, isDark }: CourseStatCardProps) {
+  const textColor = isDark ? '#FFFFFF' : '#0F172A'
+  const iconColor = isDark ? color : '#0A2540'
+  const isLightMode = !isDark
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ delay: delay * 0.1, duration: 0.4 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      className="relative group overflow-hidden rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: delay * 0.05, duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px] border"
       style={{
-        backgroundColor: 'var(--org-card-background, #1E2329)',
-        border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)'
+        backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(15, 20, 25, 0.6)',
+        backdropFilter: 'blur(20px)',
+        borderColor: isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)',
+        boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.05)' : '0 10px 30px -10px rgba(0,0,0,0.4)',
       }}
     >
-      {/* Glow effect on hover */}
-      <motion.div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{ background: `radial-gradient(circle at 50% 50%, ${color}15, transparent 70%)` }}
-      />
-
-      {/* Content */}
-      <div className="relative z-10 flex items-center gap-4">
-        <div
-          className="p-3 rounded-xl"
-          style={{ backgroundColor: `${color}20` }}
+      <div className="relative z-10 flex items-center gap-4 w-full">
+        {/* Sleek icon wrapper */}
+        <div 
+          className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+          style={{
+             background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
+             border: `1px solid ${iconColor}25`
+          }}
         >
-          <Icon className="w-6 h-6" style={{ color }} />
+          <Icon className="w-5 h-5" style={{ color: iconColor }} />
         </div>
-        <div>
-          <h4 className="text-2xl font-bold" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
-            {typeof value === 'number' ? value.toLocaleString() : value}
-          </h4>
-          <p className="text-sm font-medium" style={{ color: isDark ? 'rgba(255, 255, 255, 0.7)' : '#64748B' }}>
+
+        {/* Text content */}
+        <div className="flex flex-col justify-center overflow-hidden">
+          <p 
+            className="text-[10px] uppercase tracking-widest font-bold mb-1 truncate w-full" 
+            style={{ color: isLightMode ? '#64748B' : '#858E9B', opacity: 0.9 }}
+          >
             {title}
+          </p>
+          <p 
+            className="text-2xl font-extrabold leading-none tracking-tight truncate w-full" 
+            style={{ color: textColor }}
+          >
+            {value}
           </p>
         </div>
       </div>
 
-      {/* Subtle gradient bar */}
-      <motion.div
-        className="absolute bottom-0 left-0 h-1 rounded-r-full"
-        style={{ backgroundColor: color }}
-        initial={{ width: 0 }}
-        animate={{ width: '40%' }}
-        transition={{ delay: delay * 0.1 + 0.3, duration: 0.6 }}
+      {/* Subtle modern abstract glow */}
+      <div 
+        className="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-all duration-700 ease-out group-hover:opacity-40 group-hover:scale-110"
+        style={{ backgroundColor: iconColor }}
+      />
+      
+      {/* Subtle accent bar matching dashboard pattern */}
+      <div 
+        className="absolute bottom-0 left-0 h-[2px] rounded-r-full group-hover:w-1/2 transition-all duration-700 opacity-60"
+        style={{ width: '20%', backgroundColor: iconColor }}
       />
     </motion.div>
   )

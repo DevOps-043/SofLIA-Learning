@@ -93,8 +93,8 @@ export function HierarchySettings() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-neutral-400 dark:text-neutral-500 text-sm">Cargando configuración...</p>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00D4B3] mx-auto mb-4"></div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white/30 truncate">Cargando Configuración...</p>
         </div>
       </div>
     );
@@ -134,11 +134,11 @@ export function HierarchySettings() {
           {/* Title row */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00D4B3] to-[#00D4B3] flex items-center justify-center shadow-lg shadow-[#00D4B3]/20">
                 <Building2 className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-neutral-900 dark:text-white">
+                <h2 className="text-xl font-black tracking-tight text-[#0A2540] dark:text-white leading-none">
                   Estructura Jerárquica
                 </h2>
                 <p className="text-sm text-neutral-500 dark:text-white/40 mt-0.5">
@@ -187,7 +187,7 @@ export function HierarchySettings() {
                 <button
                   onClick={handleCreateStructure}
                   disabled={isLoading}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98]"
+                  className="px-6 py-2.5 bg-[#0A2540] dark:bg-[#00D4B3] hover:brightness-110 !text-white dark:!text-[#0A2540] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl active:scale-95"
                 >
                   {isLoading ? 'Creando...' : 'Crear'}
                 </button>
@@ -382,8 +382,8 @@ function UserBehaviorSettings({
                 aria-checked={isActive}
                 disabled={isBusy}
                 onClick={() => handleToggle(item.key, isActive)}
-                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1E2329] disabled:opacity-50 disabled:cursor-not-allowed ${isActive
-                    ? 'bg-blue-600'
+                className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-300 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4B3] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#1E2329] disabled:opacity-50 disabled:cursor-not-allowed ${isActive
+                    ? 'bg-[#00D4B3]'
                     : 'bg-neutral-300 dark:bg-white/15'
                   }`}
               >
@@ -542,7 +542,7 @@ function ConfirmModal({
   isLoading?: boolean;
 }) {
   const buttonStyles: Record<string, string> = {
-    default: 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/25',
+    default: 'bg-[#0A2540] dark:bg-[#00D4B3] hover:brightness-110 !text-white dark:!text-[#0A2540]',
     success: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25',
     danger: 'bg-red-600 hover:bg-red-700 shadow-red-600/25',
     neutral: 'bg-neutral-600 hover:bg-neutral-700 shadow-neutral-600/25',

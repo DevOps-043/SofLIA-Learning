@@ -92,7 +92,7 @@ export function UsersPageHeader({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
-              style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}
+              style={{ color: '#FFFFFF' }}
             >
               {t('users.title')}
             </motion.h1>
@@ -102,7 +102,7 @@ export function UsersPageHeader({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              style={{ color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(15,23,42,0.8)' }}
+              style={{ color: 'rgba(255,255,255,0.8)' }}
             >
               {t('users.subtitle')}
             </motion.p>
@@ -114,13 +114,13 @@ export function UsersPageHeader({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4 }}
               onClick={onDownloadTemplate}
-              className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
               style={{
-                color: isDark ? '#FFFFFF' : '#0F172A',
-                borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+                color: '#FFFFFF',
+                borderColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
               }}
-              whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
               whileTap={{ scale: 0.98 }}
             >
               <Download className="w-4 h-4" />
@@ -132,13 +132,13 @@ export function UsersPageHeader({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.45 }}
               onClick={onImportClick}
-              className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
               style={{
-                color: isDark ? '#FFFFFF' : '#0F172A',
-                borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+                color: '#FFFFFF',
+                borderColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
               }}
-              whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
               whileTap={{ scale: 0.98 }}
             >
               <Upload className="w-4 h-4" />
@@ -150,13 +150,13 @@ export function UsersPageHeader({
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.45 }}
               onClick={onInviteClick}
-              className="px-4 py-2.5 rounded-xl font-medium text-sm border transition-colors flex items-center gap-2"
+              className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
               style={{
-                color: isDark ? '#FFFFFF' : '#0F172A',
-                borderColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                backgroundColor: isDark ? 'transparent' : 'rgba(0,0,0,0.05)',
+                color: '#FFFFFF',
+                borderColor: 'rgba(255,255,255,0.2)',
+                backgroundColor: 'rgba(255,255,255,0.05)',
               }}
-              whileHover={{ scale: 1.02, backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
+              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
               whileTap={{ scale: 0.98 }}
             >
               <Mail className="w-4 h-4" />
@@ -171,14 +171,14 @@ export function UsersPageHeader({
               className="px-6 py-2.5 rounded-xl font-bold text-sm !text-white transition-all flex items-center gap-2"
               style={{
                 backgroundColor: primaryColor,
-                color: '#FFFFFF',
+                color: isDark ? '#000000' : '#FFFFFF',
                 boxShadow: `0 8px 30px ${primaryColor}40`,
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Plus className="w-5 h-5 !text-white" color="#FFFFFF" strokeWidth={3} />
-              <span className="!text-white font-bold" style={{ color: '#FFFFFF' }}>
+              <Plus className="w-5 h-5" color={isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
+              <span className="font-bold" style={{ color: isDark ? '#000000' : '#FFFFFF' }}>
                 {t('users.buttons.add')}
               </span>
             </motion.button>

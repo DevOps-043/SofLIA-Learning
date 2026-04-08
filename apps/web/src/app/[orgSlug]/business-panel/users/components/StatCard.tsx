@@ -1,137 +1,113 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowTrendingUpIcon } from '@heroicons/react/24/outline'
+import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline'
 
 // ============================================
-// COMPONENTE: StatCard Premium
+// COMPONENTE: StatCard Premium (Match Dashboard)
 // ============================================
 interface StatCardProps {
   title: string
-  value: number
+  value: number | string
   icon: React.ReactNode
   gradient: string
   delay: number
   trend?: number
   isDark?: boolean
   onClick?: () => void
+  accentColor?: string
+  primaryColor?: string
 }
 
-function StatCard({ title, value, icon, gradient, delay, trend = 0, isDark, onClick }: StatCardProps) {
+function StatCard({ 
+  title, 
+  value, 
+  icon, 
+  gradient, 
+  delay, 
+  trend = 0, 
+  isDark, 
+  onClick, 
+  accentColor = '#00D4B3', 
+  primaryColor = '#0A2540' 
+}: StatCardProps) {
+  const isPositive = trend >= 0
+  const iconColor = isDark ? accentColor : primaryColor
+  const textColor = isDark ? '#FFFFFF' : '#0F172A'
+  const subTextColor = isDark ? '#858E9B' : '#475569'
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.9 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: delay * 0.05, duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -2 }}
+      className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px] cursor-pointer"
+      style={{
+        backgroundColor: isDark ? 'rgba(15, 20, 25, 0.6)' : '#FFFFFF',
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.05)'}`,
+        boxShadow: isDark ? '0 10px 30px -10px rgba(0,0,0,0.4)' : '0 4px 20px -10px rgba(0,0,0,0.05)',
+      }}
       onClick={onClick}
-      transition={{
-        delay: delay * 0.1,
-        duration: 0.6,
-        type: "spring",
-        stiffness: 120,
-        damping: 14
-      }}
-      whileHover={{
-        y: -6,
-        scale: 1.02,
-        transition: { duration: 0.3, type: "spring", stiffness: 300 }
-      }}
-      className="relative group overflow-hidden rounded-2xl cursor-pointer"
-      style={{ backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF' }}
     >
-      {/* Animated Border Glow */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{
-          background: gradient,
-          padding: '1px',
-          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          maskComposite: 'exclude',
-          WebkitMaskComposite: 'xor'
-        }}
-      />
-
-      {/* Glassmorphism Border */}
-      <div className="absolute inset-0 rounded-2xl border border-white/10 group-hover:border-white/20 transition-colors duration-500" />
-
-      {/* Background Gradient */}
-      <div
-        className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-500"
-        style={{ background: gradient }}
-      />
-
-      {/* Soft Glow */}
-      <motion.div
-        className="absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-40 transition-all duration-700"
-        style={{ background: gradient }}
-      />
-
-      {/* Content */}
-      <div className="relative z-10 p-5">
-        <div className="flex items-start justify-between mb-4">
-          {/* Icon Container */}
-          <motion.div
-            className="p-3 rounded-xl backdrop-blur-md border border-white/10"
-            style={{ background: `${gradient.split(',')[0].replace('linear-gradient(135deg, ', '')}20` }}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 400 }}
-          >
+      <div className="relative z-10 flex items-center gap-4 w-full">
+        {/* Sleek icon wrapper */}
+        <div 
+          className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+          style={{
+             background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
+             border: `1px solid ${iconColor}25`
+          }}
+        >
+          <div className="w-5 h-5 flex items-center justify-center" style={{ color: iconColor }}>
             {icon}
-          </motion.div>
-
-          {/* Trend Badge */}
-          {trend !== 0 && (
-            <motion.div
-              className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold backdrop-blur-md border border-emerald-500/30 bg-emerald-500/15 text-emerald-400"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: delay * 0.1 + 0.3, type: "spring" }}
-            >
-              <ArrowTrendingUpIcon className="h-3 w-3" />
-              +{trend}%
-            </motion.div>
-          )}
+          </div>
         </div>
 
-        <motion.h3
-          className="text-3xl font-black tracking-tight mb-1"
-          style={{
-            color: isDark ? '#FFFFFF' : '#0F172A',
-            textShadow: isDark ? '0 0 20px rgba(0,212,179,0.2)' : 'none'
-          }}
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: delay * 0.1 + 0.2 }}
-        >
-          {value.toLocaleString()}
-        </motion.h3>
-
-        <motion.p
-          className="text-sm font-semibold tracking-wide uppercase"
-          style={{ color: isDark ? '#E5E7EB' : '#64748B', letterSpacing: '0.05em' }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isDark ? 0.9 : 0.7 }}
-          transition={{ delay: delay * 0.1 + 0.3 }}
-        >
-          {title}
-        </motion.p>
-
-        {/* Animated Progress Bar */}
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden"
-          style={{ backgroundColor: 'rgba(255,255,255,0.05)' }}
-        >
-          <motion.div
-            className="h-full rounded-r-full"
-            style={{ background: gradient }}
-            initial={{ width: 0 }}
-            animate={{ width: '50%' }}
-            transition={{ delay: delay * 0.1 + 0.5, duration: 0.8 }}
-          />
-        </motion.div>
+        {/* Text content */}
+        <div className="flex flex-col justify-center overflow-hidden">
+          <div className="flex items-center gap-2 mb-1">
+             <p 
+               className="text-[10px] uppercase tracking-widest font-bold truncate" 
+               style={{ color: subTextColor, opacity: 0.9 }}
+             >
+               {title}
+             </p>
+             {trend !== 0 && (
+                <div className={`flex items-center text-[10px] font-bold ${isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
+                   {isPositive ? '+' : ''}{trend}%
+                </div>
+             )}
+          </div>
+          <p 
+            className="text-2xl font-extrabold leading-none tracking-tight truncate w-full" 
+            style={{ color: textColor }}
+          >
+            {typeof value === 'number' ? value.toLocaleString() : value}
+          </p>
+        </div>
       </div>
+
+      {/* Subtle modern abstract glow */}
+      <div 
+        className="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-all duration-700 ease-out group-hover:opacity-40 group-hover:scale-110"
+        style={{ backgroundColor: iconColor }}
+      />
+      
+      {/* Bottom accent line on hover */}
+      <motion.div 
+        className="absolute bottom-0 left-0 h-[2px]"
+        style={{ background: iconColor }}
+        initial={{ width: 0 }}
+        whileHover={{ width: '40%' }}
+        transition={{ duration: 0.4 }}
+      />
     </motion.div>
   )
 }
 
 export { StatCard }
 export type { StatCardProps }
+
+

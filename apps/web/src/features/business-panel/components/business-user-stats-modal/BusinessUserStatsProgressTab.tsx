@@ -14,7 +14,7 @@ export function BusinessUserStatsProgressTab({
   theme,
   formatDate,
 }: Pick<BusinessUserStatsTabProps, 'stats' | 't' | 'theme' | 'formatDate'>) {
-  if (stats.courses_data.length === 0) {
+  if ((stats.courses_data ?? []).length === 0) {
     return (
       <BusinessUserStatsEmptyState
         icon={TrendingUp}
@@ -26,7 +26,7 @@ export function BusinessUserStatsProgressTab({
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-5">
-      {stats.courses_data.map((course, index) => {
+      {(stats.courses_data ?? []).map((course, index) => {
         const progressColor = getBusinessUserStatsCourseProgressColor(course)
 
         return (
@@ -37,7 +37,7 @@ export function BusinessUserStatsProgressTab({
             transition={{ delay: index * 0.15 }}
             className="relative"
           >
-            {index < stats.courses_data.length - 1 ? (
+            {index < (stats.courses_data ?? []).length - 1 ? (
               <div
                 className="absolute left-6 top-16 bottom-0 w-0.5"
                 style={{

@@ -177,9 +177,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
     primaryAction: customColors?.accentColor || '#0A2540',
   };
 
-  const initialMessage = user?.first_name
-    ? `¡Hola ${user.first_name}! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`
-    : `¡Hola! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`;
+  const initialMessage = null;
 
   const liaChat = useLiaCourseChat(initialMessage);
   const { messages, isLoading, sendMessage, stop, clearHistory } = liaChat;
@@ -464,7 +462,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                    width: '36px', 
                    height: '36px', 
                    borderRadius: '50%', 
-                   backgroundColor: inputValue.trim() && !isLoading ? themeColors.primaryAction : '#CBD5E1', 
+                   backgroundColor: inputValue.trim() && !isLoading ? themeColors.primaryAction : (isLightTheme ? '#CBD5E1' : '#374151'), 
                    border: 'none', 
                    cursor: inputValue.trim() ? 'pointer' : 'not-allowed', 
                    display: 'flex', 
@@ -475,7 +473,9 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                  <Send style={{ 
                    width: '16px', 
                    height: '16px', 
-                   color: inputValue.trim() && !isLoading ? '#FFFFFF' : '#6B7280' 
+                   color: inputValue.trim() && !isLoading 
+                     ? (isLightTheme ? '#FFFFFF' : '#0A2540') 
+                     : (isLightTheme ? '#6B7280' : '#4B5563')
                  }} />
                </button>
             </div>

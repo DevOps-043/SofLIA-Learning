@@ -1,6 +1,8 @@
 'use client'
 
 import React from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, Sparkles, Building2, MapPin, Search, ChevronDown } from 'lucide-react'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
 import { useNodeFormState } from './useNodeFormState'
 import { useGeocoding } from './useGeocoding'
@@ -49,133 +51,210 @@ export const NodeForm: React.FC<NodeFormProps> = ({
   if (!isOpen) return null
 
   const title = mode === 'create'
-    ? `Agregar sub-nivel a "${parentNode?.name}"`
-    : 'Editar nodo'
+    ? `APILAR EN "${parentNode?.name}"`
+    : 'EDITAR COMPONENTE'
 
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-xl w-full max-w-lg overflow-hidden border border-gray-100 dark:border-neutral-800 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-neutral-800 sticky top-0 bg-white dark:bg-neutral-900 z-10">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-            ✕
-          </button>
-        </div>
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+            onClick={onClose}
+        />
 
-        <form onSubmit={form.handleSubmit} className="p-5 space-y-5">
-          {/* Basic Info */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre</label>
-              <input
-                type="text"
-                value={form.name}
-                onChange={e => form.setName(e.target.value)}
-                placeholder="Ej: Ventas Norte"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-400"
-                autoFocus
-              />
+        {/* Modal Content */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 30 }}
+          className="relative w-full max-w-4xl bg-white dark:bg-[#1E2329] rounded-[2.5rem] shadow-2xl overflow-hidden border border-neutral-200 dark:border-white/10 max-h-[90vh] flex flex-col"
+        >
+          <div className="flex h-full overflow-hidden">
+            {/* Left Sidebar - Visual Guidance */}
+            <div className="hidden lg:flex w-72 p-10 flex-col border-r border-neutral-100 dark:border-white/5 bg-neutral-50/50 dark:bg-black/10 shrink-0">
+               <div className="space-y-8">
+                  <div className="w-16 h-16 rounded-2xl bg-[#00D4B3]/10 flex items-center justify-center shadow-inner">
+                     <Building2 className="w-8 h-8 text-[#00D4B3]" />
+                  </div>
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2">
+                        <Sparkles className="w-3 h-3 text-[#00D4B3]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#00D4B3]">Arquitectura</span>
+                     </div>
+                     <h2 className="text-2xl font-black text-[#0A2540] dark:text-white leading-tight italic uppercase tracking-tighter">
+                        {mode === 'create' ? 'Configura tu Estructura' : 'Refina el Diseño'}
+                     </h2>
+                     <p className="text-xs font-semibold text-neutral-400 dark:text-white/20 uppercase tracking-wide leading-relaxed">
+                        DEFINE LOS ATRIBUTOS, RESPONSABLES Y UBICACIÓN GEOGRÁFICA DE ESTE COMPONENTE.
+                     </p>
+                  </div>
+
+                  <div className="pt-8 space-y-3">
+                     <div className="flex items-center gap-3 text-neutral-300 dark:text-white/10">
+                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">Datos Básicos</span>
+                     </div>
+                     <div className="flex items-center gap-3 text-neutral-300 dark:text-white/10">
+                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">Gestión LIA</span>
+                     </div>
+                     <div className="flex items-center gap-3 text-neutral-300 dark:text-white/10">
+                        <div className="w-1.5 h-1.5 rounded-full bg-current" />
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">Localización</span>
+                     </div>
+                  </div>
+               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo de Nivel</label>
-              <select
-                value={form.type}
-                onChange={e => form.setType(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-neutral-800 text-gray-900 dark:text-white"
-              >
-                <option value="region">Región</option>
-                <option value="zone">Zona</option>
-                <option value="team">Equipo</option>
-                <option value="custom">Personalizado / Otro</option>
-              </select>
+            {/* Right Panel - Scrollable Form */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* Header */}
+                <div className="px-8 py-6 border-b border-neutral-100 dark:border-white/5 flex items-center justify-between bg-white dark:bg-[#1E2329] z-10 shrink-0">
+                  <div className="flex items-center gap-3">
+                     <div className="w-2 h-2 rounded-full bg-[#00D4B3]" />
+                     <h3 className="text-[11px] font-black text-[#0A2540] dark:text-white uppercase tracking-[0.25em]">{title}</h3>
+                  </div>
+                  <button onClick={onClose} className="p-2.5 rounded-xl hover:bg-neutral-100 dark:hover:bg-white/5 transition-colors text-neutral-400">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Body */}
+                <form onSubmit={form.handleSubmit} className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-12">
+                  {/* Section 1: Basic Info */}
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-white/30 block ml-1">Nombre Comercial</label>
+                          <div className="relative group">
+                              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300 dark:text-white/10 group-focus-within:text-[#00D4B3] transition-colors" />
+                              <input
+                                type="text"
+                                value={form.name}
+                                onChange={e => form.setName(e.target.value)}
+                                placeholder="Ej: Ventas Norte"
+                                className="w-full pl-12 pr-6 py-4 rounded-2xl border-2 bg-neutral-50 dark:bg-black/20 border-neutral-100 dark:border-white/5 text-sm font-bold text-[#0A2540] dark:text-white outline-none focus:border-[#00D4B3] transition-all placeholder:text-neutral-300 dark:placeholder:text-white/10"
+                                autoFocus
+                              />
+                          </div>
+                       </div>
+
+                       <div className="space-y-4">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-white/30 block ml-1">Tipo de Nivel</label>
+                          <div className="relative group">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-300 dark:text-white/10 group-focus-within:text-[#00D4B3] transition-colors" />
+                              <select
+                                value={form.type}
+                                onChange={e => form.setType(e.target.value)}
+                                className="w-full pl-12 pr-10 py-4 rounded-2xl border-2 bg-neutral-50 dark:bg-black/20 border-neutral-100 dark:border-white/5 text-sm font-bold text-[#0A2540] dark:text-white outline-none focus:border-[#00D4B3] transition-all appearance-none cursor-pointer"
+                              >
+                                <option value="region">Región</option>
+                                <option value="zone">Zona</option>
+                                <option value="team">Equipo</option>
+                                <option value="custom">Otro / Personalizado</option>
+                              </select>
+                              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" />
+                          </div>
+                       </div>
+                    </div>
+
+                    {form.type === 'custom' && (
+                      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-white/30 block ml-1">Especificar Tipo</label>
+                        <input
+                          type="text"
+                          value={form.customType}
+                          onChange={e => form.setCustomType(e.target.value)}
+                          placeholder="Ej: Squad, División..."
+                          className="w-full px-6 py-4 rounded-2xl border-2 bg-neutral-50 dark:bg-black/20 border-neutral-100 dark:border-white/5 text-sm font-bold text-[#0A2540] dark:text-white outline-none focus:border-[#00D4B3] transition-all"
+                        />
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* Section 2: Manager */}
+                  <div className="pt-4">
+                    <ManagerSelector
+                      selectedManager={form.selectedManager}
+                      managerSearch={form.managerSearch}
+                      managerResults={form.managerResults}
+                      isSearchingManager={form.isSearchingManager}
+                      onSearchChange={form.setManagerSearch}
+                      onSelectManager={user => {
+                        form.setSelectedManager(user)
+                        form.setManagerId(user.user_id || user.id)
+                        form.setManagerSearch('')
+                        form.setManagerResults([])
+                      }}
+                      onClearManager={() => {
+                        form.setSelectedManager(null)
+                        form.setManagerId(null)
+                        form.setManagerSearch('')
+                      }}
+                    />
+                  </div>
+
+                  {/* Section 3: Properties / Location */}
+                  <div className="pt-4 border-t border-neutral-50 dark:border-white/5">
+                    <PropertiesFormBuilder
+                      street={form.street}
+                      externalNumber={form.externalNumber}
+                      internalNumber={form.internalNumber}
+                      neighborhood={form.neighborhood}
+                      zipCode={form.zipCode}
+                      city={form.city}
+                      nodeState={form.nodeState}
+                      country={form.country}
+                      latitude={form.latitude}
+                      longitude={form.longitude}
+                      loading={form.loading}
+                      isGeocoding={isGeocoding}
+                      onStreetChange={form.setStreet}
+                      onExternalNumberChange={form.setExternalNumber}
+                      onInternalNumberChange={form.setInternalNumber}
+                      onNeighborhoodChange={form.setNeighborhood}
+                      onZipCodeChange={form.setZipCode}
+                      onCityChange={form.setCity}
+                      onNodeStateChange={form.setNodeState}
+                      onCountryChange={form.setCountry}
+                      onLatitudeChange={form.setLatitude}
+                      onLongitudeChange={form.setLongitude}
+                      onGeocode={handleGeocode}
+                      onReverseGeocode={handleReverseGeocode}
+                    />
+                  </div>
+                </form>
+
+                {/* Footer */}
+                <div className="px-8 py-6 border-t border-neutral-100 dark:border-white/5 flex justify-end items-center gap-4 bg-white dark:bg-[#1E2329] shrink-0">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-6 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
+                    disabled={form.loading}
+                  >
+                    CERRAR
+                  </button>
+                  <button
+                    onClick={form.handleSubmit}
+                    disabled={form.loading || !form.name.trim()}
+                    className="px-12 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[#0A2540] transition-all shadow-xl shadow-[#00D4B3]/20 disabled:opacity-50 active:scale-95 flex items-center gap-3"
+                    style={{ background: "#00D4B3" }}
+                  >
+                    {form.loading ? (
+                       <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                    ) : <Plus className="w-4 h-4" strokeWidth={3} />}
+                    <span>{form.loading ? 'SINCRONIZANDO...' : 'GUARDAR CAMBIOS'}</span>
+                  </button>
+                </div>
             </div>
-
-            {form.type === 'custom' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nombre del Tipo (Ej: División, Squad)
-                </label>
-                <input
-                  type="text"
-                  value={form.customType}
-                  onChange={e => form.setCustomType(e.target.value)}
-                  placeholder="Especifique el tipo de nivel"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-neutral-800 text-gray-900 dark:text-white placeholder-gray-400"
-                />
-              </div>
-            )}
           </div>
-
-          <hr className="border-gray-200 dark:border-neutral-800" />
-
-          <ManagerSelector
-            selectedManager={form.selectedManager}
-            managerSearch={form.managerSearch}
-            managerResults={form.managerResults}
-            isSearchingManager={form.isSearchingManager}
-            onSearchChange={form.setManagerSearch}
-            onSelectManager={user => {
-              form.setSelectedManager(user)
-              form.setManagerId(user.user_id || user.id)
-              form.setManagerSearch('')
-              form.setManagerResults([])
-            }}
-            onClearManager={() => {
-              form.setSelectedManager(null)
-              form.setManagerId(null)
-              form.setManagerSearch('')
-            }}
-          />
-
-          <hr className="border-gray-200 dark:border-neutral-800" />
-
-          <PropertiesFormBuilder
-            street={form.street}
-            externalNumber={form.externalNumber}
-            internalNumber={form.internalNumber}
-            neighborhood={form.neighborhood}
-            zipCode={form.zipCode}
-            city={form.city}
-            nodeState={form.nodeState}
-            country={form.country}
-            latitude={form.latitude}
-            longitude={form.longitude}
-            loading={form.loading}
-            isGeocoding={isGeocoding}
-            onStreetChange={form.setStreet}
-            onExternalNumberChange={form.setExternalNumber}
-            onInternalNumberChange={form.setInternalNumber}
-            onNeighborhoodChange={form.setNeighborhood}
-            onZipCodeChange={form.setZipCode}
-            onCityChange={form.setCity}
-            onNodeStateChange={form.setNodeState}
-            onCountryChange={form.setCountry}
-            onLatitudeChange={form.setLatitude}
-            onLongitudeChange={form.setLongitude}
-            onGeocode={handleGeocode}
-            onReverseGeocode={handleReverseGeocode}
-          />
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-neutral-800 mt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-              disabled={form.loading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={form.loading || !form.name.trim()}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {form.loading ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        </form>
+        </motion.div>
       </div>
-    </div>
+    </AnimatePresence>
   )
 }
