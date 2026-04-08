@@ -171,6 +171,7 @@ export function useStudyPlannerMessageHandler(params: UseStudyPlannerMessageHand
         selectedCourseIds: params.selectedCourseIds,
         studyApproach: params.studyApproach,
         savedLessonDistribution: params.savedLessonDistribution,
+        calendarData: params.savedCalendarData,
       });
 
       const data = await sendStudyPlannerChatRequest({

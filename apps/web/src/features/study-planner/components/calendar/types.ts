@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
+import type { StudyPlannerCalendarEventPosition } from '../hooks/study-planner-calendar.types'
 
 export type CalendarDate = Date
 
@@ -88,7 +89,8 @@ export interface CalendarWeekViewProps {
   today: CalendarDate
   hours: number[]
   getEventsForDay: (date: CalendarDate) => CalendarEvent[]
-  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; isAllDay: boolean } | null
+  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; left: number; width: number; isAllDay: boolean } | null
+  getEventLayoutsForDay: (date: CalendarDate) => (CalendarEvent & { position: StudyPlannerCalendarEventPosition })[]
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>
 }
@@ -98,7 +100,8 @@ export interface CalendarDayViewProps {
   today: CalendarDate
   hours: number[]
   getEventsForDay: (date: CalendarDate) => CalendarEvent[]
-  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; isAllDay: boolean } | null
+  getEventPosition: (event: CalendarEvent, day: CalendarDate) => { top: number; height: number; left: number; width: number; isAllDay: boolean } | null
+  getEventLayoutsForDay: (date: CalendarDate) => (CalendarEvent & { position: StudyPlannerCalendarEventPosition })[]
   setSelectedEvent: Dispatch<SetStateAction<CalendarEvent | null>>
   setIsEventModalOpen: Dispatch<SetStateAction<boolean>>
 }

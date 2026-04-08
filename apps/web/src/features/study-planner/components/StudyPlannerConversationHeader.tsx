@@ -119,7 +119,7 @@ export function StudyPlannerConversationHeader({
           </motion.button>
 
           <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/20 dark:border-[#00D4B3]/30 sm:h-12 sm:w-12">
-            <Image src="/lia-avatar.png" alt="LIA" fill sizes="48px" className="object-cover" />
+            <Image src="/lia-avatar.png" alt="SofLIA" fill sizes="48px" className="object-cover" />
           </div>
 
           <div className="min-w-0 flex-1">

@@ -6,13 +6,24 @@ import type {
   StudyPlannerCalendarFreeSlot,
 } from '../types/planner-schedule.types';
 import type { StudyApproach } from '../types/planner-ui.types';
-import {
-  analyzeStudyPlannerEventContext,
-  calculateStudyPlannerEstimatedAvailability,
-  type StudyPlannerAvailabilityEstimate,
-  type StudyPlannerEventContext,
-} from './planner-calendar-analysis.service';
+import { analyzeStudyPlannerEventContext, calculateStudyPlannerEstimatedAvailability, type StudyPlannerAvailabilityEstimate, type StudyPlannerEventContext } from './planner-calendar-analysis.service';
 import type { OrganizationPlannerConfig, OrganizationHoliday } from './organization-planner-config.service';
+
+// Reusing regex from calendar-availability.service
+const WORK_BLOCK_TITLE_PATTERN = /(trabajo|work|oficina|jornada|laboral|shift|turno|servi[çc]o|expediente)/i;
+const WORK_BLOCK_EXCLUDE_PATTERN = /(junta|reuni[oó]n|reuni[aã]o|meeting|llamada|chamada|profundo|deep[\s\-]?work|focus[\s\-]?time|concentraci[oó]n)/i;
+
+function isWorkBlock(event: StudyPlannerCalendarEventLike): boolean {
+  if ('status' in event && event.status === 'cancelled') return false;
+  const start = new Date(event.start || event.startTime || 0).getTime();
+  const end = new Date(event.end || event.endTime || 0).getTime();
+  const durationMinutes = (end - start) / 60000;
+  if (durationMinutes < 180) return false;
+  const title = event.summary || event.title || '';
+  if (WORK_BLOCK_EXCLUDE_PATTERN.test(title)) return false;
+  if (WORK_BLOCK_TITLE_PATTERN.test(title)) return true;
+  return false;
+}
 
 interface StudyPlannerProfileLike {
   userType?: 'b2b' | 'b2c' | null;
@@ -29,6 +40,7 @@ interface StudyPlannerProfileLike {
 
 interface InternalDayAnalysis extends StudyPlannerCalendarDayAnalysis {
   heavyEvents: Array<{ event: StudyPlannerCalendarEventLike; context: StudyPlannerEventContext }>;
+  workBlockEvents: StudyPlannerCalendarEventLike[];
 }
 
 interface AnalyzeStudyPlannerSlotCalendarInput {
@@ -179,6 +191,48 @@ function buildBusyDayFreeSlots(
   return freeSlots;
 }
 
+function buildWorkBlockFreeSlots(
+  dayDate: Date,
+  workBlocks: StudyPlannerCalendarEventLike[],
+  busySlots: Array<{ start: Date; end: Date }>,
+  currentTime: Date
+): StudyPlannerCalendarFreeSlot[] {
+  const freeSlots: StudyPlannerCalendarFreeSlot[] = [];
+  const isToday = isSameDay(dayDate, currentTime);
+
+  workBlocks.forEach(wb => {
+    let cursor = new Date(wb.start || wb.startTime || 0);
+    const wbEnd = new Date(wb.end || wb.endTime || 0);
+
+    if (isToday && cursor.getTime() < currentTime.getTime()) {
+      cursor = new Date(currentTime);
+    }
+
+    // sort busy slots just in case
+    const sortedBusy = [...busySlots].sort((a,b) => a.start.getTime() - b.start.getTime());
+
+    for (const busy of sortedBusy) {
+      const busyStart = new Date(Math.max(busy.start.getTime(), new Date(wb.start || wb.startTime || 0).getTime()));
+      const busyEnd = new Date(Math.min(busy.end.getTime(), wbEnd.getTime()));
+
+      if (busyStart >= busyEnd) continue; // outside block
+
+      if (cursor.getTime() < busyStart.getTime()) {
+        pushFreeSlot(freeSlots, cursor, busyStart, 15, 360); 
+      }
+      if (cursor.getTime() < busyEnd.getTime()) {
+        cursor = busyEnd;
+      }
+    }
+
+    if (cursor.getTime() < wbEnd.getTime()) {
+      pushFreeSlot(freeSlots, cursor, wbEnd, 15, 360);
+    }
+  });
+
+  return freeSlots;
+}
+
 export function analyzeStudyPlannerSlotCalendar(
   input: AnalyzeStudyPlannerSlotCalendarInput,
 ): AnalyzeStudyPlannerSlotCalendarResult {
@@ -227,6 +281,7 @@ export function analyzeStudyPlannerSlotCalendar(
       dayName: DAY_NAMES[date.getDay()],
       events: [],
       busySlots: [],
+      workBlockEvents: [],
       freeSlots: [],
       totalBusyMinutes: 0,
       totalFreeMinutes: 0,
@@ -280,7 +335,12 @@ export function analyzeStudyPlannerSlotCalendar(
       }
 
       daySlots[dateStr].events.push(event);
-      daySlots[dateStr].busySlots.push({ start: eventStart, end: eventEnd });
+
+      if (isWorkBlock(event)) {
+        daySlots[dateStr].workBlockEvents.push(event);
+      } else {
+        daySlots[dateStr].busySlots.push({ start: eventStart, end: eventEnd });
+      }
 
       const eventContext = analyzeStudyPlannerEventContext(event);
       if (eventContext.requiresRestAfter) {
@@ -325,9 +385,14 @@ export function analyzeStudyPlannerSlotCalendar(
         return sum + (slot.end.getTime() - slot.start.getTime()) / (1000 * 60);
       }, 0);
 
-      const freeSlots = mergedBusySlots.length === 0
-        ? buildCompletelyFreeDaySlots(day.date, input.currentTime)
-        : buildBusyDayFreeSlots(day.date, mergedBusySlots, input.currentTime);
+      let freeSlots: StudyPlannerCalendarFreeSlot[] = [];
+      if (day.workBlockEvents.length > 0) {
+        freeSlots = buildWorkBlockFreeSlots(day.date, day.workBlockEvents, mergedBusySlots, input.currentTime);
+      } else {
+        freeSlots = mergedBusySlots.length === 0
+          ? buildCompletelyFreeDaySlots(day.date, input.currentTime)
+          : buildBusyDayFreeSlots(day.date, mergedBusySlots, input.currentTime);
+      }
 
       const totalFreeMinutes = freeSlots.reduce((sum, slot) => sum + slot.durationMinutes, 0);
 

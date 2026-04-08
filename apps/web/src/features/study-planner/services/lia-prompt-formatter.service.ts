@@ -28,7 +28,7 @@ type PreCalculatedSessionsResult = {
 
 export class LiaPromptFormatterService {
   /**
-   * Formatea el contexto como string para incluir en el prompt de LIA
+   * Formatea el contexto como string para incluir en el prompt de SofLIA
    */
   static formatContextForPrompt(context: StudyPlannerContext): string {
     let prompt = '';
@@ -119,24 +119,24 @@ export class LiaPromptFormatterService {
         // IMPORTANTE: Solo mostrar lecciones PENDIENTES a SofLIA
         // Las lecciones completadas no deben incluirse en el plan de estudios
         if (pendingLessons > 0) {
-          prompt += `  \n  📚 LECCIONES PENDIENTES - USA ESTOS DATOS EXACTOS (nombres, números y duraciones):\n`;
-          prompt += `  ⚠️ IMPORTANTE: Copia EXACTAMENTE el número de lección y la duración que aparece aquí.\n`;
+          prompt += `  \n  LECCIONES PENDIENTES - USA ESTOS DATOS EXACTOS (nombres, números y duraciones):\n`;
+          prompt += `  IMPORTANTE: Copia EXACTAMENTE el número de lección y la duración que aparece aquí.\n`;
           for (const module of course.modules) {
             // Solo mostrar módulos que tengan lecciones pendientes
             const pendingInModule = module.lessons.filter(l => !l.isCompleted);
             if (pendingInModule.length > 0) {
-              prompt += `    📁 Módulo ${module.moduleOrderIndex}: ${module.moduleTitle}\n`;
+              prompt += `    Módulo ${module.moduleOrderIndex}: ${module.moduleTitle}\n`;
               for (const lesson of pendingInModule) {
                 // Usar formato claro: "Lección [NÚMERO]: [TÍTULO] - DURACIÓN: [X] minutos"
-                prompt += `       ➡️ Lección ${lesson.lessonOrderIndex}: ${lesson.lessonTitle} - DURACIÓN: ${lesson.durationMinutes} minutos [PENDIENTE]\n`;
+                prompt += `       Lección ${lesson.lessonOrderIndex}: ${lesson.lessonTitle} - DURACIÓN: ${lesson.durationMinutes} minutos [PENDIENTE]\n`;
               }
             }
           }
-          prompt += `  \n  ⚠️ RECUERDA: Usa el número de lección EXACTO (ej: "Lección 1", "Lección 2", "Lección 3.1") y la duración EXACTA en minutos.\n`;
+          prompt += `  \n  RECUERDA: Usa el número de lección EXACTO (ej: "Lección 1", "Lección 2", "Lección 3.1") y la duración EXACTA en minutos.\n`;
         }
 
         prompt += `  \n  RESUMEN: ${completedLessons} de ${totalLessons} lecciones ya completadas, ${pendingLessons} pendientes por planificar\n`;
-        prompt += `  \n  ⚠️ IMPORTANTE: El plan de estudios debe incluir SOLO las ${pendingLessons} lecciones pendientes, comenzando desde la primera lección no completada.\n`;
+        prompt += `  \n  IMPORTANTE: El plan de estudios debe incluir SOLO las ${pendingLessons} lecciones pendientes, comenzando desde la primera lección no completada.\n`;
       }
     }
 
@@ -148,31 +148,31 @@ export class LiaPromptFormatterService {
       prompt += `- Complejidad promedio: ${context.courseAnalysis.averageComplexity}/10\n`;
       prompt += `- Tiempo mínimo por sesión: ${context.courseAnalysis.minimumLessonTime} minutos (para completar al menos una lección)\n`;
 
-      // ✅ NUEVO: Análisis inteligente de tipo de curso y duraciones sugeridas
-      prompt += `\n## 🎯 ANÁLISIS INTELIGENTE DEL CURSO\n`;
+      // Análisis inteligente de tipo de curso y duraciones sugeridas
+      prompt += `\n## ANÁLISIS INTELIGENTE DEL CURSO\n`;
 
       // Estadísticas de lecciones
-      prompt += `📊 **Estadísticas de lecciones:**\n`;
+      prompt += `Estadísticas de lecciones:\n`;
       prompt += `- Duración PROMEDIO de lecciones: ${context.courseAnalysis.averageLessonDuration} minutos\n`;
       prompt += `- Duración MÍNIMA: ${context.courseAnalysis.minLessonDuration} minutos\n`;
       prompt += `- Duración MÁXIMA: ${context.courseAnalysis.maxLessonDuration} minutos\n`;
 
       // Tipo de curso detectado
       const courseTypeLabels = {
-        'practical': 'PRÁCTICO/APLICADO (aprender y aplicar inmediatamente)',
-        'theoretical': 'TEÓRICO/DENSO (contenido extenso que requiere concentración)',
-        'mixed': 'MIXTO (combina teoría y práctica)'
+        'practical': 'PRÁCTICO/APLICADO',
+        'theoretical': 'TEÓRICO/DENSO',
+        'mixed': 'MIXTO'
       };
-      prompt += `\n🏷️ **Tipo de curso detectado:** ${courseTypeLabels[context.courseAnalysis.courseType]}\n`;
+      prompt += `\nTipo de curso detectado: ${courseTypeLabels[context.courseAnalysis.courseType]}\n`;
 
       // Duraciones de sesión sugeridas
-      prompt += `\n⏱️ **DURACIONES DE SESIÓN SUGERIDAS (basadas en el análisis del curso):**\n`;
-      prompt += `- 🟢 Sesión CORTA: ${context.courseAnalysis.suggestedSessionDurations.short} minutos\n`;
-      prompt += `- 🟡 Sesión NORMAL: ${context.courseAnalysis.suggestedSessionDurations.normal} minutos\n`;
-      prompt += `- 🔴 Sesión LARGA: ${context.courseAnalysis.suggestedSessionDurations.long} minutos\n`;
-      prompt += `\n💡 **Razonamiento:** ${context.courseAnalysis.suggestedSessionDurations.reasoning}\n`;
+      prompt += `\nDURACIONES DE SESIÓN SUGERIDAS (basadas en el análisis del curso):\n`;
+      prompt += `- Sesión CORTA: ${context.courseAnalysis.suggestedSessionDurations.short} minutos\n`;
+      prompt += `- Sesión NORMAL: ${context.courseAnalysis.suggestedSessionDurations.normal} minutos\n`;
+      prompt += `- Sesión LARGA: ${context.courseAnalysis.suggestedSessionDurations.long} minutos\n`;
+      prompt += `\nRazonamiento: ${context.courseAnalysis.suggestedSessionDurations.reasoning}\n`;
 
-      prompt += `\n⚠️ INSTRUCCIÓN PARA SofLIA: Cuando el usuario seleccione el tipo de sesión, usa las duraciones sugeridas arriba, NO uses valores fijos genéricos como 25/45/60.\n`;
+      prompt += `\nINSTRUCCIÓN PARA SofLIA: Cuando el usuario seleccione el tipo de sesión, usa las duraciones sugeridas arriba, NO uses valores fijos genéricos como 25/45/60.\n`;
     }
 
     // Calendario
@@ -191,11 +191,11 @@ export class LiaPromptFormatterService {
 
     // Plazos próximos (B2B)
     if (context.upcomingDeadlines && context.upcomingDeadlines.length > 0) {
-      prompt += `\n## PLAZOS PRÓXIMOS (¡IMPORTANTE!)\n`;
+      prompt += `\n## PLAZOS PRÓXIMOS\n`;
       for (const deadline of context.upcomingDeadlines) {
         prompt += `- ${deadline.courseTitle}: ${deadline.daysRemaining} días (${deadline.completionPercentage}% completado)\n`;
         if (deadline.daysRemaining < 7) {
-          prompt += `  ⚠️ URGENTE: Menos de una semana para completar\n`;
+          prompt += `  URGENTE: Menos de una semana para completar\n`;
         }
       }
     }
@@ -223,8 +223,8 @@ export class LiaPromptFormatterService {
   }
 
   /**
-   * Formatea las sesiones pre-calculadas para incluir en el prompt de LIA
-   * LIA solo debe COPIAR este texto, no hacer cálculos
+   * Formatea las sesiones pre-calculadas para incluir en el prompt de SofLIA
+   * SofLIA solo debe COPIAR este texto, no hacer cálculos
    */
   static formatPreCalculatedSessionsForPrompt(
     preCalculatedData: PreCalculatedSessionsResult
@@ -233,10 +233,10 @@ export class LiaPromptFormatterService {
       return '';
     }
 
-    let prompt = `\n\n═══════════════════════════════════════════════════════════════════════════════\n`;
-    prompt += `📋 PLAN DE ESTUDIO PRE-CALCULADO - LIA DEBE COPIAR EXACTAMENTE ESTOS DATOS\n`;
-    prompt += `═══════════════════════════════════════════════════════════════════════════════\n\n`;
-    prompt += `⚠️⚠️⚠️ INSTRUCCIÓN CRÍTICA: Los cálculos de hora ya están hechos. NO recalcules.\n`;
+    let prompt = `\n\n-------------------------------------------------------------------------------\n`;
+    prompt += `PLAN DE ESTUDIO PRE-CALCULADO - SofLIA DEBE COPIAR EXACTAMENTE ESTOS DATOS\n`;
+    prompt += `-------------------------------------------------------------------------------\n\n`;
+    prompt += `INSTRUCCIÓN CRÍTICA: Los cálculos de hora ya están hechos. NO recalcules.\n`;
     prompt += `Copia EXACTAMENTE las horas de inicio y fin que aparecen aquí.\n\n`;
 
     // Agrupar por semana
@@ -263,9 +263,9 @@ export class LiaPromptFormatterService {
       }
 
       for (const [date, daySessions] of byDay) {
-        prompt += `📅 **${daySessions[0].dayName} ${date}:**\n`;
+        prompt += `${daySessions[0].dayName} ${date}:\n`;
         for (const session of daySessions) {
-          prompt += `• ${session.startTime} - ${session.endTime}: Sesión de Estudio (${session.timeSlot.toUpperCase()})\n`;
+          prompt += `- ${session.startTime} - ${session.endTime}: Sesión de Estudio\n`;
           for (const lesson of session.lessons) {
             prompt += `  - ${lesson.title} (${lesson.duration} min)\n`;
           }
@@ -275,11 +275,11 @@ export class LiaPromptFormatterService {
     }
 
     prompt += `---\n\n`;
-    prompt += `✅ **Resumen del plan:**\n`;
+    prompt += `Resumen del plan:\n`;
     prompt += `- Total de lecciones: ${preCalculatedData.summary.totalLessons}\n`;
     prompt += `- Semanas de estudio: ${preCalculatedData.summary.totalWeeks}\n`;
     prompt += `- Fecha de finalización: ${preCalculatedData.summary.finishDate}\n\n`;
-    prompt += `📌 ¿Te parece bien este plan?\n`;
+    prompt += `¿Te parece bien este plan?\n`;
 
     return prompt;
   }

@@ -51,9 +51,12 @@ function getScheduleDetectionPattern(): RegExp {
   );
 }
 
-function parseDateFromLine(line: string): { dateStr: string; dayName: string } | null {
+function parseDateFromLine(line: string, contextDate?: Date): { dateStr: string; dayName: string } | null {
   const normalized = normalizeComparableText(line);
-  const parsed = parsePlannerDateString(normalized);
+  if (normalized.startsWith('semana')) {
+    return null;
+  }
+  const parsed = parsePlannerDateString(normalized, contextDate);
 
   if (!parsed) {
     return null;
@@ -100,7 +103,12 @@ function extractLessonFromLine(rawLine: string): StudyPlannerScheduledLesson | n
     normalized.includes('sesiones de estudio') ||
     normalized.includes('sin lecciones asignadas') ||
     normalized.startsWith('resumen') ||
-    normalized.startsWith('verificacion')
+    normalized.startsWith('verificacion') ||
+    normalized.includes('total de lecciones') ||
+    normalized.includes('semanas de estudio') ||
+    normalized.includes('fecha de finalizacion') ||
+    normalized.includes('te parece bien') ||
+    normalized.includes('horario exacto')
   ) {
     return null;
   }
@@ -109,6 +117,7 @@ function extractLessonFromLine(rawLine: string): StudyPlannerScheduledLesson | n
     /^(?:[-*•]\s*)?leccion\s+(\d+(?:\.\d+)*)[:.\-]?\s*(.+)$/i,
     /^(?:[-*•]\s*)?(\d+(?:\.\d+)*)[:.\-]\s*(.+)$/i,
     /^(?:[-*•]\s+)(.+)$/i,
+    /^(.+?)(?:\(|\[|-)?\s*(\d+)\s*(?:min|minuto|minutos)(?:\)|\])?\s*$/i
   ];
 
   for (const pattern of patterns) {
@@ -117,14 +126,19 @@ function extractLessonFromLine(rawLine: string): StudyPlannerScheduledLesson | n
       continue;
     }
 
-    const lessonOrderIndex = pattern === patterns[2] ? 0 : Number.parseInt(match[1], 10) || 0;
-    let lessonTitle = (pattern === patterns[2] ? match[1] : match[2]).trim();
+    const isNonNumericPattern = pattern === patterns[2] || pattern === patterns[3];
+    const lessonOrderIndex = isNonNumericPattern ? 0 : Number.parseInt(match[1], 10) || 0;
+    let lessonTitle = (isNonNumericPattern ? match[1] : match[2]).trim();
 
     let durationMinutes = 0;
-    const durationMatch = lessonTitle.match(/(?:\(|\[|-)?\s*(\d+)\s*(?:min|minuto|minutos)(?:\)|\])?/i);
-    if (durationMatch) {
-      durationMinutes = Number.parseInt(durationMatch[1], 10);
-      lessonTitle = lessonTitle.replace(durationMatch[0], '').trim();
+    if (pattern === patterns[3]) {
+      durationMinutes = Number.parseInt(match[2], 10);
+    } else {
+      const durationMatch = lessonTitle.match(/(?:\(|\[|-)?\s*(\d+)\s*(?:min|minuto|minutos)(?:\)|\])?/i);
+      if (durationMatch) {
+        durationMinutes = Number.parseInt(durationMatch[1], 10);
+        lessonTitle = lessonTitle.replace(durationMatch[0], '').trim();
+      }
     }
 
     const comparableTitle = normalizeComparableText(lessonTitle);
@@ -173,15 +187,46 @@ export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLes
   const lines = text.split('\n');
   let currentDate: { dateStr: string; dayName: string } | null = null;
   let currentSchedule: StudyPlannerStoredLessonDistribution | null = null;
+  let currentContextDate: Date | undefined;
 
-  lines.forEach(line => {
+  lines.forEach((line) => {
     const trimmedLine = line.trim();
     if (!trimmedLine) {
       return;
     }
 
-    const nextDate = parseDateFromLine(trimmedLine);
+    // Stop processing if we hit the summary section
+    if (
+      trimmedLine.startsWith('---') ||
+      trimmedLine.toLowerCase().includes('resumen del plan') ||
+      trimmedLine.toLowerCase().includes('resumen:')
+    ) {
+      currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
+      return;
+    }
+
+    const normalizedLine = normalizeComparableText(trimmedLine);
+    if (normalizedLine.startsWith('semana')) {
+      const parsed = parsePlannerDateString(normalizedLine);
+      if (parsed) {
+        currentContextDate = parsed;
+      }
+      return;
+    }
+
+    const nextDate = parseDateFromLine(trimmedLine, currentContextDate);
     const nextTimeRange = parseTimeRangeFromLine(trimmedLine);
+
+    // If there's a time range, strip it to check if a lesson is on the same line
+    let lineForLesson = trimmedLine;
+    if (nextTimeRange) {
+      const timeRegex = /(?:(?:a\s+las\s+|de\s+)?(\d{1,2}(?::\d{2})?\s*(?:a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?)\s*(?:-|a|hasta)+\s*(\d{1,2}(?::\d{2})?\s*(?:a\.?\s*m\.?|p\.?\s*m\.?|am|pm)?))/i;
+      const tMatch = trimmedLine.match(timeRegex);
+      if (tMatch) {
+        const stripped = trimmedLine.replace(tMatch[0], '').replace(/^[:\-\s]+/, '').trim();
+        lineForLesson = stripped ? `- ${stripped}` : '';
+      }
+    }
 
     if (nextDate && nextTimeRange) {
       currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
@@ -193,16 +238,11 @@ export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLes
         endTime: nextTimeRange.endTime,
         lessons: [],
       };
-      return;
-    }
-
-    if (nextDate) {
+    } else if (nextDate) {
       currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
       currentDate = nextDate;
       return;
-    }
-
-    if (nextTimeRange && currentDate) {
+    } else if (nextTimeRange && currentDate) {
       currentSchedule = flushCurrentSchedule(schedules, currentSchedule);
       currentSchedule = {
         dateStr: currentDate.dateStr,
@@ -211,14 +251,13 @@ export function parseLiaResponseToSchedules(text: string): StudyPlannerStoredLes
         endTime: nextTimeRange.endTime,
         lessons: [],
       };
+    }
+
+    if (!currentSchedule || !lineForLesson) {
       return;
     }
 
-    if (!currentSchedule) {
-      return;
-    }
-
-    const lesson = extractLessonFromLine(trimmedLine);
+    const lesson = extractLessonFromLine(lineForLesson);
     if (lesson) {
       currentSchedule.lessons.push(lesson);
     }

@@ -103,16 +103,16 @@ function chooseLessonsToKeep(
   return incoming.lessons;
 }
 
-export function parsePlannerDateString(dateStr: string): Date | null {
+export function parsePlannerDateString(dateStr: string, contextDate?: Date): Date | null {
   const raw = dateStr.trim();
   const normalized = normalizeComparableText(raw);
 
-  const isoMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const isoMatch = normalized.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
     return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
   }
 
-  const slashMatch = normalized.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  const slashMatch = normalized.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
   if (slashMatch) {
     return new Date(Number(slashMatch[3]), Number(slashMatch[2]) - 1, Number(slashMatch[1]));
   }
@@ -122,9 +122,15 @@ export function parsePlannerDateString(dateStr: string): Date | null {
     const month = MONTH_MAP[monthMatch[2]];
     if (month !== undefined) {
       const day = Number(monthMatch[1]);
-      const year = monthMatch[3] ? Number(monthMatch[3]) : new Date().getFullYear();
+      const year = monthMatch[3] ? Number(monthMatch[3]) : (contextDate ? contextDate.getFullYear() : new Date().getFullYear());
       return new Date(year, month, day);
     }
+  }
+
+  const partialDateMatch = normalized.match(/(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo)\s+(\d{1,2})/i);
+  if (partialDateMatch && contextDate) {
+    const day = Number(partialDateMatch[1]);
+    return new Date(contextDate.getFullYear(), contextDate.getMonth(), day);
   }
 
   const parsed = new Date(raw);
@@ -310,6 +316,9 @@ export function shouldReplaceLessonDistribution(params: {
     lowerResponse.includes('sesiones programadas') ||
     lowerResponse.includes('plan de estudios') ||
     lowerResponse.includes('sesiones generadas') ||
+    lowerResponse.includes('ajustar') ||
+    lowerResponse.includes('ajuste') ||
+    lowerResponse.includes('plan actualizado') ||
     (params.extractedSchedulesCount >= 5 && params.existingSchedulesCount > 0);
 
   return looksLikeSummary || params.isAddingSchedules || params.isConfirmingSchedules;

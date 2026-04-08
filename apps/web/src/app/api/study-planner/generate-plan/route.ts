@@ -16,6 +16,20 @@ interface Preferences {
   // Estrategias de estudio
   studyMode?: StudyMode;
   maxConsecutiveHours?: number;
+  /**
+   * Optional: real start times derived from calendar work blocks, keyed by
+   * ISO date string (YYYY-MM-DD). When present, overrides the generic
+   * timeMap for that specific date.
+   * Example: { "2026-04-07": "09:00", "2026-04-08": "09:00" }
+   */
+  calendarStartTimesByDay?: Record<string, string>;
+  /**
+   * Optional: real end times derived from calendar work blocks, keyed by
+   * ISO date string (YYYY-MM-DD). When present, study sessions for that
+   * date will not be scheduled to end after this time.
+   * Example: { "2026-04-07": "18:00", "2026-04-08": "18:00" }
+   */
+  calendarEndTimesByDay?: Record<string, string>;
 }
 
 interface StudyBlock {
@@ -73,7 +87,7 @@ function generateDeterministicPlan(lessons: Lesson[], preferences: Preferences, 
   let currentBlockIndex = 0;
 
   // Mapeo de slots por semana
-  const weeks: { [key: number]: { date: Date, slots: { date: Date; time: string; block: unknown }[] }[] } = {};
+  const weeks: { [key: number]: { date: Date, slots: any[] }[] } = {};
 
   // Tracking para límite de horas consecutivas
   let dailyStudyMinutes: { [dateStr: string]: number } = {};
@@ -95,6 +109,27 @@ function generateDeterministicPlan(lessons: Lesson[], preferences: Preferences, 
     let slotDuration = 0;
     const slotBlocks: StudyBlock[] = [];
 
+    // Load balancing: try not to cram all lessons into the very first days
+    // Limit this slot to a balanced fraction of the total remaining work, but keep at least 20 mins if possible
+    const remainingDuration = blocks.slice(currentBlockIndex).reduce((acc, b) => acc + b.totalDuration, 0);
+    const remainingSlots = slots.length - slots.indexOf(slot);
+    const balancedDuration = remainingSlots > 0 ? Math.ceil(remainingDuration / remainingSlots) : maxSessionMinutes;
+    
+    // We want a sweet spot: balanced duration, but not less than 20 mins to avoid 5 min sessions, 
+    // and not exceeding maxSessionMinutes.
+    const optimalSessionDuration = Math.min(maxSessionMinutes, Math.max(20, balancedDuration * 1.5)); 
+    
+    // Calcular tope de minutos para esta sesión en función del fin de la jornada
+    let sessionLimitMinutes = Math.min(optimalSessionDuration, maxDailyMinutes);
+    if (slot.workBlockEndTime) {
+      const [startH, startM] = slot.time.split(':').map(Number);
+      const [endH, endM] = slot.workBlockEndTime.split(':').map(Number);
+      const availableMinutesInBlock = (endH * 60 + endM) - (startH * 60 + startM);
+      if (availableMinutesInBlock < sessionLimitMinutes) {
+        sessionLimitMinutes = availableMinutesInBlock;
+      }
+    }
+
     while (currentBlockIndex < blocks.length) {
       const candidateBlock = blocks[currentBlockIndex];
 
@@ -103,13 +138,13 @@ function generateDeterministicPlan(lessons: Lesson[], preferences: Preferences, 
         break;
       }
 
-      // Si cabe en la sesión O si es el primer bloque (siempre debe entrar al menos uno aunque sea largo)
-      if (slotDuration + candidateBlock.totalDuration <= maxSessionMinutes + 10 || slotBlocks.length === 0) {
+      // Si cabe en la sesión O si es el primer bloque (siempre debe entrar al menos uno)
+      if (slotDuration + candidateBlock.totalDuration <= sessionLimitMinutes + 5 || slotBlocks.length === 0) {
         slotBlocks.push(candidateBlock);
         slotDuration += candidateBlock.totalDuration;
         currentBlockIndex++;
       } else {
-        // Ya no cabe, pasar al siguiente slot
+        // Ya no cabe (alcanzó el target balanceado), pasar al siguiente slot
         break;
       }
     }
@@ -137,6 +172,16 @@ function generateDeterministicPlan(lessons: Lesson[], preferences: Preferences, 
 
     const endDate = new Date(slot.date);
     endDate.setHours(startHour, startMin + breakdownResult.totalMinutes);
+
+    // Clamp the session end to the work block boundary when one is known.
+    // This enforces LFT compliance: sessions must not exceed the official shift.
+    if (slot.workBlockEndTime) {
+      const [wbEndH, wbEndM] = slot.workBlockEndTime.split(':').map(Number);
+      const workBlockEndMs = new Date(slot.date).setHours(wbEndH, wbEndM, 0, 0);
+      if (endDate.getTime() > workBlockEndMs) {
+        endDate.setTime(workBlockEndMs);
+      }
+    }
 
     const endHourStr = endDate.getHours().toString().padStart(2, '0');
     const endMinStr = endDate.getMinutes().toString().padStart(2, '0');
@@ -296,8 +341,11 @@ function groupLessons(lessons: Lesson[]): StudyBlock[] {
   return blocks;
 }
 
-function generateTimeSlots(prefs: Preferences, minSlotsNeeded: number): { date: Date, time: string, period: string }[] {
-  const slots: { date: Date, time: string, period: string }[] = [];
+function generateTimeSlots(
+  prefs: Preferences,
+  minSlotsNeeded: number,
+): { date: Date; time: string; period: string; workBlockEndTime?: string }[] {
+  const slots: { date: Date; time: string; period: string; workBlockEndTime?: string }[] = [];
   const start = new Date(prefs.startDate || new Date());
 
   // Normalizar días
@@ -310,11 +358,11 @@ function generateTimeSlots(prefs: Preferences, minSlotsNeeded: number): { date: 
 
   const timeMap: { [key: string]: string } = { 'mañana': '08:00', 'manana': '08:00', 'tarde': '14:00', 'noche': '20:00' };
 
-  const targetTimes = prefs.times.map(t => ({
+  const fallbackTimes = prefs.times.map(t => ({
     period: t.toLowerCase(),
     time: timeMap[t.toLowerCase()] || '09:00'
   }));
-  if (targetTimes.length === 0) targetTimes.push({ period: 'mañana', time: '09:00' });
+  if (fallbackTimes.length === 0) fallbackTimes.push({ period: 'mañana', time: '09:00' });
 
   // Generar slots - Aumentamos el límite de iteraciones por si el plan es muy largo
   let currentDate = new Date(start);
@@ -327,12 +375,75 @@ function generateTimeSlots(prefs: Preferences, minSlotsNeeded: number): { date: 
     const dayOfWeek = currentDate.getDay();
 
     if (targetDays.includes(dayOfWeek)) {
+      // Use real calendar work-block start time for this date when available.
+      // Build the key using local date parts (not UTC) to match the client-side
+      // getDateKey format used in planner-slot-analysis.service.ts.
+      const y = currentDate.getFullYear();
+      const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const d = String(currentDate.getDate()).padStart(2, '0');
+      const dateKey = `${y}-${m}-${d}`;
+      const calendarStartTime = prefs.calendarStartTimesByDay?.[dateKey];
+      const calendarEndTime = prefs.calendarEndTimesByDay?.[dateKey];
+      const availDay = prefs.availabilityMap?.[dateKey];
+
+      let targetTimes: { period: string; time: string; blockLimit?: string }[] = [];
+      
+      if (availDay && availDay.freeSlots && availDay.freeSlots.length > 0) {
+        // Usa los exactos huecos libres proveidos por el backend calendar!
+        for (const freeSlot of availDay.freeSlots) {
+          const startStr = `${freeSlot.startHour.toString().padStart(2, '0')}:${freeSlot.startMinute.toString().padStart(2, '0')}`;
+          const endStr = `${freeSlot.endHour.toString().padStart(2, '0')}:${freeSlot.endMinute.toString().padStart(2, '0')}`;
+          
+          targetTimes.push({
+             period: 'libre',
+             time: startStr,
+             blockLimit: endStr
+          });
+        }
+      } else if (calendarStartTime && calendarEndTime) {
+        targetTimes = fallbackTimes.map(ft => {
+          const [wbStartH, wbStartM] = calendarStartTime.split(':').map(Number);
+          const [wbEndH, wbEndM] = calendarEndTime.split(':').map(Number);
+          const [prefH, prefM] = ft.time.split(':').map(Number);
+
+          const prefMins = prefH * 60 + prefM;
+          const startMins = wbStartH * 60 + wbStartM;
+          const endMins = wbEndH * 60 + wbEndM;
+
+          let finalMins = prefMins;
+          if (finalMins < startMins) finalMins = startMins;
+          if (finalMins > endMins - 15) finalMins = endMins - 15;
+          if (finalMins < startMins) finalMins = startMins; 
+
+          const finalHStr = Math.floor(finalMins / 60).toString().padStart(2, '0');
+          const finalMStr = (finalMins % 60).toString().padStart(2, '0');
+          return { period: ft.period, time: `${finalHStr}:${finalMStr}`, blockLimit: calendarEndTime };
+        });
+      } else if (calendarStartTime) {
+        targetTimes = [{ period: 'laboral', time: calendarStartTime, blockLimit: undefined }];
+      } else {
+        targetTimes = fallbackTimes.map(t => ({ ...t, blockLimit: undefined }));
+      }
+
       for (const timeConfig of targetTimes) {
+        const strictEndTime = timeConfig.blockLimit;
+        
+        // When a precise work block or free slot end time is known, ensure the slot can fit at
+        // least the minimum viable session (15 min) before the block closes.
+        if (strictEndTime) {
+          const [startH, startM] = timeConfig.time.split(':').map(Number);
+          const [endH, endM] = strictEndTime.split(':').map(Number);
+          const availableMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+          // Skip this slot entirely if there is no room for even a short session
+          if (availableMinutes < 15) continue;
+        }
+
         const slotDate = new Date(currentDate);
         slots.push({
           date: slotDate,
           time: timeConfig.time,
-          period: timeConfig.period
+          period: timeConfig.period,
+          workBlockEndTime: strictEndTime,
         });
 
         if (slots.length >= minSlotsNeeded) break;

@@ -177,7 +177,7 @@ export function getEventPosition(
   date: CalendarDate
 ): StudyPlannerCalendarEventPosition | null {
   if (event.isAllDay) {
-    return { top: 0, height: 16, isAllDay: true };
+    return { top: 0, height: 16, left: 0, width: 100, isAllDay: true };
   }
 
   const eventStart = toCalendarDate(event.start);
@@ -205,8 +205,102 @@ export function getEventPosition(
   return {
     top: (startMinutes / 60) * 64,
     height: Math.max((durationMinutes / 60) * 64, 20),
+    left: 0,
+    width: 100,
     isAllDay: false,
   };
+}
+
+export function getEventLayoutsForDay(
+  events: CalendarEvent[],
+  date: CalendarDate
+): (CalendarEvent & { position: StudyPlannerCalendarEventPosition })[] {
+  const dayEvents = getEventsForDay(events, date);
+  const timedEvents = dayEvents
+    .filter((e) => !e.isAllDay)
+    .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime() || 
+                   new Date(a.end).getTime() - new Date(b.end).getTime());
+
+  const allDayEventsLayouts = dayEvents
+    .filter((e) => e.isAllDay)
+    .map((event) => ({
+      ...event,
+      position: { top: 0, height: 16, left: 0, width: 100, isAllDay: true }
+    }));
+
+  if (timedEvents.length === 0) return allDayEventsLayouts;
+
+  const clusters: CalendarEvent[][] = [];
+  let currentCluster: CalendarEvent[] = [];
+  let clusterEnd: number = 0;
+
+  for (const event of timedEvents) {
+    const start = new Date(event.start).getTime();
+    const end = new Date(event.end).getTime();
+
+    if (start < clusterEnd) {
+      currentCluster.push(event);
+      clusterEnd = Math.max(clusterEnd, end);
+    } else {
+      if (currentCluster.length > 0) clusters.push(currentCluster);
+      currentCluster = [event];
+      clusterEnd = end;
+    }
+  }
+  if (currentCluster.length > 0) clusters.push(currentCluster);
+
+  const timedLayouts = clusters.flatMap(cluster => {
+    const columns: CalendarEvent[][] = [];
+    const eventToColumn = new Map<string, number>();
+
+    for (const event of cluster) {
+      let assigned = false;
+      for (let i = 0; i < columns.length; i++) {
+        const lastEventInColumn = columns[i][columns[i].length - 1];
+        if (new Date(event.start).getTime() >= new Date(lastEventInColumn.end).getTime()) {
+          columns[i].push(event);
+          eventToColumn.set(event.id, i);
+          assigned = true;
+          break;
+        }
+      }
+      if (!assigned) {
+        columns.push([event]);
+        eventToColumn.set(event.id, columns.length - 1);
+      }
+    }
+
+    const totalColumns = columns.length;
+    return cluster.map(event => {
+      const col = eventToColumn.get(event.id)!;
+      const pos = getEventPosition(event, date);
+      
+      // Staggered overlap logic (Google style)
+      // Each event takes more than 1/totalColumns width to overlap slightly.
+      // Offset each column by a small amount (e.g., 15%) so they remain wide.
+      const offsetPerColumn = 15;
+      const left = totalColumns > 1 
+        ? Math.min(col * offsetPerColumn, (col / totalColumns) * 80)
+        : 0;
+      const width = 100 - left;
+
+      return {
+        ...event,
+        position: {
+          ...pos!,
+          left,
+          width,
+          zIndex: col + 1, // Store z-index in position for UI to use
+        }
+      };
+    });
+  });
+
+  return [...allDayEventsLayouts, ...timedLayouts].sort((a, b) => {
+    if (a.position.isAllDay && !b.position.isAllDay) return -1;
+    if (!a.position.isAllDay && b.position.isAllDay) return 1;
+    return new Date(a.start).getTime() - new Date(b.start).getTime();
+  });
 }
 
 export function normalizeCalendarMutationError(errorMessage?: string): string {

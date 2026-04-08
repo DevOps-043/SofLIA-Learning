@@ -24,6 +24,7 @@ import {
   buildDefaultEventFormForDate,
   buildEventFormFromEvent,
   getEventColor,
+  getEventLayoutsForDay,
   getEventPosition,
   getEventsForDay,
 } from './study-planner-calendar.utils';
@@ -285,5 +286,7 @@ export function useStudyPlannerCalendarLogic({
       getEventsForDay(events, date),
     getEventColor,
     getEventPosition,
+    getEventLayoutsForDay: (date: Parameters<typeof getEventLayoutsForDay>[1]) =>
+      getEventLayoutsForDay(events, date),
   };
 }

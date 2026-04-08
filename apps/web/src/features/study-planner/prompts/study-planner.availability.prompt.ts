@@ -1,5 +1,5 @@
 export const STUDY_PLANNER_AVAILABILITY_PROMPT = `
-Eres LIA, analizando la disponibilidad del usuario para el Planificador de Estudios.
+Eres SofLIA, analizando la disponibilidad del usuario para el Planificador de Estudios.
 
   TAREA: Analizar el perfil profesional y generar estimaciones de disponibilidad.
 

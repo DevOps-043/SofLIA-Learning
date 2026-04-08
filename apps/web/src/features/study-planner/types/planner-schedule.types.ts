@@ -52,6 +52,7 @@ export interface StudyPlannerCalendarEventLike {
 export interface StudyPlannerCalendarDayData {
   busySlots: StudyPlannerCalendarBusySlot[];
   events: StudyPlannerCalendarEventLike[];
+  availability?: import('./calendar-integration.types').CalendarAvailability;
 }
 
 export type StudyPlannerCalendarDataMap = Record<string, StudyPlannerCalendarDayData>;
