@@ -7,14 +7,15 @@ import {
   StudyPlannerDashboardCalendarConfigModal,
   StudyPlannerDashboardCalendarModal,
   StudyPlannerDashboardConfirmDialog,
-  StudyPlannerDashboardToolbar,
 } from '../../../features/study-planner/components/dashboard';
-import { useStudyPlannerDashboardLogic } from '../../../features/study-planner/hooks/useStudyPlannerDashboardLogic';
+import { StudyPlannerDashboardToolbarV2 } from '../../../features/study-planner/components/dashboard/StudyPlannerDashboardToolbarV2';
+import { useStudyPlannerDashboardLogicV2 } from '../../../features/study-planner/hooks/useStudyPlannerDashboardLogicV2';
 import { redirectToDashboard } from '../../../features/auth/actions/dashboard-redirect';
 import { ToastNotification } from '../../../core/components/ToastNotification';
 
 export default function StudyPlannerDashboardPage() {
   const {
+    availablePlans,
     messages,
     isSending,
     error,
@@ -40,6 +41,7 @@ export default function StudyPlannerDashboardPage() {
     hoveredButton,
     setHoveredButton,
     calendarError,
+    selectedPlanId,
     isDeletingPlan,
     isRecreatingPlan,
     showOnlyPlanEvents,
@@ -56,9 +58,10 @@ export default function StudyPlannerDashboardPage() {
     handleConnect,
     handleDisconnect,
     handleDeletePlan,
+    handlePlanSelection,
     handleRecreatePlan,
     handleSendMessage,
-  } = useStudyPlannerDashboardLogic();
+  } = useStudyPlannerDashboardLogicV2();
 
   return (
     <div className="min-h-screen flex overflow-hidden bg-white dark:bg-[#0F1419]">
@@ -68,7 +71,8 @@ export default function StudyPlannerDashboardPage() {
           isLiaPanelOpen && !isLiaCollapsed ? 'mr-[520px]' : ''
         }`}
       >
-        <StudyPlannerDashboardToolbar
+        <StudyPlannerDashboardToolbarV2
+          availablePlans={availablePlans}
           connectedProvider={connectedProvider}
           hasConfiguredCalendars={hasConfiguredCalendars}
           hoveredButton={hoveredButton}
@@ -81,6 +85,8 @@ export default function StudyPlannerDashboardPage() {
           onOpenCalendarModal={() => setIsCalendarModalOpen(true)}
           onRecreatePlan={handleRecreatePlan}
           onRestartTour={restartTour}
+          onSelectPlan={handlePlanSelection}
+          selectedPlanId={selectedPlanId}
           setHoveredButton={setHoveredButton}
         />
 
@@ -88,6 +94,7 @@ export default function StudyPlannerDashboardPage() {
           <div className="bg-white dark:bg-[#1E2329] rounded-none sm:rounded-xl shadow-sm border-x-0 sm:border border-[#E9ECEF] dark:border-[#6C757D]/30 p-0 sm:p-6 h-full flex flex-col">
             <StudyPlannerCalendar
               refreshTrigger={calendarRefreshTrigger}
+              selectedPlanId={selectedPlanId}
               showOnlyPlanEvents={showOnlyPlanEvents}
             />
           </div>

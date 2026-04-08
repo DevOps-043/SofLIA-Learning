@@ -17,6 +17,7 @@ export type CalendarEvent = SharedCalendarEvent & {
 export interface StudyPlannerCalendarProps {
   showOnlyPlanEvents?: boolean;
   refreshTrigger?: number;
+  selectedPlanId?: string | null;
 }
 
 export type StudyPlannerCalendarEventForm = EventForm;

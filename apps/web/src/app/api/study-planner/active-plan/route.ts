@@ -9,8 +9,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '../../../../features/auth/services/session.service';
 import { createClient } from '@supabase/supabase-js';
-import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
 import { logger } from '@/lib/logger';
+import { listUserStudyPlans } from '@/features/study-planner/services/study-planner-plans.server.service';
 
 // Crear cliente admin para bypass de RLS
 export function createLegacyAdminClient() {
@@ -41,27 +41,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }, { status: 401 });
     }
 
-    const supabase = createSharedAdminClient();
+    const plans = await listUserStudyPlans(user.id);
     
     // Obtener el plan activo más reciente del usuario
-    const { data: activePlan, error: planError } = await supabase
-      .from('study_plans')
-      .select('id')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    const activePlan = plans[0];
     
-    if (planError || !activePlan) {
+    if (!activePlan) {
       return NextResponse.json({ 
         planId: null,
-        hasActivePlan: false
+        hasActivePlan: false,
+        hasMultiplePlans: false,
+        plansCount: 0,
       });
     }
 
     return NextResponse.json({
       planId: activePlan.id,
-      hasActivePlan: true
+      hasActivePlan: true,
+      hasMultiplePlans: plans.length > 1,
+      plansCount: plans.length,
     });
 
   } catch (error) {
@@ -72,4 +70,3 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }, { status: 500 });
   }
 }
-

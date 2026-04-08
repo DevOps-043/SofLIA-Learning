@@ -14,11 +14,13 @@ import {
 interface StudyPlannerCalendarProps {
   showOnlyPlanEvents?: boolean;
   refreshTrigger?: number;
+  selectedPlanId?: string | null;
 }
 
 export function StudyPlannerCalendar({
   showOnlyPlanEvents = false,
   refreshTrigger = 0,
+  selectedPlanId = null,
 }: StudyPlannerCalendarProps) {
   const {
     currentDate,
@@ -68,7 +70,7 @@ export function StudyPlannerCalendar({
     getEventColor,
     getEventPosition,
     getEventLayoutsForDay,
-  } = useStudyPlannerCalendarLogic({ showOnlyPlanEvents, refreshTrigger });
+  } = useStudyPlannerCalendarLogic({ showOnlyPlanEvents, refreshTrigger, selectedPlanId });
 
   if (!isMounted) {
     return null;

@@ -3,6 +3,7 @@ import type {
   UserContext,
 } from '../types/user-context.types'
 import { CourseAnalysisService } from './course-analysis.service'
+import { getUserPlannedCourseIds } from './study-planner-plans.server.service'
 import { UserContextService } from './user-context.service'
 
 function enrichUserCourses(params: {
@@ -38,18 +39,24 @@ export async function buildStudyPlannerUserContext(
   userId: string,
 ): Promise<UserContext> {
   const userContext = await UserContextService.getFullUserContext(userId)
-  const progressByCourseId = await CourseAnalysisService.getUserCourseProgressMap(
-    userId,
-    userContext.courses.map((course) => course.courseId),
-  )
+  const courseIds = userContext.courses.map((course) => course.courseId)
+  const [progressByCourseId, plannedCourseIds] = await Promise.all([
+    CourseAnalysisService.getUserCourseProgressMap(userId, courseIds),
+    getUserPlannedCourseIds(userId),
+  ])
+
+  const enrichedCourses = enrichUserCourses({
+    courses: userContext.courses,
+    progressByCourseId,
+  }).map((course) => ({
+    ...course,
+    hasActivePlan: plannedCourseIds.has(course.courseId),
+  }))
 
   return {
     ...userContext,
     userId,
-    courses: enrichUserCourses({
-      courses: userContext.courses,
-      progressByCourseId,
-    }),
+    courses: enrichedCourses,
   }
 }
 

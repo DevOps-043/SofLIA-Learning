@@ -15,6 +15,7 @@ import type {
   StudyPlanConfig,
   StudySession,
 } from '../../../../features/study-planner/types/user-context.types';
+import { getUserPlannedCourseIds } from '@/features/study-planner/services/study-planner-plans.server.service';
 
 // Función helper para crear cliente con service role key (bypass RLS)
 function createAdminClient() {
@@ -90,6 +91,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
         { status: 400 }
       );
     }
+
+    if (!Array.isArray(body.config.courseIds) || body.config.courseIds.length !== 1) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Debes crear un plan para exactamente un curso a la vez',
+        },
+        { status: 400 }
+      );
+    }
     
     // Validar que haya al menos una sesión
     if (!body.sessions || body.sessions.length === 0) {
@@ -101,6 +112,20 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
     
     // Usar cliente admin para bypass de RLS
     const supabase = createAdminClient();
+    const plannedCourseIds = await getUserPlannedCourseIds(user.id);
+    const duplicateCourseId = body.config.courseIds.find((courseId) =>
+      plannedCourseIds.has(courseId),
+    );
+
+    if (duplicateCourseId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Ya existe un plan activo para este curso. Selecciona otro curso o modifica el plan existente.',
+        },
+        { status: 409 }
+      );
+    }
     
     // ✅ Detectar tipo de usuario y obtener organization_id si es B2B
     // Usar el userType del config si está disponible, sino detectarlo desde la BD

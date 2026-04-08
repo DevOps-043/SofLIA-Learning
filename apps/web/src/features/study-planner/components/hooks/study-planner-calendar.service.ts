@@ -109,13 +109,23 @@ async function fetchCalendarEvents(
 async function fetchStudySessions(
   fetcher: typeof fetch,
   startDate: CalendarDate,
-  endDate: CalendarDate
+  endDate: CalendarDate,
+  selectedPlanId?: string | null,
 ): Promise<{
   events: CalendarEvent[];
   externalIds: Set<string>;
 }> {
+  const query = new URLSearchParams({
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+  });
+
+  if (selectedPlanId) {
+    query.set('planId', selectedPlanId);
+  }
+
   const response = await fetcher(
-    `/api/study-planner/sessions?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
+    `/api/study-planner/sessions?${query.toString()}`
   );
 
   if (!response.ok) {
@@ -212,6 +222,7 @@ function filterUniqueCalendarEvents(params: {
 export async function loadStudyPlannerCalendarEvents(params: {
   currentDate: CalendarDate;
   fetcher?: typeof fetch;
+  selectedPlanId?: string | null;
   view: ViewType;
 }): Promise<CalendarEvent[]> {
   const range = resolveCalendarRange(params.currentDate, params.view);
@@ -223,7 +234,7 @@ export async function loadStudyPlannerCalendarEvents(params: {
   const fetcher = params.fetcher || fetch;
   const [calendarEvents, studySessions, customEvents] = await Promise.all([
     fetchCalendarEvents(fetcher, range.startDate, range.endDate),
-    fetchStudySessions(fetcher, range.startDate, range.endDate),
+    fetchStudySessions(fetcher, range.startDate, range.endDate, params.selectedPlanId),
     fetchCustomEvents(fetcher, range.startDate, range.endDate),
   ]);
 

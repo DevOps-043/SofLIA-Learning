@@ -94,15 +94,21 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
     
     const supabase = createAdminClient();
     
-    // 1. Obtener el plan activo del usuario
-    const { data: activePlan, error: planError } = await supabase
+    const requestedPlanId = request.nextUrl.searchParams.get('planId') || undefined;
+
+    // 1. Obtener el plan seleccionado del usuario o el mÃ¡s reciente
+    let planQuery = supabase
       .from('study_plans')
       .select('id, timezone')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+      .eq('user_id', user.id);
+
+    if (requestedPlanId) {
+      planQuery = planQuery.eq('id', requestedPlanId);
+    } else {
+      planQuery = planQuery.order('created_at', { ascending: false }).limit(1);
+    }
+
+    const { data: activePlan, error: planError } = await planQuery.single();
     
     if (planError || !activePlan) {
       return NextResponse.json({

@@ -12,6 +12,7 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
+import { getUserStudyPlanByIdOrLatest } from '@/features/study-planner/services/study-planner-plans.server.service';
 
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
@@ -82,6 +83,18 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
 
     // Usar cliente admin para bypass de RLS (la autenticación ya se verificó con SessionService)
     const supabase = createSharedAdminClient();
+    const requestedPlanId = request.nextUrl.searchParams.get('planId') || undefined;
+    const selectedPlan = await getUserStudyPlanByIdOrLatest({
+      planId: requestedPlanId,
+      userId: user.id,
+    });
+
+    if (!selectedPlan) {
+      return NextResponse.json(
+        { success: false, error: 'No hay plan de estudios activo' },
+        { status: 404 }
+      );
+    }
 
     // Obtener plan más reciente del usuario
     // Nota: La tabla study_plans no tiene columna 'status', se usa el más reciente
@@ -94,25 +107,18 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
         start_date,
         end_date,
         timezone,
-        preferred_days,
-        created_at,
-        updated_at
+        preferred_days
       `)
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
+      .eq('id', selectedPlan.id)
       .single();
 
     logger.info(`Dashboard plan API: Resultado query - plan: ${plan?.id || 'null'}, error: ${planError?.code || 'none'}`);
-    if (planError) {
-      if (planError.code === 'PGRST116') {
-        // No hay plan activo
-        return NextResponse.json(
-          { success: false, error: 'No hay plan de estudios activo' },
-          { status: 404 }
-        );
-      }
-      throw planError;
+    if (planError || !plan) {
+      return NextResponse.json(
+        { success: false, error: 'Plan no encontrado' },
+        { status: 404 }
+      );
     }
 
     // Obtener sesiones del plan y calendario en paralelo

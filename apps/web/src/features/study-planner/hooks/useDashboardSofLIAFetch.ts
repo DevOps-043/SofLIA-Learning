@@ -57,6 +57,7 @@ function formatCalendarChangesMessage(changes: CalendarChange[]): string {
 
 interface UseDashboardSofLIAFetchParams {
   userId: string | undefined;
+  selectedPlanId?: string | null;
   setState: React.Dispatch<React.SetStateAction<StudyPlannerDashboardState>>;
   getMessagesLength: () => number;
 }
@@ -69,6 +70,7 @@ interface UseDashboardSofLIAFetchReturn {
 
 export function useDashboardSofLIAFetch({
   userId,
+  selectedPlanId,
   setState,
   getMessagesLength,
 }: UseDashboardSofLIAFetchParams): UseDashboardSofLIAFetchReturn {
@@ -80,7 +82,10 @@ export function useDashboardSofLIAFetch({
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      const response = await fetch('/api/study-planner/dashboard/plan');
+      const query = selectedPlanId
+        ? `?planId=${encodeURIComponent(selectedPlanId)}`
+        : '';
+      const response = await fetch(`/api/study-planner/dashboard/plan${query}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -154,7 +159,7 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
 
               if (chatData.action?.status === 'success') {
                 setTimeout(() => {
-                  fetch('/api/study-planner/dashboard/plan')
+                  fetch(`/api/study-planner/dashboard/plan${query}`)
                     .then(res => res.json())
                     .then(planData => {
                       if (planData.success && planData.data) {
@@ -205,13 +210,16 @@ Puedo ayudarte a:
         isLoading: false,
       }));
     }
-  }, [userId, setState, getMessagesLength]);
+  }, [userId, selectedPlanId, setState, getMessagesLength]);
 
   const checkCalendarChanges = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const response = await fetch('/api/study-planner/calendar/check-changes', {
+      const query = selectedPlanId
+        ? `?planId=${encodeURIComponent(selectedPlanId)}`
+        : '';
+      const response = await fetch(`/api/study-planner/calendar/check-changes${query}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });

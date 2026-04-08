@@ -80,22 +80,24 @@ export function useStudyPlannerCourseSelectionFlow({
 
     try {
       setAvailableCourses(
-        assignedCourses.map((course) => {
-          const courseId = course.courseId || '';
-          // Generate a unique selection key so the same course assigned by
-          // different organizations appears as separate, independently selectable items.
-          const id = course.organizationName
-            ? `${courseId}__${course.organizationName}`
-            : courseId || course.id || '';
-          return {
-            category: 'General',
-            courseId,
-            id,
-            organizationName: course.organizationName ?? undefined,
-            progress: course.progress ?? 0,
-            title: course.title,
-          };
-        }),
+        assignedCourses
+          .filter((course) => !course.hasActivePlan)
+          .map((course) => {
+            const courseId = course.courseId || '';
+            // Generate a unique selection key so the same course assigned by
+            // different organizations appears as separate, independently selectable items.
+            const id = course.organizationName
+              ? `${courseId}__${course.organizationName}`
+              : courseId || course.id || '';
+            return {
+              category: 'General',
+              courseId,
+              id,
+              organizationName: course.organizationName ?? undefined,
+              progress: course.progress ?? 0,
+              title: course.title,
+            };
+          }),
       );
     } finally {
       setIsLoadingCourses(false);

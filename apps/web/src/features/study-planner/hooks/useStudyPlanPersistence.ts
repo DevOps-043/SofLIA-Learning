@@ -9,7 +9,6 @@ import {
   attachSessionIdsToDistribution,
   buildStudyPlanPayload,
   buildStudyPlanSuccessMessage,
-  cleanupPreviousPlanEvents,
   saveStudyPlanRequest,
   syncStudyPlanSessions,
 } from '../services/study-plan-persistence.service';
@@ -70,14 +69,6 @@ export function useStudyPlanPersistence(params: UseStudyPlanPersistenceParams) {
         studyApproach: params.studyApproach,
         userType: params.userType,
       });
-
-      if (params.savedPlanId && params.connectedCalendar) {
-        try {
-          await cleanupPreviousPlanEvents(params.savedPlanId);
-        } catch (cleanupError) {
-          console.error('Error cleaning up old events:', cleanupError);
-        }
-      }
 
       const saveData = await saveStudyPlanRequest(payload);
 

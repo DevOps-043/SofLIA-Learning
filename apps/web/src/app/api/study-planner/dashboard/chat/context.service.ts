@@ -15,13 +15,17 @@ import {
 } from './format.utils';
 import type { SyncResult, CalendarEvent } from './types';
 
-export async function getPlanContext(userId: string, planId?: string): Promise<{ context: string; syncResult?: SyncResult; timezone: string }> {
+export async function getPlanContext(
+  userId: string,
+  planId: string,
+): Promise<{ context: string; syncResult?: SyncResult; timezone: string }> {
   const supabase = createAdminClient();
 
-  logger.info(`🔍 getPlanContext - userId: ${userId}, planId: ${planId || 'no especificado'}`);
+  logger.info(`🔍 getPlanContext - userId: ${userId}, planId: ${planId}`);
 
-  // Obtener plan más reciente (la tabla no tiene columna status)
-  let planQuery = supabase
+  // planId is always required here — plan resolution is handled upstream by
+  // resolvePlanSelectionForChat before this function is called.
+  const { data: plan, error: planError } = await supabase
     .from('study_plans')
     .select(`
       id,
@@ -32,16 +36,9 @@ export async function getPlanContext(userId: string, planId?: string): Promise<{
       timezone,
       preferred_days
     `)
-    .eq('user_id', userId);
-
-  if (planId) {
-    planQuery = planQuery.eq('id', planId);
-  } else {
-    // Si no hay planId específico, ordenar por fecha de creación y tomar el más reciente
-    planQuery = planQuery.order('created_at', { ascending: false }).limit(1);
-  }
-
-  const { data: plan, error: planError } = await planQuery.single();
+    .eq('user_id', userId)
+    .eq('id', planId)
+    .single();
 
   const timezone = plan?.timezone || 'America/Mexico_City';
 

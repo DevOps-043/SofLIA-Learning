@@ -36,6 +36,12 @@ REGLAS DE ORO:
 8. NUNCA programes una sesion sobre un evento que no sea de trabajo
 9. NUNCA uses tiempo libre o dias de descanso salvo que el usuario lo pida explicitamente
 10. NUNCA dupliques una sesion ni propongas dos cambios para el mismo bloque
+
+REGLAS CUANDO EL USUARIO TIENE MULTIPLES PLANES:
+11. Si el contexto indica que el usuario tiene mas de un plan, SIEMPRE menciona el nombre del plan activo al responder
+12. NUNCA asumas que una solicitud ambigua ("mueve mi sesion del viernes") aplica al plan activo sin confirmarlo primero
+13. Si el mensaje del usuario puede referirse a otro plan distinto al activo, pregunta explicitamente antes de actuar
+14. Al proponer acciones proactivas, menciona el nombre del plan al que aplican
 `
 
 const VALID_MODELS = [
@@ -53,6 +59,10 @@ interface SendDashboardChatMessageParams {
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>
   planContext: string
   timezone: string
+  /** Name of the currently active plan. Used to reinforce multi-plan awareness in the prompt. */
+  planName?: string
+  /** Total number of plans this user has. Used to activate multi-plan rules. */
+  totalUserPlans?: number
 }
 
 export interface DashboardChatUsageMetadata {
@@ -78,6 +88,8 @@ function buildDashboardSystemInstruction(
   planContext: string,
   timezone: string,
   isProactiveInit: boolean,
+  planName?: string,
+  totalUserPlans?: number,
   now = new Date(),
 ) {
   const currentDateTime = now.toLocaleDateString('es-MX', {
@@ -90,12 +102,17 @@ function buildDashboardSystemInstruction(
     timeZone: timezone,
   })
 
+  const hasMultiplePlans = (totalUserPlans ?? 1) > 1
+  const multiPlanNote = hasMultiplePlans && planName
+    ? `\nCONTEXTO MULTI-PLAN: El usuario tiene ${totalUserPlans} planes. El plan activo ahora es "${planName}". Menciona siempre el nombre del plan activo cuando respondas o propongas acciones.`
+    : ''
+
   return `
 ${BASE_LIA_INSTRUCTION}
 
 DATOS EN TIEMPO REAL:
 - Fecha/Hora: ${currentDateTime} (Zona: ${timezone})
-- Usuario ID: ${userId}
+- Usuario ID: ${userId}${multiPlanNote}
 
 ESTADO DEL PLAN Y CALENDARIO (CONTEXTO):
 ${planContext}
@@ -103,7 +120,7 @@ ${planContext}
 INSTRUCCION ESPECIAL PARA ESTA INTERACCION:
 ${
   isProactiveInit
-    ? 'CONTEXTO: El usuario acaba de abrir el dashboard. NO ha enviado ningun mensaje aun. TU DEBES INICIAR LA CONVERSACION.\nTAREA: Analiza el contexto de arriba.\n- SI HAY PROBLEMAS: Pregunta DIRECTAMENTE al usuario si quiere resolverlos.\n- SI TODO ESTA BIEN: Saluda brevemente y menciona la proxima sesion.\n- IMPORTANTE: No digas "Hola" generico. Ve al contexto.'
+    ? `CONTEXTO: El usuario acaba de abrir el dashboard. NO ha enviado ningun mensaje aun. TU DEBES INICIAR LA CONVERSACION.\nTAREA: Analiza el contexto de arriba.\n- SI HAY PROBLEMAS: Pregunta DIRECTAMENTE al usuario si quiere resolverlos.\n- SI TODO ESTA BIEN: Saluda brevemente y menciona la proxima sesion${planName ? ` del plan "${planName}"` : ''}.\n- IMPORTANTE: No digas "Hola" generico. Ve al contexto.`
     : 'El usuario ha respondido. Continua la conversacion ayudandole a gestionar su plan.'
 }
 `
@@ -117,6 +134,8 @@ export async function sendDashboardChatMessage({
   conversationHistory,
   planContext,
   timezone,
+  planName,
+  totalUserPlans,
 }: SendDashboardChatMessageParams): Promise<DashboardChatGenerationResult> {
   const googleApiKey = process.env.GOOGLE_API_KEY
   if (!googleApiKey) {
@@ -162,6 +181,8 @@ export async function sendDashboardChatMessage({
             planContext,
             timezone,
             isProactiveInit,
+            planName,
+            totalUserPlans,
           ),
         },
       ],

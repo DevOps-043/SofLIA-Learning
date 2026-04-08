@@ -351,10 +351,15 @@ export function buildStudyPlanPayload(
     throw new Error('No se pudieron determinar los dias preferidos');
   }
 
+  const selectedCourse = params.availableCourses.find((course) =>
+    params.selectedCourseIds.includes(course.id),
+  )
+  const courseName = selectedCourse?.title?.trim() || 'Curso'
+
   return {
     planConfig: {
-      name: `Plan de Estudios - ${new Date().toLocaleDateString('es-ES')}`,
-      description: `Plan generado por SofLIA con ${sessions.length} sesiones${params.selectedCourseIds.length > 0 ? ` para ${params.selectedCourseIds.length} curso(s)` : ''}`,
+      name: `Plan de ${courseName}`,
+      description: `Plan generado por SofLIA para ${courseName} con ${sessions.length} sesiones`,
       userType: params.userType || 'b2c',
       courseIds: params.selectedCourseIds.map(
         (selId) => params.availableCourses.find((c) => c.id === selId)?.courseId ?? selId,

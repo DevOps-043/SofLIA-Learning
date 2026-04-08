@@ -56,26 +56,38 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
       );
     }
     
+    const requestedPlanId =
+      request.nextUrl.searchParams.get('planId')
+      || (await request.json().catch(() => ({})) as { planId?: string }).planId
+      || null;
+
+    if (!requestedPlanId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'planId es requerido para eliminar un plan',
+        },
+        { status: 400 }
+      );
+    }
+
     // Usar cliente admin para bypass de RLS
     const supabase = createAdminClient();
     
-    // Obtener el plan actual del usuario
+    // Obtener el plan solicitado del usuario
     const { data: plan, error: planError } = await supabase
       .from('study_plans')
       .select('id')
+      .eq('id', requestedPlanId)
       .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
       .single();
     
     if (planError || !plan) {
       // Si no hay plan, retornar éxito (no hay nada que eliminar)
       return NextResponse.json({
-        success: true,
-        message: 'No hay plan de estudio para eliminar',
-        deletedPlanId: undefined,
-        deletedSessionsCount: 0,
-      });
+        success: false,
+        error: 'Plan no encontrado o no autorizado',
+      }, { status: 404 });
     }
     
     const planId = plan.id;
@@ -384,5 +396,3 @@ async function deleteMicrosoftCalendarEvent(accessToken: string, microsoftEventI
     throw new Error(`Error eliminando evento de Microsoft Calendar: ${errorText}`);
   }
 }
-
-

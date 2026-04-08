@@ -12,10 +12,12 @@ export interface StudyPlannerUserContextApiCourse {
   } | null;
   courseId?: string | null;
   dueDate?: string | null;
+  hasActivePlan?: boolean | null;
   id?: string | null;
   organizationId?: string | null;
   organizationName?: string | null;
   title?: string | null;
+  completionPercentage?: number | null;
 }
 
 export interface StudyPlannerUserContextApiTeam {
@@ -93,8 +95,13 @@ export function mapStudyPlannerAssignedCourses(
     .map((course) => ({
       courseId: course.courseId || course.course?.id || course.id || '',
       dueDate: course.dueDate || course.course?.dueDate || null,
+      hasActivePlan: Boolean(course.hasActivePlan),
       organizationId: course.organizationId || null,
       organizationName: course.organizationName || null,
+      progress:
+        typeof course.completionPercentage === 'number'
+          ? course.completionPercentage
+          : 0,
       title: course.course?.title || course.title || 'Curso',
     }))
     .filter((course) => Boolean(course.courseId))

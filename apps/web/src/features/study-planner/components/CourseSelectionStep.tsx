@@ -59,9 +59,10 @@ export function CourseSelectionStep({
   isVisible,
   onSelectCourse,
 }: CourseSelectionStepProps) {
-  const suggestedCourseId = getSuggestedCourseId(assignedCourses);
+  const availableCourses = assignedCourses.filter((course) => !course.hasActivePlan);
+  const suggestedCourseId = getSuggestedCourseId(availableCourses);
 
-  if (!isVisible || assignedCourses.length === 0) {
+  if (!isVisible || availableCourses.length === 0) {
     return null;
   }
 
@@ -100,7 +101,7 @@ export function CourseSelectionStep({
 
             {/* Course list */}
             <div className="max-h-[320px] space-y-2 overflow-y-auto px-3 py-3">
-              {assignedCourses.map((course, index) => {
+              {availableCourses.map((course, index) => {
                 const isSuggested = course.courseId === suggestedCourseId;
                 const formattedDueDate = formatDisplayDate(course.dueDate);
                 const formattedWindowStart = formatDisplayDate(course.planningWindowStart);

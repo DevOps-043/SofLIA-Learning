@@ -33,6 +33,7 @@ import { useStudyPlannerCalendarNavigation } from './useStudyPlannerCalendarNavi
 export function useStudyPlannerCalendarLogic({
   showOnlyPlanEvents = false,
   refreshTrigger = 0,
+  selectedPlanId = null,
 }: StudyPlannerCalendarProps) {
   const navigation = useStudyPlannerCalendarNavigation();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -69,6 +70,7 @@ export function useStudyPlannerCalendarLogic({
       try {
         const combinedEvents = await loadStudyPlannerCalendarEvents({
           currentDate: navigation.currentDate,
+          selectedPlanId,
           view: navigation.view,
         });
         setAllEvents(combinedEvents);
@@ -80,7 +82,7 @@ export function useStudyPlannerCalendarLogic({
         setIsRefreshing(false);
       }
     },
-    [navigation.currentDate, navigation.view]
+    [navigation.currentDate, navigation.view, selectedPlanId]
   );
 
   useEffect(() => {

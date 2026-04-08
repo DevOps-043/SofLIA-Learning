@@ -93,16 +93,7 @@ export function getChangedSessionUpdates(
 }
 
 export async function getActivePlanId(savedPlanId: string | null): Promise<string | null> {
-  if (savedPlanId) return savedPlanId;
-  try {
-    const response = await fetch('/api/study-planner/active-plan');
-    if (!response.ok) return null;
-    const payload = (await response.json()) as { planId?: string | null };
-    return payload.planId ?? null;
-  } catch (error) {
-    console.warn('No se pudo obtener el plan activo para sincronizar sesiones:', error);
-    return null;
-  }
+  return savedPlanId;
 }
 
 export async function syncUpdatedStudyPlanSessions(params: {

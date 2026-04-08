@@ -8,6 +8,7 @@ import { SessionService } from '@/features/auth/services/session.service'
 import { logger } from '@/lib/utils/logger'
 import { SofLIALogger } from '@/lib/analytics/lia-logger'
 import { getPlanContext } from './context.service'
+import { resolvePlanSelectionForChat } from './plan-resolution.service'
 import { setCurrentTimezone } from './format.utils'
 import type { ChatRequest } from './types'
 import {
@@ -87,9 +88,39 @@ export async function POST(
       logger.warn('[StudyPlanner] Fallo inicio de conversacion logger:', error)
     }
 
+    // Resolve which plan to use — enforces explicit selection when multiple plans exist.
+    const planResolution = await resolvePlanSelectionForChat({
+      userId: user.id,
+      activePlanId,
+    })
+
+    if (planResolution.status === 'needs_plan_selection') {
+      return withRateLimitHeaders(
+        NextResponse.json({
+          success: true,
+          response: planResolution.selectionPrompt,
+          action: null,
+        }),
+        rateLimit,
+      )
+    }
+
+    if (planResolution.status === 'no_plans') {
+      return withRateLimitHeaders(
+        NextResponse.json({
+          success: true,
+          response: 'Aun no tienes ningun plan de estudios. Crea uno desde el boton "Nuevo plan" para que pueda ayudarte.',
+          action: null,
+        }),
+        rateLimit,
+      )
+    }
+
+    // Guaranteed: status === 'resolved', plan is always present.
+    const resolvedPlanId = planResolution.plan!.id
     const { context: planContext, timezone } = await getPlanContext(
       user.id,
-      activePlanId,
+      resolvedPlanId,
     )
     setCurrentTimezone(timezone)
 
@@ -101,6 +132,8 @@ export async function POST(
       conversationHistory,
       planContext,
       timezone,
+      planName: planResolution.plan?.name,
+      totalUserPlans: planResolution.allPlans?.length ?? 1,
     })
 
     if (conversationId && liaLogger.getCurrentConversationId()) {
@@ -117,7 +150,7 @@ export async function POST(
     )
     const executedAction = await resolveDashboardChatAction(
       user.id,
-      activePlanId,
+      resolvedPlanId,
       actions,
       action,
       message,

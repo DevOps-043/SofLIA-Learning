@@ -27,10 +27,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { startDate, endDate } = parseStudyPlannerSessionsDateRange(
       request.url,
     )
+    const planId = new URL(request.url).searchParams.get('planId') || undefined
     const response = await buildStudyPlannerSessionsResponse({
       userId: user.id,
       startDate,
       endDate,
+      planId,
     })
 
     return NextResponse.json(response)

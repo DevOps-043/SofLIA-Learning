@@ -15,6 +15,7 @@ interface BuildStudyPlannerSessionsParams {
   userId: string
   startDate: Date
   endDate: Date
+  planId?: string
 }
 
 export async function syncStudyPlannerSessionsCalendarState(
@@ -60,7 +61,8 @@ export async function buildStudyPlannerSessionsResponse(
   params: BuildStudyPlannerSessionsParams,
 ): Promise<StudyPlannerSessionsResponse> {
   const supabase = createAdminClient()
-  const activePlanId = await getLatestStudyPlanId(supabase, params.userId)
+  const activePlanId =
+    params.planId || await getLatestStudyPlanId(supabase, params.userId)
 
   if (!activePlanId) {
     return {

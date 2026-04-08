@@ -109,6 +109,7 @@ export interface CourseAssignment {
   course: CourseInfo;
   userType: UserType;
   dueDate?: string;
+  hasActivePlan?: boolean;
   assignedBy?: string;
   organizationId?: string;
   organizationName?: string;

@@ -135,9 +135,9 @@ export function StudyPlannerCourseSelectorModal({
                   <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#E9ECEF] dark:bg-[#0A2540]/20">
                     <BookOpen className="h-10 w-10 text-[#6C757D] dark:text-gray-400" />
                   </div>
-                  <h4 className="mb-2 font-semibold text-[#0A2540] dark:text-white">No tienes cursos disponibles</h4>
+                  <h4 className="mb-2 font-semibold text-[#0A2540] dark:text-white">No tienes cursos disponibles para planificar</h4>
                   <p className="max-w-sm text-center text-sm text-[#6C757D] dark:text-gray-400">
-                    Adquiere cursos para poder crear tu plan de estudios personalizado
+                    Todos tus cursos ya tienen un plan activo o no tienes cursos asignados por ahora
                   </p>
                 </div>
               ) : (

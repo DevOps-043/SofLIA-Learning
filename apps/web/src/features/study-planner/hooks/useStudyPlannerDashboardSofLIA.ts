@@ -113,7 +113,9 @@ const initialState: StudyPlannerDashboardState = {
 /**
  * Hook para manejar la interacción con SofLIA en el dashboard del planificador
  */
-export function useStudyPlannerDashboardSofLIA(): StudyPlannerDashboardState & StudyPlannerDashboardActions {
+export function useStudyPlannerDashboardSofLIA(
+  selectedPlanId?: string | null,
+): StudyPlannerDashboardState & StudyPlannerDashboardActions {
   const { user } = useAuth();
   const [state, setState] = useState<StudyPlannerDashboardState>(initialState);
 
@@ -132,6 +134,7 @@ export function useStudyPlannerDashboardSofLIA(): StudyPlannerDashboardState & S
     hasCheckedCalendarRef,
   } = useDashboardSofLIAFetch({
     userId: user?.id,
+    selectedPlanId,
     setState,
     getMessagesLength,
   });
