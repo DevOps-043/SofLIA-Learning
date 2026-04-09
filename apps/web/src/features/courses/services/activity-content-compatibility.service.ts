@@ -32,6 +32,15 @@ type ResolveActivityConfigInput = {
   externalToolKey?: string | null
 }
 
+type ActivityConfigSourceRecord = {
+  activity_type?: string | null
+  activity_content?: unknown
+  activity_config?: unknown
+  ai_prompts?: unknown
+  requires_soflia_validation?: boolean | null
+  external_tool_key?: string | null
+}
+
 function parsePromptList(rawPrompts: unknown): string[] {
   if (Array.isArray(rawPrompts)) {
     return rawPrompts
@@ -81,6 +90,20 @@ function detectExternalToolKeyFromText(value: string): ExternalToolKey | null {
   return null
 }
 
+function contentSuggestsExternalToolInteraction(value: string): boolean {
+  if (!value.trim()) {
+    return false
+  }
+
+  return [
+    /\bcopia(?:r)?\b[\s\S]{0,80}\bprompt\b/i,
+    /\bpega(?:r)?\b[\s\S]{0,80}\b(chatgpt|gemini|notebook\s?lm|gamma|atlas)\b/i,
+    /\babre?(?:\s+en|\s+la)?\b[\s\S]{0,80}\b(chatgpt|gemini|notebook\s?lm|gamma|atlas)\b/i,
+    /\bve\s+a\b[\s\S]{0,80}\b(chatgpt|gemini|notebook\s?lm|gamma|atlas)\b/i,
+    /\busa\b[\s\S]{0,40}\b(chatgpt|gemini|notebook\s?lm|gamma|atlas)\b[\s\S]{0,80}\b(para pegar|para abrir|en una ventana|prompt)\b/i,
+  ].some((pattern) => pattern.test(value))
+}
+
 function detectExternalToolKey(input: {
   activityContent: string
   aiPrompts: string[]
@@ -99,6 +122,10 @@ function detectExternalToolKey(input: {
   const fromPrompts = detectExternalToolKeyFromText(joinedPrompts)
   if (fromPrompts) {
     return fromPrompts
+  }
+
+  if (!contentSuggestsExternalToolInteraction(input.activityContent)) {
+    return null
   }
 
   return detectExternalToolKeyFromText(input.activityContent)
@@ -282,4 +309,17 @@ export function resolveActivityConfig({
     mergeToolTask(activityConfig, detectedToolKey, normalizedPrompts),
     Boolean(requiresSofliaValidation),
   )
+}
+
+export function resolveActivityConfigFromRecord(
+  record: ActivityConfigSourceRecord,
+) {
+  return resolveActivityConfig({
+    activityType: record.activity_type,
+    activityContent: record.activity_content,
+    rawActivityConfig: record.activity_config,
+    aiPrompts: record.ai_prompts,
+    requiresSofliaValidation: record.requires_soflia_validation,
+    externalToolKey: record.external_tool_key,
+  })
 }

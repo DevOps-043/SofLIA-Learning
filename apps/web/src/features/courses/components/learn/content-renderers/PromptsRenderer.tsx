@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Copy, ExternalLink } from "lucide-react";
 
 import type { ExternalToolDefinition } from "@/features/courses/config/external-tool-registry";
+import { copyTextToClipboard } from "@/lib/clipboard";
 
 type PromptSource = string | unknown;
 
@@ -89,16 +90,15 @@ export function PromptsRenderer({
           <button
             key={`${index}-${prompt.slice(0, 20)}`}
             type="button"
-            onClick={() => {
-              navigator.clipboard
-                .writeText(prompt)
-                .then(() => {
-                  setCopiedIndex(index);
-                  setActionMessage("Prompt copiado al portapapeles.");
-                })
-                .catch(() => {
-                  setActionMessage("No fue posible copiar el prompt.");
-                });
+            onClick={async () => {
+              const copied = await copyTextToClipboard(prompt);
+              if (copied) {
+                setCopiedIndex(index);
+                setActionMessage("Prompt copiado al portapapeles.");
+                return;
+              }
+
+              setActionMessage("No fue posible copiar el prompt.");
             }}
             className="group w-full rounded-lg border border-[#0A2540]/15 bg-white px-4 py-3 text-left transition hover:border-[#0A2540]/30 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-[#10161D] dark:hover:border-[#00D4B3]/30 dark:hover:bg-white/[0.03]"
           >

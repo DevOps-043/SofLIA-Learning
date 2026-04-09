@@ -1,10 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Check, Clipboard, ExternalLink, Loader2, Sparkles } from "lucide-react";
 
+import type { CourseLessonContext } from "@/core/types/lia.types";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import { normalizeContentForRenderer } from "@/lib/course-content";
+import {
+  buildActivitySofliaEvaluationMessage,
+  hasActivityResponseForSofliaEvaluation,
+} from "@/features/courses/services/activity-soflia-evaluation-message.service";
 
+import { useLiaCourse } from "../../../context/LiaCourseContext";
 import { FormattedContentRenderer } from "../ContentRenderers";
 import type { LearnActivity } from "../types";
 import { ChecklistActivityRenderer } from "./ChecklistActivityRenderer";
@@ -57,7 +64,9 @@ export function InteractiveActivityRenderer({
   onSubmissionSaved?: () => void | Promise<void>;
   slug: string;
 }) {
+  const [liaEvaluationPending, setLiaEvaluationPending] = useState(false);
   const [toolActionMessage, setToolActionMessage] = useState<string | null>(null);
+  const { liaChat, openLia } = useLiaCourse();
   const activityConfig = activity.activity_config;
   const normalizedContent = useMemo(
     () => normalizeContentForRenderer(activity.activity_content),
@@ -68,6 +77,7 @@ export function InteractiveActivityRenderer({
     error,
     feedbackMessage,
     loading,
+    requestPayload,
     saving,
     setFeedbackMessage,
     state,
@@ -76,8 +86,6 @@ export function InteractiveActivityRenderer({
     updateEvidenceText,
     updateInlineAnswer,
     updateResponseText,
-    validateWithSoflia,
-    validating,
     saveDraft,
     submitActivity,
   } = useActivitySubmission({
@@ -89,11 +97,96 @@ export function InteractiveActivityRenderer({
 
   if (!activityConfig) {
     return (
-      <FormattedContentRenderer content={activity.activity_content} activityId={activity.activity_id} />
+      <FormattedContentRenderer
+        content={activity.activity_content}
+        activityId={activity.activity_id}
+      />
     );
   }
 
   const latestEvaluation = submission?.latestEvaluation?.feedback;
+  const promptText = activityConfig.toolTask?.promptTemplate?.trim() || "";
+  const canEvaluateWithSoflia = hasActivityResponseForSofliaEvaluation({
+    activity,
+    request: requestPayload,
+  });
+  const isLiaBusy = Boolean(liaChat?.isLoading);
+
+  const handleEvaluateWithSoflia = useCallback(async () => {
+    setFeedbackMessage(null);
+
+    if (isLiaBusy) {
+      setFeedbackMessage(
+        "SofLIA ya esta generando una respuesta. Deten la generacion actual en el panel y vuelve a intentarlo."
+      );
+      return;
+    }
+
+    const evaluationPrompt = buildActivitySofliaEvaluationMessage({
+      activity,
+      request: requestPayload,
+    });
+
+    if (!evaluationPrompt) {
+      setFeedbackMessage(
+        "Completa al menos una respuesta antes de pedir la evaluacion de SofLIA."
+      );
+      return;
+    }
+
+    openLia();
+
+    if (!liaChat?.sendMessage) {
+      setFeedbackMessage(
+        "SofLIA todavia no esta lista. Intenta de nuevo en unos segundos."
+      );
+      return;
+    }
+
+    const courseContext = {
+      lessonId,
+      activitiesContext: {
+        totalActivities: 1,
+        requiredActivities: activity.is_required ? 1 : 0,
+        completedActivities: activity.latest_submission_summary?.completionSatisfied
+          ? 1
+          : 0,
+        pendingRequiredCount:
+          activity.is_required &&
+          !activity.latest_submission_summary?.completionSatisfied
+            ? 1
+            : 0,
+        currentActivityFocus: {
+          title: activity.activity_title,
+          type: activity.activity_type,
+          isRequired: activity.is_required,
+          description: activity.activity_description || activity.activity_title,
+        },
+      },
+    } satisfies CourseLessonContext;
+
+    setFeedbackMessage("SofLIA esta evaluando tu actividad en el panel derecho.");
+    setLiaEvaluationPending(true);
+
+    try {
+      await liaChat.sendMessage(
+        evaluationPrompt,
+        courseContext,
+        undefined,
+        true
+      );
+    } finally {
+      setLiaEvaluationPending(false);
+    }
+  }, [
+    activity,
+    isLiaBusy,
+    lessonId,
+    liaChat,
+    openLia,
+    requestPayload,
+    setFeedbackMessage,
+  ]);
 
   return (
     <div className="space-y-4">
@@ -114,22 +207,16 @@ export function InteractiveActivityRenderer({
       {activityConfig.toolTask && (
         <div className="rounded-xl border border-[#B6E5DB] bg-[#F1FBF8] px-4 py-3 dark:border-[#00D4B3]/20 dark:bg-[#08201B]">
           <div className="flex flex-wrap items-center gap-2">
-            {activityConfig.toolTask.showCopyButton && (
+            {activityConfig.toolTask.showCopyButton && promptText && (
               <button
                 type="button"
-                onClick={() => {
-                  if (!activityConfig.toolTask?.promptTemplate) {
-                    return;
-                  }
-
-                  navigator.clipboard
-                    .writeText(activityConfig.toolTask.promptTemplate)
-                    .then(() => {
-                      setToolActionMessage("Prompt copiado al portapapeles.");
-                    })
-                    .catch(() => {
-                      setToolActionMessage("No fue posible copiar el prompt.");
-                    });
+                onClick={async () => {
+                  const copied = await copyTextToClipboard(promptText);
+                  setToolActionMessage(
+                    copied
+                      ? "Prompt copiado al portapapeles."
+                      : "No fue posible copiar el prompt."
+                  );
                 }}
                 className="inline-flex items-center gap-2 rounded-lg border border-[#0A2540]/10 bg-white px-3 py-2 text-xs font-medium text-[#0A2540] transition hover:border-[#0A2540]/20 hover:bg-[#0A2540]/5 dark:border-white/10 dark:bg-white/5 dark:text-white"
               >
@@ -258,9 +345,9 @@ export function InteractiveActivityRenderer({
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#6E57B5] dark:text-[#BFAEFF]">
                 Fortalezas
               </p>
-              <ul className="space-y-1 text-sm text-[#4C3A85] dark:text-[#E7E0FF]">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-[#4C3A85] dark:text-[#E7E0FF]">
                 {latestEvaluation.strengths.map((item) => (
-                  <li key={item}>• {item}</li>
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -270,9 +357,9 @@ export function InteractiveActivityRenderer({
               <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#6E57B5] dark:text-[#BFAEFF]">
                 A mejorar
               </p>
-              <ul className="space-y-1 text-sm text-[#4C3A85] dark:text-[#E7E0FF]">
+              <ul className="list-disc space-y-1 pl-5 text-sm text-[#4C3A85] dark:text-[#E7E0FF]">
                 {latestEvaluation.improvements.map((item) => (
-                  <li key={item}>• {item}</li>
+                  <li key={item}>{item}</li>
                 ))}
               </ul>
             </div>
@@ -290,7 +377,7 @@ export function InteractiveActivityRenderer({
             setFeedbackMessage(null);
             void saveDraft();
           }}
-          disabled={loading || saving || validating}
+          disabled={loading || saving || liaEvaluationPending}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -302,7 +389,7 @@ export function InteractiveActivityRenderer({
             setFeedbackMessage(null);
             void submitActivity();
           }}
-          disabled={loading || saving || validating}
+          disabled={loading || saving || liaEvaluationPending}
           className="inline-flex items-center gap-2 rounded-lg bg-[#0A2540] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0d2f4d] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#00D4B3] dark:text-[#08141F] dark:hover:bg-[#00b79c]"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -312,14 +399,23 @@ export function InteractiveActivityRenderer({
           <button
             type="button"
             onClick={() => {
-              setFeedbackMessage(null);
-              void validateWithSoflia();
+              void handleEvaluateWithSoflia();
             }}
-            disabled={loading || saving || validating}
+            disabled={
+              loading ||
+              saving ||
+              liaEvaluationPending ||
+              isLiaBusy ||
+              !canEvaluateWithSoflia
+            }
             className="inline-flex items-center gap-2 rounded-lg border border-[#6E57B5]/20 bg-[#F7F4FF] px-4 py-2 text-sm font-medium text-[#4C3A85] transition hover:bg-[#EFE8FF] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#7E67BA]/30 dark:bg-[#171127] dark:text-[#D7CBFF] dark:hover:bg-[#211937]"
           >
-            {validating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-            Validar con SofLIA
+            {liaEvaluationPending || isLiaBusy ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+            Evaluar con SofLIA
           </button>
         )}
       </div>

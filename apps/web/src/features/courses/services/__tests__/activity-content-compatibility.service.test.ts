@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   isInteractiveLessonActivity,
   resolveActivityConfig,
+  resolveActivityConfigFromRecord,
 } from '../activity-content-compatibility.service'
 
 describe('activity-content-compatibility.service', () => {
@@ -59,5 +60,29 @@ describe('activity-content-compatibility.service', () => {
     ).toBeNull()
     expect(isInteractiveLessonActivity('quiz')).toBe(false)
     expect(isInteractiveLessonActivity('ai_chat')).toBe(false)
+  })
+
+  it('does not infer external tool actions from plain mentions in the question text', () => {
+    const config = resolveActivityConfig({
+      activityType: 'exercise',
+      activityContent:
+        'Completa cada frase escribiendo la herramienta correcta ChatGPT, Atlas u otra.',
+    })
+
+    expect(config?.toolTask).toBeUndefined()
+  })
+
+  it('maps snake_case activity records from Supabase correctly', () => {
+    const config = resolveActivityConfigFromRecord({
+      activity_type: 'exercise',
+      activity_content: 'Para redactar un correo, uso _____.',
+      ai_prompts: 'Usa ChatGPT',
+      requires_soflia_validation: true,
+      external_tool_key: 'chatgpt',
+    })
+
+    expect(config?.interactionType).toBe('inline_answers')
+    expect(config?.validation.enabled).toBe(true)
+    expect(config?.toolTask?.toolKey).toBe('chatgpt')
   })
 })

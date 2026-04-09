@@ -4,7 +4,7 @@ import { ContentTranslationService } from '@/core/services/contentTranslation.se
 import { SupportedLanguage } from '@/core/i18n/i18n'
 import { SessionService } from '@/features/auth/services/session.service'
 import { getExternalToolDefinition } from '@/features/courses/config/external-tool-registry'
-import { resolveActivityConfig } from '@/features/courses/services/activity-content-compatibility.service'
+import { resolveActivityConfigFromRecord } from '@/features/courses/services/activity-content-compatibility.service'
 import {
   buildActivitySubmissionSummaryMap,
   resolveCourseLessonContext,
@@ -90,7 +90,7 @@ export async function GET(
 
     const normalizedActivities = translatedActivities.map((activity) => {
       const normalizedActivity = normalizeLessonActivityRecord(activity)
-      const resolvedActivityConfig = resolveActivityConfig(normalizedActivity)
+      const resolvedActivityConfig = resolveActivityConfigFromRecord(normalizedActivity)
       const toolKey =
         resolvedActivityConfig?.toolTask?.toolKey ??
         (typeof normalizedActivity.external_tool_key === 'string'

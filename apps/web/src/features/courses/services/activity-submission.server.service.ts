@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 
 import {
   isInteractiveLessonActivity,
-  resolveActivityConfig,
+  resolveActivityConfigFromRecord,
 } from './activity-content-compatibility.service'
 import {
   normalizeActivityEvaluationFeedback,
@@ -434,7 +434,9 @@ export async function resolveCourseActivityContext(
   return {
     ...lessonContext,
     activity: activity as ActivityLikeRecord,
-    resolvedActivityConfig: resolveActivityConfig(activity as ActivityLikeRecord),
+    resolvedActivityConfig: resolveActivityConfigFromRecord(
+      activity as ActivityLikeRecord,
+    ),
   }
 }
 
@@ -479,7 +481,7 @@ export async function buildActivitySubmissionSummaryMap(
       return
     }
 
-    const resolvedConfig = resolveActivityConfig(activity)
+    const resolvedConfig = resolveActivityConfigFromRecord(activity)
     if (!resolvedConfig) {
       return
     }
