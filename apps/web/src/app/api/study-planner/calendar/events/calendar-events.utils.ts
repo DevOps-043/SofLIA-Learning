@@ -50,14 +50,14 @@ export function needsCalendarTokenRefresh(
 
 export function normalizeExternalEventId(eventId: unknown): string {
   if (typeof eventId === 'string') {
-    return eventId.split('_')[0]
+    return eventId.trim()
   }
 
   if (eventId === null || eventId === undefined) {
     return ''
   }
 
-  return String(eventId).split('_')[0]
+  return String(eventId).trim()
 }
 
 export function mapGoogleCalendarEvent(
@@ -93,6 +93,9 @@ export function mapGoogleCalendarEvent(
     status: event.status || '',
     isAllDay,
     calendarId,
+    linkedStudySessionId: event.extendedProperties?.private?.sofliaSessionId,
+    linkedStudyPlanId: event.extendedProperties?.private?.sofliaPlanId,
+    linkedClientReferenceId: event.extendedProperties?.private?.sofliaClientReferenceId,
   }
 }
 

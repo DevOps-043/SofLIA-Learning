@@ -33,7 +33,8 @@ interface UseStudyPlannerCourseSelectionFlowResult {
   confirmCourseSelection: () => void;
   handleComplete: () => void;
   handleSkip: () => void;
-  loadUserCourses: () => Promise<void>;
+  /** @param overrideCourses - When provided, uses these instead of the cached assignedCourses. */
+  loadUserCourses: (overrideCourses?: StudyPlannerAssignedCourse[]) => Promise<void>;
   toggleCourseSelection: (courseId: string) => void;
 }
 
@@ -75,12 +76,13 @@ export function useStudyPlannerCourseSelectionFlow({
    * This avoids a redundant API call and works correctly for B2B users whose courses
    * come from organization_course_assignments, not course_purchases.
    */
-  const loadUserCourses = async () => {
+  const loadUserCourses = async (overrideCourses?: StudyPlannerAssignedCourse[]) => {
     setIsLoadingCourses(true);
 
     try {
+      const sourceCourses = overrideCourses ?? assignedCourses;
       setAvailableCourses(
-        assignedCourses
+        sourceCourses
           .filter((course) => !course.hasActivePlan)
           .map((course) => {
             const courseId = course.courseId || '';

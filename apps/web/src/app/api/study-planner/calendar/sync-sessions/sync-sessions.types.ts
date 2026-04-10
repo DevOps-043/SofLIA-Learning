@@ -23,6 +23,7 @@ export interface StudySessionRecord {
   end_time: string
   plan_id: string | null
   course_id: string | null
+  metrics?: Record<string, unknown> | null
 }
 
 export interface PreparedSyncSessionsContext {

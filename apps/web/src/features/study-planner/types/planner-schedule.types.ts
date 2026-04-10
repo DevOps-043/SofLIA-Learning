@@ -1,5 +1,7 @@
 export interface StudyPlannerScheduledLesson {
+  courseId?: string;
   courseTitle: string;
+  lessonId?: string;
   lessonTitle: string;
   lessonOrderIndex: number;
   durationMinutes: number;

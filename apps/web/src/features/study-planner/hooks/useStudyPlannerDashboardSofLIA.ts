@@ -29,10 +29,16 @@ export type StudyPlannerAction =
   | 'resize_session'
   | 'create_session'
   | 'update_session'
-  | 'reschedule_week'
-  | 'analyze_calendar'
-  | 'suggest_adjustments'
+  | 'reschedule_sessions'
   | 'get_plan_summary'
+  | 'list_calendar_events'
+  | 'create_calendar_event'
+  | 'move_calendar_event'
+  | 'delete_calendar_event'
+  | 'rebalance_plan'
+  | 'create_micro_session'
+  | 'reduce_session_load'
+  | 'recover_missed_session'
   | 'update_calendar_selection';
 
 // Datos de una sesión de estudio

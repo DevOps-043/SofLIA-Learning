@@ -31,6 +31,11 @@ interface UseDashboardSofLIAStateReturn {
   abortControllerRef: React.MutableRefObject<AbortController | null>;
 }
 
+interface DashboardChatErrorPayload {
+  error?: string;
+  response?: string;
+}
+
 export function useDashboardSofLIAState({
   userId,
   getState,
@@ -80,7 +85,14 @@ export function useDashboardSofLIAState({
       });
 
       if (!response.ok) {
-        throw new Error('Error al comunicarse con SofLIA');
+        const errorData = await response.json().catch(
+          () => null as DashboardChatErrorPayload | null,
+        );
+        throw new Error(
+          errorData?.error
+          || errorData?.response
+          || 'Error al comunicarse con SofLIA',
+        );
       }
 
       const data = await response.json();
@@ -110,7 +122,10 @@ export function useDashboardSofLIAState({
       console.error('Error enviando mensaje:', error);
       setState(prev => ({
         ...prev,
-        error: 'Error al comunicarse con SofLIA. Por favor, intenta de nuevo.',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Error al comunicarse con SofLIA. Por favor, intenta de nuevo.',
         isSending: false,
       }));
     }

@@ -11,6 +11,10 @@ function buildGoogleEventPayload(
   timezone: string,
 ) {
   const { startTime, endTime } = isValidSessionDateRange(session)
+  const clientReferenceId =
+    typeof session.metrics?.clientReferenceId === 'string'
+      ? session.metrics.clientReferenceId
+      : undefined
 
   return {
     summary: session.title,
@@ -29,6 +33,15 @@ function buildGoogleEventPayload(
         { method: 'email', minutes: 24 * 60 },
         { method: 'popup', minutes: 15 },
       ],
+    },
+    extendedProperties: {
+      private: {
+        sofliaSessionId: session.id,
+        ...(session.plan_id ? { sofliaPlanId: session.plan_id } : {}),
+        ...(clientReferenceId
+          ? { sofliaClientReferenceId: clientReferenceId }
+          : {}),
+      },
     },
   }
 }

@@ -4,7 +4,15 @@
  * rebalance plan, reduce load, and calendar selection updates.
  */
 
-import { createAdminClient, syncSessionWithCalendar, getCalendarAccessToken, createGoogleCalendarEvent, deleteGoogleCalendarEvent } from '../calendar.service';
+import {
+  createAdminClient,
+  syncSessionWithCalendar,
+  getCalendarAccessToken,
+  createGoogleCalendarEvent,
+  deleteGoogleCalendarEvent,
+  parseSessionMetrics,
+  persistSessionCalendarSync,
+} from '../calendar.service';
 import { getCurrentTimezone } from '../format.utils';
 import { CalendarIntegrationService } from '../../../../../../features/study-planner/services/calendar-integration.service';
 import { logger } from '../../../../../../lib/utils/logger';
@@ -60,16 +68,23 @@ export async function executeCreateMicroSession(
         start_time: startTime,
         end_time: endTime,
         description: session.description || '',
+        sessionId: session.id,
+        planId: session.plan_id,
       },
       getCurrentTimezone() || 'America/Mexico_City',
       calendarId
     );
 
     if (eventId) {
-      await supabase
-        .from('study_sessions')
-        .update({ external_event_id: eventId })
-        .eq('id', session.id);
+      await persistSessionCalendarSync({
+        supabase,
+        sessionId: session.id,
+        eventId,
+        provider: 'google',
+        calendarId,
+        source: 'manual_action',
+        existingSession: session,
+      });
     }
   }
 
@@ -133,16 +148,27 @@ export async function executeRecoverMissedSession(
           start_time: newStartTime,
           end_time: newEndTime,
           description: originalSession.description || '',
+          sessionId: originalSession.id,
+          planId: originalSession.plan_id,
+          clientReferenceId:
+            typeof parseSessionMetrics(originalSession.metrics)?.clientReferenceId === 'string'
+              ? parseSessionMetrics(originalSession.metrics)?.clientReferenceId
+              : undefined,
         },
         getCurrentTimezone() || 'America/Mexico_City',
         calendarId
       );
 
       if (eventId) {
-        await supabase
-          .from('study_sessions')
-          .update({ external_event_id: eventId })
-          .eq('id', sessionId);
+        await persistSessionCalendarSync({
+          supabase,
+          sessionId,
+          eventId,
+          provider: 'google',
+          calendarId,
+          source: 'manual_action',
+          existingSession: originalSession,
+        });
       }
     }
   }

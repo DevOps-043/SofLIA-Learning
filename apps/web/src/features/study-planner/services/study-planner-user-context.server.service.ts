@@ -3,7 +3,10 @@ import type {
   UserContext,
 } from '../types/user-context.types'
 import { CourseAnalysisService } from './course-analysis.service'
-import { getUserPlannedCourseIds } from './study-planner-plans.server.service'
+import {
+  buildPlannedCourseKey,
+  getUserPlannedCourseKeys,
+} from './study-planner-plans.server.service'
 import { UserContextService } from './user-context.service'
 
 function enrichUserCourses(params: {
@@ -40,9 +43,9 @@ export async function buildStudyPlannerUserContext(
 ): Promise<UserContext> {
   const userContext = await UserContextService.getFullUserContext(userId)
   const courseIds = userContext.courses.map((course) => course.courseId)
-  const [progressByCourseId, plannedCourseIds] = await Promise.all([
+  const [progressByCourseId, plannedCourseKeys] = await Promise.all([
     CourseAnalysisService.getUserCourseProgressMap(userId, courseIds),
-    getUserPlannedCourseIds(userId),
+    getUserPlannedCourseKeys(userId),
   ])
 
   const enrichedCourses = enrichUserCourses({
@@ -50,7 +53,13 @@ export async function buildStudyPlannerUserContext(
     progressByCourseId,
   }).map((course) => ({
     ...course,
-    hasActivePlan: plannedCourseIds.has(course.courseId),
+    // Use composite key (courseId::orgId) so the same course assigned by two
+    // different organizations is treated as two independent plannable items.
+    // Backward compat: also check bare courseId for plans created before multi-org
+    // support was added (those were saved with organization_id = null).
+    hasActivePlan:
+      plannedCourseKeys.has(buildPlannedCourseKey(course.courseId, course.organizationId)) ||
+      (course.organizationId != null && plannedCourseKeys.has(course.courseId)),
   }))
 
   return {

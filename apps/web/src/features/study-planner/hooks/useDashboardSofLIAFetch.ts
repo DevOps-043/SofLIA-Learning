@@ -141,6 +141,11 @@ Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu di
               }),
             });
 
+            if (!chatResponse.ok) {
+              const chatError = await chatResponse.json().catch(() => null as { error?: string } | null);
+              throw new Error(chatError?.error || 'No se pudo obtener el analisis proactivo');
+            }
+
             const chatData = await chatResponse.json();
 
             if (chatData.success && chatData.response) {

@@ -330,10 +330,17 @@ export class UserCourseAssignmentsService {
         completionPercentage: assignment.completionPercentage,
         source: 'organization',
       }))
-      const assignedCourseIds = new Set(courses.map((course) => course.courseId))
+
+      // Deduplication key: courseId + organizationId.
+      // The same course assigned by two different organizations must produce two
+      // independent entries, each plannable separately (one plan per org context).
+      const assignedKeys = new Set(
+        courses.map((course) => `${course.courseId}::${course.organizationId ?? ''}`)
+      )
 
       for (const assignment of teamAssignments) {
-        if (!assignedCourseIds.has(assignment.courseId)) {
+        const key = `${assignment.courseId}::`
+        if (!assignedKeys.has(key)) {
           courses.push({
             courseId: assignment.courseId,
             course: assignment.course,
@@ -344,7 +351,7 @@ export class UserCourseAssignmentsService {
             completionPercentage: 0,
             source: 'team',
           })
-          assignedCourseIds.add(assignment.courseId)
+          assignedKeys.add(key)
         }
       }
 

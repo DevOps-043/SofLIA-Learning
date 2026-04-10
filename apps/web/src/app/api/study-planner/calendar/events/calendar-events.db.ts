@@ -11,6 +11,12 @@ type CalendarAdminClient = ReturnType<typeof createAdminClient>
 
 interface StudySessionExternalEventRow {
   external_event_id: string | null
+  metrics?: {
+    calendarSync?: {
+      normalizedExternalEventId?: unknown
+      externalEventId?: unknown
+    } | null
+  } | null
 }
 
 interface UserCalendarEventRow {
@@ -61,7 +67,7 @@ export async function getActiveStudySessionEventIds(
 ): Promise<Set<string>> {
   const { data } = await supabase
     .from('study_sessions')
-    .select('external_event_id')
+    .select('external_event_id, metrics')
     .eq('user_id', userId)
     .not('external_event_id', 'is', null)
     .eq('calendar_provider', provider)
@@ -70,7 +76,13 @@ export async function getActiveStudySessionEventIds(
     ((data || []) as StudySessionExternalEventRow[])
       .filter((session) => session.external_event_id)
       .map((session) =>
-        normalizeExternalEventId(session.external_event_id),
+        normalizeExternalEventId(
+          typeof session.metrics?.calendarSync?.normalizedExternalEventId === 'string'
+            ? session.metrics.calendarSync.normalizedExternalEventId
+            : typeof session.metrics?.calendarSync?.externalEventId === 'string'
+              ? session.metrics.calendarSync.externalEventId
+              : session.external_event_id,
+        ),
       )
       .filter(Boolean),
   )

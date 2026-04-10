@@ -129,9 +129,11 @@ export async function syncStudySessionsToCalendar(
 
       await markSessionAsSynced(
         supabase,
+        session,
         session.id,
         context.integration.provider,
         syncResult.eventId,
+        secondaryCalendarId,
       )
       syncedCount += 1
     } catch (error) {

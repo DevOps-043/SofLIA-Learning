@@ -55,7 +55,7 @@ function getRelationRecord<T>(relation: T | T[] | null | undefined): T | null {
 }
 
 function sumEstimatedMinutes(items: EstimatedTimeRow[] | null | undefined): number {
-  return items?.reduce((sum, item) => sum + (item.estimated_time_minutes || 0), 0) || 0;
+  return items?.reduce((sum, item) => sum + (item.estimated_time_minutes || 5), 0) || 0;
 }
 
 // Tipos para tiempos de lecciones
@@ -172,45 +172,8 @@ export class LessonTimeService {
     courseId: string,
     supabase: SupabaseServerClient,
   ): Promise<LessonTimeEstimate[]> {
-    // Primero intentar obtener de lesson_time_estimates si existe
-    const { data: timeEstimates } = await supabase
-      .from('lesson_time_estimates')
-      .select(`
-        lesson_id,
-        video_minutes,
-        activities_time_minutes,
-        reading_time_minutes,
-        interactions_time_minutes,
-        quiz_time_minutes,
-        total_time_minutes,
-        course_lessons!inner (
-          lesson_id,
-          lesson_title,
-          module_id,
-          course_modules (
-            module_id,
-            module_title
-          )
-        )
-      `)
-      .eq('course_lessons.course_id', courseId);
-
-    if (timeEstimates && timeEstimates.length > 0) {
-      // Usar datos pre-calculados
-      return timeEstimates.map((estimate) => ({
-        lessonId: estimate.lesson_id,
-        lessonTitle: estimate.course_lessons?.lesson_title || 'Sin título',
-        moduleId: estimate.course_lessons?.module_id || null,
-        moduleName: estimate.course_lessons?.course_modules?.module_title || null,
-        videoMinutes: estimate.video_minutes || 0,
-        activitiesMinutes: (estimate.activities_time_minutes || 0) + (estimate.quiz_time_minutes || 0),
-        materialsMinutes: estimate.reading_time_minutes || 0,
-        interactionsMinutes: estimate.interactions_time_minutes || this.INTERACTION_TIME_MINUTES,
-        totalMinutes: estimate.total_time_minutes || 0
-      }));
-    }
-
-    // Si no hay datos pre-calculados, calcular en tiempo real
+    // Calculamos en tiempo real para asegurar que el "fallback" dinámico de 5 minutos
+    // por cada material sin tiempo aplique correctamente.
     return this.calculateLessonsTimeRealtime(courseId, supabase);
   }
 
@@ -241,23 +204,37 @@ export class LessonTimeService {
 
     const lessonEstimates: LessonTimeEstimate[] = [];
 
+    const lessonIds = lessons.map(l => l.lesson_id);
+
+    // Consultas masivas para reducir latencia
+    const [activitiesResult, materialsResult] = await Promise.all([
+      supabase.from('lesson_activities').select('lesson_id, estimated_time_minutes').in('lesson_id', lessonIds),
+      supabase.from('lesson_materials').select('lesson_id, estimated_time_minutes').in('lesson_id', lessonIds)
+    ]);
+
+    const actsByGrp = new Map<string, EstimatedTimeRow[]>();
+    const matsByGrp = new Map<string, EstimatedTimeRow[]>();
+
+    (activitiesResult.data || []).forEach((act: any) => {
+      const arr = actsByGrp.get(act.lesson_id) || [];
+      arr.push({ estimated_time_minutes: act.estimated_time_minutes });
+      actsByGrp.set(act.lesson_id, arr);
+    });
+
+    (materialsResult.data || []).forEach((mat: any) => {
+      const arr = matsByGrp.get(mat.lesson_id) || [];
+      arr.push({ estimated_time_minutes: mat.estimated_time_minutes });
+      matsByGrp.set(mat.lesson_id, arr);
+    });
+
     for (const lesson of lessons) {
-      // Obtener tiempos de actividades
-      const { data: activities } = await supabase
-        .from('lesson_activities')
-        .select('estimated_time_minutes')
-        .eq('lesson_id', lesson.lesson_id);
+      const activities = actsByGrp.get(lesson.lesson_id) || [];
+      const materials = matsByGrp.get(lesson.lesson_id) || [];
 
-      // Obtener tiempos de materiales
-      const { data: materials } = await supabase
-        .from('lesson_materials')
-        .select('estimated_time_minutes')
-        .eq('lesson_id', lesson.lesson_id);
-
-      // Calcular tiempos
+      // Calcular tiempos con fallback dinámico para los nulos
       const videoMinutes = Math.ceil((lesson.duration_seconds || 0) / 60);
-      const activitiesMinutes = sumEstimatedMinutes(activities as EstimatedTimeRow[] | null);
-      const materialsMinutes = sumEstimatedMinutes(materials as EstimatedTimeRow[] | null);
+      const activitiesMinutes = sumEstimatedMinutes(activities);
+      const materialsMinutes = sumEstimatedMinutes(materials);
       const interactionsMinutes = this.INTERACTION_TIME_MINUTES;
 
       const totalMinutes = videoMinutes + activitiesMinutes + materialsMinutes + interactionsMinutes;

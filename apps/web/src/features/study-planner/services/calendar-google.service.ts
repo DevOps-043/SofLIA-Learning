@@ -64,6 +64,9 @@ interface GoogleUserInfoResponse {
 }
 
 export class CalendarGoogleService {
+  private static normalizeEventId(eventId: string): string {
+    return eventId.split('_')[0];
+  }
   /**
    * Obtiene la lista de todos los calendarios del usuario de Google
    */
@@ -430,10 +433,11 @@ export class CalendarGoogleService {
     calendarId: string | null
   ): Promise<boolean> {
     try {
+      const cleanEventId = this.normalizeEventId(eventId);
       const targetCalendarId = calendarId || 'primary';
 
       const response = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${eventId}`,
+        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(targetCalendarId)}/events/${encodeURIComponent(cleanEventId)}`,
         {
           method: 'DELETE',
           headers: {
@@ -447,7 +451,7 @@ export class CalendarGoogleService {
       // Si es 404 y estamos usando calendario secundario, intentar en primary como fallback
       if (response.status === 404 && targetCalendarId !== 'primary') {
         const fallbackResponse = await fetch(
-          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}`,
+          `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(cleanEventId)}`,
           {
             method: 'DELETE',
             headers: {

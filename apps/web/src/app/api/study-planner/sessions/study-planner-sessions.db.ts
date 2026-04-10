@@ -15,12 +15,14 @@ const STUDY_PLANNER_SESSION_SELECT = `
   is_ai_generated,
   session_type,
   external_event_id,
-  calendar_provider
+  calendar_provider,
+  metrics,
+  plan_id
 `
 
 interface GetStudySessionsForRangeParams {
   userId: string
-  planId: string
+  planId?: string
   startDate: Date
   endDate: Date
 }
@@ -47,14 +49,18 @@ export async function getStudySessionsForRange(
   supabase: StudyPlannerAdminClient,
   params: GetStudySessionsForRangeParams,
 ): Promise<StudyPlannerSession[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from('study_sessions')
     .select(STUDY_PLANNER_SESSION_SELECT)
     .eq('user_id', params.userId)
-    .eq('plan_id', params.planId)
     .gte('start_time', params.startDate.toISOString())
     .lte('end_time', params.endDate.toISOString())
-    .order('start_time', { ascending: true })
+
+  if (params.planId && params.planId !== 'all') {
+    query = query.eq('plan_id', params.planId)
+  }
+
+  const { data, error } = await query.order('start_time', { ascending: true })
 
   if (error) {
     throw new Error('Error al obtener sesiones')

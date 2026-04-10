@@ -6,7 +6,7 @@ import {
 } from '@/app/api/_lib/ai-route-rate-limit'
 import { SessionService } from '@/features/auth/services/session.service'
 import { logger } from '@/lib/utils/logger'
-import { SofLIALogger } from '@/lib/analytics/lia-logger'
+import { SofLIALogger } from '@/lib/analytics/lia-logger/lia-logger-session'
 import { getPlanContext } from './context.service'
 import { resolvePlanSelectionForChat } from './plan-resolution.service'
 import { setCurrentTimezone } from './format.utils'

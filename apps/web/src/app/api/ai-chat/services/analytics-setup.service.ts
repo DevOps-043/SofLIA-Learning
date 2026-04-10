@@ -6,7 +6,8 @@
 import { NextRequest } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { logger } from '../../../../lib/utils/logger';
-import { SofLIALogger, type ContextType } from '../../../../lib/analytics/lia-logger';
+import { SofLIALogger } from '../../../../lib/analytics/lia-logger/lia-logger-session';
+import type { ContextType } from '../../../../lib/analytics/lia-logger/lia-logger-events';
 import type { CourseLessonContext } from '../../../../core/types/lia.types';
 
 interface AnalyticsUser {

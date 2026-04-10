@@ -26,11 +26,23 @@ export interface StudyPlanSessionPayload {
   description: string;
   courseId: string;
   lessonId: undefined;
+  plannedLessons: StudyPlanSessionLessonPayload[];
   startTime: string;
   endTime: string;
   durationMinutes: number;
   isAiGenerated: true;
   sessionType: StudyPlannerSessionType;
+}
+
+export interface StudyPlanSessionLessonPayload {
+  courseId?: string;
+  courseTitle: string;
+  lessonId?: string;
+  lessonTitle: string;
+  lessonOrderIndex: number;
+  durationMinutes: number;
+  moduleTitle?: string;
+  moduleOrderIndex?: number;
 }
 
 export interface StudyPlanConfigPayload {
@@ -56,6 +68,16 @@ export interface StudyPlanConfigPayload {
 export interface StudyPlanSavePayload {
   planConfig: StudyPlanConfigPayload;
   sessions: StudyPlanSessionPayload[];
+}
+
+/**
+ * Extracts the core course UUID from a potentially composite selection ID (CourseUUID__OrgName).
+ * This prevents invalid IDs from leaking into the database while preserving the
+ * unique selection mechanism in the UI.
+ */
+export function getPureCourseId(id: string): string {
+  if (!id) return '';
+  return id.split('__')[0] || id;
 }
 
 export interface BuildStudyPlanPayloadParams {
@@ -270,6 +292,24 @@ function buildSessionDescription(lessons: StudyPlannerScheduledLesson[]): string
   return description || 'Sesion de estudio programada';
 }
 
+function sanitizePlannedLessons(
+  lessons: StudyPlannerScheduledLesson[],
+  fallbackCourseId: string,
+): StudyPlanSessionLessonPayload[] {
+  return lessons
+    .filter((lesson) => lesson.lessonTitle && lesson.lessonTitle.trim() !== '')
+    .map((lesson) => ({
+      courseId: lesson.courseId || fallbackCourseId,
+      courseTitle: lesson.courseTitle,
+      lessonId: lesson.lessonId,
+      lessonTitle: lesson.lessonTitle.trim(),
+      lessonOrderIndex: lesson.lessonOrderIndex,
+      durationMinutes: lesson.durationMinutes,
+      moduleTitle: lesson.moduleTitle,
+      moduleOrderIndex: lesson.moduleOrderIndex,
+    }));
+}
+
 export function buildStudyPlanPayload(
   params: BuildStudyPlanPayloadParams,
 ): StudyPlanSavePayload {
@@ -323,18 +363,20 @@ export function buildStudyPlanPayload(
     );
 
     // Use the actual course UUID (courseId), not the selection key (id).
-    const resolvedCourseId =
+    const resolvedCourseId = getPureCourseId(
       course?.courseId
       ?? params.availableCourses.find((c) => params.selectedCourseIds.includes(c.id))?.courseId
       ?? params.selectedCourseIds[0]
-      ?? '';
+      ?? ''
+    );
 
     return {
       clientReferenceId: slot.clientReferenceId,
       title: buildSessionTitle(slot.lessons),
       description: buildSessionDescription(slot.lessons),
       courseId: resolvedCourseId,
-      lessonId: undefined,
+      lessonId: firstLesson?.lessonId ?? undefined,
+      plannedLessons: sanitizePlannedLessons(slot.lessons, resolvedCourseId),
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       durationMinutes: Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60)),
@@ -362,7 +404,7 @@ export function buildStudyPlanPayload(
       description: `Plan generado por SofLIA para ${courseName} con ${sessions.length} sesiones`,
       userType: params.userType || 'b2c',
       courseIds: params.selectedCourseIds.map(
-        (selId) => params.availableCourses.find((c) => c.id === selId)?.courseId ?? selId,
+        (selId) => getPureCourseId(params.availableCourses.find((c) => c.id === selId)?.courseId ?? selId),
       ),
       goalHoursPerWeek,
       startDate,
@@ -388,6 +430,17 @@ export async function cleanupPreviousPlanEvents(planId: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ planId }),
   });
+}
+
+/** Thrown when the backend rejects a plan because the course already has an active plan (HTTP 409). */
+export class DuplicatePlanError extends Error {
+  readonly courseId?: string
+
+  constructor(message: string, courseId?: string) {
+    super(message)
+    this.name = 'DuplicatePlanError'
+    this.courseId = courseId
+  }
 }
 
 export async function saveStudyPlanRequest(
@@ -422,6 +475,10 @@ export async function saveStudyPlanRequest(
       if (errorText.trim() !== '') {
         errorMessage = `Error ${response.status}: ${errorText.slice(0, 200)}`;
       }
+    }
+
+    if (response.status === 409) {
+      throw new DuplicatePlanError(errorMessage)
     }
 
     throw new Error(errorMessage);

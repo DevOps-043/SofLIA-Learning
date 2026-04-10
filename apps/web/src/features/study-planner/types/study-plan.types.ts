@@ -32,9 +32,20 @@ export interface StudySession {
   userId: string;
   title: string;
   description?: string;
+  clientReferenceId?: string;
   courseId: string;
   lessonId?: string;
   lessonTitle?: string;
+  plannedLessons?: Array<{
+    courseId?: string;
+    courseTitle: string;
+    lessonId?: string;
+    lessonTitle: string;
+    lessonOrderIndex: number;
+    durationMinutes: number;
+    moduleTitle?: string;
+    moduleOrderIndex?: number;
+  }>;
   startTime: string;
   endTime: string;
   durationMinutes: number;

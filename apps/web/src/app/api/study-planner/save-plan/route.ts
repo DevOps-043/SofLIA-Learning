@@ -15,7 +15,10 @@ import type {
   StudyPlanConfig,
   StudySession,
 } from '../../../../features/study-planner/types/user-context.types';
-import { getUserPlannedCourseIds } from '@/features/study-planner/services/study-planner-plans.server.service';
+import {
+  buildPlannedCourseKey,
+  getUserPlannedCourseKeys,
+} from '@/features/study-planner/services/study-planner-plans.server.service';
 
 // Función helper para crear cliente con service role key (bypass RLS)
 function createAdminClient() {
@@ -57,6 +60,20 @@ interface SavePlanResponse {
 
 interface SessionMetricsPayload {
   clientReferenceId?: string;
+  generationSource?: 'ai_generated' | 'manual';
+  plannedCourseId?: string | null;
+  plannedLessonIds?: string[];
+  plannedLessonTitles?: string[];
+  plannedLessons?: Array<{
+    courseId?: string;
+    courseTitle: string;
+    lessonId?: string;
+    lessonTitle: string;
+    lessonOrderIndex: number;
+    durationMinutes: number;
+    moduleTitle?: string;
+    moduleOrderIndex?: number;
+  }>;
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse<SavePlanResponse>> {
@@ -112,9 +129,47 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
     
     // Usar cliente admin para bypass de RLS
     const supabase = createAdminClient();
-    const plannedCourseIds = await getUserPlannedCourseIds(user.id);
+
+    // ✅ Detectar tipo de usuario y organization_id ANTES de validar duplicados,
+    // para poder usar la clave compuesta (courseId::orgId) en la verificación.
+    let userType = body.config.userType;
+    let organizationId: string | null = null;
+
+    if (!userType) {
+      userType = await UserContextService.getUserType(user.id);
+    }
+
+    if (userType === 'b2b') {
+      // Primary source: users.organization_id (single-org fast path)
+      const { data: userData } = await supabase
+        .from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single();
+
+      if (userData?.organization_id) {
+        organizationId = userData.organization_id;
+      } else {
+        // Fallback: organization_users table (handles users where users.organization_id is null)
+        const { data: orgUserData } = await supabase
+          .from('organization_users')
+          .select('organization_id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+
+        if (orgUserData?.organization_id) {
+          organizationId = orgUserData.organization_id;
+        }
+      }
+    }
+
+    // Validar duplicados usando clave compuesta (courseId::orgId).
+    // Permite planificar el mismo curso en dos organizaciones distintas.
+    const plannedCourseKeys = await getUserPlannedCourseKeys(user.id);
     const duplicateCourseId = body.config.courseIds.find((courseId) =>
-      plannedCourseIds.has(courseId),
+      plannedCourseKeys.has(buildPlannedCourseKey(courseId, organizationId)),
     );
 
     if (duplicateCourseId) {
@@ -125,29 +180,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
         },
         { status: 409 }
       );
-    }
-    
-    // ✅ Detectar tipo de usuario y obtener organization_id si es B2B
-    // Usar el userType del config si está disponible, sino detectarlo desde la BD
-    let userType = body.config.userType;
-    let organizationId: string | null = null;
-    
-    if (!userType) {
-      // Si no viene en el config, detectarlo desde la BD
-      userType = await UserContextService.getUserType(user.id);
-    }
-    
-    // Si es B2B, obtener el organization_id del usuario
-    if (userType === 'b2b') {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single();
-      
-      if (userData?.organization_id) {
-        organizationId = userData.organization_id;
-      }
     }
     
     // Convertir fechas ISO a formato date (YYYY-MM-DD)
@@ -290,6 +322,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
       // NOTA: duration_minutes tiene un DEFAULT calculado en la BD que usa end_time - start_time
       // No debemos incluir duration_minutes en el INSERT para que PostgreSQL lo calcule automáticamente
       sessionsToInsert.push({
+        organization_id: organizationId,
         plan_id: plan.id,
         user_id: user.id,
         title: session.title.substring(0, 500), // Limitar longitud
@@ -303,10 +336,26 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
         is_ai_generated: session.isAiGenerated !== undefined ? session.isAiGenerated : true,
         session_type: session.sessionType || 'medium',
         metrics: {
+          generationSource:
+            session.isAiGenerated !== false ? 'ai_generated' : 'manual',
           clientReferenceId:
             typeof (session as { clientReferenceId?: string }).clientReferenceId === 'string'
               ? (session as { clientReferenceId?: string }).clientReferenceId
               : undefined,
+          plannedCourseId: session.courseId || null,
+          plannedLessonIds: Array.isArray(session.plannedLessons)
+            ? session.plannedLessons
+                .map((lesson) => lesson.lessonId)
+                .filter((lessonId): lessonId is string => typeof lessonId === 'string' && lessonId.trim() !== '')
+            : undefined,
+          plannedLessonTitles: Array.isArray(session.plannedLessons)
+            ? session.plannedLessons
+                .map((lesson) => lesson.lessonTitle?.trim())
+                .filter((lessonTitle): lessonTitle is string => typeof lessonTitle === 'string' && lessonTitle !== '')
+            : undefined,
+          plannedLessons: Array.isArray(session.plannedLessons)
+            ? session.plannedLessons
+            : undefined,
         } satisfies SessionMetricsPayload,
       });
     }

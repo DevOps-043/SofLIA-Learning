@@ -23,6 +23,8 @@ export type ActionType =
   | 'recover_missed_session' // Reprogramar una sesión perdida
   // Configuración de calendarios
   | 'update_calendar_selection' // Cambiar qué calendarios considerar para disponibilidad
+  // Borrado completo del plan (sesiones + calendario + registro BD)
+  | 'delete_plan'
   // Alias que LIA a veces envía
   | 'rebalance'
   | 'rebalanzar'
@@ -94,6 +96,20 @@ export interface ProactiveAnalysis {
     scheduledTime: string;
     hoursOverdue: number;
     suggestedRecoverySlots: string[];
+  }>;
+  effectivelyCompletedSessions: Array<{
+    sessionTitle: string;
+    sessionId: string;
+    scheduledEndTime: string;
+    calendarEventLinked: boolean;
+    completedEarly: boolean;
+  }>;
+  partialSessions: Array<{
+    sessionTitle: string;
+    sessionId: string;
+    progressPct: number;
+    remainingMinutes: number;
+    suggestedCompletionSlots: string[];
   }>;
   freeSlots: Array<{
     date: string;

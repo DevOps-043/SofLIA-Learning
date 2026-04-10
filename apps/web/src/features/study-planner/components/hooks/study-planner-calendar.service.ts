@@ -17,6 +17,10 @@ interface CalendarApiEventRecord {
   end: string;
   location?: string;
   isAllDay?: boolean;
+  calendarId?: string;
+  linkedStudySessionId?: string;
+  linkedStudyPlanId?: string;
+  linkedClientReferenceId?: string;
 }
 
 interface CalendarApiPayload {
@@ -34,6 +38,17 @@ interface StudySessionApiRecord {
   start_time: string;
   end_time: string;
   external_event_id?: string | null;
+  plan_id?: string;
+  metrics?: {
+    calendarSync?: {
+      provider?: string;
+      calendarId?: string | null;
+      externalEventId?: string;
+      normalizedExternalEventId?: string;
+      source?: string;
+      lastSyncedAt?: string;
+    } | null;
+  } | null;
 }
 
 interface StudySessionsApiPayload {
@@ -72,7 +87,7 @@ function cleanExternalEventId(value?: string | null): string | null {
     return null;
   }
 
-  return String(value).split('_')[0] || null;
+  return String(value).trim() || null;
 }
 
 async function fetchCalendarEvents(
@@ -103,6 +118,11 @@ async function fetchCalendarEvents(
     source: 'calendar',
     googleEventId: provider === 'google' ? event.id : undefined,
     externalEventId: event.id,
+    calendarId: event.calendarId,
+    linkedStudySessionId: event.linkedStudySessionId,
+    canonicalEventKey: event.linkedStudySessionId
+      ? `calendar-linked:${event.linkedStudySessionId}`
+      : `calendar:${provider || 'unknown'}:${event.calendarId || 'primary'}:${event.id}`,
   }));
 }
 
@@ -136,7 +156,12 @@ async function fetchStudySessions(
   const externalIds = new Set<string>();
 
   const events = (payload.sessions || []).map((session) => {
-    const cleanExternalId = cleanExternalEventId(session.external_event_id);
+    const calendarSync = session.metrics?.calendarSync || null;
+    const cleanExternalId = cleanExternalEventId(
+      calendarSync?.normalizedExternalEventId
+      || calendarSync?.externalEventId
+      || session.external_event_id,
+    );
     if (cleanExternalId) {
       externalIds.add(cleanExternalId);
     }
@@ -149,7 +174,17 @@ async function fetchStudySessions(
       end: session.end_time,
       provider: 'study',
       source: 'study_session',
-      externalEventId: session.external_event_id || undefined,
+      externalEventId:
+        calendarSync?.externalEventId
+        || session.external_event_id
+        || undefined,
+      planId: session.plan_id,
+      sessionId: session.id,
+      linkedStudySessionId: session.id,
+      calendarId: calendarSync?.calendarId || undefined,
+      calendarSync,
+      isDetachedStudySession: !cleanExternalId,
+      canonicalEventKey: `study-session:${session.id}`,
     } satisfies CalendarEvent;
   });
 
@@ -187,6 +222,7 @@ async function fetchCustomEvents(
     localEventId: event.id,
     googleEventId: event.google_event_id || undefined,
     color: event.color || undefined,
+    canonicalEventKey: `calendar:local:local:${event.id}`,
   }));
 }
 
@@ -195,6 +231,11 @@ function filterUniqueCalendarEvents(params: {
   customEvents: CalendarEvent[];
   studySessionExternalIds: Set<string>;
 }): CalendarEvent[] {
+  const linkedSessionIds = new Set(
+    params.calendarEvents
+      .map((event) => event.linkedStudySessionId)
+      .filter((eventId): eventId is string => Boolean(eventId)),
+  );
   const customEventExternalIds = new Set(
     params.customEvents
       .filter((event) => event.googleEventId || event.externalEventId)
@@ -203,6 +244,10 @@ function filterUniqueCalendarEvents(params: {
   );
 
   return params.calendarEvents.filter((event) => {
+    if (event.linkedStudySessionId && linkedSessionIds.has(event.linkedStudySessionId)) {
+      return false;
+    }
+
     const cleanEventId = cleanExternalEventId(
       event.externalEventId || event.googleEventId
     );
@@ -234,7 +279,7 @@ export async function loadStudyPlannerCalendarEvents(params: {
   const fetcher = params.fetcher || fetch;
   const [calendarEvents, studySessions, customEvents] = await Promise.all([
     fetchCalendarEvents(fetcher, range.startDate, range.endDate),
-    fetchStudySessions(fetcher, range.startDate, range.endDate, params.selectedPlanId),
+    fetchStudySessions(fetcher, range.startDate, range.endDate, 'all'),
     fetchCustomEvents(fetcher, range.startDate, range.endDate),
   ]);
 
@@ -244,7 +289,22 @@ export async function loadStudyPlannerCalendarEvents(params: {
     studySessionExternalIds: studySessions.externalIds,
   });
 
-  return [...uniqueCalendarEvents, ...studySessions.events, ...customEvents];
+  // Solo mostrar sesiones del plan seleccionado.
+  // Si selectedPlanId es null (plan aún no determinado), no mostrar ninguna sesión
+  // para evitar mezclar sesiones de planes distintos durante la carga inicial.
+  const filteredStudySessions = params.selectedPlanId
+    ? studySessions.events.filter((s) => s.planId === params.selectedPlanId)
+    : [];
+
+  const seenKeys = new Set<string>();
+  return [...filteredStudySessions, ...uniqueCalendarEvents, ...customEvents].filter((event) => {
+    if (seenKeys.has(event.canonicalEventKey)) {
+      return false;
+    }
+
+    seenKeys.add(event.canonicalEventKey);
+    return true;
+  });
 }
 
 export async function deleteStudyPlannerCalendarEvent(params: {

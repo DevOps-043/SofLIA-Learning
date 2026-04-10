@@ -1,5 +1,6 @@
 import { createAdminClient, getCalendarAccessToken, listGoogleCalendarEvents } from '../calendar.service'
 import { getCurrentTimezone } from '../format.utils'
+import { CalendarIntegrationService } from '../../../../../../features/study-planner/services/calendar-integration.service'
 
 function toDate(value: string): Date {
   return new Date(value)
@@ -138,11 +139,16 @@ export async function validatePlacementAgainstCalendarRules(params: {
   const dayEnd = new Date(dayStart)
   dayEnd.setDate(dayEnd.getDate() + 1)
 
+  // Usar solo los calendarios seleccionados por el usuario para evitar ver eventos de compañeros
+  const selectedCalendarIds = await CalendarIntegrationService.getSelectedCalendarIds(params.userId).catch(() => null)
+
   const events = await listGoogleCalendarEvents(
     accessToken,
     dayStart,
     dayEnd,
     getCurrentTimezone() || 'America/Mexico_City',
+    undefined,
+    selectedCalendarIds,
   )
 
   const nonStudyEvents = events.filter((event) => !event.isStudySession)
@@ -167,6 +173,13 @@ export async function validatePlacementAgainstCalendarRules(params: {
   }
 
   const workBlocks = nonStudyEvents.filter((event) => looksLikeWorkEvent(event.title))
+
+  // Si no hay work blocks en el día, cualquier horario libre es válido
+  // (el usuario no siempre tiene bloques de trabajo configurados cada día)
+  if (workBlocks.length === 0) {
+    return { valid: true }
+  }
+
   const isInsideWorkBlock = workBlocks.some((event) => {
     const workStart = toDate(event.start)
     const workEnd = toDate(event.end)

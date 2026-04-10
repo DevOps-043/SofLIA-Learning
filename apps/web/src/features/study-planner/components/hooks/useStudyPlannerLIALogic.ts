@@ -22,6 +22,7 @@ import { useSofLIAData } from '../../hooks/useSofLIAData';
 import { useStudyPlannerCalendarUiFlow } from '../../hooks/useStudyPlannerCalendarUiFlow';
 import { useStudyPlannerPendingLessonsSync } from '../../hooks/useStudyPlannerPendingLessonsSync';
 import { useStudyPlanPersistence } from '../../hooks/useStudyPlanPersistence';
+import { fetchStudyPlannerUserContext } from '../../services/planner-user-context-client.service';
 import { useStudyPlannerSessionStorage } from '../../hooks/useStudyPlannerSessionStorage';
 import { useStudyPlannerWelcomeFlow } from '../../hooks/useStudyPlannerWelcomeFlow';
 import { useStudyPlannerVoiceInteraction } from '../../hooks/useStudyPlannerVoiceInteraction';
@@ -230,6 +231,9 @@ export function useStudyPlannerLIALogic() {
     targetDate,
   });
 
+  // Ref para el callback de plan duplicado — se asigna después de definir loadUserCourses.
+  const handleDuplicatePlanRef = useRef<() => void>(() => {});
+
   const { saveStudyPlan: persistStudyPlan } = useStudyPlanPersistence({
     availableCourses,
     connectedCalendar,
@@ -246,6 +250,7 @@ export function useStudyPlannerLIALogic() {
     speakText,
     studyApproach,
     userType: userContext?.userType === 'b2b' ? 'b2b' : null,
+    onDuplicatePlan: () => handleDuplicatePlanRef.current(),
   });
 
   const {
@@ -309,6 +314,27 @@ export function useStudyPlannerLIALogic() {
     speakText,
     stopAllAudio,
   });
+
+  // Asignar el handler real ahora que loadUserCourses está disponible.
+  // Usa un ref para evitar problemas de orden de definición y dependencias circulares.
+  useEffect(() => {
+    handleDuplicatePlanRef.current = async () => {
+      let freshCourses: typeof assignedCourses | undefined;
+      try {
+        const userData = await fetchStudyPlannerUserContext();
+        if (userData.success) {
+          setAssignedCourses(userData.assignedCourses);
+          freshCourses = userData.assignedCourses;
+        }
+      } catch {
+        // Si falla el refresh, el filtro hasActivePlan del selector
+        // bloqueará el curso en el siguiente intento de guardado.
+      }
+      setSelectedCourseIds([]);
+      // Pasar los courses frescos directamente para evitar el closure stale.
+      void loadUserCourses(freshCourses);
+    };
+  }, [loadUserCourses, setAssignedCourses, setSelectedCourseIds]);
 
   useStudyPlannerWelcomeFlow({
     assignedCourses,

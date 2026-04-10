@@ -61,10 +61,11 @@ export async function buildStudyPlannerSessionsResponse(
   params: BuildStudyPlannerSessionsParams,
 ): Promise<StudyPlannerSessionsResponse> {
   const supabase = createAdminClient()
+  const isAllPlans = params.planId === 'all'
   const activePlanId =
-    params.planId || await getLatestStudyPlanId(supabase, params.userId)
+    isAllPlans ? undefined : (params.planId || await getLatestStudyPlanId(supabase, params.userId))
 
-  if (!activePlanId) {
+  if (!isAllPlans && !activePlanId) {
     return {
       sessions: [],
       startDate: params.startDate.toISOString(),
@@ -89,6 +90,6 @@ export async function buildStudyPlannerSessionsResponse(
     startDate: params.startDate.toISOString(),
     endDate: params.endDate.toISOString(),
     totalSessions: sessions.length,
-    hasActivePlan: true,
+    hasActivePlan: isAllPlans || Boolean(activePlanId),
   }
 }

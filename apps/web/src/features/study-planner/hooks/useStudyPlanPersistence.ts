@@ -9,6 +9,7 @@ import {
   attachSessionIdsToDistribution,
   buildStudyPlanPayload,
   buildStudyPlanSuccessMessage,
+  DuplicatePlanError,
   saveStudyPlanRequest,
   syncStudyPlanSessions,
 } from '../services/study-plan-persistence.service';
@@ -29,6 +30,8 @@ interface UseStudyPlanPersistenceParams {
   speakText: (text: string) => Promise<unknown>;
   studyApproach: StudyApproach | null;
   userType: 'b2b' | null | undefined;
+  /** Called when the backend rejects the plan because the course already has an active plan. */
+  onDuplicatePlan?: () => void;
 }
 
 interface SaveStudyPlanOptions {
@@ -122,13 +125,21 @@ export function useStudyPlanPersistence(params: UseStudyPlanPersistenceParams) {
           });
       }
     } catch (error) {
-      console.error('Error guardando plan:', error);
-      const errorMessage = `Lo siento, hubo un error al guardar tu plan de estudios: ${
-        error instanceof Error ? error.message : 'Error desconocido'
-      }. Por favor, intenta de nuevo.`;
-
-      replaceProcessingMessage(errorMessage);
       params.setIsProcessing(false);
+
+      if (error instanceof DuplicatePlanError) {
+        replaceProcessingMessage(
+          'Este curso ya tiene un plan activo. Selecciona otro curso para planificar.',
+        );
+        params.onDuplicatePlan?.();
+        return;
+      }
+
+      replaceProcessingMessage(
+        `Lo siento, hubo un error al guardar tu plan de estudios: ${
+          error instanceof Error ? error.message : 'Error desconocido'
+        }. Por favor, intenta de nuevo.`,
+      );
     }
   };
 

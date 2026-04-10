@@ -11,6 +11,7 @@ import { LiaCourseAnalysisService } from './lia-course-analysis.service';
 import { getWorkshopMetadata } from '../../../lib/utils/workshop-metadata';
 import { createClient } from '../../../lib/supabase/server';
 import { CourseAnalysisService } from './course-analysis.service';
+import { LessonTimeService } from './lesson-time.service';
 import type { UserContext } from '../types/user-context.types';
 import type { StudyPlannerContext } from './lia-context.types';
 
@@ -168,6 +169,10 @@ export class LiaContextBuilderService {
 
       const completedLessonIds = new Set((completedLessonsData || []).map((l: { lesson_id: string }) => l.lesson_id));
 
+      // Calcular o recuperar estimación integral de tiempo de lecciones (combina videos + quizzes + reading + activities)
+      const courseTimeEstimate = await LessonTimeService.getCourseTimeEstimate(courseAssignment.courseId);
+      const lessonTimeMap = new Map(courseTimeEstimate?.lessons.map(l => [l.lessonId, l.totalMinutes]) || []);
+
       // Formatear módulos y lecciones usando los datos del workshopMetadata
       const formattedModules = workshopMetadata?.modules.map(module => ({
         moduleId: module.moduleId,
@@ -177,13 +182,13 @@ export class LiaContextBuilderService {
           lessonId: lesson.lessonId,
           lessonTitle: lesson.lessonTitle,
           lessonOrderIndex: lesson.lessonOrderIndex,
-          // ✅ CORRECCIÓN: Usar totalDurationMinutes que ya está correctamente calculado en workshop-metadata.ts
-          // Prioridad: totalDurationMinutes > durationSeconds/60 > 15 (fallback)
-          durationMinutes: lesson.totalDurationMinutes && lesson.totalDurationMinutes > 0
-            ? lesson.totalDurationMinutes
-            : (lesson.durationSeconds && lesson.durationSeconds > 0
-              ? Math.ceil(lesson.durationSeconds / 60)
-              : 15),
+          // ✅ CORRECCIÓN REAL: Usar el tiempo total calculado por LessonTimeService que integra todo o fallback al BD base
+          durationMinutes: lessonTimeMap.get(lesson.lessonId) ||
+            (lesson.totalDurationMinutes && lesson.totalDurationMinutes > 0
+              ? lesson.totalDurationMinutes
+              : (lesson.durationSeconds && lesson.durationSeconds > 0
+                ? Math.ceil(lesson.durationSeconds / 60)
+                : 15)),
           isCompleted: completedLessonIds.has(lesson.lessonId),
         })),
       })) || [];

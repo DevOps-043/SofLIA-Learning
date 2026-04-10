@@ -14,6 +14,8 @@ export type StudyPlannerSession = Pick<
   | 'session_type'
   | 'external_event_id'
   | 'calendar_provider'
+  | 'metrics'
+  | 'plan_id'
 >
 
 export interface StudyPlannerSessionsDateRange {

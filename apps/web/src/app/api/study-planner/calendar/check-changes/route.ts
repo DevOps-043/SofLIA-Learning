@@ -12,6 +12,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../../features/auth/services/session.service';
+import {
+  getGoogleCalendarEvents as getSharedGoogleCalendarEvents,
+  getMicrosoftCalendarEvents as getSharedMicrosoftCalendarEvents,
+} from '../events/calendar-events-provider.service';
+import { normalizeExternalEventId } from '../events/calendar-events.utils';
+import { resolveSessionCalendarSync } from '../../dashboard/chat/calendar.service';
 
 type AdminCalendarClient = ReturnType<typeof createAdminClient>;
 
@@ -21,6 +27,10 @@ interface CalendarIntegrationRow {
   access_token: string | null;
   refresh_token: string | null;
   expires_at: string | null;
+  metadata?: {
+    secondary_calendar_id?: string;
+    selected_calendar_ids?: string[];
+  } | null;
 }
 
 interface StudySessionRow {
@@ -29,6 +39,10 @@ interface StudySessionRow {
   start_time: string;
   end_time: string;
   external_event_id: string | null;
+  calendar_provider?: 'google' | 'microsoft' | null;
+  status?: string;
+  plan_id?: string | null;
+  metrics?: Record<string, unknown> | null;
 }
 
 interface ExternalCalendarEvent {
@@ -36,6 +50,8 @@ interface ExternalCalendarEvent {
   title: string;
   start: string;
   end: string;
+  calendarId?: string;
+  linkedStudySessionId?: string;
 }
 
 interface TokenRefreshResponse {
@@ -94,23 +110,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
     
     const supabase = createAdminClient();
     
-    const requestedPlanId = request.nextUrl.searchParams.get('planId') || undefined;
-
-    // 1. Obtener el plan seleccionado del usuario o el mÃ¡s reciente
-    let planQuery = supabase
+    // 1. Obtener TODOS los planes del usuario
+    const { data: allPlans, error: plansError } = await supabase
       .from('study_plans')
       .select('id, timezone')
       .eq('user_id', user.id);
-
-    if (requestedPlanId) {
-      planQuery = planQuery.eq('id', requestedPlanId);
-    } else {
-      planQuery = planQuery.order('created_at', { ascending: false }).limit(1);
-    }
-
-    const { data: activePlan, error: planError } = await planQuery.single();
     
-    if (planError || !activePlan) {
+    if (plansError || !allPlans || allPlans.length === 0) {
       return NextResponse.json({
         success: true,
         data: {
@@ -121,11 +127,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
       });
     }
     
-    // 2. Obtener todas las sesiones del plan que tienen external_event_id (sincronizadas con calendario)
+    const planIds = allPlans.map(p => p.id);
+
+    // 2. Obtener todas las sesiones de TODOS los planes que tienen external_event_id
     const { data: sessions, error: sessionsError } = await supabase
       .from('study_sessions')
-      .select('id, title, start_time, end_time, external_event_id, calendar_provider, status')
-      .eq('plan_id', activePlan.id)
+      .select('id, title, start_time, end_time, external_event_id, calendar_provider, status, plan_id, metrics')
+      .in('plan_id', planIds)
       .eq('user_id', user.id)
       .not('external_event_id', 'is', null);
     
@@ -182,130 +190,90 @@ export async function POST(request: NextRequest): Promise<NextResponse<CheckChan
     }
     
     // 5. Verificar cada evento en el calendario
+    // 5. Verificar cada evento en el calendario
     const changes: CalendarChange[] = [];
-    const deletedSessionIds: string[] = [];
     
     const dateNow = new Date();
     const dateInFuture = new Date();
-    dateInFuture.setDate(dateInFuture.getDate() + 60); // Verificar próximos 60 días
+    dateInFuture.setDate(dateInFuture.getDate() + 60); // Verificar proximos 60 dias
+    
+    let calendarEvents: ExternalCalendarEvent[] = [];
     
     if (integration.provider === 'google') {
-      // Obtener eventos del calendario
-      const calendarEvents = await getGoogleCalendarEvents(
+      calendarEvents = await getSharedGoogleCalendarEvents(
         accessToken,
         dateNow,
-        dateInFuture
+        dateInFuture,
+        integration.metadata?.secondary_calendar_id,
+        integration.metadata?.selected_calendar_ids,
       );
-      
-      // Crear mapa de eventos por ID
-      const eventMap = new Map(calendarEvents.map(e => [e.id, e]));
-      
-      // Verificar cada sesión
-      for (const session of sessions as StudySessionRow[]) {
-        const eventId = session.external_event_id;
-        if (!eventId) continue;
-        
-        const calendarEvent = eventMap.get(eventId);
-        
-        if (!calendarEvent) {
-          // Evento eliminado del calendario
-          changes.push({
-            type: 'deleted_event',
-            sessionId: session.id,
-            sessionTitle: session.title,
-            eventTime: new Date(session.start_time).toLocaleString('es-ES', {
-              dateStyle: 'short',
-              timeStyle: 'short'
-            }),
-            externalEventId: eventId,
-            suggestedAction: 'La sesión fue eliminada del calendario. ¿Quieres eliminarla también del plan?'
-          });
-          deletedSessionIds.push(session.id);
-        } else {
-          // Verificar si el evento fue modificado (cambió hora de inicio/fin)
-          const sessionStart = new Date(session.start_time);
-          const eventStart = new Date(calendarEvent.start);
-          
-          // Tolerancia de 5 minutos para diferencias menores
-          const timeDiff = Math.abs(sessionStart.getTime() - eventStart.getTime());
-          if (timeDiff > 5 * 60 * 1000) {
-            changes.push({
-              type: 'modified_event',
-              sessionId: session.id,
-              sessionTitle: session.title,
-              eventTime: eventStart.toLocaleString('es-ES', {
-                dateStyle: 'short',
-                timeStyle: 'short'
-              }),
-              externalEventId: eventId,
-              suggestedAction: `El evento fue modificado en el calendario. Nueva hora: ${eventStart.toLocaleString('es-ES')}`
-            });
-          }
-        }
-      }
     } else if (integration.provider === 'microsoft') {
-      // Similar para Microsoft Calendar
-      const calendarEvents = await getMicrosoftCalendarEvents(
+      calendarEvents = await getSharedMicrosoftCalendarEvents(
         accessToken,
         dateNow,
-        dateInFuture
+        dateInFuture,
+        integration.metadata?.selected_calendar_ids,
       );
-      
-      const eventMap = new Map(calendarEvents.map(e => [e.id, e]));
-      
-      for (const session of sessions as StudySessionRow[]) {
-        const eventId = session.external_event_id;
-        if (!eventId) continue;
-        
-        const calendarEvent = eventMap.get(eventId);
-        
-        if (!calendarEvent) {
-          changes.push({
-            type: 'deleted_event',
-            sessionId: session.id,
-            sessionTitle: session.title,
-            eventTime: new Date(session.start_time).toLocaleString('es-ES', {
-              dateStyle: 'short',
-              timeStyle: 'short'
-            }),
-            externalEventId: eventId,
-            suggestedAction: 'La sesión fue eliminada del calendario. ¿Quieres eliminarla también del plan?'
-          });
-          deletedSessionIds.push(session.id);
-        } else {
-          const sessionStart = new Date(session.start_time);
-          const eventStart = new Date(calendarEvent.start);
-          const timeDiff = Math.abs(sessionStart.getTime() - eventStart.getTime());
-          
-          if (timeDiff > 5 * 60 * 1000) {
-            changes.push({
-              type: 'modified_event',
-              sessionId: session.id,
-              sessionTitle: session.title,
-              eventTime: eventStart.toLocaleString('es-ES', {
-                dateStyle: 'short',
-                timeStyle: 'short'
-              }),
-              externalEventId: eventId,
-              suggestedAction: `El evento fue modificado en el calendario. Nueva hora: ${eventStart.toLocaleString('es-ES')}`
-            });
-          }
-        }
-      }
     }
     
-    // 6. Actualizar estado de sesiones eliminadas en la BD
-    if (deletedSessionIds.length > 0) {
-      await supabase
-        .from('study_sessions')
-        .update({
-          external_event_id: null,
-          calendar_provider: null,
-          status: 'missed',
-          updated_at: new Date().toISOString()
-        })
-        .in('id', deletedSessionIds);
-
+    const eventMap = new Map(
+      calendarEvents.map((event) => [normalizeExternalEventId(event.id), event]),
+    );
+    const linkedSessionIds = new Set(
+      calendarEvents
+        .map((event) => event.linkedStudySessionId)
+        .filter((value): value is string => Boolean(value)),
+    );
+    
+    for (const session of sessions as StudySessionRow[]) {
+      const calendarSync = resolveSessionCalendarSync({
+        externalEventId: session.external_event_id,
+        calendarProvider: session.calendar_provider,
+        metrics: session.metrics,
+      });
+      const eventId = normalizeExternalEventId(
+        calendarSync?.normalizedExternalEventId || calendarSync?.externalEventId || session.external_event_id,
+      );
+    
+      if (!eventId) {
+        continue;
+      }
+    
+      const calendarEvent = eventMap.get(eventId);
+      if (!calendarEvent && !linkedSessionIds.has(session.id)) {
+        changes.push({
+          type: 'deleted_event',
+          sessionId: session.id,
+          sessionTitle: session.title,
+          eventTime: new Date(session.start_time).toLocaleString('es-ES', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+          }),
+          externalEventId: eventId,
+          suggestedAction: 'La sesion ya no aparece vinculada en el calendario. ¿Quieres eliminarla del plan o reprogramarla?',
+        });
+        continue;
+      }
+    
+      if (calendarEvent) {
+        const sessionStart = new Date(session.start_time);
+        const eventStart = new Date(calendarEvent.start);
+        const timeDiff = Math.abs(sessionStart.getTime() - eventStart.getTime());
+    
+        if (timeDiff > 5 * 60 * 1000) {
+          changes.push({
+            type: 'modified_event',
+            sessionId: session.id,
+            sessionTitle: session.title,
+            eventTime: eventStart.toLocaleString('es-ES', {
+              dateStyle: 'short',
+              timeStyle: 'short',
+            }),
+            externalEventId: eventId,
+            suggestedAction: `El evento fue modificado en el calendario. Nueva hora: ${eventStart.toLocaleString('es-ES')}`,
+          });
+        }
+      }
     }
     
     const deletedCount = changes.filter(c => c.type === 'deleted_event').length;

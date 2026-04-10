@@ -2,6 +2,7 @@ import {
   createCalendarAdminClient,
   getLatestCalendarIntegration,
 } from '../events/calendar-events.db'
+import { persistSessionCalendarSync } from '../../dashboard/chat/calendar.service'
 import type { CalendarIntegrationRecord } from '../events/calendar-events.types'
 import type { StudySessionRecord } from './sync-sessions.types'
 
@@ -14,7 +15,7 @@ export async function getSyncSessionsForUser(
 ) {
   const { data, error } = await supabase
     .from('study_sessions')
-    .select('id, user_id, title, description, start_time, end_time, plan_id, course_id')
+    .select('id, user_id, title, description, start_time, end_time, plan_id, course_id, metrics')
     .in('id', sessionIds)
     .eq('user_id', userId)
 
@@ -83,20 +84,19 @@ export async function persistSecondaryCalendarId(
 
 export async function markSessionAsSynced(
   supabase: SupabaseAdminClient,
+  session: StudySessionRecord,
   sessionId: string,
   provider: CalendarIntegrationRecord['provider'],
   eventId: string,
+  calendarId?: string | null,
 ) {
-  const { error } = await supabase
-    .from('study_sessions')
-    .update({
-      external_event_id: eventId,
-      calendar_provider: provider,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', sessionId)
-
-  if (error) {
-    throw new Error(`Error actualizando sesion sincronizada: ${error.message}`)
-  }
+  await persistSessionCalendarSync({
+    supabase,
+    sessionId,
+    eventId,
+    provider,
+    calendarId,
+    source: 'save_plan',
+    existingSession: session,
+  })
 }

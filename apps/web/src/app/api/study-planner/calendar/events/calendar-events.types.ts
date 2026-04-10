@@ -25,6 +25,9 @@ export interface ExternalCalendarEvent {
   status: string
   isAllDay: boolean
   calendarId?: string
+  linkedStudySessionId?: string
+  linkedStudyPlanId?: string
+  linkedClientReferenceId?: string
 }
 
 export interface GoogleCalendarDateTimeValue {
@@ -40,6 +43,13 @@ export interface GoogleCalendarEvent {
   end?: GoogleCalendarDateTimeValue
   location?: string
   status?: string
+  extendedProperties?: {
+    private?: {
+      sofliaSessionId?: string
+      sofliaPlanId?: string
+      sofliaClientReferenceId?: string
+    }
+  }
 }
 
 export interface GoogleCalendarListItem {

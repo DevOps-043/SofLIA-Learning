@@ -115,11 +115,11 @@ describe('planner-user-context-client.service', () => {
     expect(result.userContext?.userName).toBe('Ana Perez');
     expect(result.userContext?.userType).toBe('b2c');
     expect(result.assignedCourses).toEqual([
-      {
+      expect.objectContaining({
         courseId: 'course-1',
         dueDate: '2026-04-10',
         title: 'Curso A',
-      },
+      }),
     ]);
   });
 });

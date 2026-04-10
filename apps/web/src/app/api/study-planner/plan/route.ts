@@ -9,6 +9,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../features/auth/services/session.service';
+import {
+  deleteGoogleCalendarEvent as deleteCanonicalGoogleCalendarEvent,
+  resolveSessionCalendarSync,
+} from '@/app/api/study-planner/dashboard/chat/calendar.service';
 
 interface CalendarIntegrationData {
   id: string;
@@ -42,6 +46,9 @@ interface DeletePlanResponse {
   error?: string;
   deletedPlanId?: string;
   deletedSessionsCount?: number;
+  deletedCalendarEventsCount?: number;
+  calendarDeletionErrors?: number;
+  calendarEventsNotFound?: number;
 }
 
 export async function DELETE(request: NextRequest): Promise<NextResponse<DeletePlanResponse>> {
@@ -92,12 +99,11 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
     
     const planId = plan.id;
     
-    // Obtener todas las sesiones del plan que tienen eventos en calendarios externos
+    // Obtener todas las sesiones del plan para resolver el vinculo de calendario
     const { data: sessions, error: sessionsFetchError } = await supabase
       .from('study_sessions')
-      .select('id, external_event_id, calendar_provider')
-      .eq('plan_id', planId)
-      .not('external_event_id', 'is', null);
+      .select('id, external_event_id, calendar_provider, metrics')
+      .eq('plan_id', planId);
     
     if (sessionsFetchError) {
       console.error('Error obteniendo sesiones:', sessionsFetchError);
@@ -106,6 +112,8 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
     
     // Eliminar eventos del calendario externo (Google/Microsoft) si existen
     let deletedCalendarEventsCount = 0;
+    let calendarDeletionErrors = 0;
+    let calendarEventsNotFound = 0;
     if (sessions && sessions.length > 0) {
       // Obtener integración de calendario del usuario (incluyendo metadata con secondary_calendar_id)
       const { data: integration } = await supabase
@@ -137,18 +145,38 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
 
         // Eliminar eventos del calendario externo
         for (const session of sessions) {
-          if (session.external_event_id && session.calendar_provider) {
+          const calendarSync = resolveSessionCalendarSync({
+            externalEventId: session.external_event_id,
+            calendarProvider: session.calendar_provider,
+            metrics: session.metrics,
+          });
+          const externalEventId = calendarSync?.externalEventId || session.external_event_id;
+
+          if (externalEventId) {
             try {
-              if (session.calendar_provider === 'google') {
-                // Usar el calendario secundario si existe, si no, usar primary como fallback
-                await deleteGoogleCalendarEvent(accessToken, session.external_event_id, secondaryCalendarId);
+              if ((calendarSync?.provider || session.calendar_provider) === 'microsoft') {
+                await deleteMicrosoftCalendarEvent(accessToken, externalEventId);
                 deletedCalendarEventsCount++;
-              } else if (session.calendar_provider === 'microsoft') {
-                await deleteMicrosoftCalendarEvent(accessToken, session.external_event_id);
-                deletedCalendarEventsCount++;
+              } else {
+                const deleted = await deleteCanonicalGoogleCalendarEvent(
+                  accessToken,
+                  externalEventId,
+                  calendarSync?.calendarId || secondaryCalendarId,
+                  session.id,
+                );
+                if (deleted) {
+                  deletedCalendarEventsCount++;
+                } else {
+                  calendarDeletionErrors++;
+                }
               }
             } catch (error) {
               console.error(`Error eliminando evento ${session.external_event_id} de ${session.calendar_provider}:`, error);
+              if (error instanceof Error && error.message.includes('404')) {
+                calendarEventsNotFound++;
+              } else {
+                calendarDeletionErrors++;
+              }
               // Continuar eliminando otros eventos aunque uno falle
             }
           }
@@ -156,6 +184,15 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
       }
     }
     
+    // Limpiar historiales y tracking que evitan el borrado del plan por falta de ON DELETE CASCADE
+    await supabase.from('calendar_sync_history').delete().eq('plan_id', planId);
+    await supabase.from('lesson_tracking').delete().eq('plan_id', planId);
+    
+    if (sessions && sessions.length > 0) {
+      const sessionIds = sessions.map(s => s.id);
+      await supabase.from('lesson_tracking').delete().in('session_id', sessionIds);
+    }
+
     // Eliminar todas las sesiones asociadas al plan
     const { error: sessionsError, count: sessionsCount } = await supabase
       .from('study_sessions')
@@ -191,11 +228,15 @@ export async function DELETE(request: NextRequest): Promise<NextResponse<DeleteP
     }
     
     return NextResponse.json({
-      success: true,
-      message: 'Plan de estudio eliminado exitosamente',
+      success: calendarDeletionErrors === 0,
+      message: calendarDeletionErrors === 0
+        ? 'Plan de estudio eliminado exitosamente'
+        : 'El plan se eliminó de la base de datos, pero hubo errores eliminando algunos eventos del calendario.',
       deletedPlanId: planId,
       deletedSessionsCount: sessionsCount || 0,
       deletedCalendarEventsCount: deletedCalendarEventsCount,
+      calendarDeletionErrors,
+      calendarEventsNotFound,
     });
     
   } catch (error) {

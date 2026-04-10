@@ -12,6 +12,20 @@ export type CalendarEvent = SharedCalendarEvent & {
   googleEventId?: string;
   localEventId?: string;
   externalEventId?: string;
+  planId?: string;
+  sessionId?: string;
+  calendarId?: string;
+  canonicalEventKey: string;
+  linkedStudySessionId?: string;
+  isDetachedStudySession?: boolean;
+  calendarSync?: {
+    provider?: string;
+    calendarId?: string | null;
+    externalEventId?: string;
+    normalizedExternalEventId?: string;
+    source?: string;
+    lastSyncedAt?: string;
+  } | null;
 };
 
 export interface StudyPlannerCalendarProps {

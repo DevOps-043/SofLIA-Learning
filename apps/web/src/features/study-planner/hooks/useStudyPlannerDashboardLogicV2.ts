@@ -17,6 +17,8 @@ export function useStudyPlannerDashboardLogicV2() {
   const router = useRouter();
   const [availablePlans, setAvailablePlans] = useState<DashboardPlanListItem[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  // Ref to read current selectedPlanId inside callbacks without making them depend on it
+  const selectedPlanIdRef = useRef<string | null>(null);
 
   const {
     activePlan,
@@ -119,17 +121,19 @@ export function useStudyPlannerDashboardLogicV2() {
       const urlPlanId = typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('planId')
         : null;
-      const candidatePlanId = preferredPlanId || selectedPlanId || urlPlanId;
+      // Use the ref instead of state to avoid re-creating this callback on every plan change
+      const candidatePlanId = preferredPlanId ?? selectedPlanIdRef.current ?? urlPlanId;
       const nextPlanId = candidatePlanId && plans.some((plan) => plan.id === candidatePlanId)
         ? candidatePlanId
         : plans[0]?.id || null;
 
+      selectedPlanIdRef.current = nextPlanId;
       setSelectedPlanId(nextPlanId);
       syncPlanSelectionInUrl(nextPlanId);
     } catch (plansError) {
       console.error('Error cargando planes:', plansError);
     }
-  }, [selectedPlanId, syncPlanSelectionInUrl]);
+  }, [syncPlanSelectionInUrl]); // selectedPlanId removed — read via ref to break the re-trigger loop
 
   useEffect(() => {
     const lastMsg = messages[messages.length - 1];
@@ -180,6 +184,7 @@ export function useStudyPlannerDashboardLogicV2() {
   const handlePlanSelection = (planId: string) => {
     clearMessages();
     clearError();
+    selectedPlanIdRef.current = planId;
     setSelectedPlanId(planId);
     syncPlanSelectionInUrl(planId);
   };
