@@ -317,7 +317,9 @@ function QuizQuestionCard({
             ✓ Correcto
           </span>
           <p className="text-gray-700 dark:text-white/60 mt-1 leading-relaxed">
-            {parseQuizExplanation(question, selectedAnswer)}
+            {selectedAnswer !== undefined
+              ? parseQuizExplanation(question, selectedAnswer)
+              : null}
           </p>
         </div>
       )}

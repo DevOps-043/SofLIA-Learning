@@ -1,21 +1,19 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useBusinessUsers } from '@/features/business-panel/hooks/useBusinessUsers'
+import { useJoinRequests } from '@/features/business-panel/hooks/useJoinRequests'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessUser, CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
-import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 
 export function useBusinessUsersPageLogic() {
-  type BusinessUsersTab = 'users' | 'invitations' | 'links'
+  type BusinessUsersTab = 'users' | 'invitations' | 'links' | 'requests'
   const { orgSlug } = useParams<{ orgSlug: string }>()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as BusinessUsersTab | null
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
   const {
     users,
     invitations,
@@ -34,6 +32,14 @@ export function useBusinessUsersPageLogic() {
     updateInviteLinkStatus: originalUpdateInviteLinkStatus,
     deleteInviteLink: originalDeleteInviteLink
   } = useBusinessUsers(orgSlug)
+  const {
+    requests: joinRequests,
+    count: joinRequestsCount,
+    isLoading: isJoinRequestsLoading,
+    error: joinRequestsError,
+    reviewRequest: originalReviewJoinRequest,
+    reviewingId,
+  } = useJoinRequests()
   const { user: currentUser } = useAuth()
 
   // Toast state
@@ -48,98 +54,72 @@ export function useBusinessUsersPageLogic() {
   }
 
   // Wrapped actions with notifications
+  // These underlying functions throw on failure and return void on success,
+  // so we use try/catch instead of checking result.success.
   const handleSaveNewUser = async (userData: CreateBusinessUserRequest) => {
     try {
-      const result = await createUser(userData)
-      if (result.success) {
-        showToast('Usuario creado con éxito', 'success')
-        setIsAddModalOpen(false)
-        refetch()
-      } else {
-        showToast(result.error || 'Error al crear usuario', 'error')
-      }
+      await createUser(userData)
+      showToast('Usuario creado con éxito', 'success')
+      setIsAddModalOpen(false)
+      refetch()
     } catch (err) {
-      showToast('Error inesperado al crear usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al crear usuario', 'error')
     }
   }
 
   const resendInvitation = async (id: string) => {
     try {
-      const result = await originalResendInvitation(id)
-      if (result.success) {
-        showToast('Invitación reenviada con éxito', 'success')
-      } else {
-        showToast(result.error || 'Error al reenviar invitación', 'error')
-      }
+      await originalResendInvitation(id)
+      showToast('Invitación reenviada con éxito', 'success')
     } catch (err) {
-      showToast('Error inesperado al reenviar invitación', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al reenviar invitación', 'error')
     }
   }
 
   const suspendUser = async (id: string) => {
     try {
-      const result = await originalSuspendUser(id)
-      if (result.success) {
-        showToast('Usuario suspendido', 'success')
-      } else {
-        showToast(result.error || 'Error al suspender usuario', 'error')
-      }
+      await originalSuspendUser(id)
+      showToast('Usuario suspendido', 'success')
     } catch (err) {
-      showToast('Error inesperado al suspender usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al suspender usuario', 'error')
     }
   }
 
   const activateUser = async (id: string) => {
     try {
-      const result = await originalActivateUser(id)
-      if (result.success) {
-        showToast('Usuario activado', 'success')
-      } else {
-        showToast(result.error || 'Error al activar usuario', 'error')
-      }
+      await originalActivateUser(id)
+      showToast('Usuario activado', 'success')
     } catch (err) {
-      showToast('Error inesperado al activar usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al activar usuario', 'error')
     }
   }
 
   const deleteUser = async (id: string) => {
     try {
-      const result = await originalDeleteUser(id)
-      if (result.success) {
-        showToast('Usuario eliminado con éxito', 'success')
-        setIsDeleteModalOpen(false)
-        setDeletingUser(null)
-      } else {
-        showToast(result.error || 'Error al eliminar usuario', 'error')
-      }
+      await originalDeleteUser(id)
+      showToast('Usuario eliminado con éxito', 'success')
+      setIsDeleteModalOpen(false)
+      setDeletingUser(null)
     } catch (err) {
-      showToast('Error inesperado al eliminar usuario', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al eliminar usuario', 'error')
     }
   }
 
   const updateInviteLinkStatus = async (id: string, action: 'pause' | 'resume') => {
     try {
-      const result = await originalUpdateInviteLinkStatus(id, action)
-      if (result.success) {
-        showToast(action === 'pause' ? 'Enlace pausado' : 'Enlace reactivado', 'success')
-      } else {
-        showToast(result.error || 'Error al actualizar enlace', 'error')
-      }
+      await originalUpdateInviteLinkStatus(id, action)
+      showToast(action === 'pause' ? 'Enlace pausado' : 'Enlace reactivado', 'success')
     } catch (err) {
-      showToast('Error inesperado al actualizar enlace', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al actualizar enlace', 'error')
     }
   }
 
   const deleteInviteLink = async (id: string) => {
     try {
-      const result = await originalDeleteInviteLink(id)
-      if (result.success) {
-        showToast('Enlace eliminado', 'success')
-      } else {
-        showToast(result.error || 'Error al eliminar enlace', 'error')
-      }
+      await originalDeleteInviteLink(id)
+      showToast('Enlace eliminado', 'success')
     } catch (err) {
-      showToast('Error inesperado al eliminar enlace', 'error')
+      showToast(err instanceof Error ? err.message : 'Error al eliminar enlace', 'error')
     }
   }
 
@@ -179,13 +159,30 @@ export function useBusinessUsersPageLogic() {
     }
   }
 
+  const reviewJoinRequest = async (requestId: string, action: 'approve' | 'reject') => {
+    try {
+      await originalReviewJoinRequest(requestId, action)
+      if (action === 'approve') {
+        showToast('Solicitud aprobada con éxito', 'success')
+        refetch()
+      } else {
+        showToast('Solicitud rechazada', 'success')
+      }
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Error al procesar la solicitud',
+        'error'
+      )
+    }
+  }
+
   // View mode and Tabs state
   const [activeTab, setActiveTab] = useState<BusinessUsersTab>(initialTab || 'users')
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
 
   // Effect to sync tab from URL
   useEffect(() => {
-    if (initialTab && ['users', 'invitations', 'links'].includes(initialTab)) {
+    if (initialTab && ['users', 'invitations', 'links', 'requests'].includes(initialTab)) {
       setActiveTab(initialTab)
     }
   }, [initialTab])
@@ -194,7 +191,7 @@ export function useBusinessUsersPageLogic() {
   useEffect(() => {
     const handleTabChange = (event: Event) => {
       const customEvent = event as CustomEvent<BusinessUsersTab>
-      if (customEvent.detail && ['users', 'invitations', 'links'].includes(customEvent.detail)) {
+      if (customEvent.detail && ['users', 'invitations', 'links', 'requests'].includes(customEvent.detail)) {
         setActiveTab(customEvent.detail)
         // Scroll to top if needed or just switch
         window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -232,9 +229,9 @@ export function useBusinessUsersPageLogic() {
   const [isUnifiedInviteModalOpen, setIsUnifiedInviteModalOpen] = useState(false)
 
   // Extract unique values for hierarchy filters
-  const uniqueRegions = [...new Set(users.filter(u => u.region_name).map(u => u.region_name))]
-  const uniqueZones = [...new Set(users.filter(u => u.zone_name).map(u => u.zone_name))]
-  const uniqueTeams = [...new Set(users.filter(u => u.team_name).map(u => u.team_name))]
+  const uniqueRegions = [...new Set(users.map((u) => u.region_name ?? null))]
+  const uniqueZones = [...new Set(users.map((u) => u.zone_name ?? null))]
+  const uniqueTeams = [...new Set(users.map((u) => u.team_name ?? null))]
 
   // Count active filters
   const activeFiltersCount = [filterRole, filterStatus, filterRegion, filterZone, filterTeam].filter(f => f !== 'all').length
@@ -257,6 +254,31 @@ export function useBusinessUsersPageLogic() {
     inv.role.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const filteredInviteLinks = inviteLinks.filter((link) =>
+    (link.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    link.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    link.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    link.token.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const filteredJoinRequests = joinRequests.filter((request) => {
+    const displayName = request.users
+      ? [request.users.first_name, request.users.last_name]
+          .filter(Boolean)
+          .join(' ')
+          .trim() || request.users.username
+      : 'usuario'
+
+    const query = searchTerm.toLowerCase()
+
+    return (
+      displayName.toLowerCase().includes(query) ||
+      request.users?.email.toLowerCase().includes(query) ||
+      request.job_title?.toLowerCase().includes(query) ||
+      request.message?.toLowerCase().includes(query)
+    )
+  })
+
   // Clear all filters helper
   const clearAllFilters = () => {
     setFilterRole('all')
@@ -267,21 +289,19 @@ export function useBusinessUsersPageLogic() {
     setSearchTerm('')
   }
 
-  // Theme Logic
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-
-  const themeColors = useMemo(() => ({
-    text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
-    secondaryText: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)',
-    cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
-    borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
-    primary: panelStyles?.primary_button_color || '#0A2540',
-    secondary: panelStyles?.secondary_button_color || '#1E2329',
-    accent: panelStyles?.accent_color || '#00D4B3'
-  }), [panelStyles, isDark])
-
-  const { primary: primaryColor, secondary: secondaryColor, accent: accentColor } = themeColors
+  // Theme tokens — centralized via useBusinessPanelTheme
+  const theme = useBusinessPanelTheme()
+  const { isDark, primaryColor, accentColor, secondaryColor } = theme
+  // Legacy alias kept for consumers that destructure themeColors
+  const themeColors = {
+    text: theme.textColor,
+    secondaryText: theme.subtextColor,
+    cardBg: theme.cardBg,
+    borderColor: theme.borderColor,
+    primary: theme.primaryColor,
+    secondary: theme.secondaryColor,
+    accent: theme.accentColor,
+  }
 
   return {
     // Data
@@ -289,10 +309,14 @@ export function useBusinessUsersPageLogic() {
     users,
     invitations,
     inviteLinks,
+    joinRequests,
+    joinRequestsCount,
     stats,
     orgData,
     isLoading,
     error,
+    isJoinRequestsLoading,
+    joinRequestsError,
     refetch,
     currentUser,
     updateUser,
@@ -300,6 +324,8 @@ export function useBusinessUsersPageLogic() {
     // Filtered data
     filteredUsers,
     filteredInvitations,
+    filteredInviteLinks,
+    filteredJoinRequests,
 
     // Hierarchy filter options
     uniqueRegions,
@@ -376,6 +402,8 @@ export function useBusinessUsersPageLogic() {
     deleteInviteLink,
     handleResendIndividualInvitation,
     handleRevokeInvitation,
+    reviewJoinRequest,
+    reviewingId,
 
     // Theme
     isDark,

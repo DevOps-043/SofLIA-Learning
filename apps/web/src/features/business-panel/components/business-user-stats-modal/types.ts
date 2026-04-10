@@ -9,15 +9,25 @@ export interface BusinessUserStatsTheme {
   isDark: boolean
   modalBg: string
   modalBorder: string
+  cardBg: string
   textColor: string
+  mutedTextColor: string
   primaryColor: string
   accentColor: string
   secondaryColor: string
+  onPrimaryColor: string
+  chartColors: string[]
+  successColor: string
+  warningColor: string
 }
+
+export type BusinessUserStatsTranslateOptions =
+  | string
+  | ({ count?: number } & Record<string, unknown>)
 
 export type BusinessUserStatsTranslate = (
   key: string,
-  options?: { count?: number } & Record<string, unknown>,
+  options?: BusinessUserStatsTranslateOptions,
 ) => string
 
 export interface BusinessUserStatsHeaderTab {

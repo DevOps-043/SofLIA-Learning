@@ -1,183 +1,234 @@
-import React, { useState } from 'react';
-import { OrganizationNode } from '../../types/dynamicHierarchy.types';
+import React, { useMemo, useState } from 'react'
+import { OrganizationNode } from '../../types/dynamicHierarchy.types'
 import {
-    ChevronRightIcon,
-    ChevronDownIcon,
-    PlusIcon,
-    PencilSquareIcon,
-    TrashIcon,
-    MapPinIcon,
-    UserGroupIcon,
-    BuildingOfficeIcon,
-    FolderIcon
-} from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+  ChevronRight,
+  ChevronDown,
+  Plus,
+  Edit3,
+  Trash2,
+  MapPin,
+  Users,
+  Building2,
+  Folder,
+  Hash,
+  User
+} from 'lucide-react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 interface NodeItemProps {
-    node: OrganizationNode;
-    level: number;
-    onExpand?: (node: OrganizationNode) => void;
-    onCollapse?: (node: OrganizationNode) => void;
-    onEdit?: (node: OrganizationNode) => void;
-    onDelete?: (node: OrganizationNode) => void;
-    onAddChild?: (parentNode: OrganizationNode) => void;
+  node: OrganizationNode
+  level: number
+  onExpand?: (node: OrganizationNode) => void
+  onCollapse?: (node: OrganizationNode) => void
+  onEdit?: (node: OrganizationNode) => void
+  onDelete?: (node: OrganizationNode) => void
+  onAddChild?: (parentNode: OrganizationNode) => void
 }
 
 export const NodeItem: React.FC<NodeItemProps> = ({
-    node,
-    level,
-    onExpand,
-    onCollapse,
-    onAddChild,
-    onEdit,
-    onDelete
+  node,
+  level,
+  onExpand,
+  onCollapse,
+  onAddChild,
+  onEdit,
+  onDelete
 }) => {
-    const params = useParams();
-    const [isExpanded, setIsExpanded] = useState(false);
+  const params = useParams()
+  const theme = useBusinessPanelTheme()
+  const [isExpanded, setIsExpanded] = useState(level === 0)
 
-    const handleToggle = () => {
-        const newState = !isExpanded;
-        setIsExpanded(newState);
-        if (newState && onExpand) onExpand(node);
-        if (!newState && onCollapse) onCollapse(node);
-    };
+  const indentSize = 32
+  const paddingLeft = level * indentSize
+  const isRootExpanded = isExpanded && level === 0
 
-    // Indentation based on level
-    const paddingLeft = `${level * 24 + 12}px`; // Increased base indentation
+  const nodeTypeStyle = useMemo(() => {
+    switch (node.type) {
+      case 'root':
+        return { color: theme.successColor, Icon: Building2 }
+      case 'region':
+        return { color: theme.chartColors[1], Icon: MapPin }
+      case 'zone':
+        return { color: theme.secondaryColor, Icon: Hash }
+      case 'team':
+        return { color: theme.warningColor, Icon: Users }
+      default:
+        return { color: theme.mutedTextColor, Icon: Folder }
+    }
+  }, [node.type, theme.chartColors, theme.mutedTextColor, theme.secondaryColor, theme.successColor, theme.warningColor])
 
-    // Icon selection based on type
-    const getIcon = () => {
-        // We use brightness/saturate filters in dark mode to ensure visibility even if the theme color is dark
-        const iconClass = "w-5 h-5 dark:brightness-150 dark:saturate-150 transition-all";
+  const handleToggle = () => {
+    const newState = !isExpanded
+    setIsExpanded(newState)
+    if (newState && onExpand) onExpand(node)
+    if (!newState && onCollapse) onCollapse(node)
+  }
 
-        switch (node.type) {
-            case 'root': return <BuildingOfficeIcon className={iconClass} style={{ color: 'var(--org-primary-button-color, #6366F1)' }} />;
-            case 'region': return <MapPinIcon className={iconClass} style={{ color: 'var(--org-secondary-button-color, #3B82F6)' }} />;
-            case 'zone': return <MapPinIcon className={iconClass} style={{ color: 'var(--org-accent-color, #00D4B3)' }} />;
-            case 'team': return <UserGroupIcon className={iconClass} style={{ color: '#F59E0B' }} />;
-            default: return <FolderIcon className={iconClass} style={{ color: 'var(--org-text-color, #9CA3AF)', opacity: 0.7 }} />;
-        }
-    };
+  return (
+    <div className="flex flex-col">
+      <motion.div
+        whileHover={{ backgroundColor: theme.hoverBg }}
+        className="group flex items-center py-2 px-4 rounded-2xl transition-all duration-300 relative"
+        style={{
+          marginLeft: `${paddingLeft}px`,
+          backgroundColor: isRootExpanded ? theme.inputBg : 'transparent'
+        }}
+      >
+        {level > 0 ? (
+          <div
+            className="absolute top-0 bottom-0 -left-[16px] w-px transition-colors"
+            style={{ backgroundColor: theme.borderColor }}
+          />
+        ) : null}
 
-    return (
-        <div className="flex flex-col select-none">
-            <div
-                className={`flex items-center p-3 border-b transition-all duration-200 group`}
-                style={{
-                    paddingLeft: level > 0 ? paddingLeft : '0.75rem',
-                    borderColor: 'var(--org-border-color, rgba(255,255,255,0.1))',
-                    backgroundColor: node.type === 'root' ? 'rgba(var(--org-primary-button-rgb, 99, 102, 241), 0.1)' : 'transparent',
-                    color: 'var(--org-text-color, #FFFFFF)'
-                }}
-            >
-                {/* Expand/Collapse Toggle */}
-                <button
-                    onClick={handleToggle}
-                    className="mr-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none w-6 h-6 flex items-center justify-center rounded-md hover:bg-gray-200/50 dark:hover:bg-neutral-700/50 transition-colors"
+        <button
+          onClick={handleToggle}
+          className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg transition-all"
+          style={{ color: isExpanded ? theme.primaryColor : theme.mutedTextColor }}
+        >
+          {node.children && node.children.length > 0 ? (
+            isExpanded ? <ChevronDown size={14} strokeWidth={3} /> : <ChevronRight size={14} strokeWidth={3} />
+          ) : (
+            <div className="w-1 h-1 rounded-full bg-current opacity-60" />
+          )}
+        </button>
+
+        <div className="flex-1 flex items-center gap-4 min-w-0">
+          <div
+            className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
+            style={{
+              backgroundColor: theme.inputBg,
+              borderColor: isExpanded ? `${theme.primaryColor}20` : theme.borderColor,
+              boxShadow: isExpanded ? `0 12px 28px -16px ${theme.primaryColor}80` : 'none'
+            }}
+          >
+            <nodeTypeStyle.Icon size={18} style={{ color: nodeTypeStyle.color }} />
+          </div>
+
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/${params?.orgSlug}/business-panel/hierarchy/node/${node.id}`}
+                className="text-sm font-black transition-colors truncate tracking-tight"
+                style={{ color: theme.textColor }}
+              >
+                {node.name}
+              </Link>
+              {node.code ? (
+                <span
+                  className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border"
+                  style={{
+                    color: theme.primaryColor,
+                    backgroundColor: `${theme.primaryColor}10`,
+                    borderColor: `${theme.primaryColor}20`
+                  }}
                 >
-                    {isExpanded ? (
-                        <ChevronDownIcon className="w-4 h-4" />
-                    ) : (
-                        <ChevronRightIcon className="w-4 h-4" />
-                    )}
-                </button>
-
-                {/* Node Icon */}
-                <span className="mr-3 opacity-90">
-                    {getIcon()}
+                  {node.code}
                 </span>
-
-                {/* Node Content */}
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                        <Link
-                            href={`/${params?.orgSlug}/business-panel/hierarchy/node/${node.id}`}
-                            className="hover:underline decoration-blue-500 underline-offset-2"
-                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
-                        >
-                            <span className="text-sm truncate font-medium">
-                                {node.name}
-                            </span>
-                        </Link>
-                        {node.code && (
-                            <span className="text-[10px] uppercase font-bold text-gray-400 bg-gray-100 dark:bg-neutral-800 dark:text-gray-500 px-1.5 py-0.5 rounded border border-gray-200 dark:border-neutral-700">
-                                {node.code}
-                            </span>
-                        )}
-                    </div>
-                    {/* Metadata / Manager */}
-                    <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-3">
-                        <span className="opacity-80 font-medium tracking-wide uppercase">{node.type}</span>
-                        {node.manager && (
-                            <span className="flex items-center gap-1 opacity-80">
-                                <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
-                                Líder: {node.manager.first_name}
-                            </span>
-                        )}
-                        <span className="flex items-center gap-1 opacity-80">
-                            <span className="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600"></span>
-                            {node.members_count || 0} miembros
-                        </span>
-                    </div>
-                </div>
-
-                {/* Actions (visible on hover) */}
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button
-                        onClick={() => onAddChild && onAddChild(node)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 rounded-md transition-colors"
-                        title="Agregar sub-nivel"
-                    >
-                        <PlusIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => onEdit && onEdit(node)}
-                        className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 dark:hover:text-indigo-400 rounded-md transition-colors"
-                        title="Editar"
-                    >
-                        <PencilSquareIcon className="w-4 h-4" />
-                    </button>
-                    <button
-                        onClick={() => onDelete && onDelete(node)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:hover:text-red-400 rounded-md transition-colors"
-                        title="Eliminar"
-                    >
-                        <TrashIcon className="w-4 h-4" />
-                    </button>
-                </div>
+              ) : null}
             </div>
 
-            {/* Children Rendering */}
-            {isExpanded && node.children && node.children.length > 0 && (
-                <div className="flex flex-col relative">
-                    {/* Vertical Guide Line */}
-                    <div
-                        className="absolute w-px bg-gray-100 dark:bg-neutral-800 top-0 bottom-0"
-                        style={{ left: `${(level * 24) + 12 + 11}px` }} // Approx align with chevron center
-                    />
-                    {node.children.map(child => (
-                        <NodeItem
-                            key={child.id}
-                            node={child}
-                            level={level + 1}
-                            onExpand={onExpand}
-                            onCollapse={onCollapse}
-                            onAddChild={onAddChild}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                        />
-                    ))}
+            <div className="flex items-center gap-3 text-[10px] font-medium truncate" style={{ color: theme.mutedTextColor }}>
+              <span className="uppercase tracking-[0.1em] font-black">{node.type}</span>
+              {node.manager ? (
+                <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
+                  <User size={10} style={{ color: theme.primaryColor }} />
+                  <span className="truncate">Lider: {node.manager.first_name}</span>
                 </div>
-            )}
-
-            {/* Empty State when expanded */}
-            {isExpanded && (!node.children || node.children.length === 0) && (
-                <div className="py-3 text-xs text-gray-400 italic flex items-center gap-2" style={{ paddingLeft: `${(level + 1) * 24 + 12}px` }}>
-                    <div className="w-1 h-1 rounded-full bg-gray-300 dark:bg-neutral-700"></div>
-                    No hay elementos
-                </div>
-            )}
+              ) : null}
+              <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
+                <Users size={10} />
+                <span>{node.members_count || 0} miembros</span>
+              </div>
+            </div>
+          </div>
         </div>
-    );
-};
+
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all scale-90 group-hover:scale-100">
+          <button
+            onClick={() => onAddChild && onAddChild(node)}
+            className="p-2 rounded-xl transition-all"
+            style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = theme.primaryColor
+              event.currentTarget.style.backgroundColor = `${theme.primaryColor}12`
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = theme.mutedTextColor
+              event.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            title="Agregar Sub-nivel"
+          >
+            <Plus size={16} strokeWidth={3} />
+          </button>
+          <button
+            onClick={() => onEdit && onEdit(node)}
+            className="p-2 rounded-xl transition-all"
+            style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = theme.textColor
+              event.currentTarget.style.backgroundColor = theme.hoverBg
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = theme.mutedTextColor
+              event.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            title="Editar"
+          >
+            <Edit3 size={16} />
+          </button>
+          <button
+            onClick={() => onDelete && onDelete(node)}
+            className="p-2 rounded-xl transition-all"
+            style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.color = theme.dangerColor
+              event.currentTarget.style.backgroundColor = `${theme.dangerColor}12`
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.color = theme.mutedTextColor
+              event.currentTarget.style.backgroundColor = 'transparent'
+            }}
+            title="Eliminar"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
+      </motion.div>
+
+      <AnimatePresence>
+        {isExpanded && node.children && node.children.length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden flex flex-col pt-1"
+          >
+            {node.children.map(child => (
+              <NodeItem
+                key={child.id}
+                node={child}
+                level={level + 1}
+                onExpand={onExpand}
+                onCollapse={onCollapse}
+                onAddChild={onAddChild}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            ))}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+
+      {isExpanded && (!node.children || node.children.length === 0) ? (
+        <div className="py-2 flex items-center gap-3" style={{ marginLeft: `${paddingLeft + indentSize + 12}px`, color: theme.mutedTextColor }}>
+          <div className="w-4 h-px bg-current shrink-0" />
+          <span className="text-[10px] font-black uppercase tracking-widest italic">Nivel Terminal</span>
+        </div>
+      ) : null}
+    </div>
+  )
+}

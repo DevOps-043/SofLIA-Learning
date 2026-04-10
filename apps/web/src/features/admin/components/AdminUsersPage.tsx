@@ -21,6 +21,7 @@ import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/sol
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import type { NewAdminUserData } from './AddUserModal'
 import { AdminUser } from '../services/adminUsers.service'
+import { useThemeStore } from '@/core/stores/themeStore'
 
 const EditUserModal = dynamic(() => import('./EditUserModal').then(mod => ({ default: mod.EditUserModal })), {
   ssr: false
@@ -56,6 +57,10 @@ const itemVariants = {
 
 export function AdminUsersPage() {
   const { users, stats, isLoading, error, refetch } = useAdminUsers()
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+  const primaryAccent = isDark ? '#00D4B3' : '#0A2540'
+
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState('all')
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
@@ -80,9 +85,9 @@ export function AdminUsersPage() {
     switch (role) {
       case 'Administrador':
         return {
-          bg: 'bg-[#0A2540]/10 dark:bg-[#0A2540]/30',
-          text: 'text-[#0A2540] dark:text-[#00D4B3]',
-          border: 'border-[#0A2540]/20 dark:border-[#00D4B3]/30',
+          bg: isDark ? 'bg-[#00D4B3]/10' : 'bg-[#0A2540]/10',
+          text: isDark ? 'text-[#00D4B3]' : 'text-[#0A2540]',
+          border: isDark ? 'border-[#00D4B3]/20' : 'border-[#0A2540]/20',
           icon: ShieldCheckIcon
         }
       case 'Instructor':
@@ -244,9 +249,10 @@ export function AdminUsersPage() {
                 </p>
                 <motion.button
                   onClick={refetch}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, backgroundColor: isDark ? '#00BD9F' : '#0d2f4d' }}
                   whileTap={{ scale: 0.98 }}
-                  className="px-4 py-2 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-xl text-sm font-medium transition-colors duration-200"
+                  className="px-4 py-2 text-white rounded-xl text-sm font-medium transition-colors duration-200"
+                  style={{ backgroundColor: primaryAccent }}
                 >
                   Reintentar
                 </motion.button>
@@ -279,9 +285,13 @@ export function AdminUsersPage() {
               </div>
               <motion.button
                 onClick={handleAddUser}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, backgroundColor: isDark ? '#00BD9F' : '#0d2f4d' }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center gap-2 px-4 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-xl text-sm font-medium shadow-lg shadow-[#0A2540]/20 transition-all duration-200"
+                className="flex items-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-medium shadow-lg transition-all duration-200"
+                style={{ 
+                   backgroundColor: primaryAccent,
+                   boxShadow: isDark ? '0 10px 15px -3px rgba(0, 212, 179, 0.2)' : '0 10px 15px -3px rgba(10, 37, 64, 0.2)'
+                }}
               >
                 <PlusIcon className="h-5 w-5" />
                 <span>Agregar Usuario</span>
@@ -289,66 +299,102 @@ export function AdminUsersPage() {
             </div>
           </motion.div>
 
-          {/* Stats Cards Compactas */}
-          <motion.div variants={itemVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+          {/* Stats Grid Rediseñado */}
+          <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Total Users */}
             <motion.div
-              whileHover={{ y: -2, scale: 1.02 }}
-              className="bg-gradient-to-br from-[#0A2540] to-[#0A2540]/80 dark:from-[#1E2329] dark:to-[#0A2540]/30 rounded-xl p-4 border border-[#0A2540]/10 dark:border-[#6C757D]/30 shadow-lg"
+              whileHover={{ y: -2 }}
+              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/70 dark:text-white/60 mb-1">Total</p>
-                  <p className="text-2xl font-bold text-white">{stats?.totalUsers || 0}</p>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#0A2540] dark:from-[#00D4B3] to-transparent" />
+              <div className="relative z-10 flex items-center gap-4 w-full">
+                <div 
+                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+                  style={{
+                    background: isDark ? 'rgba(0, 212, 179, 0.15)' : 'rgba(10, 37, 64, 0.15)',
+                    border: isDark ? '1px solid rgba(0, 212, 179, 0.25)' : '1px solid rgba(10, 37, 64, 0.25)'
+                  }}
+                >
+                  <UsersIcon className="h-5 w-5 text-[#0A2540] dark:text-[#00D4B3]" />
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-white/10 dark:bg-[#00D4B3]/10 flex items-center justify-center">
-                  <UsersIcon className="h-5 w-5 text-white" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Total Usuarios</p>
+                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.totalUsers || 0).toLocaleString()}</p>
                 </div>
               </div>
+              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#0A2540] dark:bg-[#00D4B3]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
             </motion.div>
 
+            {/* Verificados */}
             <motion.div
-              whileHover={{ y: -2, scale: 1.02 }}
-              className="bg-gradient-to-br from-[#10B981] to-[#10B981]/80 dark:from-[#1E2329] dark:to-[#10B981]/20 rounded-xl p-4 border border-[#10B981]/10 dark:border-[#6C757D]/30 shadow-lg"
+              whileHover={{ y: -2 }}
+              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/70 dark:text-white/60 mb-1">Verificados</p>
-                  <p className="text-2xl font-bold text-white">{stats?.verifiedUsers || 0}</p>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#10B981] to-transparent" />
+              <div className="relative z-10 flex items-center gap-4 w-full">
+                <div 
+                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    border: '1px solid rgba(16, 185, 129, 0.25)'
+                  }}
+                >
+                  <CheckCircleIconSolid className="h-5 w-5 text-[#10B981]" />
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-white/10 dark:bg-[#10B981]/10 flex items-center justify-center">
-                  <CheckCircleIconSolid className="h-5 w-5 text-white" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Verificados</p>
+                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.verifiedUsers || 0).toLocaleString()}</p>
                 </div>
               </div>
+              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#10B981]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
             </motion.div>
 
+            {/* Instructores */}
             <motion.div
-              whileHover={{ y: -2, scale: 1.02 }}
-              className="bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80 dark:from-[#1E2329] dark:to-[#F59E0B]/20 rounded-xl p-4 border border-[#F59E0B]/10 dark:border-[#6C757D]/30 shadow-lg"
+              whileHover={{ y: -2 }}
+              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/70 dark:text-white/60 mb-1">Instructores</p>
-                  <p className="text-2xl font-bold text-white">{stats?.instructors || 0}</p>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#F59E0B] to-transparent" />
+              <div className="relative z-10 flex items-center gap-4 w-full">
+                <div 
+                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+                  style={{
+                    background: 'rgba(245, 158, 11, 0.15)',
+                    border: '1px solid rgba(245, 158, 11, 0.25)'
+                  }}
+                >
+                  <AcademicCapIcon className="h-5 w-5 text-[#F59E0B]" />
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-white/10 dark:bg-[#F59E0B]/10 flex items-center justify-center">
-                  <AcademicCapIcon className="h-5 w-5 text-white" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Instructores</p>
+                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.instructors || 0).toLocaleString()}</p>
                 </div>
               </div>
+              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#F59E0B]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
             </motion.div>
 
+            {/* Administradores */}
             <motion.div
-              whileHover={{ y: -2, scale: 1.02 }}
-              className="bg-gradient-to-br from-[#00D4B3] to-[#00D4B3]/80 dark:from-[#1E2329] dark:to-[#00D4B3]/20 rounded-xl p-4 border border-[#00D4B3]/10 dark:border-[#6C757D]/30 shadow-lg"
+              whileHover={{ y: -2 }}
+              className="bg-white dark:bg-[#1E2329] rounded-[16px] p-4 border border-[#E9ECEF] dark:border-white/5 shadow-sm hover:shadow-lg transition-all duration-300 flex items-center gap-4 min-h-[90px] overflow-hidden relative group"
             >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-white/70 dark:text-white/60 mb-1">Administradores</p>
-                  <p className="text-2xl font-bold text-white">{stats?.administrators || 0}</p>
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br from-[#00D4B3] to-transparent" />
+              <div className="relative z-10 flex items-center gap-4 w-full">
+                <div 
+                  className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+                  style={{
+                    background: 'rgba(0, 212, 179, 0.15)',
+                    border: '1px solid rgba(0, 212, 179, 0.25)'
+                  }}
+                >
+                  <ShieldCheckIcon className="h-5 w-5 text-[#00D4B3]" />
                 </div>
-                <div className="w-10 h-10 rounded-lg bg-white/10 dark:bg-[#00D4B3]/10 flex items-center justify-center">
-                  <ShieldCheckIcon className="h-5 w-5 text-white" />
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-[#6C757D] dark:text-white/60 mb-1">Administradores</p>
+                  <p className="text-2xl font-black text-[#0A2540] dark:text-white leading-none">{(stats?.administrators || 0).toLocaleString()}</p>
                 </div>
               </div>
+              <motion.div className="absolute bottom-0 left-0 h-[2px] bg-[#00D4B3]" initial={{ width: 0 }} whileHover={{ width: '40%' }} transition={{ duration: 0.4 }} />
             </motion.div>
           </motion.div>
 
@@ -396,8 +442,8 @@ export function AdminUsersPage() {
                             }}
                             className={`w-full text-left px-4 py-2.5 text-sm transition-colors duration-200 ${
                               filterRole === role
-                                ? 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 text-[#00D4B3] font-medium'
-                                : 'text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30'
+                                ? 'bg-[#10B981]/10 dark:bg-[#00D4B3]/20 text-[#10B981] dark:text-[#00D4B3] font-bold'
+                                : 'text-[#0A2540] dark:text-white hover:bg-[#E9ECEF] dark:hover:bg-white/5'
                             }`}
                           >
                             {role === 'all' ? 'Todos los roles' : role}

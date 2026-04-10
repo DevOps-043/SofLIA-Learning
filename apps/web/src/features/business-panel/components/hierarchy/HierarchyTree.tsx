@@ -1,4 +1,4 @@
-import { Plus, Layout, Settings, ChevronRight, ChevronDown, UserPlus } from 'lucide-react';
+import { Plus, Layout, Settings, ChevronRight, ChevronDown, UserPlus, Network } from 'lucide-react';
 
 import React, { useEffect, useState } from 'react';
 import { DynamicHierarchyService } from '../../services/dynamicHierarchy.service';
@@ -53,6 +53,9 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
   const [showNodeModal, setShowNodeModal] = useState(false);
   const [nodeModalMode, setNodeModalMode] = useState<'create' | 'edit'>('create');
   const [targetNode, setTargetNode] = useState<OrganizationNode | undefined>(undefined); // Parent for create, Target for edit
+
+  // Dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // Initial Load: Fetch Structures
   useEffect(() => {
@@ -180,57 +183,89 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
   };
 
   return (
-    <div
-      className="rounded-lg shadow-sm border overflow-hidden"
-      style={{
-        backgroundColor: 'var(--org-card-background, #1E2329)',
-        borderColor: 'var(--org-border-color, rgba(255,255,255,0.1))'
-      }}
-    >
-      {/* Header / Structure Selector */}
-      <div
-        className="p-4 border-b flex justify-between items-center"
-        style={{
-          borderColor: 'var(--org-border-color, rgba(255,255,255,0.1))',
-          backgroundColor: 'rgba(var(--org-card-background-rgb, 30, 35, 41), 0.5)'
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <h2 className="font-semibold" style={{ color: 'var(--org-text-color, #FFFFFF)' }}>Jerarquía Organizacional</h2>
-          <select
-            className="text-sm rounded-md px-3 py-1.5 focus:ring-2 focus:ring-blue-500 outline-none"
-            style={{
-              backgroundColor: 'rgba(var(--org-card-background-rgb), 0.8)',
-              borderColor: 'var(--org-border-color, #6C757D)',
-              color: 'var(--org-text-color, #FFFFFF)'
-            }}
-            value={selectedStructureId || ''}
-            onChange={(e) => setSelectedStructureId(e.target.value)}
-            disabled={isLoading}
-          >
-            {structures.map(s => (
-              <option key={s.id} value={s.id}>{s.name} {s.is_default ? '(Default)' : ''}</option>
-            ))}
-          </select>
+    <div className="space-y-8 min-h-[500px]">
+      {/* Structure Selector and Actions */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-neutral-200 dark:border-white/5">
+        <div className="space-y-4 flex-1">
+          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-white/30 block ml-1">
+            Estructura Activa
+          </label>
+          
+          {/* SofLIA Premium Dropdown */}
+          <div className="relative min-w-[280px] max-w-xs group">
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full pl-12 pr-6 py-4 rounded-2xl border-2 flex items-center justify-between gap-3 transition-all duration-300 active:scale-[0.98] h-[58px]"
+              style={{
+                backgroundColor: "var(--dropdown-bg, transparent)",
+                borderColor: isDropdownOpen ? "var(--accent-color, #0A2540)" : "var(--border-color, rgba(0,0,0,0.1))",
+                boxShadow: isDropdownOpen ? "0 0 20px rgba(0,212,179,0.15)" : "none"
+              }}
+            >
+              <style jsx>{`
+                button {
+                  --dropdown-bg: #f8fafc;
+                  --border-color: #e2e8f0;
+                  --accent-color: #0A2540;
+                }
+                :global(.dark) button {
+                  --dropdown-bg: #1E2329;
+                  --border-color: rgba(255,255,255,0.1);
+                  --accent-color: #00D4B3;
+                }
+              `}</style>
+              <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0A2540] dark:text-[#00D4B3]" />
+              <span className="text-sm font-bold text-[#0A2540] dark:text-white truncate">
+                {structures.find(s => s.id === selectedStructureId)?.name || 'Seleccionar Estructura'}
+                {structures.find(s => s.id === selectedStructureId)?.is_default ? ' (Principal)' : ''}
+              </span>
+              <ChevronDown 
+                className={`w-4 h-4 text-neutral-500 dark:text-white/30 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 opacity-100' : 'rotate-0'}`} 
+              />
+            </button>
+
+            {/* Dropdown Menu */}
+            {isDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-40" 
+                  onClick={() => setIsDropdownOpen(false)} 
+                />
+                <div 
+                  className="absolute top-full left-0 right-0 mt-3 rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#1E2329] shadow-2xl overflow-hidden z-50 py-2 backdrop-blur-3xl"
+                  style={{ boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}
+                >
+                  {structures.map(s => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setSelectedStructureId(s.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full px-5 py-3.5 text-left text-sm font-bold transition-all flex items-center justify-between gap-3 ${
+                        selectedStructureId === s.id 
+                          ? 'bg-blue-500/5 dark:bg-[#00D4B3]/10 text-[#0A2540] dark:text-[#00D4B3]' 
+                          : 'text-neutral-600 dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5'
+                      }`}
+                    >
+                      <span>{s.name} {s.is_default ? '(Principal)' : ''}</span>
+                      {selectedStructureId === s.id && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540] dark:bg-[#00D4B3]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleNewStructure}
-            className="text-sm px-3 py-1.5 rounded-md transition-colors shadow-sm font-medium"
-            style={{
-              backgroundColor: 'var(--org-primary-button-color, #6366F1)',
-              color: '#FFFFFF'
-            }}
-          >
-            + Nueva Estructura
-          </button>
-          {/* Structure Members Management using Root Node */}
+
+        <div className="flex items-center gap-3 shrink-0 self-end lg:self-center">
           <button
             onClick={async () => {
               if (!selectedStructureId) return;
-              // Use local nodes state if available, or fetch
               let rootNode = nodes.find(n => !n.parent_id);
-
               if (!rootNode && selectedStructureId) {
                 try {
                   const fetchedNodes = await DynamicHierarchyService.getTree(selectedStructureId);
@@ -239,7 +274,6 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                   console.error("Error finding root node", e);
                 }
               }
-
               if (rootNode) {
                 setMemberModalNodeId(rootNode.id);
                 setMemberModalNodeName(rootNode.name);
@@ -248,39 +282,61 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                 alert("No se encontró un nodo raíz para gestionar miembros. Cree un nodo 'General' primero.");
               }
             }}
-            className="text-sm px-3 py-1.5 rounded-md transition-colors shadow-sm font-medium flex items-center gap-2"
-            style={{
-              backgroundColor: 'var(--org-secondary-button-color, #4F46E5)',
-              color: '#FFFFFF'
-            }}
+            className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white shadow-xl h-[58px]"
           >
             <UserPlus className="w-4 h-4" />
-            Miembros
+            <span>Miembros</span>
+          </button>
+
+          <button
+            onClick={handleNewStructure}
+            className="flex items-center gap-3 px-8 py-4 rounded-2xl shadow-2xl transition-all hover:brightness-110 active:scale-95 text-[10px] font-black uppercase tracking-widest h-[58px] bg-[#0A2540] dark:bg-none !text-white dark:!text-[#0A2540]"
+            style={{ 
+              background: "var(--btn-bg)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.15)"
+            }}
+          >
+            <style jsx>{`
+               button {
+                 --btn-bg: #0A2540 !important;
+               }
+               :global(.dark) button {
+                 --btn-bg: linear-gradient(135deg, #00D4B3, #10B981) !important;
+               }
+            `}</style>
+            <Plus className="w-4 h-4" strokeWidth={3} />
+            <span>Nueva Estructura</span>
           </button>
         </div>
       </div>
 
-      {/* Tree Content */}
-      <div
-        className="min-h-[400px] rounded-b-lg"
-        style={{
-          backgroundColor: 'var(--org-card-background, #1E2329)'
-        }}
-      >
+      {/* Tree Visualizer */}
+      <div className="relative">
         {isLoading ? (
-          <div className="flex items-center justify-center h-40 text-gray-500 dark:text-gray-400">
-            Cargando...
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 opacity-30">
+            <div className="w-10 h-10 border-4 border-neutral-200 dark:border-white/10 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white">Sincronizando...</span>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-40 text-red-500">
-            {error}
+          <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-center">
+             <div className="p-4 rounded-full bg-red-500/10 border border-red-500/20 mx-auto">
+                <Settings className="w-8 h-8 text-red-500" />
+             </div>
+             <span className="text-sm font-bold text-red-500 block">{error}</span>
           </div>
         ) : treeRoots.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 text-gray-500 dark:text-gray-400 text-sm">
-            <p>No hay nodos en esta estructura.</p>
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-8">
+            <div className="w-24 h-24 rounded-[2.5rem] bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
+               <Network className="w-12 h-12 text-neutral-300 dark:text-white/10" />
+            </div>
+            <div className="space-y-3">
+               <h3 className="text-xl font-black text-[#0A2540] dark:text-white italic tracking-tight">ESTRUCTURA VACÍA</h3>
+               <p className="text-xs font-semibold text-neutral-400 dark:text-white/30 max-w-xs mx-auto uppercase tracking-wide leading-relaxed">
+                  ESTA ESTRUCTURA NO CONTIENE NIVELES ORGANIZACIONALES DEFINIDOS ACTUALMENTE. 
+               </p>
+            </div>
             <button
               onClick={() => {
-                // Add Root Logic
                 if (!selectedStructureId) return;
                 DynamicHierarchyService.createNode({
                   structure_id: selectedStructureId,
@@ -289,13 +345,13 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                   parent_id: null
                 }).then(() => loadNodes(selectedStructureId));
               }}
-              className="mt-2 text-blue-600 hover:underline dark:text-blue-400"
+              className="px-8 py-4 rounded-2xl !text-white dark:!text-[#0A2540] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-2xl active:scale-95 bg-[#0A2540] dark:bg-[#00D4B3]"
             >
               Inicializar 'General'
             </button>
           </div>
         ) : (
-          <div>
+          <div className="space-y-1">
             {treeRoots.map(root => (
               <NodeItem
                 key={root.id}

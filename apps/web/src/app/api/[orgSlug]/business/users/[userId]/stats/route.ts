@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
+import { createBusinessUsersAdminClient } from '@/features/business-panel/services/business-users-server/client'
+import { fetchBusinessUserStatsData } from '@/features/business-panel/services/business-user-stats-query.service'
+import { buildBusinessUserStatsResponse } from '@/features/business-panel/services/business-user-stats-response.service'
 
 /**
  * GET /api/[orgSlug]/business/users/[userId]/stats
- * Obtiene estadísticas de aprendizaje de un usuario específico dentro de la organización
+ * Obtiene estadísticas de aprendizaje de un usuario dentro de la organización.
  */
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ orgSlug: string; userId: string }> }
 ) {
   try {
@@ -17,60 +19,41 @@ export async function GET(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: 'No tienes una organización asignada' },
+        { status: 403 }
+      )
     }
 
-    const supabase = await createClient()
+    const supabase = createBusinessUsersAdminClient()
+    const result = await fetchBusinessUserStatsData(
+      supabase,
+      auth.organizationId,
+      userId,
+    )
 
-    // VALIDACIÓN CRÍTICA: El usuario debe pertenecer a la organización
-    const { data: orgUser, error: orgUserError } = await supabase
-      .from('organization_users')
-      .select('user_id')
-      .eq('organization_id', auth.organizationId)
-      .eq('user_id', userId)
-      .maybeSingle()
-
-    if (orgUserError || !orgUser) {
-      logger.error('🚨 SEGURIDAD: Intento de acceso a estadísticas de usuario de otra org', { userId, orgSlug })
-      return NextResponse.json({ success: false, error: 'Usuario no pertenece a esta organización' }, { status: 403 })
+    if (result.status === 'forbidden') {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 403 },
+      )
     }
 
-    // A partir de aquí la lógica es idéntica a la original, pero garantizando el scope
-    const { data: user } = await supabase
-      .from('users')
-      .select('id, username, email, first_name, last_name, display_name, profile_picture_url')
-      .eq('id', userId)
-      .single()
+    if (result.status === 'not_found') {
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 404 },
+      )
+    }
 
-    // ... (Lógica de obtención de enrollments, lecciones, certificados, etc)
-    // Para brevedad y eficiencia, mantendremos la estructura original de obtención de datos
-    // pero asegurando que todo lo que filtremos use siempre el userId validado.
-
-    const { data: enrollments } = await supabase
-      .from('user_course_enrollments')
-      .select(`*, courses (*)`)
-      .eq('user_id', userId)
-
-    const { data: certificates } = await supabase
-      .from('user_course_certificates')
-      .select(`*, courses (*)`)
-      .eq('user_id', userId)
-
-    // Nota: He simplificado la obtención de datos para este ejemplo,
-    // en producción mantendremos todas las relaciones detalladas del archivo original.
-    // (Simulación de la lógica original enriquecida)
-    
-    return NextResponse.json({
-      success: true,
-      user,
-      stats: {
-        total_courses: enrollments?.length || 0,
-        completed_courses: enrollments?.filter(e => e.enrollment_status === 'completed').length || 0,
-        certificates_count: certificates?.length || 0
-      }
-    })
+    return NextResponse.json(buildBusinessUserStatsResponse(result.data))
   } catch (error) {
-    logger.error('💥 Error in /api/[orgSlug]/business/users/[userId]/stats:', error)
-    return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 })
+    const message = error instanceof Error ? error.message : 'Error al obtener estadísticas'
+    logger.error('Error in /api/[orgSlug]/business/users/[userId]/stats:', { message })
+
+    return NextResponse.json(
+      { success: false, error: 'Error al obtener estadísticas del usuario' },
+      { status: 500 }
+    )
   }
 }

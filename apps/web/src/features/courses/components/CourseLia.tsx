@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Paperclip, Sparkles, MessageSquare, Lightbulb, HelpCircle, Trash2, Copy, StickyNote, Check } from 'lucide-react';
+import { X, Send, Square, Trash2, Copy, StickyNote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../auth/hooks/useAuth';
 import { useThemeStore } from '../../../core/stores/themeStore';
@@ -177,9 +177,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
     primaryAction: customColors?.accentColor || '#0A2540',
   };
 
-  const initialMessage = user?.first_name
-    ? `¡Hola ${user.first_name}! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`
-    : `¡Hola! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`;
+  const initialMessage = null;
 
   const liaChat = useLiaCourseChat(initialMessage);
   const { messages, isLoading, sendMessage, stop, clearHistory } = liaChat;
@@ -301,6 +299,15 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
 
     await sendMessage(message, courseContext);
   }, [inputValue, isLoading, sendMessage, lessonId, lessonTitle, courseSlug, transcriptContent, summaryContent, lessonContent]);
+
+  const handlePrimaryAction = useCallback(() => {
+    if (isLoading) {
+      stop();
+      return;
+    }
+
+    void handleSendMessage();
+  }, [handleSendMessage, isLoading, stop]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -431,7 +438,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                  <button 
                    onClick={() => stop()}
                    title="Detener generación"
-                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', opacity: 0.7, color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
+                  style={{ display: 'none' }}
                  >
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                      <circle cx="12" cy="12" r="10"></circle>
@@ -458,25 +465,43 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                  className="lia-input-reset lia-chat-input"
                />
                <button 
-                 onClick={handleSendMessage} 
-                 disabled={!inputValue.trim() || isLoading} 
+                 onClick={handlePrimaryAction}
+                 disabled={!isLoading && !inputValue.trim()}
+                 title={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
+                 aria-label={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
                  style={{ 
-                   width: '36px', 
-                   height: '36px', 
-                   borderRadius: '50%', 
-                   backgroundColor: inputValue.trim() && !isLoading ? themeColors.primaryAction : '#CBD5E1', 
+                   minWidth: isLoading ? '112px' : '44px', 
+                   height: '44px', 
+                   padding: isLoading ? '0 14px' : '0',
+                   borderRadius: isLoading ? '16px' : '50%', 
+                   backgroundColor: isLoading
+                     ? (isLightTheme ? '#DC2626' : '#EF4444')
+                     : inputValue.trim() ? themeColors.primaryAction : (isLightTheme ? '#CBD5E1' : '#374151'), 
                    border: 'none', 
-                   cursor: inputValue.trim() ? 'pointer' : 'not-allowed', 
+                   cursor: isLoading || inputValue.trim() ? 'pointer' : 'not-allowed', 
                    display: 'flex', 
                    alignItems: 'center', 
-                   justifyContent: 'center' 
+                   justifyContent: 'center',
+                   gap: isLoading ? '8px' : '0',
+                   transition: 'all 180ms ease'
                  }}
                >
-                 <Send style={{ 
-                   width: '16px', 
-                   height: '16px', 
-                   color: inputValue.trim() && !isLoading ? '#FFFFFF' : '#6B7280' 
-                 }} />
+                 {isLoading ? (
+                   <>
+                     <Square style={{ width: '15px', height: '15px', color: '#FFFFFF', fill: '#FFFFFF' }} />
+                     <span style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>
+                       Detener
+                     </span>
+                   </>
+                 ) : (
+                   <Send style={{ 
+                     width: '16px', 
+                     height: '16px', 
+                     color: inputValue.trim()
+                       ? (isLightTheme ? '#FFFFFF' : '#0A2540') 
+                       : (isLightTheme ? '#6B7280' : '#4B5563')
+                   }} />
+                 )}
                </button>
             </div>
           </div>

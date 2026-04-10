@@ -185,8 +185,8 @@ export function useCourseTheme(): CourseThemeColors {
 
         /* Botones azules/oscuros genéricos: Forzar color primario de la empresa si es diferente */
         .bg-\\[\\#0A2540\\], .bg-slate-900, .bg-blue-600 {
-          background-color: ${colors.primary} !important;
-          color: white !important;
+          background-color: ${colors.accent} !important;
+          color: #0A2540 !important;
         }
 
         /* Badges de estado (Transformar fondos claros a transparentes oscuros) */

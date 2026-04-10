@@ -1,8 +1,11 @@
+'use client'
+
 import { motion } from 'framer-motion'
-import { BookOpen, Clock, Sparkles, User } from 'lucide-react'
+import { BookOpen, Calendar, Clock, Sparkles, Users } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BusinessUser } from '../../services/businessUsers.service'
 import { getBusinessAssignCourseDisplayName } from './service'
-import type { BusinessAssignCourseCopyProps, BusinessAssignCourseTheme } from './types'
+import type { BusinessAssignCourseCopyProps } from './types'
 
 interface BusinessAssignCoursePreviewPanelProps extends BusinessAssignCourseCopyProps {
   courseTitle: string
@@ -10,7 +13,6 @@ interface BusinessAssignCoursePreviewPanelProps extends BusinessAssignCourseCopy
   selectedUsers: BusinessUser[]
   selectedUserCount: number
   availableUserCount: number
-  theme: BusinessAssignCourseTheme
 }
 
 export function BusinessAssignCoursePreviewPanel({
@@ -19,147 +21,163 @@ export function BusinessAssignCoursePreviewPanel({
   selectedUsers,
   selectedUserCount,
   availableUserCount,
-  theme,
   t,
 }: BusinessAssignCoursePreviewPanelProps) {
+  const theme = useBusinessPanelTheme()
+  const progressPercent = availableUserCount > 0
+    ? (selectedUserCount / availableUserCount) * 100
+    : 0
+
   return (
     <div
-      className="w-80 flex-shrink-0 flex-col p-8 border-r hidden xl:flex"
+      className="relative hidden w-80 flex-shrink-0 overflow-hidden border-r p-10 xl:flex xl:flex-col"
       style={{
-        backgroundColor: theme.isDark ? `${theme.primaryColor}15` : '#F8FAFC',
+        backgroundColor: theme.cardBg,
         borderColor: theme.borderColor,
       }}
     >
+      <div
+        className="pointer-events-none absolute right-0 top-0 h-32 w-32 blur-[100px] opacity-20"
+        style={{ backgroundColor: theme.primaryColor }}
+      />
+
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="relative mb-6"
+        className="relative mb-10"
       >
         <div
-          className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto !text-white"
+          className="relative z-10 mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem]"
           style={{
             backgroundColor: theme.primaryColor,
-            color: '#FFFFFF',
-            boxShadow: `0 8px 30px ${theme.primaryColor}40`,
+            color: theme.onPrimaryColor,
+            boxShadow: `0 20px 40px ${theme.primaryColor}30`,
           }}
         >
-          <BookOpen className="w-10 h-10 !text-white" color="#FFFFFF" />
+          <BookOpen className="h-10 w-10" style={{ color: theme.onPrimaryColor }} />
+
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 4, repeat: Infinity }}
+            className="absolute -right-3 -top-3 z-20 flex h-10 w-10 items-center justify-center rounded-2xl shadow-xl"
+            style={{ backgroundColor: theme.accentColor }}
+          >
+            <Sparkles className="h-5 w-5" style={{ color: theme.onPrimaryColor }} />
+          </motion.div>
         </div>
-        <motion.div
-          animate={{ scale: [1, 1.2, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center"
-          style={{ backgroundColor: theme.accentColor }}
-        >
-          <Sparkles className="w-4 h-4 text-white" />
-        </motion.div>
       </motion.div>
 
-      <div className="text-center mb-6">
-        <h3 className="font-bold text-lg mb-2" style={{ color: theme.textColor }}>
+      <div className="mb-10 text-center">
+        <h3 className="mb-3 text-xl font-black uppercase tracking-widest" style={{ color: theme.textColor }}>
           {t('assignCourse.title')}
         </h3>
-        <p className="text-sm line-clamp-2" style={{ color: `${theme.textColor}70` }}>
+        <p className="text-sm font-medium leading-relaxed" style={{ color: theme.subtextColor }}>
           {courseTitle}
         </p>
       </div>
 
-      <div
-        className="p-3 rounded-xl border border-white/10 mb-6 text-center"
-        style={{ backgroundColor: `${theme.cardBackground}80` }}
-      >
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <User className="w-4 h-4" style={{ color: theme.primaryColor }} />
-          <span className="text-sm font-medium" style={{ color: theme.textColor }}>
-            {t('assignCourse.modes.individual')}
-          </span>
-        </div>
-      </div>
-
-      <div className="space-y-4 mb-6">
+      <div className="space-y-6">
         <div
-          className="p-4 rounded-xl border border-white/10"
-          style={{ backgroundColor: `${theme.cardBackground}80` }}
+          className="rounded-[2rem] border p-6 shadow-inner"
+          style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm" style={{ color: `${theme.textColor}70` }}>
-              {t('assignCourse.stats.selected')}
-            </span>
-            <span className="text-2xl font-bold" style={{ color: theme.primaryColor }}>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" style={{ color: theme.primaryColor }} />
+              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.mutedTextColor }}>
+                {t('assignCourse.stats.selected')}
+              </span>
+            </div>
+            <span className="text-2xl font-black" style={{ color: theme.primaryColor }}>
               {selectedUserCount}
             </span>
           </div>
+
           <div
-            className="h-2 rounded-full overflow-hidden"
-            style={{ backgroundColor: `${theme.primaryColor}20` }}
+            className="mb-3 h-2 overflow-hidden rounded-full"
+            style={{ backgroundColor: theme.hoverBg }}
           >
             <motion.div
               initial={{ width: 0 }}
-              animate={{
-                width:
-                  availableUserCount > 0
-                    ? `${(selectedUserCount / availableUserCount) * 100}%`
-                    : '0%',
-              }}
+              animate={{ width: `${progressPercent}%` }}
               className="h-full rounded-full"
               style={{ backgroundColor: theme.primaryColor }}
             />
           </div>
-          <p className="text-xs mt-2" style={{ color: `${theme.textColor}50` }}>
-            {t('assignCourse.stats.of')} {availableUserCount} {t('assignCourse.stats.available')}
-          </p>
-        </div>
-      </div>
 
-      {selectedUserCount > 0 && (
-        <div className="flex-1 overflow-hidden">
-          <p className="text-xs font-medium mb-3" style={{ color: `${theme.textColor}60` }}>
-            {t('assignCourse.stats.usersSelected')}
-          </p>
           <div
-            className="flex flex-wrap gap-2 max-h-32 overflow-y-auto"
-            style={{ scrollbarWidth: 'none' }}
+            className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest opacity-40"
+            style={{ color: theme.textColor }}
           >
-            {selectedUsers.slice(0, 8).map((user, index) => (
-              <motion.div
-                key={user.id}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: index * 0.05 }}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold !text-white border-2 border-white/20"
-                style={{ backgroundColor: theme.primaryColor, color: '#FFFFFF' }}
-                title={getBusinessAssignCourseDisplayName(user)}
-              >
-                {getBusinessAssignCourseDisplayName(user)[0].toUpperCase()}
-              </motion.div>
-            ))}
-            {selectedUserCount > 8 && (
-              <div
-                className="px-2 py-1 rounded-lg text-xs font-bold border"
-                style={{
-                  backgroundColor: `${theme.primaryColor}30`,
-                  color: theme.primaryColor,
-                  borderColor: theme.primaryColor,
-                }}
-              >
-                +{selectedUserCount - 8}
-              </div>
-            )}
+            <span>0</span>
+            <span>{availableUserCount} disponibles</span>
           </div>
         </div>
-      )}
 
-      <div className="mt-auto pt-6 space-y-3">
-        {dueDate && (
+        {selectedUserCount > 0 ? (
+          <div className="pt-4">
+            <p
+              className="mb-4 text-[10px] font-black uppercase tracking-widest opacity-50"
+              style={{ color: theme.textColor }}
+            >
+              {t('assignCourse.stats.usersSelected')}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {selectedUsers.slice(0, 7).map((user, index) => (
+                <motion.div
+                  key={user.id}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="flex h-9 w-9 items-center justify-center rounded-2xl border-2 text-xs font-black"
+                  style={{
+                    backgroundColor: theme.primaryColor,
+                    color: theme.onPrimaryColor,
+                    borderColor: theme.panelBg,
+                  }}
+                >
+                  {getBusinessAssignCourseDisplayName(user)[0].toUpperCase()}
+                </motion.div>
+              ))}
+              {selectedUserCount > 7 ? (
+                <div
+                  className="flex h-9 w-9 items-center justify-center rounded-2xl border text-[10px] font-black"
+                  style={{
+                    backgroundColor: theme.hoverBg,
+                    color: theme.textColor,
+                    borderColor: theme.borderColor,
+                  }}
+                >
+                  +{selectedUserCount - 7}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-auto border-t pt-8" style={{ borderColor: theme.borderColor }}>
+        {dueDate ? (
           <div
-            className="flex items-center gap-2 text-sm"
-            style={{ color: `${theme.textColor}70` }}
+            className="flex items-center gap-3 rounded-[1.5rem] border p-4"
+            style={{ backgroundColor: `${theme.accentColor}10`, borderColor: `${theme.accentColor}20` }}
           >
-            <Clock className="w-4 h-4" style={{ color: theme.accentColor }} />
-            <span>
-              {t('assignCourse.labels.dueDate')}:{' '}
-              {new Date(dueDate).toLocaleDateString('es-ES')}
+            <Calendar className="h-5 w-5 flex-shrink-0" style={{ color: theme.accentColor }} />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.accentColor }}>
+                Fecha límite
+              </span>
+              <span className="text-sm font-bold" style={{ color: theme.textColor }}>
+                {new Date(dueDate).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 p-4" style={{ color: theme.mutedTextColor }}>
+            <Clock className="h-5 w-5" style={{ color: theme.textColor }} />
+            <span className="text-xs font-bold uppercase tracking-widest">
+              {t('assignCourse.labels.noDueDate', 'Sin fecha límite')}
             </span>
           </div>
         )}

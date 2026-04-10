@@ -285,7 +285,7 @@ export function ActivitiesContent({
               disabled={feedbackLoading}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                 lessonFeedback === "like"
-                  ? "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  ? "bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 text-[#0A2540] dark:text-[#00D4B3]"
                   : "text-gray-500 dark:text-white/50 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-700 dark:hover:text-white/70"
               } ${feedbackLoading ? "opacity-50" : ""}`}
             >
@@ -320,9 +320,9 @@ export function ActivitiesContent({
         {hasNextLesson && onNavigateNext && (
           <button
             onClick={onNavigateNext}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0A2540] hover:bg-[#0d2f4d] text-white transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] transition-colors"
           >
-            Siguiente Video
+            Siguiente video
             <ChevronRight className="w-4 h-4" />
           </button>
         )}

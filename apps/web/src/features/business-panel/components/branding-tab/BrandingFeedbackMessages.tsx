@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { AlertCircle, CheckCircle } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 interface BrandingFeedbackMessagesProps {
   saveSuccess: string | null
@@ -12,6 +13,8 @@ export function BrandingFeedbackMessages({
   saveSuccess,
   saveError,
 }: BrandingFeedbackMessagesProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <div className="space-y-4">
       {saveSuccess && (
@@ -20,13 +23,17 @@ export function BrandingFeedbackMessages({
           animate={{ opacity: 1, x: 0 }}
           className="rounded-xl p-4 flex items-center gap-3"
           style={{
-            background:
-              'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.08))',
-            border: '1px solid rgba(16, 185, 129, 0.25)',
+            backgroundColor: `${theme.successColor}14`,
+            border: `1px solid ${theme.successColor}33`,
           }}
         >
-          <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-          <p className="text-emerald-300 text-sm font-medium">{saveSuccess}</p>
+          <CheckCircle
+            className="w-5 h-5 flex-shrink-0"
+            style={{ color: theme.successColor }}
+          />
+          <p className="text-sm font-medium" style={{ color: theme.successColor }}>
+            {saveSuccess}
+          </p>
         </motion.div>
       )}
 
@@ -36,13 +43,17 @@ export function BrandingFeedbackMessages({
           animate={{ opacity: 1, x: 0 }}
           className="rounded-xl p-4 flex items-center gap-3"
           style={{
-            background:
-              'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08))',
-            border: '1px solid rgba(239, 68, 68, 0.25)',
+            backgroundColor: `${theme.dangerColor}14`,
+            border: `1px solid ${theme.dangerColor}33`,
           }}
         >
-          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-          <p className="text-red-300 text-sm font-medium">{saveError}</p>
+          <AlertCircle
+            className="w-5 h-5 flex-shrink-0"
+            style={{ color: theme.dangerColor }}
+          />
+          <p className="text-sm font-medium" style={{ color: theme.dangerColor }}>
+            {saveError}
+          </p>
         </motion.div>
       )}
     </div>

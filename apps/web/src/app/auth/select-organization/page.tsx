@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Building2, ChevronRight, Loader2, Users, Shield, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, Loader2, Shield, Users } from 'lucide-react';
 import { useOrganization } from '@/core/hooks/useOrganization';
 import type { Organization } from '@/core/stores/organizationStore';
+import { useThemeStore } from '@/core/stores/themeStore';
 
 /**
  * Organization Selection Page
@@ -17,18 +18,80 @@ export default function SelectOrganizationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { organizations: userOrganizations = [], isLoading, setCurrentOrganization } = useOrganization();
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted ? resolvedTheme === 'dark' : false;
 
   // Get redirect URL from query params (where to go after selection)
   const redirectTo = searchParams.get('redirect') || '/dashboard';
+
+  const ui = {
+    pageBg: isDark ? '#050B14' : '#F4F8FC',
+    orbPrimary: isDark ? '#0A2540' : '#BFDBFE',
+    orbSecondary: isDark ? '#00D4B3' : '#99F6E4',
+    headerSurface: isDark ? 'rgba(10, 18, 30, 0.58)' : 'rgba(255, 255, 255, 0.74)',
+    headerBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 37, 64, 0.08)',
+    headerShadow: isDark ? '0 24px 60px rgba(0, 0, 0, 0.28)' : '0 24px 60px rgba(15, 23, 42, 0.08)',
+    heading: isDark ? '#F8FAFC' : '#0A2540',
+    subtitle: isDark ? 'rgba(226, 232, 240, 0.74)' : '#475569',
+    counter: isDark ? '#FFFFFF' : '#0F172A',
+    cardBg: isDark ? 'rgba(22, 28, 38, 0.84)' : 'rgba(255, 255, 255, 0.92)',
+    cardBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 37, 64, 0.12)',
+    selectedBg: isDark ? 'rgba(10, 37, 64, 0.45)' : 'rgba(226, 241, 255, 0.94)',
+    selectedBorder: isDark ? 'rgba(0, 212, 179, 0.42)' : 'rgba(10, 37, 64, 0.22)',
+    selectedShadow: isDark
+      ? '0 18px 44px rgba(0, 212, 179, 0.18), 0 0 0 1px rgba(0, 212, 179, 0.22)'
+      : '0 18px 44px rgba(10, 37, 64, 0.12), 0 0 0 1px rgba(10, 37, 64, 0.12)',
+    cardShadow: isDark ? '0 18px 40px rgba(0, 0, 0, 0.18)' : '0 14px 34px rgba(15, 23, 42, 0.06)',
+    cardTitle: isDark ? '#F8FAFC' : '#0F172A',
+    cardSlug: isDark ? 'rgba(203, 213, 225, 0.74)' : '#64748B',
+    fallbackLogoBg: isDark ? '#0F1419' : '#EEF4FB',
+    fallbackLogoBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(10, 37, 64, 0.1)',
+    fallbackLogoText: isDark ? '#00D4B3' : '#0A2540',
+    actionBg: isDark ? '#00D4B3' : '#0A2540',
+    actionText: isDark ? '#0A1724' : '#FFFFFF',
+    actionIdleBg: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(10, 37, 64, 0.04)',
+    actionIdleText: isDark ? 'rgba(203, 213, 225, 0.82)' : '#64748B',
+    actionGlow: isDark ? '0 0 24px rgba(0, 212, 179, 0.24)' : '0 0 20px rgba(10, 37, 64, 0.16)',
+    loader: isDark ? '#00D4B3' : '#0A2540',
+    dot: isDark ? '#00D4B3' : '#0A2540',
+    shimmerMid: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(10, 37, 64, 0.03)',
+  };
+
+  const handleSelectOrganization = useCallback(async (org: Organization) => {
+    setSelectedOrg(org.id);
+    setIsNavigating(true);
+
+    setCurrentOrganization(org);
+
+    let targetUrl = redirectTo;
+
+    if (targetUrl === '/dashboard' || targetUrl === '/') {
+      if (['owner', 'admin'].includes(org.role)) {
+        targetUrl = `/${org.slug}/business-panel/dashboard`;
+      } else {
+        targetUrl = `/${org.slug}/business-user/dashboard`;
+      }
+    } else if (targetUrl.startsWith('/') && !targetUrl.startsWith(`/${org.slug}`)) {
+      targetUrl = `/${org.slug}${targetUrl}`;
+    }
+
+    router.push(targetUrl);
+  }, [redirectTo, router, setCurrentOrganization]);
 
   // If user has only one org, auto-select and redirect
   useEffect(() => {
     if (!isLoading && userOrganizations.length === 1) {
       handleSelectOrganization(userOrganizations[0]);
     }
-  }, [isLoading, userOrganizations]);
+  }, [handleSelectOrganization, isLoading, userOrganizations]);
 
   // If user has no orgs, redirect to regular dashboard (B2C user)
   useEffect(() => {
@@ -36,32 +99,6 @@ export default function SelectOrganizationPage() {
       router.replace(redirectTo);
     }
   }, [isLoading, userOrganizations, redirectTo, router]);
-
-  const handleSelectOrganization = async (org: Organization) => {
-    setSelectedOrg(org.id);
-    setIsNavigating(true);
-
-    // Set the organization in the store
-    setCurrentOrganization(org);
-
-    let targetUrl = redirectTo;
-
-    // If redirecting to generic dashboard, go to specific role-based dashboard
-    if (targetUrl === '/dashboard' || targetUrl === '/') {
-        if (['owner', 'admin'].includes(org.role)) {
-            targetUrl = `/${org.slug}/business-panel/dashboard`;
-        } else {
-            targetUrl = `/${org.slug}/business-user/dashboard`;
-        }
-    } else if (targetUrl.startsWith('/')) {
-        // If it's a relative path that doesn't include the slug yet, prepend it
-        if (!targetUrl.startsWith(`/${org.slug}`)) {
-             targetUrl = `/${org.slug}${targetUrl}`;
-        }
-    }
-
-    router.push(targetUrl);
-  };
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -92,37 +129,44 @@ export default function SelectOrganizationPage() {
         return {
           bg: 'bg-amber-100 dark:bg-amber-500/10',
           text: 'text-amber-800 dark:text-amber-400',
-          border: 'border-amber-200 dark:border-amber-500/20'
+          border: 'border-amber-200 dark:border-amber-500/20',
         };
       case 'admin':
         return {
           bg: 'bg-blue-100 dark:bg-blue-500/10',
           text: 'text-blue-800 dark:text-blue-400',
-          border: 'border-blue-200 dark:border-blue-500/20'
+          border: 'border-blue-200 dark:border-blue-500/20',
         };
       default:
         return {
           bg: 'bg-emerald-100 dark:bg-emerald-500/10',
           text: 'text-emerald-800 dark:text-emerald-400',
-          border: 'border-emerald-200 dark:border-emerald-500/20'
+          border: 'border-emerald-200 dark:border-emerald-500/20',
         };
     }
   };
 
-  // Render loading state while auto-redirecting or loading context
   if (isLoading || userOrganizations.length <= 1) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#050B14] relative overflow-hidden">
-        {/* Ambient Background */}
+      <div
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+        style={{ backgroundColor: ui.pageBg }}
+      >
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-blue-100 dark:bg-[#0A2540] blur-[120px] opacity-60 dark:opacity-30" />
-          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-teal-100 dark:bg-[#00D4B3] blur-[120px] opacity-40 dark:opacity-10" />
+          <div
+            className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
+            style={{ backgroundColor: ui.orbPrimary, opacity: isDark ? 0.3 : 0.55 }}
+          />
+          <div
+            className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px]"
+            style={{ backgroundColor: ui.orbSecondary, opacity: isDark ? 0.1 : 0.35 }}
+          />
         </div>
-        
+
         <div className="flex flex-col items-center gap-4 relative z-10">
-          <Loader2 className="w-10 h-10 animate-spin text-[#0A2540] dark:text-[#00D4B3]" />
-          <p className="text-gray-600 dark:text-gray-400 font-medium tracking-wide text-sm">
-            {isLoading ? "Cargando organizaciones..." : "Redirigiendo..."}
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: ui.loader }} />
+          <p className="font-medium tracking-wide text-sm" style={{ color: ui.subtitle }}>
+            {isLoading ? 'Cargando organizaciones...' : 'Redirigiendo...'}
           </p>
         </div>
       </div>
@@ -130,16 +174,24 @@ export default function SelectOrganizationPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#050B14] p-4 relative overflow-hidden font-sans">
-      {/* Premium Background Effects */}
+    <div
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans"
+      style={{ backgroundColor: ui.pageBg }}
+    >
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden select-none pointer-events-none">
-        <div className="absolute top-[-10%] left-1/4 w-[600px] h-[600px] rounded-full bg-blue-200 dark:bg-[#0A2540] blur-[120px] opacity-[0.4] animate-pulse-slow" />
-        <div className="absolute bottom-[-10%] right-1/4 w-[500px] h-[500px] rounded-full bg-teal-200 dark:bg-[#00D4B3] blur-[150px] opacity-[0.2] dark:opacity-[0.08]" />
-        
-        {/* Grid Pattern Overlay */}
-        <div 
-          className="absolute inset-0 opacity-[0.04] dark:hidden"
+        <div
+          className="absolute top-[-10%] left-1/4 w-[600px] h-[600px] rounded-full blur-[120px] animate-pulse-slow"
+          style={{ backgroundColor: ui.orbPrimary, opacity: isDark ? 0.32 : 0.4 }}
+        />
+        <div
+          className="absolute bottom-[-10%] right-1/4 w-[500px] h-[500px] rounded-full blur-[150px]"
+          style={{ backgroundColor: ui.orbSecondary, opacity: isDark ? 0.08 : 0.22 }}
+        />
+
+        <div
+          className="absolute inset-0"
           style={{
+            opacity: isDark ? 0.04 : 0.05,
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236C757D' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
@@ -151,34 +203,40 @@ export default function SelectOrganizationPage() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-4xl relative z-10"
       >
-        {/* Header Section */}
-        <div className="text-center mb-10">
-          
-          <motion.h1 
+        <div
+          className="text-center mb-10 rounded-[32px] border backdrop-blur-xl px-6 py-8 md:px-10 md:py-10"
+          style={{
+            backgroundColor: ui.headerSurface,
+            borderColor: ui.headerBorder,
+            boxShadow: ui.headerShadow,
+          }}
+        >
+          <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 tracking-tight"
+            className="text-3xl md:text-4xl font-bold mb-3 tracking-tight"
+            style={{ color: ui.heading }}
           >
             Selecciona tu Organización
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-gray-500 dark:text-gray-400 text-lg max-w-md mx-auto"
+            className="text-lg max-w-md mx-auto"
+            style={{ color: ui.subtitle }}
           >
-            Hemos encontrado <span className="text-gray-900 dark:text-white font-semibold">{userOrganizations.length}</span> espacios de trabajo.
+            Hemos encontrado <span className="font-semibold" style={{ color: ui.counter }}>{userOrganizations.length}</span> espacios de trabajo asociados a tu cuenta.
           </motion.p>
         </div>
 
-        {/* Organization List Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
           {userOrganizations.map((org, index) => {
             const roleStyle = getRoleStyles(org.role);
             const isSelected = selectedOrg === org.id;
-            
+
             return (
               <motion.button
                 key={org.id}
@@ -189,17 +247,23 @@ export default function SelectOrganizationPage() {
                 disabled={isNavigating}
                 className={`
                   group w-full p-6 rounded-2xl border text-left relative overflow-hidden transition-all duration-300 flex flex-col justify-between min-h-[160px]
-                  ${isSelected
-                    ? 'bg-blue-50 dark:bg-[#0A2540]/50 border-blue-200 dark:border-[#00D4B3]/50 shadow-lg dark:shadow-[0_0_30px_rgba(0,212,179,0.15)] ring-2 ring-[#0A2540] dark:ring-[#00D4B3] ring-offset-2 ring-offset-gray-50 dark:ring-offset-[#050B14]'
-                    : 'bg-white dark:bg-[#1E2329]/50 border-gray-200 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 hover:shadow-xl dark:hover:shadow-black/20 hover:-translate-y-1 shadow-sm'
-                  }
+                  hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-black/20
                   ${isNavigating && !isSelected ? 'opacity-40 blur-[1px]' : ''}
                 `}
+                style={{
+                  backgroundColor: isSelected ? ui.selectedBg : ui.cardBg,
+                  borderColor: isSelected ? ui.selectedBorder : ui.cardBorder,
+                  boxShadow: isSelected ? ui.selectedShadow : ui.cardShadow,
+                }}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#00D4B3]/[0.02] dark:via-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]" />
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"
+                  style={{
+                    background: `linear-gradient(to right, transparent, ${ui.shimmerMid}, transparent)`,
+                  }}
+                />
 
                 <div className="flex justify-between items-start w-full relative z-10">
-                  {/* Logo Container */}
                   <div className="h-16 lg:h-20 flex items-center justify-start transition-transform duration-300 group-hover:scale-105 origin-left">
                     {org.brandLogoUrl || org.logoUrl ? (
                       <img
@@ -208,22 +272,28 @@ export default function SelectOrganizationPage() {
                         className="max-w-full max-h-full object-contain"
                       />
                     ) : (
-                      <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gray-100 dark:bg-[#0F1419] border border-gray-200 dark:border-white/5 flex items-center justify-center">
-                        <span className="text-[#0A2540] dark:text-[#00D4B3] text-3xl font-bold">
+                      <div
+                        className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl border flex items-center justify-center"
+                        style={{
+                          backgroundColor: ui.fallbackLogoBg,
+                          borderColor: ui.fallbackLogoBorder,
+                        }}
+                      >
+                        <span className="text-3xl font-bold" style={{ color: ui.fallbackLogoText }}>
                           {org.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Action Icon */}
-                  <div className={`
-                    w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 mt-1
-                    ${isSelected 
-                      ? 'bg-[#0A2540] dark:bg-[#00D4B3] text-white dark:text-[#0A2540]' 
-                      : 'bg-gray-50 dark:bg-white/5 text-gray-400 dark:text-gray-400 group-hover:bg-[#0A2540]/10 dark:group-hover:bg-[#00D4B3]/20 group-hover:text-[#0A2540] dark:group-hover:text-[#00D4B3]'
-                    }
-                  `}>
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 mt-1"
+                    style={{
+                      backgroundColor: isSelected ? ui.actionBg : ui.actionIdleBg,
+                      color: isSelected ? ui.actionText : ui.actionIdleText,
+                      boxShadow: isSelected ? ui.actionGlow : 'none',
+                    }}
+                  >
                     {isSelected && isNavigating ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
@@ -232,12 +302,11 @@ export default function SelectOrganizationPage() {
                   </div>
                 </div>
 
-                {/* Info Text */}
                 <div className="relative z-10 mt-6">
-                  <h3 className={`font-bold text-xl truncate transition-colors ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white'}`}>
+                  <h3 className="font-bold text-xl truncate" style={{ color: ui.cardTitle }}>
                     {org.name}
                   </h3>
-                  
+
                   <div className="flex items-center gap-2 mt-2">
                     <span
                       className={`
@@ -249,7 +318,7 @@ export default function SelectOrganizationPage() {
                       {getRoleLabel(org.role)}
                     </span>
                     {org.slug && (
-                      <span className="text-gray-400 dark:text-gray-500 text-xs font-medium truncate">
+                      <span className="text-xs font-medium truncate" style={{ color: ui.cardSlug }}>
                         /{org.slug}
                       </span>
                     )}
@@ -260,20 +329,19 @@ export default function SelectOrganizationPage() {
           })}
         </div>
 
-        {/* Footer */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
           className="text-center mt-12"
         >
-          <p className="text-gray-500 dark:text-gray-400 text-sm">
+          <p className="text-sm" style={{ color: ui.subtitle }}>
             Puedes cambiar de organización en cualquier momento desde el panel de control.
           </p>
           <div className="mt-8 flex justify-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540]/20 dark:bg-[#00D4B3]/20" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540]/40 dark:bg-[#00D4B3]/40" />
-            <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540]/20 dark:bg-[#00D4B3]/20" />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}33` }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}66` }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}33` }} />
           </div>
         </motion.div>
       </motion.div>

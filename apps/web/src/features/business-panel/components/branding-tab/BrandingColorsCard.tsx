@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Loader2, Palette, Sparkles } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BrandingFormState } from './types'
 
 interface BrandingColorsCardProps {
@@ -29,6 +30,8 @@ export function BrandingColorsCard({
   onDetectColors,
   onColorChange,
 }: BrandingColorsCardProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -36,8 +39,8 @@ export function BrandingColorsCard({
       transition={{ delay: 0.2 }}
       className="relative overflow-hidden rounded-2xl p-5 border backdrop-blur-xl"
       style={{
-        backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
       }}
     >
       <div className="flex items-center justify-between mb-5">
@@ -50,8 +53,10 @@ export function BrandingColorsCard({
             <Palette className="w-4 h-4 text-white" />
           </motion.div>
           <div>
-            <h3 className="text-base font-bold text-white">Paleta de Colores</h3>
-            <p className="text-xs text-white/50">
+            <h3 className="text-base font-bold" style={{ color: theme.textColor }}>
+              Paleta de Colores
+            </h3>
+            <p className="text-xs" style={{ color: theme.subtextColor }}>
               Define los 3 colores de tu marca
             </p>
           </div>
@@ -115,8 +120,10 @@ export function BrandingColorsCard({
                 />
               </motion.div>
               <div className="min-w-0">
-                <p className="text-white font-semibold text-sm">{config.label}</p>
-                <p className="text-white/50 text-xs uppercase font-mono truncate">
+                <p className="font-semibold text-sm" style={{ color: theme.textColor }}>
+                  {config.label}
+                </p>
+                <p className="text-xs uppercase font-mono truncate" style={{ color: theme.subtextColor }}>
                   {branding[config.key]}
                 </p>
               </div>
@@ -126,7 +133,7 @@ export function BrandingColorsCard({
       </div>
 
       <div className="space-y-3">
-        <p className="text-xs font-semibold text-white/60 uppercase tracking-wider">
+        <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.subtextColor }}>
           Vista Previa
         </p>
 

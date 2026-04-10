@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
 import { inviteUserAction } from '../../auth/actions/invitation';
-import { useThemeStore } from '../../../core/stores/themeStore';
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import {
   type BulkInviteLink,
   type BusinessInviteBulkForm,
@@ -31,17 +30,9 @@ export function useBusinessInviteModalLogic({
   const params = useParams();
   const orgSlug = organizationSlug || (params?.orgSlug as string);
   const { t } = useTranslation('business');
-  const { styles } = useOrganizationStylesContext();
-  const { resolvedTheme } = useThemeStore();
-  const panelStyles = styles?.panel;
-
-  const isDark = resolvedTheme === 'dark';
-  const textColor = isDark ? '#FFFFFF' : '#0F172A';
-  const mutedText = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)';
-  const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
-  const inputBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540';
-  const accentColor = panelStyles?.accent_color || '#00D4B3';
+  const panelTheme = useBusinessPanelTheme()
+  const mutedText = panelTheme.mutedTextColor;
+  const inputBg = panelTheme.inputBg;
 
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [individualForm, setIndividualForm] = useState<BusinessInviteIndividualForm>({
@@ -262,13 +253,8 @@ export function useBusinessInviteModalLogic({
   };
 
   return {
-    isDark,
-    textColor,
     mutedText,
-    borderColor,
     inputBg,
-    primaryColor,
-    accentColor,
     t,
     activeTab,
     setActiveTab,

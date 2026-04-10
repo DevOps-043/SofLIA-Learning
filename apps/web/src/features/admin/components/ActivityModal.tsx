@@ -1,10 +1,25 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
-import { Plus, Trash2, ClipboardList, Brain, Lightbulb, FileQuestion, MessageSquare, Bot, Clock } from 'lucide-react'
-import type { AdminActivity, CreateActivityData } from '../services/adminActivities.service'
+import { useEffect, useMemo, useState } from 'react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
+import { Plus, Trash2 } from 'lucide-react'
+import { QuizBuilder, type QuizQuestion } from './QuizBuilder'
+import { normalizeQuizQuestions } from './material-modal/useMaterialFormState'
+import type {
+  AdminActivity,
+  CreateActivityData,
+} from '../services/adminActivities.service'
+import {
+  activityConfigSchema,
+  normalizeActivityConfig,
+  supportedExternalToolKeys,
+  type ActivityChecklistItem,
+  type ActivityField,
+  type ActivityInteractionType,
+  type ActivityValidationRubricItem,
+  type ExternalToolKey,
+} from '@/features/courses/types/activity-config'
+import { externalToolRegistry } from '@/features/courses/config/external-tool-registry'
 
 interface ActivityModalProps {
   activity?: AdminActivity | null
@@ -13,462 +28,780 @@ interface ActivityModalProps {
   onSave: (data: CreateActivityData) => Promise<void>
 }
 
-type TabType = 'basic' | 'content'
 type ActivityType = AdminActivity['activity_type']
+type TabKey = 'basic' | 'content' | 'interaction' | 'validation'
 
-interface ActivityFormData extends CreateActivityData {
+interface ActivityFormState {
+  activity_title: string
   activity_description: string
+  activity_type: ActivityType
+  activity_content: string
   ai_prompts: string
   estimated_time_minutes: number
   is_required: boolean
+  requires_soflia_validation: boolean
 }
 
-function isActivityType(value: string): value is ActivityType {
-  return (
-    value === 'reflection' ||
-    value === 'exercise' ||
-    value === 'quiz' ||
-    value === 'discussion' ||
-    value === 'ai_chat'
-  )
+const emptyFormState: ActivityFormState = {
+  activity_title: '',
+  activity_description: '',
+  activity_type: 'reflection',
+  activity_content: '',
+  ai_prompts: '',
+  estimated_time_minutes: 5,
+  is_required: false,
+  requires_soflia_validation: false,
 }
 
-export function ActivityModal({ activity, lessonId: _lessonId, onClose, onSave }: ActivityModalProps) {
-  const [formData, setFormData] = useState<ActivityFormData>({
-    activity_title: '',
-    activity_description: '',
-    activity_type: 'reflection',
-    activity_content: '',
-    ai_prompts: '',
-    is_required: false,
-    estimated_time_minutes: 5 // Default 5 minutes
-  })
+const defaultField = (index: number): ActivityField => ({
+  id: `field_${index}`,
+  label: `Campo ${index}`,
+  placeholder: '',
+  required: true,
+  multiline: false,
+})
+
+const defaultChecklistItem = (index: number): ActivityChecklistItem => ({
+  id: `check_${index}`,
+  label: `Paso ${index}`,
+  description: '',
+  required: true,
+})
+
+const tabs: Array<{ id: TabKey; label: string }> = [
+  { id: 'basic', label: 'Basica' },
+  { id: 'content', label: 'Contenido' },
+  { id: 'interaction', label: 'Interaccion' },
+  { id: 'validation', label: 'Validacion' },
+]
+
+function parsePromptList(rawPrompts: string | null | undefined): string[] {
+  if (!rawPrompts) return ['']
+  try {
+    const parsed = JSON.parse(rawPrompts)
+    if (Array.isArray(parsed)) {
+      const items = parsed.map((item) => String(item).trim()).filter(Boolean)
+      return items.length > 0 ? items : ['']
+    }
+  } catch {}
+  const items = rawPrompts.split('\n').map((item) => item.trim()).filter(Boolean)
+  return items.length > 0 ? items : ['']
+}
+
+function parseQuizQuestions(rawContent: string): QuizQuestion[] {
+  try {
+    const parsed = JSON.parse(rawContent)
+    if (Array.isArray(parsed)) return parsed as QuizQuestion[]
+    if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) {
+      return parsed.questions as QuizQuestion[]
+    }
+  } catch {}
+  return []
+}
+
+function parseRubricText(items: ActivityValidationRubricItem[]): string {
+  return items.map((item) => item.description?.trim() || item.label).join('\n')
+}
+
+export function ActivityModal({
+  activity,
+  lessonId: _lessonId,
+  onClose,
+  onSave,
+}: ActivityModalProps) {
+  const [form, setForm] = useState<ActivityFormState>(emptyFormState)
+  const [activeTab, setActiveTab] = useState<TabKey>('basic')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<TabType>('basic')
-  const [aiPromptsList, setAiPromptsList] = useState<string[]>([''])
+  const [aiPrompts, setAiPrompts] = useState<string[]>([''])
+  const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([])
+  const [interactionType, setInteractionType] =
+    useState<ActivityInteractionType>('long_text')
+  const [responsePlaceholder, setResponsePlaceholder] = useState('')
+  const [evidencePlaceholder, setEvidencePlaceholder] = useState('')
+  const [requireEvidence, setRequireEvidence] = useState(false)
+  const [maxLength, setMaxLength] = useState<number | ''>('')
+  const [fields, setFields] = useState<ActivityField[]>([defaultField(1)])
+  const [checklistItems, setChecklistItems] = useState<ActivityChecklistItem[]>([
+    defaultChecklistItem(1),
+  ])
+  const [toolKey, setToolKey] = useState<ExternalToolKey | ''>('')
+  const [promptTemplate, setPromptTemplate] = useState('')
+  const [openInNewTab, setOpenInNewTab] = useState(true)
+  const [showCopyButton, setShowCopyButton] = useState(true)
+  const [validationEnabled, setValidationEnabled] = useState(false)
+  const [requiredForCompletion, setRequiredForCompletion] = useState(false)
+  const [rubricText, setRubricText] = useState('')
 
-  const tabs: { id: TabType; label: string; icon: typeof ClipboardList }[] = [
-    { id: 'basic', label: 'Básica', icon: ClipboardList },
-    { id: 'content', label: 'Contenido', icon: Brain }
-  ]
+  const supportsInteractiveConfig =
+    form.activity_type !== 'quiz' && form.activity_type !== 'ai_chat'
 
-  const getActivityTypeIcon = () => {
-    switch (formData.activity_type) {
-      case 'reflection':
-        return Lightbulb
-      case 'exercise':
-        return ClipboardList
-      case 'quiz':
-        return FileQuestion
-      case 'discussion':
-        return MessageSquare
-      case 'ai_chat':
-        return Bot
-      default:
-        return ClipboardList
-    }
-  }
-
-  const ActivityTypeIcon = getActivityTypeIcon()
+  const selectedToolLabel = useMemo(() => {
+    if (!toolKey) return ''
+    return externalToolRegistry[toolKey]?.label ?? toolKey
+  }, [toolKey])
 
   useEffect(() => {
-    if (activity) {
-      setFormData({
-        activity_title: activity.activity_title,
-        activity_description: activity.activity_description || '',
-        activity_type: activity.activity_type,
-        activity_content: activity.activity_content,
-        ai_prompts: activity.ai_prompts || '',
-        is_required: activity.is_required,
-        estimated_time_minutes: activity.estimated_time_minutes || 5
-      })
-      // Intentar inicializar lista de prompts desde JSON o texto separado por nuevas líneas
-      if (activity.ai_prompts) {
-        try {
-          const parsed = JSON.parse(activity.ai_prompts)
-          if (Array.isArray(parsed) && parsed.every(p => typeof p === 'string')) {
-            setAiPromptsList(parsed.length > 0 ? parsed : [''])
-          } else {
-            setAiPromptsList(activity.ai_prompts.split('\n').filter(Boolean))
-          }
-        } catch {
-          setAiPromptsList(activity.ai_prompts.split('\n').filter(Boolean))
-        }
-      } else {
-        setAiPromptsList([''])
-      }
+    if (!activity) {
+      setForm(emptyFormState)
+      setAiPrompts([''])
+      setQuizQuestions([])
+      setInteractionType('long_text')
+      setResponsePlaceholder('')
+      setEvidencePlaceholder('')
+      setRequireEvidence(false)
+      setMaxLength('')
+      setFields([defaultField(1)])
+      setChecklistItems([defaultChecklistItem(1)])
+      setToolKey('')
+      setPromptTemplate('')
+      setOpenInNewTab(true)
+      setShowCopyButton(true)
+      setValidationEnabled(false)
+      setRequiredForCompletion(false)
+      setRubricText('')
+      return
     }
+
+    setForm({
+      activity_title: activity.activity_title,
+      activity_description: activity.activity_description || '',
+      activity_type: activity.activity_type,
+      activity_content: activity.activity_content,
+      ai_prompts: activity.ai_prompts || '',
+      estimated_time_minutes: activity.estimated_time_minutes || 5,
+      is_required: activity.is_required,
+      requires_soflia_validation: activity.requires_soflia_validation,
+    })
+    setAiPrompts(parsePromptList(activity.ai_prompts))
+    setQuizQuestions(normalizeQuizQuestions(parseQuizQuestions(activity.activity_content)))
+
+    const config = normalizeActivityConfig(activity.activity_config)
+    if (!config) return
+
+    setInteractionType(config.interactionType)
+    setResponsePlaceholder(config.submission.responsePlaceholder || '')
+    setEvidencePlaceholder(config.submission.evidencePlaceholder || '')
+    setRequireEvidence(Boolean(config.submission.requireEvidence))
+    setMaxLength('maxLength' in config.submission ? config.submission.maxLength || '' : '')
+    setFields(
+      config.interactionType === 'inline_answers'
+        ? config.submission.fields
+        : [defaultField(1)],
+    )
+    setChecklistItems(
+      config.interactionType === 'checklist'
+        ? config.submission.checklistItems
+        : [defaultChecklistItem(1)],
+    )
+    setToolKey(config.toolTask?.toolKey || '')
+    setPromptTemplate(config.toolTask?.promptTemplate || '')
+    setOpenInNewTab(config.toolTask?.openInNewTab ?? true)
+    setShowCopyButton(config.toolTask?.showCopyButton ?? true)
+    setValidationEnabled(config.validation.enabled)
+    setRequiredForCompletion(config.validation.requiredForCompletion)
+    setRubricText(parseRubricText(config.validation.rubric))
   }, [activity])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const updateField = (index: number, key: keyof ActivityField, value: string | boolean) => {
+    setFields((current) =>
+      current.map((field, fieldIndex) =>
+        fieldIndex === index ? { ...field, [key]: value } : field,
+      ),
+    )
+  }
+
+  const updateChecklistItem = (
+    index: number,
+    key: keyof ActivityChecklistItem,
+    value: string | boolean,
+  ) => {
+    setChecklistItems((current) =>
+      current.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [key]: value } : item,
+      ),
+    )
+  }
+
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
     setError(null)
-    setLoading(true)
 
     try {
-      const payload = { ...formData }
-      if (formData.activity_type === 'ai_chat') {
-        const normalized = aiPromptsList.map(p => p.trim()).filter(p => p.length > 0)
-        payload.ai_prompts = JSON.stringify(normalized)
+      if (!form.activity_title.trim()) throw new Error('El titulo es obligatorio.')
+      if (form.estimated_time_minutes < 1) throw new Error('El tiempo estimado debe ser mayor a 0.')
+      if (form.activity_type !== 'quiz' && !form.activity_content.trim()) {
+        throw new Error('El contenido de la actividad es obligatorio.')
       }
+
+      const payload: CreateActivityData = {
+        activity_title: form.activity_title.trim(),
+        activity_description: form.activity_description.trim(),
+        activity_type: form.activity_type,
+        activity_content: form.activity_content,
+        ai_prompts: form.ai_prompts,
+        estimated_time_minutes: form.estimated_time_minutes,
+        is_required: form.is_required,
+        requires_soflia_validation: false,
+        activity_schema_version: 1,
+        external_tool_key: null,
+        activity_config: null,
+      }
+
+      if (form.activity_type === 'quiz') {
+        const normalizedQuestions = normalizeQuizQuestions(quizQuestions)
+        if (normalizedQuestions.length === 0) {
+          throw new Error('Agrega al menos una pregunta al quiz.')
+        }
+        payload.activity_content = JSON.stringify({
+          questions: normalizedQuestions,
+          totalPoints: normalizedQuestions.reduce((sum, item) => sum + (item.points || 1), 0),
+        })
+      } else if (form.activity_type === 'ai_chat') {
+        const normalizedPrompts = aiPrompts.map((item) => item.trim()).filter(Boolean)
+        if (normalizedPrompts.length === 0) {
+          throw new Error('Agrega al menos un prompt para la actividad ai_chat.')
+        }
+        payload.ai_prompts = JSON.stringify(normalizedPrompts)
+      } else {
+        payload.requires_soflia_validation = validationEnabled
+        payload.external_tool_key = toolKey || null
+
+        const baseSubmission: Record<string, unknown> = {
+          responsePlaceholder: responsePlaceholder.trim() || undefined,
+          evidencePlaceholder: evidencePlaceholder.trim() || undefined,
+          requireEvidence,
+          ...(maxLength ? { maxLength: Number(maxLength) } : {}),
+        }
+        const rubric = rubricText
+          .split('\n')
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .map((item, index) => ({ id: `rubric_${index + 1}`, label: item, description: item }))
+
+        const baseConfig: Record<string, unknown> = {
+          interactionType,
+          submission: baseSubmission,
+          validation: {
+            enabled: validationEnabled,
+            requiredForCompletion: validationEnabled && requiredForCompletion,
+            rubric,
+          },
+          ...(toolKey
+            ? {
+                toolTask: {
+                  toolKey,
+                  promptTemplate,
+                  openInNewTab,
+                  showCopyButton,
+                },
+              }
+            : {}),
+        } as Record<string, unknown>
+
+        if (interactionType === 'inline_answers') {
+          const currentSubmission = baseConfig.submission as Record<string, unknown>
+          baseConfig.submission = {
+            ...currentSubmission,
+            fields: fields.map((field, index) => ({
+              ...field,
+              id: field.id.trim() || `field_${index + 1}`,
+              label: field.label.trim() || `Campo ${index + 1}`,
+            })),
+          }
+        }
+
+        if (interactionType === 'checklist') {
+          baseConfig.submission = {
+            checklistItems: checklistItems.map((item, index) => ({
+              ...item,
+              id: item.id.trim() || `check_${index + 1}`,
+              label: item.label.trim() || `Paso ${index + 1}`,
+            })),
+            responsePlaceholder: responsePlaceholder.trim() || undefined,
+            evidencePlaceholder: evidencePlaceholder.trim() || undefined,
+            requireEvidence,
+          }
+        }
+
+        if (interactionType === 'external_tool_task' && !toolKey) {
+          throw new Error('Selecciona la herramienta externa para esta actividad.')
+        }
+
+        payload.activity_config = activityConfigSchema.parse(baseConfig)
+      }
+
+      setLoading(true)
       await onSave(payload)
       onClose()
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido al guardar la actividad'
-      setError(errorMessage)
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : 'No se pudo guardar la actividad.',
+      )
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <AnimatePresence>
-      {true && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
-            onClick={onClose}
-          />
-
-          {/* Modal */}
-          <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-screen items-center justify-center p-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-4xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[90vh] overflow-hidden flex flex-col"
-                onClick={(e) => e.stopPropagation()}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="w-full max-w-5xl overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]">
+        <div className="flex items-center justify-between border-b border-[#E9ECEF] bg-[#0A2540] px-6 py-4 dark:border-[#6C757D]/30">
+          <div>
+            <h3 className="text-lg font-bold text-white">{activity ? 'Editar actividad' : 'Crear actividad'}</h3>
+            <p className="text-sm text-white/70">Configura contenido, interaccion y validacion.</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-white/80 hover:bg-white/10 hover:text-white">
+            <XMarkIcon className="h-5 w-5" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="flex gap-2 border-b border-[#E9ECEF] px-6 py-3 dark:border-[#6C757D]/30">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                  activeTab === tab.id ? 'bg-[#00D4B3]/15 text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-white/70'
+                }`}
               >
-                {/* Header Rediseñado */}
-                <div className="relative bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 dark:from-[#0A2540] dark:to-[#0A2540]/80 px-6 py-4 border-b border-[#0A2540]/20">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#00D4B3]/20 flex items-center justify-center">
-                        <ClipboardList className="h-5 w-5 text-[#00D4B3]" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-white">
-                          {activity ? 'Editar Actividad' : 'Crear Actividad'}
-                        </h3>
-                        <p className="text-xs text-white/70">
-                          {activity ? 'Modifica la información de la actividad' : 'Agrega una nueva actividad a la lección'}
-                        </p>
-                      </div>
-                    </div>
-                    <motion.button
-                      onClick={onClose}
-                      whileHover={{ scale: 1.1, rotate: 90 }}
-                      whileTap={{ scale: 0.9 }}
-                      className="p-2 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-colors duration-200"
-                    >
-                      <XMarkIcon className="h-5 w-5" />
-                    </motion.button>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
+            {error ? <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">{error}</div> : null}
+
+            {activeTab === 'basic' && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-[#0A2540] dark:text-white">Titulo</span>
+                  <input
+                    type="text"
+                    value={form.activity_title}
+                    onChange={(event) => setForm((current) => ({ ...current, activity_title: event.target.value }))}
+                    className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                    placeholder="Ej: Analiza y valida esta noticia"
+                  />
+                </label>
+                <label className="space-y-2 md:col-span-2">
+                  <span className="text-sm font-medium text-[#0A2540] dark:text-white">Descripcion</span>
+                  <textarea
+                    rows={3}
+                    value={form.activity_description}
+                    onChange={(event) => setForm((current) => ({ ...current, activity_description: event.target.value }))}
+                    className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                    placeholder="Contexto opcional para el autor y para SofLIA."
+                  />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-[#0A2540] dark:text-white">Tipo de actividad</span>
+                  <select
+                    value={form.activity_type}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        activity_type: event.target.value as ActivityType,
+                      }))
+                    }
+                    className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                  >
+                    <option value="reflection">Reflexion</option>
+                    <option value="exercise">Ejercicio</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="discussion">Discusion</option>
+                    <option value="ai_chat">Chat con IA</option>
+                  </select>
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium text-[#0A2540] dark:text-white">Tiempo estimado (min)</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={480}
+                    value={form.estimated_time_minutes}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        estimated_time_minutes: Number(event.target.value) || 1,
+                      }))
+                    }
+                    className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                  />
+                </label>
+                <label className="flex items-start gap-3 rounded-xl border border-[#D0D7DE] p-4 text-sm dark:border-[#6C757D]/30 md:col-span-2">
+                  <input
+                    type="checkbox"
+                    checked={form.is_required}
+                    onChange={(event) => setForm((current) => ({ ...current, is_required: event.target.checked }))}
+                    className="mt-0.5 h-4 w-4"
+                  />
+                  <span className="text-[#0A2540] dark:text-white">
+                    Marcar como requerida para que el alumno deba completarla antes de avanzar.
+                  </span>
+                </label>
+                {!supportsInteractiveConfig ? (
+                  <div className="rounded-xl border border-[#D0D7DE] bg-[#F8FAFC] px-4 py-3 text-sm text-[#52606D] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/70 md:col-span-2">
+                    {form.activity_type === 'quiz'
+                      ? 'Los quizzes mantienen su flujo actual y se configuran desde el contenido del quiz.'
+                      : 'Las actividades ai_chat mantienen su flujo actual y usan prompts estructurados.'}
                   </div>
-                </div>
+                ) : null}
+              </div>
+            )}
+            {activeTab === 'content' && (
+              <div className="space-y-4">
+                {form.activity_type !== 'quiz' ? (
+                  <label className="space-y-2">
+                    <span className="text-sm font-medium text-[#0A2540] dark:text-white">Contenido renderizado</span>
+                    <textarea
+                      rows={10}
+                      value={form.activity_content}
+                      onChange={(event) => setForm((current) => ({ ...current, activity_content: event.target.value }))}
+                      className="w-full rounded-xl border border-[#D0D7DE] px-4 py-3 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                      placeholder="Instrucciones, contexto y texto rico de la actividad."
+                    />
+                  </label>
+                ) : null}
 
-                {/* Tabs */}
-                <div className="flex items-center gap-1 px-6 py-3 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
-                  {tabs.map((tab) => {
-                    const Icon = tab.icon
-                    const isActive = activeTab === tab.id
-                    return (
-                      <motion.button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20'
-                            : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#1E2329]'
-                        }`}
+                {form.activity_type === 'quiz' ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-[#52606D] dark:text-white/70">
+                      El quiz se guarda como JSON estructurado en `activity_content`.
+                    </p>
+                    <QuizBuilder questions={quizQuestions} onChange={setQuizQuestions} />
+                  </div>
+                ) : null}
+
+                {form.activity_type === 'ai_chat' ? (
+                  <div className="space-y-3 rounded-xl border border-[#D0D7DE] p-4 dark:border-[#6C757D]/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-[#0A2540] dark:text-white">Prompts para la actividad</p>
+                        <p className="text-xs text-[#52606D] dark:text-white/60">Se guardan como arreglo JSON.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAiPrompts((current) => [...current, ''])}
+                        className="inline-flex items-center gap-1 rounded-lg border border-[#D0D7DE] px-3 py-1.5 text-xs font-medium text-[#0A2540] dark:border-[#6C757D]/30 dark:text-white"
                       >
-                        <Icon className="h-4 w-4" />
-                        <span>{tab.label}</span>
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeTab"
-                            className="absolute inset-0 rounded-xl bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 -z-10"
-                            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                          />
-                        )}
-                      </motion.button>
-                    )
-                  })}
-                </div>
-
-                {/* Form Content */}
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-                  <div className="p-6">
-                    {error && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-4 p-4 bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 dark:border-red-500/30 rounded-xl"
-                      >
-                        <p className="text-sm text-red-500 dark:text-red-400">{error}</p>
-                      </motion.div>
-                    )}
-
-                    <AnimatePresence mode="wait">
-                      {/* Tab: Básica */}
-                      {activeTab === 'basic' && (
-                        <motion.div
-                          key="basic"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ duration: 0.2 }}
-                          className="space-y-4"
+                        <Plus className="h-3.5 w-3.5" />
+                        Agregar prompt
+                      </button>
+                    </div>
+                    {aiPrompts.map((prompt, index) => (
+                      <div key={`prompt-${index}`} className="flex items-start gap-2">
+                        <textarea
+                          rows={3}
+                          value={prompt}
+                          onChange={(event) =>
+                            setAiPrompts((current) =>
+                              current.map((item, itemIndex) =>
+                                itemIndex === index ? event.target.value : item,
+                              ),
+                            )
+                          }
+                          className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                          placeholder={`Prompt ${index + 1}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAiPrompts((current) =>
+                              current.length === 1 ? [''] : current.filter((_, itemIndex) => itemIndex !== index),
+                            )
+                          }
+                          className="rounded-lg border border-red-200 p-2 text-red-600 dark:border-red-900/40 dark:text-red-300"
                         >
-                          <div className="group">
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Título de la Actividad *
-                            </label>
-                            <div className="relative">
-                              <ClipboardList className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
+            {activeTab === 'interaction' && (
+              <div className="space-y-4">
+                {!supportsInteractiveConfig ? (
+                  <div className="rounded-xl border border-[#D0D7DE] bg-[#F8FAFC] px-4 py-3 text-sm text-[#52606D] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/70">
+                    Esta actividad conserva su flujo actual y no usa `activity_config`.
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <label className="space-y-2">
+                        <span className="text-sm font-medium text-[#0A2540] dark:text-white">Tipo de interaccion</span>
+                        <select
+                          value={interactionType}
+                          onChange={(event) => setInteractionType(event.target.value as ActivityInteractionType)}
+                          className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                        >
+                          <option value="long_text">Long text</option>
+                          <option value="inline_answers">Inline answers</option>
+                          <option value="checklist">Checklist</option>
+                          <option value="external_tool_task">External tool task</option>
+                        </select>
+                      </label>
+                      <label className="space-y-2">
+                        <span className="text-sm font-medium text-[#0A2540] dark:text-white">Maximo de caracteres</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={maxLength}
+                          onChange={(event) => setMaxLength(event.target.value ? Number(event.target.value) : '')}
+                          className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                          placeholder="Opcional"
+                        />
+                      </label>
+                      <label className="space-y-2">
+                        <span className="text-sm font-medium text-[#0A2540] dark:text-white">Placeholder de respuesta</span>
+                        <input
+                          type="text"
+                          value={responsePlaceholder}
+                          onChange={(event) => setResponsePlaceholder(event.target.value)}
+                          className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                        />
+                      </label>
+                      <label className="space-y-2">
+                        <span className="text-sm font-medium text-[#0A2540] dark:text-white">Placeholder de evidencia</span>
+                        <input
+                          type="text"
+                          value={evidencePlaceholder}
+                          onChange={(event) => setEvidencePlaceholder(event.target.value)}
+                          className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                        />
+                      </label>
+                    </div>
+
+                    <label className="flex items-start gap-3 rounded-xl border border-[#D0D7DE] p-4 text-sm dark:border-[#6C757D]/30">
+                      <input
+                        type="checkbox"
+                        checked={requireEvidence}
+                        onChange={(event) => setRequireEvidence(event.target.checked)}
+                        className="mt-0.5 h-4 w-4"
+                      />
+                      <span className="text-[#0A2540] dark:text-white">
+                        Solicitar evidencia adicional del usuario en esta actividad.
+                      </span>
+                    </label>
+
+                    {(interactionType === 'inline_answers' || interactionType === 'checklist') && (
+                      <div className="space-y-3 rounded-xl border border-[#D0D7DE] p-4 dark:border-[#6C757D]/30">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium text-[#0A2540] dark:text-white">
+                            {interactionType === 'inline_answers' ? 'Campos inline' : 'Items del checklist'}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              interactionType === 'inline_answers'
+                                ? setFields((current) => [...current, defaultField(current.length + 1)])
+                                : setChecklistItems((current) => [...current, defaultChecklistItem(current.length + 1)])
+                            }
+                            className="inline-flex items-center gap-1 rounded-lg border border-[#D0D7DE] px-3 py-1.5 text-xs font-medium text-[#0A2540] dark:border-[#6C757D]/30 dark:text-white"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            Agregar
+                          </button>
+                        </div>
+
+                        {interactionType === 'inline_answers' &&
+                          fields.map((field, index) => (
+                            <div key={field.id || `field-${index}`} className="grid gap-3 rounded-xl border border-[#E9ECEF] p-3 dark:border-[#6C757D]/20 md:grid-cols-2">
                               <input
                                 type="text"
-                                required
-                                value={formData.activity_title}
-                                onChange={(e) => setFormData(prev => ({ ...prev, activity_title: e.target.value }))}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                placeholder="Ej: Reflexión sobre IA"
+                                value={field.label}
+                                onChange={(event) => updateField(index, 'label', event.target.value)}
+                                className="rounded-lg border border-[#D0D7DE] px-3 py-2 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                                placeholder="Etiqueta"
                               />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Descripción
-                            </label>
-                            <textarea
-                              rows={3}
-                              value={formData.activity_description}
-                              onChange={(e) => setFormData(prev => ({ ...prev, activity_description: e.target.value }))}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
-                              placeholder="Descripción de la actividad..."
-                            />
-                          </div>
-
-                          <div className="group">
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Tipo de Actividad *
-                            </label>
-                            <div className="relative">
-                              <ActivityTypeIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
-                              <select
-                                value={formData.activity_type}
-                                onChange={(e) => {
-                                  const nextType = e.target.value
-                                  if (!isActivityType(nextType)) {
-                                    return
-                                  }
-
-                                  setFormData(prev => ({ ...prev, activity_type: nextType }))
-                                }}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
-                              >
-                                <option value="reflection">Reflexión</option>
-                                <option value="exercise">Ejercicio</option>
-                                <option value="quiz">Quiz</option>
-                                <option value="discussion">Discusión</option>
-                                <option value="ai_chat">Chat con IA</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="group">
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Tiempo Estimado (minutos) *
-                            </label>
-                            <div className="relative">
-                              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                              </svg>
                               <input
-                                type="number"
-                                required
-                                min="1"
-                                max="480"
-                                value={formData.estimated_time_minutes}
-                                onChange={(e) => setFormData(prev => ({ ...prev, estimated_time_minutes: parseInt(e.target.value) || 1 }))}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
-                                placeholder="Ej: 10"
+                                type="text"
+                                value={field.id}
+                                onChange={(event) => updateField(index, 'id', event.target.value)}
+                                className="rounded-lg border border-[#D0D7DE] px-3 py-2 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                                placeholder="field_id"
                               />
-                            </div>
-                            <p className="text-xs text-[#6C757D] dark:text-white/60 mt-1.5 ml-1">
-                              Tiempo que tomará completar esta actividad. Mínimo 1 minuto, máximo 480 minutos (8 horas).
-                              <span className="flex items-center gap-1.5 mt-1 text-[#00D4B3] font-medium">
-                                <Clock className="w-3.5 h-3.5" />
-                                Requerido para el Planificador de Estudio IA
-                              </span>
-                            </p>
-                          </div>
-
-                          <motion.div
-                            whileHover={{ scale: 1.01 }}
-                            className="p-4 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30"
-                          >
-                            <label className="flex items-center gap-3 cursor-pointer">
-                              <div className="relative">
-                                <input
-                                  type="checkbox"
-                                  checked={formData.is_required}
-                                  onChange={(e) => setFormData(prev => ({ ...prev, is_required: e.target.checked }))}
-                                  className="sr-only"
-                                />
-                                <motion.div
-                                  animate={{
-                                    backgroundColor: formData.is_required ? '#00D4B3' : '#E9ECEF',
-                                    borderColor: formData.is_required ? '#00D4B3' : '#E9ECEF'
-                                  }}
-                                  className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors duration-200"
-                                >
-                                  {formData.is_required && (
-                                    <motion.div
-                                      initial={{ scale: 0 }}
-                                      animate={{ scale: 1 }}
-                                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                    >
-                                      <CheckCircleIcon className="h-4 w-4 text-white" />
-                                    </motion.div>
-                                  )}
-                                </motion.div>
-                              </div>
-                              <div>
-                                <span className="text-sm font-medium text-[#0A2540] dark:text-white">
-                                  Actividad Requerida
-                                </span>
-                                <p className="text-xs text-[#6C757D] dark:text-white/60 mt-0.5">
-                                  Los estudiantes deben completar esta actividad para avanzar
-                                </p>
-                              </div>
-                            </label>
-                          </motion.div>
-                        </motion.div>
-                      )}
-
-                      {/* Tab: Contenido */}
-                      {activeTab === 'content' && (
-                        <motion.div
-                          key="content"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ duration: 0.2 }}
-                          className="space-y-4"
-                        >
-                          <div>
-                            <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Contenido de la Actividad *
-                            </label>
-                            <textarea
-                              rows={8}
-                              required
-                              value={formData.activity_content}
-                              onChange={(e) => setFormData(prev => ({ ...prev, activity_content: e.target.value }))}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
-                              placeholder="Instrucciones o contenido de la actividad..."
-                            />
-                          </div>
-
-                          {/* AI Prompts múltiples (solo ai_chat) */}
-                          {formData.activity_type === 'ai_chat' && (
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wide">
-                                  Prompts de IA
+                              <input
+                                type="text"
+                                value={field.placeholder || ''}
+                                onChange={(event) => updateField(index, 'placeholder', event.target.value)}
+                                className="rounded-lg border border-[#D0D7DE] px-3 py-2 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                                placeholder="Placeholder"
+                              />
+                              <div className="flex items-center justify-between gap-3">
+                                <label className="flex items-center gap-2 text-sm text-[#0A2540] dark:text-white">
+                                  <input type="checkbox" checked={field.required} onChange={(event) => updateField(index, 'required', event.target.checked)} />
+                                  Requerido
                                 </label>
-                                <motion.button
+                                <label className="flex items-center gap-2 text-sm text-[#0A2540] dark:text-white">
+                                  <input type="checkbox" checked={field.multiline} onChange={(event) => updateField(index, 'multiline', event.target.checked)} />
+                                  Multilinea
+                                </label>
+                                <button
                                   type="button"
-                                  onClick={() => setAiPromptsList(prev => [...prev, ''])}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 hover:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 text-[#00D4B3] text-xs font-medium border border-[#00D4B3]/20 dark:border-[#00D4B3]/30 transition-all duration-200"
+                                  onClick={() => setFields((current) => (current.length === 1 ? current : current.filter((_, itemIndex) => itemIndex !== index)))}
+                                  className="rounded-lg border border-red-200 p-2 text-red-600 dark:border-red-900/40 dark:text-red-300"
                                 >
-                                  <Plus className="w-3.5 h-3.5" /> Agregar prompt
-                                </motion.button>
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
                               </div>
-                              <div className="space-y-2">
-                                {aiPromptsList.map((prompt, idx) => (
-                                  <div key={idx} className="flex items-start gap-2">
-                                    <textarea
-                                      rows={2}
-                                      value={prompt}
-                                      onChange={(e) => {
-                                        const value = e.target.value
-                                        setAiPromptsList(prev => prev.map((p, i) => (i === idx ? value : p)))
-                                      }}
-                                      className="flex-1 px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
-                                      placeholder={`Prompt #${idx + 1}`}
-                                    />
-                                    <motion.button
-                                      type="button"
-                                      onClick={() => setAiPromptsList(prev => prev.filter((_, i) => i !== idx))}
-                                      whileHover={{ scale: 1.1 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      className="mt-0.5 px-2.5 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 transition-all duration-200"
-                                      title="Eliminar"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </motion.button>
-                                  </div>
-                                ))}
-                              </div>
-                              <p className="text-xs text-[#6C757D] dark:text-white/60 mt-2">Se guardarán como lista JSON. El sistema usará uno o varios según la lógica de la actividad.</p>
                             </div>
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
+                          ))}
 
-                  {/* Footer */}
-                  <div className="px-6 py-4 bg-[#E9ECEF]/30 dark:bg-[#0A0D12] border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-end gap-3">
-                    <motion.button
-                      type="button"
-                      onClick={onClose}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="px-4 py-2 text-sm font-medium text-[#6C757D] dark:text-white/60 bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 transition-all duration-200"
-                    >
-                      Cancelar
-                    </motion.button>
-                    <motion.button
-                      type="submit"
-                      disabled={loading}
-                      whileHover={{ scale: loading ? 1 : 1.02, y: loading ? 0 : -1 }}
-                      whileTap={{ scale: loading ? 1 : 0.98 }}
-                      className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 hover:from-[#0d2f4d] hover:to-[#0A2540] rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg disabled:shadow-none"
-                    >
-                      {loading ? (
+                        {interactionType === 'checklist' &&
+                          checklistItems.map((item, index) => (
+                            <div key={item.id || `check-${index}`} className="grid gap-3 rounded-xl border border-[#E9ECEF] p-3 dark:border-[#6C757D]/20 md:grid-cols-2">
+                              <input
+                                type="text"
+                                value={item.label}
+                                onChange={(event) => updateChecklistItem(index, 'label', event.target.value)}
+                                className="rounded-lg border border-[#D0D7DE] px-3 py-2 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                                placeholder="Label"
+                              />
+                              <input
+                                type="text"
+                                value={item.id}
+                                onChange={(event) => updateChecklistItem(index, 'id', event.target.value)}
+                                className="rounded-lg border border-[#D0D7DE] px-3 py-2 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                                placeholder="check_id"
+                              />
+                              <input
+                                type="text"
+                                value={item.description || ''}
+                                onChange={(event) => updateChecklistItem(index, 'description', event.target.value)}
+                                className="rounded-lg border border-[#D0D7DE] px-3 py-2 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white md:col-span-2"
+                                placeholder="Descripcion opcional"
+                              />
+                              <div className="flex items-center justify-between gap-3 md:col-span-2">
+                                <label className="flex items-center gap-2 text-sm text-[#0A2540] dark:text-white">
+                                  <input type="checkbox" checked={item.required} onChange={(event) => updateChecklistItem(index, 'required', event.target.checked)} />
+                                  Requerido
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => setChecklistItems((current) => (current.length === 1 ? current : current.filter((_, itemIndex) => itemIndex !== index)))}
+                                  className="rounded-lg border border-red-200 p-2 text-red-600 dark:border-red-900/40 dark:text-red-300"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+
+                    <div className="space-y-3 rounded-xl border border-[#D0D7DE] p-4 dark:border-[#6C757D]/30">
+                      <div>
+                        <p className="text-sm font-medium text-[#0A2540] dark:text-white">Herramienta externa</p>
+                        <p className="text-xs text-[#52606D] dark:text-white/60">Registro central soportado en v1.</p>
+                      </div>
+                      <select
+                        value={toolKey}
+                        onChange={(event) => setToolKey(event.target.value as ExternalToolKey | '')}
+                        className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                      >
+                        <option value="">Sin herramienta externa</option>
+                        {supportedExternalToolKeys.map((item) => (
+                          <option key={item} value={item}>
+                            {externalToolRegistry[item].label}
+                          </option>
+                        ))}
+                      </select>
+                      {toolKey ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                          <span>Guardando...</span>
+                          <textarea
+                            rows={6}
+                            value={promptTemplate}
+                            onChange={(event) => setPromptTemplate(event.target.value)}
+                            className="w-full rounded-xl border border-[#D0D7DE] px-4 py-3 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                            placeholder={`Prompt base para ${selectedToolLabel}`}
+                          />
+                          <div className="flex flex-wrap gap-4 text-sm text-[#0A2540] dark:text-white">
+                            <label className="flex items-center gap-2">
+                              <input type="checkbox" checked={openInNewTab} onChange={(event) => setOpenInNewTab(event.target.checked)} />
+                              Abrir en nueva pestaña
+                            </label>
+                            <label className="flex items-center gap-2">
+                              <input type="checkbox" checked={showCopyButton} onChange={(event) => setShowCopyButton(event.target.checked)} />
+                              Mostrar boton copiar
+                            </label>
+                          </div>
                         </>
-                      ) : (
-                        <>
-                          <CheckCircleIcon className="h-4 w-4" />
-                          <span>Guardar</span>
-                        </>
-                      )}
-                    </motion.button>
+                      ) : null}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            {activeTab === 'validation' && (
+              <div className="space-y-4">
+                {!supportsInteractiveConfig ? (
+                  <div className="rounded-xl border border-[#D0D7DE] bg-[#F8FAFC] px-4 py-3 text-sm text-[#52606D] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/70">
+                    La validacion estructurada con SofLIA aplica en esta fase solo para actividades interactivas basadas en `activity_config`.
                   </div>
-                </form>
-              </motion.div>
-            </div>
+                ) : (
+                  <>
+                    <label className="flex items-start gap-3 rounded-xl border border-[#D0D7DE] p-4 text-sm dark:border-[#6C757D]/30">
+                      <input
+                        type="checkbox"
+                        checked={validationEnabled}
+                        onChange={(event) => {
+                          setValidationEnabled(event.target.checked)
+                          if (!event.target.checked) {
+                            setRequiredForCompletion(false)
+                          }
+                        }}
+                        className="mt-0.5 h-4 w-4"
+                      />
+                      <span className="text-[#0A2540] dark:text-white">
+                        Habilitar validacion con SofLIA para esta actividad.
+                      </span>
+                    </label>
+                    <label className="flex items-start gap-3 rounded-xl border border-[#D0D7DE] p-4 text-sm dark:border-[#6C757D]/30">
+                      <input
+                        type="checkbox"
+                        checked={requiredForCompletion}
+                        disabled={!validationEnabled}
+                        onChange={(event) => setRequiredForCompletion(event.target.checked)}
+                        className="mt-0.5 h-4 w-4"
+                      />
+                      <span className={`${validationEnabled ? 'text-[#0A2540] dark:text-white' : 'text-[#94A3B8] dark:text-white/40'}`}>
+                        Exigir resultado `pass` para completar la leccion.
+                      </span>
+                    </label>
+                    <label className="space-y-2">
+                      <span className="text-sm font-medium text-[#0A2540] dark:text-white">Rubrica</span>
+                      <textarea
+                        rows={8}
+                        value={rubricText}
+                        onChange={(event) => setRubricText(event.target.value)}
+                        className="w-full rounded-xl border border-[#D0D7DE] px-4 py-3 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+                        placeholder={'Un criterio por linea.\nEj: Verifica si eligio la herramienta correcta.\nEj: Explica con una razon breve y precisa.'}
+                      />
+                    </label>
+                    <div className="rounded-xl border border-[#D0D7DE] bg-[#F8FAFC] px-4 py-3 text-sm text-[#52606D] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/70">
+                      SofLIA devolvera `pass`, `revise` o `error`, junto con resumen, fortalezas, mejoras y siguiente paso sugerido.
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-        </>
-      )}
-    </AnimatePresence>
+          <div className="flex items-center justify-end gap-3 border-t border-[#E9ECEF] bg-[#F8FAFC] px-6 py-4 dark:border-[#6C757D]/30 dark:bg-[#0A0D12]">
+            <button type="button" onClick={onClose} className="rounded-lg border border-[#D0D7DE] px-4 py-2 text-sm font-medium text-[#6C757D] dark:border-[#6C757D]/30 dark:text-white/70">
+              Cancelar
+            </button>
+            <button type="submit" disabled={loading} className="rounded-lg bg-[#0A2540] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60">
+              {loading ? 'Guardando...' : 'Guardar actividad'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 }

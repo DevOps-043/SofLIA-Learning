@@ -13,12 +13,10 @@ import {
   CheckCircle,
   AlertCircle,
   Copy,
-  Check,
-  ExternalLink
+  Check
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 
 interface BusinessBulkInviteLinkModalProps {
   isOpen: boolean
@@ -47,18 +45,16 @@ export function BusinessBulkInviteLinkModal({
   const params = useParams()
   const orgSlug = organizationSlug || (params?.orgSlug as string)
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const panelStyles = styles?.panel
+  const theme = useBusinessPanelTheme()
 
-  const isDark = resolvedTheme === 'dark'
-  const textColor = isDark ? '#FFFFFF' : '#0F172A'
-  const mutedText = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(15,23,42,0.6)'
-  const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-  const inputBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'
-
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
+  const textColor = theme.textColor
+  const mutedText = theme.mutedTextColor
+  const borderColor = theme.borderColor
+  const inputBg = theme.inputBg
+  const primaryColor = theme.primaryColor
+  const accentColor = theme.accentColor
+  const onPrimaryColor = theme.onPrimaryColor
+  const dangerColor = theme.dangerColor
 
   const [formData, setFormData] = useState({
     name: '',
@@ -185,7 +181,8 @@ export function BusinessBulkInviteLinkModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 backdrop-blur-sm"
+          style={{ backgroundColor: theme.overlayBg }}
         />
 
         {/* Modal */}
@@ -199,7 +196,7 @@ export function BusinessBulkInviteLinkModal({
         >
           <div
             className="rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-full"
-            style={{ backgroundColor: isDark ? '#1a1f2e' : '#FFFFFF', borderColor }}
+            style={{ backgroundColor: theme.panelBg, borderColor }}
           >
             {/* Header */}
             <div
@@ -230,7 +227,13 @@ export function BusinessBulkInviteLinkModal({
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                  className="p-2 rounded-lg transition-colors"
+                  onMouseEnter={(event) => {
+                    event.currentTarget.style.backgroundColor = theme.hoverBg
+                  }}
+                  onMouseLeave={(event) => {
+                    event.currentTarget.style.backgroundColor = 'transparent'
+                  }}
                 >
                   <X className="w-5 h-5" style={{ color: mutedText }} />
                 </button>
@@ -329,8 +332,14 @@ export function BusinessBulkInviteLinkModal({
                       setStatus('idle')
                       setCreatedLink(null)
                     }}
-                    className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                    style={{ color: mutedText }}
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                    style={{ color: mutedText, backgroundColor: inputBg }}
+                    onMouseEnter={(event) => {
+                      event.currentTarget.style.backgroundColor = theme.hoverBg
+                    }}
+                    onMouseLeave={(event) => {
+                      event.currentTarget.style.backgroundColor = inputBg
+                    }}
                   >
                     {t('users.buttons.createAnother', 'Crear otro')}
                   </button>
@@ -338,9 +347,10 @@ export function BusinessBulkInviteLinkModal({
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={onClose}
-                    className="px-5 py-2.5 rounded-xl text-sm font-medium text-white"
+                    className="px-5 py-2.5 rounded-xl text-sm font-medium"
                     style={{
                       backgroundColor: primaryColor,
+                      color: onPrimaryColor,
                       boxShadow: `0 4px 15px ${primaryColor}40`
                     }}
                   >
@@ -352,17 +362,18 @@ export function BusinessBulkInviteLinkModal({
               <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden h-full">
                 <div
                   className="flex-1 overflow-y-auto p-6 space-y-5"
-                  style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}
+                  style={{ scrollbarWidth: 'thin', scrollbarColor: `${borderColor} transparent` }}
                 >
                   {/* Error Message */}
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3"
+                      className="p-4 rounded-xl border flex items-center gap-3"
+                      style={{ backgroundColor: `${dangerColor}10`, borderColor: `${dangerColor}20` }}
                     >
-                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                      <span className="text-sm text-red-400 flex-1">{error}</span>
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: dangerColor }} />
+                      <span className="text-sm flex-1" style={{ color: dangerColor }}>{error}</span>
                     </motion.div>
                   )}
 
@@ -424,25 +435,25 @@ export function BusinessBulkInviteLinkModal({
                           disabled={status === 'loading'}
                           className="p-3 rounded-xl border text-left transition-all disabled:opacity-50"
                           style={{
-                            backgroundColor: formData.role === role
-                              ? (isDark ? `${primaryColor}30` : `${primaryColor}10`)
-                              : inputBg,
+                            backgroundColor: formData.role === role ? primaryColor : inputBg,
                             borderColor: formData.role === role ? primaryColor : borderColor,
                           }}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <Shield
                               className="w-4 h-4"
-                              style={{ color: formData.role === role ? (isDark ? '#FFFFFF' : primaryColor) : mutedText }}
+                              style={{ color: formData.role === role ? onPrimaryColor : mutedText }}
                             />
                             <span
                               className="text-sm font-medium"
-                              style={{ color: formData.role === role ? (isDark ? '#FFFFFF' : primaryColor) : textColor }}
+                              style={{ color: formData.role === role ? onPrimaryColor : textColor }}
                             >
                               {roleLabels[role].label}
                             </span>
                           </div>
-                          <p className="text-xs hidden sm:block" style={{ color: mutedText }}>{roleLabels[role].desc}</p>
+                          <p className="text-xs hidden sm:block" style={{ color: formData.role === role ? onPrimaryColor : mutedText }}>
+                            {roleLabels[role].desc}
+                          </p>
                         </button>
                       ))}
                     </div>
@@ -486,8 +497,14 @@ export function BusinessBulkInviteLinkModal({
                     type="button"
                     onClick={onClose}
                     disabled={status === 'loading'}
-                    className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50 hover:bg-black/5 dark:hover:bg-white/5"
-                    style={{ color: mutedText }}
+                    className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                    style={{ color: mutedText, backgroundColor: inputBg }}
+                    onMouseEnter={(event) => {
+                      event.currentTarget.style.backgroundColor = theme.hoverBg
+                    }}
+                    onMouseLeave={(event) => {
+                      event.currentTarget.style.backgroundColor = inputBg
+                    }}
                   >
                     {t('users.buttons.cancel', 'Cancelar')}
                   </button>
@@ -496,15 +513,16 @@ export function BusinessBulkInviteLinkModal({
                     whileHover={{ scale: status === 'loading' ? 1 : 1.02 }}
                     whileTap={{ scale: status === 'loading' ? 1 : 0.98 }}
                     disabled={status === 'loading'}
-                    className="px-5 py-2.5 rounded-xl text-sm font-medium text-white flex items-center gap-2 disabled:opacity-70"
+                    className="px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-70"
                     style={{
                       backgroundColor: primaryColor,
+                      color: onPrimaryColor,
                       boxShadow: `0 4px 15px ${primaryColor}40`
                     }}
                   >
                     {status === 'loading' ? (
                       <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `${onPrimaryColor}4D`, borderTopColor: onPrimaryColor }} />
                         <span>{t('users.buttons.creating', 'Creando...')}</span>
                       </>
                     ) : (

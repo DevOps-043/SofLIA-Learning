@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessAnalytics } from './useBusinessAnalytics'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import type { BusinessAnalyticsUser } from '../types/analytics.types'
 import {
     getBusinessAnalyticsHeatmapColor,
@@ -18,17 +18,10 @@ export type UserDetailSubTab = 'activity' | 'planner' | 'courses'
 export function useBusinessAnalyticsLogic() {
     const { t } = useTranslation('business')
     const { data, isLoading, error, refetch } = useBusinessAnalytics()
-    const { styles } = useOrganizationStylesContext()
-    const panelStyles = styles?.panel
+    const panelTheme = useBusinessPanelTheme()
 
     const [activeTab, setActiveTab] = useState<ActiveTab>('overview')
     const [selectedUser, setSelectedUser] = useState<BusinessAnalyticsUser | null>(null)
-
-    const cardBg = panelStyles?.card_background
-    const cardBorder = panelStyles?.border_color
-    const textColor = panelStyles?.text_color
-    const accentColor = panelStyles?.accent_color || '#00D4B3'
-    const secondaryColor = panelStyles?.secondary_button_color || '#8b5cf6'
 
     return {
         t,
@@ -40,11 +33,7 @@ export function useBusinessAnalyticsLogic() {
         setActiveTab,
         selectedUser,
         setSelectedUser,
-        cardBg,
-        cardBorder,
-        textColor,
-        accentColor,
-        secondaryColor,
+        panelTheme,
     }
 }
 

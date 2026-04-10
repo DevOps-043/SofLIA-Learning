@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion'
 import { BarChart3, Trophy, Users, UsersRound, Zap } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import { BusinessPanelStatCard } from '../shared/BusinessPanelStatCard'
 import {
   getBusinessAnalyticsCompletionWidth,
   getBusinessAnalyticsRelativeBarWidth,
@@ -10,12 +12,11 @@ import {
 } from '../../services/business-analytics-display.service'
 import type { BusinessAnalyticsTeamItem, BusinessAnalyticsTeamsProps } from './types'
 
-export function BusinessAnalyticsTeams({
-  teams,
-  accentColor,
-  secondaryColor,
-}: BusinessAnalyticsTeamsProps) {
+const PODIUM_COLORS = ['#FBBF24', '#94A3B8', '#CD7F32']
+
+export function BusinessAnalyticsTeams({ teams }: BusinessAnalyticsTeamsProps) {
   const { t } = useTranslation('business')
+  const panelTheme = useBusinessPanelTheme()
   const summary = getBusinessAnalyticsTeamSummary(teams?.teams, teams?.ranking)
   const maxProgress = Math.max(
     ...(teams?.ranking?.map((team) => team.stats.average_progress) || [0]),
@@ -29,59 +30,42 @@ export function BusinessAnalyticsTeams({
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      <div className="grid grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg" style={{ backgroundColor: `${accentColor}20` }}>
-              <UsersRound className="w-5 h-5" style={{ color: accentColor }} />
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Total Equipos</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {teams?.total_teams || 0}
-          </p>
-        </div>
-        <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-emerald-500/20">
-              <Trophy className="w-5 h-5 text-emerald-400" />
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Mejor Progreso</span>
-          </div>
-          <p className="text-3xl font-bold text-emerald-500">
-            {summary.bestTeamProgress}%
-          </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
-            {summary.bestTeamName}
-          </p>
-        </div>
-        <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-blue-500/20">
-              <Users className="w-5 h-5 text-blue-400" />
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Total Miembros</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {summary.totalMembers}
-          </p>
-        </div>
-        <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 rounded-lg bg-purple-500/20">
-              <Zap className="w-5 h-5 text-purple-400" />
-            </div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Total SofLIA Chats</span>
-          </div>
-          <p className="text-3xl font-bold text-gray-900 dark:text-white">
-            {summary.totalLiaChats}
-          </p>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <BusinessPanelStatCard
+          icon={<UsersRound className="w-5 h-5" />}
+          title={t('analytics.teams.totalTeams', 'Total Equipos')}
+          value={teams?.total_teams || 0}
+          iconColor={panelTheme.actionColor}
+        />
+        <BusinessPanelStatCard
+          icon={<Trophy className="w-5 h-5" />}
+          title={t('analytics.teams.bestProgress', 'Mejor Progreso')}
+          value={`${summary.bestTeamProgress}%`}
+          iconColor={panelTheme.warningColor}
+        />
+        <BusinessPanelStatCard
+          icon={<Users className="w-5 h-5" />}
+          title={t('analytics.teams.totalMembers', 'Total Miembros')}
+          value={summary.totalMembers}
+          iconColor={panelTheme.brandColor}
+        />
+        <BusinessPanelStatCard
+          icon={<Zap className="w-5 h-5" />}
+          title={t('analytics.teams.totalChats', 'Total SofLIA Chats')}
+          value={summary.totalLiaChats}
+          iconColor={panelTheme.successColor}
+        />
       </div>
 
-      <div className="p-6 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
-        <h3 className="font-semibold mb-6 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5" style={{ color: accentColor }} />
+      <div
+        className="p-6 rounded-3xl border"
+        style={{
+          backgroundColor: panelTheme.cardBg,
+          borderColor: panelTheme.borderColor,
+        }}
+      >
+        <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: panelTheme.textColor }}>
+          <BarChart3 className="w-5 h-5" style={{ color: panelTheme.actionColor }} />
           {t('analytics.teams.progressComparison')}
         </h3>
 
@@ -93,22 +77,20 @@ export function BusinessAnalyticsTeams({
                 team={team}
                 index={index}
                 maxProgress={maxProgress}
-                accentColor={accentColor}
-                secondaryColor={secondaryColor}
               />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 opacity-50">
+          <div className="text-center py-12" style={{ color: panelTheme.subtextColor }}>
             <UsersRound className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p>{t('analytics.teams.noTeams')}</p>
           </div>
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {teams?.teams?.map((team) => (
-          <TeamCard key={team.team_id} team={team} accentColor={accentColor} />
+          <TeamCard key={team.team_id} team={team} />
         ))}
       </div>
     </motion.div>
@@ -119,57 +101,56 @@ function TeamRankingRow({
   team,
   index,
   maxProgress,
-  accentColor,
-  secondaryColor,
 }: {
   team: BusinessAnalyticsTeamItem
   index: number
   maxProgress: number
-  accentColor: string
-  secondaryColor: string
 }) {
   const { t } = useTranslation('business')
+  const panelTheme = useBusinessPanelTheme()
   const barWidth = getBusinessAnalyticsRelativeBarWidth(
     team.stats.average_progress,
     maxProgress,
   )
+  const rankTone = PODIUM_COLORS[index] ?? panelTheme.hoverBg
 
   return (
     <div className="flex items-center gap-4">
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
         style={{
-          backgroundColor:
-            index === 0
-              ? '#fbbf24'
-              : index === 1
-                ? '#94a3b8'
-                : index === 2
-                  ? '#cd7f32'
-                  : 'rgba(255,255,255,0.1)',
-          color: index < 3 ? '#000' : '#fff',
+          backgroundColor: rankTone,
+          color: index < PODIUM_COLORS.length ? '#000000' : panelTheme.textColor,
         }}
       >
         {index + 1}
       </div>
       <div className="flex-1">
-        <div className="flex justify-between items-center mb-1">
-          <span className="font-medium text-sm text-gray-900 dark:text-white">{team.name}</span>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex justify-between items-center mb-1 gap-4">
+          <span className="font-medium text-sm" style={{ color: panelTheme.textColor }}>
+            {team.name}
+          </span>
+          <span className="text-sm" style={{ color: panelTheme.subtextColor }}>
             {team.member_count} {t('analytics.teams.members')}
           </span>
         </div>
-        <div className="relative h-6 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+        <div
+          className="relative h-6 rounded-full overflow-hidden"
+          style={{ backgroundColor: panelTheme.hoverBg }}
+        >
           <motion.div
             className="h-full rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${barWidth}%` }}
             transition={{ duration: 0.8, delay: index * 0.1 }}
             style={{
-              background: `linear-gradient(90deg, ${accentColor}, ${secondaryColor})`,
+              background: `linear-gradient(90deg, ${panelTheme.actionColor}, ${panelTheme.brandColor})`,
             }}
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-900 dark:text-white">
+          <span
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold"
+            style={{ color: panelTheme.textColor }}
+          >
             {team.stats.average_progress}%
           </span>
         </div>
@@ -178,75 +159,113 @@ function TeamRankingRow({
   )
 }
 
-function TeamCard({
-  team,
-  accentColor,
-}: {
-  team: BusinessAnalyticsTeamItem
-  accentColor: string
-}) {
+function TeamCard({ team }: { team: BusinessAnalyticsTeamItem }) {
   const { t } = useTranslation('business')
+  const panelTheme = useBusinessPanelTheme()
 
   return (
-    <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
+    <div
+      className="p-5 rounded-3xl border"
+      style={{
+        backgroundColor: panelTheme.cardBg,
+        borderColor: panelTheme.borderColor,
+      }}
+    >
       <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+        <div
+          className="w-14 h-14 rounded-2xl overflow-hidden flex items-center justify-center"
+          style={{
+            background: `linear-gradient(135deg, ${panelTheme.actionColor}, ${panelTheme.brandColor})`,
+          }}
+        >
           {team.image_url ? (
             <img src={team.image_url} alt={team.name} className="w-full h-full object-cover" />
           ) : (
-            <UsersRound className="w-7 h-7 text-white" />
+            <UsersRound className="w-7 h-7" style={{ color: panelTheme.onPrimaryColor }} />
           )}
         </div>
         <div className="flex-1">
-          <h4 className="font-semibold text-lg">{team.name}</h4>
-          <p className="text-sm opacity-50 line-clamp-1">
+          <h4 className="font-semibold text-lg" style={{ color: panelTheme.textColor }}>
+            {team.name}
+          </h4>
+          <p className="text-sm line-clamp-1" style={{ color: panelTheme.subtextColor }}>
             {team.description || t('analytics.teams.noDescription')}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mt-4">
-        <div className="text-center p-3 rounded-lg bg-gray-100 dark:bg-white/5">
-          <p className="text-xl font-bold" style={{ color: accentColor }}>
-            {team.member_count}
-          </p>
-          <p className="text-xs opacity-50">Miembros</p>
-        </div>
-        <div className="text-center p-3 rounded-lg bg-gray-100 dark:bg-white/5">
-          <p className="text-xl font-bold text-emerald-400">
-            {team.stats?.average_progress || 0}%
-          </p>
-          <p className="text-xs opacity-50">Progreso</p>
-        </div>
-        <div className="text-center p-3 rounded-lg bg-gray-100 dark:bg-white/5">
-          <p className="text-xl font-bold text-blue-400">
-            {team.stats?.total_time_hours || 0}h
-          </p>
-          <p className="text-xs opacity-50">Tiempo</p>
-        </div>
+        <MetricTile
+          label={t('analytics.teams.members', 'Miembros')}
+          value={team.member_count}
+          color={panelTheme.actionColor}
+        />
+        <MetricTile
+          label={t('analytics.teams.progress', 'Progreso')}
+          value={`${team.stats?.average_progress || 0}%`}
+          color={panelTheme.successColor}
+        />
+        <MetricTile
+          label={t('analytics.teams.time', 'Tiempo')}
+          value={`${team.stats?.total_time_hours || 0}h`}
+          color={panelTheme.brandColor}
+        />
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
+      <div className="mt-4 pt-4" style={{ borderTop: `1px solid ${panelTheme.dividerColor}` }}>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500 dark:text-gray-400">
+          <span style={{ color: panelTheme.subtextColor }}>
             {t('analytics.teams.coursesCompleted')}
           </span>
-          <span className="font-medium text-gray-900 dark:text-white">
+          <span className="font-medium" style={{ color: panelTheme.textColor }}>
             {team.stats?.courses_completed || 0} / {team.stats?.total_enrollments || 0}
           </span>
         </div>
-        <div className="h-2 bg-gray-200 dark:bg-white/10 rounded-full mt-2 overflow-hidden">
+        <div
+          className="h-2 rounded-full mt-2 overflow-hidden"
+          style={{ backgroundColor: panelTheme.hoverBg }}
+        >
           <div
-            className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+            className="h-full rounded-full"
             style={{
               width: `${getBusinessAnalyticsCompletionWidth(
                 team.stats?.courses_completed || 0,
                 team.stats?.total_enrollments || 0,
               )}%`,
+              background: `linear-gradient(90deg, ${panelTheme.successColor}, ${panelTheme.actionColor})`,
             }}
           />
         </div>
       </div>
+    </div>
+  )
+}
+
+function MetricTile({
+  label,
+  value,
+  color,
+}: {
+  label: string
+  value: string | number
+  color: string
+}) {
+  const panelTheme = useBusinessPanelTheme()
+
+  return (
+    <div
+      className="text-center p-3 rounded-2xl border"
+      style={{
+        backgroundColor: panelTheme.hoverBg,
+        borderColor: panelTheme.borderColor,
+      }}
+    >
+      <p className="text-xl font-bold" style={{ color }}>
+        {value}
+      </p>
+      <p className="text-xs" style={{ color: panelTheme.subtextColor }}>
+        {label}
+      </p>
     </div>
   )
 }

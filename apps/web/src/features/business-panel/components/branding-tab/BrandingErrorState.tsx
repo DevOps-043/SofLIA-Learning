@@ -2,12 +2,15 @@
 
 import { motion } from 'framer-motion'
 import { XCircle } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 interface BrandingErrorStateProps {
   error: string
 }
 
 export function BrandingErrorState({ error }: BrandingErrorStateProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -18,9 +21,14 @@ export function BrandingErrorState({ error }: BrandingErrorStateProps) {
         animate={{ y: [0, -10, 0] }}
         transition={{ duration: 2, repeat: Infinity }}
       >
-        <XCircle className="w-20 h-20 mx-auto mb-6 text-red-400" />
+        <XCircle
+          className="w-20 h-20 mx-auto mb-6"
+          style={{ color: theme.dangerColor }}
+        />
       </motion.div>
-      <p className="text-lg mb-4 text-red-300">{error}</p>
+      <p className="text-lg mb-4" style={{ color: theme.dangerColor }}>
+        {error}
+      </p>
     </motion.div>
   )
 }

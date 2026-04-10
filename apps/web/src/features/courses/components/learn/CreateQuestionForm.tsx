@@ -79,7 +79,7 @@ export function CreateQuestionForm({
         </div>
 
         <h3 className="text-gray-900 font-semibold text-xl mb-6 relative z-10 font-[Inter,sans-serif]">
-          Nueva Pregunta
+          Nueva pregunta
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
@@ -92,7 +92,7 @@ export function CreateQuestionForm({
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Escribe un título breve..."
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#00D4B3]/20 transition-all font-medium"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all font-medium"
             />
           </div>
 
@@ -106,7 +106,7 @@ export function CreateQuestionForm({
               placeholder="Describe tu duda o comentario en detalle..."
               required
               rows={6}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#00D4B3]/20 transition-all resize-none leading-relaxed"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all resize-none leading-relaxed"
             />
           </div>
 
@@ -121,7 +121,7 @@ export function CreateQuestionForm({
             <button
               type="submit"
               disabled={isSubmitting || !content.trim()}
-              className="px-6 py-2.5 bg-[#00D4B3] hover:bg-[#00b89a] text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-[#00D4B3]/20 text-sm font-semibold flex items-center gap-2"
+              className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-[#0A2540]/20 dark:hover:shadow-[#00D4B3]/20 text-sm font-semibold flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -131,7 +131,7 @@ export function CreateQuestionForm({
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>Publicar Pregunta</span>
+                  <span>Publicar pregunta</span>
                 </>
               )}
             </button>

@@ -20,13 +20,13 @@ export function NoteCard({
   deleteLabel,
 }: NoteCardProps) {
   return (
-    <div 
+    <div
       className="bg-white dark:bg-[#1E2329] rounded-xl p-3 border border-[#E9ECEF] dark:border-[#6C757D]/30 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/50 transition-colors group cursor-pointer"
       onClick={() => onEdit(note)}
     >
       <div className="flex items-center justify-between mb-2">
         <span
-          className="text-sm text-[#0A2540] dark:text-[#00D4B3] font-medium"
+          className="text-sm text-[#0A2540] dark:text-white font-medium"
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
         >
           {note.title}
@@ -44,7 +44,7 @@ export function NoteCard({
                 event.stopPropagation();
                 onEdit(note);
               }}
-              className="p-1 hover:bg-[#00D4B3]/20 rounded text-[#00D4B3] hover:text-[#00D4B3] transition-colors"
+              className="p-1 hover:bg-[#0A2540]/10 dark:hover:bg-[#00D4B3]/20 rounded text-[#0A2540] dark:text-[#00D4B3] transition-colors"
               title={editLabel}
             >
               <Edit2 className="w-3 h-3" />
@@ -72,7 +72,7 @@ export function NoteCard({
           {note.tags.map((tag) => (
             <span
               key={tag}
-              className="inline-block px-2 py-0.5 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 text-[#00D4B3] dark:text-[#00D4B3] text-xs rounded border border-[#00D4B3]/30"
+              className="inline-block px-2 py-0.5 bg-[#0A2540]/10 dark:bg-[#00D4B3]/20 text-[#0A2540] dark:text-[#00D4B3] text-xs rounded border border-[#0A2540]/20 dark:border-[#00D4B3]/30"
             >
               {tag}
             </span>

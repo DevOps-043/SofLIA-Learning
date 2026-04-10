@@ -5,9 +5,8 @@ import { Sparkles, Users, Activity, Award } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import type { WorkSheet } from 'xlsx'
 import { useBusinessReports } from './useBusinessReports'
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import type { ReportType } from '../types/report-data.types'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '../../../core/stores/themeStore'
 import { useTranslation } from 'react-i18next'
 
 interface UsersExportReport {
@@ -67,32 +66,28 @@ interface LiaAnalysisExportReport {
   }
 }
 
-const getReportTypes = (accentColor: string, t: TFunction<'business'>) => [
-  { value: 'lia-analysis' as ReportType, label: t('reports.types.liaAnalysis.label'), icon: Sparkles, description: t('reports.types.liaAnalysis.description'), color: '#0EA5E9' },
-  { value: 'users' as ReportType, label: t('reports.types.users.label'), icon: Users, description: t('reports.types.users.description'), color: accentColor },
-  { value: 'activity' as ReportType, label: t('reports.types.activity.label'), icon: Activity, description: t('reports.types.activity.description'), color: '#10b981' },
-  { value: 'certificates' as ReportType, label: t('reports.types.certificates.label'), icon: Award, description: t('reports.types.certificates.description'), color: '#8b5cf6' },
+const getReportTypes = (
+  theme: ReturnType<typeof useBusinessPanelTheme>,
+  t: TFunction<'business'>,
+) => [
+  { value: 'lia-analysis' as ReportType, label: t('reports.types.liaAnalysis.label'), icon: Sparkles, description: t('reports.types.liaAnalysis.description'), color: theme.actionColor },
+  { value: 'users' as ReportType, label: t('reports.types.users.label'), icon: Users, description: t('reports.types.users.description'), color: theme.brandColor },
+  { value: 'activity' as ReportType, label: t('reports.types.activity.label'), icon: Activity, description: t('reports.types.activity.description'), color: theme.successColor },
+  { value: 'certificates' as ReportType, label: t('reports.types.certificates.label'), icon: Award, description: t('reports.types.certificates.description'), color: theme.secondaryColor },
 ]
 
-const getChartColors = (accentColor: string) => [accentColor, '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899']
+const getChartColors = (theme: ReturnType<typeof useBusinessPanelTheme>) => [
+  theme.accentColor,
+  ...theme.chartColors,
+]
 
 export function useBusinessReportsLogic() {
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-  const panelStyles = styles?.panel
+  const theme = useBusinessPanelTheme()
   const hasFetched = useRef(false)
 
-  const cardBg = isDark ? (panelStyles?.card_background || 'rgba(30, 41, 59, 0.8)') : '#FFFFFF'
-  const cardBorder = isDark ? (panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)') : '#E2E8F0'
-  const textColor = isDark ? (panelStyles?.text_color || '#f8fafc') : '#0F172A'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
-  const primaryColor = panelStyles?.primary_button_color || '#0A2540'
-  const secondaryColor = panelStyles?.secondary_button_color || '#10b981'
-
-  const REPORT_TYPES = getReportTypes(accentColor, t)
-  const CHART_COLORS = getChartColors(accentColor)
+  const REPORT_TYPES = getReportTypes(theme, t)
+  const CHART_COLORS = getChartColors(theme)
 
   const {
     reportType,
@@ -216,13 +211,7 @@ export function useBusinessReportsLogic() {
   }
 
   return {
-    isDark,
-    cardBg,
-    cardBorder,
-    textColor,
-    accentColor,
-    primaryColor,
-    secondaryColor,
+    panelTheme: theme,
     REPORT_TYPES,
     CHART_COLORS,
     reportType,

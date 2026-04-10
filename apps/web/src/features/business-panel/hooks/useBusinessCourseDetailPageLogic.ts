@@ -2,8 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '../../../core/stores/themeStore'
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import { BusinessCourseDetailService } from '../services/business-course-detail.service'
 import {
   formatBusinessCourseDate,
@@ -18,16 +17,19 @@ export function useBusinessCourseDetailPageLogic() {
   const router = useRouter()
   const courseId = params.id as string
   const orgSlug = params.orgSlug as string
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-
-  const primaryColor = panelStyles?.primary_button_color || (isDark ? '#8B5CF6' : '#6366F1')
-  const accentColor = panelStyles?.accent_color || '#10B981'
-  const cardBackground = isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF'
-  const textColor = isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A'
-  const borderColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+  const {
+    isDark,
+    primaryColor,
+    onPrimaryColor,
+    accentColor,
+    cardBg,
+    textColor,
+    mutedTextColor,
+    borderColor,
+    dividerColor,
+    successColor,
+    dangerColor,
+  } = useBusinessPanelTheme()
 
   const [course, setCourse] = useState<BusinessCourseDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -116,10 +118,15 @@ export function useBusinessCourseDetailPageLogic() {
     purchaseError,
     isDark,
     primaryColor,
+    onPrimaryColor,
     accentColor,
-    cardBackground,
+    cardBackground: cardBg,
     textColor,
+    mutedTextColor,
     borderColor,
+    dividerColor,
+    successColor,
+    dangerColor,
     levelStyles,
     toggleModule,
     handlePurchase,

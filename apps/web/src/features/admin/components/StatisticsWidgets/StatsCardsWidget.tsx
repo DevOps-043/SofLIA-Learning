@@ -1,6 +1,7 @@
 'use client'
 
 import { useAdminStats } from '../../hooks/useAdminStats'
+import { motion } from 'framer-motion'
 import {
   UsersIcon,
   BookOpenIcon,
@@ -12,20 +13,21 @@ import {
   ArrowTrendingDownIcon
 } from '@heroicons/react/24/outline'
 
-interface StatCard {
+interface StatCardData {
   id: string
   title: string
   value: string
   change: string
   changeType: 'increase' | 'decrease'
   icon: typeof UsersIcon
-  color: string
+  gradient: string
+  shadow: string
 }
 
 export function StatsCardsWidget() {
   const { stats: dbStats, isLoading } = useAdminStats()
 
-  const stats: StatCard[] = dbStats
+  const statsList: StatCardData[] = dbStats
     ? [
         {
           id: 'total-users',
@@ -34,7 +36,8 @@ export function StatsCardsWidget() {
           change: `${dbStats.userGrowth >= 0 ? '+' : ''}${dbStats.userGrowth}%`,
           changeType: dbStats.userGrowth >= 0 ? 'increase' : 'decrease',
           icon: UsersIcon,
-          color: 'blue'
+          gradient: 'from-blue-500 to-blue-600',
+          shadow: 'shadow-blue-500/20'
         },
         {
           id: 'active-courses',
@@ -43,7 +46,8 @@ export function StatsCardsWidget() {
           change: `${dbStats.courseGrowth >= 0 ? '+' : ''}${dbStats.courseGrowth}%`,
           changeType: dbStats.courseGrowth >= 0 ? 'increase' : 'decrease',
           icon: BookOpenIcon,
-          color: 'green'
+          gradient: 'from-[#10B981] to-[#059669]',
+          shadow: 'shadow-emerald-500/20'
         },
         {
           id: 'communities',
@@ -52,7 +56,8 @@ export function StatsCardsWidget() {
           change: '+0%',
           changeType: 'increase',
           icon: UserGroupIcon,
-          color: 'purple'
+          gradient: 'from-purple-500 to-indigo-600',
+          shadow: 'shadow-purple-500/20'
         },
         {
           id: 'ai-apps',
@@ -61,7 +66,8 @@ export function StatsCardsWidget() {
           change: `${dbStats.aiAppGrowth >= 0 ? '+' : ''}${dbStats.aiAppGrowth}%`,
           changeType: dbStats.aiAppGrowth >= 0 ? 'increase' : 'decrease',
           icon: CpuChipIcon,
-          color: 'orange'
+          gradient: 'from-amber-500 to-orange-600',
+          shadow: 'shadow-amber-500/20'
         },
         {
           id: 'prompts',
@@ -70,7 +76,8 @@ export function StatsCardsWidget() {
           change: '+0%',
           changeType: 'increase',
           icon: ChatBubbleLeftRightIcon,
-          color: 'red'
+          gradient: 'from-red-500 to-rose-600',
+          shadow: 'shadow-red-500/20'
         },
         {
           id: 'news',
@@ -79,94 +86,78 @@ export function StatsCardsWidget() {
           change: `${dbStats.newsGrowth >= 0 ? '+' : ''}${dbStats.newsGrowth}%`,
           changeType: dbStats.newsGrowth >= 0 ? 'increase' : 'decrease',
           icon: NewspaperIcon,
-          color: 'indigo'
+          gradient: 'from-indigo-500 to-blue-700',
+          shadow: 'shadow-indigo-500/20'
         }
       ]
     : []
 
-  const getColorClasses = (color: string, changeType: string) => {
-    const colorMap = {
-      blue: {
-        bg: 'bg-blue-50 dark:bg-blue-900/20',
-        icon: 'text-blue-600 dark:text-blue-400',
-        change: changeType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      },
-      green: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        icon: 'text-green-600 dark:text-green-400',
-        change: changeType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      },
-      purple: {
-        bg: 'bg-purple-50 dark:bg-purple-900/20',
-        icon: 'text-purple-600 dark:text-purple-400',
-        change: changeType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      },
-      orange: {
-        bg: 'bg-orange-50 dark:bg-orange-900/20',
-        icon: 'text-orange-600 dark:text-orange-400',
-        change: changeType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      },
-      red: {
-        bg: 'bg-red-50 dark:bg-red-900/20',
-        icon: 'text-red-600 dark:text-red-400',
-        change: changeType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      },
-      indigo: {
-        bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-        icon: 'text-indigo-600 dark:text-indigo-400',
-        change: changeType === 'increase' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-      }
-    }
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue
-  }
-
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-32 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
+          <div key={i} className="h-32 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
         ))}
       </div>
     )
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {stats.map((stat) => {
-        const colors = getColorClasses(stat.color, stat.changeType)
-        return (
-          <div
-            key={stat.id}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-all duration-300 hover:scale-105"
-          >
-            <div className="flex items-center">
-              <div className={`flex-shrink-0 p-3 rounded-lg ${colors.bg}`}>
-                <stat.icon className={`h-6 w-6 ${colors.icon}`} />
-              </div>
-              <div className="ml-4 flex-1">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {stat.title}
-                </p>
-                <div className="flex items-baseline">
-                  <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                    {stat.value}
-                  </p>
-                  <div className="flex items-center ml-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      {statsList.map((stat, index) => (
+        <motion.div
+           key={stat.id}
+           initial={{ opacity: 0, scale: 0.95 }}
+           animate={{ opacity: 1, scale: 1 }}
+           transition={{ delay: index * 0.05 }}
+           whileHover={{ y: -5 }}
+           className="relative group"
+        >
+          <div className="h-full bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-white/5 p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative">
+             {/* Hover Glow */}
+             <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br ${stat.gradient}`} />
+             
+             <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} text-white shadow-lg ${stat.shadow} group-hover:scale-110 transition-transform duration-300`}>
+                    <stat.icon className="h-6 w-6" />
+                  </div>
+                  
+                  <div 
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
+                      stat.changeType === 'increase' 
+                        ? 'bg-emerald-500/10 text-emerald-500' 
+                        : 'bg-red-500/10 text-red-500'
+                    }`}
+                  >
                     {stat.changeType === 'increase' ? (
-                      <ArrowTrendingUpIcon className="h-4 w-4 text-green-600 dark:text-green-400 mr-1" />
+                      <ArrowTrendingUpIcon className="h-3.5 w-3.5" />
                     ) : (
-                      <ArrowTrendingDownIcon className="h-4 w-4 text-red-600 dark:text-red-400 mr-1" />
+                      <ArrowTrendingDownIcon className="h-3.5 w-3.5" />
                     )}
-                    <p className={`text-sm font-medium ${colors.change}`}>
-                      {stat.change}
-                    </p>
+                    {stat.change}
                   </div>
                 </div>
-              </div>
-            </div>
+
+                <p className="text-sm font-semibold uppercase tracking-wider text-[#6C757D] dark:text-white/60 mb-1">
+                  {stat.title}
+                </p>
+                <p className="text-3xl font-black text-[#0A2540] dark:text-white">
+                  {stat.value}
+                </p>
+             </div>
+
+             {/* Animated Bottom Line */}
+             <motion.div 
+                className={`absolute bottom-0 left-0 h-1 bg-gradient-to-r ${stat.gradient}`}
+                initial={{ width: 0 }}
+                whileHover={{ width: '33.33%' }}
+                transition={{ duration: 0.5 }}
+             />
           </div>
-        )
-      })}
+        </motion.div>
+      ))}
     </div>
   )
 }
+

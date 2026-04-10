@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Globe, Upload } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BrandingFormState } from './types'
 
 interface BrandingFaviconCardProps {
@@ -13,6 +14,8 @@ export function BrandingFaviconCard({
   branding,
   onUpload,
 }: BrandingFaviconCardProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -20,12 +23,17 @@ export function BrandingFaviconCard({
       transition={{ delay: 0.1 }}
       className="relative overflow-hidden rounded-2xl p-5 border backdrop-blur-xl group"
       style={{
-        backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
       }}
     >
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-        <div className="absolute -top-16 -left-16 w-32 h-32 rounded-full bg-gradient-to-br from-purple-500/20 to-transparent blur-2xl" />
+        <div
+          className="absolute -top-16 -left-16 w-32 h-32 rounded-full blur-2xl"
+          style={{
+            background: `radial-gradient(circle, ${theme.secondaryColor}24 0%, transparent 70%)`,
+          }}
+        />
       </div>
 
       <div className="relative z-10">
@@ -33,13 +41,20 @@ export function BrandingFaviconCard({
           <motion.div
             whileHover={{ rotate: 15, scale: 1.1 }}
             className="p-2.5 rounded-xl"
-            style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}
+            style={{
+              backgroundColor: `${theme.secondaryColor}18`,
+              color: theme.secondaryColor,
+            }}
           >
-            <Globe className="w-4 h-4 text-white" />
+            <Globe className="w-4 h-4" />
           </motion.div>
           <div>
-            <h3 className="text-base font-bold text-white">Favicon & Login</h3>
-            <p className="text-xs text-white/50">Vista previa del login</p>
+            <h3 className="text-base font-bold" style={{ color: theme.textColor }}>
+              Favicon y Login
+            </h3>
+            <p className="text-xs" style={{ color: theme.subtextColor }}>
+              Vista previa del login
+            </p>
           </div>
         </div>
 
@@ -85,7 +100,7 @@ export function BrandingFaviconCard({
                     background: `linear-gradient(135deg, ${branding.color_primary}, ${branding.color_secondary})`,
                   }}
                 >
-                  Iniciar SesiÃ³n
+                  Iniciar Sesión
                 </div>
               </div>
             </div>
@@ -99,10 +114,9 @@ export function BrandingFaviconCard({
           whileTap={{ scale: 0.98 }}
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300"
           style={{
-            background:
-              'linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.08))',
-            border: '1px solid rgba(139, 92, 246, 0.25)',
-            color: '#a78bfa',
+            backgroundColor: theme.actionSurface,
+            border: `1px solid ${theme.actionColor}33`,
+            color: theme.actionColor,
           }}
         >
           <Upload className="w-4 h-4" />

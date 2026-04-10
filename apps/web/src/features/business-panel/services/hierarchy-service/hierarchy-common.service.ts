@@ -322,7 +322,7 @@ export class HierarchyCommonService {
   static async searchOrganizationUsers(
     query: string = '',
     orgSlug?: string,
-  ): Promise<UserWithHierarchy['user'][]> {
+  ): Promise<NonNullable<UserWithHierarchy['user']>[]> {
     const params = new URLSearchParams()
     if (query) params.set('query', query)
 
@@ -331,6 +331,10 @@ export class HierarchyCommonService {
       {},
       orgSlug,
     )
-    return result.success ? result.data?.users ?? [] : []
+    return result.success
+      ? (result.data?.users ?? []).filter(
+          (user): user is NonNullable<UserWithHierarchy['user']> => Boolean(user)
+        )
+      : []
   }
 }

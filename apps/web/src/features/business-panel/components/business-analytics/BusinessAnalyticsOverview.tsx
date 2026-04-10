@@ -4,13 +4,15 @@ import { Users, BookOpen, CheckCircle, Clock, TrendingUp, Award, UserCheck, Targ
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { KPICard, SmallMetricCard } from './shared'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BusinessAnalyticsOverviewProps } from './types'
 
 export function BusinessAnalyticsOverview({
   data,
-  accentColor,
 }: BusinessAnalyticsOverviewProps) {
   const { t } = useTranslation('business')
+  const { actionColor, brandColor, secondaryColor, successColor, warningColor } =
+    useBusinessPanelTheme()
 
   return (
     <motion.div
@@ -25,25 +27,25 @@ export function BusinessAnalyticsOverview({
           icon={Users}
           label={t('analytics.kpis.totalUsers')}
           value={data.general_metrics.total_users}
-          color={accentColor}
+          color={actionColor}
         />
         <KPICard
           icon={BookOpen}
           label={t('analytics.kpis.assignedCourses')}
           value={data.general_metrics.total_courses_assigned}
-          color="#8b5cf6"
+          color={brandColor}
         />
         <KPICard
           icon={CheckCircle}
           label={t('analytics.kpis.completed')}
           value={data.general_metrics.completed_courses}
-          color="#10b981"
+          color={successColor}
         />
         <KPICard
           icon={TrendingUp}
           label={t('analytics.kpis.avgProgress')}
           value={`${data.general_metrics.average_progress}%`}
-          color="#f59e0b"
+          color={warningColor}
         />
       </div>
 
@@ -52,25 +54,25 @@ export function BusinessAnalyticsOverview({
           icon={Clock}
           label={t('analytics.kpis.totalTime')}
           value={`${data.general_metrics.total_time_hours}h`}
-          color={accentColor}
+          color={actionColor}
         />
         <SmallMetricCard
           icon={Award}
           label={t('analytics.kpis.certificates')}
           value={data.general_metrics.total_certificates}
-          color="#8b5cf6"
+          color={secondaryColor}
         />
         <SmallMetricCard
           icon={UserCheck}
           label={t('analytics.kpis.activeUsers')}
           value={data.general_metrics.active_users}
-          color="#10b981"
+          color={successColor}
         />
         <SmallMetricCard
           icon={Target}
           label={t('analytics.kpis.retentionRate')}
           value={`${data.general_metrics.retention_rate}%`}
-          color="#f59e0b"
+          color={warningColor}
         />
       </div>
     </motion.div>

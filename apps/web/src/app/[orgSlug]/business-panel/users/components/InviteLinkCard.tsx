@@ -1,101 +1,131 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Link2, Pause, Play, Trash2, Calendar, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Link2, Pause, Play, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BulkInviteLink } from '@/features/business-panel/services/businessUsers.service'
 
-// ============================================
-// COMPONENTE: InviteLinkCard
-// ============================================
 interface InviteLinkCardProps {
   link: BulkInviteLink
   index: number
-  primaryColor: string
   onToggleStatus: () => void
   onDelete: () => void
 }
 
-function InviteLinkCard({ link, index, primaryColor, onToggleStatus, onDelete }: InviteLinkCardProps) {
+function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCardProps) {
   const { t } = useTranslation('business')
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
+  const theme = useBusinessPanelTheme()
 
-  const getStatusColor = (status: string) => {
+  const getLinkStatusConfig = (status: string) => {
     switch (status) {
-      case 'active': return { text: '#10B981', bg: 'rgba(16,185,129,0.1)' }
-      case 'paused': return { text: '#F59E0B', bg: 'rgba(245,158,11,0.1)' }
-      case 'expired': return { text: '#EF4444', bg: 'rgba(239,68,68,0.1)' }
-      case 'exhausted': return { text: '#6B7280', bg: 'rgba(107,114,128,0.1)' }
-      default: return { text: primaryColor, bg: `${primaryColor}10` }
+      case 'active':  return { label: 'Activo',   color: theme.statusColors.active,    bg: 'rgba(0,212,179,0.1)' }
+      case 'paused':  return { label: 'Pausado',  color: theme.statusColors.invited,   bg: 'rgba(245,158,11,0.1)' }
+      case 'expired': return { label: 'Expirado', color: theme.statusColors.suspended, bg: 'rgba(239,68,68,0.1)' }
+      default:        return { label: status,     color: theme.subtextColor,           bg: 'rgba(0,0,0,0.05)' }
     }
   }
 
-  const statusColors = getStatusColor(link.status)
-  const remainingSlots = link.max_uses - link.current_uses
+  const statusConfig = getLinkStatusConfig(link.status)
+  const usagePercent = Math.min(100, (link.current_uses / link.max_uses) * 100)
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
-      className="relative overflow-hidden rounded-2xl p-6 border border-white/10"
-      style={{ backgroundColor: 'var(--org-card-background, #1E2329)' }}
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.5 }}
+      whileHover={{ y: -6 }}
+      className="group relative flex flex-col rounded-3xl border transition-all duration-300 overflow-hidden"
+      style={{
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
+        backdropFilter: 'blur(20px)',
+        boxShadow: theme.isDark
+          ? '0 20px 40px -20px rgba(0,0,0,0.5)'
+          : '0 10px 20px -10px rgba(0,0,0,0.05)',
+      }}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10">
-            <Link2 className="w-6 h-6 opacity-60" style={{ color: primaryColor }} />
-          </div>
-          <div>
-            <h4 className="font-bold truncate max-w-[180px]" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
-              {link.name || `Link ${link.token.substring(0, 6)}`}
-            </h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="px-2 py-0.5 rounded-full text-[10px] uppercase font-bold" style={{ backgroundColor: statusColors.bg, color: statusColors.text }}>
-                {link.status}
-              </span>
-              <span className="text-[10px] opacity-40 uppercase font-bold">{link.role}</span>
-            </div>
+      {/* Header */}
+      <div className="relative h-24 flex items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-10 blur-2xl"
+          style={{ background: `radial-gradient(circle, ${theme.accentColor} 0%, transparent 70%)` }}
+        />
+        <div
+          className="w-14 h-14 rounded-xl flex items-center justify-center border-2 shadow-2xl relative z-10"
+          style={{
+            backgroundColor: theme.inputBg,
+            borderColor: theme.borderColor,
+            color: theme.accentColor,
+          }}
+        >
+          <Link2 className="w-7 h-7" />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 flex flex-col p-4 pt-0">
+        <div className="text-center mb-4">
+          <h4 className="font-bold text-base tracking-tight truncate mb-0.5" style={{ color: theme.textColor }}>
+            {link.name || `Enlace ${link.token.substring(0, 6)}`}
+          </h4>
+          <div
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider"
+            style={{ backgroundColor: statusConfig.bg, color: statusConfig.color }}
+          >
+            {statusConfig.label}
           </div>
         </div>
-        <div className="flex gap-2">
+
+        {/* Usage */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">Uso</span>
+            <span className="text-[10px] font-bold" style={{ color: theme.textColor }}>
+              {link.current_uses} / {link.max_uses}
+            </span>
+          </div>
+          <div className="w-full h-1.5 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden mb-1.5">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${usagePercent}%` }}
+              className="h-full rounded-full"
+              style={{ backgroundColor: theme.accentColor }}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold opacity-40 lowercase">{usagePercent.toFixed(0)}%</span>
+            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">Rol: {link.role}</span>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="mt-auto grid grid-cols-2 gap-1.5">
           <button
             onClick={onToggleStatus}
-            className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5' : 'bg-black/5'}`}
-            title={link.status === 'active' ? 'Pausar' : 'Activar'}
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-300 font-bold text-[10px] uppercase tracking-widest border border-white/5"
+            style={{
+              backgroundColor: link.status === 'active'
+                ? `${theme.statusColors.invited}10`
+                : `${theme.accentColor}10`,
+              color: link.status === 'active'
+                ? theme.statusColors.invited
+                : theme.accentColor,
+            }}
           >
-            {link.status === 'active' ? <Pause className="w-4 h-4 text-amber-500" /> : <Play className="w-4 h-4 text-emerald-500" />}
+            {link.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+            {t(link.status === 'active' ? 'inviteLinks.pause' : 'inviteLinks.resume', 'Status')}
           </button>
+
           <button
             onClick={onDelete}
-            className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5' : 'bg-black/5'} hover:bg-red-500/20 group`}
-            title="Eliminar"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-colors hover:bg-red-500/10 border border-red-500/10 font-bold text-[10px] uppercase tracking-widest"
+            style={{ color: theme.dangerColor }}
           >
-            <Trash2 className="w-4 h-4 text-red-500 group-hover:text-red-400" />
+            <Trash2 className="w-3.5 h-3.5" />
+            {t('common.delete', 'Borrar')}
           </button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/5">
-        <div>
-          <p className="text-[10px] uppercase font-bold tracking-wider opacity-40 mb-1">Usos</p>
-          <p className="text-xl font-black" style={{ color: isDark ? '#FFFFFF' : '#0F172A' }}>
-            {link.current_uses} <span className="text-sm font-normal opacity-40">/ {link.max_uses}</span>
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase font-bold tracking-wider opacity-40 mb-1">Espacios libres</p>
-          <p className="text-xl font-black" style={{ color: remainingSlots > 0 ? primaryColor : '#EF4444' }}>
-            {remainingSlots}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between text-[10px] opacity-30">
-        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {new Date(link.created_at).toLocaleDateString()}</span>
-        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Expira: {new Date(link.expires_at).toLocaleDateString()}</span>
       </div>
     </motion.div>
   )

@@ -6,6 +6,15 @@ import { hasFeature, getRequiredPlan, getFeatureMessage, getFeatureName, getAllo
 
 type BillingCycle = 'monthly' | 'yearly'
 
+interface SubscriptionApiData {
+  plan?: string | null
+  billing_cycle?: string | null
+  status?: string
+  start_date?: string | null
+  end_date?: string | null
+  max_users?: number
+}
+
 interface SubscriptionInfo {
   plan: SubscriptionPlan | null
   billing_cycle: BillingCycle | null
@@ -60,16 +69,20 @@ export function useSubscriptionFeatures(): UseSubscriptionFeaturesReturn {
 
       let planValue: string | null = null
       let billingCycleValue: string = 'yearly'
-      let subscriptionData: Record<string, unknown> | null = null
+      let subscriptionData: SubscriptionApiData | null = null
 
       if (response.ok) {
         const data = await response.json()
 
         // Primero intentar desde subscription
         if (data.success && data.subscription) {
-          subscriptionData = data.subscription
-          planValue = subscriptionData.plan?.toLowerCase()?.trim()
-          billingCycleValue = subscriptionData.billing_cycle?.toLowerCase() || 'yearly'
+          subscriptionData = data.subscription as SubscriptionApiData
+          planValue = typeof subscriptionData.plan === 'string'
+            ? subscriptionData.plan.toLowerCase().trim()
+            : null
+          billingCycleValue = typeof subscriptionData.billing_cycle === 'string'
+            ? subscriptionData.billing_cycle.toLowerCase()
+            : 'yearly'
         }
 
         // Si no hay plan en subscription, usar organization
@@ -110,10 +123,16 @@ export function useSubscriptionFeatures(): UseSubscriptionFeaturesReturn {
         setSubscription({
           plan: (planValue && ['team', 'business', 'enterprise'].includes(planValue) ? planValue as SubscriptionPlan : null),
           billing_cycle: billingCycleValue as BillingCycle || 'yearly',
-          status: subscriptionData.status,
-          start_date: subscriptionData.start_date,
-          end_date: subscriptionData.end_date,
-          max_users: subscriptionData.max_users
+          status: typeof subscriptionData.status === 'string' ? subscriptionData.status : undefined,
+          start_date:
+            typeof subscriptionData.start_date === 'string' || subscriptionData.start_date === null
+              ? subscriptionData.start_date
+              : undefined,
+          end_date:
+            typeof subscriptionData.end_date === 'string' || subscriptionData.end_date === null
+              ? subscriptionData.end_date
+              : undefined,
+          max_users: typeof subscriptionData.max_users === 'number' ? subscriptionData.max_users : undefined
         })
       }
     } catch (error) {

@@ -1,5 +1,5 @@
-import { Users, MessageSquare, MoreVertical } from 'lucide-react'
-
+import { Users } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 
 interface ChatHeaderProps {
   title: string
@@ -12,38 +12,60 @@ export function ChatHeader({
   title,
   description,
   participantsCount,
-  onlineCount
+  onlineCount,
 }: ChatHeaderProps) {
+  const theme = useBusinessPanelTheme()
+
+  const participantsLabel =
+    participantsCount === 1 ? '1 participante' : `${participantsCount} participantes`
+
   return (
     <div
-      className="flex items-center justify-between px-5 py-4 border-b border-white/5"
+      className="border-b px-5 py-4"
       style={{
-        background: '#1E2329' // Using NodeDashboard style or simple dark bg
+        backgroundColor: theme.panelBg,
+        borderColor: theme.dividerColor,
       }}
     >
-      <div className="flex items-center gap-3">
-        <div className="relative">
-          <div className="w-11 h-11 rounded-full bg-[#2A3038] border border-white/10 flex items-center justify-center">
-            <Users className="w-5 h-5 text-white/60" />
-          </div>
-          <div
-            className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#1E2329] bg-emerald-500"
-          />
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h2
+            className="truncate text-base font-semibold"
+            style={{ color: theme.textColor }}
+          >
+            {title}
+          </h2>
+          {description && (
+            <p
+              className="mt-1 line-clamp-2 text-sm"
+              style={{ color: theme.subtextColor }}
+            >
+              {description}
+            </p>
+          )}
         </div>
 
-        <div>
-          <h3 className="font-bold text-sm text-white">
-            {title}
-          </h3>
-          <p className="text-xs text-white/40">
-            {participantsCount} participante{participantsCount !== 1 ? 's' : ''} • {onlineCount} en línea
-          </p>
+        <div
+          className="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium"
+          style={{
+            backgroundColor: theme.hoverBg,
+            color: theme.subtextColor,
+            border: `1px solid ${theme.borderColor}`,
+          }}
+        >
+          <Users className="h-3.5 w-3.5" />
+          <span>{participantsLabel}</span>
+          {onlineCount > 0 && (
+            <>
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: theme.successColor }}
+              />
+              <span>{onlineCount} en linea</span>
+            </>
+          )}
         </div>
       </div>
-
-      <button className="p-2 rounded-full hover:bg-white/5 transition-colors text-white/40 hover:text-white">
-        <MoreVertical className="w-4 h-4" />
-      </button>
     </div>
   )
 }

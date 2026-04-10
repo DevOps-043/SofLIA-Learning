@@ -1,17 +1,18 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { Check, Moon, Sparkles, Sun } from 'lucide-react';
-import type { ThemeConfig } from '../../config/preset-themes';
+import { motion } from 'framer-motion'
+import { Check, Moon, Sparkles, Sun } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import type { ThemeConfig } from '../../config/preset-themes'
 
 interface BusinessThemeCustomizerThemesProps {
-  allThemes: ThemeConfig[];
-  isSaving: boolean;
-  selectedThemeId: string | null | undefined;
-  getThemeIcon: (themeId: string) => string;
-  getThemeColor: (theme: ThemeConfig) => string;
-  isThemeSelected: (themeId: string) => boolean;
-  onApplyTheme: (themeId: string) => Promise<void>;
+  allThemes: ThemeConfig[]
+  isSaving: boolean
+  selectedThemeId: string | null | undefined
+  getThemeIcon: (themeId: string) => string
+  getThemeColor: (theme: ThemeConfig) => string
+  isThemeSelected: (themeId: string) => boolean
+  onApplyTheme: (themeId: string) => Promise<void>
 }
 
 export function BusinessThemeCustomizerThemes({
@@ -23,104 +24,133 @@ export function BusinessThemeCustomizerThemes({
   isThemeSelected,
   onApplyTheme,
 }: BusinessThemeCustomizerThemesProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
-      className="relative overflow-hidden rounded-2xl p-5 border backdrop-blur-xl"
+      className="relative overflow-hidden rounded-2xl border p-5 backdrop-blur-xl"
       style={{
-        backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: theme.cardBg,
+        borderColor: theme.borderColor,
       }}
     >
-      <div className="flex items-center justify-between mb-5">
+      <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30">
-            <Sparkles className="w-4 h-4 text-amber-400" />
+          <div
+            className="rounded-lg border p-2"
+            style={{
+              backgroundColor: `${theme.warningColor}12`,
+              borderColor: `${theme.warningColor}33`,
+            }}
+          >
+            <Sparkles className="h-4 w-4" style={{ color: theme.warningColor }} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Temas Predefinidos</h3>
-            <p className="text-xs text-white/50">Selecciona un tema para aplicar</p>
+            <h3 className="text-base font-bold" style={{ color: theme.textColor }}>
+              Temas predefinidos
+            </h3>
+            <p className="text-xs" style={{ color: theme.subtextColor }}>
+              Selecciona un tema para aplicar
+            </p>
           </div>
         </div>
-        {selectedThemeId && (
-          <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            Tema Activo
+        {selectedThemeId ? (
+          <span
+            className="rounded-lg border px-3 py-1.5 text-xs font-medium"
+            style={{
+              backgroundColor: theme.actionSurface,
+              color: theme.actionColor,
+              borderColor: `${theme.actionColor}33`,
+            }}
+          >
+            Tema activo
           </span>
-        )}
+        ) : null}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-        {allThemes.map((theme, index) => {
-          const themeSelected = isThemeSelected(theme.id);
-          const showAutoBadge = theme.id === 'branding-personalizado';
-          const showDualModeBadge = theme.supportsDualMode && !showAutoBadge;
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {allThemes.map((presetTheme, index) => {
+          const themeSelected = isThemeSelected(presetTheme.id)
+          const showAutoBadge = presetTheme.id === 'branding-personalizado'
+          const showDualModeBadge = presetTheme.supportsDualMode && !showAutoBadge
 
           return (
             <motion.button
-              key={theme.id}
-              onClick={() => void onApplyTheme(theme.id)}
+              key={presetTheme.id}
+              type="button"
+              onClick={() => void onApplyTheme(presetTheme.id)}
               disabled={isSaving}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               whileHover={{ scale: 1.03, y: -4 }}
               whileTap={{ scale: 0.98 }}
-              className="group relative p-3 rounded-xl text-left transition-all duration-300"
+              className="group relative rounded-xl p-3 text-left transition-all duration-300"
               style={{
-                background: themeSelected
-                  ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.15))'
-                  : 'rgba(255, 255, 255, 0.03)',
+                backgroundColor: themeSelected ? theme.actionSurface : theme.inputBg,
                 border: themeSelected
-                  ? '2px solid rgba(139, 92, 246, 0.5)'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
+                  ? `2px solid ${theme.actionColor}`
+                  : `1px solid ${theme.borderColor}`,
               }}
             >
               <div
-                className="w-full aspect-[4/3] rounded-lg mb-2.5 flex items-center justify-center text-xl font-bold text-white relative overflow-hidden"
-                style={{ background: getThemeColor(theme) }}
+                className="relative mb-2.5 flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-lg text-xl font-bold text-white"
+                style={{ background: getThemeColor(presetTheme) }}
               >
                 <motion.span
                   className="relative z-10"
                   animate={themeSelected ? { scale: [1, 1.1, 1] } : {}}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
-                  {getThemeIcon(theme.id)}
+                  {getThemeIcon(presetTheme.id)}
                 </motion.span>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
               </div>
 
-              <h4 className="font-semibold text-xs text-white truncate mb-0.5">{theme.name}</h4>
-              <p className="text-[10px] text-white/50 line-clamp-2 leading-tight">{theme.description}</p>
+              <h4 className="mb-0.5 truncate text-xs font-semibold" style={{ color: theme.textColor }}>
+                {presetTheme.name}
+              </h4>
+              <p className="line-clamp-2 text-[10px] leading-tight" style={{ color: theme.subtextColor }}>
+                {presetTheme.description}
+              </p>
 
-              {themeSelected && (
+              {themeSelected ? (
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center"
+                  className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full"
+                  style={{ backgroundColor: theme.actionColor }}
                 >
-                  <Check className="w-3 h-3 text-white" />
+                  <Check className="h-3 w-3" style={{ color: theme.onActionColor }} />
                 </motion.div>
-              )}
+              ) : null}
 
-              {showAutoBadge && (
-                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+              {showAutoBadge ? (
+                <div
+                  className="absolute left-2 top-2 rounded px-1.5 py-0.5 text-[9px] font-bold text-white"
+                  style={{ backgroundColor: theme.warningColor }}
+                >
                   AUTO
                 </div>
-              )}
+              ) : null}
 
-              {showDualModeBadge && (
-                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[9px] font-bold bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1">
-                  <Sun className="w-2.5 h-2.5" />
+              {showDualModeBadge ? (
+                <div
+                  className="absolute left-2 top-2 flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-bold text-white"
+                  style={{ backgroundColor: theme.secondaryColor }}
+                >
+                  <Sun className="h-2.5 w-2.5" />
                   <span>/</span>
-                  <Moon className="w-2.5 h-2.5" />
+                  <Moon className="h-2.5 w-2.5" />
                 </div>
-              )}
+              ) : null}
             </motion.button>
-          );
+          )
         })}
       </div>
     </motion.div>
-  );
+  )
 }

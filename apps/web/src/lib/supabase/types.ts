@@ -1798,43 +1798,55 @@ export type Database = {
       }
       lesson_activities: {
         Row: {
+          activity_config: Json | null
           activity_content: string
           activity_description: string | null
           activity_id: string
           activity_order_index: number
+          activity_schema_version: number
           activity_title: string
           activity_type: string
           ai_prompts: string | null
           created_at: string | null
           estimated_time_minutes: number | null
+          external_tool_key: string | null
           is_required: boolean | null
           lesson_id: string
+          requires_soflia_validation: boolean
         }
         Insert: {
+          activity_config?: Json | null
           activity_content: string
           activity_description?: string | null
           activity_id?: string
           activity_order_index?: number
+          activity_schema_version?: number
           activity_title: string
           activity_type: string
           ai_prompts?: string | null
           created_at?: string | null
           estimated_time_minutes?: number | null
+          external_tool_key?: string | null
           is_required?: boolean | null
           lesson_id: string
+          requires_soflia_validation?: boolean
         }
         Update: {
+          activity_config?: Json | null
           activity_content?: string
           activity_description?: string | null
           activity_id?: string
           activity_order_index?: number
+          activity_schema_version?: number
           activity_title?: string
           activity_type?: string
           ai_prompts?: string | null
           created_at?: string | null
           estimated_time_minutes?: number | null
+          external_tool_key?: string | null
           is_required?: boolean | null
           lesson_id?: string
+          requires_soflia_validation?: boolean
         }
         Relationships: [
           {
@@ -5985,6 +5997,200 @@ export type Database = {
           },
         ]
       }
+      user_activity_evaluations: {
+        Row: {
+          created_at: string
+          evaluation_id: string
+          evaluator: string
+          feedback_payload: Json
+          model_name: string | null
+          result_status: string
+          rubric_snapshot: Json
+          submission_id: string
+        }
+        Insert: {
+          created_at?: string
+          evaluation_id?: string
+          evaluator?: string
+          feedback_payload?: Json
+          model_name?: string | null
+          result_status: string
+          rubric_snapshot?: Json
+          submission_id: string
+        }
+        Update: {
+          created_at?: string
+          evaluation_id?: string
+          evaluator?: string
+          feedback_payload?: Json
+          model_name?: string | null
+          result_status?: string
+          rubric_snapshot?: Json
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_evaluations_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "user_activity_submissions"
+            referencedColumns: ["submission_id"]
+          },
+        ]
+      }
+      user_activity_submissions: {
+        Row: {
+          activity_id: string
+          course_id: string
+          created_at: string
+          enrollment_id: string
+          evidence_payload: Json | null
+          last_validated_at: string | null
+          lesson_id: string
+          organization_id: string | null
+          response_payload: Json
+          response_text: string | null
+          status: string
+          submission_id: string
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          course_id: string
+          created_at?: string
+          enrollment_id: string
+          evidence_payload?: Json | null
+          last_validated_at?: string | null
+          lesson_id: string
+          organization_id?: string | null
+          response_payload?: Json
+          response_text?: string | null
+          status?: string
+          submission_id?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          course_id?: string
+          created_at?: string
+          enrollment_id?: string
+          evidence_payload?: Json | null
+          last_validated_at?: string | null
+          lesson_id?: string
+          organization_id?: string | null
+          response_payload?: Json
+          response_text?: string | null
+          status?: string
+          submission_id?: string
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_submissions_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_activities"
+            referencedColumns: ["activity_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "v_incomplete_lesson_times"
+            referencedColumns: ["course_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "user_course_enrollments"
+            referencedColumns: ["enrollment_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "course_lessons"
+            referencedColumns: ["lesson_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "v_incomplete_lesson_times"
+            referencedColumns: ["lesson_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "v_lessons_by_session_type_compatibility"
+            referencedColumns: ["lesson_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_organization_stats"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "v_organization_users_detailed"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_stats"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_organization_users_detailed"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_activity_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_security_summary"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       user_invitations: {
         Row: {
           accepted_at: string | null
@@ -6192,11 +6398,13 @@ export type Database = {
       }
       user_lesson_progress: {
         Row: {
+          activity_progress_percentage: number
           completed_at: string | null
           created_at: string | null
           current_time_seconds: number | null
           enrollment_id: string
           is_completed: boolean | null
+          last_activity_submission_at: string | null
           last_accessed_at: string | null
           lesson_id: string
           lesson_status: string | null
@@ -6205,6 +6413,8 @@ export type Database = {
           quiz_completed: boolean | null
           quiz_passed: boolean | null
           quiz_progress_percentage: number | null
+          required_activities_completed: number
+          required_activities_total: number
           started_at: string | null
           time_spent_minutes: number | null
           updated_at: string | null
@@ -6212,11 +6422,13 @@ export type Database = {
           video_progress_percentage: number | null
         }
         Insert: {
+          activity_progress_percentage?: number
           completed_at?: string | null
           created_at?: string | null
           current_time_seconds?: number | null
           enrollment_id: string
           is_completed?: boolean | null
+          last_activity_submission_at?: string | null
           last_accessed_at?: string | null
           lesson_id: string
           lesson_status?: string | null
@@ -6225,6 +6437,8 @@ export type Database = {
           quiz_completed?: boolean | null
           quiz_passed?: boolean | null
           quiz_progress_percentage?: number | null
+          required_activities_completed?: number
+          required_activities_total?: number
           started_at?: string | null
           time_spent_minutes?: number | null
           updated_at?: string | null
@@ -6232,11 +6446,13 @@ export type Database = {
           video_progress_percentage?: number | null
         }
         Update: {
+          activity_progress_percentage?: number
           completed_at?: string | null
           created_at?: string | null
           current_time_seconds?: number | null
           enrollment_id?: string
           is_completed?: boolean | null
+          last_activity_submission_at?: string | null
           last_accessed_at?: string | null
           lesson_id?: string
           lesson_status?: string | null
@@ -6245,6 +6461,8 @@ export type Database = {
           quiz_completed?: boolean | null
           quiz_passed?: boolean | null
           quiz_progress_percentage?: number | null
+          required_activities_completed?: number
+          required_activities_total?: number
           started_at?: string | null
           time_spent_minutes?: number | null
           updated_at?: string | null

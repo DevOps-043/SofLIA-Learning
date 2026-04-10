@@ -99,18 +99,22 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
             <MessageCircle className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Preguntas</h2>
-            <p className="text-xs text-gray-500 dark:text-white/40">{questionCountLabel}</p>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Preguntas
+            </h2>
+            <p className="text-xs text-gray-500 dark:text-white/40">
+              {questionCountLabel}
+            </p>
           </div>
         </div>
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => setShowCreateForm(true)}
-          className="px-4 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
+          className="px-4 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
         >
           <Plus className="w-4 h-4" />
-          Nueva Pregunta
+          Nueva pregunta
         </motion.button>
       </div>
 
@@ -124,7 +128,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
           onKeyDown={handleSearchKeyDown}
-          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-gray-300 dark:focus:border-white/20 transition-colors shadow-sm dark:shadow-none"
+          className="w-full pl-11 pr-10 py-3 bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white text-sm placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-colors shadow-sm dark:shadow-none"
         />
         {searchQuery && (
           <button
@@ -163,10 +167,10 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowCreateForm(true)}
-              className="px-5 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
+              className="px-5 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] text-sm font-medium rounded-xl transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Hacer Primera Pregunta
+              Hacer primera pregunta
             </motion.button>
           )}
         </motion.div>
@@ -210,7 +214,7 @@ export function QuestionsSection({ slug }: QuestionsSectionProps) {
                       </span>
 
                       {question.is_pinned && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-medium text-amber-600 bg-amber-50 rounded">
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium text-amber-700 bg-amber-50 rounded">
                           Fijada
                         </span>
                       )}

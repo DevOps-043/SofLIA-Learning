@@ -172,6 +172,7 @@ export function useNotesEditorState({
 
   const handleSave = async () => {
     if (!hasNoteContent(content)) {
+      onClose();
       return;
     }
 

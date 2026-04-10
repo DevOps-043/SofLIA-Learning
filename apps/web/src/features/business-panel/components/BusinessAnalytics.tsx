@@ -1,8 +1,15 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import { BarChart3, Target, UserCheck, Users, UsersRound, XCircle } from 'lucide-react'
-import Image from 'next/image'
+import {
+  BarChart3,
+  Sparkles,
+  Target,
+  UserCheck,
+  Users,
+  UsersRound,
+  XCircle,
+} from 'lucide-react'
 import { EngagementAnalytics } from './EngagementAnalytics'
 import {
   BusinessAnalyticsOverview,
@@ -24,11 +31,7 @@ export function BusinessAnalytics() {
     setActiveTab,
     selectedUser,
     setSelectedUser,
-    cardBg,
-    cardBorder,
-    textColor,
-    accentColor,
-    secondaryColor,
+    panelTheme,
   } = useBusinessAnalyticsLogic()
 
   if (isLoading) {
@@ -37,9 +40,12 @@ export function BusinessAnalytics() {
         <div className="text-center">
           <div
             className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4"
-            style={{ borderColor: `${accentColor}30`, borderTopColor: accentColor }}
+            style={{
+              borderColor: `${panelTheme.accentColor}30`,
+              borderTopColor: panelTheme.accentColor,
+            }}
           />
-          <p className="opacity-70" style={{ color: textColor }}>
+          <p className="opacity-70" style={{ color: panelTheme.textColor }}>
             {t('analytics.loading')}
           </p>
         </div>
@@ -49,13 +55,25 @@ export function BusinessAnalytics() {
 
   if (error) {
     return (
-      <div className="text-center py-20">
-        <XCircle className="w-16 h-16 mx-auto mb-4 text-red-400" />
-        <p className="text-lg mb-4 text-red-400">{error}</p>
+      <div
+        className="rounded-3xl border p-8 text-center"
+        style={{
+          backgroundColor: panelTheme.cardBg,
+          borderColor: panelTheme.borderColor,
+          color: panelTheme.textColor,
+        }}
+      >
+        <XCircle className="w-16 h-16 mx-auto mb-4" style={{ color: panelTheme.dangerColor }} />
+        <p className="text-lg mb-4" style={{ color: panelTheme.dangerColor }}>
+          {error}
+        </p>
         <button
           onClick={refetch}
-          className="px-6 py-2 rounded-xl transition-all"
-          style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+          className="px-6 py-2 rounded-xl transition-all font-semibold"
+          style={{
+            backgroundColor: `${panelTheme.accentColor}20`,
+            color: panelTheme.accentColor,
+          }}
         >
           {t('analytics.retry')}
         </button>
@@ -66,7 +84,7 @@ export function BusinessAnalytics() {
   if (!data) {
     return (
       <div className="text-center py-20">
-        <p className="opacity-70" style={{ color: textColor }}>
+        <p className="opacity-70" style={{ color: panelTheme.textColor }}>
           {t('analytics.noData')}
         </p>
       </div>
@@ -74,70 +92,85 @@ export function BusinessAnalytics() {
   }
 
   return (
-    <div
-      className="w-full space-y-8 text-gray-900 dark:text-slate-50"
-      style={{ ...(textColor ? { color: textColor } : {}) }}
-    >
+    <div className="w-full space-y-8" style={{ color: panelTheme.textColor }}>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-3xl p-8 shadow-xl"
-        style={{
-          backgroundColor: '#0A2540',
-          color: '#FFFFFF',
-        }}
+        transition={{ duration: 0.6 }}
+        className="relative overflow-hidden rounded-[32px] border p-8 md:p-10 group"
+        style={{ borderColor: panelTheme.heroBorderColor }}
       >
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/teams-header.png"
-            alt="Analytics Header"
-            fill
-            className="object-cover"
-            style={{ opacity: 0.5 }}
-            priority
-          />
-        </div>
-
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0A2540]/90 via-[#0A2540]/50 to-transparent z-0 pointer-events-none" />
-
         <div
-          className="absolute inset-0 opacity-10 z-0 pointer-events-none"
+          className="absolute inset-0 z-0"
           style={{
-            backgroundImage: 'radial-gradient(white 1px, transparent 1px)',
-            backgroundSize: '30px 30px',
+            background: panelTheme.heroBackground,
           }}
         />
 
+        <div className="absolute inset-0 opacity-10">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.9) 1px, transparent 0)',
+              backgroundSize: '30px 30px',
+            }}
+          />
+        </div>
+
+        <motion.div
+          animate={{ y: [0, -10, 0], opacity: [0.4, 0.9, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute top-12 right-24 w-3 h-3 rounded-full"
+          style={{ backgroundColor: panelTheme.accentColor }}
+        />
+        <motion.div
+          animate={{ y: [0, 10, 0], opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, delay: 0.8 }}
+          className="absolute bottom-10 right-40 w-2 h-2 rounded-full"
+          style={{ backgroundColor: panelTheme.accentColor }}
+        />
+
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-inner">
-              <BarChart3 className="w-5 h-5" style={{ color: '#FFFFFF' }} />
+          <div className="flex items-center gap-3 mb-3">
+            <div
+              className="p-3 rounded-2xl border backdrop-blur-md"
+              style={{
+                backgroundColor: panelTheme.inverseSurface,
+                borderColor: panelTheme.inverseBorderColor,
+              }}
+            >
+              <BarChart3 className="w-5 h-5" style={{ color: panelTheme.accentColor }} />
             </div>
             <span
-              className="text-sm font-bold tracking-widest uppercase drop-shadow-sm"
-              style={{ color: 'rgba(219, 234, 254, 0.9)' }}
+              className="text-sm font-semibold tracking-wider uppercase"
+              style={{ color: panelTheme.accentColor }}
             >
               {t('analytics.center')}
             </span>
+            <Sparkles className="w-4 h-4" style={{ color: panelTheme.accentColor }} />
           </div>
 
           <h1
-            className="text-3xl md:text-4xl font-bold mb-3 tracking-tight drop-shadow-md"
-            style={{ color: '#FFFFFF' }}
+            className="text-3xl md:text-4xl font-bold mb-2"
+            style={{ color: panelTheme.inverseTextColor }}
           >
             {t('analytics.headerTitle')}
           </h1>
 
-          <p
-            className="text-base max-w-2xl leading-relaxed drop-shadow-sm"
-            style={{ color: '#EFF6FF' }}
-          >
+          <p className="text-lg max-w-3xl" style={{ color: panelTheme.inverseSubtextColor }}>
             {t('analytics.headerSubtitle')}
           </p>
         </div>
       </motion.div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div
+        className="flex flex-wrap gap-2 p-1 rounded-2xl w-fit"
+        style={{
+          backgroundColor: panelTheme.cardBg,
+          border: `1px solid ${panelTheme.borderColor}`,
+        }}
+      >
         <TabButton
           isActive={activeTab === 'overview'}
           onClick={() => setActiveTab('overview')}
@@ -165,15 +198,10 @@ export function BusinessAnalytics() {
       </div>
 
       <div className="min-h-[500px]">
-        {activeTab === 'overview' && (
-          <BusinessAnalyticsOverview data={data} accentColor={accentColor} />
-        )}
+        {activeTab === 'overview' && <BusinessAnalyticsOverview data={data} />}
 
         {activeTab === 'users' && (
-          <BusinessAnalyticsUsersTable
-            users={data.user_analytics}
-            onSelectUser={setSelectedUser}
-          />
+          <BusinessAnalyticsUsersTable users={data.user_analytics} onSelectUser={setSelectedUser} />
         )}
 
         {activeTab === 'engagement' && (
@@ -187,13 +215,7 @@ export function BusinessAnalytics() {
           </motion.div>
         )}
 
-        {activeTab === 'teams' && (
-          <BusinessAnalyticsTeams
-            teams={data.teams}
-            accentColor={accentColor}
-            secondaryColor={secondaryColor}
-          />
-        )}
+        {activeTab === 'teams' && <BusinessAnalyticsTeams teams={data.teams} />}
       </div>
 
       <AnimatePresence>
@@ -201,7 +223,6 @@ export function BusinessAnalytics() {
           <BusinessAnalyticsUserDetailModal
             user={selectedUser}
             onClose={() => setSelectedUser(null)}
-            theme={{ cardBg, cardBorder, accentColor, textColor, secondaryColor }}
           />
         )}
       </AnimatePresence>

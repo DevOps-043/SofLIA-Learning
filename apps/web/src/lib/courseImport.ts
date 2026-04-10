@@ -117,9 +117,12 @@ export function extractVideoInfo(url: string): { provider: 'youtube' | 'vimeo' |
     return { provider: 'custom', id: url }
 }
 
-export function normalizeQuizData(data?: QuizSourceData | null) {
-    if (!data) return null
-    const rawItems = Array.isArray(data.questions) ? data.questions : (Array.isArray(data.items) ? data.items : [])
+export function normalizeQuizData(data?: unknown) {
+    if (!data || typeof data !== 'object') return null
+    const quizData = data as QuizSourceData
+    const rawItems = Array.isArray(quizData.questions)
+        ? quizData.questions
+        : (Array.isArray(quizData.items) ? quizData.items : [])
     const questions = rawItems.map((q) => {
         const options = Array.isArray(q.options) ? q.options.map(String) : []
         let correctAnswer = q.correctAnswer ?? q.correct_answer ?? ''
@@ -135,7 +138,7 @@ export function normalizeQuizData(data?: QuizSourceData | null) {
             points: Number(q.points) || 1,
         }
     })
-    return { ...data, questions, items: undefined, passing_score: Number(data.passing_score) || 80 }
+    return { ...quizData, questions, items: undefined, passing_score: Number(quizData.passing_score) || 80 }
 }
 
 export async function resolveInstructor(
@@ -360,9 +363,9 @@ export async function updateExistingCourseFromPayload(
 // ─── Build course-like object from payload for the detail review UI ───────────
 
 export function buildCoursePreviewFromPayload(staging: StagingCoursePreview) {
-    const payload = staging.payload ?? {}
-    const courseData = payload.course ?? {}
-    const modules = payload.modules ?? []
+    const payload: Partial<CourseEnginePayload> = staging.payload ?? {}
+    const courseData: Partial<CourseEngineCourseData> = payload.course ?? {}
+    const modules: CourseEngineModule[] = payload.modules ?? []
 
     return {
         id: staging.id,                         // stagingId — used by approve/reject actions

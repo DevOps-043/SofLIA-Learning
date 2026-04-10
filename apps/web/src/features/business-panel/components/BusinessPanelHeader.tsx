@@ -8,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
 import { hexToRgb } from '../utils/styles'
 import { useLanguage } from '../../../core/providers/I18nProvider'
@@ -40,6 +41,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { language, setLanguage } = useLanguage()
   const { t } = useTranslation(['business', 'common'])
   const { theme, resolvedTheme, setTheme } = useThemeStore()
+  const panelTheme = useBusinessPanelTheme()
   const tourContext = useBusinessPanelTourOptional()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -49,6 +51,11 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
     { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
   ]
 
+  const languageOptionsDisplay = [
+    { value: 'es' as const, label: 'Español', flag: '🇪🇸' },
+    { value: 'en' as const, label: 'English', flag: '🇺🇸' },
+    { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
+  ]
   const organization = businessData?.organization
 
   // Calcular estilos del navbar
@@ -176,7 +183,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                   <div
                     className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-lg"
                     style={{
-                      background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))'
+                      background: `linear-gradient(135deg, ${panelTheme.actionColor}, ${panelTheme.secondaryColor})`
                     }}
                   >
                     <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
@@ -212,7 +219,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               <div
                 className="h-9 w-9 rounded-full flex items-center justify-center transition-all shadow-sm"
                 style={{
-                  background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))',
+                  background: `linear-gradient(135deg, ${panelTheme.actionColor}, ${panelTheme.secondaryColor})`,
                   boxShadow: resolvedTheme === 'light' ? '0 0 0 2px rgba(0,0,0,0.1)' : '0 0 0 2px rgba(255,255,255,0.2)'
                 }}
               >
@@ -267,7 +274,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         <div
                           className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-white/20"
                           style={{
-                            background: 'linear-gradient(135deg, var(--org-primary-button-color, #3b82f6), var(--org-secondary-button-color, #10b981))'
+                            background: `linear-gradient(135deg, ${panelTheme.actionColor}, ${panelTheme.secondaryColor})`
                           }}
                         >
                           {userProfile?.profile_picture_url || user?.profile_picture_url ? (
@@ -388,7 +395,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           <Globe className="h-4 w-4 opacity-70" />
                           <span className="flex-1 text-left">{t('common:language')}</span>
                           <div className="flex items-center gap-1">
-                            <span className="text-xs">{languageOptions.find(l => l.value === language)?.flag}</span>
+                            <span className="text-xs">{languageOptionsDisplay.find(l => l.value === language)?.flag}</span>
                             <ChevronRight
                               className={`h-3.5 w-3.5 transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`}
                               style={{ opacity: 0.7 }}
@@ -405,7 +412,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                               className="overflow-hidden"
                               style={{ backgroundColor: navbarStyle.hoverBg }}
                             >
-                              {languageOptions.map((opt) => {
+                              {languageOptionsDisplay.map((opt) => {
                                 const isActive = language === opt.value
                                 return (
                                   <button
@@ -416,7 +423,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                                     }}
                                     className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
                                     style={{
-                                      color: isActive ? '#00D4B3' : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
+                                      color: isActive ? panelTheme.actionColor : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
                                     }}
                                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = navbarStyle.hoverBg}
                                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}

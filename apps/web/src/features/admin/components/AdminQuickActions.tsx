@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { 
   PlusIcon,
   BookOpenIcon,
@@ -9,7 +10,7 @@ import {
   ChatBubbleLeftRightIcon,
   CpuChipIcon,
   NewspaperIcon,
-  Cog6ToothIcon
+  ArrowRightIcon
 } from '@heroicons/react/24/outline'
 
 interface QuickAction {
@@ -18,7 +19,8 @@ interface QuickAction {
   description: string
   href: string
   icon: typeof PlusIcon
-  color: string
+  gradient: string
+  shadow: string
 }
 
 const quickActions: QuickAction[] = [
@@ -28,7 +30,8 @@ const quickActions: QuickAction[] = [
     description: 'Crear un nuevo usuario en el sistema',
     href: '/admin/users/create',
     icon: PlusIcon,
-    color: 'blue'
+    gradient: 'from-blue-500 to-blue-600',
+    shadow: 'shadow-blue-500/20'
   },
   {
     id: 'create-workshop',
@@ -36,7 +39,8 @@ const quickActions: QuickAction[] = [
     description: 'Añadir un nuevo taller a la plataforma',
     href: '/admin/workshops/create',
     icon: BookOpenIcon,
-    color: 'green'
+    gradient: 'from-[#10B981] to-[#059669]',
+    shadow: 'shadow-emerald-500/20'
   },
   {
     id: 'create-community',
@@ -44,7 +48,8 @@ const quickActions: QuickAction[] = [
     description: 'Crear una nueva comunidad',
     href: '/admin/communities/create',
     icon: UserGroupIcon,
-    color: 'purple'
+    gradient: 'from-purple-500 to-indigo-600',
+    shadow: 'shadow-purple-500/20'
   },
   {
     id: 'add-prompt',
@@ -52,7 +57,8 @@ const quickActions: QuickAction[] = [
     description: 'Añadir un nuevo prompt al directorio',
     href: '/admin/prompts/create',
     icon: ChatBubbleLeftRightIcon,
-    color: 'orange'
+    gradient: 'from-amber-500 to-orange-600',
+    shadow: 'shadow-amber-500/20'
   },
   {
     id: 'add-ai-app',
@@ -60,7 +66,8 @@ const quickActions: QuickAction[] = [
     description: 'Añadir una nueva aplicación de IA',
     href: '/admin/apps/create',
     icon: CpuChipIcon,
-    color: 'red'
+    gradient: 'from-red-500 to-rose-600',
+    shadow: 'shadow-red-500/20'
   },
   {
     id: 'create-news',
@@ -68,91 +75,57 @@ const quickActions: QuickAction[] = [
     description: 'Publicar una nueva noticia',
     href: '/admin/news/create',
     icon: NewspaperIcon,
-    color: 'indigo'
+    gradient: 'from-indigo-500 to-blue-700',
+    shadow: 'shadow-indigo-500/20'
   }
 ]
 
 export function AdminQuickActions() {
-  const [hoveredAction, setHoveredAction] = useState<string | null>(null)
-
-  const getColorClasses = (color: string) => {
-    const colorMap = {
-      blue: {
-        bg: 'bg-blue-50 dark:bg-blue-900/20',
-        icon: 'text-blue-600 dark:text-blue-400',
-        hover: 'hover:bg-blue-100 dark:hover:bg-blue-900/30'
-      },
-      green: {
-        bg: 'bg-green-50 dark:bg-green-900/20',
-        icon: 'text-green-600 dark:text-green-400',
-        hover: 'hover:bg-green-100 dark:hover:bg-green-900/30'
-      },
-      purple: {
-        bg: 'bg-purple-50 dark:bg-purple-900/20',
-        icon: 'text-purple-600 dark:text-purple-400',
-        hover: 'hover:bg-purple-100 dark:hover:bg-purple-900/30'
-      },
-      orange: {
-        bg: 'bg-orange-50 dark:bg-orange-900/20',
-        icon: 'text-orange-600 dark:text-orange-400',
-        hover: 'hover:bg-orange-100 dark:hover:bg-orange-900/30'
-      },
-      red: {
-        bg: 'bg-red-50 dark:bg-red-900/20',
-        icon: 'text-red-600 dark:text-red-400',
-        hover: 'hover:bg-red-100 dark:hover:bg-red-900/30'
-      },
-      indigo: {
-        bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-        icon: 'text-indigo-600 dark:text-indigo-400',
-        hover: 'hover:bg-indigo-100 dark:hover:bg-indigo-900/30'
-      }
-    }
-    return colorMap[color as keyof typeof colorMap] || colorMap.blue
-  }
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {quickActions.map((action) => {
-        const colors = getColorClasses(action.color)
-        const isHovered = hoveredAction === action.id
-        
-        return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      {quickActions.map((action, index) => (
+        <motion.div
+          key={action.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          whileHover={{ y: -5 }}
+          className="relative group"
+        >
           <Link
-            key={action.id}
             href={action.href}
-            className={`
-              group relative bg-gray-800 rounded-lg border border-gray-700 p-6 
-              transition-all duration-300 hover:shadow-lg hover:scale-105 ${colors.hover}
-            `}
-            onMouseEnter={() => setHoveredAction(action.id)}
-            onMouseLeave={() => setHoveredAction(null)}
+            className="block h-full bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-white/5 p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative"
           >
-            <div className="flex items-start">
-              <div className={`flex-shrink-0 p-3 rounded-lg ${colors.bg} transition-transform duration-300 ${isHovered ? 'scale-110' : ''}`}>
-                <action.icon className={`h-6 w-6 ${colors.icon}`} />
+            {/* Hover Gradient Overlay */}
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity duration-500 bg-gradient-to-br ${action.gradient}`} />
+            
+            <div className="relative z-10 flex items-start gap-4">
+              <div className={`shrink-0 p-3 rounded-xl bg-gradient-to-br ${action.gradient} text-white shadow-lg ${action.shadow} group-hover:scale-110 transition-transform duration-300`}>
+                <action.icon className="h-6 w-6" />
               </div>
-              <div className="ml-4 flex-1">
-                <h3 className="text-lg font-medium text-white group-hover:text-gray-300 transition-colors">
+              
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-[#0A2540] dark:text-white group-hover:text-[#00D4B3] transition-colors duration-300">
                   {action.name}
                 </h3>
-                <p className="mt-1 text-sm text-gray-400">
+                <p className="mt-1 text-sm text-[#6C757D] dark:text-white/60 line-clamp-2">
                   {action.description}
                 </p>
               </div>
-              <div className="flex-shrink-0">
-                <PlusIcon className={`h-5 w-5 text-gray-400 group-hover:text-gray-300 transition-all duration-300 ${isHovered ? 'rotate-90' : ''}`} />
+
+              <div className="shrink-0 self-center">
+                 <ArrowRightIcon className="h-5 w-5 text-[#6C757D] dark:text-white/40 group-hover:text-[#00D4B3] group-hover:translate-x-1 transition-all duration-300" />
               </div>
             </div>
-            
-            {/* Hover effect overlay */}
-            <div className={`
-              absolute inset-0 rounded-lg bg-gradient-to-r from-transparent to-white/5 dark:to-gray-700/5 
-              opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none
-            `} />
+
+            {/* Bottom Progress Indicator */}
+            <motion.div 
+               className={`absolute bottom-0 left-0 h-1 w-0 group-hover:w-1/3 bg-gradient-to-r ${action.gradient} transition-all duration-500`}
+            />
           </Link>
-        )
-      })}
+        </motion.div>
+      ))}
     </div>
   )
 }
+

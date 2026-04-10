@@ -352,7 +352,10 @@ export function useLessonCompletion({
           return false;
         }
 
-        if (responseData.code === "REQUIRED_QUIZ_NOT_PASSED") {
+        if (
+          responseData.code === "REQUIRED_QUIZ_NOT_PASSED" ||
+          responseData.code === "REQUIRED_ACTIVITY_NOT_COMPLETED"
+        ) {
           setModules((prevModules) =>
             prevModules.map((module) => ({
               ...module,
@@ -376,7 +379,7 @@ export function useLessonCompletion({
             message:
               responseData.details?.message ||
               responseData.error ||
-              "Debes completar y aprobar todos los quizzes obligatorios para continuar.",
+              "Debes completar todas las actividades obligatorias para continuar.",
             details: buildCompletionDetailsText(responseData.details),
             type: "activity",
             lessonId: lessonId,

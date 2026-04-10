@@ -43,7 +43,7 @@ export function buildUserContextSection(context: PlatformContext): string {
       'NUNCA uses /business-panel/... o /business-user/... sin el slug de organización.\n';
   }
 
-  if (context.userJobTitle || context.userRole || context.userCheck) {
+  if (context.userJobTitle || context.userCheck) {
     section += '\n### Perfil Profesional del Usuario (Personalización Obligatoria)\n';
 
     if (context.userJobTitle) {
@@ -54,8 +54,6 @@ export function buildUserContextSection(context: PlatformContext): string {
         '. Ten esto en cuenta para dar respuestas relevantes a su nivel, pero NO inicies frases diciendo "Como ' +
         context.userJobTitle +
         '..." a menos que sea estrictamente necesario para el contexto.\n';
-    } else if (context.userRole) {
-      section += '- Rol: ' + context.userRole + '\n';
     }
 
     if (context.userCheck?.area) section += '- Área: ' + context.userCheck.area + '\n';
@@ -64,7 +62,7 @@ export function buildUserContextSection(context: PlatformContext): string {
 
     section += '\nINSTRUCCIÓN DE ADAPTACIÓN: El usuario es un profesional en activo.\n';
     section +=
-      'Usa su "Cargo Actual" y "Área" para dar ejemplos de negocios concretos, pero mantén la respuesta centrada en su consulta actual.\n';
+      'Usa su "Cargo Actual" para dar ejemplos de negocios concretos y contextualizar el aprendizaje a su realidad laboral.\n';
   }
 
   if (context.currentPage) {

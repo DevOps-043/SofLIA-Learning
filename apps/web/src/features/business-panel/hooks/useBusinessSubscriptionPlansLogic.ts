@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import { useSubscriptionFeatures } from './useSubscriptionFeatures'
+import { useBusinessPanelTheme } from './useBusinessPanelTheme'
 import { getPlanById, calculatePlanPrice, type BusinessPlanId, type BillingCycle } from '../services/subscription.utils'
 
 interface PlanFeature {
@@ -27,6 +28,7 @@ interface Plan {
 }
 
 export function useBusinessSubscriptionPlansLogic() {
+  const theme = useBusinessPanelTheme()
   const { plan: currentPlan, billingCycle: currentBillingCycle, subscription, loading: planLoading, changePlan, refetch } = useSubscriptionFeatures()
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(() => currentBillingCycle || 'yearly')
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
@@ -229,10 +231,10 @@ export function useBusinessSubscriptionPlansLogic() {
 
   const getPlanColor = (planId: string) => {
     switch (planId) {
-      case 'team': return 'bg-[#0A2540]'
-      case 'business': return 'bg-[#00D4B3]'
-      case 'enterprise': return 'bg-[#F59E0B]'
-      default: return 'bg-[#6C757D]'
+      case 'team': return theme.primaryColor
+      case 'business': return theme.accentColor
+      case 'enterprise': return theme.warningColor
+      default: return theme.secondaryColor
     }
   }
 

@@ -1,16 +1,18 @@
-'use client';
+'use client'
 
-import { AlertCircle } from 'lucide-react';
-import { useBusinessThemeCustomizerLogic } from '../hooks/useBusinessThemeCustomizerLogic';
+import { AlertCircle } from 'lucide-react'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { useBusinessThemeCustomizerLogic } from '../hooks/useBusinessThemeCustomizerLogic'
 import {
   BusinessThemeCustomizerActions,
   BusinessThemeCustomizerControls,
   BusinessThemeCustomizerHeader,
   BusinessThemeCustomizerPreview,
   BusinessThemeCustomizerThemes,
-} from './business-theme-customizer';
+} from './business-theme-customizer'
 
 export function BusinessThemeCustomizer() {
+  const theme = useBusinessPanelTheme()
   const {
     styles,
     loading,
@@ -38,29 +40,35 @@ export function BusinessThemeCustomizer() {
     handleSave,
     handleDiscard,
     handleReset,
-  } = useBusinessThemeCustomizerLogic();
+  } = useBusinessThemeCustomizerLogic()
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div
-          className="w-16 h-16 border-4 rounded-full animate-spin"
+          className="h-16 w-16 animate-spin rounded-full border-4"
           style={{
-            borderColor: 'var(--org-primary-button-color, #3b82f6)33',
-            borderTopColor: 'var(--org-primary-button-color, #3b82f6)',
+            borderColor: `${theme.actionColor}33`,
+            borderTopColor: theme.actionColor,
           }}
         />
       </div>
-    );
+    )
   }
 
   if (error) {
     return (
-      <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-6 text-center">
-        <AlertCircle className="w-8 h-8 text-red-400 mx-auto mb-2" />
-        <p className="text-red-400">{error}</p>
+      <div
+        className="rounded-lg border p-6 text-center"
+        style={{
+          backgroundColor: `${theme.dangerColor}12`,
+          borderColor: `${theme.dangerColor}33`,
+        }}
+      >
+        <AlertCircle className="mx-auto mb-2 h-8 w-8" style={{ color: theme.dangerColor }} />
+        <p style={{ color: theme.dangerColor }}>{error}</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -75,7 +83,7 @@ export function BusinessThemeCustomizer() {
         isThemeSelected={isThemeSelected}
         onApplyTheme={handleApplyTheme}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
         <BusinessThemeCustomizerControls
           activePanel={activePanel}
           currentStyles={currentStyles}
@@ -101,5 +109,5 @@ export function BusinessThemeCustomizer() {
         onSave={handleSave}
       />
     </div>
-  );
+  )
 }

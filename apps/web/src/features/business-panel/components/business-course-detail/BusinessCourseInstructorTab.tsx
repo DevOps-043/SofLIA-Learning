@@ -7,7 +7,8 @@ interface BusinessCourseInstructorTabProps {
   textColor: string
   primaryColor: string
   accentColor: string
-  isDark: boolean
+  onPrimaryColor: string
+  mutedTextColor: string
 }
 
 export function BusinessCourseInstructorTab({
@@ -15,35 +16,55 @@ export function BusinessCourseInstructorTab({
   textColor,
   primaryColor,
   accentColor,
-  isDark
+  onPrimaryColor,
+  mutedTextColor,
 }: BusinessCourseInstructorTabProps) {
   return (
-    <motion.div key="instructor" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+    <motion.div
+      key="instructor"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+    >
       {course.instructor ? (
         <div className="space-y-6">
           <div className="flex items-start gap-6">
             {course.instructor.profile_picture_url ? (
-              <div className="relative w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 border-2" style={{ borderColor: primaryColor }}>
-                <img src={course.instructor.profile_picture_url} alt={course.instructor.name} className="w-full h-full object-cover" />
+              <div
+                className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-2xl border-2"
+                style={{ borderColor: primaryColor }}
+              >
+                <img
+                  src={course.instructor.profile_picture_url}
+                  alt={course.instructor.name}
+                  className="h-full w-full object-cover"
+                />
               </div>
             ) : (
-              <div className="w-24 h-24 rounded-2xl flex items-center justify-center !text-white text-3xl font-bold flex-shrink-0" style={{ backgroundColor: primaryColor, color: '#FFFFFF' }}>
+              <div
+                className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-2xl text-3xl font-bold"
+                style={{ backgroundColor: primaryColor, color: onPrimaryColor }}
+              >
                 {course.instructor.name[0]?.toUpperCase()}
               </div>
             )}
             <div>
-              <h3 className="text-2xl font-bold mb-1" style={{ color: textColor }}>{course.instructor.name}</h3>
-              <p className="text-lg mb-4" style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}60` }}>Instructor</p>
+              <h3 className="mb-1 text-2xl font-bold" style={{ color: textColor }}>
+                {course.instructor.name}
+              </h3>
+              <p className="mb-4 text-lg" style={{ color: mutedTextColor }}>
+                Instructor
+              </p>
               <div className="flex items-center gap-3">
                 {course.instructor.linkedin_url ? (
                   <a
                     href={course.instructor.linkedin_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
-                    style={{ backgroundColor: '#0077B520', color: '#0077B5' }}
+                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
+                    style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
                   >
-                    <Linkedin className="w-5 h-5" />
+                    <Linkedin className="h-5 w-5" />
                   </a>
                 ) : null}
                 {course.instructor.github_url ? (
@@ -51,9 +72,10 @@ export function BusinessCourseInstructorTab({
                     href={course.instructor.github_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/10 text-white transition-colors hover:bg-white/20"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
+                    style={{ backgroundColor: `${textColor}12`, color: textColor }}
                   >
-                    <Github className="w-5 h-5" />
+                    <Github className="h-5 w-5" />
                   </a>
                 ) : null}
                 {course.instructor.website_url ? (
@@ -61,19 +83,19 @@ export function BusinessCourseInstructorTab({
                     href={course.instructor.website_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
                     style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
                   >
-                    <Globe className="w-5 h-5" />
+                    <Globe className="h-5 w-5" />
                   </a>
                 ) : null}
                 {course.instructor.email ? (
                   <a
                     href={`mailto:${course.instructor.email}`}
-                    className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
                     style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
                   >
-                    <Mail className="w-5 h-5" />
+                    <Mail className="h-5 w-5" />
                   </a>
                 ) : null}
               </div>
@@ -81,24 +103,32 @@ export function BusinessCourseInstructorTab({
           </div>
 
           {course.instructor.bio ? (
-            <div className="p-5 rounded-xl border border-white/10" style={{ backgroundColor: `${primaryColor}05` }}>
-              <h4 className="font-bold mb-3" style={{ color: textColor }}>Biografia</h4>
-              <p className="leading-relaxed whitespace-pre-line" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : `${textColor}80` }}>
+            <div
+              className="rounded-xl border p-5"
+              style={{ backgroundColor: `${primaryColor}05`, borderColor: `${primaryColor}18` }}
+            >
+              <h4 className="mb-3 font-bold" style={{ color: textColor }}>
+                Biografía
+              </h4>
+              <p className="whitespace-pre-line leading-relaxed" style={{ color: textColor }}>
                 {course.instructor.bio}
               </p>
             </div>
           ) : null}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <div className="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: `${primaryColor}15` }}>
-            <GraduationCap className="w-10 h-10" style={{ color: isDark ? 'rgba(255,255,255,0.5)' : `${textColor}40` }} />
+        <div className="py-12 text-center">
+          <div
+            className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: `${primaryColor}15` }}
+          >
+            <GraduationCap className="h-10 w-10" style={{ color: mutedTextColor }} />
           </div>
-          <h4 className="text-lg font-semibold mb-2" style={{ color: textColor }}>
-            Informacion del instructor no disponible
+          <h4 className="mb-2 text-lg font-semibold" style={{ color: textColor }}>
+            Información del instructor no disponible
           </h4>
-          <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}50` }}>
-            Este curso aun no tiene un instructor asignado o la informacion no esta disponible.
+          <p className="text-sm" style={{ color: mutedTextColor }}>
+            Este curso aún no tiene un instructor asignado o la información no está disponible.
           </p>
         </div>
       )}

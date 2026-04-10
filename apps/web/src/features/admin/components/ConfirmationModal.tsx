@@ -3,6 +3,7 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
+import { useThemeStore } from '@/core/stores/themeStore'
 
 interface ConfirmationModalProps {
   isOpen: boolean
@@ -27,36 +28,39 @@ export function ConfirmationModal({
   type = 'warning',
   isLoading = false
 }: ConfirmationModalProps) {
+  const { resolvedTheme } = useThemeStore()
+  const isDark = resolvedTheme === 'dark'
+  const actionColor = isDark ? '#00D4B3' : '#0A2540'
+  const onActionColor = isDark ? '#04130F' : '#FFFFFF'
+  const actionSurface = isDark ? 'rgba(0,212,179,0.14)' : 'rgba(10,37,64,0.08)'
+
   const getIconAndColors = () => {
     switch (type) {
       case 'success':
         return {
           icon: CheckCircleIcon,
-          iconColor: 'text-green-600 dark:text-green-400',
-          iconBg: 'bg-green-100 dark:bg-green-900/30',
-          confirmBg: 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
-          borderColor: 'border-green-200 dark:border-green-800'
+          iconColor: actionColor,
+          iconBg: actionSurface,
+          confirmBg: actionColor
         }
       case 'danger':
         return {
           icon: XCircleIcon,
-          iconColor: 'text-red-600 dark:text-red-400',
-          iconBg: 'bg-red-100 dark:bg-red-900/30',
-          confirmBg: 'bg-red-600 hover:bg-red-700 focus:ring-red-500',
-          borderColor: 'border-red-200 dark:border-red-800'
+          iconColor: isDark ? '#FCA5A5' : '#DC2626',
+          iconBg: isDark ? 'rgba(239,68,68,0.18)' : 'rgba(239,68,68,0.08)',
+          confirmBg: '#DC2626'
         }
       default:
         return {
           icon: ExclamationTriangleIcon,
-          iconColor: 'text-yellow-600 dark:text-yellow-400',
-          iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
-          confirmBg: 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500',
-          borderColor: 'border-yellow-200 dark:border-yellow-800'
+          iconColor: isDark ? '#FCD34D' : '#D97706',
+          iconBg: isDark ? 'rgba(245,158,11,0.18)' : 'rgba(245,158,11,0.08)',
+          confirmBg: '#D97706'
         }
     }
   }
 
-  const { icon: Icon, iconColor, iconBg, confirmBg, borderColor } = getIconAndColors()
+  const { icon: Icon, iconColor, iconBg, confirmBg } = getIconAndColors()
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -86,8 +90,11 @@ export function ConfirmationModal({
             >
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center space-x-4">
-                  <div className={`flex-shrink-0 w-12 h-12 rounded-full ${iconBg} flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 ${iconColor}`} />
+                  <div
+                    className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: iconBg }}
+                  >
+                    <Icon className="w-6 h-6" style={{ color: iconColor }} />
                   </div>
                   <div className="flex-1">
                     <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
@@ -104,7 +111,8 @@ export function ConfirmationModal({
                 <div className="mt-6 flex justify-end space-x-3">
                   <button
                     type="button"
-                    className="inline-flex justify-center rounded-lg border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors"
+                    className="inline-flex justify-center rounded-lg border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors"
+                    style={{ ['--tw-ring-color' as string]: actionColor }}
                     onClick={onClose}
                     disabled={isLoading}
                   >
@@ -112,7 +120,12 @@ export function ConfirmationModal({
                   </button>
                   <button
                     type="button"
-                    className={`inline-flex justify-center rounded-lg px-4 py-2 text-sm font-medium text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors ${confirmBg}`}
+                    className="inline-flex justify-center rounded-lg px-4 py-2 text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors"
+                    style={{
+                      backgroundColor: confirmBg,
+                      color: type === 'success' ? onActionColor : '#FFFFFF',
+                      ['--tw-ring-color' as string]: confirmBg,
+                    }}
                     onClick={onConfirm}
                     disabled={isLoading}
                   >

@@ -1,47 +1,48 @@
-'use client';
+'use client'
 
-import { motion } from 'framer-motion';
-import { Check, Copy, Image as ImageIcon, Palette } from 'lucide-react';
-import type { StyleConfig } from '../../contexts/OrganizationStylesContext';
+import { motion } from 'framer-motion'
+import { Check, Copy, Image as ImageIcon, Palette } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import type { StyleConfig } from '../../contexts/OrganizationStylesContext'
 import {
   type ActivePanel,
   BUSINESS_THEME_COLOR_FIELDS,
   isValidHexColor,
-} from '../../services/business-theme-customizer.service';
+} from '../../services/business-theme-customizer.service'
 
 interface BusinessThemeCustomizerControlsProps {
-  activePanel: ActivePanel;
-  currentStyles: StyleConfig;
-  gradientColors: string[];
-  gradientAngle: number;
-  copiedGradient: boolean;
-  setGradientAngle: (value: number) => void;
-  generateGradientCSS: () => string;
-  addGradientColor: () => void;
-  removeGradientColor: (index: number) => void;
-  updateGradientColor: (index: number, color: string) => void;
-  copyGradientToClipboard: () => void;
+  activePanel: ActivePanel
+  currentStyles: StyleConfig
+  gradientColors: string[]
+  gradientAngle: number
+  copiedGradient: boolean
+  setGradientAngle: (value: number) => void
+  generateGradientCSS: () => string
+  addGradientColor: () => void
+  removeGradientColor: (index: number) => void
+  updateGradientColor: (index: number, color: string) => void
+  copyGradientToClipboard: () => void
   updateStyle: (
     panel: ActivePanel,
     field: keyof StyleConfig,
     value: StyleConfig[keyof StyleConfig]
-  ) => void;
+  ) => void
 }
 
 async function uploadThemeBackground(file: File, onUpload: (url: string) => void) {
-  const formData = new FormData();
-  formData.append('file', file);
-  formData.append('bucket', 'Panel-Business');
-  formData.append('folder', 'Background');
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('bucket', 'Panel-Business')
+  formData.append('folder', 'Background')
 
   const response = await fetch('/api/upload', {
     method: 'POST',
     body: formData,
-  });
+  })
 
-  const result = await response.json();
+  const result = await response.json()
   if (result.success && result.url) {
-    onUpload(result.url);
+    onUpload(result.url)
   }
 }
 
@@ -59,28 +60,31 @@ export function BusinessThemeCustomizerControls({
   copyGradientToClipboard,
   updateStyle,
 }: BusinessThemeCustomizerControlsProps) {
+  const theme = useBusinessPanelTheme()
+  const previewPrimary = currentStyles.primary_button_color || theme.actionColor
+
   const handleBackgroundUpload = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.onchange = async event => {
+      const file = (event.target as HTMLInputElement).files?.[0]
       if (!file) {
-        return;
+        return
       }
 
       try {
-        await uploadThemeBackground(file, (url) => {
-          updateStyle(activePanel, 'background_type', 'image');
-          updateStyle(activePanel, 'background_value', url);
-        });
+        await uploadThemeBackground(file, url => {
+          updateStyle(activePanel, 'background_type', 'image')
+          updateStyle(activePanel, 'background_value', url)
+        })
       } catch {
-        // The caller already exposes save/apply feedback.
+        // El feedback visible se maneja en el contenedor principal.
       }
-    };
+    }
 
-    input.click();
-  };
+    input.click()
+  }
 
   return (
     <motion.div
@@ -90,34 +94,41 @@ export function BusinessThemeCustomizerControls({
       className="lg:col-span-3"
     >
       <div
-        className="rounded-2xl p-5 border backdrop-blur-xl"
+        className="rounded-2xl border p-5 backdrop-blur-xl"
         style={{
-          backgroundColor: 'rgba(var(--org-card-background-rgb, 15, 23, 42), 0.6)',
-          borderColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: theme.cardBg,
+          borderColor: theme.borderColor,
         }}
       >
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30">
-            <Palette className="w-4 h-4 text-blue-400" />
+        <div className="mb-5 flex items-center gap-3">
+          <div
+            className="rounded-lg border p-2"
+            style={{
+              backgroundColor: theme.actionSurface,
+              borderColor: `${theme.actionColor}33`,
+            }}
+          >
+            <Palette className="h-4 w-4" style={{ color: theme.actionColor }} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Controles de Estilo</h3>
-            <p className="text-xs text-white/50">Ajusta colores y opacidades</p>
+            <h3 className="text-base font-bold" style={{ color: theme.textColor }}>
+              Controles de estilo
+            </h3>
+            <p className="text-xs" style={{ color: theme.subtextColor }}>
+              Ajusta colores y opacidades
+            </p>
           </div>
         </div>
 
-        {currentStyles.background_type === 'gradient' && (
+        {currentStyles.background_type === 'gradient' ? (
           <div className="mb-6">
-            <label
-              className="block text-sm font-medium mb-3"
-              style={{ color: 'var(--org-text-color, #ffffff)' }}
-            >
+            <label className="mb-3 block text-sm font-medium" style={{ color: theme.textColor }}>
               Gradiente
             </label>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs mb-2" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Angulo: {gradientAngle}°
+                <label className="mb-2 block text-xs" style={{ color: theme.subtextColor }}>
+                  Ángulo: {gradientAngle}°
                 </label>
                 <input
                   type="range"
@@ -125,15 +136,15 @@ export function BusinessThemeCustomizerControls({
                   max="360"
                   step="1"
                   value={gradientAngle}
-                  onChange={(event) => setGradientAngle(Number(event.target.value))}
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-                  style={{ accentColor: 'var(--org-primary-button-color, #3b82f6)' }}
+                  onChange={event => setGradientAngle(Number(event.target.value))}
+                  className="h-2 w-full cursor-pointer appearance-none rounded-lg"
+                  style={{ accentColor: previewPrimary }}
                 />
               </div>
 
               <div className="space-y-3">
-                <label className="block text-xs" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Colores del Gradiente
+                <label className="block text-xs" style={{ color: theme.subtextColor }}>
+                  Colores del gradiente
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {gradientColors.map((color, index) => (
@@ -142,63 +153,65 @@ export function BusinessThemeCustomizerControls({
                         <input
                           type="color"
                           value={color}
-                          onChange={(event) => updateGradientColor(index, event.target.value)}
-                          className="w-16 h-16 rounded-lg cursor-pointer border-2"
-                          style={{ borderColor: 'var(--org-border-color, #334155)' }}
+                          onChange={event => updateGradientColor(index, event.target.value)}
+                          className="h-16 w-16 cursor-pointer rounded-lg border-2"
+                          style={{ borderColor: theme.borderColor }}
                         />
-                        {gradientColors.length > 2 && (
+                        {gradientColors.length > 2 ? (
                           <button
                             type="button"
                             onClick={() => removeGradientColor(index)}
-                            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600 transition-colors"
+                            className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full text-xs text-white transition-colors"
+                            style={{ backgroundColor: theme.dangerColor }}
                           >
                             x
                           </button>
-                        )}
+                        ) : null}
                       </div>
                       <input
                         type="text"
                         value={color}
-                        onChange={(event) => {
-                          const nextColor = event.target.value;
+                        onChange={event => {
+                          const nextColor = event.target.value
                           if (isValidHexColor(nextColor) || nextColor === '') {
-                            updateGradientColor(index, nextColor);
+                            updateGradientColor(index, nextColor)
                           }
                         }}
-                        className="w-20 px-2 py-1 rounded border text-sm"
+                        className="w-20 rounded border px-2 py-1 text-sm"
                         style={{
-                          backgroundColor: 'rgba(var(--org-card-background-rgb, 30, 41, 59), 0.5)',
-                          borderColor: 'var(--org-border-color, #334155)',
-                          color: 'var(--org-text-color, #ffffff)',
+                          backgroundColor: theme.inputBg,
+                          borderColor: theme.borderColor,
+                          color: theme.textColor,
                         }}
                         placeholder="#000000"
                       />
                     </div>
                   ))}
 
-                  {gradientColors.length < 5 && (
+                  {gradientColors.length < 5 ? (
                     <button
                       type="button"
                       onClick={addGradientColor}
-                      className="w-16 h-16 rounded-lg border-2 border-dashed flex items-center justify-center transition-colors hover:border-solid"
+                      className="flex h-16 w-16 items-center justify-center rounded-lg border-2 border-dashed transition-colors hover:border-solid"
                       style={{
-                        borderColor: 'var(--org-border-color, #334155)',
-                        color: 'var(--org-text-color, #ffffff)',
+                        borderColor: theme.borderColor,
+                        color: theme.actionColor,
+                        backgroundColor: theme.inputBg,
                       }}
                     >
                       <span className="text-2xl">+</span>
                     </button>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs mb-2" style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                  Vista Previa
+                <label className="mb-2 block text-xs" style={{ color: theme.subtextColor }}>
+                  Vista previa
                 </label>
                 <div
-                  className="relative h-12 rounded-lg overflow-hidden border-2"
-                  style={{ borderColor: 'var(--org-border-color, #334155)' }}
+                  className="relative h-12 overflow-hidden rounded-lg border-2"
+                  style={{ borderColor: theme.borderColor }}
                 >
                   <div className="absolute inset-0" style={{ background: generateGradientCSS() }} />
                 </div>
@@ -208,69 +221,75 @@ export function BusinessThemeCustomizerControls({
                 <button
                   type="button"
                   onClick={copyGradientToClipboard}
-                  className="px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                  className="flex items-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors"
                   style={{
-                    backgroundColor: 'var(--org-primary-button-color, #3b82f6)',
-                    color: '#ffffff',
+                    backgroundColor: previewPrimary,
+                    color: theme.onActionColor,
                   }}
                 >
                   {copiedGradient ? (
                     <>
-                      <Check className="w-4 h-4" />
+                      <Check className="h-4 w-4" />
                       Copiado
                     </>
                   ) : (
                     <>
-                      <Copy className="w-4 h-4" />
-                      Copiar Codigo
+                      <Copy className="h-4 w-4" />
+                      Copiar código
                     </>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={handleBackgroundUpload}
-                  className="px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 border"
+                  className="flex items-center gap-2 rounded-lg border px-4 py-2 font-medium transition-colors"
                   style={{
-                    borderColor: 'var(--org-border-color, #334155)',
-                    backgroundColor: 'rgba(var(--org-card-background-rgb, 30, 41, 59), 0.5)',
-                    color: 'var(--org-text-color, #ffffff)',
+                    borderColor: theme.borderColor,
+                    backgroundColor: theme.inputBg,
+                    color: theme.textColor,
                   }}
                 >
-                  <ImageIcon className="w-4 h-4" />
-                  Usar Imagen
+                  <ImageIcon className="h-4 w-4" />
+                  Usar imagen
                 </button>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-bold text-white flex items-center gap-2">
-              <Palette className="w-4 h-4 text-blue-400" />
+            <h4 className="flex items-center gap-2 text-sm font-bold" style={{ color: theme.textColor }}>
+              <Palette className="h-4 w-4" style={{ color: theme.actionColor }} />
               Colores UI
             </h4>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {BUSINESS_THEME_COLOR_FIELDS.map((fieldConfig) => {
-              const currentValue = currentStyles[fieldConfig.field] || fieldConfig.defaultValue;
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {BUSINESS_THEME_COLOR_FIELDS.map(fieldConfig => {
+              const currentValue = currentStyles[fieldConfig.field] || fieldConfig.defaultValue
 
               return (
                 <div
                   key={fieldConfig.field}
-                  className="p-3 rounded-xl"
+                  className="rounded-xl p-3"
                   style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    backgroundColor: theme.inputBg,
+                    border: `1px solid ${theme.borderColor}`,
                   }}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-white/80">{fieldConfig.label}</span>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium" style={{ color: theme.textColor }}>
+                      {fieldConfig.label}
+                    </span>
                     <button
                       type="button"
                       onClick={() => updateStyle(activePanel, fieldConfig.field, fieldConfig.defaultValue)}
-                      className="text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all"
+                      className="rounded-md px-2 py-0.5 text-[10px] transition-all"
+                      style={{
+                        backgroundColor: theme.hoverBg,
+                        color: theme.subtextColor,
+                      }}
                     >
                       Reset
                     </button>
@@ -279,34 +298,41 @@ export function BusinessThemeCustomizerControls({
                     <input
                       type="color"
                       value={currentValue}
-                      onChange={(event) => updateStyle(activePanel, fieldConfig.field, event.target.value)}
-                      className="w-9 h-9 rounded-lg cursor-pointer border-0"
+                      onChange={event => updateStyle(activePanel, fieldConfig.field, event.target.value)}
+                      className="h-9 w-9 cursor-pointer rounded-lg border-0"
                     />
                     <input
                       type="text"
                       value={currentValue}
-                      onChange={(event) => {
+                      onChange={event => {
                         if (isValidHexColor(event.target.value) || event.target.value === '') {
-                          updateStyle(activePanel, fieldConfig.field, event.target.value);
+                          updateStyle(activePanel, fieldConfig.field, event.target.value)
                         }
                       }}
-                      className="flex-1 px-2 py-1.5 rounded-lg text-xs font-mono bg-white/5 border border-white/10 text-white"
+                      className="flex-1 rounded-lg border px-2 py-1.5 text-xs font-mono"
+                      style={{
+                        backgroundColor: theme.cardBg,
+                        borderColor: theme.borderColor,
+                        color: theme.textColor,
+                      }}
                     />
                   </div>
                 </div>
-              );
+              )
             })}
 
             <div
-              className="p-3 rounded-xl"
+              className="rounded-xl p-3"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                backgroundColor: theme.inputBg,
+                border: `1px solid ${theme.borderColor}`,
               }}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-white/80">Opacidad Modales</span>
-                <span className="text-[10px] text-white/50">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-xs font-medium" style={{ color: theme.textColor }}>
+                  Opacidad de modales
+                </span>
+                <span className="text-[10px]" style={{ color: theme.subtextColor }}>
                   {((currentStyles.modal_opacity || 0.95) * 100).toFixed(0)}%
                 </span>
               </div>
@@ -316,14 +342,14 @@ export function BusinessThemeCustomizerControls({
                 max="1"
                 step="0.05"
                 value={currentStyles.modal_opacity || 0.95}
-                onChange={(event) => updateStyle(activePanel, 'modal_opacity', Number(event.target.value))}
-                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer bg-white/10"
-                style={{ accentColor: currentStyles.primary_button_color || '#3b82f6' }}
+                onChange={event => updateStyle(activePanel, 'modal_opacity', Number(event.target.value))}
+                className="h-1.5 w-full cursor-pointer appearance-none rounded-lg"
+                style={{ accentColor: previewPrimary }}
               />
             </div>
           </div>
         </div>
       </div>
     </motion.div>
-  );
+  )
 }

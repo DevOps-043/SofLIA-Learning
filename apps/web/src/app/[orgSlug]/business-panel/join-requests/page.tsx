@@ -1,7 +1,10 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { BusinessJoinRequests } from '@/features/business-panel/components/BusinessJoinRequests'
-
-export default function JoinRequestsPage() {
-  return <BusinessJoinRequests />
+export default function JoinRequestsPage({
+  params,
+}: {
+  params: { orgSlug: string }
+}) {
+  const { orgSlug } = params
+  redirect(`/${orgSlug}/business-panel/users?tab=requests`)
 }

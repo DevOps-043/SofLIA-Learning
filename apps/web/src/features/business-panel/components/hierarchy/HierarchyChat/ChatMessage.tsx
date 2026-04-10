@@ -1,7 +1,18 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { Edit2, Trash2, Paperclip, File, Image as ImageIcon, Download, Maximize2 } from 'lucide-react'
+import {
+  Check,
+  Download,
+  Edit2,
+  File as FileIcon,
+  Image as ImageIcon,
+  Maximize2,
+  Paperclip,
+  Trash2,
+  X,
+} from 'lucide-react'
 import type { HierarchyChatMessage } from '../../../types/hierarchy.types'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import type { FileAttachment } from './types'
 
 interface ChatMessageProps {
@@ -23,9 +34,16 @@ interface ChatMessageProps {
   getInitials: (name: string) => string
   formatTime: (dateString: string) => string
   formatFileSize: (bytes: number) => string
-  primaryColor: string
-  accentColor: string
-  isDark: boolean
+}
+
+function sanitizeMessageContent(content: string, hasAttachment: boolean) {
+  if (!hasAttachment) {
+    return content.trim()
+  }
+
+  const withoutPlaceholder = content.replace(/archivo adjunto/gi, '').trim()
+  const withoutLeadingSymbols = withoutPlaceholder.replace(/^[^\p{L}\p{N}]+/gu, '').trim()
+  return withoutLeadingSymbols
 }
 
 export function ChatMessage({
@@ -47,24 +65,15 @@ export function ChatMessage({
   getInitials,
   formatTime,
   formatFileSize,
-  primaryColor,
-  accentColor,
-  isDark
 }: ChatMessageProps) {
+  const theme = useBusinessPanelTheme()
   const attachment = getAttachment(message)
-  const isImage = attachment && attachment.mimeType.startsWith('image/')
-
-  // Remover el texto placeholder de archivos adjuntos
-  let textContent = message.content
-  if (textContent === '📎 Archivo adjunto' || textContent.match(/^📎\s*.+$/)) {
-    textContent = ''
-  } else {
-    textContent = textContent.replace(/📎\s*[^\n]+/g, '').trim()
-  }
+  const isImage = Boolean(attachment && attachment.mimeType.startsWith('image/'))
+  const textContent = sanitizeMessageContent(message.content, Boolean(attachment))
 
   const getFileIcon = (mimeType: string) => {
     if (mimeType.startsWith('image/')) return ImageIcon
-    return File
+    return FileIcon
   }
 
   return (
@@ -87,10 +96,15 @@ export function ChatMessage({
             />
           ) : (
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
+              className="flex h-8 w-8 items-center justify-center rounded-full"
+              style={{
+                background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+              }}
             >
-              <span className="text-xs font-medium text-white">
+              <span
+                className="text-xs font-medium"
+                style={{ color: theme.onPrimaryColor }}
+              >
                 {getInitials(getSenderName(message))}
               </span>
             </div>
@@ -98,96 +112,115 @@ export function ChatMessage({
         </div>
       )}
 
-      <div className={`flex flex-col gap-1 max-w-[70%] ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+      <div
+        className={`flex max-w-[70%] flex-col gap-1 ${isOwnMessage ? 'items-end' : 'items-start'}`}
+      >
         {!isOwnMessage && showAvatar && (
           <span
-            className="text-xs font-medium ml-1"
-            style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+            className="ml-1 text-xs font-medium"
+            style={{ color: theme.textColor }}
           >
             {getSenderName(message)}
           </span>
         )}
 
         {isEditing ? (
-          <div className="flex gap-2 w-full max-w-md">
+          <div className="flex w-full max-w-md gap-2">
             <input
               type="text"
               value={editContent}
-              onChange={(e) => onEditChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault()
+              onChange={(event) => onEditChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                  event.preventDefault()
                   onEditSubmit(message.id)
                 }
-                if (e.key === 'Escape') {
+                if (event.key === 'Escape') {
                   onEditCancel()
                 }
               }}
-              className="flex-1 px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 border"
+              className="flex-1 rounded-xl border px-3 py-2 text-sm focus:outline-none"
               style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6',
-                borderColor: isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-                color: isDark ? '#FFFFFF' : '#1E293B'
+                backgroundColor: theme.inputBg,
+                borderColor: theme.dividerColor,
+                color: theme.textColor,
               }}
               autoFocus
             />
             <button
+              type="button"
               onClick={() => onEditSubmit(message.id)}
-              className="px-3 py-2 rounded-xl text-white text-sm"
-              style={{ backgroundColor: primaryColor }}
-            >
-              ✓
-            </button>
-            <button
-              onClick={onEditCancel}
-              className="px-3 py-2 rounded-xl text-sm"
+              className="rounded-xl px-3 py-2 text-sm"
               style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#E5E7EB',
-                color: isDark ? '#FFFFFF' : '#1E293B'
+                backgroundColor: theme.primaryColor,
+                color: theme.onPrimaryColor,
               }}
             >
-              ✕
+              <Check className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={onEditCancel}
+              className="rounded-xl px-3 py-2 text-sm"
+              style={{
+                backgroundColor: theme.hoverBg,
+                color: theme.subtextColor,
+              }}
+            >
+              <X className="h-4 w-4" />
             </button>
           </div>
         ) : (
           <div className="group relative">
-            {/* Archivo adjunto */}
             {attachment && (
               <div
-                className="mb-2 rounded-xl overflow-hidden border"
+                className="mb-2 overflow-hidden rounded-xl border"
                 style={{
-                  borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+                  borderColor: theme.borderColor,
+                  backgroundColor: theme.cardBg,
                 }}
               >
                 {isImage ? (
-                  <div className="relative group">
+                  <div className="group relative">
                     <img
                       src={attachment.url}
                       alt={attachment.name}
-                      className="w-full max-w-md h-auto object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      className="h-auto max-w-md w-full cursor-pointer object-cover transition-opacity hover:opacity-90"
                       style={{ maxHeight: '400px' }}
                       onClick={() => onImageClick(attachment.url, attachment.name)}
                     />
-                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                    <div className="absolute right-2 top-2 flex gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
                           onImageClick(attachment.url, attachment.name)
                         }}
-                        className="p-2 rounded-full backdrop-blur-sm transition-colors bg-black/50 hover:bg-black/70"
+                        className="rounded-full border p-2 backdrop-blur-sm transition-colors"
+                        style={{
+                          backgroundColor: theme.overlayBg,
+                          borderColor: theme.dividerColor,
+                          color: theme.textColor,
+                        }}
                         title="Ver imagen completa"
                       >
-                        <Maximize2 className="w-4 h-4 text-white" />
+                        <Maximize2 className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation()
                           onDownload(attachment.url, attachment.name)
                         }}
-                        className="p-2 rounded-full backdrop-blur-sm transition-colors bg-black/50 hover:bg-black/70"
+                        className="rounded-full border p-2 backdrop-blur-sm transition-colors"
+                        style={{
+                          backgroundColor: theme.overlayBg,
+                          borderColor: theme.dividerColor,
+                          color: theme.textColor,
+                        }}
                         title="Descargar imagen"
                       >
-                        <Download className="w-4 h-4 text-white" />
+                        <Download className="h-4 w-4" />
                       </button>
                     </div>
                   </div>
@@ -196,76 +229,74 @@ export function ChatMessage({
                     href={attachment.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 hover:opacity-80 transition-opacity"
-                    style={{
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#F3F4F6'
-                    }}
+                    className="flex items-center gap-3 p-3 transition-opacity hover:opacity-80"
+                    style={{ backgroundColor: theme.inputBg }}
                   >
                     <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: `${primaryColor}20` }}
+                      className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg"
+                      style={{ backgroundColor: theme.hoverBg }}
                     >
                       {(() => {
                         const IconComponent = getFileIcon(attachment.mimeType)
-                        return <IconComponent className="w-5 h-5" style={{ color: primaryColor }} />
+                        return (
+                          <IconComponent
+                            className="h-5 w-5"
+                            style={{ color: theme.primaryColor }}
+                          />
+                        )
                       })()}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p
-                        className="text-sm font-medium truncate"
-                        style={{ color: isDark ? '#FFFFFF' : '#1E293B' }}
+                        className="truncate text-sm font-medium"
+                        style={{ color: theme.textColor }}
                       >
                         {attachment.name}
                       </p>
-                      <p
-                        className="text-xs"
-                        style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}
-                      >
+                      <p className="text-xs" style={{ color: theme.subtextColor }}>
                         {formatFileSize(attachment.size)}
                       </p>
                     </div>
                     <Paperclip
-                      className="w-4 h-4 flex-shrink-0"
-                      style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}
+                      className="h-4 w-4 flex-shrink-0"
+                      style={{ color: theme.subtextColor }}
                     />
                   </a>
                 )}
               </div>
             )}
 
-            {/* Contenido de texto */}
             {textContent && (
               <div
-                className="px-4 py-2.5 rounded-2xl text-sm leading-relaxed"
+                className="rounded-2xl px-4 py-2.5 text-sm leading-relaxed"
                 style={{
-                  backgroundColor: isOwnMessage
-                    ? (isDark ? primaryColor : accentColor)
-                    : (isDark ? '#1E2329' : '#E5E7EB'),
-                  color: isOwnMessage
-                    ? '#FFFFFF'
-                    : (isDark ? '#FFFFFF' : '#1E293B'),
+                  backgroundColor: isOwnMessage ? theme.primaryColor : theme.cardBg,
+                  color: isOwnMessage ? theme.onPrimaryColor : theme.textColor,
                   borderRadius: isOwnMessage ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                  border: !isOwnMessage ? `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}` : 'none',
+                  border: !isOwnMessage ? `1px solid ${theme.borderColor}` : 'none',
                   boxShadow: isOwnMessage
-                    ? (isDark ? `0 2px 8px ${primaryColor}40` : `0 2px 8px ${accentColor}30`)
-                    : (isDark ? '0 1px 2px rgba(0,0,0,0.05)' : '0 1px 3px rgba(0,0,0,0.08)')
+                    ? theme.isDark
+                      ? '0 8px 20px rgba(0, 212, 179, 0.18)'
+                      : '0 8px 20px rgba(15, 23, 42, 0.12)'
+                    : theme.isDark
+                      ? '0 8px 20px rgba(0, 0, 0, 0.2)'
+                      : '0 8px 20px rgba(15, 23, 42, 0.06)',
                 }}
               >
-                <p className="whitespace-pre-wrap break-words">{textContent}</p>
+                <p className="break-words whitespace-pre-wrap">{textContent}</p>
               </div>
             )}
 
-            <div className={`flex items-center gap-1.5 mt-1 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}>
-              <span
-                className="text-[10px]"
-                style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}
-              >
+            <div
+              className={`mt-1 flex items-center gap-1.5 ${isOwnMessage ? 'justify-end' : 'justify-start'}`}
+            >
+              <span className="text-[10px]" style={{ color: theme.mutedTextColor }}>
                 {formatTime(message.created_at)}
               </span>
               {message.is_edited && (
                 <span
                   className="text-[10px] italic"
-                  style={{ color: isDark ? 'rgba(255,255,255,0.6)' : '#64748B' }}
+                  style={{ color: theme.mutedTextColor }}
                 >
                   (editado)
                 </span>
@@ -273,22 +304,24 @@ export function ChatMessage({
             </div>
 
             {isOwnMessage && (
-              <div className="absolute -left-16 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+              <div className="absolute -left-16 top-1/2 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <button
+                  type="button"
                   onClick={() => onStartEdit(message)}
-                  className="p-1.5 rounded-full transition-colors"
-                  style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6' }}
+                  className="rounded-full p-1.5 transition-colors"
+                  style={{ backgroundColor: theme.hoverBg }}
                   title="Editar"
                 >
-                  <Edit2 className="w-3 h-3" style={{ color: isDark ? '#FFFFFF' : '#64748B' }} />
+                  <Edit2 className="h-3 w-3" style={{ color: theme.subtextColor }} />
                 </button>
                 <button
+                  type="button"
                   onClick={() => onDelete(message.id)}
-                  className="p-1.5 rounded-full transition-colors hover:bg-red-100 dark:hover:bg-red-500/20"
-                  style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#F3F4F6' }}
+                  className="rounded-full p-1.5 transition-colors"
+                  style={{ backgroundColor: theme.hoverBg }}
                   title="Eliminar"
                 >
-                  <Trash2 className="w-3 h-3 text-red-500" />
+                  <Trash2 className="h-3 w-3" style={{ color: theme.dangerColor }} />
                 </button>
               </div>
             )}

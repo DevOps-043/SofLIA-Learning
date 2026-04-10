@@ -1,64 +1,61 @@
-'use client';
+'use client'
 
-import { Shield } from 'lucide-react';
-import type { BusinessInviteRole } from '../../services/business-invite-modal.service';
+import { Shield } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import type { BusinessInviteRole } from '../../services/business-invite-modal.service'
 
 interface BusinessInviteRoleCardsProps {
-  currentRole: BusinessInviteRole;
-  disabled: boolean;
-  isDark: boolean;
-  inputBg: string;
-  borderColor: string;
-  primaryColor: string;
-  mutedText: string;
-  textColor: string;
-  roleLabels: Record<BusinessInviteRole, { label: string; desc: string }>;
-  onSelect: (role: BusinessInviteRole) => void;
+  currentRole: BusinessInviteRole
+  disabled: boolean
+  roleLabels: Record<BusinessInviteRole, { label: string; desc: string }>
+  onSelect: (role: BusinessInviteRole) => void
 }
 
 export function BusinessInviteRoleCards({
   currentRole,
   disabled,
-  isDark,
-  inputBg,
-  borderColor,
-  primaryColor,
-  mutedText,
-  textColor,
   roleLabels,
   onSelect,
 }: BusinessInviteRoleCardsProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <div className="grid grid-cols-3 gap-2">
-      {(['member', 'admin', 'owner'] as const).map((role) => (
-        <button
-          key={role}
-          type="button"
-          onClick={() => onSelect(role)}
-          disabled={disabled}
-          className="p-3 rounded-xl border text-left transition-all disabled:opacity-50"
-          style={{
-            backgroundColor: currentRole === role ? (isDark ? `${primaryColor}30` : `${primaryColor}10`) : inputBg,
-            borderColor: currentRole === role ? primaryColor : borderColor,
-          }}
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <Shield
-              className="w-4 h-4"
-              style={{ color: currentRole === role ? (isDark ? '#FFFFFF' : primaryColor) : mutedText }}
-            />
-            <span
-              className="text-sm font-medium"
-              style={{ color: currentRole === role ? (isDark ? '#FFFFFF' : primaryColor) : textColor }}
-            >
-              {roleLabels[role].label}
-            </span>
-          </div>
-          <p className="text-xs hidden sm:block" style={{ color: mutedText }}>
-            {roleLabels[role].desc}
-          </p>
-        </button>
-      ))}
+      {(['member', 'admin', 'owner'] as const).map((role) => {
+        const isSelected = currentRole === role
+        const roleTheme = theme.roleColors[role]
+
+        return (
+          <button
+            key={role}
+            type="button"
+            onClick={() => onSelect(role)}
+            disabled={disabled}
+            className="rounded-xl border p-3 text-left transition-all disabled:opacity-50"
+            style={{
+              backgroundColor: isSelected ? roleTheme.bg : theme.inputBg,
+              borderColor: isSelected ? roleTheme.text : theme.borderColor,
+            }}
+          >
+            <div className="mb-1 flex items-center gap-2">
+              <Shield
+                className="h-4 w-4"
+                style={{ color: isSelected ? roleTheme.text : theme.subtextColor }}
+              />
+              <span
+                className="text-sm font-medium"
+                style={{ color: isSelected ? roleTheme.text : theme.textColor }}
+              >
+                {roleLabels[role].label}
+              </span>
+            </div>
+
+            <p className="hidden text-xs sm:block" style={{ color: theme.subtextColor }}>
+              {roleLabels[role].desc}
+            </p>
+          </button>
+        )
+      })}
     </div>
-  );
+  )
 }

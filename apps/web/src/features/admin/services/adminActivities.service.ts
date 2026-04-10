@@ -1,5 +1,9 @@
 import { createClient } from '../../../lib/supabase/server'
 import { logger } from '../../../lib/logger'
+import type {
+  ActivityConfig,
+  ExternalToolKey,
+} from '@/features/courses/types/activity-config'
 
 export interface AdminActivity {
   activity_id: string
@@ -7,11 +11,15 @@ export interface AdminActivity {
   activity_description: string | null
   activity_type: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat'
   activity_content: string
+  activity_config: ActivityConfig | null
+  activity_schema_version: number
   ai_prompts: string | null
   activity_order_index: number
+  external_tool_key: ExternalToolKey | null
   is_required: boolean
   estimated_time_minutes: number | null
   lesson_id: string
+  requires_soflia_validation: boolean
   created_at: string
 }
 
@@ -20,9 +28,13 @@ export interface CreateActivityData {
   activity_description?: string
   activity_type: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat'
   activity_content: string
+  activity_config?: ActivityConfig | null
+  activity_schema_version?: number
   ai_prompts?: string
+  external_tool_key?: ExternalToolKey | null
   is_required?: boolean
   estimated_time_minutes?: number
+  requires_soflia_validation?: boolean
 }
 
 export interface UpdateActivityData {
@@ -30,9 +42,13 @@ export interface UpdateActivityData {
   activity_description?: string
   activity_type?: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat'
   activity_content?: string
+  activity_config?: ActivityConfig | null
+  activity_schema_version?: number
   ai_prompts?: string
+  external_tool_key?: ExternalToolKey | null
   is_required?: boolean
   estimated_time_minutes?: number
+  requires_soflia_validation?: boolean
 }
 
 export class AdminActivitiesService {
@@ -100,10 +116,14 @@ export class AdminActivitiesService {
           activity_description: activityData.activity_description,
           activity_type: activityData.activity_type,
           activity_content: activityData.activity_content,
+          activity_config: activityData.activity_config ?? null,
+          activity_schema_version: activityData.activity_schema_version ?? 1,
           ai_prompts: activityData.ai_prompts,
           activity_order_index: nextOrderIndex,
+          external_tool_key: activityData.external_tool_key ?? null,
           is_required: activityData.is_required ?? false,
           estimated_time_minutes: activityData.estimated_time_minutes || 5, // Default 5 min
+          requires_soflia_validation: activityData.requires_soflia_validation ?? false,
           created_at: new Date().toISOString()
         })
         .select()
@@ -331,4 +351,3 @@ export class AdminActivitiesService {
     }
   }
 }
-

@@ -91,7 +91,7 @@ export function MaterialCard({
               </span>
             )}
             {quizInfo?.isPassed && (
-              <span className="px-1.5 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400/80 bg-emerald-100 dark:bg-emerald-500/10 rounded flex items-center gap-1">
+              <span className="px-1.5 py-0.5 text-[10px] font-medium text-[#0A2540] dark:text-[#00D4B3] bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 rounded flex items-center gap-1">
                 <Check className="w-2.5 h-2.5" /> Completado
               </span>
             )}

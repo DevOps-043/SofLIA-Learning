@@ -1,8 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 export function BrandingLoadingState() {
+  const theme = useBusinessPanelTheme()
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -12,13 +15,15 @@ export function BrandingLoadingState() {
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-        className="w-20 h-20 rounded-full mb-6"
+        className="w-20 h-20 rounded-full mb-6 border-4"
         style={{
-          border: '4px solid rgba(255, 255, 255, 0.1)',
-          borderTopColor: 'var(--org-primary-button-color, #3b82f6)',
+          borderColor: theme.actionSurface,
+          borderTopColor: theme.actionColor,
         }}
       />
-      <p className="text-white/60">Cargando configuraciÃ³n de marca...</p>
+      <p style={{ color: theme.subtextColor }}>
+        Cargando configuración de marca...
+      </p>
     </motion.div>
   )
 }

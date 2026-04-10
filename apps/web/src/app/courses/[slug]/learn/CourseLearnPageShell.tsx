@@ -464,6 +464,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               isOpen={isNotesModalOpen}
               onClose={closeNotesModal}
               onSave={handleSaveNote}
+              onDelete={handleDeleteNote}
               initialNote={editingNote}
               isEditing={!!editingNote}
             />

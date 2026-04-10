@@ -1,15 +1,16 @@
 'use client'
 
-import { Search, X, Loader2 } from 'lucide-react'
-import type { UserWithHierarchy } from '../../../types/hierarchy.types'
+import { Loader2, Search, X } from 'lucide-react'
+import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
+import type { NodeManagerUser } from './node-form.utils'
 
 interface ManagerSelectorProps {
-  selectedManager: UserWithHierarchy['user'] | null
+  selectedManager: NodeManagerUser | null
   managerSearch: string
-  managerResults: UserWithHierarchy['user'][]
+  managerResults: NodeManagerUser[]
   isSearchingManager: boolean
   onSearchChange: (v: string) => void
-  onSelectManager: (user: UserWithHierarchy['user']) => void
+  onSelectManager: (user: NodeManagerUser) => void
   onClearManager: () => void
 }
 
@@ -22,85 +23,127 @@ export function ManagerSelector({
   onSelectManager,
   onClearManager,
 }: ManagerSelectorProps) {
+  const theme = useBusinessPanelTheme()
+
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Responsable / Encargado
+      <label className="block text-sm font-medium" style={{ color: theme.textColor }}>
+        Responsable / encargado
       </label>
 
       {selectedManager ? (
-        <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 rounded-lg">
+        <div
+          className="flex items-center justify-between rounded-xl border p-3"
+          style={{
+            backgroundColor: theme.actionSurface,
+            borderColor: `${theme.actionColor}22`,
+          }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center overflow-hidden">
+            <div
+              className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full"
+              style={{ backgroundColor: `${theme.actionColor}20` }}
+            >
               {selectedManager.profile_picture_url ? (
-                <img src={selectedManager.profile_picture_url} className="w-full h-full object-cover" alt="" />
+                <img src={selectedManager.profile_picture_url} className="h-full w-full object-cover" alt="" />
               ) : (
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-300">
+                <span className="text-xs font-bold" style={{ color: theme.actionColor }}>
                   {(selectedManager.first_name?.[0] || selectedManager.username?.[0] || '?').toUpperCase()}
                 </span>
               )}
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-sm font-medium" style={{ color: theme.textColor }}>
                 {selectedManager.first_name} {selectedManager.last_name}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{selectedManager.email}</p>
+              <p className="text-xs" style={{ color: theme.subtextColor }}>
+                {selectedManager.email}
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClearManager}
-            className="p-1 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full text-blue-500 transition-colors"
+            className="rounded-full p-1 transition-colors"
+            style={{ color: theme.actionColor }}
+            onMouseEnter={event => {
+              event.currentTarget.style.backgroundColor = `${theme.actionColor}14`
+            }}
+            onMouseLeave={event => {
+              event.currentTarget.style.backgroundColor = 'transparent'
+            }}
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       ) : (
         <div className="relative">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: theme.mutedTextColor }} />
             <input
               type="text"
               value={managerSearch}
-              onChange={e => onSearchChange(e.target.value)}
+              onChange={event => onSearchChange(event.target.value)}
               placeholder="Buscar usuario..."
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 dark:border-neutral-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white dark:bg-neutral-800 text-sm"
+              className="w-full rounded-xl border py-3 pl-9 pr-4 text-sm outline-none transition-all"
+              style={{
+                backgroundColor: theme.inputBg,
+                borderColor: theme.borderColor,
+                color: theme.textColor,
+              }}
             />
-            {isSearchingManager && (
+            {isSearchingManager ? (
               <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                <Loader2 className="h-4 w-4 animate-spin" style={{ color: theme.mutedTextColor }} />
               </div>
-            )}
+            ) : null}
           </div>
 
-          {managerResults.length > 0 && managerSearch && (
-            <div className="absolute z-50 mt-1 w-full bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          {managerResults.length > 0 && managerSearch ? (
+            <div
+              className="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border shadow-lg"
+              style={{
+                backgroundColor: theme.cardBg,
+                borderColor: theme.borderColor,
+              }}
+            >
               {managerResults.map(user => (
                 <button
                   key={user.id}
                   type="button"
                   onClick={() => onSelectManager(user)}
-                  className="w-full flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors text-left"
+                  className="flex w-full items-center gap-3 p-3 text-left transition-colors"
+                  onMouseEnter={event => {
+                    event.currentTarget.style.backgroundColor = theme.hoverBg
+                  }}
+                  onMouseLeave={event => {
+                    event.currentTarget.style.backgroundColor = 'transparent'
+                  }}
                 >
-                  <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-neutral-700 flex items-center justify-center overflow-hidden flex-shrink-0">
+                  <div
+                    className="flex h-6 w-6 flex-shrink-0 items-center justify-center overflow-hidden rounded-full"
+                    style={{ backgroundColor: theme.hoverBg }}
+                  >
                     {user.profile_picture_url ? (
-                      <img src={user.profile_picture_url} className="w-full h-full object-cover" alt="" />
+                      <img src={user.profile_picture_url} className="h-full w-full object-cover" alt="" />
                     ) : (
-                      <span className="text-[10px] font-bold text-gray-500">
+                      <span className="text-[10px] font-bold" style={{ color: theme.subtextColor }}>
                         {(user.first_name?.[0] || '?').toUpperCase()}
                       </span>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <p className="truncate text-sm font-medium" style={{ color: theme.textColor }}>
                       {user.first_name} {user.last_name}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <p className="truncate text-xs" style={{ color: theme.subtextColor }}>
+                      {user.email}
+                    </p>
                   </div>
                 </button>
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>

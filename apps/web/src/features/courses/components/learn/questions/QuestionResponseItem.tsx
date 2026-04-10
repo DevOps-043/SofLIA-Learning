@@ -72,7 +72,7 @@ export function QuestionResponseItem({
               {formatQuestionTimeAgo(response.created_at)}
             </span>
             {response.is_instructor_answer && (
-              <span className="ml-1 px-1.5 py-0.5 bg-[#00D4B3]/10 text-[#00D4B3] text-[10px] font-medium rounded">
+              <span className="ml-1 px-1.5 py-0.5 bg-[#0A2540]/10 text-[#0A2540] dark:bg-[#00D4B3]/20 dark:text-[#00D4B3] text-[10px] font-medium rounded">
                 Instructor
               </span>
             )}
@@ -125,7 +125,7 @@ export function QuestionResponseItem({
                       value={replyContent}
                       onChange={(event) => onReplyChange(event.target.value)}
                       placeholder="Escribe una respuesta..."
-                      className="flex-1 bg-transparent border-0 border-b border-gray-200 px-0 py-1 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-0 resize-none min-h-[32px]"
+                      className="flex-1 bg-transparent border-0 border-b border-gray-200 px-0 py-1 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-0 resize-none min-h-[32px]"
                       rows={1}
                     />
                     <button

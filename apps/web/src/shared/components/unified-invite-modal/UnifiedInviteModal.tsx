@@ -1,7 +1,7 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { Link2, List, Mail, X } from 'lucide-react';
+import { Link2, List, Mail, X, UserPlus, Info } from 'lucide-react';
 import { UnifiedInviteFormsView } from './UnifiedInviteFormsView';
 import { UnifiedInviteManageLinksView } from './UnifiedInviteManageLinksView';
 import { UnifiedInviteSuccessView } from './UnifiedInviteSuccessView';
@@ -22,168 +22,128 @@ export function UnifiedInviteModal({
   return (
     <AnimatePresence>
       <div
-        className="fixed inset-0 flex items-center justify-center p-4"
+        className="fixed inset-0 flex items-center justify-center p-0 sm:p-4 isolate"
         style={{ zIndex: 99999 }}
       >
+        {/* Backdrop - COMPLETELY TRANSPARENT */}
         <motion.div
           animate={{ opacity: 1 }}
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 bg-transparent"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           onClick={onClose}
         />
 
+        {/* Modal Container - STREECT HEIGHT FOR 13" Laptops */}
         <motion.div
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="relative w-full max-w-2xl max-h-[90vh] flex flex-col"
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          onClick={(event) => event.stopPropagation()}
-          transition={{ duration: 0.2 }}
+           initial={{ opacity: 0, scale: 0.95, y: 20 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           exit={{ opacity: 0, scale: 0.95, y: 20 }}
+           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+           className="relative w-full max-w-4xl h-full sm:h-[80vh] sm:max-h-[700px] flex flex-col bg-transparent overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:rounded-[2.5rem]"
+           onClick={(event) => event.stopPropagation()}
         >
           <div
-            className="rounded-2xl shadow-2xl overflow-hidden border flex flex-col max-h-full"
+            className="flex flex-col h-full bg-transparent overflow-hidden border"
             style={{
               backgroundColor: theme.surfaceColor,
               borderColor: theme.borderColor,
             }}
           >
-            <div
-              className="p-6 border-b shrink-0"
-              style={{
-                background: theme.headerGradient,
-                borderColor: theme.borderColor,
-              }}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <motion.div
-                    animate={{ rotate: [0, 360] }}
-                    className="p-2 rounded-xl"
-                    style={{ backgroundColor: `${theme.accentColor}20` }}
-                    transition={{
-                      duration: 20,
-                      ease: 'linear',
-                      repeat: Number.POSITIVE_INFINITY,
-                    }}
-                  >
-                    {mode === 'individual' ? (
-                      <Mail className="w-6 h-6" style={{ color: theme.accentColor }} />
-                    ) : mode === 'bulk' ? (
-                      <Link2
-                        className="w-6 h-6"
-                        style={{ color: theme.accentColor }}
-                      />
-                    ) : (
-                      <List className="w-6 h-6" style={{ color: theme.accentColor }} />
-                    )}
-                  </motion.div>
-                  <div>
-                    <h3 className="text-lg font-semibold" style={{ color: theme.textColor }}>
-                      {t('users.modals.unified.title', 'Invitar Usuarios')}
-                    </h3>
-                    <p className="text-sm" style={{ color: theme.mutedText }}>
-                      {mode === 'manage'
-                        ? t(
-                            'users.modals.unified.subtitleManage',
-                            'Gestiona tus enlaces de invitacion'
-                          )
-                        : t(
-                            'users.modals.unified.subtitle',
-                            'Elige como quieres invitar'
-                          )}
-                    </p>
+            {/* 1. ULTRA COMPACT Hero / Header section */}
+            <div className="relative shrink-0 pt-4 sm:pt-6 pb-3 sm:pb-4 px-6 lg:px-12 border-b border-white/5">
+               <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                  {/* Icon - Smaller for laptops */}
+                  <div className="relative shrink-0">
+                    <div
+                       className="w-12 h-12 sm:w-16 sm:h-16 rounded-[1.2rem] sm:rounded-[1.5rem] flex items-center justify-center shadow-2xl border-2 sm:border-2"
+                       style={{
+                          background: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})`,
+                          borderColor: theme.borderColor,
+                       }}
+                    >
+                       <UserPlus className="w-6 h-6 sm:w-8 sm:h-8" style={{ color: theme.onPrimaryColor }} strokeWidth={2.5} />
+                    </div>
                   </div>
-                </div>
-                <button
-                  className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                  onClick={onClose}
-                >
-                  <X className="w-5 h-5" style={{ color: theme.mutedText }} />
-                </button>
-              </div>
 
-              {status !== 'success' && (
-                <div className="flex gap-2">
-                  {[
-                    {
-                      icon: Mail,
-                      key: 'individual' as const,
-                      label: t('users.modals.unified.tabs.individual', 'Individual'),
-                      mobileLabel: 'Email',
-                    },
-                    {
-                      icon: Link2,
-                      key: 'bulk' as const,
-                      label: t('users.modals.unified.tabs.bulk', 'Enlace Masivo'),
-                      mobileLabel: 'Enlace',
-                    },
-                    {
-                      icon: List,
-                      key: 'manage' as const,
-                      label: t('users.modals.unified.tabs.manage', 'Ver Enlaces'),
-                      mobileLabel: 'Ver',
-                    },
-                  ].map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = mode === tab.key;
+                  <div className="flex-1 text-center sm:text-left">
+                     <h2 className="text-lg sm:text-xl font-black tracking-tight mb-0.5" style={{ color: theme.textColor }}>
+                        {t('users.modals.unified.title', 'Invitar Usuarios')}
+                     </h2>
+                     <div className="px-2 py-0.5 rounded-lg border text-[9px] font-black uppercase tracking-widest inline-flex items-center gap-2" style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor, color: theme.mutedText }}>
+                        <span>{mode === 'manage' ? t('users.modals.unified.subtitleManage', 'Gestiona enlaces') : t('users.modals.unified.subtitle', 'Elige invitación')}</span>
+                     </div>
+                  </div>
 
-                    return (
-                      <button
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all"
-                        key={tab.key}
-                        onClick={() => {
-                          setMode(tab.key);
-                          setError(null);
-                          setStatus('idle');
-                        }}
-                        style={{
-                          backgroundColor: isActive
-                            ? theme.isDark
-                              ? `${theme.primaryColor}30`
-                              : `${theme.primaryColor}15`
-                            : theme.inputBg,
-                          border: isActive
-                            ? `2px solid ${theme.primaryColor}`
-                            : '2px solid transparent',
-                          color: isActive
-                            ? theme.isDark
-                              ? '#FFFFFF'
-                              : theme.primaryColor
-                            : theme.mutedText,
-                        }}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span className="hidden sm:inline">{tab.label}</span>
-                        <span className="sm:hidden">{tab.mobileLabel}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                  {/* Tabs Logic - Chips */}
+                  {status !== 'success' && (
+                     <div className="flex flex-wrap items-center justify-center sm:justify-end gap-1.5 shrink-0">
+                        {[
+                           { key: 'individual' as const, label: t('users.modals.unified.tabs.individual', 'Indiv.'), icon: Mail },
+                           { key: 'bulk' as const, label: t('users.modals.unified.tabs.bulk', 'Masivo'), icon: Link2 },
+                           { key: 'manage' as const, label: t('users.modals.unified.tabs.manage', 'Ver'), icon: List },
+                        ].map((tab) => (
+                           <button
+                              key={tab.key}
+                              onClick={() => {
+                                 setMode(tab.key);
+                                 setError(null);
+                                 setStatus('idle');
+                              }}
+                              className={`p-2 rounded-xl flex items-center gap-2 text-[9px] font-black uppercase tracking-widest transition-all ${mode === tab.key ? 'shadow-lg' : 'opacity-30 grayscale hover:opacity-100 hover:grayscale-0'}`}
+                              style={mode === tab.key ? {
+                                 backgroundColor: theme.primaryColor,
+                                 color: theme.onPrimaryColor,
+                              } : {
+                                 backgroundColor: theme.inputBg,
+                                 color: theme.textColor,
+                              }}
+                           >
+                              <tab.icon className="w-3.5 h-3.5" />
+                              <span className="hidden xs:inline">{tab.label}</span>
+                           </button>
+                        ))}
+                     </div>
+                  )}
+
+                  <button 
+                     onClick={onClose} 
+                     className="p-2.5 rounded-xl transition-all border shrink-0"
+                     style={{
+                        backgroundColor: theme.inputBg,
+                        borderColor: theme.borderColor,
+                        color: theme.mutedText,
+                     }}
+                  >
+                     <X className="w-4 h-4" />
+                  </button>
+               </div>
             </div>
 
-            {status === 'success' ? (
-              <UnifiedInviteSuccessView
-                controller={controller}
-                mode={mode === 'individual' ? 'individual' : 'bulk'}
-                onClose={onClose}
-                theme={theme}
-              />
-            ) : mode === 'manage' ? (
-              <UnifiedInviteManageLinksView
-                controller={controller}
-                onClose={onClose}
-                theme={theme}
-              />
-            ) : (
-              <UnifiedInviteFormsView
-                controller={controller}
-                mode={mode}
-                onClose={onClose}
-                theme={theme}
-              />
-            )}
+            {/* 2. Scrollable Body Content */}
+            <div className="flex-1 overflow-hidden relative">
+               {status === 'success' ? (
+                 <UnifiedInviteSuccessView
+                   controller={controller}
+                   mode={mode === 'individual' ? 'individual' : 'bulk'}
+                   onClose={onClose}
+                   theme={theme}
+                 />
+               ) : mode === 'manage' ? (
+                 <UnifiedInviteManageLinksView
+                   controller={controller}
+                   onClose={onClose}
+                   theme={theme}
+                 />
+               ) : (
+                 <UnifiedInviteFormsView
+                   controller={controller}
+                   mode={mode}
+                   onClose={onClose}
+                   theme={theme}
+                 />
+               )}
+            </div>
           </div>
         </motion.div>
 

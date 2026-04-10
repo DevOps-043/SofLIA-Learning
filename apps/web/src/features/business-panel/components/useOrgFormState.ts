@@ -3,10 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { type OrganizationData } from '../hooks/useBusinessSettings'
-
-type BrandingData = {
-  banner_url?: string
-} & Record<string, unknown>
+import type { BrandingData } from '../hooks/useBranding'
 
 export interface OrgFormData {
   name: string
@@ -25,7 +22,7 @@ interface UseOrgFormStateProps {
   organization: OrganizationData | null
   updateOrganization: (data: Partial<OrganizationData>) => Promise<boolean>
   branding: BrandingData | null
-  updateBranding: (data: BrandingData) => Promise<boolean>
+  updateBranding: (data: Partial<BrandingData>) => Promise<boolean>
   saveSuccess: string | null
   setSaveSuccess: (msg: string | null) => void
   saveError: string | null

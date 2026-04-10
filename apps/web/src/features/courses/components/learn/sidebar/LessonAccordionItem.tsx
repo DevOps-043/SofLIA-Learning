@@ -52,16 +52,16 @@ export function LessonAccordionItem({
           }}
           className={`group relative flex flex-1 items-center gap-3 overflow-hidden rounded-r-lg border-l-2 px-3 py-2 transition-all duration-200 ${
             isActive
-              ? "border-[#00D4B3] bg-[#00D4B3]/10"
+              ? "border-blue-600 bg-blue-50 dark:border-[#00D4B3] dark:bg-[#00D4B3]/10"
               : "border-transparent hover:bg-gray-50 dark:hover:bg-white/5"
           }`}
         >
           <div
             className={`flex flex-shrink-0 items-center justify-center ${
               isCompleted
-                ? "text-[#00D4B3]"
+                ? "text-blue-700 dark:text-[#00D4B3]"
                 : isActive
-                  ? "text-[#00D4B3]"
+                  ? "text-blue-700 dark:text-[#00D4B3]"
                   : "text-gray-400 group-hover:text-gray-600 dark:text-white/20 dark:group-hover:text-white/40"
             }`}
           >
@@ -70,7 +70,7 @@ export function LessonAccordionItem({
             ) : (
               <div
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isActive ? "animate-pulse bg-[#00D4B3]" : "bg-current"
+                  isActive ? "animate-pulse bg-blue-600 dark:bg-[#00D4B3]" : "bg-current"
                 }`}
               />
             )}
@@ -80,7 +80,7 @@ export function LessonAccordionItem({
             <p
               className={`line-clamp-2 text-sm leading-snug ${
                 isActive
-                  ? "font-medium text-[#0A2540] dark:text-white"
+                  ? "font-medium text-blue-800 dark:text-white"
                   : "font-normal text-gray-600 group-hover:text-gray-900 dark:text-white/60 dark:group-hover:text-white/90"
               }`}
               style={{ fontFamily: "Inter, sans-serif" }}
@@ -89,7 +89,7 @@ export function LessonAccordionItem({
             </p>
 
             {isActive && (
-              <span className="mt-1 block text-[10px] font-medium text-[#00D4B3]/80">
+              <span className="mt-1 block text-[10px] font-medium text-blue-700/80 dark:text-[#00D4B3]/80">
                 En curso • {formatLessonDuration(lesson.duration_seconds)}
               </span>
             )}

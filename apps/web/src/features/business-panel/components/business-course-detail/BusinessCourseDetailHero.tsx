@@ -1,5 +1,7 @@
+'use client'
+
 import { motion } from 'framer-motion'
-import { BookOpen, Clock, Star, Users, Video } from 'lucide-react'
+import { Star, Clock, Video } from 'lucide-react'
 import type { BusinessCourseDetail, BusinessCourseLevelStyles } from '../../types/business-course-detail.types'
 
 interface BusinessCourseDetailHeroProps {
@@ -8,7 +10,8 @@ interface BusinessCourseDetailHeroProps {
   primaryColor: string
   accentColor: string
   textColor: string
-  isDark: boolean
+  mutedTextColor: string
+  borderColor: string
   formatDuration: (minutes: number | null) => string
 }
 
@@ -16,93 +19,101 @@ export function BusinessCourseDetailHero({
   course,
   levelStyles,
   primaryColor,
+  accentColor,
   textColor,
-  isDark,
+  mutedTextColor,
+  borderColor,
   formatDuration
 }: BusinessCourseDetailHeroProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative rounded-3xl overflow-hidden border shadow-sm"
-      style={{ backgroundColor: isDark ? '#1E2329' : '#FFFFFF', borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
-    >
-      <div className="relative h-72 xl:h-80">
-        {course.thumbnail_url ? (
-          <img src={course.thumbnail_url} alt={course.title} className="w-full h-full object-cover" />
-        ) : (
+    <div className="relative w-full mb-4 lg:mb-8 pt-2 lg:pt-4">
+      <div className="flex flex-col lg:flex-row gap-6 xl:gap-12 items-start lg:items-center">
+        <motion.div
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="w-full lg:w-[40%] xl:w-[45%] relative group shrink-0"
+        >
           <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: `linear-gradient(135deg, ${primaryColor}30, rgba(16, 185, 129, 0.2))` }}
+            className="relative aspect-video rounded-[2rem] overflow-hidden shadow-[0_24px_48px_-12px_rgba(0,0,0,0.5)] border"
+            style={{ borderColor }}
           >
-            <BookOpen className="w-24 h-24" style={{ color: `${primaryColor}50` }} />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-
-        <div className="absolute top-4 left-4 flex items-center gap-2">
-          {course.category ? (
-            <span className="px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md" style={{ backgroundColor: `${primaryColor}90`, color: '#fff' }}>
-              {course.category}
-            </span>
-          ) : null}
-          {course.level ? (
-            <span className="px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md" style={{ backgroundColor: levelStyles.bg, color: levelStyles.color }}>
-              {levelStyles.text}
-            </span>
-          ) : null}
-        </div>
-      </div>
-
-      <div className="p-6 xl:p-8">
-        <h1 className="text-2xl xl:text-3xl font-bold mb-4" style={{ color: textColor }}>
-          {course.title}
-        </h1>
-
-        {course.description ? (
-          <p className="text-base mb-6 line-clamp-3" style={{ color: isDark ? 'rgba(255,255,255,0.9)' : `${textColor}80` }}>
-            {course.description}
-          </p>
-        ) : null}
-
-        <div className="flex flex-wrap items-center gap-4 xl:gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-400" fill="#FACC15" />
-            <span className="font-bold" style={{ color: textColor }}>{course.rating.toFixed(1)}</span>
-            <span style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}60` }}>({course.review_count} resenas)</span>
-          </div>
-          <div className="flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : `${textColor}70` }}>
-            <Users className="w-5 h-5" />
-            <span>{course.student_count.toLocaleString()} estudiantes</span>
-          </div>
-          <div className="flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : `${textColor}70` }}>
-            <Clock className="w-5 h-5" />
-            <span>{formatDuration(course.stats.total_duration_minutes)}</span>
-          </div>
-          <div className="flex items-center gap-2" style={{ color: isDark ? 'rgba(255,255,255,0.85)' : `${textColor}70` }}>
-            <Video className="w-5 h-5" />
-            <span>{course.stats.total_lessons} lecciones</span>
-          </div>
-        </div>
-
-        {course.instructor ? (
-          <div className="flex items-center gap-3 mt-6 pt-6 border-t border-white/10">
-            {course.instructor.profile_picture_url ? (
-              <div className="relative w-12 h-12 rounded-full overflow-hidden">
-                <img src={course.instructor.profile_picture_url} alt={course.instructor.name} className="w-full h-full object-cover" />
-              </div>
+            {course.thumbnail_url ? (
+              <img
+                src={course.thumbnail_url}
+                alt={course.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
             ) : (
-              <div className="w-12 h-12 rounded-full flex items-center justify-center !text-white font-bold" style={{ backgroundColor: primaryColor, color: '#FFFFFF' }}>
-                {course.instructor.name[0]?.toUpperCase()}
+              <div
+                className="w-full h-full flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
+              >
+                <div className="p-6 rounded-full bg-white/10 backdrop-blur-xl border border-white/20">
+                  <Video className="w-12 h-12 text-white" />
+                </div>
               </div>
             )}
-            <div>
-              <p className="font-semibold" style={{ color: textColor }}>{course.instructor.name}</p>
-              <p className="text-sm" style={{ color: isDark ? 'rgba(255,255,255,0.75)' : `${textColor}60` }}>Instructor del curso</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="flex-1 space-y-4 lg:space-y-6 min-w-0"
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border"
+              style={{ backgroundColor: `${primaryColor}10`, color: mutedTextColor, borderColor }}
+            >
+              {course.category || 'Curso Profundo'}
+            </span>
+            <span
+              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-[0.15em] border"
+              style={{ backgroundColor: `${levelStyles.color}10`, color: levelStyles.color, borderColor: `${levelStyles.color}20` }}
+            >
+              {levelStyles.text}
+            </span>
+          </div>
+
+          <h1 className="text-2xl md:text-3xl xl:text-4xl font-black tracking-tight leading-[1.1] max-w-2xl" style={{ color: textColor }}>
+            {course.title}
+          </h1>
+
+          <div className="flex items-center gap-4 py-3 lg:py-5 border-y" style={{ borderColor }}>
+            <div
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border"
+              style={{ backgroundColor: `${primaryColor}10`, borderColor }}
+            >
+              <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 shrink-0" />
+              <span className="text-base font-black" style={{ color: textColor }}>{course.rating.toFixed(1)}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: mutedTextColor }}>Valoracion</span>
+              <span className="text-[9px] font-medium" style={{ color: mutedTextColor }}>{course.review_count} opiniones</span>
             </div>
           </div>
-        ) : null}
+
+          <div className="flex items-center gap-8">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2" style={{ color: textColor }}>
+                <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
+                <span className="text-xs font-bold">{formatDuration(course.stats.total_duration_minutes)}</span>
+              </div>
+              <p className="text-[8px] font-black uppercase tracking-widest ml-5" style={{ color: mutedTextColor }}>Duracion</p>
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2" style={{ color: textColor }}>
+                <Video className="w-3.5 h-3.5 shrink-0" style={{ color: accentColor }} />
+                <span className="text-xs font-bold">{course.stats.total_lessons} Lecciones</span>
+              </div>
+              <p className="text-[8px] font-black uppercase tracking-widest ml-5" style={{ color: mutedTextColor }}>Material</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
-    </motion.div>
+    </div>
   )
 }

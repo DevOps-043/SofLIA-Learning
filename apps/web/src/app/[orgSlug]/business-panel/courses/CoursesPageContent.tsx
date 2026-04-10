@@ -7,7 +7,9 @@ import {
   Filter,
   GraduationCap,
   Award,
-  Sparkles
+  Sparkles,
+  LayoutGrid,
+  List
 } from 'lucide-react'
 import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
 import { CourseStatCard } from './CourseStatCard'
@@ -130,10 +132,10 @@ export function CoursesPageContent() {
         </div>
       </motion.div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4 mb-8">
+      {/* Stats Grid - Minimalist Dashboard Pattern */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {courseStats.map((stat, index) => (
-          <CourseStatCard key={stat.title} {...stat} delay={index} isDark={isDark} />
+          <CourseStatCard key={stat.title} {...stat} delay={index} />
         ))}
       </div>
 
@@ -142,84 +144,93 @@ export function CoursesPageContent() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 rounded-2xl border backdrop-blur-sm"
+          className="mb-8 p-4 rounded-xl border-2"
           style={{
-            backgroundColor: 'rgba(234, 179, 8, 0.1)',
-            borderColor: 'rgba(234, 179, 8, 0.3)'
+            backgroundColor: isDark ? 'rgba(245, 158, 11, 0.05)' : 'rgba(245, 158, 11, 0.05)',
+            borderColor: 'rgba(245, 158, 11, 0.2)',
           }}
         >
           <div className="flex items-center gap-3">
-            <Award className="w-5 h-5 text-yellow-400" />
-            <div>
-              <h4 className="text-sm font-semibold text-yellow-400">{t('courses.error.info')}</h4>
-              <p className="text-xs mt-1" style={{ color: textColor, opacity: 0.8 }}>{error}</p>
-            </div>
+            <Award className="w-5 h-5 text-amber-500" />
+            <p className="text-sm font-medium text-amber-500">{error}</p>
           </div>
         </motion.div>
       )}
 
-      {/* Filters Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="rounded-2xl p-5 mb-8 shadow-sm"
-        style={{
-          backgroundColor: cardBg,
-          border: `1px solid ${borderColor}`
-        }}
-      >
-        <div className="flex flex-col 2xl:flex-row gap-4">
-          {/* Search */}
-          <div className="flex-1 relative group">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors duration-200"
-              style={{ color: `${textColor}50` }}
-            />
-            <input
-              type="text"
-              placeholder={t('courses.filters.search')}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full pl-12 pr-4 py-3.5 rounded-xl border focus:outline-none focus:ring-2 transition-all duration-200 ${
-                isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'
-              }`}
-              style={{
-                color: textColor,
-                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
-              }}
-            />
-          </div>
-
-          {/* Category Filter */}
-          <div className="w-full 2xl:w-56">
-            <PremiumSelect
-              value={filterCategory}
-              onChange={setFilterCategory}
-              options={[
-                { value: 'all', label: t('courses.filters.allCategories') },
-                ...categories.map(cat => ({ value: cat, label: cat }))
-              ]}
-              placeholder={t('courses.filters.category')}
-              icon={<Filter className="w-5 h-5" />}
-            />
-          </div>
-
-          {/* Level Filter */}
-          <div className="w-full 2xl:w-56">
-            <PremiumSelect
-              value={filterLevel}
-              onChange={setFilterLevel}
-              options={[
-                { value: 'all', label: t('courses.filters.allLevels') },
-                ...levels.map(level => ({ value: level, label: level }))
-              ]}
-              placeholder={t('courses.filters.level')}
-              icon={<GraduationCap className="w-5 h-5" />}
-            />
-          </div>
+      {/* Filters Section - EXACT Replication of Users Page Style */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-8">
+        {/* Search Input - Matching Users Page Design */}
+        <div className="flex-1 relative group">
+          <Search
+            className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-opacity ${isDark ? 'group-focus-within:opacity-70 opacity-40' : 'group-focus-within:opacity-50 opacity-30'}`}
+            style={{ color: textColor }}
+          />
+          <input
+            type="text"
+            placeholder={t('courses.filters.search')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 focus:outline-none transition-all duration-300"
+            style={{
+              backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF',
+              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+              color: textColor,
+            }}
+          />
         </div>
-      </motion.div>
+
+        {/* Category Filter */}
+        <div className="w-full lg:w-64">
+          <PremiumSelect
+            value={filterCategory}
+            onChange={setFilterCategory}
+            options={[
+              { value: 'all', label: t('courses.filters.allCategories') },
+              ...categories.map(cat => ({ value: cat, label: cat }))
+            ]}
+            placeholder={t('courses.filters.category')}
+            icon={<Filter className="w-4 h-4" />}
+          />
+        </div>
+
+        {/* Level Filter */}
+        <div className="w-full lg:w-64">
+          <PremiumSelect
+            value={filterLevel}
+            onChange={setFilterLevel}
+            options={[
+              { value: 'all', label: t('courses.filters.allLevels') },
+              ...levels.map(level => ({ value: level, label: level }))
+            ]}
+            placeholder={t('courses.filters.level')}
+            icon={<GraduationCap className="w-4 h-4" />}
+          />
+        </div>
+
+        {/* View Mode Toggle - Matching Users Page */}
+        <div
+          className="flex items-center rounded-xl border-2 overflow-hidden ml-auto"
+          style={{
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+            backgroundColor: isDark ? 'var(--org-card-background, #1E2329)' : '#FFFFFF',
+          }}
+        >
+          <button
+            onClick={() => {/* setViewMode('grid') */}}
+            className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
+            style={{ backgroundColor: true ? `${primaryColor}30` : 'transparent' }}
+          >
+            <LayoutGrid className="w-5 h-5" style={{ color: primaryColor }} />
+          </button>
+          <div className="w-px h-6" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }} />
+          <button
+            onClick={() => {/* setViewMode('list') */}}
+            className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
+          >
+            <List className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }} />
+          </button>
+        </div>
+      </div>
 
       {/* Courses Grid */}
       {filteredCourses.length === 0 ? (
@@ -262,17 +273,13 @@ export function CoursesPageContent() {
           </motion.div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
             {filteredCourses.map((course, index) => (
               <CourseCard
                 key={course.id}
                 course={course}
                 index={index}
-                primaryColor={primaryColor}
-                textColor={textColor}
-                cardBg={cardBg}
                 onClick={() => handleCourseClick(course.id)}
-                isDark={isDark}
               />
             ))}
           </div>

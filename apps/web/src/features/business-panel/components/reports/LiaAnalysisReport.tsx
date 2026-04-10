@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { BarChart, Bar, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
@@ -8,19 +8,18 @@ import { Award, BarChart3, Brain, Download, RefreshCw, Sparkles, TrendingUp, Use
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
 import remarkGfm from 'remark-gfm'
-import { useThemeStore } from '@/core/stores/themeStore'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from 'react-i18next'
-import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
 import { StatCard } from './StatCard'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import type { LiaAnalysisReportData as SharedLiaAnalysisReportData } from './types'
 
 interface LiaActivityRow {
   last_accessed_at?: string | null
 }
 
-interface LiaAnalysisReportData {
-  analysis_text: string
+type LiaAnalysisReportData = SharedLiaAnalysisReportData & {
+  analysis_text?: string
   raw_data?: {
     activity?: {
       activities?: LiaActivityRow[]
@@ -45,45 +44,26 @@ interface LiaChartProps {
 
 function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
   const { user } = useAuth()
-  const isDark = resolvedTheme === 'dark'
-  const panelStyles = styles?.panel
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
-  const textColor = isDark ? (panelStyles?.text_color || '#f8fafc') : '#0F172A'
-  const cardBg = isDark ? (panelStyles?.card_background || 'rgba(30, 41, 59, 0.8)') : '#FFFFFF'
+  const panelTheme = useBusinessPanelTheme()
+  const isDark = panelTheme.isDark
+  const accentColor = panelTheme.actionColor
+  const textColor = panelTheme.textColor
+  const cardBg = panelTheme.panelBg
   
   const reportRef = useRef<HTMLDivElement>(null)
   const printRef = useRef<HTMLDivElement>(null)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [orgName, setOrgName] = useState<string>('Mi Organización')
+  const orgName = user?.organization?.name || 'Mi Organización'
 
-  // Fetch Organization Name
-  useEffect(() => {
-    const fetchOrgName = async () => {
-        if (!user?.organization_id) return
-        const supabase = createClient()
-        const { data, error } = await supabase
-            .from('organizations')
-            .select('name')
-            .eq('id', user.organization_id)
-            .single()
-        
-        if (data && !error) {
-            setOrgName(data.name)
-        }
-    }
-    fetchOrgName()
-  }, [user?.organization_id])
 
-  // Procesar datos para la gráfica
+  // Procesar datos para la grÃ¡fica
   const monthlyData = useCallback(() => {
     const activities = data.raw_data?.activity?.activities || []
     const months: Record<string, number> = {}
     const now = new Date()
     
-    // Inicializar últimos 6 meses
+    // Inicializar Ãºltimos 6 meses
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
       const key = d.toLocaleString('es-ES', { month: 'short' })
@@ -137,11 +117,11 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
       const imgWidth = pageWidth
       const imgHeight = (canvas.height * pageWidth) / canvas.width
       
-      // Si la imagen cabe en una página
+      // Si la imagen cabe en una pÃ¡gina
       if (imgHeight <= pageHeight) {
         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       } else {
-        // Múltiples páginas: dividir la imagen
+        // MÃºltiples pÃ¡ginas: dividir la imagen
         const totalPages = Math.ceil(imgHeight / pageHeight)
         
         for (let page = 0; page < totalPages; page++) {
@@ -149,7 +129,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
             pdf.addPage()
           }
           
-          // Posición Y para esta página (negativa para "subir" la imagen)
+          // PosiciÃ³n Y para esta pÃ¡gina (negativa para "subir" la imagen)
           const yPos = -(page * pageHeight)
           pdf.addImage(imgData, 'PNG', 0, yPos, imgWidth, imgHeight)
         }
@@ -164,7 +144,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
     }
   }
 
-  // Componente de Gráfica Reutilizable
+  // Componente de GrÃ¡fica Reutilizable
   const ChartComponent = ({ height = 200, showTooltip = true, barColor = accentColor }: LiaChartProps) => (
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={monthlyData}>
@@ -199,7 +179,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" ref={reportRef}>
         
-      {/* VISTA OCULTA PARA IMPRESIÓN (PDF) 
+      {/* VISTA OCULTA PARA IMPRESIÃ“N (PDF) 
           Se renderiza fuera de pantalla pero se usa para generar el PDF con formato A4 limpio */}
       <div 
         ref={printRef} 
@@ -209,7 +189,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
             left: '-9999px', 
             width: '794px', // Ancho A4 en px a 96 DPI
             minHeight: '1123px', // Alto A4
-            padding: '60px 60px 120px 60px', // Márgenes ampliados, especialmente inferior
+            padding: '60px 60px 120px 60px', // MÃ¡rgenes ampliados, especialmente inferior
             backgroundColor: '#FFFFFF',
             color: '#1e293b',
             fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -256,7 +236,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
         {/* Contenido PDF */}
         <div style={{ position: 'relative', zIndex: 10, flex: 1 }}>
             <div className="prose max-w-none text-justify" style={{ color: '#334155', fontSize: '14px', lineHeight: '1.8', textAlign: 'justify' }}>
-                {/* Aplicamos estilos específicos a los elementos del markdown para asegurar el formato en PDF */}
+                {/* Aplicamos estilos especÃ­ficos a los elementos del markdown para asegurar el formato en PDF */}
                 <style
                   dangerouslySetInnerHTML={{
                     __html: `
@@ -273,7 +253,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
                     `,
                   }}
                 />
-                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.analysis_text}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.analysis_text || ''}</ReactMarkdown>
             </div>
         </div>
 
@@ -290,7 +270,11 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-8 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30 shadow-sm relative overflow-hidden"
+            className="p-8 rounded-[28px] border shadow-sm relative overflow-hidden"
+            style={{
+              backgroundColor: panelTheme.cardBg,
+              borderColor: panelTheme.borderColor,
+            }}
         >
             <div className="absolute top-0 right-0 p-6 opacity-10">
                 <Brain className="w-32 h-32" />
@@ -298,16 +282,27 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
             
             <div className="relative z-10">
                 {/* Header Visble */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-8 border-b border-gray-100 dark:border-gray-800 pb-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6" style={{ borderBottom: `1px solid ${panelTheme.dividerColor}` }}>
                     <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/20">
+                        <div
+                          className="p-3 rounded-xl shadow-lg"
+                          style={{
+                            background: `linear-gradient(135deg, ${panelTheme.actionColor}, ${panelTheme.brandColor})`,
+                            boxShadow: `0 18px 32px -24px ${panelTheme.actionColor}`,
+                          }}
+                        >
                             <Sparkles className="w-8 h-8 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-cyan-500">
+                            <h2
+                              className="text-2xl font-bold bg-clip-text text-transparent"
+                              style={{
+                                backgroundImage: `linear-gradient(90deg, ${panelTheme.actionColor}, ${panelTheme.brandColor})`,
+                              }}
+                            >
                                 {t('reports.liaAnalysis.title')}
                             </h2>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <p className="text-sm" style={{ color: panelTheme.subtextColor }}>
                                 {t('reports.liaAnalysis.subtitle')}
                             </p>
                         </div>
@@ -318,9 +313,9 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
                         disabled={isDownloading}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold !text-white transition-all hover:scale-105 hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
-                            backgroundColor: '#0A2540',
-                            color: '#FFFFFF',
-                            boxShadow: '0 4px 14px 0 rgba(10, 37, 64, 0.4)'
+                            backgroundColor: panelTheme.actionColor,
+                            color: panelTheme.onActionColor,
+                            boxShadow: `0 12px 26px -18px ${panelTheme.actionColor}`
                         }}
                     >
                         {isDownloading ? (
@@ -337,30 +332,30 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
                     dangerouslySetInnerHTML={{
                       __html: `
                         .prose strong {
-                          color: ${isDark ? '#60a5fa' : '#2563eb'} !important;
+                          color: ${panelTheme.actionColor} !important;
                           font-weight: 700 !important;
                         }
                         .prose h1, .prose h2, .prose h3, .prose h4 {
-                          color: ${isDark ? '#f8fafc' : '#0f172a'} !important;
+                          color: ${panelTheme.textColor} !important;
                           font-weight: 700 !important;
                         }
                         .prose p {
-                          color: ${isDark ? 'rgba(248, 250, 252, 0.9)' : '#334155'} !important;
+                          color: ${panelTheme.textColor} !important;
                         }
                         .prose li {
-                          color: ${isDark ? 'rgba(248, 250, 252, 0.9)' : '#334155'} !important;
+                          color: ${panelTheme.textColor} !important;
                         }
                         .prose code {
-                          color: ${isDark ? '#60a5fa' : '#2563eb'} !important;
-                          background-color: ${isDark ? 'rgba(96, 165, 250, 0.1)' : 'rgba(37, 99, 235, 0.1)'} !important;
+                          color: ${panelTheme.actionColor} !important;
+                          background-color: ${panelTheme.actionSurface} !important;
                         }
                       `,
                     }}
                   />
-                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.analysis_text}</ReactMarkdown>
+                   <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>{data.analysis_text || ''}</ReactMarkdown>
                 </div>
                 
-                <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs text-gray-400">
+                <div className="mt-8 pt-6 flex items-center justify-between text-xs" style={{ borderTop: `1px solid ${panelTheme.dividerColor}`, color: panelTheme.mutedTextColor }}>
                     <span>{t('reports.liaAnalysis.generatedBy')}</span>
                     <span>{new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
@@ -368,7 +363,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
         </motion.div>
       </div>
 
-      {/* Columna Lateral - Métricas Clave (Visible) */}
+      {/* Columna Lateral - MÃ©tricas Clave (Visible) */}
       <div className="space-y-4">
          <StatCard 
             label={t('reports.liaMetrics.totalUsers')} 
@@ -380,24 +375,30 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
             label={t('reports.liaMetrics.activeCourses')} 
             value={data.raw_data?.courses?.total_courses || 0} 
             icon={BarChart3} 
-            color="#8b5cf6" 
+            color={panelTheme.brandColor} 
          />
          <StatCard 
             label={t('reports.liaMetrics.certificates')} 
             value={data.raw_data?.certificates?.total_certificates || 0} 
             icon={Award} 
-            color="#ec4899" 
+            color={panelTheme.secondaryColor} 
          />
          
-         <div className="p-5 rounded-2xl border bg-white dark:bg-[#0F1419] border-gray-200 dark:border-slate-700/30">
-            <h3 className="font-semibold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider text-gray-500">
+         <div
+            className="p-5 rounded-[28px] border"
+            style={{
+              backgroundColor: panelTheme.cardBg,
+              borderColor: panelTheme.borderColor,
+            }}
+         >
+            <h3 className="font-semibold mb-4 flex items-center gap-2 text-sm uppercase tracking-wider" style={{ color: panelTheme.subtextColor }}>
                 <TrendingUp className="w-4 h-4" style={{ color: accentColor }} />
                 {t('reports.liaMetrics.recentActivity')}
             </h3>
             <div className="h-40 w-full">
                 <ChartComponent />
             </div>
-            <p className="text-xs text-center mt-4 text-gray-400">{t('reports.liaMetrics.last6Months')}</p>
+            <p className="text-xs text-center mt-4" style={{ color: panelTheme.mutedTextColor }}>{t('reports.liaMetrics.last6Months')}</p>
          </div>
       </div>
     </div>

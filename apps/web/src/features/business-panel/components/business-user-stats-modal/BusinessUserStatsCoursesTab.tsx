@@ -14,7 +14,7 @@ export function BusinessUserStatsCoursesTab({
   theme,
   formatDate,
 }: Pick<BusinessUserStatsTabProps, 'stats' | 't' | 'theme' | 'formatDate'>) {
-  if (stats.courses_data.length === 0) {
+  if ((stats.courses_data ?? []).length === 0) {
     return (
       <BusinessUserStatsEmptyState
         icon={BookOpen}
@@ -26,7 +26,7 @@ export function BusinessUserStatsCoursesTab({
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-      {stats.courses_data.map((course, index) => {
+      {(stats.courses_data ?? []).map((course, index) => {
         const progressColor = getBusinessUserStatsCourseProgressColor(course)
 
         return (

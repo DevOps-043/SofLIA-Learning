@@ -11,12 +11,10 @@ import {
   XCircle,
   AlertCircle,
   FileSpreadsheet,
-  Users,
   Sparkles
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useOrganizationStylesContext } from '../contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 
 interface BusinessImportUsersModalProps {
   isOpen: boolean
@@ -33,10 +31,7 @@ interface ImportResult {
 
 export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: BusinessImportUsersModalProps) {
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const panelStyles = styles?.panel
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
+  const theme = useBusinessPanelTheme()
 
   const [isDragging, setIsDragging] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
@@ -45,9 +40,24 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Theme Colors
-  const primaryColor = panelStyles?.primary_button_color || '#0EA5E9'
-  const accentColor = panelStyles?.accent_color || '#10B981'
+  const primaryColor = theme.primaryColor
+  const accentColor = theme.accentColor
+  const textColor = theme.textColor
+  const subtextColor = theme.subtextColor
+  const mutedText = theme.mutedTextColor
+  const borderColor = theme.borderColor
+  const inputBg = theme.inputBg
+  const panelBg = theme.panelBg
+  const cardBg = theme.cardBg
+  const onPrimaryColor = theme.onPrimaryColor
+  const successColor = theme.successColor
+  const dangerColor = theme.dangerColor
+  const warningColor = theme.warningColor
+  const successBg = `${successColor}12`
+  const successBorder = `${successColor}26`
+  const dangerBg = `${dangerColor}12`
+  const dangerBorder = `${dangerColor}26`
+  const warningBg = `${warningColor}1F`
 
   const handleDownloadTemplate = async () => {
     try {
@@ -170,13 +180,14 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
         className="fixed inset-0 flex items-center justify-center p-4"
         style={{ zIndex: 99999 }}
       >
-        {/* Backdrop - Transparent, just for closing */}
+        {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={handleClose}
-          className="absolute inset-0"
+          className="absolute inset-0 backdrop-blur-sm"
+          style={{ backgroundColor: theme.overlayBg }}
         />
 
         {/* Modal */}
@@ -188,18 +199,16 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
           className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className="rounded-2xl shadow-2xl overflow-hidden border border-white/10"
-            style={{ backgroundColor: 'var(--org-card-background, #1a1f2e)' }}
-          >
+          <div className="rounded-2xl shadow-2xl overflow-hidden border" style={{ backgroundColor: panelBg, borderColor }}>
             {/* Two Column Layout - Scrollable */}
             <div className="flex flex-col lg:flex-row max-h-[85vh] overflow-y-auto lg:overflow-hidden">
 
               {/* Left Side - Preview & Info */}
               <div
-                className="lg:w-80 w-full p-4 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r border-white/5 shrink-0"
+                className="lg:w-80 w-full p-4 lg:p-8 flex flex-col border-b lg:border-b-0 lg:border-r shrink-0"
                 style={{
-                  background: `linear-gradient(135deg, ${primaryColor}15, ${accentColor}10)`
+                  background: `linear-gradient(135deg, ${primaryColor}15, ${accentColor}10)`,
+                  borderColor
                 }}
               >
                 <div className="flex-1 flex flex-col items-center justify-center py-2 lg:py-0">
@@ -217,7 +226,7 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                         border: `2px solid ${primaryColor}50`
                       }}
                     >
-                      <Upload className="w-12 h-12" style={{ color: isDark ? '#FFFFFF' : primaryColor }} />
+                      <Upload className="w-12 h-12" style={{ color: onPrimaryColor }} />
                     </div>
                     <motion.div
                       animate={{ scale: [1, 1.2, 1] }}
@@ -225,45 +234,45 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                       className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center"
                       style={{ backgroundColor: accentColor }}
                     >
-                      <Sparkles className="w-4 h-4 text-white" />
+                      <Sparkles className="w-4 h-4" style={{ color: onPrimaryColor }} />
                     </motion.div>
                   </motion.div>
 
                   {/* Title */}
-                  <h2 className="text-xl font-bold text-white mb-2 text-center">
+                  <h2 className="text-xl font-bold mb-2 text-center" style={{ color: textColor }}>
                     {t('users.modals.import.title')}
                   </h2>
-                  <p className="text-sm text-white/50 text-center mb-8">
+                  <p className="text-sm text-center mb-8" style={{ color: subtextColor }}>
                     {t('users.modals.import.subtitle')}
                   </p>
 
                   {/* Stats Preview */}
                   {importResult ? (
                     <div className="w-full space-y-3">
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/5">
-                        <span className="text-white/60 text-sm">Total procesados</span>
-                        <span className="font-bold text-white">{importResult.total}</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl" style={{ backgroundColor: cardBg }}>
+                        <span className="text-sm" style={{ color: subtextColor }}>Total procesados</span>
+                        <span className="font-bold" style={{ color: textColor }}>{importResult.total}</span>
                       </div>
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-green-500/10 border border-green-500/20">
-                        <span className="text-green-400/80 text-sm">Importados</span>
-                        <span className="font-bold text-green-400">{importResult.imported}</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: successBg, borderColor: successBorder }}>
+                        <span className="text-sm" style={{ color: successColor }}>Importados</span>
+                        <span className="font-bold" style={{ color: successColor }}>{importResult.imported}</span>
                       </div>
                       {importResult.errors > 0 && (
-                        <div className="flex items-center justify-between p-3 rounded-xl bg-red-500/10 border border-red-500/20">
-                          <span className="text-red-400/80 text-sm">Errores</span>
-                          <span className="font-bold text-red-400">{importResult.errors}</span>
+                        <div className="flex items-center justify-between p-3 rounded-xl border" style={{ backgroundColor: dangerBg, borderColor: dangerBorder }}>
+                          <span className="text-sm" style={{ color: dangerColor }}>Errores</span>
+                          <span className="font-bold" style={{ color: dangerColor }}>{importResult.errors}</span>
                         </div>
                       )}
                     </div>
                   ) : selectedFile ? (
-                    <div className="w-full p-4 rounded-xl bg-white/5 border border-white/10">
+                    <div className="w-full p-4 rounded-xl border" style={{ backgroundColor: cardBg, borderColor }}>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
                           <FileSpreadsheet className="w-5 h-5" style={{ color: primaryColor }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">{selectedFile.name}</p>
-                          <p className="text-xs text-white/40">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                          <p className="text-sm font-medium truncate" style={{ color: textColor }}>{selectedFile.name}</p>
+                          <p className="text-xs" style={{ color: mutedText }}>{(selectedFile.size / 1024).toFixed(1)} KB</p>
                         </div>
                       </div>
                     </div>
@@ -271,11 +280,11 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                     <div
                       className="w-full p-4 rounded-xl border-2 border-dashed text-center"
                       style={{
-                        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#6C757D'
+                        borderColor
                       }}
                     >
-                      <FileText className="w-8 h-8 mx-auto mb-2" style={{ color: isDark ? 'rgba(255, 255, 255, 0.2)' : '#6C757D' }} />
-                      <p className="text-xs" style={{ color: isDark ? 'rgba(255, 255, 255, 0.3)' : '#6C757D' }}>Ningún archivo seleccionado</p>
+                      <FileText className="w-8 h-8 mx-auto mb-2" style={{ color: mutedText }} />
+                      <p className="text-xs" style={{ color: mutedText }}>Ningún archivo seleccionado</p>
                     </div>
                   )}
                 </div>
@@ -287,26 +296,18 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                   onClick={handleDownloadTemplate}
                   className="w-full py-3 px-4 rounded-xl border transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                   style={{
-                    borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#6C757D',
-                    backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#E9ECEF',
-                    color: isDark ? 'rgba(255, 255, 255, 0.8)' : '#0A2540'
+                    borderColor,
+                    backgroundColor: inputBg,
+                    color: textColor
                   }}
                   onMouseEnter={(e) => {
-                    if (isDark) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'
-                    } else {
-                      e.currentTarget.style.backgroundColor = '#D1D5DB'
-                    }
+                    e.currentTarget.style.backgroundColor = theme.hoverBg
                   }}
                   onMouseLeave={(e) => {
-                    if (isDark) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'
-                    } else {
-                      e.currentTarget.style.backgroundColor = '#E9ECEF'
-                    }
+                    e.currentTarget.style.backgroundColor = inputBg
                   }}
                 >
-                  <Download className="w-4 h-4" style={{ color: isDark ? '#FFFFFF' : '#0A2540' }} />
+                  <Download className="w-4 h-4" style={{ color: textColor }} />
                   {t('users.modals.import.downloadTemplate')}
                 </motion.button>
               </div>
@@ -314,36 +315,52 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
               {/* Right Side - Form */}
               <div className="flex-1 flex flex-col min-w-0 max-h-[85vh] lg:max-h-full overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 lg:p-6 border-b border-white/5 shrink-0">
+                <div className="flex items-center justify-between p-4 lg:p-6 border-b shrink-0" style={{ borderColor }}>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold" style={{ color: textColor }}>
                       {importResult ? t('users.modals.import.resultTitle') : t('users.modals.import.uploadTitle')}
                     </h3>
-                    <p className="text-sm text-white/40 mt-0.5">
+                    <p className="text-sm mt-0.5" style={{ color: mutedText }}>
                       {importResult ? t('users.modals.import.resultSubtitle') : t('users.modals.import.uploadSubtitle')}
                     </p>
                   </div>
                   <button
                     onClick={handleClose}
-                    className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                    className="p-2 rounded-lg transition-colors"
+                    onMouseEnter={(event) => {
+                      event.currentTarget.style.backgroundColor = theme.hoverBg
+                    }}
+                    onMouseLeave={(event) => {
+                      event.currentTarget.style.backgroundColor = 'transparent'
+                    }}
                   >
-                    <X className="w-5 h-5 text-white/40" />
+                    <X className="w-5 h-5" style={{ color: mutedText }} />
                   </button>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 p-4 lg:p-6 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                <div className="flex-1 p-4 lg:p-6 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: `${borderColor} transparent` }}>
                   {/* Error */}
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mb-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3"
+                      className="mb-4 p-4 rounded-xl border flex items-center gap-3"
+                      style={{ backgroundColor: dangerBg, borderColor: dangerBorder }}
                     >
-                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                      <span className="text-sm text-red-400 flex-1">{error}</span>
-                      <button onClick={() => setError(null)} className="p-1 hover:bg-red-500/20 rounded">
-                        <X className="w-4 h-4 text-red-400" />
+                      <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: dangerColor }} />
+                      <span className="text-sm flex-1" style={{ color: dangerColor }}>{error}</span>
+                      <button
+                        onClick={() => setError(null)}
+                        className="p-1 rounded transition-colors"
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.backgroundColor = `${dangerColor}20`
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.backgroundColor = 'transparent'
+                        }}
+                      >
+                        <X className="w-4 h-4" style={{ color: dangerColor }} />
                       </button>
                     </motion.div>
                   )}
@@ -355,20 +372,20 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                       <div
                         className="p-5 rounded-xl flex items-center gap-4"
                         style={{
-                          backgroundColor: importResult.imported > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
-                          border: `1px solid ${importResult.imported > 0 ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`
+                          backgroundColor: importResult.imported > 0 ? successBg : dangerBg,
+                          border: `1px solid ${importResult.imported > 0 ? successBorder : dangerBorder}`
                         }}
                       >
                         {importResult.imported > 0 ? (
-                          <CheckCircle className="w-8 h-8 text-green-400" />
+                          <CheckCircle className="w-8 h-8" style={{ color: successColor }} />
                         ) : (
-                          <XCircle className="w-8 h-8 text-red-400" />
+                          <XCircle className="w-8 h-8" style={{ color: dangerColor }} />
                         )}
                         <div>
-                          <p className="font-semibold text-white">
+                          <p className="font-semibold" style={{ color: textColor }}>
                             {importResult.imported > 0 ? t('users.modals.import.results.successTitle') : t('users.modals.import.results.noImportTitle')}
                           </p>
-                          <p className="text-sm text-white/50 mt-0.5">
+                          <p className="text-sm mt-0.5" style={{ color: subtextColor }}>
                             {importResult.imported} de {importResult.total} usuarios fueron importados correctamente
                           </p>
                         </div>
@@ -377,18 +394,18 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                       {/* Error Details */}
                       {importResult.errors > 0 && importResult.details.length > 0 && (
                         <div>
-                          <p className="text-sm font-medium text-white mb-3 flex items-center gap-2">
-                            <XCircle className="w-4 h-4 text-red-400" />
+                          <p className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: textColor }}>
+                            <XCircle className="w-4 h-4" style={{ color: dangerColor }} />
                             {t('users.modals.import.results.errorsFound')} ({importResult.errors})
                           </p>
-                          <div className="max-h-40 lg:max-h-48 overflow-y-auto space-y-2 p-3 rounded-xl bg-red-500/5 border border-red-500/10" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.1) transparent' }}>
+                          <div className="max-h-40 lg:max-h-48 overflow-y-auto space-y-2 p-3 rounded-xl border" style={{ backgroundColor: `${dangerColor}08`, borderColor: `${dangerColor}18`, scrollbarWidth: 'thin', scrollbarColor: `${borderColor} transparent` }}>
                             {importResult.details.slice(0, 10).map((detail, index) => (
-                              <div key={index} className="text-sm p-2 rounded-lg bg-red-500/10 text-red-400">
+                              <div key={index} className="text-sm p-2 rounded-lg" style={{ backgroundColor: dangerBg, color: dangerColor }}>
                                 <span className="font-medium">Fila {detail.row}:</span> {detail.error}
                               </div>
                             ))}
                             {importResult.details.length > 10 && (
-                              <p className="text-xs text-red-400/60 text-center py-2">
+                              <p className="text-xs text-center py-2" style={{ color: `${dangerColor}B3` }}>
                                 Y {importResult.details.length - 10} errores más...
                               </p>
                             )}
@@ -407,8 +424,8 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                         onClick={() => fileInputRef.current?.click()}
                         className="relative rounded-xl cursor-pointer transition-all duration-200 p-8"
                         style={{
-                          border: `2px dashed ${isDragging ? primaryColor : (isDark ? 'rgba(255,255,255,0.15)' : '#6C757D')}`,
-                          backgroundColor: isDragging ? `${primaryColor}10` : (isDark ? 'rgba(255,255,255,0.02)' : '#E9ECEF')
+                          border: `2px dashed ${isDragging ? primaryColor : borderColor}`,
+                          backgroundColor: isDragging ? `${primaryColor}10` : inputBg
                         }}
                       >
                         <input
@@ -426,12 +443,12 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                               <motion.div
                                 animate={{ rotate: 360 }}
                                 transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                                className="w-12 h-12 mx-auto rounded-full border-3 border-t-transparent"
+                                className="w-12 h-12 mx-auto rounded-full border-[3px] border-t-transparent"
                                 style={{ borderColor: `${primaryColor}30`, borderTopColor: primaryColor }}
                               />
                               <div>
-                                <p className="font-medium text-white">{t('users.modals.import.loading.title')}</p>
-                                <p className="text-sm text-white/40 mt-1">{t('users.modals.import.loading.subtitle')}</p>
+                                <p className="font-medium" style={{ color: textColor }}>{t('users.modals.import.loading.title')}</p>
+                                <p className="text-sm mt-1" style={{ color: mutedText }}>{t('users.modals.import.loading.subtitle')}</p>
                               </div>
                             </div>
                           ) : (
@@ -440,12 +457,12 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                                 className="w-14 h-14 mx-auto rounded-xl flex items-center justify-center mb-4"
                                 style={{ backgroundColor: `${primaryColor}15` }}
                               >
-                                <Upload className="w-7 h-7" style={{ color: isDark ? '#FFFFFF' : primaryColor }} />
+                                <Upload className="w-7 h-7" style={{ color: primaryColor }} />
                               </div>
-                              <p className="font-medium mb-1" style={{ color: isDark ? '#FFFFFF' : '#0A2540' }}>
+                              <p className="font-medium mb-1" style={{ color: textColor }}>
                                 {isDragging ? t('users.modals.import.dragDrop.drop') : t('users.modals.import.dragDrop.drag')}
                               </p>
-                              <p className="text-sm" style={{ color: isDark ? 'rgba(255, 255, 255, 0.4)' : '#6C757D' }}>
+                              <p className="text-sm" style={{ color: mutedText }}>
                                 {t('users.modals.import.dragDrop.orKey')}
                               </p>
                             </>
@@ -454,8 +471,8 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                       </motion.div>
 
                       {/* Format Info */}
-                      <div className="rounded-xl p-4 bg-white/5 border border-white/5">
-                        <p className="text-sm font-medium text-white mb-3 flex items-center gap-2">
+                      <div className="rounded-xl p-4 border" style={{ backgroundColor: cardBg, borderColor }}>
+                        <p className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: textColor }}>
                           <FileText className="w-4 h-4" style={{ color: accentColor }} />
                           {t('users.modals.import.format.title')}
                         </p>
@@ -472,21 +489,21 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                                 <code
                                   className="px-2 py-0.5 rounded text-xs font-mono border font-semibold"
                                   style={{
-                                    backgroundColor: isDark ? `${primaryColor}30` : `${primaryColor}15`,
-                                    color: isDark ? '#FFFFFF' : '#0A2540',
-                                    borderColor: isDark ? `${primaryColor}60` : '#6C757D'
+                                    backgroundColor: `${primaryColor}15`,
+                                    color: primaryColor,
+                                    borderColor: `${primaryColor}40`
                                   }}
                                 >
                                   {item.field}
                                 </code>
-                                <span style={{ color: isDark ? 'rgba(255, 255, 255, 0.7)' : '#6C757D' }}>{item.desc}</span>
+                                <span style={{ color: subtextColor }}>{item.desc}</span>
                               </div>
                               {item.required && (
                                 <span
                                   className="text-xs px-2 py-0.5 rounded-full"
                                   style={{
-                                    backgroundColor: isDark ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.15)',
-                                    color: isDark ? '#FBBF24' : '#F59E0B'
+                                    backgroundColor: warningBg,
+                                    color: warningColor
                                   }}
                                 >
                                   {t('users.modals.import.format.required')}
@@ -501,12 +518,19 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 lg:p-6 border-t border-white/5 flex items-center justify-end gap-3 shrink-0">
+                <div className="p-4 lg:p-6 border-t flex items-center justify-end gap-3 shrink-0" style={{ borderColor }}>
                   {importResult ? (
                     <>
                       <button
                         onClick={handleReset}
-                        className="px-4 py-2.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                        className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                        style={{ color: mutedText, backgroundColor: inputBg }}
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.backgroundColor = theme.hoverBg
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.backgroundColor = inputBg
+                        }}
                       >
                         {t('users.buttons.importAnother')}
                       </button>
@@ -514,9 +538,10 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleClose}
-                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white"
+                        className="px-5 py-2.5 rounded-xl text-sm font-medium"
                         style={{
                           background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})`,
+                          color: onPrimaryColor,
                           boxShadow: `0 4px 15px ${primaryColor}40`
                         }}
                       >
@@ -528,7 +553,14 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                       <button
                         onClick={handleClose}
                         disabled={isImporting}
-                        className="px-4 py-2.5 rounded-xl text-sm font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+                        className="px-4 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                        style={{ color: mutedText, backgroundColor: inputBg }}
+                        onMouseEnter={(event) => {
+                          event.currentTarget.style.backgroundColor = theme.hoverBg
+                        }}
+                        onMouseLeave={(event) => {
+                          event.currentTarget.style.backgroundColor = inputBg
+                        }}
                       >
                         {t('users.buttons.cancel')}
                       </button>
@@ -537,9 +569,10 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                         whileTap={{ scale: selectedFile ? 0.98 : 1 }}
                         onClick={processFile}
                         disabled={!selectedFile || isImporting}
-                        className="px-5 py-2.5 rounded-xl text-sm font-medium text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-5 py-2.5 rounded-xl text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                         style={{
-                          background: selectedFile ? `linear-gradient(135deg, ${primaryColor}, ${accentColor})` : 'rgba(255,255,255,0.1)',
+                          background: selectedFile ? `linear-gradient(135deg, ${primaryColor}, ${accentColor})` : inputBg,
+                          color: selectedFile ? onPrimaryColor : mutedText,
                           boxShadow: selectedFile ? `0 4px 15px ${primaryColor}40` : 'none'
                         }}
                       >

@@ -93,10 +93,13 @@
       "Bash(grep -E \"hooks|use.*\\\\.\\(ts|tsx\\)$\" echo -e \"\\\\n=== Checking for courses hooks ===\" find apps/web/src -path \"*courses*\" -name \"useCustom*\" echo -e \"\\\\n=== Checking for difficulty-pattern-detector ===\" find apps/web/src -name \"*difficulty*\")",
       "Read(//tmp/**)",
       "Bash(git -C \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning\" status --short)",
-      "Bash(xargs grep:*)",
-      "Bash(grep -E \"\\\\.ts$\")",
-      "Bash(grep -r \"fullcalendar\\\\|FullCalendar\" 'D:\\\\Pulse Hub\\\\SofLIA-Learning\\\\apps\\\\web' --include=*.ts --include=*.tsx --include=*.json)",
-      "Bash(grep -E \"\\\\.tsx$\")"
+      "Bash(grep -l \"ENABLE ROW LEVEL SECURITY\" supabase/migrations/*.sql)",
+      "Bash(bc)",
+      "Bash(wc -l \"/c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/supabase/migrations\"/*.sql)",
+      "Bash(grep -l \"NextResponse.json\" \"/c/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/app/api\"/**/route.ts)",
+      "Bash(wc -l \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/app/[orgSlug]/business-panel/users/components/\"*.tsx)",
+      "Bash(grep -E \"\\('|\\\\\"\\)\\(#[0-9a-fA-F]{3,6}|rgba\\)\")",
+      "Bash(grep -oE \"'#[0-9a-fA-F]{3,6}'|\\\\\"#[0-9a-fA-F]{3,6}\\\\\"\")"
     ],
     "deny": [],
     "ask": []

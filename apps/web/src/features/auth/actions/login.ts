@@ -113,10 +113,10 @@ async function handleNoBelongingRedirect(
     .limit(3)
 
   const fallback = {
-    error: 'No perteneces a esta organizacion.',
+    error: 'No perteneces a esta organización.',
     redirectTo: '/dashboard?error=not_member',
     redirectMessage:
-      'No tienes acceso a esta organizacion. Seras redirigido en 5 segundos.',
+      'No tienes acceso a esta organización. Serás redirigido en 5 segundos.',
   }
 
   if (!memberships || memberships.length === 0) {
@@ -125,10 +125,10 @@ async function handleNoBelongingRedirect(
 
   if (memberships.length > 1) {
     return {
-      error: 'Tu cuenta pertenece a otra organizacion.',
+      error: 'Tu cuenta pertenece a otra organización.',
       redirectTo: '/auth/select-organization',
       redirectMessage:
-        'Tu cuenta pertenece a otra organizacion. Seras redirigido al selector en 5 segundos.',
+        'Tu cuenta pertenece a otra organización. Serás redirigido al selector en 5 segundos.',
     }
   }
 
@@ -139,10 +139,10 @@ async function handleNoBelongingRedirect(
   }
 
   return {
-    error: 'Tu cuenta no pertenece a esta organizacion.',
+    error: 'Tu cuenta no pertenece a esta organización.',
     redirectTo: `/${membershipSlug}/dashboard`,
     redirectMessage:
-      'Tu cuenta pertenece a otra organizacion. Seras redirigido en 5 segundos.',
+      'Tu cuenta pertenece a otra organización. Serás redirigido en 5 segundos.',
   }
 }
 
@@ -178,10 +178,10 @@ export async function loginAction(formData: FormData) {
     }
 
 
-    // â­ MODERACIÓN: Verificar si el usuario está baneado
+    // Moderación: verificar si el usuario está baneado
     if (user.is_banned) {
       return {
-        error: `âŒ Tu cuenta ha sido suspendida por violaciones de las reglas de la comunidad. ${user.ban_reason || ''}`,
+        error: `Tu cuenta ha sido suspendida por violaciones de las reglas de la comunidad. ${user.ban_reason || ''}`,
         banned: true
       }
     }
@@ -274,7 +274,7 @@ export async function loginAction(formData: FormData) {
           if (consumeResult?.success) {
             // Ahora sí pertenece, podemos continuar el flujo normal
           } else {
-            console.warn('❌ [loginAction] Falló el consumo de invitación:', consumeResult?.error)
+            console.warn('[loginAction] Falló el consumo de invitación:', consumeResult?.error)
             // Procedemos al error de redirección normal si no se pudo unir
             return handleNoBelongingRedirect(supabase, user, organizationId)
           }
@@ -354,7 +354,7 @@ export async function loginAction(formData: FormData) {
 
       // Crear notificación de login (con timeout para no bloquear demasiado)
       try {
-        logger.info('ðŸ”” Iniciando creación de notificación de login', { userId: user.id })
+        logger.info('Iniciando creación de notificación de login', { userId: user.id })
         const { AutoNotificationsService } = await import('../../notifications/services/auto-notifications.service')
 
         // Usar Promise.race con timeout para no bloquear el login más de 2 segundos
@@ -369,18 +369,18 @@ export async function loginAction(formData: FormData) {
         ]).catch((error) => {
           // Si es timeout, continuar sin bloquear
           if (error instanceof Error && error.message === 'Timeout') {
-            logger.warn('â±ï¸ Timeout en notificación de login, continuando', { userId: user.id })
+            logger.warn('Timeout en notificación de login, continuando', { userId: user.id })
           } else {
-            logger.error('âŒ Error en notificación de login:', {
+            logger.error('Error en notificación de login:', {
               userId: user.id,
               error: error instanceof Error ? error.message : String(error)
             })
           }
         })
-        logger.info('✅ Notificación de login procesada', { userId: user.id })
+        logger.info('Notificación de login procesada', { userId: user.id })
       } catch (notificationError) {
         // Log del error pero no bloquear el login
-        logger.error('âŒ Error en notificación de login:', {
+        logger.error('Error en notificación de login:', {
           userId: user.id,
           error: notificationError instanceof Error ? notificationError.message : String(notificationError)
         })
@@ -388,7 +388,7 @@ export async function loginAction(formData: FormData) {
 
     } catch (sessionError) {
       // Log del error para debugging
-      console.error('âŒ [loginAction] Error crítico creando sesión:', {
+      console.error('[loginAction] Error crítico creando sesión:', {
         error: sessionError,
         message: getUnknownErrorMessage(sessionError, 'Error desconocido'),
         stack: getUnknownErrorStack(sessionError)
@@ -411,18 +411,18 @@ export async function loginAction(formData: FormData) {
         .eq('id', user.id)
       
       if (updateLoginError) {
-        console.warn('âš ï¸ No se pudo actualizar last_login_at:', updateLoginError)
+        console.warn('No se pudo actualizar last_login_at:', updateLoginError)
       }
     } catch (loginUpdateError) {
       // No fallar el login si falla la actualización del timestamp
     }
 
-    // 8. REDIRECCIÓN BASADA EN CARGO_ROL (Enfoque B2B)
-    // - Administrador â†’ /admin/dashboard
-    // - Instructor â†’ /instructor/dashboard (Panel de Instructor)
-    // - Business â†’ /business-panel/dashboard (Panel Admin Empresas) - REQUIERE organización
-    // - Business User â†’ /business-user/dashboard (Dashboard Usuario Business) - REQUIERE organización
-    // - Usuario (o cualquier otro) â†’ /dashboard (Tour SOFLIA + Planes)
+    // 8. Redirección basada en cargo_rol (enfoque B2B)
+    // - Administrador -> /admin/dashboard
+    // - Instructor -> /instructor/dashboard (panel de instructor)
+    // - Business -> /business-panel/dashboard (panel admin empresas) - requiere organización
+    // - Business User -> /business-user/dashboard (dashboard usuario business) - requiere organización
+    // - Usuario (o cualquier otro) -> /dashboard (tour SOFLIA + planes)
 
     const normalizedRole = user.cargo_rol?.toLowerCase().trim();
 

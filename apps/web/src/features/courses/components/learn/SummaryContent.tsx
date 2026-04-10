@@ -172,7 +172,7 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
 
         <div className="relative px-8 py-4 bg-gray-50 dark:bg-white/[0.02] border-t border-gray-200 dark:border-white/5 flex justify-between items-center">
           <span className="text-xs text-gray-500 dark:text-white/20 font-medium tracking-widest uppercase">
-            Generado por IA • Revisado por Expertos
+            Generado por IA • Revisado por expertos
           </span>
           <button
             onClick={() => {

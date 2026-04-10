@@ -3,8 +3,6 @@
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
-import { useOrganizationStylesContext } from '../../contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
 import { useTranslation } from 'react-i18next'
 import { StatCard } from './StatCard'
 import { ChartCard } from './ChartCard'
@@ -12,6 +10,7 @@ import { Award, Users, Eye, TrendingUp } from 'lucide-react'
 import { ReportTable } from '../ReportTable'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { CertificatesReportData } from './types'
+import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 type CertificateRow = NonNullable<CertificatesReportData['certificates']>[number]
 
@@ -22,14 +21,7 @@ type CourseCertificateDatum = {
 
 function CertificatesReport({ data }: { data: CertificatesReportData }) {
   const { t } = useTranslation('business')
-  const { styles } = useOrganizationStylesContext()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-  const panelStyles = styles?.panel
-  const textColor = isDark ? (panelStyles?.text_color || '#f8fafc') : '#0F172A'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
-  const cardBg = isDark ? (panelStyles?.card_background || 'rgba(30, 41, 59, 0.8)') : '#FFFFFF'
-  const cardBorder = isDark ? (panelStyles?.border_color || 'rgba(51, 65, 85, 0.3)') : '#E2E8F0'
+  const panelTheme = useBusinessPanelTheme()
   const certifiedUsersCount = data.total_users_with_certificates ?? 0
   const totalCertificatesCount = data.total_certificates ?? 0
 
@@ -59,8 +51,12 @@ function CertificatesReport({ data }: { data: CertificatesReportData }) {
       cell: (info) => {
         const url = info.row.original.certificate_url
         return url ? (
-          <button onClick={() => window.open(url, '_blank')} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-            <Eye className="w-4 h-4" style={{ color: accentColor }} />
+          <button
+            onClick={() => window.open(url, '_blank')}
+            className="p-2 rounded-lg"
+            style={{ backgroundColor: panelTheme.hoverBg }}
+          >
+            <Eye className="w-4 h-4" style={{ color: panelTheme.actionColor }} />
           </button>
         ) : <span className="opacity-50 text-xs">-</span>
       }
@@ -70,29 +66,29 @@ function CertificatesReport({ data }: { data: CertificatesReportData }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard label={t('reports.certificatesReport.stats.totalCertificates')} value={totalCertificatesCount} icon={Award} color="#8b5cf6" />
-        <StatCard label={t('reports.certificatesReport.stats.certifiedUsers')} value={certifiedUsersCount} icon={Users} color={accentColor} />
-        <StatCard label={t('reports.certificatesReport.stats.averagePerUser')} value={certifiedUsersCount > 0 ? (totalCertificatesCount / certifiedUsersCount).toFixed(1) : '0'} icon={TrendingUp} color="#10b981" />
+        <StatCard label={t('reports.certificatesReport.stats.totalCertificates')} value={totalCertificatesCount} icon={Award} color={panelTheme.secondaryColor} />
+        <StatCard label={t('reports.certificatesReport.stats.certifiedUsers')} value={certifiedUsersCount} icon={Users} color={panelTheme.actionColor} />
+        <StatCard label={t('reports.certificatesReport.stats.averagePerUser')} value={certifiedUsersCount > 0 ? (totalCertificatesCount / certifiedUsersCount).toFixed(1) : '0'} icon={TrendingUp} color={panelTheme.successColor} />
       </div>
 
       {courseCertData.length > 0 && (
         <ChartCard title={t('reports.certificatesReport.charts.byCourse')}>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={courseCertData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={cardBorder} opacity={0.3} />
-              <XAxis dataKey="name" tick={{ fill: textColor, fontSize: 10 }} angle={-45} textAnchor="end" height={80} axisLine={{ stroke: cardBorder }} />
-              <YAxis tick={{ fill: textColor, fontSize: 12 }} axisLine={{ stroke: cardBorder }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={panelTheme.borderColor} opacity={0.3} />
+              <XAxis dataKey="name" tick={{ fill: panelTheme.textColor, fontSize: 10 }} angle={-45} textAnchor="end" height={80} axisLine={{ stroke: panelTheme.borderColor }} />
+              <YAxis tick={{ fill: panelTheme.textColor, fontSize: 12 }} axisLine={{ stroke: panelTheme.borderColor }} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: cardBg,
-                  border: `1px solid ${cardBorder}`,
+                  backgroundColor: panelTheme.panelBg,
+                  border: `1px solid ${panelTheme.borderColor}`,
                   borderRadius: '8px',
-                  color: textColor
+                  color: panelTheme.textColor
                 }}
-                labelStyle={{ color: textColor }}
-                cursor={{ fill: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)' }}
+                labelStyle={{ color: panelTheme.textColor }}
+                cursor={{ fill: panelTheme.hoverBg }}
               />
-              <Bar dataKey="certificados" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="certificados" fill={panelTheme.secondaryColor} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

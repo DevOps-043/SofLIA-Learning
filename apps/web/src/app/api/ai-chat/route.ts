@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AI_CHAT_RATE_LIMIT, applyRouteRateLimit, withRouteRateLimitHeaders } from '@/app/api/_lib/ai-route-rate-limit'
 import { SessionService } from '@/features/auth/services/session.service'
+import {
+  buildSanitizedContextExcerpt,
+  sanitizeContextPayload,
+  sanitizeUntrustedString,
+} from '@/lib/security/context-sanitizer'
+import {
+  buildSecurityRefusalMessage,
+  buildPromptInjectionGuardrailPrompt,
+  enforceSecurityResponsePolicy,
+  evaluatePromptInjectionRisk,
+} from '@/lib/security/prompt-injection-detector'
+import { recordSecurityEvent } from '@/lib/security/security-events'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { initializeAnalyticsAsync } from './services/analytics-setup.service'
@@ -51,61 +63,148 @@ export async function POST(request: NextRequest) {
     }
 
     const normalizedData = normalizedRequest.data!
+    const sanitizedMessage = sanitizeUntrustedString(normalizedData.message, 12000)
+    const sanitizedContext = sanitizeUntrustedString(normalizedData.context, 120)
+    const sanitizedConversationHistory = normalizedData.conversationHistory.map(
+      (entry) => ({
+        role: entry.role,
+        content: sanitizeUntrustedString(entry.content, 6000),
+      }),
+    )
+    const sanitizedUserName = normalizedData.userName
+      ? sanitizeUntrustedString(normalizedData.userName, 200)
+      : undefined
+    const sanitizedUserInfo = normalizedData.userInfo
+      ? sanitizeContextPayload(normalizedData.userInfo)
+      : undefined
+    const sanitizedCourseContext = normalizedData.courseContext
+      ? sanitizeContextPayload(normalizedData.courseContext)
+      : undefined
+    const sanitizedWorkshopContext = normalizedData.workshopContext
+      ? sanitizeContextPayload(normalizedData.workshopContext)
+      : undefined
+    const sanitizedPageContext = normalizedData.pageContext
+      ? sanitizeContextPayload(normalizedData.pageContext)
+      : undefined
+    const securityAssessment = evaluatePromptInjectionRisk({
+      message: sanitizedMessage,
+      contextExcerpt: buildSanitizedContextExcerpt({
+        context: sanitizedContext,
+        pageContext: sanitizedPageContext,
+        courseContext: sanitizedCourseContext,
+        workshopContext: sanitizedWorkshopContext,
+      }),
+    })
+
     const {
-      message, context, conversationHistory, userName, userInfo, courseContext,
-      workshopContext, pageContext, isSystemMessage,
-      conversationId: existingConversationId, languageFromRequest, isPromptMode,
+      isSystemMessage,
+      conversationId: existingConversationId,
+      languageFromRequest,
+      isPromptMode,
     } = normalizedData
+
+    if (securityAssessment.action === 'block') {
+      recordSecurityEvent('prompt-injection-blocked', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        userAgent: request.headers.get('user-agent') || undefined,
+        ip:
+          request.headers.get('cf-connecting-ip') ||
+          request.headers.get('x-forwarded-for') ||
+          undefined,
+        reasons: securityAssessment.reasons,
+        metadata: {
+          score: securityAssessment.score,
+          categories: securityAssessment.categories,
+        },
+      })
+
+      logger.warn('[AI-CHAT] Blocked suspicious request', {
+        score: securityAssessment.score,
+        categories: securityAssessment.categories,
+      })
+
+      return withHeaders(
+        NextResponse.json({
+          response: buildSecurityRefusalMessage(securityAssessment),
+          conversationId: existingConversationId || null,
+        }),
+      )
+    }
 
     const userContext = await resolveChatUserContext({
       supabase,
       authenticatedUser: user,
-      requestUserInfo: userInfo,
-      userName,
-      courseContext,
+      requestUserInfo: sanitizedUserInfo,
+      userName: sanitizedUserName,
+      courseContext: sanitizedCourseContext,
     })
 
-    const { effectiveLanguage, contextPrompt } = await buildAiChatContext({
+    const { effectiveLanguage, contextPrompt: baseContextPrompt } = await buildAiChatContext({
       user,
-      message,
-      context,
-      language: resolveRequestLanguage(message, languageFromRequest),
+      message: sanitizedMessage,
+      context: sanitizedContext,
+      language: resolveRequestLanguage(sanitizedMessage, languageFromRequest),
       displayName: userContext.displayName,
       userRole: userContext.userRole,
       courseContext: userContext.courseContext,
-      workshopContext,
-      pageContext,
-      isFirstMessage: conversationHistory.length === 0,
+      workshopContext: sanitizedWorkshopContext,
+      pageContext: sanitizedPageContext,
+      isFirstMessage: sanitizedConversationHistory.length === 0,
       isPromptMode,
       requestOrigin: request.nextUrl.origin,
     })
+    const contextPrompt =
+      baseContextPrompt +
+      buildPromptInjectionGuardrailPrompt(securityAssessment)
 
     const analyticsPromise = user
       ? initializeAnalyticsAsync({
           user,
           request,
-          context,
+          context: sanitizedContext,
           existingConversationId: existingConversationId || null,
           courseContext: userContext.courseContext,
         })
       : Promise.resolve({ liaLogger: null, conversationId: null })
 
     const responseResult = await generateAiChatResponse({
-      message,
-      context,
+      message: sanitizedMessage,
+      context: sanitizedContext,
       language: effectiveLanguage,
       contextPrompt,
-      conversationHistory,
+      conversationHistory: sanitizedConversationHistory,
       userId: user?.id || null,
       isSystemMessage,
       hasCourseContext:
-        context === 'course' && userContext.courseContext !== undefined,
+        sanitizedContext === 'course' && userContext.courseContext !== undefined,
     })
+    const securedResponse = enforceSecurityResponsePolicy({
+      content: responseResult.response,
+      assessment: securityAssessment,
+    })
+
+    if (securedResponse !== responseResult.response) {
+      recordSecurityEvent('security-response-rewritten', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        userAgent: request.headers.get('user-agent') || undefined,
+        ip:
+          request.headers.get('cf-connecting-ip') ||
+          request.headers.get('x-forwarded-for') ||
+          undefined,
+        reasons: securityAssessment.reasons,
+        metadata: {
+          score: securityAssessment.score,
+          categories: securityAssessment.categories,
+        },
+      })
+    }
 
     scheduleAiChatAnalyticsLogging({
       analyticsPromise,
-      message,
-      response: responseResult.response,
+      message: sanitizedMessage,
+      response: securedResponse,
       isSystemMessage,
       responseMetadata: responseResult.metadata,
       userId: user?.id,
@@ -115,16 +214,16 @@ export async function POST(request: NextRequest) {
       await persistAiChatHistory({
         supabase,
         userId: user.id,
-        context,
-        message,
-        response: responseResult.response,
+        context: sanitizedContext,
+        message: sanitizedMessage,
+        response: securedResponse,
         lessonTitle: userContext.courseContext?.lessonTitle,
       })
     }
 
     return withHeaders(
       NextResponse.json({
-        response: responseResult.response,
+        response: securedResponse,
         conversationId: await resolveAiChatConversationId(
           analyticsPromise,
           existingConversationId || null,

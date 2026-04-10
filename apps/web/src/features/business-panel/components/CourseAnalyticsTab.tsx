@@ -15,16 +15,8 @@ import {
   Target,
   type LucideIcon
 } from 'lucide-react'
-import { useThemeStore } from '@/core/stores/themeStore'
-
-const COLORS = {
-  primary: '#8b5cf6',
-  secondary: '#6366f1',
-  success: '#10b981',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  info: '#3b82f6'
-}
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { BusinessPanelStatCard } from './shared/BusinessPanelStatCard'
 
 interface CourseAnalyticsTabProps {
   courseId: string
@@ -81,52 +73,66 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
   const [analyticsData, setAnalyticsData] = useState<CourseAnalyticsResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
+  const panelTheme = useBusinessPanelTheme()
+  const isDark = panelTheme.isDark
 
   const nivoTheme = useMemo(() => ({
     background: 'transparent',
     text: {
       fontSize: 12,
-      fill: isDark ? '#e5e7eb' : '#374151',
+      fill: panelTheme.subtextColor,
       outlineWidth: 0
     },
     axis: {
       domain: {
         line: {
-          stroke: isDark ? '#4b5563' : '#cbd5e1',
+          stroke: panelTheme.dividerColor,
           strokeWidth: 1
         }
       },
       ticks: {
         line: {
-          stroke: isDark ? '#4b5563' : '#cbd5e1',
+          stroke: panelTheme.dividerColor,
           strokeWidth: 1
         },
         text: {
           fontSize: 11,
-          fill: isDark ? '#9ca3af' : '#64748b'
+          fill: panelTheme.subtextColor
         }
       }
     },
     grid: {
       line: {
-        stroke: isDark ? '#374151' : '#e2e8f0',
+        stroke: panelTheme.dividerColor,
         strokeWidth: 1
       }
     },
     tooltip: {
       container: {
-        background: isDark ? '#1f2937' : '#ffffff',
-        color: isDark ? '#e5e7eb' : '#111827',
+        background: panelTheme.panelBg,
+        color: panelTheme.textColor,
         fontSize: 12,
-        borderRadius: '8px',
+        borderRadius: '12px',
         padding: '8px 12px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        border: `1px solid ${isDark ? '#374151' : '#e5e7eb'}`
+        boxShadow: '0 12px 28px rgba(0,0,0,0.18)',
+        border: `1px solid ${panelTheme.borderColor}`
       }
     }
-  }), [isDark])
+  }), [isDark, panelTheme.borderColor, panelTheme.dividerColor, panelTheme.panelBg, panelTheme.subtextColor, panelTheme.textColor])
+
+  const COLORS = {
+    action: panelTheme.actionColor,
+    brand: panelTheme.brandColor,
+    accent: panelTheme.accentColor,
+    success: panelTheme.successColor,
+    warning: panelTheme.warningColor,
+    danger: panelTheme.dangerColor,
+  }
+
+  const surfaceStyle = {
+    backgroundColor: panelTheme.cardBg,
+    borderColor: panelTheme.borderColor,
+  }
 
   useEffect(() => {
     fetchAnalytics()
@@ -158,7 +164,13 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+        <div
+          className="w-16 h-16 border-4 rounded-full animate-spin"
+          style={{
+            borderColor: `${panelTheme.actionColor}30`,
+            borderTopColor: panelTheme.actionColor,
+          }}
+        />
       </div>
     )
   }
@@ -166,11 +178,16 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
   if (error) {
     return (
       <div className="text-center py-20">
-        <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-        <p className="text-red-400 text-lg mb-4">{error}</p>
+        <AlertTriangle className="w-16 h-16 mx-auto mb-4" style={{ color: panelTheme.dangerColor }} />
+        <p className="text-lg mb-4" style={{ color: panelTheme.dangerColor }}>{error}</p>
         <button
           onClick={fetchAnalytics}
-          className="px-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors"
+          className="px-4 py-2 rounded-lg transition-colors"
+          style={{
+            backgroundColor: panelTheme.actionSurface,
+            color: panelTheme.actionColor,
+            border: `1px solid ${panelTheme.borderColor}`,
+          }}
         >
           Reintentar
         </button>
@@ -181,7 +198,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
   if (!analyticsData) {
     return (
       <div className="text-center py-20">
-        <p className="text-carbon-400">No hay datos disponibles</p>
+        <p style={{ color: panelTheme.subtextColor }}>No hay datos disponibles</p>
       </div>
     )
   }
@@ -215,7 +232,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
           icon={Users}
           label="Total Asignados"
           value={stats.total_assigned.toString()}
-          color={COLORS.info}
+          color={COLORS.action}
         />
         <MetricCard
           icon={CheckCircle}
@@ -227,13 +244,13 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
           icon={TrendingUp}
           label="Tasa de Completación"
           value={`${stats.completion_rate}%`}
-          color={COLORS.primary}
+          color={COLORS.brand}
         />
         <MetricCard
           icon={Target}
           label="Progreso Promedio"
           value={`${stats.average_progress}%`}
-          color={COLORS.secondary}
+          color={COLORS.accent}
         />
       </div>
 
@@ -255,22 +272,22 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
           icon={Users}
           label="Aprendices Activos"
           value={engagement.active_learners.toString()}
-          color={COLORS.info}
+          color={COLORS.action}
         />
         <MetricCard
           icon={TrendingUp}
           label="Tasa de Retención"
           value={`${engagement.retention_rate}%`}
-          color={COLORS.primary}
+          color={COLORS.brand}
         />
       </div>
 
       {/* Gráficas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Distribución de Progreso */}
-        <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
+        <div className="rounded-3xl p-6 border" style={surfaceStyle}>
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: panelTheme.textColor }}>
+            <BarChart3 className="w-5 h-5" style={{ color: COLORS.action }} />
             Distribución de Progreso
           </h3>
           <div className="h-80">
@@ -282,11 +299,11 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
                 padAngle={0.7}
                 cornerRadius={3}
                 activeOuterRadiusOffset={8}
-                colors={[COLORS.success, COLORS.warning, COLORS.info, COLORS.secondary, COLORS.primary]}
+                colors={[COLORS.success, COLORS.warning, COLORS.brand, COLORS.accent, COLORS.action]}
                 borderWidth={1}
                 borderColor={{ from: 'color', modifiers: [['darker', 0.2]] }}
                 arcLinkLabelsSkipAngle={10}
-                arcLinkLabelsTextColor="#e5e7eb"
+                arcLinkLabelsTextColor={panelTheme.subtextColor}
                 arcLinkLabelsThickness={2}
                 arcLinkLabelsColor={{ from: 'color' }}
                 arcLabelsSkipAngle={10}
@@ -294,7 +311,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
                 theme={nivoTheme}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-carbon-400">
+              <div className="flex items-center justify-center h-full" style={{ color: panelTheme.subtextColor }}>
                 No hay datos de progreso disponibles
               </div>
             )}
@@ -302,9 +319,9 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
         </div>
 
         {/* Puntos de Abandono */}
-        <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-warning" />
+        <div className="rounded-3xl p-6 border" style={surfaceStyle}>
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: panelTheme.textColor }}>
+            <AlertTriangle className="w-5 h-5" style={{ color: COLORS.warning }} />
             Puntos de Abandono
           </h3>
           <div className="h-80">
@@ -343,7 +360,7 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
                 theme={nivoTheme}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-carbon-400">
+              <div className="flex items-center justify-center h-full" style={{ color: panelTheme.subtextColor }}>
                 No se identificaron puntos de abandono
               </div>
             )}
@@ -353,8 +370,8 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
 
       {/* Resumen de Engagement y Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
-          <h3 className="text-xl font-bold text-white mb-4">Engagement</h3>
+        <div className="rounded-3xl p-6 border" style={surfaceStyle}>
+          <h3 className="text-xl font-bold mb-4" style={{ color: panelTheme.textColor }}>Engagement</h3>
           <div className="space-y-4">
             <StatRow label="Sesiones Totales" value={engagement.total_sessions.toString()} />
             <StatRow label="Duración Promedio de Sesión" value={`${engagement.average_session_duration} min`} />
@@ -363,8 +380,8 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
           </div>
         </div>
 
-        <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
-          <h3 className="text-xl font-bold text-white mb-4">Performance</h3>
+        <div className="rounded-3xl p-6 border" style={surfaceStyle}>
+          <h3 className="text-xl font-bold mb-4" style={{ color: panelTheme.textColor }}>Performance</h3>
           <div className="space-y-4">
             <StatRow label="Rating Promedio" value={performance.average_rating > 0 ? performance.average_rating.toFixed(1) : 'N/A'} />
             <StatRow label="Total Reseñas" value={performance.total_reviews.toString()} />
@@ -379,21 +396,22 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
 
 function MetricCard({ icon: Icon, label, value, color }: { icon: LucideIcon, label: string, value: string, color: string }) {
   return (
-    <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
-      <div className="flex items-center justify-between mb-4">
-        <Icon className="w-6 h-6" style={{ color }} />
-      </div>
-      <p className="text-carbon-400 text-sm mb-2">{label}</p>
-      <p className="text-3xl font-bold text-white">{value}</p>
-    </div>
+    <BusinessPanelStatCard
+      icon={<Icon className="w-5 h-5" />}
+      title={label}
+      value={value}
+      iconColor={color}
+    />
   )
 }
 
 function StatRow({ label, value }: { label: string, value: string }) {
+  const panelTheme = useBusinessPanelTheme()
+
   return (
-    <div className="flex items-center justify-between py-2 border-b border-carbon-700 last:border-0">
-      <span className="text-carbon-300">{label}</span>
-      <span className="text-white font-semibold">{value}</span>
+    <div className="flex items-center justify-between py-2 last:border-0" style={{ borderBottom: `1px solid ${panelTheme.dividerColor}` }}>
+      <span style={{ color: panelTheme.subtextColor }}>{label}</span>
+      <span className="font-semibold" style={{ color: panelTheme.textColor }}>{value}</span>
     </div>
   )
 }
