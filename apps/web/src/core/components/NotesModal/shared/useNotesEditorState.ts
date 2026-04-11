@@ -185,8 +185,11 @@ export function useNotesEditorState({
         title: title.trim(),
       };
 
-      await onSave(noteDraft);
-      onClose();
+      const wasSaved = await onSave(noteDraft);
+
+      if (wasSaved) {
+        onClose();
+      }
     } finally {
       setIsSaving(false);
     }

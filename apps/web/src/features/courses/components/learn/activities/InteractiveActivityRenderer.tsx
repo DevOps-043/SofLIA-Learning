@@ -66,7 +66,7 @@ export function InteractiveActivityRenderer({
 }) {
   const [liaEvaluationPending, setLiaEvaluationPending] = useState(false);
   const [toolActionMessage, setToolActionMessage] = useState<string | null>(null);
-  const { liaChat, openLia } = useLiaCourse();
+  const { liaChat, openLia, courseContext } = useLiaCourse();
   const activityConfig = activity.activity_config;
   const normalizedContent = useMemo(
     () => normalizeContentForRenderer(activity.activity_content),
@@ -143,9 +143,11 @@ export function InteractiveActivityRenderer({
       return;
     }
 
-    const courseContext = {
-      lessonId,
+    const evaluationContext = {
+      ...courseContext,
+      lessonId: courseContext?.lessonId ?? lessonId,
       activitiesContext: {
+        ...courseContext?.activitiesContext,
         totalActivities: 1,
         requiredActivities: activity.is_required ? 1 : 0,
         completedActivities: activity.latest_submission_summary?.completionSatisfied
@@ -160,6 +162,7 @@ export function InteractiveActivityRenderer({
           title: activity.activity_title,
           type: activity.activity_type,
           isRequired: activity.is_required,
+          isCompleted: !!activity.latest_submission_summary?.completionSatisfied,
           description: activity.activity_description || activity.activity_title,
         },
       },
@@ -171,7 +174,7 @@ export function InteractiveActivityRenderer({
     try {
       await liaChat.sendMessage(
         evaluationPrompt,
-        courseContext,
+        evaluationContext,
         undefined,
         true
       );
@@ -180,6 +183,7 @@ export function InteractiveActivityRenderer({
     }
   }, [
     activity,
+    courseContext,
     isLiaBusy,
     lessonId,
     liaChat,

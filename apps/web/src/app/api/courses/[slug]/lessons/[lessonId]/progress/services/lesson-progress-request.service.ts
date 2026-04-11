@@ -1,6 +1,10 @@
 import { z } from 'zod'
 
-const lessonProgressRequestSchema = z.object({}).strict()
+const lessonProgressRequestSchema = z
+  .object({
+    organizationId: z.string().trim().min(1).nullable().optional(),
+  })
+  .strict()
 
 export interface LessonProgressRequestValidationError {
   error: string

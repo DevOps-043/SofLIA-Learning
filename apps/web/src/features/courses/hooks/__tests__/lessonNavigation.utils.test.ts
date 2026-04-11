@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import {
+  getIncompleteActivities,
   getOrderedLessons,
+  getPendingRequiredActivities,
+  hasIncompleteActivities,
+  isLessonVideoCompleted,
   findOrderedLessonIndex,
   findOrderedLessonById,
   getPreviousOrderedLesson,
@@ -54,6 +58,78 @@ describe('getOrderedLessons', () => {
     const originalOrder = [...lessons]
     getOrderedLessons(modules)
     expect(modules[0].lessons).toEqual(originalOrder)
+  })
+})
+
+describe('activity completion helpers', () => {
+  const activities = [
+    {
+      activity_id: 'a1',
+      activity_title: 'Required pending',
+      activity_type: 'ai_chat',
+      is_required: true,
+      is_completed: false,
+    },
+    {
+      activity_id: 'a2',
+      activity_title: 'Optional pending',
+      activity_type: 'reflection',
+      is_required: false,
+      is_completed: false,
+    },
+    {
+      activity_id: 'a3',
+      activity_title: 'Completed',
+      activity_type: 'exercise',
+      is_required: true,
+      is_completed: true,
+    },
+  ]
+
+  it('returns every incomplete activity regardless of requirement', () => {
+    expect(getIncompleteActivities(activities).map((activity) => activity.activity_id)).toEqual([
+      'a1',
+      'a2',
+    ])
+  })
+
+  it('detects when any incomplete activity is still pending', () => {
+    expect(hasIncompleteActivities(activities)).toBe(true)
+    expect(hasIncompleteActivities([])).toBe(false)
+  })
+
+  it('keeps required-only filtering available for blocking flows', () => {
+    expect(
+      getPendingRequiredActivities(activities).map((activity) => activity.activity_id)
+    ).toEqual(['a1'])
+  })
+})
+
+describe('isLessonVideoCompleted', () => {
+  it('returns true when a lesson has no video configured', () => {
+    expect(isLessonVideoCompleted(makeLesson('l1', 0))).toBe(true)
+  })
+
+  it('returns false when the watched progress is below the threshold', () => {
+    expect(
+      isLessonVideoCompleted({
+        ...makeLesson('l1', 0),
+        progress_percentage: 94,
+        video_provider: 'direct',
+        video_provider_id: 'video.mp4',
+      }),
+    ).toBe(false)
+  })
+
+  it('returns true once the video reaches the completion threshold', () => {
+    expect(
+      isLessonVideoCompleted({
+        ...makeLesson('l1', 0),
+        progress_percentage: 95,
+        video_provider: 'direct',
+        video_provider_id: 'video.mp4',
+      }),
+    ).toBe(true)
   })
 })
 

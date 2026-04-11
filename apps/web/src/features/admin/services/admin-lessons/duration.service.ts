@@ -197,6 +197,111 @@ export async function recalculateAllLessonDurations(): Promise<{
   return { updated, errors }
 }
 
+export async function recalculateLessonDurations(lessonIds: string[]): Promise<{
+  updated: number
+  errors: string[]
+}> {
+  const uniqueLessonIds = [...new Set(lessonIds.filter(Boolean))]
+
+  if (uniqueLessonIds.length === 0) {
+    return { updated: 0, errors: [] }
+  }
+
+  const supabase = await createClient()
+  const errors: string[] = []
+  let updated = 0
+
+  const { data: lessons, error: lessonsError } = await supabase
+    .from('course_lessons')
+    .select('lesson_id, duration_seconds, module_id')
+    .in('lesson_id', uniqueLessonIds)
+    .order('lesson_id')
+
+  if (lessonsError) {
+    throw lessonsError
+  }
+
+  if (!lessons || lessons.length === 0) {
+    return { updated: 0, errors: [] }
+  }
+
+  const lessonRows = lessons as LessonDurationRow[]
+  const scopedLessonIds = lessonRows.map((lesson) => lesson.lesson_id)
+  const [allMaterialsResult, allActivitiesResult] = await Promise.all([
+    supabase
+      .from('lesson_materials')
+      .select('lesson_id, estimated_time_minutes')
+      .in('lesson_id', scopedLessonIds),
+    supabase
+      .from('lesson_activities')
+      .select('lesson_id, estimated_time_minutes')
+      .in('lesson_id', scopedLessonIds),
+  ])
+
+  const materialsByLesson = buildEstimatedMinutesMap(
+    (allMaterialsResult.data || []) as TimedRow[],
+  )
+  const activitiesByLesson = buildEstimatedMinutesMap(
+    (allActivitiesResult.data || []) as TimedRow[],
+  )
+  const moduleIds = new Set<string>()
+
+  for (const lesson of lessonRows) {
+    try {
+      const totalDurationMinutes =
+        Math.round((lesson.duration_seconds || 0) / 60) +
+        (materialsByLesson.get(lesson.lesson_id) || 0) +
+        (activitiesByLesson.get(lesson.lesson_id) || 0)
+
+      const { error: updateError } = await supabase
+        .from('course_lessons')
+        .update({
+          total_duration_minutes: totalDurationMinutes,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('lesson_id', lesson.lesson_id)
+
+      if (updateError) {
+        errors.push(`Lesson ${lesson.lesson_id}: ${updateError.message}`)
+        continue
+      }
+
+      updated += 1
+
+      if (lesson.module_id) {
+        moduleIds.add(lesson.module_id)
+      }
+    } catch (error) {
+      errors.push(
+        `Lesson ${lesson.lesson_id}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      )
+    }
+  }
+
+  const moduleResults = await Promise.allSettled(
+    Array.from(moduleIds).map(async (moduleId) => {
+      await updateModuleDuration(moduleId)
+      return moduleId
+    }),
+  )
+
+  for (const result of moduleResults) {
+    if (result.status === 'rejected') {
+      errors.push(
+        `Module update failed: ${
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason)
+        }`,
+      )
+    }
+  }
+
+  return { updated, errors }
+}
+
 function buildEstimatedMinutesMap(rows: TimedRow[]): Map<string, number> {
   const totalsByLessonId = new Map<string, number>()
 

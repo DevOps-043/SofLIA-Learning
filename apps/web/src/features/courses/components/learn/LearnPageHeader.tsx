@@ -1,16 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Map } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTargets";
 
 interface LearnPageHeaderProps {
   courseTitle: string;
   courseProgress: number;
   onBack: () => void;
+  onRestartTour?: () => void;
+  restartTourLabel?: string;
 }
 
-export function LearnPageHeader({ courseTitle, courseProgress, onBack }: LearnPageHeaderProps) {
+export function LearnPageHeader({
+  courseTitle,
+  courseProgress,
+  onBack,
+  onRestartTour,
+  restartTourLabel,
+}: LearnPageHeaderProps) {
   const { t } = useTranslation("common");
 
   return (
@@ -44,8 +54,25 @@ export function LearnPageHeader({ courseTitle, courseProgress, onBack }: LearnPa
             </p>
           </div>
         </div>
-
         <div className="flex items-center gap-2 shrink-0">
+          {onRestartTour ? (
+            <button
+              id={COURSE_LEARN_TOUR_TARGET_IDS.replayButton}
+              onClick={onRestartTour}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#1E2329] px-2.5 py-1.5 text-[#0A2540] dark:text-[#00D4B3] hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 transition-colors"
+              aria-label={restartTourLabel}
+              title={restartTourLabel}
+            >
+              <Map className="w-4 h-4" />
+              <span
+                className="hidden lg:inline text-xs font-medium"
+                style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
+              >
+                {restartTourLabel}
+              </span>
+            </button>
+          ) : null}
+
           <div className="hidden md:flex items-center gap-2">
             <div className="w-32 lg:w-40 h-1.5 bg-[#E9ECEF] dark:bg-[#1E2329] rounded-full overflow-hidden">
               <motion.div

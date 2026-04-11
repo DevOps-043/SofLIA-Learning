@@ -27,6 +27,24 @@ export function useLearnPageLayout({
 
   const handleTabChange = useCallback(
     async (newTab: LearnTab) => {
+      if (
+        activeTab === 'video' &&
+        newTab !== 'video' &&
+        currentLesson &&
+        videoPlayerContext
+      ) {
+        const currentVideoElement = document.querySelector(
+          '.aspect-video video',
+        ) as HTMLVideoElement | null
+
+        if (currentVideoElement) {
+          videoPlayerContext.saveVideoProgress(
+            currentLesson.lesson_id,
+            currentVideoElement.currentTime,
+          )
+        }
+      }
+
       if (activeTab === 'video' && newTab !== 'video') {
         const videoElement = document.querySelector(
           '.aspect-video video',

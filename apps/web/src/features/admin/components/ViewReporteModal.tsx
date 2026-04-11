@@ -5,6 +5,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon, UserIcon, ComputerDesktopIcon, PhotoIcon, LinkIcon, CalendarIcon, PencilIcon, PlayIcon, VideoCameraIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { AdminReporte } from '../services/adminReportes.service'
 import type { RecordingSession } from '../../../lib/rrweb/session-recorder'
+import type { ReportProblemMetadata } from '../../../core/reporting/report-problem.contract'
 
 // Importar componentes directamente (solo se cargan en el cliente)
 import { SessionPlayer, SessionInfo } from '../../../core/components/SessionPlayer/SessionPlayer'
@@ -20,6 +21,13 @@ interface ViewReporteModalProps {
 export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewReporteModalProps) {
   const [showPlayer, setShowPlayer] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const reportMetadata = useMemo<Partial<ReportProblemMetadata> | null>(() => {
+    if (!reporte.metadata || typeof reporte.metadata !== 'object') {
+      return null
+    }
+
+    return reporte.metadata as Partial<ReportProblemMetadata>
+  }, [reporte.metadata])
 
   // Detectar cuando estamos en el cliente
   useEffect(() => {
@@ -60,7 +68,7 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
   // Verificar si hay grabación disponible (URL o datos)
   const hasRecording = Boolean(reporte.session_recording)
 
-  const getEstadoColor = (estado: string) => {
+  const getEstadoColor = (estado: string | null | undefined) => {
     switch (estado) {
       case 'pendiente':
         return 'bg-yellow-100/50 text-yellow-800 dark:bg-[#F59E0B]/20 dark:text-[#F59E0B] border border-yellow-200 dark:border-[#F59E0B]/30'
@@ -78,7 +86,7 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
     }
   }
 
-  const getPrioridadColor = (prioridad: string) => {
+  const getPrioridadColor = (prioridad: string | null | undefined) => {
     switch (prioridad) {
       case 'critica':
         return 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400 border-red-200 dark:border-red-800/50'
@@ -105,7 +113,7 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
     return labels[categoria] || categoria
   }
 
-  const getEstadoLabel = (estado: string) => {
+  const getEstadoLabel = (estado: string | null | undefined) => {
     const labels: Record<string, string> = {
       'pendiente': 'Pendiente',
       'en_revision': 'En Revisión',
@@ -114,7 +122,18 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
       'rechazado': 'Rechazado',
       'duplicado': 'Duplicado'
     }
-    return labels[estado] || estado
+    return estado ? labels[estado] || estado : 'Sin estado'
+  }
+
+  const formatReporteDate = (
+    dateValue: string | null | undefined,
+    options?: Intl.DateTimeFormatOptions
+  ) => {
+    if (!dateValue) {
+      return 'N/D'
+    }
+
+    return new Date(dateValue).toLocaleString([], options)
   }
 
   return (
@@ -170,7 +189,7 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
                       <div>
                         <h4 className="text-xs font-bold text-[#6C757D] dark:text-gray-400 uppercase tracking-wider mb-2">Prioridad</h4>
                         <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border ${getPrioridadColor(reporte.prioridad)} bg-opacity-10 w-full justify-center`}>
-                           <span className="font-medium text-sm">{reporte.prioridad.toUpperCase()}</span>
+                           <span className="font-medium text-sm">{(reporte.prioridad || 'sin prioridad').toUpperCase()}</span>
                         </div>
                       </div>
 
@@ -206,11 +225,11 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
                     <div className="mt-8 pt-6 border-t border-[#E9ECEF] dark:border-[#334155] text-xs text-[#6C757D] dark:text-gray-500 space-y-2">
                        <div className="flex justify-between">
                           <span>Creado:</span>
-                          <span className="text-[#0A2540] dark:text-gray-300">{new Date(reporte.created_at).toLocaleDateString()}</span>
+                          <span className="text-[#0A2540] dark:text-gray-300">{formatReporteDate(reporte.created_at, { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
                        </div>
                        <div className="flex justify-between">
                           <span>Hora:</span>
-                          <span className="text-[#0A2540] dark:text-gray-300">{new Date(reporte.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                          <span className="text-[#0A2540] dark:text-gray-300">{formatReporteDate(reporte.created_at, { hour: '2-digit', minute:'2-digit' })}</span>
                        </div>
                     </div>
                   </div>
@@ -323,6 +342,45 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
                           </div>
                        </div>
                     </section>
+
+                    {reportMetadata?.source || reportMetadata?.courseContext || reportMetadata?.irisSync ? (
+                      <section>
+                         <h3 className="text-sm font-bold text-[#0A2540] dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <span className="w-1 h-4 bg-[#00D4B3] rounded-full"></span>
+                            Contexto Operativo
+                         </h3>
+                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            {reportMetadata?.source ? (
+                              <div className="p-4 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F1419]">
+                                 <div className="text-xs text-[#6C757D] dark:text-gray-500 mb-1">Origen</div>
+                                 <div className="text-sm font-medium text-[#0A2540] dark:text-white">{reportMetadata.source}</div>
+                              </div>
+                            ) : null}
+                            {reportMetadata?.courseContext ? (
+                              <div className="p-4 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F1419]">
+                                 <div className="text-xs text-[#6C757D] dark:text-gray-500 mb-1">Curso / LecciÃ³n</div>
+                                 <div className="text-sm font-medium text-[#0A2540] dark:text-white">
+                                   {reportMetadata.courseContext.courseTitle || 'Curso no identificado'}
+                                 </div>
+                                 <div className="text-xs text-[#6C757D] dark:text-gray-400 mt-1">
+                                   {reportMetadata.courseContext.lessonTitle || 'Lección no identificada'}
+                                 </div>
+                              </div>
+                            ) : null}
+                            {reportMetadata?.irisSync ? (
+                              <div className="p-4 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F1419]">
+                                 <div className="text-xs text-[#6C757D] dark:text-gray-500 mb-1">SincronizaciÃ³n IRIS</div>
+                                 <div className="text-sm font-medium text-[#0A2540] dark:text-white">
+                                   {reportMetadata.irisSync.status}
+                                 </div>
+                                 <div className="text-xs text-[#6C757D] dark:text-gray-400 mt-1">
+                                   {reportMetadata.irisSync.externalIssueId || 'Sin issue externo enlazado'}
+                                 </div>
+                              </div>
+                            ) : null}
+                         </div>
+                      </section>
+                    ) : null}
 
                     {/* Evidencia Visual (Screenshot & Video) */}
                     {(reporte.screenshot_url || hasRecording) && (
@@ -455,4 +513,3 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
     </Transition>
   )
 }
-

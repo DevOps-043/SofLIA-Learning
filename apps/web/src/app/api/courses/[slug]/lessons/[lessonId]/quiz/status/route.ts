@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
 
 interface QuizSubmissionRow {
   material_id?: string | null;
@@ -21,6 +22,7 @@ export async function GET(
   try {
     const { slug, lessonId } = await params;
     const supabase = await createClient();
+    const organizationId = request.nextUrl.searchParams.get('orgId')?.trim() || null;
 
     // Verificar autenticación
     const currentUser = await SessionService.getCurrentUser();
@@ -48,14 +50,14 @@ export async function GET(
     const courseId = course.id;
 
     // Obtener enrollment del usuario
-    const { data: enrollment, error: enrollmentError } = await supabase
-      .from('user_course_enrollments')
-      .select('enrollment_id')
-      .eq('user_id', currentUser.id)
-      .eq('course_id', courseId)
-      .single();
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      courseId,
+      organizationId,
+    );
 
-    if (enrollmentError || !enrollment) {
+    if (!enrollment) {
       return NextResponse.json(
         { error: 'No estás inscrito en este curso' },
         { status: 404 }

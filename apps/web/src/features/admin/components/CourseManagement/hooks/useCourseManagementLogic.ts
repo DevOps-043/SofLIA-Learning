@@ -64,6 +64,7 @@ export function useCourseManagementLogic(courseId: string) {
   const [workshopPreview, setWorkshopPreview] = useState<CourseWorkshopPreview | null>(null)
   const [previewLoading, setPreviewLoading] = useState<boolean>(false)
   const [recalculatingDurations, setRecalculatingDurations] = useState(false)
+  const [estimatingMissingTimes, setEstimatingMissingTimes] = useState(false)
   const [instructorSignatureUrl, setInstructorSignatureUrl] = useState<string | null>(null)
   const [instructorSignatureName, setInstructorSignatureName] = useState<string | null>(null)
   const [selectedCertificateTemplate, setSelectedCertificateTemplate] = useState<string>('default')
@@ -211,6 +212,55 @@ export function useCourseManagementLogic(courseId: string) {
     }
   }
 
+  const handleEstimateMissingTimes = async () => {
+    if (isNewCourse) {
+      return
+    }
+
+    try {
+      setEstimatingMissingTimes(true)
+
+      const response = await fetch(
+        `/api/admin/courses/${courseId}/estimate-missing-times`,
+        { method: 'POST' },
+      )
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Error al estimar tiempos faltantes')
+      }
+
+      showFeedbackMessage(
+        'success',
+        data.message || 'Tiempos estimados y guardados correctamente',
+      )
+
+      await fetchModules(courseId)
+
+      await Promise.allSettled(
+        Array.from(expandedModules).map((moduleId) =>
+          fetchLessons(moduleId, courseId, { silent: true }),
+        ),
+      )
+
+      await Promise.allSettled(
+        Array.from(expandedLessons).flatMap((lessonId) => [
+          fetchMaterials(lessonId),
+          fetchActivities(lessonId),
+        ]),
+      )
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error
+          ? error.message
+          : 'Error desconocido al estimar tiempos faltantes',
+      )
+    } finally {
+      setEstimatingMissingTimes(false)
+    }
+  }
+
   return {
     isNewCourse,
     router,
@@ -251,6 +301,8 @@ export function useCourseManagementLogic(courseId: string) {
 
     recalculatingDurations, setRecalculatingDurations,
     handleRecalculateDurations,
+    estimatingMissingTimes, setEstimatingMissingTimes,
+    handleEstimateMissingTimes,
 
     // Config sub-hook
     ...config,

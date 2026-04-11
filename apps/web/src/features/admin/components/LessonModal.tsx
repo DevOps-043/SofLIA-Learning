@@ -129,16 +129,17 @@ export function LessonModal({
         />
 
         <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
+          <div className="flex min-h-[100dvh] items-end justify-center p-0 sm:items-center sm:p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-4xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[90vh] overflow-hidden flex flex-col"
+              data-testid="lesson-modal-panel"
+              className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329] sm:h-auto sm:max-h-[90vh] sm:max-w-4xl sm:rounded-2xl"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="relative bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 dark:from-[#0A2540] dark:to-[#0A2540]/80 px-6 py-4 border-b border-[#0A2540]/20">
+              <div className="relative border-b border-[#0A2540]/20 bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 px-4 py-4 dark:from-[#0A2540] dark:to-[#0A2540]/80 sm:px-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#00D4B3]/20 flex items-center justify-center">
@@ -166,7 +167,7 @@ export function LessonModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1 px-6 py-3 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
+              <div className="scrollbar-hide flex items-center gap-1 overflow-x-auto border-b border-[#E9ECEF] bg-[#E9ECEF]/50 px-4 py-3 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] sm:px-6">
                 {lessonModalTabs.map((tab) => {
                   const Icon = tab.icon
                   const isActive = activeTab === tab.id
@@ -176,7 +177,7 @@ export function LessonModal({
                       onClick={() => setActiveTab(tab.id)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      className={`relative flex min-w-[132px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 sm:min-w-0 ${
                         isActive
                           ? 'text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20'
                           : 'text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-[#E9ECEF] dark:hover:bg-[#1E2329]'
@@ -200,8 +201,8 @@ export function LessonModal({
                 })}
               </div>
 
-              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-                <div className="p-6">
+              <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
@@ -366,13 +367,13 @@ export function LessonModal({
                   </AnimatePresence>
                 </div>
 
-                <div className="px-6 py-4 bg-[#E9ECEF]/30 dark:bg-[#0A0D12] border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-end gap-3">
+                <div className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-[#E9ECEF] bg-[#E9ECEF]/30 px-4 py-4 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] sm:flex-row sm:items-center sm:justify-end sm:px-6">
                   <motion.button
                     type="button"
                     onClick={onClose}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-6 py-2.5 text-[#6C757D] dark:text-white/70 bg-white dark:bg-[#1E2329] hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30 rounded-xl text-sm font-medium transition-colors duration-200 border border-[#E9ECEF] dark:border-[#6C757D]/30"
+                    className="w-full rounded-xl border border-[#E9ECEF] bg-white px-6 py-2.5 text-sm font-medium text-[#6C757D] transition-colors duration-200 hover:bg-[#E9ECEF] dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white/70 dark:hover:bg-[#0A2540]/30 sm:w-auto"
                     disabled={loading}
                   >
                     Cancelar
@@ -381,7 +382,7 @@ export function LessonModal({
                     type="submit"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-xl text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#0A2540]/20 flex items-center gap-2"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0A2540] px-6 py-2.5 text-sm font-medium text-white shadow-lg shadow-[#0A2540]/20 transition-colors duration-200 hover:bg-[#0d2f4d] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                     disabled={loading}
                   >
                     {loading ? (

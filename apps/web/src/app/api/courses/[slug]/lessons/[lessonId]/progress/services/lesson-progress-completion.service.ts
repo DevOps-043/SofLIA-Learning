@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { calculateCourseProgress } from '@/lib/utils/lesson-progress'
 import { computeLessonActivityProgress } from '@/features/courses/services/activity-submission.server.service'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import {
   hasPassedRequiredQuizzes,
   LessonProgressError,
@@ -89,15 +90,16 @@ async function ensureEnrollment(
   supabase: SupabaseServerClient,
   userId: string,
   courseId: string,
+  organizationId?: string | null,
 ) {
-  let { data: enrollment, error } = await supabase
-    .from('user_course_enrollments')
-    .select('enrollment_id, overall_progress_percentage, enrollment_status')
-    .eq('user_id', userId)
-    .eq('course_id', courseId)
-    .single()
+  const enrollment = await resolveCourseEnrollment(
+    supabase,
+    userId,
+    courseId,
+    organizationId,
+  )
 
-  if (!error && enrollment) {
+  if (enrollment) {
     return enrollment
   }
 
@@ -107,6 +109,7 @@ async function ensureEnrollment(
     .insert({
       user_id: userId,
       course_id: courseId,
+      organization_id: organizationId ?? null,
       enrollment_status: 'active',
       overall_progress_percentage: 0,
       enrolled_at: now,
@@ -469,6 +472,7 @@ export async function completeLessonProgress(
   userId: string,
   slug: string,
   lessonId: string,
+  organizationId?: string | null,
 ) {
   const { course, lessons } = await loadCourseAndLessons(supabase, slug)
   const lessonIndex = lessons.findIndex((lesson) => lesson.lesson_id === lessonId)
@@ -481,7 +485,12 @@ export async function completeLessonProgress(
     )
   }
 
-  const enrollment = await ensureEnrollment(supabase, userId, course.id)
+  const enrollment = await ensureEnrollment(
+    supabase,
+    userId,
+    course.id,
+    organizationId,
+  )
   await validatePreviousLessonCompletion(
     supabase,
     enrollment.enrollment_id,

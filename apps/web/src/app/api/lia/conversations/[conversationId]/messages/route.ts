@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { stripBugReportTokens } from '@/app/api/lia/chat/lia-report-workflow.service';
 
 /**
  * GET /api/lia/conversations/[conversationId]/messages
@@ -64,8 +65,9 @@ export async function GET(
     const formattedMessages = (messages || []).map((msg) => ({
       id: msg.message_id,
       role: msg.role,
-      content: msg.content,
-      timestamp: new Date(msg.created_at)
+      content:
+        msg.role === 'assistant' ? stripBugReportTokens(msg.content) : msg.content,
+      timestamp: new Date(msg.created_at || Date.now())
     }));
 
     return NextResponse.json({ messages: formattedMessages });
@@ -77,4 +79,3 @@ export async function GET(
     );
   }
 }
-

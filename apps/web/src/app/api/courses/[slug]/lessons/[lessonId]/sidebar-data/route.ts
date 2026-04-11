@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 
 interface LessonActivityRow {
   activity_id: string;
   activity_title: string | null;
+  activity_description: string | null;
   activity_type: string | null;
   is_required?: boolean | null;
   [key: string]: unknown;
@@ -14,12 +16,9 @@ interface LessonActivityRow {
 interface LessonMaterialRow {
   material_id: string;
   material_title: string | null;
+  material_description: string | null;
   material_type: string | null;
   [key: string]: unknown;
-}
-
-interface EnrollmentRow {
-  enrollment_id: string;
 }
 
 interface LiaCompletionRow {
@@ -78,6 +77,7 @@ export async function GET(
   try {
     const { slug, lessonId } = await params;
     const supabase = await createClient();
+    const organizationId = request.nextUrl.searchParams.get('orgId')?.trim() || null;
 
     // Verificar autenticación (necesario para quiz status)
     const currentUser = await SessionService.getCurrentUser();
@@ -163,13 +163,13 @@ export async function GET(
 
       // Enrollment (solo si hay usuario autenticado)
       currentUser
-        ? supabase
-            .from('user_course_enrollments')
-            .select('enrollment_id')
-            .eq('user_id', currentUser.id)
-            .eq('course_id', course.id)
-            .single<EnrollmentRow>()
-        : Promise.resolve({ data: null, error: null }),
+        ? resolveCourseEnrollment(
+            supabase,
+            currentUser.id,
+            course.id,
+            organizationId,
+          )
+        : Promise.resolve(null),
 
       // Completaciones de actividades LIA (para determinar is_completed por actividad)
       currentUser
@@ -250,7 +250,7 @@ export async function GET(
       quizzes: [],
     };
 
-    if (currentUser && enrollmentResult.data) {
+    if (currentUser && enrollmentResult) {
       const materialQuizzesList = materialQuizzesResult.data || [];
       const activityQuizzesList = activityQuizzesResult.data || [];
       const totalRequiredQuizzes = materialQuizzesList.length + activityQuizzesList.length;
@@ -259,11 +259,11 @@ export async function GET(
         // Obtener submissions del usuario
         const { data: submissions } = await supabase
           .from('user_quiz_submissions')
-          .select('submission_id, material_id, activity_id, percentage_score, is_passed, completed_at')
-          .eq('user_id', currentUser.id)
-          .eq('lesson_id', lessonId)
-          .eq('enrollment_id', enrollmentResult.data.enrollment_id)
-          .returns<QuizSubmissionRow[]>();
+            .select('submission_id, material_id, activity_id, percentage_score, is_passed, completed_at')
+            .eq('user_id', currentUser.id)
+            .eq('lesson_id', lessonId)
+            .eq('enrollment_id', enrollmentResult.enrollment_id)
+            .returns<QuizSubmissionRow[]>();
 
         const submissionsList = submissions || [];
         const quizzesStatusArray: QuizStatusItem[] = [];

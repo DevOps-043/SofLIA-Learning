@@ -240,43 +240,36 @@
     "explanation": "Explicação"
   },
   "tour": {
-    "courseLearnLabel": "Ver tour do curso",
-    "replayLabel": "Ver Tour do Curso",
+    "courseLearnLabel": "Ver guia do curso",
+    "replayLabel": "Ver guia do curso",
+    "fallbacks": {
+      "courseTitle": "seu curso atual",
+      "lessonTitle": "a lição atual"
+    },
     "steps": {
       "welcome": {
-        "title": "Bem-vindo ao seu curso!",
-        "description": "Este é o seu espaço de aprendizado interativo. Aqui você encontrará lições, atividades práticas e recursos para dominar o tópico.",
-        "speech": "Bem-vindo ao seu curso. Este é o seu espaço de aprendizado interativo. Aqui você encontrará lições, atividades práticas e recursos para dominar o tópico."
+        "title": "Bem-vindo ao painel do curso",
+        "description": "Aqui você vai acompanhar {{courseTitle}}, revisar seu progresso e circular pelas principais ferramentas de cada lição."
       },
-      "navigation": {
-        "title": "Navegação do curso",
-        "description": "No painel esquerdo você verá todos os módulos e lições do curso. Clique em qualquer lição para acessar seu conteúdo.",
-        "speech": "No painel esquerdo você verá todos os módulos e lições do curso. Clique em qualquer lição para acessar seu conteúdo."
+      "sidebar": {
+        "title": "Painel esquerdo: lições e notas",
+        "description": "No painel esquerdo você encontra o temário completo, o status de cada lição e a área de notas para guardar ideias, trechos importantes e lembretes enquanto estuda."
       },
-      "materials": {
-        "title": "Materiais da lição",
-        "description": "Cada lição pode incluir vídeos, textos, PDFs para download e recursos adicionais. Explore todo o conteúdo disponível.",
-        "speech": "Cada lição pode incluir vídeos, textos, PDFs para download e recursos adicionais. Explore todo o conteúdo disponível."
+      "videoPanel": {
+        "title": "Vídeo, transcrição e resumo",
+        "description": "A experiência começa no painel de vídeo. Logo abaixo você pode abrir a transcrição e o resumo de {{lessonTitle}} para revisar conceitos, confirmar detalhes e levá-los para suas notas."
       },
-      "activities": {
-        "title": "Atividades práticas",
-        "description": "Complete as atividades para colocar em prática o que aprendeu. Elas são fundamentais para seu progresso e certificação.",
-        "speech": "Complete as atividades para colocar em prática o que aprendeu. Elas são fundamentais para seu progresso e certificação."
+      "tools": {
+        "title": "Atividades e perguntas",
+        "description": "Use Atividades para resolver exercícios, quizzes ou dinâmicas guiadas, e Perguntas para tirar dúvidas com a equipe ou revisar as conversas do curso."
       },
-      "lia": {
-        "title": "SofLIA está aqui para ajudá-lo",
-        "description": "Se você tiver dúvidas sobre o conteúdo, as atividades ou qualquer tópico do curso, pergunte à SofLIA. Ela o ajudará a qualquer momento.",
-        "speech": "Se você tiver dúvidas sobre o conteúdo, as atividades ou qualquer tópico do curso, pergunte à SofLIA. Ela o ajudará a qualquer momento."
-      },
-      "progress": {
-        "title": "Acompanhamento de progresso",
-        "description": "Seu progresso é salvo automaticamente. Você pode ver quanto avançou no curso e quais lições completou.",
-        "speech": "Seu progresso é salvo automaticamente. Você pode ver quanto avançou no curso e quais lições completou."
+      "soflia": {
+        "title": "SofLIA acompanha você no curso",
+        "description": "A SofLIA já entende o contexto de {{courseTitle}} e de {{lessonTitle}}. Você pode pedir explicações, resumos, apoio nas atividades, ideias para notas e orientação sobre o próximo passo."
       },
       "ready": {
-        "title": "Pronto para aprender!",
-        "description": "Agora você está preparado para começar sua jornada de aprendizado. Lembre-se, SofLIA estará sempre disponível para ajudá-lo.",
-        "speech": "Agora você está preparado para começar sua jornada de aprendizado. Lembre-se, SofLIA estará sempre disponível para ajudá-lo."
+        "title": "Pronto para começar",
+        "description": "Agora você já conhece a estrutura do curso. Avance no seu ritmo, use cada ferramenta quando precisar e reabra este guia sempre que quiser revisar o percurso."
       }
     }
   }

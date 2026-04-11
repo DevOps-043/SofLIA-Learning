@@ -7,6 +7,7 @@ import {
   updateLesson,
 } from './admin-lessons/mutation.service'
 import {
+  recalculateLessonDurations,
   updateCourseDuration,
   updateModuleDuration,
 } from './admin-lessons/duration.service'
@@ -67,6 +68,10 @@ export class AdminLessonsService {
 
   static async updateCourseDuration(courseId: string) {
     return updateCourseDuration(courseId)
+  }
+
+  static async recalculateLessonDurations(lessonIds: string[]) {
+    return recalculateLessonDurations(lessonIds)
   }
 
   static async recalculateAllLessonDurations() {

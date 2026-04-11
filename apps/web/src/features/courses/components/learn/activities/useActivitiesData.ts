@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContentTranslationService } from "../../../../../core/services/contentTranslation.service";
+import { useCurrentOrganizationId } from "../../../../../core/stores/organizationStore";
 import {
   normalizeContentForRenderer,
   normalizeLessonActivityRecord,
@@ -63,6 +64,7 @@ export function useActivitiesData({
   generateRoleBasedPrompts,
   onLessonContentRefresh,
 }: UseActivitiesDataOptions) {
+  const organizationId = useCurrentOrganizationId();
   const [activities, setActivities] = useState<LearnActivity[]>([]);
   const [materials, setMaterials] = useState<LearnMaterial[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,6 +125,11 @@ export function useActivitiesData({
 
     try {
       setLoading(true);
+      const quizStatusUrl = organizationId
+        ? `/api/courses/${slug}/lessons/${lessonId}/quiz/status?orgId=${encodeURIComponent(
+            organizationId
+          )}`
+        : `/api/courses/${slug}/lessons/${lessonId}/quiz/status`;
 
       const [activitiesResponse, materialsResponse, quizStatusResponse] =
         await Promise.all([
@@ -134,7 +141,7 @@ export function useActivitiesData({
             credentials: "include",
             cache: "no-store",
           }),
-          fetch(`/api/courses/${slug}/lessons/${lessonId}/quiz/status`, {
+          fetch(quizStatusUrl, {
             credentials: "include",
             cache: "no-store",
           }),
@@ -182,7 +189,7 @@ export function useActivitiesData({
     } finally {
       setLoading(false);
     }
-  }, [lessonId, selectedLang, slug]);
+  }, [lessonId, organizationId, selectedLang, slug]);
 
   useEffect(() => {
     void loadLessonContent();

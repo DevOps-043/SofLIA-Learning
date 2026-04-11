@@ -29,9 +29,16 @@ interface WorkshopMetadataResponse {
   metadata?: WorkshopMetadataPayload
 }
 
+type LessonSupplementKey = 'transcript_content' | 'summary_content'
+
+type LessonSupplementResponse = Partial<
+  Record<LessonSupplementKey, string | null | undefined>
+>
+
 interface UseLearnPageCourseDataParams {
   slug: string
   selectedLang: string
+  organizationId?: string | null
   userJobTitle?: string
   currentLesson: LearnLesson | null
   modules: LearnModule[]
@@ -44,13 +51,42 @@ interface UseLearnPageCourseDataParams {
   setWorkshopMetadata: (context: CourseLessonContext | null) => void
   setLiaTranscript: (transcript: string | null) => void
   setLiaSummary: (summary: string | null) => void
+  setIsLiaTranscriptLoading: (loading: boolean) => void
+  setIsLiaSummaryLoading: (loading: boolean) => void
   setLoading: (loading: boolean) => void
   setCourseProgress: (progress: number) => void
+}
+
+async function loadLessonSupplement({
+  url,
+  contentKey,
+  signal,
+}: {
+  url: string
+  contentKey: LessonSupplementKey
+  signal: AbortSignal
+}): Promise<string | null> {
+  const response = await fetch(url, {
+    credentials: 'include',
+    signal,
+  })
+
+  if (!response.ok) {
+    return null
+  }
+
+  const data = (await response.json()) as LessonSupplementResponse
+  const content = data[contentKey]
+
+  return typeof content === 'string' && content.trim().length > 0
+    ? content
+    : null
 }
 
 export function useLearnPageCourseData({
   slug,
   selectedLang,
+  organizationId,
   userJobTitle,
   currentLesson,
   modules,
@@ -63,6 +99,8 @@ export function useLearnPageCourseData({
   setWorkshopMetadata,
   setLiaTranscript,
   setLiaSummary,
+  setIsLiaTranscriptLoading,
+  setIsLiaSummaryLoading,
   setLoading,
   setCourseProgress,
 }: UseLearnPageCourseDataParams) {
@@ -77,6 +115,7 @@ export function useLearnPageCourseData({
           `/api/courses/${slug}/learn-data${buildLearnDataQuery({
             lessonId,
             language: selectedLang,
+            organizationId,
           })}`,
           { credentials: 'include' },
         )) as LearnDataResponse
@@ -135,7 +174,11 @@ export function useLearnPageCourseData({
           learnData.modules?.length
         ) {
           dedupedFetch(
-            `/api/courses/${slug}/learn-data?lessonId=${learnData.lastWatchedLessonId}`,
+            `/api/courses/${slug}/learn-data${buildLearnDataQuery({
+              lessonId: learnData.lastWatchedLessonId,
+              language: selectedLang,
+              organizationId,
+            })}`,
             { credentials: 'include' },
           ).catch(() => null)
         }
@@ -149,7 +192,7 @@ export function useLearnPageCourseData({
     if (slug) {
       loadCourse()
     }
-  }, [slug, selectedLang])
+  }, [organizationId, selectedLang, slug])
 
   useEffect(() => {
     if (modules.length > 0 && notesStatsLessonsWithNotes === '0/0') {
@@ -160,57 +203,85 @@ export function useLearnPageCourseData({
   useEffect(() => {
     setLiaTranscript(null)
     setLiaSummary(null)
+    setIsLiaTranscriptLoading(Boolean(currentLesson?.lesson_id && slug))
+    setIsLiaSummaryLoading(Boolean(currentLesson?.lesson_id && slug))
 
     if (!currentLesson?.lesson_id || !slug) {
+      setIsLiaTranscriptLoading(false)
+      setIsLiaSummaryLoading(false)
       return
     }
 
+    const abortController = new AbortController()
+
     const loadLiaContext = async () => {
-      try {
-        const transcriptResponse = await fetch(
-          `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/transcript?language=${selectedLang}`,
-          { credentials: 'include' },
-        )
+      const transcriptUrl = `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/transcript?language=${selectedLang}`
+      const summaryUrl = `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/summary?language=${selectedLang}`
 
-        if (transcriptResponse.ok) {
-          const transcriptData = (await transcriptResponse.json()) as {
-            transcript_content?: string
-          }
+      const [transcriptResult, summaryResult] = await Promise.allSettled([
+        loadLessonSupplement({
+          url: transcriptUrl,
+          contentKey: 'transcript_content',
+          signal: abortController.signal,
+        }),
+        loadLessonSupplement({
+          url: summaryUrl,
+          contentKey: 'summary_content',
+          signal: abortController.signal,
+        }),
+      ])
 
-          if (transcriptData.transcript_content) {
-            setLiaTranscript(transcriptData.transcript_content)
-          }
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Error loading transcript for LIA:', error)
-        }
+      if (abortController.signal.aborted) {
+        return
       }
 
-      try {
-        const summaryResponse = await fetch(
-          `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/summary?language=${selectedLang}`,
-          { credentials: 'include' },
+      if (transcriptResult.status === 'fulfilled') {
+        setLiaTranscript(transcriptResult.value)
+      } else if (
+        process.env.NODE_ENV === 'development' &&
+        transcriptResult.reason?.name !== 'AbortError'
+      ) {
+        console.warn(
+          'Error loading transcript for lesson content:',
+          transcriptResult.reason,
         )
-
-        if (summaryResponse.ok) {
-          const summaryData = (await summaryResponse.json()) as {
-            summary_content?: string
-          }
-
-          if (summaryData.summary_content) {
-            setLiaSummary(summaryData.summary_content)
-          }
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          console.warn('Error loading summary for LIA:', error)
-        }
       }
+
+      if (summaryResult.status === 'fulfilled') {
+        setLiaSummary(summaryResult.value)
+      } else if (
+        process.env.NODE_ENV === 'development' &&
+        summaryResult.reason?.name !== 'AbortError'
+      ) {
+        console.warn(
+          'Error loading summary for lesson content:',
+          summaryResult.reason,
+        )
+      }
+
+      setIsLiaTranscriptLoading(false)
+      setIsLiaSummaryLoading(false)
     }
 
-    const timer = setTimeout(loadLiaContext, 1000)
-    return () => clearTimeout(timer)
+    const timer = setTimeout(() => {
+      void loadLiaContext().catch((error) => {
+        if (abortController.signal.aborted) {
+          return
+        }
+
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Error loading lesson support content:', error)
+        }
+
+        setIsLiaTranscriptLoading(false)
+        setIsLiaSummaryLoading(false)
+      })
+    }, 1000)
+
+    return () => {
+      abortController.abort()
+      clearTimeout(timer)
+    }
   }, [currentLesson?.lesson_id, selectedLang, slug])
 
   useEffect(() => {
@@ -218,8 +289,9 @@ export function useLearnPageCourseData({
       fetch(`/api/courses/${slug}/lessons/${currentLesson.lesson_id}/access`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(organizationId ? { organizationId } : {}),
         credentials: 'include',
       }).catch(() => null)
     }
-  }, [currentLesson?.lesson_id, slug])
+  }, [currentLesson?.lesson_id, organizationId, slug])
 }

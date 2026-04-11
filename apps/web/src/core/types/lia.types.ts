@@ -1,4 +1,5 @@
 import type { NanoBananaSchema, NanoBananaDomain, OutputFormat } from '../../lib/nanobana/templates';
+import type { LiaImageAttachment } from '../reporting/report-problem.contract';
 
 // Tipos compartidos para SofLIA
 
@@ -23,6 +24,30 @@ export interface LessonInfo {
   lessonOrderIndex: number;
   durationSeconds?: number;
   totalDurationMinutes?: number; // Tiempo total: video + materiales + actividades
+}
+
+export interface LessonActivityContextItem {
+  title: string;
+  type: string;
+  description?: string;
+  isRequired: boolean;
+  isCompleted: boolean;
+}
+
+export interface LessonMaterialContextItem {
+  title: string;
+  type: string;
+  description?: string;
+  isRequired: boolean;
+}
+
+export interface LessonQuizContextItem {
+  id: string;
+  title: string;
+  type: string;
+  isCompleted: boolean;
+  isPassed: boolean;
+  percentage: number;
 }
 
 /**
@@ -51,6 +76,9 @@ export interface CourseLessonContext {
   summaryContent?: string;
   videoTime?: number;
   durationSeconds?: number;
+  totalDurationMinutes?: number;
+  currentPage?: string;
+  currentTab?: string;
 
   // Metadatos completos del curso/taller (módulos y lecciones disponibles)
   allModules?: ModuleInfo[];
@@ -77,18 +105,32 @@ export interface CourseLessonContext {
     completedActivities: number;
     pendingRequiredCount: number;
     pendingRequiredTitles?: string;
-    activityTypes?: Array<{
-      title: string;
-      type: string;
-      isRequired: boolean;
-      isCompleted: boolean;
-    }>;
+    activityTypes?: LessonActivityContextItem[];
     currentActivityFocus?: {
       title: string;
       type: string;
       isRequired: boolean;
+      isCompleted?: boolean;
       description: string;
+      prompts?: string[];
     } | null;
+  };
+
+  // Contexto de materiales
+  materialsContext?: {
+    totalMaterials: number;
+    requiredMaterials: number;
+    materialTypes?: LessonMaterialContextItem[];
+  };
+
+  // Estado de quizzes requeridos
+  quizContext?: {
+    hasRequiredQuizzes: boolean;
+    totalRequiredQuizzes: number;
+    completedQuizzes: number;
+    passedQuizzes: number;
+    allQuizzesPassed: boolean;
+    quizzes?: LessonQuizContextItem[];
   };
 
   // Contexto de comportamiento del usuario
@@ -117,7 +159,7 @@ export interface SofLIAMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  attachments?: LiaImageAttachment[];
   // 🎨 Datos de NanoBanana generado (opcional)
   generatedNanoBanana?: GeneratedNanoBananaData;
 }
-

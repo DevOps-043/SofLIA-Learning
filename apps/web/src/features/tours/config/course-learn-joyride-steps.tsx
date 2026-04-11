@@ -1,187 +1,160 @@
 import React from 'react';
-import { Step } from 'react-joyride';
+import type { Step } from 'react-joyride';
 import {
-  PlayCircle,
-  FileText,
   BookOpen,
-  HelpCircle,
-  Sparkles,
-  ListChecks,
   Bot,
-  Layers,
-  Layout
+  LayoutPanelTop,
+  Map,
+  PlaySquare,
+  Sparkles,
 } from 'lucide-react';
 
-export const COURSE_LEARN_TOUR_ID = 'course-learn-tour';
+import {
+  getCourseLearnTourTargetSelector,
+} from '../../../core/constants/tourTargets';
 
-// Helper component for content styling - Adaptado para light/dark mode
-const TourContent = ({ children }: { children: React.ReactNode }) => (
-  <div className="space-y-3 text-sm text-gray-700 dark:text-gray-200">
-    {children}
-  </div>
-);
+type CourseLearnJoyrideTranslationKey =
+  | 'tour.fallbacks.courseTitle'
+  | 'tour.fallbacks.lessonTitle'
+  | 'tour.steps.ready.description'
+  | 'tour.steps.ready.title'
+  | 'tour.steps.sidebar.description'
+  | 'tour.steps.sidebar.title'
+  | 'tour.steps.soflia.description'
+  | 'tour.steps.soflia.title'
+  | 'tour.steps.tools.description'
+  | 'tour.steps.tools.title'
+  | 'tour.steps.videoPanel.description'
+  | 'tour.steps.videoPanel.title'
+  | 'tour.steps.welcome.description'
+  | 'tour.steps.welcome.title';
 
-const Highlight = ({ children, color = 'default' }: { children: React.ReactNode, color?: string }) => (
-  <strong className={color === 'default' ? 'text-gray-900 dark:text-white' : 'text-[#00D4B3]'}>
-    {children}
-  </strong>
-);
+type CourseLearnJoyrideInterpolation = {
+  courseTitle?: string;
+  lessonTitle?: string;
+};
 
-export const courseLearnJoyrideSteps: Step[] = [
-  // 1. Welcome / Overview
-  {
-    target: 'body',
-    placement: 'center',
-    content: (
-      <TourContent>
-        <p>
-          Este es tu espacio de aprendizaje personalizado. Aquí encontrarás todas las herramientas
-          para <Highlight>dominar el contenido</Highlight> del curso de manera efectiva.
-        </p>
-      </TourContent>
-    ),
-    title: 'Bienvenido a tu Experiencia',
-    disableBeacon: true,
-    data: {
-      icon: <Layout className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  // 2. Course Content Panel (Sidebar)
-  {
-    target: '#tour-course-sidebar',
-    placement: 'right',
-    content: (
-      <TourContent>
-        <p>
-          En el panel izquierdo encontrarás el <Highlight>temario completo</Highlight>:
-        </p>
-        <ul className="space-y-2 list-disc pl-4 text-gray-700 dark:text-white/90">
-          <li>Todos los módulos organizados</li>
-          <li>Lecciones con su duración</li>
-          <li>Tu progreso de avance</li>
-          <li>Actividades y materiales de cada lección</li>
-        </ul>
-      </TourContent>
-    ),
-    title: 'Temario del Curso',
-    disableBeacon: true,
-    spotlightPadding: 0,
-    data: {
-      icon: <Layers className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  // 3. All Tabs Container - Un solo paso para todas las pestañas
-  {
-    target: '#tour-tabs-container',
-    placement: 'bottom',
-    content: (
-      <TourContent>
-        <p className="mb-3">
-          Estas pestañas te dan acceso a diferentes tipos de contenido:
-        </p>
-        <ul className="space-y-2 text-gray-700 dark:text-white/90">
-          <li className="flex items-center gap-2">
-            <PlayCircle className="w-4 h-4 text-[#00D4B3] shrink-0" />
-            <span><Highlight>Video</Highlight> - Contenido principal de la lección</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#00D4B3] shrink-0" />
-            <span><Highlight>Transcripción</Highlight> - Lee y busca en el texto</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#00D4B3] shrink-0" />
-            <span><Highlight>Resumen</Highlight> - Puntos clave condensados</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <ListChecks className="w-4 h-4 text-[#00D4B3] shrink-0" />
-            <span><Highlight>Actividades</Highlight> - Ejercicios y quizzes</span>
-          </li>
-          <li className="flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-[#00D4B3] shrink-0" />
-            <span><Highlight>Preguntas</Highlight> - Consultas y discusión</span>
-          </li>
-        </ul>
-      </TourContent>
-    ),
-    title: 'Pestañas de Contenido',
-    disableBeacon: true,
-    spotlightPadding: 8,
-    data: {
-      icon: <Layers className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  // 4. LIA Assistant
-  {
-    target: '#tour-lia-course-button',
-    placement: 'top',
-    content: (
-      <TourContent>
-        <p>
-          <Highlight color="accent">SofLIA</Highlight> es tu asistente IA. Resuelve dudas,
-          explica conceptos y te guía en reflexiones.
-        </p>
-        <p className="text-gray-600 dark:text-white/70 text-xs mt-2">
-          ¡Haz clic para abrir el chat!
-        </p>
-      </TourContent>
-    ),
-    title: 'Conoce a SofLIA',
-    disableBeacon: true,
-    data: {
-      liaAction: 'open',
-      icon: <Bot className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  // 5. LIA Panel Features (This step assumes panel is OPEN)
-  {
-    target: '#tour-lia-panel',
-    placement: 'left',
-    content: (
-      <TourContent>
-        <p>
-          Cuando abras el panel de SofLIA, podrás:
-        </p>
-        <ul className="space-y-2 list-disc pl-4 text-gray-700 dark:text-white/90">
-          <li><Highlight>Escribir preguntas</Highlight> en lenguaje natural</li>
-          <li><Highlight>Usar el micrófono</Highlight> para hablar</li>
-          <li><Highlight>Ver sugerencias</Highlight> contextuales</li>
-          <li><Highlight>Copiar respuestas</Highlight> a tus notas</li>
-        </ul>
-        <p className="text-[#00D4B3] text-sm mt-2">
-          SofLIA recuerda el contexto de tu lección actual.
-        </p>
-      </TourContent>
-    ),
-    title: 'Interactúa con SofLIA',
-    disableBeacon: true,
-    data: {
-      icon: <Sparkles className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  // 6. Wrap Up
-  {
-    target: 'body',
-    placement: 'center',
-    content: (
-      <TourContent>
-        <p>
-          Ya conoces todas las herramientas. Algunos consejos:
-        </p>
-        <ul className="space-y-2 list-disc pl-4 text-gray-700 dark:text-white/90">
-          <li>Completa las actividades obligatorias</li>
-          <li>Usa SofLIA cuando tengas dudas</li>
-          <li>Toma notas de los conceptos clave</li>
-          <li>Revisa los resúmenes antes de avanzar</li>
-        </ul>
-        <p className="text-gray-900 dark:text-white font-semibold mt-3">
-          ¡Disfruta tu aprendizaje! 🚀
-        </p>
-      </TourContent>
-    ),
-    title: '¡Todo Listo!',
-    disableBeacon: true,
-    data: {
-      icon: <Sparkles className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-];
+export type CourseLearnJoyrideTranslator = (
+  key: CourseLearnJoyrideTranslationKey,
+  interpolation?: CourseLearnJoyrideInterpolation,
+) => string;
+
+type BuildCourseLearnJoyrideStepsParams = {
+  courseTitle?: string;
+  lessonTitle?: string;
+  translate: CourseLearnJoyrideTranslator;
+};
+
+const COURSE_LEARN_TOUR_ID_PREFIX = 'course-learn';
+const COMPACT_TOOLTIP_WIDTH = 'compact';
+const FIXED_LEFT_TOOLTIP_DOCK = 'fixed-left';
+
+export const COURSE_LEARN_JOYRIDE_STEP_INDEXES = {
+  welcome: 0,
+  sidebar: 1,
+  videoPanel: 2,
+  tools: 3,
+  soflia: 4,
+  ready: 5,
+} as const;
+
+function resolveInterpolationValues({
+  courseTitle,
+  lessonTitle,
+  translate,
+}: Omit<BuildCourseLearnJoyrideStepsParams, 'translate'> & {
+  translate: CourseLearnJoyrideTranslator;
+}): Required<CourseLearnJoyrideInterpolation> {
+  return {
+    courseTitle:
+      courseTitle?.trim() || translate('tour.fallbacks.courseTitle'),
+    lessonTitle:
+      lessonTitle?.trim() || translate('tour.fallbacks.lessonTitle'),
+  };
+}
+
+export function buildCourseLearnTourId(courseSlug: string): string {
+  return `${COURSE_LEARN_TOUR_ID_PREFIX}-${courseSlug}`;
+}
+
+export function buildCourseLearnJoyrideSteps({
+  courseTitle,
+  lessonTitle,
+  translate,
+}: BuildCourseLearnJoyrideStepsParams): Step[] {
+  const interpolation = resolveInterpolationValues({
+    courseTitle,
+    lessonTitle,
+    translate,
+  });
+
+  return [
+    {
+      target: getCourseLearnTourTargetSelector('workspace'),
+      title: translate('tour.steps.welcome.title'),
+      content: translate('tour.steps.welcome.description', interpolation),
+      placement: 'center',
+      disableBeacon: true,
+      data: {
+        icon: <Sparkles className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getCourseLearnTourTargetSelector('sidebar'),
+      title: translate('tour.steps.sidebar.title'),
+      content: translate('tour.steps.sidebar.description', interpolation),
+      placement: 'right',
+      disableBeacon: true,
+      data: {
+        icon: <BookOpen className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getCourseLearnTourTargetSelector('videoPanel'),
+      title: translate('tour.steps.videoPanel.title'),
+      content: translate('tour.steps.videoPanel.description', interpolation),
+      placement: 'left-start',
+      disableBeacon: true,
+      floaterProps: {
+        hideArrow: true,
+      },
+      data: {
+        icon: <PlaySquare className="h-5 w-5 text-[#00D4B3]" />,
+        tooltipDock: FIXED_LEFT_TOOLTIP_DOCK,
+        tooltipWidth: COMPACT_TOOLTIP_WIDTH,
+      },
+    },
+    {
+      target: getCourseLearnTourTargetSelector('tools'),
+      title: translate('tour.steps.tools.title'),
+      content: translate('tour.steps.tools.description', interpolation),
+      placement: 'bottom',
+      disableBeacon: true,
+      data: {
+        icon: <LayoutPanelTop className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getCourseLearnTourTargetSelector('liaTrigger'),
+      title: translate('tour.steps.soflia.title'),
+      content: translate('tour.steps.soflia.description', interpolation),
+      placement: 'top-end',
+      disableBeacon: true,
+      disableScrolling: true,
+      spotlightPadding: 20,
+      data: {
+        icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getCourseLearnTourTargetSelector('replayButton'),
+      title: translate('tour.steps.ready.title'),
+      content: translate('tour.steps.ready.description', interpolation),
+      placement: 'bottom-end',
+      disableBeacon: true,
+      data: {
+        icon: <Map className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+  ];
+}

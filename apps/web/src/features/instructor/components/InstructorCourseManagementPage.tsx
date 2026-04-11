@@ -123,7 +123,7 @@ export function InstructorCourseManagementPage({ courseId }: InstructorCourseMan
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <div className="mb-8">
           <button
             onClick={() => router.back()}
@@ -132,8 +132,8 @@ export function InstructorCourseManagementPage({ courseId }: InstructorCourseMan
             <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
             Volver a Talleres
           </button>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
               <h1 className="text-4xl font-bold text-white mb-2">Gestión de Curso</h1>
               <p className="text-purple-200/80">Administra módulos, lecciones, materiales y actividades</p>
             </div>
@@ -141,7 +141,7 @@ export function InstructorCourseManagementPage({ courseId }: InstructorCourseMan
         </div>
 
         <div className="bg-gray-800/60 rounded-xl border border-purple-800/30 mb-6">
-          <div className="flex p-1">
+          <div className="scrollbar-hide -mx-1 flex gap-1 overflow-x-auto p-1">
             {[
               { key: 'modules', label: 'Módulos', icon: Book },
               { key: 'config', label: 'Configuración', icon: Settings },
@@ -151,13 +151,13 @@ export function InstructorCourseManagementPage({ courseId }: InstructorCourseMan
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as 'modules' | 'config' | 'preview' | 'stats')}
-                className={`flex-1 py-3 px-6 rounded-lg font-medium text-sm transition-all ${
+                  className={`min-w-[140px] flex-1 rounded-lg px-5 py-3 text-sm font-medium transition-all sm:min-w-0 ${
                   activeTab === tab.key
                     ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg'
                     : 'text-purple-200 hover:bg-purple-900/20'
                 }`}
               >
-                <span className="inline-flex items-center justify-center gap-2">
+                  <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
                 </span>

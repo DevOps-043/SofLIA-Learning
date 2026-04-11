@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { LearnLesson, LearnModule } from "../components/learn/types";
+import type {
+  LearnLesson,
+  LearnModule,
+  LearnTab,
+} from "../components/learn/types";
+import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 
 type Lesson = LearnLesson;
 type Module = LearnModule;
@@ -14,6 +19,7 @@ interface ValidationModalState {
   details?: string;
   type: "activity" | "video" | "quiz";
   lessonId?: string;
+  redirectTab?: LearnTab;
 }
 
 interface LessonCompletionDetails {
@@ -144,6 +150,7 @@ export function useLessonCompletion({
   setCourseProgress,
   canCompleteLesson,
 }: UseLessonCompletionParams) {
+  const organizationId = useCurrentOrganizationId();
   const [isCourseCompletedModalOpen, setIsCourseCompletedModalOpen] = useState(false);
   const [isCannotCompleteModalOpen, setIsCannotCompleteModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
@@ -154,7 +161,18 @@ export function useLessonCompletion({
     message: "",
     type: "activity",
     lessonId: undefined,
+    redirectTab: undefined,
   });
+
+  const openValidationModal = useCallback(
+    (modal: Omit<ValidationModalState, "isOpen">) => {
+      setValidationModal({
+        ...modal,
+        isOpen: true,
+      });
+    },
+    []
+  );
 
   const checkQuizStatus = async (
     lessonId: string,
@@ -162,7 +180,9 @@ export function useLessonCompletion({
   ): Promise<QuizStatusResult> => {
     try {
       const response = await fetch(
-        `/api/courses/${slug}/lessons/${lessonId}/quiz/status`,
+        `/api/courses/${slug}/lessons/${lessonId}/quiz/status${
+          organizationId ? `?orgId=${encodeURIComponent(organizationId)}` : ""
+        }`,
         { signal }
       );
 
@@ -255,6 +275,7 @@ export function useLessonCompletion({
         fetch(`/api/courses/${slug}/lessons/${lessonId}/progress`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(organizationId ? { organizationId } : {}),
           signal,
         }).catch((fetchError: unknown) => {
           if (getUnknownErrorName(fetchError) === "AbortError" || signal?.aborted) {
@@ -295,8 +316,7 @@ export function useLessonCompletion({
           );
         }
 
-        setValidationModal({
-          isOpen: true,
+        openValidationModal({
           title: "Hace falta realizar actividad",
           message:
             quizStatus.details?.message ||
@@ -305,6 +325,7 @@ export function useLessonCompletion({
           details: buildCompletionDetailsText(quizStatus.details),
           type: "activity",
           lessonId: lessonId,
+          redirectTab: "activities",
         });
         return false;
       }
@@ -373,8 +394,7 @@ export function useLessonCompletion({
             );
           }
 
-          setValidationModal({
-            isOpen: true,
+          openValidationModal({
             title: "Hace falta realizar actividad",
             message:
               responseData.details?.message ||
@@ -383,13 +403,13 @@ export function useLessonCompletion({
             details: buildCompletionDetailsText(responseData.details),
             type: "activity",
             lessonId: lessonId,
+            redirectTab: "activities",
           });
           return false;
         }
 
         if (responseData.code || responseData.error) {
-          setValidationModal({
-            isOpen: true,
+          openValidationModal({
             title: "No se puede completar",
             message:
               responseData.details?.message ||
@@ -397,6 +417,7 @@ export function useLessonCompletion({
               "No se puede completar la lección en este momento.",
             type: "activity",
             lessonId: lessonId,
+            redirectTab: "activities",
           });
           return false;
         }
@@ -449,6 +470,7 @@ export function useLessonCompletion({
   return {
     checkQuizStatus,
     markLessonAsCompleted,
+    openValidationModal,
     validationModal,
     setValidationModal,
     isCourseCompletedModalOpen,

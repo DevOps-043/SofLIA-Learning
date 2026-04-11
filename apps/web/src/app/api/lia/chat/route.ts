@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  HarmCategory,
+  HarmBlockThreshold,
+  type Part,
+} from '@google/generative-ai';
 import {
   buildSanitizedContextExcerpt,
   sanitizeContextPayload,
@@ -13,6 +18,7 @@ import {
 } from '@/lib/security/prompt-injection-detector';
 import { recordSecurityEvent } from '@/lib/security/security-events';
 import { fetchPlatformContext, PlatformContext, ChatRequest } from './platform-context.service';
+import { resolveActiveOrganizationContext } from './organization-context.service';
 import { getLIASystemPrompt } from './system-prompt.service';
 import {
   buildFullContext,
@@ -21,10 +27,95 @@ import {
   buildCleanHistory,
 } from './chat-context.builder';
 import { processAIResponse } from './chat-response.formatter';
+import { toInlineImagePart } from '@/core/reporting/report-problem.server';
+import {
+  buildPendingBugReportPromptSection,
+  detectBugReportConfirmationIntent,
+  extractBugReportDraftToken,
+  submitConfirmedBugReport,
+  type LiaChatProcessingBody,
+} from './lia-report-workflow.service';
+import {
+  getLatestAssistantMessageContent,
+  persistConversationTurn,
+} from './lia-chat-history.service';
+
+function buildCurrentMessageParts(
+  promptWithContext: string,
+  attachments: ChatRequest['messages'][number]['attachments']
+): Part[] {
+  const parts: Part[] = [{ text: promptWithContext }];
+
+  if (!attachments?.length) {
+    return parts;
+  }
+
+  parts.push({
+    text:
+      'El usuario adjuntó evidencia visual. Usa las imágenes como contexto para entender mejor el problema o la pregunta.',
+  });
+
+  attachments.forEach((attachment) => {
+    const imagePart = toInlineImagePart(attachment);
+
+    if (imagePart) {
+      parts.push(imagePart);
+    }
+  });
+
+  return parts;
+}
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
+
+function buildAssistantStreamResponse(content: string): Response {
+  const encoder = new TextEncoder();
+  const readable = new ReadableStream({
+    start(controller) {
+      const chunkSize = 50;
+      let index = 0;
+
+      function push() {
+        if (index >= content.length) {
+          controller.enqueue(
+            encoder.encode(
+              'data: ' + JSON.stringify({ done: true }) + '\n\n'
+            )
+          );
+          controller.close();
+          return;
+        }
+
+        const chunk = content.slice(index, index + chunkSize);
+        controller.enqueue(
+          encoder.encode(
+            'data: ' + JSON.stringify({ content: chunk, done: false }) + '\n\n'
+          )
+        );
+        index += chunkSize;
+        setTimeout(push, 10);
+      }
+
+      push();
+    },
+  });
+
+  return new Response(readable, {
+    headers: { 'Content-Type': 'text/event-stream' },
+  });
+}
+
+function buildAssistantResponse(content: string, shouldStream: boolean) {
+  if (shouldStream) {
+    return buildAssistantStreamResponse(content);
+  }
+
+  return NextResponse.json({
+    message: { role: 'assistant', content },
+  });
+}
 
 // ============================================
 // API HANDLER
@@ -34,13 +125,7 @@ export async function POST(request: NextRequest) {
   let shouldStream = true;
 
   try {
-    const body: ChatRequest & {
-      isBugReport?: boolean;
-      enrichedMetadata?: Record<string, unknown>;
-      sessionSnapshot?: string;
-      recordingStatus?: string;
-      conversationId?: string;
-    } = await request.json();
+    const body: LiaChatProcessingBody = await request.json();
 
     const { messages, context: requestContext, stream = true } = body;
     shouldStream = stream;
@@ -92,25 +177,25 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      if (shouldStream) {
-        const encoder = new TextEncoder();
-        const readable = new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ content: buildSecurityRefusalMessage(securityAssessment), done: false }) + '\n\n'));
-            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'));
-            controller.close();
-          }
-        });
-        return new Response(readable, { headers: { 'Content-Type': 'text/event-stream' } });
-      }
-
-      return NextResponse.json({
-        message: { role: 'assistant', content: buildSecurityRefusalMessage(securityAssessment) }
-      });
+      return buildAssistantResponse(
+        buildSecurityRefusalMessage(securityAssessment),
+        shouldStream
+      );
     }
 
     // Build enriched context
-    const platformContext = await fetchPlatformContext(sanitizedRequestContext?.userId);
+    const activeOrganizationContext = await resolveActiveOrganizationContext({
+      userId: sanitizedRequestContext?.userId,
+      requestedOrganizationId:
+        typeof sanitizedRequestContext?.organizationId === 'string'
+          ? sanitizedRequestContext.organizationId
+          : undefined,
+      currentPage: sanitizedRequestContext?.currentPage,
+    });
+    const platformContext = await fetchPlatformContext({
+      userId: sanitizedRequestContext?.userId,
+      organizationContext: activeOrganizationContext,
+    });
     const fullContext: PlatformContext = await buildFullContext(platformContext, sanitizedRequestContext);
 
     // Build system prompt
@@ -131,6 +216,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let activeBugReportDraft = null;
+    if (body.conversationId) {
+      const latestAssistantContent = await getLatestAssistantMessageContent(
+        body.conversationId
+      );
+      activeBugReportDraft = latestAssistantContent
+        ? extractBugReportDraftToken(latestAssistantContent)
+        : null;
+    }
+
+    if (activeBugReportDraft) {
+      const confirmationIntent = detectBugReportConfirmationIntent(
+        lastMessage.content
+      );
+
+      if (confirmationIntent === 'confirm') {
+        const { clientContent } = await submitConfirmedBugReport({
+          draft: activeBugReportDraft,
+          body,
+          requestContext: sanitizedRequestContext,
+          request,
+        });
+
+        await persistConversationTurn({
+          conversationId: body.conversationId,
+          userId: sanitizedRequestContext?.userId,
+          requestContext: sanitizedRequestContext,
+          userMessage: lastMessage,
+          assistantContent: clientContent,
+        });
+
+        return buildAssistantResponse(clientContent, shouldStream);
+      }
+    }
+
     // Optionally append bug-report context
     systemPrompt = await appendBugReportContext(
       systemPrompt,
@@ -138,6 +258,10 @@ export async function POST(request: NextRequest) {
       body.isBugReport || false,
       fullContext.currentPage
     );
+
+    if (activeBugReportDraft) {
+      systemPrompt += buildPendingBugReportPromptSection(activeBugReportDraft);
+    }
 
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(googleApiKey);
@@ -162,7 +286,9 @@ export async function POST(request: NextRequest) {
       generationConfig: { maxOutputTokens: 8192, temperature: 0.7 },
     });
 
-    const result = await chatSession.sendMessage(messageWithContext);
+    const result = await chatSession.sendMessage(
+      buildCurrentMessageParts(messageWithContext, lastMessage.attachments)
+    );
     const finalContent = result.response.text();
 
     // Post-process: handle bug reports, save conversation history
@@ -170,7 +296,8 @@ export async function POST(request: NextRequest) {
       finalContent,
       body,
       sanitizedRequestContext,
-      request
+      request,
+      activeBugReportDraft
     );
     const securedClientContent = enforceSecurityResponsePolicy({
       content: clientContent,
@@ -195,37 +322,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Stream or JSON response
-    if (shouldStream) {
-      const encoder = new TextEncoder();
-      const readable = new ReadableStream({
-        start(controller) {
-          const text = securedClientContent;
-          const chunkSize = 50;
-          let i = 0;
-
-          function push() {
-            if (i >= text.length) {
-              controller.enqueue(encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'));
-              controller.close();
-              return;
-            }
-            const chunk = text.slice(i, i + chunkSize);
-            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ content: chunk, done: false }) + '\n\n'));
-            i += chunkSize;
-            setTimeout(push, 10);
-          }
-          push();
-        }
-      });
-
-      return new Response(readable, {
-        headers: { 'Content-Type': 'text/event-stream' }
-      });
-    } else {
-      return NextResponse.json({
-        message: { role: 'assistant', content: securedClientContent }
-      });
-    }
+    return buildAssistantResponse(securedClientContent, shouldStream);
 
   } catch (error) {
     console.error('❌ LIA Chat API error:', error);
@@ -240,19 +337,7 @@ export async function POST(request: NextRequest) {
     if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('Too Many Requests')) {
       const politeMessage = "⏳ Lo siento, he alcanzado mi límite de capacidad. Por favor espera unos segundos.";
 
-      if (shouldStream) {
-        const encoder = new TextEncoder();
-        const readable = new ReadableStream({
-          start(controller) {
-            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ content: politeMessage, done: false }) + '\n\n'));
-            controller.enqueue(encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'));
-            controller.close();
-          }
-        });
-        return new Response(readable, { headers: { 'Content-Type': 'text/event-stream' } });
-      } else {
-        return NextResponse.json({ message: { role: 'assistant', content: politeMessage } });
-      }
+      return buildAssistantResponse(politeMessage, shouldStream);
     }
 
     return NextResponse.json({ error: errorMessage }, { status: 500 });

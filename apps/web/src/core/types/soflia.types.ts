@@ -51,6 +51,7 @@ export interface CourseLessonContext {
   summaryContent?: string;
   videoTime?: number;
   durationSeconds?: number;
+  totalDurationMinutes?: number;
 
   // Metadatos completos del curso/taller (módulos y lecciones disponibles)
   allModules?: ModuleInfo[];

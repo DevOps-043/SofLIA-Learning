@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { calculateCombinedLessonProgress } from '@/lib/utils/lesson-progress';
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
 
 interface QuizQuestionRow {
   id?: string;
@@ -57,15 +58,20 @@ export async function POST(
 
     const courseId = course.id;
 
-    // Obtener o crear enrollment del usuario
-    let { data: enrollment, error: enrollmentError } = await supabase
-      .from('user_course_enrollments')
-      .select('enrollment_id')
-      .eq('user_id', currentUser.id)
-      .eq('course_id', courseId)
-      .single();
+    // Obtener datos del body
+    const body = await request.json();
+    const organizationId =
+      typeof body?.organizationId === 'string' && body.organizationId.trim().length > 0
+        ? body.organizationId.trim()
+        : null;
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      courseId,
+      organizationId,
+    );
 
-    if (enrollmentError || !enrollment) {
+    if (!enrollment) {
       return NextResponse.json(
         { error: 'No estás inscrito en este curso' },
         { status: 404 }
@@ -73,9 +79,6 @@ export async function POST(
     }
 
     const enrollmentId = enrollment.enrollment_id;
-
-    // Obtener datos del body
-    const body = await request.json();
     const { 
       answers, 
       quizData, 

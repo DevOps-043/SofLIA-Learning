@@ -7,6 +7,18 @@ describe('lesson-progress-request.service', () => {
     expect(parseLessonProgressRequestBody('   ')).toEqual({ data: {} })
   })
 
+  it('accepts a valid organization context payload', () => {
+    expect(
+      parseLessonProgressRequestBody(
+        JSON.stringify({ organizationId: 'board-ready-org' }),
+      ),
+    ).toEqual({
+      data: {
+        organizationId: 'board-ready-org',
+      },
+    })
+  })
+
   it('rejects invalid json payloads', () => {
     expect(parseLessonProgressRequestBody('{')).toEqual({
       error: {

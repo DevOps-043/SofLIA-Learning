@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import type { SupportedLanguage } from '@/core/i18n/i18n'
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
 
 interface ModuleRow {
   module_id: string
@@ -182,6 +183,7 @@ export async function loadModulesWithProgress(
   courseId: string,
   userId: string | undefined,
   language: string,
+  organizationId?: string | null,
 ): Promise<ModulesWithProgressResult> {
   const { data: allModules, error: allModulesError } = await supabase
     .from('course_modules')
@@ -202,12 +204,12 @@ export async function loadModulesWithProgress(
 
   let enrollmentId: string | null = null
   if (userId) {
-    const { data: enrollment } = await supabase
-      .from('user_course_enrollments')
-      .select('enrollment_id')
-      .eq('user_id', userId)
-      .eq('course_id', courseId)
-      .single()
+    const enrollment = await resolveCourseEnrollment(
+      supabase,
+      userId,
+      courseId,
+      organizationId,
+    )
 
     enrollmentId = enrollment?.enrollment_id || null
   }

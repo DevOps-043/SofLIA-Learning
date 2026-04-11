@@ -1,12 +1,13 @@
 'use client'
 
 import type React from 'react'
-import { Activity, BookOpen, FileText, MessageCircle, Play, ScrollText } from 'lucide-react'
+import { Activity, BookOpen, MessageCircle, Play } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import Joyride from 'react-joyride'
 import { WorkshopLearningProvider } from '../../../../components/WorkshopLearningProvider'
 import type { NotesModalProps } from '../../../../core/components/NotesModal'
+import { COURSE_LEARN_TOUR_TARGET_IDS } from '../../../../core/constants/tourTargets'
 import { CourseAccessGuard } from '../../../../features/courses/components/CourseAccessGuard'
 import { CourseLia } from '../../../../features/courses/components/CourseLia'
 import { CourseRatingModal } from '../../../../features/courses/components/CourseRatingModal'
@@ -20,13 +21,11 @@ import {
   LearnPageMobileNav,
   LearnPageValidationModal,
   QuestionsSection,
-  SummaryContent,
-  TranscriptContent,
   VideoContent,
 } from '../../../../features/courses/components/learn'
 import type { LearnPageLogicResult } from '../../../../features/courses/hooks/useLearnPageLogic'
 import { CourseRatingService } from '../../../../features/courses/services/course-rating.service'
-import { VideoPlayerProvider } from './VideoPlayerContext'
+import { useCourseLearnJoyride } from '../../../../features/tours/hooks/useCourseLearnJoyride'
 
 const NotesModal = dynamic(
   () =>
@@ -45,8 +44,6 @@ const NotesModal = dynamic(
 
 const TAB_ICONS = {
   Play,
-  ScrollText,
-  FileText,
   Activity,
   MessageCircle,
 } as const
@@ -79,8 +76,12 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     courseProgress,
     liaTranscript,
     liaSummary,
+    isLiaTranscriptLoading,
+    isLiaSummaryLoading,
     isLiaOpen,
+    closeLia,
     handleSaveLiaNote,
+    handleVideoCompleted,
     handleWorkshopHelpAccepted,
     selectedLang,
     activeTab,
@@ -129,6 +130,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     navigateToPreviousLesson,
     navigateToNextLesson,
     openLessonById,
+    getLessonContext,
     canCompleteLesson,
     markLessonAsCompleted,
     isCourseCompletedModalOpen,
@@ -142,9 +144,20 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     validationModal,
     setValidationModal,
     handlePromptsChange,
-    joyrideComponentProps,
-    isJoyrideMounted,
   } = logic
+
+  const courseTitle = course?.title || course?.course_title || ''
+  const courseTour = useCourseLearnJoyride({
+    courseSlug: slug,
+    courseTitle,
+    lessonTitle: currentLesson?.lesson_title,
+    enabled: ready && Boolean(course),
+    isMobile,
+    closeLia,
+    openLeftPanel,
+    closeLeftPanel,
+    setActiveTab,
+  })
 
   const handleCourseCompletedClose = async () => {
     setIsCourseCompletedModalOpen(false)
@@ -164,11 +177,21 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
 
   const handleValidationClose = () => {
     const lessonIdToShow = validationModal.lessonId
-    setValidationModal({ ...validationModal, isOpen: false })
+    const redirectTab =
+      validationModal.redirectTab ||
+      (validationModal.type === 'video' ? 'video' : 'activities')
+
+    setValidationModal((previous) => ({ ...previous, isOpen: false }))
+
     if (lessonIdToShow) {
-      openLessonById(lessonIdToShow, { tab: 'activities', trackOpen: false })
+      openLessonById(lessonIdToShow, {
+        tab: redirectTab,
+        trackOpen: false,
+      })
     }
   }
+
+  const currentLessonContext = currentLesson ? getLessonContext() : undefined
 
   if (!ready || loading) {
     return (
@@ -214,18 +237,17 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   }
 
   return (
-    <VideoPlayerProvider>
-      <WorkshopLearningProvider
-        workshopId={course.id || course.course_id || slug}
-        activityId={currentLesson?.lesson_id || 'no-lesson'}
-        enabled={!!course && !!currentLesson}
-        suppressDisplay={activeTab === 'video'}
-        checkInterval={15000}
-        assistantPosition="bottom-right"
-        assistantCompact={false}
-        onHelpAccepted={handleWorkshopHelpAccepted}
-      >
-        <CourseAccessGuard courseSlug={slug}>
+    <WorkshopLearningProvider
+      workshopId={course.id || course.course_id || slug}
+      activityId={currentLesson?.lesson_id || 'no-lesson'}
+      enabled={!!course && !!currentLesson}
+      suppressDisplay={activeTab === 'video'}
+      checkInterval={15000}
+      assistantPosition="bottom-right"
+      assistantCompact={false}
+      onHelpAccepted={handleWorkshopHelpAccepted}
+    >
+      <CourseAccessGuard courseSlug={slug}>
           <DeleteNoteConfirmModal
             isOpen={isDeleteNoteConfirmOpen}
             isDeleting={isDeletingNote}
@@ -233,11 +255,16 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
             onConfirm={confirmDeleteNote}
           />
 
-          <div className="fixed inset-0 h-screen flex flex-col bg-gradient-to-br from-gray-50 via-gray-50 to-gray-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 overflow-hidden">
+          <div
+            id={COURSE_LEARN_TOUR_TARGET_IDS.workspace}
+            className="fixed inset-0 h-screen flex flex-col bg-gradient-to-br from-gray-50 via-gray-50 to-gray-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900 overflow-hidden"
+          >
             <LearnPageHeader
-              courseTitle={course.title || course.course_title || ''}
+              courseTitle={courseTitle}
               courseProgress={courseProgress}
               onBack={() => router.back()}
+              onRestartTour={courseTour.restartTour}
+              restartTourLabel={t('tour.replayLabel')}
             />
 
             <div
@@ -306,7 +333,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                 ) : currentLesson ? (
                   <>
                     <div
-                      id="tour-tabs-container"
+                      id={COURSE_LEARN_TOUR_TARGET_IDS.tools}
                       className="bg-white dark:bg-[#1E2329] border-b border-[#E9ECEF] dark:border-[#6C757D]/30 flex gap-1 md:gap-2 p-2 md:p-3 rounded-t-xl h-[56px] items-center overflow-x-auto scrollbar-hide scroll-smooth"
                       style={{
                         scrollPaddingLeft: '0.5rem',
@@ -324,7 +351,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                           return (
                             <button
                               key={tab.id}
-                              id={`tour-tab-${tab.id}`}
                               onClick={() => handleTabChange(tab.id)}
                               className={`flex items-center rounded-xl transition-all duration-200 relative group shrink-0 ${
                                 shouldHideText
@@ -379,6 +405,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               lesson={currentLesson}
                               onNavigatePrevious={navigateToPreviousLesson}
                               onNavigateNext={navigateToNextLesson}
+                              onVideoCompleted={handleVideoCompleted}
                               getPreviousLesson={getPreviousLesson}
                               getNextLesson={getNextLesson}
                               markLessonAsCompleted={markLessonAsCompleted}
@@ -396,19 +423,15 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               activities={
                                 lessonsActivities[currentLesson.lesson_id] || []
                               }
-                              setActiveTab={setActiveTab}
-                            />
-                          )}
-                          {activeTab === 'transcript' && (
-                            <TranscriptContent
-                              lesson={currentLesson}
                               slug={slug}
+                              transcriptContent={liaTranscript}
+                              summaryContent={liaSummary}
+                              isTranscriptLoading={isLiaTranscriptLoading}
+                              isSummaryLoading={isLiaSummaryLoading}
                               onNoteCreated={addNoteToLocalState}
                               onStatsUpdate={updateNotesStatsOptimized}
+                              setActiveTab={setActiveTab}
                             />
-                          )}
-                          {activeTab === 'summary' && currentLesson && (
-                            <SummaryContent lesson={currentLesson} slug={slug} />
                           )}
                           {activeTab === 'activities' && (
                             <ActivitiesContent
@@ -507,6 +530,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               transcriptContent={liaTranscript}
               summaryContent={liaSummary}
               lessonContent={currentLesson?.lesson_description}
+              lessonContext={currentLessonContext}
               customColors={{
                 panelBg: colors.bgSecondary,
                 borderColor: 'rgba(255,255,255,0.1)',
@@ -517,10 +541,9 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               onSaveNote={handleSaveLiaNote}
             />
 
-            {isJoyrideMounted && <Joyride {...joyrideComponentProps} />}
+            {mounted ? <Joyride {...courseTour.joyrideProps} /> : null}
           </div>
         </CourseAccessGuard>
       </WorkshopLearningProvider>
-    </VideoPlayerProvider>
   )
 }

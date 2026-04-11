@@ -26,6 +26,7 @@ describe('learn-page.service', () => {
           is_completed: false,
           lesson_order_index: 2,
           duration_seconds: 900,
+          total_duration_minutes: 17,
         },
       ],
     },
@@ -33,8 +34,12 @@ describe('learn-page.service', () => {
 
   it('builds the learn-data query without leaking empty params', () => {
     expect(
-      buildLearnDataQuery({ lessonId: 'lesson-2', language: 'es' }),
-    ).toBe('?lessonId=lesson-2&language=es')
+      buildLearnDataQuery({
+        lessonId: 'lesson-2',
+        language: 'es',
+        organizationId: 'org-1',
+      }),
+    ).toBe('?lessonId=lesson-2&language=es&orgId=org-1')
     expect(buildLearnDataQuery({ language: 'en' })).toBe('?language=en')
   })
 
@@ -87,6 +92,46 @@ describe('learn-page.service', () => {
       workshopMetadata: null,
       slug: 'ia-aplicada',
       userJobTitle: 'Analista',
+      transcriptContent: 'Texto transcrito',
+      summaryContent: 'Resumen corto',
+      activeTab: 'activities',
+      currentPage: '/courses/ia-aplicada/learn',
+      currentActivities: [
+        {
+          activity_id: 'activity-1',
+          activity_title: 'Ejercicio guiado',
+          activity_description: 'Aplicar el concepto al equipo',
+          activity_type: 'exercise',
+          is_required: true,
+          is_completed: false,
+        },
+      ],
+      currentMaterials: [
+        {
+          material_id: 'material-1',
+          material_title: 'Plantilla de apoyo',
+          material_description: 'Documento para resolver la actividad',
+          material_type: 'document',
+          is_required: true,
+        },
+      ],
+      quizStatus: {
+        hasRequiredQuizzes: true,
+        totalRequiredQuizzes: 1,
+        completedQuizzes: 0,
+        passedQuizzes: 0,
+        allQuizzesPassed: false,
+        quizzes: [
+          {
+            id: 'quiz-1',
+            title: 'Quiz final',
+            type: 'material',
+            isCompleted: false,
+            isPassed: false,
+            percentage: 0,
+          },
+        ],
+      },
     })
 
     const workshopContext = buildLearnLessonContext({
@@ -107,7 +152,17 @@ describe('learn-page.service', () => {
 
     expect(courseContext?.contextType).toBe('course')
     expect(courseContext?.lessonId).toBe('lesson-2')
+    expect(courseContext?.currentTab).toBe('activities')
+    expect(courseContext?.transcriptContent).toBe('Texto transcrito')
+    expect(courseContext?.totalDurationMinutes).toBe(17)
+    expect(courseContext?.learningProgressContext?.timeInCurrentLesson).toBe(
+      '17 minutos',
+    )
+    expect(courseContext?.activitiesContext?.totalActivities).toBe(1)
+    expect(courseContext?.materialsContext?.totalMaterials).toBe(1)
+    expect(courseContext?.quizContext?.hasRequiredQuizzes).toBe(true)
     expect(workshopContext?.contextType).toBe('workshop')
+    expect(workshopContext?.lessonId).toBe('lesson-2')
     expect(workshopContext?.lessonTitle).toBe('Practica guiada')
     expect(workshopContext?.moduleTitle).toBe('Fundamentos')
   })

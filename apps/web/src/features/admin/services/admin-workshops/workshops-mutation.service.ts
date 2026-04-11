@@ -1,6 +1,10 @@
 import { createClient } from '../../../../lib/supabase/server'
 import { sanitizeSlug, generateUniqueSlugAsync } from '../../../../lib/slug'
 import { AuditLogService } from '../auditLog.service'
+import {
+  deleteWorkshopHierarchy,
+  WorkshopDeletionError,
+} from './workshop-deletion.service'
 import type { AdminWorkshop } from './workshops-transform.service'
 
 export class AdminWorkshopsMutationService {
@@ -9,7 +13,7 @@ export class AdminWorkshopsMutationService {
     const supabase = await createClient()
 
     try {
-      // ✅ SEGURIDAD: Sanitizar y generar slug único
+      // Seguridad: sanitizar y generar slug unico
       let slug: string;
 
       if (workshopData.slug) {
@@ -17,7 +21,7 @@ export class AdminWorkshopsMutationService {
       } else if (workshopData.title) {
         slug = sanitizeSlug(workshopData.title);
       } else {
-        throw new Error('Se requiere título o slug para crear el taller');
+        throw new Error('Se requiere titulo o slug para crear el taller');
       }
 
       // Verificar unicidad
@@ -72,14 +76,12 @@ export class AdminWorkshopsMutationService {
         .single()
 
       if (error) {
-        console.error('[AdminWorkshopsService.createWorkshop] ❌ Error creando curso en BD:', error);
+        console.error('[AdminWorkshopsService.createWorkshop] Error creando curso en BD:', error);
         throw error
       }
 
-      // Registrar en el log de auditoría
-
       await AuditLogService.logAction({
-        user_id: adminUserId, // En este caso, el admin es quien crea
+        user_id: adminUserId,
         admin_user_id: adminUserId,
         action: 'CREATE',
         table_name: 'courses',
@@ -90,12 +92,7 @@ export class AdminWorkshopsMutationService {
         user_agent: requestInfo?.userAgent
       })
 
-      // Traducir automáticamente el curso a inglés y portugués
-      // IMPORTANTE: Esta operación debe completarse ANTES de devolver la respuesta
-      // para evitar que se interrumpa cuando la página se refresca
-
-      // EJECUTAR TRADUCCIÓN DE FORMA SÍNCRONA - NO CONTINUAR HASTA QUE TERMINE
-
+      // Traducir automaticamente el curso a ingles y portugues
       try {
 
         const translationModule = await import('../../../../core/services/courseTranslation.service');
@@ -107,26 +104,25 @@ export class AdminWorkshopsMutationService {
           learning_objectives: data.learning_objectives || null
         };
 
-        // AWAIT aquí es crítico: debe completarse antes de devolver la respuesta
         const translationResult = await translateCourseOnCreate(
           data.id,
           courseDataForTranslation,
           adminUserId,
-          supabase // Pasar el cliente de Supabase existente
+          supabase
         );
 
 
         if (!translationResult.success) {
-          console.error('[AdminWorkshopsService] ❌ La traducción NO fue exitosa');
+          console.error('[AdminWorkshopsService] La traduccion NO fue exitosa');
           console.error('[AdminWorkshopsService] Errores:', translationResult.errors);
         } else {
 
         }
 
       } catch (translationError) {
-        // No fallar la creación del curso si falla la traducción
-        console.error('[AdminWorkshopsService] ========== ERROR EN TRADUCCIÓN ==========');
-        console.error('[AdminWorkshopsService] ❌ EXCEPCIÓN en traducción automática del curso');
+        // No fallar la creacion del curso si falla la traduccion
+        console.error('[AdminWorkshopsService] ========== ERROR EN TRADUCCION ==========');
+        console.error('[AdminWorkshopsService] EXCEPCION en traduccion automatica del curso');
         console.error('[AdminWorkshopsService] Tipo de error:', translationError?.constructor?.name || typeof translationError);
         if (translationError instanceof Error) {
           console.error('[AdminWorkshopsService] Mensaje:', translationError.message);
@@ -134,7 +130,6 @@ export class AdminWorkshopsMutationService {
         } else {
           console.error('[AdminWorkshopsService] Error (no es instancia de Error):', JSON.stringify(translationError, null, 2));
         }
-        // No lanzar el error para que la creación del curso se complete exitosamente
       }
 
       return data
@@ -147,19 +142,19 @@ export class AdminWorkshopsMutationService {
     const supabase = await createClient()
 
     try {
-      // Obtener datos anteriores para el log de auditoría
+      // Obtener datos anteriores para el log de auditoria
       const { data: oldData } = await supabase
         .from('courses')
         .select('*')
         .eq('id', workshopId)
         .single()
 
-      // Preparar datos de actualización
+      // Preparar datos de actualizacion
       const updateData: Record<string, unknown> = {
         updated_at: new Date().toISOString()
       }
 
-      // Campos básicos
+      // Campos basicos
       if (workshopData.title !== undefined) updateData.title = workshopData.title
       if (workshopData.description !== undefined) updateData.description = workshopData.description
       if (workshopData.category !== undefined) updateData.category = workshopData.category
@@ -172,24 +167,21 @@ export class AdminWorkshopsMutationService {
       if (workshopData.price !== undefined) updateData.price = workshopData.price
       if (workshopData.learning_objectives !== undefined) updateData.learning_objectives = workshopData.learning_objectives
 
-      // Campos de aprobación
+      // Campos de aprobacion
       if (workshopData.approval_status !== undefined) {
         updateData.approval_status = workshopData.approval_status
 
-        // Si se aprueba, establecer approved_by y approved_at
         if (workshopData.approval_status === 'approved') {
           updateData.approved_by = adminUserId
           updateData.approved_at = new Date().toISOString()
-          updateData.rejection_reason = null // Limpiar razón de rechazo si se aprueba
+          updateData.rejection_reason = null
         }
 
-        // Si se rechaza, limpiar approved_by y approved_at
         if (workshopData.approval_status === 'rejected') {
           updateData.approved_by = null
           updateData.approved_at = null
         }
 
-        // Si vuelve a pending, limpiar todo
         if (workshopData.approval_status === 'pending') {
           updateData.approved_by = null
           updateData.approved_at = null
@@ -234,7 +226,6 @@ export class AdminWorkshopsMutationService {
         throw error
       }
 
-      // Registrar en el log de auditoría
       await AuditLogService.logAction({
         user_id: adminUserId,
         admin_user_id: adminUserId,
@@ -257,7 +248,7 @@ export class AdminWorkshopsMutationService {
     const supabase = await createClient()
 
     try {
-      // 1. Obtener datos del taller antes de eliminarlo para el log de auditoría
+      // Obtener datos del taller antes de eliminarlo para el log de auditoria
       const { data: workshopData } = await supabase
         .from('courses')
         .select('*')
@@ -265,116 +256,27 @@ export class AdminWorkshopsMutationService {
         .single()
 
       if (!workshopData) {
-        throw new Error('Taller no encontrado')
+        throw new WorkshopDeletionError('Taller no encontrado', 404)
       }
 
-      // 2. Obtener todos los módulos del curso
-      const { data: modules } = await supabase
-        .from('course_modules')
-        .select('module_id')
-        .eq('course_id', workshopId)
+      // Eliminar la jerarquia completa del taller y todas sus dependencias
+      await deleteWorkshopHierarchy(supabase, workshopId)
 
-      const moduleIds = modules?.map((m: { module_id: string }) => m.module_id) || []
-
-      if (moduleIds.length > 0) {
-        // 3. Obtener todas las lecciones de estos módulos
-        const { data: lessons } = await supabase
-          .from('course_lessons')
-          .select('lesson_id')
-          .in('module_id', moduleIds)
-
-        const lessonIds = lessons?.map((l: { lesson_id: string }) => l.lesson_id) || []
-
-        if (lessonIds.length > 0) {
-          // 4. ELIMINAR DEPENDENCIAS DE LECCIONES
-          // Usamos Promise.all para ejecutar en paralelo, ignorando errores si no hay registros
-          await Promise.all([
-            supabase.from('lesson_materials').delete().in('lesson_id', lessonIds),
-            supabase.from('lesson_activities').delete().in('lesson_id', lessonIds),
-            supabase.from('lesson_checkpoints').delete().in('lesson_id', lessonIds),
-            supabase.from('lesson_feedback').delete().in('lesson_id', lessonIds),
-            supabase.from('lesson_time_estimates').delete().in('lesson_id', lessonIds),
-            supabase.from('lesson_tracking').delete().in('lesson_id', lessonIds),
-            // Eliminar preguntas comunes de LIA asociadas a lecciones
-            supabase.from('lia_common_questions').delete().in('lesson_id', lessonIds),
-            // Eliminar conversaciones de LIA asociadas a lecciones
-            supabase.from('lia_conversations').delete().in('lesson_id', lessonIds),
-            // Eliminar progreso de usuario
-            supabase.from('user_lesson_progress').delete().in('lesson_id', lessonIds)
-          ])
-
-          // 5. Eliminar las lecciones
-          const { error: deleteLessonsError } = await supabase
-            .from('course_lessons')
-            .delete()
-            .in('lesson_id', lessonIds)
-
-          if (deleteLessonsError) throw deleteLessonsError
-        }
-
-        // 6. Eliminar conversaciones de LIA asociadas a módulos (si las hay, aunque suelen estar ligadas a lecciones)
-        await supabase.from('lia_conversations').delete().in('module_id', moduleIds)
-        // Eliminar progreso de módulos
-        await supabase.from('user_module_progress').delete().in('module_id', moduleIds)
-
-        // 7. Eliminar los módulos
-        const { error: deleteModulesError } = await supabase
-          .from('course_modules')
-          .delete()
-          .in('module_id', moduleIds)
-
-        if (deleteModulesError) throw deleteModulesError
+      try {
+        await AuditLogService.logAction({
+          user_id: adminUserId,
+          admin_user_id: adminUserId,
+          action: 'DELETE',
+          table_name: 'courses',
+          record_id: workshopId,
+          old_values: workshopData,
+          new_values: undefined,
+          ip_address: requestInfo?.ip,
+          user_agent: requestInfo?.userAgent
+        })
+      } catch (auditLogError) {
+        console.error('No se pudo registrar el borrado del taller en audit_logs:', auditLogError)
       }
-
-      // 8. ELIMINAR DEPENDENCIAS DIRECTAS DEL CURSO
-      await Promise.all([
-        supabase.from('course_skills').delete().eq('course_id', workshopId),
-        supabase.from('course_reviews').delete().eq('course_id', workshopId),
-        // Preguntas y respuestas del curso (foro)
-        // Nota: course_question_responses tiene FK a course_questions, borrar preguntas debería borrar respuestas si hay cascade,
-        // pero por seguridad borramos respuestas primero si tienen course_id directo (cierto esquema lo tiene) o cascade manual.
-        // El esquema muestra course_question_responses tiene course_id.
-        supabase.from('course_question_responses').delete().eq('course_id', workshopId),
-        supabase.from('course_questions').delete().eq('course_id', workshopId),
-
-        supabase.from('hierarchy_course_assignments').delete().eq('course_id', workshopId),
-        supabase.from('lia_conversations').delete().eq('course_id', workshopId),
-        // Eliminar traducciones asociadas al curso
-        supabase.from('content_translations').delete().eq('entity_id', workshopId).eq('entity_type', 'course'),
-        // Eliminar progreso del curso
-        supabase.from('user_course_progress').delete().eq('course_id', workshopId),
-
-        // ✅ Nuevas dependencias de estudiantes agragadas para evitar el error de foreign key constraint
-        supabase.from('organization_course_purchases').delete().eq('course_id', workshopId),
-        supabase.from('organization_course_assignments').delete().eq('course_id', workshopId),
-        supabase.from('user_course_enrollments').delete().eq('course_id', workshopId),
-        supabase.from('user_course_certificates').delete().eq('course_id', workshopId),
-        supabase.from('course_certificates').delete().eq('course_id', workshopId)
-      ])
-
-      // 9. Finalmente eliminar el taller
-      const { error } = await supabase
-        .from('courses')
-        .delete()
-        .eq('id', workshopId)
-
-      if (error) {
-        console.error('Error deleting workshop:', error)
-        throw error
-      }
-
-      // 10. Registrar en el log de auditoría
-      await AuditLogService.logAction({
-        user_id: adminUserId,
-        admin_user_id: adminUserId,
-        action: 'DELETE',
-        table_name: 'courses',
-        record_id: workshopId,
-        old_values: workshopData,
-        new_values: undefined,
-        ip_address: requestInfo?.ip,
-        user_agent: requestInfo?.userAgent
-      })
     } catch (error) {
       console.error('Error in AdminWorkshopsService.deleteWorkshop:', error)
       throw error

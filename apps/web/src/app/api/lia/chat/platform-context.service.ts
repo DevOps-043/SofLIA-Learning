@@ -1,4 +1,6 @@
 import { createClient } from '../../../../lib/supabase/server';
+import type { LiaImageAttachment } from '../../../../core/reporting/report-problem.contract';
+import type { ResolvedOrganizationContext } from './organization-context.service';
 
 // ============================================
 // INTERFACES
@@ -6,6 +8,7 @@ import { createClient } from '../../../../lib/supabase/server';
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
+  attachments?: LiaImageAttachment[];
 }
 
 interface UserCourse { title: string | undefined; slug: string | undefined; progress: number | null; status: string }
@@ -15,6 +18,27 @@ interface UserLessonProgressItem {
   status: string; isCompleted: boolean; videoProgress: number | null; timeSpentMinutes: number | null; durationMinutes: number
 }
 interface CourseWithContent { title: string | undefined; slug: string | undefined; description: string | undefined; level: string | undefined; durationMinutes: number | undefined; isAssigned: boolean }
+interface LessonActivityContextItem {
+  title: string;
+  type: string;
+  description?: string;
+  isRequired?: boolean;
+  isCompleted?: boolean;
+}
+interface LessonMaterialContextItem {
+  title: string;
+  type: string;
+  description?: string;
+  isRequired?: boolean;
+}
+interface LessonQuizContextItem {
+  id: string;
+  title: string;
+  type: string;
+  isCompleted: boolean;
+  isPassed: boolean;
+  percentage: number;
+}
 
 export interface PlatformContext {
   userName?: string;
@@ -22,8 +46,10 @@ export interface PlatformContext {
   userJobTitle?: string; // Nuevo: type_rol (Cargo real)
   userId?: string;
   currentPage?: string;
+  currentTab?: string;
   // Propiedades dinámicas
   pageType?: string;
+  organizationId?: string;
   organizationName?: string; // ✅ Campo nuevo
   organizationSlug?: string; // ✅ Campo para rutas dinámicas
   noCoursesAssigned?: boolean;
@@ -40,11 +66,65 @@ export interface PlatformContext {
   userLessonProgress?: UserLessonProgressItem[];
   // Contexto específico de la lección actual (inyectado desde frontend)
   currentLessonContext?: {
+    contextType?: 'course' | 'workshop';
+    courseId?: string;
+    courseSlug?: string;
+    courseTitle?: string;
+    courseDescription?: string;
+    userRole?: string;
+    moduleId?: string;
+    moduleTitle?: string;
     lessonId?: string;
     lessonTitle?: string;
     transcript?: string | null;
     summary?: string | null;
     description?: string | null;
+    durationSeconds?: number;
+    totalDurationMinutes?: number;
+    currentPage?: string;
+    currentTab?: string;
+    learningProgress?: {
+      currentLessonNumber: number;
+      totalLessons: number;
+      progressPercentage: number;
+      currentTab: string;
+      timeInCurrentLesson: string;
+    };
+    activities?: {
+      totalActivities: number;
+      requiredActivities: number;
+      completedActivities: number;
+      pendingRequiredCount: number;
+      pendingRequiredTitles?: string;
+      items?: LessonActivityContextItem[];
+      currentActivityFocus?:
+        | (LessonActivityContextItem & { prompts?: string[] })
+        | null;
+    };
+    materials?: {
+      totalMaterials: number;
+      requiredMaterials: number;
+      items?: LessonMaterialContextItem[];
+    };
+    quiz?: {
+      hasRequiredQuizzes: boolean;
+      totalRequiredQuizzes: number;
+      completedQuizzes: number;
+      passedQuizzes: number;
+      allQuizzesPassed: boolean;
+      quizzes?: LessonQuizContextItem[];
+    };
+    userBehaviorContext?: string;
+    difficultyDetected?: {
+      patterns: Array<{
+        type: string;
+        severity: 'low' | 'medium' | 'high';
+        description: string;
+      }>;
+      overallScore: number;
+      shouldIntervene: boolean;
+      suggestedHelpType?: string;
+    };
   };
   // Contexto de la actividad interactiva actual (NUEVO)
   currentActivityContext?: {
@@ -105,6 +185,7 @@ interface LessonProgressRow {
 interface UserOrganizationRow {
   job_title: string | null;
   organizations: {
+    id: string;
     name: string;
     slug: string;
   } | null;
@@ -121,14 +202,74 @@ interface AssignedCourseRow {
   } | null;
 }
 
+function normalizeNullableValue<T>(
+  value: T | null | undefined
+): T | undefined {
+  return value ?? undefined;
+}
+
+function applyResolvedOrganizationContext(
+  context: PlatformContext,
+  organizationContext?: ResolvedOrganizationContext | null
+) {
+  if (!organizationContext) {
+    return;
+  }
+
+  context.organizationId = organizationContext.organizationId;
+  context.organizationName = organizationContext.organizationName;
+  context.organizationSlug = organizationContext.organizationSlug;
+  context.userJobTitle = organizationContext.userJobTitle;
+}
+
+async function loadLatestUserOrganizationContext(
+  userId: string
+): Promise<ResolvedOrganizationContext | null> {
+  const supabase = await createClient();
+  const { data: userOrg } = await supabase
+    .from('organization_users')
+    .select('job_title, organizations!inner(id, name, slug)')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('joined_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!userOrg) {
+    return null;
+  }
+
+  const orgRow = userOrg as UserOrganizationRow;
+  if (!orgRow.organizations?.id) {
+    return null;
+  }
+
+  return {
+    organizationId: orgRow.organizations.id,
+    organizationName: orgRow.organizations.name,
+    organizationSlug: orgRow.organizations.slug,
+    userJobTitle: orgRow.job_title || undefined,
+  };
+}
+
 // ============================================
 // FUNCIONES PARA OBTENER CONTEXTO DE LA BD
 // ============================================
-export async function fetchPlatformContext(userId?: string): Promise<PlatformContext> {
+export async function fetchPlatformContext(params: {
+  userId?: string;
+  organizationContext?: ResolvedOrganizationContext | null;
+}): Promise<PlatformContext> {
+  const { userId, organizationContext } = params;
   const context: PlatformContext = {};
 
   try {
     const supabase = await createClient();
+    const effectiveOrganizationContext =
+      organizationContext ||
+      (userId ? await loadLatestUserOrganizationContext(userId) : null);
+    const organizationId = effectiveOrganizationContext?.organizationId ?? null;
+
+    applyResolvedOrganizationContext(context, effectiveOrganizationContext);
 
     // Estadísticas generales de la plataforma
     const [
@@ -148,39 +289,61 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
     // Si hay userId, obtener información específica del usuario
     if (userId) {
       // Cursos del usuario con progreso (tabla correcta: user_course_enrollments)
-      const { data: userEnrollments } = await supabase
+      let userEnrollmentsQuery = supabase
         .from('user_course_enrollments')
         .select('overall_progress_percentage, enrollment_status, course:courses(title, slug)')
-        .eq('user_id', userId)
+        .eq('user_id', userId);
+
+      if (organizationId) {
+        userEnrollmentsQuery = userEnrollmentsQuery.eq(
+          'organization_id',
+          organizationId
+        );
+      } else {
+        userEnrollmentsQuery = userEnrollmentsQuery.is('organization_id', null);
+      }
+
+      const { data: userEnrollments } = await userEnrollmentsQuery
         .order('last_accessed_at', { ascending: false })
         .limit(5);
 
       if (userEnrollments) {
         context.userCourses = (userEnrollments as UserEnrollmentRow[]).map((ue) => ({
-          title: ue.course?.title,
-          slug: ue.course?.slug,
+          title: normalizeNullableValue(ue.course?.title),
+          slug: normalizeNullableValue(ue.course?.slug),
           progress: ue.overall_progress_percentage,
           status: ue.enrollment_status
         }));
       }
 
       // Progreso del usuario en lecciones específicas
-      const { data: lessonProgress } = await supabase
+      let lessonProgressQuery = supabase
         .from('user_lesson_progress')
         .select('lesson_status, is_completed, video_progress_percentage, current_time_seconds, time_spent_minutes, lesson:course_lessons(lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, summary_content, module:course_modules(module_title, module_order_index, course:courses(title, slug)))')
-        .eq('user_id', userId)
+        .eq('user_id', userId);
+
+      if (organizationId) {
+        lessonProgressQuery = lessonProgressQuery.eq(
+          'organization_id',
+          organizationId
+        );
+      } else {
+        lessonProgressQuery = lessonProgressQuery.is('organization_id', null);
+      }
+
+      const { data: lessonProgress } = await lessonProgressQuery
         .order('last_accessed_at', { ascending: false })
         .limit(15);
 
       if (lessonProgress && lessonProgress.length > 0) {
         context.userLessonProgress = (lessonProgress as LessonProgressRow[]).map((lp) => ({
-          lessonTitle: lp.lesson?.lesson_title,
-          lessonDescription: lp.lesson?.lesson_description,
-          lessonOrder: lp.lesson?.lesson_order_index,
-          moduleName: lp.lesson?.module?.module_title,
-          moduleOrder: lp.lesson?.module?.module_order_index,
-          courseName: lp.lesson?.module?.course?.title,
-          courseSlug: lp.lesson?.module?.course?.slug,
+          lessonTitle: normalizeNullableValue(lp.lesson?.lesson_title),
+          lessonDescription: normalizeNullableValue(lp.lesson?.lesson_description),
+          lessonOrder: normalizeNullableValue(lp.lesson?.lesson_order_index),
+          moduleName: normalizeNullableValue(lp.lesson?.module?.module_title),
+          moduleOrder: normalizeNullableValue(lp.lesson?.module?.module_order_index),
+          courseName: normalizeNullableValue(lp.lesson?.module?.course?.title),
+          courseSlug: normalizeNullableValue(lp.lesson?.module?.course?.slug),
           status: lp.lesson_status,
           isCompleted: lp.is_completed,
           videoProgress: lp.video_progress_percentage,
@@ -193,30 +356,16 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
       // NOTA: El cargo profesional viene de organization_users.job_title, NO de users.cargo_rol
       const { data: userData } = await supabase
         .from('users')
-        .select('nombre, first_name')
+        .select('first_name, display_name, username')
         .eq('id', userId)
         .single();
       if (userData) {
-        context.userName = userData.first_name || userData.nombre;
+        context.userName =
+          userData.first_name || userData.display_name || userData.username;
 
         // ✅ OBTENER ORGANIZACIÓN ACTIVA (nombre, slug y job_title del usuario)
         // NOTA: type_rol fue eliminado de la tabla users. El cargo profesional
         // ahora vive en organization_users.job_title
-        const { data: userOrg } = await supabase
-          .from('organization_users')
-          .select('job_title, organizations!inner(name, slug)')
-          .eq('user_id', userId)
-          .eq('status', 'active')
-          .order('joined_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (userOrg) {
-          const orgRow = userOrg as UserOrganizationRow;
-          context.organizationName = orgRow.organizations?.name;
-          context.organizationSlug = orgRow.organizations?.slug;
-          context.userJobTitle = orgRow.job_title || undefined;
-        }
       }
     }
 
@@ -225,19 +374,29 @@ export async function fetchPlatformContext(userId?: string): Promise<PlatformCon
     // NO hay usuarios B2C - todos son usuarios de business
     if (userId) {
       // Solo mostrar cursos asignados a través de organization_course_assignments
-      const { data: assignedCourses } = await supabase
+      let assignedCoursesQuery = supabase
         .from('organization_course_assignments')
         .select('course:courses!inner(id, title, slug, description, level, duration_total_minutes)')
-        .eq('user_id', userId)
-        .limit(20);
+        .eq('user_id', userId);
+
+      if (organizationId) {
+        assignedCoursesQuery = assignedCoursesQuery.eq(
+          'organization_id',
+          organizationId
+        );
+      } else {
+        assignedCoursesQuery = assignedCoursesQuery.is('organization_id', null);
+      }
+
+      const { data: assignedCourses } = await assignedCoursesQuery.limit(20);
 
       if (assignedCourses && assignedCourses.length > 0) {
         context.coursesWithContent = (assignedCourses as AssignedCourseRow[]).map((assignment) => ({
-          title: assignment.course?.title,
-          slug: assignment.course?.slug,
-          description: assignment.course?.description,
-          level: assignment.course?.level,
-          durationMinutes: assignment.course?.duration_total_minutes,
+          title: normalizeNullableValue(assignment.course?.title),
+          slug: normalizeNullableValue(assignment.course?.slug),
+          description: normalizeNullableValue(assignment.course?.description),
+          level: normalizeNullableValue(assignment.course?.level),
+          durationMinutes: normalizeNullableValue(assignment.course?.duration_total_minutes),
           isAssigned: true
         }));
       } else {

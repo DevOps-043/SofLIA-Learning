@@ -1,14 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Clock,
-  Copy,
-  FileText,
-  Info,
-  Sparkles,
-} from "lucide-react";
+import { Clock, Copy, Info, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
 
@@ -20,100 +12,56 @@ const summaryMarkdownComponents = createLessonMarkdownComponents({
 });
 
 type SummaryContentProps = {
+  isLoading: boolean;
   lesson: LearnLesson;
-  slug: string;
+  summaryContent: string | null;
 };
 
-export function SummaryContent({ lesson, slug }: SummaryContentProps) {
-  const { t, i18n } = useTranslation("learn");
-  const selectedLang =
-    i18n.language === "en" ? "en" : i18n.language === "pt" ? "pt" : "es";
-  const [summaryContent, setSummaryContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadSummary() {
-      if (!lesson?.lesson_id || !slug) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `/api/courses/${slug}/lessons/${lesson.lesson_id}/summary?language=${selectedLang}`
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setSummaryContent(data.summary_content || null);
-        } else {
-          setSummaryContent(null);
-        }
-      } catch {
-        setSummaryContent(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadSummary();
-  }, [lesson?.lesson_id, selectedLang, slug]);
-
+export function SummaryContent({
+  isLoading,
+  lesson,
+  summaryContent,
+}: SummaryContentProps) {
+  const { t } = useTranslation("learn");
   const hasSummary = Boolean(summaryContent && summaryContent.trim().length > 0);
+  const summaryWordCount = summaryContent?.split(/\s+/).length || 0;
   const estimatedReadingTime = summaryContent
-    ? Math.ceil(summaryContent.split(/\s+/).length / 200)
+    ? Math.ceil(summaryWordCount / 200)
     : 0;
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="space-y-6 pb-24 md:pb-6">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 font-[Inter]">
-            Resumen del Video
-          </h2>
-          <div className="h-4 w-1/3 bg-gray-200 dark:bg-white/10 rounded animate-pulse" />
-        </div>
-        <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02] p-12 flex flex-col items-center justify-center">
-          <div className="relative w-16 h-16 mb-6">
-            <div className="absolute inset-0 rounded-full border-2 border-[#0A2540]/20 dark:border-[#00D4B3]/20 animate-ping" />
-            <div className="relative w-full h-full bg-[#0A2540]/10 dark:bg-[#00D4B3]/10 rounded-full flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-[#0A2540] dark:text-[#00D4B3] animate-pulse" />
-            </div>
+      <div className="rounded-2xl border border-dashed border-[#D7DEE6] bg-white p-5 dark:border-white/10 dark:bg-[#0F1419]/40">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#0A2540]/10 dark:bg-[#00D4B3]/10">
+            <Sparkles className="h-4 w-4 animate-pulse text-[#0A2540] dark:text-[#00D4B3]" />
           </div>
-          <p className="text-gray-500 dark:text-white/60 font-medium">
-            {t("loading.summary")}
-          </p>
+          <div className="space-y-2">
+            <div className="h-3 w-36 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
+            <div className="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-white/10" />
+          </div>
         </div>
+        <p className="mt-4 text-sm text-[#6C757D] dark:text-white/60">
+          {t("loading.summary")}
+        </p>
       </div>
     );
   }
 
   if (!hasSummary) {
     return (
-      <div className="space-y-6 pb-24 md:pb-6">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 font-[Inter]">
-            Resumen del Video
-          </h2>
-          <p className="text-gray-500 dark:text-white/40 text-sm">
-            {lesson.lesson_title}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 dark:border-white/5 bg-gray-50 dark:bg-white/[0.02] p-12 text-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-[#0A2540]/50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-gray-200 dark:border-white/5">
-            <FileText className="w-8 h-8 text-gray-400 dark:text-white/20" />
+      <div className="rounded-2xl border border-dashed border-[#D7DEE6] bg-white p-5 dark:border-white/10 dark:bg-[#0F1419]/40">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#0A2540]/10 dark:bg-[#00D4B3]/10">
+            <Info className="h-4 w-4 text-[#0A2540] dark:text-[#00D4B3]" />
           </div>
-          <h3 className="text-gray-900 dark:text-white font-semibold text-lg mb-2">
-            Resumen no disponible
-          </h3>
-          <p className="text-gray-500 dark:text-white/40 max-w-md mx-auto mb-6">
-            Esta lección aún no cuenta con un resumen generado automáticamente.
-          </p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 text-xs text-gray-500 dark:text-white/40">
-            <Info className="w-4 h-4" />
-            <span>El contenido se actualizará pronto</span>
+          <div>
+            <h3 className="text-sm font-semibold text-[#0A2540] dark:text-white">
+              {t("summary.notAvailable")}
+            </h3>
+            <p className="mt-1 text-sm text-[#6C757D] dark:text-white/60">
+              Esta lección aún no cuenta con un resumen generado automáticamente.
+            </p>
           </div>
         </div>
       </div>
@@ -121,70 +69,44 @@ export function SummaryContent({ lesson, slug }: SummaryContentProps) {
   }
 
   return (
-    <div className="space-y-6 pb-24 md:pb-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-gray-200 dark:border-white/5 pb-4">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-[#0A2540] dark:text-[#00D4B3]" />
-            Resumen Inteligente
-          </h2>
-          <p className="text-gray-500 dark:text-white/40 text-sm">
-            {lesson.lesson_title}
-          </p>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 rounded-full border border-[#0A2540]/10 bg-white px-3 py-1.5 text-sm text-[#44556B] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
+          <div className="h-1.5 w-1.5 rounded-full bg-[#0A2540] dark:bg-[#00D4B3]" />
+          <span className="font-medium">{summaryWordCount}</span>
+          <span className="text-xs">palabras</span>
         </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#0A2540]/30 border border-gray-200 dark:border-white/5 backdrop-blur-sm">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540] dark:bg-[#00D4B3]" />
-            <span className="text-sm font-medium text-gray-700 dark:text-white">
-              {summaryContent?.split(/\s+/).length || 0}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-white/40">
-              palabras
-            </span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-[#0A2540]/30 border border-gray-200 dark:border-white/5 backdrop-blur-sm">
-            <Clock className="w-3.5 h-3.5 text-[#0A2540] dark:text-[#00D4B3]" />
-            <span className="text-sm font-medium text-gray-700 dark:text-white">
-              {estimatedReadingTime}
-            </span>
-            <span className="text-xs text-gray-500 dark:text-white/40">
-              min
-            </span>
-          </div>
+        <div className="flex items-center gap-2 rounded-full border border-[#0A2540]/10 bg-white px-3 py-1.5 text-sm text-[#44556B] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
+          <Clock className="h-3.5 w-3.5 text-[#0A2540] dark:text-[#00D4B3]" />
+          <span className="font-medium">{estimatedReadingTime}</span>
+          <span className="text-xs">{t("summary.readTime")}</span>
         </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0F1419]/40 overflow-hidden shadow-sm dark:shadow-2xl backdrop-blur-sm group"
-      >
-        <div className="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#0A2540]/50 dark:via-[#00D4B3]/50 to-transparent opacity-50" />
-        <div className="absolute -top-20 -right-20 w-64 h-64 bg-[#0A2540]/5 dark:bg-[#00D4B3]/5 rounded-full blur-3xl pointer-events-none hidden dark:block" />
-
-        <div className="relative p-8 prose prose-slate dark:prose-invert max-w-none">
+      <div className="overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-sm dark:border-white/10 dark:bg-[#0F1419]/50">
+        <div className="prose prose-slate max-w-none p-6 dark:prose-invert">
           <ReactMarkdown components={summaryMarkdownComponents}>
             {summaryContent || ""}
           </ReactMarkdown>
         </div>
 
-        <div className="relative px-8 py-4 bg-gray-50 dark:bg-white/[0.02] border-t border-gray-200 dark:border-white/5 flex justify-between items-center">
-          <span className="text-xs text-gray-500 dark:text-white/20 font-medium tracking-widest uppercase">
-            Generado por IA • Revisado por expertos
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E9ECEF] bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
+          <span className="text-xs font-medium uppercase tracking-[0.18em] text-[#6C757D] dark:text-white/30">
+            Generado por IA para {lesson.lesson_title}
           </span>
           <button
+            type="button"
             onClick={() => {
               navigator.clipboard.writeText(summaryContent || "");
             }}
-            className="p-2 text-gray-400 dark:text-white/20 hover:text-[#0A2540] dark:hover:text-[#00D4B3] transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-[#00D4B3]/10"
+            className="flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-[#44556B] transition-colors hover:border-[#D7DEE6] hover:bg-white hover:text-[#0A2540] dark:text-white/60 dark:hover:border-white/10 dark:hover:bg-white/[0.04] dark:hover:text-[#00D4B3]"
             title="Copiar resumen"
           >
-            <Copy className="w-4 h-4" />
+            <Copy className="h-3.5 w-3.5" />
+            Copiar resumen
           </button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

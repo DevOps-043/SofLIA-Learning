@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit -p tsconfig.typecheck.json",
     "clean": "if exist .next rmdir /s /q .next && echo Cleaned .next directory || echo .next directory not found",
     "build:clean": "npm run clean && npm run build",
+    "test:responsive": "playwright test",
     "test:cache": "node scripts/test-cache-headers.js",
     "analyze": "set ANALYZE=true&& next build",
     "analyze:server": "set ANALYZE=true&& set BUNDLE_ANALYZE=server&& next build",
@@ -120,6 +121,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@next/bundle-analyzer": "^14.2.15",
+    "@playwright/test": "^1.59.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

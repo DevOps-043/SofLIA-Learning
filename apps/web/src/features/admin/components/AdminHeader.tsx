@@ -46,9 +46,9 @@ export function AdminHeader({ onMenuClick, title, isCollapsed, onToggleCollapse 
       }}
     >
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+        <div className="flex h-16 items-center justify-between gap-3 sm:h-20">
           {/* Left side */}
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <motion.button
               onClick={onMenuClick}
               whileHover={{ scale: 1.05 }}
@@ -66,14 +66,14 @@ export function AdminHeader({ onMenuClick, title, isCollapsed, onToggleCollapse 
             >
               <Bars3Icon className="h-6 w-6" />
             </motion.button>
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2">
-                <h1 className="text-lg font-semibold" style={{ color: themeColors.textPrimary }}>
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="hidden min-w-0 items-center gap-2 sm:flex">
+                <h1 className="truncate text-lg font-semibold" style={{ color: themeColors.textPrimary }}>
                   {title}
                 </h1>
               </div>
-              <div className="sm:hidden">
-                <h1 className="text-base font-semibold" style={{ color: themeColors.textPrimary }}>
+              <div className="min-w-0 sm:hidden">
+                <h1 className="truncate text-base font-semibold" style={{ color: themeColors.textPrimary }}>
                   {title}
                 </h1>
               </div>
@@ -81,7 +81,7 @@ export function AdminHeader({ onMenuClick, title, isCollapsed, onToggleCollapse 
           </div>
 
           {/* Right side */}
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {/* Notifications */}
             <AdminNotifications />
 

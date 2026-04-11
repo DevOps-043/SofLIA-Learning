@@ -8,6 +8,7 @@
 
 import { createClient } from '../../../../lib/supabase/server';
 import type { PlatformContext, ChatRequest } from './platform-context.service';
+import { extractOrganizationSlugFromPage } from './organization-context.service';
 
 /**
  * Builds the full enriched context for a LIA chat request.
@@ -26,20 +27,20 @@ export async function buildFullContext(
 
   // Fallback: extract organizationSlug from pathname when not available from DB
   if (!fullContext.organizationSlug && fullContext.currentPage) {
-    const pathMatch = fullContext.currentPage.match(/^\/([^/]+)\/(business-panel|business-user)/);
-    if (pathMatch && pathMatch[1]) {
-      fullContext.organizationSlug = pathMatch[1];
-    }
+    fullContext.organizationSlug = extractOrganizationSlugFromPage(
+      fullContext.currentPage
+    );
   }
 
   // Second pass: load assigned courses when organizationSlug became available after fetchPlatformContext
-  if (fullContext.organizationSlug && requestContext?.userId && !fullContext.coursesWithContent) {
+  if (fullContext.organizationId && requestContext?.userId && !fullContext.coursesWithContent) {
     try {
       const supabase = await createClient();
       const { data: assignedCourses, error } = await supabase
         .from('organization_course_assignments')
         .select('course:courses!inner(id, title, slug, description, level, duration_total_minutes)')
         .eq('user_id', requestContext.userId)
+        .eq('organization_id', fullContext.organizationId)
         .limit(20);
 
       if (error) {

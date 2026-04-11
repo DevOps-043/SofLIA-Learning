@@ -1,0 +1,15 @@
+{
+  "extends": "../apps/web/tsconfig.typecheck.json",
+  "include": [
+    "../apps/web/src/app/api/admin/courses/[id]/estimate-missing-times/route.ts",
+    "../apps/web/src/features/admin/components/ActivityModal.tsx",
+    "../apps/web/src/features/admin/components/material-modal/VideoMaterialContent.tsx",
+    "../apps/web/src/features/admin/components/material-modal/useMaterialFormState.ts",
+    "../apps/web/src/features/admin/services/__tests__/courseTimeEstimation.rules.test.ts",
+    "../apps/web/src/features/admin/services/admin-lessons/duration.service.ts",
+    "../apps/web/src/features/admin/services/adminLessons.service.ts",
+    "../apps/web/src/features/admin/services/courseTimeEstimation.rules.ts",
+    "../apps/web/src/features/admin/services/courseTimeEstimation.service.ts",
+    "../apps/web/src/features/admin/services/courseTimeEstimation.types.ts"
+  ]
+}

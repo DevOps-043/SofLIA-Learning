@@ -26,7 +26,7 @@ export function CourseManagementTabs() {
       transition={{ duration: 0.4, delay: 0.1 }}
       className="mb-6 rounded-xl border border-[#E9ECEF] bg-white p-1.5 shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
     >
-      <div className="flex gap-1.5">
+      <div className="scrollbar-hide -mx-1 flex gap-1.5 overflow-x-auto px-1 sm:mx-0 sm:px-0">
         {COURSE_MANAGEMENT_TABS.map((tab) => {
           const isDisabled = isCourseManagementTabDisabled(tab.key, isNewCourse)
           const Icon = TAB_ICONS[tab.key]
@@ -38,7 +38,7 @@ export function CourseManagementTabs() {
               disabled={isDisabled}
               whileHover={{ scale: isDisabled ? 1 : 1.02 }}
               whileTap={{ scale: isDisabled ? 1 : 0.98 }}
-              className={`relative flex-1 rounded-lg px-4 py-2.5 text-xs font-medium transition-all ${
+              className={`relative min-w-[140px] flex-1 rounded-lg px-4 py-2.5 text-xs font-medium transition-all sm:min-w-0 ${
                 activeTab === tab.key
                   ? 'text-white'
                   : isDisabled
@@ -53,7 +53,7 @@ export function CourseManagementTabs() {
                   transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                 />
               )}
-              <span className="relative z-10 flex items-center justify-center gap-2">
+              <span className="relative z-10 flex items-center justify-center gap-2 whitespace-nowrap">
                 <Icon className={`h-3.5 w-3.5 ${activeTab === tab.key ? 'text-white' : ''}`} />
                 <span>{tab.label}</span>
               </span>

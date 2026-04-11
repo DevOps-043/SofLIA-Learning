@@ -5,10 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   LearnEditableNote,
   LearnLesson,
+  LearnModule,
   LearnNoteFormData,
   LearnNotesStats,
   LearnSavedNote,
-  LearnModule,
 } from "../components/learn/types";
 import {
   buildLiaDraftNote,
@@ -26,6 +26,8 @@ type UseNotesManagementParams = {
   isNotesCollapsed: boolean;
   closeLia: () => void;
 };
+
+const NOTE_DELETE_TIMEOUT_MS = 20000;
 
 function getErrorMessage(data: unknown, fallback: string): string {
   if (!data || typeof data !== "object") {
@@ -58,6 +60,39 @@ async function readResponseError(
   }
 }
 
+function isAbortError(error: unknown): boolean {
+  if (error instanceof DOMException) {
+    return error.name === "AbortError";
+  }
+
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+
+  const name = "name" in error ? error.name : undefined;
+  return typeof name === "string" && name === "AbortError";
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
+  const abortController = new AbortController();
+  const timeoutId = window.setTimeout(() => {
+    abortController.abort();
+  }, timeoutMs);
+
+  try {
+    return await fetch(input, {
+      ...init,
+      signal: abortController.signal,
+    });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 export function useNotesManagement({
   slug,
   modules,
@@ -73,17 +108,32 @@ export function useNotesManagement({
   });
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
   const [isDeleteNoteConfirmOpen, setIsDeleteNoteConfirmOpen] = useState(false);
-  const [noteToDeleteId, setNoteToDeleteId] = useState<string | null>(null);
+  const [noteToDelete, setNoteToDelete] = useState<LearnSavedNote | null>(
+    null
+  );
   const [isDeletingNote, setIsDeletingNote] = useState(false);
-  const [editingNote, setEditingNote] = useState<LearnEditableNote | null>(null);
+  const [editingNote, setEditingNote] = useState<LearnEditableNote | null>(
+    null
+  );
 
-  const loadedLessonIdRef = useRef<string | null>(null);
+  const loadedCourseSlugRef = useRef<string | null>(null);
   const statsRefreshTimeoutRef = useRef<number | null>(null);
 
   const totalLessons = useMemo(
     () => modules.reduce((count, module) => count + module.lessons.length, 0),
     [modules]
   );
+  const lessonTitleById = useMemo(() => {
+    const nextLessonTitleById = new Map<string, string>();
+
+    modules.forEach((module) => {
+      module.lessons.forEach((lesson) => {
+        nextLessonTitleById.set(lesson.lesson_id, lesson.lesson_title);
+      });
+    });
+
+    return nextLessonTitleById;
+  }, [modules]);
 
   const clearStatsRefreshTimeout = useCallback(() => {
     if (statsRefreshTimeoutRef.current !== null) {
@@ -111,6 +161,7 @@ export function useNotesManagement({
 
       try {
         const response = await fetch(`/api/courses/${courseSlug}/notes/stats`, {
+          cache: "no-store",
           credentials: "include",
         });
 
@@ -153,36 +204,36 @@ export function useNotesManagement({
     }, 500);
   }, [clearStatsRefreshTimeout, loadNotesStats, slug]);
 
-  const loadLessonNotes = useCallback(
-    async (lessonId: string, courseSlug: string) => {
-      try {
-        const response = await fetch(
-          `/api/courses/${courseSlug}/lessons/${lessonId}/notes`,
-          { credentials: "include" }
-        );
+  const loadCourseNotes = useCallback(async (courseSlug: string) => {
+    try {
+      const response = await fetch(`/api/courses/${courseSlug}/notes`, {
+        cache: "no-store",
+        credentials: "include",
+      });
 
-        if (response.ok) {
-          const notes = (await response.json()) as unknown[];
-          const mappedNotes = notes
-            .map(mapApiNoteToSavedNote)
-            .filter((note): note is LearnSavedNote => note !== null);
+      if (response.ok) {
+        const notes = (await response.json()) as unknown[];
+        const mappedNotes = notes
+          .map(mapApiNoteToSavedNote)
+          .filter((note): note is LearnSavedNote => note !== null)
+          .map((note) => ({
+            ...note,
+            lessonTitle: lessonTitleById.get(note.lessonId),
+          }));
 
-          setSavedNotes(mappedNotes);
-          loadedLessonIdRef.current = lessonId;
-          return;
-        }
-
-        if (response.status === 401) {
-          setSavedNotes([]);
-          loadedLessonIdRef.current = lessonId;
-        }
-      } catch {
-        setSavedNotes([]);
-        loadedLessonIdRef.current = lessonId;
+        setSavedNotes(mappedNotes);
+        loadedCourseSlugRef.current = courseSlug;
+        return;
       }
-    },
-    []
-  );
+
+      if (response.status === 401 || response.status === 404) {
+        setSavedNotes([]);
+        loadedCourseSlugRef.current = courseSlug;
+      }
+    } catch {
+      setSavedNotes([]);
+    }
+  }, [lessonTitleById]);
 
   const updateNotesStatsOptimized = useCallback(
     async (operation: "create" | "update" | "delete", lessonId?: string) => {
@@ -233,25 +284,35 @@ export function useNotesManagement({
     [scheduleNotesStatsRefresh, slug, totalLessons]
   );
 
-  const addNoteToLocalState = useCallback((noteData: unknown, lessonId: string) => {
-    const savedNote = buildSavedNoteFromMutation(noteData, lessonId);
+  const addNoteToLocalState = useCallback(
+    (noteData: unknown, lessonId: string) => {
+      const savedNote = buildSavedNoteFromMutation(noteData, lessonId);
 
-    if (!savedNote) {
-      return;
-    }
-
-    setSavedNotes((previous) => {
-      const existingIndex = previous.findIndex((note) => note.id === savedNote.id);
-
-      if (existingIndex >= 0) {
-        const updatedNotes = [...previous];
-        updatedNotes[existingIndex] = savedNote;
-        return updatedNotes;
+      if (!savedNote) {
+        return;
       }
 
-      return [savedNote, ...previous];
-    });
-  }, []);
+      const enrichedNote: LearnSavedNote = {
+        ...savedNote,
+        lessonTitle: lessonTitleById.get(lessonId),
+      };
+
+      setSavedNotes((previous) => {
+        const existingIndex = previous.findIndex(
+          (note) => note.id === enrichedNote.id
+        );
+
+        if (existingIndex >= 0) {
+          const updatedNotes = [...previous];
+          updatedNotes[existingIndex] = enrichedNote;
+          return updatedNotes;
+        }
+
+        return [enrichedNote, ...previous];
+      });
+    },
+    [lessonTitleById]
+  );
 
   const removeNoteFromLocalState = useCallback((noteId: string) => {
     setSavedNotes((previous) => previous.filter((note) => note.id !== noteId));
@@ -264,7 +325,7 @@ export function useNotesManagement({
 
   const closeDeleteNoteConfirm = useCallback(() => {
     setIsDeleteNoteConfirmOpen(false);
-    setNoteToDeleteId(null);
+    setNoteToDelete(null);
   }, []);
 
   const openNewNoteModal = useCallback(() => {
@@ -277,6 +338,7 @@ export function useNotesManagement({
     (note: LearnSavedNote) => {
       setEditingNote({
         id: note.id,
+        lessonId: note.lessonId,
         title: note.title,
         content: note.fullContent || note.content,
         tags: note.tags || [],
@@ -289,26 +351,37 @@ export function useNotesManagement({
 
   const openLiaNoteModal = useCallback(
     (content: string) => {
-      setEditingNote(buildLiaDraftNote(content));
+      setEditingNote(
+        buildLiaDraftNote(content, {
+          lessonId: currentLesson?.lesson_id,
+          lessonTitle: currentLesson?.lesson_title,
+        })
+      );
       closeLia();
       setIsNotesModalOpen(true);
     },
-    [closeLia]
+    [closeLia, currentLesson?.lesson_id, currentLesson?.lesson_title]
   );
 
   const handleSaveNote = useCallback(
     async (noteData: LearnNoteFormData) => {
-      if (!currentLesson?.lesson_id || !slug) {
-        alert("Debe seleccionar una leccion para guardar la nota");
-        return;
+      if (!slug) {
+        alert("No se pudo determinar el curso para guardar la nota");
+        return false;
       }
 
       const notePayload = normalizeNoteFormData(noteData);
+      const targetLessonId = editingNote?.lessonId || currentLesson?.lesson_id;
 
       try {
         if (editingNote?.id.trim()) {
+          if (!targetLessonId) {
+            alert("No se pudo determinar la leccion de la nota a editar");
+            return false;
+          }
+
           const response = await fetch(
-            `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/notes/${editingNote.id}`,
+            `/api/courses/${slug}/lessons/${targetLessonId}/notes/${editingNote.id}`,
             {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
@@ -322,17 +395,22 @@ export function useNotesManagement({
               "Error desconocido"
             );
             alert(`Error al actualizar la nota: ${errorMessage}`);
-            return;
+            return false;
           }
 
-          addNoteToLocalState(await response.json(), currentLesson.lesson_id);
-          await updateNotesStatsOptimized("update", currentLesson.lesson_id);
+          addNoteToLocalState(await response.json(), targetLessonId);
+          await updateNotesStatsOptimized("update", targetLessonId);
           closeNotesModal();
-          return;
+          return true;
+        }
+
+        if (!targetLessonId) {
+          alert("Debe seleccionar una leccion para guardar la nota");
+          return false;
         }
 
         const response = await fetch(
-          `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/notes`,
+          `/api/courses/${slug}/lessons/${targetLessonId}/notes`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -346,15 +424,20 @@ export function useNotesManagement({
             "Error desconocido"
           );
           alert(`Error al guardar la nota: ${errorMessage}`);
-          throw new Error(errorMessage);
+          return false;
         }
 
-        addNoteToLocalState(await response.json(), currentLesson.lesson_id);
-        await updateNotesStatsOptimized("create", currentLesson.lesson_id);
+        addNoteToLocalState(await response.json(), targetLessonId);
+        await updateNotesStatsOptimized("create", targetLessonId);
         closeNotesModal();
-      } catch {
-        await loadLessonNotes(currentLesson.lesson_id, slug);
+        return true;
+      } catch (error) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error sincronizando guardado de nota:", error);
+        }
+        await loadCourseNotes(slug);
         await loadNotesStats(slug);
+        return false;
       }
     },
     [
@@ -362,38 +445,59 @@ export function useNotesManagement({
       closeNotesModal,
       currentLesson?.lesson_id,
       editingNote?.id,
-      loadLessonNotes,
+      editingNote?.lessonId,
+      loadCourseNotes,
       loadNotesStats,
       slug,
       updateNotesStatsOptimized,
     ]
   );
 
-  const handleDeleteNote = useCallback((noteId: string) => {
-    setNoteToDeleteId(noteId);
-    setIsDeleteNoteConfirmOpen(true);
-  }, []);
+  const handleDeleteNote = useCallback(
+    (noteId: string) => {
+      const note = savedNotes.find((savedNote) => savedNote.id === noteId);
+      setNoteToDelete(note || null);
+      setIsDeleteNoteConfirmOpen(true);
+    },
+    [savedNotes]
+  );
 
   const confirmDeleteNote = useCallback(async () => {
-    if (!noteToDeleteId || !currentLesson?.lesson_id || !slug) {
+    if (!noteToDelete || !slug) {
+      closeDeleteNoteConfirm();
       return;
     }
 
+    const targetLessonId = noteToDelete.lessonId || currentLesson?.lesson_id;
+
+    if (!targetLessonId) {
+      closeDeleteNoteConfirm();
+      alert("No se pudo determinar la leccion de la nota a eliminar");
+      return;
+    }
+
+    const isDeletingEditingNote = editingNote?.id === noteToDelete.id;
     setIsDeletingNote(true);
 
     try {
-      removeNoteFromLocalState(noteToDeleteId);
-      await updateNotesStatsOptimized("delete", currentLesson.lesson_id);
+      if (isDeletingEditingNote) {
+        closeNotesModal();
+      }
 
-      const response = await fetch(
-        `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/notes/${noteToDeleteId}`,
+      removeNoteFromLocalState(noteToDelete.id);
+      await updateNotesStatsOptimized("delete", targetLessonId);
+
+      const response = await fetchWithTimeout(
+        `/api/courses/${slug}/lessons/${targetLessonId}/notes/${noteToDelete.id}`,
         {
           method: "DELETE",
-        }
+          credentials: "include",
+        },
+        NOTE_DELETE_TIMEOUT_MS
       );
 
       if (!response.ok) {
-        await loadLessonNotes(currentLesson.lesson_id, slug);
+        await loadCourseNotes(slug);
         await loadNotesStats(slug);
 
         const errorMessage = await readResponseError(
@@ -404,44 +508,52 @@ export function useNotesManagement({
       }
 
       closeDeleteNoteConfirm();
-    } catch {
-      await loadLessonNotes(currentLesson.lesson_id, slug);
+    } catch (error) {
+      await loadCourseNotes(slug);
       await loadNotesStats(slug);
-      alert("Error al eliminar la nota. Por favor, intenta de nuevo.");
+      closeDeleteNoteConfirm();
+      alert(
+        isAbortError(error)
+          ? "La eliminacion de la nota tardó demasiado. Intenta de nuevo."
+          : "Error al eliminar la nota. Por favor, intenta de nuevo."
+      );
     } finally {
       setIsDeletingNote(false);
     }
   }, [
     closeDeleteNoteConfirm,
+    closeNotesModal,
     currentLesson?.lesson_id,
-    loadLessonNotes,
+    editingNote?.id,
+    loadCourseNotes,
     loadNotesStats,
-    noteToDeleteId,
+    noteToDelete,
     removeNoteFromLocalState,
     slug,
     updateNotesStatsOptimized,
   ]);
 
   useEffect(() => {
-    const lessonId = currentLesson?.lesson_id;
-
-    if (!lessonId) {
+    if (!slug) {
       setSavedNotes([]);
-      loadedLessonIdRef.current = null;
+      loadedCourseSlugRef.current = null;
       return;
     }
 
-    if (loadedLessonIdRef.current && loadedLessonIdRef.current !== lessonId) {
+    if (
+      loadedCourseSlugRef.current &&
+      loadedCourseSlugRef.current !== slug
+    ) {
       setSavedNotes([]);
-      loadedLessonIdRef.current = null;
+      loadedCourseSlugRef.current = null;
     }
 
-    if (isNotesCollapsed || !slug || loadedLessonIdRef.current === lessonId) {
+    if (isNotesCollapsed || loadedCourseSlugRef.current === slug) {
       return;
     }
 
-    void loadLessonNotes(lessonId, slug);
-  }, [currentLesson?.lesson_id, isNotesCollapsed, loadLessonNotes, slug]);
+    void loadCourseNotes(slug);
+  }, [isNotesCollapsed, loadCourseNotes, slug]);
 
   useEffect(() => clearStatsRefreshTimeout, [clearStatsRefreshTimeout]);
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { AdminWorkshop } from '../services/adminWorkshops.service'
@@ -14,12 +14,25 @@ interface DeleteWorkshopModalProps {
 
 export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: DeleteWorkshopModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      setDeleteError(null)
+    }
+  }, [isOpen, workshop?.id])
 
   const handleConfirm = async () => {
     setIsDeleting(true)
+    setDeleteError(null)
     try {
       await onConfirm()
     } catch (error) {
+      setDeleteError(
+        error instanceof Error && error.message.trim().length > 0
+          ? error.message
+          : 'No se pudo eliminar el taller. Intenta nuevamente.',
+      )
     } finally {
       setIsDeleting(false)
     }
@@ -102,14 +115,14 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                       <p>Nivel: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.level}</span></p>
                       <p>Estado: <span className="text-[#0A2540] dark:text-white font-medium capitalize">{workshop.is_active ? 'Activo' : 'Inactivo'}</span></p>
                       <p>Instructor: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.instructor_name || 'Sin instructor'}</span></p>
-                      {(workshop.student_count && workshop.student_count > 0) && (
+                      {workshop.student_count > 0 && (
                         <p>Estudiantes inscritos: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.student_count}</span></p>
                       )}
                       <p>Duración: <span className="text-[#0A2540] dark:text-white font-medium">{workshop.duration_total_minutes} minutos</span></p>
                     </div>
                   </div>
 
-                  {workshop.student_count && workshop.student_count > 0 && (
+                  {workshop.student_count > 0 && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -120,6 +133,14 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                         Las inscripciones también se eliminarán.
                       </p>
                     </motion.div>
+                  )}
+
+                  {deleteError && (
+                    <div className="bg-[#EF4444]/10 dark:bg-[#EF4444]/20 border border-[#EF4444]/20 dark:border-[#EF4444]/30 rounded-xl p-4 mb-4">
+                      <p className="text-sm text-[#EF4444] dark:text-[#FCA5A5]">
+                        {deleteError}
+                      </p>
+                    </div>
                   )}
 
                   {/* Actions */}

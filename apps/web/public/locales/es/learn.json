@@ -240,43 +240,36 @@
     "explanation": "Explicación"
   },
   "tour": {
-    "courseLearnLabel": "Ver tour del curso",
-    "replayLabel": "Ver Tour del Curso",
+    "courseLearnLabel": "Ver guía del curso",
+    "replayLabel": "Ver guía del curso",
+    "fallbacks": {
+      "courseTitle": "tu curso actual",
+      "lessonTitle": "la lección actual"
+    },
     "steps": {
       "welcome": {
-        "title": "¡Bienvenido a tu curso!",
-        "description": "Este es tu espacio de aprendizaje interactivo. Aquí encontrarás lecciones, actividades prácticas y recursos para dominar el tema.",
-        "speech": "Bienvenido a tu curso. Este es tu espacio de aprendizaje interactivo. Aquí encontrarás lecciones, actividades prácticas y recursos para dominar el tema."
+        "title": "Bienvenido al panel del curso",
+        "description": "Aquí vas a seguir {{courseTitle}}, revisar tu avance y moverte entre las herramientas principales de cada lección."
       },
-      "navigation": {
-        "title": "Navegación del curso",
-        "description": "En el panel izquierdo verás todos los módulos y lecciones del curso. Haz clic en cualquier lección para acceder a su contenido.",
-        "speech": "En el panel izquierdo verás todos los módulos y lecciones del curso. Haz clic en cualquier lección para acceder a su contenido."
+      "sidebar": {
+        "title": "Panel izquierdo: lecciones y notas",
+        "description": "En el panel izquierdo encontrarás el temario completo, el estado de cada lección y el espacio de notas para guardar ideas, fragmentos clave y recordatorios mientras estudias."
       },
-      "materials": {
-        "title": "Materiales de la lección",
-        "description": "Cada lección puede incluir videos, textos, PDFs descargables y recursos adicionales. Explora todo el contenido disponible.",
-        "speech": "Cada lección puede incluir videos, textos, PDFs descargables y recursos adicionales. Explora todo el contenido disponible."
+      "videoPanel": {
+        "title": "Video, transcripción y resumen",
+        "description": "La experiencia arranca en el panel de video. Debajo podrás desplegar la transcripción y el resumen de {{lessonTitle}} para repasar conceptos, validar detalles y llevarlos a tus notas."
       },
-      "activities": {
-        "title": "Actividades prácticas",
-        "description": "Completa las actividades para poner en práctica lo aprendido. Son fundamentales para tu progreso y certificación.",
-        "speech": "Completa las actividades para poner en práctica lo aprendido. Son fundamentales para tu progreso y certificación."
+      "tools": {
+        "title": "Actividades y preguntas",
+        "description": "Usa Actividades para resolver ejercicios, quizzes o dinámicas guiadas, y Preguntas para consultar dudas al equipo o revisar conversaciones del curso."
       },
-      "lia": {
-        "title": "LIA está aquí para ayudarte",
-        "description": "Si tienes dudas sobre el contenido, las actividades o cualquier tema del curso, pregúntale a LIA. Te ayudará en todo momento.",
-        "speech": "Si tienes dudas sobre el contenido, las actividades o cualquier tema del curso, pregúntale a LIA. Te ayudará en todo momento."
-      },
-      "progress": {
-        "title": "Seguimiento de progreso",
-        "description": "Tu progreso se guarda automáticamente. Puedes ver cuánto has avanzado en el curso y qué lecciones has completado.",
-        "speech": "Tu progreso se guarda automáticamente. Puedes ver cuánto has avanzado en el curso y qué lecciones has completado."
+      "soflia": {
+        "title": "SofLIA te acompaña dentro del curso",
+        "description": "SofLIA ya entiende el contexto de {{courseTitle}} y de {{lessonTitle}}. Puedes pedirle explicaciones, resúmenes, apoyo para actividades, ideas para tus notas y orientación sobre qué sigue."
       },
       "ready": {
-        "title": "¡Listo para aprender!",
-        "description": "Ahora estás preparado para comenzar tu viaje de aprendizaje. Recuerda, LIA siempre estará disponible para ayudarte.",
-        "speech": "Ahora estás preparado para comenzar tu viaje de aprendizaje. Recuerda, LIA siempre estará disponible para ayudarte."
+        "title": "Listo para comenzar",
+        "description": "Ya conoces la estructura del curso. Avanza a tu ritmo, usa las herramientas cuando las necesites y vuelve a abrir esta guía si quieres refrescar el recorrido."
       }
     }
   }
