@@ -75,7 +75,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
 
           {/* Modal Mejorado */}
           <div className="fixed inset-0 z-50 overflow-y-auto">
-            <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="flex min-h-[100dvh] items-end justify-center p-0 sm:items-center sm:p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 30 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -87,7 +87,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                   stiffness: 300,
                   damping: 30
                 }}
-                className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-2xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[90vh] overflow-hidden flex flex-col"
+                className="relative flex h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-[#E9ECEF] bg-white shadow-2xl dark:border-[#6C757D]/30 dark:bg-[#1E2329] sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header Mejorado con Animación */}
@@ -95,7 +95,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="relative bg-gradient-to-r from-[#0A2540] via-[#0A2540]/95 to-[#0A2540]/90 dark:from-[#0A2540] dark:via-[#0A2540]/90 dark:to-[#0A2540]/80 px-6 py-5 border-b border-[#0A2540]/20 overflow-hidden"
+                  className="relative overflow-hidden border-b border-[#0A2540]/20 bg-gradient-to-r from-[#0A2540] via-[#0A2540]/95 to-[#0A2540]/90 px-4 py-5 dark:from-[#0A2540] dark:via-[#0A2540]/90 dark:to-[#0A2540]/80 sm:px-6"
                 >
                   {/* Efecto de brillo animado */}
                   <motion.div
@@ -156,8 +156,8 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                 </motion.div>
 
                 {/* Form Content */}
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-                  <div className="p-6 space-y-4">
+                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                  <div className="min-h-0 flex-1 overflow-y-auto space-y-4 p-4 sm:p-6">
                     {error && (
                       <motion.div
                         initial={{ opacity: 0, y: -10 }}
@@ -221,7 +221,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                      className="grid grid-cols-1 gap-4 md:grid-cols-2"
                     >
                       <motion.div
                         whileHover={{ scale: 1.02, y: -2 }}
@@ -324,14 +324,14 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.25 }}
-                    className="px-6 py-4 bg-gradient-to-r from-[#E9ECEF]/30 via-[#E9ECEF]/20 to-[#E9ECEF]/30 dark:from-[#0A0D12] dark:via-[#0A0D12]/50 dark:to-[#0A0D12] border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-end gap-3"
+                    className="sticky bottom-0 flex flex-col-reverse gap-3 border-t border-[#E9ECEF] bg-gradient-to-r from-[#E9ECEF]/30 via-[#E9ECEF]/20 to-[#E9ECEF]/30 px-4 py-4 dark:border-[#6C757D]/30 dark:from-[#0A0D12] dark:via-[#0A0D12]/50 dark:to-[#0A0D12] sm:flex-row sm:items-center sm:justify-end sm:px-6"
                   >
                     <motion.button
                       type="button"
                       onClick={onClose}
                       whileHover={{ scale: 1.02, x: -2 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-6 py-2.5 text-[#6C757D] dark:text-white/70 bg-white dark:bg-[#1E2329] hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30 rounded-xl text-sm font-medium transition-all duration-200 border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-sm hover:shadow-md"
+                      className="w-full rounded-xl border border-[#E9ECEF] bg-white px-6 py-2.5 text-sm font-medium text-[#6C757D] shadow-sm transition-all duration-200 hover:bg-[#E9ECEF] hover:shadow-md dark:border-[#6C757D]/30 dark:bg-[#1E2329] dark:text-white/70 dark:hover:bg-[#0A2540]/30 sm:w-auto"
                       disabled={loading}
                     >
                       Cancelar
@@ -340,7 +340,7 @@ export function ModuleModal({ module, onClose, onSave }: ModuleModalProps) {
                       type="submit"
                       whileHover={{ scale: 1.02, y: -2 }}
                       whileTap={{ scale: 0.98 }}
-                      className="group relative px-6 py-2.5 bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 hover:from-[#0d2f4d] hover:to-[#0A2540] text-white rounded-xl text-sm font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#0A2540]/20 hover:shadow-xl hover:shadow-[#0A2540]/30 flex items-center gap-2 overflow-hidden"
+                      className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#0A2540]/20 transition-all duration-200 hover:from-[#0d2f4d] hover:to-[#0A2540] hover:shadow-xl hover:shadow-[#0A2540]/30 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                       disabled={loading}
                     >
                       <motion.div

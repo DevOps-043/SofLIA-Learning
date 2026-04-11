@@ -2,6 +2,72 @@ import { createClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
 
+async function syncUserLessonProgress({
+    checkpoint,
+    lessonId,
+    maxReached,
+    now,
+    supabase,
+    totalDuration,
+    userId,
+}: {
+    checkpoint: number;
+    lessonId: string;
+    maxReached: number;
+    now: string;
+    supabase: Awaited<ReturnType<typeof createClient>>;
+    totalDuration: number;
+    userId: string;
+}) {
+    const { data: progressRow, error: progressLookupError } = await supabase
+        .from('user_lesson_progress')
+        .select('progress_id, lesson_status, is_completed')
+        .eq('user_id', userId)
+        .eq('lesson_id', lessonId)
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (progressLookupError) {
+        console.warn('[Update Progress] Unable to sync user_lesson_progress lookup:', progressLookupError);
+        return;
+    }
+
+    if (!progressRow) {
+        return;
+    }
+
+    const videoProgressPercentage = totalDuration > 0
+        ? Math.min(100, Math.round((Math.max(checkpoint, maxReached) / totalDuration) * 100))
+        : 0;
+
+    const updatePayload: {
+        current_time_seconds: number;
+        last_accessed_at: string;
+        lesson_status?: string;
+        updated_at: string;
+        video_progress_percentage: number;
+    } = {
+        current_time_seconds: checkpoint,
+        last_accessed_at: now,
+        updated_at: now,
+        video_progress_percentage: videoProgressPercentage,
+    };
+
+    if (!progressRow.is_completed && (!progressRow.lesson_status || progressRow.lesson_status === 'not_started')) {
+        updatePayload.lesson_status = 'in_progress';
+    }
+
+    const { error: progressUpdateError } = await supabase
+        .from('user_lesson_progress')
+        .update(updatePayload)
+        .eq('progress_id', progressRow.progress_id);
+
+    if (progressUpdateError) {
+        console.warn('[Update Progress] Unable to sync user_lesson_progress:', progressUpdateError);
+    }
+}
+
 /**
  * POST /api/lesson-tracking/update-progress
  * 
@@ -71,6 +137,16 @@ export async function POST(request: NextRequest) {
                 }, { status: 500 });
             }
 
+            await syncUserLessonProgress({
+                checkpoint,
+                lessonId,
+                maxReached,
+                now,
+                supabase,
+                totalDuration,
+                userId: user.id,
+            });
+
             return NextResponse.json({ success: true, trackingId });
         }
 
@@ -110,6 +186,16 @@ export async function POST(request: NextRequest) {
                 }, { status: 500 });
             }
 
+            await syncUserLessonProgress({
+                checkpoint,
+                lessonId,
+                maxReached: newMax,
+                now,
+                supabase,
+                totalDuration,
+                userId: user.id,
+            });
+
             return NextResponse.json({ success: true, trackingId: existingTracking.id });
         }
 
@@ -138,6 +224,16 @@ export async function POST(request: NextRequest) {
                 details: process.env.NODE_ENV === 'development' ? insertError.message : undefined
             }, { status: 500 });
         }
+
+        await syncUserLessonProgress({
+            checkpoint,
+            lessonId,
+            maxReached,
+            now,
+            supabase,
+            totalDuration,
+            userId: user.id,
+        });
 
         return NextResponse.json({ success: true, trackingId: newTracking.id });
     } catch (error) {

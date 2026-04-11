@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
 import { getLessonsTableName } from './learn-data-lessons.service'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
 
 export interface LessonDataResult {
   lesson_id: string

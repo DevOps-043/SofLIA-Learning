@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+
+import { LIA_PANEL_WIDTH } from '@/core/hooks/useResponsiveLiaLayout';
+
 import { LiaSidePanelContent } from './LiaSidePanelContent';
 
-const PANEL_WIDTH = 420;
-
-// Exportar constante para uso en ContentWrapper
-export const LIA_PANEL_WIDTH = PANEL_WIDTH;
+export { LIA_PANEL_WIDTH };
 
 export function LiaSidePanel() {
   const [mounted, setMounted] = useState(false);

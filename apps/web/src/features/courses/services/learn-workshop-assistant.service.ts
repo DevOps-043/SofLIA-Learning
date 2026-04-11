@@ -151,6 +151,18 @@ export function buildWorkshopEnrichedLessonContext(params: {
     allLessons.length > 0
       ? Math.round(((currentLessonIndex + 1) / allLessons.length) * 100)
       : 0
+  const verifiedLessonDurationMinutes =
+    (lessonContext.totalDurationMinutes &&
+    lessonContext.totalDurationMinutes > 0
+      ? lessonContext.totalDurationMinutes
+      : undefined) ||
+    (currentLesson?.total_duration_minutes &&
+    currentLesson.total_duration_minutes > 0
+      ? currentLesson.total_duration_minutes
+      : undefined) ||
+    (currentLesson?.duration_seconds && currentLesson.duration_seconds > 0
+      ? Math.ceil(currentLesson.duration_seconds / 60)
+      : undefined)
 
   return {
     ...lessonContext,
@@ -185,8 +197,8 @@ export function buildWorkshopEnrichedLessonContext(params: {
       totalLessons: allLessons.length,
       progressPercentage,
       currentTab: activeTab,
-      timeInCurrentLesson: currentLesson?.duration_seconds
-        ? `${Math.round(currentLesson.duration_seconds / 60)} minutos`
+      timeInCurrentLesson: verifiedLessonDurationMinutes
+        ? `${verifiedLessonDurationMinutes} minutos`
         : 'Desconocido',
     },
     difficultyDetected: {

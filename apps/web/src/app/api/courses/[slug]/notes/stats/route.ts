@@ -37,10 +37,10 @@ export async function GET(
 
     const stats = await NoteService.getNotesStats(currentUser.id, course.id)
 
-    // ⚡ OPTIMIZACIÓN: Agregar cache headers (datos dinámicos - 30 segundos)
+    // Las estadísticas de notas son privadas por usuario y no deben cachearse compartidamente.
     return withCacheHeaders(
       NextResponse.json(stats),
-      cacheHeaders.dynamic
+      cacheHeaders.private
     )
   } catch (error) {
     return NextResponse.json(
@@ -52,4 +52,3 @@ export async function GET(
     )
   }
 }
-

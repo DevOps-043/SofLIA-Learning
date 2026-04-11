@@ -135,8 +135,10 @@ Esto te servirá para responder preguntas técnicas o sobre disponibilidad de da
 - issued_at
 
 **reportes_problemas** (Feedback y bugs)
-- user_id, titulo, descripcion, categoria
-- pagina_url, estado
+- id, user_id, titulo, descripcion, categoria, prioridad, estado
+- pagina_url, pathname, pasos_reproducir, comportamiento_esperado
+- screenshot_url, session_recording, recording_size, recording_duration
+- metadata (jsonb) con source, originContext, courseContext, attachments, irisSync, liaContext y clientContext
 
 **ai_apps** (Directorio de Apps de IA)
 - app_id, name, description, category_id

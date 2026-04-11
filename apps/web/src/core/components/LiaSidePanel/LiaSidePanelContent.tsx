@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { LIA_PANEL_WIDTH } from '@/core/hooks/useResponsiveLiaLayout';
 import { SofLIAPersonalizationSettings } from '../../../features/lia/components/SofLIAPersonalizationSettings';
 import { useLiaSidePanelLogic } from './hooks/useLiaSidePanelLogic';
 import { PanelHeader } from './PanelHeader';
@@ -10,18 +11,17 @@ import { InputArea } from './InputArea';
 import { HistoryOverlay } from './HistoryOverlay';
 import { DeleteConversationModal } from './DeleteConversationModal';
 
-const PANEL_WIDTH = 420;
-
 function LiaSidePanelContent() {
   const {
     t, user, isOpen, closePanel,
     isDarkMode, isLightTheme, themeColors,
     messages, isLoading, clearHistory, currentConversationId,
-    inputValue, setInputValue, inputRef, messagesEndRef, chatContainerRef,
+    inputValue, setInputValue, selectedAttachment, attachmentError, inputRef, attachmentInputRef, messagesEndRef, chatContainerRef,
     handleChatScroll, handleSendMessage, handleQuickAction, handleKeyDown, handleLinkClick, quickActions,
     currentTip, tips,
     isSpeaking, isVoiceEnabled,
     isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, toggleDictation, stopDictation,
+    handleAttachmentSelect, handleRemoveAttachment, handleAttachmentButtonClick,
     isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
     isPersonalizationOpen, setIsPersonalizationOpen,
     isAvatarExpanded, setIsAvatarExpanded,
@@ -45,7 +45,7 @@ function LiaSidePanelContent() {
               top: 0,
               right: 0,
               width: '100%',
-              maxWidth: `${PANEL_WIDTH}px`,
+              maxWidth: `${LIA_PANEL_WIDTH}px`,
               height: '100vh',
               backgroundColor: themeColors.panelBg,
               borderLeft: `1px solid ${themeColors.borderColor}`,
@@ -95,7 +95,10 @@ function LiaSidePanelContent() {
               isLightTheme={isLightTheme}
               inputValue={inputValue}
               setInputValue={setInputValue}
+              selectedAttachment={selectedAttachment}
+              attachmentError={attachmentError}
               inputRef={inputRef}
+              attachmentInputRef={attachmentInputRef}
               isDictating={isDictating}
               isDictationEnabled={isDictationEnabled}
               isProcessingDictation={isProcessingDictation}
@@ -103,6 +106,9 @@ function LiaSidePanelContent() {
               finalTranscript={finalTranscript}
               stopDictation={stopDictation}
               toggleDictation={toggleDictation}
+              handleAttachmentSelect={handleAttachmentSelect}
+              handleRemoveAttachment={handleRemoveAttachment}
+              handleAttachmentButtonClick={handleAttachmentButtonClick}
               handleSendMessage={handleSendMessage}
               isLoading={isLoading}
             />

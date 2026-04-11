@@ -92,7 +92,11 @@ export function BasicTabFields({
             type="number" required min="1" max="480"
             value={formData.estimated_time_minutes}
             onChange={(e) => {
-              setFormData(prev => ({ ...prev, estimated_time_minutes: parseInt(e.target.value) || 1 }))
+              const nextValue = e.target.value.trim()
+              setFormData(prev => ({
+                ...prev,
+                estimated_time_minutes: nextValue === '' ? '' : Number(nextValue),
+              }))
               setAutoCalculatedTime(false)
             }}
             className={`w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 ${
@@ -108,6 +112,11 @@ export function BasicTabFields({
             </>
           ) : (
             <>Tiempo estimado para completar este material ({formData.material_type === 'quiz' ? 'completar quiz' : formData.material_type === 'link' ? 'revisar enlace' : 'revisar material'}). Mínimo 1 minuto, máximo 480 minutos (8 horas).</>
+          )}
+          {!autoCalculatedTime && formData.estimated_time_minutes === '' && (
+            <span className="block mt-1 text-amber-600 dark:text-amber-400">
+              Este material aun no tiene un tiempo guardado en la base de datos.
+            </span>
           )}
           <span className="flex items-center gap-1.5 mt-1 text-[#00D4B3] font-medium">
             <Clock className="w-3.5 h-3.5" /> Requerido para el Planificador de Estudio IA

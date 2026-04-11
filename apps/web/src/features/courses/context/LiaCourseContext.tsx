@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
 import type { UseLiaCourseChatReturn } from '../../../core/hooks/useLiaCourseChat';
+import type { CourseLessonContext } from '../../../core/types/lia.types';
 
 interface LiaCourseContextType {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface LiaCourseContextType {
   // Contexto de actividad interactiva
   currentActivity: ActivityContextType | null;
   setActivity: (activity: ActivityContextType | null) => void;
+  courseContext: CourseLessonContext | null;
+  setCourseContext: (context: CourseLessonContext | null) => void;
   // Instancia compartida del chat (para invocar desde modales, etc.)
   liaChat: UseLiaCourseChatReturn | null;
   registerLiaChat: (chat: UseLiaCourseChatReturn | null) => void;
@@ -38,6 +41,7 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
 
   // Estado para la actividad actual
   const [currentActivity, setCurrentActivity] = useState<ActivityContextType | null>(null);
+  const [courseContext, setCourseContext] = useState<CourseLessonContext | null>(null);
   
   // Estado para la instancia del chat
   const [liaChat, setLiaChat] = useState<UseLiaCourseChatReturn | null>(null);
@@ -54,6 +58,7 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
     <LiaCourseContext.Provider value={{ 
       isOpen, openLia, closeLia, toggleLia, 
       currentActivity, setActivity,
+      courseContext, setCourseContext,
       liaChat, registerLiaChat 
     }}>
       {children}

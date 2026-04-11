@@ -20,6 +20,9 @@ import {
 } from './video-player.utils';
 import { useCustomVideoPlayerTracking } from './useCustomVideoPlayerTracking';
 
+const VIDEO_COMPLETION_EPSILON_SECONDS = 0.25;
+const VIDEO_COMPLETION_PROGRESS_THRESHOLD = 0.995;
+
 export function useCustomVideoPlayerState(
   {
     className = '',
@@ -40,6 +43,7 @@ export function useCustomVideoPlayerState(
   const containerRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
+  const hasNotifiedCompletionRef = useRef(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(initialTime);
@@ -87,6 +91,7 @@ export function useCustomVideoPlayerState(
     setIsLoading(true);
     setIsBuffering(false);
     setHasInitialTimeSet(false);
+    hasNotifiedCompletionRef.current = false;
   }, [src]);
 
   useCustomVideoPlayerImperativeHandle({ ref, isPiP, isPlaying, videoRef, setIsPiP, onPiPChange });
@@ -165,11 +170,35 @@ export function useCustomVideoPlayerState(
 
     let bufferingTimeout: ReturnType<typeof setTimeout> | null = null;
 
+    const notifyCompletion = () => {
+      if (hasNotifiedCompletionRef.current) {
+        return;
+      }
+
+      hasNotifiedCompletionRef.current = true;
+      onComplete?.();
+    };
+
     const updateTime = () => {
-      setCurrentTime(videoElement.currentTime);
+      const playbackTime = videoElement.currentTime;
+      setCurrentTime(playbackTime);
 
       if (onProgress && duration > 0) {
-        onProgress((videoElement.currentTime / duration) * 100);
+        onProgress((playbackTime / duration) * 100);
+      }
+
+      if (duration <= 0 || videoElement.paused || videoElement.ended) {
+        return;
+      }
+
+      const remainingTime = duration - playbackTime;
+      const progressRatio = playbackTime / duration;
+
+      if (
+        remainingTime <= VIDEO_COMPLETION_EPSILON_SECONDS ||
+        progressRatio >= VIDEO_COMPLETION_PROGRESS_THRESHOLD
+      ) {
+        notifyCompletion();
       }
     };
 
@@ -188,7 +217,7 @@ export function useCustomVideoPlayerState(
 
     const handleEnded = () => {
       setIsPlaying(false);
-      onComplete?.();
+      notifyCompletion();
     };
 
     const handleWaiting = () => {

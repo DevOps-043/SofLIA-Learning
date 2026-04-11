@@ -67,6 +67,14 @@ export function NoteCard({
         {getNotePreviewText(note)}
       </p>
 
+      {note.lessonTitle ? (
+        <div className="mb-2">
+          <span className="inline-flex items-center rounded-full border border-[#E9ECEF] px-2 py-0.5 text-[11px] font-medium text-[#6C757D] dark:border-[#6C757D]/30 dark:text-white/60">
+            {note.lessonTitle}
+          </span>
+        </div>
+      ) : null}
+
       {note.tags && note.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-2">
           {note.tags.map((tag) => (

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, ChevronLeft, X } from "lucide-react";
 
+import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../../core/constants/tourTargets";
 import { NotesSidebarSection } from "../NotesSidebarSection";
 import type {
   LearnActivityMap,
@@ -89,7 +90,7 @@ export function CourseSidebarPanel({
             )}
 
             <motion.div
-              id="tour-course-sidebar"
+              id={COURSE_LEARN_TOUR_TARGET_IDS.sidebar}
               initial={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
               animate={isMobile ? { x: 0 } : { width: 320, opacity: 1 }}
               exit={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
@@ -138,7 +139,7 @@ export function CourseSidebarPanel({
 
                 <div className="mb-6 border-b border-[#E9ECEF] dark:border-[#6C757D]/30" />
 
-                <div id="tour-notes-section" className="space-y-4">
+                <div className="space-y-4">
                   <NotesSidebarSection
                     isCollapsed={isNotesCollapsed}
                     savedNotes={savedNotes}

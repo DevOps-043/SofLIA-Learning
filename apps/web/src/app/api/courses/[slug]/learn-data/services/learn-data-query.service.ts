@@ -1,5 +1,5 @@
 // Barrel re-export — all logic lives in sub-files
-import { createClient } from '@/lib/supabase/server'
+import type { createClient as createSupabaseClient } from '@/lib/supabase/server'
 
 // Re-export from sub-files
 export {
@@ -43,7 +43,7 @@ export interface LearnDataQueryPayload {
   totalTimeMs: number
 }
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
 
 export async function loadLearnDataPayload(
   supabase: SupabaseServerClient,
@@ -51,12 +51,19 @@ export async function loadLearnDataPayload(
   lessonId: string | null,
   language: string,
   userId?: string,
+  organizationId?: string | null,
 ): Promise<LearnDataQueryPayload> {
   const startedAt = Date.now()
   const course = await loadCourseBySlug(supabase, slug)
   const [modulesResult, questionsResult, notesStatsResult, lessonDataResult] =
     await Promise.all([
-      loadModulesWithProgress(supabase, course.id, userId, language),
+      loadModulesWithProgress(
+        supabase,
+        course.id,
+        userId,
+        language,
+        organizationId,
+      ),
       loadCourseQuestions(supabase, course.id, userId),
       userId ? loadNotesStats(supabase, course.id, userId) : Promise.resolve(null),
       lessonId

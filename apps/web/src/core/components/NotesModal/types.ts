@@ -6,6 +6,7 @@ export interface NoteDraft {
 
 export interface ExistingNote extends NoteDraft {
   id: string;
+  lessonId?: string;
 }
 
 export interface NotesModalProps {
@@ -13,6 +14,6 @@ export interface NotesModalProps {
   isEditing?: boolean;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (note: NoteDraft) => void | Promise<void>;
+  onSave: (note: NoteDraft) => boolean | Promise<boolean>;
   onDelete?: (id: string) => void | Promise<void>;
 }

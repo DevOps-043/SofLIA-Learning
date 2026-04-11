@@ -2,18 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Joyride from 'react-joyride'
 import { useTranslation } from 'react-i18next'
 import { useSwipe } from '../../../hooks/useSwipe'
 import type { DifficultyAnalysis } from '../../../lib/rrweb/difficulty-pattern-detector'
 import type { CourseLessonContext } from '../../../core/types/lia.types'
+import { useCurrentOrganizationId } from '../../../core/stores/organizationStore'
 import { useVideoPlayerOptional } from '../../../app/courses/[slug]/learn/VideoPlayerContext'
-import { useCourseLearnTour } from '../../tours/hooks/useCourseLearnTour'
 import { useAuth } from '../../auth/hooks/useAuth'
 import {
   canCompleteOrderedLesson,
   findOrderedLessonIndex,
   getOrderedLessons,
+  hasIncompleteActivities,
+  isLessonVideoCompleted,
 } from './lessonNavigation.utils'
 import { useCourseTheme } from './useCourseTheme'
 import {
@@ -37,7 +38,6 @@ import type {
   LearnModule,
   LearnTab,
 } from '../components/learn/types'
-import type React from 'react'
 
 type Lesson = LearnLesson
 type Module = LearnModule
@@ -53,6 +53,7 @@ export function useLearnPageLogic() {
 
   const { isOpen: isLiaOpen, openLia, closeLia, liaChat } = useLiaCourse()
   const { user } = useAuth()
+  const organizationId = useCurrentOrganizationId()
   const colors = useCourseTheme()
   const { t, i18n, ready } = useTranslation('learn')
   const selectedLang =
@@ -66,6 +67,8 @@ export function useLearnPageLogic() {
     useState<CourseLessonContext | null>(null)
   const [liaTranscript, setLiaTranscript] = useState<string | null>(null)
   const [liaSummary, setLiaSummary] = useState<string | null>(null)
+  const [isLiaTranscriptLoading, setIsLiaTranscriptLoading] = useState(false)
+  const [isLiaSummaryLoading, setIsLiaSummaryLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [courseProgress, setCourseProgress] = useState(6)
   const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false)
@@ -73,7 +76,8 @@ export function useLearnPageLogic() {
     [],
   )
   const [isPromptsCollapsed, setIsPromptsCollapsed] = useState(false)
-  const [isJoyrideMounted, setIsJoyrideMounted] = useState(false)
+  const [pendingVideoTransitionLessonId, setPendingVideoTransitionLessonId] =
+    useState<string | null>(null)
 
   const prevPromptsLengthRef = useRef<number>(0)
   const checkedAutoRedirectRef = useRef<string | null>(null)
@@ -107,13 +111,12 @@ export function useLearnPageLogic() {
 
   useEffect(() => {
     setMounted(true)
-    setIsJoyrideMounted(true)
   }, [])
 
   const {
     activeTab,
     setActiveTab,
-    handleTabChange,
+    handleTabChange: handleBaseTabChange,
     isMobile,
     screenHeight,
     visualViewportHeight,
@@ -182,25 +185,6 @@ export function useLearnPageLogic() {
     return 'calc(100vh - 3rem)'
   }, [isMobile, isMobileBottomNavVisible, visualViewportHeight])
 
-  const { joyrideProps } = useCourseLearnTour({
-    enabled: true,
-    onOpenLia: openLia,
-    onSwitchTab: (tab) => setActiveTab(tab),
-    onOpenNotes: (shouldScroll = true) => {
-      openNotesSection({ collapseMaterials: false })
-      if (shouldScroll) {
-        setTimeout(() => {
-          const element = document.getElementById('tour-notes-section')
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-          }
-        }, 100)
-      }
-    },
-  })
-  const joyrideComponentProps =
-    joyrideProps as React.ComponentProps<typeof Joyride>
-
   const {
     addNoteToLocalState,
     applyServerNotesStats,
@@ -231,6 +215,7 @@ export function useLearnPageLogic() {
   useLearnPageCourseData({
     slug,
     selectedLang,
+    organizationId,
     userJobTitle: user?.job_title || undefined,
     currentLesson,
     modules,
@@ -243,6 +228,8 @@ export function useLearnPageLogic() {
     setWorkshopMetadata,
     setLiaTranscript,
     setLiaSummary,
+    setIsLiaTranscriptLoading,
+    setIsLiaSummaryLoading,
     setLoading,
     setCourseProgress,
   })
@@ -273,6 +260,35 @@ export function useLearnPageLogic() {
     setCurrentActivityPrompts(prompts)
   }, [])
 
+  const handleVideoCompleted = useCallback(
+    (lessonId: string) => {
+      setModules((prevModules) =>
+        prevModules.map((module) => ({
+          ...module,
+          lessons: module.lessons.map((lesson) =>
+            lesson.lesson_id === lessonId
+              ? {
+                  ...lesson,
+                  progress_percentage: 100,
+                }
+              : lesson,
+          ),
+        })),
+      )
+      setCurrentLesson((prevLesson) =>
+        prevLesson?.lesson_id === lessonId
+          ? {
+              ...prevLesson,
+              progress_percentage: 100,
+            }
+          : prevLesson,
+      )
+      setPendingVideoTransitionLessonId(lessonId)
+      void loadLessonActivitiesAndMaterials(lessonId)
+    },
+    [loadLessonActivitiesAndMaterials],
+  )
+
   useEffect(() => {
     if (!currentLesson?.lesson_id) {
       return
@@ -294,12 +310,9 @@ export function useLearnPageLogic() {
       return
     }
 
-    const videoFullyWatched =
-      currentLesson.is_completed ||
-      (currentLesson.progress_percentage ?? 0) >= 95
+    const videoFullyWatched = isLessonVideoCompleted(currentLesson)
     const hasPending =
-      activitiesList.length > 0 &&
-      activitiesList.some((activity) => !activity.is_completed)
+      activitiesList.length > 0 && hasIncompleteActivities(activitiesList)
 
     if (videoFullyWatched && hasPending) {
       setActiveTab('activities')
@@ -327,6 +340,7 @@ export function useLearnPageLogic() {
 
   const {
     markLessonAsCompleted,
+    openValidationModal,
     validationModal,
     setValidationModal,
     isCourseCompletedModalOpen,
@@ -347,6 +361,33 @@ export function useLearnPageLogic() {
     canCompleteLesson,
   })
 
+  const handleTabChange = useCallback(
+    async (newTab: LearnTab) => {
+      if (
+        newTab === 'activities' &&
+        currentLesson &&
+        !isLessonVideoCompleted(currentLesson)
+      ) {
+        trackUserAction('attempted_activities_access_before_video_completed', {
+          lessonId: currentLesson.lesson_id,
+          lessonTitle: currentLesson.lesson_title,
+        })
+        openValidationModal({
+          title: 'Finaliza el video para continuar',
+          message:
+            'Por favor, finaliza el video antes de continuar con las actividades.',
+          type: 'video',
+          lessonId: currentLesson.lesson_id,
+          redirectTab: 'video',
+        })
+        return
+      }
+
+      await handleBaseTabChange(newTab)
+    },
+    [currentLesson, handleBaseTabChange, openValidationModal, trackUserAction],
+  )
+
   const {
     getPreviousLesson,
     getNextLesson,
@@ -364,9 +405,52 @@ export function useLearnPageLogic() {
     setActiveTab,
     markLessonAsCompleted,
     loadLessonActivitiesAndMaterials,
+    openValidationModal,
     trackUserAction,
     videoPlayerContext,
   })
+
+  // Effect para transición automática tras completar video.
+  // Ubicado después de useLessonNavigation para evitar TDZ de navigateToNextLesson.
+  useEffect(() => {
+    if (!pendingVideoTransitionLessonId || !currentLesson?.lesson_id) {
+      return
+    }
+
+    if (pendingVideoTransitionLessonId !== currentLesson.lesson_id) {
+      setPendingVideoTransitionLessonId(null)
+      return
+    }
+
+    if (activeTab !== 'video') {
+      setPendingVideoTransitionLessonId(null)
+      return
+    }
+
+    const activitiesList = lessonsActivities[pendingVideoTransitionLessonId]
+
+    if (activitiesList === undefined) {
+      return
+    }
+
+    const hasPendingActivities = hasIncompleteActivities(activitiesList)
+
+    setPendingVideoTransitionLessonId(null)
+
+    if (hasPendingActivities) {
+      setActiveTab('activities')
+      return
+    }
+
+    void navigateToNextLesson()
+  }, [
+    activeTab,
+    currentLesson?.lesson_id,
+    lessonsActivities,
+    navigateToNextLesson,
+    pendingVideoTransitionLessonId,
+    setActiveTab,
+  ])
 
   const handleSaveLiaNote = useCallback(
     (content: string) => {
@@ -376,6 +460,16 @@ export function useLearnPageLogic() {
   )
 
   const getLessonContext = useCallback(() => {
+    const currentActivities = currentLesson
+      ? lessonsActivities[currentLesson.lesson_id]
+      : undefined
+    const currentMaterials = currentLesson
+      ? lessonsMaterials[currentLesson.lesson_id]
+      : undefined
+    const currentQuizStatus = currentLesson
+      ? lessonsQuizStatus[currentLesson.lesson_id]
+      : undefined
+
     return buildLearnLessonContext({
       course,
       currentLesson,
@@ -383,8 +477,31 @@ export function useLearnPageLogic() {
       workshopMetadata,
       slug,
       userJobTitle: user?.job_title || undefined,
+      transcriptContent: liaTranscript,
+      summaryContent: liaSummary,
+      activeTab,
+      currentPage:
+        typeof window !== 'undefined' ? window.location.pathname : undefined,
+      currentActivities,
+      currentMaterials,
+      quizStatus: currentQuizStatus,
+      currentActivityPrompts,
     })
-  }, [course, currentLesson, modules, slug, user?.job_title, workshopMetadata])
+  }, [
+    activeTab,
+    course,
+    currentActivityPrompts,
+    currentLesson,
+    liaSummary,
+    liaTranscript,
+    lessonsActivities,
+    lessonsMaterials,
+    lessonsQuizStatus,
+    modules,
+    slug,
+    user?.job_title,
+    workshopMetadata,
+  ])
 
   const handleWorkshopHelpAccepted = useCallback(
     async (analysis: DifficultyAnalysis) => {
@@ -445,12 +562,6 @@ export function useLearnPageLogic() {
     () => [
       { id: 'video' as const, label: t('tabs.video'), icon: 'Play' },
       {
-        id: 'transcript' as const,
-        label: t('tabs.transcript'),
-        icon: 'ScrollText',
-      },
-      { id: 'summary' as const, label: t('tabs.summary'), icon: 'FileText' },
-      {
         id: 'activities' as const,
         label: t('tabs.activities'),
         icon: 'Activity',
@@ -483,11 +594,14 @@ export function useLearnPageLogic() {
     courseProgress,
     liaTranscript,
     liaSummary,
+    isLiaTranscriptLoading,
+    isLiaSummaryLoading,
     isLiaOpen,
     openLia,
     closeLia,
     sendLiaMessage,
     handleSaveLiaNote,
+    handleVideoCompleted,
     getLessonContext,
     handleWorkshopHelpAccepted,
     activeTab,
@@ -563,8 +677,6 @@ export function useLearnPageLogic() {
     trackUserAction,
     analyzeUserBehavior,
     userBehaviorLog,
-    joyrideComponentProps,
-    isJoyrideMounted,
   }
 }
 

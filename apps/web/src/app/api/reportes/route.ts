@@ -1,37 +1,92 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 import { createClient } from '../../../lib/supabase/server';
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../../../lib/supabase/types';
+import {
+  REPORT_PROBLEM_CATEGORIES,
+  REPORT_PROBLEM_MAX_ATTACHMENTS,
+  REPORT_PROBLEM_PRIORITIES,
+  REPORT_PROBLEM_SOURCES,
+} from '@/core/reporting/report-problem.contract';
+import {
+  buildLegacyScreenshotAttachment,
+  buildReportProblemMetadata,
+  serializeReportProblemMetadata,
+  uploadReportImageAttachments,
+} from '@/core/reporting/report-problem.server';
 
-interface ReporteProblemaInsert {
-  user_id: string;
-  titulo: string;
-  descripcion: string;
-  categoria: string;
-  prioridad: string;
-  pagina_url: string;
-  pathname: string;
-  user_agent: string;
-  screen_resolution: string;
-  navegador: string;
-  pasos_reproducir: string | null;
-  comportamiento_esperado: string | null;
-  screenshot_url: string | null;
-  session_recording: unknown;
-  recording_size: unknown;
-  recording_duration: unknown;
-  metadata: {
-    from_lia: boolean;
-    timestamp: string;
-  };
-}
+type ReportProblemInsert =
+  Database['public']['Tables']['reportes_problemas']['Insert'];
 
-interface ReporteProblemaResumen {
-  id: string;
-  titulo: string;
-  categoria: string;
-  estado: string;
-  created_at: string;
-}
+type ReportProblemSummary =
+  Database['public']['Tables']['reportes_problemas']['Row'];
+
+const reportAttachmentSchema = z.object({
+  kind: z.literal('image'),
+  fileName: z.string().min(1).max(255),
+  mimeType: z.string().min(1).max(120),
+  size: z.number().int().positive(),
+  dataUrl: z.string().min(1),
+  width: z.number().int().positive().nullable().optional(),
+  height: z.number().int().positive().nullable().optional(),
+});
+
+const reportContextSchema = z
+  .object({
+    conversationId: z.string().uuid().nullable().optional(),
+    pageType: z.string().nullable().optional(),
+    currentTab: z.string().nullable().optional(),
+    originContext: z
+      .object({
+        paginaUrl: z.string().nullable().optional(),
+        pathname: z.string().nullable().optional(),
+        currentPage: z.string().nullable().optional(),
+        currentTab: z.string().nullable().optional(),
+        pageType: z.string().nullable().optional(),
+      })
+      .optional(),
+    courseContext: z
+      .object({
+        contextType: z.enum(['course', 'workshop']).optional(),
+        courseId: z.string().optional(),
+        courseSlug: z.string().optional(),
+        courseTitle: z.string().optional(),
+        moduleId: z.string().optional(),
+        moduleTitle: z.string().optional(),
+        lessonId: z.string().optional(),
+        lessonTitle: z.string().optional(),
+        currentTab: z.string().optional(),
+        currentPage: z.string().optional(),
+      })
+      .nullable()
+      .optional(),
+  })
+  .optional();
+
+const reportPayloadSchema = z.object({
+  titulo: z.string().min(1).max(200),
+  descripcion: z.string().min(1).max(5000),
+  categoria: z.enum(REPORT_PROBLEM_CATEGORIES),
+  prioridad: z.enum(REPORT_PROBLEM_PRIORITIES).default('media'),
+  pagina_url: z.string().optional(),
+  pathname: z.string().optional(),
+  user_agent: z.string().optional(),
+  screen_resolution: z.string().optional(),
+  navegador: z.string().optional(),
+  pasos_reproducir: z.string().nullable().optional(),
+  comportamiento_esperado: z.string().nullable().optional(),
+  screenshot_data: z.string().nullable().optional(),
+  attachments: z
+    .array(reportAttachmentSchema)
+    .max(REPORT_PROBLEM_MAX_ATTACHMENTS)
+    .default([]),
+  session_recording: z.string().nullable().optional(),
+  recording_size: z.string().nullable().optional(),
+  recording_duration: z.number().int().nonnegative().nullable().optional(),
+  from_lia: z.boolean().default(false),
+  source: z.enum(REPORT_PROBLEM_SOURCES).default('manual_modal'),
+  report_context: reportContextSchema,
+});
 
 /**
  * POST /api/reportes
@@ -39,149 +94,113 @@ interface ReporteProblemaResumen {
  */
 export async function POST(request: NextRequest) {
   try {
-    // Obtener el usuario actual usando el sistema de sesiones personalizado
-    const { SessionService } = await import('../../../features/auth/services/session.service');
+    const { SessionService } = await import(
+      '../../../features/auth/services/session.service'
+    );
     const user = await SessionService.getCurrentUser();
-    
+
     if (!user) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+    }
+
+    const rawBody = await request.json();
+    const parsedBody = reportPayloadSchema.safeParse(rawBody);
+
+    if (!parsedBody.success) {
       return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
+        {
+          error: 'Payload de reporte inválido',
+          details: parsedBody.error.issues[0]?.message || 'Error de validación',
+        },
+        { status: 400 }
       );
     }
 
+    const payload = parsedBody.data;
     const supabase = await createClient();
-    const body = await request.json();
-    
-    
-    const {
-      titulo,
-      descripcion,
-      categoria,
-      prioridad = 'media',
-      pagina_url,
-      pathname,
-      user_agent,
-      screen_resolution,
-      navegador,
-      pasos_reproducir,
-      comportamiento_esperado,
-      screenshot_data,
-      from_lia = false,
-      // 👇 NUEVO: Campos de rrweb
-      session_recording,
-      recording_size,
-      recording_duration
-    } = body;
 
-    // Validaciones
-    if (!titulo || !descripcion || !categoria) {
-      return NextResponse.json(
-        { error: 'Faltan campos requeridos: titulo, descripcion, categoria' },
-        { status: 400 }
+    const attachments = [...payload.attachments];
+    if (attachments.length === 0 && payload.screenshot_data) {
+      const legacyAttachment = buildLegacyScreenshotAttachment(
+        payload.screenshot_data
       );
-    }
 
-    // Validar categoría
-    const categoriasValidas = ['bug', 'sugerencia', 'contenido', 'performance', 'ui-ux', 'otro'];
-    if (!categoriasValidas.includes(categoria)) {
-      return NextResponse.json(
-        { error: `Categoría inválida. Debe ser una de: ${categoriasValidas.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Validar prioridad
-    const prioridadesValidas = ['baja', 'media', 'alta', 'critica'];
-    if (!prioridadesValidas.includes(prioridad)) {
-      return NextResponse.json(
-        { error: `Prioridad inválida. Debe ser una de: ${prioridadesValidas.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-
-    // Si hay screenshot, subirlo a Supabase Storage usando service role key
-    let screenshot_url = null;
-    if (screenshot_data) {
-      try {
-        // Crear cliente con service role key para bypass de RLS
-        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-        
-        if (!supabaseServiceKey) {
-          return NextResponse.json(
-            { error: 'Configuración del servidor incompleta' },
-            { status: 500 }
-          );
-        }
-        
-        const supabaseAdmin = createSupabaseClient(supabaseUrl, supabaseServiceKey, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        });
-        
-        // Convertir base64 a buffer
-        const base64Data = screenshot_data.split(',')[1] || screenshot_data;
-        const buffer = Buffer.from(base64Data, 'base64');
-        
-        // Generar nombre único con timestamp y ID de usuario
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substring(2, 9);
-        const fileName = `reporte-${user.id}-${timestamp}-${randomId}.jpg`;
-        
-        // Subir a Storage con service role key (bypass RLS)
-        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-          .from('reportes-screenshots')
-          .upload(fileName, buffer, {
-            contentType: 'image/jpeg',
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (uploadError) {
-          // Continuar sin screenshot si falla la subida
-        } else {
-          // Obtener URL pública
-          const { data: publicUrlData } = supabaseAdmin.storage
-            .from('reportes-screenshots')
-            .getPublicUrl(uploadData.path);
-          
-          screenshot_url = publicUrlData.publicUrl;
-        }
-      } catch (error) {
-        // Continuar sin screenshot si falla
+      if (legacyAttachment) {
+        attachments.push(legacyAttachment);
       }
     }
 
-    // Insertar reporte en la base de datos
+    const uploadedAttachments = await uploadReportImageAttachments(
+      attachments,
+      user.id
+    );
+
+    const reportInsertPayload: ReportProblemInsert = {
+      user_id: user.id,
+      titulo: payload.titulo.trim(),
+      descripcion: payload.descripcion.trim(),
+      categoria: payload.categoria,
+      prioridad: payload.prioridad,
+      pagina_url: payload.pagina_url || '',
+      pathname: payload.pathname || '',
+      user_agent: payload.user_agent || request.headers.get('user-agent') || '',
+      screen_resolution: payload.screen_resolution || '',
+      navegador: payload.navegador || '',
+      pasos_reproducir: payload.pasos_reproducir?.trim() || null,
+      comportamiento_esperado:
+        payload.comportamiento_esperado?.trim() || null,
+      screenshot_url: uploadedAttachments.primaryScreenshotUrl,
+      session_recording: payload.session_recording || null,
+      recording_size: payload.recording_size || null,
+      recording_duration: payload.recording_duration ?? null,
+      metadata: serializeReportProblemMetadata(
+        buildReportProblemMetadata({
+          source: payload.source,
+          fromLia: payload.from_lia,
+          originContext: {
+            paginaUrl:
+              payload.report_context?.originContext?.paginaUrl ||
+              payload.pagina_url ||
+              null,
+            pathname:
+              payload.report_context?.originContext?.pathname ||
+              payload.pathname ||
+              null,
+            currentPage:
+              payload.report_context?.originContext?.currentPage ||
+              payload.pathname ||
+              null,
+            currentTab:
+              payload.report_context?.originContext?.currentTab ||
+              payload.report_context?.currentTab ||
+              null,
+            pageType:
+              payload.report_context?.originContext?.pageType ||
+              payload.report_context?.pageType ||
+              null,
+          },
+          courseContext: payload.report_context?.courseContext || null,
+          attachments: uploadedAttachments.assets,
+          attachmentUploadWarnings: uploadedAttachments.warnings,
+          clientContext: {
+            userAgent:
+              payload.user_agent || request.headers.get('user-agent') || null,
+            screenResolution: payload.screen_resolution || null,
+            browser: payload.navegador || null,
+          },
+          liaContext: payload.from_lia
+            ? {
+                conversationId: payload.report_context?.conversationId || null,
+                hasSessionRecording: Boolean(payload.session_recording),
+              }
+            : undefined,
+        })
+      ),
+    };
+
     const { data: reporte, error: insertError } = await supabase
       .from('reportes_problemas')
-      .insert({
-        user_id: user.id,
-        titulo: titulo.trim().substring(0, 200),
-        descripcion: descripcion.trim(),
-        categoria,
-        prioridad,
-        pagina_url: pagina_url || '',
-        pathname: pathname || '',
-        user_agent: user_agent || '',
-        screen_resolution: screen_resolution || '',
-        navegador: navegador || '',
-        pasos_reproducir: pasos_reproducir?.trim() || null,
-        comportamiento_esperado: comportamiento_esperado?.trim() || null,
-        screenshot_url,
-        // 👇 NUEVO: Campos de rrweb
-        session_recording: session_recording || null,
-        recording_size: recording_size || null,
-        recording_duration: recording_duration || null,
-        metadata: {
-          from_lia,
-          timestamp: new Date().toISOString()
-        }
-      } as ReporteProblemaInsert)
+      .insert(reportInsertPayload)
       .select()
       .single();
 
@@ -192,27 +211,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const reportSummary = reporte as ReportProblemSummary;
 
-    // TODO: Enviar notificación a administradores (opcional)
-    // Puedes agregar aquí lógica para notificar por email o sistema de notificaciones
-
-    const reporteCreado = reporte as ReporteProblemaResumen;
-
-    return NextResponse.json({
-      success: true,
-      reporte: {
-        id: reporteCreado.id,
-        titulo: reporteCreado.titulo,
-        categoria: reporteCreado.categoria,
-        estado: reporteCreado.estado,
-        created_at: reporteCreado.created_at
+    return NextResponse.json(
+      {
+        success: true,
+        reporte: {
+          id: reportSummary.id,
+          titulo: reportSummary.titulo,
+          categoria: reportSummary.categoria,
+          estado: reportSummary.estado,
+          created_at: reportSummary.created_at,
+        },
+        message: 'Reporte creado exitosamente',
+        warnings: uploadedAttachments.warnings,
       },
-      message: 'Reporte creado exitosamente'
-    }, { status: 201 });
-
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
-      { error: 'Error interno del servidor', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Error interno del servidor',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
@@ -224,41 +245,34 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Obtener el usuario actual usando el sistema de sesiones personalizado
-    const { SessionService } = await import('../../../features/auth/services/session.service');
+    const { SessionService } = await import(
+      '../../../features/auth/services/session.service'
+    );
     const user = await SessionService.getCurrentUser();
-    
+
     if (!user) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
 
     const supabase = await createClient();
-    
-    // Obtener parámetros de consulta
+
     const { searchParams } = new URL(request.url);
     const estado = searchParams.get('estado');
     const categoria = searchParams.get('categoria');
     const limit = parseInt(searchParams.get('limit') || '50');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Verificar si el usuario es admin
     const isAdmin = user.cargo_rol?.toLowerCase().trim() === 'administrador';
 
-    // Construir query
     let query = supabase
       .from('reportes_con_usuario')
       .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
 
-    // Si no es admin, solo ver sus propios reportes
     if (!isAdmin) {
       query = query.eq('user_id', user.id);
     }
 
-    // Aplicar filtros
     if (estado) {
       query = query.eq('estado', estado);
     }
@@ -266,7 +280,6 @@ export async function GET(request: NextRequest) {
       query = query.eq('categoria', categoria);
     }
 
-    // Paginación
     query = query.range(offset, offset + limit - 1);
 
     const { data: reportes, error: queryError, count } = await query;
@@ -283,10 +296,9 @@ export async function GET(request: NextRequest) {
       total: count,
       limit,
       offset,
-      isAdmin
+      isAdmin,
     });
-
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Error interno del servidor' },
       { status: 500 }

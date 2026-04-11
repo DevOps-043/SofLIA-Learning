@@ -17,14 +17,15 @@ import {
   Video,
   type LucideIcon
 } from 'lucide-react';
-import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { sessionRecorder } from '../../../lib/rrweb/session-recorder';
+import type { ReportProblemRequestContext } from '../../reporting/report-problem.contract';
 
 interface ReporteProblemProps {
   isOpen: boolean;
   onClose: () => void;
   preselectedCategory?: string;
   fromLia?: boolean;
+  reportContext?: ReportProblemRequestContext;
 }
 
 type Categoria = 'bug' | 'sugerencia' | 'contenido' | 'performance' | 'ui-ux' | 'otro';
@@ -46,8 +47,13 @@ const prioridades: { value: Prioridad; label: string }[] = [
   { value: 'critica', label: 'Crítica' }
 ];
 
-export function ReporteProblema({ isOpen, onClose, preselectedCategory, fromLia = false }: ReporteProblemProps) {
-  const { user } = useAuth();
+export function ReporteProblema({
+  isOpen,
+  onClose,
+  preselectedCategory,
+  fromLia = false,
+  reportContext,
+}: ReporteProblemProps) {
   const [step, setStep] = useState<'form' | 'success'>('form');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -198,7 +204,8 @@ export function ReporteProblema({ isOpen, onClose, preselectedCategory, fromLia 
         session_recording: sessionRecording,
         recording_size: recordingSizeStr,
         recording_duration: recordingDuration,
-        from_lia: fromLia
+        from_lia: fromLia,
+        report_context: reportContext,
       };
 
       const response = await fetch('/api/reportes', {
@@ -214,7 +221,7 @@ export function ReporteProblema({ isOpen, onClose, preselectedCategory, fromLia 
         throw new Error(errorData.error || 'Error al enviar el reporte');
       }
 
-      const result = await response.json();
+      await response.json().catch(() => null);
       // Mostrar pantalla de éxito
       setStep('success');
 

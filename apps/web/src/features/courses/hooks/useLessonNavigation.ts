@@ -14,6 +14,8 @@ import type {
 import {
   findOrderedLessonById,
   findOrderedLessonIndex,
+  getPendingRequiredActivities,
+  isLessonVideoCompleted,
   getNextOrderedLesson,
   getPreviousOrderedLesson,
 } from "./lessonNavigation.utils";
@@ -25,7 +27,17 @@ type TrackUserAction = (
 
 type PauseAllVideosContext = {
   pauseAllVideos?: () => void;
+  saveVideoProgress?: (lessonId: string, time: number) => void;
 } | null;
+
+type OpenValidationModal = (modal: {
+  title: string;
+  message: string;
+  details?: string;
+  type: "activity" | "video" | "quiz";
+  lessonId?: string;
+  redirectTab?: LearnTab;
+}) => void;
 
 type OpenLessonOptions = {
   tab?: LearnTab;
@@ -51,6 +63,7 @@ type UseLessonNavigationParams = {
     lessonId: string,
     forceRefresh?: boolean
   ) => Promise<void>;
+  openValidationModal: OpenValidationModal;
   trackUserAction: TrackUserAction;
   videoPlayerContext?: PauseAllVideosContext;
 };
@@ -73,6 +86,7 @@ export function useLessonNavigation({
   setActiveTab,
   markLessonAsCompleted,
   loadLessonActivitiesAndMaterials,
+  openValidationModal,
   trackUserAction,
   videoPlayerContext,
 }: UseLessonNavigationParams) {
@@ -83,8 +97,54 @@ export function useLessonNavigation({
     pendingValidationRef.current = null;
   }, []);
 
+  const saveCurrentLessonVideoProgress = useCallback(
+    (lessonId?: string | null) => {
+      if (!lessonId) {
+        return;
+      }
+
+      const currentVideoElement = document.querySelector(
+        ".aspect-video video"
+      ) as HTMLVideoElement | null;
+
+      if (!currentVideoElement) {
+        return;
+      }
+
+      videoPlayerContext?.saveVideoProgress?.(
+        lessonId,
+        currentVideoElement.currentTime
+      );
+    },
+    [videoPlayerContext]
+  );
+
+  const showIncompleteVideoModal = useCallback(() => {
+    if (!currentLesson?.lesson_id) {
+      return;
+    }
+
+    saveCurrentLessonVideoProgress(currentLesson.lesson_id);
+    openValidationModal({
+      title: "Finaliza el video para continuar",
+      message:
+        "Por favor, finaliza el video antes de continuar con las actividades o cambiar de lección.",
+      type: "video",
+      lessonId: currentLesson.lesson_id,
+      redirectTab: "video",
+    });
+    scrollToTop();
+  }, [currentLesson, openValidationModal, saveCurrentLessonVideoProgress]);
+
   const openLesson = useCallback(
     (lesson: LearnLesson, options: OpenLessonOptions = {}) => {
+      if (
+        currentLesson?.lesson_id &&
+        currentLesson.lesson_id !== lesson.lesson_id
+      ) {
+        saveCurrentLessonVideoProgress(currentLesson.lesson_id);
+      }
+
       videoPlayerContext?.pauseAllVideos?.();
       setCurrentLesson(lesson);
       setActiveTab(options.tab ?? "video");
@@ -97,7 +157,14 @@ export function useLessonNavigation({
         });
       }
     },
-    [setActiveTab, setCurrentLesson, trackUserAction, videoPlayerContext]
+    [
+      currentLesson?.lesson_id,
+      saveCurrentLessonVideoProgress,
+      setActiveTab,
+      setCurrentLesson,
+      trackUserAction,
+      videoPlayerContext,
+    ]
   );
 
   const openLessonById = useCallback(
@@ -137,12 +204,33 @@ export function useLessonNavigation({
         return;
       }
 
-      const currentActivities = lessonsActivities[currentLesson.lesson_id] || [];
-      const requiredActivities = currentActivities.filter(
-        (activity) => activity.is_required
+      const currentIndex = findOrderedLessonIndex(
+        orderedLessons,
+        currentLesson.lesson_id
       );
-      const pendingRequired = requiredActivities.filter(
-        (activity) => !activity.is_completed
+      const selectedIndex = findOrderedLessonIndex(
+        orderedLessons,
+        lesson.lesson_id
+      );
+
+      if (selectedIndex === -1 || selectedIndex <= currentIndex) {
+        openLesson(lesson);
+        return;
+      }
+
+      if (!isLessonVideoCompleted(currentLesson)) {
+        trackUserAction("attempted_lesson_change_before_video_completed", {
+          currentLessonId: currentLesson.lesson_id,
+          currentLessonTitle: currentLesson.lesson_title,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+        });
+        showIncompleteVideoModal();
+        return;
+      }
+
+      const pendingRequired = getPendingRequiredActivities(
+        lessonsActivities[currentLesson.lesson_id]
       );
 
       if (pendingRequired.length > 0) {
@@ -165,17 +253,10 @@ export function useLessonNavigation({
         });
       }
 
-      const currentIndex = findOrderedLessonIndex(
-        orderedLessons,
-        currentLesson.lesson_id
-      );
-      const selectedIndex = findOrderedLessonIndex(
-        orderedLessons,
-        lesson.lesson_id
-      );
-
-      if (selectedIndex === -1 || selectedIndex <= currentIndex) {
-        openLesson(lesson);
+      if (pendingRequired.length > 0) {
+        saveCurrentLessonVideoProgress(currentLesson.lesson_id);
+        setActiveTab("activities");
+        scrollToTop();
         return;
       }
 
@@ -229,6 +310,8 @@ export function useLessonNavigation({
       markLessonAsCompleted,
       openLesson,
       orderedLessons,
+      saveCurrentLessonVideoProgress,
+      showIncompleteVideoModal,
       trackUserAction,
     ]
   );
@@ -252,6 +335,36 @@ export function useLessonNavigation({
       return;
     }
 
+    if (!isLessonVideoCompleted(currentLesson)) {
+      trackUserAction("attempted_next_lesson_before_video_completed", {
+        currentLessonId: currentLesson.lesson_id,
+        currentLessonTitle: currentLesson.lesson_title,
+        targetLessonId: nextLesson.lesson_id,
+        targetLessonTitle: nextLesson.lesson_title,
+      });
+      showIncompleteVideoModal();
+      return;
+    }
+
+    const pendingRequired = getPendingRequiredActivities(
+      lessonsActivities[currentLesson.lesson_id]
+    );
+
+    if (pendingRequired.length > 0) {
+      trackUserAction("redirected_to_pending_activities", {
+        currentLessonId: currentLesson.lesson_id,
+        currentLessonTitle: currentLesson.lesson_title,
+        pendingActivities: pendingRequired.map(
+          (activity) => activity.activity_title
+        ),
+        pendingCount: pendingRequired.length,
+      });
+      saveCurrentLessonVideoProgress(currentLesson.lesson_id);
+      setActiveTab("activities");
+      scrollToTop();
+      return;
+    }
+
     const canComplete = await markLessonAsCompleted(currentLesson.lesson_id);
 
     if (canComplete) {
@@ -261,8 +374,13 @@ export function useLessonNavigation({
     cancelPendingValidation,
     currentLesson,
     getNextLesson,
+    lessonsActivities,
     markLessonAsCompleted,
     openLesson,
+    saveCurrentLessonVideoProgress,
+    setActiveTab,
+    showIncompleteVideoModal,
+    trackUserAction,
   ]);
 
   useEffect(() => {

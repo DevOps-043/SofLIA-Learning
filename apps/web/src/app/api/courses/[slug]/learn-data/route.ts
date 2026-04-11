@@ -14,6 +14,7 @@ export async function GET(
     const searchParams = new URL(request.url).searchParams
     const lessonId = searchParams.get('lessonId')
     const language = searchParams.get('language') || 'es'
+    const organizationId = searchParams.get('orgId')
     const supabase = await createClient()
     const currentUser = await SessionService.getCurrentUser()
 
@@ -23,6 +24,7 @@ export async function GET(
       lessonId,
       language,
       currentUser?.id,
+      organizationId,
     )
 
     return withCacheHeaders(

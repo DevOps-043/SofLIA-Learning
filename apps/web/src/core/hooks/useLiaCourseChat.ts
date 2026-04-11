@@ -1,29 +1,150 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { CourseLessonContext, SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
+import { useOrganizationStore } from '../stores/organizationStore';
+import { prepareLiaBugContext } from '../reporting/lia-chat-reporting';
+import type { LiaImageAttachment } from '../reporting/report-problem.contract';
 
 interface LiaCourseChatUserProfile {
   nombre?: string;
-  job_title?: string; // Cargo profesional real (viene de organization_users.job_title)
+  job_title?: string;
+  first_name?: string;
+}
+
+interface LiaChatResponsePayload {
+  conversationId?: string;
+  response?: string;
+  generatedNanoBanana?: SofLIAMessage['generatedNanoBanana'];
+  message?: {
+    content?: string;
+  };
 }
 
 export interface UseLiaCourseChatReturn {
   messages: SofLIAMessage[];
   isLoading: boolean;
   error: Error | null;
-  sendMessage: (message: string, courseContext?: CourseLessonContext, workshopContext?: CourseLessonContext, isSystemMessage?: boolean) => Promise<void>;
+  sendMessage: (
+    message: string,
+    courseContext?: CourseLessonContext,
+    workshopContext?: CourseLessonContext,
+    isSystemMessage?: boolean,
+    attachments?: LiaImageAttachment[]
+  ) => Promise<void>;
   stop: () => void;
   clearHistory: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
   currentConversationId: string | null;
 }
 
-export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseChatReturn {
+function buildCurrentLessonContext(
+  activeContext: CourseLessonContext | undefined,
+  activeTab: string | undefined,
+  fallbackCurrentPage: string | undefined
+) {
+  if (!activeContext) {
+    return undefined;
+  }
+
+  return {
+    contextType: activeContext.contextType,
+    courseId: activeContext.courseId,
+    courseSlug: activeContext.courseSlug,
+    courseTitle: activeContext.courseTitle,
+    courseDescription: activeContext.courseDescription,
+    userRole: activeContext.userRole,
+    moduleId: activeContext.moduleId,
+    moduleTitle: activeContext.moduleTitle,
+    lessonId: activeContext.lessonId,
+    lessonTitle: activeContext.lessonTitle,
+    transcript: activeContext.transcriptContent,
+    summary: activeContext.summaryContent,
+    description: activeContext.lessonDescription,
+    durationSeconds: activeContext.durationSeconds,
+    totalDurationMinutes: activeContext.totalDurationMinutes,
+    currentTab: activeTab,
+    currentPage: fallbackCurrentPage,
+    learningProgress: activeContext.learningProgressContext,
+    activities: activeContext.activitiesContext
+      ? {
+          totalActivities: activeContext.activitiesContext.totalActivities,
+          requiredActivities: activeContext.activitiesContext.requiredActivities,
+          completedActivities: activeContext.activitiesContext.completedActivities,
+          pendingRequiredCount:
+            activeContext.activitiesContext.pendingRequiredCount,
+          pendingRequiredTitles:
+            activeContext.activitiesContext.pendingRequiredTitles,
+          items: activeContext.activitiesContext.activityTypes,
+          currentActivityFocus:
+            activeContext.activitiesContext.currentActivityFocus || undefined,
+        }
+      : undefined,
+    materials: activeContext.materialsContext
+      ? {
+          totalMaterials: activeContext.materialsContext.totalMaterials,
+          requiredMaterials: activeContext.materialsContext.requiredMaterials,
+          items: activeContext.materialsContext.materialTypes,
+        }
+      : undefined,
+    quiz: activeContext.quizContext
+      ? {
+          hasRequiredQuizzes: activeContext.quizContext.hasRequiredQuizzes,
+          totalRequiredQuizzes:
+            activeContext.quizContext.totalRequiredQuizzes,
+          completedQuizzes: activeContext.quizContext.completedQuizzes,
+          passedQuizzes: activeContext.quizContext.passedQuizzes,
+          allQuizzesPassed: activeContext.quizContext.allQuizzesPassed,
+          quizzes: activeContext.quizContext.quizzes,
+        }
+      : undefined,
+    userBehaviorContext: activeContext.userBehaviorContext,
+    difficultyDetected: activeContext.difficultyDetected,
+  };
+}
+
+function buildCurrentActivityContext(activeContext: CourseLessonContext | undefined) {
+  const activityFocus = activeContext?.activitiesContext?.currentActivityFocus;
+
+  if (!activityFocus) {
+    return undefined;
+  }
+
+  return {
+    title: activityFocus.title,
+    type: activityFocus.type,
+    description: activityFocus.description,
+    prompts: activityFocus.prompts,
+  };
+}
+
+function normalizeCourseMessage(
+  message: string,
+  attachments: LiaImageAttachment[]
+): string {
+  const trimmedMessage = message.trim();
+
+  if (trimmedMessage) {
+    return trimmedMessage;
+  }
+
+  if (attachments.length > 0) {
+    return 'Quiero reportar un problema y adjunto una imagen como evidencia visual.';
+  }
+
+  return '';
+}
+
+export function useLiaCourseChat(
+  initialMessage?: string | null
+): UseLiaCourseChatReturn {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const currentOrganization = useOrganizationStore(
+    (state) => state.currentOrganization
+  );
   const userProfile = user as (typeof user & LiaCourseChatUserProfile) | null;
   const [messages, setMessages] = useState<SofLIAMessage[]>(
     initialMessage !== null && initialMessage !== undefined && initialMessage !== ''
@@ -32,178 +153,177 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
             id: 'initial',
             role: 'assistant',
             content: initialMessage,
-            timestamp: new Date()
-          }
+            timestamp: new Date(),
+          },
         ]
       : []
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
-  // ✅ ANALYTICS: Mantener conversationId en referencia para persistencia
+
   const conversationIdRef = useRef<string | null>(null);
-  
-  // ✅ CONTROLADOR DE ABORTO PARA DETENER GENERACIÓN
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // ✅ ACTIVIDADES: Tracking de tiempo de inicio de actividad
-  const activityStartTimeRef = useRef<number | null>(null);
+  const sendMessage = useCallback(
+    async (
+      message: string,
+      courseContext?: CourseLessonContext,
+      workshopContext?: CourseLessonContext,
+      isSystemMessage: boolean = false,
+      attachments: LiaImageAttachment[] = []
+    ) => {
+      const normalizedMessage = normalizeCourseMessage(message, attachments);
 
-  // ✅ ACTIVIDADES: Función para registrar actividad completada (Course Specific)
-  const registerCompletedActivity = useCallback(async (
-    activityType: string,
-    generatedOutput?: unknown
-  ) => {
-    if (!user) return;
-    
-    try {
-      const timeSpentSeconds = activityStartTimeRef.current 
-        ? Math.floor((Date.now() - activityStartTimeRef.current) / 1000)
-        : 0;
-      
-      await fetch('/api/lia/complete-activity', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          conversationId: conversationIdRef.current,
-          activityType,
-          generatedOutput,
-          timeSpentSeconds
-        }),
-      });
-
-      activityStartTimeRef.current = null;
-    } catch (error) {
-      console.error('[SofLIA Analytics] Error registrando actividad:', error);
-    }
-  }, [user]);
-
-  const sendMessage = useCallback(async (
-    message: string,
-    courseContext?: CourseLessonContext,
-    workshopContext?: CourseLessonContext,
-    isSystemMessage: boolean = false
-  ) => {
-    if (!message.trim() || isLoading) return;
-
-    if (!isSystemMessage) {
-      const userMessage: SofLIAMessage = {
-        id: Date.now().toString(),
-        role: 'user',
-        content: message.trim(),
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, userMessage]);
-    }
-
-    setIsLoading(true);
-    setError(null);
-    
-    // Crear y almacenar el controlador
-    if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-
-    // ✅ ACTIVIDADES: Iniciar tracking si es mensaje de usuario
-    if (!isSystemMessage && !activityStartTimeRef.current) {
-        activityStartTimeRef.current = Date.now();
-    }
-
-    const activeContext = courseContext || workshopContext;
-
-    try {
-      const response = await fetch('/api/lia/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            ...messages.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            })),
-            { role: 'user', content: message }
-          ],
-          context: {
-            userId: user?.id, // Permite al backend cargar perfil completo desde DB
-            userName: userProfile?.first_name || userProfile?.nombre,
-            userJobTitle: userProfile?.job_title, // Cargo profesional (de organization_users.job_title)
-            // Mapeo del contexto de lección usando activeContext
-            currentLessonContext: activeContext ? {
-              lessonId: activeContext.lessonId,
-              lessonTitle: activeContext.lessonTitle,
-              transcript: activeContext.transcriptContent,
-              summary: activeContext.summaryContent,
-              description: activeContext.lessonDescription
-            } : undefined,
-            // Mapeo del contexto de actividad usando activeContext
-            currentActivityContext: activeContext?.activitiesContext?.currentActivityFocus ? {
-              title: activeContext.activitiesContext.currentActivityFocus.title,
-              type: activeContext.activitiesContext.currentActivityFocus.type,
-              description: activeContext.activitiesContext.currentActivityFocus.description
-            } : undefined
-          },
-          stream: false // Usar modo JSON simple por compatibilidad con este hook
-        }),
-        signal: abortControllerRef.current.signal
-      });
-
-      if (!response.ok) {
-        throw new Error('Error en la comunicación con SofLIA');
+      if (!normalizedMessage || isLoading) {
+        return;
       }
 
-      const data = await response.json();
-      
-      // Actualizar ID de conversación si es nuevo (aunque este endpoint no siempre devuelve conversationId)
-      if (data.conversationId) {
-        conversationIdRef.current = data.conversationId;
-      }
-
-      // Soportar respuesta del nuevo endpoint (data.message.content) o fallback
-      const responseText = data.message?.content || data.response;
-
-      if (responseText) {
-        const assistantMessage: SofLIAMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: responseText,
+      if (!isSystemMessage) {
+        const userMessage: SofLIAMessage = {
+          id: Date.now().toString(),
+          role: 'user',
+          content: normalizedMessage,
           timestamp: new Date(),
-          generatedNanoBanana: data.generatedNanoBanana
+          attachments,
         };
 
-        setMessages(prev => [...prev, assistantMessage]);
+        setMessages((prev) => [...prev, userMessage]);
       }
-    } catch (err) {
-      if ((err as Error).name === 'AbortError') {
-         console.log('Generacion abortada por el usuario');
-         return; // No agregar msj de error si se aborta intencionalmente
+
+      setIsLoading(true);
+      setError(null);
+
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-      const errorMessage = err instanceof Error ? err : new Error('Error desconocido');
-      setError(errorMessage);
-      
-      const errorResponse: SofLIAMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, errorResponse]);
-    } finally {
-      setIsLoading(false);
-      abortControllerRef.current = null;
-    }
-  }, [isLoading, messages, user, language]);
+
+      abortControllerRef.current = new AbortController();
+
+      const activeContext = courseContext || workshopContext;
+      const fallbackCurrentPage =
+        activeContext?.currentPage ||
+        (typeof window !== 'undefined' ? window.location.pathname : undefined);
+      const activeTab =
+        activeContext?.currentTab ||
+        activeContext?.learningProgressContext?.currentTab;
+
+      try {
+        const {
+          isBugReport,
+          sessionSnapshot,
+          enrichedMetadata,
+          recordingStatus,
+        } = await prepareLiaBugContext(normalizedMessage, attachments.length > 0);
+
+        if (!conversationIdRef.current) {
+          conversationIdRef.current = crypto.randomUUID();
+        }
+
+        const response = await fetch('/api/lia/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            conversationId: conversationIdRef.current,
+            messages: [
+              ...messages.map((entry) => ({
+                role: entry.role,
+                content: entry.content,
+                attachments:
+                  entry.role === 'user' && entry.attachments?.length
+                    ? entry.attachments
+                    : undefined,
+              })),
+              {
+                role: 'user',
+                content: normalizedMessage,
+                attachments: attachments.length > 0 ? attachments : undefined,
+              },
+            ],
+            context: {
+              userId: user?.id,
+              userName: userProfile?.first_name || userProfile?.nombre,
+              userJobTitle: userProfile?.job_title,
+              organizationId: currentOrganization?.id,
+              currentPage: fallbackCurrentPage,
+              currentTab: activeTab,
+              pageType: activeContext
+                ? activeContext.contextType === 'workshop'
+                  ? 'workshop_lesson'
+                  : 'course_lesson'
+                : undefined,
+              currentLessonContext: buildCurrentLessonContext(
+                activeContext,
+                activeTab,
+                fallbackCurrentPage
+              ),
+              currentActivityContext:
+                buildCurrentActivityContext(activeContext),
+            },
+            sessionSnapshot,
+            enrichedMetadata,
+            isBugReport,
+            recordingStatus: isBugReport ? recordingStatus : undefined,
+            stream: false,
+          }),
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error('Error en la comunicación con SofLIA');
+        }
+
+        const data = (await response.json()) as LiaChatResponsePayload;
+
+        if (data.conversationId) {
+          conversationIdRef.current = data.conversationId;
+        }
+
+        const responseText = data.message?.content || data.response;
+
+        if (responseText) {
+          const assistantMessage: SofLIAMessage = {
+            id: (Date.now() + 1).toString(),
+            role: 'assistant',
+            content: responseText,
+            timestamp: new Date(),
+            generatedNanoBanana: data.generatedNanoBanana,
+          };
+
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
+      } catch (err) {
+        if ((err as Error).name === 'AbortError') {
+          console.log('Generación abortada por el usuario');
+          return;
+        }
+
+        const errorMessage =
+          err instanceof Error ? err : new Error('Error desconocido');
+        setError(errorMessage);
+
+        const errorResponse: SofLIAMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content:
+            'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
+          timestamp: new Date(),
+        };
+
+        setMessages((prev) => [...prev, errorResponse]);
+      } finally {
+        setIsLoading(false);
+        abortControllerRef.current = null;
+      }
+    },
+    [currentOrganization?.id, isLoading, messages, user, userProfile, language]
+  );
 
   const stop = useCallback(() => {
     if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-        abortControllerRef.current = null;
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
     }
     setIsLoading(false);
   }, []);
@@ -213,26 +333,40 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
     setError(null);
 
     try {
-      const response = await fetch(`/api/lia/conversations/${conversationId}/messages`);
-      
+      const response = await fetch(
+        `/api/lia/conversations/${conversationId}/messages`
+      );
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Error desconocido' }));
         throw new Error(errorData.error || 'Error cargando conversación');
       }
 
-      const data = await response.json();
-      
-      const formattedMessages: SofLIAMessage[] = (data.messages || []).map((msg: { id: string; role: string; content: string; timestamp: string }) => ({
-        id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        timestamp: new Date(msg.timestamp)
-      }));
+      const data = (await response.json()) as {
+        messages?: Array<{
+          id: string;
+          role: 'user' | 'assistant';
+          content: string;
+          timestamp: string;
+        }>;
+      };
+
+      const formattedMessages: SofLIAMessage[] = (data.messages || []).map(
+        (msg) => ({
+          id: msg.id,
+          role: msg.role,
+          content: msg.content,
+          timestamp: new Date(msg.timestamp),
+        })
+      );
 
       setMessages(formattedMessages);
       conversationIdRef.current = conversationId;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err : new Error('Error desconocido');
+      const errorMessage =
+        err instanceof Error ? err : new Error('Error desconocido');
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -249,25 +383,30 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
           },
           body: JSON.stringify({
             conversationId: conversationIdRef.current,
-            completed: true
+            completed: true,
           }),
         });
-      } catch (error) {
-        console.error('[SofLIA Analytics] Error cerrando conversación:', error);
+      } catch (closeError) {
+        console.error(
+          '[SofLIA Analytics] Error cerrando conversación:',
+          closeError
+        );
       }
-      
+
       conversationIdRef.current = null;
     }
-    
+
     setMessages(
-      initialMessage !== null && initialMessage !== undefined && initialMessage !== ''
+      initialMessage !== null &&
+        initialMessage !== undefined &&
+        initialMessage !== ''
         ? [
             {
               id: 'initial',
               role: 'assistant',
               content: initialMessage,
-              timestamp: new Date()
-            }
+              timestamp: new Date(),
+            },
           ]
         : []
     );
@@ -279,9 +418,9 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
       if (conversationIdRef.current && user) {
         const data = JSON.stringify({
           conversationId: conversationIdRef.current,
-          completed: false
+          completed: false,
         });
-        
+
         if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
           navigator.sendBeacon('/api/lia/end-conversation', data);
         }
@@ -289,7 +428,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
     };
   }, [user]);
 
-  return useMemo(() => ({
+  return {
     messages,
     isLoading,
     error,
@@ -298,5 +437,5 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
     clearHistory,
     loadConversation,
     currentConversationId: conversationIdRef.current,
-  }), [messages, isLoading, error, sendMessage, stop, clearHistory, loadConversation]);
+  };
 }

@@ -1,5 +1,10 @@
 import { createClient } from '../../../lib/supabase/server'
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+
+const NOTE_SELECT_COLUMNS =
+  'note_id, note_title, note_content, note_tags, is_auto_generated, source_type, created_at, updated_at, user_id, lesson_id'
+
 export interface LessonNote {
   note_id: string
   note_title: string
@@ -26,17 +31,58 @@ export interface UpdateNoteInput {
   note_tags?: string[]
 }
 
+export interface CourseNotesStats {
+  totalNotes: number
+  lessonsWithNotes: number
+  totalLessons: number
+  lastUpdate: string | null
+}
+
 export class NoteService {
+  private static async getCourseLessonIds(
+    supabase: SupabaseServerClient,
+    courseId: string,
+  ): Promise<string[]> {
+    const { data: modules, error: modulesError } = await supabase
+      .from('course_modules')
+      .select('module_id')
+      .eq('course_id', courseId)
+
+    if (modulesError) {
+      throw new Error(`Error al obtener módulos: ${modulesError.message}`)
+    }
+
+    const moduleIds = modules?.map((module) => module.module_id) || []
+
+    if (moduleIds.length === 0) {
+      return []
+    }
+
+    const { data: lessons, error: lessonsError } = await supabase
+      .from('course_lessons')
+      .select('lesson_id')
+      .in('module_id', moduleIds)
+
+    if (lessonsError) {
+      throw new Error(`Error al obtener lecciones: ${lessonsError.message}`)
+    }
+
+    return lessons?.map((lesson) => lesson.lesson_id) || []
+  }
+
   /**
-   * Obtiene todas las notas de un usuario para una lección específica
+   * Obtiene todas las notas de un usuario para una lección específica.
    */
-  static async getNotesByLesson(userId: string, lessonId: string): Promise<LessonNote[]> {
+  static async getNotesByLesson(
+    userId: string,
+    lessonId: string,
+  ): Promise<LessonNote[]> {
     try {
       const supabase = await createClient()
-      
+
       const { data, error } = await supabase
         .from('user_lesson_notes')
-        .select('note_id, note_title, note_content, note_tags, is_auto_generated, source_type, created_at, updated_at, user_id, lesson_id')
+        .select(NOTE_SELECT_COLUMNS)
         .eq('user_id', userId)
         .eq('lesson_id', lessonId)
         .order('updated_at', { ascending: false })
@@ -54,48 +100,31 @@ export class NoteService {
   }
 
   /**
-   * Obtiene todas las notas de un usuario para un curso (todas las lecciones)
+   * Obtiene todas las notas de un usuario para un curso.
    */
-  static async getNotesByCourse(userId: string, courseId: string): Promise<LessonNote[]> {
+  static async getNotesByCourse(
+    userId: string,
+    courseId: string,
+  ): Promise<LessonNote[]> {
+    const supabase = await createClient()
+    return this.getNotesByCourseWithClient(supabase, userId, courseId)
+  }
+
+  static async getNotesByCourseWithClient(
+    supabase: SupabaseServerClient,
+    userId: string,
+    courseId: string,
+  ): Promise<LessonNote[]> {
     try {
-      const supabase = await createClient()
-      
-      // Primero obtener todas las lecciones del curso
-      const { data: modules, error: modulesError } = await supabase
-        .from('course_modules')
-        .select('module_id')
-        .eq('course_id', courseId)
-
-      if (modulesError) {
-        throw new Error(`Error al obtener módulos: ${modulesError.message}`)
-      }
-
-      const moduleIds = modules?.map(m => m.module_id) || []
-
-      if (moduleIds.length === 0) {
-        return []
-      }
-
-      // Obtener todas las lecciones de esos módulos
-      const { data: lessons, error: lessonsError } = await supabase
-        .from('course_lessons')
-        .select('lesson_id')
-        .in('module_id', moduleIds)
-
-      if (lessonsError) {
-        throw new Error(`Error al obtener lecciones: ${lessonsError.message}`)
-      }
-
-      const lessonIds = lessons?.map(l => l.lesson_id) || []
+      const lessonIds = await this.getCourseLessonIds(supabase, courseId)
 
       if (lessonIds.length === 0) {
         return []
       }
 
-      // Obtener todas las notas de esas lecciones
       const { data, error } = await supabase
         .from('user_lesson_notes')
-        .select('note_id, note_title, note_content, note_tags, is_auto_generated, source_type, created_at, updated_at, user_id, lesson_id')
+        .select(NOTE_SELECT_COLUMNS)
         .eq('user_id', userId)
         .in('lesson_id', lessonIds)
         .order('updated_at', { ascending: false })
@@ -113,16 +142,16 @@ export class NoteService {
   }
 
   /**
-   * Crea una nueva nota
+   * Crea una nueva nota.
    */
   static async createNote(
     userId: string,
     lessonId: string,
-    noteData: CreateNoteInput
+    noteData: CreateNoteInput,
   ): Promise<LessonNote> {
     try {
       const supabase = await createClient()
-      
+
       const { data, error } = await supabase
         .from('user_lesson_notes')
         .insert({
@@ -132,7 +161,7 @@ export class NoteService {
           note_content: noteData.note_content,
           note_tags: noteData.note_tags || [],
           source_type: noteData.source_type || 'manual',
-          is_auto_generated: false
+          is_auto_generated: false,
         })
         .select()
         .single()
@@ -148,18 +177,18 @@ export class NoteService {
   }
 
   /**
-   * Actualiza una nota existente
+   * Actualiza una nota existente.
    */
   static async updateNote(
     userId: string,
     noteId: string,
-    noteData: UpdateNoteInput
+    noteData: UpdateNoteInput,
   ): Promise<LessonNote> {
     try {
       const supabase = await createClient()
-      
+
       const updateData: Record<string, unknown> = {
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       }
 
       if (noteData.note_title !== undefined) {
@@ -176,7 +205,7 @@ export class NoteService {
         .from('user_lesson_notes')
         .update(updateData)
         .eq('note_id', noteId)
-        .eq('user_id', userId) // Asegurar que solo el dueño puede actualizar
+        .eq('user_id', userId)
         .select()
         .single()
 
@@ -191,17 +220,17 @@ export class NoteService {
   }
 
   /**
-   * Elimina una nota
+   * Elimina una nota.
    */
   static async deleteNote(userId: string, noteId: string): Promise<void> {
     try {
       const supabase = await createClient()
-      
+
       const { error } = await supabase
         .from('user_lesson_notes')
         .delete()
         .eq('note_id', noteId)
-        .eq('user_id', userId) // Asegurar que solo el dueño puede eliminar
+        .eq('user_id', userId)
 
       if (error) {
         throw new Error(`Error al eliminar nota: ${error.message}`)
@@ -212,43 +241,34 @@ export class NoteService {
   }
 
   /**
-   * Obtiene estadísticas de notas para un curso
+   * Obtiene estadísticas de notas para un curso.
    */
-  static async getNotesStats(userId: string, courseId: string): Promise<{
-    totalNotes: number
-    lessonsWithNotes: number
-    totalLessons: number
-    lastUpdate: string | null
-  }> {
+  static async getNotesStats(
+    userId: string,
+    courseId: string,
+  ): Promise<CourseNotesStats> {
+    const supabase = await createClient()
+    return this.getNotesStatsWithClient(supabase, userId, courseId)
+  }
+
+  static async getNotesStatsWithClient(
+    supabase: SupabaseServerClient,
+    userId: string,
+    courseId: string,
+  ): Promise<CourseNotesStats> {
     try {
-      const supabase = await createClient()
-
-      // Fetch modules, then notes + lesson count in parallel
-      const { data: modules } = await supabase
-        .from('course_modules')
-        .select('module_id')
-        .eq('course_id', courseId)
-
-      const moduleIds = modules?.map(m => m.module_id) || []
-
-      if (moduleIds.length === 0) {
-        return { totalNotes: 0, lessonsWithNotes: 0, totalLessons: 0, lastUpdate: null }
-      }
-
-      // Get lesson IDs first (needed to scope notes query)
-      const { data: lessons } = await supabase
-        .from('course_lessons')
-        .select('lesson_id')
-        .in('module_id', moduleIds)
-
-      const lessonIds = lessons?.map(l => l.lesson_id) || []
+      const lessonIds = await this.getCourseLessonIds(supabase, courseId)
       const totalLessons = lessonIds.length
 
       if (lessonIds.length === 0) {
-        return { totalNotes: 0, lessonsWithNotes: 0, totalLessons, lastUpdate: null }
+        return {
+          totalNotes: 0,
+          lessonsWithNotes: 0,
+          totalLessons,
+          lastUpdate: null,
+        }
       }
 
-      // Get notes count and latest update using DB-level count
       const [countResult, latestResult] = await Promise.all([
         supabase
           .from('user_lesson_notes')
@@ -266,18 +286,19 @@ export class NoteService {
       ])
 
       const noteRows = countResult.data || []
-      const uniqueLessonIds = new Set(noteRows.map(n => n.lesson_id))
+      const uniqueLessonIds = new Set(
+        noteRows.map((noteRow) => noteRow.lesson_id),
+      )
       const lastUpdate = latestResult.data?.[0]?.updated_at || null
 
       return {
         totalNotes: noteRows.length,
         lessonsWithNotes: uniqueLessonIds.size,
         totalLessons,
-        lastUpdate
+        lastUpdate,
       }
     } catch (error) {
       throw error
     }
   }
 }
-

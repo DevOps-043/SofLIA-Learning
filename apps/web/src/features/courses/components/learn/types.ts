@@ -12,6 +12,7 @@ export type LearnLesson = {
   lesson_description?: string;
   lesson_order_index?: number;
   duration_seconds?: number;
+  total_duration_minutes?: number;
   is_completed?: boolean;
   progress_percentage?: number;
   video_provider_id?: string;
@@ -114,8 +115,6 @@ export type LearnColors = {
 
 export type LearnTab =
   | "video"
-  | "transcript"
-  | "summary"
   | "activities"
   | "questions";
 
@@ -158,12 +157,14 @@ export type LearnActivitySummary = {
 export type LearnMaterialSummary = {
   material_id: string;
   material_title: string;
+  material_description?: string;
   material_type: string;
   is_required?: boolean;
 };
 
 export type LearnEditableNote = {
   id: string;
+  lessonId?: string;
   title: string;
   content: string;
   tags: string[];
@@ -175,6 +176,7 @@ export type LearnSavedNote = {
   content: string;
   timestamp: string;
   lessonId: string;
+  lessonTitle?: string;
   fullContent?: string;
   tags?: string[];
 };

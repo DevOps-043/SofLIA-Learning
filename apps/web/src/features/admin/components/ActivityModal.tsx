@@ -37,7 +37,7 @@ interface ActivityFormState {
   activity_type: ActivityType
   activity_content: string
   ai_prompts: string
-  estimated_time_minutes: number
+  estimated_time_minutes: number | ''
   is_required: boolean
   requires_soflia_validation: boolean
 }
@@ -169,7 +169,7 @@ export function ActivityModal({
       activity_type: activity.activity_type,
       activity_content: activity.activity_content,
       ai_prompts: activity.ai_prompts || '',
-      estimated_time_minutes: activity.estimated_time_minutes || 5,
+      estimated_time_minutes: activity.estimated_time_minutes ?? '',
       is_required: activity.is_required,
       requires_soflia_validation: activity.requires_soflia_validation,
     })
@@ -229,7 +229,9 @@ export function ActivityModal({
 
     try {
       if (!form.activity_title.trim()) throw new Error('El titulo es obligatorio.')
-      if (form.estimated_time_minutes < 1) throw new Error('El tiempo estimado debe ser mayor a 0.')
+      if (form.estimated_time_minutes === '' || form.estimated_time_minutes < 1) {
+        throw new Error('El tiempo estimado debe ser mayor a 0.')
+      }
       if (form.activity_type !== 'quiz' && !form.activity_content.trim()) {
         throw new Error('El contenido de la actividad es obligatorio.')
       }
@@ -240,7 +242,7 @@ export function ActivityModal({
         activity_type: form.activity_type,
         activity_content: form.activity_content,
         ai_prompts: form.ai_prompts,
-        estimated_time_minutes: form.estimated_time_minutes,
+        estimated_time_minutes: Number(form.estimated_time_minutes),
         is_required: form.is_required,
         requires_soflia_validation: false,
         activity_schema_version: 1,
@@ -426,11 +428,19 @@ export function ActivityModal({
                     onChange={(event) =>
                       setForm((current) => ({
                         ...current,
-                        estimated_time_minutes: Number(event.target.value) || 1,
+                        estimated_time_minutes:
+                          event.target.value.trim() === ''
+                            ? ''
+                            : Number(event.target.value),
                       }))
                     }
                     className="w-full rounded-xl border border-[#D0D7DE] px-4 py-2.5 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
                   />
+                  {form.estimated_time_minutes === '' ? (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      Esta actividad aun no tiene un tiempo guardado en la base de datos.
+                    </p>
+                  ) : null}
                 </label>
                 <label className="flex items-start gap-3 rounded-xl border border-[#D0D7DE] p-4 text-sm dark:border-[#6C757D]/30 md:col-span-2">
                   <input

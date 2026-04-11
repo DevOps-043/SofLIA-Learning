@@ -1,15 +1,22 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Square, Trash2, Copy, StickyNote } from 'lucide-react';
+import { X, Send, Square, Trash2, Copy, StickyNote, Check, Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '../../auth/hooks/useAuth';
+import { TourRestartButton } from '../../../core/components/tours/TourRestartButton';
+import { SHARED_TOUR_TARGET_IDS } from '../../../core/constants/tourTargets';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useLiaCourse } from '../context/LiaCourseContext';
 import { useLiaCourseChat } from '../../../core/hooks/useLiaCourseChat';
 import type { CourseLessonContext } from '../../../core/types/lia.types';
+import type { LiaImageAttachment } from '../../../core/reporting/report-problem.contract';
+import {
+  REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES,
+} from '../../../core/reporting/report-problem.contract';
+import { buildLiaImageAttachment } from '../../../core/reporting/report-problem.client';
+import { copyTextToClipboard } from '../../../lib/clipboard';
 
 // Tipos necesarios
 interface CourseLiaProps {
@@ -19,6 +26,7 @@ interface CourseLiaProps {
   transcriptContent?: string | null;
   summaryContent?: string | null;
   lessonContent?: string | null;
+  lessonContext?: CourseLessonContext;
   customColors?: {
     panelBg?: string;
     borderColor?: string;
@@ -31,10 +39,12 @@ interface CourseLiaProps {
 
 
 const PANEL_WIDTH = 420;
+const COURSE_LIA_BUTTON_BOTTOM_PX = 24;
+const COURSE_LIA_BUTTON_RIGHT_PX = 24;
+const COURSE_LIA_BUTTON_SIZE_PX = 60;
 const NAVBAR_HEIGHT = 58; // Ajuste final milimétrico para cubrir totalmente el borde
 const MOBILE_BOTTOM_NAV_HEIGHT = 104; // Altura de la barra de navegación inferior móvil (70px base + safe-area)
 
-// Función helper para markdown
 function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, isDarkMode: boolean = true): React.ReactNode {
   let keyIndex = 0;
   let processedText = text.replace(/^\*\s+/gm, '- ');
@@ -97,58 +107,132 @@ function CourseLiaFloatingButton() {
   const { isOpen, toggleLia } = useLiaCourse();
   
   return (
-    <AnimatePresence>
-      {!isOpen && (
-        <motion.button
-          id="tour-lia-course-button"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={toggleLia}
-          className="hidden md:flex" // Oculto en móviles, visible en md+
-          style={{
-            position: 'fixed',
-            bottom: '24px',
-            right: '24px',
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            background: '#1E2329', // Fondo oscuro por si la imagen carga lento
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-            border: '2px solid rgba(255,255,255,0.1)',
-            cursor: 'pointer',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9998,
-            padding: 0,
-            overflow: 'hidden'
-          }}
-          aria-label="Abrir asistente SofLIA"
-        >
-          <img
-            src="/lia-avatar.png"
-            alt="SofLIA"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+    <>
+      {!isOpen ? (
+        <div className="hidden md:block">
+          <TourRestartButton
+            anchor={{
+              bottom: COURSE_LIA_BUTTON_BOTTOM_PX,
+              right: COURSE_LIA_BUTTON_RIGHT_PX,
+              size: COURSE_LIA_BUTTON_SIZE_PX,
+            }}
           />
-        </motion.button>
-      )}
-    </AnimatePresence>
+        </div>
+      ) : null}
+
+      <AnimatePresence>
+        {!isOpen && (
+          <div
+            id={SHARED_TOUR_TARGET_IDS.liaTrigger}
+            data-tour="lia-button"
+            className="hidden md:block"
+            style={{
+              position: 'fixed',
+              bottom: `${COURSE_LIA_BUTTON_BOTTOM_PX}px`,
+              right: `${COURSE_LIA_BUTTON_RIGHT_PX}px`,
+              width: `${COURSE_LIA_BUTTON_SIZE_PX}px`,
+              height: `${COURSE_LIA_BUTTON_SIZE_PX}px`,
+              zIndex: 9998,
+              background: 'rgba(0,0,0,0.01)',
+              borderRadius: '50%',
+            }}
+          >
+            <motion.button
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleLia}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                background: '#1E2329',
+                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+                border: '2px solid rgba(255,255,255,0.1)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+                overflow: 'hidden',
+              }}
+              aria-label="Abrir asistente SofLIA"
+            >
+              <img
+                src="/lia-avatar.png"
+                alt="SofLIA"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            </motion.button>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
 // Panel Principal
-function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors, transcriptContent, summaryContent, lessonContent, onSaveNote }: CourseLiaProps) {
-  const { isOpen, closeLia, currentActivity, registerLiaChat } = useLiaCourse();
+function CourseLiaPanelContent({
+  lessonId,
+  lessonTitle,
+  courseSlug,
+  customColors,
+  transcriptContent,
+  summaryContent,
+  lessonContent,
+  lessonContext,
+  onSaveNote,
+}: CourseLiaProps) {
+  const {
+    isOpen,
+    closeLia,
+    currentActivity,
+    registerLiaChat,
+    setCourseContext,
+  } = useLiaCourse();
   const prevActivityTriggerRef = useRef<number | null>(null);
-  const { user } = useAuth();
   const router = useRouter();
   const { resolvedTheme } = useThemeStore();
   const isDarkMode = resolvedTheme === 'dark';
   const isLightTheme = !isDarkMode;
-  
+  const resolvedLessonContext = useMemo<CourseLessonContext | undefined>(() => {
+    const hasLegacyContext = Boolean(
+      lessonId ||
+        lessonTitle ||
+        courseSlug ||
+        transcriptContent ||
+        summaryContent ||
+        lessonContent,
+    );
+
+    if (!lessonContext && !hasLegacyContext) {
+      return undefined;
+    }
+
+    return {
+      ...lessonContext,
+      lessonId: lessonContext?.lessonId ?? lessonId,
+      lessonTitle: lessonContext?.lessonTitle ?? lessonTitle,
+      courseSlug: lessonContext?.courseSlug ?? courseSlug,
+      transcriptContent:
+        lessonContext?.transcriptContent ?? transcriptContent ?? undefined,
+      summaryContent:
+        lessonContext?.summaryContent ?? summaryContent ?? undefined,
+      lessonDescription:
+        lessonContext?.lessonDescription ?? lessonContent ?? undefined,
+    };
+  }, [
+    courseSlug,
+    lessonContent,
+    lessonContext,
+    lessonId,
+    lessonTitle,
+    summaryContent,
+    transcriptContent,
+  ]);
   // Detectar si es móvil para ajustar el layout
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -187,12 +271,21 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
     registerLiaChat(liaChat);
     return () => registerLiaChat(null);
   }, [liaChat, registerLiaChat]);
+
+  useEffect(() => {
+    setCourseContext(resolvedLessonContext || null);
+    return () => setCourseContext(null);
+  }, [resolvedLessonContext, setCourseContext]);
   
   const [inputValue, setInputValue] = useState('');
+  const [selectedAttachment, setSelectedAttachment] = useState<LiaImageAttachment | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [forceDarkText, setForceDarkText] = useState(false);
 
   useEffect(() => {
@@ -236,6 +329,24 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    return () => {
+      if (copyFeedbackTimeoutRef.current !== null) {
+        clearTimeout(copyFeedbackTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedAttachment(null);
+      setAttachmentError(null);
+      if (attachmentInputRef.current) {
+        attachmentInputRef.current.value = '';
+      }
+    }
+  }, [isOpen]);
+
   // 🚀 EFECTO: Detectar inicio de actividad y detonar bienvenida de LIA
   useEffect(() => {
     // Usamos el timestamp para arrancar siempre que se invoque, sin importar que sea la misma de antes.
@@ -247,18 +358,27 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
          // Borramos el historial primero para tener la conversacion limpia (la previa se persiste implícitamente por el hook base / backend en background)
          clearHistory();
 
-         const context = {
-            lessonId,
-            lessonTitle,
-            courseId: courseSlug,
-            transcriptContent: transcriptContent || '',
-            summaryContent: summaryContent || '',
-            lessonContent: lessonContent || '',
+         const baseActivitiesContext = resolvedLessonContext?.activitiesContext;
+         const context: CourseLessonContext = {
+            ...resolvedLessonContext,
             activitiesContext: {
+                totalActivities: baseActivitiesContext?.totalActivities ?? 0,
+                requiredActivities: baseActivitiesContext?.requiredActivities ?? 0,
+                completedActivities: baseActivitiesContext?.completedActivities ?? 0,
+                pendingRequiredCount: baseActivitiesContext?.pendingRequiredCount ?? 0,
+                pendingRequiredTitles: baseActivitiesContext?.pendingRequiredTitles,
+                activityTypes: baseActivitiesContext?.activityTypes,
                 currentActivityFocus: {
                     title: currentActivity.title,
                     type: currentActivity.type,
-                    description: currentActivity.description
+                    isRequired:
+                      baseActivitiesContext?.currentActivityFocus?.isRequired ??
+                      false,
+                    isCompleted:
+                      baseActivitiesContext?.currentActivityFocus?.isCompleted ??
+                      false,
+                    description: currentActivity.description || currentActivity.title,
+                    prompts: currentActivity.prompts,
                 }
             }
          };
@@ -275,30 +395,78 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
          3. Haz la primera pregunta o da la primera instrucción para empezar.
          NO esperes a que el usuario hable. TOMA LA INICIATIVA AHORA.`;
 
-         await sendMessage(systemTrigger, context as CourseLessonContext, undefined, true);
+         await sendMessage(systemTrigger, context, undefined, true);
       };
 
       triggerWelcomeByActivity();
     }
-  }, [isOpen, currentActivity, sendMessage, lessonId, lessonTitle, courseSlug, transcriptContent, summaryContent, lessonContent]);
+  }, [isOpen, currentActivity, resolvedLessonContext, sendMessage]);
+
+  const handleAttachmentSelect = useCallback(async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      setAttachmentError('Solo puedes adjuntar imágenes.');
+      event.target.value = '';
+      return;
+    }
+
+    if (file.size > REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES) {
+      setAttachmentError('La imagen es demasiado grande. Máximo 10MB.');
+      event.target.value = '';
+      return;
+    }
+
+    try {
+      const attachment = await buildLiaImageAttachment(file);
+      setSelectedAttachment(attachment);
+      setAttachmentError(null);
+    } catch (error) {
+      setAttachmentError(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo procesar la imagen seleccionada.'
+      );
+    } finally {
+      event.target.value = '';
+    }
+  }, []);
+
+  const handleRemoveAttachment = useCallback(() => {
+    setSelectedAttachment(null);
+    setAttachmentError(null);
+    if (attachmentInputRef.current) {
+      attachmentInputRef.current.value = '';
+    }
+  }, []);
+
+  const handleAttachmentButtonClick = useCallback(() => {
+    attachmentInputRef.current?.click();
+  }, []);
 
   const handleSendMessage = useCallback(async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if ((!inputValue.trim() && !selectedAttachment) || isLoading) return;
     const message = inputValue.trim();
     setInputValue('');
+    const attachmentToSend = selectedAttachment;
+    setSelectedAttachment(null);
+    setAttachmentError(null);
     
     // Construir contexto del curso
-    const courseContext = {
-      lessonId,
-      lessonTitle,
-      courseSlug,
-      transcript: transcriptContent,
-      summary: summaryContent,
-      content: lessonContent
-    };
-
-    await sendMessage(message, courseContext);
-  }, [inputValue, isLoading, sendMessage, lessonId, lessonTitle, courseSlug, transcriptContent, summaryContent, lessonContent]);
+    await sendMessage(
+      message,
+      resolvedLessonContext,
+      undefined,
+      false,
+      attachmentToSend ? [attachmentToSend] : []
+    );
+  }, [inputValue, isLoading, resolvedLessonContext, selectedAttachment, sendMessage]);
 
   const handlePrimaryAction = useCallback(() => {
     if (isLoading) {
@@ -316,6 +484,24 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
     }
   };
 
+  const handleCopyMessage = useCallback(async (messageId: string, content: string) => {
+    const wasCopied = await copyTextToClipboard(content);
+
+    if (!wasCopied) {
+      alert('No se pudo copiar el mensaje');
+      return;
+    }
+
+    if (copyFeedbackTimeoutRef.current !== null) {
+      clearTimeout(copyFeedbackTimeoutRef.current);
+    }
+
+    setCopiedMessageId(messageId);
+    copyFeedbackTimeoutRef.current = setTimeout(() => {
+      setCopiedMessageId(null);
+    }, 2000);
+  }, []);
+
   // Calcular dimensiones responsive
   const panelWidth = isMobile ? '100%' : `${PANEL_WIDTH}px`;
   const panelHeight = isMobile 
@@ -324,6 +510,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
   const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
   const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };
   const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
+  const canSendMessage = Boolean(isLoading || inputValue.trim() || selectedAttachment);
 
   return (
     <AnimatePresence>
@@ -334,7 +521,6 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
           animate={animationAnimate}
           exit={animationExit}
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-          id="tour-lia-panel"
           style={{
             position: 'fixed',
             top: `${NAVBAR_HEIGHT}px`,
@@ -375,7 +561,6 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
               >
                 <Trash2 style={{ width: '18px', height: '18px' }} color={isLightTheme ? '#ef4444' : '#f87171'} />
               </button>
-              
               <button onClick={closeLia} style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X style={{ width: '18px', height: '18px' }} color={isLightTheme ? '#1E293B' : themeColors.textSecondary} />
               </button>
@@ -390,14 +575,42 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                   <p className={message.role === 'user' ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>
                     {message.role === 'assistant' ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode) : message.content}
                   </p>
+                  {message.attachments?.length ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                      {message.attachments.map((attachment, attachmentIndex) => (
+                        <img
+                          key={`${message.id}-attachment-${attachmentIndex}`}
+                          src={attachment.dataUrl}
+                          alt={attachment.fileName}
+                          style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                   {message.role === 'assistant' && (
                     <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end', opacity: 0.7 }}>
                       <button 
-                        onClick={() => navigator.clipboard.writeText(message.content)}
-                        title="Copiar texto"
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
+                        onClick={() => void handleCopyMessage(message.id, message.content)}
+                        title={copiedMessageId === message.id ? 'Texto copiado' : 'Copiar texto'}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          color: copiedMessageId === message.id
+                            ? themeColors.accentColor
+                            : isLightTheme
+                            ? '#64748B'
+                            : themeColors.textSecondary
+                        }}
                       >
-                         <Copy style={{ width: '14px', height: '14px' }} />
+                        {copiedMessageId === message.id ? (
+                          <Check style={{ width: '14px', height: '14px' }} />
+                        ) : (
+                          <Copy style={{ width: '14px', height: '14px' }} />
+                        )}
                       </button>
                       {onSaveNote && (
                         <button 
@@ -452,21 +665,62 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
 
           {/* Input */}
           <div style={{ padding: '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>
+            <input
+              ref={attachmentInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(event) => void handleAttachmentSelect(event)}
+              style={{ display: 'none' }}
+            />
+            {selectedAttachment ? (
+              <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '16px', backgroundColor: isLightTheme ? '#F8FAFC' : 'rgba(255,255,255,0.04)', border: `1px solid ${themeColors.borderColor}`, display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <img
+                  src={selectedAttachment.dataUrl}
+                  alt={selectedAttachment.fileName}
+                  style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, color: themeColors.textPrimary, fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {selectedAttachment.fileName}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRemoveAttachment}
+                  style={{ width: '30px', height: '30px', borderRadius: '999px', border: 'none', background: isLightTheme ? '#E2E8F0' : '#1F2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightTheme ? '#475569' : '#CBD5E1' }}
+                >
+                  <X style={{ width: '14px', height: '14px' }} />
+                </button>
+              </div>
+            ) : null}
+            {attachmentError ? (
+              <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '12px', backgroundColor: 'rgba(239,68,68,0.12)', color: isLightTheme ? '#B91C1C' : '#FCA5A5', fontSize: '12px', border: '1px solid rgba(239,68,68,0.2)' }}>
+                {attachmentError}
+              </div>
+            ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: themeColors.inputBg, borderRadius: '24px', padding: '10px 16px', border: `1px solid ${themeColors.inputBorder}` }}>
+               <button
+                 type="button"
+                 onClick={handleAttachmentButtonClick}
+                 title="Adjuntar imagen"
+                 style={{ width: '36px', height: '36px', borderRadius: '999px', border: 'none', backgroundColor: selectedAttachment ? 'rgba(0,212,179,0.12)' : 'transparent', color: selectedAttachment ? themeColors.accentColor : themeColors.textSecondary, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+               >
+                 <Paperclip style={{ width: '16px', height: '16px' }} />
+               </button>
                <input
                  ref={inputRef}
                  type="text"
                  value={inputValue}
                  onChange={(e) => setInputValue(e.target.value)}
                  onKeyDown={handleKeyDown}
-                 placeholder="Pregunta sobre la lección..."
+                 placeholder={'Pregunta sobre la lección...'}
                  style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px' }}
                  id="lia-course-chat-input"
                  className="lia-input-reset lia-chat-input"
                />
                <button 
                  onClick={handlePrimaryAction}
-                 disabled={!isLoading && !inputValue.trim()}
+                 disabled={!canSendMessage}
                  title={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
                  aria-label={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
                  style={{ 
@@ -476,9 +730,9 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                    borderRadius: isLoading ? '16px' : '50%', 
                    backgroundColor: isLoading
                      ? (isLightTheme ? '#DC2626' : '#EF4444')
-                     : inputValue.trim() ? themeColors.primaryAction : (isLightTheme ? '#CBD5E1' : '#374151'), 
+                     : canSendMessage ? themeColors.primaryAction : (isLightTheme ? '#CBD5E1' : '#374151'), 
                    border: 'none', 
-                   cursor: isLoading || inputValue.trim() ? 'pointer' : 'not-allowed', 
+                   cursor: canSendMessage ? 'pointer' : 'not-allowed', 
                    display: 'flex', 
                    alignItems: 'center', 
                    justifyContent: 'center',
@@ -497,7 +751,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                    <Send style={{ 
                      width: '16px', 
                      height: '16px', 
-                     color: inputValue.trim()
+                     color: canSendMessage
                        ? (isLightTheme ? '#FFFFFF' : '#0A2540') 
                        : (isLightTheme ? '#6B7280' : '#4B5563')
                    }} />
@@ -526,12 +780,6 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
               -webkit-text-fill-color: ${isLightTheme ? '#64748B' : themeColors.textSecondary} !important;
             }
 
-            /* Eliminar borde blanco superior del panel */
-            #tour-lia-panel {
-              border-top: 0 !important;
-              border-top-width: 0 !important;
-            }
-            
             /* Header de LIA */
             .lia-header-title {
               color: ${isLightTheme ? '#1E293B' : themeColors.textPrimary} !important;

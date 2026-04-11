@@ -1,46 +1,48 @@
 import { createClient } from '../../../lib/supabase/server'
+import type { Json } from '../../../lib/supabase/types'
+import type { ReportProblemMetadata } from '../../../core/reporting/report-problem.contract'
 
 export interface AdminReporte {
   id: string
   user_id: string
   titulo: string
   descripcion: string
-  categoria: 'bug' | 'sugerencia' | 'contenido' | 'performance' | 'ui-ux' | 'otro'
-  prioridad: 'baja' | 'media' | 'alta' | 'critica'
+  categoria: string
+  prioridad?: string | null
   pagina_url: string
-  pathname?: string
-  user_agent?: string
-  screen_resolution?: string
-  navegador?: string
-  screenshot_url?: string
-  pasos_reproducir?: string
-  comportamiento_esperado?: string
-  estado: 'pendiente' | 'en_revision' | 'en_progreso' | 'resuelto' | 'rechazado' | 'duplicado'
-  admin_asignado?: string
-  notas_admin?: string
-  created_at: string
-  updated_at: string
-  resuelto_at?: string
-  metadata?: Record<string, unknown>
+  pathname?: string | null
+  user_agent?: string | null
+  screen_resolution?: string | null
+  navegador?: string | null
+  screenshot_url?: string | null
+  pasos_reproducir?: string | null
+  comportamiento_esperado?: string | null
+  estado: string | null
+  admin_asignado?: string | null
+  notas_admin?: string | null
+  created_at: string | null
+  updated_at: string | null
+  resuelto_at?: string | null
+  metadata?: Json | ReportProblemMetadata | null
   // 🎬 NUEVO: Campos de rrweb
-  session_recording?: string
-  recording_size?: string
-  recording_duration?: number
+  session_recording?: string | null
+  recording_size?: string | null
+  recording_duration?: number | null
   // Información del usuario (si está disponible)
   usuario?: {
     id: string
     username: string
-    email?: string
-    display_name?: string
-    profile_picture_url?: string
-  }
+    email?: string | null
+    display_name?: string | null
+    profile_picture_url?: string | null
+  } | null
   // Información del admin asignado (si está disponible)
   admin_asignado_info?: {
     id: string
     username: string
-    email?: string
-    display_name?: string
-  }
+    email?: string | null
+    display_name?: string | null
+  } | null
 }
 
 export interface ReporteStats {
@@ -117,7 +119,7 @@ export class AdminReportesService {
 
       // Obtener información de usuarios
       const reportesConUsuarios = await Promise.all(
-        (data || []).map(async (reporte: AdminReporte) => {
+        (data || []).map(async (reporte) => {
           // Obtener información del usuario que reportó
           let usuarioInfo = null
           if (reporte.user_id) {
@@ -154,7 +156,7 @@ export class AdminReportesService {
         })
       )
 
-      return reportesConUsuarios
+      return reportesConUsuarios as AdminReporte[]
     } catch (error) {
       throw error
     }
@@ -316,7 +318,7 @@ export class AdminReportesService {
       }
 
       // Contar por estado
-      reportes?.forEach((reporte: AdminReporte) => {
+      reportes?.forEach((reporte) => {
         switch (reporte.estado) {
           case 'pendiente':
             stats.pendientes++
@@ -351,4 +353,3 @@ export class AdminReportesService {
     }
   }
 }
-

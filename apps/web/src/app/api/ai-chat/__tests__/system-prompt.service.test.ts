@@ -15,31 +15,37 @@ describe('system-prompt.service', () => {
         pageTitle: 'Mi perfil',
       },
       'marketing',
-      'es'
+      'es',
     )
 
     expect(prompt).toContain('Mi perfil')
     expect(prompt).toContain('marketing')
   })
 
-  it('builds the course prompt with transcript and lesson metadata', () => {
+  it('builds the course prompt with transcript, metadata, and verified duration rules', () => {
     const prompt = getContextPrompt(
       'course',
       'Ana',
       {
         courseTitle: 'Curso de IA',
-        moduleTitle: 'Módulo 1',
-        lessonTitle: 'Lección 1',
+        moduleTitle: 'Modulo 1',
+        lessonTitle: 'Leccion 1',
         transcriptContent: 'Texto del video',
+        durationSeconds: 435,
+        totalDurationMinutes: 17,
       },
       undefined,
       undefined,
       'operations',
-      'es'
+      'es',
     )
 
     expect(prompt).toContain('Curso de IA')
     expect(prompt).toContain('Texto del video')
-    expect(prompt).toContain('Módulo 1')
+    expect(prompt).toContain('Modulo 1')
+    expect(prompt).toContain('Duracion total de la leccion: 17 minutos')
+    expect(prompt).toContain(
+      'nunca infieras la duracion desde timestamps de la transcripcion',
+    )
   })
 })

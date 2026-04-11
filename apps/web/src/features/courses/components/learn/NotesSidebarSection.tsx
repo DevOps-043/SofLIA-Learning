@@ -40,7 +40,6 @@ export function NotesSidebarSection({
         <div className="flex items-center gap-2">
           {!isCollapsed && (
             <button
-              id="tour-notes-button"
               onClick={onCreateNote}
               className="p-1.5 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 rounded-lg transition-colors"
               title={t("leftPanel.notesSection.newNote")}

@@ -10,7 +10,13 @@ import {
 } from "lucide-react";
 
 import { ExpandableText } from "../../../../core/components/ExpandableText";
+import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTargets";
 import { useVideoPlayerOptional } from "../../../../app/courses/[slug]/learn/VideoPlayerContext";
+import {
+  hasIncompleteActivities,
+  isLessonVideoCompleted,
+} from "../../hooks/lessonNavigation.utils";
+import { LessonSupplementaryContent } from "./LessonSupplementaryContent";
 import type {
   LearnActivitySummary,
   LearnLesson,
@@ -36,6 +42,7 @@ type VideoContentProps = {
   lesson: LearnLesson;
   onNavigatePrevious: () => void;
   onNavigateNext: () => void | Promise<void>;
+  onVideoCompleted: (lessonId: string) => void;
   getPreviousLesson: () => LearnLesson | null;
   getNextLesson: () => LearnLesson | null;
   markLessonAsCompleted: (lessonId: string) => Promise<boolean>;
@@ -44,13 +51,65 @@ type VideoContentProps = {
   onCannotComplete: () => void;
   hasActivities: boolean;
   activities: LearnActivitySummary[];
+  isSummaryLoading: boolean;
+  isTranscriptLoading: boolean;
+  onNoteCreated: (noteData: unknown, lessonId: string) => void;
   setActiveTab: (tab: LearnTab) => void;
+  onStatsUpdate: (
+    operation: "create" | "update" | "delete",
+    lessonId?: string
+  ) => Promise<void>;
+  slug: string;
+  summaryContent: string | null;
+  transcriptContent: string | null;
 };
+
+const VIDEO_COMPLETION_TRANSITION_DELAY_MS = 1000;
+
+type VideoResumeApiResponse = {
+  checkpointSeconds?: number;
+  playbackRate?: number;
+};
+
+async function fetchVideoResumeData(lessonId: string): Promise<{
+  checkpointSeconds: number;
+  playbackRate: number;
+}> {
+  try {
+    const response = await fetch(`/api/video-tracking/resume/${lessonId}`, {
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      return {
+        checkpointSeconds: 0,
+        playbackRate: 1,
+      };
+    }
+
+    const data = (await response.json()) as VideoResumeApiResponse;
+
+    return {
+      checkpointSeconds:
+        typeof data.checkpointSeconds === "number" ? data.checkpointSeconds : 0,
+      playbackRate:
+        typeof data.playbackRate === "number" && data.playbackRate > 0
+          ? data.playbackRate
+          : 1,
+    };
+  } catch {
+    return {
+      checkpointSeconds: 0,
+      playbackRate: 1,
+    };
+  }
+}
 
 export function VideoContent({
   lesson,
   onNavigatePrevious,
   onNavigateNext,
+  onVideoCompleted,
   getPreviousLesson,
   getNextLesson,
   markLessonAsCompleted,
@@ -59,25 +118,34 @@ export function VideoContent({
   onCannotComplete,
   hasActivities,
   activities,
+  isSummaryLoading,
+  isTranscriptLoading,
+  onNoteCreated,
   setActiveTab,
+  onStatsUpdate,
+  slug,
+  summaryContent,
+  transcriptContent,
 }: VideoContentProps) {
   const videoPlayerContext = useVideoPlayerOptional();
   const currentTimeRef = useRef(0);
-  const activitiesSectionRef = useRef<HTMLDivElement>(null);
   const autoPlayedForLessonRef = useRef<string | null>(null);
+  const completionTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleVideoComplete = useCallback(() => {
-    const pendingActivities = activities.filter((activity) => !activity.is_completed);
+    if (!lesson.lesson_id) {
+      return;
+    }
 
-    setTimeout(() => {
-      if (hasActivities && pendingActivities.length > 0) {
-        setActiveTab("activities");
-        return;
-      }
+    if (completionTransitionTimeoutRef.current !== null) {
+      clearTimeout(completionTransitionTimeoutRef.current);
+    }
 
-      onNavigateNext();
-    }, 3000);
-  }, [activities, hasActivities, onNavigateNext, setActiveTab]);
+    completionTransitionTimeoutRef.current = setTimeout(() => {
+      completionTransitionTimeoutRef.current = null;
+      onVideoCompleted(lesson.lesson_id);
+    }, VIDEO_COMPLETION_TRANSITION_DELAY_MS);
+  }, [lesson.lesson_id, onVideoCompleted]);
 
   const hasVideo = Boolean(lesson.video_provider && lesson.video_provider_id);
   const previousLesson = getPreviousLesson();
@@ -93,6 +161,14 @@ export function VideoContent({
     hasNextLesson && nextLesson?.video_provider && nextLesson?.video_provider_id
   );
   const isLastLesson = !hasNextLesson;
+
+  useEffect(() => {
+    return () => {
+      if (completionTransitionTimeoutRef.current !== null) {
+        clearTimeout(completionTransitionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!hasVideo || !lesson.lesson_id) {
@@ -185,6 +261,7 @@ export function VideoContent({
   useEffect(() => {
     let cleanupFn: (() => void) | undefined;
     let isSetup = false;
+    let isDisposed = false;
     let retryTimeoutId: ReturnType<typeof setTimeout> | undefined;
     let currentVideoElement: HTMLVideoElement | null = null;
     const videoContext = videoPlayerContext;
@@ -207,13 +284,40 @@ export function VideoContent({
       isSetup = true;
 
       if (videoContext && lesson.lesson_id) {
-        const savedTime = videoContext.getVideoProgress(lesson.lesson_id);
-
-        const restoreAndPlay = () => {
+        const restoreAndPlay = async () => {
           const shouldPlay = videoContext.shouldAutoPlayRef?.current || false;
+          const cachedTime = videoContext.getVideoProgress(lesson.lesson_id);
+          let resumeCheckpoint = cachedTime;
+          let resumePlaybackRate = 1;
 
-          if (savedTime > 0) {
-            videoElement.currentTime = savedTime;
+          if (resumeCheckpoint <= 0 && !isLessonVideoCompleted(lesson)) {
+            const resumeData = await fetchVideoResumeData(lesson.lesson_id);
+
+            if (isDisposed) {
+              return;
+            }
+
+            resumeCheckpoint = resumeData.checkpointSeconds;
+            resumePlaybackRate = resumeData.playbackRate;
+
+            if (resumeCheckpoint > 0) {
+              videoContext.saveVideoProgress?.(
+                lesson.lesson_id,
+                resumeCheckpoint
+              );
+            }
+          }
+
+          if (
+            resumePlaybackRate > 0 &&
+            Math.abs(videoElement.playbackRate - resumePlaybackRate) > 0.01
+          ) {
+            videoElement.playbackRate = resumePlaybackRate;
+          }
+
+          if (resumeCheckpoint > 0 && videoElement.currentTime <= 0.5) {
+            videoElement.currentTime = resumeCheckpoint;
+            currentTimeRef.current = resumeCheckpoint;
           }
 
           if (shouldPlay) {
@@ -223,23 +327,35 @@ export function VideoContent({
         };
 
         if (videoElement.readyState >= 3) {
-          restoreAndPlay();
+          void restoreAndPlay();
         } else if (videoElement.readyState >= 1) {
-          videoElement.addEventListener("canplay", restoreAndPlay, {
-            once: true,
-          });
+          videoElement.addEventListener(
+            "canplay",
+            () => {
+              void restoreAndPlay();
+            },
+            {
+              once: true,
+            }
+          );
         } else {
           videoElement.addEventListener(
             "loadedmetadata",
             () => {
               if (videoElement.readyState >= 3) {
-                restoreAndPlay();
+                void restoreAndPlay();
                 return;
               }
 
-              videoElement.addEventListener("canplay", restoreAndPlay, {
-                once: true,
-              });
+              videoElement.addEventListener(
+                "canplay",
+                () => {
+                  void restoreAndPlay();
+                },
+                {
+                  once: true,
+                }
+              );
             },
             { once: true }
           );
@@ -251,9 +367,21 @@ export function VideoContent({
       };
       const onPause = () => {
         videoContext?.setIsVideoPlaying(false);
+        if (lesson.lesson_id) {
+          videoContext?.saveVideoProgress?.(
+            lesson.lesson_id,
+            videoElement.currentTime
+          );
+        }
       };
       const onEnded = () => {
         videoContext?.setIsVideoPlaying(false);
+        if (lesson.lesson_id) {
+          videoContext?.saveVideoProgress?.(
+            lesson.lesson_id,
+            videoElement.currentTime
+          );
+        }
       };
       const onEnterPiP = () => {
         videoContext?.setIsPiPActive(true);
@@ -283,6 +411,13 @@ export function VideoContent({
         videoElement.removeEventListener("enterpictureinpicture", onEnterPiP);
         videoElement.removeEventListener("leavepictureinpicture", onLeavePiP);
         videoElement.removeEventListener("timeupdate", onTimeUpdate);
+
+        if (lesson.lesson_id) {
+          videoContext?.saveVideoProgress?.(
+            lesson.lesson_id,
+            videoElement.currentTime
+          );
+        }
 
         const isInPiP = document.pictureInPictureElement === videoElement;
         if (!videoElement.paused && !isInPiP) {
@@ -316,6 +451,8 @@ export function VideoContent({
     }
 
     return () => {
+      isDisposed = true;
+
       if (retryTimeoutId) {
         clearTimeout(retryTimeoutId);
       }
@@ -348,7 +485,7 @@ export function VideoContent({
   };
 
   const handleAdvanceAction = () => {
-    const pendingExists = activities.some((activity) => !activity.is_completed);
+    const pendingExists = hasIncompleteActivities(activities);
 
     if (hasActivities && pendingExists) {
       setActiveTab("activities");
@@ -360,7 +497,10 @@ export function VideoContent({
 
   return (
     <div className="space-y-6 pb-16 md:pb-6">
-      <div className="relative w-full">
+      <div
+        id={COURSE_LEARN_TOUR_TARGET_IDS.videoPanel}
+        className="relative w-full"
+      >
         {hasVideo ? (
           <div className="aspect-video rounded-xl overflow-hidden border border-[#E9ECEF] dark:border-[#6C757D]/30 relative bg-[#0F1419] dark:bg-[#0F1419]">
             <VideoPlayer
@@ -397,29 +537,45 @@ export function VideoContent({
               hasNextVideo={hasNextVideo}
               isLastLesson={isLastLesson}
               onNavigatePrevious={onNavigatePrevious}
-              onPrimaryAction={isLastLesson ? handleCompletionAction : onNavigateNext}
+              onPrimaryAction={
+                isLastLesson ? handleCompletionAction : handleAdvanceAction
+              }
             />
           </div>
         )}
       </div>
 
       <div
-        ref={activitiesSectionRef}
         className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-6"
       >
-        <h2
-          className="text-2xl font-bold text-[#0A2540] dark:text-white mb-4"
-          style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
-        >
-          {lesson.lesson_title}
-        </h2>
-        {lesson.lesson_description && (
-          <ExpandableText
-            text={lesson.lesson_description}
-            maxLines={2}
-            className="mt-2"
+        <div className="space-y-4">
+          <div>
+            <h2
+              className="text-2xl font-bold text-[#0A2540] dark:text-white"
+              style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
+            >
+              {lesson.lesson_title}
+            </h2>
+            {lesson.lesson_description && (
+              <ExpandableText
+                text={lesson.lesson_description}
+                maxLines={2}
+                className="mt-2"
+              />
+            )}
+          </div>
+
+          <LessonSupplementaryContent
+            lesson={lesson}
+            slug={slug}
+            transcriptContent={transcriptContent}
+            summaryContent={summaryContent}
+            isTranscriptLoading={isTranscriptLoading}
+            isSummaryLoading={isSummaryLoading}
+            onNoteCreated={onNoteCreated}
+            onStatsUpdate={onStatsUpdate}
           />
-        )}
+        </div>
       </div>
     </div>
   );

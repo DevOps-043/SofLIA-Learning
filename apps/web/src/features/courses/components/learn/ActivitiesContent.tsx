@@ -49,7 +49,8 @@ export function ActivitiesContent({
   generateRoleBasedPrompts,
 }: ActivitiesContentProps) {
   const { t } = useTranslation("learn");
-  const { setActivity, openLia, isOpen: isLiaOpen, liaChat } = useLiaCourse();
+  const { setActivity, openLia, isOpen: isLiaOpen, liaChat, courseContext } =
+    useLiaCourse();
 
   const sendLiaMessage = useCallback(
     async (message: string, isSystemMessage: boolean = false) => {
@@ -61,9 +62,14 @@ export function ActivitiesContent({
         openLia();
       }
 
-      await liaChat.sendMessage(message, undefined, undefined, isSystemMessage);
+      await liaChat.sendMessage(
+        message,
+        courseContext || undefined,
+        undefined,
+        isSystemMessage
+      );
     },
-    [isLiaOpen, liaChat, openLia]
+    [courseContext, isLiaOpen, liaChat, openLia]
   );
 
   const {

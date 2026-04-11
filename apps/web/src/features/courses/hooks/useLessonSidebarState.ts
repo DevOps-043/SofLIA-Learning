@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 
 import type {
   LearnActivityMap,
@@ -25,6 +26,10 @@ function mapActivities(
   return (activities || []).map((activity) => ({
     activity_id: String(activity.activity_id || ""),
     activity_title: String(activity.activity_title || ""),
+    activity_description:
+      typeof activity.activity_description === "string"
+        ? activity.activity_description
+        : undefined,
     activity_type: String(activity.activity_type || ""),
     is_required: Boolean(activity.is_required),
     is_completed: Boolean(activity.is_completed),
@@ -37,6 +42,10 @@ function mapMaterials(
   return (materials || []).map((material) => ({
     material_id: String(material.material_id || ""),
     material_title: String(material.material_title || ""),
+    material_description:
+      typeof material.material_description === "string"
+        ? material.material_description
+        : undefined,
     material_type: String(material.material_type || ""),
     is_required:
       Boolean(material.is_required) || String(material.material_type) === "quiz",
@@ -49,6 +58,7 @@ export function useLessonSidebarState({
   currentLesson,
   isMobile,
 }: UseLessonSidebarStateParams) {
+  const organizationId = useCurrentOrganizationId();
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
   const [isMaterialCollapsed, setIsMaterialCollapsed] = useState(false);
   const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
@@ -111,8 +121,13 @@ export function useLessonSidebarState({
       }
 
       try {
+        const sidebarDataUrl = organizationId
+          ? `/api/courses/${slug}/lessons/${lessonId}/sidebar-data?orgId=${encodeURIComponent(
+              organizationId
+            )}`
+          : `/api/courses/${slug}/lessons/${lessonId}/sidebar-data`;
         const response = await fetch(
-          `/api/courses/${slug}/lessons/${lessonId}/sidebar-data`,
+          sidebarDataUrl,
           { credentials: "include" }
         );
 
@@ -143,7 +158,7 @@ export function useLessonSidebarState({
         setLessonsQuizStatus((previous) => ({ ...previous, [lessonId]: null }));
       }
     },
-    [slug]
+    [organizationId, slug]
   );
 
   const toggleLessonExpand = useCallback(
@@ -214,6 +229,14 @@ export function useLessonSidebarState({
       return next;
     });
   }, [currentLesson, modules]);
+
+  useEffect(() => {
+    if (!currentLesson?.lesson_id) {
+      return;
+    }
+
+    void loadLessonActivitiesAndMaterials(currentLesson.lesson_id);
+  }, [currentLesson?.lesson_id, loadLessonActivitiesAndMaterials]);
 
   return {
     closeLeftPanel,

@@ -1,11 +1,22 @@
 'use client'
 
-import { motion, AnimatePresence, Reorder } from 'framer-motion'
-import { Plus, ChevronDown, GripVertical, Book, FileText, Clock, Pencil, Trash2, CheckCircle2 } from 'lucide-react'
-import { useCourseManagementContext } from './CourseManagementContext'
-import { LessonItem } from './LessonItem'
-import { formatDuration } from './CourseManagement.utils'
+import { AnimatePresence, motion, Reorder } from 'framer-motion'
+import {
+  Book,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  FileText,
+  GripVertical,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react'
+
 import type { AdminModule } from '../../services/adminModules.service'
+import { useCourseManagementContext } from './CourseManagementContext'
+import { formatDuration } from './CourseManagement.utils'
+import { LessonItem } from './LessonItem'
 
 interface ModuleCardProps {
   module: AdminModule
@@ -16,10 +27,17 @@ interface ModuleCardProps {
 export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
   const {
     state: {
-      getModuleLessons, getLessonMaterials, getLessonActivities,
-      expandedLessons, toggleModule, handleLessonsReorder,
-      setSelectedModule, setShowModuleModal,
-      setEditingModuleId, setSelectedLesson, setShowLessonModal,
+      getLessonActivities,
+      getLessonMaterials,
+      getModuleLessons,
+      expandedLessons,
+      toggleModule,
+      handleLessonsReorder,
+      setSelectedModule,
+      setShowModuleModal,
+      setEditingModuleId,
+      setSelectedLesson,
+      setShowLessonModal,
       handleDeleteModule,
     },
   } = useCourseManagementContext()
@@ -33,107 +51,123 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="group relative bg-white dark:bg-[#1E2329] rounded-2xl border border-[#E9ECEF] dark:border-[#6C757D]/30 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300"
+      className="group relative overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-sm transition-all duration-300 hover:shadow-xl dark:border-[#6C757D]/30 dark:bg-[#1E2329]"
     >
-      {/* Borde superior con color según estado */}
-      <div className={`h-1 ${module.is_published
-        ? 'bg-gradient-to-r from-[#10B981] to-[#00D4B3]'
-        : 'bg-gradient-to-r from-[#6C757D] to-[#6C757D]/50'
-      }`} />
+      <div
+        className={`h-1 ${
+          module.is_published
+            ? 'bg-gradient-to-r from-[#10B981] to-[#00D4B3]'
+            : 'bg-gradient-to-r from-[#6C757D] to-[#6C757D]/50'
+        }`}
+      />
 
-      {/* Contenido del módulo */}
-      <div className="p-5">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="flex items-center gap-1">
-                <div className="cursor-grab active:cursor-grabbing p-1 hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12] rounded transition-colors mr-1">
-                  <GripVertical className="w-4 h-4 text-[#6C757D]/40" />
-                </div>
-                <motion.button
-                  onClick={() => toggleModule(module.module_id)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="flex-shrink-0 p-1.5 rounded-lg hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12] transition-colors"
-                >
-                  <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.3 }}>
-                    <ChevronDown className="w-5 h-5 text-[#6C757D] dark:text-white/60" />
-                  </motion.div>
-                </motion.button>
+      <div className="p-4 sm:p-5">
+        <div className="flex flex-col gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex shrink-0 items-center gap-1">
+              <div className="cursor-grab rounded p-1 transition-colors hover:bg-[#E9ECEF] active:cursor-grabbing dark:hover:bg-[#0A0D12]">
+                <GripVertical className="h-4 w-4 text-[#6C757D]/40" />
               </div>
-              <h3 className="text-lg font-bold text-[#0A2540] dark:text-white line-clamp-2 flex-1">
+              <motion.button
+                onClick={() => toggleModule(module.module_id)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="flex-shrink-0 rounded-lg p-1.5 transition-colors hover:bg-[#E9ECEF] dark:hover:bg-[#0A0D12]"
+              >
+                <motion.div
+                  animate={{ rotate: isExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className="h-5 w-5 text-[#6C757D] dark:text-white/60" />
+                </motion.div>
+              </motion.button>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <h3 className="line-clamp-2 text-lg font-bold text-[#0A2540] dark:text-white">
                 {module.module_title}
               </h3>
-            </div>
 
-            {/* Badges */}
-            <div className="flex items-center gap-2 flex-wrap ml-11">
-              <motion.span
-                whileHover={{ scale: 1.05 }}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg ${module.is_published
-                  ? 'bg-[#10B981]/10 dark:bg-[#10B981]/20 text-[#10B981] border border-[#10B981]/20'
-                  : 'bg-[#6C757D]/10 dark:bg-[#6C757D]/20 text-[#6C757D] border border-[#6C757D]/20'
-                }`}
-              >
-                {module.is_published ? (
-                  <><CheckCircle2 className="w-3 h-3" />Publicado</>
-                ) : (
-                  <><FileText className="w-3 h-3" />Borrador</>
-                )}
-              </motion.span>
-              <span className="inline-flex items-center gap-1 text-xs text-[#6C757D] dark:text-white/60 px-2.5 py-1 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] rounded-lg">
-                <Clock className="w-3 h-3" />
-                {formatDuration(module.module_duration_minutes || 0)}
-              </span>
-              <span className="inline-flex items-center gap-1 text-xs text-[#6C757D] dark:text-white/60 px-2.5 py-1 bg-[#E9ECEF]/50 dark:bg-[#0A0D12] rounded-lg">
-                <Book className="w-3 h-3" />
-                {moduleLessons.length} {moduleLessons.length === 1 ? 'lección' : 'lecciones'}
-              </span>
-            </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
+                    module.is_published
+                      ? 'border border-[#10B981]/20 bg-[#10B981]/10 text-[#10B981] dark:bg-[#10B981]/20'
+                      : 'border border-[#6C757D]/20 bg-[#6C757D]/10 text-[#6C757D] dark:bg-[#6C757D]/20'
+                  }`}
+                >
+                  {module.is_published ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3" />
+                      Publicado
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-3 w-3" />
+                      Borrador
+                    </>
+                  )}
+                </motion.span>
+                <span className="inline-flex items-center gap-1 rounded-lg bg-[#E9ECEF]/50 px-2.5 py-1 text-xs text-[#6C757D] dark:bg-[#0A0D12] dark:text-white/60">
+                  <Clock className="h-3 w-3" />
+                  {formatDuration(module.module_duration_minutes || 0)}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-lg bg-[#E9ECEF]/50 px-2.5 py-1 text-xs text-[#6C757D] dark:bg-[#0A0D12] dark:text-white/60">
+                  <Book className="h-3 w-3" />
+                  {moduleLessons.length}{' '}
+                  {moduleLessons.length === 1 ? 'leccion' : 'lecciones'}
+                </span>
+              </div>
 
-            {module.module_description && (
-              <p className="text-sm text-[#6C757D] dark:text-white/60 mt-3 ml-11 line-clamp-2">
-                {module.module_description}
-              </p>
-            )}
+              {module.module_description && (
+                <p className="mt-3 line-clamp-3 text-sm text-[#6C757D] dark:text-white/60">
+                  {module.module_description}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Botones de acción */}
-        <div className="flex items-center gap-1.5 ml-11 mt-4 pt-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30">
-          <motion.button
-            onClick={() => { setEditingModuleId(module.module_id); setSelectedLesson(null); setShowLessonModal(true) }}
-            whileHover={{ scale: 1.05, y: -1 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex-1 px-2.5 py-1.5 text-xs font-medium text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 hover:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 border border-[#00D4B3]/20 dark:border-[#00D4B3]/30"
-            title="Agregar lección"
-          >
-            <Plus className="w-3 h-3" />
-            <span>Lección</span>
-          </motion.button>
-          <motion.button
-            onClick={() => { setSelectedModule(module); setShowModuleModal(true) }}
-            whileHover={{ scale: 1.05, y: -1 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-2.5 py-1.5 text-xs font-medium text-[#0A2540] dark:text-white/80 bg-[#E9ECEF] dark:bg-[#0A0D12] hover:bg-[#0A2540]/5 dark:hover:bg-[#0A2540]/20 rounded-md transition-all duration-200 flex items-center justify-center gap-1.5 border border-[#E9ECEF] dark:border-[#6C757D]/30"
-            title="Editar módulo"
-          >
-            <Pencil className="w-3 h-3" />
-          </motion.button>
-          <motion.button
-            onClick={() => handleDeleteModule(module.module_id)}
-            whileHover={{ scale: 1.05, y: -1 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-2.5 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-all duration-200 flex items-center justify-center border border-red-200 dark:border-red-900/40"
-            title="Eliminar módulo"
-          >
-            <Trash2 className="w-3 h-3" />
-          </motion.button>
+          <div className="flex flex-wrap items-center gap-2 border-t border-[#E9ECEF] pt-4 dark:border-[#6C757D]/30">
+            <motion.button
+              onClick={() => {
+                setEditingModuleId(module.module_id)
+                setSelectedLesson(null)
+                setShowLessonModal(true)
+              }}
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#00D4B3]/20 bg-[#00D4B3]/10 px-2.5 py-2 text-xs font-medium text-[#00D4B3] transition-all duration-200 hover:bg-[#00D4B3]/20 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 sm:min-w-[180px] sm:flex-1"
+              title="Agregar leccion"
+            >
+              <Plus className="h-3 w-3" />
+              <span>Leccion</span>
+            </motion.button>
+            <motion.button
+              onClick={() => {
+                setSelectedModule(module)
+                setShowModuleModal(true)
+              }}
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E9ECEF] bg-[#E9ECEF] text-[#0A2540] transition-all duration-200 hover:bg-[#0A2540]/5 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/80 dark:hover:bg-[#0A2540]/20"
+              title="Editar modulo"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </motion.button>
+            <motion.button
+              onClick={() => handleDeleteModule(module.module_id)}
+              whileHover={{ scale: 1.05, y: -1 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
+              title="Eliminar modulo"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </motion.button>
+          </div>
         </div>
       </div>
 
-      {/* Lecciones expandidas */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
@@ -143,33 +177,41 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-5 pt-0 mt-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30">
+            <div className="mt-4 border-t border-[#E9ECEF] px-4 pb-4 pt-0 dark:border-[#6C757D]/30 sm:px-5 sm:pb-5">
               {moduleLessons.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-8 bg-[#E9ECEF]/30 dark:bg-[#0A0D12] rounded-xl border-2 border-dashed border-[#E9ECEF] dark:border-[#6C757D]/30"
+                  className="rounded-xl border-2 border-dashed border-[#E9ECEF] bg-[#E9ECEF]/30 py-8 text-center dark:border-[#6C757D]/30 dark:bg-[#0A0D12]"
                 >
-                  <div className="w-12 h-12 bg-gradient-to-br from-[#00D4B3]/20 to-[#0A2540]/20 dark:from-[#00D4B3]/30 dark:to-[#0A2540]/30 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Plus className="w-6 h-6 text-[#00D4B3]" />
+                  <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#00D4B3]/20 to-[#0A2540]/20 dark:from-[#00D4B3]/30 dark:to-[#0A2540]/30">
+                    <Plus className="h-6 w-6 text-[#00D4B3]" />
                   </div>
-                  <p className="text-sm text-[#6C757D] dark:text-white/60 mb-3">No hay lecciones en este módulo</p>
+                  <p className="mb-3 text-sm text-[#6C757D] dark:text-white/60">
+                    No hay lecciones en este modulo
+                  </p>
                   <motion.button
-                    onClick={() => { setEditingModuleId(module.module_id); setSelectedLesson(null); setShowLessonModal(true) }}
+                    onClick={() => {
+                      setEditingModuleId(module.module_id)
+                      setSelectedLesson(null)
+                      setShowLessonModal(true)
+                    }}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="inline-flex items-center gap-2 text-sm font-medium text-[#00D4B3] hover:text-[#00D4B3]/80 transition-colors"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#00D4B3] transition-colors hover:text-[#00D4B3]/80"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Agrega tu primera lección</span>
+                    <Plus className="h-4 w-4" />
+                    <span>Agrega tu primera leccion</span>
                   </motion.button>
                 </motion.div>
               ) : (
                 <Reorder.Group
                   axis="y"
                   values={moduleLessons}
-                  onReorder={(newOrder) => handleLessonsReorder(module.module_id, newOrder)}
-                  className="space-y-2 mt-2"
+                  onReorder={(newOrder) =>
+                    handleLessonsReorder(module.module_id, newOrder)
+                  }
+                  className="mt-4 space-y-2"
                 >
                   {moduleLessons.map((lesson, lessonIndex) => (
                     <LessonItem

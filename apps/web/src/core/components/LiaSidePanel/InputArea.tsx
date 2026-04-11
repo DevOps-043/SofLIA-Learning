@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Send, Mic, MicOff, Loader2 } from 'lucide-react';
+import { Send, Mic, MicOff, Loader2, Paperclip, X } from 'lucide-react';
 import { LiaThemeColors } from './types';
+import type { LiaImageAttachment } from '../../reporting/report-problem.contract';
 
 interface InputAreaProps {
   t: (key: string) => string;
@@ -10,7 +11,10 @@ interface InputAreaProps {
   isLightTheme: boolean;
   inputValue: string;
   setInputValue: (v: string) => void;
+  selectedAttachment: LiaImageAttachment | null;
+  attachmentError: string | null;
   inputRef: React.RefObject<HTMLInputElement>;
+  attachmentInputRef: React.RefObject<HTMLInputElement>;
   isDictating: boolean;
   isDictationEnabled: boolean;
   isProcessingDictation: boolean;
@@ -18,6 +22,9 @@ interface InputAreaProps {
   finalTranscript: string;
   stopDictation: () => void;
   toggleDictation: () => void;
+  handleAttachmentSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleRemoveAttachment: () => void;
+  handleAttachmentButtonClick: () => void;
   handleSendMessage: () => void;
   isLoading: boolean;
 }
@@ -28,7 +35,10 @@ export function InputArea({
   isLightTheme,
   inputValue,
   setInputValue,
+  selectedAttachment,
+  attachmentError,
   inputRef,
+  attachmentInputRef,
   isDictating,
   isDictationEnabled,
   isProcessingDictation,
@@ -36,11 +46,125 @@ export function InputArea({
   finalTranscript,
   stopDictation,
   toggleDictation,
+  handleAttachmentSelect,
+  handleRemoveAttachment,
+  handleAttachmentButtonClick,
   handleSendMessage,
   isLoading,
 }: InputAreaProps) {
+  const composedInputValue =
+    inputValue +
+    (isDictating
+      ? (inputValue ? ' ' : '') +
+        finalTranscript +
+        (finalTranscript && interimTranscript ? ' ' : '') +
+        interimTranscript
+      : '');
+
+  const canSendMessage =
+    Boolean(inputValue.trim() || selectedAttachment) && !isLoading;
+
   return (
-    <div style={{ padding: '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>
+    <div
+      style={{
+        padding: '12px 16px 16px',
+        borderTop: `1px solid ${themeColors.borderColor}`,
+      }}
+    >
+      <input
+        ref={attachmentInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleAttachmentSelect}
+        style={{ display: 'none' }}
+      />
+
+      {selectedAttachment ? (
+        <div
+          style={{
+            marginBottom: '12px',
+            padding: '10px 12px',
+            borderRadius: '16px',
+            border: `1px solid ${themeColors.borderColor}`,
+            backgroundColor: themeColors.inputBg,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <img
+            src={selectedAttachment.dataUrl}
+            alt={selectedAttachment.fileName}
+            style={{
+              width: '56px',
+              height: '56px',
+              borderRadius: '12px',
+              objectFit: 'cover',
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p
+              style={{
+                margin: 0,
+                color: themeColors.textPrimary,
+                fontSize: '13px',
+                fontWeight: 600,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {selectedAttachment.fileName}
+            </p>
+            <p
+              style={{
+                margin: '4px 0 0',
+                color: themeColors.textSecondary,
+                fontSize: '11px',
+              }}
+            >
+              Evidencia visual lista para enviar
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleRemoveAttachment}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              border: 'none',
+              backgroundColor: 'transparent',
+              color: themeColors.textSecondary,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <X style={{ width: '16px', height: '16px' }} />
+          </button>
+        </div>
+      ) : null}
+
+      {attachmentError ? (
+        <div
+          style={{
+            marginBottom: '12px',
+            padding: '8px 12px',
+            borderRadius: '12px',
+            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            color: '#EF4444',
+            fontSize: '12px',
+          }}
+        >
+          {attachmentError}
+        </div>
+      ) : null}
+
       <div
         style={{
           display: 'flex',
@@ -56,15 +180,7 @@ export function InputArea({
           <input
             ref={inputRef}
             type="text"
-            value={
-              inputValue +
-              (isDictating
-                ? (inputValue ? ' ' : '') +
-                  finalTranscript +
-                  (finalTranscript && interimTranscript ? ' ' : '') +
-                  interimTranscript
-                : '')
-            }
+            value={composedInputValue}
             onChange={(e) => {
               if (!isDictating) {
                 setInputValue(e.target.value);
@@ -79,7 +195,13 @@ export function InputArea({
                 handleSendMessage();
               }
             }}
-            placeholder={isDictating ? 'Escuchando...' : t('lia.chat.inputPlaceholder')}
+            placeholder={
+              isDictating
+                ? 'Escuchando...'
+                : selectedAttachment
+                ? 'Describe la imagen o el problema...'
+                : t('lia.chat.inputPlaceholder')
+            }
             style={{
               width: '100%',
               backgroundColor: 'transparent',
@@ -107,7 +229,39 @@ export function InputArea({
           )}
         </div>
 
-        {/* Botón de dictado */}
+        <button
+          type="button"
+          onClick={handleAttachmentButtonClick}
+          title="Adjuntar imagen"
+          style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            backgroundColor: selectedAttachment
+              ? `${themeColors.accentColor}20`
+              : 'transparent',
+            border: `1px solid ${
+              selectedAttachment ? themeColors.accentColor : themeColors.inputBorder
+            }`,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            flexShrink: 0,
+          }}
+        >
+          <Paperclip
+            style={{
+              width: '16px',
+              height: '16px',
+              color: selectedAttachment
+                ? themeColors.accentColor
+                : themeColors.textSecondary,
+            }}
+          />
+        </button>
+
         {isDictationEnabled && (
           <button
             onClick={toggleDictation}
@@ -120,9 +274,13 @@ export function InputArea({
               backgroundColor: isDictating
                 ? '#EF4444'
                 : isProcessingDictation
-                ? isLightTheme ? '#CBD5E1' : '#374151'
+                ? isLightTheme
+                  ? '#CBD5E1'
+                  : '#374151'
                 : 'transparent',
-              border: `1px solid ${isDictating ? '#EF4444' : themeColors.inputBorder}`,
+              border: `1px solid ${
+                isDictating ? '#EF4444' : themeColors.inputBorder
+              }`,
               cursor: isProcessingDictation ? 'not-allowed' : 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -132,7 +290,9 @@ export function InputArea({
             }}
             onMouseEnter={(e) => {
               if (!isProcessingDictation && !isDictating) {
-                e.currentTarget.style.backgroundColor = isLightTheme ? '#E2E8F0' : '#1e2a35';
+                e.currentTarget.style.backgroundColor = isLightTheme
+                  ? '#E2E8F0'
+                  : '#1e2a35';
               }
             }}
             onMouseLeave={(e) => {
@@ -142,29 +302,44 @@ export function InputArea({
             }}
           >
             {isProcessingDictation ? (
-              <Loader2 style={{ width: '16px', height: '16px', color: themeColors.textSecondary }} className="animate-spin" />
+              <Loader2
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  color: themeColors.textSecondary,
+                }}
+                className="animate-spin"
+              />
             ) : isDictating ? (
-              <MicOff style={{ width: '16px', height: '16px', color: '#FFFFFF' }} />
+              <MicOff
+                style={{ width: '16px', height: '16px', color: '#FFFFFF' }}
+              />
             ) : (
-              <Mic style={{ width: '16px', height: '16px', color: themeColors.textSecondary }} />
+              <Mic
+                style={{
+                  width: '16px',
+                  height: '16px',
+                  color: themeColors.textSecondary,
+                }}
+              />
             )}
           </button>
         )}
 
-        {/* Botón enviar */}
         <button
           onClick={handleSendMessage}
-          disabled={!inputValue.trim() || isLoading}
+          disabled={!canSendMessage}
           style={{
             width: '36px',
             height: '36px',
             borderRadius: '50%',
-            backgroundColor:
-              inputValue.trim() && !isLoading
-                ? themeColors.accentColor
-                : isLightTheme ? '#CBD5E1' : '#374151',
+            backgroundColor: canSendMessage
+              ? themeColors.accentColor
+              : isLightTheme
+              ? '#CBD5E1'
+              : '#374151',
             border: 'none',
-            cursor: inputValue.trim() && !isLoading ? 'pointer' : 'not-allowed',
+            cursor: canSendMessage ? 'pointer' : 'not-allowed',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -175,10 +350,11 @@ export function InputArea({
             style={{
               width: '16px',
               height: '16px',
-              color:
-                inputValue.trim() && !isLoading
-                  ? '#FFFFFF'
-                  : isLightTheme ? '#6B7280' : '#9CA3AF',
+              color: canSendMessage
+                ? '#FFFFFF'
+                : isLightTheme
+                ? '#6B7280'
+                : '#9CA3AF',
             }}
           />
         </button>

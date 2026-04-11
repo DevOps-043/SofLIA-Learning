@@ -240,10 +240,25 @@ export function getNotePreviewText(note: LearnSavedNote): string {
   return note.content || generateNotePreview(note.fullContent || "", 50);
 }
 
-export function buildLiaDraftNote(content: string): LearnEditableNote {
+function buildLiaNoteTitle(lessonTitle?: string): string {
+  if (!lessonTitle?.trim()) {
+    return "Nota de SofLIA";
+  }
+
+  return `SofLIA: ${lessonTitle.trim()}`;
+}
+
+export function buildLiaDraftNote(
+  content: string,
+  options: {
+    lessonId?: string;
+    lessonTitle?: string;
+  } = {}
+): LearnEditableNote {
   return {
     id: "",
-    title: "",
+    lessonId: options.lessonId,
+    title: buildLiaNoteTitle(options.lessonTitle),
     content,
     tags: ["SofLIA", "Clase"],
   };

@@ -57,6 +57,7 @@ export async function POST(
       currentUser.id,
       slug,
       lessonId,
+      parsedRequest.data.organizationId ?? null,
     )
 
     return NextResponse.json<ProgressSuccessResponse>({

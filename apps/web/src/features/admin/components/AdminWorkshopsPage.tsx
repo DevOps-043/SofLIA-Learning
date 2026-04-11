@@ -3,6 +3,7 @@
 import { AddWorkshopModal } from './AddWorkshopModal'
 import { DeleteWorkshopModal } from './DeleteWorkshopModal'
 import { EditWorkshopModal } from './EditWorkshopModal'
+import { PageShell } from '@/core/layout'
 import {
   AdminWorkshopsEmptyState,
   AdminWorkshopsErrorState,
@@ -57,7 +58,7 @@ export function AdminWorkshopsPage() {
   }
 
   return (
-    <div className="p-6">
+    <PageShell spacing="relaxed">
       <AdminWorkshopsHeader onCreateWorkshop={openAddModal} />
       <AdminWorkshopsStatsGrid stats={stats} />
       <AdminWorkshopsFilters
@@ -98,6 +99,6 @@ export function AdminWorkshopsPage() {
         workshop={workshopToDelete}
         onConfirm={handleWorkshopDeleted}
       />
-    </div>
+    </PageShell>
   )
 }

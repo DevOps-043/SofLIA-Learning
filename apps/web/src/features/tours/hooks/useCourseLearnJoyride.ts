@@ -1,142 +1,278 @@
-import { useState, useCallback, useEffect } from 'react';
-import { CallBackProps, EVENTS, STATUS, ACTIONS } from 'react-joyride';
-import { useTourProgress } from './useTourProgress';
-import { COURSE_LEARN_TOUR_ID, courseLearnJoyrideSteps } from '../config/course-learn-joyride-steps';
-import { JoyrideTooltip } from '../components/JoyrideTooltip';
-import { useTourRestart } from '@/core/contexts/TourRestartContext';
+'use client';
 
-export const useCourseLearnJoyride = () => {
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ACTIONS, CallBackProps, EVENTS, STATUS } from 'react-joyride';
+
+import type { LearnTab } from '../../courses/components/learn/types';
+import { useTourRestart } from '../../../core/contexts/TourRestartContext';
+import {
+  buildCourseLearnJoyrideSteps,
+  buildCourseLearnTourId,
+  COURSE_LEARN_JOYRIDE_STEP_INDEXES,
+  type CourseLearnJoyrideTranslator,
+} from '../config/course-learn-joyride-steps';
+import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourProgress } from './useTourProgress';
+
+const TOUR_START_DELAY_MS = 1500;
+const TOUR_RESTART_DELAY_MS = 120;
+const TOUR_LAYOUT_SYNC_DELAY_MS = 180;
+const SCROLLABLE_STEP_INDEXES = new Set<number>([
+  COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel,
+  COURSE_LEARN_JOYRIDE_STEP_INDEXES.tools,
+]);
+
+type UseCourseLearnJoyrideOptions = {
+  courseSlug: string;
+  courseTitle?: string;
+  lessonTitle?: string;
+  enabled?: boolean;
+  isMobile: boolean;
+  closeLia: () => void;
+  openLeftPanel: () => void;
+  closeLeftPanel: () => void;
+  setActiveTab: (tab: LearnTab) => void;
+};
+
+function waitForLayoutSync(): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, TOUR_LAYOUT_SYNC_DELAY_MS);
+  });
+}
+
+function scrollStepTargetIntoView(
+  nextStepIndex: number,
+  stepTarget: string | HTMLElement,
+): void {
+  if (
+    !SCROLLABLE_STEP_INDEXES.has(nextStepIndex) ||
+    typeof stepTarget !== 'string'
+  ) {
+    return;
+  }
+
+  const element = document.querySelector(stepTarget);
+
+  if (!(element instanceof HTMLElement)) {
+    return;
+  }
+
+  element.scrollIntoView({
+    behavior: 'auto',
+    block: 'start',
+    inline: 'nearest',
+  });
+}
+
+export function useCourseLearnJoyride({
+  courseSlug,
+  courseTitle,
+  lessonTitle,
+  enabled = true,
+  isMobile,
+  closeLia,
+  openLeftPanel,
+  closeLeftPanel,
+  setActiveTab,
+}: UseCourseLearnJoyrideOptions) {
+  const { t } = useTranslation('learn');
+  const translate = useMemo<CourseLearnJoyrideTranslator>(
+    () => (key, interpolation) => t(key, interpolation),
+    [t],
+  );
+  const steps = useMemo(
+    () =>
+      buildCourseLearnJoyrideSteps({
+        courseTitle,
+        lessonTitle,
+        translate,
+      }),
+    [courseTitle, lessonTitle, translate],
+  );
+  const { setRestart } = useTourRestart();
   const {
-    hasSeenTour,
-    shouldShowTour,
-    isLoading,
     completeTour,
-    skipTour
-  } = useTourProgress(COURSE_LEARN_TOUR_ID);
+    isLoading,
+    shouldShowTour,
+    skipTour,
+    startTour,
+    updateStep,
+  } = useTourProgress(buildCourseLearnTourId(courseSlug));
 
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const { setRestart } = useTourRestart();
 
-  // Check if tour should run when data is loaded
-  useEffect(() => {
-    if (!isLoading && !hasSeenTour && shouldShowTour) {
-      // Small delay to ensure UI is ready
-      const timer = setTimeout(() => {
-        setRun(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, hasSeenTour, shouldShowTour]);
-
-  const handleJoyrideCallback = useCallback(async (data: CallBackProps) => {
-    const { action, index, status, type, step } = data;
-
-    // Handle close button click
-    if (action === ACTIONS.CLOSE) {
-      setRun(false);
-      setStepIndex(0);
-      await skipTour();
-      return;
-    }
-
-    // Handle skip button click
-    if (action === ACTIONS.SKIP) {
-      setRun(false);
-      setStepIndex(0);
-      await skipTour();
-      return;
-    }
-
-    // Handle controlled navigation
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      if (action === ACTIONS.NEXT) {
-        setStepIndex(index + 1);
-      } else if (action === ACTIONS.PREV) {
-        setStepIndex(index - 1);
-      }
-    }
-
-    // UI Interactions logic
-    if (type === EVENTS.STEP_BEFORE) {
-      // LIA Panel Interaction
-      if (step.data?.liaAction === 'open') {
-        const liaButton = document.getElementById('tour-lia-course-button');
-        if (liaButton) {
-          liaButton.click();
-        }
-      }
-    }
-
-    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      setRun(false);
-      setStepIndex(0);
-      await completeTour();
-    }
-  }, [completeTour, skipTour]);
-
-  const restartTour = useCallback(() => {
+  const resetTourState = useCallback(() => {
     setRun(false);
-    setStepIndex(0);
-    setTimeout(() => setRun(true), 100);
+    setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
   }, []);
 
-  useEffect(() => {
-    setRestart(restartTour, 'Reiniciar tutorial');
-    return () => setRestart(null);
-  }, [restartTour, setRestart]);
+  const finishTour = useCallback(async () => {
+    resetTourState();
+    await completeTour();
+  }, [completeTour, resetTourState]);
 
-  const joyrideProps = {
-    run,
-    steps: courseLearnJoyrideSteps,
-    stepIndex,
-    continuous: true,
-    scrollToFirstStep: true,
-    showProgress: true,
-    showSkipButton: true,
-    hideCloseButton: false,
-    disableOverlayClose: true,
-    disableCloseOnEsc: true,
-    disableScrolling: false,
-    scrollOffset: 120,
-    spotlightClicks: false,
-    spotlightPadding: 10,
-    tooltipComponent: JoyrideTooltip,
-    callback: handleJoyrideCallback,
-    styles: {
-      options: {
-        zIndex: 10000,
-        primaryColor: '#00D4B3',
-        textColor: '#FFFFFF',
-        backgroundColor: '#1E2329',
-        arrowColor: '#1E2329',
-      },
-      spotlight: {
-        borderRadius: 12,
-        boxShadow: '0 0 0 4px rgba(0, 212, 179, 0.6), 0 0 20px 8px rgba(0, 212, 179, 0.4), 0 0 40px 16px rgba(0, 212, 179, 0.2)',
-      },
-      overlay: {
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-      },
+  const dismissTour = useCallback(async () => {
+    resetTourState();
+    await skipTour();
+  }, [resetTourState, skipTour]);
+
+  const prepareStep = useCallback(
+    async (nextStepIndex: number) => {
+      closeLia();
+      setActiveTab('video');
+
+      if (nextStepIndex === COURSE_LEARN_JOYRIDE_STEP_INDEXES.sidebar) {
+        openLeftPanel();
+      } else if (isMobile) {
+        closeLeftPanel();
+      }
+
+      await waitForLayoutSync();
+      const nextStep = steps[nextStepIndex];
+
+      if (nextStep) {
+        scrollStepTargetIntoView(nextStepIndex, nextStep.target);
+        await waitForLayoutSync();
+      }
     },
-    floaterProps: {
-      disableAnimation: false,
-      hideArrow: false,
-      offset: 15,
+    [closeLeftPanel, closeLia, isMobile, openLeftPanel, setActiveTab, steps],
+  );
+
+  const launchTour = useCallback(async () => {
+    await prepareStep(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
+
+    setRun(false);
+    setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
+    await startTour();
+
+    window.setTimeout(() => {
+      setRun(true);
+    }, TOUR_RESTART_DELAY_MS);
+  }, [prepareStep, startTour]);
+
+  useEffect(() => {
+    if (!enabled || isLoading || !shouldShowTour) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      void launchTour();
+    }, TOUR_START_DELAY_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [enabled, isLoading, launchTour, shouldShowTour]);
+
+  const restartTour = useCallback(() => {
+    void launchTour();
+  }, [launchTour]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setRestart(null);
+      return () => setRestart(null);
+    }
+
+    setRestart(restartTour, t('tour.courseLearnLabel'));
+    return () => setRestart(null);
+  }, [enabled, restartTour, setRestart, t]);
+
+  const handleJoyrideCallback = useCallback(
+    async (data: CallBackProps) => {
+      const { action, index, status, type } = data;
+
+      if (status === STATUS.FINISHED) {
+        await finishTour();
+        return;
+      }
+
+      if (status === STATUS.SKIPPED || action === ACTIONS.SKIP) {
+        await dismissTour();
+        return;
+      }
+
+      if (action === ACTIONS.CLOSE) {
+        await dismissTour();
+        return;
+      }
+
+      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+        const nextStepIndex =
+          action === ACTIONS.PREV ? index - 1 : index + 1;
+
+        if (nextStepIndex < COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome) {
+          return;
+        }
+
+        if (nextStepIndex >= steps.length) {
+          await finishTour();
+          return;
+        }
+
+        await prepareStep(nextStepIndex);
+        setStepIndex(nextStepIndex);
+        await updateStep(nextStepIndex);
+      }
+    },
+    [dismissTour, finishTour, prepareStep, steps.length, updateStep],
+  );
+
+  const joyrideProps = useMemo(
+    () => ({
+      steps,
+      run,
+      stepIndex,
+      callback: handleJoyrideCallback,
+      continuous: true,
+      showProgress: false,
+      showSkipButton: true,
+      hideCloseButton: false,
+      disableOverlayClose: true,
+      disableCloseOnEsc: true,
+      disableScrolling: true,
+      scrollToFirstStep: true,
+      scrollOffset: 120,
+      spotlightClicks: false,
+      spotlightPadding: 8,
+      tooltipComponent: JoyrideTooltip,
       styles: {
-        floater: {
-          filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',
+        options: {
+          zIndex: 10000,
+          arrowColor: '#1E2329',
+        },
+        spotlight: {
+          borderRadius: 16,
+        },
+        overlay: {
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
         },
       },
-    },
-    locale: {
-      back: 'Anterior',
-      close: 'Cerrar',
-      last: 'Finalizar',
-      next: 'Siguiente',
-      skip: 'Saltar',
-    },
-  };
+      floaterProps: {
+        disableAnimation: false,
+        hideArrow: false,
+        offset: 15,
+        styles: {
+          floater: {
+            filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',
+          },
+        },
+      },
+      locale: {
+        back: 'Anterior',
+        close: 'Cerrar',
+        last: 'Finalizar',
+        next: 'Siguiente',
+        skip: 'Saltar',
+      },
+    }),
+    [handleJoyrideCallback, run, stepIndex, steps],
+  );
 
-  return { joyrideProps, restartTour };
-};
+  return {
+    joyrideProps,
+    restartTour,
+    run,
+    stepIndex,
+  };
+}

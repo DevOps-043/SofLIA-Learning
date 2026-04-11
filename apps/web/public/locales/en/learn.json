@@ -240,43 +240,36 @@
     "explanation": "Explanation"
   },
   "tour": {
-    "courseLearnLabel": "View course tour",
-    "replayLabel": "View Course Tour",
+    "courseLearnLabel": "View course guide",
+    "replayLabel": "View course guide",
+    "fallbacks": {
+      "courseTitle": "your current course",
+      "lessonTitle": "the current lesson"
+    },
     "steps": {
       "welcome": {
-        "title": "Welcome to your course!",
-        "description": "This is your interactive learning space. Here you'll find lessons, practical activities and resources to master the topic.",
-        "speech": "Welcome to your course. This is your interactive learning space. Here you'll find lessons, practical activities and resources to master the topic."
+        "title": "Welcome to the course workspace",
+        "description": "This is where you'll follow {{courseTitle}}, review your progress and move through the main tools for each lesson."
       },
-      "navigation": {
-        "title": "Course navigation",
-        "description": "In the left panel you'll see all the modules and lessons of the course. Click on any lesson to access its content.",
-        "speech": "In the left panel you'll see all the modules and lessons of the course. Click on any lesson to access its content."
+      "sidebar": {
+        "title": "Left panel: lessons and notes",
+        "description": "The left panel gives you the full syllabus, the status of every lesson and the notes area where you can save ideas, key excerpts and reminders while you study."
       },
-      "materials": {
-        "title": "Lesson materials",
-        "description": "Each lesson may include videos, texts, downloadable PDFs and additional resources. Explore all available content.",
-        "speech": "Each lesson may include videos, texts, downloadable PDFs and additional resources. Explore all available content."
+      "videoPanel": {
+        "title": "Video, transcript and summary",
+        "description": "The experience starts in the video panel. Right below it you can expand the transcript and the summary for {{lessonTitle}} to review concepts, verify details and turn them into notes."
       },
-      "activities": {
-        "title": "Practical activities",
-        "description": "Complete the activities to put what you've learned into practice. They are essential for your progress and certification.",
-        "speech": "Complete the activities to put what you've learned into practice. They are essential for your progress and certification."
+      "tools": {
+        "title": "Activities and questions",
+        "description": "Use Activities to solve exercises, quizzes or guided tasks, and Questions to raise doubts with the team or review the course conversations."
       },
-      "lia": {
-        "title": "SofLIA is here to help you",
-        "description": "If you have questions about the content, activities or any topic in the course, ask SofLIA. She will help you at all times.",
-        "speech": "If you have questions about the content, activities or any topic in the course, ask SofLIA. She will help you at all times."
-      },
-      "progress": {
-        "title": "Progress tracking",
-        "description": "Your progress is saved automatically. You can see how much you've advanced in the course and which lessons you've completed.",
-        "speech": "Your progress is saved automatically. You can see how much you've advanced in the course and which lessons you've completed."
+      "soflia": {
+        "title": "SofLIA supports you inside the course",
+        "description": "SofLIA already understands the context of {{courseTitle}} and {{lessonTitle}}. You can ask for explanations, summaries, activity support, note ideas and guidance on what to do next."
       },
       "ready": {
-        "title": "Ready to learn!",
-        "description": "Now you're ready to begin your learning journey. Remember, SofLIA will always be available to help you.",
-        "speech": "Now you're ready to begin your learning journey. Remember, SofLIA will always be available to help you."
+        "title": "Ready to begin",
+        "description": "You now know how the course is organized. Move at your own pace, use each tool when you need it and reopen this guide anytime you want a quick refresher."
       }
     }
   }

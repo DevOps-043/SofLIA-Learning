@@ -1,6 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
+
+function normalizeOrganizationId(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0
+    ? value.trim()
+    : null;
+}
+
+async function readOrganizationIdFromRequest(request: NextRequest) {
+  const bodyText = await request.text();
+
+  if (bodyText.trim().length === 0) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(bodyText) as { organizationId?: unknown };
+    return normalizeOrganizationId(payload.organizationId);
+  } catch {
+    return null;
+  }
+}
 
 /**
  * POST /api/courses/[slug]/lessons/[lessonId]/access
@@ -13,6 +35,7 @@ export async function POST(
   try {
     const { slug, lessonId } = await params;
     const supabase = await createClient();
+    const organizationId = await readOrganizationIdFromRequest(request);
 
     // Verificar autenticación
     const currentUser = await SessionService.getCurrentUser();
@@ -40,21 +63,22 @@ export async function POST(
     const courseId = course.id;
 
     // Obtener o crear enrollment del usuario
-    let { data: enrollment, error: enrollmentError } = await supabase
-      .from('user_course_enrollments')
-      .select('enrollment_id')
-      .eq('user_id', currentUser.id)
-      .eq('course_id', courseId)
-      .single();
+    let enrollment = await resolveCourseEnrollment(
+      supabase,
+      currentUser.id,
+      courseId,
+      organizationId,
+    );
 
     // Si no existe enrollment, crearlo
-    if (enrollmentError || !enrollment) {
+    if (!enrollment) {
       const now = new Date().toISOString();
       const { data: newEnrollment, error: createError } = await supabase
         .from('user_course_enrollments')
         .insert({
           user_id: currentUser.id,
           course_id: courseId,
+          organization_id: organizationId,
           enrollment_status: 'active',
           overall_progress_percentage: 0,
           enrolled_at: now,
@@ -71,7 +95,14 @@ export async function POST(
         );
       }
 
-      enrollment = newEnrollment;
+      enrollment = {
+        ...newEnrollment,
+        organization_id: organizationId,
+        overall_progress_percentage: 0,
+        enrollment_status: 'active',
+        enrolled_at: now,
+        last_accessed_at: now,
+      };
     }
 
     const enrollmentId = enrollment.enrollment_id;
@@ -141,4 +172,3 @@ export async function POST(
     return NextResponse.json({ success: true });
   }
 }
-

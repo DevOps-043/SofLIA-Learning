@@ -109,7 +109,10 @@ export function BusinessAnalyticsUsersTable({
         />
       </div>
 
-      <div className="overflow-x-auto">
+      <div
+        className="hidden overflow-x-auto md:block"
+        data-testid="business-analytics-users-desktop"
+      >
         <table className="w-full min-w-[920px] text-left border-collapse">
           <thead>
             <tr
@@ -272,6 +275,167 @@ export function BusinessAnalyticsUsersTable({
           </tbody>
         </table>
       </div>
+
+      <div
+        className="space-y-3 p-4 md:hidden"
+        data-testid="business-analytics-users-mobile"
+      >
+        {filteredUsers.length > 0 ? (
+          filteredUsers.map((user) => {
+            const displayName = getBusinessAnalyticsUserDisplayName(user, noNameLabel)
+            const initials = getBusinessAnalyticsUserInitials(user, noNameLabel)
+            const roleToneStyle = getRoleToneStyle(
+              getBusinessAnalyticsUserRoleTone(user.role),
+            )
+
+            return (
+              <div
+                key={user.user_id}
+                className="rounded-2xl border p-4"
+                style={{
+                  backgroundColor: panelTheme.cardBg,
+                  borderColor: panelTheme.borderColor,
+                }}
+              >
+                <div className="flex items-start gap-3">
+                  <BusinessAnalyticsUserAvatar
+                    imageUrl={user.profile_picture_url}
+                    alt={displayName}
+                    initials={initials}
+                    size="sm"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold" style={{ color: panelTheme.textColor }}>
+                      {displayName}
+                    </p>
+                    <p className="truncate text-xs" style={{ color: panelTheme.subtextColor }}>
+                      {user.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: panelTheme.mutedTextColor }}>
+                      Rol
+                    </span>
+                    <span
+                      className="inline-block max-w-full rounded-xl border px-3 py-1.5 text-xs font-medium"
+                      style={roleToneStyle}
+                    >
+                      {user.role || t('analytics.usersTable.student')}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.16em]" style={{ color: panelTheme.mutedTextColor }}>
+                      Progreso
+                    </span>
+                    <span className="text-sm font-mono" style={{ color: panelTheme.textColor }}>
+                      {user.average_progress}%
+                    </span>
+                  </div>
+
+                  <div
+                    className="h-2 overflow-hidden rounded-full"
+                    style={{ backgroundColor: panelTheme.hoverBg }}
+                  >
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${user.average_progress}%`,
+                        backgroundColor: getBusinessAnalyticsProgressColor(
+                          user.average_progress,
+                        ),
+                      }}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <MobileMetric
+                      label={t('analytics.usersTable.columns.courses')}
+                      value={`${user.courses_completed}/${user.courses_assigned}`}
+                      panelTheme={panelTheme}
+                    />
+                    <MobileMetric
+                      label={t('analytics.usersTable.columns.time')}
+                      value={`${getBusinessAnalyticsStudyHours(user.total_time_minutes)}h`}
+                      panelTheme={panelTheme}
+                    />
+                    <MobileMetric
+                      label={t('analytics.usersTable.columns.lastActivity')}
+                      value={
+                        user.last_active
+                          ? new Date(user.last_active).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            })
+                          : t('analytics.usersTable.never')
+                      }
+                      panelTheme={panelTheme}
+                      className="col-span-2"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => onSelectUser(user)}
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: panelTheme.inputBg,
+                    borderColor: panelTheme.borderColor,
+                    color: panelTheme.textColor,
+                  }}
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                  Ver acciones
+                </button>
+              </div>
+            )
+          })
+        ) : (
+          <div
+            className="rounded-2xl border p-8 text-center text-sm"
+            style={{
+              backgroundColor: panelTheme.cardBg,
+              borderColor: panelTheme.borderColor,
+              color: panelTheme.subtextColor,
+            }}
+          >
+            {t('analytics.usersTable.noUsers')}
+          </div>
+        )}
+      </div>
     </motion.div>
+  )
+}
+
+function MobileMetric({
+  label,
+  value,
+  panelTheme,
+  className = '',
+}: {
+  label: string
+  value: string
+  panelTheme: ReturnType<typeof useBusinessPanelTheme>
+  className?: string
+}) {
+  return (
+    <div
+      className={`rounded-xl border px-3 py-2 ${className}`}
+      style={{
+        backgroundColor: panelTheme.inputBg,
+        borderColor: panelTheme.borderColor,
+      }}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.14em]" style={{ color: panelTheme.mutedTextColor }}>
+        {label}
+      </p>
+      <p className="mt-1 text-sm" style={{ color: panelTheme.textColor }}>
+        {value}
+      </p>
+    </div>
   )
 }

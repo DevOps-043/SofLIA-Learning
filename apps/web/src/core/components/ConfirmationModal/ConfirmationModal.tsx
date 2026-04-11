@@ -74,7 +74,7 @@ export function ConfirmationModal({
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-[100dvh] items-end justify-center p-0 text-center sm:items-center sm:p-4">
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
@@ -84,8 +84,8 @@ export function ConfirmationModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all border border-gray-200 dark:border-gray-700">
-                <div className="flex items-start space-x-4">
+              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-t-3xl border border-gray-200 bg-white p-4 text-left align-middle shadow-xl transition-all dark:border-gray-700 dark:bg-gray-800 sm:rounded-2xl sm:p-6">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:space-x-4 sm:gap-0">
                   <div className={`flex-shrink-0 w-12 h-12 rounded-full ${iconBg} flex items-center justify-center`}>
                     <Icon className={`w-6 h-6 ${iconColor}`} />
                   </div>
@@ -101,10 +101,10 @@ export function ConfirmationModal({
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-end space-x-3">
+                <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:space-x-0">
                   <button
                     type="button"
-                    className="inline-flex justify-center rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white focus:outline-none transition-colors"
+                    className="inline-flex w-full justify-center rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white sm:w-auto"
                     onClick={onClose}
                     disabled={isLoading}
                   >
@@ -112,7 +112,7 @@ export function ConfirmationModal({
                   </button>
                   <button
                     type="button"
-                    className={`inline-flex justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white focus:outline-none transition-colors shadow-lg ${confirmBg}`}
+                    className={`inline-flex w-full justify-center rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-colors focus:outline-none sm:w-auto ${confirmBg}`}
                     onClick={onConfirm}
                     disabled={isLoading}
                   >

@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AdminWorkshop } from '../../../services/adminWorkshops.service'
 import {
+  deleteAdminWorkshop,
   filterAdminWorkshops,
   formatWorkshopDuration,
   getWorkshopInstructorInitials,
@@ -27,6 +28,10 @@ function createWorkshop(overrides: Partial<AdminWorkshop>): AdminWorkshop {
 }
 
 describe('admin-workshops-display.service', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('filters by approval status, search, category and status', () => {
     const workshops = [
       createWorkshop({ id: '1', title: 'IA Generativa', category: 'ia' }),
@@ -65,5 +70,20 @@ describe('admin-workshops-display.service', () => {
     expect(getWorkshopInstructorInitials('Ada')).toBe('AD')
     expect(getWorkshopInstructorInitials('Sin instructor')).toBe('SI')
     expect(getWorkshopInstructorInitials()).toBe('SI')
+  })
+
+  it('propagates backend delete errors with the api message', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: vi.fn().mockResolvedValue({
+        error: 'No se pudieron eliminar los materiales de las lecciones del taller.',
+      }),
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(deleteAdminWorkshop('workshop-1')).rejects.toThrow(
+      'No se pudieron eliminar los materiales de las lecciones del taller.',
+    )
   })
 })

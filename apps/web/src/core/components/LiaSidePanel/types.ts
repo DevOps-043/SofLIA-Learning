@@ -1,4 +1,5 @@
 import React from 'react';
+import type { LiaImageAttachment } from '../../reporting/report-problem.contract';
 
 export interface LiaThemeColors {
   panelBg: string;
@@ -37,4 +38,5 @@ export interface LiaMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  attachments?: LiaImageAttachment[];
 }

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   getLessonsTableName,
   resolveLastWatchedLessonId,
-} from '../learn-data-query.service'
+} from '../learn-data/learn-data-lessons.service'
 
 describe('learn-data-query.service', () => {
   it('maps the language to the correct lessons table', () => {

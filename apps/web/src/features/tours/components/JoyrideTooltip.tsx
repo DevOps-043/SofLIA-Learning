@@ -1,8 +1,85 @@
 'use client';
 
 import React from 'react';
+import { createPortal } from 'react-dom';
 import type { TooltipRenderProps } from 'react-joyride';
 import { X, ChevronRight, ChevronLeft, CheckCircle, Sparkles } from 'lucide-react';
+
+const FIXED_LEFT_TOOLTIP_DOCK = 'fixed-left';
+const FIXED_LEFT_TOOLTIP_OFFSET = 24;
+const MIN_FIXED_LEFT_TOOLTIP_TOP = 96;
+const MAX_FIXED_LEFT_TOOLTIP_HEIGHT = 280;
+const DEFAULT_FIXED_LEFT_TOOLTIP_TOP = 140;
+
+type JoyrideTooltipData = {
+  icon?: React.ReactNode;
+  tooltipDock?: typeof FIXED_LEFT_TOOLTIP_DOCK;
+  tooltipWidth?: 'compact';
+};
+
+function joinClassNames(...classNames: Array<string | undefined>): string {
+  return classNames.filter(Boolean).join(' ')
+}
+
+function isJoyrideTooltipData(value: unknown): value is JoyrideTooltipData {
+  return typeof value === 'object' && value !== null;
+}
+
+function resolveTooltipWidthClass(stepData: unknown): string {
+  if (isJoyrideTooltipData(stepData) && stepData.tooltipWidth === 'compact') {
+    return 'w-[calc(100vw-48px)] sm:w-[320px] max-w-[320px]';
+  }
+
+  return 'w-[90vw] sm:w-[380px] max-w-sm';
+}
+
+function shouldUseFixedLeftDock(stepData: unknown): boolean {
+  return isJoyrideTooltipData(stepData) && stepData.tooltipDock === FIXED_LEFT_TOOLTIP_DOCK;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function resolveStepTarget(step: TooltipRenderProps['step']): HTMLElement | null {
+  if (typeof document === 'undefined') {
+    return null;
+  }
+
+  if (typeof step.target === 'string') {
+    const target = document.querySelector(step.target);
+    return target instanceof HTMLElement ? target : null;
+  }
+
+  return step.target instanceof HTMLElement ? step.target : null;
+}
+
+function resolveFixedLeftTooltipStyle(
+  step: TooltipRenderProps['step'],
+): React.CSSProperties {
+  if (typeof window === 'undefined') {
+    return {
+      left: FIXED_LEFT_TOOLTIP_OFFSET,
+      position: 'fixed',
+      top: DEFAULT_FIXED_LEFT_TOOLTIP_TOP,
+      transform: 'none',
+    };
+  }
+
+  const targetElement = resolveStepTarget(step);
+  const targetTop = targetElement?.getBoundingClientRect().top ?? DEFAULT_FIXED_LEFT_TOOLTIP_TOP;
+  const maxTop = Math.max(
+    MIN_FIXED_LEFT_TOOLTIP_TOP,
+    window.innerHeight - MAX_FIXED_LEFT_TOOLTIP_HEIGHT,
+  );
+
+  return {
+    left: FIXED_LEFT_TOOLTIP_OFFSET,
+    position: 'fixed',
+    top: clamp(targetTop + FIXED_LEFT_TOOLTIP_OFFSET, MIN_FIXED_LEFT_TOOLTIP_TOP, maxTop),
+    transform: 'none',
+  };
+}
 
 /**
  * Custom Joyride tooltip component with responsive light/dark mode styling.
@@ -21,38 +98,18 @@ export function JoyrideTooltip({
   tooltipProps,
   size,
 }: TooltipRenderProps): React.JSX.Element {
-  // Extract onClick handlers to ensure they are called properly
-  const handleClose = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (closeProps.onClick) {
-      closeProps.onClick(e);
-    }
-  };
-
-  const handleBack = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (backProps.onClick) {
-      backProps.onClick(e);
-    }
-  };
-
-  const handlePrimary = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (primaryProps.onClick) {
-      primaryProps.onClick(e);
-    }
-  };
-
-  return (
+  const fixedLeftDock = shouldUseFixedLeftDock(step.data);
+  const tooltipContent = (
     <div
-      ref={tooltipProps.ref as React.RefCallback<HTMLDivElement>}
-      role={tooltipProps.role}
-      aria-modal={tooltipProps['aria-modal']}
-      className="relative flex flex-col rounded-2xl shadow-2xl overflow-hidden w-[90vw] sm:w-[380px] max-w-sm max-h-[85vh] border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[10001]"
+      {...tooltipProps}
+      className={joinClassNames(
+        tooltipProps.className,
+        'relative flex flex-col rounded-2xl shadow-2xl overflow-hidden max-h-[85vh] border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[10003]',
+        resolveTooltipWidthClass(step.data)
+      )}
       style={{
+        ...(tooltipProps.style ?? {}),
+        ...(fixedLeftDock ? resolveFixedLeftTooltipStyle(step) : {}),
         boxShadow: '0 20px 50px -10px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',
       }}
     >
@@ -79,11 +136,12 @@ export function JoyrideTooltip({
         </div>
 
         <button
+          {...closeProps}
           type="button"
-          onClick={handleClose}
-          aria-label={closeProps['aria-label']}
-          data-action="close"
-          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors shrink-0 text-gray-400 dark:text-gray-500 cursor-pointer"
+          className={joinClassNames(
+            closeProps.className,
+            'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors shrink-0 text-gray-400 dark:text-gray-500 cursor-pointer'
+          )}
         >
           <X size={18} />
         </button>
@@ -111,11 +169,12 @@ export function JoyrideTooltip({
         <div className="flex items-center gap-2">
           {index > 0 && (
             <button
+              {...backProps}
               type="button"
-              onClick={handleBack}
-              aria-label={backProps['aria-label']}
-              data-action="back"
-              className="flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white cursor-pointer"
+              className={joinClassNames(
+                backProps.className,
+                'flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium transition-all hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white cursor-pointer'
+              )}
             >
               <ChevronLeft size={16} />
               <span className="ml-1">Anterior</span>
@@ -124,11 +183,12 @@ export function JoyrideTooltip({
 
           {continuous && (
             <button
+              {...primaryProps}
               type="button"
-              onClick={handlePrimary}
-              aria-label={primaryProps['aria-label']}
-              data-action={isLastStep ? 'close' : 'next'}
-              className="flex items-center justify-center px-4 py-2 rounded-lg text-sm font-bold transition-all hover:brightness-110 shadow-lg bg-[#0A2540] text-white shadow-[#0A2540]/40 cursor-pointer"
+              className={joinClassNames(
+                primaryProps.className,
+                'flex items-center justify-center px-4 py-2 rounded-lg text-sm font-bold transition-all hover:brightness-110 shadow-lg bg-[#0A2540] text-white shadow-[#0A2540]/40 cursor-pointer'
+              )}
             >
               {isLastStep ? (
                 <>
@@ -147,4 +207,10 @@ export function JoyrideTooltip({
       </div>
     </div>
   );
+
+  if (fixedLeftDock && typeof document !== 'undefined') {
+    return createPortal(tooltipContent, document.body);
+  }
+
+  return tooltipContent;
 };

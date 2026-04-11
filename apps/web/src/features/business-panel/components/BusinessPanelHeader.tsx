@@ -154,9 +154,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
       }}
     >
       <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-16 items-center justify-between gap-3">
           {/* Left: Logo y Nombre */}
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={onMenuClick}
               className="lg:hidden p-2 rounded-lg transition-colors hover:opacity-80"
@@ -165,7 +165,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
               {/* Logo */}
               <div className="relative flex items-center justify-center">
                 {(organization?.brand_logo_url || organization?.logo_url || organization?.brand_favicon_url || organization?.favicon_url) ? (
@@ -174,7 +174,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     alt={organization?.name || 'Organización'}
                     width={180}
                     height={48}
-                    className="object-contain h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[180px] rounded-lg"
+                  className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/icono.png';
                     }}
@@ -194,7 +194,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               {/* Nombre de la Organización */}
               {organization?.show_navbar_name !== false && (
                 <h1
-                  className="hidden sm:block text-sm sm:text-base font-semibold truncate max-w-[200px] sm:max-w-[300px]"
+                  className="hidden min-w-0 truncate text-sm font-semibold sm:block sm:max-w-[300px] sm:text-base lg:max-w-[360px]"
                   style={{
                     color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.95)')
                   }}
@@ -206,7 +206,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
           </div>
 
           {/* Right: User Menu */}
-          <div className="relative" ref={dropdownRef}>
+          <div className="relative shrink-0" ref={dropdownRef}>
             <motion.button
               onClick={() => setUserDropdownOpen(!userDropdownOpen)}
               className="flex items-center justify-center p-1 rounded-full transition-all duration-200"

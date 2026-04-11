@@ -17,6 +17,7 @@ import {
   type QuizQuestion,
   type SelectedQuizAnswers,
 } from "@/features/courses/components/learn/quiz.utils";
+import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 
 type QuizRendererProps = {
   quizData: QuizQuestion[];
@@ -39,6 +40,7 @@ export function QuizRenderer({
   onTriggerLiaFeedback,
   onQuizSubmitted,
 }: QuizRendererProps) {
+  const organizationId = useCurrentOrganizationId();
   const [selectedAnswers, setSelectedAnswers] = useState<SelectedQuizAnswers>({});
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
@@ -106,6 +108,7 @@ export function QuizRenderer({
           lessonId,
           materialId,
           normalizedQuizData,
+          organizationId,
           onQuizSubmitted,
           selectedAnswers,
           setServerMessage,
@@ -409,6 +412,7 @@ type SubmitQuizResultsParams = {
   lessonId: string;
   materialId?: string;
   normalizedQuizData: QuizQuestion[];
+  organizationId?: string | null;
   onQuizSubmitted?: () => void;
   selectedAnswers: SelectedQuizAnswers;
   setServerMessage: (message: string | null) => void;
@@ -422,6 +426,7 @@ async function submitQuizResults({
   lessonId,
   materialId,
   normalizedQuizData,
+  organizationId,
   onQuizSubmitted,
   selectedAnswers,
   setServerMessage,
@@ -442,6 +447,7 @@ async function submitQuizResults({
           quizData: normalizedQuizData,
           materialId: materialId || null,
           activityId: activityId || null,
+          organizationId,
           totalPoints,
         }),
       }
