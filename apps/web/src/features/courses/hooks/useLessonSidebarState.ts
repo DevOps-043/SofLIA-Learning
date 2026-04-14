@@ -7,14 +7,17 @@ import type {
   LearnActivityMap,
   LearnActivitySummary,
   LearnLesson,
+  LearnLessonTranslationContextMap,
   LearnLessonQuizStatusMap,
   LearnMaterialMap,
   LearnMaterialSummary,
   LearnModule,
+  LearnTranslationContext,
 } from "../components/learn/types";
 
 type UseLessonSidebarStateParams = {
   slug: string;
+  selectedLang: "es" | "en" | "pt";
   modules: LearnModule[];
   currentLesson: LearnLesson | null;
   isMobile: boolean;
@@ -54,6 +57,7 @@ function mapMaterials(
 
 export function useLessonSidebarState({
   slug,
+  selectedLang,
   modules,
   currentLesson,
   isMobile,
@@ -70,6 +74,8 @@ export function useLessonSidebarState({
   const [lessonsMaterials, setLessonsMaterials] = useState<LearnMaterialMap>({});
   const [lessonsQuizStatus, setLessonsQuizStatus] =
     useState<LearnLessonQuizStatusMap>({});
+  const [lessonTranslationContexts, setLessonTranslationContexts] =
+    useState<LearnLessonTranslationContextMap>({});
 
   const lessonsActivitiesRef = useRef(lessonsActivities);
   const lessonsMaterialsRef = useRef(lessonsMaterials);
@@ -121,11 +127,12 @@ export function useLessonSidebarState({
       }
 
       try {
-        const sidebarDataUrl = organizationId
-          ? `/api/courses/${slug}/lessons/${lessonId}/sidebar-data?orgId=${encodeURIComponent(
-              organizationId
-            )}`
-          : `/api/courses/${slug}/lessons/${lessonId}/sidebar-data`;
+        const queryParams = new URLSearchParams();
+        queryParams.set("language", selectedLang);
+        if (organizationId) {
+          queryParams.set("orgId", organizationId);
+        }
+        const sidebarDataUrl = `/api/courses/${slug}/lessons/${lessonId}/sidebar-data?${queryParams.toString()}`;
         const response = await fetch(
           sidebarDataUrl,
           { credentials: "include" }
@@ -135,6 +142,10 @@ export function useLessonSidebarState({
           setLessonsActivities((previous) => ({ ...previous, [lessonId]: [] }));
           setLessonsMaterials((previous) => ({ ...previous, [lessonId]: [] }));
           setLessonsQuizStatus((previous) => ({ ...previous, [lessonId]: null }));
+          setLessonTranslationContexts((previous) => ({
+            ...previous,
+            [lessonId]: null,
+          }));
           return;
         }
 
@@ -152,13 +163,21 @@ export function useLessonSidebarState({
           ...previous,
           [lessonId]: data.quizStatus ?? null,
         }));
+        setLessonTranslationContexts((previous) => ({
+          ...previous,
+          [lessonId]: (data.translationContext as LearnTranslationContext) ?? null,
+        }));
       } catch {
         setLessonsActivities((previous) => ({ ...previous, [lessonId]: [] }));
         setLessonsMaterials((previous) => ({ ...previous, [lessonId]: [] }));
         setLessonsQuizStatus((previous) => ({ ...previous, [lessonId]: null }));
+        setLessonTranslationContexts((previous) => ({
+          ...previous,
+          [lessonId]: null,
+        }));
       }
     },
-    [organizationId, slug]
+    [organizationId, selectedLang, slug]
   );
 
   const toggleLessonExpand = useCallback(
@@ -248,6 +267,7 @@ export function useLessonSidebarState({
     lessonsActivities,
     lessonsMaterials,
     lessonsQuizStatus,
+    lessonTranslationContexts,
     loadLessonActivitiesAndMaterials,
     openContentSection,
     openLeftPanel,

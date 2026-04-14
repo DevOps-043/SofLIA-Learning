@@ -17,6 +17,7 @@ import { loadCourseBySlug, loadModulesWithProgress, loadCourseQuestions } from '
 import { loadLessonData, type LessonDataResult } from './learn-data/learn-data-materials.service'
 import { loadNotesStats, type NotesStats } from './learn-data/learn-data-progress.service'
 import type { ModulesWithProgressResult } from './learn-data/learn-data-lessons.service'
+import type { LearningPathAccessState } from '@/features/learning-paths/services/learning-path-access.server'
 
 interface CourseRow {
   id: string
@@ -40,6 +41,7 @@ export interface LearnDataQueryPayload {
   questionsResult: QuestionRow[]
   notesStatsResult: NotesStats | null
   lessonDataResult: LessonDataResult | null
+  learningPathState?: LearningPathAccessState | null
   totalTimeMs: number
 }
 
@@ -77,6 +79,7 @@ export async function loadLearnDataPayload(
     questionsResult,
     notesStatsResult,
     lessonDataResult,
+    learningPathState: null,
     totalTimeMs: Date.now() - startedAt,
   }
 }

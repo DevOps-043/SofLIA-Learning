@@ -2,8 +2,14 @@
 
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Plus, X, BookOpen, CheckCircle, ChevronDown, GraduationCap, Building } from 'lucide-react'
-import type { Course, AssignedCourse, CompanyMember } from './courses-section.types'
+import { Search, Plus, X, BookOpen, CheckCircle, ChevronDown, GraduationCap, Building, Route } from 'lucide-react'
+import type {
+  Course,
+  AssignedCourse,
+  CompanyMember,
+  LearningPath,
+  OrganizationLearningPathAssignment,
+} from './courses-section.types'
 import { colors } from './courses-section.types'
 
 // ---- Catalog Modal ----
@@ -122,6 +128,114 @@ export function CatalogModal({
   )
 }
 
+interface LearningPathCatalogModalProps {
+  isOpen: boolean
+  onClose: () => void
+  search: string
+  setSearch: (v: string) => void
+  filteredLearningPaths: LearningPath[]
+  activeAssignments: OrganizationLearningPathAssignment[]
+  assigningId: string | null
+  onAssign: (learningPathId: string) => void
+}
+
+export function LearningPathCatalogModal({
+  isOpen, onClose, search, setSearch,
+  filteredLearningPaths, activeAssignments, assigningId, onAssign
+}: LearningPathCatalogModalProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+
+          <motion.div initial={{ opacity: 0, scale: 0.95, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 30 }}
+            className="relative w-full max-w-5xl h-[85vh] rounded-[2.5rem] overflow-hidden shadow-2xl border flex flex-col"
+            style={{ backgroundColor: colors.bgSecondary, borderColor: 'rgba(255,255,255,0.1)' }}>
+
+            <div className="p-8 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Catálogo de Learning Paths</h4>
+                  <p className="text-sm" style={{ color: colors.grayMedium }}>Asigna rutas completas manteniendo el orden secuencial de talleres.</p>
+                </div>
+                <button onClick={onClose} className="p-3 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <div className="relative">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.grayMedium }} />
+                <input
+                  autoFocus
+                  placeholder="Busca por título o descripción..."
+                  className="w-full pl-14 pr-6 py-4 rounded-[1.5rem] border-0 text-white focus:outline-none focus:ring-2 transition-all shadow-inner"
+                  style={{ backgroundColor: colors.bgTertiary }}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
+              {filteredLearningPaths.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center">
+                  <Route className="w-16 h-16 mb-4 opacity-5" />
+                  <p className="text-lg font-bold text-white/20">No se encontraron learning paths</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {filteredLearningPaths.map(path => {
+                    const isAlreadyAssigned = activeAssignments.some(assignment => assignment.learning_path_id === path.id && assignment.status === 'active')
+                    return (
+                      <motion.div
+                        key={path.id}
+                        whileHover={{ y: -5 }}
+                        className="group rounded-3xl overflow-hidden border transition-all flex flex-col"
+                        style={{ backgroundColor: colors.bgTertiary, borderColor: 'rgba(255,255,255,0.05)' }}
+                      >
+                        <div className="p-6 flex-1 flex flex-col">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>Ruta Secuencial</p>
+                          <h5 className="text-lg font-bold text-white leading-tight mb-2">{path.title}</h5>
+                          <p className="text-sm line-clamp-3 mb-6" style={{ color: colors.grayMedium }}>
+                            {path.description || 'Sin descripción'}
+                          </p>
+                          <div className="text-[11px] font-medium mb-6" style={{ color: colors.grayMedium }}>
+                            {path.item_count} talleres en secuencia
+                          </div>
+
+                          <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
+                            {isAlreadyAssigned ? (
+                              <div className="flex items-center gap-2 text-success">
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="text-xs font-bold uppercase">Ya asignado</span>
+                              </div>
+                            ) : (
+                              <button
+                                disabled={!!assigningId}
+                                onClick={() => onAssign(path.id)}
+                                className="w-full py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
+                                style={{ backgroundColor: colors.accent, color: colors.primary }}
+                              >
+                                {assigningId === path.id ? 'Procesando...' : 'Asignar Ruta'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 // ---- Assign User Modal ----
 interface AssignUserModalProps {
   isOpen: boolean
@@ -216,6 +330,98 @@ export function AssignUserModal({
   )
 }
 
+interface AssignLearningPathModalProps {
+  isOpen: boolean
+  onClose: () => void
+  members: CompanyMember[]
+  learningPaths: LearningPath[]
+  selectedUserForLearningPath: string | null
+  setSelectedUserForLearningPath: (v: string | null) => void
+  selectedLearningPathForUser: string | null
+  setSelectedLearningPathForUser: (v: string | null) => void
+  isAssigning: boolean
+  onConfirm: () => void
+}
+
+export function AssignLearningPathModal({
+  isOpen, onClose, members, learningPaths,
+  selectedUserForLearningPath, setSelectedUserForLearningPath,
+  selectedLearningPathForUser, setSelectedLearningPathForUser,
+  isAssigning, onConfirm
+}: AssignLearningPathModalProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+            className="relative w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl border"
+            style={{ backgroundColor: colors.bgSecondary, borderColor: 'rgba(255,255,255,0.1)' }}>
+            <div className="p-8 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Asignar Learning Path</h4>
+              <p className="text-sm" style={{ color: colors.grayMedium }}>Entrega una ruta completa respetando el orden de desbloqueo.</p>
+            </div>
+
+            <div className="p-8 space-y-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.grayMedium }}>Seleccionar Miembro</label>
+                <div className="relative group">
+                  <select
+                    className="w-full h-14 pl-5 pr-10 rounded-2xl bg-black/20 border-white/5 border text-white text-sm appearance-none outline-none focus:ring-2"
+                    style={{ borderColor: 'rgba(255,255,255,0.1)' }}
+                    value={selectedUserForLearningPath || ''}
+                    onChange={(e) => setSelectedUserForLearningPath(e.target.value)}
+                  >
+                    <option value="">Buscar miembro...</option>
+                    {members.map(m => (
+                      <option key={m.user_id} value={m.user_id}>
+                        {m.user.display_name || m.user.email}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.grayMedium }}>Seleccionar Learning Path</label>
+                <div className="relative group">
+                  <select
+                    className="w-full h-14 pl-5 pr-10 rounded-2xl bg-black/20 border-white/5 border text-white text-sm appearance-none outline-none focus:ring-2"
+                    style={{ borderColor: 'rgba(255,255,255,0.1)' }}
+                    value={selectedLearningPathForUser || ''}
+                    onChange={(e) => setSelectedLearningPathForUser(e.target.value)}
+                  >
+                    <option value="">Buscar learning path...</option>
+                    {learningPaths.map(path => (
+                      <option key={path.id} value={path.id}>{path.title}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 border-t flex gap-4" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+              <button onClick={onClose} className="flex-1 py-4 text-sm font-bold text-white/40 hover:text-white transition-all">Cancelar</button>
+              <button
+                disabled={!selectedUserForLearningPath || !selectedLearningPathForUser || isAssigning}
+                onClick={onConfirm}
+                className="flex-[2] py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all disabled:opacity-30 shadow-xl"
+                style={{ backgroundColor: colors.accent, color: colors.primary }}
+              >
+                {isAssigning ? 'Asignando...' : 'Confirmar Asignación'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 // ---- Search Bar ----
 interface CoursesSearchBarProps {
   activeTab: 'org' | 'users'
@@ -243,10 +449,19 @@ interface CoursesHeaderProps {
   activeTab: 'org' | 'users'
   setActiveTab: (tab: 'org' | 'users') => void
   onOpenCatalog: () => void
+  onOpenLearningPathCatalog: () => void
   onAssignUser: () => void
+  onAssignLearningPath: () => void
 }
 
-export function CoursesHeader({ activeTab, setActiveTab, onOpenCatalog, onAssignUser }: CoursesHeaderProps) {
+export function CoursesHeader({
+  activeTab,
+  setActiveTab,
+  onOpenCatalog,
+  onOpenLearningPathCatalog,
+  onAssignUser,
+  onAssignLearningPath
+}: CoursesHeaderProps) {
   return (
     <>
       <div className="flex p-1 rounded-2xl w-fit" style={{ backgroundColor: colors.bgTertiary }}>
@@ -289,17 +504,39 @@ export function CoursesHeader({ activeTab, setActiveTab, onOpenCatalog, onAssign
             <Plus className="w-5 h-5" />
             Adquirir Curso
           </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onOpenLearningPathCatalog}
+            className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
+            style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}
+          >
+            <Route className="w-5 h-5" />
+            Asignar Learning Path
+          </motion.button>
           {activeTab === 'users' && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={onAssignUser}
-              className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
-              style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}
-            >
-              <GraduationCap className="w-5 h-5" />
-              Asignar a Usuario
-            </motion.button>
+            <>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onAssignUser}
+                className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
+                style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}
+              >
+                <GraduationCap className="w-5 h-5" />
+                Asignar Curso
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={onAssignLearningPath}
+                className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
+                style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}
+              >
+                <Route className="w-5 h-5" />
+                Asignar Ruta
+              </motion.button>
+            </>
           )}
         </div>
       </div>

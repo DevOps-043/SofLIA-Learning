@@ -5,9 +5,12 @@ import { dedupedFetch } from '../../../../lib/supabase/request-deduplication'
 import type { CourseLessonContext } from '../../../../core/types/lia.types'
 import type {
   LearnCourseData,
+  LearnPathBlockState,
   LearnLesson,
   LearnModule,
   LearnNotesStats,
+  LearnPathState,
+  LearnTranslationContext,
 } from '../../components/learn/types'
 import {
   buildLearnDataQuery,
@@ -22,6 +25,14 @@ interface LearnDataResponse {
   modules?: LearnModule[]
   lastWatchedLessonId?: string
   notesStats?: LearnNotesStats
+  learningPath?: LearnPathState | null
+  translationContext?: LearnTranslationContext
+}
+
+interface LearnDataErrorResponse {
+  error?: string
+  message?: string
+  learningPath?: LearnPathState | null
 }
 
 interface WorkshopMetadataResponse {
@@ -55,6 +66,42 @@ interface UseLearnPageCourseDataParams {
   setIsLiaSummaryLoading: (loading: boolean) => void
   setLoading: (loading: boolean) => void
   setCourseProgress: (progress: number) => void
+  setLearningPathState: (state: LearnPathState | null) => void
+  setLearningPathBlockState: (state: LearnPathBlockState | null) => void
+  setLearnDataTranslationContext: (
+    context: LearnTranslationContext | null,
+  ) => void
+}
+
+class LearnDataRequestError extends Error {
+  status: number
+  payload: LearnDataErrorResponse | null
+
+  constructor(status: number, payload: LearnDataErrorResponse | null) {
+    super(payload?.message || `HTTP ${status}`)
+    this.name = 'LearnDataRequestError'
+    this.status = status
+    this.payload = payload
+  }
+}
+
+async function loadLearnData(
+  url: string,
+  init?: RequestInit,
+): Promise<LearnDataResponse> {
+  const response = await fetch(url, init)
+  const payload = (await response
+    .json()
+    .catch(() => null)) as LearnDataResponse | LearnDataErrorResponse | null
+
+  if (!response.ok) {
+    throw new LearnDataRequestError(
+      response.status,
+      (payload as LearnDataErrorResponse | null) ?? null,
+    )
+  }
+
+  return (payload as LearnDataResponse | null) ?? {}
 }
 
 async function loadLessonSupplement({
@@ -103,6 +150,9 @@ export function useLearnPageCourseData({
   setIsLiaSummaryLoading,
   setLoading,
   setCourseProgress,
+  setLearningPathState,
+  setLearningPathBlockState,
+  setLearnDataTranslationContext,
 }: UseLearnPageCourseDataParams) {
   useEffect(() => {
     async function loadCourse() {
@@ -111,14 +161,16 @@ export function useLearnPageCourseData({
 
         const lessonId =
           currentLesson?.lesson_id || modules[0]?.lessons[0]?.lesson_id
-        const learnData = (await dedupedFetch(
+        const learnData = await loadLearnData(
           `/api/courses/${slug}/learn-data${buildLearnDataQuery({
             lessonId,
             language: selectedLang,
             organizationId,
           })}`,
           { credentials: 'include' },
-        )) as LearnDataResponse
+        )
+
+        setLearningPathBlockState(null)
 
         if (learnData.course) {
           setCourse(learnData.course)
@@ -168,6 +220,10 @@ export function useLearnPageCourseData({
           applyServerNotesStats(learnData.notesStats)
         }
 
+        setLearningPathState(learnData.learningPath ?? null)
+
+        setLearnDataTranslationContext(learnData.translationContext ?? null)
+
         if (
           learnData.lastWatchedLessonId &&
           !lessonId &&
@@ -182,8 +238,35 @@ export function useLearnPageCourseData({
             { credentials: 'include' },
           ).catch(() => null)
         }
-      } catch {
+      } catch (error) {
+        if (
+          error instanceof LearnDataRequestError &&
+          error.status === 423 &&
+          error.payload?.error === 'CURSO_BLOQUEADO_POR_LEARNING_PATH'
+        ) {
+          const blockedLearningPath = error.payload.learningPath ?? null
+          setLearningPathState(blockedLearningPath)
+          setLearningPathBlockState({
+            message:
+              error.payload.message ||
+              'Este taller aun esta bloqueado dentro de su learning path.',
+            learningPath: blockedLearningPath,
+          })
+          setCourse(null)
+          setModules([])
+          setCurrentLesson(null)
+          setCourseProgress(0)
+          setLearnDataTranslationContext(null)
+          return
+        }
+
         setCourse(null)
+        setModules([])
+        setCurrentLesson(null)
+        setCourseProgress(0)
+        setLearningPathState(null)
+        setLearningPathBlockState(null)
+        setLearnDataTranslationContext(null)
       } finally {
         setLoading(false)
       }
@@ -192,7 +275,19 @@ export function useLearnPageCourseData({
     if (slug) {
       loadCourse()
     }
-  }, [organizationId, selectedLang, slug])
+  }, [
+    organizationId,
+    selectedLang,
+    setCurrentLesson,
+    setLearnDataTranslationContext,
+    setLearningPathBlockState,
+    setLearningPathState,
+    setModules,
+    setCourse,
+    setCourseProgress,
+    setLoading,
+    slug,
+  ])
 
   useEffect(() => {
     if (modules.length > 0 && notesStatsLessonsWithNotes === '0/0') {
@@ -215,8 +310,13 @@ export function useLearnPageCourseData({
     const abortController = new AbortController()
 
     const loadLiaContext = async () => {
-      const transcriptUrl = `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/transcript?language=${selectedLang}`
-      const summaryUrl = `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/summary?language=${selectedLang}`
+      const supplementalQuery = new URLSearchParams({ language: selectedLang })
+      if (organizationId) {
+        supplementalQuery.set('orgId', organizationId)
+      }
+
+      const transcriptUrl = `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/transcript?${supplementalQuery.toString()}`
+      const summaryUrl = `/api/courses/${slug}/lessons/${currentLesson.lesson_id}/summary?${supplementalQuery.toString()}`
 
       const [transcriptResult, summaryResult] = await Promise.allSettled([
         loadLessonSupplement({
@@ -282,7 +382,7 @@ export function useLearnPageCourseData({
       abortController.abort()
       clearTimeout(timer)
     }
-  }, [currentLesson?.lesson_id, selectedLang, slug])
+  }, [currentLesson?.lesson_id, organizationId, selectedLang, slug])
 
   useEffect(() => {
     if (currentLesson && slug) {

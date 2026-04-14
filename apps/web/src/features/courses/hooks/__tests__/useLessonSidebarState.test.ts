@@ -47,6 +47,7 @@ describe("useLessonSidebarState", () => {
     const { result } = renderHook(() =>
       useLessonSidebarState({
         slug: "curso-demo",
+        selectedLang: "es",
         modules: [
           {
             module_id: "module-1",
@@ -70,7 +71,7 @@ describe("useLessonSidebarState", () => {
 
     await vi.waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        "/api/courses/curso-demo/lessons/lesson-1/sidebar-data",
+        "/api/courses/curso-demo/lessons/lesson-1/sidebar-data?language=es",
         { credentials: "include" }
       );
     });

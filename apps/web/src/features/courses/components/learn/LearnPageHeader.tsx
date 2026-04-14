@@ -21,7 +21,7 @@ export function LearnPageHeader({
   onRestartTour,
   restartTourLabel,
 }: LearnPageHeaderProps) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation("learn");
 
   return (
     <motion.div

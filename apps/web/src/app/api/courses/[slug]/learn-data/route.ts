@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { createClient } from '@/lib/supabase/server'
 import { cacheHeaders, withCacheHeaders } from '@/lib/utils/cache-headers'
+import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
 import { buildLearnDataResponse } from './services/learn-data-response.service'
 import { loadLearnDataPayload } from './services/learn-data-query.service'
 
@@ -26,6 +27,31 @@ export async function GET(
       currentUser?.id,
       organizationId,
     )
+
+    if (currentUser?.id && payload.course.id) {
+      const learningPathState = await resolveLearningPathAccessForCourse({
+        userId: currentUser.id,
+        courseId: payload.course.id,
+        organizationId,
+      })
+
+      if (learningPathState && !learningPathState.currentCourseUnlocked) {
+        return withCacheHeaders(
+          NextResponse.json(
+            {
+              error: 'CURSO_BLOQUEADO_POR_LEARNING_PATH',
+              message:
+                'Este taller pertenece a un learning path y todavía no se ha desbloqueado.',
+              learningPath: learningPathState,
+            },
+            { status: 423 },
+          ),
+          cacheHeaders.dynamic,
+        )
+      }
+
+      payload.learningPathState = learningPathState
+    }
 
     return withCacheHeaders(
       NextResponse.json(buildLearnDataResponse(payload)),

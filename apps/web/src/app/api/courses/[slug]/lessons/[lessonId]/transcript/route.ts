@@ -1,109 +1,84 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers'
+import { SessionService } from '@/features/auth/services/session.service'
+import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
+import { normalizeLearnLanguage, resolveCourseLessonByLanguage } from '@/app/api/courses/_services/lesson-language-resolution.service'
 
-/**
- * Obtiene el nombre de la tabla de lecciones según el idioma
- */
-function getLessonsTableName(language: string): string {
-  switch (language) {
-    case 'en':
-      return 'course_lessons_en'
-    case 'pt':
-      return 'course_lessons_pt'
-    case 'es':
-    default:
-      return 'course_lessons'
-  }
-}
-
-/**
- * GET /api/courses/[slug]/lessons/[lessonId]/transcript
- * Obtiene la transcripción de una lección desde la tabla específica del idioma
- */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string }> }
+  { params }: { params: Promise<{ slug: string; lessonId: string }> },
 ) {
   try {
-    const { slug, lessonId } = await params;
-    const { searchParams } = new URL(request.url);
-    const language = searchParams.get('language') || 'es';
-    const supabase = await createClient();
+    const { slug, lessonId } = await params
+    const { searchParams } = new URL(request.url)
+    const language = normalizeLearnLanguage(searchParams.get('language'))
+    const organizationId = searchParams.get('orgId')?.trim() || null
+    const supabase = await createClient()
+    const currentUser = await SessionService.getCurrentUser()
 
-    // Optimización: Obtener curso primero, luego validar lección y módulo en una consulta
     const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('id')
       .eq('slug', slug)
-      .single();
+      .single()
 
     if (courseError || !course) {
-      return NextResponse.json(
-        { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Curso no encontrado' }, { status: 404 })
     }
 
-    // IMPORTANTE: Usar la tabla de lecciones según el idioma
-    // course_lessons (español), course_lessons_en (inglés), course_lessons_pt (portugués)
-    const lessonsTableName = getLessonsTableName(language);
+    if (currentUser?.id) {
+      const learningPathState = await resolveLearningPathAccessForCourse({
+        userId: currentUser.id,
+        courseId: course.id,
+        organizationId,
+      })
 
-    // Optimización: Verificar lección y módulo en una sola consulta con JOIN
-    const { data: lesson, error: lessonError } = await supabase
-      .from(lessonsTableName)
-      .select(`
-        lesson_id,
-        module_id,
-        course_modules!inner (
-          module_id,
-          course_id
+      if (learningPathState && !learningPathState.currentCourseUnlocked) {
+        return withCacheHeaders(
+          NextResponse.json(
+            {
+              error: 'CURSO_BLOQUEADO_POR_LEARNING_PATH',
+              message:
+                'Este taller aún está bloqueado dentro de su learning path.',
+              learningPath: learningPathState,
+            },
+            { status: 423 },
+          ),
+          cacheHeaders.dynamic,
         )
-      `)
-      .eq('lesson_id', lessonId)
-      .eq('course_modules.course_id', course.id)
-      .single();
-
-    if (lessonError || !lesson) {
-      return NextResponse.json(
-        { error: 'Lección no encontrada o no pertenece al curso' },
-        { status: 404 }
-      );
+      }
     }
 
-    // Obtener transcripción de la lección desde la tabla del idioma específico
-    const { data: lessonData, error: transcriptError } = await supabase
-      .from(lessonsTableName)
-      .select('transcript_content')
-      .eq('lesson_id', lessonId)
-      .single();
+    const resolvedLesson = await resolveCourseLessonByLanguage({
+      supabase,
+      courseId: course.id,
+      lessonId,
+      requestedLanguage: language,
+    })
 
-    if (transcriptError) {
-      console.error('[transcript/route] Error obteniendo transcripción:', transcriptError);
+    if (!resolvedLesson.lesson) {
       return NextResponse.json(
-        { error: 'Error al obtener transcripción' },
-        { status: 500 }
-      );
+        { error: 'Leccion no encontrada o no pertenece al curso' },
+        { status: 404 },
+      )
     }
 
-    const transcriptContent = lessonData?.transcript_content || null;
-
-    // ⚡ OPTIMIZACIÓN: Agregar cache headers (datos estáticos - 1 hora)
     return withCacheHeaders(
       NextResponse.json({
-        transcript_content: transcriptContent
+        transcript_content: resolvedLesson.lesson.transcript_content || null,
+        translationContext: resolvedLesson.translationContext,
       }),
-      cacheHeaders.static
-    );
+      cacheHeaders.static,
+    )
   } catch (error) {
-    console.error('[transcript/route] Error inesperado:', error);
+    console.error('[transcript/route] Error inesperado:', error)
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
+        details: error instanceof Error ? error.message : 'Error desconocido',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }
-

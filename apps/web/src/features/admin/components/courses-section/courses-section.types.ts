@@ -18,6 +18,23 @@ export interface AssignedCourse {
   courses: Course
 }
 
+export interface LearningPath {
+  id: string
+  title: string
+  slug: string | null
+  description: string | null
+  is_active: boolean
+  item_count: number
+}
+
+export interface OrganizationLearningPathAssignment {
+  id: string
+  learning_path_id: string
+  assigned_at: string
+  status: string
+  learning_path: LearningPath | null
+}
+
 export interface UserAssignment {
   id: string
   user_id: string
@@ -33,6 +50,22 @@ export interface UserAssignment {
     first_name: string | null
     last_name: string | null
   }
+}
+
+export interface UserLearningPathAssignment {
+  id: string
+  user_id: string
+  learning_path_id: string
+  assigned_at: string
+  status: string
+  learning_path: LearningPath | null
+  user: {
+    id: string
+    email: string
+    display_name: string | null
+    first_name: string | null
+    last_name: string | null
+  } | null
 }
 
 export interface CompanyMember {

@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, Square, Trash2, Copy, StickyNote, Check, Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { TourRestartButton } from '../../../core/components/tours/TourRestartButton';
+
 import { SHARED_TOUR_TARGET_IDS } from '../../../core/constants/tourTargets';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useLiaCourse } from '../context/LiaCourseContext';
@@ -108,17 +108,7 @@ function CourseLiaFloatingButton() {
   
   return (
     <>
-      {!isOpen ? (
-        <div className="hidden md:block">
-          <TourRestartButton
-            anchor={{
-              bottom: COURSE_LIA_BUTTON_BOTTOM_PX,
-              right: COURSE_LIA_BUTTON_RIGHT_PX,
-              size: COURSE_LIA_BUTTON_SIZE_PX,
-            }}
-          />
-        </div>
-      ) : null}
+
 
       <AnimatePresence>
         {!isOpen && (

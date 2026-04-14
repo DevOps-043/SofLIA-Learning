@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
-import type { Course, AssignedCourse, UserAssignment, CompanyMember } from './courses-section.types'
+import type {
+  Course,
+  AssignedCourse,
+  UserAssignment,
+  CompanyMember,
+  LearningPath,
+  OrganizationLearningPathAssignment,
+  UserLearningPathAssignment,
+} from './courses-section.types'
 
 interface UseCourseSectionLogicProps {
   companyId: string
@@ -16,20 +24,28 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   const [hierarchyCourses, setHierarchyCourses] = useState<AssignedCourse[]>([])
   const [userAssignments, setUserAssignments] = useState<UserAssignment[]>([])
   const [allCourses, setAllCourses] = useState<Course[]>([])
+  const [organizationLearningPaths, setOrganizationLearningPaths] = useState<OrganizationLearningPathAssignment[]>([])
+  const [userLearningPathAssignments, setUserLearningPathAssignments] = useState<UserLearningPathAssignment[]>([])
+  const [allLearningPaths, setAllLearningPaths] = useState<LearningPath[]>([])
   const [members, setMembers] = useState<CompanyMember[]>([])
 
   // UI State
   const [loading, setLoading] = useState(true)
   const [isCatalogOpen, setIsCatalogOpen] = useState(false)
+  const [isLearningPathCatalogOpen, setIsLearningPathCatalogOpen] = useState(false)
   const [isAssignUserModalOpen, setIsAssignUserModalOpen] = useState(false)
+  const [isAssignLearningPathModalOpen, setIsAssignLearningPathModalOpen] = useState(false)
   const [assigningId, setAssigningId] = useState<string | null>(null)
   const [isAssigning, setIsAssigning] = useState(false)
 
   // Filters & Search
   const [catalogSearch, setCatalogSearch] = useState('')
+  const [learningPathCatalogSearch, setLearningPathCatalogSearch] = useState('')
   const [listSearch, setListSearch] = useState('')
   const [selectedCourseForUser, setSelectedCourseForUser] = useState<string | null>(null)
   const [selectedUserForCourse, setSelectedUserForCourse] = useState<string | null>(null)
+  const [selectedLearningPathForUser, setSelectedLearningPathForUser] = useState<string | null>(null)
+  const [selectedUserForLearningPath, setSelectedUserForLearningPath] = useState<string | null>(null)
 
   // Toast state
   const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>({
@@ -66,6 +82,24 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
         setAllCourses(approvedCourses)
       }
 
+      const lpRes = await fetch('/api/admin/learning-paths')
+      const lpData = await lpRes.json()
+      if (lpData.success) {
+        setAllLearningPaths((lpData.learningPaths || []).filter((path: LearningPath) => path.is_active))
+      }
+
+      const orgLpRes = await fetch(`/api/admin/companies/${companyId}/learning-paths`)
+      const orgLpData = await orgLpRes.json()
+      if (orgLpData.success) {
+        setOrganizationLearningPaths(orgLpData.assignments || [])
+      }
+
+      const userLpRes = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments`)
+      const userLpData = await userLpRes.json()
+      if (userLpData.success) {
+        setUserLearningPathAssignments(userLpData.assignments || [])
+      }
+
       const mRes = await fetch(`/api/admin/companies/${companyId}`)
       const mData = await mRes.json()
       if (mData.success && mData.company) {
@@ -76,6 +110,29 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
       showToast('Error al cargar la información', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAssignLearningPathToOrg = async (learningPathId: string) => {
+    setAssigningId(learningPathId)
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}/learning-paths`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ learningPathId })
+      })
+      const data = await res.json()
+      if (data.success) {
+        showToast('Learning path asignado a la organización')
+        fetchInitialData()
+        setIsLearningPathCatalogOpen(false)
+      } else {
+        showToast(data.error || 'Error al asignar learning path', 'error')
+      }
+    } catch (error) {
+      showToast('Error de red', 'error')
+    } finally {
+      setAssigningId(null)
     }
   }
 
@@ -132,6 +189,37 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
     }
   }
 
+  const handleAssignLearningPathToUser = async () => {
+    if (!selectedLearningPathForUser || !selectedUserForLearningPath) {
+      showToast('Selecciona usuario y learning path', 'error')
+      return
+    }
+
+    setIsAssigning(true)
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUserForLearningPath,
+          learningPathId: selectedLearningPathForUser
+        })
+      })
+      const data = await res.json()
+      if (data.success) {
+        showToast('Learning path asignado al usuario')
+        fetchInitialData()
+        setIsAssignLearningPathModalOpen(false)
+      } else {
+        showToast(data.error || 'Error al asignar learning path', 'error')
+      }
+    } catch (error) {
+      showToast('Error de red', 'error')
+    } finally {
+      setIsAssigning(false)
+    }
+  }
+
   const handleRemoveHierarchy = async (courseId: string) => {
     if (!confirm('¿Revocar el acceso a este curso para TODA la organización?')) return
     try {
@@ -160,10 +248,47 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
     }
   }
 
+  const handleRemoveOrganizationLearningPath = async (assignmentId: string) => {
+    if (!confirm('¿Revocar este learning path para toda la organización?')) return
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}/learning-paths?assignmentId=${assignmentId}`, {
+        method: 'DELETE'
+      })
+      const data = await res.json()
+      if (data.success) {
+        showToast('Learning path organizacional revocado')
+        fetchInitialData()
+      }
+    } catch (error) {
+      showToast('Error al revocar', 'error')
+    }
+  }
+
+  const handleRemoveUserLearningPathAssignment = async (assignmentId: string) => {
+    if (!confirm('¿Revocar esta asignación individual de learning path?')) return
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments?assignmentId=${assignmentId}`, {
+        method: 'DELETE'
+      })
+      const data = await res.json()
+      if (data.success) {
+        showToast('Asignación individual de learning path revocada')
+        fetchInitialData()
+      }
+    } catch (error) {
+      showToast('Error al revocar', 'error')
+    }
+  }
+
   const filteredCatalog = useMemo(() => allCourses.filter(c =>
     c.title.toLowerCase().includes(catalogSearch.toLowerCase()) ||
     c.category.toLowerCase().includes(catalogSearch.toLowerCase())
   ), [allCourses, catalogSearch])
+
+  const filteredLearningPathCatalog = useMemo(() => allLearningPaths.filter(lp =>
+    lp.title.toLowerCase().includes(learningPathCatalogSearch.toLowerCase()) ||
+    (lp.description || '').toLowerCase().includes(learningPathCatalogSearch.toLowerCase())
+  ), [allLearningPaths, learningPathCatalogSearch])
 
   const activeHierarchy = useMemo(() => hierarchyCourses.filter(ac =>
     ac.courses.title.toLowerCase().includes(listSearch.toLowerCase())
@@ -174,30 +299,57 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
     ua.users.email.toLowerCase().includes(listSearch.toLowerCase())
   ), [userAssignments, listSearch])
 
+  const activeOrganizationLearningPaths = useMemo(() => organizationLearningPaths.filter(assignment =>
+    assignment.status === 'active' &&
+    (assignment.learning_path?.title || '').toLowerCase().includes(listSearch.toLowerCase())
+  ), [organizationLearningPaths, listSearch])
+
+  const activeUserLearningPathAssignments = useMemo(() => userLearningPathAssignments.filter(assignment =>
+    assignment.status === 'assigned' && (
+      (assignment.learning_path?.title || '').toLowerCase().includes(listSearch.toLowerCase()) ||
+      (assignment.user?.email || '').toLowerCase().includes(listSearch.toLowerCase())
+    )
+  ), [userLearningPathAssignments, listSearch])
+
   return {
     // State
     activeTab, setActiveTab,
     loading,
     isCatalogOpen, setIsCatalogOpen,
+    isLearningPathCatalogOpen, setIsLearningPathCatalogOpen,
     isAssignUserModalOpen, setIsAssignUserModalOpen,
+    isAssignLearningPathModalOpen, setIsAssignLearningPathModalOpen,
     assigningId,
     isAssigning,
     catalogSearch, setCatalogSearch,
+    learningPathCatalogSearch, setLearningPathCatalogSearch,
     listSearch, setListSearch,
     selectedCourseForUser, setSelectedCourseForUser,
     selectedUserForCourse, setSelectedUserForCourse,
+    selectedLearningPathForUser, setSelectedLearningPathForUser,
+    selectedUserForLearningPath, setSelectedUserForLearningPath,
     toast, setToast,
     // Data
     hierarchyCourses,
     allCourses,
+    organizationLearningPaths,
+    userLearningPathAssignments,
+    allLearningPaths,
     members,
     filteredCatalog,
+    filteredLearningPathCatalog,
     activeHierarchy,
     activeUserAssignments,
+    activeOrganizationLearningPaths,
+    activeUserLearningPathAssignments,
     // Handlers
     handleAssignToOrg,
+    handleAssignLearningPathToOrg,
     handleAssignToUser,
+    handleAssignLearningPathToUser,
     handleRemoveHierarchy,
     handleRemoveUserAssignment,
+    handleRemoveOrganizationLearningPath,
+    handleRemoveUserLearningPathAssignment,
   }
 }

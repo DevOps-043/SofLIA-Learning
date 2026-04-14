@@ -1,4 +1,5 @@
 import type { LearnDataQueryPayload } from './learn-data-query.service'
+import { mergeTranslationContexts, normalizeLearnLanguage } from '@/app/api/courses/_services/lesson-language-resolution.service'
 
 export function buildLearnDataResponse({
   course,
@@ -6,8 +7,18 @@ export function buildLearnDataResponse({
   lessonDataResult,
   notesStatsResult,
   questionsResult,
+  learningPathState,
   totalTimeMs,
 }: LearnDataQueryPayload) {
+  const requestedLanguage = normalizeLearnLanguage(
+    lessonDataResult?.translationContext.requestedLanguage ||
+      modulesResult.translationContext.requestedLanguage,
+  )
+  const translationContext = mergeTranslationContexts(
+    [modulesResult.translationContext, lessonDataResult?.translationContext],
+    requestedLanguage,
+  )
+
   return {
     course: {
       id: course.id,
@@ -24,12 +35,14 @@ export function buildLearnDataResponse({
     courseProgress: modulesResult.progress,
     lastWatchedLessonId: modulesResult.lastWatchedLessonId,
     currentLesson: lessonDataResult,
+    learningPath: learningPathState || null,
     questions: questionsResult,
     notesStats: notesStatsResult || {
       totalNotes: 0,
       lessonsWithNotes: '0/0',
       lastUpdate: null,
     },
+    translationContext,
     _meta: {
       timestamp: new Date().toISOString(),
       executionTime: `${totalTimeMs}ms`,

@@ -2,8 +2,14 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { BookOpen, Clock, Trash2 } from 'lucide-react'
-import type { Course, AssignedCourse, UserAssignment } from './courses-section.types'
+import { BookOpen, Clock, Trash2, Route } from 'lucide-react'
+import type {
+  Course,
+  AssignedCourse,
+  UserAssignment,
+  OrganizationLearningPathAssignment,
+  UserLearningPathAssignment,
+} from './courses-section.types'
 import { colors } from './courses-section.types'
 
 // ---- Course Card for Org tab ----
@@ -73,6 +79,57 @@ export function OrgCoursesGrid({ activeHierarchy, onRemove }: OrgCoursesGridProp
   )
 }
 
+interface OrgLearningPathsGridProps {
+  assignments: OrganizationLearningPathAssignment[]
+  onRemove: (assignmentId: string) => void
+}
+
+export function OrgLearningPathsGrid({ assignments, onRemove }: OrgLearningPathsGridProps) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {assignments.length === 0 ? (
+        <div className="col-span-full py-16 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+          <Route className="w-12 h-12 mb-4 opacity-10" />
+          <p className="text-sm text-center px-10" style={{ color: colors.grayMedium }}>No hay learning paths asignados a toda la organización.</p>
+        </div>
+      ) : (
+        assignments.map(assignment => (
+          <motion.div
+            key={assignment.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-[2rem] border p-6 flex flex-col"
+            style={{ backgroundColor: colors.bgTertiary, borderColor: 'rgba(255,255,255,0.05)' }}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>Learning Path</p>
+                <h5 className="text-lg font-bold text-white">{assignment.learning_path?.title || 'Ruta sin título'}</h5>
+                <p className="text-sm mt-2" style={{ color: colors.grayMedium }}>
+                  {assignment.learning_path?.description || 'Sin descripción'}
+                </p>
+              </div>
+              <Route className="w-5 h-5" style={{ color: colors.accent }} />
+            </div>
+
+            <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
+              <div className="text-[11px]" style={{ color: colors.grayMedium }}>
+                {assignment.learning_path?.item_count || 0} talleres · Asignado {new Date(assignment.assigned_at).toLocaleDateString()}
+              </div>
+              <button
+                onClick={() => onRemove(assignment.id)}
+                className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
+              >
+                Revocar Ruta
+              </button>
+            </div>
+          </motion.div>
+        ))
+      )}
+    </div>
+  )
+}
+
 // ---- User Assignments Table ----
 interface UserAssignmentsTableProps {
   activeUserAssignments: UserAssignment[]
@@ -124,6 +181,71 @@ export function UserAssignmentsTable({ activeUserAssignments, onRemove }: UserAs
                 <td className="px-6 py-4 text-right">
                   <button
                     onClick={() => onRemove(ua.id)}
+                    className="p-2 rounded-xl hover:bg-red-500/10 text-red-400 opacity-40 hover:opacity-100 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+interface UserLearningPathAssignmentsTableProps {
+  assignments: UserLearningPathAssignment[]
+  onRemove: (assignmentId: string) => void
+}
+
+export function UserLearningPathAssignmentsTable({
+  assignments,
+  onRemove,
+}: UserLearningPathAssignmentsTableProps) {
+  return (
+    <div className="overflow-hidden rounded-3xl border" style={{ backgroundColor: colors.bgTertiary, borderColor: 'rgba(255,255,255,0.05)' }}>
+      <table className="w-full text-left">
+        <thead style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
+          <tr>
+            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.grayMedium }}>Usuario</th>
+            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.grayMedium }}>Learning Path</th>
+            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-right" style={{ color: colors.grayMedium }}>Acciones</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-white/5">
+          {assignments.length === 0 ? (
+            <tr>
+              <td colSpan={3} className="px-6 py-16 text-center text-sm" style={{ color: colors.grayMedium }}>
+                No hay asignaciones individuales de learning paths registradas.
+              </td>
+            </tr>
+          ) : (
+            assignments.map(assignment => (
+              <tr key={assignment.id} className="hover:bg-white/[0.01] transition-colors">
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[10px] font-bold">
+                      {(assignment.user?.email || '?')[0].toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-white">
+                        {assignment.user?.display_name || `${assignment.user?.first_name || ''} ${assignment.user?.last_name || ''}`.trim()}
+                      </p>
+                      <p className="text-[10px]" style={{ color: colors.grayMedium }}>{assignment.user?.email || 'Sin email'}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <p className="text-sm text-white line-clamp-1">{assignment.learning_path?.title || 'Ruta sin título'}</p>
+                  <p className="text-[10px]" style={{ color: colors.grayMedium }}>
+                    {assignment.learning_path?.item_count || 0} talleres
+                  </p>
+                </td>
+                <td className="px-6 py-4 text-right">
+                  <button
+                    onClick={() => onRemove(assignment.id)}
                     className="p-2 rounded-xl hover:bg-red-500/10 text-red-400 opacity-40 hover:opacity-100 transition-all"
                   >
                     <Trash2 className="w-4 h-4" />

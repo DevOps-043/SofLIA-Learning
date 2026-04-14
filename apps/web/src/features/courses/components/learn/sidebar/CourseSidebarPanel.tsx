@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { BookOpen, ChevronLeft, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../../core/constants/tourTargets";
 import { NotesSidebarSection } from "../NotesSidebarSection";
@@ -12,6 +13,7 @@ import type {
   LearnMaterialMap,
   LearnModule,
   LearnNotesStats,
+  LearnPathState,
   LearnSavedNote,
 } from "../types";
 import { CollapsedSidebarRail } from "./CollapsedSidebarRail";
@@ -22,6 +24,7 @@ type CourseSidebarPanelProps = {
   isMobile: boolean;
   modules: LearnModule[];
   currentLesson: LearnLesson | null;
+  learningPathState: LearnPathState | null;
   isMaterialCollapsed: boolean;
   isNotesCollapsed: boolean;
   expandedLessons: Set<string>;
@@ -51,6 +54,7 @@ export function CourseSidebarPanel({
   isMobile,
   modules,
   currentLesson,
+  learningPathState,
   isMaterialCollapsed,
   isNotesCollapsed,
   expandedLessons,
@@ -74,6 +78,8 @@ export function CourseSidebarPanel({
   onOpenNotesSection,
   onOpenNewNote,
 }: CourseSidebarPanelProps) {
+  const { t } = useTranslation("learn");
+
   return (
     <>
       <AnimatePresence>
@@ -107,7 +113,7 @@ export function CourseSidebarPanel({
                   style={{ fontFamily: "Inter, sans-serif" }}
                 >
                   <BookOpen className="h-4 w-4 text-[#0A2540] dark:text-[#00D4B3]" />
-                  TEMARIO
+                  {t("leftPanel.content")}
                 </h2>
                 <button
                   onClick={onClose}
@@ -122,6 +128,53 @@ export function CourseSidebarPanel({
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
+                {learningPathState ? (
+                  <div className="mb-6 rounded-2xl border border-[#00D4B3]/20 bg-[#00D4B3]/5 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#00D4B3]">
+                      Learning Path
+                    </p>
+                    <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                      {learningPathState.title}
+                    </h3>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-white/60">
+                      {learningPathState.completedItemsCount}/{learningPathState.totalItemsCount} talleres completados
+                    </p>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+                      <div
+                        className="h-full rounded-full bg-[#00D4B3]"
+                        style={{ width: `${learningPathState.progressPercentage}%` }}
+                      />
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      {learningPathState.items.map((item) => (
+                        <div
+                          key={`${item.courseId}-${item.position}`}
+                          className={`rounded-xl border px-3 py-2 text-xs ${
+                            item.isCurrent
+                              ? "border-[#00D4B3]/40 bg-[#00D4B3]/10"
+                              : item.isUnlocked
+                                ? "border-black/10 bg-white/40 dark:border-white/10 dark:bg-white/5"
+                                : "border-amber-500/20 bg-amber-500/10"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="font-medium text-gray-900 dark:text-white/90">
+                              {item.position}. {item.title}
+                            </span>
+                            <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-white/50">
+                              {item.isCompleted
+                                ? "Completo"
+                                : item.isUnlocked
+                                  ? "Disponible"
+                                  : "Bloqueado"}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 <CourseContentTree
                   modules={modules}
                   currentLesson={currentLesson}

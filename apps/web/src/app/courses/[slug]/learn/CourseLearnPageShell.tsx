@@ -1,7 +1,7 @@
 'use client'
 
 import type React from 'react'
-import { Activity, BookOpen, MessageCircle, Play } from 'lucide-react'
+import { Activity, BookOpen, Lock, MessageCircle, Play } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import Joyride from 'react-joyride'
@@ -68,10 +68,13 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     colors,
     t,
     ready,
+    translationFallbackWarning,
     mounted,
     course,
     modules,
     currentLesson,
+    learningPathState,
+    learningPathBlockState,
     loading,
     courseProgress,
     liaTranscript,
@@ -210,6 +213,93 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   }
 
   if (!course) {
+    if (learningPathBlockState?.learningPath) {
+      const nextAvailableCourse = learningPathBlockState.learningPath.items.find(
+        (item) => item.isUnlocked && !item.isCompleted && item.slug,
+      )
+
+      return (
+        <div className="min-h-screen bg-white dark:bg-[#0F1419] flex items-center justify-center px-6 py-12">
+          <div className="w-full max-w-2xl rounded-3xl border border-amber-500/20 bg-white p-8 shadow-[0_24px_80px_rgba(10,37,64,0.08)] dark:bg-[#111827]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-600">
+              <Lock className="h-7 w-7" />
+            </div>
+            <p className="mt-6 text-xs font-bold uppercase tracking-[0.28em] text-amber-600">
+              Learning Path
+            </p>
+            <h1 className="mt-3 text-3xl font-bold text-[#0A2540] dark:text-white">
+              Este taller esta bloqueado por secuencia
+            </h1>
+            <p className="mt-4 text-sm leading-6 text-[#52606D] dark:text-white/75">
+              {learningPathBlockState.message}
+            </p>
+            <div className="mt-6 rounded-2xl border border-[#00D4B3]/20 bg-[#00D4B3]/5 p-4">
+              <h2 className="text-sm font-semibold text-[#0A2540] dark:text-white">
+                {learningPathBlockState.learningPath.title}
+              </h2>
+              <p className="mt-1 text-xs text-[#52606D] dark:text-white/60">
+                {learningPathBlockState.learningPath.completedItemsCount}/
+                {learningPathBlockState.learningPath.totalItemsCount} talleres completados
+              </p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+                <div
+                  className="h-full rounded-full bg-[#00D4B3]"
+                  style={{
+                    width: `${learningPathBlockState.learningPath.progressPercentage}%`,
+                  }}
+                />
+              </div>
+              <div className="mt-4 space-y-2">
+                {learningPathBlockState.learningPath.items.map((item) => (
+                  <div
+                    key={`${item.courseId}-${item.position}`}
+                    className={`rounded-xl border px-3 py-2 text-xs ${
+                      item.isCurrent
+                        ? 'border-amber-500/30 bg-amber-500/10'
+                        : item.isUnlocked
+                          ? 'border-black/10 bg-white/60 dark:border-white/10 dark:bg-white/5'
+                          : 'border-black/5 bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.03]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium text-gray-900 dark:text-white/90">
+                        {item.position}. {item.title}
+                      </span>
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-white/50">
+                        {item.isCompleted
+                          ? 'Completo'
+                          : item.isUnlocked
+                            ? 'Disponible'
+                            : 'Bloqueado'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              {nextAvailableCourse?.slug ? (
+                <button
+                  onClick={() =>
+                    router.push(`/courses/${nextAvailableCourse.slug}/learn`)
+                  }
+                  className="rounded-xl bg-[#0A2540] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0d2f4d]"
+                >
+                  Ir al siguiente taller disponible
+                </button>
+              ) : null}
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="rounded-xl border border-black/10 px-5 py-3 text-sm font-semibold text-[#0A2540] transition-colors hover:bg-black/[0.03] dark:border-white/10 dark:text-white dark:hover:bg-white/[0.04]"
+              >
+                {t('navigation.backToCourses')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="min-h-screen bg-white dark:bg-[#0F1419] flex items-center justify-center">
         <div className="text-center">
@@ -267,6 +357,15 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               restartTourLabel={t('tour.replayLabel')}
             />
 
+            {translationFallbackWarning ? (
+              <div className="mx-2 md:mx-4 mt-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-amber-900 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-200">
+                <p className="text-sm font-semibold">
+                  {translationFallbackWarning.title}
+                </p>
+                <p className="text-xs">{translationFallbackWarning.message}</p>
+              </div>
+            ) : null}
+
             <div
               ref={swipeRef}
               className="flex-1 flex flex-col md:flex-row overflow-hidden bg-white dark:bg-[#0F1419] relative z-10"
@@ -280,6 +379,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                 isMobile={isMobile}
                 modules={modules}
                 currentLesson={currentLesson}
+                learningPathState={learningPathState}
                 isMaterialCollapsed={isMaterialCollapsed}
                 isNotesCollapsed={isNotesCollapsed}
                 expandedLessons={expandedLessons}

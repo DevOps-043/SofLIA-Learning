@@ -2,6 +2,13 @@ import type { createClient as createSupabaseClient } from '@/lib/supabase/server
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import type { SupportedLanguage } from '@/core/i18n/i18n'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import {
+  getLessonsTableNameForLanguage,
+  mergeTranslationContexts,
+  normalizeLearnLanguage,
+  resolveLessonContentWithFallback,
+  type TranslationContext,
+} from '@/app/api/courses/_services/lesson-language-resolution.service'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseClient>>
 
@@ -59,6 +66,7 @@ export interface ModulesWithProgressResult {
   }>
   progress: number
   lastWatchedLessonId: string | null
+  translationContext: TranslationContext
 }
 
 function pickPublishedOrAll<T extends { is_published: boolean | null }>(items: T[]) {
@@ -67,15 +75,7 @@ function pickPublishedOrAll<T extends { is_published: boolean | null }>(items: T
 }
 
 export function getLessonsTableName(language: string) {
-  switch (language) {
-    case 'en':
-      return 'course_lessons_en'
-    case 'pt':
-      return 'course_lessons_pt'
-    case 'es':
-    default:
-      return 'course_lessons'
-  }
+  return getLessonsTableNameForLanguage(normalizeLearnLanguage(language))
 }
 
 export function resolveLastWatchedLessonId(
@@ -185,6 +185,7 @@ export async function loadModulesWithProgress(
   language: string,
   organizationId?: string | null,
 ): Promise<ModulesWithProgressResult> {
+  const requestedLanguage = normalizeLearnLanguage(language)
   const { data: allModules, error: allModulesError } = await supabase
     .from('course_modules')
     .select(
@@ -194,12 +195,32 @@ export async function loadModulesWithProgress(
     .order('module_order_index', { ascending: true })
 
   if (allModulesError || !allModules) {
-    return { modules: [], progress: 0, lastWatchedLessonId: null }
+    return {
+      modules: [],
+      progress: 0,
+      lastWatchedLessonId: null,
+      translationContext: {
+        requestedLanguage,
+        resolvedLanguage: requestedLanguage,
+        usedFallback: false,
+        missingPieces: [],
+      },
+    }
   }
 
   const modules = pickPublishedOrAll(allModules as ModuleRow[])
   if (modules.length === 0) {
-    return { modules: [], progress: 0, lastWatchedLessonId: null }
+    return {
+      modules: [],
+      progress: 0,
+      lastWatchedLessonId: null,
+      translationContext: {
+        requestedLanguage,
+        resolvedLanguage: requestedLanguage,
+        usedFallback: false,
+        missingPieces: [],
+      },
+    }
   }
 
   let enrollmentId: string | null = null
@@ -214,8 +235,8 @@ export async function loadModulesWithProgress(
     enrollmentId = enrollment?.enrollment_id || null
   }
 
-  const { data: allLessonsData } = await supabase
-    .from(getLessonsTableName(language))
+  const { data: baseLessonsData } = await supabase
+    .from('course_lessons')
     .select(
       'lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, video_provider_id, video_provider, is_published, module_id, transcript_content, summary_content',
     )
@@ -225,7 +246,47 @@ export async function loadModulesWithProgress(
     )
     .order('lesson_order_index', { ascending: true })
 
-  const lessons = (allLessonsData || []) as LessonRow[]
+  const baseLessons = (baseLessonsData || []) as LessonRow[]
+  let translatedLessonsById = new Map<string, LessonRow>()
+  if (requestedLanguage !== 'es') {
+    const { data: translatedLessonsData } = await supabase
+      .from(getLessonsTableName(requestedLanguage))
+      .select(
+        'lesson_id, lesson_title, lesson_description, lesson_order_index, duration_seconds, video_provider_id, video_provider, is_published, module_id, transcript_content, summary_content',
+      )
+      .in(
+        'module_id',
+        modules.map((module) => module.module_id),
+      )
+      .order('lesson_order_index', { ascending: true })
+
+    translatedLessonsById = new Map(
+      ((translatedLessonsData || []) as LessonRow[]).map((lesson) => [
+        lesson.lesson_id,
+        lesson,
+      ]),
+    )
+  }
+
+  const moduleTranslationContexts: TranslationContext[] = []
+  const lessons = baseLessons.map((baseLesson) => {
+    const translatedLesson =
+      requestedLanguage === 'es'
+        ? null
+        : translatedLessonsById.get(baseLesson.lesson_id) || null
+
+    const resolved = resolveLessonContentWithFallback({
+      requestedLanguage,
+      baseLesson,
+      translatedLesson,
+    })
+
+    if (resolved.translationContext.usedFallback) {
+      moduleTranslationContexts.push(resolved.translationContext)
+    }
+
+    return resolved.lesson as LessonRow
+  })
   let progressData: ProgressRow[] = []
 
   if (enrollmentId && lessons.length > 0) {
@@ -330,6 +391,10 @@ export async function loadModulesWithProgress(
       modules,
       lessons,
       progressData,
+    ),
+    translationContext: mergeTranslationContexts(
+      moduleTranslationContexts,
+      requestedLanguage,
     ),
   }
 }

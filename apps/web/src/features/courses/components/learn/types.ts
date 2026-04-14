@@ -19,6 +19,33 @@ export type LearnLesson = {
   video_provider?: "youtube" | "vimeo" | "direct" | "custom";
 };
 
+export type LearnPathItem = {
+  courseId: string;
+  slug: string | null;
+  title: string;
+  position: number;
+  isCompleted: boolean;
+  isUnlocked: boolean;
+  isCurrent: boolean;
+};
+
+export type LearnPathState = {
+  learningPathId: string;
+  title: string;
+  description: string | null;
+  currentCourseId: string;
+  currentCourseUnlocked: boolean;
+  progressPercentage: number;
+  completedItemsCount: number;
+  totalItemsCount: number;
+  items: LearnPathItem[];
+};
+
+export type LearnPathBlockState = {
+  message: string;
+  learningPath: LearnPathState | null;
+};
+
 export type LearnModule = {
   module_id: string;
   module_title: string;
@@ -162,6 +189,20 @@ export type LearnMaterialSummary = {
   is_required?: boolean;
 };
 
+export type LearnTranslationMissingPiece =
+  | "lesson_text"
+  | "transcript"
+  | "summary"
+  | "materials"
+  | "activities";
+
+export type LearnTranslationContext = {
+  requestedLanguage: "es" | "en" | "pt";
+  resolvedLanguage: "es" | "en" | "pt";
+  usedFallback: boolean;
+  missingPieces: LearnTranslationMissingPiece[];
+};
+
 export type LearnEditableNote = {
   id: string;
   lessonId?: string;
@@ -196,6 +237,11 @@ export type LearnNoteFormData = {
 export type LearnActivityMap = Record<string, LearnActivitySummary[]>;
 
 export type LearnMaterialMap = Record<string, LearnMaterialSummary[]>;
+
+export type LearnLessonTranslationContextMap = Record<
+  string,
+  LearnTranslationContext | null
+>;
 
 export type LearnOrderedLesson = {
   lesson: LearnLesson;

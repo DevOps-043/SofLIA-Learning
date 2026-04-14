@@ -4,8 +4,20 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useCourseSectionLogic } from './useCourseSectionLogic'
-import { OrgCoursesGrid, UserAssignmentsTable } from './CoursesList'
-import { CoursesHeader, CoursesSearchBar, CatalogModal, AssignUserModal } from './CoursesFilters'
+import {
+  OrgCoursesGrid,
+  OrgLearningPathsGrid,
+  UserAssignmentsTable,
+  UserLearningPathAssignmentsTable,
+} from './CoursesList'
+import {
+  CoursesHeader,
+  CoursesSearchBar,
+  CatalogModal,
+  LearningPathCatalogModal,
+  AssignUserModal,
+  AssignLearningPathModal,
+} from './CoursesFilters'
 import { colors } from './courses-section.types'
 
 interface CoursesSectionProps {
@@ -38,7 +50,9 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
         activeTab={logic.activeTab}
         setActiveTab={logic.setActiveTab}
         onOpenCatalog={() => logic.setIsCatalogOpen(true)}
+        onOpenLearningPathCatalog={() => logic.setIsLearningPathCatalogOpen(true)}
         onAssignUser={() => logic.setIsAssignUserModalOpen(true)}
+        onAssignLearningPath={() => logic.setIsAssignLearningPathModalOpen(true)}
       />
 
       <CoursesSearchBar
@@ -48,15 +62,47 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
       />
 
       {logic.activeTab === 'org' ? (
-        <OrgCoursesGrid
-          activeHierarchy={logic.activeHierarchy}
-          onRemove={logic.handleRemoveHierarchy}
-        />
+        <div className="space-y-8">
+          <div>
+            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
+              Cursos Organizacionales
+            </h4>
+            <OrgCoursesGrid
+              activeHierarchy={logic.activeHierarchy}
+              onRemove={logic.handleRemoveHierarchy}
+            />
+          </div>
+          <div>
+            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
+              Learning Paths Organizacionales
+            </h4>
+            <OrgLearningPathsGrid
+              assignments={logic.activeOrganizationLearningPaths}
+              onRemove={logic.handleRemoveOrganizationLearningPath}
+            />
+          </div>
+        </div>
       ) : (
-        <UserAssignmentsTable
-          activeUserAssignments={logic.activeUserAssignments}
-          onRemove={logic.handleRemoveUserAssignment}
-        />
+        <div className="space-y-8">
+          <div>
+            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
+              Cursos Asignados Individualmente
+            </h4>
+            <UserAssignmentsTable
+              activeUserAssignments={logic.activeUserAssignments}
+              onRemove={logic.handleRemoveUserAssignment}
+            />
+          </div>
+          <div>
+            <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
+              Learning Paths Asignados Individualmente
+            </h4>
+            <UserLearningPathAssignmentsTable
+              assignments={logic.activeUserLearningPathAssignments}
+              onRemove={logic.handleRemoveUserLearningPathAssignment}
+            />
+          </div>
+        </div>
       )}
 
       <CatalogModal
@@ -70,6 +116,17 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
         onAssign={logic.handleAssignToOrg}
       />
 
+      <LearningPathCatalogModal
+        isOpen={logic.isLearningPathCatalogOpen}
+        onClose={() => logic.setIsLearningPathCatalogOpen(false)}
+        search={logic.learningPathCatalogSearch}
+        setSearch={logic.setLearningPathCatalogSearch}
+        filteredLearningPaths={logic.filteredLearningPathCatalog}
+        activeAssignments={logic.organizationLearningPaths}
+        assigningId={logic.assigningId}
+        onAssign={logic.handleAssignLearningPathToOrg}
+      />
+
       <AssignUserModal
         isOpen={logic.isAssignUserModalOpen}
         onClose={() => logic.setIsAssignUserModalOpen(false)}
@@ -81,6 +138,19 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
         setSelectedCourseForUser={logic.setSelectedCourseForUser}
         isAssigning={logic.isAssigning}
         onConfirm={logic.handleAssignToUser}
+      />
+
+      <AssignLearningPathModal
+        isOpen={logic.isAssignLearningPathModalOpen}
+        onClose={() => logic.setIsAssignLearningPathModalOpen(false)}
+        members={logic.members}
+        learningPaths={logic.allLearningPaths}
+        selectedUserForLearningPath={logic.selectedUserForLearningPath}
+        setSelectedUserForLearningPath={logic.setSelectedUserForLearningPath}
+        selectedLearningPathForUser={logic.selectedLearningPathForUser}
+        setSelectedLearningPathForUser={logic.setSelectedLearningPathForUser}
+        isAssigning={logic.isAssigning}
+        onConfirm={logic.handleAssignLearningPathToUser}
       />
     </div>
   )

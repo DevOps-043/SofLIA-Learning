@@ -36,7 +36,10 @@ import type {
   LearnCourseData,
   LearnLesson,
   LearnModule,
+  LearnPathBlockState,
+  LearnPathState,
   LearnTab,
+  LearnTranslationContext,
 } from '../components/learn/types'
 
 type Lesson = LearnLesson
@@ -67,6 +70,12 @@ export function useLearnPageLogic() {
     useState<CourseLessonContext | null>(null)
   const [liaTranscript, setLiaTranscript] = useState<string | null>(null)
   const [liaSummary, setLiaSummary] = useState<string | null>(null)
+  const [learningPathState, setLearningPathState] =
+    useState<LearnPathState | null>(null)
+  const [learningPathBlockState, setLearningPathBlockState] =
+    useState<LearnPathBlockState | null>(null)
+  const [learnDataTranslationContext, setLearnDataTranslationContext] =
+    useState<LearnTranslationContext | null>(null)
   const [isLiaTranscriptLoading, setIsLiaTranscriptLoading] = useState(false)
   const [isLiaSummaryLoading, setIsLiaSummaryLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -136,6 +145,7 @@ export function useLearnPageLogic() {
     lessonsActivities,
     lessonsMaterials,
     lessonsQuizStatus,
+    lessonTranslationContexts,
     loadLessonActivitiesAndMaterials,
     openContentSection,
     openLeftPanel,
@@ -146,6 +156,7 @@ export function useLearnPageLogic() {
     toggleNotesCollapsed,
   } = useLessonSidebarState({
     slug,
+    selectedLang,
     modules,
     currentLesson,
     isMobile,
@@ -232,6 +243,9 @@ export function useLearnPageLogic() {
     setIsLiaSummaryLoading,
     setLoading,
     setCourseProgress,
+    setLearningPathState,
+    setLearningPathBlockState,
+    setLearnDataTranslationContext,
   })
 
   const { userBehaviorLog, trackUserAction, analyzeUserBehavior } =
@@ -575,6 +589,52 @@ export function useLearnPageLogic() {
     [t],
   )
 
+  const translationFallbackWarning = useMemo(() => {
+    const context =
+      (currentLesson
+        ? lessonTranslationContexts[currentLesson.lesson_id]
+        : null) || learnDataTranslationContext
+
+    if (!context?.usedFallback) {
+      return null
+    }
+
+    const details =
+      context.missingPieces.length > 0
+        ? context.missingPieces.join(', ')
+        : 'lesson_text'
+
+    if (selectedLang === 'en') {
+      return {
+        title: 'Some translations are missing',
+        message:
+          'This lesson is shown partially in its original language to avoid blocking your progress.',
+        details,
+      }
+    }
+
+    if (selectedLang === 'pt') {
+      return {
+        title: 'Faltam algumas traducoes',
+        message:
+          'Esta licao esta sendo exibida parcialmente no idioma original para evitar bloqueios.',
+        details,
+      }
+    }
+
+    return {
+      title: 'Faltan algunas traducciones',
+      message:
+        'Esta leccion se muestra parcialmente en su idioma original para evitar bloqueos.',
+      details,
+    }
+  }, [
+    currentLesson,
+    learnDataTranslationContext,
+    lessonTranslationContexts,
+    selectedLang,
+  ])
+
   return {
     slug,
     router,
@@ -584,12 +644,15 @@ export function useLearnPageLogic() {
     i18n,
     ready,
     selectedLang,
+    translationFallbackWarning,
     mounted,
     course,
     modules,
     currentLesson,
     setCurrentLesson,
     workshopMetadata,
+    learningPathState,
+    learningPathBlockState,
     loading,
     courseProgress,
     liaTranscript,
@@ -625,6 +688,7 @@ export function useLearnPageLogic() {
     lessonsActivities,
     lessonsMaterials,
     lessonsQuizStatus,
+    lessonTranslationContexts,
     loadLessonActivitiesAndMaterials,
     openContentSection,
     openLeftPanel,
