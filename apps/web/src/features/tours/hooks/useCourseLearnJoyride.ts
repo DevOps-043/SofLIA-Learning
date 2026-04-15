@@ -33,6 +33,8 @@ type UseCourseLearnJoyrideOptions = {
   openLeftPanel: () => void;
   closeLeftPanel: () => void;
   setActiveTab: (tab: LearnTab) => void;
+  pauseVideoPlayback?: () => void;
+  clearPendingAutoPlay?: () => void;
 };
 
 function waitForLayoutSync(): Promise<void> {
@@ -75,6 +77,8 @@ export function useCourseLearnJoyride({
   openLeftPanel,
   closeLeftPanel,
   setActiveTab,
+  pauseVideoPlayback,
+  clearPendingAutoPlay,
 }: UseCourseLearnJoyrideOptions) {
   const { t } = useTranslation('learn');
   const translate = useMemo<CourseLearnJoyrideTranslator>(
@@ -86,9 +90,10 @@ export function useCourseLearnJoyride({
       buildCourseLearnJoyrideSteps({
         courseTitle,
         lessonTitle,
+        isMobile,
         translate,
       }),
-    [courseTitle, lessonTitle, translate],
+    [courseTitle, isMobile, lessonTitle, translate],
   );
   const { setRestart } = useTourRestart();
   const {
@@ -102,10 +107,16 @@ export function useCourseLearnJoyride({
 
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [isTourActive, setIsTourActive] = useState(false);
+
+  const suppressVideoPlayback =
+    enabled && (isLoading || shouldShowTour || isTourActive);
+  const skipVideoAutoplay = enabled && (shouldShowTour || isTourActive);
 
   const resetTourState = useCallback(() => {
     setRun(false);
     setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
+    setIsTourActive(false);
   }, []);
 
   const finishTour = useCallback(async () => {
@@ -124,7 +135,11 @@ export function useCourseLearnJoyride({
       setActiveTab('video');
 
       if (nextStepIndex === COURSE_LEARN_JOYRIDE_STEP_INDEXES.sidebar) {
-        openLeftPanel();
+        if (isMobile) {
+          closeLeftPanel();
+        } else {
+          openLeftPanel();
+        }
       } else if (isMobile) {
         closeLeftPanel();
       }
@@ -141,6 +156,7 @@ export function useCourseLearnJoyride({
   );
 
   const launchTour = useCallback(async () => {
+    setIsTourActive(true);
     await prepareStep(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
 
     setRun(false);
@@ -167,6 +183,26 @@ export function useCourseLearnJoyride({
   const restartTour = useCallback(() => {
     void launchTour();
   }, [launchTour]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setIsTourActive(false);
+      clearPendingAutoPlay?.();
+      return;
+    }
+
+    if (!suppressVideoPlayback) {
+      return;
+    }
+
+    clearPendingAutoPlay?.();
+    pauseVideoPlayback?.();
+  }, [
+    clearPendingAutoPlay,
+    enabled,
+    pauseVideoPlayback,
+    suppressVideoPlayback,
+  ]);
 
   useEffect(() => {
     if (!enabled) {
@@ -212,7 +248,7 @@ export function useCourseLearnJoyride({
 
         await prepareStep(nextStepIndex);
         setStepIndex(nextStepIndex);
-        await updateStep(nextStepIndex);
+        updateStep(nextStepIndex); // debounced fire-and-forget
       }
     },
     [dismissTour, finishTour, prepareStep, steps.length, updateStep],
@@ -232,9 +268,9 @@ export function useCourseLearnJoyride({
       disableCloseOnEsc: true,
       disableScrolling: true,
       scrollToFirstStep: true,
-      scrollOffset: 120,
+      scrollOffset: isMobile ? 72 : 120,
       spotlightClicks: false,
-      spotlightPadding: 8,
+      spotlightPadding: isMobile ? 12 : 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
         options: {
@@ -249,12 +285,14 @@ export function useCourseLearnJoyride({
         },
       },
       floaterProps: {
-        disableAnimation: false,
+        disableAnimation: isMobile,
         hideArrow: false,
-        offset: 15,
+        offset: isMobile ? 10 : 15,
         styles: {
           floater: {
-            filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',
+            filter: isMobile
+              ? 'none'
+              : 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',
           },
         },
       },
@@ -266,7 +304,7 @@ export function useCourseLearnJoyride({
         skip: 'Saltar',
       },
     }),
-    [handleJoyrideCallback, run, stepIndex, steps],
+    [handleJoyrideCallback, isMobile, run, stepIndex, steps],
   );
 
   return {
@@ -274,5 +312,7 @@ export function useCourseLearnJoyride({
     restartTour,
     run,
     stepIndex,
+    suppressVideoPlayback,
+    skipVideoAutoplay,
   };
 }

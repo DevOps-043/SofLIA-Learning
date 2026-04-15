@@ -7,6 +7,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../../../../core/providers/I18nProvider';
 import { useThemeStore } from '../../../../../core/stores/themeStore';
+import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets';
 import { ModernNavbarBrand } from './modern-navbar/ModernNavbarBrand';
 import { ModernNavbarDesktopMenu } from './modern-navbar/ModernNavbarDesktopMenu';
 import { ModernNavbarMobileMenu } from './modern-navbar/ModernNavbarMobileMenu';
@@ -92,6 +93,7 @@ export function ModernNavbar({
               </div>
 
               <motion.button
+                id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.mobileMenuTrigger}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2.5 rounded-xl border-2 transition-all duration-300"
                 style={{

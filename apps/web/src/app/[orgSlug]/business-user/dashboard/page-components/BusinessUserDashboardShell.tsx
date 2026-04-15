@@ -1,10 +1,12 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { Suspense, lazy, useState } from 'react'
+import { Suspense, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List } from 'lucide-react'
+import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
 import type { ModernNavbarStyleConfig } from '../components/modern-navbar/types'
@@ -17,14 +19,21 @@ import type {
   OrgRole,
 } from '../types'
 
-const ModernNavbar = lazy(() =>
-  import('../components/ModernNavbar').then((module) => ({ default: module.ModernNavbar }))
+// next/dynamic handles SSR correctly. React.lazy() is not supported during
+// server-side rendering of Client Components in Next.js App Router — it causes
+// an "updateDehydratedSuspenseComponent: Cannot read 'call' of undefined"
+// hydration mismatch because the lazy module is unavailable during SSR.
+const ModernNavbar = dynamic(
+  () => import('../components/ModernNavbar').then((m) => ({ default: m.ModernNavbar })),
+  { ssr: false }
 )
-const ModernStatsCard = lazy(() =>
-  import('../components/ModernStatsCard').then((module) => ({ default: module.ModernStatsCard }))
+const ModernStatsCard = dynamic(
+  () => import('../components/ModernStatsCard').then((m) => ({ default: m.ModernStatsCard })),
+  { ssr: false }
 )
-const CourseCard3D = lazy(() =>
-  import('../components/CourseCard3D').then((module) => ({ default: module.CourseCard3D }))
+const CourseCard3D = dynamic(
+  () => import('../components/CourseCard3D').then((m) => ({ default: m.CourseCard3D })),
+  { ssr: false }
 )
 
 interface BusinessUserDashboardShellProps {
@@ -132,7 +141,10 @@ export function BusinessUserDashboardShell({
         <div className="w-full max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-20 py-8">
           <TeamRequiredBanner orgSlug={orgSlug} />
 
-          <div id="tour-hero-section" className="scroll-mt-28 mb-10">
+          <div
+            id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.heroSection}
+            className="scroll-mt-28 mb-10"
+          >
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -237,7 +249,10 @@ export function BusinessUserDashboardShell({
             </motion.div>
           </div>
 
-          <div id="tour-stats-section" className="scroll-mt-32 relative">
+          <div
+            id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statsSection}
+            className="scroll-mt-32 relative"
+          >
             <section className="mb-10">
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
@@ -296,7 +311,13 @@ export function BusinessUserDashboardShell({
                         onClick={isCertificates && stats.certificates > 0 ? handleCertificatesClick : undefined}
                         isClickable={isCertificates && stats.certificates > 0}
                         styles={userDashboardStyles}
-                        id={index === 0 ? 'tour-stat-courses' : index === 3 ? 'tour-stat-certificates' : undefined}
+                        id={
+                          index === 0
+                            ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCourses
+                            : index === 3
+                              ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCertificates
+                              : undefined
+                        }
                       />
                     )
                   })}

@@ -10,21 +10,21 @@ import { COURSE_LEARN_TOUR_TARGET_IDS } from '../../../../core/constants/tourTar
 
 const translations = {
   'tour.fallbacks.courseTitle': 'tu curso actual',
-  'tour.fallbacks.lessonTitle': 'la lección actual',
+  'tour.fallbacks.lessonTitle': 'la leccion actual',
   'tour.steps.ready.description':
-    'Puedes reabrir esta guía cuando lo necesites.',
+    'Puedes reabrir esta guia cuando lo necesites.',
   'tour.steps.ready.title': 'Listo para comenzar',
   'tour.steps.sidebar.description':
-    'Aquí verás módulos, lecciones y tus notas.',
+    'Aqui veras modulos, lecciones y tus notas.',
   'tour.steps.sidebar.title': 'Panel izquierdo',
   'tour.steps.soflia.description':
-    'SofLIA conoce el curso y la lección actual.',
+    'SofLIA conoce el curso y la leccion actual.',
   'tour.steps.soflia.title': 'SofLIA',
   'tour.steps.tools.description':
     'Usa actividades y preguntas para practicar.',
   'tour.steps.tools.title': 'Herramientas',
   'tour.steps.videoPanel.description':
-    'Revisa video, transcripción y resumen de {{lessonTitle}}.',
+    'Revisa video, transcripcion y resumen de {{lessonTitle}}.',
   'tour.steps.videoPanel.title': 'Video',
   'tour.steps.welcome.description':
     'Bienvenido a {{courseTitle}}.',
@@ -51,10 +51,11 @@ describe('course-learn-joyride-steps', () => {
     );
   });
 
-  it('builds the expected steps and selectors', () => {
+  it('builds the expected desktop steps and selectors', () => {
     const steps = buildCourseLearnJoyrideSteps({
-      courseTitle: 'IA para líderes',
-      lessonTitle: 'Cultura de adopción responsable',
+      courseTitle: 'IA para lideres',
+      isMobile: false,
+      lessonTitle: 'Cultura de adopcion responsable',
       translate,
     });
 
@@ -94,6 +95,7 @@ describe('course-learn-joyride-steps', () => {
   it('uses fallback labels when course or lesson titles are missing', () => {
     const steps = buildCourseLearnJoyrideSteps({
       courseTitle: '',
+      isMobile: false,
       lessonTitle: '',
       translate,
     });
@@ -102,7 +104,37 @@ describe('course-learn-joyride-steps', () => {
       'Bienvenido a tu curso actual.',
     );
     expect(steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel].content).toBe(
-      'Revisa video, transcripción y resumen de la lección actual.',
+      'Revisa video, transcripcion y resumen de la leccion actual.',
+    );
+  });
+
+  it('builds mobile-safe targets and placements', () => {
+    const steps = buildCourseLearnJoyrideSteps({
+      courseTitle: 'IA Esencial',
+      isMobile: true,
+      lessonTitle: 'Introduccion',
+      translate,
+    });
+
+    expect(steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.sidebar].target).toBe(
+      `#${COURSE_LEARN_TOUR_TARGET_IDS.mobileMaterialButton}`,
+    );
+    expect(steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.sidebar].placement).toBe(
+      'top',
+    );
+    expect(steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel].placement).toBe(
+      'bottom',
+    );
+    expect(
+      steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.videoPanel].data,
+    ).not.toMatchObject({
+      tooltipDock: 'fixed-left',
+    });
+    expect(steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.soflia].target).toBe(
+      `#${COURSE_LEARN_TOUR_TARGET_IDS.liaMobileTrigger}`,
+    );
+    expect(steps[COURSE_LEARN_JOYRIDE_STEP_INDEXES.ready].placement).toBe(
+      'bottom',
     );
   });
 });

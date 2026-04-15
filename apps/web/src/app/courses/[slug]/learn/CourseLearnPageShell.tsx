@@ -25,6 +25,7 @@ import {
 } from '../../../../features/courses/components/learn'
 import type { LearnPageLogicResult } from '../../../../features/courses/hooks/useLearnPageLogic'
 import { useCourseLearnJoyride } from '../../../../features/tours/hooks/useCourseLearnJoyride'
+import { useVideoPlayerOptional } from './VideoPlayerContext'
 
 const NotesModal = dynamic(
   () =>
@@ -60,6 +61,7 @@ interface CourseLearnPageShellProps {
 }
 
 export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
+  const videoPlayerContext = useVideoPlayerOptional()
   const {
     slug,
     router,
@@ -163,6 +165,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     openLeftPanel,
     closeLeftPanel,
     setActiveTab,
+    pauseVideoPlayback: videoPlayerContext?.pauseAllVideos,
+    clearPendingAutoPlay: videoPlayerContext
+      ? () => videoPlayerContext.setShouldAutoPlay(false)
+      : undefined,
   })
 
   const handleValidationClose = () => {
@@ -514,6 +520,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               onNoteCreated={addNoteToLocalState}
                               onStatsUpdate={updateNotesStatsOptimized}
                               setActiveTab={setActiveTab}
+                              suppressVideoPlayback={
+                                courseTour.suppressVideoPlayback
+                              }
+                              skipVideoAutoplay={courseTour.skipVideoAutoplay}
                             />
                           )}
                           {activeTab === 'activities' && (

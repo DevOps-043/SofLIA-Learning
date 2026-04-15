@@ -1,106 +1,176 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
-import { useRouter } from 'next/navigation';
-import { useTourProgress } from './useTourProgress';
-import { businessUserJoyrideSteps, DASHBOARD_TOUR_ID } from '../config/business-user-joyride-steps';
-import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ACTIONS, CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
+import * as businessUserJoyrideConfig from '../config/business-user-joyride-steps';
+import { JoyrideTooltip } from '../components/JoyrideTooltip';
+import { useTourProgress } from './useTourProgress';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;
 }
 
-export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = {}) {
+function targetExists(step: Step): boolean {
+  if (typeof document === 'undefined') {
+    return true;
+  }
+
+  if (typeof step.target !== 'string') {
+    return true;
+  }
+
+  return document.querySelector(step.target) instanceof HTMLElement;
+}
+
+function resolveBusinessUserJoyrideSteps(isMobile: boolean): Step[] {
+  if (
+    typeof businessUserJoyrideConfig.buildBusinessUserJoyrideSteps === 'function'
+  ) {
+    return businessUserJoyrideConfig.buildBusinessUserJoyrideSteps({ isMobile });
+  }
+
+  if (Array.isArray(businessUserJoyrideConfig.businessUserJoyrideSteps)) {
+    return businessUserJoyrideConfig.businessUserJoyrideSteps;
+  }
+
+  return [];
+}
+
+export function useBusinessUserJoyride(
+  options: UseBusinessUserJoyrideOptions = {},
+) {
   const { enabled = true } = options;
-  const router = useRouter();
-  
-  const { shouldShowTour, isLoading, startTour, completeTour, skipTour } = useTourProgress(DASHBOARD_TOUR_ID);
+  const { setRestart } = useTourRestart();
+
+  const {
+    shouldShowTour,
+    isLoading,
+    startTour,
+    completeTour,
+    skipTour,
+  } = useTourProgress(businessUserJoyrideConfig.DASHBOARD_TOUR_ID);
+
   const [run, setRun] = useState(false);
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const { setRestart } = useTourRestart();
+  const [isMobile, setIsMobile] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
-  // Auto-start tour when conditions are met
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const steps = useMemo(() => {
+    const candidateSteps = resolveBusinessUserJoyrideSteps(isMobile);
+
+    if (!hasMounted) {
+      return candidateSteps;
+    }
+
+    return candidateSteps.filter(targetExists);
+  }, [hasMounted, isMobile]);
+
   useEffect(() => {
     if (!enabled || isLoading || !shouldShowTour) {
       return;
     }
 
-    // Wait for the page to render before starting video intro
-    const timer = setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setShowVideoIntro(true);
     }, 2000);
 
-    return () => clearTimeout(timer);
+    return () => window.clearTimeout(timer);
   }, [enabled, isLoading, shouldShowTour]);
 
   const handleVideoComplete = useCallback(() => {
     setShowVideoIntro(false);
-    startTour().catch(err => console.error('[useBusinessUserJoyride] DB start failed', err));
+    setStepIndex(0);
+    setRun(false);
+
+    if (steps.length === 0) {
+      completeTour().catch((err) =>
+        console.error('[useBusinessUserJoyride] No steps available:', err),
+      );
+      return;
+    }
+
+    startTour().catch((err) =>
+      console.error('[useBusinessUserJoyride] DB start failed', err),
+    );
     setRun(true);
-  }, [startTour]);
+  }, [completeTour, startTour, steps.length]);
 
-  // Handle Joyride callbacks
-  const handleJoyrideCallback = useCallback((data: CallBackProps) => {
-    const { action, index, status, type } = data;
+  const handleJoyrideCallback = useCallback(
+    (data: CallBackProps) => {
+      const { action, index, status, type } = data;
 
-    // Handle tour completion
-    if (status === STATUS.FINISHED) {
-      setRun(false);
-      completeTour().catch(err => console.error('[useBusinessUserJoyride] Complete failed', err));
-      return;
-    }
-
-    // Handle tour skip
-    if (status === STATUS.SKIPPED || action === ACTIONS.SKIP) {
-      setRun(false);
-      skipTour().catch(err => console.error('[useBusinessUserJoyride] Skip failed', err));
-      return;
-    }
-
-    // Handle close button
-    if (action === ACTIONS.CLOSE) {
-      setRun(false);
-      skipTour().catch(err => console.error('[useBusinessUserJoyride] Close failed', err));
-      return;
-    }
-
-    // Handle step navigation
-    if (type === EVENTS.STEP_AFTER) {
-      if (action === ACTIONS.NEXT) {
-        setStepIndex(index + 1);
-      } else if (action === ACTIONS.PREV) {
-        setStepIndex(index - 1);
+      if (status === STATUS.FINISHED) {
+        setRun(false);
+        completeTour().catch((err) =>
+          console.error('[useBusinessUserJoyride] Complete failed', err),
+        );
+        return;
       }
-    }
-  }, [completeTour, skipTour, router]);
 
-  // Reset tour (for testing)
+      if (status === STATUS.SKIPPED || action === ACTIONS.SKIP) {
+        setRun(false);
+        skipTour().catch((err) =>
+          console.error('[useBusinessUserJoyride] Skip failed', err),
+        );
+        return;
+      }
+
+      if (action === ACTIONS.CLOSE) {
+        setRun(false);
+        skipTour().catch((err) =>
+          console.error('[useBusinessUserJoyride] Close failed', err),
+        );
+        return;
+      }
+
+      if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+        if (action === ACTIONS.PREV) {
+          setStepIndex(Math.max(0, index - 1));
+          return;
+        }
+
+        setStepIndex((currentStepIndex) =>
+          Math.min(currentStepIndex + 1, Math.max(steps.length - 1, 0)),
+        );
+      }
+    },
+    [completeTour, skipTour, steps.length],
+  );
+
   const resetTour = useCallback(() => {
     setRun(false);
     setStepIndex(0);
   }, []);
 
-  // Manual start tour
   const manualStartTour = useCallback(() => {
     setStepIndex(0);
-    setRun(false); // Reset joyride run state
+    setRun(false);
     setShowVideoIntro(true);
   }, []);
 
-  // Registrar en el contexto global para que el botón flotante pueda dispararlo.
-  // Se limpia al desmontar el componente (al salir de la página).
   useEffect(() => {
     setRestart(manualStartTour, 'Reiniciar tutorial');
     return () => setRestart(null);
   }, [manualStartTour, setRestart]);
 
   return {
-    // Joyride props to spread
     joyrideProps: {
-      steps: businessUserJoyrideSteps,
+      steps,
       run,
       stepIndex,
       callback: handleJoyrideCallback,
@@ -112,9 +182,9 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
       disableCloseOnEsc: true,
       disableScrolling: false,
       scrollToFirstStep: true,
-      scrollOffset: 120, 
+      scrollOffset: isMobile ? 88 : 120,
       spotlightClicks: false,
-      spotlightPadding: 8,
+      spotlightPadding: isMobile ? 12 : 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
         options: {
@@ -129,12 +199,14 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
         },
       },
       floaterProps: {
-        disableAnimation: false,
+        disableAnimation: isMobile,
         hideArrow: false,
-        offset: 15,
+        offset: isMobile ? 10 : 15,
         styles: {
           floater: {
-            filter: 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',
+            filter: isMobile
+              ? 'none'
+              : 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',
           },
         },
       },
@@ -146,7 +218,6 @@ export function useBusinessUserJoyride(options: UseBusinessUserJoyrideOptions = 
         skip: 'Saltar',
       },
     },
-    // State and controls
     shouldShowTour,
     isLoading,
     run,

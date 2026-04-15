@@ -1,5 +1,6 @@
 "use client";
 
+import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTargets";
 import { useLiaCourse } from "../../context/LiaCourseContext";
 
 export function LiaMobileButton() {
@@ -7,6 +8,7 @@ export function LiaMobileButton() {
 
   return (
     <button
+      id={COURSE_LEARN_TOUR_TARGET_IDS.liaMobileTrigger}
       onClick={toggleLia}
       className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all relative ${
         isOpen

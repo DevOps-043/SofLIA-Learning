@@ -1,36 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../features/auth/services/session.service';
 import type { Database } from '../../../lib/supabase/types';
 
-// Crear cliente admin para bypass RLS si es necesario
-function createAdminClient() {
+// ---------------------------------------------------------------------------
+// Singleton admin client
+// Re-creating SupabaseClient on every request is wasteful: each instantiation
+// allocates a new connection pool and auth state machine. A module-level
+// singleton is safe here because the credentials are read-only env vars that
+// never change at runtime.
+// ---------------------------------------------------------------------------
+let _adminClient: SupabaseClient<Database> | null = null;
+
+function getAdminClient(): SupabaseClient<Database> {
+  if (_adminClient) return _adminClient;
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Variables de Supabase no configuradas');
+    throw new Error('Variables de entorno de Supabase no configuradas');
   }
 
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
+  _adminClient = createClient<Database>(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
-      persistSession: false
-    }
+      persistSession: false,
+    },
   });
+
+  return _adminClient;
 }
 
-// GET: Verificar si el usuario ya vio un tour específico
+const VALID_ACTIONS = new Set(['start', 'step', 'complete', 'skip']);
+
+// ---------------------------------------------------------------------------
+// GET /api/tours?tourId=<id>
+// Verifica si el usuario ya vio un tour específico.
+// Cache privado de 60 s: el estado del tour cambia raramente y un usuario
+// autenticado no comparte caché con otros. Esto evita hits a la DB en cada
+// render/montaje del hook useTourProgress.
+// ---------------------------------------------------------------------------
 export async function GET(request: NextRequest) {
   try {
-    // 1. Verificar autenticación usando SessionService (soporta legacy + refresh tokens)
     const user = await SessionService.getCurrentUser();
-    
     if (!user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    // 2. Obtener el tour_id
     const { searchParams } = new URL(request.url);
     const tourId = searchParams.get('tourId');
 
@@ -38,58 +55,69 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'tourId es requerido' }, { status: 400 });
     }
 
-    // 3. Consultar DB con cliente admin
-    const supabase = createAdminClient();
+    const supabase = getAdminClient();
     const { data, error } = await supabase
       .from('user_tour_progress')
       .select('*')
       .eq('user_id', user.id)
       .eq('tour_id', tourId)
-      .maybeSingle(); // Usar maybeSingle es más limpio que catch error
+      .maybeSingle();
 
     if (error) {
-      console.error('Error al verificar tour:', error);
+      console.error('[GET /api/tours] DB error:', error);
       return NextResponse.json({ error: 'Error al verificar tour' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      success: true,
-      hasSeenTour: !!data,
-      tourProgress: data || null
-    });
-  } catch (error) {
-    console.error('Error en GET /api/tours:', error);
+    return NextResponse.json(
+      { success: true, hasSeenTour: !!data, tourProgress: data ?? null },
+      {
+        headers: {
+          // Private cache: browser can cache this for 60 s, CDN must not.
+          // After 60 s the browser revalidates. Reduces DB calls on fast
+          // navigations where the user hasn't completed the tour yet.
+          'Cache-Control': 'private, max-age=60, stale-while-revalidate=30',
+        },
+      }
+    );
+  } catch (err) {
+    console.error('[GET /api/tours] Unexpected error:', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }
 
-// POST: Registrar progreso del tour
+// ---------------------------------------------------------------------------
+// POST /api/tours
+// Registra progreso: start | step | complete | skip
+// No cacheamos: es escritura y necesita ser inmediata.
+// ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
   try {
-    // 1. Verificar autenticación
     const user = await SessionService.getCurrentUser();
-    
     if (!user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { tourId, action, stepReached } = body;
+    const { tourId, action, stepReached } = body as {
+      tourId?: string;
+      action?: string;
+      stepReached?: number;
+    };
 
     if (!tourId || !action) {
-      return NextResponse.json({ error: 'tourId y action son requeridos' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'tourId y action son requeridos' },
+        { status: 400 }
+      );
     }
 
-    // Validar acción
-    const validActions = ['start', 'step', 'complete', 'skip'];
-    if (!validActions.includes(action)) {
+    if (!VALID_ACTIONS.has(action)) {
       return NextResponse.json({ error: 'Acción inválida' }, { status: 400 });
     }
 
-    // 3. Operar DB con cliente admin
-    const supabase = createAdminClient();
+    const supabase = getAdminClient();
 
-    // Buscar registro existente
+    // Single read to check existence — we only SELECT id + step_reached
     const { data: existing } = await supabase
       .from('user_tour_progress')
       .select('id, step_reached')
@@ -100,9 +128,8 @@ export async function POST(request: NextRequest) {
     let result;
 
     if (existing) {
-      // Actualizar registro existente
       const updateData: Record<string, unknown> = {
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       if (action === 'complete') {
@@ -111,7 +138,11 @@ export async function POST(request: NextRequest) {
         updateData.skipped_at = new Date().toISOString();
       }
 
-      if (stepReached !== undefined && stepReached > (existing.step_reached || 0)) {
+      // Only advance step_reached, never decrease it (idempotent)
+      if (
+        stepReached !== undefined &&
+        stepReached > (existing.step_reached ?? 0)
+      ) {
         updateData.step_reached = stepReached;
       }
 
@@ -122,11 +153,10 @@ export async function POST(request: NextRequest) {
         .select()
         .single();
     } else {
-      // Crear nuevo registro
       const insertData: Record<string, unknown> = {
         user_id: user.id,
         tour_id: tourId,
-        step_reached: stepReached || 0
+        step_reached: stepReached ?? 0,
       };
 
       if (action === 'complete') {
@@ -143,16 +173,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (result.error) {
-      console.error('Error al guardar progreso del tour:', result.error);
+      console.error('[POST /api/tours] DB error:', result.error);
       return NextResponse.json({ error: 'Error al guardar progreso' }, { status: 500 });
     }
 
-    return NextResponse.json({
-      success: true,
-      tourProgress: result.data
-    });
-  } catch (error) {
-    console.error('Error en POST /api/tours:', error);
+    return NextResponse.json({ success: true, tourProgress: result.data });
+  } catch (err) {
+    console.error('[POST /api/tours] Unexpected error:', err);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });
   }
 }

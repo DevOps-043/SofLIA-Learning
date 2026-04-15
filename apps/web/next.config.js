@@ -70,7 +70,14 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
-    unoptimized: false,
+    // Bypass server-side image proxy for external Supabase Storage URLs.
+    // The Next.js image optimizer fetches remote images from the server process,
+    // which in local dev cannot reliably reach Cloudflare CDN (ConnectTimeoutError
+    // at 172.64.149.246:443 / 104.18.38.10:443). With unoptimized=true, <Image>
+    // components serve the original Supabase CDN URL directly to the browser,
+    // which can reach it fine. This eliminates the 16-second timeout cascade that
+    // was slowing down the entire local dev server (including auth responses).
+    unoptimized: true,
   },
 
   // Variables de entorno públicas

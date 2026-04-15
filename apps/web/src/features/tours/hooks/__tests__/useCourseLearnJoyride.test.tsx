@@ -18,8 +18,16 @@ import { useCourseLearnJoyride } from '../useCourseLearnJoyride';
 const completeTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 const skipTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
 const startTour = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
-const updateStep = vi.fn<(step: number) => Promise<void>>().mockResolvedValue(undefined);
+const updateStep = vi.fn<(step: number) => void>();
 const setRestart = vi.fn();
+const tourProgressState = {
+  completeTour,
+  isLoading: false,
+  shouldShowTour: false,
+  skipTour,
+  startTour,
+  updateStep,
+};
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -46,14 +54,7 @@ vi.mock('../../../../core/contexts/TourRestartContext', () => ({
 }));
 
 vi.mock('../useTourProgress', () => ({
-  useTourProgress: () => ({
-    completeTour,
-    isLoading: false,
-    shouldShowTour: false,
-    skipTour,
-    startTour,
-    updateStep,
-  }),
+  useTourProgress: () => tourProgressState,
 }));
 
 function buildCallbackProps(
@@ -77,6 +78,9 @@ function buildCallbackProps(
 describe('useCourseLearnJoyride', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    tourProgressState.isLoading = false;
+    tourProgressState.shouldShowTour = false;
+    vi.useRealTimers();
   });
 
   it('completes and closes the tour when the final step advances past the last index', async () => {
@@ -115,5 +119,41 @@ describe('useCourseLearnJoyride', () => {
     expect(result.current.stepIndex).toBe(
       COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome,
     );
+  });
+
+  it('suppresses video playback and launches the tour when it should be shown', async () => {
+    vi.useFakeTimers();
+    tourProgressState.shouldShowTour = true;
+
+    const pauseVideoPlayback = vi.fn();
+    const clearPendingAutoPlay = vi.fn();
+
+    const { result } = renderHook(() =>
+      useCourseLearnJoyride({
+        clearPendingAutoPlay,
+        closeLia: vi.fn(),
+        closeLeftPanel: vi.fn(),
+        courseSlug: 'stack-tech-1',
+        courseTitle: 'Curso de prueba',
+        enabled: true,
+        isMobile: false,
+        lessonTitle: 'Leccion de prueba',
+        openLeftPanel: vi.fn(),
+        pauseVideoPlayback,
+        setActiveTab: vi.fn(),
+      }),
+    );
+
+    expect(result.current.suppressVideoPlayback).toBe(true);
+    expect(result.current.skipVideoAutoplay).toBe(true);
+    expect(clearPendingAutoPlay).toHaveBeenCalled();
+    expect(pauseVideoPlayback).toHaveBeenCalled();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2200);
+    });
+
+    expect(startTour).toHaveBeenCalledTimes(1);
+    expect(result.current.run).toBe(true);
   });
 });

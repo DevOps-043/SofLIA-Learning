@@ -1,78 +1,102 @@
-import { Step } from 'react-joyride';
 import React from 'react';
-import { 
-  Sparkles, 
-  BarChart3, 
-  BookOpen, 
-  Award, 
-  User, 
+import type { Step } from 'react-joyride';
+import {
+  Award,
+  BarChart3,
+  BookOpen,
   Bot,
-  CalendarCheck
+  Sparkles,
+  User,
 } from 'lucide-react';
+
+import {
+  getBusinessUserDashboardTourTargetSelector,
+  SHARED_TOUR_TARGET_IDS,
+} from '../../../core/constants/tourTargets';
 
 export const DASHBOARD_TOUR_ID = 'business-dashboard';
 
-export const businessUserJoyrideSteps: Step[] = [
-  {
-    target: '#tour-hero-section',
-    title: '¡Bienvenido a tu Espacio de Aprendizaje!',
-    content: 'Este es tu centro personal de desarrollo. Desde aquí podrás visualizar tu progreso, continuar tus cursos y alcanzar tus metas profesionales.',
-    placement: 'center',
-    disableBeacon: true,
-    data: {
-      icon: <Sparkles className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  {
-    target: '#tour-stats-section',
-    title: 'Estadísticas Generales',
-    content: 'Aquí tienes una vista rápida de tu actividad. Revisa tus cursos asignados, el estado de tu progreso y los certificados que has ganado.',
-    placement: 'bottom',
-    disableBeacon: true,
-    data: {
-      icon: <BarChart3 className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  {
-    target: '#tour-stat-courses',
-    title: 'Tus Cursos',
-    content: 'Consulta los cursos asignados y su estado actual. Mantén un seguimiento detallado de la formación.',
-    placement: 'top',
-    disableBeacon: true,
-    data: {
-      icon: <BookOpen className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  {
-    target: '#tour-stat-certificates',
-    title: 'Tus Certificados',
-    content: 'Visualiza los certificados obtenidos y el crecimiento profesional de tu equipo.',
-    placement: 'top',
-    disableBeacon: true,
-    data: {
-      icon: <Award className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  {
-    target: '#tour-user-dropdown-trigger',
-    title: 'Menú de Usuario',
-    content: 'En este menú encontrarás herramientas vitales: Planificador de Estudios, Editar Perfil y configuración de Idioma.',
-    placement: 'bottom-end',
-    disableBeacon: true,
-    data: {
-      icon: <User className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-  {
-    target: '#lia-tour-trigger-stable',
-    title: '¡Tu Asistente SofLIA!',
-    content: 'SofLIA es lo más importante de tu experiencia. Está aquí 24/7 para resolver dudas, analizar tu progreso y recibir feedback.',
-    placement: 'top-end',
-    disableBeacon: true,
-    disableScrolling: true,
-    spotlightPadding: 20,
-    data: {
-      icon: <Bot className="w-5 h-5 text-[#00D4B3]" />
-    }
-  },
-];
+type BuildBusinessUserJoyrideStepsOptions = {
+  isMobile: boolean;
+};
+
+export function buildBusinessUserJoyrideSteps({
+  isMobile,
+}: BuildBusinessUserJoyrideStepsOptions): Step[] {
+  return [
+    {
+      target: getBusinessUserDashboardTourTargetSelector('heroSection'),
+      title: 'Bienvenido a tu espacio de aprendizaje',
+      content:
+        'Este es tu centro personal de desarrollo. Desde aqui puedes revisar progreso, continuar cursos y avanzar en tus metas.',
+      placement: 'center',
+      disableBeacon: true,
+      data: {
+        icon: <Sparkles className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getBusinessUserDashboardTourTargetSelector('statsSection'),
+      title: 'Estadisticas generales',
+      content:
+        'Aqui tienes una vista rapida de tu actividad. Revisa cursos asignados, progreso y certificados.',
+      placement: isMobile ? 'top' : 'bottom',
+      disableBeacon: true,
+      data: {
+        icon: <BarChart3 className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getBusinessUserDashboardTourTargetSelector('statCourses'),
+      title: 'Tus cursos',
+      content:
+        'Consulta los cursos asignados y su estado actual para mantener el seguimiento de tu formacion.',
+      placement: isMobile ? 'bottom' : 'top',
+      disableBeacon: true,
+      data: {
+        icon: <BookOpen className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getBusinessUserDashboardTourTargetSelector('statCertificates'),
+      title: 'Tus certificados',
+      content:
+        'Visualiza los certificados obtenidos y el avance que ya has completado.',
+      placement: isMobile ? 'bottom' : 'top',
+      disableBeacon: true,
+      data: {
+        icon: <Award className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getBusinessUserDashboardTourTargetSelector(
+        isMobile ? 'mobileMenuTrigger' : 'userDropdownTrigger',
+      ),
+      title: 'Menu de usuario',
+      content:
+        'Desde este menu accedes a herramientas clave como perfil, idioma y accesos personales.',
+      placement: isMobile ? 'bottom' : 'bottom-end',
+      disableBeacon: true,
+      data: {
+        icon: <User className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: `#${SHARED_TOUR_TARGET_IDS.liaTrigger}`,
+      title: 'Tu asistente SofLIA',
+      content:
+        'SofLIA esta aqui para resolver dudas, darte contexto y acompanarte durante tu aprendizaje.',
+      placement: isMobile ? 'top' : 'top-end',
+      disableBeacon: true,
+      disableScrolling: true,
+      spotlightPadding: isMobile ? 12 : 20,
+      data: {
+        icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+  ];
+}
+
+export const businessUserJoyrideSteps = buildBusinessUserJoyrideSteps({
+  isMobile: false,
+});

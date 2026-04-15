@@ -32,7 +32,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const { styles, effectiveStyles, loading: stylesLoading } =
     useOrganizationStylesContext()
   const normalizedUserRole = user?.cargo_rol?.toLowerCase().trim()
-  const { joyrideProps, startTour, resetTour, run, showVideoIntro, handleVideoComplete } =
+  const { joyrideProps, startTour, resetTour, run, showVideoIntro, handleVideoComplete, shouldShowTour } =
     useBusinessPanelJoyride({
       enabled:
         normalizedUserRole !== 'superadmin' &&
@@ -80,6 +80,44 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     ],
     [],
   )
+
+  // ── Supabase Storage CDN optimization ─────────────────────────────────────
+  // Establish the TCP + TLS connection to the Supabase CDN origin as early as
+  // possible so that when the <video src> is set, the browser already has an
+  // open channel and skips the ~300-500 ms handshake cost.
+  useEffect(() => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl) return
+
+    const origin = new URL(supabaseUrl).origin
+    const link = document.createElement('link')
+    link.rel = 'preconnect'
+    link.href = origin
+    link.crossOrigin = 'anonymous'
+    document.head.appendChild(link)
+
+    return () => {
+      if (document.head.contains(link)) document.head.removeChild(link)
+    }
+  }, [])
+
+  // Inject <link rel="preload" as="video"> for the first tour video only when
+  // we know the tour will be shown. This gives the browser a ~2-second head
+  // start (the setTimeout in useBusinessPanelJoyride) before the player mounts
+  // and requests the file, dramatically reducing the initial buffering stall.
+  useEffect(() => {
+    if (!shouldShowTour || !introVideos[0]) return
+
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.setAttribute('as', 'video')
+    link.href = introVideos[0]
+    document.head.appendChild(link)
+
+    return () => {
+      if (document.head.contains(link)) document.head.removeChild(link)
+    }
+  }, [shouldShowTour, introVideos])
 
   useEffect(() => {
     setIsMounted(true)

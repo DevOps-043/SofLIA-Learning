@@ -1,166 +1,89 @@
 'use client';
 
-import React from 'react';
-import { motion } from 'framer-motion';
-
-interface FloatingElement {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  delay: number;
-  duration: number;
-}
+import React, { useMemo } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface AnimatedBackgroundProps {
   className?: string;
 }
 
-export function AnimatedBackground({ className = '' }: AnimatedBackgroundProps) {
-  // Generar elementos flotantes de forma dinámica
-  const generateFloatingElements = (): FloatingElement[] => {
-    const elements: FloatingElement[] = [];
-    
-    // Círculos decorativos
-    for (let i = 0; i < 6; i++) {
-      elements.push({
-        id: i,
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        size: 20 + Math.random() * 60, // Entre 20px y 80px
-        delay: Math.random() * 5,
-        duration: 8 + Math.random() * 12, // Entre 8s y 20s
-      });
-    }
-    
-    return elements;
-  };
+// ---------------------------------------------------------------------------
+// Static positions generated once at module level (not per-render).
+// The previous implementation called Math.random() inside the component body,
+// which means every parent re-render produced NEW random positions → layout
+// shifts on every render cycle.
+// ---------------------------------------------------------------------------
+const FLOATING_ELEMENTS = [
+  { id: 0, x: 15, y: 20, size: 48, delay: 0,   duration: 14 },
+  { id: 1, x: 72, y: 60, size: 32, delay: 2.5, duration: 18 },
+  { id: 2, x: 45, y: 80, size: 60, delay: 5,   duration: 12 },
+] as const;
 
-  const floatingElements = generateFloatingElements();
+// Shared transition factories — defined outside the component so they are
+// not recreated on every render.
+function floatTransition(duration: number, delay: number) {
+  return { duration, delay, repeat: Infinity, ease: 'easeInOut' as const };
+}
+
+export function AnimatedBackground({ className = '' }: AnimatedBackgroundProps) {
+  const shouldReduceMotion = useReducedMotion();
+
+  // When the user has prefers-reduced-motion enabled (or on slow devices that
+  // set this via user-agent), render a completely static background. This is
+  // also the right accessibility behaviour.
+  if (shouldReduceMotion) {
+    return (
+      <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{ background: 'radial-gradient(circle at 30% 40%, rgba(10,37,64,0.1) 0%, transparent 50%)' }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`absolute inset-0 overflow-hidden pointer-events-none ${className}`}>
-      {/* Gradiente de fondo animado */}
-      <motion.div
-        className="absolute inset-0 opacity-5"
-        animate={{
-          background: [
-            'radial-gradient(circle at 20% 50%, rgba(10, 37, 64, 0.1) 0%, transparent 50%)',
-            'radial-gradient(circle at 80% 20%, rgba(0, 212, 179, 0.1) 0%, transparent 50%)',
-            'radial-gradient(circle at 40% 80%, rgba(10, 37, 64, 0.1) 0%, transparent 50%)',
-            'radial-gradient(circle at 20% 50%, rgba(10, 37, 64, 0.1) 0%, transparent 50%)',
-          ],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
+
+      {/*
+        REMOVED: two motion.div elements that animated the `background` CSS
+        property (radial-gradient). Animating `background` is NOT compositable
+        on the GPU — the browser must repaint on the CPU every frame (~60×/s).
+        On mobile this was the primary source of the overheating.
+
+        KEPT: only transform-based animations (x, y, scale) which the browser
+        compositor handles entirely on the GPU with no CPU involvement.
+      */}
+
+      {/* Static ambient gradient — GPU-composited opacity layer, never repainted */}
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{ background: 'radial-gradient(circle at 30% 40%, rgba(10,37,64,0.15) 0%, transparent 55%), radial-gradient(circle at 70% 70%, rgba(0,212,179,0.10) 0%, transparent 55%)' }}
       />
 
-      {/* Elementos flotantes */}
-      {floatingElements.map((element) => (
+      {/*
+        3 floating elements (reduced from 6).
+        Animations: y, x, scale only — all compile to CSS `transform`,
+        handled by the GPU compositor thread without touching the CPU render
+        pipeline. `rotate` was removed because it adds a full matrix
+        multiplication per frame with negligible visual benefit.
+      */}
+      {FLOATING_ELEMENTS.map((el) => (
         <motion.div
-          key={element.id}
+          key={el.id}
           className="absolute rounded-full blur-sm"
           style={{
-            left: `${element.x}%`,
-            top: `${element.y}%`,
-            width: `${element.size}px`,
-            height: `${element.size}px`,
-            background: 'linear-gradient(135deg, rgba(10, 37, 64, 0.1), rgba(0, 212, 179, 0.1))',
+            left: `${el.x}%`,
+            top: `${el.y}%`,
+            width: `${el.size}px`,
+            height: `${el.size}px`,
+            background: 'linear-gradient(135deg, rgba(10,37,64,0.08), rgba(0,212,179,0.08))',
+            willChange: 'transform', // hint browser to promote to its own GPU layer
           }}
-          animate={{
-            y: [0, -20, 10, -15, 0],
-            x: [0, 15, -10, 5, 0],
-            rotate: [0, 180, 360],
-            scale: [1, 1.1, 0.9, 1.05, 1],
-          }}
-          transition={{
-            duration: element.duration,
-            delay: element.delay,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          animate={{ y: [0, -16, 8, -12, 0], x: [0, 10, -8, 4, 0], scale: [1, 1.08, 0.94, 1.04, 1] }}
+          transition={floatTransition(el.duration, el.delay)}
         />
       ))}
-
-      {/* Líneas de acento decorativas */}
-      <motion.div
-        className="absolute top-1/4 left-0 w-32 h-0.5 bg-gradient-to-r from-transparent via-[#0A2540]/30 to-transparent"
-        animate={{
-          x: ['-100px', '100vw'],
-          opacity: [0, 0.5, 0],
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          repeatDelay: 5,
-          ease: 'linear',
-        }}
-      />
-      
-      <motion.div
-        className="absolute bottom-1/3 left-0 w-24 h-0.5 bg-gradient-to-r from-transparent via-[#00D4B3]/30 to-transparent"
-        animate={{
-          x: ['-100px', '100vw'],
-          opacity: [0, 0.4, 0],
-        }}
-        transition={{
-          duration: 18,
-          repeat: Infinity,
-          repeatDelay: 8,
-          ease: 'linear',
-        }}
-      />
-
-      {/* Efectos de partículas sutiles */}
-      <motion.div
-        className="absolute top-1/2 left-1/4 w-1 h-1 rounded-full"
-        style={{ backgroundColor: 'rgba(10, 37, 64, 0.4)' }}
-        animate={{
-          y: [-10, -50, -30, -40, -10],
-          opacity: [0, 0.6, 0.3, 0.7, 0],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      <motion.div
-        className="absolute top-1/3 right-1/3 w-1 h-1 rounded-full"
-        style={{ backgroundColor: 'rgba(0, 212, 179, 0.4)' }}
-        animate={{
-          y: [-15, -60, -20, -35, -15],
-          opacity: [0, 0.5, 0.2, 0.6, 0],
-        }}
-        transition={{
-          duration: 14,
-          repeat: Infinity,
-          ease: 'easeInOut',
-          delay: 3,
-        }}
-      />
-
-      {/* Gradiente radial móvil */}
-      <motion.div
-        className="absolute inset-0 opacity-3"
-        animate={{
-          background: [
-            'radial-gradient(circle at 30% 40%, rgba(10, 37, 64, 0.08) 0%, transparent 60%)',
-            'radial-gradient(circle at 70% 60%, rgba(0, 212, 179, 0.08) 0%, transparent 60%)',
-            'radial-gradient(circle at 50% 80%, rgba(10, 37, 64, 0.08) 0%, transparent 60%)',
-            'radial-gradient(circle at 30% 40%, rgba(10, 37, 64, 0.08) 0%, transparent 60%)',
-          ],
-        }}
-        transition={{
-          duration: 30,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-      />
     </div>
   );
 }

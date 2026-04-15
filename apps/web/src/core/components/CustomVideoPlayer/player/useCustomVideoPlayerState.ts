@@ -44,6 +44,9 @@ export function useCustomVideoPlayerState(
   const progressBarRef = useRef<HTMLDivElement>(null);
   const volumeBarRef = useRef<HTMLDivElement>(null);
   const hasNotifiedCompletionRef = useRef(false);
+  // Throttle timeupdate → React re-renders to max ~4 fps (250 ms).
+  // The completion check still runs every native timeupdate event.
+  const lastTimeupdateRenderRef = useRef<number>(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(initialTime);
@@ -181,24 +184,32 @@ export function useCustomVideoPlayerState(
 
     const updateTime = () => {
       const playbackTime = videoElement.currentTime;
+
+      // ── Completion check — runs every timeupdate (no throttle) ──────────
+      if (duration > 0 && !videoElement.paused && !videoElement.ended) {
+        const remainingTime = duration - playbackTime;
+        const progressRatio = playbackTime / duration;
+
+        if (
+          remainingTime <= VIDEO_COMPLETION_EPSILON_SECONDS ||
+          progressRatio >= VIDEO_COMPLETION_PROGRESS_THRESHOLD
+        ) {
+          notifyCompletion();
+        }
+      }
+
+      // ── React state update — throttled to ≤250 ms intervals ─────────────
+      // timeupdate fires ~4 Hz natively; without throttling each event
+      // triggers a full React re-render of the player component tree,
+      // which causes continuous CPU wake-ups on mobile → device heating.
+      const now = performance.now();
+      if (now - lastTimeupdateRenderRef.current < 250) return;
+      lastTimeupdateRenderRef.current = now;
+
       setCurrentTime(playbackTime);
 
       if (onProgress && duration > 0) {
         onProgress((playbackTime / duration) * 100);
-      }
-
-      if (duration <= 0 || videoElement.paused || videoElement.ended) {
-        return;
-      }
-
-      const remainingTime = duration - playbackTime;
-      const progressRatio = playbackTime / duration;
-
-      if (
-        remainingTime <= VIDEO_COMPLETION_EPSILON_SECONDS ||
-        progressRatio >= VIDEO_COMPLETION_PROGRESS_THRESHOLD
-      ) {
-        notifyCompletion();
       }
     };
 

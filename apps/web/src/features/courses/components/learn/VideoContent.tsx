@@ -62,6 +62,8 @@ type VideoContentProps = {
   slug: string;
   summaryContent: string | null;
   transcriptContent: string | null;
+  suppressVideoPlayback?: boolean;
+  skipVideoAutoplay?: boolean;
 };
 
 const VIDEO_COMPLETION_TRANSITION_DELAY_MS = 1000;
@@ -126,6 +128,8 @@ export function VideoContent({
   slug,
   summaryContent,
   transcriptContent,
+  suppressVideoPlayback = false,
+  skipVideoAutoplay = false,
 }: VideoContentProps) {
   const videoPlayerContext = useVideoPlayerOptional();
   const currentTimeRef = useRef(0);
@@ -172,6 +176,16 @@ export function VideoContent({
 
   useEffect(() => {
     if (!hasVideo || !lesson.lesson_id) {
+      return;
+    }
+
+    if (skipVideoAutoplay) {
+      autoPlayedForLessonRef.current = lesson.lesson_id;
+      videoPlayerContext?.setShouldAutoPlay(false);
+      return;
+    }
+
+    if (suppressVideoPlayback) {
       return;
     }
 
@@ -256,7 +270,16 @@ export function VideoContent({
       retryIds.forEach((timeoutId) => clearTimeout(timeoutId));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasVideo, lesson.lesson_id]);
+  }, [hasVideo, lesson.lesson_id, skipVideoAutoplay, suppressVideoPlayback]);
+
+  useEffect(() => {
+    if (!suppressVideoPlayback) {
+      return;
+    }
+
+    videoPlayerContext?.setShouldAutoPlay(false);
+    videoPlayerContext?.pauseAllVideos?.();
+  }, [suppressVideoPlayback, videoPlayerContext]);
 
   useEffect(() => {
     let cleanupFn: (() => void) | undefined;
@@ -285,7 +308,10 @@ export function VideoContent({
 
       if (videoContext && lesson.lesson_id) {
         const restoreAndPlay = async () => {
-          const shouldPlay = videoContext.shouldAutoPlayRef?.current || false;
+          const shouldPlay =
+            !skipVideoAutoplay &&
+            !suppressVideoPlayback &&
+            (videoContext.shouldAutoPlayRef?.current || false);
           const cachedTime = videoContext.getVideoProgress(lesson.lesson_id);
           let resumeCheckpoint = cachedTime;
           let resumePlaybackRate = 1;

@@ -12,6 +12,7 @@ import {
   Sun,
   User,
 } from 'lucide-react';
+import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../../core/constants/tourTargets';
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
 import { ModernNavbarAvatar } from './ModernNavbarAvatar';
@@ -71,7 +72,7 @@ export function ModernNavbarDesktopMenu({
   return (
     <>
       <motion.button
-        id="tour-user-dropdown-trigger"
+        id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.userDropdownTrigger}
         onClick={() => setUserDropdownOpen(!userDropdownOpen)}
         className="flex items-center justify-center transition-all duration-300 p-1"
         whileHover={{ scale: 1.05 }}

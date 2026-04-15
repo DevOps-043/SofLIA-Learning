@@ -42,6 +42,7 @@ export type CourseLearnJoyrideTranslator = (
 type BuildCourseLearnJoyrideStepsParams = {
   courseTitle?: string;
   lessonTitle?: string;
+  isMobile: boolean;
   translate: CourseLearnJoyrideTranslator;
 };
 
@@ -62,7 +63,9 @@ function resolveInterpolationValues({
   courseTitle,
   lessonTitle,
   translate,
-}: Omit<BuildCourseLearnJoyrideStepsParams, 'translate'> & {
+}: {
+  courseTitle?: string;
+  lessonTitle?: string;
   translate: CourseLearnJoyrideTranslator;
 }): Required<CourseLearnJoyrideInterpolation> {
   return {
@@ -80,6 +83,7 @@ export function buildCourseLearnTourId(courseSlug: string): string {
 export function buildCourseLearnJoyrideSteps({
   courseTitle,
   lessonTitle,
+  isMobile,
   translate,
 }: BuildCourseLearnJoyrideStepsParams): Step[] {
   const interpolation = resolveInterpolationValues({
@@ -87,6 +91,12 @@ export function buildCourseLearnJoyrideSteps({
     lessonTitle,
     translate,
   });
+  const sidebarTarget = getCourseLearnTourTargetSelector(
+    isMobile ? 'mobileMaterialButton' : 'sidebar',
+  );
+  const sofliaTarget = getCourseLearnTourTargetSelector(
+    isMobile ? 'liaMobileTrigger' : 'liaTrigger',
+  );
 
   return [
     {
@@ -100,10 +110,10 @@ export function buildCourseLearnJoyrideSteps({
       },
     },
     {
-      target: getCourseLearnTourTargetSelector('sidebar'),
+      target: sidebarTarget,
       title: translate('tour.steps.sidebar.title'),
       content: translate('tour.steps.sidebar.description', interpolation),
-      placement: 'right',
+      placement: isMobile ? 'top' : 'right',
       disableBeacon: true,
       data: {
         icon: <BookOpen className="h-5 w-5 text-[#00D4B3]" />,
@@ -113,35 +123,41 @@ export function buildCourseLearnJoyrideSteps({
       target: getCourseLearnTourTargetSelector('videoPanel'),
       title: translate('tour.steps.videoPanel.title'),
       content: translate('tour.steps.videoPanel.description', interpolation),
-      placement: 'left-start',
+      placement: isMobile ? 'bottom' : 'left-start',
       disableBeacon: true,
-      floaterProps: {
-        hideArrow: true,
-      },
+      floaterProps: isMobile
+        ? undefined
+        : {
+            hideArrow: true,
+          },
       data: {
         icon: <PlaySquare className="h-5 w-5 text-[#00D4B3]" />,
-        tooltipDock: FIXED_LEFT_TOOLTIP_DOCK,
-        tooltipWidth: COMPACT_TOOLTIP_WIDTH,
+        ...(isMobile
+          ? {}
+          : {
+              tooltipDock: FIXED_LEFT_TOOLTIP_DOCK,
+              tooltipWidth: COMPACT_TOOLTIP_WIDTH,
+            }),
       },
     },
     {
       target: getCourseLearnTourTargetSelector('tools'),
       title: translate('tour.steps.tools.title'),
       content: translate('tour.steps.tools.description', interpolation),
-      placement: 'bottom',
+      placement: isMobile ? 'top' : 'bottom',
       disableBeacon: true,
       data: {
         icon: <LayoutPanelTop className="h-5 w-5 text-[#00D4B3]" />,
       },
     },
     {
-      target: getCourseLearnTourTargetSelector('liaTrigger'),
+      target: sofliaTarget,
       title: translate('tour.steps.soflia.title'),
       content: translate('tour.steps.soflia.description', interpolation),
-      placement: 'top-end',
+      placement: isMobile ? 'top' : 'top-end',
       disableBeacon: true,
       disableScrolling: true,
-      spotlightPadding: 20,
+      spotlightPadding: isMobile ? 12 : 20,
       data: {
         icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
       },
@@ -150,7 +166,7 @@ export function buildCourseLearnJoyrideSteps({
       target: getCourseLearnTourTargetSelector('replayButton'),
       title: translate('tour.steps.ready.title'),
       content: translate('tour.steps.ready.description', interpolation),
-      placement: 'bottom-end',
+      placement: isMobile ? 'bottom' : 'bottom-end',
       disableBeacon: true,
       data: {
         icon: <Map className="h-5 w-5 text-[#00D4B3]" />,
