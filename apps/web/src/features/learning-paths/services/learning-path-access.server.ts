@@ -64,12 +64,31 @@ interface UserLearningPathProgressRow extends LooseRow {
   id: string
 }
 
+interface QueryLikeError {
+  code?: string
+  message?: string
+  details?: string
+}
+
 function isCourseCompleted(enrollment: EnrollmentRow | undefined) {
   if (!enrollment) return false
 
   return (
     enrollment.enrollment_status === 'completed' ||
     (enrollment.overall_progress_percentage ?? 0) >= 100
+  )
+}
+
+function isMissingLearningPathInfrastructureError(error: QueryLikeError | null | undefined) {
+  if (!error) return false
+
+  const combined = `${error.code || ''} ${error.message || ''} ${error.details || ''}`.toLowerCase()
+
+  return (
+    error.code === '42P01' ||
+    combined.includes('does not exist') ||
+    combined.includes('relation') ||
+    combined.includes('learning_path')
   )
 }
 
@@ -90,6 +109,9 @@ async function loadAssignedLearningPathIds(
       .eq('status', 'active')
 
     if (organizationAssignments.error) {
+      if (isMissingLearningPathInfrastructureError(organizationAssignments.error)) {
+        return []
+      }
       logger.error('Error loading organization learning path assignments:', organizationAssignments.error)
       throw new Error('No se pudo validar el acceso al learning path')
     }
@@ -114,6 +136,9 @@ async function loadAssignedLearningPathIds(
   const userAssignments = await userAssignmentsQuery
 
   if (userAssignments.error) {
+    if (isMissingLearningPathInfrastructureError(userAssignments.error)) {
+      return []
+    }
     logger.error('Error loading user learning path assignments:', userAssignments.error)
     throw new Error('No se pudo validar el acceso al learning path')
   }
@@ -144,6 +169,9 @@ async function persistProgressSnapshot(
     .maybeSingle()
 
   if (existing.error) {
+    if (isMissingLearningPathInfrastructureError(existing.error)) {
+      return
+    }
     logger.error('Error checking learning path progress snapshot:', existing.error)
     return
   }
@@ -177,6 +205,9 @@ async function persistProgressSnapshot(
       .eq('id', existing.data.id)
 
     if (updateResult.error) {
+      if (isMissingLearningPathInfrastructureError(updateResult.error)) {
+        return
+      }
       logger.error('Error updating learning path progress snapshot:', updateResult.error)
     }
     return
@@ -189,6 +220,9 @@ async function persistProgressSnapshot(
     .insert(payload)
 
   if (insertResult.error) {
+    if (isMissingLearningPathInfrastructureError(insertResult.error)) {
+      return
+    }
     logger.error('Error inserting learning path progress snapshot:', insertResult.error)
   }
 }
@@ -222,6 +256,9 @@ export async function resolveLearningPathAccessForCourse(params: {
     .order('position', { ascending: true })
 
   if (candidates.error) {
+    if (isMissingLearningPathInfrastructureError(candidates.error)) {
+      return null
+    }
     logger.error('Error loading learning path candidates for course:', candidates.error)
     throw new Error('No se pudo resolver el learning path del curso')
   }
@@ -250,6 +287,9 @@ export async function resolveLearningPathAccessForCourse(params: {
     .order('position', { ascending: true })
 
   if (itemsResult.error) {
+    if (isMissingLearningPathInfrastructureError(itemsResult.error)) {
+      return null
+    }
     logger.error('Error loading learning path items for access resolution:', itemsResult.error)
     throw new Error('No se pudo resolver la secuencia del learning path')
   }
@@ -264,6 +304,9 @@ export async function resolveLearningPathAccessForCourse(params: {
     .in('course_id', courseIds)
 
   if (enrollments.error) {
+    if (isMissingLearningPathInfrastructureError(enrollments.error)) {
+      return null
+    }
     logger.error('Error loading enrollments for learning path access:', enrollments.error)
     throw new Error('No se pudo validar el progreso del learning path')
   }

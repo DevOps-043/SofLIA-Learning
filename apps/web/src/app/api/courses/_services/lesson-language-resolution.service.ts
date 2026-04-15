@@ -142,7 +142,6 @@ export function resolveLessonContentWithFallback(params: {
   const missingPieces = new Set<TranslationMissingPiece>()
   const mergedLesson: LessonBaseRow = {
     ...baseLesson,
-    ...translatedLesson,
   }
 
   if (!translatedLesson) {
@@ -154,35 +153,27 @@ export function resolveLessonContentWithFallback(params: {
       missingPieces.add('summary')
     }
   } else {
-    if (
-      isMissingTextValue(translatedLesson.lesson_title) &&
-      !isMissingTextValue(baseLesson.lesson_title)
-    ) {
-      mergedLesson.lesson_title = baseLesson.lesson_title
+    if (!isMissingTextValue(translatedLesson.lesson_title)) {
+      mergedLesson.lesson_title = translatedLesson.lesson_title
+    } else if (!isMissingTextValue(baseLesson.lesson_title)) {
       missingPieces.add('lesson_text')
     }
 
-    if (
-      isMissingTextValue(translatedLesson.lesson_description) &&
-      !isMissingTextValue(baseLesson.lesson_description)
-    ) {
-      mergedLesson.lesson_description = baseLesson.lesson_description
+    if (!isMissingTextValue(translatedLesson.lesson_description)) {
+      mergedLesson.lesson_description = translatedLesson.lesson_description
+    } else if (!isMissingTextValue(baseLesson.lesson_description)) {
       missingPieces.add('lesson_text')
     }
 
-    if (
-      isMissingTextValue(translatedLesson.transcript_content) &&
-      !isMissingTextValue(baseLesson.transcript_content)
-    ) {
-      mergedLesson.transcript_content = baseLesson.transcript_content
+    if (!isMissingTextValue(translatedLesson.transcript_content)) {
+      mergedLesson.transcript_content = translatedLesson.transcript_content
+    } else if (!isMissingTextValue(baseLesson.transcript_content)) {
       missingPieces.add('transcript')
     }
 
-    if (
-      isMissingTextValue(translatedLesson.summary_content) &&
-      !isMissingTextValue(baseLesson.summary_content)
-    ) {
-      mergedLesson.summary_content = baseLesson.summary_content
+    if (!isMissingTextValue(translatedLesson.summary_content)) {
+      mergedLesson.summary_content = translatedLesson.summary_content
+    } else if (!isMissingTextValue(baseLesson.summary_content)) {
       missingPieces.add('summary')
     }
   }
