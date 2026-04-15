@@ -26,6 +26,7 @@ export function InteractivePoll({
   const [isVoting, setIsVoting] = useState(false)
   const [pollData, setPollData] = useState(attachmentData)
   const [voteSuccess, setVoteSuccess] = useState(false)
+  const [voteError, setVoteError] = useState<string | null>(null)
   const pollId = `poll-${postId || 'default'}-${Math.random().toString(36).substr(2, 9)}`
 
   useEffect(() => {
@@ -76,13 +77,14 @@ export function InteractivePoll({
         setPollData(data.pollData)
         setUserVote(selectedOption)
         setVoteSuccess(true)
+        setVoteError(null)
         setTimeout(() => setVoteSuccess(false), 2000)
       } else {
         const error = await response.json()
-        alert(error.error || 'Error al votar')
+        setVoteError(error.error || 'Error al votar')
       }
     } catch {
-      alert('Error al votar')
+      setVoteError('Error al votar')
     } finally {
       setIsVoting(false)
     }
@@ -259,6 +261,10 @@ export function InteractivePoll({
         </div>
 
         <div className="flex items-center gap-3">
+          {voteError && (
+            <span className="text-xs text-red-400">{voteError}</span>
+          )}
+
           {voteSuccess && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8, x: 20 }}

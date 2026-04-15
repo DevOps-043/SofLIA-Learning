@@ -151,10 +151,6 @@ export function useLessonCompletion({
   canCompleteLesson,
 }: UseLessonCompletionParams) {
   const organizationId = useCurrentOrganizationId();
-  const [isCourseCompletedModalOpen, setIsCourseCompletedModalOpen] = useState(false);
-  const [isCannotCompleteModalOpen, setIsCannotCompleteModalOpen] = useState(false);
-  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
-  const [hasUserRated, setHasUserRated] = useState(false);
   const [validationModal, setValidationModal] = useState<ValidationModalState>({
     isOpen: false,
     title: "",
@@ -473,13 +469,5 @@ export function useLessonCompletion({
     openValidationModal,
     validationModal,
     setValidationModal,
-    isCourseCompletedModalOpen,
-    setIsCourseCompletedModalOpen,
-    isCannotCompleteModalOpen,
-    setIsCannotCompleteModalOpen,
-    isRatingModalOpen,
-    setIsRatingModalOpen,
-    hasUserRated,
-    setHasUserRated,
   };
 }

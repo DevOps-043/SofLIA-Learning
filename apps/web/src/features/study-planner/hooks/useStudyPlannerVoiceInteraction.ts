@@ -172,6 +172,7 @@ export function useStudyPlannerVoiceInteraction({
 }: UseStudyPlannerVoiceInteractionParams): UseStudyPlannerVoiceInteractionResult {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
@@ -352,7 +353,7 @@ export function useStudyPlannerVoiceInteraction({
       lastErrorTimeRef.current = now;
 
       if (errorType === 'not-allowed') {
-        alert('Necesito permiso para usar el microfono.\n\nPor favor habilita el acceso al microfono en tu navegador e intenta de nuevo.');
+        setVoiceError('Necesito permiso para usar el microfono. Por favor habilita el acceso al microfono en tu navegador e intenta de nuevo.');
       }
     };
 
@@ -377,7 +378,7 @@ export function useStudyPlannerVoiceInteraction({
   const toggleListening = useCallback(async () => {
     const recognition = recognitionRef.current;
     if (!recognition) {
-      alert('Tu navegador no soporta reconocimiento de voz. Usa Chrome, Edge o Safari.');
+      setVoiceError('Tu navegador no soporta reconocimiento de voz. Usa Chrome, Edge o Safari.');
       return;
     }
 
@@ -411,7 +412,7 @@ export function useStudyPlannerVoiceInteraction({
       setIsListening(false);
 
       if (typedError.name === 'NotAllowedError') {
-        alert('Necesito permiso para usar el microfono.\n\nPor favor permite el acceso al microfono en tu navegador y vuelve a intentar.');
+        setVoiceError('Necesito permiso para usar el microfono. Por favor permite el acceso al microfono en tu navegador y vuelve a intentar.');
       }
     }
   }, [isListening, stopAllAudio]);
@@ -425,6 +426,8 @@ export function useStudyPlannerVoiceInteraction({
   return {
     isListening,
     isSpeaking,
+    voiceError,
+    setVoiceError,
     speakText,
     stopAllAudio,
     toggleListening,

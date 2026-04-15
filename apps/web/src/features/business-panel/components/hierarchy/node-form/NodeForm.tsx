@@ -30,7 +30,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
   const theme = useBusinessPanelTheme()
   const form = useNodeFormState(isOpen, mode, onSave, onClose, parentNode, nodeToEdit)
 
-  const { handleGeocode, handleReverseGeocode, isGeocoding } = useGeocoding(
+  const { handleGeocode, handleReverseGeocode, isGeocoding, geocodeError } = useGeocoding(
     {
       street: form.street,
       externalNumber: form.externalNumber,
@@ -287,6 +287,9 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                   onGeocode={handleGeocode}
                   onReverseGeocode={handleReverseGeocode}
                 />
+                {geocodeError && (
+                  <p className="mt-2 text-xs text-red-500">{geocodeError}</p>
+                )}
               </div>
             </form>
 
@@ -294,6 +297,9 @@ export const NodeForm: React.FC<NodeFormProps> = ({
               className="flex shrink-0 items-center justify-end gap-4 border-t px-8 py-6"
               style={{ borderColor: theme.borderColor, backgroundColor: theme.cardBg }}
             >
+              {form.saveError && (
+                <p className="mr-auto text-xs text-red-500">{form.saveError}</p>
+              )}
               <button
                 type="button"
                 onClick={onClose}

@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Award, TrendingUp, Filter, Eye, EyeOff } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { SkillBadgeList } from '../../skills/components/SkillBadgeList'
 import { SkillLevel, getLevelInfo } from '../../skills/constants/skillLevels'
 
@@ -38,6 +39,7 @@ export function UserSkillsSection({
   skills,
   onToggleDisplay
 }: UserSkillsSectionProps) {
+  const { t } = useTranslation('common')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [hiddenSkills, setHiddenSkills] = useState<Set<string>>(new Set())
 
@@ -120,7 +122,7 @@ export function UserSkillsSection({
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Skills</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('profile.skills.totalSkills')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
             </div>
             <Award className="w-8 h-8 text-blue-600" />
@@ -129,7 +131,7 @@ export function UserSkillsSection({
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Nivel Más Alto</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('profile.skills.highestLevel')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {stats.highestLevel ? getLevelInfo(stats.highestLevel).displayName : 'N/A'}
               </p>
@@ -140,7 +142,7 @@ export function UserSkillsSection({
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Categorías</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{t('profile.skills.categories')}</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{categories.length}</p>
             </div>
             <Filter className="w-8 h-8 text-purple-600" />
@@ -158,23 +160,23 @@ export function UserSkillsSection({
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
           }`}
         >
-          Todas
+          {t('profile.skills.all')}
         </button>
         {categories.map(category => {
           const categoryLabels: Record<string, string> = {
-            general: 'General',
-            programming: 'Programación',
-            design: 'Diseño',
-            marketing: 'Marketing',
-            business: 'Negocios',
-            data: 'Datos',
-            ai: 'Inteligencia Artificial',
-            cloud: 'Cloud Computing',
-            security: 'Seguridad',
-            devops: 'DevOps',
-            leadership: 'Liderazgo',
-            communication: 'Comunicación',
-            other: 'Otros'
+            general: t('profile.skills.categoryLabels.general'),
+            programming: t('profile.skills.categoryLabels.programming'),
+            design: t('profile.skills.categoryLabels.design'),
+            marketing: t('profile.skills.categoryLabels.marketing'),
+            business: t('profile.skills.categoryLabels.business'),
+            data: t('profile.skills.categoryLabels.data'),
+            ai: t('profile.skills.categoryLabels.ai'),
+            cloud: t('profile.skills.categoryLabels.cloud'),
+            security: t('profile.skills.categoryLabels.security'),
+            devops: t('profile.skills.categoryLabels.devops'),
+            leadership: t('profile.skills.categoryLabels.leadership'),
+            communication: t('profile.skills.categoryLabels.communication'),
+            other: t('profile.skills.categoryLabels.other')
           }
           return (
             <button

@@ -173,16 +173,71 @@ shared/    → Cannot import from anywhere (pure infrastructure)
 
 ## Internationalization (i18n)
 
-Supports **Spanish (default)**, **English**, and **Portuguese** via `next-i18next` + `react-i18next`.
+Supports **Spanish (default)**, **English**, and **Portuguese** via `next-i18next` + `react-i18next`. All translations are client-side bundled — no lazy loading, no URL-based routing.
 
-- Translation files: `apps/web/public/locales/{es,en,pt}/common.json`
-- Keep keys consistent across all three languages
-- `I18nProvider` is mounted in `src/app/layout.tsx`
+### Namespaces (registered in `core/i18n/i18n.ts`)
+| Namespace | File | Usage |
+|-----------|------|-------|
+| `common` | `common.json` | Shared UI (profile, actions, studyPlanner, certificates, liaPersonalization) |
+| `learn` | `learn.json` | Course learning page (lessons, quiz, scorm, activities) |
+| `business` | `business.json` | Business panel (users, teams, hierarchy, analytics) |
+| `admin` | `admin.json` | Admin panel (delete modals, user management, roles) |
+| `instructor` | `instructor.json` | Instructor panel features |
+| `dashboard` | `dashboard.json` | User dashboard |
+| `content` | `content.json` | Course content management |
+| `my-courses` | `my-courses.json` | User courses list |
+| `communities` | `communities.json` | Community pages |
+| `news` | `news.json` | News articles |
+
+### Key Naming Convention
+```
+// Hierarchical: feature.section.element
+"admin.users.deleteModal.title"
+"profile.security.emailLabel"
+"studyPlanner.calendar.addTitle"
+"learn.scorm.confirmDelete"
+
+// Generic reusable actions (always in common.json under actions.*)
+"actions.save"       // Save
+"actions.cancel"     // Cancel
+"actions.delete"     // Delete
+"actions.deleting"   // Deleting...
+"actions.confirm"    // Confirm
+"actions.loading"    // Loading...
+"actions.saving"     // Saving...
+"actions.edit"       // Edit
+"actions.close"      // Close
+"actions.back"       // Back
+"actions.retry"      // Retry
+"actions.updating"   // Updating...
+"actions.create"     // Create
+"actions.saveChanges"// Save changes
+```
+
+### Namespace Decision Rule
+| Situation | Action |
+|-----------|--------|
+| Feature already has a namespace (business, learn, instructor) | Add to that namespace |
+| New feature with >50 keys | Create dedicated namespace + register in i18n.ts |
+| New feature with <50 keys | Add section in `common.json` |
+| Generic button/action text used in multiple features | Always `actions.*` in `common.json` |
+| Generic error messages used in multiple features | `common.json` or feature namespace |
+
+### Rules
+- **Never hardcode visible text** — always use `t()` with a key
+- **Never use native `confirm()`** — use inline state-based confirmation UI or modal
+- **Always sync ES/EN/PT** — if you add a key to one lang, add it to all three
+- **ES is source of truth** — EN and PT must have real translations, not copies of Spanish
+- **Module-level arrays with labels** must be moved inside the component to use `t()`
+- **Default prop fallbacks** like `confirmText = 'Confirmar'` must use `t('actions.confirm')` resolved inside the component
 
 ```typescript
 // In components
 import { useTranslation } from 'react-i18next';
-const { t } = useTranslation('common');
+const { t } = useTranslation('common');         // common namespace
+const { t } = useTranslation('admin');           // admin namespace
+const { t } = useTranslation(['admin', 'common']); // multiple (avoid — use two hooks instead)
+const { t: tc } = useTranslation('common');     // alias when using two namespaces
 
 // Language switching
 import { useLanguage } from '@/core/i18n/I18nProvider';

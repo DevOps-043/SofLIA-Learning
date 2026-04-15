@@ -20,6 +20,7 @@ export function CreateQuestionForm({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -47,9 +48,9 @@ export function CreateQuestionForm({
       }
 
       const errorData = (await response.json()) as { error?: string };
-      alert(`Error: ${errorData.error || "No se pudo crear la pregunta"}`);
+      setSubmitError(errorData.error || "No se pudo crear la pregunta");
     } catch {
-      alert("Error al crear la pregunta");
+      setSubmitError("Error al crear la pregunta");
     } finally {
       setIsSubmitting(false);
     }
@@ -109,6 +110,10 @@ export function CreateQuestionForm({
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all resize-none leading-relaxed"
             />
           </div>
+
+          {submitError && (
+            <p className="text-sm text-red-500">{submitError}</p>
+          )}
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <button

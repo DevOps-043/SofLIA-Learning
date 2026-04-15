@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CheckCircleIcon,
   ChevronLeftIcon,
@@ -306,6 +307,7 @@ export function AdminPendingCourseLessonDetails({ lesson }: { lesson: PendingCou
 
 function LessonItem({ lesson }: { lesson: PendingCourseLesson }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { t } = useTranslation('admin');
 
   return (
     <div className="border-b border-gray-100 dark:border-gray-800 last:border-0">
@@ -323,9 +325,9 @@ function LessonItem({ lesson }: { lesson: PendingCourseLesson }) {
           </p>
         </div>
         <div className="flex gap-2 mr-4">
-          {lesson.transcript_content && <span title="Transcripción" className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">T</span>}
-          {lesson.summary_content && <span title="Resumen" className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">R</span>}
-          {lesson.activities?.length ? <span title="Actividades" className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">A:{lesson.activities.length}</span> : null}
+          {lesson.transcript_content && <span title={t('lessonContent.transcript')} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">T</span>}
+          {lesson.summary_content && <span title={t('lessonContent.summary')} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">R</span>}
+          {lesson.activities?.length ? <span title={t('lessonContent.activities')} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">A:{lesson.activities.length}</span> : null}
         </div>
         <ChevronLeftIcon className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
       </div>

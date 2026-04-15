@@ -10,6 +10,7 @@ import {
   PauseCircleIcon,
 } from '@heroicons/react/24/outline'
 
+import { useTranslation } from 'react-i18next'
 import { useAdminCompaniesLogic } from '../hooks/useAdminCompaniesLogic'
 import { adminCompaniesColors } from '../services/admin-companies'
 import { AdminCreateCompanyModal } from './AdminCreateCompanyModal'
@@ -26,6 +27,7 @@ import {
 } from './admin-companies'
 
 export function AdminCompaniesPage() {
+  const { t } = useTranslation('admin')
   const {
     stats,
     isLoading,
@@ -93,45 +95,45 @@ export function AdminCompaniesPage() {
 
       <section className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
         <AdminCompaniesStatCard
-          title="Empresas Activas"
+          title={t('companies.stats.active.title')}
           value={stats?.activeCompanies ?? 0}
-          subtitle={`de ${stats?.totalCompanies ?? 0} registradas`}
+          subtitle={t('companies.stats.active.subtitle', { total: stats?.totalCompanies ?? 0 })}
           icon={CheckCircleIcon}
           color={adminCompaniesColors.success}
           delay={0}
           themeColors={themeColors}
         />
         <AdminCompaniesStatCard
-          title="Pendientes"
+          title={t('companies.stats.pending.title')}
           value={stats?.pendingCompanies ?? 0}
-          subtitle="Requieren activacion"
+          subtitle={t('companies.stats.pending.subtitle')}
           icon={ArrowPathIcon}
           color={adminCompaniesColors.pending}
           delay={1}
           themeColors={themeColors}
         />
         <AdminCompaniesStatCard
-          title="En Trial"
+          title={t('companies.stats.trial.title')}
           value={stats?.trialCompanies ?? 0}
-          subtitle="Conversiones prioritarias"
+          subtitle={t('companies.stats.trial.subtitle')}
           icon={BoltIcon}
           color={adminCompaniesColors.purple}
           delay={2}
           themeColors={themeColors}
         />
         <AdminCompaniesStatCard
-          title="Pausadas"
+          title={t('companies.stats.paused.title')}
           value={stats?.pausedCompanies ?? 0}
-          subtitle="Revisar facturacion"
+          subtitle={t('companies.stats.paused.subtitle')}
           icon={PauseCircleIcon}
           color={adminCompaniesColors.warning}
           delay={3}
           themeColors={themeColors}
         />
         <AdminCompaniesStatCard
-          title="Uso Promedio"
+          title={t('companies.stats.avgUsage.title')}
           value={`${stats?.averageUtilization ?? 0}%`}
-          subtitle={`${stats?.usedSeats ?? 0} / ${stats?.totalSeats ?? 0} licencias`}
+          subtitle={t('companies.stats.avgUsage.subtitle', { used: stats?.usedSeats ?? 0, total: stats?.totalSeats ?? 0 })}
           icon={ChartBarIcon}
           color={adminCompaniesColors.accent}
           delay={4}

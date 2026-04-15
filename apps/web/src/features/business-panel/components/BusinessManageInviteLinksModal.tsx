@@ -98,12 +98,12 @@ export function BusinessManageInviteLinksModal({
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Error al cargar enlaces')
+        throw new Error(data.error || t('users.modals.manageLinks.errorLoad'))
       }
 
       setLinks(data.links || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar enlaces')
+      setError(err instanceof Error ? err.message : t('users.modals.manageLinks.errorLoad'))
     } finally {
       setIsLoading(false)
     }
@@ -143,7 +143,7 @@ export function BusinessManageInviteLinksModal({
 
         if (!response.ok) {
           const data = await response.json()
-          throw new Error(data.error || 'Error al eliminar')
+          throw new Error(data.error || t('users.modals.manageLinks.errorDelete'))
         }
 
         setLinks(prev => prev.filter(l => l.id !== linkId))
@@ -158,13 +158,13 @@ export function BusinessManageInviteLinksModal({
         const data = await response.json()
 
         if (!response.ok || !data.success) {
-          throw new Error(data.error || 'Error al actualizar')
+          throw new Error(data.error || t('users.modals.manageLinks.errorUpdate'))
         }
 
         setLinks(prev => prev.map(l => l.id === linkId ? data.link : l))
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error en la operación')
+      setError(err instanceof Error ? err.message : t('users.modals.manageLinks.errorOperation'))
     } finally {
       setActionLoading(null)
     }

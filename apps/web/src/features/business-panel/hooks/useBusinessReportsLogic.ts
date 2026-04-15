@@ -104,6 +104,7 @@ export function useBusinessReportsLogic() {
   const [showFilters, setShowFilters] = useState(false)
   const [localStartDate, setLocalStartDate] = useState('')
   const [localEndDate, setLocalEndDate] = useState('')
+  const [exportError, setExportError] = useState<string | null>(null)
 
   const handleReportTypeChange = useCallback((type: ReportType) => {
     setReportType(type)
@@ -126,9 +127,10 @@ export function useBusinessReportsLogic() {
 
   const handleExportExcel = async () => {
     if (!reportData?.data) {
-      alert(t('reports.export.noData'))
+      setExportError(t('reports.export.noData'))
       return
     }
+    setExportError(null)
 
     try {
       const XLSX = await import('xlsx')
@@ -206,11 +208,13 @@ export function useBusinessReportsLogic() {
       XLSX.writeFile(workbook, filename)
     } catch (err) {
       console.error('Error al exportar Excel:', err)
-      alert(t('reports.export.error'))
+      setExportError(t('reports.export.error'))
     }
   }
 
   return {
+    exportError,
+    setExportError,
     panelTheme: theme,
     REPORT_TYPES,
     CHART_COLORS,

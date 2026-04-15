@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { X, Check, Maximize2, ArrowLeft } from 'lucide-react'
@@ -65,6 +66,7 @@ export function CertificateTemplatePreview({
   courseName = '[Nombre del Curso]',
   issueDate = '[Fecha]'
 }: CertificateTemplatePreviewProps) {
+  const { t } = useTranslation('common')
   const [expandedTemplate, setExpandedTemplate] = useState<string | null>(null)
 
   // Debug: Log cuando cambian los props de firma
@@ -297,7 +299,7 @@ export function CertificateTemplatePreview({
                       setExpandedTemplate(template.id)
                     }}
                     className="p-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-                    title="Ver certificado completo"
+                    title={t('actions.viewDetails')}
                   >
                     <Maximize2 className="w-4 h-4" />
                   </button>

@@ -172,7 +172,7 @@ export function useStudyPlannerLIALogic() {
     }
   }, [isVisible]);
 
-  const { isListening, isSpeaking, speakText, stopAllAudio, toggleListening } = useStudyPlannerVoiceInteraction({
+  const { isListening, isSpeaking, voiceError, setVoiceError, speakText, stopAllAudio, toggleListening } = useStudyPlannerVoiceInteraction({
     isAudioEnabled,
     isProcessing,
     onTranscript: async (question: string) => {
@@ -542,6 +542,8 @@ export function useStudyPlannerLIALogic() {
     // Voice
     isListening,
     isSpeaking,
+    voiceError,
+    setVoiceError,
     speakText,
     stopAllAudio,
     toggleListening,

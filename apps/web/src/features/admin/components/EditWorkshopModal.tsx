@@ -39,6 +39,7 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
 
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
 
   const categories = [
@@ -120,7 +121,7 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
       await onSave(dataToSave)
       onClose()
     } catch (error) {
-      alert('Error al actualizar el taller')
+      setSaveError('Error al actualizar el taller')
     } finally {
       setLoading(false)
     }
@@ -493,6 +494,9 @@ export function EditWorkshopModal({ workshop, onClose, onSave }: EditWorkshopMod
 
                   {/* Footer */}
                   <div className="px-6 py-4 bg-[#E9ECEF]/30 dark:bg-[#0A0D12] border-t border-[#E9ECEF] dark:border-[#6C757D]/30 flex items-center justify-end gap-3">
+                    {saveError && (
+                      <p className="mr-auto text-xs text-red-500">{saveError}</p>
+                    )}
                     <motion.button
                       type="button"
                       onClick={onClose}

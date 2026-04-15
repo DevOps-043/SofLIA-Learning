@@ -157,15 +157,16 @@ export function useEditPostFormState({
 
   const handleAttachmentSelect = (type: InlineAttachmentTypeId, data: InlineAttachmentPayload | null) => {
     if (postAttachments.length >= 3) {
-      alert('Máximo 3 adjuntos por publicación')
+      setError('Máximo 3 adjuntos por publicación')
       return
     }
+    setError(null)
     if (type === 'youtube' || type === 'link') {
       setPendingAttachmentType(type)
       setShowYouTubeModal(true)
     } else if (type === 'poll') {
       if (postAttachments.some(att => att.type === 'poll')) {
-        alert('Solo puedes agregar una encuesta por publicación')
+        setError('Solo puedes agregar una encuesta por publicación')
         return
       }
       setShowPollModal(true)
@@ -177,7 +178,7 @@ export function useEditPostFormState({
 
   const handleYouTubeLinkConfirm = (url: string, type: 'youtube' | 'link') => {
     if (postAttachments.length >= 3) {
-      alert('Máximo 3 adjuntos por publicación')
+      setError('Máximo 3 adjuntos por publicación')
       setShowYouTubeModal(false)
       setPendingAttachmentType(null)
       return
@@ -194,12 +195,12 @@ export function useEditPostFormState({
 
   const handlePollConfirm = (pollData: PollAttachmentData) => {
     if (postAttachments.some(att => att.type === 'poll')) {
-      alert('Solo puedes agregar una encuesta por publicación')
+      setError('Solo puedes agregar una encuesta por publicación')
       setShowPollModal(false)
       return
     }
     if (postAttachments.length >= 3) {
-      alert('Máximo 3 adjuntos por publicación')
+      setError('Máximo 3 adjuntos por publicación')
       setShowPollModal(false)
       return
     }
@@ -225,15 +226,15 @@ export function useEditPostFormState({
 
         const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
         if (!validImageTypes.includes(file.type)) {
-          alert('Tipo de imagen no soportado. Por favor, usa PNG, JPEG, GIF o WebP.')
+          setError('Tipo de imagen no soportado. Por favor, usa PNG, JPEG, GIF o WebP.')
           return
         }
         if (file.size > 10 * 1024 * 1024) {
-          alert('La imagen es demasiado grande. El tamaño máximo es 10MB.')
+          setError('La imagen es demasiado grande. El tamaño máximo es 10MB.')
           return
         }
         if (postAttachments.length >= 3) {
-          alert('Máximo 3 adjuntos por publicación')
+          setError('Máximo 3 adjuntos por publicación')
           return
         }
 

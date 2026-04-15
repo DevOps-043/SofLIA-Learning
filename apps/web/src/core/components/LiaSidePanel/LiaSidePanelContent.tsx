@@ -20,13 +20,14 @@ function LiaSidePanelContent() {
     handleChatScroll, handleSendMessage, handleQuickAction, handleKeyDown, handleLinkClick, quickActions,
     currentTip, tips,
     isSpeaking, isVoiceEnabled,
-    isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, toggleDictation, stopDictation,
+    isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, dictationError, setDictationError, toggleDictation, stopDictation,
     handleAttachmentSelect, handleRemoveAttachment, handleAttachmentButtonClick,
     isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
     isPersonalizationOpen, setIsPersonalizationOpen,
     isAvatarExpanded, setIsAvatarExpanded,
     showHistory, setShowHistory, closeHistory, historyList, isHistoryLoading,
     editingConversationId, editingTitle, setEditingTitle, deletingConversationId, showDeleteConfirm, conversationToDelete,
+    deleteError, setDeleteError,
     currentPage, totalConversations, hasMore,
     handleNextPage, handlePrevPage, handleSelectConversation, handleStartEdit, handleSaveEdit, handleCancelEdit, handleDeleteClick, handleConfirmDelete, handleCancelDelete,
   } = useLiaSidePanelLogic();
@@ -113,6 +114,13 @@ function LiaSidePanelContent() {
               isLoading={isLoading}
             />
 
+            {dictationError && (
+              <div className="mx-4 mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400 flex items-center justify-between">
+                <span>{dictationError}</span>
+                <button onClick={() => setDictationError(null)} className="ml-2 text-red-400 hover:text-red-300">×</button>
+              </div>
+            )}
+
             {/* History Overlay */}
             <AnimatePresence>
               {showHistory && (
@@ -138,6 +146,14 @@ function LiaSidePanelContent() {
                 />
               )}
             </AnimatePresence>
+
+            {/* Delete Error */}
+            {deleteError && (
+              <div className="mx-4 mb-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400 flex items-center justify-between">
+                <span>{deleteError}</span>
+                <button onClick={() => setDeleteError(null)} className="ml-2 text-red-400 hover:text-red-300">×</button>
+              </div>
+            )}
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>

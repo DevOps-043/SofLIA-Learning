@@ -79,7 +79,7 @@ export function UserFormFields({
         <div className="space-y-5">
            <div className="flex items-center gap-3 mb-6">
               <div className="w-1 h-6 rounded-full" style={{ backgroundColor: primaryColor }} />
-              <h4 className={`text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>Información Personal</h4>
+              <h4 className={`text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{t('users.sections.personalInfo')}</h4>
            </div>
 
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -119,7 +119,7 @@ export function UserFormFields({
         <div className="space-y-5 pt-4">
            <div className="flex items-center gap-3 mb-6">
               <div className="w-1 h-6 rounded-full" style={{ backgroundColor: primaryColor }} />
-              <h4 className={`text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>Detalles Profesionales</h4>
+              <h4 className={`text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{t('users.sections.professionalDetails')}</h4>
            </div>
 
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -183,7 +183,7 @@ export function UserFormFields({
         <div className="space-y-5 pt-4">
            <div className="flex items-center gap-3 mb-6">
               <div className="w-1 h-6 rounded-full" style={{ backgroundColor: primaryColor }} />
-              <h4 className={`text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>Configuración de Acceso</h4>
+              <h4 className={`text-xs font-black uppercase tracking-[0.2em] ${isDark ? 'text-white/40' : 'text-slate-500'}`}>{t('users.sections.accessConfig')}</h4>
            </div>
 
            <div className="space-y-4">

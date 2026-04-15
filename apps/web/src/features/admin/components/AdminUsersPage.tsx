@@ -18,6 +18,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/solid'
+import { useTranslation } from 'react-i18next'
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import type { NewAdminUserData } from './AddUserModal'
 import { AdminUser } from '../services/adminUsers.service'
@@ -61,6 +62,7 @@ export function AdminUsersPage() {
   const isDark = resolvedTheme === 'dark'
   const primaryAccent = isDark ? '#00D4B3' : '#0A2540'
 
+  const { t } = useTranslation('common')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState('all')
   const [editingUser, setEditingUser] = useState<AdminUser | null>(null)
@@ -69,6 +71,7 @@ export function AdminUsersPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const filteredUsers = users.filter(user => {
     const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
@@ -159,7 +162,7 @@ export function AdminUsersPage() {
       setIsDeleteModalOpen(false)
       setDeletingUser(null)
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Error al eliminar usuario')
+      setDeleteError(error instanceof Error ? error.message : 'Error al eliminar usuario')
     }
   }
 
@@ -398,7 +401,7 @@ export function AdminUsersPage() {
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D] dark:text-white/60" />
                   <input
                     type="text"
-                    placeholder="Buscar por nombre, email o username..."
+                    placeholder={t('searchPlaceholders.users', { ns: 'admin' })}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-2.5 border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent bg-white dark:bg-[#0A0D12] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 transition-all duration-200"
@@ -587,7 +590,7 @@ export function AdminUsersPage() {
                                     whileHover={{ scale: 1.1, rotate: 5 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="p-2 rounded-lg text-[#00D4B3] hover:bg-[#00D4B3]/10 dark:hover:bg-[#00D4B3]/20 transition-colors duration-200"
-                                    title="Editar usuario"
+                                    title={t('actions.edit')}
                                   >
                                     <PencilIcon className="h-4 w-4" />
                                   </motion.button>
@@ -596,7 +599,7 @@ export function AdminUsersPage() {
                                     whileHover={{ scale: 1.1, rotate: -5 }}
                                     whileTap={{ scale: 0.9 }}
                                     className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 dark:hover:bg-red-500/20 transition-colors duration-200"
-                                    title="Eliminar usuario"
+                                    title={t('actions.delete')}
                                   >
                                     <TrashIcon className="h-4 w-4" />
                                   </motion.button>
@@ -622,6 +625,12 @@ export function AdminUsersPage() {
         onClose={closeEditModal}
         onSave={handleSaveUser}
       />
+
+      {deleteError && (
+        <div className="fixed bottom-4 right-4 z-50 rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
+          {deleteError}
+        </div>
+      )}
 
       <DeleteUserModal
         user={deletingUser}

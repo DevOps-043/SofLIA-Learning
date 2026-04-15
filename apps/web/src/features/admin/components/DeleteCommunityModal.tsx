@@ -14,6 +14,7 @@ import {
   Trash2,
   AlertCircle
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { SOFLIA_ADMIN_COLORS } from '../constants/admin-color-tokens'
 import { AdminCommunity } from '../services/adminCommunities.service'
 
@@ -29,6 +30,8 @@ interface DeleteCommunityModalProps {
 export function DeleteCommunityModal({ community, isOpen, onClose, onConfirm }: DeleteCommunityModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
 
   const handleConfirm = async () => {
     setIsDeleting(true)
@@ -38,7 +41,7 @@ export function DeleteCommunityModal({ community, isOpen, onClose, onConfirm }: 
       await onConfirm()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar comunidad')
+      setError(err instanceof Error ? err.message : t('generic.errorDeleting'))
     } finally {
       setIsDeleting(false)
     }
@@ -105,8 +108,8 @@ export function DeleteCommunityModal({ community, isOpen, onClose, onConfirm }: 
                     <AlertTriangle className="w-6 h-6 text-white" />
                   </motion.div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Eliminar Comunidad</h2>
-                    <p className="text-red-400 text-sm mt-0.5">Esta acción no se puede deshacer</p>
+                    <h2 className="text-2xl font-bold text-white">{t('communities.deleteModal.title')}</h2>
+                    <p className="text-red-400 text-sm mt-0.5">{t('generic.irreversible')}</p>
                   </div>
                 </div>
                 
@@ -160,12 +163,10 @@ export function DeleteCommunityModal({ community, isOpen, onClose, onConfirm }: 
                   </motion.div>
                   <div>
                     <h4 className="text-lg font-semibold mb-2" style={{ color: colors.error }}>
-                      ¿Estás seguro de que quieres eliminar esta comunidad?
+                      {t('communities.deleteModal.confirmText')}
                     </h4>
                     <p className="text-sm text-gray-300 leading-relaxed">
-                      Esta acción eliminará permanentemente la comunidad{' '}
-                      <span className="font-semibold text-white">"{community.name}"</span>{' '}
-                      y todos sus datos asociados. Esta operación no se puede deshacer.
+                      {t('generic.irreversible')}
                     </p>
                   </div>
                 </div>
@@ -293,9 +294,9 @@ export function DeleteCommunityModal({ community, isOpen, onClose, onConfirm }: 
                 disabled={isDeleting}
                 className="px-6 py-3 rounded-xl font-medium text-gray-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
               >
-                Cancelar
+                {tc('actions.cancel')}
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.02, boxShadow: `0 10px 40px ${colors.error}40` }}
                 whileTap={{ scale: 0.98 }}
@@ -303,24 +304,24 @@ export function DeleteCommunityModal({ community, isOpen, onClose, onConfirm }: 
                 onClick={handleConfirm}
                 disabled={isDeleting}
                 className="px-6 py-3 rounded-xl font-semibold text-white flex items-center gap-2 disabled:opacity-50"
-                style={{ 
+                style={{
                   background: `linear-gradient(135deg, ${colors.error} 0%, ${colors.warning} 100%)`,
                   boxShadow: `0 5px 20px ${colors.error}30`
                 }}
               >
                 {isDeleting ? (
                   <>
-                    <motion.div 
+                    <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                     />
-                    <span>Eliminando...</span>
+                    <span>{tc('actions.deleting')}</span>
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-5 h-5" />
-                    <span>Eliminar Comunidad</span>
+                    <span>{tc('actions.delete')}</span>
                   </>
                 )}
               </motion.button>

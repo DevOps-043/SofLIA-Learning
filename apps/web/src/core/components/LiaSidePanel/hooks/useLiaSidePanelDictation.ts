@@ -81,6 +81,7 @@ export function useLiaSidePanelDictation({
   const [isProcessingDictation, setIsProcessingDictation] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState('');
   const [finalTranscript, setFinalTranscript] = useState('');
+  const [dictationError, setDictationError] = useState<string | null>(null);
 
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const silenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -146,7 +147,7 @@ export function useLiaSidePanelDictation({
     const SpeechRecognition =
       recognitionWindow.SpeechRecognition ?? recognitionWindow.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Tu navegador no soporta reconocimiento de voz. Por favor, usa Chrome, Edge o Safari.');
+      setDictationError('Tu navegador no soporta reconocimiento de voz. Por favor, usa Chrome, Edge o Safari.');
       return;
     }
 
@@ -234,13 +235,13 @@ export function useLiaSidePanelDictation({
         }
 
         if (event.error === 'audio-capture') {
-          alert('No se pudo acceder al microfono. Por favor, verifica los permisos.');
+          setDictationError('No se pudo acceder al microfono. Por favor, verifica los permisos.');
           stopDictation();
           return;
         }
 
         if (event.error === 'not-allowed') {
-          alert('Permiso de microfono denegado. Por favor, permite el acceso al microfono.');
+          setDictationError('Permiso de microfono denegado. Por favor, permite el acceso al microfono.');
           stopDictation();
           return;
         }
@@ -265,9 +266,7 @@ export function useLiaSidePanelDictation({
       const errorMessage = error instanceof Error ? error.message : '';
 
       if (errorName === 'NotAllowedError' || errorMessage.includes('not allowed')) {
-        alert(
-          'Se necesita permiso para usar el microfono. Por favor, permite el acceso al microfono en la configuracion del navegador.'
-        );
+        setDictationError('Se necesita permiso para usar el microfono. Por favor, permite el acceso al microfono en la configuracion del navegador.');
         return;
       }
 
@@ -276,7 +275,7 @@ export function useLiaSidePanelDictation({
         return;
       }
 
-      alert('Error al acceder al microfono. Por favor, verifica que tu navegador soporte reconocimiento de voz.');
+      setDictationError('Error al acceder al microfono. Por favor, verifica que tu navegador soporte reconocimiento de voz.');
     }
   }, [isDictationEnabled, isDictating, language, stopDictation]);
 
@@ -295,6 +294,8 @@ export function useLiaSidePanelDictation({
     isProcessingDictation,
     interimTranscript,
     finalTranscript,
+    dictationError,
+    setDictationError,
     toggleDictation,
     stopDictation,
   };

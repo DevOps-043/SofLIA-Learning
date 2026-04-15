@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import type { ProfileColorPalette } from '../../types/profile.types'
 
 interface ProfileLoadingStateProps {
@@ -8,6 +9,7 @@ interface ProfileLoadingStateProps {
 }
 
 export function ProfileLoadingState({ colors }: ProfileLoadingStateProps) {
+  const { t } = useTranslation('common')
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: colors.bgPrimary }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
@@ -25,7 +27,7 @@ export function ProfileLoadingState({ colors }: ProfileLoadingStateProps) {
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           />
         </div>
-        <p style={{ color: colors.textSecondary }}>Cargando perfil...</p>
+        <p style={{ color: colors.textSecondary }}>{t('profile.loading')}</p>
       </motion.div>
     </div>
   )
@@ -38,18 +40,19 @@ interface ProfileErrorStateProps {
 }
 
 export function ProfileErrorState({ colors, retryLoad, goToLogin }: ProfileErrorStateProps) {
+  const { t } = useTranslation('common')
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ backgroundColor: colors.bgPrimary }}>
-      <p style={{ color: colors.textSecondary }}>Error al cargar el perfil</p>
+      <p style={{ color: colors.textSecondary }}>{t('profile.error.title')}</p>
       <p className="text-sm max-w-md text-center" style={{ color: colors.textSecondary }}>
-        Esto puede deberse a que tu sesión ha expirado. Intenta iniciar sesión nuevamente.
+        {t('profile.error.description')}
       </p>
       <div className="flex gap-3 mt-4">
         <button onClick={retryLoad} className="px-4 py-2 rounded-lg transition-colors" style={{ backgroundColor: 'rgba(255,255,255,0.1)', color: colors.text }}>
-          Reintentar
+          {t('profile.error.retry')}
         </button>
         <button onClick={goToLogin} className="px-4 py-2 rounded-lg font-medium transition-colors" style={{ backgroundColor: colors.primary, color: '#FFFFFF' }}>
-          Iniciar sesión
+          {t('profile.error.login')}
         </button>
       </div>
     </div>

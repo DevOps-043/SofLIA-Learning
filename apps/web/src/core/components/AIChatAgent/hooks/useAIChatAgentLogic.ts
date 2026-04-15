@@ -73,6 +73,8 @@ export function useAIChatAgentLogic({
   const [isPromptPanelOpen, setIsPromptPanelOpen] = useState(false);
   const [selectedPromptMessageId, setSelectedPromptMessageId] = useState<string | null>(null);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
+  const [promptSaveSuccess, setPromptSaveSuccess] = useState<string | null>(null);
+  const [promptSaveError, setPromptSaveError] = useState<string | null>(null);
 
   // ── NanoBanana state ──────────────────────────────────────────────────────────
   const [nanoBananaSchema, setNanoBananaSchema] = useState<NanoBananaSchema | null>(null);
@@ -274,17 +276,19 @@ export function useAIChatAgentLogic({
   };
 
   const handleSavePrompt = useCallback(async (draft: PromptDraft) => {
-    if (!user) { alert(tCommon('aiChat.promptMode.loginRequired')); return; }
+    if (!user) { setPromptSaveError(tCommon('aiChat.promptMode.loginRequired')); return; }
     setIsSavingPrompt(true);
+    setPromptSaveError(null);
+    setPromptSaveSuccess(null);
     try {
       const response = await fetch('/api/ai-directory/prompts/save-from-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...draft, conversation_id: conversationId }) });
       if (!response.ok) { const errorData = await response.json().catch(() => ({ error: 'Error desconocido' })); throw new Error(errorData.error || 'Error al guardar el prompt'); }
       const data = await response.json();
-      alert(`✅ Prompt guardado exitosamente: "${draft.title}"`);
+      setPromptSaveSuccess(`Prompt guardado exitosamente: "${draft.title}"`);
       setIsPromptPanelOpen(false);
-      if (data.redirectUrl) { const shouldNavigate = confirm('¿Quieres ver el prompt en el directorio?'); if (shouldNavigate) router.push(data.redirectUrl); }
+      if (data.redirectUrl) { router.push(data.redirectUrl); }
     } catch (error) {
-      alert(`❌ Error al guardar el prompt: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setPromptSaveError(`Error al guardar el prompt: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     } finally { setIsSavingPrompt(false); }
   }, [user, conversationId, router, tCommon]);
 
@@ -439,7 +443,7 @@ export function useAIChatAgentLogic({
     nanoBananaDomain, setNanoBananaDomain, nanoBananaFormat, setNanoBananaFormat,
     isNanoBananaPanelOpen, setIsNanoBananaPanelOpen,
     // Prompt
-    generatedPrompt, setGeneratedPrompt, isPromptPanelOpen, setIsPromptPanelOpen, selectedPromptMessageId, setSelectedPromptMessageId, isSavingPrompt,
+    generatedPrompt, setGeneratedPrompt, isPromptPanelOpen, setIsPromptPanelOpen, selectedPromptMessageId, setSelectedPromptMessageId, isSavingPrompt, promptSaveSuccess, promptSaveError,
     // Input
     inputMessage, setInputMessage, isTyping, inputRef, messagesEndRef, adjustTextareaHeight, placeholderText,
     // Menus
@@ -449,7 +453,7 @@ export function useAIChatAgentLogic({
     showClearConfirm, setShowClearConfirm,
     isReportOpen, setIsReportOpen,
     // Voice
-    isSpeaking: voice.isSpeaking, isRecording: voice.isRecording, isVoiceEnabled: voice.isVoiceEnabled,
+    isSpeaking: voice.isSpeaking, isRecording: voice.isRecording, isVoiceEnabled: voice.isVoiceEnabled, voiceError: voice.voiceError,
     // Drag
     position: drag.position, isDragging: drag.isDragging, containerRef: drag.containerRef, hasMoved: drag.hasMoved,
     handleMouseDown: drag.handleMouseDown, handleTouchStart: drag.handleTouchStart,

@@ -14,7 +14,17 @@ interface UsersPageHeaderProps {
 }
 
 export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInviteClick, onAddClick }: UsersPageHeaderProps) {
-  const { primaryColor, secondaryColor, accentColor, isDark } = useBusinessPanelTheme()
+  const {
+    accentColor,
+    primaryColor,
+    onPrimaryColor,
+    heroBackground,
+    heroBorderColor,
+    inverseTextColor,
+    inverseSubtextColor,
+    inverseSurface,
+    inverseBorderColor,
+  } = useBusinessPanelTheme()
 
   return (
     <motion.div
@@ -22,22 +32,17 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       className="relative overflow-hidden rounded-3xl p-8 group"
+      style={{
+        background: heroBackground,
+        border: `1px solid ${heroBorderColor}`,
+      }}
     >
-      {/* Background Gradient */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-          opacity: isDark ? 0.3 : 1,
-        }}
-      />
-
       {/* Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+            backgroundImage: `radial-gradient(circle at 2px 2px, ${inverseTextColor} 1px, transparent 0)`,
             backgroundSize: '32px 32px',
           }}
         />
@@ -74,10 +79,11 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
             </div>
 
             <motion.h1
-              className="text-3xl lg:text-4xl font-bold mb-2 text-white"
+              className="text-3xl lg:text-4xl font-bold mb-2"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
+              style={{ color: inverseTextColor }}
             >
               {t('users.title')}
             </motion.h1>
@@ -87,7 +93,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
-              style={{ color: 'rgba(255,255,255,0.8)' }}
+              style={{ color: inverseSubtextColor }}
             >
               {t('users.subtitle')}
             </motion.p>
@@ -105,12 +111,13 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay }}
                 onClick={onClick}
-                className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2 text-white"
+                className="px-4 py-2.5 rounded-xl font-bold text-sm border transition-colors flex items-center gap-2"
                 style={{
-                  borderColor: 'rgba(255,255,255,0.2)',
-                  backgroundColor: 'rgba(255,255,255,0.05)',
+                  borderColor: inverseBorderColor,
+                  backgroundColor: inverseSurface,
+                  color: inverseTextColor,
                 }}
-                whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                whileHover={{ scale: 1.02, backgroundColor: inverseSurface }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className="w-4 h-4" />
@@ -126,14 +133,14 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               className="px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2"
               style={{
                 backgroundColor: primaryColor,
-                color: isDark ? '#000000' : '#FFFFFF',
+                color: onPrimaryColor,
                 boxShadow: `0 8px 30px ${primaryColor}40`,
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Plus className="w-5 h-5" color={isDark ? '#000000' : '#FFFFFF'} strokeWidth={3} />
-              <span style={{ color: isDark ? '#000000' : '#FFFFFF' }}>{t('users.buttons.add')}</span>
+              <Plus className="w-5 h-5" style={{ color: onPrimaryColor }} strokeWidth={3} />
+              <span>{t('users.buttons.add')}</span>
             </motion.button>
           </div>
         </div>
@@ -141,3 +148,4 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
     </motion.div>
   )
 }
+

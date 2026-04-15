@@ -29,6 +29,7 @@ export function useNodeDashboardState(nodeId: string) {
   const [activeTab, setActiveTab] = useState<'overview' | 'structure' | 'learning' | 'chat' | 'members'>('overview')
   const [members, setMembers] = useState<NodeMember[]>([])
   const [loadingMembers, setLoadingMembers] = useState(false)
+  const [pendingRemoveMemberId, setPendingRemoveMemberId] = useState<string | null>(null)
 
   // Modal states
   const [showEditModal, setShowEditModal] = useState(false)
@@ -100,15 +101,20 @@ export function useNodeDashboardState(nodeId: string) {
     }
   }
 
-  const handleRemoveMember = async (userId: string) => {
-    if (!confirm('¿Estás seguro de remover a este miembro del nodo?')) return
+  const handleRemoveMember = (userId: string) => {
+    setPendingRemoveMemberId(userId)
+  }
+
+  const handleConfirmRemoveMember = async () => {
+    if (!pendingRemoveMemberId) return
+    const userId = pendingRemoveMemberId
+    setPendingRemoveMemberId(null)
     try {
       await HierarchyService.removeUserFromNode(nodeId, userId, orgSlug)
       fetchMembers()
       fetchData()
     } catch (error) {
       console.error('Error removing member:', error)
-      alert('Error al remover miembro')
     }
   }
 
@@ -131,5 +137,8 @@ export function useNodeDashboardState(nodeId: string) {
     fetchMembers,
     handleEditSave,
     handleRemoveMember,
+    handleConfirmRemoveMember,
+    pendingRemoveMemberId,
+    setPendingRemoveMemberId,
   }
 }

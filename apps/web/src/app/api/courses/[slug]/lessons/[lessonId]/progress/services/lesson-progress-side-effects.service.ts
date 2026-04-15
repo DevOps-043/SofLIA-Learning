@@ -1,4 +1,3 @@
-import { CertificateService } from '@/core/services/certificate.service'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
@@ -52,47 +51,6 @@ async function notifyLessonCompleted({
     courseTitle,
     lessonId,
     lessonTitle,
-  )
-}
-
-async function resolveInstructorName(
-  supabase: SupabaseServerClient,
-  instructorId?: string | null,
-) {
-  if (!instructorId) {
-    return 'Instructor'
-  }
-
-  const { data: instructor } = await supabase
-    .from('users')
-    .select('first_name, last_name, username')
-    .eq('id', instructorId)
-    .single()
-
-  if (!instructor) {
-    return 'Instructor'
-  }
-
-  const fullName =
-    `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim()
-  return fullName || instructor.username || 'Instructor'
-}
-
-async function resolveUserName(
-  supabase: SupabaseServerClient,
-  userId: string,
-) {
-  const { data: userInfo } = await supabase
-    .from('users')
-    .select('first_name, last_name, username, display_name')
-    .eq('id', userId)
-    .single()
-
-  return (
-    userInfo?.display_name ||
-    `${userInfo?.first_name || ''} ${userInfo?.last_name || ''}`.trim() ||
-    userInfo?.username ||
-    'Usuario'
   )
 }
 
@@ -201,36 +159,10 @@ async function handleCourseCompletion({
   courseId,
   enrollmentId,
   courseTitle,
-  instructorId,
   wasCompleted,
   now,
 }: CompletionContext) {
   try {
-    const [instructorName, userName] = await Promise.all([
-      resolveInstructorName(supabase, instructorId),
-      resolveUserName(supabase, userId),
-    ])
-
-    const certificateUrl = await CertificateService.generateCertificate({
-      userId,
-      courseId,
-      enrollmentId,
-      courseTitle,
-      instructorName,
-      userName,
-    })
-
-    if (certificateUrl) {
-      await CertificateService.createCertificateRecord(
-        userId,
-        courseId,
-        enrollmentId,
-        certificateUrl,
-      )
-    } else {
-      logger.warn('No se pudo generar el certificado automaticamente')
-    }
-
     await syncUserSkills({
       supabase,
       userId,
@@ -249,24 +181,10 @@ async function handleCourseCompletion({
       userId,
       courseId,
       courseTitle,
-      Boolean(certificateUrl),
+      false,
     )
   } catch (error) {
-    logger.error('Error generando certificado automaticamente:', error)
-
-    try {
-      const { AutoNotificationsService } = await import(
-        '@/features/notifications/services/auto-notifications.service'
-      )
-      await AutoNotificationsService.notifyCourseCompleted(
-        userId,
-        courseId,
-        courseTitle,
-        false,
-      )
-    } catch {
-      return
-    }
+    logger.error('Error ejecutando side effects de curso completado:', error)
   }
 }
 

@@ -173,11 +173,11 @@ export function useCourseManagementLogic(courseId: string) {
   }
 
   const handleDeleteModule = async (moduleId: string) => {
-    if (confirm('¿Estás seguro de eliminar este módulo?')) await deleteModule(moduleId)
+    await deleteModule(moduleId)
   }
 
   const handleDeleteLesson = async (lessonId: string) => {
-    if (confirm('¿Estás seguro de eliminar esta lección?')) await deleteLesson(lessonId)
+    await deleteLesson(lessonId)
   }
 
   const handleMoveLessonToModule = async (moduleId: string) => {

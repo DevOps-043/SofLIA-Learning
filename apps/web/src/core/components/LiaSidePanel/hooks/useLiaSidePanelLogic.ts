@@ -76,6 +76,8 @@ export function useLiaSidePanelLogic() {
     isProcessingDictation,
     interimTranscript,
     finalTranscript,
+    dictationError,
+    setDictationError,
     toggleDictation,
     stopDictation,
   } = useLiaSidePanelDictation({
@@ -100,6 +102,7 @@ export function useLiaSidePanelLogic() {
   const [deletingConversationId, setDeletingConversationId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<LiaConversationToDelete | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalConversations, setTotalConversations] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -295,7 +298,7 @@ export function useLiaSidePanelLogic() {
     try {
       const result = await deleteLiaConversation(conversationToDelete.id);
       if (!result.ok) {
-        alert(`Error al eliminar conversacion: ${result.error || 'Error desconocido'}`);
+        setDeleteError(`Error al eliminar conversacion: ${result.error || 'Error desconocido'}`);
         return;
       }
 
@@ -308,7 +311,7 @@ export function useLiaSidePanelLogic() {
       }
     } catch (error) {
       console.error('Error eliminando conversacion:', error);
-      alert('Error al eliminar conversacion');
+      setDeleteError('Error al eliminar conversacion');
     } finally {
       setDeletingConversationId(null);
       setConversationToDelete(null);
@@ -493,6 +496,8 @@ export function useLiaSidePanelLogic() {
     isProcessingDictation,
     interimTranscript,
     finalTranscript,
+    dictationError,
+    setDictationError,
     toggleDictation,
     stopDictation,
     handleAttachmentSelect,
@@ -516,6 +521,8 @@ export function useLiaSidePanelLogic() {
     deletingConversationId,
     showDeleteConfirm,
     conversationToDelete,
+    deleteError,
+    setDeleteError,
     currentPage,
     totalConversations,
     hasMore,

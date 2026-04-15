@@ -121,8 +121,7 @@ export async function exportNotePdfWithJsPdf({
   title,
 }: NoteDraft): Promise<void> {
   if (!content.trim()) {
-    alert('La nota debe tener contenido para exportar');
-    return;
+    throw new Error('La nota debe tener contenido para exportar');
   }
 
   const jsPDF = (await import('jspdf')).default;

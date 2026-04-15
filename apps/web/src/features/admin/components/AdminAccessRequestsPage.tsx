@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   CheckCircleIcon,
@@ -40,6 +41,7 @@ interface Stats {
 }
 
 export function AdminAccessRequestsPage() {
+  const { t } = useTranslation('admin')
   const [requests, setRequests] = useState<AccessRequest[]>([])
   const [stats, setStats] = useState<Stats>({
     totalPending: 0,
@@ -94,7 +96,7 @@ export function AdminAccessRequestsPage() {
       // Actualizar lista
       await fetchRequests()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al aprobar solicitud')
+      setError(err instanceof Error ? err.message : 'Error al aprobar solicitud')
     } finally {
       setProcessingId(null)
     }
@@ -116,7 +118,7 @@ export function AdminAccessRequestsPage() {
       // Actualizar lista
       await fetchRequests()
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al rechazar solicitud')
+      setError(err instanceof Error ? err.message : 'Error al rechazar solicitud')
     } finally {
       setProcessingId(null)
     }
@@ -259,7 +261,7 @@ export function AdminAccessRequestsPage() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar por usuario, email o comunidad..."
+                  placeholder={t('searchPlaceholders.accessRequests')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

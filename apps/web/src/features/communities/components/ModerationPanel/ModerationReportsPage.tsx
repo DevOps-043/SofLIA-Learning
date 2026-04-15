@@ -115,11 +115,11 @@ export function ModerationReportsPage({ communitySlug }: ModerationReportsPagePr
 
       } else {
         console.error('❌ Resolve failed:', result.error)
-        alert(result.error || 'Error al resolver el reporte')
+        setError(result.error || 'Error al resolver el reporte')
       }
     } catch (err) {
       console.error('❌ Error resolving report:', err)
-      alert('Error de conexión. Por favor intenta nuevamente.')
+      setError('Error de conexión. Por favor intenta nuevamente.')
     } finally {
       setIsResolving(false)
     }

@@ -9,8 +9,7 @@ export async function exportNotePdfWithCanvas({
   title,
 }: NoteDraft): Promise<void> {
   if (!content.trim()) {
-    alert('La nota debe tener contenido para exportar');
-    return;
+    throw new Error('La nota debe tener contenido para exportar');
   }
 
   const element = document.createElement('div');

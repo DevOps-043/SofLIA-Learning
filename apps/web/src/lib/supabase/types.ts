@@ -5770,11 +5770,13 @@ export type Database = {
       }
       user_course_certificates: {
         Row: {
+          branding_snapshot: Json | null
           certificate_hash: string | null
           certificate_id: string
           certificate_url: string
           course_id: string
           created_at: string
+          document_snapshot: Json | null
           enrollment_id: string
           expires_at: string | null
           issued_at: string
@@ -5783,11 +5785,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          branding_snapshot?: Json | null
           certificate_hash?: string | null
           certificate_id?: string
           certificate_url: string
           course_id: string
           created_at?: string
+          document_snapshot?: Json | null
           enrollment_id: string
           expires_at?: string | null
           issued_at?: string
@@ -5796,11 +5800,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          branding_snapshot?: Json | null
           certificate_hash?: string | null
           certificate_id?: string
           certificate_url?: string
           course_id?: string
           created_at?: string
+          document_snapshot?: Json | null
           enrollment_id?: string
           expires_at?: string | null
           issued_at?: string

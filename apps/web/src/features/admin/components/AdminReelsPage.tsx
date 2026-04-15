@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useTranslation } from 'react-i18next'
 import { useAdminReels } from '../hooks/useAdminReels'
 import {
   AdminReel,
@@ -50,16 +51,17 @@ const isStatusFilter = (value: string): value is 'all' | 'active' | 'inactive' =
 )
 
 export function AdminReelsPage() {
-  const { 
-    reels, 
-    stats, 
-    loading, 
-    error, 
-    createReel, 
-    updateReel, 
-    deleteReel, 
-    toggleReelStatus, 
-    toggleReelFeatured 
+  const { t } = useTranslation('admin')
+  const {
+    reels,
+    stats,
+    loading,
+    error,
+    createReel,
+    updateReel,
+    deleteReel,
+    toggleReelStatus,
+    toggleReelFeatured
   } = useAdminReels()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -229,7 +231,7 @@ export function AdminReelsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Buscar reels..."
+                placeholder={t('reels.page.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -352,7 +354,7 @@ export function AdminReelsPage() {
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' 
                           : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                       }`}>
-                        {reel.is_active ? 'Activo' : 'Inactivo'}
+                        {reel.is_active ? t('reels.page.statusActive') : t('reels.page.statusInactive')}
                       </span>
                       {reel.is_featured && (
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
@@ -380,7 +382,7 @@ export function AdminReelsPage() {
                           setShowViewModal(true)
                         }}
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                        title="Ver detalles"
+                        title={t('reels.page.tooltipView')}
                       >
                         <Eye className="w-4 h-4" />
                       </button>
@@ -391,7 +393,7 @@ export function AdminReelsPage() {
                           setShowEditModal(true)
                         }}
                         className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
-                        title="Editar"
+                        title={t('reels.page.tooltipEdit')}
                       >
                         <Edit className="w-4 h-4" />
                       </button>
@@ -403,7 +405,7 @@ export function AdminReelsPage() {
                             ? 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300' 
                             : 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
                         }`}
-                        title={reel.is_active ? 'Desactivar' : 'Activar'}
+                        title={reel.is_active ? t('reels.page.tooltipDeactivate') : t('reels.page.tooltipActivate')}
                       >
                         {reel.is_active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                       </button>
@@ -415,7 +417,7 @@ export function AdminReelsPage() {
                             ? 'text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300' 
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                         }`}
-                        title={reel.is_featured ? 'Quitar destacado' : 'Destacar'}
+                        title={reel.is_featured ? t('reels.page.tooltipUnfeature') : t('reels.page.tooltipFeature')}
                       >
                         <Star className="w-4 h-4" />
                       </button>
@@ -426,7 +428,7 @@ export function AdminReelsPage() {
                           setShowDeleteModal(true)
                         }}
                         className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-                        title="Eliminar"
+                        title={t('reels.page.tooltipDelete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

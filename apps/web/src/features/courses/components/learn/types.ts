@@ -5,6 +5,7 @@ import type {
   ActivitySubmissionStatus,
 } from '@/features/courses/types/activity-config';
 import type { ExternalToolDefinition } from '@/features/courses/config/external-tool-registry';
+import type { QuizSubmissionSnapshot } from '@/features/courses/services/quiz-submission.service';
 
 export type LearnLesson = {
   lesson_id: string;
@@ -29,6 +30,8 @@ export type LearnModule = {
 export type LearnCourseData = {
   id: string;
   course_id?: string;
+  enrollment_id?: string | null;
+  organization_id?: string | null;
   title?: string;
   course_title?: string;
   description?: string;
@@ -119,11 +122,13 @@ export type LearnTab =
   | "questions";
 
 export type LessonQuizStatusItem = {
+  completedAt: string | null;
   id: string;
   title: string;
   type: string;
   isCompleted: boolean;
   isPassed: boolean;
+  latestSubmission: QuizSubmissionSnapshot | null;
   percentage: number;
 };
 

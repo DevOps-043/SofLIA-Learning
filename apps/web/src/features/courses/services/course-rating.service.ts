@@ -23,33 +23,39 @@ export interface SubmitRatingResponse {
   message: string;
 }
 
+export interface CourseRatingSubmissionInput {
+  rating: number;
+  reviewTitle?: string;
+  reviewContent?: string;
+}
+
 export class CourseRatingService {
   /**
-   * Verifica si el usuario actual ya calificó un curso
+   * Verifica si el usuario actual ya califico un curso
    * @param courseSlug Slug del curso
-   * @returns Información sobre si el usuario ya calificó y el rating si existe
+   * @returns Informacion sobre si el usuario ya califico y el rating si existe
    */
   static async checkUserRating(courseSlug: string): Promise<RatingCheckResponse> {
     try {
       const response = await fetch(`/api/courses/${courseSlug}/rating`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('No autorizado');
+          throw new Error("No autorizado");
         }
         if (response.status === 404) {
-          throw new Error('Curso no encontrado');
+          throw new Error("Curso no encontrado");
         }
-        throw new Error('Error al verificar rating');
+        throw new Error("Error al verificar rating");
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error checking user rating:', error);
+      console.error("Error checking user rating:", error);
       throw error;
     }
   }
@@ -57,29 +63,26 @@ export class CourseRatingService {
   /**
    * Crea o actualiza el rating de un curso
    * @param courseSlug Slug del curso
-   * @param rating Rating (1-5)
-   * @param reviewTitle Título opcional de la reseña
-   * @param reviewContent Contenido opcional de la reseña
-   * @returns Rating creado/actualizado
+   * @param submission Rating y reseña opcional
+   * @returns Rating creado o actualizado
    */
   static async submitRating(
     courseSlug: string,
-    rating: number,
-    reviewTitle?: string,
-    reviewContent?: string
+    submission: CourseRatingSubmissionInput
   ): Promise<SubmitRatingResponse> {
     try {
-      // Validar rating
+      const { rating, reviewTitle, reviewContent } = submission;
+
       if (!rating || rating < 1 || rating > 5) {
-        throw new Error('El rating debe ser un número entre 1 y 5');
+        throw new Error("El rating debe ser un numero entre 1 y 5");
       }
 
       const response = await fetch(`/api/courses/${courseSlug}/rating`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify({
           rating: Math.round(rating),
           review_title: reviewTitle || null,
@@ -88,29 +91,30 @@ export class CourseRatingService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
-        
+        const errorData = (await response.json().catch(() => ({
+          error: "Error desconocido",
+        }))) as { error?: string };
+
         if (response.status === 401) {
-          throw new Error('No autorizado');
+          throw new Error("No autorizado");
         }
         if (response.status === 403) {
-          throw new Error('Debes estar inscrito en el curso para calificarlo');
+          throw new Error("Debes estar inscrito en el curso para calificarlo");
         }
         if (response.status === 404) {
-          throw new Error('Curso no encontrado');
+          throw new Error("Curso no encontrado");
         }
         if (response.status === 400) {
-          throw new Error(errorData.error || 'Datos inválidos');
+          throw new Error(errorData.error || "Datos invalidos");
         }
-        throw new Error(errorData.error || 'Error al guardar la calificación');
+        throw new Error(errorData.error || "Error al guardar la calificacion");
       }
 
       const data = await response.json();
       return data;
     } catch (error) {
-      console.error('Error submitting rating:', error);
+      console.error("Error submitting rating:", error);
       throw error;
     }
   }
 }
-

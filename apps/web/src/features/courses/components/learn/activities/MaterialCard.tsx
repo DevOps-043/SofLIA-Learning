@@ -95,6 +95,11 @@ export function MaterialCard({
                 <Check className="w-2.5 h-2.5" /> Completado
               </span>
             )}
+            {quizInfo?.isCompleted && !quizInfo.isPassed && (
+              <span className="px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-500/10 rounded">
+                Intentado {quizInfo.percentage}%
+              </span>
+            )}
           </div>
         </div>
 
@@ -128,6 +133,7 @@ export function MaterialCard({
                       <QuizRenderer
                         quizData={quizPayload.questions}
                         totalPoints={quizPayload.totalPoints}
+                        quizStatusItem={quizInfo}
                         lessonId={lessonId}
                         slug={slug}
                         materialId={material.material_id}

@@ -157,3 +157,85 @@ comment on column public.reportes_problemas.metadata is
 -- 3. metadata.irisSync.status inicia en "pending".
 -- 4. Al sincronizar, guardar externalIssueId y lastAttemptAt.
 -- 5. Mantener screenshot_url por compatibilidad con la UI admin actual.
+
+-- ============================================================================
+-- CERTIFICADOS
+-- Nota importante:
+--   Este archivo era insuficiente como fuente de verdad para certificados.
+--   La implementaciÃ³n operativa ahora depende de:
+--   - supabase/migrations/20260411173000_certificate_snapshots_and_backfill.sql
+--   - apps/web/src/lib/supabase/types.ts
+-- ============================================================================
+
+-- Tabla: public.user_course_certificates
+-- Columnas relevantes observadas/esperadas:
+-- - certificate_id uuid pk
+-- - user_id uuid fk -> users.id
+-- - course_id uuid fk -> courses.id
+-- - enrollment_id uuid fk -> user_course_enrollments.enrollment_id
+-- - organization_id uuid fk -> organizations.id
+-- - template_id uuid fk -> certificate_templates.id
+-- - certificate_url text not null
+-- - certificate_hash text
+-- - issued_at timestamptz not null
+-- - expires_at timestamptz
+-- - created_at timestamptz not null
+-- - branding_snapshot jsonb
+-- - document_snapshot jsonb
+
+-- branding_snapshot:
+-- {
+--   "platform": {
+--     "name": "SofLIA",
+--     "logoUrl": "/icono.png"
+--   },
+--   "issuer": {
+--     "organizationId": "uuid | null",
+--     "name": "Empresa emisora",
+--     "logoUrl": "https://... | null"
+--   },
+--   "visualTokens": {
+--     "primaryColor": "#0A2540",
+--     "accentColor": "#00D4B3",
+--     "borderColor": "#D6E3F1",
+--     "backgroundColor": "#F7FBFF",
+--     "textColor": "#0F172A",
+--     "mutedColor": "#475569"
+--   },
+--   "legacyMode": false
+-- }
+
+-- document_snapshot:
+-- {
+--   "learnerName": "Nombre alumno",
+--   "courseTitle": "Curso",
+--   "instructorName": "Instructor",
+--   "instructorSignatureUrl": "https://... | null",
+--   "instructorSignatureName": "Firma textual | null",
+--   "issuedAt": "2026-04-11T18:00:00Z",
+--   "programText": "Forma parte del programa de capacitaciÃ³n de Empresa"
+-- }
+
+-- Tabla: public.certificate_ledger
+-- Uso:
+-- - Registro de cadena/hash para verificaciÃ³n
+-- - cert_id fk -> user_course_certificates.certificate_id
+-- - op, block_hash, prev_hash, payload, created_at
+
+-- Tabla: public.certificate_templates
+-- Uso:
+-- - ConfiguraciÃ³n visual por organizaciÃ³n
+-- - organization_id fk -> organizations.id
+-- - design_config jsonb
+-- - is_default, is_active
+
+-- FunciÃ³n: public.certificate_hash_immutable(...)
+-- Uso:
+-- - Genera hash canÃ³nico por certificado
+-- - Se usa para backfill y para certificados emitidos antes de snapshot
+
+-- FunciÃ³n: public.validate_certificate(p_hash text)
+-- Uso:
+-- - Fuente de verdad para verificación pÃºblica
+-- - Retorna: certificate_id, chain_ok, course_title, is_expired, is_valid,
+--   issued_at, last_block_at, last_op, user_id

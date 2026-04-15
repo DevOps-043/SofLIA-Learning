@@ -1,5 +1,5 @@
 {
-  "appName": "SofLIA",  
+  "appName": "SofLIA",
   "welcome": "Welcome",
   "language": "Language",
   "change_language": "Change language",
@@ -190,7 +190,8 @@
       "faq": "FAQ",
       "clientAccess": "Client Access",
       "downloadHub": "Download Hub",
-      "scheduleDemo": "Schedule Demo"
+      "scheduleDemo": "Schedule Demo",
+      "lia": "SofLIA"
     },
     "hero": {
       "tag": "B2B AI Training Platform",
@@ -208,6 +209,22 @@
     },
     "logoWall": {
       "title": "Organizations that trust SofLIA"
+    },
+    "lia": {
+      "badge": "Artificial Intelligence",
+      "tag": "Your personal assistant",
+      "title": "Meet",
+      "description": "Your AI-powered learning assistant that guides you, answers your questions, and personalizes your training experience in real time.",
+      "features": {
+        "chat": "Smart Chat",
+        "chatDesc": "Instant answers in ES, EN, PT",
+        "adaptive": "Adaptive Learning",
+        "adaptiveDesc": "Adapts to your pace and style",
+        "personalized": "Personalized",
+        "personalizedDesc": "Recommendations tailored to you",
+        "instant": "24/7 Support",
+        "instantDesc": "Available whenever you need it"
+      }
     },
     "trust": {
       "title": "Enterprise-ready from day one",
@@ -391,6 +408,47 @@
       },
       "cta": "More information"
     },
+    "liaSection": {
+      "tag": "AI Assistant",
+      "title": "What can",
+      "titleEnd": "do for you?",
+      "description": "SofLIA is your AI-powered learning assistant, available 24/7 to help you at every step of your training.",
+      "capabilitiesTitle": "SofLIA Capabilities",
+      "actionsTitle": "SofLIA can help you:",
+      "capabilities": {
+        "conversation": "Natural Conversation",
+        "conversationDesc": "Communicate as if talking to a personal tutor",
+        "context": "Smart Context",
+        "contextDesc": "Understands which lesson you're in and helps you specifically",
+        "studyPlanner": "Proactive Planner",
+        "studyPlannerDesc": "Creates and manages your study plan, detects delays and reschedules",
+        "rolePersonalization": "By Your Role",
+        "rolePersonalizationDesc": "Personalizes the experience based on your position and level in the company",
+        "anywhere": "Wherever You Are",
+        "anywhereDesc": "Helps you in any section of the platform",
+        "multilingual": "Multilingual",
+        "multilingualDesc": "Responds in Spanish, English, and Portuguese",
+        "recommendations": "Recommendations",
+        "recommendationsDesc": "Suggests courses and resources based on your interests",
+        "support": "Continuous Support",
+        "supportDesc": "Available 24/7 to answer your questions"
+      },
+      "actions": {
+        "0": "Answer questions about any course content",
+        "1": "Explain complex concepts in simple terms",
+        "2": "Proactively create and manage your study plan",
+        "3": "Detect overdue sessions and propose rescheduling",
+        "4": "Personalize recommendations based on your role and level",
+        "5": "Help you in any section of the platform",
+        "6": "Guide you through the platform step by step",
+        "7": "Generate lesson summaries"
+      },
+      "preview": {
+        "online": "Online",
+        "message": "Hi! 👋 I'm SofLIA, your learning assistant. I'm here to help you reach your training goals. How can I help you today?",
+        "placeholder": "Type your question..."
+      }
+    },
     "security": {
       "tag": "Enterprise Security",
       "title": "Governance and control your organization needs",
@@ -525,7 +583,8 @@
         "faq": "FAQ",
         "about": "About Us",
         "contact": "Contact",
-        "blog": "Blog"
+        "blog": "Blog",
+        "liaLink": "SofLIA"
       },
       "legal": {
         "privacy": "Privacy",
@@ -589,8 +648,269 @@
       "errorLoading": "Error loading calendars",
       "errorSaving": "Error saving selection",
       "staleWarning": "Some selected calendars no longer exist and were removed"
+    },
+    "calendar": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "newEvent": "New event",
+      "close": "Close",
+      "addTitle": "Add title",
+      "start": "Start",
+      "end": "End",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "allDay": "All day",
+      "location": "Location",
+      "addLocation": "Add location",
+      "description": "Description",
+      "addDescription": "Add description",
+      "color": "Color",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "createEvent": "Create event",
+      "saveChanges": "Save changes",
+      "studySession": "Study session",
+      "until": "Until",
+      "syncedFromGoogle": "Synced from Google Calendar",
+      "syncedFromMicrosoft": "Synced from Microsoft Calendar",
+      "plannedStudySession": "Planned study session",
+      "customEvent": "Custom event",
+      "confirmDelete": "Confirm deletion",
+      "deleting": "Deleting..."
     }
+  },
+  "profile": {
+    "loading": "Loading profile...",
+    "error": {
+      "title": "Error loading profile",
+      "description": "This may be because your session has expired. Please try logging in again.",
+      "retry": "Retry",
+      "login": "Log in"
+    },
+    "header": {
+      "back": "Back",
+      "saving": "Saving...",
+      "saved": "Saved",
+      "saveChanges": "Save changes"
+    },
+    "hero": {
+      "noRole": "No role defined",
+      "memberSince": "Member since",
+      "emailVerified": "Email verified",
+      "stats": {
+        "lessons": "Lessons",
+        "certificates": "Certificates"
+      }
+    },
+    "tabs": {
+      "personal": "Personal Information",
+      "security": "Security"
+    },
+    "personal": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "role": "Role at Company",
+      "phone": "Phone",
+      "location": "Location",
+      "bio": "Bio"
+    },
+    "security": {
+      "email": "Email Address",
+      "passwordSection": "Change Password",
+      "passwordDescription": "Make sure to use a strong password",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "updating": "Updating...",
+      "updatePassword": "Update Password",
+      "passwordUpdated": "Password updated!",
+      "error": "Error"
+    },
+    "skills": {
+      "totalSkills": "Total Skills",
+      "highestLevel": "Highest Level",
+      "categories": "Categories",
+      "all": "All",
+      "categoryLabels": {
+        "general": "General",
+        "programming": "Programming",
+        "design": "Design",
+        "marketing": "Marketing",
+        "business": "Business",
+        "data": "Data",
+        "ai": "Artificial Intelligence",
+        "cloud": "Cloud Computing",
+        "security": "Security",
+        "devops": "DevOps",
+        "leadership": "Leadership",
+        "communication": "Communication",
+        "other": "Others"
+      }
+    }
+  },
+  "actions": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "saveChanges": "Save changes",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "back": "Back",
+    "retry": "Retry",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "loading": "Loading...",
+    "updating": "Updating...",
+    "viewDetails": "View details",
+    "savedSuccessfully": "Saved successfully",
+    "preview": "Preview",
+    "customize": "Customize"
+  },
+  "certificates": {
+    "loading": "Loading certificates...",
+    "errorTitle": "Error loading certificates",
+    "errorLoad": "Error loading certificates",
+    "errorDownload": "Error downloading certificate",
+    "errorUnknown": "Unknown error",
+    "retry": "Retry",
+    "backToPanel": "Back to Panel",
+    "badge": "Issued certificates",
+    "pageTitle": "SofLIA and partner company certificates",
+    "pageSubtitle": "Each card shows the real document issued for that course.",
+    "statsCerts": "Certificates",
+    "statsOrgs": "Companies",
+    "statsValid": "Valid",
+    "sectionTitle": "My Certificates",
+    "sectionCount_one": "{{count}} certificate issued",
+    "sectionCount_other": "{{count}} certificates issued",
+    "searchPlaceholder": "Search by course, instructor, or company...",
+    "emptyTitle": "You don't have certificates yet",
+    "emptyText": "Complete a course journey to earn your certificate.",
+    "noResultsTitle": "No results found",
+    "noResultsText": "Try a different search term.",
+    "issuedBy": "Issued by {{name}}",
+    "issuedOn": "Issued on {{date}}",
+    "view": "View",
+    "download": "Download",
+    "verifyValidity": "Verify Validity",
+    "hashCopied": "Hash copied to clipboard",
+    "loadingDetail": "Loading certificate...",
+    "notFound": "Certificate not found",
+    "detailErrorTitle": "We couldn't open the certificate",
+    "backToCertificates": "Back to Certificates",
+    "myCertificates": "My Certificates",
+    "statusValid": "Valid certificate",
+    "statusExpired": "Expired certificate",
+    "statusInvalid": "Invalid certificate",
+    "labelIssuer": "Issuing company",
+    "labelInstructor": "Instructor",
+    "labelIssuedAt": "Issue date",
+    "labelHash": "Verification hash",
+    "copyHash": "Copy hash",
+    "hashDescription": "This hash is validated against the certificate chain and is the same one used in the public verification view.",
+    "downloadPdf": "Download PDF",
+    "verifyPublic": "Verify publicly",
+    "share": "Share certificate",
+    "shareTitle": "Certificate: {{title}}",
+    "shareText": "I completed the course \"{{title}}\" and this is my verified certificate on SofLIA.",
+    "shareDescription": "Share this certificate issued by {{issuer}}.",
+    "invalidHash": "Invalid certificate hash",
+    "errorValidate": "Error validating the certificate",
+    "verifyBadge": "Public verification",
+    "verifyTitle": "Certificate validation",
+    "verifySubtitle": "This view validates the hash, certificate status, and chain integrity recorded for the document.",
+    "loadingValidation": "Validating certificate...",
+    "validateErrorTitle": "Could not validate the certificate",
+    "validDescription": "The hash exists, the chain is intact, and the document matches the issued certificate.",
+    "invalidDescription": "Validation detected an issue with the validity or integrity of the certificate.",
+    "hashVerified": "Verified hash",
+    "chainIntegrity": "Chain integrity",
+    "chainOk": "Correct",
+    "chainInconsistent": "With inconsistencies",
+    "lastOperation": "Last operation",
+    "noData": "No data",
+    "docPreviewLabel": "Validated document view"
+  },
+  "liaPersonalization": {
+    "title": "SofLIA Personalization",
+    "saveSuccess": "Settings saved successfully",
+    "saveError": "Error saving settings",
+    "resetSuccess": "Settings reset",
+    "resetError": "Error resetting settings",
+    "confirmReset": "Are you sure you want to reset settings to defaults?",
+    "styles": {
+      "professional": {
+        "label": "Professional",
+        "description": "Formal and direct tone, appropriate for work"
+      },
+      "casual": {
+        "label": "Casual",
+        "description": "Relaxed and conversational tone"
+      },
+      "technical": {
+        "label": "Technical",
+        "description": "Focused on technical details and precision"
+      },
+      "friendly": {
+        "label": "Friendly",
+        "description": "Warm and close, like a companion"
+      },
+      "formal": {
+        "label": "Formal",
+        "description": "Structured and respectful language"
+      }
+    },
+    "instructionsPlaceholder": "Example: I prefer short and direct answers. Always include practical examples.",
+    "nicknamePlaceholder": "Example: Alex",
+    "styleLabel": "Style",
+    "characters": "characters",
+    "friendlyLabel": "Friendly",
+    "friendlyDesc": "Enables a warm and empathetic tone",
+    "enthusiasticLabel": "Enthusiastic",
+    "enthusiasticDesc": "Shows enthusiasm and positive energy",
+    "nicknameLabel": "Nickname",
+    "nicknameHint": "Name and occupation are obtained automatically from the system",
+    "voiceLabel": "Voice",
+    "voiceDesc": "Enable voice responses",
+    "dictationLabel": "Dictation Mode",
+    "dictationDesc": "Allows dictating messages using voice recognition",
+    "sections": {
+      "style": {
+        "title": "Base style and tone",
+        "description": "Configure the style and tone SofLIA uses when responding"
+      },
+      "characteristics": {
+        "title": "Characteristics",
+        "description": "Select additional personalizations besides the base style and tone"
+      },
+      "instructions": {
+        "title": "Custom instructions",
+        "description": "Additional behavior, style and tone preferences"
+      },
+      "about": {
+        "title": "About you",
+        "description": "Personal information to personalize responses"
+      },
+      "advanced": {
+        "title": "Advanced",
+        "description": "Advanced SofLIA features"
+      }
+    }
+  },
+  "comments": {
+    "confirmDelete": "Are you sure you want to delete this comment?",
+    "edit": "Edit",
+    "delete": "Delete",
+    "report": "Report",
+    "reply": "Reply",
+    "replyPlaceholder": "Write a reply...",
+    "deleteError": "Error deleting the comment",
+    "hideReplies_one": "Hide {{count}} reply",
+    "hideReplies_other": "Hide {{count}} replies",
+    "viewReplies_one": "View {{count}} reply",
+    "viewReplies_other": "View {{count}} replies"
   }
 }
-
-

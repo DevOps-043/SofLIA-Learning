@@ -3,6 +3,7 @@
 import { Reorder, motion } from 'framer-motion'
 import { Book, Plus, RefreshCw } from 'lucide-react'
 
+import { useTranslation } from 'react-i18next'
 import { useCourseManagementContext } from './CourseManagementContext'
 import { ModuleCard } from './ModuleCard'
 
@@ -23,6 +24,7 @@ export function CourseModulesTab() {
     },
     courseId,
   } = useCourseManagementContext()
+  const { t } = useTranslation('admin')
 
   return (
     <motion.div
@@ -81,7 +83,7 @@ export function CourseModulesTab() {
             }}
             whileTap={{ scale: recalculatingDurations ? 1 : 0.95 }}
             className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-lg border border-[#E9ECEF] bg-[#E9ECEF] px-3 py-2 text-xs font-medium text-[#6C757D] shadow-sm transition-all duration-200 hover:border-[#00D4B3]/30 hover:bg-[#00D4B3]/10 hover:text-[#00D4B3] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/60 dark:hover:bg-[#00D4B3]/20 sm:w-auto"
-            title="Recalcular duraciones de todas las lecciones"
+            title={t('courseManagement.recalcDurations')}
           >
             <motion.div
               animate={recalculatingDurations ? { rotate: 360 } : {}}

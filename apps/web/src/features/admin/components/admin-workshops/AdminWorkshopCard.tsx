@@ -7,6 +7,7 @@ import {
   PencilIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import type { AdminWorkshop } from '../../services/adminWorkshops.service'
 import {
   formatWorkshopDuration,
@@ -32,6 +33,8 @@ export function AdminWorkshopCard({
   onEdit,
   onDelete,
 }: AdminWorkshopCardProps) {
+  const { t } = useTranslation('common')
+  const { t: ta } = useTranslation('admin')
   const levelTone = getWorkshopLevelTone(workshop.level)
   const categoryTone = getWorkshopCategoryTone(workshop.category)
   const instructorInitials = getWorkshopInstructorInitials(
@@ -77,7 +80,7 @@ export function AdminWorkshopCard({
                 workshop.is_active ? 'bg-white animate-pulse' : 'bg-white/70'
               }`}
             />
-            {workshop.is_active ? 'Activo' : 'Inactivo'}
+            {workshop.is_active ? ta('workshopCard.statusActive') : ta('workshopCard.statusInactive')}
           </span>
         </motion.div>
         <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-10">
@@ -130,7 +133,7 @@ export function AdminWorkshopCard({
               <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-[#00D4B3]/20 dark:ring-[#00D4B3]/30 flex-shrink-0">
                 <img
                   src={workshop.instructor_profile_picture_url}
-                  alt={workshop.instructor_name || 'Instructor'}
+                  alt={workshop.instructor_name || ta('workshopCard.instructorLabel')}
                   className="w-full h-full object-cover"
                   onError={(event) => {
                     const target = event.target as HTMLImageElement
@@ -149,10 +152,10 @@ export function AdminWorkshopCard({
             )}
             <div className="min-w-0 flex-1">
               <p className="text-xs text-[#6C757D] dark:text-white/50 uppercase tracking-wide mb-0.5">
-                Instructor
+                {ta('workshopCard.instructorLabel')}
               </p>
               <p className="text-sm font-semibold text-[#0A2540] dark:text-white truncate">
-                {workshop.instructor_name || 'Sin instructor'}
+                {workshop.instructor_name || ta('workshopCard.noInstructor')}
               </p>
             </div>
           </div>
@@ -181,7 +184,7 @@ export function AdminWorkshopCard({
             <span className="text-sm font-semibold text-[#0A2540] dark:text-white">
               {workshop.student_count || 0}{' '}
               <span className="text-xs font-normal text-[#6C757D] dark:text-white/60">
-                estudiantes
+                {ta('workshopCard.studentsLabel')}
               </span>
             </span>
           </motion.div>
@@ -194,7 +197,7 @@ export function AdminWorkshopCard({
                 onView(workshop)
               }}
               className="relative p-2.5 text-[#6C757D] dark:text-white/60 hover:text-white hover:bg-[#00D4B3] rounded-lg transition-all duration-300 group/btn"
-              title="Ver detalle"
+              title={t('actions.viewDetails')}
             >
               <EyeIcon className="h-4 w-4 relative z-10" />
               <motion.div
@@ -210,7 +213,7 @@ export function AdminWorkshopCard({
                 onEdit(workshop)
               }}
               className="relative p-2.5 text-[#6C757D] dark:text-white/60 hover:text-white hover:bg-[#10B981] rounded-lg transition-all duration-300 group/btn"
-              title="Editar taller"
+              title={t('actions.edit')}
             >
               <PencilIcon className="h-4 w-4 relative z-10" />
               <motion.div
@@ -227,7 +230,7 @@ export function AdminWorkshopCard({
                 onDelete(workshop)
               }}
               className="relative p-2.5 text-[#6C757D] dark:text-white/60 hover:text-white hover:bg-[#EF4444] rounded-lg transition-all duration-300 group/btn"
-              title="Eliminar taller"
+              title={t('actions.delete')}
               type="button"
             >
               <TrashIcon className="h-4 w-4 relative z-10" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   CheckCircle,
   Loader2,
@@ -18,10 +18,13 @@ import {
   type SelectedQuizAnswers,
 } from "@/features/courses/components/learn/quiz.utils";
 import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
+import type { LessonQuizStatusItem } from "@/features/courses/components/learn/types";
+import type { QuizSubmissionAnswers } from "@/features/courses/services/quiz-submission.service";
 
 type QuizRendererProps = {
   quizData: QuizQuestion[];
   totalPoints?: number;
+  quizStatusItem?: LessonQuizStatusItem;
   lessonId?: string;
   slug?: string;
   materialId?: string;
@@ -30,9 +33,56 @@ type QuizRendererProps = {
   onQuizSubmitted?: () => void;
 };
 
+type HydratedQuizState = {
+  hydratedSubmissionKey: string | null;
+  pointsEarned: number;
+  score: number;
+  selectedAnswers: SelectedQuizAnswers;
+  showResults: boolean;
+};
+
+function toSelectedQuizAnswers(
+  userAnswers: QuizSubmissionAnswers | undefined
+): SelectedQuizAnswers {
+  if (!userAnswers) {
+    return {};
+  }
+
+  return { ...userAnswers };
+}
+
+function buildHydratedQuizState(
+  normalizedQuizData: QuizQuestion[],
+  quizStatusItem?: LessonQuizStatusItem
+): HydratedQuizState {
+  const latestSubmission = quizStatusItem?.latestSubmission;
+
+  if (!latestSubmission) {
+    return {
+      hydratedSubmissionKey: null,
+      pointsEarned: 0,
+      score: 0,
+      selectedAnswers: {},
+      showResults: false,
+    };
+  }
+
+  const selectedAnswers = toSelectedQuizAnswers(latestSubmission.userAnswers);
+  const results = calculateQuizResults(normalizedQuizData, selectedAnswers);
+
+  return {
+    hydratedSubmissionKey: `${latestSubmission.submissionId}:${latestSubmission.completedAt ?? ""}`,
+    pointsEarned: results.pointsEarned,
+    score: latestSubmission.score,
+    selectedAnswers,
+    showResults: true,
+  };
+}
+
 export function QuizRenderer({
   quizData,
   totalPoints,
+  quizStatusItem,
   lessonId,
   slug,
   materialId,
@@ -41,17 +91,25 @@ export function QuizRenderer({
   onQuizSubmitted,
 }: QuizRendererProps) {
   const organizationId = useCurrentOrganizationId();
-  const [selectedAnswers, setSelectedAnswers] = useState<SelectedQuizAnswers>({});
-  const [showResults, setShowResults] = useState(false);
-  const [score, setScore] = useState(0);
-  const [pointsEarned, setPointsEarned] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [serverMessage, setServerMessage] = useState<string | null>(null);
-
   const normalizedQuizData = useMemo(
     () => normalizeQuizQuestions(quizData),
     [quizData]
+  );
+  const initialHydratedState = useMemo(
+    () => buildHydratedQuizState(normalizedQuizData, quizStatusItem),
+    [normalizedQuizData, quizStatusItem]
+  );
+  const [selectedAnswers, setSelectedAnswers] = useState<SelectedQuizAnswers>(
+    initialHydratedState.selectedAnswers
+  );
+  const [showResults, setShowResults] = useState(initialHydratedState.showResults);
+  const [score, setScore] = useState(initialHydratedState.score);
+  const [pointsEarned, setPointsEarned] = useState(initialHydratedState.pointsEarned);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [serverMessage, setServerMessage] = useState<string | null>(null);
+  const [hydratedSubmissionKey, setHydratedSubmissionKey] = useState<string | null>(
+    initialHydratedState.hydratedSubmissionKey
   );
 
   const totalQuestions = normalizedQuizData.length;
@@ -59,6 +117,32 @@ export function QuizRenderer({
     totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
   const passingThreshold = 80;
   const passed = percentage >= passingThreshold;
+  const latestSubmissionKey = quizStatusItem?.latestSubmission
+    ? `${quizStatusItem.latestSubmission.submissionId}:${quizStatusItem.latestSubmission.completedAt ?? ""}`
+    : null;
+
+  useEffect(() => {
+    if (!latestSubmissionKey || latestSubmissionKey === hydratedSubmissionKey) {
+      return;
+    }
+
+    const nextHydratedState = buildHydratedQuizState(
+      normalizedQuizData,
+      quizStatusItem
+    );
+
+    setSelectedAnswers(nextHydratedState.selectedAnswers);
+    setShowResults(nextHydratedState.showResults);
+    setScore(nextHydratedState.score);
+    setPointsEarned(nextHydratedState.pointsEarned);
+    setSubmitError(null);
+    setHydratedSubmissionKey(nextHydratedState.hydratedSubmissionKey);
+  }, [
+    hydratedSubmissionKey,
+    latestSubmissionKey,
+    normalizedQuizData,
+    quizStatusItem,
+  ]);
 
   const handleAnswerSelect = (questionId: string, answer: string | number) => {
     setSelectedAnswers((currentAnswers) => ({
@@ -433,7 +517,7 @@ async function submitQuizResults({
   setSubmitError,
   slug,
   totalPoints,
-}: SubmitQuizResultsParams) {
+}: SubmitQuizResultsParams): Promise<void> {
   try {
     const response = await fetch(
       `/api/courses/${slug}/lessons/${lessonId}/quiz/submit`,
@@ -453,7 +537,15 @@ async function submitQuizResults({
       }
     );
 
-    const result = await response.json();
+    const result = (await response.json()) as {
+      error?: string;
+      message?: string;
+      result?: {
+        submission?: {
+          submission_id?: string;
+        };
+      };
+    };
 
     if (!response.ok) {
       console.error("Error guardando quiz:", result.error);
@@ -468,5 +560,6 @@ async function submitQuizResults({
     onQuizSubmitted?.();
   } catch (error) {
     console.error("Error al enviar quiz:", error);
+    setSubmitError("Error al guardar las respuestas");
   }
 }

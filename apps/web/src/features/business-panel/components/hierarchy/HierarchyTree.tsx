@@ -1,6 +1,7 @@
 import { Plus, Layout, Settings, ChevronRight, ChevronDown, UserPlus, Network } from 'lucide-react';
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DynamicHierarchyService } from '../../services/dynamicHierarchy.service';
 import { OrganizationNode, OrganizationStructure } from '../../types/dynamicHierarchy.types';
 import { NodeItem } from './NodeItem';
@@ -36,6 +37,8 @@ const buildTreeFromFlat = (nodes: OrganizationNode[]): OrganizationNode[] => {
 };
 
 export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId }) => {
+  const { t } = useTranslation('business');
+  const { t: tc } = useTranslation('common');
   const [structures, setStructures] = useState<OrganizationStructure[]>([]);
   const [selectedStructureId, setSelectedStructureId] = useState<string | null>(initialStructureId || null);
   const [nodes, setNodes] = useState<OrganizationNode[]>([]); // Flat nodes
@@ -43,6 +46,8 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showStructureModal, setShowStructureModal] = useState(false);
+  const [pendingDeleteNode, setPendingDeleteNode] = useState<OrganizationNode | null>(null);
+  const [nodeActionError, setNodeActionError] = useState<string | null>(null);
 
   // Member Assignment Modal State
   const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
@@ -79,7 +84,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
         setSelectedStructureId(def.id);
       }
     } catch (err) {
-      setError('Error cargando estructuras');
+      setError(t('hierarchy.loadStructuresError'));
       console.error(err);
     }
   };
@@ -92,7 +97,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
       const builtTree = buildTreeFromFlat(data);
       setTreeRoots(builtTree);
     } catch (err) {
-      setError('Error cargando jerarquía');
+      setError(t('hierarchy.loadHierarchyError'));
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -150,17 +155,26 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
       setShowNodeModal(false);
     } catch (err) {
       console.error(err);
-      alert('Error guardando nodo');
+      setNodeActionError(t('hierarchy.saveNodeError'));
     }
   };
 
   const handleDelete = (node: OrganizationNode) => {
-    if (confirm(`¿Seguro eliminar ${node.name} y todos sus descendientes?`)) {
-      DynamicHierarchyService.deleteNode(node.id)
-        .then(res => {
-          if (res.success) loadNodes(selectedStructureId!);
-        });
-    }
+    setNodeActionError(null);
+    setPendingDeleteNode(node);
+  };
+
+  const handleConfirmDeleteNode = () => {
+    if (!pendingDeleteNode) return;
+    const node = pendingDeleteNode;
+    setPendingDeleteNode(null);
+    DynamicHierarchyService.deleteNode(node.id)
+      .then(res => {
+        if (res.success) loadNodes(selectedStructureId!);
+      })
+      .catch(err => {
+        console.error(err);
+      });
   };
 
   // Helper to handle new structure creation
@@ -174,10 +188,10 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
       if (res.success) {
         loadStructures();
       } else {
-        alert('Error: ' + res.error);
+        setNodeActionError(t('hierarchy.saveStructureError') + (res.error ? ': ' + res.error : ''));
       }
     } catch (err) {
-      alert('Error creating structure');
+      setNodeActionError(t('hierarchy.saveStructureError'));
       console.error(err);
     }
   };
@@ -188,7 +202,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-8 border-b border-neutral-200 dark:border-white/5">
         <div className="space-y-4 flex-1">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 dark:text-white/30 block ml-1">
-            Estructura Activa
+            {t('hierarchy.activeStructure')}
           </label>
           
           {/* SofLIA Premium Dropdown */}
@@ -217,8 +231,8 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
               `}</style>
               <Layout className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0A2540] dark:text-[#00D4B3]" />
               <span className="text-sm font-bold text-[#0A2540] dark:text-white truncate">
-                {structures.find(s => s.id === selectedStructureId)?.name || 'Seleccionar Estructura'}
-                {structures.find(s => s.id === selectedStructureId)?.is_default ? ' (Principal)' : ''}
+                {structures.find(s => s.id === selectedStructureId)?.name || t('hierarchy.selectStructure')}
+                {structures.find(s => s.id === selectedStructureId)?.is_default ? ` ${t('hierarchy.defaultBadge')}` : ''}
               </span>
               <ChevronDown 
                 className={`w-4 h-4 text-neutral-500 dark:text-white/30 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 opacity-100' : 'rotate-0'}`} 
@@ -249,7 +263,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                           : 'text-neutral-600 dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-white/5'
                       }`}
                     >
-                      <span>{s.name} {s.is_default ? '(Principal)' : ''}</span>
+                      <span>{s.name} {s.is_default ? t('hierarchy.defaultBadge') : ''}</span>
                       {selectedStructureId === s.id && (
                         <div className="w-1.5 h-1.5 rounded-full bg-[#0A2540] dark:bg-[#00D4B3]" />
                       )}
@@ -279,19 +293,19 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                 setMemberModalNodeName(rootNode.name);
                 setIsMemberModalOpen(true);
               } else {
-                alert("No se encontró un nodo raíz para gestionar miembros. Cree un nodo 'General' primero.");
+                setNodeActionError(t('hierarchy.noRootNode'));
               }
             }}
             className="flex items-center gap-3 px-6 py-4 rounded-2xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white shadow-xl h-[58px]"
           >
             <UserPlus className="w-4 h-4" />
-            <span>Miembros</span>
+            <span>{t('hierarchy.members')}</span>
           </button>
 
           <button
             onClick={handleNewStructure}
             className="flex items-center gap-3 px-8 py-4 rounded-2xl shadow-2xl transition-all hover:brightness-110 active:scale-95 text-[10px] font-black uppercase tracking-widest h-[58px] bg-[#0A2540] dark:bg-none !text-white dark:!text-[#0A2540]"
-            style={{ 
+            style={{
               background: "var(--btn-bg)",
               boxShadow: "0 8px 30px rgba(0,0,0,0.15)"
             }}
@@ -305,17 +319,33 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                }
             `}</style>
             <Plus className="w-4 h-4" strokeWidth={3} />
-            <span>Nueva Estructura</span>
+            <span>{t('hierarchy.newStructure')}</span>
           </button>
         </div>
       </div>
+
+      {/* Confirmaciones y errores inline */}
+      {pendingDeleteNode && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-3">
+          <p className="text-sm text-red-700 dark:text-red-400">{t('hierarchy.confirmDeleteNode', { name: pendingDeleteNode.name })}</p>
+          <div className="flex gap-2 flex-shrink-0">
+            <button onClick={() => setPendingDeleteNode(null)} className="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded hover:bg-red-50 transition-colors">{tc('actions.cancel')}</button>
+            <button onClick={handleConfirmDeleteNode} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors">{tc('actions.delete')}</button>
+          </div>
+        </div>
+      )}
+      {nodeActionError && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-700 dark:text-red-400">{nodeActionError}</p>
+        </div>
+      )}
 
       {/* Tree Visualizer */}
       <div className="relative">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 opacity-30">
             <div className="w-10 h-10 border-4 border-neutral-200 dark:border-white/10 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white">Sincronizando...</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white">{t('hierarchy.syncing')}</span>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-center">
@@ -330,9 +360,9 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                <Network className="w-12 h-12 text-neutral-300 dark:text-white/10" />
             </div>
             <div className="space-y-3">
-               <h3 className="text-xl font-black text-[#0A2540] dark:text-white italic tracking-tight">ESTRUCTURA VACÍA</h3>
+               <h3 className="text-xl font-black text-[#0A2540] dark:text-white italic tracking-tight uppercase">{t('hierarchy.emptyStructureTitle')}</h3>
                <p className="text-xs font-semibold text-neutral-400 dark:text-white/30 max-w-xs mx-auto uppercase tracking-wide leading-relaxed">
-                  ESTA ESTRUCTURA NO CONTIENE NIVELES ORGANIZACIONALES DEFINIDOS ACTUALMENTE. 
+                  {t('hierarchy.emptyStructureDesc')}
                </p>
             </div>
             <button
@@ -347,7 +377,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
               }}
               className="px-8 py-4 rounded-2xl !text-white dark:!text-[#0A2540] text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-2xl active:scale-95 bg-[#0A2540] dark:bg-[#00D4B3]"
             >
-              Inicializar 'General'
+              {t('hierarchy.initializeGeneral')}
             </button>
           </div>
         ) : (

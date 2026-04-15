@@ -1,224 +1,141 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { 
+import {
+  AlertCircle,
+  ArrowLeft,
   Award,
+  Building2,
   Calendar,
+  CheckCircle2,
   Download,
   Eye,
-  Search,
-  Shield,
-  User,
   Loader2,
-  AlertCircle,
-  CheckCircle2,
-  X,
-  ArrowLeft
+  Shield,
+  UserRound,
 } from 'lucide-react'
-import Image from 'next/image'
-import { useOrganizationStyles } from '@/features/business-panel/hooks/useOrganizationStyles'
-import { getBackgroundStyle, generateCSSVariables } from '@/features/business-panel/utils/styles'
-import { LiaSidePanel } from '@/core/components/LiaSidePanel'
+import { useTranslation } from 'react-i18next'
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
-import { useAuth } from '@/features/auth/hooks/useAuth'
-import { ModernNavbar } from '../[orgSlug]/business-user/dashboard/components/ModernNavbar'
-import { useCallback, Suspense } from 'react'
-import { useThemeStore } from '@/core/stores/themeStore'
+import { LiaSidePanel } from '@/core/components/LiaSidePanel'
+import { useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
+import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
+import { BusinessPanelStatCard } from '@/features/business-panel/components/shared/BusinessPanelStatCard'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import { CertificateDocumentPreview } from '@/features/certificates/components/CertificateDocumentPreview'
+import type { CertificateListItem } from '@/features/certificates/types/certificate'
 
-interface Certificate {
-  certificate_id: string
-  certificate_url: string
-  certificate_hash: string
-  issued_at: string
-  expires_at: string | null
-  created_at: string
-  course_id: string
-  enrollment_id: string
-  course_title: string
-  course_slug: string
-  course_thumbnail: string | null
-  instructor_name: string
-  instructor_username: string | null
+interface CertificatesResponse {
+  success: boolean
+  certificates: CertificateListItem[]
+  count: number
 }
 
-
-interface Organization {
-  id: string
-  name: string
-  logo_url?: string | null
-  favicon_url?: string | null
+function formatDate(dateString: string): string {
+  try {
+    return new Date(dateString).toLocaleDateString('es-MX', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+  } catch {
+    return dateString
+  }
 }
 
 export default function CertificatesPage() {
-  const { user, logout } = useAuth()
-  const [certificates, setCertificates] = useState<Certificate[]>([])
-  const [organization, setOrganization] = useState<Organization | null>(null)
+  const router = useRouter()
+  const theme = useBusinessPanelTheme()
+  const orgSlug = useCurrentOrganizationSlug()
+  const { t } = useTranslation('common')
+  const [certificates, setCertificates] = useState<CertificateListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const router = useRouter()
-  
-  // Organization Styles
-  const { styles } = useOrganizationStyles()
-  const userDashboardStyles = styles?.userDashboard
-  const backgroundStyle = getBackgroundStyle(userDashboardStyles)
-  const cssVariables = generateCSSVariables(userDashboardStyles)
-  
-  // Theme detection
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
-
-  const colors = {
-    primary: userDashboardStyles?.primary_button_color || '#0A2540',
-    accent: userDashboardStyles?.accent_color || '#00D4B3',
-    text: isDark ? (userDashboardStyles?.text_color || '#FFFFFF') : '#0F172A',
-    cardBg: isDark ? (userDashboardStyles?.card_background || '#1E2329') : '#FFFFFF',
-    buttonText: '#FFFFFF'
-  }
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchCertificates()
-    fetchOrganization()
+    void fetchCertificates()
   }, [])
 
-  const fetchOrganization = async () => {
-    try {
-      const response = await fetch('/api/auth/me', { credentials: 'include' })
-      if (response.ok) {
-        const data = await response.json()
-        if (data.success && data.user?.organization) {
-          setOrganization(data.user.organization)
-        }
-      }
-    } catch (error) {
-      // Silent fail
-    }
-  }
-
-  const handleLogout = useCallback(async () => {
-    await logout()
-    router.push('/auth')
-  }, [logout, router])
-
-  const handleProfileClick = useCallback(() => {
-    router.push('/profile')
-  }, [router])
-
-  const getDisplayName = useCallback(() => {
-    if (user?.first_name && user?.last_name) {
-      return `${user.first_name} ${user.last_name}`
-    }
-    return user?.display_name || user?.username || 'Usuario'
-  }, [user])
-
-  const getInitials = useCallback(() => {
-    const firstName = user?.first_name || ''
-    const lastName = user?.last_name || ''
-    if (firstName && lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
-    }
-    return (user?.username || 'U').charAt(0).toUpperCase()
-  }, [user])
-
-  const fetchCertificates = async () => {
+  async function fetchCertificates(): Promise<void> {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch('/api/certificates', {
-        credentials: 'include'
+        credentials: 'include',
       })
 
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Error al cargar certificados')
+      const data = (await response.json().catch(() => ({}))) as Partial<CertificatesResponse> & {
+        error?: string
       }
 
-      const data = await response.json()
-      
-      if (data.success) {
-        setCertificates(data.certificates || [])
-      } else {
-        throw new Error(data.error || 'Error al obtener certificados')
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || t('certificates.errorLoad'))
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
+
+      setCertificates(data.certificates || [])
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : t('certificates.errorUnknown'))
     } finally {
       setLoading(false)
     }
   }
 
-  const filteredCertificates = certificates.filter(cert => {
-    const matchesSearch = 
-      cert.course_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cert.instructor_name.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
-  })
+  const filteredCertificates = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
 
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    } catch {
-      return dateString
+    if (!normalizedSearch) {
+      return certificates
     }
-  }
 
-  const handleDownload = async (certificateId: string, courseTitle: string) => {
+    return certificates.filter((certificate) =>
+      [
+        certificate.courseTitle,
+        certificate.instructorName,
+        certificate.issuerName,
+      ].some((value) => value.toLowerCase().includes(normalizedSearch)),
+    )
+  }, [certificates, searchTerm])
+
+  async function handleDownload(certificateId: string, fileName: string): Promise<void> {
     try {
       const response = await fetch(`/api/certificates/${certificateId}/download`, {
-        credentials: 'include'
+        credentials: 'include',
       })
 
       if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Error al descargar certificado')
+        const data = (await response.json().catch(() => ({}))) as { error?: string; details?: string }
+        throw new Error(data.details || data.error || t('certificates.errorDownload'))
       }
 
-      if (response.redirected) {
-        window.open(response.url, '_blank')
-      } else {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `${courseTitle.replace(/[^a-z0-9]/gi, '_')}_certificado.pdf`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      }
+      const blob = await response.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = downloadUrl
+      anchor.download = fileName
+      document.body.appendChild(anchor)
+      anchor.click()
+      document.body.removeChild(anchor)
+      window.URL.revokeObjectURL(downloadUrl)
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error al descargar certificado')
+      setDownloadError(err instanceof Error ? err.message : t('certificates.errorDownload'))
     }
   }
 
-  const handleViewCertificate = (certificateId: string) => {
-    router.push(`/certificates/${certificateId}`)
-  }
-
-  const handleVerify = (certificateHash: string) => {
-    router.push(`/certificates/verify/${certificateHash}`)
-  }
-
-  const handleBackToDashboard = () => {
-    router.push('/business-user/dashboard')
-  }
+  const completedCount = certificates.length
+  const activeOrganizations = new Set(certificates.map((certificate) => certificate.issuerName)).size
 
   if (loading) {
     return (
-      <div 
-        className="min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-[#0F1419]"
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: theme.panelBg }}
       >
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-12 h-12 animate-spin text-[#00D4B3]" />
-          <p className="text-lg text-gray-600 dark:text-gray-300">Cargando certificados...</p>
+          <Loader2 className="w-12 h-12 animate-spin" style={{ color: theme.actionColor }} />
+          <p style={{ color: theme.subtextColor }}>{t('certificates.loading')}</p>
         </div>
       </div>
     )
@@ -226,16 +143,33 @@ export default function CertificatesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50 dark:bg-[#0F1419]">
-        <div className="flex flex-col items-center gap-4 max-w-md text-center">
-          <AlertCircle className="w-16 h-16 text-red-500" />
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Error</h2>
-          <p className="text-gray-600 dark:text-gray-400">{error}</p>
+      <div
+        className="min-h-screen flex items-center justify-center p-6"
+        style={{ backgroundColor: theme.panelBg }}
+      >
+        <div
+          className="max-w-md rounded-[24px] border p-8 text-center"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+          }}
+        >
+          <AlertCircle className="mx-auto mb-4 h-14 w-14 text-red-500" />
+          <h1 className="mb-2 text-2xl font-bold" style={{ color: theme.textColor }}>
+            {t('certificates.errorTitle')}
+          </h1>
+          <p className="mb-6" style={{ color: theme.subtextColor }}>
+            {error}
+          </p>
           <button
-            onClick={fetchCertificates}
-            className="px-6 py-3 rounded-lg font-medium transition-colors bg-[#0A2540] text-white hover:bg-[#0d2f4d]"
+            onClick={() => void fetchCertificates()}
+            className="rounded-2xl px-5 py-3 font-semibold"
+            style={{
+              backgroundColor: theme.actionColor,
+              color: theme.onActionColor,
+            }}
           >
-            Reintentar
+            {t('certificates.retry')}
           </button>
         </div>
       </div>
@@ -243,186 +177,234 @@ export default function CertificatesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0F1419]">
-      <Suspense fallback={<div className="h-16 w-full" />}>
-        <ModernNavbar
-          organization={organization}
-          user={user}
-          getDisplayName={getDisplayName}
-          getInitials={getInitials}
-          onProfileClick={handleProfileClick}
-          onLogout={handleLogout}
-          styles={userDashboardStyles}
-        />
-      </Suspense>
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: theme.panelBg,
+        color: theme.textColor,
+      }}
+    >
+      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
+        <button
+          onClick={() => router.push(orgSlug ? `/${orgSlug}/business-user/dashboard` : '/dashboard')}
+          className="mb-6 inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition-colors"
+          style={{
+            backgroundColor: theme.cardBg,
+            borderColor: theme.borderColor,
+            color: theme.textColor,
+          }}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {t('certificates.backToPanel')}
+        </button>
 
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* Header & Navigation */}
-        <div className="mb-8">
-           <button 
-            onClick={handleBackToDashboard}
-            className="flex items-center gap-2 mb-6 px-4 py-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300"
-           >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Volver al Panel</span>
-           </button>
-
-          <div className="flex items-center gap-4 mb-3">
-            <div 
-              className="p-3 rounded-xl"
-              style={{ background: `linear-gradient(135deg, ${colors.primary}20, ${colors.accent}10)` }}
-            >
-              <Award className="w-8 h-8" style={{ color: colors.accent }} />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Mis Certificados
+        <section
+          className="rounded-[28px] border p-6 md:p-8"
+          style={{
+            background: theme.heroBackground,
+            borderColor: theme.heroBorderColor,
+            color: theme.inverseTextColor,
+          }}
+        >
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
+                style={{
+                  backgroundColor: theme.inverseSurface,
+                  borderColor: theme.inverseBorderColor,
+                  color: theme.inverseSubtextColor,
+                }}
+              >
+                {t('certificates.badge')}
+              </div>
+              <h1 className="text-3xl font-black tracking-tight md:text-5xl">
+                {t('certificates.pageTitle')}
               </h1>
-              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                {certificates.length} {certificates.length === 1 ? 'certificado' : 'certificados'} obtenidos
+              <p className="mt-3 max-w-2xl text-sm md:text-base" style={{ color: theme.inverseSubtextColor }}>
+                {t('certificates.pageSubtitle')}
               </p>
             </div>
-          </div>
-        </div>
 
-        {/* Search Bar */}
-        {certificates.length > 0 && (
-          <div className="mb-8 flex justify-center">
-            <div className="relative w-full max-w-2xl">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Buscar por curso o instructor..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-10 py-3 rounded-xl text-sm font-normal border shadow-sm transition-all duration-200 focus:ring-2 focus:ring-opacity-50 bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 dark:focus:border-white/20"
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:w-[420px]">
+              <BusinessPanelStatCard
+                compact
+                title={t('certificates.statsCerts')}
+                value={completedCount}
+                icon={<Award className="h-full w-full" />}
+                iconColor={theme.actionColor}
               />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors"
-                >
-                  <X className="w-3.5 h-3.5 text-gray-400" />
-                </button>
-              )}
+              <BusinessPanelStatCard
+                compact
+                title={t('certificates.statsOrgs')}
+                value={activeOrganizations}
+                icon={<Building2 className="h-full w-full" />}
+                iconColor={theme.warningColor}
+              />
+              <BusinessPanelStatCard
+                compact
+                title={t('certificates.statsValid')}
+                value={completedCount}
+                icon={<Shield className="h-full w-full" />}
+                iconColor={theme.successColor}
+              />
             </div>
+          </div>
+        </section>
+
+        <section className="mt-8 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-black" style={{ color: theme.textColor }}>
+              {t('certificates.sectionTitle')}
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>
+              {t(certificates.length === 1 ? 'certificates.sectionCount_one' : 'certificates.sectionCount_other', { count: certificates.length })}
+            </p>
+          </div>
+
+          <BusinessPanelSearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder={t('certificates.searchPlaceholder')}
+            className="w-full md:max-w-xl"
+          />
+        </section>
+
+        {downloadError && (
+          <div className="mt-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+            <span>{downloadError}</span>
+            <button onClick={() => setDownloadError(null)} className="ml-4 text-red-400 hover:text-red-300">×</button>
           </div>
         )}
 
-        {/* Certificates Grid */}
         {filteredCertificates.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="flex flex-col items-center gap-6">
-              <div className="p-8 rounded-full bg-gray-100 dark:bg-white/5">
-                <Award className="w-16 h-16 text-gray-400 dark:text-gray-500" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
-                  {certificates.length === 0 ? 'No tienes certificados aún' : 'No se encontraron certificados'}
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {certificates.length === 0 
-                    ? 'Completa cursos para obtener certificados'
-                    : 'Intenta con otros términos de búsqueda'}
-                </p>
-              </div>
-            </div>
+          <div
+            className="mt-10 rounded-[28px] border p-10 text-center"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.borderColor,
+            }}
+          >
+            <Award className="mx-auto mb-5 h-14 w-14" style={{ color: theme.mutedTextColor }} />
+            <h3 className="text-2xl font-black" style={{ color: theme.textColor }}>
+              {certificates.length === 0 ? t('certificates.emptyTitle') : t('certificates.noResultsTitle')}
+            </h3>
+            <p className="mt-2 text-sm" style={{ color: theme.subtextColor }}>
+              {certificates.length === 0
+                ? t('certificates.emptyText')
+                : t('certificates.noResultsText')}
+            </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <AnimatePresence>
-              {filteredCertificates.map((certificate, index) => (
-                <motion.div
-                  key={certificate.certificate_id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="rounded-xl shadow-lg border overflow-hidden hover:shadow-xl transition-all duration-300 group bg-white dark:bg-[#1E2329] border-gray-200 dark:border-white/10"
+          <div className="mt-10 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            {filteredCertificates.map((certificate) => (
+              <article
+                key={certificate.certificateId}
+                className="overflow-hidden rounded-[28px] border transition-transform duration-300 hover:-translate-y-1"
+                style={{
+                  backgroundColor: theme.cardBg,
+                  borderColor: theme.borderColor,
+                  boxShadow: theme.isDark
+                    ? '0 20px 40px -24px rgba(0,0,0,0.65)'
+                    : '0 20px 40px -28px rgba(15,23,42,0.18)',
+                }}
+              >
+                <div
+                  className="flex items-center justify-center border-b p-5"
+                  style={{
+                    borderColor: theme.borderColor,
+                    backgroundColor: theme.inputBg,
+                  }}
                 >
-                  {/* Certificate Image/Thumbnail */}
-                  <div className="relative h-48 flex items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 bg-gray-100 dark:bg-gray-800" />
-                    
-                    {certificate.course_thumbnail ? (
-                      <Image
-                        src={certificate.course_thumbnail}
-                        alt={certificate.course_title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="p-8 relative z-10">
-                        <Award className="w-20 h-20" style={{ color: colors.accent }} />
-                      </div>
-                    )}
-                    
-                    <div className="absolute top-4 right-4">
-                      <div className="rounded-full p-2 shadow-sm backdrop-blur-md bg-black/40">
-                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                      </div>
+                  <CertificateDocumentPreview model={certificate.documentModel} />
+                </div>
+
+                <div className="space-y-5 p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-black leading-tight" style={{ color: theme.textColor }}>
+                        {certificate.courseTitle}
+                      </h3>
+                      <p className="mt-2 text-sm font-medium" style={{ color: theme.subtextColor }}>
+                        {t('certificates.issuedBy', { name: certificate.issuerName })}
+                      </p>
+                    </div>
+                    <div
+                      className="inline-flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-bold"
+                      style={{
+                        backgroundColor: `${theme.successColor}18`,
+                        color: theme.successColor,
+                      }}
+                    >
+                      <CheckCircle2 className="h-5 w-5" />
                     </div>
                   </div>
 
-                  {/* Certificate Info */}
-                  <div className="p-5">
-                    <h3 className="text-lg font-bold mb-3 line-clamp-2 text-gray-900 dark:text-white">
-                      {certificate.course_title}
-                    </h3>
-                    
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <User className="w-4 h-4" />
-                        <span>{certificate.instructor_name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-4 h-4" />
-                        <span>Emitido el {formatDate(certificate.issued_at)}</span>
-                      </div>
-                      {certificate.expires_at && (
-                        <div className="flex items-center gap-2 text-sm text-amber-500">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>Expira el {formatDate(certificate.expires_at)}</span>
-                        </div>
-                      )}
+                  <div className="space-y-3 text-sm" style={{ color: theme.subtextColor }}>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      <span>{certificate.issuerName}</span>
                     </div>
-
-                    {/* Actions */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <button
-                        onClick={() => handleViewCertificate(certificate.certificate_id)}
-                        className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-medium transition-colors text-sm bg-[#0A2540] text-white hover:bg-[#0d2f4d]"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Ver
-                      </button>
-                      <button
-                        onClick={() => handleDownload(certificate.certificate_id, certificate.course_title)}
-                        className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-medium transition-colors text-sm border bg-transparent border-gray-200 dark:border-white/20 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
-                      >
-                        <Download className="w-4 h-4" />
-                        Descargar
-                      </button>
-                      <button
-                        onClick={() => handleVerify(certificate.certificate_hash)}
-                        className="col-span-2 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-medium transition-colors text-sm border bg-gray-50 dark:bg-white/[0.03] border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
-                      >
-                        <Shield className="w-4 h-4 opacity-70" />
-                        Verificar Validez
-                      </button>
+                    <div className="flex items-center gap-2">
+                      <UserRound className="h-4 w-4" />
+                      <span>{certificate.instructorName}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>{t('certificates.issuedOn', { date: formatDate(certificate.issuedAt) })}</span>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => router.push(`/certificates/${certificate.certificateId}`)}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold"
+                      style={{
+                        backgroundColor: theme.actionColor,
+                        color: theme.onActionColor,
+                      }}
+                    >
+                      <Eye className="h-4 w-4" />
+                      {t('certificates.view')}
+                    </button>
+                    <button
+                      onClick={() =>
+                        void handleDownload(
+                          certificate.certificateId,
+                          certificate.documentModel.fileName,
+                        )
+                      }
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                      style={{
+                        backgroundColor: theme.cardBg,
+                        borderColor: theme.borderColor,
+                        color: theme.textColor,
+                      }}
+                    >
+                      <Download className="h-4 w-4" />
+                      {t('certificates.download')}
+                    </button>
+                    <button
+                      onClick={() => router.push(`/certificates/verify/${certificate.certificateHash}`)}
+                      className="col-span-2 inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                      style={{
+                        backgroundColor: theme.inputBg,
+                        borderColor: theme.borderColor,
+                        color: theme.textColor,
+                      }}
+                    >
+                      <Shield className="h-4 w-4" />
+                      {t('certificates.verifyValidity')}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         )}
       </div>
 
-      {/* LIA Integration */}
       <LiaSidePanel />
       <LiaFloatingButton />
     </div>
   )
 }
-

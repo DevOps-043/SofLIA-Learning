@@ -1,4 +1,5 @@
 import type { ChangeEventHandler, DragEventHandler, RefObject } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Upload, X } from 'lucide-react';
 
 interface DirectVideoUploadProps {
@@ -40,11 +41,12 @@ export function DirectVideoUpload({
   onDragOver,
   onDrop,
 }: DirectVideoUploadProps) {
+  const { t } = useTranslation('common');
   const hasPreview = Boolean(videoPreview);
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subir Video</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t('courseManagement.uploadVideo', { ns: 'admin' })}</label>
 
       {hasPreview ? (
         <div className="relative group">
@@ -55,7 +57,7 @@ export function DirectVideoUpload({
               type="button"
               onClick={onRemoveVideo}
               className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors z-10"
-              title="Eliminar video"
+              title={t('actions.delete')}
             >
               <X className="w-4 h-4" />
             </button>

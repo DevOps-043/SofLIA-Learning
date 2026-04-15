@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import {
   Activity,
   BookOpen,
+  CheckCircle2,
   ChevronRight,
   Info,
   ThumbsDown,
@@ -25,6 +26,7 @@ import type {
 type ActivitiesContentProps = {
   hasNextLesson?: boolean;
   lesson: LearnLesson;
+  onCompleteCourse?: () => void | Promise<void>;
   onLessonContentRefresh?: (
     lessonId: string,
     forceRefresh?: boolean
@@ -40,6 +42,7 @@ type ActivitiesContentProps = {
 export function ActivitiesContent({
   hasNextLesson,
   lesson,
+  onCompleteCourse,
   onLessonContentRefresh,
   onNavigateNext,
   onPromptsChange,
@@ -78,6 +81,7 @@ export function ActivitiesContent({
     collapsedMaterials,
     feedbackLoading,
     handleLessonFeedback,
+    isRefreshing,
     lessonFeedback,
     loading,
     materials,
@@ -196,12 +200,21 @@ export function ActivitiesContent({
   return (
     <div className="space-y-6 pb-24 md:pb-6">
       <div className="pb-4 border-b border-gray-200 dark:border-white/5">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Actividades
-        </h2>
-        <p className="text-sm text-gray-500 dark:text-white/40 mt-1">
-          {lesson.lesson_title}
-        </p>
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Actividades
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-white/40 mt-1">
+              {lesson.lesson_title}
+            </p>
+          </div>
+          {isRefreshing && (
+            <span className="text-xs font-medium text-gray-500 dark:text-white/50">
+              Actualizando progreso del quiz...
+            </span>
+          )}
+        </div>
       </div>
 
       {hasActivities && (
@@ -330,6 +343,15 @@ export function ActivitiesContent({
           >
             Siguiente video
             <ChevronRight className="w-4 h-4" />
+          </button>
+        )}
+        {!hasNextLesson && onCompleteCourse && (
+          <button
+            onClick={onCompleteCourse}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] transition-colors"
+          >
+            Finalizar curso
+            <CheckCircle2 className="w-4 h-4" />
           </button>
         )}
       </div>

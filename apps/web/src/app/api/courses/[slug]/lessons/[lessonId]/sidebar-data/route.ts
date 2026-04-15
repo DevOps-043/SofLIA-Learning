@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
+import { buildQuizSubmissionSnapshot } from '@/features/courses/services/quiz-submission.service';
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers';
 
 interface LessonActivityRow {
@@ -32,23 +33,26 @@ interface QuizProgressRow {
 }
 
 interface QuizSubmissionRow {
-  submission_id: string;
-  material_id: string | null;
   activity_id: string | null;
-  percentage_score: number | null;
-  is_passed: boolean | null;
   completed_at: string | null;
+  is_passed: boolean | null;
+  material_id: string | null;
+  submission_id: string;
+  percentage_score: number | null;
+  score: number | null;
+  user_answers: unknown;
 }
 
 interface QuizStatusItem {
+  completedAt: string | null;
   id: string;
+  latestSubmission: ReturnType<typeof buildQuizSubmissionSnapshot>;
   title: string | null;
   type: 'material' | 'activity';
   isRequired?: boolean | null;
   isCompleted: boolean;
   isPassed: boolean;
   percentage: number;
-  completedAt: string | null;
 }
 
 interface QuizStatusResponse {
@@ -259,7 +263,9 @@ export async function GET(
         // Obtener submissions del usuario
         const { data: submissions } = await supabase
           .from('user_quiz_submissions')
-            .select('submission_id, material_id, activity_id, percentage_score, is_passed, completed_at')
+            .select(
+              'submission_id, material_id, activity_id, percentage_score, is_passed, completed_at, score, user_answers'
+            )
             .eq('user_id', currentUser.id)
             .eq('lesson_id', lessonId)
             .eq('enrollment_id', enrollmentResult.enrollment_id)
@@ -280,6 +286,12 @@ export async function GET(
             type: 'material',
             isCompleted: !!submission,
             isPassed: submission?.is_passed || false,
+            latestSubmission: buildQuizSubmissionSnapshot({
+              completedAt: submission?.completed_at,
+              score: submission?.score,
+              submissionId: submission?.submission_id,
+              userAnswers: submission?.user_answers,
+            }),
             percentage: submission?.percentage_score || 0,
             completedAt: submission?.completed_at || null,
           });
@@ -298,6 +310,12 @@ export async function GET(
             isRequired: activityQuiz.is_required,
             isCompleted: !!submission,
             isPassed: submission?.is_passed || false,
+            latestSubmission: buildQuizSubmissionSnapshot({
+              completedAt: submission?.completed_at,
+              score: submission?.score,
+              submissionId: submission?.submission_id,
+              userAnswers: submission?.user_answers,
+            }),
             percentage: submission?.percentage_score || 0,
             completedAt: submission?.completed_at || null,
           });

@@ -115,6 +115,7 @@ export function useNotesManagement({
   const [editingNote, setEditingNote] = useState<LearnEditableNote | null>(
     null
   );
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   const loadedCourseSlugRef = useRef<string | null>(null);
   const statsRefreshTimeoutRef = useRef<number | null>(null);
@@ -366,7 +367,7 @@ export function useNotesManagement({
   const handleSaveNote = useCallback(
     async (noteData: LearnNoteFormData) => {
       if (!slug) {
-        alert("No se pudo determinar el curso para guardar la nota");
+        setNoteError("No se pudo determinar el curso para guardar la nota");
         return false;
       }
 
@@ -376,7 +377,7 @@ export function useNotesManagement({
       try {
         if (editingNote?.id.trim()) {
           if (!targetLessonId) {
-            alert("No se pudo determinar la leccion de la nota a editar");
+            setNoteError("No se pudo determinar la leccion de la nota a editar");
             return false;
           }
 
@@ -394,7 +395,7 @@ export function useNotesManagement({
               response,
               "Error desconocido"
             );
-            alert(`Error al actualizar la nota: ${errorMessage}`);
+            setNoteError(`Error al actualizar la nota: ${errorMessage}`);
             return false;
           }
 
@@ -405,7 +406,7 @@ export function useNotesManagement({
         }
 
         if (!targetLessonId) {
-          alert("Debe seleccionar una leccion para guardar la nota");
+          setNoteError("Debe seleccionar una leccion para guardar la nota");
           return false;
         }
 
@@ -423,7 +424,7 @@ export function useNotesManagement({
             response,
             "Error desconocido"
           );
-          alert(`Error al guardar la nota: ${errorMessage}`);
+          setNoteError(`Error al guardar la nota: ${errorMessage}`);
           return false;
         }
 
@@ -472,7 +473,7 @@ export function useNotesManagement({
 
     if (!targetLessonId) {
       closeDeleteNoteConfirm();
-      alert("No se pudo determinar la leccion de la nota a eliminar");
+      setNoteError("No se pudo determinar la leccion de la nota a eliminar");
       return;
     }
 
@@ -504,7 +505,7 @@ export function useNotesManagement({
           response,
           "Error desconocido"
         );
-        alert(`Error al eliminar la nota: ${errorMessage}`);
+        setNoteError(`Error al eliminar la nota: ${errorMessage}`);
       }
 
       closeDeleteNoteConfirm();
@@ -512,7 +513,7 @@ export function useNotesManagement({
       await loadCourseNotes(slug);
       await loadNotesStats(slug);
       closeDeleteNoteConfirm();
-      alert(
+      setNoteError(
         isAbortError(error)
           ? "La eliminacion de la nota tardó demasiado. Intenta de nuevo."
           : "Error al eliminar la nota. Por favor, intenta de nuevo."
@@ -570,6 +571,8 @@ export function useNotesManagement({
     isDeleteNoteConfirmOpen,
     isDeletingNote,
     isNotesModalOpen,
+    noteError,
+    setNoteError,
     notesStats,
     openEditNoteModal,
     openLiaNoteModal,

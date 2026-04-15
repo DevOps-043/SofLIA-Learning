@@ -26,6 +26,8 @@ import {
   buildWorkshopEnrichedLessonContext,
   buildWorkshopHelpMessage,
 } from '../services/learn-workshop-assistant.service'
+import { CourseCertificateService } from '../services/course-certificate.service'
+import { useCourseCompletionFlow } from './useCourseCompletionFlow'
 import { useLessonCompletion } from './useLessonCompletion'
 import { useLessonNavigation } from './useLessonNavigation'
 import { useLessonSidebarState } from './useLessonSidebarState'
@@ -198,6 +200,8 @@ export function useLearnPageLogic() {
     isDeleteNoteConfirmOpen,
     isDeletingNote,
     isNotesModalOpen,
+    noteError,
+    setNoteError,
     notesStats,
     openEditNoteModal,
     openLiaNoteModal,
@@ -343,14 +347,6 @@ export function useLearnPageLogic() {
     openValidationModal,
     validationModal,
     setValidationModal,
-    isCourseCompletedModalOpen,
-    setIsCourseCompletedModalOpen,
-    isCannotCompleteModalOpen,
-    setIsCannotCompleteModalOpen,
-    isRatingModalOpen,
-    setIsRatingModalOpen,
-    hasUserRated,
-    setHasUserRated,
   } = useLessonCompletion({
     slug,
     currentLesson,
@@ -359,6 +355,36 @@ export function useLearnPageLogic() {
     setCurrentLesson,
     setCourseProgress,
     canCompleteLesson,
+  })
+
+  const courseId = course?.id ?? course?.course_id ?? null
+  const courseEnrollmentId = course?.enrollment_id ?? null
+  const courseOrganizationId = course?.organization_id ?? organizationId ?? null
+
+  const handleCertificateReady = useCallback(
+    (route: string) => {
+      CourseCertificateService.navigateToCertificateRoute(route, router)
+    },
+    [router],
+  )
+
+  const {
+    closeCannotCompleteModal,
+    closeRatingModal,
+    handleCourseCompletedClose,
+    handleRatingSubmit,
+    hasUserRated,
+    isCannotCompleteModalOpen,
+    isCourseCompletedModalOpen,
+    isRatingModalOpen,
+    openCannotCompleteModal,
+    openCourseCompletedModal,
+  } = useCourseCompletionFlow({
+    courseId,
+    enrollmentId: courseEnrollmentId,
+    organizationId: courseOrganizationId,
+    courseSlug: slug,
+    onCertificateReady: handleCertificateReady,
   })
 
   const handleTabChange = useCallback(
@@ -409,6 +435,29 @@ export function useLearnPageLogic() {
     trackUserAction,
     videoPlayerContext,
   })
+
+  const completeCurrentCourse = useCallback(async () => {
+    if (!currentLesson?.lesson_id) {
+      return
+    }
+
+    if (!canCompleteLesson(currentLesson.lesson_id)) {
+      openCannotCompleteModal()
+      return
+    }
+
+    const success = await markLessonAsCompleted(currentLesson.lesson_id)
+
+    if (success) {
+      openCourseCompletedModal()
+    }
+  }, [
+    canCompleteLesson,
+    currentLesson?.lesson_id,
+    markLessonAsCompleted,
+    openCannotCompleteModal,
+    openCourseCompletedModal,
+  ])
 
   // Effect para transición automática tras completar video.
   // Ubicado después de useLessonNavigation para evitar TDZ de navigateToNextLesson.
@@ -643,6 +692,8 @@ export function useLearnPageLogic() {
     isDeleteNoteConfirmOpen,
     isDeletingNote,
     isNotesModalOpen,
+    noteError,
+    setNoteError,
     notesStats,
     openEditNoteModal,
     openNewNoteModal,
@@ -657,17 +708,20 @@ export function useLearnPageLogic() {
     orderedLessons,
     currentLessonIndex,
     canCompleteLesson,
+    completeCurrentCourse,
     markLessonAsCompleted,
+    closeCannotCompleteModal,
+    closeRatingModal,
+    handleCourseCompletedClose,
+    handleRatingSubmit,
+    hasUserRated,
     isCourseCompletedModalOpen,
-    setIsCourseCompletedModalOpen,
     isCannotCompleteModalOpen,
-    setIsCannotCompleteModalOpen,
     isClearHistoryModalOpen,
     setIsClearHistoryModalOpen,
     isRatingModalOpen,
-    setIsRatingModalOpen,
-    hasUserRated,
-    setHasUserRated,
+    openCannotCompleteModal,
+    openCourseCompletedModal,
     validationModal,
     setValidationModal,
     currentActivityPrompts,

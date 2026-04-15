@@ -192,6 +192,8 @@
     "download": "Baixar",
     "saveToNotes": "Salvar nas notas",
     "savingToNotes": "Salvando...",
+    "savedToNotes": "Transcrição salva nas notas",
+    "saveNoteError": "Erro ao salvar a transcrição nas notas",
     "lastUpdate": "Última atualização",
     "tips": {
       "checkAudio": "Verifique se o vídeo possui áudio",
@@ -272,5 +274,21 @@
         "description": "Agora você já conhece a estrutura do curso. Avance no seu ritmo, use cada ferramenta quando precisar e reabra este guia sempre que quiser revisar o percurso."
       }
     }
+  },
+  "scorm": {
+    "title": "Pacotes SCORM",
+    "subtitle": "Envie pacotes SCORM 1.2 ou 2004 para este curso",
+    "uploadPackage": "Enviar Pacote",
+    "cancelUpload": "Cancelar",
+    "loading": "Carregando pacotes...",
+    "empty": "Sem pacotes SCORM",
+    "emptyHint": "Envie seu primeiro pacote para começar",
+    "preview": "Pré-visualização",
+    "delete": "Excluir",
+    "deleting": "Excluindo...",
+    "statusActive": "Ativo",
+    "statusProcessing": "Processando",
+    "statusInactive": "Inativo",
+    "confirmDelete": "Tem certeza de que deseja excluir este pacote SCORM?"
   }
 }

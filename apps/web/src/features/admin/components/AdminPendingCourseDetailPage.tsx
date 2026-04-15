@@ -3,6 +3,7 @@
 import { ChevronLeftIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAdminCourseDetail } from '../hooks/useAdminCourseDetail';
 import { ConfirmationModal } from './ConfirmationModal';
 import { AdminPendingCourseActionBar } from './admin-pending-course-detail/AdminPendingCourseActionBar';
@@ -21,11 +22,13 @@ export function AdminPendingCourseDetailPage({
   successRedirectPath = '/admin/courses/pending',
 }: AdminPendingCourseDetailPageProps) {
   const router = useRouter();
+  const { t } = useTranslation('admin');
   const { course: courseData, isLoading, error, approveCourse, rejectCourse, deleteCourse, reconsiderCourse } = useAdminCourseDetail(courseId);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDiffView, setShowDiffView] = useState(true);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const course = courseData as PendingCourseDetail | null;
 
@@ -34,7 +37,7 @@ export function AdminPendingCourseDetailPage({
     if (success) {
       router.push(successRedirectPath);
     } else {
-      alert('Error al aprobar');
+      setActionError(t('pendingCourseDetail.errorApprove'));
     }
     setShowApproveModal(false);
   };
@@ -44,7 +47,7 @@ export function AdminPendingCourseDetailPage({
     if (success) {
       router.push(successRedirectPath);
     } else {
-      alert('Error al rechazar');
+      setActionError(t('pendingCourseDetail.errorReject'));
     }
     setShowRejectModal(false);
   };
@@ -54,7 +57,7 @@ export function AdminPendingCourseDetailPage({
     if (success) {
       router.push(successRedirectPath);
     } else {
-      alert('Error al eliminar');
+      setActionError(t('pendingCourseDetail.errorDelete'));
     }
     setShowDeleteModal(false);
   };
@@ -62,7 +65,7 @@ export function AdminPendingCourseDetailPage({
   const handleReconsider = async () => {
     const success = await reconsiderCourse();
     if (!success) {
-      alert('Error al reconsiderar');
+      setActionError(t('pendingCourseDetail.errorReconsider'));
     }
   };
 
@@ -79,7 +82,7 @@ export function AdminPendingCourseDetailPage({
   }
 
   if (!course) {
-    return <div className="p-8">Curso no encontrado</div>;
+    return <div className="p-8">{t('pendingCourseDetail.notFound')}</div>;
   }
 
   const isRejected = course.approval_status === 'rejected';
@@ -93,14 +96,21 @@ export function AdminPendingCourseDetailPage({
         className="flex items-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6 transition-colors"
       >
         <ChevronLeftIcon className="h-4 w-4 mr-1" />
-        Volver a pendientes
+        {t('pendingCourseDetail.backToPending')}
       </button>
+
+      {actionError && (
+        <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+          <span>{actionError}</span>
+          <button onClick={() => setActionError(null)} className="ml-4 text-red-400 hover:text-red-300">×</button>
+        </div>
+      )}
 
       <AdminPendingCourseHeader course={course} />
 
       <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
         <BookOpenIcon className="h-6 w-6 text-blue-500" />
-        Contenido del Curso
+        {t('pendingCourseDetail.courseContent')}
       </h2>
 
       {hasDiff && diff && showDiffView ? (
@@ -125,30 +135,27 @@ export function AdminPendingCourseDetailPage({
         isOpen={showApproveModal}
         onClose={() => setShowApproveModal(false)}
         onConfirm={handleApprove}
-        title="Confirmar Publicación"
-        message="¿Estás seguro de publicar este curso? Será visible inmediatamente para los estudiantes."
-        confirmText="Sí, Publicar"
-        cancelText="Cancelar"
+        title={t('pendingCourseDetail.approveModal.title')}
+        message={t('pendingCourseDetail.approveModal.message')}
+        confirmText={t('pendingCourseDetail.approveModal.confirm')}
         type="success"
       />
       <ConfirmationModal
         isOpen={showRejectModal}
         onClose={() => setShowRejectModal(false)}
         onConfirm={handleReject}
-        title="Rechazar Curso"
-        message="Esta acción no se puede deshacer fácilmente. El curso pasará a estado 'rejected'."
-        confirmText="Sí, Rechazar"
-        cancelText="Cancelar"
+        title={t('pendingCourseDetail.rejectModal.title')}
+        message={t('pendingCourseDetail.rejectModal.message')}
+        confirmText={t('pendingCourseDetail.rejectModal.confirm')}
         type="danger"
       />
       <ConfirmationModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Eliminar Curso"
-        message="¿Estás seguro de que deseas eliminar permanentemente este curso? Esta acción no se puede deshacer."
-        confirmText="Sí, Eliminar"
-        cancelText="Cancelar"
+        title={t('pendingCourseDetail.deleteModal.title')}
+        message={t('pendingCourseDetail.deleteModal.message')}
+        confirmText={t('pendingCourseDetail.deleteModal.confirm')}
         type="danger"
       />
     </div>

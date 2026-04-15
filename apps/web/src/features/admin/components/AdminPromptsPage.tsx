@@ -14,6 +14,7 @@ import {
   EyeSlashIcon,
   TagIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { useAdminPrompts } from '../hooks/useAdminPrompts'
 import { AdminPrompt } from '../services/adminPrompts.service'
 
@@ -48,6 +49,7 @@ export function AdminPromptsPage() {
     togglePromptFeatured 
   } = useAdminPrompts()
   
+  const { t } = useTranslation('common')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -416,7 +418,7 @@ export function AdminPromptsPage() {
                           setIsViewModalOpen(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                        title="Ver prompt"
+                        title={t('actions.viewDetails')}
                       >
                         <EyeIcon className="h-4 w-4" />
                       </button>
@@ -427,7 +429,7 @@ export function AdminPromptsPage() {
                           setIsEditModalOpen(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title="Editar prompt"
+                        title={t('actions.edit')}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
@@ -438,7 +440,7 @@ export function AdminPromptsPage() {
                           setIsDeleteModalOpen(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Eliminar prompt"
+                        title={t('actions.delete')}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>

@@ -20,6 +20,7 @@ export function VideoProviderSelector({
   const {
     uploading,
     uploadProgress,
+    uploadError,
     selectedFile,
     videoPreview,
     videoDuration,
@@ -46,6 +47,10 @@ export function VideoProviderSelector({
   return (
     <div className="space-y-4">
       <VideoProviderButtons provider={provider} disabled={disabled} onProviderChange={onProviderChange} />
+
+      {uploadError && (
+        <p className="text-sm text-red-500">{uploadError}</p>
+      )}
 
       <div>
         {provider === 'direct' ? (

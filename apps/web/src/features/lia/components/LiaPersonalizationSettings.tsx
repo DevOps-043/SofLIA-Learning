@@ -16,6 +16,7 @@ import {
   History,
   Info,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useLiaPersonalization } from '@/core/hooks/useLiaPersonalization';
 import type {
   BaseStyle,
@@ -27,17 +28,17 @@ interface LiaPersonalizationSettingsProps {
   onClose: () => void;
 }
 
-const BASE_STYLES: { value: BaseStyle; label: string; description: string }[] = [
-  { value: 'professional', label: 'Profesional', description: 'Tono formal y directo, apropiado para trabajo' },
-  { value: 'casual', label: 'Casual', description: 'Tono relajado y conversacional' },
-  { value: 'technical', label: 'Técnico', description: 'Enfocado en detalles técnicos y precisión' },
-  { value: 'friendly', label: 'Amigable', description: 'Cálido y cercano, como un compañero' },
-  { value: 'formal', label: 'Formal', description: 'Lenguaje estructurado y respetuoso' },
-];
-
-
 export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizationSettingsProps) {
   const { settings, loading, error, updateSettings, resetSettings } = useLiaPersonalization();
+  const { t } = useTranslation('common');
+
+  const BASE_STYLES: { value: BaseStyle; label: string; description: string }[] = [
+    { value: 'professional', label: t('liaPersonalization.styles.professional.label'), description: t('liaPersonalization.styles.professional.description') },
+    { value: 'casual', label: t('liaPersonalization.styles.casual.label'), description: t('liaPersonalization.styles.casual.description') },
+    { value: 'technical', label: t('liaPersonalization.styles.technical.label'), description: t('liaPersonalization.styles.technical.description') },
+    { value: 'friendly', label: t('liaPersonalization.styles.friendly.label'), description: t('liaPersonalization.styles.friendly.description') },
+    { value: 'formal', label: t('liaPersonalization.styles.formal.label'), description: t('liaPersonalization.styles.formal.description') },
+  ];
   
   const [formData, setFormData] = useState<SofLIAPersonalizationSettingsInput>({
     base_style: 'professional',
@@ -87,25 +88,28 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
 
     try {
       await updateSettings(formData);
-      setSaveMessage({ type: 'success', text: 'Configuración guardada correctamente' });
+      setSaveMessage({ type: 'success', text: t('liaPersonalization.saveSuccess') });
       setTimeout(() => {
         setSaveMessage(null);
       }, 3000);
     } catch (error: unknown) {
       setSaveMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Error al guardar configuración',
+        text: error instanceof Error ? error.message : t('liaPersonalization.saveError'),
       });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleReset = async () => {
-    if (!confirm('¿Estás seguro de que quieres restablecer la configuración a los valores por defecto?')) {
-      return;
-    }
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+  const handleReset = () => {
+    setShowResetConfirm(true);
+  };
+
+  const handleResetConfirm = async () => {
+    setShowResetConfirm(false);
     setIsSaving(true);
     try {
       await resetSettings();
@@ -118,14 +122,14 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
         voice_enabled: true,
         dictation_enabled: false,
       });
-      setSaveMessage({ type: 'success', text: 'Configuración restablecida' });
+      setSaveMessage({ type: 'success', text: t('liaPersonalization.resetSuccess') });
       setTimeout(() => {
         setSaveMessage(null);
       }, 3000);
     } catch (error: unknown) {
       setSaveMessage({
         type: 'error',
-        text: error instanceof Error ? error.message : 'Error al restablecer configuración',
+        text: error instanceof Error ? error.message : t('liaPersonalization.resetError'),
       });
     } finally {
       setIsSaving(false);
@@ -191,15 +195,15 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
 
               {/* Estilo y Tono Base */}
               <Section
-                title="Estilo y tono base"
-                description="Configura el estilo y tono que LIA usa al responder"
+                title={t('liaPersonalization.sections.style.title')}
+                description={t('liaPersonalization.sections.style.description')}
                 icon={Sparkles}
                 isExpanded={expandedSections.style}
                 onToggle={() => toggleSection('style')}
               >
                 <div>
                   <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white">
-                    Estilo
+                    {t('liaPersonalization.styleLabel')}
                   </label>
                   <select
                     value={formData.base_style}
@@ -220,22 +224,22 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
 
               {/* Características */}
               <Section
-                title="Características"
-                description="Selecciona otras personalizaciones además del estilo y tono base"
+                title={t('liaPersonalization.sections.characteristics.title')}
+                description={t('liaPersonalization.sections.characteristics.description')}
                 icon={MessageSquare}
                 isExpanded={expandedSections.characteristics}
                 onToggle={() => toggleSection('characteristics')}
               >
                 <div className="space-y-4">
                   <ToggleField
-                    label="Amable"
-                    description="Habilita un tono amable y empático"
+                    label={t('liaPersonalization.friendlyLabel')}
+                    description={t('liaPersonalization.friendlyDesc')}
                     checked={formData.is_friendly ?? true}
                     onChange={(checked) => setFormData({ ...formData, is_friendly: checked })}
                   />
                   <ToggleField
-                    label="Entusiasta"
-                    description="Muestra entusiasmo y energía positiva"
+                    label={t('liaPersonalization.enthusiasticLabel')}
+                    description={t('liaPersonalization.enthusiasticDesc')}
                     checked={formData.is_enthusiastic ?? true}
                     onChange={(checked) => setFormData({ ...formData, is_enthusiastic: checked })}
                   />
@@ -244,8 +248,8 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
 
               {/* Instrucciones Personalizadas */}
               <Section
-                title="Instrucciones personalizadas"
-                description="Preferencias adicionales de comportamiento, estilo y tono"
+                title={t('liaPersonalization.sections.instructions.title')}
+                description={t('liaPersonalization.sections.instructions.description')}
                 icon={Settings}
                 isExpanded={expandedSections.instructions}
                 onToggle={() => toggleSection('instructions')}
@@ -254,21 +258,21 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
                   <textarea
                     value={formData.custom_instructions || ''}
                     onChange={(e) => setFormData({ ...formData, custom_instructions: e.target.value || null })}
-                    placeholder="Ejemplo: Prefiero respuestas cortas y directas. Siempre incluye ejemplos prácticos."
+                    placeholder={t('liaPersonalization.instructionsPlaceholder')}
                     rows={6}
                     maxLength={2000}
                     className="w-full px-4 py-3 rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#0F1419] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-[#00D4B3] resize-none"
                   />
                   <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-2">
-                    {(formData.custom_instructions?.length || 0)} / 2000 caracteres
+                    {(formData.custom_instructions?.length || 0)} / 2000 {t('liaPersonalization.characters')}
                   </p>
                 </div>
               </Section>
 
               {/* Acerca de Ti */}
               <Section
-                title="Acerca de ti"
-                description="Información personal para personalizar las respuestas"
+                title={t('liaPersonalization.sections.about.title')}
+                description={t('liaPersonalization.sections.about.description')}
                 icon={User}
                 isExpanded={expandedSections.about}
                 onToggle={() => toggleSection('about')}
@@ -276,18 +280,18 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white">
-                      Apodo
+                      {t('liaPersonalization.nicknameLabel')}
                     </label>
                     <input
                       type="text"
                       value={formData.nickname || ''}
                       onChange={(e) => setFormData({ ...formData, nickname: e.target.value || null })}
-                      placeholder="Ejemplo: Fer"
+                      placeholder={t('liaPersonalization.nicknamePlaceholder')}
                       maxLength={50}
                       className="w-full px-4 py-3 rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 bg-white dark:bg-[#0F1419] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-[#00D4B3]"
                     />
                     <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-2">
-                      El nombre y ocupación se obtienen automáticamente del sistema
+                      {t('liaPersonalization.nicknameHint')}
                     </p>
                   </div>
                 </div>
@@ -295,22 +299,22 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
 
               {/* Avanzado */}
               <Section
-                title="Avanzado"
-                description="Funciones avanzadas de LIA"
+                title={t('liaPersonalization.sections.advanced.title')}
+                description={t('liaPersonalization.sections.advanced.description')}
                 icon={Settings}
                 isExpanded={expandedSections.advanced}
                 onToggle={() => toggleSection('advanced')}
               >
                 <div className="space-y-4">
                   <ToggleField
-                    label="Voz"
-                    description="Habilitar respuestas por voz"
+                    label={t('liaPersonalization.voiceLabel')}
+                    description={t('liaPersonalization.voiceDesc')}
                     checked={formData.voice_enabled ?? true}
                     onChange={(checked) => setFormData({ ...formData, voice_enabled: checked })}
                   />
                   <ToggleField
-                    label="Modo de Dictado"
-                    description="Permite dictar mensajes usando reconocimiento de voz"
+                    label={t('liaPersonalization.dictationLabel')}
+                    description={t('liaPersonalization.dictationDesc')}
                     checked={formData.dictation_enabled ?? false}
                     onChange={(checked) => setFormData({ ...formData, dictation_enabled: checked })}
                   />
@@ -320,6 +324,21 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
           )}
         </div>
 
+        {/* Reset confirmation inline */}
+        {showResetConfirm && (
+          <div className="px-6 py-3 bg-amber-50 dark:bg-amber-900/20 border-t border-amber-200 dark:border-amber-700/30 flex items-center justify-between gap-4">
+            <p className="text-sm text-amber-700 dark:text-amber-400">{t('liaPersonalization.confirmReset')}</p>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => setShowResetConfirm(false)} className="px-3 py-1.5 text-sm border border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-400 rounded hover:bg-amber-100 dark:hover:bg-amber-800/30 transition-colors">
+                {t('actions.cancel')}
+              </button>
+              <button onClick={handleResetConfirm} className="px-3 py-1.5 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors">
+                {t('actions.confirm')}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between p-6 border-t border-[#E9ECEF] dark:border-[#6C757D]/30">
           <button
@@ -327,14 +346,14 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
             disabled={isSaving}
             className="px-4 py-2 text-sm text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white transition-colors disabled:opacity-50"
           >
-            Restablecer
+            {t('actions.retry')}
           </button>
           <div className="flex items-center gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 text-sm text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white transition-colors"
             >
-              Cancelar
+              {t('actions.cancel')}
             </button>
             <button
               onClick={handleSave}
@@ -344,12 +363,12 @@ export function LiaPersonalizationSettings({ isOpen, onClose }: LiaPersonalizati
               {isSaving ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Guardando...
+                  {t('actions.saving')}
                 </>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
-                  Guardar
+                  {t('actions.save')}
                 </>
               )}
             </button>

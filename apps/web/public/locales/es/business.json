@@ -93,7 +93,10 @@
     "emptyCourses": {
       "title": "No tienes cursos asignados aún",
       "description": "Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti."
-    }
+    },
+    "confirmResetLayout": "¿Estás seguro de que deseas restablecer el layout por defecto? Esto eliminará tu personalización actual.",
+    "restoreLayout": "Restablecer",
+    "addWidget": "Agregar widget:"
   },
   "users": {
     "title": "Usuarios",
@@ -111,7 +114,14 @@
       "delete": "Eliminar Usuario",
       "deleting": "Eliminando...",
       "finish": "Finalizar",
-      "importAnother": "Importar otro"
+      "importAnother": "Importar otro",
+      "sending": "Enviando...",
+      "sendInvite": "Enviar Invitación",
+      "close": "Cerrar",
+      "newLink": "Nuevo Enlace",
+      "createAnother": "Crear Otro",
+      "done": "Listo",
+      "createLink": "Crear Enlace"
     },
     "placeholders": {
       "search": "Buscar por nombre, email o username..."
@@ -322,7 +332,98 @@
           "lastConnection": "Última Conexión",
           "typeRole": "Tipo de Rol"
         }
+      },
+      "invite": {
+        "title": "Invitar Usuario",
+        "subtitle": "Envía una invitación por correo para unirse a la organización",
+        "fields": {
+          "email": "Correo Electrónico",
+          "name": "Nombre",
+          "lastName": "Apellido",
+          "role": "Rol"
+        },
+        "placeholders": {
+          "email": "usuario@empresa.com",
+          "name": "Nombre del usuario",
+          "lastName": "Apellido del usuario"
+        },
+        "roleDesc": {
+          "BusinessUser": "Acceso de empleado a cursos y contenido",
+          "Business": "Acceso completo al panel de administración"
+        },
+        "hints": {
+          "info": "Se enviará un correo con el enlace de activación"
+        },
+        "success": {
+          "title": "Invitación Enviada",
+          "message": "Se envió una invitación a {{email}}"
+        },
+        "errorNoOrg": "No se encontró la organización",
+        "errorSend": "Error al enviar invitación"
+      },
+      "bulkInvite": {
+        "title": "Crear Enlace de Invitación Masiva",
+        "subtitle": "Genera un enlace para invitar múltiples usuarios a la vez",
+        "fields": {
+          "linkName": "Nombre del Enlace",
+          "role": "Rol de los Invitados",
+          "maxUses": "Máximo de Usos",
+          "expiresAt": "Fecha de Expiración"
+        },
+        "placeholders": {
+          "linkName": "Ej: Enlace para equipo de ventas",
+          "maxUses": "Sin límite"
+        },
+        "roleDesc": {
+          "BusinessUser": "Acceso de empleado",
+          "Business": "Acceso de administrador"
+        },
+        "hints": {
+          "unlimited": "Dejar vacío para usos ilimitados",
+          "noExpiry": "Dejar vacío para sin expiración",
+          "share": "Comparte este enlace con los usuarios que deseas invitar"
+        },
+        "success": {
+          "title": "Enlace Creado",
+          "message": "El enlace de invitación ha sido generado",
+          "copy": "Copiar Enlace",
+          "copied": "Enlace copiado"
+        },
+        "errorCreate": "Error al crear el enlace"
+      },
+      "manageLinks": {
+        "title": "Gestionar Enlaces de Invitación",
+        "subtitle": "Administra los enlaces de invitación activos",
+        "empty": {
+          "title": "Sin enlaces activos",
+          "description": "Crea tu primer enlace de invitación masiva"
+        },
+        "unnamed": "Enlace sin nombre",
+        "uses": "usos",
+        "linkSingular": "enlace",
+        "linkPlural": "enlaces",
+        "status": {
+          "active": "Activo",
+          "inactive": "Inactivo",
+          "expired": "Expirado",
+          "unlimited": "Ilimitado"
+        },
+        "actions": {
+          "copyLink": "Copiar enlace",
+          "deactivate": "Desactivar",
+          "activate": "Activar",
+          "delete": "Eliminar"
+        },
+        "errorLoad": "Error al cargar los enlaces",
+        "errorDelete": "Error al eliminar el enlace",
+        "errorUpdate": "Error al actualizar el enlace",
+        "errorOperation": "Error en la operación"
       }
+    },
+    "sections": {
+      "personalInfo": "Información Personal",
+      "professionalDetails": "Detalles Profesionales",
+      "accessConfig": "Configuración de Acceso"
     }
   },
   "courses": {
@@ -451,7 +552,6 @@
     "title": "Configuración",
     "subtitle": "Gestiona las configuraciones de tu organización"
   },
-
   "analytics": {
     "title": "Analytics",
     "headerTitle": "Analytics y Rendimiento",
@@ -505,7 +605,9 @@
       "noDescription": "Sin descripción",
       "progress": "Progreso",
       "time": "Tiempo",
-      "coursesCompleted": "Cursos Completados"
+      "coursesCompleted": "Cursos Completados",
+      "totalChats": "Total Chats SofLIA",
+      "totalSofLIAChats": "Total Chats SofLIA"
     },
     "userDetail": {
       "streak": "Racha",
@@ -842,10 +944,22 @@
       "confidential": "Confidencial - Uso exclusivo de"
     },
     "types": {
-      "liaAnalysis": { "label": "Análisis LIA", "description": "Análisis predictivo con IA" },
-      "users": { "label": "Usuarios", "description": "Información detallada de usuarios" },
-      "activity": { "label": "Actividad", "description": "Seguimiento de actividad reciente" },
-      "certificates": { "label": "Certificados", "description": "Certificados emitidos" }
+      "liaAnalysis": {
+        "label": "Análisis LIA",
+        "description": "Análisis predictivo con IA"
+      },
+      "users": {
+        "label": "Usuarios",
+        "description": "Información detallada de usuarios"
+      },
+      "activity": {
+        "label": "Actividad",
+        "description": "Seguimiento de actividad reciente"
+      },
+      "certificates": {
+        "label": "Certificados",
+        "description": "Certificados emitidos"
+      }
     },
     "actions": {
       "filters": "Filtros",
@@ -953,5 +1067,140 @@
       "recentActivity": "Actividad Reciente",
       "last6Months": "Interacciones últimos 6 meses"
     }
+  },
+  "hierarchy": {
+    "errorCreateStructure": "Error al crear estructura",
+    "errorEnable": "Error al activar jerarquía",
+    "errorDisable": "Error al desactivar jerarquía",
+    "loadingConfig": "Cargando Configuración...",
+    "types": {
+      "region": "Región",
+      "zone": "Zona",
+      "team": "Equipo"
+    },
+    "managers": {
+      "region": "Gerente Regional",
+      "zone": "Gerente de Zona",
+      "team": "Líder de Equipo"
+    },
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo",
+    "unassigned": "Sin asignar",
+    "stats": "Estadísticas",
+    "zones": "Zonas",
+    "teams": "Equipos",
+    "assignedUsers": "Usuarios asignados",
+    "users": "Usuarios",
+    "members": "Miembros",
+    "capacity": "Capacidad",
+    "goal": "Objetivo",
+    "monthlyTarget": "Meta Mensual",
+    "description": "Descripción",
+    "location": "Ubicación",
+    "contact": "Contacto",
+    "info": "Información",
+    "created": "Creado",
+    "updated": "Actualizado",
+    "deleteConfirmError": "Escribe \"{{name}}\" para confirmar",
+    "deleteWarning": "Esta acción no se puede deshacer. Escribe",
+    "deleteWarningEnd": "para confirmar.",
+    "errorDelete": "Error al eliminar",
+    "statusActiveBadge": "● Activa",
+    "statusInactiveBadge": "○ Inactiva",
+    "statRegions": "Regiones",
+    "statZones": "Zonas",
+    "statTeams": "Equipos",
+    "statAssigned": "Asignados",
+    "statUnassigned": "Sin asignar",
+    "basicStructureTitle": "Comenzar con estructura básica",
+    "basicStructureDesc": "Crea una región, zona y equipo inicial automáticamente",
+    "enableLabel": "Activar jerarquía",
+    "disableLabel": "Desactivar jerarquía",
+    "unassignedWarning": "Hay <strong>{{count}}</strong> usuario(s) sin equipo asignado. Asígnelos antes de activar.",
+    "enableTitle": "Activar jerarquía",
+    "enableMessage": "Al activar, los usuarios solo podrán ver datos dentro de su ámbito asignado (equipo, zona o región). ¿Desea continuar?",
+    "disableTitle": "Desactivar jerarquía",
+    "disableMessage": "Al desactivar, todos los usuarios podrán ver todos los datos. La estructura se mantiene pero no se aplican restricciones.",
+    "confirmEnable": "Activar",
+    "confirmDisable": "Desactivar",
+    "processing": "Procesando...",
+    "creating": "Creando...",
+    "creating2": "Crear",
+    "saved": "Guardado",
+    "userBehavior": {
+      "title": "Comportamiento de Usuarios",
+      "subtitle": "Configura cómo se gestionan los usuarios dentro de la jerarquía",
+      "autoAssign": {
+        "label": "Auto-asignar nuevos usuarios",
+        "description": "Los nuevos miembros se asignarán automáticamente al equipo predeterminado al unirse a la organización."
+      },
+      "requireTeam": {
+        "label": "Requerir equipo asignado",
+        "description": "Los usuarios deben tener un equipo asignado para acceder a la plataforma. Los usuarios sin equipo verán un aviso."
+      }
+    },
+    "roles": {
+      "title": "Roles y Permisos",
+      "subtitle": "Cada rol determina el alcance de acceso a datos dentro de la jerarquía",
+      "scope": {
+        "owner": "Toda la organización",
+        "admin": "Según asignación",
+        "regional_manager": "Región asignada",
+        "zone_manager": "Zona asignada",
+        "team_leader": "Equipo asignado",
+        "node_manager": "Nodo específico",
+        "member": "Solo su equipo"
+      }
+    },
+    "cancel": "Cancelar",
+    "addSubLevel": "Agregar Sub-nivel",
+    "leaderLabel": "Líder",
+    "membersCount": "{{count}} miembros",
+    "terminalLevel": "Nivel Terminal",
+    "confirmCancelAssignment": "¿Estás seguro de que deseas cancelar esta asignación?",
+    "confirmRemoveMember": "¿Estás seguro de remover a este miembro del nodo?",
+    "confirmDeleteNode": "¿Seguro que deseas eliminar {{name}} y todos sus descendientes?",
+    "cancelError": "Error al cancelar la asignación",
+    "saveNodeError": "Error al guardar el nodo",
+    "activeStructure": "Estructura Activa",
+    "selectStructure": "Seleccionar Estructura",
+    "defaultBadge": "(Principal)",
+    "newStructure": "Nueva Estructura",
+    "syncing": "Sincronizando...",
+    "emptyStructureTitle": "Estructura vacía",
+    "emptyStructureDesc": "Esta estructura no contiene niveles organizacionales definidos actualmente.",
+    "initializeGeneral": "Inicializar 'General'",
+    "noRootNode": "No se encontró un nodo raíz. Cree un nodo 'General' primero.",
+    "saveStructureError": "Error al crear la estructura",
+    "loadStructuresError": "Error cargando estructuras",
+    "loadHierarchyError": "Error cargando jerarquía"
+  },
+  "common": {
+    "optional": "Opcional",
+    "refresh": "Actualizar",
+    "copy": "Copiar",
+    "openInNewTab": "Abrir en nueva pestaña"
+  },
+  "assignments": {
+    "loading": "Cargando asignaciones...",
+    "emptyEntity": "No hay cursos asignados a esta entidad",
+    "assign": "Asignar Cursos",
+    "totalUsers": "Total Usuarios",
+    "assignedCount": "Asignados",
+    "completedCount": "Completados",
+    "completionRate": "Tasa de Completación",
+    "assignedAt": "Asignado:",
+    "dueDate": "Vence:",
+    "assignedBy": "Asignado por:",
+    "editTitle": "Editar asignación",
+    "cancelTitle": "Cancelar asignación",
+    "noTitle": "Curso sin título",
+    "statusActive": "Activa",
+    "statusCompleted": "Completada",
+    "statusCancelled": "Cancelada",
+    "emptyForEntity": "No hay cursos asignados a {{name}}"
+  },
+  "chat": {
+    "confirmDeleteMessage": "¿Eliminar este mensaje?"
   }
 }

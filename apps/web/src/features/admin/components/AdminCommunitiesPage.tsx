@@ -2,6 +2,7 @@
 
 import { Activity, Crown, MessageCircle, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useAdminCommunitiesPageLogic } from '../hooks/useAdminCommunitiesPageLogic'
 import { AddCommunityModal } from './AddCommunityModal'
 import { DeleteCommunityModal } from './DeleteCommunityModal'
@@ -18,6 +19,7 @@ import {
 } from './admin-communities'
 
 export function AdminCommunitiesPage() {
+  const { t } = useTranslation('admin')
   const logic = useAdminCommunitiesPageLogic()
 
   if (logic.isLoading) {
@@ -36,7 +38,7 @@ export function AdminCommunitiesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <AdminCommunitiesStatCard
-              title="Total Comunidades"
+              title={t('communities.stats.total')}
               value={logic.stats?.totalCommunities || 0}
               Icon={Users}
               iconColor={adminCommunitiesColors.accent}
@@ -45,7 +47,7 @@ export function AdminCommunitiesPage() {
               trend={12}
             />
             <AdminCommunitiesStatCard
-              title="Total Miembros"
+              title={t('communities.stats.members')}
               value={logic.stats?.totalMembers || 0}
               Icon={Crown}
               iconColor={adminCommunitiesColors.warning}
@@ -54,7 +56,7 @@ export function AdminCommunitiesPage() {
               trend={8}
             />
             <AdminCommunitiesStatCard
-              title="Total Posts"
+              title={t('communities.stats.posts')}
               value={logic.stats?.totalPosts || 0}
               Icon={MessageCircle}
               iconColor={adminCommunitiesColors.success}
@@ -63,7 +65,7 @@ export function AdminCommunitiesPage() {
               trend={24}
             />
             <AdminCommunitiesStatCard
-              title="Comunidades Activas"
+              title={t('communities.stats.active')}
               value={logic.stats?.activeCommunities || 0}
               Icon={Activity}
               iconColor="#8B5CF6"
@@ -85,8 +87,7 @@ export function AdminCommunitiesPage() {
 
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-500">
-              Mostrando <span className="text-white font-medium">{logic.filteredCommunities.length}</span> de{' '}
-              <span className="text-white font-medium">{logic.communities.length}</span> comunidades
+              {t('communities.showing', { filtered: logic.filteredCommunities.length, total: logic.communities.length })}
             </p>
           </div>
 

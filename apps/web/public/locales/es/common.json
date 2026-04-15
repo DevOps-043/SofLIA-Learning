@@ -648,8 +648,269 @@
       "errorLoading": "Error al cargar los calendarios",
       "errorSaving": "Error al guardar la selección",
       "staleWarning": "Algunos calendarios seleccionados ya no existen y fueron removidos"
+    },
+    "calendar": {
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "newEvent": "Nuevo evento",
+      "close": "Cerrar",
+      "addTitle": "Añadir título",
+      "start": "Inicio",
+      "end": "Fin",
+      "startDate": "Fecha inicio",
+      "endDate": "Fecha fin",
+      "allDay": "Todo el día",
+      "location": "Ubicación",
+      "addLocation": "Añadir ubicación",
+      "description": "Descripción",
+      "addDescription": "Añadir descripción",
+      "color": "Color",
+      "cancel": "Cancelar",
+      "saving": "Guardando...",
+      "createEvent": "Crear evento",
+      "saveChanges": "Guardar cambios",
+      "studySession": "Sesión de estudio",
+      "until": "Hasta",
+      "syncedFromGoogle": "Sincronizado desde Google Calendar",
+      "syncedFromMicrosoft": "Sincronizado desde Microsoft Calendar",
+      "plannedStudySession": "Sesión de estudio planificada",
+      "customEvent": "Evento personalizado",
+      "confirmDelete": "Confirmar eliminación",
+      "deleting": "Eliminando..."
     }
+  },
+  "profile": {
+    "loading": "Cargando perfil...",
+    "error": {
+      "title": "Error al cargar el perfil",
+      "description": "Esto puede deberse a que tu sesión ha expirado. Intenta iniciar sesión nuevamente.",
+      "retry": "Reintentar",
+      "login": "Iniciar sesión"
+    },
+    "header": {
+      "back": "Volver",
+      "saving": "Guardando...",
+      "saved": "Guardado",
+      "saveChanges": "Guardar cambios"
+    },
+    "hero": {
+      "noRole": "Sin rol definido",
+      "memberSince": "Miembro desde",
+      "emailVerified": "Email verificado",
+      "stats": {
+        "lessons": "Lecciones",
+        "certificates": "Certificados"
+      }
+    },
+    "tabs": {
+      "personal": "Información Personal",
+      "security": "Seguridad"
+    },
+    "personal": {
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "username": "Nombre de Usuario",
+      "role": "Rol en la Empresa",
+      "phone": "Teléfono",
+      "location": "Ubicación",
+      "bio": "Biografía"
+    },
+    "security": {
+      "email": "Correo Electrónico",
+      "passwordSection": "Cambiar Contraseña",
+      "passwordDescription": "Asegúrate de usar una contraseña segura",
+      "currentPassword": "Contraseña Actual",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "updating": "Actualizando...",
+      "updatePassword": "Actualizar Contraseña",
+      "passwordUpdated": "¡Contraseña actualizada!",
+      "error": "Error"
+    },
+    "skills": {
+      "totalSkills": "Total Skills",
+      "highestLevel": "Nivel Más Alto",
+      "categories": "Categorías",
+      "all": "Todas",
+      "categoryLabels": {
+        "general": "General",
+        "programming": "Programación",
+        "design": "Diseño",
+        "marketing": "Marketing",
+        "business": "Negocios",
+        "data": "Datos",
+        "ai": "Inteligencia Artificial",
+        "cloud": "Cloud Computing",
+        "security": "Seguridad",
+        "devops": "DevOps",
+        "leadership": "Liderazgo",
+        "communication": "Comunicación",
+        "other": "Otros"
+      }
+    }
+  },
+  "actions": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "saveChanges": "Guardar cambios",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "close": "Cerrar",
+    "back": "Volver",
+    "retry": "Reintentar",
+    "saving": "Guardando...",
+    "deleting": "Eliminando...",
+    "loading": "Cargando...",
+    "updating": "Actualizando...",
+    "viewDetails": "Ver detalles",
+    "savedSuccessfully": "Guardado exitosamente",
+    "preview": "Vista previa",
+    "customize": "Personalizar"
+  },
+  "certificates": {
+    "loading": "Cargando certificados...",
+    "errorTitle": "Error al cargar certificados",
+    "errorLoad": "Error al cargar certificados",
+    "errorDownload": "Error al descargar certificado",
+    "errorUnknown": "Error desconocido",
+    "retry": "Reintentar",
+    "backToPanel": "Volver al Panel",
+    "badge": "Certificados emitidos",
+    "pageTitle": "Certificados de SofLIA y empresas aliadas",
+    "pageSubtitle": "Cada tarjeta muestra el documento real emitido para ese curso.",
+    "statsCerts": "Certificados",
+    "statsOrgs": "Empresas",
+    "statsValid": "Válidos",
+    "sectionTitle": "Mis Certificados",
+    "sectionCount_one": "{{count}} certificado emitido",
+    "sectionCount_other": "{{count}} certificados emitidos",
+    "searchPlaceholder": "Buscar por curso, instructor o empresa...",
+    "emptyTitle": "Todavía no tienes certificados",
+    "emptyText": "Completa el recorrido de un curso para emitir tu certificado.",
+    "noResultsTitle": "No encontramos resultados",
+    "noResultsText": "Prueba con otro término de búsqueda.",
+    "issuedBy": "Emitido por {{name}}",
+    "issuedOn": "Emitido el {{date}}",
+    "view": "Ver",
+    "download": "Descargar",
+    "verifyValidity": "Verificar Validez",
+    "hashCopied": "Hash copiado al portapapeles",
+    "loadingDetail": "Cargando certificado...",
+    "notFound": "Certificado no encontrado",
+    "detailErrorTitle": "No pudimos abrir el certificado",
+    "backToCertificates": "Volver a Certificados",
+    "myCertificates": "Mis Certificados",
+    "statusValid": "Certificado válido",
+    "statusExpired": "Certificado expirado",
+    "statusInvalid": "Certificado inválido",
+    "labelIssuer": "Empresa emisora",
+    "labelInstructor": "Instructor",
+    "labelIssuedAt": "Fecha de emisión",
+    "labelHash": "Hash de verificación",
+    "copyHash": "Copiar hash",
+    "hashDescription": "Este hash se valida contra la cadena del certificado y es el mismo que usa la vista pública de verificación.",
+    "downloadPdf": "Descargar PDF",
+    "verifyPublic": "Verificar en público",
+    "share": "Compartir certificado",
+    "shareTitle": "Certificado: {{title}}",
+    "shareText": "He completado el curso \"{{title}}\" y este es mi certificado verificado en SofLIA.",
+    "shareDescription": "Comparte este certificado emitido por {{issuer}}.",
+    "invalidHash": "Hash de certificado no válido",
+    "errorValidate": "Error al validar el certificado",
+    "verifyBadge": "Verificación pública",
+    "verifyTitle": "Validación de certificado",
+    "verifySubtitle": "Esta vista valida el hash, el estado del certificado y la integridad de la cadena registrada para el documento.",
+    "loadingValidation": "Validando certificado...",
+    "validateErrorTitle": "No se pudo validar el certificado",
+    "validDescription": "El hash existe, la cadena está íntegra y el documento coincide con el certificado emitido.",
+    "invalidDescription": "La validación detectó un problema con la vigencia o la integridad del certificado.",
+    "hashVerified": "Hash verificado",
+    "chainIntegrity": "Integridad de cadena",
+    "chainOk": "Correcta",
+    "chainInconsistent": "Con inconsistencias",
+    "lastOperation": "Última operación",
+    "noData": "Sin dato",
+    "docPreviewLabel": "Vista del documento validado"
+  },
+  "liaPersonalization": {
+    "title": "Personalización de SofLIA",
+    "saveSuccess": "Configuración guardada correctamente",
+    "saveError": "Error al guardar configuración",
+    "resetSuccess": "Configuración restablecida",
+    "resetError": "Error al restablecer configuración",
+    "confirmReset": "¿Estás seguro de que quieres restablecer la configuración a los valores por defecto?",
+    "styles": {
+      "professional": {
+        "label": "Profesional",
+        "description": "Tono formal y directo, apropiado para trabajo"
+      },
+      "casual": {
+        "label": "Casual",
+        "description": "Tono relajado y conversacional"
+      },
+      "technical": {
+        "label": "Técnico",
+        "description": "Enfocado en detalles técnicos y precisión"
+      },
+      "friendly": {
+        "label": "Amigable",
+        "description": "Cálido y cercano, como un compañero"
+      },
+      "formal": {
+        "label": "Formal",
+        "description": "Lenguaje estructurado y respetuoso"
+      }
+    },
+    "instructionsPlaceholder": "Ejemplo: Prefiero respuestas cortas y directas. Siempre incluye ejemplos prácticos.",
+    "nicknamePlaceholder": "Ejemplo: Fer",
+    "styleLabel": "Estilo",
+    "characters": "caracteres",
+    "friendlyLabel": "Amable",
+    "friendlyDesc": "Habilita un tono amable y empático",
+    "enthusiasticLabel": "Entusiasta",
+    "enthusiasticDesc": "Muestra entusiasmo y energía positiva",
+    "nicknameLabel": "Apodo",
+    "nicknameHint": "El nombre y ocupación se obtienen automáticamente del sistema",
+    "voiceLabel": "Voz",
+    "voiceDesc": "Habilitar respuestas por voz",
+    "dictationLabel": "Modo de Dictado",
+    "dictationDesc": "Permite dictar mensajes usando reconocimiento de voz",
+    "sections": {
+      "style": {
+        "title": "Estilo y tono base",
+        "description": "Configura el estilo y tono que SofLIA usa al responder"
+      },
+      "characteristics": {
+        "title": "Características",
+        "description": "Selecciona otras personalizaciones además del estilo y tono base"
+      },
+      "instructions": {
+        "title": "Instrucciones personalizadas",
+        "description": "Preferencias adicionales de comportamiento, estilo y tono"
+      },
+      "about": {
+        "title": "Acerca de ti",
+        "description": "Información personal para personalizar las respuestas"
+      },
+      "advanced": {
+        "title": "Avanzado",
+        "description": "Funciones avanzadas de SofLIA"
+      }
+    }
+  },
+  "comments": {
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este comentario?",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "report": "Reportar",
+    "reply": "Responder",
+    "replyPlaceholder": "Escribe una respuesta...",
+    "deleteError": "Error al eliminar el comentario",
+    "hideReplies_one": "Ocultar {{count}} respuesta",
+    "hideReplies_other": "Ocultar {{count}} respuestas",
+    "viewReplies_one": "Ver {{count}} respuesta",
+    "viewReplies_other": "Ver {{count}} respuestas"
   }
 }
-
-

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   CalendarIcon,
   ChatBubbleLeftRightIcon,
@@ -28,14 +29,6 @@ function getAuthorName(post: AdminCommunityPost) {
   )
 }
 
-function getPostTitle(content: string) {
-  if (!content) {
-    return 'Post sin contenido'
-  }
-
-  return content.length > 60 ? `${content.substring(0, 60)}...` : content
-}
-
 export function AdminCommunityPostsTab({
   posts,
   isProcessing,
@@ -44,11 +37,20 @@ export function AdminCommunityPostsTab({
   onHidePost,
   onTogglePinPost
 }: AdminCommunityPostsTabProps) {
+  const { t } = useTranslation('admin')
+
+  function getPostTitle(content: string) {
+    if (!content) {
+      return t('communityDetail.posts.noContent')
+    }
+    return content.length > 60 ? `${content.substring(0, 60)}...` : content
+  }
+
   if (posts.length === 0) {
     return (
       <div className="text-center py-8">
         <DocumentTextIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">No hay posts en esta comunidad</p>
+        <p className="text-gray-600 dark:text-gray-400">{t('communityDetail.posts.empty')}</p>
       </div>
     )
   }
@@ -62,13 +64,13 @@ export function AdminCommunityPostsTab({
               <div className="flex items-center flex-wrap gap-2 mb-2">
                 {post.is_pinned ? (
                   <span className="bg-yellow-900/30 text-yellow-400 px-2 py-1 rounded text-xs border border-yellow-800">
-                    Fijado
+                    {t('communityDetail.posts.pinned')}
                   </span>
                 ) : null}
                 {post.is_hidden ? (
                   <span className="bg-red-900/30 text-red-400 px-2 py-1 rounded text-xs border border-red-800 inline-flex items-center gap-1">
                     <EyeSlashIcon className="h-3 w-3" />
-                    Oculto
+                    {t('communityDetail.posts.hidden')}
                   </span>
                 ) : null}
                 <h3 className="text-gray-900 dark:text-white font-medium">{getPostTitle(post.content)}</h3>
@@ -87,11 +89,11 @@ export function AdminCommunityPostsTab({
                 </div>
                 <div className="flex items-center space-x-1">
                   <ChatBubbleLeftRightIcon className="h-4 w-4" />
-                  <span>{post.likes_count || 0} likes</span>
+                  <span>{post.likes_count || 0} {t('communityDetail.posts.likesLabel')}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <DocumentTextIcon className="h-4 w-4" />
-                  <span>{post.comments_count || 0} comentarios</span>
+                  <span>{post.comments_count || 0} {t('communityDetail.posts.commentsLabel')}</span>
                 </div>
               </div>
             </div>
@@ -100,7 +102,7 @@ export function AdminCommunityPostsTab({
               <button
                 onClick={() => onViewPost(post)}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                title="Ver detalles del post"
+                title={t('communityDetail.posts.viewDetails')}
               >
                 <EyeIcon className="h-4 w-4" />
               </button>
@@ -112,7 +114,7 @@ export function AdminCommunityPostsTab({
                     ? 'text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                     : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                 }`}
-                title={post.is_pinned ? 'Desfijar post' : 'Fijar post'}
+                title={post.is_pinned ? t('communityDetail.posts.unpinPost') : t('communityDetail.posts.pinPost')}
               >
                 {isProcessing === post.id ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 dark:border-blue-400" />
@@ -128,7 +130,7 @@ export function AdminCommunityPostsTab({
                     ? 'text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                     : 'text-gray-600 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                 }`}
-                title={post.is_hidden ? 'Mostrar post' : 'Ocultar post'}
+                title={post.is_hidden ? t('communityDetail.posts.showPost') : t('communityDetail.posts.hidePost')}
               >
                 {isProcessing === post.id ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600 dark:border-yellow-400" />
@@ -140,7 +142,7 @@ export function AdminCommunityPostsTab({
                 onClick={() => onDeletePost(post)}
                 disabled={isProcessing === post.id}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Eliminar post"
+                title={t('communityDetail.posts.deletePost')}
               >
                 {isProcessing === post.id ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 dark:border-red-400" />

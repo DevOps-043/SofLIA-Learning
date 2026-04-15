@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import { LiaFloatingButton } from '../../../core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '../../../core/components/LiaSidePanel'
@@ -19,6 +20,7 @@ interface AdminLayoutProps {
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const { t } = useTranslation('admin')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isRedirecting, setIsRedirecting] = useState(false)
@@ -134,7 +136,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       >
         <AdminHeader
           onMenuClick={() => setSidebarOpen(true)}
-          title="Panel de Administración"
+          title={t('layout.panelTitle')}
           isCollapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />

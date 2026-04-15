@@ -19,6 +19,8 @@ export function buildLearnDataResponse({
       difficulty_level: course.level,
       price: course.price,
       is_published: course.is_active,
+      enrollment_id: modulesResult.enrollmentId,
+      organization_id: modulesResult.organizationId,
     },
     modules: modulesResult.modules,
     courseProgress: modulesResult.progress,

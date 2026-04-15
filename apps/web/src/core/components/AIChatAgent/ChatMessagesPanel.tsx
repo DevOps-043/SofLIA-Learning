@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { User, Brain, Trash2, Sparkles, Download } from 'lucide-react';
@@ -54,6 +54,7 @@ export function ChatMessagesPanel({
   onNavigate,
 }: ChatMessagesPanelProps) {
   const { t: tCommon } = useTranslation('common');
+  const [showClearContextConfirm, setShowClearContextConfirm] = useState(false);
 
   return (
     <motion.div
@@ -73,13 +74,21 @@ export function ChatMessagesPanel({
                 Contexto activo: {messages.length} mensaje{messages.length !== 1 ? 's' : ''} {messages.length > MAX_CONTEXT_MESSAGES ? `(mostrando últimos ${MAX_CONTEXT_MESSAGES})` : ''}
               </span>
             </div>
-            <button
-              onClick={() => { if (window.confirm(clearContextConfirmLabel)) clearContextMessages() }}
-              className="text-[#00D4B3] hover:text-[#00b89a] transition-colors"
-              title={clearContextLabel}
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            {showClearContextConfirm ? (
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-[#00D4B3]">{clearContextConfirmLabel}</span>
+                <button onClick={() => { clearContextMessages(); setShowClearContextConfirm(false); }} className="text-xs px-2 py-0.5 rounded bg-[#00D4B3] text-white">Sí</button>
+                <button onClick={() => setShowClearContextConfirm(false)} className="text-xs px-2 py-0.5 rounded bg-white/10 text-[#00D4B3]">No</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowClearContextConfirm(true)}
+                className="text-[#00D4B3] hover:text-[#00b89a] transition-colors"
+                title={clearContextLabel}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </motion.div>
       )}

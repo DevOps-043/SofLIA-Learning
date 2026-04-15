@@ -102,10 +102,10 @@ export function CommunityReportsSection({ communitySlug }: CommunityReportsSecti
         )
         setSelectedReport(null)
       } else {
-        alert(result.error || 'Error al resolver el reporte')
+        setError(result.error || 'Error al resolver el reporte')
       }
     } catch (err) {
-      alert('Error de conexión')
+      setError('Error de conexión')
     } finally {
       setIsResolving(false)
     }

@@ -27,6 +27,7 @@ export function useCompanyFormState(company: AdminCompany) {
   const [isPlanOpen, setIsPlanOpen] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const bannerInputRef = useRef<HTMLInputElement>(null)
 
@@ -59,11 +60,11 @@ export function useCompanyFormState(company: AdminCompany) {
         }
       } else {
         console.error('Upload failed:', result.error)
-        alert(result.error || 'Error al subir la imagen')
+        setImageUploadError(result.error || 'Error al subir la imagen')
       }
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Error al subir la imagen')
+      setImageUploadError('Error al subir la imagen')
     } finally {
       if (imageType === 'logo') setUploadingLogo(false)
       else setUploadingBanner(false)
@@ -97,6 +98,8 @@ export function useCompanyFormState(company: AdminCompany) {
     setIsPlanOpen,
     uploadingLogo,
     uploadingBanner,
+    imageUploadError,
+    setImageUploadError,
     logoInputRef,
     bannerInputRef,
     handleFileChange,

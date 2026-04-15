@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 
 import {
   adminCompaniesColors,
@@ -29,6 +30,7 @@ export function AdminCompaniesFilters({
   onStatusChange,
   themeColors,
 }: AdminCompaniesFiltersProps) {
+  const { t } = useTranslation('admin')
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
@@ -48,7 +50,7 @@ export function AdminCompaniesFilters({
           />
           <input
             type="text"
-            placeholder="Buscar por nombre, slug o email..."
+            placeholder={t('searchPlaceholders.companies')}
             value={searchTerm}
             onChange={(event) => onSearchChange(event.target.value)}
             className="w-full rounded-xl border py-3 pl-12 pr-4 focus:outline-none focus:ring-2"

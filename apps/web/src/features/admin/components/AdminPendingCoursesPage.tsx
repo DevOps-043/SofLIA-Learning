@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     ClipboardDocumentCheckIcon,
@@ -50,12 +51,14 @@ interface AdminPendingCoursesPageProps {
 
 export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }: AdminPendingCoursesPageProps) {
     const router = useRouter()
+    const { t } = useTranslation('admin')
     const { courses, isLoading, error, refetch, approveCourse, rejectCourse, deleteCourse } = useAdminPendingCourses()
     const [searchTerm, setSearchTerm] = useState('')
     const [activeTab, setActiveTab] = useState<'pending' | 'rejected'>('pending')
     const [courseToApprove, setCourseToApprove] = useState<string | null>(null)
     const [courseToReject, setCourseToReject] = useState<string | null>(null)
     const [courseToDelete, setCourseToDelete] = useState<string | null>(null)
+    const [actionError, setActionError] = useState<string | null>(null)
     // const [rejectionReason, setRejectionReason] = useState('') // Implementar modal con motivo si se desea
 
     const filteredCourses = courses.filter(course =>
@@ -71,10 +74,8 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
         // Pasamos '' como fallback
         const success = await approveCourse(courseToApprove, '')
 
-        if (success) {
-            // Success handled by UI refresh
-        } else {
-            alert('Error al aprobar el curso')
+        if (!success) {
+            setActionError(t('pendingCourses.errorApprove'))
         }
         setCourseToApprove(null)
     }
@@ -84,10 +85,8 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
         const reason = 'Rechazado por el administrador' // TODO: Pedir motivo en un modal
         // TODO: Pedir motivo en un modal
         const success = await rejectCourse(courseToReject, reason)
-        if (success) {
-            // Success handled by UI refresh
-        } else {
-            alert('Error al rechazar el curso')
+        if (!success) {
+            setActionError(t('pendingCourses.errorReject'))
         }
         setCourseToReject(null)
     }
@@ -95,15 +94,13 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
     const handleDelete = async () => {
         if (!courseToDelete) return
         const success = await deleteCourse(courseToDelete)
-        if (success) {
-            // Success handled by UI refresh
-        } else {
-            alert('Error al eliminar el curso')
+        if (!success) {
+            setActionError(t('pendingCourses.errorDelete'))
         }
         setCourseToDelete(null)
     }
 
-    if (isLoading) return <div className="p-8 text-center text-[#6C757D] dark:text-gray-400">Cargando revisiones...</div>
+    if (isLoading) return <div className="p-8 text-center text-[#6C757D] dark:text-gray-400">{t('pendingCourses.loading')}</div>
     if (error) return <div className="p-8 text-center text-red-500">Error: {error}</div>
 
     return (
@@ -112,12 +109,19 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white mb-2">
-                        Revisiones Pendientes
+                        {t('pendingCourses.title')}
                     </h1>
                     <p className="text-[#6C757D] dark:text-white/60">
-                        Revisar y aprobar cursos enviados desde CourseForge
+                        {t('pendingCourses.subtitle')}
                     </p>
                 </div>
+
+                {actionError && (
+                    <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+                        <span>{actionError}</span>
+                        <button onClick={() => setActionError(null)} className="ml-4 text-red-400 hover:text-red-300">×</button>
+                    </div>
+                )}
 
                 {/* Tabs */}
                 <div className="flex items-center gap-4 mb-6 border-b border-[#E9ECEF] dark:border-[#6C757D]/30">
@@ -128,7 +132,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                             : 'border-transparent text-[#6C757D] dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white'
                             }`}
                     >
-                        Pendientes
+                        {t('pendingCourses.tabPending')}
                     </button>
                     <button
                         onClick={() => setActiveTab('rejected')}
@@ -137,7 +141,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                             : 'border-transparent text-[#6C757D] dark:text-white/60 hover:text-[#EF4444]'
                             }`}
                     >
-                        Rechazados
+                        {t('pendingCourses.tabRejected')}
                     </button>
                 </div>
 
@@ -148,7 +152,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D]" />
                             <input
                                 type="text"
-                                placeholder="Buscar por título o instructor..."
+                                placeholder={t('pendingCourses.searchPlaceholder')}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 bg-transparent border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent"
@@ -162,10 +166,10 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                     <div className="text-center py-12 bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 border-dashed">
                         <InboxIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                            {activeTab === 'pending' ? 'No hay cursos pendientes' : 'No hay cursos rechazados'}
+                            {activeTab === 'pending' ? t('pendingCourses.emptyPending') : t('pendingCourses.emptyRejected')}
                         </h3>
                         <p className="text-gray-500 dark:text-gray-400">
-                            {activeTab === 'pending' ? '¡Todo al día! No hay nuevas solicitudes.' : 'No se encontraron cursos rechazados con los filtros actuales.'}
+                            {activeTab === 'pending' ? t('pendingCourses.emptyPendingDesc') : t('pendingCourses.emptyRejectedDesc')}
                         </p>
                     </div>
                 ) : (
@@ -186,20 +190,20 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                     <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
                                         {course.approval_status === 'rejected' ? (
                                             <span className="backdrop-blur-md bg-[#EF4444]/20 dark:bg-[#EF4444]/30 text-[#EF4444] dark:text-[#FCA5A5] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/30 dark:border-[#EF4444]/40">
-                                                Rechazado
+                                                {t('pendingCourses.statusRejected')}
                                             </span>
                                         ) : (
                                             <span className="backdrop-blur-md bg-[#F59E0B]/20 dark:bg-[#F59E0B]/30 text-[#F59E0B] dark:text-[#FCD34D] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/30 dark:border-[#F59E0B]/40">
-                                                Pendiente
+                                                {t('pendingCourses.statusPending')}
                                             </span>
                                         )}
                                         {course.is_update ? (
                                             <span className="backdrop-blur-md bg-[#3B82F6]/20 dark:bg-[#3B82F6]/30 text-[#3B82F6] dark:text-[#93C5FD] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/30 dark:border-[#3B82F6]/40">
-                                                Actualización
+                                                {t('pendingCourses.statusUpdate')}
                                             </span>
                                         ) : (
                                             <span className="backdrop-blur-md bg-[#10B981]/20 dark:bg-[#10B981]/30 text-[#10B981] dark:text-[#6EE7B7] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/30 dark:border-[#10B981]/40">
-                                                Nuevo
+                                                {t('pendingCourses.statusNew')}
                                             </span>
                                         )}
                                     </div>
@@ -225,15 +229,15 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                         <button
                                             onClick={() => setCourseToApprove(course.id)}
                                             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#10B981] hover:bg-[#059669] text-white rounded-lg text-sm font-medium transition-colors"
-                                            title="Aprobar y Publicar"
+                                            title={t('pendingCourses.tooltipApprove')}
                                         >
                                             <CheckCircleIcon className="h-4 w-4" />
-                                            {activeTab === 'rejected' ? 'Reconsiderar' : 'Aprobar'}
+                                            {activeTab === 'rejected' ? t('pendingCourses.btnReconsider') : t('pendingCourses.btnApprove')}
                                         </button>
                                         <button
                                             onClick={() => router.push(`${basePath}/${course.id}`)}
                                             className="px-3 py-2 bg-[#F8F9FA] dark:bg-[#2C3036] hover:bg-[#E9ECEF] dark:hover:bg-[#3A3F45] text-[#495057] dark:text-gray-200 rounded-lg text-sm font-medium transition-colors"
-                                            title="Ver Detalles"
+                                            title={t('pendingCourses.tooltipDetails')}
                                         >
                                             <EyeIcon className="h-4 w-4" />
                                         </button>
@@ -241,7 +245,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                             <button
                                                 onClick={() => setCourseToReject(course.id)}
                                                 className="px-3 py-2 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#EF4444] rounded-lg text-sm font-medium transition-colors"
-                                                title="Rechazar"
+                                                title={t('pendingCourses.tooltipReject')}
                                             >
                                                 <XMarkIcon className="h-4 w-4" />
                                             </button>
@@ -250,7 +254,7 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                                             <button
                                                 onClick={() => setCourseToDelete(course.id)}
                                                 className="px-3 py-2 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#EF4444] rounded-lg text-sm font-medium transition-colors border border-[#EF4444]/20"
-                                                title="Eliminar permanentemente"
+                                                title={t('pendingCourses.tooltipDelete')}
                                             >
                                                 <TrashIcon className="h-4 w-4" />
                                             </button>
@@ -270,11 +274,10 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                     isOpen={!!courseToApprove}
                     onClose={() => setCourseToApprove(null)}
                     onConfirm={handleApprove}
-                    title="Aprobar Curso"
-                    message="¿Estás seguro de que deseas aprobar este curso? Se hará público y visible para los estudiantes inmediatamente."
-                    confirmText="Aprobar y Publicar"
-                    cancelText="Cancelar"
-                    type="success" // Asumo que soporta tipos, sino quitar
+                    title={t('pendingCourses.approveModal.title')}
+                    message={t('pendingCourses.approveModal.message')}
+                    confirmText={t('pendingCourses.approveModal.confirm')}
+                    type="success"
                 />
             )}
 
@@ -283,10 +286,9 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                     isOpen={!!courseToReject}
                     onClose={() => setCourseToReject(null)}
                     onConfirm={handleReject}
-                    title="Rechazar Curso"
-                    message="¿Estás seguro de rechazar este curso? Deberás proporcionar una razón (TODO)."
-                    confirmText="Rechazar"
-                    cancelText="Cancelar"
+                    title={t('pendingCourses.rejectModal.title')}
+                    message={t('pendingCourses.rejectModal.message')}
+                    confirmText={t('pendingCourses.rejectModal.confirm')}
                     type="danger"
                 />
             )}
@@ -296,10 +298,9 @@ export function AdminPendingCoursesPage({ basePath = '/admin/courses/pending' }:
                     isOpen={!!courseToDelete}
                     onClose={() => setCourseToDelete(null)}
                     onConfirm={handleDelete}
-                    title="Eliminar Curso Rechazado"
-                    message="¿Estás seguro de que deseas eliminar permanentemente este curso? Esta acción no se puede deshacer y borrará todos los datos asociados."
-                    confirmText="Eliminar Definitivamente"
-                    cancelText="Cancelar"
+                    title={t('pendingCourses.deleteModal.title')}
+                    message={t('pendingCourses.deleteModal.message')}
+                    confirmText={t('pendingCourses.deleteModal.confirm')}
                     type="danger"
                 />
             )}

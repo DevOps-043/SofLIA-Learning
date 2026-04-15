@@ -26,6 +26,7 @@ export interface NodeFormState {
   isSearchingManager: boolean
   selectedManager: NodeManagerUser | null
   loading: boolean
+  saveError: string | null
 }
 
 export interface NodeFormActions {
@@ -47,6 +48,7 @@ export interface NodeFormActions {
   setManagerResults: (v: NodeManagerUser[]) => void
   setSelectedManager: (v: NodeManagerUser | null) => void
   setLoading: (v: boolean) => void
+  setSaveError: (v: string | null) => void
   handleSubmit: (e: React.FormEvent) => Promise<void>
 }
 
@@ -80,6 +82,7 @@ export function useNodeFormState(
   const [isSearchingManager, setIsSearchingManager] = useState(false)
   const [selectedManager, setSelectedManager] = useState<NodeManagerUser | null>(null)
   const [loading, setLoading] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -207,7 +210,7 @@ export function useNodeFormState(
       onClose()
     } catch (error) {
       console.error(error)
-      alert('Error al guardar')
+      setSaveError('Error al guardar')
     } finally {
       setLoading(false)
     }
@@ -217,11 +220,11 @@ export function useNodeFormState(
     name, type, customType,
     street, externalNumber, internalNumber, neighborhood, zipCode, city, nodeState, country,
     latitude, longitude,
-    managerId, managerSearch, managerResults, isSearchingManager, selectedManager, loading,
+    managerId, managerSearch, managerResults, isSearchingManager, selectedManager, loading, saveError,
     setName, setType, setCustomType,
     setStreet, setExternalNumber, setInternalNumber, setNeighborhood, setZipCode, setCity, setNodeState, setCountry,
     setLatitude, setLongitude,
-    setManagerId, setManagerSearch, setManagerResults, setSelectedManager, setLoading,
+    setManagerId, setManagerSearch, setManagerResults, setSelectedManager, setLoading, setSaveError,
     handleSubmit,
   }
 }

@@ -1,11 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { 
+import {
   XMarkIcon,
   ExclamationTriangleIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { AdminUser } from '../services/adminUsers.service'
 
 interface DeleteUserModalProps {
@@ -18,6 +19,8 @@ interface DeleteUserModalProps {
 export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUserModalProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
 
   const handleConfirm = async () => {
     setIsLoading(true)
@@ -27,7 +30,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
       await onConfirm()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar usuario')
+      setError(err instanceof Error ? err.message : t('users.deleteModal.errorDeleting'))
     } finally {
       setIsLoading(false)
     }
@@ -41,7 +44,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-gray-900/50 dark:bg-gray-600/75 transition-opacity"
           onClick={onClose}
         />
@@ -51,7 +54,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Eliminar Usuario
+              {t('users.deleteModal.title')}
             </h3>
             <button
               onClick={onClose}
@@ -77,12 +80,12 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
             {/* Warning Message */}
             <div className="text-center mb-6">
               <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                ¿Estás seguro?
+                {t('users.deleteModal.confirmQuestion')}
               </h4>
               <p className="text-gray-600 dark:text-gray-300 mb-4">
-                Esta acción no se puede deshacer. Se eliminará permanentemente:
+                {t('users.deleteModal.irreversible')}
               </p>
-              
+
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-center space-x-3">
                   <div className="flex-shrink-0">
@@ -102,12 +105,12 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
 
               <div className="text-left bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
                 <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                  <strong>Se eliminarán también:</strong>
+                  <strong>{t('users.deleteModal.alsoDeleted')}</strong>
                 </p>
                 <ul className="text-sm text-yellow-600 dark:text-yellow-300 mt-1 space-y-1">
-                  <li>• Todas las sesiones del usuario</li>
-                  <li>• Todos los favoritos del usuario</li>
-                  <li>• Todos los datos asociados</li>
+                  <li>• {t('users.deleteModal.sessions')}</li>
+                  <li>• {t('users.deleteModal.favorites')}</li>
+                  <li>• {t('users.deleteModal.associatedData')}</li>
                 </ul>
               </div>
             </div>
@@ -120,7 +123,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
                 disabled={isLoading}
               >
-                Cancelar
+                {tc('actions.cancel')}
               </button>
               <button
                 onClick={handleConfirm}
@@ -128,7 +131,7 @@ export function DeleteUserModal({ user, isOpen, onClose, onConfirm }: DeleteUser
                 disabled={isLoading}
               >
                 <TrashIcon className="h-4 w-4" />
-                <span>{isLoading ? 'Eliminando...' : 'Eliminar'}</span>
+                <span>{isLoading ? tc('actions.deleting') : tc('actions.delete')}</span>
               </button>
             </div>
           </div>

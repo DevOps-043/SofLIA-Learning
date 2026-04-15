@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Upload, X, Check, Loader2, Image as ImageIcon } from 'lucide-react'
 import { SkillLevel, SKILL_LEVELS, getLevelInfo } from '@/features/skills/constants/skillLevels'
@@ -22,6 +23,7 @@ export function SkillBadgeUpload({
   onBadgeChange,
   disabled = false
 }: SkillBadgeUploadProps) {
+  const { t } = useTranslation('common')
   const [uploading, setUploading] = useState<Record<SkillLevel, boolean>>({
     green: false,
     bronze: false,
@@ -185,7 +187,7 @@ export function SkillBadgeUpload({
                     <button
                       onClick={() => handleDelete(level)}
                       className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                      title="Eliminar badge"
+                      title={t('actions.delete')}
                     >
                       <X className="w-4 h-4" />
                     </button>

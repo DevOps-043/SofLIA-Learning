@@ -17,6 +17,7 @@ import {
   PhotoIcon,
   LinkIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { useAdminReportes } from '../hooks/useAdminReportes'
 import { AdminReporte } from '../services/adminReportes.service'
 
@@ -40,6 +41,7 @@ export function AdminReportesPage() {
     applyFilters
   } = useAdminReportes()
   
+  const { t } = useTranslation('common')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedEstado, setSelectedEstado] = useState('all')
   const [selectedCategoria, setSelectedCategoria] = useState('all')
@@ -280,7 +282,7 @@ export function AdminReportesPage() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#6C757D]" />
                 <input
                   type="text"
-                  placeholder="Buscar por título o descripción..."
+                  placeholder={t('searchPlaceholders.reportes', { ns: 'admin' })}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-white dark:bg-[#0F1419] text-[#0A2540] dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00D4B3] transition-all"
@@ -545,14 +547,14 @@ export function AdminReportesPage() {
                       <button
                         onClick={() => handleViewReporte(reporte)}
                         className="p-2.5 text-[#6C757D] dark:text-gray-400 hover:text-[#00D4B3] dark:hover:text-[#00D4B3] hover:bg-[#F8FAFC] dark:hover:bg-[#0F1419] rounded-xl border border-transparent hover:border-[#00D4B3]/30 transition-all"
-                        title="Ver detalles"
+                        title={t('actions.viewDetails')}
                       >
                         <EyeIcon className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => handleEditReporte(reporte)}
                         className="p-2.5 text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-blue-400 hover:bg-[#F8FAFC] dark:hover:bg-[#0F1419] rounded-xl border border-transparent hover:border-[#0A2540]/30 transition-all"
-                        title="Editar"
+                        title={t('actions.edit')}
                       >
                         <PencilIcon className="h-5 w-5" />
                       </button>

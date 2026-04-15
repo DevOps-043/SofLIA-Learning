@@ -13,6 +13,7 @@ interface StructureFormModalProps {
 export const StructureForm: React.FC<StructureFormModalProps> = ({ isOpen, onClose, onSave }) => {
     const [name, setName] = useState('');
     const [loading, setLoading] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -31,7 +32,7 @@ export const StructureForm: React.FC<StructureFormModalProps> = ({ isOpen, onClo
             onClose();
         } catch (error) {
             console.error(error);
-            alert('Error al guardar');
+            setSaveError('Error al guardar');
         } finally {
             setLoading(false);
         }
@@ -104,6 +105,10 @@ export const StructureForm: React.FC<StructureFormModalProps> = ({ isOpen, onClo
                                     </div>
 
                                     <div className="flex-1" />
+
+                                    {saveError && (
+                                        <p className="text-xs text-red-500">{saveError}</p>
+                                    )}
 
                                     <div className="flex items-center gap-3 pt-6 border-t border-neutral-100 dark:border-white/5">
                                         <button

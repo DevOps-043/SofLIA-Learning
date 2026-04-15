@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { BookOpen, Briefcase, Calendar, Camera, Check, GraduationCap, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ProfileColorPalette, UserProfile, UserStats } from '../../types/profile.types'
 
 interface ProfileHeroProps {
@@ -23,6 +24,7 @@ export function ProfileHero({
   handleProfilePictureUpload,
   formatDate
 }: ProfileHeroProps) {
+  const { t } = useTranslation('common')
   return (
     <div className="relative overflow-hidden">
       <div className="absolute inset-0" style={{ background: `linear-gradient(180deg, ${colors.accent}10 0%, transparent 100%)` }} />
@@ -77,16 +79,16 @@ export function ProfileHero({
               <h1 className="text-3xl lg:text-4xl font-bold mb-2" style={{ color: colors.text }}>{profile.display_name}</h1>
               <p className="text-lg flex items-center gap-2" style={{ color: colors.textSecondary }}>
                 <Briefcase className="w-4 h-4" />
-                {profile.type_rol || 'Sin rol definido'}
+                {profile.type_rol || t('profile.hero.noRole')}
               </p>
               <div className="flex flex-wrap items-center gap-4 mt-4 text-sm" style={{ color: colors.textSecondary }}>
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5" />
-                  Miembro desde {formatDate(profile.created_at)}
+                  {t('profile.hero.memberSince')} {formatDate(profile.created_at)}
                 </span>
                 <span className="flex items-center gap-1.5" style={{ color: colors.success }}>
                   <Check className="w-3.5 h-3.5" />
-                  Email verificado
+                  {t('profile.hero.emailVerified')}
                 </span>
               </div>
             </motion.div>
@@ -94,8 +96,8 @@ export function ProfileHero({
 
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="flex gap-3 lg:gap-4">
             {[
-              { icon: <BookOpen className="w-5 h-5" />, value: stats?.completedLessons ?? 0, label: 'Lecciones', color: '#3B82F6' },
-              { icon: <GraduationCap className="w-5 h-5" />, value: stats?.certificates ?? 0, label: 'Certificados', color: '#8B5CF6' }
+              { icon: <BookOpen className="w-5 h-5" />, value: stats?.completedLessons ?? 0, label: t('profile.hero.stats.lessons'), color: '#3B82F6' },
+              { icon: <GraduationCap className="w-5 h-5" />, value: stats?.certificates ?? 0, label: t('profile.hero.stats.certificates'), color: '#8B5CF6' }
             ].map(stat => (
               <motion.div key={stat.label} className="rounded-2xl p-4 lg:p-5 text-center min-w-[100px]" style={{ backgroundColor: colors.bgSecondary }} whileHover={{ scale: 1.05, y: -3 }}>
                 <div className="mb-2 flex justify-center" style={{ color: stat.color }}>{stat.icon}</div>

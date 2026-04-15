@@ -30,6 +30,12 @@ import newsPt from '../../../public/locales/pt/news.json';
 import businessEs from '../../../public/locales/es/business.json';
 import businessEn from '../../../public/locales/en/business.json';
 import businessPt from '../../../public/locales/pt/business.json';
+import instructorEs from '../../../public/locales/es/instructor.json';
+import instructorEn from '../../../public/locales/en/instructor.json';
+import instructorPt from '../../../public/locales/pt/instructor.json';
+import adminEs from '../../../public/locales/es/admin.json';
+import adminEn from '../../../public/locales/en/admin.json';
+import adminPt from '../../../public/locales/pt/admin.json';
 
 export type SupportedLanguage = 'es' | 'en' | 'pt';
 
@@ -44,6 +50,8 @@ const resources: Resource = {
     communities: communitiesEs,
     news: newsEs,
     business: businessEs,
+    instructor: instructorEs,
+    admin: adminEs,
   },
   en: {
     common: commonEn,
@@ -55,6 +63,8 @@ const resources: Resource = {
     communities: communitiesEn,
     news: newsEn,
     business: businessEn,
+    instructor: instructorEn,
+    admin: adminEn,
   },
   pt: {
     common: commonPt,
@@ -66,6 +76,8 @@ const resources: Resource = {
     communities: communitiesPt,
     news: newsPt,
     business: businessPt,
+    instructor: instructorPt,
+    admin: adminPt,
   },
 };
 
@@ -77,7 +89,7 @@ export const initI18n = () => {
       resources,
       lng: 'es',
       fallbackLng: 'es',
-      ns: ['common', 'dashboard', 'content', 'learn', 'my-courses', 'statistics-results', 'communities', 'news', 'business'],
+      ns: ['common', 'dashboard', 'content', 'learn', 'my-courses', 'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin'],
       defaultNS: 'common',
       interpolation: {
         escapeValue: false,
@@ -90,8 +102,12 @@ export const initI18n = () => {
   } else {
     // Ensure business namespace is loaded even if i18n was already initialized (HMR/Singleton fix)
     (['es', 'en', 'pt'] as SupportedLanguage[]).forEach(lang => {
-      // Always add/update the business resource bundle to ensure latest content
+      // Always add/update resource bundles to ensure latest content (HMR/Singleton fix)
+      i18n.addResourceBundle(lang, 'common', resources[lang].common, true, true);
+      i18n.addResourceBundle(lang, 'learn', resources[lang].learn, true, true);
       i18n.addResourceBundle(lang, 'business', resources[lang].business, true, true);
+      i18n.addResourceBundle(lang, 'instructor', resources[lang].instructor, true, true);
+      i18n.addResourceBundle(lang, 'admin', resources[lang].admin, true, true);
     });
   }
 

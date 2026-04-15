@@ -32,6 +32,7 @@ export interface UseAIChatVoiceReturn {
   isSpeaking: boolean;
   isRecording: boolean;
   isVoiceEnabled: boolean;
+  voiceError: string | null;
   stopAllAudio: () => void;
   speakText: (text: string) => Promise<void>;
   toggleRecording: (onTranscript?: (text: string) => void) => Promise<void>;
@@ -43,6 +44,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ttsAbortRef = useRef<AbortController | null>(null);
@@ -168,7 +170,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
       console.warn('Speech recognition error:', event.error);
       setIsRecording(false);
       if (event.error === 'not-allowed') {
-        alert(tCommon('aiChat.voice.microphoneError'));
+        setVoiceError(tCommon('aiChat.voice.microphoneError'));
       }
     };
 
@@ -183,7 +185,7 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
 
   const toggleRecording = useCallback(async (onTranscript?: (text: string) => void) => {
     if (!recognitionRef.current) {
-      alert(tCommon('aiChat.voice.speechNotSupported'));
+      setVoiceError(tCommon('aiChat.voice.speechNotSupported'));
       return;
     }
 
@@ -210,11 +212,11 @@ export function useAIChatVoice(language: string, tCommon: (key: string) => strin
         console.error('Error starting speech recognition:', error);
         setIsRecording(false);
         if (error instanceof Error && error.name === 'NotAllowedError') {
-          alert(tCommon('aiChat.voice.microphoneError'));
+          setVoiceError(tCommon('aiChat.voice.microphoneError'));
         }
       }
     }
   }, [isRecording, language, tCommon, stopAllAudio]);
 
-  return { isSpeaking, isRecording, isVoiceEnabled, stopAllAudio, speakText, toggleRecording };
+  return { isSpeaking, isRecording, isVoiceEnabled, voiceError, stopAllAudio, speakText, toggleRecording };
 }

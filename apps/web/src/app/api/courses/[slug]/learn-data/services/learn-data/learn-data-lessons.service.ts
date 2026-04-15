@@ -59,6 +59,8 @@ export interface ModulesWithProgressResult {
   }>
   progress: number
   lastWatchedLessonId: string | null
+  enrollmentId: string | null
+  organizationId: string | null
 }
 
 function pickPublishedOrAll<T extends { is_published: boolean | null }>(items: T[]) {
@@ -194,15 +196,28 @@ export async function loadModulesWithProgress(
     .order('module_order_index', { ascending: true })
 
   if (allModulesError || !allModules) {
-    return { modules: [], progress: 0, lastWatchedLessonId: null }
+    return {
+      modules: [],
+      progress: 0,
+      lastWatchedLessonId: null,
+      enrollmentId: null,
+      organizationId: null,
+    }
   }
 
   const modules = pickPublishedOrAll(allModules as ModuleRow[])
   if (modules.length === 0) {
-    return { modules: [], progress: 0, lastWatchedLessonId: null }
+    return {
+      modules: [],
+      progress: 0,
+      lastWatchedLessonId: null,
+      enrollmentId: null,
+      organizationId: null,
+    }
   }
 
   let enrollmentId: string | null = null
+  let resolvedOrganizationId: string | null = null
   if (userId) {
     const enrollment = await resolveCourseEnrollment(
       supabase,
@@ -212,6 +227,7 @@ export async function loadModulesWithProgress(
     )
 
     enrollmentId = enrollment?.enrollment_id || null
+    resolvedOrganizationId = enrollment?.organization_id || organizationId || null
   }
 
   const { data: allLessonsData } = await supabase
@@ -331,6 +347,8 @@ export async function loadModulesWithProgress(
       lessons,
       progressData,
     ),
+    enrollmentId,
+    organizationId: resolvedOrganizationId,
   }
 }
 

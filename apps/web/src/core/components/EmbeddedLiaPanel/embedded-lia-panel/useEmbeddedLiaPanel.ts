@@ -50,6 +50,7 @@ export function useEmbeddedLiaPanel({
 
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
@@ -137,7 +138,7 @@ export function useEmbeddedLiaPanel({
     const SpeechRecognition = speechWindow.webkitSpeechRecognition || speechWindow.SpeechRecognition;
 
     if (!SpeechRecognition) {
-      window.alert('Tu navegador no soporta reconocimiento de voz');
+      setVoiceError('Tu navegador no soporta reconocimiento de voz');
       return;
     }
 
@@ -210,5 +211,7 @@ export function useEmbeddedLiaPanel({
     },
     isCollapsed,
     setIsCollapsed,
+    voiceError,
+    setVoiceError,
   };
 }
