@@ -109,3 +109,7 @@ logs
 # Backups  
 Backup*.sql  
 *.sql.bak 
+
+# Claude Code worktrees (temporary agent isolation dirs)
+.claude/worktrees/
+tmpclaude-*
