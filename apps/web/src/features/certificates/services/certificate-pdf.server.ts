@@ -58,12 +58,56 @@ interface PlaywrightModule {
   }
 }
 
-async function loadPlaywrightModule(): Promise<PlaywrightModule> {
-  try {
-    return (await import('playwright')) as unknown as PlaywrightModule
-  } catch {
-    return (await import('@playwright/test')) as unknown as PlaywrightModule
+const PLAYWRIGHT_CANDIDATES = ['playwright', '@playwright/test'] as const
+
+declare const __non_webpack_require__: NodeJS.Require | undefined
+
+function getRuntimeRequire(): NodeJS.Require {
+  if (typeof __non_webpack_require__ === 'function') {
+    return __non_webpack_require__
   }
+
+  return eval('require') as NodeJS.Require
+}
+
+function isPlaywrightModule(value: unknown): value is PlaywrightModule {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const chromium = (value as PlaywrightModule).chromium
+  return Boolean(chromium && typeof chromium.launch === 'function')
+}
+
+async function loadPlaywrightModule(): Promise<PlaywrightModule> {
+  const loadErrors: string[] = []
+  const runtimeRequire = getRuntimeRequire()
+
+  for (const candidate of PLAYWRIGHT_CANDIDATES) {
+    try {
+      const loaded = runtimeRequire(candidate) as unknown
+      if (isPlaywrightModule(loaded)) {
+        return loaded
+      }
+
+      if (
+        loaded &&
+        typeof loaded === 'object' &&
+        'default' in loaded &&
+        isPlaywrightModule((loaded as { default?: unknown }).default)
+      ) {
+        return (loaded as { default: PlaywrightModule }).default
+      }
+    } catch (error) {
+      loadErrors.push(
+        `${candidate}: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+      )
+    }
+  }
+
+  throw new Error(
+    `No se encontro Playwright para renderizar certificados. Detalles: ${loadErrors.join(' | ')}`,
+  )
 }
 
 export class CertificatePdfService {

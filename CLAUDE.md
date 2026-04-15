@@ -14,7 +14,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - State Management: Zustand 5.0.2
 - UI Components: Radix UI, Headless UI, custom components with Framer Motion 12.23.24
 - Data Visualization: Nivo charts (v0.99.0), Recharts 3.x, Tremor
-- AI Integration: OpenAI GPT-4o-mini (SofLIA assistant)
+- AI Integration: OpenAI GPT-4o-mini (SofLIA assistant), Google Gemini 2.5 (Study Planner dashboard chat)
 - Internationalization: next-i18next, react-i18next (Spanish, English, Portuguese)
 - Calendar: FullCalendar 6.x (Study Planner)
 - Session Recording: rrweb
@@ -95,15 +95,17 @@ features/[feature-name]/
 └── index.ts        # Barrel exports
 ```
 
-**Main Features (22 modules):**
-- `admin/` - Admin panel for platform and company management
+**Main Features (24 modules):**
+- `admin/` - Admin panel for platform and company management (includes learning path management)
 - `ai-directory/` - AI applications and prompts catalog
 - `auth/` - Authentication, SSO (Google/Microsoft) and registration
 - `business-panel/` - Business admin panel (org admin) + business user dashboard
+- `certificates/` - Certificate generation and PDF export (snapshots + backfill support)
 - `communities/` - Community management, posts, and interactions
 - `courses/` - Course management and learning content
 - `instructor/` - Instructor-specific features and content
 - `landing/` - Landing page components (header, footer, sections)
+- `learning-paths/` - Ordered course groupings with org/user assignments and access resolution
 - `lia/` - SofLIA AI assistant (chat interface, history, hooks)
 - `news/` - News articles and reading statistics
 - `notifications/` - User notification system
@@ -113,7 +115,7 @@ features/[feature-name]/
 - `reels/` - Short-form video content (Reels)
 - `scorm/` - SCORM 1.2/2004 e-learning content integration
 - `skills/` - Skills catalog and tracking
-- `study-planner/` - AI-powered study planning and scheduling
+- `study-planner/` - AI-powered study planning and scheduling (Gemini 2.5 + Google Calendar)
 - `subscriptions/` - Subscription and payment management
 - `tours/` - Guided onboarding tours
 - `video-tracking/` - Video progress and lesson tracking
@@ -315,13 +317,14 @@ const { language, changeLanguage } = useLanguage(); // 'es' | 'en' | 'pt'
 
 ## Database Schema (Supabase)
 
-Migrations in `supabase/migrations/` (40+). Full types in `lib/supabase/types.ts`.
+Migrations in `supabase/migrations/` (50+). Full types in `lib/supabase/types.ts`.
 
 **Key tables by domain:**
 - **Users & Orgs**: `usuarios`, `organizations`, `organization_users`, `organization_invitations`
 - **Hierarchy (optional)**: `organization_regions`, `organization_zones`, `organization_teams`, `hierarchy_chats`, `hierarchy_chat_messages`
 - **Courses**: `cursos`, `modulos`, `lecciones`, `actividades`, `user_lesson_progress`, `lesson_tracking`
-- **Study Planner**: `study_plans`, `study_sessions`, `study_preferences`, `calendar_integrations`
+- **Study Planner**: `study_plans`, `study_sessions`, `study_preferences`, `calendar_integrations`, `organization_planner_config`, `organization_holidays`
+- **Learning Paths**: `learning_paths`, `learning_path_items`, `organization_learning_path_assignments` (ordered course groupings with org assignments)
 - **SofLIA**: `lia_conversations`, `lia_messages`, `lia_personalization`
 - **Certs & Skills**: `certificates`, `skills`, `user_skills`
 - **Community**: `comunidades`, `comunidad_posts`, `comunidad_comentarios`, `news`, `reels`, `workshops`
@@ -423,6 +426,16 @@ USER_JWT_SECRET=
 - Backend Health: http://localhost:4000/health
 - API Base: http://localhost:4000/api/v1
 
+## Learning Paths
+
+Ordered course groupings that can be assigned to organizations or individual users:
+- Feature: `features/learning-paths/` (access resolution, server services)
+- Admin management: `features/admin/components/AdminLearningPathsPage.tsx`, `LearningPathManagementPage.tsx`
+- API routes: `app/api/admin/learning-paths/` (CRUD + item reorder), `app/api/business/learning-paths/`
+- Access resolution: `features/learning-paths/services/learning-path-access.server.ts`
+- Hook: `features/admin/hooks/useAdminLearningPaths.ts`
+- DB tables: `learning_paths`, `learning_path_items`, `organization_learning_path_assignments`
+
 ## SofLIA (AI Assistant)
 
 AI-powered chatbot (formerly "LIA") using OpenAI GPT-4o-mini:
@@ -433,6 +446,32 @@ AI-powered chatbot (formerly "LIA") using OpenAI GPT-4o-mini:
 - Context-aware help: course lessons, study planner, dashboard, general
 - Persistent conversation history with editable titles
 - Proactive actions in Study Planner (move/delete/create sessions)
+
+## Study Planner (Extended)
+
+The study planner has been significantly expanded beyond the base module:
+
+**AI Engine:**
+- Dashboard chat uses **Google Gemini 2.5** (`@google/generative-ai`) — NOT OpenAI
+- Anti-hallucination prompt system v2.0 (`prompts/study-planner.prompt.rules.ts`) with REGLA #00 date safety protocol
+- Proactive session actions via `<action>JSON</action>` tags: `rebalance_plan`, `move_session`, `delete_session`, `create_session`, `recover_missed_session`, `reduce_session_load`
+
+**Google Calendar Integration:**
+- Full read/write via `features/study-planner/services/calendar-google.service.ts`
+- Platform secondary calendar: `SofLIA - Sesiones de Estudio`
+- Free/busy analysis, event CRUD, calendar sync (`api/study-planner/calendar/sync-sessions/`)
+- Calendar change detection (`api/study-planner/calendar/check-changes/`)
+
+**Organization Config:**
+- Per-org planner config in `organization_planner_config` table
+- Holiday awareness via `organization_holidays` table
+- Planning window (deadline) per course assignment in `study_sessions_assignments`
+
+**Architecture:**
+- V2 planning actions: `actions/planning-actions-v2.service.ts`, `actions/session-actions-v2.service.ts`
+- Schedule preview components: `components/schedule-preview/` (panel, week grid, event blocks)
+- Calendar views: `components/calendar/CalendarDayView.tsx`, `CalendarWeekView.tsx`
+- Extensive unit tests in `services/__tests__/` and `dashboard/chat/__tests__/`
 
 ```typescript
 import { useLIAChat } from '@/features/lia/hooks/useLIAChat';

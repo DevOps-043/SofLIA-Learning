@@ -11,10 +11,13 @@
 - ✅ **Aprendizaje Personalizado con IA**: Asistente virtual SofLIA que se adapta al contexto y necesidades de cada usuario
 - ✅ **Gestión Empresarial Completa**: Sistema de jerarquías, equipos, analytics y reportes avanzados
 - ✅ **Planificación Inteligente**: Generación automática de planes de estudio con sincronización de calendarios
+- ✅ **Learning Paths**: Rutas de aprendizaje secuenciales con progresión ordenada y desbloqueo por curso
 - ✅ **White-Label**: Personalización completa de marca para organizaciones Enterprise
-- ✅ **Certificaciones Verificables**: Sistema de certificados con hash blockchain para verificación pública
+- ✅ **Certificaciones Verificables**: Sistema de certificados con hash blockchain, PDF con Playwright y snapshots de branding
+- ✅ **Actividades Interactivas**: Envío de actividades con evaluación automática por SofLIA y rúbricas
 - ✅ **Comunidad Integrada**: Sistema de comunidades, chats jerárquicos y colaboración entre equipos
 - ✅ **Estándares de e-Learning**: Soporte SCORM para compatibilidad con contenido estándar
+- ✅ **Sistema de Reportes de Problemas**: Formulario de bugs/sugerencias con screenshots, grabaciones y estadísticas
 - ✅ **Multilingüe**: Soporte nativo para Español, Inglés y Portugués
 
 ### Tecnologías Principales
@@ -27,12 +30,13 @@
 
 ### Estadísticas del Proyecto
 
-- 📦 **19 módulos principales** de funcionalidades
-- 🧩 **800+ componentes** React
-- 🔌 **300+ endpoints** API
-- 🗄️ **40+ migraciones** de base de datos
+- 📦 **22 módulos principales** de funcionalidades
+- 🧩 **900+ componentes** React
+- 🔌 **350+ endpoints** API
+- 🗄️ **55+ migraciones** de base de datos
 - 🌍 **3 idiomas** soportados
-- 📝 **150,000+ líneas** de código
+- 📝 **180,000+ líneas** de código
+- 📖 **78 documentos** técnicos
 
 ---
 
@@ -71,6 +75,11 @@
 - [Características Principales](#-características-principales)
 - [Asistente Virtual SofLIA](#-asistente-virtual-soflia)
 - [Planificador de Estudios con IA](#-planificador-de-estudios-con-ia)
+- [Learning Paths (Rutas de Aprendizaje)](#-learning-paths-rutas-de-aprendizaje)
+- [Actividades Interactivas y Evaluación con IA](#-actividades-interactivas-y-evaluación-con-ia)
+- [Sistema de Certificados con PDF](#-sistema-de-certificados-con-pdf)
+- [Sistema de Reportes de Problemas](#-sistema-de-reportes-de-problemas)
+- [Onboarding Organizacional](#-onboarding-organizacional)
 - [Sistema de Jerarquías Organizacionales](#-sistema-de-jerarquías-organizacionales)
 - [Sistema de Chats Jerárquicos](#-sistema-de-chats-jerárquicos)
 - [Sistema de Diseño SofLIA](#-sistema-de-diseño-soflia)
@@ -166,7 +175,9 @@
 - **Hash Único Inmutable**: Cada certificado tiene un hash SHA-256
 - **Verificación Pública**: Cualquiera puede verificar autenticidad
 - **Código QR**: Escaneo rápido para verificación
-- **Descarga PDF**: Certificado profesional descargable
+- **Descarga PDF**: Generación server-side con Playwright (Chromium headless)
+- **Branding Snapshot**: Captura inmutable del branding organizacional al momento de emisión
+- **Document Snapshot**: Datos del certificado (alumno, curso, instructor) preservados independientemente de cambios futuros
 
 ---
 
@@ -306,6 +317,166 @@ Integración con Google Calendar y Microsoft Outlook:
 - Detección de conflictos con otros eventos
 
 ---
+
+## 🛤️ Learning Paths (Rutas de Aprendizaje)
+
+Sistema de rutas de aprendizaje ordenadas que agrupan cursos en secuencias con progresión controlada.
+
+### Características
+
+- **Progresión Secuencial**: Los cursos se desbloquean uno a uno conforme se completan
+- **Asignación Dual**: Puede asignarse a organizaciones completas o a usuarios individuales
+- **Tracking de Progreso**: Cálculo automático de porcentaje, curso actual y siguiente
+- **Persistencia de Snapshots**: El progreso se guarda en `user_learning_path_progress` para consultas rápidas
+- **Resolución Server-Side**: El acceso se valida desde el servidor sin depender del cliente
+
+### Estructura de Datos
+
+```
+learning_paths
+├── learning_path_items (curso + posición ordenada)
+├── organization_learning_path_assignments (asignación por org)
+├── user_learning_path_assignments (asignación por usuario)
+└── user_learning_path_progress (caché de progreso)
+```
+
+### Uso en el Código
+
+```typescript
+import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server';
+
+const state = await resolveLearningPathAccessForCourse({
+  userId,
+  courseId,
+  organizationId,
+});
+// state.currentCourseUnlocked: boolean
+// state.items: LearningPathAccessItem[]
+// state.progressPercentage: number
+```
+
+---
+
+## 🧪 Actividades Interactivas y Evaluación con IA
+
+Sistema de actividades interactivas dentro de las lecciones con envíos, evaluaciones automáticas por SofLIA y rúbricas configurables.
+
+### Tipos de Actividades
+
+| Campo                        | Descripción                                              |
+| ---------------------------- | -------------------------------------------------------- |
+| `activity_schema_version`    | Versión del esquema de la actividad                      |
+| `activity_config`            | Configuración JSONB personalizada por tipo               |
+| `requires_soflia_validation` | Si requiere evaluación automática por SofLIA             |
+| `external_tool_key`          | Herramienta externa (ChatGPT, Gemini, NotebookLM, etc.) |
+
+### Flujo de Envío
+
+```
+Usuario → Completa actividad → Envía submission → SofLIA evalúa
+→ Resultado: pass / revise / error → Feedback al usuario
+→ Progreso de lección se actualiza automáticamente
+```
+
+### Tablas Principales
+
+| Tabla                         | Descripción                                     |
+| ----------------------------- | ----------------------------------------------- |
+| `user_activity_submissions`   | Envíos de actividades por usuario               |
+| `user_activity_evaluations`   | Evaluaciones automáticas de SofLIA con rúbricas |
+
+### Estados de un Envío
+
+| Estado           | Descripción                        |
+| ---------------- | ---------------------------------- |
+| `draft`          | Borrador, no enviado               |
+| `submitted`      | Enviado, pendiente de evaluación   |
+| `validated`      | Aprobado por SofLIA                |
+| `needs_revision` | Requiere correcciones del usuario  |
+
+---
+
+## 📜 Sistema de Certificados con PDF
+
+Sistema rediseñado de generación de certificados con renderizado server-side y snapshots inmutables.
+
+### Arquitectura
+
+```
+certificates/
+├── components/
+│   ├── CertificateDocument.tsx       # Componente React del certificado
+│   ├── CertificateDocumentPreview.tsx # Preview en pantalla
+│   └── CertificateDocumentViewport.tsx# Viewport de impresión
+├── constants/
+│   └── certificate-branding.ts       # Dimensiones de render
+├── services/
+│   ├── certificate-data.server.ts    # Carga de datos del certificado
+│   ├── certificate-document.service.ts# Lógica del documento
+│   ├── certificate-organization.server.ts # Datos de organización
+│   └── certificate-pdf.server.ts     # Generación PDF con Playwright
+└── types/
+    └── certificate.ts                # Tipos TypeScript
+```
+
+### Generación PDF
+
+- **Playwright Chromium**: Renderiza el certificado HTML/React en un navegador headless
+- **Almacenamiento**: Se sube automáticamente a Supabase Storage (`certificates` bucket)
+- **Cache**: Si el PDF ya existe, se reutiliza; se puede forzar regeneración
+- **Branding Snapshot**: Se captura el branding de la organización al emitir para inmutabilidad
+- **Document Snapshot**: Nombres, título del curso e instructor quedan fijados al momento de emisión
+
+---
+
+## 🐛 Sistema de Reportes de Problemas
+
+Sistema completo para que los usuarios reporten bugs, sugerencias y problemas de la plataforma.
+
+### Características
+
+- **Categorías**: Bug, sugerencia, contenido, performance, UI/UX, otro
+- **Prioridades**: Baja, media, alta, crítica
+- **Estados**: Pendiente, en revisión, en progreso, resuelto, rechazado, duplicado
+- **Captura Automática**: URL, pathname, user agent, resolución de pantalla, navegador
+- **Screenshots**: Bucket dedicado de storage (`reportes-screenshots`, hasta 10MB)
+- **Grabaciones de Sesión**: Soporte para session recordings con duración y tamaño
+- **Vista Enriquecida**: `reportes_con_usuario` une datos del reportante y administrador asignado
+- **Estadísticas**: Función `get_reportes_stats()` para dashboards administrativos
+
+### Uso
+
+```sql
+-- Obtener estadísticas de reportes
+SELECT * FROM public.get_reportes_stats();
+-- Retorna: total_reportes, pendientes, en_revision, en_progreso,
+--          resueltos, por_categoria, tiempo_promedio_resolucion
+```
+
+---
+
+## 🚪 Onboarding Organizacional
+
+Flujo completo de incorporación de usuarios a organizaciones con múltiples estados y pantallas.
+
+### Pantallas del Flujo
+
+| Componente             | Descripción                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `OnboardingChoiceScreen` | Selección inicial: crear o unirse a una organización   |
+| `CreateCompanyForm`    | Formulario para crear nueva organización                 |
+| `JoinCompanyForm`      | Formulario para solicitar unirse a organización existente|
+| `PendingCompanyScreen` | Pantalla de espera: organización en proceso de aprobación|
+| `PendingJoinScreen`    | Pantalla de espera: solicitud de unión pendiente         |
+| `ApprovedRedirect`     | Redirección automática tras aprobación                   |
+| `RejectedScreen`       | Pantalla de solicitud rechazada                          |
+| `SuspendedScreen`      | Pantalla de cuenta suspendida con detalles               |
+
+### Hooks
+
+```typescript
+import { useOnboardingStatus, useCreateCompany, useJoinCompany } from '@/features/onboarding';
+```
 
 ## 🏢 Sistema de Jerarquías Organizacionales
 
@@ -605,28 +776,33 @@ SofLIA-Learning/
 │   │       │   ├── components/       # Componentes core (Header, Sidebar, LIA)
 │   │       │   ├── hooks/            # Hooks personalizados
 │   │       │   ├── i18n/             # Configuración de internacionalización
+│   │       │   ├── layout/           # Layout compartido (PageShell, ResponsiveModal, DataTable)
 │   │       │   ├── providers/        # Context providers
 │   │       │   ├── services/         # API client (Axios), servicios
 │   │       │   └── stores/           # Estado global (Zustand)
-│   │       ├── features/             # Features por dominio (19 módulos)
+│   │       ├── features/             # Features por dominio (22 módulos)
 │   │       │   ├── admin/            # Gestión de plataforma y empresas
 │   │       │   ├── ai-directory/     # Directorio de aplicaciones IA
 │   │       │   ├── auth/             # Autenticación y SSO
 │   │       │   ├── business-panel/   # Panel empresarial (admin org)
-│   │       │   ├── business-user/    # Dashboard empleado
+│   │       │   ├── certificates/     # 🆕 Generación y gestión de certificados PDF
 │   │       │   ├── communities/      # Gestión de comunidades
 │   │       │   ├── courses/          # Sistema de cursos
 │   │       │   ├── instructor/       # Features de instructor
 │   │       │   ├── landing/          # Landing page
+│   │       │   ├── learning-paths/   # 🆕 Rutas de aprendizaje secuenciales
+│   │       │   ├── lia/              # Componentes de SofLIA (personalización)
 │   │       │   ├── news/             # Artículos y noticias
 │   │       │   ├── notifications/    # Sistema de notificaciones
+│   │       │   ├── onboarding/       # 🆕 Flujo de incorporación organizacional
 │   │       │   ├── profile/          # Perfil de usuario
 │   │       │   ├── reels/            # Contenido de video corto
+│   │       │   ├── responsive-smoke/ # 🆕 Pruebas de UI responsive
 │   │       │   ├── scorm/            # Integración SCORM para e-learning
 │   │       │   ├── skills/           # Gestión de habilidades
 │   │       │   ├── study-planner/    # Planificador de estudios con IA
-│   │       │   ├── subscriptions/    # Gestión de suscripciones
-│   │       │   └── tours/            # Tours guiados de onboarding
+│   │       │   ├── tours/            # Tours guiados de onboarding
+│   │       │   └── video-tracking/   # 🆕 Tracking de reproducción de video
 │   │       ├── lib/                  # Infraestructura y utilidades
 │   │       │   ├── supabase/         # Cliente Supabase y types
 │   │       │   ├── openai/           # Cliente OpenAI
@@ -653,20 +829,20 @@ SofLIA-Learning/
 ├── netlify/
 │   └── functions/                    # Funciones serverless (cron jobs)
 │
-├── supabase/                         # Migraciones y configuración
+├── supabase/                         # Migraciones y configuración (55+)
 │
-└── docs/                             # Documentación del proyecto
+└── docs/                             # Documentación del proyecto (78 documentos)
 ```
 
 ### Organización del Frontend (apps/web/src/)
 
-| Directorio  | Propósito                                                        |
-| ----------- | ---------------------------------------------------------------- |
-| `app/`      | Next.js App Router (Server Components por defecto)               |
-| `features/` | Features de dominio (auto-contenidos, screaming architecture)    |
-| `core/`     | Lógica transversal: stores (Zustand), providers, services/api.ts |
-| `lib/`      | Infraestructura: supabase/, openai/, lia/, schemas/, oauth/      |
-| `shared/`   | Infraestructura pura: hooks genéricos (useDebounce), utilidades  |
+| Directorio  | Propósito                                                               |
+| ----------- | ----------------------------------------------------------------------- |
+| `app/`      | Next.js App Router (Server Components por defecto)                      |
+| `features/` | Features de dominio (auto-contenidos, screaming architecture) — 22 módulos |
+| `core/`     | Lógica transversal: stores (Zustand), providers, layout, services/api.ts |
+| `lib/`      | Infraestructura: supabase/, openai/, lia/, schemas/, oauth/             |
+| `shared/`   | Infraestructura pura: hooks genéricos (useDebounce), utilidades         |
 
 ### Reglas de Dependencia
 
@@ -827,6 +1003,36 @@ POST   /api/lia/context-help            # Ayuda contextual
 GET    /api/certificates                # Mis certificados
 POST   /api/certificates/generate       # Generar certificado
 GET    /api/certificates/verify/:hash   # Verificar certificado (público)
+GET    /api/certificates/:id/pdf        # Descargar PDF del certificado
+POST   /api/certificates/:id/pdf/regenerate # Regenerar PDF
+```
+
+### Learning Paths
+
+```
+GET    /api/learning-paths                          # Listar rutas de aprendizaje
+GET    /api/learning-paths/:id                      # Detalle de ruta
+GET    /api/learning-paths/:id/progress             # Progreso del usuario
+POST   /api/learning-paths/resolve-access           # Resolver acceso por curso
+```
+
+### Actividades Interactivas
+
+```
+GET    /api/activities/:lessonId                    # Actividades de una lección
+POST   /api/activities/:activityId/submit           # Enviar actividad
+GET    /api/activities/:activityId/submissions      # Mis envíos
+GET    /api/activities/:submissionId/evaluations    # Evaluaciones de un envío
+```
+
+### Reportes de Problemas
+
+```
+GET    /api/reportes-problemas                      # Listar reportes
+POST   /api/reportes-problemas                      # Crear reporte
+GET    /api/reportes-problemas/:id                  # Detalle de reporte
+PUT    /api/reportes-problemas/:id                  # Actualizar reporte (admin)
+GET    /api/reportes-problemas/stats                # Estadísticas agregadas
 ```
 
 ---
@@ -940,17 +1146,24 @@ npm run <cmd> --workspace=apps/web       # Ejecutar comando específico
 
 ## 📚 Documentación Técnica
 
-El proyecto incluye documentación en el directorio `docs/`:
+El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 
 | Documento                     | Descripción                                        |
 | ----------------------------- | -------------------------------------------------- |
 | `SOFIA_DESIGN_SYSTEM.md`      | Sistema de diseño SOFIA con patrones y componentes |
 | `AGENTES_LIA.md`              | Documentación de los agentes de SofLIA             |
+| `ARQUITECTURA-COMPLETA.md`    | Arquitectura completa del proyecto                 |
+| `ARQUITECTURA_DEFENSA_AGENTES...md` | Defensa de agentes y anti-clonación           |
 | `SCORM-IMPLEMENTACION.md`     | Guía de implementación SCORM                       |
 | `STUDY-PLANNER-FLOW.md`       | Flujo completo del planificador de estudios        |
+| `PRD-PLANIFICADOR-ESTUDIO-IA.md` | PRD completo del planificador con IA            |
 | `LIA_ANALYTICS_PANEL.md`      | Documentación del panel de analytics de SofLIA     |
+| `HIERARCHY_SYSTEM.md`         | Documentación del sistema de jerarquías            |
 | `GUIA-RAPIDA-TRADUCCIONES.md` | Guía rápida de internacionalización                |
+| `refactor-program.md`         | Programa de refactorización del código             |
 | `BUGS-SISTEMA.md`             | Bugs conocidos y soluciones del sistema            |
+| `business-panel-visual-language.md` | Lenguaje visual del panel empresarial        |
+| `soflia-course-reporting-iris.md` | Integración de reportes de cursos con IRIS     |
 
 > **Importante**: La guía principal de desarrollo está en `CLAUDE.md` en la raíz del proyecto. Este archivo contiene las instrucciones actualizadas para trabajar con el código.
 
@@ -988,12 +1201,31 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 ### Tablas de Planificación de Estudios
 
-| Tabla                   | Descripción                            |
-| ----------------------- | -------------------------------------- |
-| `study_plans`           | Planes de estudio creados con IA       |
-| `study_sessions`        | Sesiones individuales programadas      |
-| `study_preferences`     | Preferencias de estudio del usuario    |
-| `calendar_integrations` | Conexión con Google/Microsoft Calendar |
+| Tabla                           | Descripción                                      |
+| ------------------------------- | ------------------------------------------------ |
+| `study_plans`                   | Planes de estudio creados con IA                 |
+| `study_sessions`                | Sesiones individuales programadas                |
+| `study_preferences`             | Preferencias de estudio del usuario              |
+| `calendar_integrations`         | Conexión con Google/Microsoft Calendar           |
+| `organization_planner_config`   | Configuración B2B del planificador (horarios, límites) |
+| `organization_holidays`         | Festivos oficiales e internos por organización   |
+
+### Tablas de Learning Paths
+
+| Tabla                                       | Descripción                                    |
+| ------------------------------------------- | ---------------------------------------------- |
+| `learning_paths`                            | Rutas de aprendizaje con cursos ordenados      |
+| `learning_path_items`                       | Relación curso-posición dentro de la ruta      |
+| `organization_learning_path_assignments`    | Asignaciones de rutas a organizaciones         |
+| `user_learning_path_assignments`            | Asignaciones de rutas a usuarios individuales  |
+| `user_learning_path_progress`               | Caché de progreso por usuario                  |
+
+### Tablas de Actividades Interactivas
+
+| Tabla                         | Descripción                                     |
+| ----------------------------- | ----------------------------------------------- |
+| `user_activity_submissions`   | Envíos de actividades por usuario               |
+| `user_activity_evaluations`   | Evaluaciones automáticas de SofLIA con rúbricas |
 
 ### Tablas de SofLIA (Asistente Virtual)
 
@@ -1005,11 +1237,20 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 ### Tablas de Certificados y Habilidades
 
-| Tabla          | Descripción                                |
-| -------------- | ------------------------------------------ |
-| `certificates` | Certificados generados con hash blockchain |
-| `skills`       | Catálogo de habilidades                    |
-| `user_skills`  | Habilidades adquiridas por usuario         |
+| Tabla                       | Descripción                                        |
+| --------------------------- | -------------------------------------------------- |
+| `user_course_certificates`  | Certificados generados con hash blockchain         |
+| `certificate_templates`     | Plantillas de certificados por organización        |
+| `certificate_ledger`        | Registro inmutable de emisiones de certificados    |
+| `skills`                    | Catálogo de habilidades                            |
+| `user_skills`               | Habilidades adquiridas por usuario                 |
+
+### Tablas de Reportes de Problemas
+
+| Tabla                  | Descripción                                          |
+| ---------------------- | ---------------------------------------------------- |
+| `reportes_problemas`   | Incidencias reportadas (bugs, sugerencias, etc.)     |
+| `reportes_con_usuario` | Vista enriquecida con datos del reportante y admin   |
 
 ### Tablas de Comunidad y Contenido
 
@@ -1033,6 +1274,90 @@ El proyecto incluye documentación en el directorio `docs/`:
 ---
 
 ## 📝 Historial de Cambios
+
+### Febrero – Abril 2026 (v2.3.0)
+
+#### 🛤️ Learning Paths (Rutas de Aprendizaje)
+
+- ✅ **Nuevo módulo `learning-paths/`**: Rutas de aprendizaje secuenciales con cursos ordenados
+- ✅ **Progresión forzada**: Cada curso se desbloquea solo al completar el anterior
+- ✅ **Asignación organizacional y por usuario**: Doble nivel de asignación con estados `active`/`revoked`
+- ✅ **Tracking de progreso en BD**: Tabla `user_learning_path_progress` con snapshot persistido
+- ✅ **Server-side access resolution**: Servicio `resolveLearningPathAccessForCourse()` que valida acceso desde el servidor
+- ✅ **Migración completa**: 5 tablas nuevas con índices, constraints y comentarios
+
+#### 🧪 Actividades Interactivas con Evaluación IA
+
+- ✅ **Nuevo sistema de submissions**: Tabla `user_activity_submissions` con estados (draft, submitted, validated, needs_revision)
+- ✅ **Evaluación automática por SofLIA**: Tabla `user_activity_evaluations` con rúbricas y feedback
+- ✅ **Herramientas externas**: Soporte para ChatGPT, Gemini, NotebookLM, Gamma, Atlas como herramientas de actividad
+- ✅ **Progreso por actividad**: Campos de progreso en `user_lesson_progress` (porcentaje, total, completadas)
+- ✅ **Activity config**: JSONB configurable por tipo de actividad (`activity_config`, `activity_schema_version`)
+- ✅ **Renderer interactivo**: Componente `InteractiveActivityRenderer` con soporte para múltiples tipos de envío
+
+#### 📜 Certificados — Refactorización Completa
+
+- ✅ **Nuevo módulo `certificates/`**: Feature dedicada con componentes, servicios y tipos
+- ✅ **Generación PDF con Playwright**: Renderizado server-side con Chromium headless
+- ✅ **Branding Snapshot**: Captura inmutable del branding organizacional al momento de emisión
+- ✅ **Document Snapshot**: Datos del certificado preservados independientemente de cambios futuros
+- ✅ **Backfill de hashes**: Migración que genera hash SHA-256 para certificados existentes sin hash
+- ✅ **Backfill de organización y template**: Relleno automático de `organization_id` y `template_id` faltantes
+- ✅ **Storage automático**: Upload a Supabase Storage con cache y regeneración bajo demanda
+
+#### 🐛 Sistema de Reportes de Problemas
+
+- ✅ **Tabla `reportes_problemas`**: Dominio completo con categorías, prioridades y estados
+- ✅ **Captura automática de contexto**: URL, user agent, resolución, navegador
+- ✅ **Screenshots y grabaciones**: Bucket `reportes-screenshots` con soporte de imágenes
+- ✅ **Vista enriquecida**: `reportes_con_usuario` con datos del reportante y admin asignado
+- ✅ **Función de estadísticas**: `get_reportes_stats()` para dashboards administrativos
+- ✅ **Trigger de updated_at**: Actualización automática de timestamp
+
+#### 🚪 Onboarding Organizacional
+
+- ✅ **Nuevo módulo `onboarding/`**: Flujo completo de incorporación a organizaciones
+- ✅ **8 pantallas**: Choice, Create Company, Join Company, Pending (2), Approved, Rejected, Suspended
+- ✅ **3 hooks**: `useOnboardingStatus`, `useCreateCompany`, `useJoinCompany`
+- ✅ **Estados tipados**: `OnboardingStatus`, `OnboardingType`, `OnboardingStatusResponse`
+
+#### ⚙️ Configuración B2B del Planificador
+
+- ✅ **Tabla `organization_planner_config`**: Horarios laborales, días hábiles, microlearning, timezone
+- ✅ **Tabla `organization_holidays`**: Festivos oficiales e internos por organización
+- ✅ **Ventana de planificación**: Campo `planning_window` en asignaciones de cursos
+- ✅ **Políticas RLS**: Lectura para miembros, escritura solo admin/owner
+
+#### 📐 Responsive Smoke Testing
+
+- ✅ **Nuevo módulo `responsive-smoke/`**: 10 escenarios de pruebas de UI responsive
+- ✅ **Escenarios**: Admin Dashboard, Workshops, Course Management, Admin Users Modal, Business Dashboard, Business Reports, Business Users Modal, Instructor Course Management, Select Organization, Business Public
+- ✅ **Componentes de layout compartidos**: `PageShell`, `ResponsiveDataTable`, `ResponsiveModalPanel`, `ResponsiveModalViewport`
+
+#### 🎬 Video Tracking
+
+- ✅ **Nuevo módulo `video-tracking/`**: Hook `useVideoTracking` dedicado para tracking de reproducción
+- ✅ **Eventos granulares**: play, pause, seek, progress, ended
+
+#### 🔧 Integridad de Datos — Delete Cascades
+
+- ✅ **30+ foreign keys actualizadas a `ON DELETE CASCADE`**: Módulos, lecciones, materiales, actividades, checkpoints, feedback, tracking, notas, progreso, quizzes, conversaciones LIA, mensajes, feedbacks, activity completions, sesiones de estudio, activity log
+- ✅ **Eliminación segura de cursos**: Borrar un curso limpia automáticamente toda la cadena de dependencias
+
+#### 🗄️ Migraciones de BD (14 nuevas)
+
+- ✅ Índices de planner, notificaciones y calendar lookups
+- ✅ RLS para tablas faltantes e índices para LIA y progreso
+- ✅ `organization_planner_config` y `organization_holidays`
+- ✅ `planning_window` en asignaciones de cursos
+- ✅ Índices de lookup core
+- ✅ Actividades interactivas y tracking
+- ✅ Dominio de reportes de problemas
+- ✅ Delete cascades para contenido de cursos
+- ✅ Snapshots y backfill de certificados
+- ✅ Learning paths completo
+
+---
 
 ### Enero 2026 (v2.2.0)
 
@@ -1176,12 +1501,13 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 ### Estadísticas del Código
 
-- **Total de Features**: 19 módulos principales
-- **Componentes React**: 800+ componentes
-- **Endpoints API**: 300+ rutas
-- **Migraciones de BD**: 40+ migraciones
+- **Total de Features**: 22 módulos principales
+- **Componentes React**: 900+ componentes
+- **Endpoints API**: 350+ rutas
+- **Migraciones de BD**: 55+ migraciones
+- **Documentos Técnicos**: 78 documentos en `/docs`
 - **Idiomas Soportados**: 3 (Español, Inglés, Portugués)
-- **Líneas de Código**: ~150,000+ líneas (estimado)
+- **Líneas de Código**: ~180,000+ líneas (estimado)
 
 ### Arquitectura del Proyecto
 
@@ -1210,16 +1536,28 @@ El proyecto incluye documentación en el directorio `docs/`:
 
 ### Módulos Principales
 
-1. **Admin** (153 archivos): Gestión completa de plataforma
-2. **Business Panel** (78 archivos): Panel empresarial
-3. **Auth** (59 archivos): Autenticación y SSO
-4. **Study Planner** (36 archivos): Planificación con IA
-5. **Communities** (45 archivos): Sistema de comunidades
-6. **Courses** (15 archivos): Gestión de cursos
-7. **SCORM** (6 archivos): Integración SCORM
-8. **AI Directory** (19 archivos): Directorio de IA
-9. **Notifications** (6 archivos): Sistema de notificaciones
-10. **Tours** (16 archivos): Onboarding guiado
+1. **Admin**: Gestión completa de plataforma
+2. **Business Panel**: Panel empresarial con analytics y reportes
+3. **Auth**: Autenticación y SSO (Google, Microsoft)
+4. **Study Planner**: Planificación con IA y calendario
+5. **Communities**: Sistema de comunidades
+6. **Courses**: Sistema de cursos y aprendizaje
+7. **Certificates**: Generación de certificados PDF con Playwright
+8. **Learning Paths**: Rutas de aprendizaje secuenciales
+9. **Onboarding**: Flujo de incorporación organizacional
+10. **LIA**: Componentes y personalización de SofLIA
+11. **SCORM**: Integración SCORM para e-learning
+12. **AI Directory**: Directorio de aplicaciones IA
+13. **Video Tracking**: Tracking de reproducción de video
+14. **Responsive Smoke**: Pruebas de UI responsive
+15. **Notifications**: Sistema de notificaciones
+16. **Tours**: Onboarding guiado
+17. **Skills**: Gestión de habilidades
+18. **Profile**: Perfil de usuario
+19. **News**: Artículos y noticias
+20. **Reels**: Contenido de video corto
+21. **Landing**: Landing page
+22. **Instructor**: Features de instructor
 
 ### Funcionalidades Clave
 
@@ -1238,6 +1576,8 @@ El proyecto incluye documentación en el directorio `docs/`:
 - Generación automática de planes personalizados
 - Detección proactiva de problemas
 - Análisis de progreso y recomendaciones
+- Evaluación automática de actividades con rúbricas
+- Personalización de comportamiento de SofLIA por usuario
 
 #### 🏢 Gestión Empresarial
 
@@ -1290,13 +1630,14 @@ El proyecto incluye documentación en el directorio `docs/`:
 ### Documentación
 
 - **README Principal**: Este documento
-- **Documentación Técnica**: 40+ documentos en `/docs`
-- **PRD Completo**: Product Requirements Document
-- **Guías de Arquitectura**: Documentación detallada
+- **Documentación Técnica**: 78 documentos en `/docs`
+- **PRD Completo**: Product Requirements Document con 7 secciones
+- **Guías de Arquitectura**: Documentación detallada (ARQUITECTURA-COMPLETA.md)
+- **Programa de Refactorización**: refactor-program.md con deuda técnica documentada
 - **Comentarios en Código**: TypeScript JSDoc
 
 ---
 
-**Última actualización**: 10 de Enero 2026  
-**Versión**: 2.2.1 (B2B)  
+**Última actualización**: 15 de Abril 2026  
+**Versión**: 2.3.0 (B2B)  
 **Mantenedores**: Equipo SofLIA Learning

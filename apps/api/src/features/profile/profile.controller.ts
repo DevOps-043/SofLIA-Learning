@@ -1,6 +1,10 @@
 import type { Request, RequestHandler, Response } from 'express'
 
-import { UnauthorizedError, ValidationError } from '@/core/errors/app-error'
+import {
+  UnauthorizedError,
+  ValidationError,
+  fromZodError,
+} from '@/core/errors/app-error'
 import { asyncHandler } from '@/core/middleware/error.middleware'
 
 import { ProfileService } from './profile.service'
@@ -32,7 +36,7 @@ export function createProfileController(
       const userId = getAuthenticatedUserId(req)
       const parsed = updateProfileBodySchema.safeParse(req.body)
       if (!parsed.success) {
-        throw new ValidationError('Datos de perfil inválidos', parsed.error.flatten().fieldErrors)
+        throw fromZodError(parsed.error)
       }
 
       const profile = await service.updateProfile(userId, parsed.data)
