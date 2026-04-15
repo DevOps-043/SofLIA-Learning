@@ -44,6 +44,8 @@ export function EmbeddedLiaPanel(props: EmbeddedLiaPanelProps) {
     setIsPanelOpen,
     isCollapsed,
     setIsCollapsed,
+    voiceError,
+    setVoiceError,
   } = useEmbeddedLiaPanel(props);
 
   return (
@@ -126,6 +128,12 @@ export function EmbeddedLiaPanel(props: EmbeddedLiaPanelProps) {
                 onNavigate={(href) => router.push(href)}
                 messagesEndRef={messagesEndRef}
               />
+              {voiceError && (
+                <div className="mx-3 mb-1 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-400 flex items-center justify-between">
+                  <span>{voiceError}</span>
+                  <button onClick={() => setVoiceError(null)} className="ml-2 text-red-400 hover:text-red-300">×</button>
+                </div>
+              )}
               <EmbeddedLiaComposer
                 message={message}
                 setMessage={setMessage}

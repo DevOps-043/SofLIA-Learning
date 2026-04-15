@@ -16,6 +16,7 @@ import {
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 
 interface NodeItemProps {
@@ -39,6 +40,8 @@ export const NodeItem: React.FC<NodeItemProps> = ({
 }) => {
   const params = useParams()
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const [isExpanded, setIsExpanded] = useState(level === 0)
 
   const indentSize = 32
@@ -136,12 +139,12 @@ export const NodeItem: React.FC<NodeItemProps> = ({
               {node.manager ? (
                 <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
                   <User size={10} style={{ color: theme.primaryColor }} />
-                  <span className="truncate">Lider: {node.manager.first_name}</span>
+                  <span className="truncate">{t('hierarchy.leaderLabel')}: {node.manager.first_name}</span>
                 </div>
               ) : null}
               <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
                 <Users size={10} />
-                <span>{node.members_count || 0} miembros</span>
+                <span>{t('hierarchy.membersCount', { count: node.members_count || 0 })}</span>
               </div>
             </div>
           </div>
@@ -160,7 +163,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
               event.currentTarget.style.color = theme.mutedTextColor
               event.currentTarget.style.backgroundColor = 'transparent'
             }}
-            title="Agregar Sub-nivel"
+            title={t('hierarchy.addSubLevel')}
           >
             <Plus size={16} strokeWidth={3} />
           </button>
@@ -176,7 +179,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
               event.currentTarget.style.color = theme.mutedTextColor
               event.currentTarget.style.backgroundColor = 'transparent'
             }}
-            title="Editar"
+            title={tc('actions.edit')}
           >
             <Edit3 size={16} />
           </button>
@@ -192,7 +195,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
               event.currentTarget.style.color = theme.mutedTextColor
               event.currentTarget.style.backgroundColor = 'transparent'
             }}
-            title="Eliminar"
+            title={tc('actions.delete')}
           >
             <Trash2 size={16} />
           </button>
@@ -226,7 +229,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
       {isExpanded && (!node.children || node.children.length === 0) ? (
         <div className="py-2 flex items-center gap-3" style={{ marginLeft: `${paddingLeft + indentSize + 12}px`, color: theme.mutedTextColor }}>
           <div className="w-4 h-px bg-current shrink-0" />
-          <span className="text-[10px] font-black uppercase tracking-widest italic">Nivel Terminal</span>
+          <span className="text-[10px] font-black uppercase tracking-widest italic">{t('hierarchy.terminalLevel')}</span>
         </div>
       ) : null}
     </div>

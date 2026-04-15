@@ -14,6 +14,7 @@ import {
   Trash2,
   Flag
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { sanitizeComment } from '../../../lib/sanitize/html-sanitizer';
 
 interface Reply {
@@ -44,6 +45,7 @@ interface CommentItemProps {
 }
 
 export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded }) => {
+  const { t } = useTranslation('common');
   const [replies, setReplies] = useState<Reply[]>([]);
   const [showReplies, setShowReplies] = useState(false);
   const [isLoadingReplies, setIsLoadingReplies] = useState(false);
@@ -51,6 +53,8 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
   const [newReply, setNewReply] = useState('');
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Cerrar menú al hacer click fuera
@@ -71,33 +75,33 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
   const handleEdit = () => {
     setShowOptionsMenu(false);
     // TODO: Implementar lógica de edición
-    alert('Función de editar en desarrollo');
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     setShowOptionsMenu(false);
-    if (!confirm('¿Estás seguro de que quieres eliminar este comentario?')) return;
+    setDeleteError(null);
+    setPendingDelete(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    setPendingDelete(false);
     try {
       const response = await fetch(`/api/reels/comments/${comment.id}`, {
         method: 'DELETE'
       });
 
-      if (response.ok) {
-        // TODO: Actualizar UI o notificar al componente padre
-        alert('Comentario eliminado exitosamente');
-      } else {
-        alert('Error al eliminar comentario');
+      if (!response.ok) {
+        setDeleteError(t('comments.deleteError'));
       }
+      // TODO: Actualizar UI o notificar al componente padre
     } catch (error) {
-      alert('Error al eliminar comentario');
+      setDeleteError(t('comments.deleteError'));
     }
   };
 
   const handleReport = () => {
     setShowOptionsMenu(false);
     // TODO: Implementar lógica de reporte
-    alert('Función de reportar en desarrollo');
   };
 
   // Cargar respuestas
@@ -230,7 +234,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
                         style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                       >
                         <Edit3 className="w-4 h-4 mr-3 text-[#6C757D] dark:text-white/60" />
-                        Editar
+                        {t('comments.edit')}
                       </button>
                       <button
                         onClick={handleDelete}
@@ -238,7 +242,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
                         style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                       >
                         <Trash2 className="w-4 h-4 mr-3" />
-                        Eliminar
+                        {t('comments.delete')}
                       </button>
                       <button
                         onClick={handleReport}
@@ -246,7 +250,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
                         style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
                       >
                         <Flag className="w-4 h-4 mr-3 text-[#6C757D] dark:text-white/60" />
-                        Reportar
+                        {t('comments.report')}
                       </button>
                     </div>
                   </motion.div>
@@ -261,15 +265,39 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
             dangerouslySetInnerHTML={{ __html: sanitizeComment(comment.content) }}
           />
           
+          {/* Confirmación inline de borrado */}
+          {pendingDelete && (
+            <div className="mb-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-2">
+              <p className="text-xs text-red-700 dark:text-red-400">{t('comments.confirmDelete')}</p>
+              <div className="flex gap-1 flex-shrink-0">
+                <button
+                  onClick={() => setPendingDelete(false)}
+                  className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded hover:bg-red-50 transition-colors"
+                >
+                  {t('actions.cancel')}
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                >
+                  {t('actions.delete')}
+                </button>
+              </div>
+            </div>
+          )}
+          {deleteError && (
+            <p className="text-xs text-red-600 dark:text-red-400 mb-2">{deleteError}</p>
+          )}
+
           {/* Botones de acción */}
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setShowReplyInput(!showReplyInput)}
               className="flex items-center gap-1.5 text-[#6C757D] dark:text-white/60 hover:text-[#00D4B3] dark:hover:text-[#00D4B3] transition-colors group"
               style={{ fontFamily: 'Inter, sans-serif', fontWeight: 500 }}
             >
               <MessageCircle className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              <span className="text-xs">Responder</span>
+              <span className="text-xs">{t('comments.reply')}</span>
             </button>
           </div>
 
@@ -289,7 +317,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
                       type="text"
                       value={newReply}
                       onChange={(e) => setNewReply(e.target.value)}
-                      placeholder="Escribe una respuesta..."
+                      placeholder={t('comments.replyPlaceholder')}
                       className="w-full px-3 py-2 border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl bg-white dark:bg-[#1E2329] text-sm font-normal text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-[#6C757D] focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all duration-200"
                       style={{ fontFamily: 'Inter, sans-serif' }}
                       disabled={isSubmittingReply}
@@ -323,12 +351,12 @@ export const CommentItem: React.FC<CommentItemProps> = ({ comment, onReplyAdded 
               {showReplies ? (
                 <>
                   <ChevronUp className="w-3.5 h-3.5" />
-                  <span>Ocultar {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</span>
+                  <span>{t('comments.hideReplies', { count: replies.length })}</span>
                 </>
               ) : (
                 <>
                   <ChevronDown className="w-3.5 h-3.5" />
-                  <span>Ver {replies.length} respuesta{replies.length !== 1 ? 's' : ''}</span>
+                  <span>{t('comments.viewReplies', { count: replies.length })}</span>
                 </>
               )}
             </button>

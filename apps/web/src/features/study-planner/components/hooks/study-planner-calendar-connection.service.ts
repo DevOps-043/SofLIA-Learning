@@ -74,10 +74,6 @@ export function createDisconnectCalendarHandler(
           content: `No pude desconectar tu calendario. ${errorMessage}`,
         },
       ]);
-
-      if (typeof globalThis.alert === 'function') {
-        globalThis.alert(`Error al desconectar calendario:\n\n${errorMessage}`);
-      }
     } finally {
       params.setIsConnectingCalendar(false);
     }

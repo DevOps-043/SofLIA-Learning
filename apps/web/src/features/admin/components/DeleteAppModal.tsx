@@ -1,6 +1,7 @@
 'use client'
 
 import { XMarkIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { AdminApp } from '../services/adminApps.service'
 
 interface DeleteAppModalProps {
@@ -12,6 +13,9 @@ interface DeleteAppModalProps {
 }
 
 export function DeleteAppModal({ isOpen, onClose, onConfirm, app, isDeleting = false }: DeleteAppModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+
   const handleConfirm = async () => {
     if (app) {
       await onConfirm(app)
@@ -24,7 +28,7 @@ export function DeleteAppModal({ isOpen, onClose, onConfirm, app, isDeleting = f
     <div className="fixed inset-0 bg-gray-900/50 dark:bg-gray-600/75 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 w-full max-w-md">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Eliminar App</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">{t('apps.deleteModal.title')}</h2>
           <button
             onClick={onClose}
             className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
@@ -40,7 +44,7 @@ export function DeleteAppModal({ isOpen, onClose, onConfirm, app, isDeleting = f
             </div>
             <div className="ml-3">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                ¿Estás seguro de que quieres eliminar esta app?
+                {t('apps.deleteModal.confirmText')}
               </h3>
             </div>
           </div>
@@ -56,8 +60,7 @@ export function DeleteAppModal({ isOpen, onClose, onConfirm, app, isDeleting = f
 
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
             <p className="text-red-600 dark:text-red-400 text-sm">
-              <strong>Advertencia:</strong> Esta acción no se puede deshacer. Se eliminará permanentemente 
-              la app y todos sus datos asociados.
+              {t('generic.irreversible')}
             </p>
           </div>
 
@@ -67,14 +70,14 @@ export function DeleteAppModal({ isOpen, onClose, onConfirm, app, isDeleting = f
               disabled={isDeleting}
               className="px-4 py-2 text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
             >
-              Cancelar
+              {tc('actions.cancel')}
             </button>
             <button
               onClick={handleConfirm}
               disabled={isDeleting}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
             >
-              {isDeleting ? 'Eliminando...' : 'Eliminar App'}
+              {isDeleting ? tc('actions.deleting') : tc('actions.delete')}
             </button>
           </div>
         </div>

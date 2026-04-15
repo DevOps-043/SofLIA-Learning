@@ -111,6 +111,7 @@ export default function CalendarCallbackPage() {
     description: string;
     help: { title: string; message: string; steps: string[] };
   } | null>(null);
+  const [calendarConnected, setCalendarConnected] = useState(false);
 
   useEffect(() => {
     const code = searchParams.get('code');
@@ -245,8 +246,7 @@ export default function CalendarCallbackPage() {
           window.close();
         } catch (e) {
           console.error('[Calendar Callback] Error cerrando popup:', e);
-          // Si no se puede cerrar, al menos intentar notificar de otra forma
-          alert('Calendario conectado exitosamente. Puedes cerrar esta ventana.');
+          setCalendarConnected(true);
         }
       }, 1000);
     } else if (code && state && !success && isPopup) {
@@ -330,13 +330,31 @@ export default function CalendarCallbackPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-700 dark:text-gray-300">
-          Conectando tu calendario...
-        </p>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-          Esta ventana se cerrará automáticamente
-        </p>
+        {calendarConnected ? (
+          <>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <p className="text-gray-700 dark:text-gray-300 font-medium">
+              Calendario conectado exitosamente.
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Puedes cerrar esta ventana.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-700 dark:text-gray-300">
+              Conectando tu calendario...
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Esta ventana se cerrará automáticamente
+            </p>
+          </>
+        )}
       </div>
     </div>
   );

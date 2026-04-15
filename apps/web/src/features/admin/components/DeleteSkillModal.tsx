@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, AlertTriangle, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { AdminSkill } from '../services/adminSkills.service'
 
 interface DeleteSkillModalProps {
@@ -14,13 +15,15 @@ interface DeleteSkillModalProps {
 
 export function DeleteSkillModal({ isOpen, onClose, skill, onConfirm }: DeleteSkillModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
 
   const handleConfirm = async () => {
     try {
       setIsDeleting(true)
       await onConfirm()
     } catch (error) {
-      // Error ya manejado en el componente padre
+      // Error handled in parent
     } finally {
       setIsDeleting(false)
     }
@@ -44,7 +47,7 @@ export function DeleteSkillModal({ isOpen, onClose, skill, onConfirm }: DeleteSk
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Eliminar Skill
+                {t('skills.deleteModal.title')}
               </h2>
             </div>
             <button
@@ -58,10 +61,10 @@ export function DeleteSkillModal({ isOpen, onClose, skill, onConfirm }: DeleteSk
           {/* Content */}
           <div className="p-6">
             <p className="text-gray-700 dark:text-gray-300 mb-4">
-              ¿Estás seguro de que deseas eliminar la skill <strong>{skill.name}</strong>?
+              {t('skills.deleteModal.confirmText', { name: skill.name })}
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Esta acción marcará la skill como inactiva. Los usuarios que ya la tienen seguirán conservándola, pero no se podrá asignar a nuevos cursos.
+              {t('skills.deleteModal.warningText')}
             </p>
           </div>
 
@@ -73,7 +76,7 @@ export function DeleteSkillModal({ isOpen, onClose, skill, onConfirm }: DeleteSk
               disabled={isDeleting}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
             >
-              Cancelar
+              {tc('actions.cancel')}
             </button>
             <button
               onClick={handleConfirm}
@@ -81,7 +84,7 @@ export function DeleteSkillModal({ isOpen, onClose, skill, onConfirm }: DeleteSk
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Trash2 className="w-4 h-4" />
-              {isDeleting ? 'Eliminando...' : 'Eliminar'}
+              {isDeleting ? tc('actions.deleting') : tc('actions.delete')}
             </button>
           </div>
         </motion.div>
@@ -89,4 +92,3 @@ export function DeleteSkillModal({ isOpen, onClose, skill, onConfirm }: DeleteSk
     </AnimatePresence>
   )
 }
-

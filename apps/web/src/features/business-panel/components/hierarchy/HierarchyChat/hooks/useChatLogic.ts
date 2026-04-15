@@ -278,7 +278,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
     } catch (error) {
       console.error('Error enviando mensaje:', error)
       setMessageContent(content)
-      alert(error instanceof Error ? error.message : 'Error al enviar el mensaje')
+      setError(error instanceof Error ? error.message : 'Error al enviar el mensaje')
     } finally {
       setIsSending(false)
     }
@@ -308,7 +308,6 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
 
   const handleDeleteMessage = async (messageId: string) => {
     if (!chat) return
-    if (!confirm('¿Estás seguro de que quieres eliminar este mensaje?')) return
 
     try {
       const success = await HierarchyChatsService.deleteMessage(chat.id, messageId)

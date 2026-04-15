@@ -1,0 +1,319 @@
+{
+  "users": {
+    "deleteModal": {
+      "title": "Delete User",
+      "confirmQuestion": "Are you sure?",
+      "irreversible": "This action cannot be undone. The following will be permanently deleted:",
+      "alsoDeleted": "Also deleted:",
+      "sessions": "All user sessions",
+      "favorites": "All user favorites",
+      "associatedData": "All associated data",
+      "errorDeleting": "Error deleting user"
+    },
+    "manageModal": {
+      "editTitle": "Manage Member",
+      "deleteTitle": "Delete Member",
+      "changeRole": "Change Role",
+      "deleteConfirm": "Are you sure you want to delete this user? This action cannot be undone and the user will immediately lose access.",
+      "errorUpdate": "Error updating user",
+      "errorSave": "Error saving changes",
+      "errorDelete": "Error deleting user"
+    },
+    "roles": {
+      "member": {
+        "label": "Member",
+        "description": "Basic platform access"
+      },
+      "admin": {
+        "label": "Administrator",
+        "description": "Can manage users and content"
+      },
+      "owner": {
+        "label": "Owner",
+        "description": "Full control of the organization"
+      }
+    }
+  },
+  "skills": {
+    "deleteModal": {
+      "title": "Delete Skill",
+      "confirmText": "Are you sure you want to delete the skill {{name}}?",
+      "warningText": "This action will mark the skill as inactive. Users who already have it will keep it, but it cannot be assigned to new courses."
+    },
+    "page": {
+      "searchPlaceholder": "Search skills...",
+      "emptyFiltered": "No skills found with the applied filters",
+      "emptyAll": "No skills registered. Create the first skill.",
+      "tooltipEdit": "Edit",
+      "tooltipDelete": "Delete"
+    },
+    "categories": {
+      "all": "All",
+      "general": "General",
+      "programming": "Programming",
+      "design": "Design",
+      "marketing": "Marketing",
+      "business": "Business",
+      "data": "Data",
+      "ai": "Artificial Intelligence",
+      "cloud": "Cloud Computing",
+      "security": "Security",
+      "devops": "DevOps",
+      "leadership": "Leadership",
+      "communication": "Communication",
+      "other": "Other"
+    }
+  },
+  "news": {
+    "deleteModal": {
+      "title": "Delete News",
+      "confirmText": "Are you sure you want to delete this news article?"
+    },
+    "page": {
+      "searchPlaceholder": "Search news...",
+      "tooltipView": "View details",
+      "tooltipEdit": "Edit",
+      "tooltipDelete": "Delete"
+    }
+  },
+  "apps": {
+    "deleteModal": {
+      "title": "Delete App",
+      "confirmText": "Are you sure you want to delete this application?"
+    }
+  },
+  "prompts": {
+    "deleteModal": {
+      "title": "Delete Prompt",
+      "confirmText": "Are you sure you want to delete this prompt?"
+    }
+  },
+  "reels": {
+    "deleteModal": {
+      "title": "Delete Reel",
+      "confirmText": "Are you sure you want to delete this reel?"
+    },
+    "page": {
+      "searchPlaceholder": "Search reels...",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "tooltipView": "View details",
+      "tooltipEdit": "Edit",
+      "tooltipDeactivate": "Deactivate",
+      "tooltipActivate": "Activate",
+      "tooltipUnfeature": "Remove featured",
+      "tooltipFeature": "Feature",
+      "tooltipDelete": "Delete"
+    }
+  },
+  "communities": {
+    "deleteModal": {
+      "title": "Delete Community",
+      "confirmText": "Are you sure you want to delete this community?"
+    },
+    "stats": {
+      "total": "Total Communities",
+      "members": "Total Members",
+      "posts": "Total Posts",
+      "active": "Active Communities"
+    },
+    "showing": "Showing {{filtered}} of {{total}} communities"
+  },
+  "workshops": {
+    "deleteModal": {
+      "title": "Delete Workshop",
+      "confirmText": "Are you sure you want to delete this workshop?"
+    }
+  },
+  "generic": {
+    "irreversible": "This action cannot be undone.",
+    "errorDeleting": "Error deleting",
+    "errorLoading": "Error loading data"
+  },
+  "pendingCourses": {
+    "title": "Pending Reviews",
+    "subtitle": "Review and approve courses submitted from CourseForge",
+    "tabPending": "Pending",
+    "tabRejected": "Rejected",
+    "searchPlaceholder": "Search by title or instructor...",
+    "loading": "Loading reviews...",
+    "emptyPending": "No pending courses",
+    "emptyPendingDesc": "All up to date! No new requests.",
+    "emptyRejected": "No rejected courses",
+    "emptyRejectedDesc": "No rejected courses found with current filters.",
+    "statusRejected": "Rejected",
+    "statusPending": "Pending",
+    "statusUpdate": "Update",
+    "statusNew": "New",
+    "btnApprove": "Approve",
+    "btnReconsider": "Reconsider",
+    "tooltipApprove": "Approve and Publish",
+    "tooltipDetails": "View Details",
+    "tooltipReject": "Reject",
+    "tooltipDelete": "Delete permanently",
+    "errorApprove": "Error approving the course",
+    "errorReject": "Error rejecting the course",
+    "errorDelete": "Error deleting the course",
+    "approveModal": {
+      "title": "Approve Course",
+      "message": "Are you sure you want to approve this course? It will be made public and immediately visible to students.",
+      "confirm": "Approve and Publish"
+    },
+    "rejectModal": {
+      "title": "Reject Course",
+      "message": "Are you sure you want to reject this course?",
+      "confirm": "Reject"
+    },
+    "deleteModal": {
+      "title": "Delete Rejected Course",
+      "message": "Are you sure you want to permanently delete this course? This action cannot be undone and will erase all associated data.",
+      "confirm": "Delete Permanently"
+    }
+  },
+  "layout": {
+    "panelTitle": "Administration Panel"
+  },
+  "pendingCourseDetail": {
+    "backToPending": "Back to pending",
+    "courseContent": "Course Content",
+    "notFound": "Course not found",
+    "errorApprove": "Error approving",
+    "errorReject": "Error rejecting",
+    "errorDelete": "Error deleting",
+    "errorReconsider": "Error reconsidering",
+    "approveModal": {
+      "title": "Confirm Publication",
+      "message": "Are you sure you want to publish this course? It will be immediately visible to students.",
+      "confirm": "Yes, Publish"
+    },
+    "rejectModal": {
+      "title": "Reject Course",
+      "message": "This action cannot be easily undone. The course will be moved to rejected status.",
+      "confirm": "Yes, Reject"
+    },
+    "deleteModal": {
+      "title": "Delete Course",
+      "message": "Are you sure you want to permanently delete this course? This action cannot be undone.",
+      "confirm": "Yes, Delete"
+    }
+  },
+  "companies": {
+    "stats": {
+      "active": {
+        "title": "Active Companies",
+        "subtitle": "of {{total}} registered"
+      },
+      "pending": {
+        "title": "Pending",
+        "subtitle": "Require activation"
+      },
+      "trial": {
+        "title": "On Trial",
+        "subtitle": "Priority conversions"
+      },
+      "paused": {
+        "title": "Paused",
+        "subtitle": "Review billing"
+      },
+      "avgUsage": {
+        "title": "Average Usage",
+        "subtitle": "{{used}} / {{total}} licenses"
+      }
+    }
+  },
+  "communityDetail": {
+    "members": {
+      "empty": "No members in this community",
+      "userNotFound": "User not found",
+      "activeStatus": "Active",
+      "joinedAt": "Joined:",
+      "removeFromCommunity": "Remove from community",
+      "demoteToMember": "Demote to member",
+      "promoteToAdmin": "Promote to admin"
+    },
+    "posts": {
+      "empty": "No posts in this community",
+      "noContent": "Post with no content",
+      "pinned": "Pinned",
+      "hidden": "Hidden",
+      "likesLabel": "likes",
+      "commentsLabel": "comments",
+      "unpinPost": "Unpin post",
+      "pinPost": "Pin post",
+      "showPost": "Show post",
+      "hidePost": "Hide post",
+      "deletePost": "Delete post",
+      "viewDetails": "View post details"
+    }
+  },
+  "communityCard": {
+    "typePrivate": "Private",
+    "typeModerated": "Moderated",
+    "typePublic": "Public",
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "membersLabel": "Members",
+    "postsLabel": "Posts",
+    "noCreator": "No creator",
+    "deactivate": "Deactivate",
+    "activate": "Activate"
+  },
+  "workshopCard": {
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "instructorLabel": "Instructor",
+    "noInstructor": "No instructor",
+    "studentsLabel": "students"
+  },
+  "courseManagement": {
+    "addLesson": "Add lesson",
+    "addMaterial": "Add material",
+    "addActivity": "Add activity",
+    "recalcDurations": "Recalculate all lesson durations",
+    "uploadVideo": "Upload Video",
+    "confirmDeleteMaterial": "Are you sure you want to delete this material?",
+    "confirmDeleteActivity": "Are you sure you want to delete this activity?",
+    "materialsLabel": "Materials",
+    "activitiesLabel": "Activities",
+    "addButton": "+ Add",
+    "noMaterials": "No materials",
+    "noActivities": "No activities",
+    "confirmDeleteModule": "Are you sure you want to delete this module and all its lessons?",
+    "confirmDeleteLesson": "Are you sure you want to delete this lesson?",
+    "published": "Published",
+    "draft": "Draft",
+    "lessonCount_one": "{{count}} lesson",
+    "lessonCount_other": "{{count}} lessons",
+    "addLessonShort": "Lesson"
+  },
+  "lessonContent": {
+    "transcript": "Transcript",
+    "summary": "Summary",
+    "activities": "Activities"
+  },
+  "searchPlaceholders": {
+    "apps": "Search apps...",
+    "users": "Search by name, email or username...",
+    "reportes": "Search by title or description...",
+    "communities": "Search communities by name, description or creator...",
+    "companies": "Search by name, slug or email...",
+    "accessRequests": "Search by user, email or community..."
+  },
+  "dashboard": {
+    "confirmResetLayout": "Are you sure you want to reset the default layout?",
+    "customizeLayout": "Customize Layout",
+    "restoreLayout": "Restore"
+  },
+  "coursesSection": {
+    "revoke": "Revoke Access",
+    "acquired": "Acquired:",
+    "user": "User",
+    "course": "Course",
+    "progress": "Progress",
+    "actionsHeader": "Actions",
+    "noOrgCourses": "No courses acquired for the whole organization. Open the catalog to get started.",
+    "noUserAssignments": "No individual assignments registered.",
+    "confirmRevokeOrg": "Revoke access to this course for the ENTIRE organization?",
+    "confirmRevokeUser": "Revoke this individual assignment?"
+  }
+}

@@ -30,7 +30,7 @@ import type { HierarchyConfig } from '../../types/hierarchy.types';
 // ============================================
 
 export function HierarchySettings() {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('business');
   const {
     config,
     stats,
@@ -64,7 +64,7 @@ export function HierarchySettings() {
     setActionError(null);
     const result = await seedDefaultStructure();
     if (!result.success) {
-      setActionError(result.error || 'Error al crear estructura');
+      setActionError(result.error || t('hierarchy.errorCreateStructure'));
     }
   };
 
@@ -74,7 +74,7 @@ export function HierarchySettings() {
     if (result.success) {
       setShowConfirmEnable(false);
     } else {
-      setActionError(result.error || 'Error al activar');
+      setActionError(result.error || t('hierarchy.errorEnable'));
     }
   };
 
@@ -84,7 +84,7 @@ export function HierarchySettings() {
     if (result.success) {
       setShowConfirmDisable(false);
     } else {
-      setActionError(result.error || 'Error al desactivar');
+      setActionError(result.error || t('hierarchy.errorDisable'));
     }
   };
 
@@ -94,7 +94,7 @@ export function HierarchySettings() {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#00D4B3] mx-auto mb-4"></div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white/30 truncate">Cargando Configuración...</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#0A2540] dark:text-white/30 truncate">{t('hierarchy.loadingConfig')}</p>
         </div>
       </div>
     );
@@ -150,20 +150,20 @@ export function HierarchySettings() {
                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
                 : 'bg-neutral-100 dark:bg-white/5 text-neutral-500 dark:text-white/40 border border-neutral-200 dark:border-white/10'
               }`}>
-              {isHierarchyEnabled ? '● Activa' : '○ Inactiva'}
+              {isHierarchyEnabled ? t('hierarchy.statusActiveBadge') : t('hierarchy.statusInactiveBadge')}
             </span>
           </div>
 
           {/* Stat cards grid */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-              <StatCard icon={Map} label="Regiones" value={stats.regions_count} color="blue" />
-              <StatCard icon={Layers} label="Zonas" value={stats.zones_count} color="purple" />
-              <StatCard icon={Users} label="Equipos" value={stats.teams_count} color="cyan" />
-              <StatCard icon={UserCheck} label="Asignados" value={stats.users_assigned} color="emerald" />
+              <StatCard icon={Map} label={t('hierarchy.statRegions')} value={stats.regions_count} color="blue" />
+              <StatCard icon={Layers} label={t('hierarchy.statZones')} value={stats.zones_count} color="purple" />
+              <StatCard icon={Users} label={t('hierarchy.statTeams')} value={stats.teams_count} color="cyan" />
+              <StatCard icon={UserCheck} label={t('hierarchy.statAssigned')} value={stats.users_assigned} color="emerald" />
               <StatCard
                 icon={UserX}
-                label="Sin asignar"
+                label={t('hierarchy.statUnassigned')}
                 value={stats.users_unassigned}
                 color={stats.users_unassigned > 0 ? 'amber' : 'neutral'}
               />
@@ -179,9 +179,9 @@ export function HierarchySettings() {
                   <Sparkles className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-neutral-900 dark:text-white">Comenzar con estructura básica</p>
+                  <p className="text-sm font-semibold text-neutral-900 dark:text-white">{t('hierarchy.basicStructureTitle')}</p>
                   <p className="text-xs text-neutral-500 dark:text-white/40">
-                    Crea una región, zona y equipo inicial automáticamente
+                    {t('hierarchy.basicStructureDesc')}
                   </p>
                 </div>
                 <button
@@ -189,7 +189,7 @@ export function HierarchySettings() {
                   disabled={isLoading}
                   className="px-6 py-2.5 bg-[#0A2540] dark:bg-[#00D4B3] hover:brightness-110 !text-white dark:!text-[#0A2540] text-[10px] font-black uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xl active:scale-95"
                 >
-                  {isLoading ? 'Creando...' : 'Crear'}
+                  {isLoading ? t('hierarchy.creating') : t('hierarchy.creating2')}
                 </button>
               </div>
             )}
@@ -205,7 +205,7 @@ export function HierarchySettings() {
                   >
                     <span className="flex items-center gap-2">
                       <Zap className="w-4 h-4" />
-                      Activar jerarquía
+                      {t('hierarchy.enableLabel')}
                     </span>
                   </button>
                 ) : (
@@ -214,7 +214,7 @@ export function HierarchySettings() {
                     disabled={isLoading}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] bg-neutral-100 dark:bg-white/5 text-neutral-600 dark:text-white/60 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 border border-neutral-200 dark:border-white/10 hover:border-red-200 dark:hover:border-red-500/20"
                   >
-                    Desactivar jerarquía
+                    {t('hierarchy.disableLabel')}
                   </button>
                 )}
               </div>
@@ -225,7 +225,7 @@ export function HierarchySettings() {
               <div className="flex items-center gap-3 p-3 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-500/10 dark:border-amber-500/20">
                 <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
                 <p className="text-sm text-amber-600 dark:text-amber-400">
-                  Hay <strong>{stats?.users_unassigned}</strong> usuario(s) sin equipo asignado. Asígnelos antes de activar.
+                  {t('hierarchy.unassignedWarning', { count: stats?.users_unassigned })}
                 </p>
               </div>
             )}
@@ -242,9 +242,9 @@ export function HierarchySettings() {
       {/* Modales de confirmación */}
       {showConfirmEnable && (
         <ConfirmModal
-          title="Activar jerarquía"
-          message="Al activar, los usuarios solo podrán ver datos dentro de su ámbito asignado (equipo, zona o región). ¿Desea continuar?"
-          confirmLabel="Activar"
+          title={t('hierarchy.enableTitle')}
+          message={t('hierarchy.enableMessage')}
+          confirmLabel={t('hierarchy.confirmEnable')}
           confirmVariant="success"
           onConfirm={handleEnableHierarchy}
           onCancel={() => setShowConfirmEnable(false)}
@@ -253,9 +253,9 @@ export function HierarchySettings() {
       )}
       {showConfirmDisable && (
         <ConfirmModal
-          title="Desactivar jerarquía"
-          message="Al desactivar, todos los usuarios podrán ver todos los datos. La estructura se mantiene pero no se aplican restricciones."
-          confirmLabel="Desactivar"
+          title={t('hierarchy.disableTitle')}
+          message={t('hierarchy.disableMessage')}
+          confirmLabel={t('hierarchy.confirmDisable')}
           confirmVariant="danger"
           onConfirm={handleDisableHierarchy}
           onCancel={() => setShowConfirmDisable(false)}
@@ -277,6 +277,7 @@ function UserBehaviorSettings({
   config: HierarchyConfig | null;
   updateConfig: (config: Partial<HierarchyConfig>) => Promise<boolean>;
 }) {
+  const { t } = useTranslation('business');
   const [isSaving, setIsSaving] = useState<string | null>(null);
   const [savedField, setSavedField] = useState<string | null>(null);
 
@@ -295,16 +296,16 @@ function UserBehaviorSettings({
     {
       key: 'auto_assign_new_users' as const,
       icon: UserPlus,
-      label: 'Auto-asignar nuevos usuarios',
-      description: 'Los nuevos miembros se asignarán automáticamente al equipo predeterminado al unirse a la organización.',
+      label: t('hierarchy.userBehavior.autoAssign.label'),
+      description: t('hierarchy.userBehavior.autoAssign.description'),
       value: config?.auto_assign_new_users ?? false,
       color: 'blue'
     },
     {
       key: 'require_team_assignment' as const,
       icon: ClipboardCheck,
-      label: 'Requerir equipo asignado',
-      description: 'Los usuarios deben tener un equipo asignado para acceder a la plataforma. Los usuarios sin equipo verán un aviso.',
+      label: t('hierarchy.userBehavior.requireTeam.label'),
+      description: t('hierarchy.userBehavior.requireTeam.description'),
       value: config?.require_team_assignment ?? false,
       color: 'purple'
     },
@@ -318,10 +319,10 @@ function UserBehaviorSettings({
         </div>
         <div>
           <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
-            Comportamiento de Usuarios
+            {t('hierarchy.userBehavior.title')}
           </h3>
           <p className="text-sm text-neutral-500 dark:text-white/40">
-            Configura cómo se gestionan los usuarios dentro de la jerarquía
+            {t('hierarchy.userBehavior.subtitle')}
           </p>
         </div>
       </div>
@@ -366,7 +367,7 @@ function UserBehaviorSettings({
                       className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400 font-medium"
                     >
                       <CheckCircle2 className="w-3 h-3" />
-                      Guardado
+                      {t('hierarchy.saved')}
                     </motion.span>
                   )}
                 </div>
@@ -405,14 +406,15 @@ function UserBehaviorSettings({
 // ============================================
 
 function RolesSection() {
+  const { t } = useTranslation('business');
   const roleData = [
-    { role: 'owner', icon: '👑', scope: 'Toda la organización', color: 'amber' },
-    { role: 'admin', icon: '⚙️', scope: 'Según asignación', color: 'blue' },
-    { role: 'regional_manager', icon: '🌍', scope: 'Región asignada', color: 'emerald' },
-    { role: 'zone_manager', icon: '📍', scope: 'Zona asignada', color: 'purple' },
-    { role: 'team_leader', icon: '🎯', scope: 'Equipo asignado', color: 'cyan' },
-    { role: 'node_manager', icon: '🏢', scope: 'Nodo específico', color: 'indigo' },
-    { role: 'member', icon: '👤', scope: 'Solo su equipo', color: 'neutral' },
+    { role: 'owner', icon: '👑', scope: t('hierarchy.roles.scope.owner'), color: 'amber' },
+    { role: 'admin', icon: '⚙️', scope: t('hierarchy.roles.scope.admin'), color: 'blue' },
+    { role: 'regional_manager', icon: '🌍', scope: t('hierarchy.roles.scope.regional_manager'), color: 'emerald' },
+    { role: 'zone_manager', icon: '📍', scope: t('hierarchy.roles.scope.zone_manager'), color: 'purple' },
+    { role: 'team_leader', icon: '🎯', scope: t('hierarchy.roles.scope.team_leader'), color: 'cyan' },
+    { role: 'node_manager', icon: '🏢', scope: t('hierarchy.roles.scope.node_manager'), color: 'indigo' },
+    { role: 'member', icon: '👤', scope: t('hierarchy.roles.scope.member'), color: 'neutral' },
   ];
 
   return (
@@ -423,10 +425,10 @@ function RolesSection() {
         </div>
         <div>
           <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
-            Roles y Permisos
+            {t('hierarchy.roles.title')}
           </h3>
           <p className="text-sm text-neutral-500 dark:text-white/40">
-            Cada rol determina el alcance de acceso a datos dentro de la jerarquía
+            {t('hierarchy.roles.subtitle')}
           </p>
         </div>
       </div>
@@ -541,6 +543,7 @@ function ConfirmModal({
   onCancel: () => void;
   isLoading?: boolean;
 }) {
+  const { t } = useTranslation('business');
   const buttonStyles: Record<string, string> = {
     default: 'bg-[#0A2540] dark:bg-[#00D4B3] hover:brightness-110 !text-white dark:!text-[#0A2540]',
     success: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25',
@@ -568,14 +571,14 @@ function ConfirmModal({
             disabled={isLoading}
             className="px-4 py-2.5 text-neutral-600 dark:text-white/60 hover:bg-neutral-100 dark:hover:bg-white/5 rounded-xl text-sm font-medium transition-colors"
           >
-            Cancelar
+            {t('hierarchy.cancel')}
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
             className={`px-5 py-2.5 text-white rounded-xl text-sm font-bold disabled:opacity-50 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] ${buttonStyles[confirmVariant]}`}
           >
-            {isLoading ? 'Procesando...' : confirmLabel}
+            {isLoading ? t('hierarchy.processing') : confirmLabel}
           </button>
         </div>
       </motion.div>

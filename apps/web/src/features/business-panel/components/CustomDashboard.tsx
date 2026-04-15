@@ -5,6 +5,7 @@ import type * as ReactGridLayout from 'react-grid-layout'
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   Activity,
   BarChart3,
@@ -171,6 +172,8 @@ function WidgetContent({ widgetId }: { widgetId: string }) {
 
 export function CustomDashboard({ onClose }: CustomDashboardProps) {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const params = useParams()
   const orgSlug = params?.orgSlug as string
   const [isEditMode, setIsEditMode] = useState(false)
@@ -179,6 +182,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [pendingReset, setPendingReset] = useState(false)
 
   useEffect(() => {
     void fetchLayout()
@@ -263,15 +267,12 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
     }
   }
 
-  const handleReset = async () => {
-    const confirmed = window.confirm(
-      '¿Estás seguro de que deseas restablecer el layout por defecto? Esto eliminará tu personalización actual.'
-    )
+  const handleReset = () => {
+    setPendingReset(true)
+  }
 
-    if (!confirmed) {
-      return
-    }
-
+  const handleConfirmReset = async () => {
+    setPendingReset(false)
     try {
       setIsSaving(true)
       setError(null)
@@ -368,7 +369,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
             color: theme.onActionColor,
           }}
         >
-          Reintentar
+          {tc('actions.retry')}
         </button>
       </div>
     )
@@ -382,6 +383,18 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {pendingReset && (
+        <div className="p-3 rounded-lg border flex items-center justify-between gap-3"
+          style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}33` }}
+        >
+          <p className="text-sm" style={{ color: theme.dangerColor }}>{t('dashboard.confirmResetLayout')}</p>
+          <div className="flex gap-2 flex-shrink-0">
+            <button onClick={() => setPendingReset(false)} className="px-3 py-1.5 text-sm rounded border transition-colors" style={{ borderColor: `${theme.dangerColor}33`, color: theme.dangerColor }}>{tc('actions.cancel')}</button>
+            <button onClick={() => void handleConfirmReset()} className="px-3 py-1.5 text-sm rounded text-white transition-colors" style={{ backgroundColor: theme.dangerColor }}>{tc('actions.confirm')}</button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="flex items-center gap-2 text-2xl font-bold" style={{ color: theme.textColor }}>
@@ -406,7 +419,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
               }}
             >
               <CheckCircle className="h-5 w-5" />
-              <span>Guardado exitosamente</span>
+              <span>{tc('actions.savedSuccessfully')}</span>
             </motion.div>
           ) : null}
 
@@ -430,14 +443,14 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
             onClick={() => setIsEditMode(current => !current)}
           >
             <Settings className="h-4 w-4" />
-            {isEditMode ? 'Vista previa' : 'Personalizar'}
+            {isEditMode ? tc('actions.preview') : tc('actions.customize')}
           </DashboardActionButton>
 
           {isEditMode ? (
             <>
-              <DashboardActionButton variant="secondary" onClick={() => void handleReset()} disabled={isSaving}>
+              <DashboardActionButton variant="secondary" onClick={handleReset} disabled={isSaving}>
                 <RefreshCw className="h-4 w-4" />
-                Restablecer
+                {t('dashboard.restoreLayout')}
               </DashboardActionButton>
               <DashboardActionButton variant="primary" onClick={() => void handleSave()} disabled={isSaving}>
                 {isSaving ? (
@@ -449,12 +462,12 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
                         borderTopColor: theme.onActionColor,
                       }}
                     />
-                    Guardando...
+                    {tc('actions.saving')}
                   </>
                 ) : (
                   <>
                     <Save className="h-4 w-4" />
-                    Guardar cambios
+                    {tc('actions.saveChanges')}
                   </>
                 )}
               </DashboardActionButton>
@@ -479,7 +492,7 @@ export function CustomDashboard({ onClose }: CustomDashboardProps) {
         >
           <div className="flex flex-wrap items-center gap-3">
             <span className="font-medium" style={{ color: theme.textColor }}>
-              Agregar widget:
+              {t('dashboard.addWidget')}
             </span>
             {(Object.keys(WIDGET_META) as WidgetType[]).map(widgetType => {
               const widgetMeta = WIDGET_META[widgetType]

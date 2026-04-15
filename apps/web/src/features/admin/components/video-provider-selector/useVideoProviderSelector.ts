@@ -28,6 +28,7 @@ export function useVideoProviderSelector({
   const [videoDuration, setVideoDuration] = useState('');
   const [detectingDuration, setDetectingDuration] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -76,10 +77,11 @@ export function useVideoProviderSelector({
 
     try {
       const videoUrl = await uploadCourseVideo(file, setUploadProgress);
+      setUploadError(null);
       handleUploadedUrl(videoUrl);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Error desconocido al subir el video';
-      alert(`Error al subir el video: ${errorMessage}`);
+      setUploadError(`Error al subir el video: ${errorMessage}`);
     } finally {
       setUploading(false);
       setTimeout(() => setUploadProgress(0), 1000);
@@ -89,9 +91,10 @@ export function useVideoProviderSelector({
   const handleFileSelect = (file: File) => {
     const validationError = validateVideoFile(file);
     if (validationError) {
-      alert(validationError);
+      setUploadError(validationError);
       return;
     }
+    setUploadError(null);
 
     setSelectedFile(file);
     void handleFileUpload(file);
@@ -174,6 +177,7 @@ export function useVideoProviderSelector({
   return {
     uploading,
     uploadProgress,
+    uploadError,
     selectedFile,
     videoPreview,
     videoDuration,

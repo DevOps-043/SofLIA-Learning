@@ -124,7 +124,7 @@ export function BusinessBulkInviteLinkModal({
       const data = await response.json()
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Error al crear el enlace')
+        throw new Error(data.error || t('users.modals.bulkInvite.errorCreate'))
       }
 
       setCreatedLink(data.link)
@@ -132,7 +132,7 @@ export function BusinessBulkInviteLinkModal({
       onLinkCreated?.()
     } catch (err) {
       setStatus('error')
-      setError(err instanceof Error ? err.message : 'Error al crear el enlace')
+      setError(err instanceof Error ? err.message : t('users.modals.bulkInvite.errorCreate'))
     }
   }
 

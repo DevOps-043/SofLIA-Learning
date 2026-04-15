@@ -4,6 +4,7 @@ import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useThemeStore } from '@/core/stores/themeStore'
+import { useTranslation } from 'react-i18next'
 
 interface ConfirmationModalProps {
   isOpen: boolean
@@ -23,12 +24,15 @@ export function ConfirmationModal({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirmar',
-  cancelText = 'Cancelar',
+  confirmText,
+  cancelText,
   type = 'warning',
   isLoading = false
 }: ConfirmationModalProps) {
   const { resolvedTheme } = useThemeStore()
+  const { t } = useTranslation('common')
+  const resolvedConfirmText = confirmText ?? t('actions.confirm')
+  const resolvedCancelText = cancelText ?? t('actions.cancel')
   const isDark = resolvedTheme === 'dark'
   const actionColor = isDark ? '#00D4B3' : '#0A2540'
   const onActionColor = isDark ? '#04130F' : '#FFFFFF'
@@ -116,7 +120,7 @@ export function ConfirmationModal({
                     onClick={onClose}
                     disabled={isLoading}
                   >
-                    {cancelText}
+                    {resolvedCancelText}
                   </button>
                   <button
                     type="button"
@@ -132,10 +136,10 @@ export function ConfirmationModal({
                     {isLoading ? (
                       <div className="flex items-center">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Procesando...
+                        {t('actions.loading')}
                       </div>
                     ) : (
-                      confirmText
+                      resolvedConfirmText
                     )}
                   </button>
                 </div>

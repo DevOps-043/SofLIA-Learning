@@ -1,263 +1,280 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { SessionService } from '@/features/auth/services/session.service';
-import { calculateCombinedLessonProgress } from '@/lib/utils/lesson-progress';
-import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
+import { NextRequest, NextResponse } from 'next/server'
+
+import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
+import { SessionService } from '@/features/auth/services/session.service'
+import { createClient } from '@/lib/supabase/server'
+
+interface ExistingQuizSubmissionRow {
+  is_passed: boolean | null
+  percentage_score: number | null
+  submission_id: string
+}
 
 interface QuizQuestionRow {
-  id?: string;
-  question_id?: string;
-  correctAnswer?: string | number;
-  options?: string[];
-  questionType?: string;
-  points?: number;
+  correctAnswer?: string | number
+  id?: string
+  options?: string[]
+  points?: number
+  question_id?: string
+  questionType?: string
 }
 
 interface QuizSubmissionMatch {
-  user_id: string;
-  lesson_id: string;
-  enrollment_id: string;
-  material_id?: string;
-  activity_id?: string;
+  activity_id?: string
+  enrollment_id: string
+  lesson_id: string
+  material_id?: string
+  user_id: string
 }
 
-/**
- * POST /api/courses/[slug]/lessons/[lessonId]/quiz/submit
- * Guarda las respuestas de un quiz y calcula el resultado
- */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string; lessonId: string }> }
-) {
-  try {
-    const { slug, lessonId } = await params;
-    const supabase = await createClient();
+function normalizeOption(text: string): string {
+  return text
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+}
 
-    // Verificar autenticación
-    const currentUser = await SessionService.getCurrentUser();
-    if (!currentUser) {
-      return NextResponse.json(
-        { error: 'No autenticado' },
-        { status: 401 }
-      );
+function normalizeTrueFalse(value: string): string {
+  const normalized = normalizeOption(value)
+
+  if (normalized === 'true' || normalized === 'verdadero') {
+    return 'verdadero'
+  }
+
+  if (normalized === 'false' || normalized === 'falso') {
+    return 'falso'
+  }
+
+  return normalized
+}
+
+function isAnswerCorrect(
+  question: QuizQuestionRow,
+  selectedAnswer: string | number,
+): boolean {
+  const correctAnswer = question.correctAnswer
+  const options = question.options || []
+
+  if (question.questionType === 'true_false') {
+    if (typeof selectedAnswer === 'number') {
+      const selectedOption = options[selectedAnswer]
+
+      if (typeof correctAnswer === 'string') {
+        return (
+          normalizeTrueFalse(selectedOption) === normalizeTrueFalse(correctAnswer)
+        )
+      }
+
+      if (typeof correctAnswer === 'number') {
+        return selectedAnswer === correctAnswer
+      }
     }
 
-    // Obtener el curso por slug
+    if (typeof selectedAnswer === 'string') {
+      if (typeof correctAnswer === 'string') {
+        return (
+          normalizeTrueFalse(selectedAnswer) === normalizeTrueFalse(correctAnswer)
+        )
+      }
+
+      if (typeof correctAnswer === 'number') {
+        return (
+          normalizeTrueFalse(selectedAnswer) ===
+          normalizeTrueFalse(options[correctAnswer])
+        )
+      }
+    }
+
+    return false
+  }
+
+  if (typeof selectedAnswer === 'number') {
+    if (typeof correctAnswer === 'number') {
+      return selectedAnswer === correctAnswer
+    }
+
+    if (typeof correctAnswer === 'string') {
+      const selectedOption = options[selectedAnswer]
+      return normalizeOption(selectedOption) === normalizeOption(correctAnswer)
+    }
+  }
+
+  if (typeof selectedAnswer === 'string') {
+    if (typeof correctAnswer === 'string') {
+      return normalizeOption(selectedAnswer) === normalizeOption(correctAnswer)
+    }
+
+    if (typeof correctAnswer === 'number') {
+      return (
+        normalizeOption(selectedAnswer) ===
+        normalizeOption(options[correctAnswer])
+      )
+    }
+  }
+
+  return false
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string; lessonId: string }> },
+) {
+  try {
+    const { slug, lessonId } = await params
+    const supabase = await createClient()
+
+    const currentUser = await SessionService.getCurrentUser()
+    if (!currentUser) {
+      return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+    }
+
     const { data: course, error: courseError } = await supabase
       .from('courses')
       .select('id')
       .eq('slug', slug)
-      .single();
+      .single()
 
     if (courseError || !course) {
       return NextResponse.json(
         { error: 'Curso no encontrado' },
-        { status: 404 }
-      );
+        { status: 404 },
+      )
     }
 
-    const courseId = course.id;
-
-    // Obtener datos del body
-    const body = await request.json();
+    const body = await request.json()
     const organizationId =
-      typeof body?.organizationId === 'string' && body.organizationId.trim().length > 0
+      typeof body?.organizationId === 'string' &&
+      body.organizationId.trim().length > 0
         ? body.organizationId.trim()
-        : null;
+        : null
+
     const enrollment = await resolveCourseEnrollment(
       supabase,
       currentUser.id,
-      courseId,
+      course.id,
       organizationId,
-    );
+    )
 
     if (!enrollment) {
       return NextResponse.json(
-        { error: 'No estás inscrito en este curso' },
-        { status: 404 }
-      );
+        { error: 'No estas inscrito en este curso' },
+        { status: 404 },
+      )
     }
 
-    const enrollmentId = enrollment.enrollment_id;
-    const { 
-      answers, 
-      quizData, 
-      materialId, 
+    const enrollmentId = enrollment.enrollment_id
+    const {
+      answers,
+      quizData,
+      materialId,
       activityId,
-      totalPoints 
-    } = body;
+      totalPoints,
+    } = body as {
+      activityId?: string | null
+      answers?: Record<string, string | number>
+      materialId?: string | null
+      quizData?: QuizQuestionRow[] | { questions?: QuizQuestionRow[] }
+      organizationId?: string | null
+      totalPoints?: number
+    }
 
-    // Validar que tenemos los datos necesarios
     if (!answers || !quizData || (!materialId && !activityId)) {
       return NextResponse.json(
-        { error: 'Datos incompletos: se requieren answers, quizData y materialId o activityId' },
-        { status: 400 }
-      );
+        {
+          error:
+            'Datos incompletos: se requieren answers, quizData y materialId o activityId',
+        },
+        { status: 400 },
+      )
     }
 
-    // Validar que la lección existe
     const { data: lesson, error: lessonError } = await supabase
       .from('course_lessons')
       .select('lesson_id')
       .eq('lesson_id', lessonId)
-      .single();
+      .single()
 
     if (lessonError || !lesson) {
       return NextResponse.json(
-        { error: 'Lección no encontrada' },
-        { status: 404 }
-      );
+        { error: 'Leccion no encontrada' },
+        { status: 404 },
+      )
     }
 
-    // Calcular puntuación
-    let correctAnswers = 0;
-    let pointsEarned = 0;
-    const questions = Array.isArray(quizData) ? quizData : (quizData.questions || []);
-    const totalQuestions = questions.length;
+    const questions = Array.isArray(quizData)
+      ? quizData
+      : Array.isArray(quizData.questions)
+        ? quizData.questions
+        : []
+    const totalQuestions = questions.length
 
-    // Función para normalizar strings y comparar opciones
-    const normalizeOption = (text: string): string => {
-      return text
-        .trim()
-        .replace(/\s+/g, ' ')
-        .toLowerCase();
-    };
+    let correctAnswers = 0
+    let pointsEarned = 0
 
-    // Función para normalizar verdadero/falso
-    const normalizeTrueFalse = (value: string): string => {
-      const normalized = normalizeOption(value);
-      if (normalized === 'true' || normalized === 'verdadero') return 'verdadero';
-      if (normalized === 'false' || normalized === 'falso') return 'falso';
-      return normalized;
-    };
+    for (const question of questions) {
+      const questionId = question.id || question.question_id
 
-    // Función para verificar si una respuesta es correcta
-    const isAnswerCorrect = (question: QuizQuestionRow, selectedAnswer: string | number): boolean => {
-      const correctAnswer = question.correctAnswer;
-      const options = question.options || [];
-
-      // Si es pregunta de verdadero/falso
-      if (question.questionType === 'true_false') {
-        if (typeof selectedAnswer === 'number') {
-          const selectedOption = options[selectedAnswer];
-          if (typeof correctAnswer === 'string') {
-            return normalizeTrueFalse(selectedOption) === normalizeTrueFalse(correctAnswer);
-          }
-          if (typeof correctAnswer === 'number') {
-            return selectedAnswer === correctAnswer;
-          }
-        }
-        if (typeof selectedAnswer === 'string') {
-          if (typeof correctAnswer === 'string') {
-            return normalizeTrueFalse(selectedAnswer) === normalizeTrueFalse(correctAnswer);
-          }
-          if (typeof correctAnswer === 'number') {
-            return normalizeTrueFalse(selectedAnswer) === normalizeTrueFalse(options[correctAnswer]);
-          }
-        }
-        return false;
+      if (!questionId) {
+        continue
       }
 
-      // Para otros tipos de preguntas
-      if (typeof selectedAnswer === 'number') {
-        if (typeof correctAnswer === 'number') {
-          return selectedAnswer === correctAnswer;
-        }
-        if (typeof correctAnswer === 'string') {
-          const selectedOption = options[selectedAnswer];
-          return normalizeOption(selectedOption) === normalizeOption(correctAnswer);
-        }
+      const selectedAnswer = answers[questionId]
+
+      if (
+        selectedAnswer !== undefined &&
+        isAnswerCorrect(question, selectedAnswer)
+      ) {
+        correctAnswers += 1
+        pointsEarned += question.points || 1
       }
+    }
 
-      if (typeof selectedAnswer === 'string') {
-        if (typeof correctAnswer === 'string') {
-          return normalizeOption(selectedAnswer) === normalizeOption(correctAnswer);
-        }
-        if (typeof correctAnswer === 'number') {
-          return normalizeOption(selectedAnswer) === normalizeOption(options[correctAnswer]);
-        }
-      }
-
-      return false;
-    };
-
-    // Calcular respuestas correctas
-    questions.forEach((question: QuizQuestionRow) => {
-      const questionId = question.id || question.question_id;
-      const selectedAnswer = answers[questionId];
-
-      if (selectedAnswer !== undefined && isAnswerCorrect(question, selectedAnswer)) {
-        correctAnswers++;
-        pointsEarned += question.points || 1;
-      }
-    });
-
-    // Calcular porcentaje
-    const percentageScore = totalQuestions > 0 
-      ? Math.round((correctAnswers / totalQuestions) * 100 * 100) / 100
-      : 0;
-
-    // Verificar si aprobó (≥80%)
-    const isPassed = percentageScore >= 80;
-
-    // Calcular puntos totales
+    const percentageScore =
+      totalQuestions > 0
+        ? Math.round((correctAnswers / totalQuestions) * 100 * 100) / 100
+        : 0
+    const isPassed = percentageScore >= 80
     const calculatedTotalPoints =
       totalPoints ||
-      questions.reduce((sum: number, question: QuizQuestionRow) => sum + (question.points || 1), 0);
+      questions.reduce(
+        (sum: number, question: QuizQuestionRow) => sum + (question.points || 1),
+        0,
+      )
+    const now = new Date().toISOString()
 
-    // Guardar o actualizar submission
-    const now = new Date().toISOString();
-    
-    // Verificar si ya existe una submission
     const submissionQuery: QuizSubmissionMatch = {
       user_id: currentUser.id,
       lesson_id: lessonId,
       enrollment_id: enrollmentId,
-    };
+    }
 
     if (materialId) {
-      submissionQuery.material_id = materialId;
+      submissionQuery.material_id = materialId
     }
+
     if (activityId) {
-      submissionQuery.activity_id = activityId;
+      submissionQuery.activity_id = activityId
     }
 
     const { data: existingSubmission } = await supabase
       .from('user_quiz_submissions')
       .select('submission_id, percentage_score, is_passed')
       .match(submissionQuery)
-      .single();
+      .single<ExistingQuizSubmissionRow>()
 
-    let submissionResult;
-    let shouldUpdate = false;
-    let shouldSave = true;
+    const previousScore = existingSubmission?.percentage_score || 0
+    const previousPassed = existingSubmission?.is_passed || false
+    const shouldPersistAttempt =
+      !existingSubmission || isPassed || !previousPassed
+    const didImproveBestScore = percentageScore > previousScore
+    const bestScore = existingSubmission
+      ? Math.max(previousScore, percentageScore)
+      : percentageScore
+
+    let submissionResult: ExistingQuizSubmissionRow | Record<string, unknown>
 
     if (existingSubmission) {
-      const previousScore = existingSubmission.percentage_score || 0;
-      const previousPassed = existingSubmission.is_passed || false;
-
-      // Lógica de guardado:
-      // 1. Si el nuevo puntaje es >= 80%, siempre guardar (último intento aprobado)
-      // 2. Si el nuevo puntaje es < 80%, solo guardar si es mejor que el anterior
-      // 3. Si ya se pasó antes (>= 80%), no guardar intentos que no aprueban
-      
-      if (isPassed) {
-        // Si aprobó (>= 80%), siempre guardar (último intento aprobado)
-        shouldUpdate = true;
-        shouldSave = true;
-      } else if (previousPassed) {
-        // Si ya había aprobado antes, no guardar intentos que no aprueban
-        // (mantener el último intento aprobado)
-        shouldUpdate = false;
-        shouldSave = false;
-      } else {
-        // Si no ha aprobado, solo guardar si el nuevo puntaje es mejor
-        shouldUpdate = percentageScore > previousScore;
-        shouldSave = shouldUpdate;
-      }
-
-      if (shouldUpdate) {
-        // Actualizar submission existente
+      if (shouldPersistAttempt) {
         const { data, error } = await supabase
           .from('user_quiz_submissions')
           .update({
@@ -271,23 +288,21 @@ export async function POST(
           })
           .eq('submission_id', existingSubmission.submission_id)
           .select()
-          .single();
+          .single()
 
         if (error) {
-          console.error('Error actualizando submission:', error);
+          console.error('Error actualizando submission:', error)
           return NextResponse.json(
             { error: 'Error al actualizar respuestas del quiz' },
-            { status: 500 }
-          );
+            { status: 500 },
+          )
         }
 
-        submissionResult = data;
+        submissionResult = data
       } else {
-        // No actualizar, usar el submission existente
-        submissionResult = existingSubmission;
+        submissionResult = existingSubmission
       }
     } else {
-      // Crear nueva submission (siempre se guarda la primera vez)
       const { data, error } = await supabase
         .from('user_quiz_submissions')
         .insert({
@@ -304,109 +319,115 @@ export async function POST(
           completed_at: now,
         })
         .select()
-        .single();
+        .single()
 
       if (error) {
-        console.error('Error creando submission:', error);
+        console.error('Error creando submission:', error)
         return NextResponse.json(
           { error: 'Error al guardar respuestas del quiz' },
-          { status: 500 }
-        );
+          { status: 500 },
+        )
       }
 
-      submissionResult = data;
-      shouldSave = true;
+      submissionResult = data
     }
 
-    // Verificar si la lección tiene quizzes antes de actualizar el progreso
-    // Solo aplicar la lógica de quiz si realmente hay quizzes en la lección
-    const { data: materialQuizzes } = await supabase
-      .from('lesson_materials')
-      .select('material_id')
-      .eq('lesson_id', lessonId)
-      .eq('material_type', 'quiz');
+    const [materialQuizzes, activityQuizzes] = await Promise.all([
+      supabase
+        .from('lesson_materials')
+        .select('material_id')
+        .eq('lesson_id', lessonId)
+        .eq('material_type', 'quiz'),
+      supabase
+        .from('lesson_activities')
+        .select('activity_id')
+        .eq('lesson_id', lessonId)
+        .eq('activity_type', 'quiz')
+        .eq('is_required', true),
+    ])
 
-    const { data: activityQuizzes } = await supabase
-      .from('lesson_activities')
-      .select('activity_id')
-      .eq('lesson_id', lessonId)
-      .eq('activity_type', 'quiz')
-      .eq('is_required', true);
+    const hasQuizzes =
+      ((materialQuizzes.data?.length || 0) + (activityQuizzes.data?.length || 0)) >
+      0
 
-    const hasQuizzes = ((materialQuizzes?.length || 0) + (activityQuizzes?.length || 0)) > 0;
-
-    // Actualizar user_lesson_progress con datos del quiz
-    // Solo actualizar si se guardó el nuevo intento Y hay quizzes en la lección
-    if (shouldSave && hasQuizzes) {
+    if (hasQuizzes && (!existingSubmission || isPassed || didImproveBestScore)) {
       const { data: existingProgress } = await supabase
         .from('user_lesson_progress')
-        .select('progress_id, quiz_progress_percentage, quiz_passed, video_progress_percentage')
+        .select(
+          'progress_id, quiz_progress_percentage, quiz_passed, video_progress_percentage',
+        )
         .eq('enrollment_id', enrollmentId)
         .eq('lesson_id', lessonId)
-        .single();
+        .single()
 
-      // Usar el mejor puntaje: el más alto entre el anterior y el nuevo
-      const bestScore = existingProgress?.quiz_progress_percentage 
+      const bestProgressScore = existingProgress?.quiz_progress_percentage
         ? Math.max(existingProgress.quiz_progress_percentage, percentageScore)
-        : percentageScore;
-      
-      // Si ya había aprobado antes o aprobó ahora, marcar como aprobado
-      const bestPassed = existingProgress?.quiz_passed || isPassed;
-      
-      // Obtener progreso del video (usar el existente o 0 si no existe)
-      const videoProgress = existingProgress?.video_progress_percentage || 0;
-      
-      // Calcular progreso combinado (50% video + 50% quiz si quiz_passed = true)
-      // Solo aplica si hay quizzes (hasQuizzes = true)
-      const combinedProgress = calculateCombinedLessonProgress(videoProgress, bestPassed, hasQuizzes);
+        : percentageScore
+      const bestPassed = existingProgress?.quiz_passed || isPassed
 
       if (existingProgress) {
-        // Actualizar progreso existente con el mejor puntaje
-        await supabase
+        const { error: progressUpdateError } = await supabase
           .from('user_lesson_progress')
           .update({
-            quiz_progress_percentage: bestScore,
+            quiz_progress_percentage: bestProgressScore,
             quiz_completed: true,
             quiz_passed: bestPassed,
             updated_at: now,
           })
-          .eq('progress_id', existingProgress.progress_id);
+          .eq('progress_id', existingProgress.progress_id)
+
+        if (progressUpdateError) {
+          console.error('Error actualizando progreso del quiz:', progressUpdateError)
+          return NextResponse.json(
+            { error: 'Error al actualizar el progreso del quiz' },
+            { status: 500 },
+          )
+        }
       } else {
-        // Crear nuevo progreso si no existe
-        await supabase
+        const { error: progressInsertError } = await supabase
           .from('user_lesson_progress')
           .insert({
             user_id: currentUser.id,
             lesson_id: lessonId,
             enrollment_id: enrollmentId,
-            quiz_progress_percentage: bestScore,
+            quiz_progress_percentage: bestProgressScore,
             quiz_completed: true,
             quiz_passed: bestPassed,
             started_at: now,
             last_accessed_at: now,
-          });
+          })
+
+        if (progressInsertError) {
+          console.error('Error creando progreso del quiz:', progressInsertError)
+          return NextResponse.json(
+            { error: 'Error al guardar el progreso del quiz' },
+            { status: 500 },
+          )
+        }
       }
     }
 
-    // Mensaje según si se guardó o no
-    let message = '';
-    if (!shouldSave && existingSubmission) {
-      const previousScore = existingSubmission.percentage_score || 0;
-      if (previousScore >= 80) {
-        message = `Ya habías aprobado este quiz con ${previousScore}%. Este intento no mejoró tu puntaje.`;
-      } else {
-        message = `Tu mejor puntaje sigue siendo ${previousScore}%. Este intento no mejoró tu resultado.`;
-      }
+    let message = ''
+    if (!shouldPersistAttempt && existingSubmission) {
+      message = `Ya habias aprobado este quiz con ${previousScore}%. Este intento no reemplazo tu intento aprobado.`
+    } else if (
+      existingSubmission &&
+      !isPassed &&
+      !previousPassed &&
+      !didImproveBestScore
+    ) {
+      message = `Intento guardado. Tu mejor puntaje sigue siendo ${previousScore}%.`
     } else if (isPassed) {
-      message = '¡Quiz aprobado!';
+      message = 'Quiz aprobado.'
     } else {
-      message = 'Quiz completado, pero no alcanzaste el 80% requerido. Puedes intentarlo de nuevo para mejorar tu puntaje.';
+      message =
+        'Quiz completado, pero no alcanzaste el 80% requerido. Puedes intentarlo de nuevo para mejorar tu puntaje.'
     }
 
     return NextResponse.json({
       success: true,
       message,
-      saved: shouldSave,
+      saved: shouldPersistAttempt,
       result: {
         score: correctAnswers,
         totalQuestions,
@@ -415,17 +436,20 @@ export async function POST(
         percentage: percentageScore,
         isPassed,
         submission: submissionResult,
-        bestScore: shouldSave ? percentageScore : (existingSubmission?.percentage_score || percentageScore),
+        bestScore,
       },
-    });
+    })
   } catch (error) {
-    console.error('Error en POST /api/courses/[slug]/lessons/[lessonId]/quiz/submit:', error);
+    console.error(
+      'Error en POST /api/courses/[slug]/lessons/[lessonId]/quiz/submit:',
+      error,
+    )
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
         details: error instanceof Error ? error.message : 'Error desconocido',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
 }

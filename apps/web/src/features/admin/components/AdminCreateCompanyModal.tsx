@@ -29,6 +29,8 @@ export function AdminCreateCompanyModal({
     isPlanOpen,
     uploadingLogo,
     uploadingBanner,
+    imageUploadError,
+    setImageUploadError,
     logoInputRef,
     bannerInputRef,
     setActiveTab,
@@ -123,17 +125,25 @@ export function AdminCreateCompanyModal({
                 )}
 
                 {activeTab === 'branding' && (
-                  <AdminCreateCompanyBrandingTab
-                    formData={formData}
-                    uploadingLogo={uploadingLogo}
-                    uploadingBanner={uploadingBanner}
-                    logoInputRef={logoInputRef}
-                    bannerInputRef={bannerInputRef}
-                    onFormDataChange={(updater) =>
-                      setFormData((current) => updater(current))
-                    }
-                    onFileChange={handleFileChange}
-                  />
+                  <>
+                    {imageUploadError && (
+                      <p className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 flex items-center justify-between">
+                        <span>{imageUploadError}</span>
+                        <button onClick={() => setImageUploadError(null)} className="ml-4 text-red-400 hover:text-red-300">×</button>
+                      </p>
+                    )}
+                    <AdminCreateCompanyBrandingTab
+                      formData={formData}
+                      uploadingLogo={uploadingLogo}
+                      uploadingBanner={uploadingBanner}
+                      logoInputRef={logoInputRef}
+                      bannerInputRef={bannerInputRef}
+                      onFormDataChange={(updater) =>
+                        setFormData((current) => updater(current))
+                      }
+                      onFileChange={handleFileChange}
+                    />
+                  </>
                 )}
 
                 {activeTab === 'owner' && (

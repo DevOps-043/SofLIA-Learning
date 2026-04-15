@@ -99,14 +99,16 @@ export function InlineAttachmentButtons({
   maxAttachments = 3
 }: InlineAttachmentButtonsProps) {
   const [selectedType, setSelectedType] = useState<InlineAttachmentTypeId | null>(null);
+  const [limitError, setLimitError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleAttachmentTypeSelect = (type: AttachmentType) => {
     // Verificar límite
     if (currentAttachmentsCount >= maxAttachments) {
-      alert(`Máximo ${maxAttachments} adjuntos por publicación`);
+      setLimitError(`Máximo ${maxAttachments} adjuntos por publicación`);
       return;
     }
+    setLimitError(null);
 
     setSelectedType(type.id);
     
@@ -155,7 +157,11 @@ export function InlineAttachmentButtons({
   };
 
   return (
-    <div className={`flex items-center justify-center gap-2 ${className}`}>
+    <div className={`flex flex-col gap-1 ${className}`}>
+      {limitError && (
+        <p className="text-xs text-red-400">{limitError}</p>
+      )}
+      <div className="flex items-center justify-center gap-2">
       {/* Grupo 1: Archivos */}
       <div className="flex items-center gap-1">
         {attachmentTypes.slice(0, 3).map((type) => {
@@ -232,6 +238,7 @@ export function InlineAttachmentButtons({
         onChange={handleFileSelect}
         className="hidden"
       />
+    </div>
     </div>
   );
 }

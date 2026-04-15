@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
+import { buildQuizSubmissionSnapshot } from '@/features/courses/services/quiz-submission.service';
 
 interface QuizSubmissionRow {
-  material_id?: string | null;
   activity_id?: string | null;
+  completed_at?: string | null;
+  material_id?: string | null;
   percentage_score?: number | null;
   is_passed?: boolean | null;
-  completed_at?: string | null;
+  score?: number | null;
+  submission_id?: string | null;
+  user_answers?: unknown;
 }
 
 /**
@@ -109,7 +113,9 @@ export async function GET(
     // Obtener submissions del usuario para esta lección
     const { data: submissions, error: submissionsError } = await supabase
       .from('user_quiz_submissions')
-      .select('submission_id, material_id, activity_id, percentage_score, is_passed, completed_at')
+      .select(
+        'submission_id, material_id, activity_id, percentage_score, is_passed, completed_at, score, user_answers'
+      )
       .eq('user_id', currentUser.id)
       .eq('lesson_id', lessonId)
       .eq('enrollment_id', enrollmentId);
@@ -135,6 +141,12 @@ export async function GET(
         type: 'material',
         isCompleted: !!submission,
         isPassed: submission?.is_passed || false,
+        latestSubmission: buildQuizSubmissionSnapshot({
+          completedAt: submission?.completed_at,
+          score: submission?.score,
+          submissionId: submission?.submission_id,
+          userAnswers: submission?.user_answers,
+        }),
         percentage: submission?.percentage_score || 0,
         completedAt: submission?.completed_at || null,
       });
@@ -153,6 +165,12 @@ export async function GET(
         isRequired: activityQuiz.is_required,
         isCompleted: !!submission,
         isPassed: submission?.is_passed || false,
+        latestSubmission: buildQuizSubmissionSnapshot({
+          completedAt: submission?.completed_at,
+          score: submission?.score,
+          submissionId: submission?.submission_id,
+          userAnswers: submission?.user_answers,
+        }),
         percentage: submission?.percentage_score || 0,
         completedAt: submission?.completed_at || null,
       });

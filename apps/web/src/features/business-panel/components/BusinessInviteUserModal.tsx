@@ -69,7 +69,7 @@ export function BusinessInviteUserModal({ isOpen, onClose, onInviteSent, organiz
 
     try {
       if (!organizationId) {
-        throw new Error('No se encontró la organización')
+        throw new Error(t('users.modals.invite.errorNoOrg'))
       }
 
       const result = await inviteUserAction({
@@ -85,7 +85,7 @@ export function BusinessInviteUserModal({ isOpen, onClose, onInviteSent, organiz
       }
 
       setStatus('success')
-      setSuccessMessage(`Invitación enviada exitosamente a ${formData.email}`)
+      setSuccessMessage(t('users.modals.invite.success.message', { email: formData.email }))
 
       // Notificar al padre y cerrar después de un breve delay
       setTimeout(() => {
@@ -95,7 +95,7 @@ export function BusinessInviteUserModal({ isOpen, onClose, onInviteSent, organiz
 
     } catch (err) {
       setStatus('error')
-      setError(err instanceof Error ? err.message : 'Error al enviar invitación')
+      setError(err instanceof Error ? err.message : t('users.modals.invite.errorSend'))
     }
   }
 

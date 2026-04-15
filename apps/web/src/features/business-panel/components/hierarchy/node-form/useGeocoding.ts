@@ -30,16 +30,18 @@ interface GeocodingSetters {
 
 export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
   const [isGeocoding, setIsGeocoding] = useState(false)
+  const [geocodeError, setGeocodeError] = useState<string | null>(null)
 
   const handleGeocode = async () => {
     const { street, externalNumber, neighborhood, city, nodeState, country, zipCode } = state
     const queryParts = [street, externalNumber, neighborhood, city, nodeState, country].filter(Boolean).join(', ')
 
     if (!queryParts && !city && !street) {
-      alert('Por favor complete al menos Calle y Ciudad para buscar coordenadas.')
+      setGeocodeError('Por favor complete al menos Calle y Ciudad para buscar coordenadas.')
       return
     }
 
+    setGeocodeError(null)
     setIsGeocoding(true)
     try {
       const res = await fetch('/api/business/hierarchy/geocode', {
@@ -64,11 +66,11 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
         setters.setLatitude(String(data.coordinates.lat))
         setters.setLongitude(String(data.coordinates.lon))
       } else {
-        alert('No se encontraron coordenadas para esta dirección')
+        setGeocodeError('No se encontraron coordenadas para esta dirección')
       }
     } catch (e: unknown) {
       console.error(e)
-      alert('Error: ' + getErrorMessage(e, 'Intente nuevamente'))
+      setGeocodeError('Error: ' + getErrorMessage(e, 'Intente nuevamente'))
     } finally {
       setIsGeocoding(false)
     }
@@ -78,6 +80,7 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
     const { latitude, longitude } = state
     if (!latitude || !longitude) return
 
+    setGeocodeError(null)
     setIsGeocoding(true)
     try {
       const res = await fetch(`/api/business/hierarchy/geocode?lat=${latitude}&lon=${longitude}`)
@@ -104,11 +107,11 @@ export function useGeocoding(state: GeocodingState, setters: GeocodingSetters) {
       }
     } catch (e: unknown) {
       console.error(e)
-      alert('Error al obtener dirección: ' + getErrorMessage(e, 'Intente nuevamente'))
+      setGeocodeError('Error al obtener dirección: ' + getErrorMessage(e, 'Intente nuevamente'))
     } finally {
       setIsGeocoding(false)
     }
   }
 
-  return { handleGeocode, handleReverseGeocode, isGeocoding }
+  return { handleGeocode, handleReverseGeocode, isGeocoding, geocodeError, setGeocodeError }
 }

@@ -24,7 +24,6 @@ import {
   VideoContent,
 } from '../../../../features/courses/components/learn'
 import type { LearnPageLogicResult } from '../../../../features/courses/hooks/useLearnPageLogic'
-import { CourseRatingService } from '../../../../features/courses/services/course-rating.service'
 import { useCourseLearnJoyride } from '../../../../features/tours/hooks/useCourseLearnJoyride'
 
 const NotesModal = dynamic(
@@ -122,6 +121,8 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     isDeleteNoteConfirmOpen,
     isDeletingNote,
     isNotesModalOpen,
+    noteError,
+    setNoteError,
     notesStats,
     openEditNoteModal,
     openNewNoteModal,
@@ -135,15 +136,17 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     openLessonById,
     getLessonContext,
     canCompleteLesson,
+    completeCurrentCourse,
     markLessonAsCompleted,
+    closeCannotCompleteModal,
+    closeRatingModal,
+    handleCourseCompletedClose,
+    handleRatingSubmit,
     isCourseCompletedModalOpen,
-    setIsCourseCompletedModalOpen,
     isCannotCompleteModalOpen,
-    setIsCannotCompleteModalOpen,
     isRatingModalOpen,
-    setIsRatingModalOpen,
-    hasUserRated,
-    setHasUserRated,
+    openCannotCompleteModal,
+    openCourseCompletedModal,
     validationModal,
     setValidationModal,
     handlePromptsChange,
@@ -161,22 +164,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     closeLeftPanel,
     setActiveTab,
   })
-
-  const handleCourseCompletedClose = async () => {
-    setIsCourseCompletedModalOpen(false)
-    if (!hasUserRated && slug) {
-      try {
-        const ratingCheck = await CourseRatingService.checkUserRating(slug)
-        if (!ratingCheck.hasRating) {
-          setTimeout(() => setIsRatingModalOpen(true), 500)
-        } else {
-          setHasUserRated(true)
-        }
-      } catch (error) {
-        console.error('Error checking rating:', error)
-      }
-    }
-  }
 
   const handleValidationClose = () => {
     const lessonIdToShow = validationModal.lessonId
@@ -510,12 +497,8 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               getNextLesson={getNextLesson}
                               markLessonAsCompleted={markLessonAsCompleted}
                               canCompleteLesson={canCompleteLesson}
-                              onCourseCompleted={() =>
-                                setIsCourseCompletedModalOpen(true)
-                              }
-                              onCannotComplete={() =>
-                                setIsCannotCompleteModalOpen(true)
-                              }
+                              onCourseCompleted={openCourseCompletedModal}
+                              onCannotComplete={openCannotCompleteModal}
                               hasActivities={
                                 (lessonsActivities[currentLesson.lesson_id]
                                   ?.length || 0) > 0
@@ -541,6 +524,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               userRole={user?.job_title}
                               onNavigateNext={navigateToNextLesson}
                               hasNextLesson={!!getNextLesson()}
+                              onCompleteCourse={completeCurrentCourse}
                               selectedLang={selectedLang}
                               onLessonContentRefresh={
                                 loadLessonActivitiesAndMaterials
@@ -583,6 +567,13 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               onNavigateNext={navigateToNextLesson}
             />
 
+            {noteError && (
+              <div className="fixed bottom-4 left-1/2 z-[9999] -translate-x-1/2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 shadow-lg">
+                <span>{noteError}</span>
+                <button type="button" onClick={() => setNoteError(null)} className="ml-3 text-red-300 hover:text-red-100">✕</button>
+              </div>
+            )}
+
             <NotesModalComponent
               isOpen={isNotesModalOpen}
               onClose={closeNotesModal}
@@ -594,12 +585,14 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
 
             <CourseCompletedModal
               isOpen={isCourseCompletedModalOpen}
-              onClose={handleCourseCompletedClose}
+              onClose={() => {
+                void handleCourseCompletedClose()
+              }}
             />
 
             <CannotCompleteModal
               isOpen={isCannotCompleteModalOpen}
-              onClose={() => setIsCannotCompleteModalOpen(false)}
+              onClose={closeCannotCompleteModal}
             />
 
             <LearnPageValidationModal
@@ -613,14 +606,9 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
 
             <CourseRatingModal
               isOpen={isRatingModalOpen}
-              onClose={() => setIsRatingModalOpen(false)}
-              courseSlug={slug}
+              onClose={closeRatingModal}
               courseTitle={course.title || course.course_title || ''}
-              onRatingSubmitted={() => {
-                setHasUserRated(true)
-                setIsRatingModalOpen(false)
-                router.push('/certificates')
-              }}
+              onSubmit={handleRatingSubmit}
             />
 
             <CourseLiaComponent

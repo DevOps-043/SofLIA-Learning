@@ -479,8 +479,6 @@ export function VideoContent({
 
     if (success) {
       onCourseCompleted();
-    } else {
-      onCannotComplete();
     }
   };
 

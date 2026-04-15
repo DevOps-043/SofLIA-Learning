@@ -31,6 +31,10 @@ type UseActivitiesDataOptions = {
   ) => void | Promise<void>;
 };
 
+type LoadLessonContentOptions = {
+  preserveVisibleContent?: boolean;
+};
+
 type TranslationLanguage = Parameters<
   typeof ContentTranslationService.translateArray
 >[3];
@@ -67,6 +71,7 @@ export function useActivitiesData({
   const organizationId = useCurrentOrganizationId();
   const [activities, setActivities] = useState<LearnActivity[]>([]);
   const [materials, setMaterials] = useState<LearnMaterial[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [collapsedActivities, setCollapsedActivities] = useState<Set<string>>(
     new Set()
@@ -114,82 +119,93 @@ export function useActivitiesData({
     }
   }, [materials, materialsInitialized]);
 
-  const loadLessonContent = useCallback(async () => {
-    if (!lessonId || !slug) {
-      setActivities([]);
-      setMaterials([]);
-      setQuizStatus(null);
-      setLoading(false);
-      return;
-    }
+  const loadLessonContent = useCallback(
+    async ({ preserveVisibleContent = false }: LoadLessonContentOptions = {}) => {
+      if (!lessonId || !slug) {
+        setActivities([]);
+        setMaterials([]);
+        setQuizStatus(null);
+        setIsRefreshing(false);
+        setLoading(false);
+        return;
+      }
 
-    try {
-      setLoading(true);
-      const quizStatusUrl = organizationId
-        ? `/api/courses/${slug}/lessons/${lessonId}/quiz/status?orgId=${encodeURIComponent(
-            organizationId
-          )}`
-        : `/api/courses/${slug}/lessons/${lessonId}/quiz/status`;
+      try {
+        if (preserveVisibleContent) {
+          setIsRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+        const quizStatusUrl = organizationId
+          ? `/api/courses/${slug}/lessons/${lessonId}/quiz/status?orgId=${encodeURIComponent(
+              organizationId
+            )}`
+          : `/api/courses/${slug}/lessons/${lessonId}/quiz/status`;
 
-      const [activitiesResponse, materialsResponse, quizStatusResponse] =
-        await Promise.all([
-          fetch(`/api/courses/${slug}/lessons/${lessonId}/activities`, {
-            credentials: "include",
-            cache: "no-store",
-          }),
-          fetch(`/api/courses/${slug}/lessons/${lessonId}/materials`, {
-            credentials: "include",
-            cache: "no-store",
-          }),
-          fetch(quizStatusUrl, {
-            credentials: "include",
-            cache: "no-store",
-          }),
-        ]);
+        const [activitiesResponse, materialsResponse, quizStatusResponse] =
+          await Promise.all([
+            fetch(`/api/courses/${slug}/lessons/${lessonId}/activities`, {
+              credentials: "include",
+              cache: "no-store",
+            }),
+            fetch(`/api/courses/${slug}/lessons/${lessonId}/materials`, {
+              credentials: "include",
+              cache: "no-store",
+            }),
+            fetch(quizStatusUrl, {
+              credentials: "include",
+              cache: "no-store",
+            }),
+          ]);
 
-      if (activitiesResponse.ok) {
-        let activitiesData = await activitiesResponse.json();
+        if (activitiesResponse.ok) {
+          let activitiesData = await activitiesResponse.json();
 
-        if (
-          selectedLang !== "es" &&
-          Array.isArray(activitiesData) &&
-          activitiesData.length > 0
-        ) {
-          activitiesData = await ContentTranslationService.translateArray(
-            "activity",
-            activitiesData.map((activity) => ({
-              ...(activity as Record<string, unknown>),
-              id: (activity as { activity_id?: string }).activity_id,
-            })),
-            ["activity_title", "activity_description", "activity_content"],
-            selectedLang as TranslationLanguage
-          );
+          if (
+            selectedLang !== "es" &&
+            Array.isArray(activitiesData) &&
+            activitiesData.length > 0
+          ) {
+            activitiesData = await ContentTranslationService.translateArray(
+              "activity",
+              activitiesData.map((activity) => ({
+                ...(activity as Record<string, unknown>),
+                id: (activity as { activity_id?: string }).activity_id,
+              })),
+              ["activity_title", "activity_description", "activity_content"],
+              selectedLang as TranslationLanguage
+            );
+          }
+
+          setActivities(toActivityArray(activitiesData));
+        } else if (!preserveVisibleContent) {
+          setActivities([]);
         }
 
-        setActivities(toActivityArray(activitiesData));
-      } else {
-        setActivities([]);
-      }
+        if (materialsResponse.ok) {
+          setMaterials(toMaterialArray(await materialsResponse.json()));
+        } else if (!preserveVisibleContent) {
+          setMaterials([]);
+        }
 
-      if (materialsResponse.ok) {
-        setMaterials(toMaterialArray(await materialsResponse.json()));
-      } else {
-        setMaterials([]);
+        if (quizStatusResponse.ok) {
+          setQuizStatus((await quizStatusResponse.json()) as LessonQuizStatus);
+        } else if (!preserveVisibleContent) {
+          setQuizStatus(null);
+        }
+      } catch {
+        if (!preserveVisibleContent) {
+          setActivities([]);
+          setMaterials([]);
+          setQuizStatus(null);
+        }
+      } finally {
+        setIsRefreshing(false);
+        setLoading(false);
       }
-
-      if (quizStatusResponse.ok) {
-        setQuizStatus((await quizStatusResponse.json()) as LessonQuizStatus);
-      } else {
-        setQuizStatus(null);
-      }
-    } catch {
-      setActivities([]);
-      setMaterials([]);
-      setQuizStatus(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [lessonId, organizationId, selectedLang, slug]);
+    },
+    [lessonId, organizationId, selectedLang, slug]
+  );
 
   useEffect(() => {
     void loadLessonContent();
@@ -335,7 +351,7 @@ export function useActivitiesData({
   }, []);
 
   const refreshLessonContent = useCallback(async () => {
-    await loadLessonContent();
+    await loadLessonContent({ preserveVisibleContent: true });
 
     if (lessonId && onLessonContentRefresh) {
       await onLessonContentRefresh(lessonId, true);
@@ -384,6 +400,7 @@ export function useActivitiesData({
     collapsedMaterials,
     feedbackLoading,
     handleLessonFeedback,
+    isRefreshing,
     lessonFeedback,
     loading,
     materials,

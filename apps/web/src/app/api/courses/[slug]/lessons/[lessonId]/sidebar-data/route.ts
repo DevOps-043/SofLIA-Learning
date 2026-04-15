@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { resolveLearningPathAccessForCourse } from '@/features/learning-paths/services/learning-path-access.server'
+import { buildQuizSubmissionSnapshot } from '@/features/courses/services/quiz-submission.service'
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers'
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import {
@@ -44,6 +45,8 @@ interface QuizSubmissionRow {
   percentage_score: number | null
   is_passed: boolean | null
   completed_at: string | null
+  score: number | null
+  user_answers: unknown
 }
 
 interface QuizStatusItem {
@@ -53,6 +56,7 @@ interface QuizStatusItem {
   isRequired?: boolean | null
   isCompleted: boolean
   isPassed: boolean
+  latestSubmission: ReturnType<typeof buildQuizSubmissionSnapshot>
   percentage: number
   completedAt: string | null
 }
@@ -274,7 +278,7 @@ export async function GET(
         const { data: submissions } = await supabase
           .from('user_quiz_submissions')
           .select(
-            'submission_id, material_id, activity_id, percentage_score, is_passed, completed_at',
+            'submission_id, material_id, activity_id, percentage_score, is_passed, completed_at, score, user_answers',
           )
           .eq('user_id', currentUser.id)
           .eq('lesson_id', resolvedLessonId)
@@ -295,6 +299,12 @@ export async function GET(
             type: 'material',
             isCompleted: !!submission,
             isPassed: submission?.is_passed || false,
+            latestSubmission: buildQuizSubmissionSnapshot({
+              completedAt: submission?.completed_at,
+              score: submission?.score,
+              submissionId: submission?.submission_id,
+              userAnswers: submission?.user_answers,
+            }),
             percentage: submission?.percentage_score || 0,
             completedAt: submission?.completed_at || null,
           })
@@ -312,6 +322,12 @@ export async function GET(
             isRequired: activityQuiz.is_required,
             isCompleted: !!submission,
             isPassed: submission?.is_passed || false,
+            latestSubmission: buildQuizSubmissionSnapshot({
+              completedAt: submission?.completed_at,
+              score: submission?.score,
+              submissionId: submission?.submission_id,
+              userAnswers: submission?.user_answers,
+            }),
             percentage: submission?.percentage_score || 0,
             completedAt: submission?.completed_at || null,
           })

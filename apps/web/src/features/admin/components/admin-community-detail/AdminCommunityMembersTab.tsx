@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { CheckIcon, UserGroupIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import type { AdminCommunityMember } from '../../types/admin-community-detail.types'
 import { getAdminCommunityRoleColor, getAdminCommunityStatusColor } from './shared'
@@ -9,27 +10,29 @@ interface AdminCommunityMembersTabProps {
   onRemoveMember: (memberId: string, memberName: string) => void
 }
 
-function getMemberName(member: AdminCommunityMember) {
-  return (
-    member.name ||
-    member.users?.display_name ||
-    `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.trim() ||
-    member.users?.email ||
-    'Usuario no encontrado'
-  )
-}
-
 export function AdminCommunityMembersTab({
   members,
   isProcessing,
   onToggleMemberRole,
   onRemoveMember
 }: AdminCommunityMembersTabProps) {
+  const { t } = useTranslation('admin')
+
+  function getMemberName(member: AdminCommunityMember) {
+    return (
+      member.name ||
+      member.users?.display_name ||
+      `${member.users?.first_name || ''} ${member.users?.last_name || ''}`.trim() ||
+      member.users?.email ||
+      t('communityDetail.members.userNotFound')
+    )
+  }
+
   if (members.length === 0) {
     return (
       <div className="text-center py-8">
         <UserGroupIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">No hay miembros en esta comunidad</p>
+        <p className="text-gray-600 dark:text-gray-400">{t('communityDetail.members.empty')}</p>
       </div>
     )
   }
@@ -53,7 +56,7 @@ export function AdminCommunityMembersTab({
                   {member.role}
                 </span>
                 <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getAdminCommunityStatusColor('Activa')}`}>
-                  Activo
+                  {t('communityDetail.members.activeStatus')}
                 </span>
               </div>
             </div>
@@ -63,7 +66,7 @@ export function AdminCommunityMembersTab({
                 onClick={() => onToggleMemberRole(member.id, member.role)}
                 disabled={isProcessing === member.id}
                 className="p-1 text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title={member.role === 'admin' ? 'Degradar a miembro' : 'Promover a admin'}
+                title={member.role === 'admin' ? t('communityDetail.members.demoteToMember') : t('communityDetail.members.promoteToAdmin')}
               >
                 {isProcessing === member.id ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 dark:border-green-400" />
@@ -75,7 +78,7 @@ export function AdminCommunityMembersTab({
                 onClick={() => onRemoveMember(member.id, getMemberName(member))}
                 disabled={isProcessing === member.id}
                 className="p-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Remover de la comunidad"
+                title={t('communityDetail.members.removeFromCommunity')}
               >
                 {isProcessing === member.id ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600 dark:border-red-400" />
@@ -87,7 +90,7 @@ export function AdminCommunityMembersTab({
           </div>
 
           <div className="mt-3 text-xs text-gray-500 dark:text-gray-500">
-            Se unio: {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : 'N/A'}
+            {t('communityDetail.members.joinedAt')} {member.joined_at ? new Date(member.joined_at).toLocaleDateString() : 'N/A'}
           </div>
         </div>
       ))}

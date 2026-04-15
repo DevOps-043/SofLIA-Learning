@@ -50,6 +50,7 @@ export function InstructorCommunitiesPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
 
   // Funciones para manejar las acciones de las comunidades
@@ -142,8 +143,8 @@ export function InstructorCommunitiesPage() {
       const data = await response.json()
       
       if (response.ok && data.success) {
-        // Mostrar mensaje de éxito con el mensaje del servidor
-        alert(data.message || 'Se ha enviado la solicitud para crear la comunidad al Administrador. Recibirás una notificación cuando sea aprobada.')
+        setSuccessMessage(data.message || 'Se ha enviado la solicitud para crear la comunidad al Administrador. Recibirás una notificación cuando sea aprobada.')
+        setTimeout(() => setSuccessMessage(null), 6000)
         closeAddModal() // Cerrar el modal
         // No recargar datos ya que aún no hay comunidad creada, solo una solicitud
       } else {
@@ -263,6 +264,11 @@ export function InstructorCommunitiesPage() {
 
   return (
     <div className="space-y-8">
+      {successMessage && (
+        <div className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-400">
+          {successMessage}
+        </div>
+      )}
       {/* Header mejorado */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>

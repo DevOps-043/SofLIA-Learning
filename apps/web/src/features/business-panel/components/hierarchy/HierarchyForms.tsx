@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { Loader2, MapPin } from 'lucide-react';
 import type { Region, Zone, Team, ManagerInfo } from '../../types/hierarchy.types';
 import { formatFullAddress, getManagerDisplayName } from '../../types/hierarchy.types';
@@ -153,6 +154,8 @@ interface RegionFormProps {
 export function DeleteConfirmModal({ isOpen, onClose, onConfirm, title, message, itemName, isLoading }: DeleteConfirmProps) {
   const [confirmText, setConfirmText] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation('business');
+  const { t: tc } = useTranslation('common');
 
   useEffect(() => {
     setConfirmText('');
@@ -161,7 +164,7 @@ export function DeleteConfirmModal({ isOpen, onClose, onConfirm, title, message,
 
   const handleConfirm = async () => {
     if (confirmText !== itemName) {
-      setError(`Escribe "${itemName}" para confirmar`);
+      setError(t('hierarchy.deleteConfirmError', { name: itemName }));
       return;
     }
 
@@ -169,7 +172,7 @@ export function DeleteConfirmModal({ isOpen, onClose, onConfirm, title, message,
       await onConfirm();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar');
+      setError(err instanceof Error ? err.message : t('hierarchy.errorDelete'));
     }
   };
 
@@ -179,7 +182,7 @@ export function DeleteConfirmModal({ isOpen, onClose, onConfirm, title, message,
         <p className="text-neutral-600 dark:text-neutral-400">{message}</p>
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">
-            Esta acción no se puede deshacer. Escribe <strong>{itemName}</strong> para confirmar.
+            {t('hierarchy.deleteWarning')} <strong>{itemName}</strong> {t('hierarchy.deleteWarningEnd')}
           </p>
         </div>
         {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
@@ -192,8 +195,8 @@ export function DeleteConfirmModal({ isOpen, onClose, onConfirm, title, message,
           disabled={isLoading}
         />
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg text-sm font-medium">Cancelar</button>
-          <button onClick={handleConfirm} disabled={isLoading || confirmText !== itemName} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium disabled:opacity-50">{isLoading ? 'Eliminando...' : 'Eliminar'}</button>
+          <button type="button" onClick={onClose} disabled={isLoading} className="px-4 py-2 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg text-sm font-medium">{tc('actions.cancel')}</button>
+          <button onClick={handleConfirm} disabled={isLoading || confirmText !== itemName} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium disabled:opacity-50">{isLoading ? tc('actions.deleting') : tc('actions.delete')}</button>
         </div>
       </div>
     </Modal>
@@ -213,11 +216,21 @@ interface DetailsPanelProps {
 }
 
 export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPanelProps) {
+  const { t } = useTranslation('business');
+
   if (!isOpen || !data) return null;
 
-  const typeLabels = { region: 'Región', zone: 'Zona', team: 'Equipo' };
+  const typeLabels = {
+    region: t('hierarchy.types.region'),
+    zone: t('hierarchy.types.zone'),
+    team: t('hierarchy.types.team'),
+  };
   const colorClasses = { region: 'bg-blue-500', zone: 'bg-emerald-500', team: 'bg-amber-500' };
-  const managerLabels = { region: 'Gerente Regional', zone: 'Gerente de Zona', team: 'Líder de Equipo' };
+  const managerLabels = {
+    region: t('hierarchy.managers.region'),
+    zone: t('hierarchy.managers.zone'),
+    team: t('hierarchy.managers.team'),
+  };
 
   const manager = type === 'team' ? (data as Team).leader : (data as Region | Zone).manager;
   const hasLocation = data.address || data.city || data.state || data.country;
@@ -245,7 +258,7 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
           <div className="flex items-center gap-2 mt-2">
             {data.code && <span className="px-2 py-0.5 bg-white/20 text-white text-xs rounded">{data.code}</span>}
             <span className={`px-2 py-0.5 text-xs rounded ${data.is_active ? 'bg-green-400/30 text-green-100' : 'bg-red-400/30 text-red-100'}`}>
-              {data.is_active ? 'Activo' : 'Inactivo'}
+              {data.is_active ? t('hierarchy.statusActive') : t('hierarchy.statusInactive')}
             </span>
           </div>
         </div>
@@ -255,7 +268,7 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
           {/* Descripción */}
           {data.description && (
             <div>
-              <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">Descripción</h4>
+              <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2">{t('hierarchy.description')}</h4>
               <p className="text-neutral-700 dark:text-neutral-300">{data.description}</p>
             </div>
           )}
@@ -278,27 +291,27 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
                 </div>
               </div>
             ) : (
-              <p className="text-neutral-500 dark:text-neutral-400 italic">Sin asignar</p>
+              <p className="text-neutral-500 dark:text-neutral-400 italic">{t('hierarchy.unassigned')}</p>
             )}
           </div>
 
           {/* Estadísticas */}
           <div>
-            <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">Estadísticas</h4>
+            <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">{t('hierarchy.stats')}</h4>
             <div className="grid grid-cols-2 gap-3">
               {type === 'region' && (
                 <>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Region).zones_count || 0}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Zonas</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.zones')}</p>
                   </div>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Region).teams_count || 0}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Equipos</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.teams')}</p>
                   </div>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg col-span-2">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Region).users_count || 0}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Usuarios asignados</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.assignedUsers')}</p>
                   </div>
                 </>
               )}
@@ -306,11 +319,11 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
                 <>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Zone).teams_count || 0}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Equipos</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.teams')}</p>
                   </div>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Zone).users_count || 0}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Usuarios</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.users')}</p>
                   </div>
                 </>
               )}
@@ -318,21 +331,21 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
                 <>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Team).members_count || 0}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Miembros</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.members')}</p>
                   </div>
                   <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg">
                     <p className="text-2xl font-bold text-neutral-900 dark:text-white">{(data as Team).max_members || '∞'}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">Capacidad</p>
+                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('hierarchy.capacity')}</p>
                   </div>
                   {(data as Team).target_goal && (
                     <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg col-span-2">
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">Objetivo</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">{t('hierarchy.goal')}</p>
                       <p className="text-sm text-neutral-900 dark:text-white">{(data as Team).target_goal}</p>
                     </div>
                   )}
                   {(data as Team).monthly_target && (
                     <div className="p-3 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg col-span-2">
-                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">Meta Mensual</p>
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-1">{t('hierarchy.monthlyTarget')}</p>
                       <p className="text-lg font-semibold text-neutral-900 dark:text-white">${(data as Team).monthly_target?.toLocaleString()}</p>
                     </div>
                   )}
@@ -344,7 +357,7 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
           {/* Ubicación */}
           {hasLocation && (
             <div>
-              <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">Ubicación</h4>
+              <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">{t('hierarchy.location')}</h4>
               <div className="flex items-start gap-3">
                 <svg className="w-5 h-5 text-neutral-400 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
                 <p className="text-neutral-700 dark:text-neutral-300">{formatFullAddress(data)}</p>
@@ -355,7 +368,7 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
           {/* Contacto */}
           {hasContact && (
             <div>
-              <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">Contacto</h4>
+              <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">{t('hierarchy.contact')}</h4>
               <div className="space-y-2">
                 {data.phone && (
                   <div className="flex items-center gap-3">
@@ -375,16 +388,16 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
 
           {/* Información adicional */}
           <div className="pt-4 border-t border-neutral-200 dark:border-neutral-700">
-            <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">Información</h4>
+            <h4 className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-3">{t('hierarchy.info')}</h4>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-neutral-500 dark:text-neutral-400">Creado</span>
+                <span className="text-neutral-500 dark:text-neutral-400">{t('hierarchy.created')}</span>
                 <span className="text-neutral-900 dark:text-white">
                   {new Date(data.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-neutral-500 dark:text-neutral-400">Actualizado</span>
+                <span className="text-neutral-500 dark:text-neutral-400">{t('hierarchy.updated')}</span>
                 <span className="text-neutral-900 dark:text-white">
                   {new Date(data.updated_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>

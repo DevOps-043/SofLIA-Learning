@@ -1,0 +1,319 @@
+{
+  "users": {
+    "deleteModal": {
+      "title": "Excluir Usuário",
+      "confirmQuestion": "Tem certeza?",
+      "irreversible": "Esta ação não pode ser desfeita. O seguinte será excluído permanentemente:",
+      "alsoDeleted": "Também serão excluídos:",
+      "sessions": "Todas as sessões do usuário",
+      "favorites": "Todos os favoritos do usuário",
+      "associatedData": "Todos os dados associados",
+      "errorDeleting": "Erro ao excluir usuário"
+    },
+    "manageModal": {
+      "editTitle": "Gerenciar Membro",
+      "deleteTitle": "Excluir Membro",
+      "changeRole": "Alterar Função",
+      "deleteConfirm": "Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita e o usuário perderá acesso imediatamente.",
+      "errorUpdate": "Erro ao atualizar usuário",
+      "errorSave": "Erro ao salvar alterações",
+      "errorDelete": "Erro ao excluir usuário"
+    },
+    "roles": {
+      "member": {
+        "label": "Membro",
+        "description": "Acesso básico à plataforma"
+      },
+      "admin": {
+        "label": "Administrador",
+        "description": "Pode gerenciar usuários e conteúdo"
+      },
+      "owner": {
+        "label": "Proprietário",
+        "description": "Controle total da organização"
+      }
+    }
+  },
+  "skills": {
+    "deleteModal": {
+      "title": "Excluir Skill",
+      "confirmText": "Tem certeza que deseja excluir a skill {{name}}?",
+      "warningText": "Esta ação marcará a skill como inativa. Os usuários que já a têm vão mantê-la, mas ela não poderá ser atribuída a novos cursos."
+    },
+    "page": {
+      "searchPlaceholder": "Pesquisar habilidades...",
+      "emptyFiltered": "Nenhuma habilidade encontrada com os filtros aplicados",
+      "emptyAll": "Nenhuma habilidade registrada. Crie a primeira habilidade.",
+      "tooltipEdit": "Editar",
+      "tooltipDelete": "Excluir"
+    },
+    "categories": {
+      "all": "Todas",
+      "general": "Geral",
+      "programming": "Programação",
+      "design": "Design",
+      "marketing": "Marketing",
+      "business": "Negócios",
+      "data": "Dados",
+      "ai": "Inteligência Artificial",
+      "cloud": "Computação em Nuvem",
+      "security": "Segurança",
+      "devops": "DevOps",
+      "leadership": "Liderança",
+      "communication": "Comunicação",
+      "other": "Outros"
+    }
+  },
+  "news": {
+    "deleteModal": {
+      "title": "Excluir Notícia",
+      "confirmText": "Tem certeza que deseja excluir esta notícia?"
+    },
+    "page": {
+      "searchPlaceholder": "Pesquisar notícias...",
+      "tooltipView": "Ver detalhes",
+      "tooltipEdit": "Editar",
+      "tooltipDelete": "Excluir"
+    }
+  },
+  "apps": {
+    "deleteModal": {
+      "title": "Excluir App",
+      "confirmText": "Tem certeza que deseja excluir este aplicativo?"
+    }
+  },
+  "prompts": {
+    "deleteModal": {
+      "title": "Excluir Prompt",
+      "confirmText": "Tem certeza que deseja excluir este prompt?"
+    }
+  },
+  "reels": {
+    "deleteModal": {
+      "title": "Excluir Reel",
+      "confirmText": "Tem certeza que deseja excluir este reel?"
+    },
+    "page": {
+      "searchPlaceholder": "Pesquisar reels...",
+      "statusActive": "Ativo",
+      "statusInactive": "Inativo",
+      "tooltipView": "Ver detalhes",
+      "tooltipEdit": "Editar",
+      "tooltipDeactivate": "Desativar",
+      "tooltipActivate": "Ativar",
+      "tooltipUnfeature": "Remover destaque",
+      "tooltipFeature": "Destacar",
+      "tooltipDelete": "Excluir"
+    }
+  },
+  "communities": {
+    "deleteModal": {
+      "title": "Excluir Comunidade",
+      "confirmText": "Tem certeza que deseja excluir esta comunidade?"
+    },
+    "stats": {
+      "total": "Total Comunidades",
+      "members": "Total Membros",
+      "posts": "Total Posts",
+      "active": "Comunidades Ativas"
+    },
+    "showing": "Mostrando {{filtered}} de {{total}} comunidades"
+  },
+  "workshops": {
+    "deleteModal": {
+      "title": "Excluir Oficina",
+      "confirmText": "Tem certeza que deseja excluir esta oficina?"
+    }
+  },
+  "generic": {
+    "irreversible": "Esta ação não pode ser desfeita.",
+    "errorDeleting": "Erro ao excluir",
+    "errorLoading": "Erro ao carregar os dados"
+  },
+  "pendingCourses": {
+    "title": "Revisões Pendentes",
+    "subtitle": "Revisar e aprovar cursos enviados pelo CourseForge",
+    "tabPending": "Pendentes",
+    "tabRejected": "Rejeitados",
+    "searchPlaceholder": "Pesquisar por título ou instrutor...",
+    "loading": "Carregando revisões...",
+    "emptyPending": "Sem cursos pendentes",
+    "emptyPendingDesc": "Tudo em dia! Sem novas solicitações.",
+    "emptyRejected": "Sem cursos rejeitados",
+    "emptyRejectedDesc": "Nenhum curso rejeitado encontrado com os filtros atuais.",
+    "statusRejected": "Rejeitado",
+    "statusPending": "Pendente",
+    "statusUpdate": "Atualização",
+    "statusNew": "Novo",
+    "btnApprove": "Aprovar",
+    "btnReconsider": "Reconsiderar",
+    "tooltipApprove": "Aprovar e Publicar",
+    "tooltipDetails": "Ver Detalhes",
+    "tooltipReject": "Rejeitar",
+    "tooltipDelete": "Excluir permanentemente",
+    "errorApprove": "Erro ao aprovar o curso",
+    "errorReject": "Erro ao rejeitar o curso",
+    "errorDelete": "Erro ao excluir o curso",
+    "approveModal": {
+      "title": "Aprovar Curso",
+      "message": "Tem certeza de que deseja aprovar este curso? Ele ficará público e visível para os alunos imediatamente.",
+      "confirm": "Aprovar e Publicar"
+    },
+    "rejectModal": {
+      "title": "Rejeitar Curso",
+      "message": "Tem certeza de que deseja rejeitar este curso?",
+      "confirm": "Rejeitar"
+    },
+    "deleteModal": {
+      "title": "Excluir Curso Rejeitado",
+      "message": "Tem certeza de que deseja excluir permanentemente este curso? Esta ação não pode ser desfeita e apagará todos os dados associados.",
+      "confirm": "Excluir Permanentemente"
+    }
+  },
+  "layout": {
+    "panelTitle": "Painel de Administração"
+  },
+  "pendingCourseDetail": {
+    "backToPending": "Voltar aos pendentes",
+    "courseContent": "Conteúdo do Curso",
+    "notFound": "Curso não encontrado",
+    "errorApprove": "Erro ao aprovar",
+    "errorReject": "Erro ao rejeitar",
+    "errorDelete": "Erro ao excluir",
+    "errorReconsider": "Erro ao reconsiderar",
+    "approveModal": {
+      "title": "Confirmar Publicação",
+      "message": "Tem certeza de que deseja publicar este curso? Ele ficará imediatamente visível para os alunos.",
+      "confirm": "Sim, Publicar"
+    },
+    "rejectModal": {
+      "title": "Rejeitar Curso",
+      "message": "Esta ação não pode ser facilmente desfeita. O curso passará para o status rejeitado.",
+      "confirm": "Sim, Rejeitar"
+    },
+    "deleteModal": {
+      "title": "Excluir Curso",
+      "message": "Tem certeza de que deseja excluir permanentemente este curso? Esta ação não pode ser desfeita.",
+      "confirm": "Sim, Excluir"
+    }
+  },
+  "companies": {
+    "stats": {
+      "active": {
+        "title": "Empresas Ativas",
+        "subtitle": "de {{total}} registradas"
+      },
+      "pending": {
+        "title": "Pendentes",
+        "subtitle": "Requerem ativação"
+      },
+      "trial": {
+        "title": "Em Trial",
+        "subtitle": "Conversões prioritárias"
+      },
+      "paused": {
+        "title": "Pausadas",
+        "subtitle": "Revisar faturamento"
+      },
+      "avgUsage": {
+        "title": "Uso Médio",
+        "subtitle": "{{used}} / {{total}} licenças"
+      }
+    }
+  },
+  "communityDetail": {
+    "members": {
+      "empty": "Nenhum membro nesta comunidade",
+      "userNotFound": "Usuário não encontrado",
+      "activeStatus": "Ativo",
+      "joinedAt": "Entrou em:",
+      "removeFromCommunity": "Remover da comunidade",
+      "demoteToMember": "Rebaixar a membro",
+      "promoteToAdmin": "Promover a admin"
+    },
+    "posts": {
+      "empty": "Nenhum post nesta comunidade",
+      "noContent": "Post sem conteúdo",
+      "pinned": "Fixado",
+      "hidden": "Oculto",
+      "likesLabel": "curtidas",
+      "commentsLabel": "comentários",
+      "unpinPost": "Desafixar post",
+      "pinPost": "Fixar post",
+      "showPost": "Mostrar post",
+      "hidePost": "Ocultar post",
+      "deletePost": "Excluir post",
+      "viewDetails": "Ver detalhes do post"
+    }
+  },
+  "communityCard": {
+    "typePrivate": "Privada",
+    "typeModerated": "Moderada",
+    "typePublic": "Pública",
+    "statusActive": "Ativa",
+    "statusInactive": "Inativa",
+    "membersLabel": "Membros",
+    "postsLabel": "Posts",
+    "noCreator": "Sem criador",
+    "deactivate": "Desativar",
+    "activate": "Ativar"
+  },
+  "workshopCard": {
+    "statusActive": "Ativo",
+    "statusInactive": "Inativo",
+    "instructorLabel": "Instrutor",
+    "noInstructor": "Sem instrutor",
+    "studentsLabel": "alunos"
+  },
+  "courseManagement": {
+    "addLesson": "Adicionar aula",
+    "addMaterial": "Adicionar material",
+    "addActivity": "Adicionar atividade",
+    "recalcDurations": "Recalcular durações de todas as aulas",
+    "uploadVideo": "Enviar Vídeo",
+    "confirmDeleteMaterial": "Tem certeza de que deseja excluir este material?",
+    "confirmDeleteActivity": "Tem certeza de que deseja excluir esta atividade?",
+    "materialsLabel": "Materiais",
+    "activitiesLabel": "Atividades",
+    "addButton": "+ Adicionar",
+    "noMaterials": "Nenhum material",
+    "noActivities": "Nenhuma atividade",
+    "confirmDeleteModule": "Tem certeza de que deseja excluir este módulo e todas as suas aulas?",
+    "confirmDeleteLesson": "Tem certeza de que deseja excluir esta aula?",
+    "published": "Publicado",
+    "draft": "Rascunho",
+    "lessonCount_one": "{{count}} aula",
+    "lessonCount_other": "{{count}} aulas",
+    "addLessonShort": "Aula"
+  },
+  "lessonContent": {
+    "transcript": "Transcrição",
+    "summary": "Resumo",
+    "activities": "Atividades"
+  },
+  "searchPlaceholders": {
+    "apps": "Buscar apps...",
+    "users": "Buscar por nome, email ou username...",
+    "reportes": "Buscar por título ou descrição...",
+    "communities": "Buscar comunidades por nome, descrição ou criador...",
+    "companies": "Buscar por nome, slug ou email...",
+    "accessRequests": "Buscar por usuário, email ou comunidade..."
+  },
+  "dashboard": {
+    "confirmResetLayout": "Tem certeza de que deseja restaurar o layout padrão?",
+    "customizeLayout": "Personalizar Layout",
+    "restoreLayout": "Restaurar"
+  },
+  "coursesSection": {
+    "revoke": "Revogar Acesso",
+    "acquired": "Adquirido:",
+    "user": "Usuário",
+    "course": "Curso",
+    "progress": "Progresso",
+    "actionsHeader": "Ações",
+    "noOrgCourses": "Nenhum curso adquirido para toda a organização. Abra o catálogo para começar.",
+    "noUserAssignments": "Nenhuma atribuição individual registrada.",
+    "confirmRevokeOrg": "Revogar o acesso a este curso para TODA a organização?",
+    "confirmRevokeUser": "Revogar esta atribuição individual?"
+  }
+}

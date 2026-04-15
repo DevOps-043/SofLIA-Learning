@@ -5,8 +5,8 @@
   "change_language": "Mudar idioma",
   "languages": {
     "es": "Espanhol",
-    "en": "InglÃªs",
-    "pt": "PortuguÃªs"
+    "en": "Inglês",
+    "pt": "Português"
   },
   "languageSelector": {
     "label": "Idioma: {{language}}",
@@ -19,7 +19,7 @@
     "news": "Notícias",
     "promptDirectory": {
       "title": "Prompt Directory",
-      "description": "ColeÃ§Ã£o de prompts de IA"
+      "description": "Coleção de prompts de IA"
     },
     "appsDirectory": {
       "title": "Apps Directory",
@@ -39,19 +39,19 @@
     "pressEnter": "Pressione Enter para enviar",
     "clickToSend": "Clique para enviar",
     "clickToDictate": "Clique para ditar",
-    "responseFallback": "Desculpe, nÃ£o consegui processar sua mensagem agora.",
+    "responseFallback": "Desculpe, não consegui processar sua mensagem agora.",
     "errorGeneric": "Desculpe, ocorreu um erro. Tente novamente.",
     "helpPrompt": "O que posso fazer aqui? Ajude-me",
-    "helpFallback": "Desculpe, nÃ£o consegui gerar uma resposta.",
+    "helpFallback": "Desculpe, não consegui gerar uma resposta.",
     "helpError": "Desculpe, ocorreu um erro ao processar seu pedido de ajuda. Tente novamente.",
-    "initialMessage": "Olá! ðŸ‘‹ Sou SofLIA, sua assistente de IA. Estou aqui para ajudá-lo com qualquer pergunta que tenha.",
+    "initialMessage": "Olá! 👋 Sou SofLIA, sua assistente de IA. Estou aqui para ajudá-lo com qualquer pergunta que tenha.",
     "clearConversation": "Limpar conversa",
     "changeMode": "Mudar modo da SofLIA",
     "clearContext": "Limpar contexto",
     "clearContextConfirm": "Deseja limpar o contexto e iniciar uma nova conversa?",
     "reportProblem": "Reportar problema",
     "promptMode": {
-      "placeholder": "Descreva que tipo de prompt vocÃª quer criar...",
+      "placeholder": "Descreva que tipo de prompt você quer criar...",
       "title": "Designer de Prompts",
       "description": "Crie e refine prompts profissionais guiados pela SofLIA.",
       "viewGenerated": "Ver Prompt Gerado",
@@ -59,13 +59,13 @@
       "titleLabel": "Título",
       "contentLabel": "Conteúdo",
       "emptyDescription": "Gere e refine prompts profissionais. Indique o objetivo, o tom e os requisitos; SofLIA entrega um prompt pronto para usar com boas práticas.",
-      "loginRequired": "VocÃª deve fazer login para salvar prompts"
+      "loginRequired": "Você deve fazer login para salvar prompts"
     },
     "nanobanaMode": {
       "title": "NanoBanana Pro",
-      "description": "Gera JSON estruturado para renderizaÃ§Ã£o visual precisa.",
+      "description": "Gera JSON estruturado para renderização visual precisa.",
       "emptyDescription": "Gera JSON estruturado para NanoBanana Pro. Descreva UI, fotografias ou diagramas e obtenha esquemas precisos e reproduzíveis.",
-      "welcome": "ðŸŽ¨ Bem-vindo ao Modo NanoBanana!\n\nSou seu assistente para criar JSON estruturado otimizado para NanoBanana Pro.\n\n**O que posso criar?**\nâ€¢ 📱 UI/Wireframes (apps, dashboards, landing pages)\nâ€¢ ðŸ“¸ Fotografias (produtos, marketing, lifestyle)\nâ€¢ ðŸ“Š Diagramas (fluxos, arquiteturas, processos)\n\nDescreva o que vocÃª precisa e gerarei um JSON preciso e reproduzível.",
+      "welcome": "🎨 Bem-vindo ao Modo NanoBanana!\n\nSou seu assistente para criar JSON estruturado otimizado para NanoBanana Pro.\n\n**O que posso criar?**\n• 📱 UI/Wireframes (apps, dashboards, landing pages)\n• 📸 Fotografias (produtos, marketing, lifestyle)\n• 📊 Diagramas (fluxos, arquiteturas, processos)\n\nDescreva o que você precisa e gerarei um JSON preciso e reproduzível.",
       "viewJson": "Ver JSON NanoBanana"
     },
     "contextMode": {
@@ -88,12 +88,12 @@
       "tapToSpeak": "Toque para falar",
       "tapToStop": "Toque para parar",
       "microphoneError": "Erro ao acessar o microfone",
-      "speechNotSupported": "Seu navegador nÃ£o suporta reconhecimento de voz"
+      "speechNotSupported": "Seu navegador não suporta reconhecimento de voz"
     }
   },
   "tours": {
     "viewTourWithLia": "Ver Tour com SofLIA",
-    "viewTourWithLiaTitle": "Ver novamente a experiÃªncia de boas-vindas com SofLIA",
+    "viewTourWithLiaTitle": "Ver novamente a experiência de boas-vindas com SofLIA",
     "viewGuidedTour": "Ver tour guiado",
     "promptDirectory": {
       "replayButtonLabel": "Ver tour do diretório",
@@ -108,38 +108,38 @@
         "speech": "Bem-vindo ao SofLIA. Sou seu assistente inteligente. Estou aqui para guiá-lo em sua jornada de aprendizado com inteligência artificial."
       },
       "2": {
-        "title": "ConheÃ§a a SofLIA",
+        "title": "Conheça a SofLIA",
         "description": "SofLIA é sua companheira de aprendizado que te acompanhará em todos os lugares. Ela pode responder suas perguntas, ajudá-lo com tarefas e se adaptar ao contexto de cada página.",
         "speech": "SofLIA é sua companheira de aprendizado que te acompanhará em todos os lugares. Ela pode responder suas perguntas e se adaptar ao contexto de cada página.",
         "actionLabel": "Ver Dashboard"
       },
       "3": {
         "title": "Explore o conteúdo",
-        "description": "Acesse cursos, oficinas, comunidades e notícias sobre IA. Tudo projetado para que vocÃª aprenda de forma prática e eficaz.",
-        "speech": "Acesse cursos, oficinas, comunidades e notícias sobre inteligÃªncia artificial. Tudo projetado para que vocÃª aprenda de forma prática e eficaz.",
+        "description": "Acesse cursos, oficinas, comunidades e notícias sobre IA. Tudo projetado para que você aprenda de forma prática e eficaz.",
+        "speech": "Acesse cursos, oficinas, comunidades e notícias sobre inteligência artificial. Tudo projetado para que você aprenda de forma prática e eficaz.",
         "actionLabel": "Ver Cursos"
       },
       "4": {
-        "title": "VocÃª está pronto!",
-        "description": "Agora vocÃª pode comeÃ§ar sua aventura. Lembre-se, SofLIA estará sempre disponível no canto inferior direito para ajudá-lo.",
-        "speech": "Agora vocÃª pode comeÃ§ar sua aventura. Lembre-se, SofLIA estará sempre disponível para ajudá-lo.",
-        "actionLabel": "ComeÃ§ar"
+        "title": "Você está pronto!",
+        "description": "Agora você pode começar sua aventura. Lembre-se, SofLIA estará sempre disponível no canto inferior direito para ajudá-lo.",
+        "speech": "Agora você pode começar sua aventura. Lembre-se, SofLIA estará sempre disponível para ajudá-lo.",
+        "actionLabel": "Começar"
       }
     },
     "buttons": {
       "previous": "Anterior",
       "next": "Próximo",
       "start": "Vamos lá!",
-      "skipIntro": "Pular introduÃ§Ã£o"
+      "skipIntro": "Pular introdução"
     }
   },
   "menu": {
     "stats": "Minhas estatísticas",
     "learning": "Meu aprendizado",
     "certificates": "Meus certificados",
-    "notifications": "NotificaÃ§Ãµes",
+    "notifications": "Notificações",
     "profile": "Editar perfil",
-    "account": "ConfiguraÃ§Ãµes da conta",
+    "account": "Configurações da conta",
     "subscriptions": "Assinaturas",
     "paymentMethods": "Métodos de pagamento",
     "purchaseHistory": "Histórico de compras",
@@ -148,7 +148,7 @@
       "light": "Modo claro",
       "dark": "Modo escuro"
     },
-    "adminPanel": "Painel de administraÃ§Ã£o",
+    "adminPanel": "Painel de administração",
     "instructorPanel": "Painel do instrutor",
     "viewTour": "Ver Tour",
     "logout": "Sair"
@@ -160,11 +160,11 @@
       "Procurando um recurso específico? É só perguntar.",
       "Posso explicar qualquer conceito do seu curso.",
       "Precisa verificar seu progresso? Estou aqui para ajudar.",
-      "PeÃ§a-me um resumo da sua última liÃ§Ã£o.",
+      "Peça-me um resumo da sua última lição.",
       "Quer praticar com um quiz rápido? Basta pedir."
     ],
     "quickActions": {
-      "capabilities": "O que vocÃª pode fazer?",
+      "capabilities": "O que você pode fazer?",
       "courses": "Ver meus cursos",
       "recommend": "Me recomende",
       "help": "Ajuda rápida"
@@ -184,19 +184,21 @@
       "platform": "Plataforma",
       "capabilities": "Capacidades",
       "useCases": "Casos de Uso",
-      "integrations": "IntegraÃ§Ãµes",
+      "integrations": "Integrações",
       "downloads": "Downloads",
-      "security": "SeguranÃ§a",
+      "security": "Segurança",
       "faq": "FAQ",
       "clientAccess": "Acesso Clientes",
-      "scheduleDemo": "Agendar Demo"
+      "scheduleDemo": "Agendar Demo",
+      "lia": "SofLIA",
+      "downloadHub": "Hub de Downloads"
     },
     "hero": {
       "tag": "Plataforma B2B de Treinamento em IA",
       "title": "Treinamento em IA com",
       "highlight": "impacto mensurável",
-      "titleEnd": "para sua organizaÃ§Ã£o",
-      "description": "SofLIA é a plataforma de treinamento corporativo que combina inteligÃªncia artificial, planejamento inteligente e certificaÃ§Ãµes verificáveis para desenvolver as competÃªncias da sua equipe.",
+      "titleEnd": "para sua organização",
+      "description": "SofLIA é a plataforma de treinamento corporativo que combina inteligência artificial, planejamento inteligente e certificações verificáveis para desenvolver as competências da sua equipe.",
       "ctaPrimary": "Agendar Demo Executiva",
       "ctaSecondary": "Solicitar Diagnóstico",
       "benefits": {
@@ -206,11 +208,27 @@
       }
     },
     "logoWall": {
-      "title": "OrganizaÃ§Ãµes que confiam na SofLIA"
+      "title": "Organizações que confiam na SofLIA"
+    },
+    "lia": {
+      "badge": "Inteligência Artificial",
+      "tag": "Seu assistente pessoal",
+      "title": "Conheça",
+      "description": "Seu assistente de aprendizado com inteligência artificial que orienta você, responde suas dúvidas e personaliza sua experiência de treinamento em tempo real.",
+      "features": {
+        "chat": "Chat Inteligente",
+        "chatDesc": "Respostas instantâneas em ES, EN, PT",
+        "adaptive": "Aprendizado Adaptativo",
+        "adaptiveDesc": "Adapta-se ao seu ritmo e estilo",
+        "personalized": "Personalizado",
+        "personalizedDesc": "Recomendações sob medida para você",
+        "instant": "Suporte 24/7",
+        "instantDesc": "Disponível quando você precisar"
+      }
     },
     "trust": {
       "title": "Enterprise-ready desde o primeiro dia",
-      "subtitle": "Projetada para atender aos padrÃµes mais exigentes de treinamento corporativo",
+      "subtitle": "Projetada para atender aos padrões mais exigentes de treinamento corporativo",
       "badges": {
         "multilingual": {
           "title": "Multilíngue",
@@ -225,7 +243,7 @@
           "description": "Verificáveis"
         },
         "roles": {
-          "title": "FunÃ§Ãµes",
+          "title": "Funções",
           "description": "Personalizáveis"
         },
         "analytics": {
@@ -233,7 +251,7 @@
           "description": "Tempo real"
         },
         "security": {
-          "title": "SeguranÃ§a",
+          "title": "Segurança",
           "description": "Enterprise"
         }
       },
@@ -246,35 +264,35 @@
     },
     "platform": {
       "tag": "A Plataforma",
-      "title": "Treinamento corporativo potenciado por inteligÃªncia artificial",
-      "description": "SofLIA combina tecnologia de ponta com design centrado no usuário para oferecer uma experiÃªncia de aprendizado que gera resultados mensuráveis para sua organizaÃ§Ã£o.",
+      "title": "Treinamento corporativo potenciado por inteligência artificial",
+      "description": "SofLIA combina tecnologia de ponta com design centrado no usuário para oferecer uma experiência de aprendizado que gera resultados mensuráveis para sua organização.",
       "features": {
         "aiTraining": {
           "title": "Treinamento em IA",
-          "description": "Cursos especializados em inteligÃªncia artificial para equipes corporativas"
+          "description": "Cursos especializados em inteligência artificial para equipes corporativas"
         },
         "liaAssistant": {
           "title": "Assistente SofLIA",
-          "description": "IA contextual 24/7 que se adapta a cada usuário e liÃ§Ã£o"
+          "description": "IA contextual 24/7 que se adapta a cada usuário e lição"
         },
         "studyPlanner": {
           "title": "Planejador de Estudos",
-          "description": "SincronizaÃ§Ã£o automática com Google Calendar e Microsoft Outlook"
+          "description": "Sincronização automática com Google Calendar e Microsoft Outlook"
         },
         "analytics": {
           "title": "Analytics Executivos",
-          "description": "Dashboards e relatórios para medir ROI e tomar decisÃµes"
+          "description": "Dashboards e relatórios para medir ROI e tomar decisões"
         },
         "certificates": {
           "title": "Certificados Verificáveis",
-          "description": "Hash SHA-256 + QR para validaÃ§Ã£o instantÃ¢nea"
+          "description": "Hash SHA-256 + QR para validação instantânea"
         }
       }
     },
     "capabilities": {
       "tag": "Capacidades",
-      "title": "Tudo o que vocÃª precisa para treinar sua equipe",
-      "subtitle": "Cada funcionalidade é projetada para gerar impacto mensurável em sua organizaÃ§Ã£o",
+      "title": "Tudo o que você precisa para treinar sua equipe",
+      "subtitle": "Cada funcionalidade é projetada para gerar impacto mensurável em sua organização",
       "items": {
         "lia": {
           "title": "SofLIA - Assistente IA",
@@ -283,8 +301,8 @@
         },
         "studyPlanner": {
           "title": "Study Planner",
-          "benefit": "SincronizaÃ§Ã£o com calendários corporativos",
-          "result": "AdoÃ§Ã£o sem fricÃ§Ã£o"
+          "benefit": "Sincronização com calendários corporativos",
+          "result": "Adoção sem fricção"
         },
         "analytics": {
           "title": "Analytics e Relatórios",
@@ -292,8 +310,8 @@
           "result": "Visibilidade de ROI"
         },
         "teams": {
-          "title": "GestÃ£o por Equipes",
-          "benefit": "Hierarquias regiÃ£o/zona/equipe",
+          "title": "Gestão por Equipes",
+          "benefit": "Hierarquias região/zona/equipe",
           "result": "Controle granular"
         },
         "certificates": {
@@ -304,16 +322,16 @@
         "whiteLabel": {
           "title": "White-label",
           "benefit": "Branding corporativo completo",
-          "result": "ExperiÃªncia de marca"
+          "result": "Experiência de marca"
         },
         "scorm": {
           "title": "SCORM",
-          "benefit": "Compatibilidade com padrÃµes e-learning",
-          "result": "MigraÃ§Ã£o sem fricÃ§Ãµes"
+          "benefit": "Compatibilidade com padrões e-learning",
+          "result": "Migração sem fricções"
         },
         "community": {
           "title": "Comunidade",
-          "benefit": "Fóruns e colaboraÃ§Ã£o entre funcionários",
+          "benefit": "Fóruns e colaboração entre funcionários",
           "result": "Cultura de aprendizado"
         }
       }
@@ -321,30 +339,30 @@
     "useCases": {
       "tag": "Casos de Uso",
       "title": "Casos de uso que impulsionam resultados",
-      "subtitle": "Cada soluÃ§Ã£o é projetada para resolver desafios específicos de sua organizaÃ§Ã£o",
+      "subtitle": "Cada solução é projetada para resolver desafios específicos de sua organização",
       "labels": {
         "pain": "Desafio",
-        "solution": "SoluÃ§Ã£o",
+        "solution": "Solução",
         "result": "Resultado"
       },
       "items": {
         "upskilling": {
           "title": "Upskilling em IA em Escala",
-          "pain": "Equipes sem competÃªncias em inteligÃªncia artificial",
-          "solution": "Trilhas de aprendizado estruturadas com certificaÃ§Ã£o",
-          "result": "Treinamento padronizado em toda a organizaÃ§Ã£o"
+          "pain": "Equipes sem competências em inteligência artificial",
+          "solution": "Trilhas de aprendizado estruturadas com certificação",
+          "result": "Treinamento padronizado em toda a organização"
         },
         "onboarding": {
           "title": "Onboarding Acelerado",
           "pain": "Tempo de produtividade muito longo",
-          "solution": "Trilhas de integraÃ§Ã£o + SofLIA como guia",
-          "result": "ReduÃ§Ã£o do tempo de ramp-up"
+          "solution": "Trilhas de integração + SofLIA como guia",
+          "result": "Redução do tempo de ramp-up"
         },
         "salesEnablement": {
           "title": "Enablement Comercial",
           "pain": "Equipes de vendas desatualizadas",
-          "solution": "Treinamento contínuo + certificaÃ§Ãµes",
-          "result": "Melhoria nas taxas de conversÃ£o"
+          "solution": "Treinamento contínuo + certificações",
+          "result": "Melhoria nas taxas de conversão"
         },
         "partnerTraining": {
           "title": "Treinamento de Parceiros",
@@ -354,12 +372,12 @@
         },
         "customerTraining": {
           "title": "Treinamento de Clientes",
-          "pain": "Baixa adoÃ§Ã£o do produto",
+          "pain": "Baixa adoção do produto",
           "solution": "Academy para clientes e usuários",
-          "result": "Maior retenÃ§Ã£o e NPS"
+          "result": "Maior retenção e NPS"
         },
         "compliance": {
-          "title": "Compliance e PadronizaÃ§Ã£o",
+          "title": "Compliance e Padronização",
           "pain": "Falta de rastreabilidade no treinamento",
           "solution": "Certificados verificáveis + relatórios",
           "result": "Conformidade auditável"
@@ -369,65 +387,106 @@
     "roi": {
       "tag": "Impacto Mensurável",
       "title": "ROI que fala por si só",
-      "subtitle": "Resultados reais de organizaÃ§Ãµes que transformaram seu treinamento com SofLIA",
+      "subtitle": "Resultados reais de organizações que transformaram seu treinamento com SofLIA",
       "metrics": {
-        "onboarding": "ReduÃ§Ã£o do tempo de onboarding",
+        "onboarding": "Redução do tempo de onboarding",
         "savings": "Economia anual estimada",
-        "completion": "Taxa de conclusÃ£o de cursos",
+        "completion": "Taxa de conclusão de cursos",
         "productivity": "Aumento de produtividade"
       },
-      "disclaimer": "* Métricas baseadas em resultados médios de clientes. Os resultados podem variar dependendo da implementaÃ§Ã£o."
+      "disclaimer": "* Métricas baseadas em resultados médios de clientes. Os resultados podem variar dependendo da implementação."
     },
     "integrations": {
-      "tag": "IntegraÃ§Ãµes",
+      "tag": "Integrações",
       "title": "Integra-se com seu stack corporativo",
-      "description": "Conecte SofLIA com suas ferramentas existentes para uma experiÃªncia sem fricÃ§Ãµes. ImplantaÃ§Ã£o ágil com sincronizaÃ§Ã£o de calendários, compatibilidade e-learning e opÃ§Ãµes para integraÃ§Ãµes personalizadas.",
+      "description": "Conecte SofLIA com suas ferramentas existentes para uma experiência sem fricções. Implantação ágil com sincronização de calendários, compatibilidade e-learning e opções para integrações personalizadas.",
       "features": {
-        "calendar": "SincronizaÃ§Ã£o com Google Calendar e Microsoft Outlook",
+        "calendar": "Sincronização com Google Calendar e Microsoft Outlook",
         "elearning": "Compatível com SCORM",
         "api": "Conectividade para CRM, HRIS e sistemas internos",
-        "deploy": "ImplementaÃ§Ã£o em semanas, nÃ£o meses"
+        "deploy": "Implementação em semanas, não meses"
       },
-      "cta": "Mais informaÃ§Ãµes"
+      "cta": "Mais informações"
+    },
+    "liaSection": {
+      "tag": "Assistente de IA",
+      "title": "O que o",
+      "titleEnd": "pode fazer por você?",
+      "description": "SofLIA é seu assistente de aprendizado com inteligência artificial, disponível 24/7 para ajudá-lo em cada etapa do seu treinamento.",
+      "capabilitiesTitle": "Capacidades do SofLIA",
+      "actionsTitle": "O SofLIA pode ajudá-lo a:",
+      "capabilities": {
+        "conversation": "Conversa Natural",
+        "conversationDesc": "Comunique-se como se estivesse falando com um tutor pessoal",
+        "context": "Contexto Inteligente",
+        "contextDesc": "Entende em qual aula você está e te ajuda especificamente",
+        "studyPlanner": "Planejador Proativo",
+        "studyPlannerDesc": "Cria e gerencia seu plano de estudos, detecta atrasos e reprograma",
+        "rolePersonalization": "Por Seu Cargo",
+        "rolePersonalizationDesc": "Personaliza a experiência de acordo com seu cargo e nível na empresa",
+        "anywhere": "Onde Você Estiver",
+        "anywhereDesc": "Ajuda você em qualquer seção da plataforma",
+        "multilingual": "Multilíngue",
+        "multilingualDesc": "Responde em espanhol, inglês e português",
+        "recommendations": "Recomendações",
+        "recommendationsDesc": "Sugere cursos e recursos de acordo com seus interesses",
+        "support": "Suporte Contínuo",
+        "supportDesc": "Disponível 24/7 para responder suas dúvidas"
+      },
+      "actions": {
+        "0": "Responder dúvidas sobre qualquer conteúdo do curso",
+        "1": "Explicar conceitos complexos de forma simples",
+        "2": "Criar e gerenciar seu plano de estudos proativamente",
+        "3": "Detectar sessões atrasadas e propor reprogramações",
+        "4": "Personalizar recomendações de acordo com seu cargo e nível",
+        "5": "Ajudá-lo em qualquer seção da plataforma",
+        "6": "Guiá-lo pela plataforma passo a passo",
+        "7": "Gerar resumos de aulas"
+      },
+      "preview": {
+        "online": "Online",
+        "message": "Olá! 👋 Sou SofLIA, seu assistente de aprendizado. Estou aqui para ajudá-lo a alcançar suas metas de treinamento. Como posso ajudá-lo hoje?",
+        "placeholder": "Digite sua pergunta..."
+      }
     },
     "security": {
-      "tag": "SeguranÃ§a Enterprise",
-      "title": "GovernanÃ§a e controle que sua organizaÃ§Ã£o precisa",
-      "subtitle": "Projetada para atender aos padrÃµes mais exigentes de seguranÃ§a e rastreabilidade",
+      "tag": "Segurança Enterprise",
+      "title": "Governança e controle que sua organização precisa",
+      "subtitle": "Projetada para atender aos padrões mais exigentes de segurança e rastreabilidade",
       "features": {
         "roles": {
-          "title": "FunÃ§Ãµes e PermissÃµes",
-          "description": "Controle granular de acesso por funÃ§Ã£o e hierarquia",
-          "check1": "PermissÃµes personalizáveis",
-          "check2": "SegregaÃ§Ã£o de dados"
+          "title": "Funções e Permissões",
+          "description": "Controle granular de acesso por função e hierarquia",
+          "check1": "Permissões personalizáveis",
+          "check2": "Segregação de dados"
         },
         "hierarchy": {
-          "title": "GestÃ£o Hierárquica",
-          "description": "Organize por regiÃ£o, zona, departamento e equipe",
+          "title": "Gestão Hierárquica",
+          "description": "Organize por região, zona, departamento e equipe",
           "check1": "Multinível flexível",
           "check2": "Relatórios por unidade"
         },
         "audit": {
           "title": "Auditoria e Logs",
-          "description": "Rastreabilidade completa de aÃ§Ãµes e eventos",
+          "description": "Rastreabilidade completa de ações e eventos",
           "check1": "Histórico completo",
           "check2": "Exportável para auditorias"
         },
         "visibility": {
           "title": "Visibilidade Executiva",
-          "description": "Dashboards e relatórios para a lideranÃ§a",
+          "description": "Dashboards e relatórios para a liderança",
           "check1": "KPIs em tempo real",
           "check2": "Alertas configuráveis"
         },
         "encryption": {
           "title": "Criptografia",
-          "description": "Dados protegidos em trÃ¢nsito e em repouso",
+          "description": "Dados protegidos em trânsito e em repouso",
           "check1": "TLS 1.3",
           "check2": "Criptografia AES-256"
         },
         "sso": {
           "title": "SSO / SAML",
-          "description": "IntegraÃ§Ã£o com provedores de identidade",
+          "description": "Integração com provedores de identidade",
           "check1": "Azure AD, Okta, Google",
           "check2": "Em breve disponível"
         }
@@ -437,7 +496,7 @@
     "faq": {
       "tag": "Perguntas Frequentes",
       "title": "Respostas para as perguntas que importam",
-      "subtitle": "Tudo o que vocÃª precisa saber para tomar uma decisÃ£o informada.",
+      "subtitle": "Tudo o que você precisa saber para tomar uma decisão informada.",
       "help": {
         "title": "Tem mais perguntas?",
         "description": "Agende uma demo e respondemos todas as suas dúvidas."
@@ -445,41 +504,41 @@
       "items": {
         "roi": {
           "question": "Como o ROI do treinamento é medido?",
-          "answer": "SofLIA fornece dashboards com métricas-chave: taxa de conclusÃ£o, tempo de treinamento, certificaÃ§Ãµes obtidas e correlaÃ§Ã£o com indicadores de negócios. VocÃª pode exportar relatórios para justificar o investimento Ã  lideranÃ§a."
+          "answer": "SofLIA fornece dashboards com métricas-chave: taxa de conclusão, tempo de treinamento, certificações obtidas e correlação com indicadores de negócios. Você pode exportar relatórios para justificar o investimento à liderança."
         },
         "implementation": {
-          "question": "Qual é o tempo de implementaÃ§Ã£o?",
-          "answer": "A implementaÃ§Ã£o típica leva 2-4 semanas, dependendo da complexidade da sua estrutura organizacional e das integraÃ§Ãµes necessárias. Oferecemos acompanhamento completo durante o processo."
+          "question": "Qual é o tempo de implementação?",
+          "answer": "A implementação típica leva 2-4 semanas, dependendo da complexidade da sua estrutura organizacional e das integrações necessárias. Oferecemos acompanhamento completo durante o processo."
         },
         "integration": {
           "question": "Como se integra com sistemas existentes?",
-          "answer": "SOFLIA oferece integraÃ§Ã£o nativa com Google Calendar e Microsoft Outlook. Para CRM, HRIS e outros sistemas, fornecemos integraÃ§Ã£o documentada para sincronizaÃ§Ã£o."
+          "answer": "SOFLIA oferece integração nativa com Google Calendar e Microsoft Outlook. Para CRM, HRIS e outros sistemas, fornecemos integração documentada para sincronização."
         },
         "governance": {
-          "question": "Como o acesso e a rastreabilidade sÃ£o governados?",
-          "answer": "O sistema inclui funÃ§Ãµes e permissÃµes personalizáveis, gestÃ£o por hierarquias organizacionais e logs de auditoria completos. Tudo é exportável para cumprir requisitos de compliance."
+          "question": "Como o acesso e a rastreabilidade são governados?",
+          "answer": "O sistema inclui funções e permissões personalizáveis, gestão por hierarquias organizacionais e logs de auditoria completos. Tudo é exportável para cumprir requisitos de compliance."
         },
         "multilingual": {
           "question": "Como suporta múltiplos idiomas?",
-          "answer": "SofLIA está disponível em espanhol, inglÃªs e portuguÃªs. SofLIA detecta automaticamente o idioma do usuário e responde nesse idioma. O conteúdo pode estar disponível em vários idiomas."
+          "answer": "SofLIA está disponível em espanhol, inglês e português. SofLIA detecta automaticamente o idioma do usuário e responde nesse idioma. O conteúdo pode estar disponível em vários idiomas."
         },
         "certificates": {
-          "question": "Como funciona a certificaÃ§Ã£o verificável?",
-          "answer": "Cada certificado tem um hash SHA-256 único e um código QR. Qualquer pessoa pode verificar a autenticidade do certificado em nossa página pública de verificaÃ§Ã£o sem criar uma conta."
+          "question": "Como funciona a certificação verificável?",
+          "answer": "Cada certificado tem um hash SHA-256 único e um código QR. Qualquer pessoa pode verificar a autenticidade do certificado em nossa página pública de verificação sem criar uma conta."
         },
         "whitelabel": {
           "question": "O que inclui o white-label?",
-          "answer": "O plano Enterprise inclui personalizaÃ§Ã£o completa: logo, cores, tipografia, domínio personalizado e certificados com branding corporativo. Sua equipe verá a plataforma como se fosse própria."
+          "answer": "O plano Enterprise inclui personalização completa: logo, cores, tipografia, domínio personalizado e certificados com branding corporativo. Sua equipe verá a plataforma como se fosse própria."
         },
         "adoption": {
-          "question": "Como a mudanÃ§a e a adoÃ§Ã£o sÃ£o gerenciadas?",
-          "answer": "SofLIA atua como guia durante todo o processo, ajudando os usuários a navegar pela plataforma. Além disso, oferecemos materiais de onboarding, comunicaÃ§Ã£o interna sugerida e métricas de adoÃ§Ã£o em tempo real."
+          "question": "Como a mudança e a adoção são gerenciadas?",
+          "answer": "SofLIA atua como guia durante todo o processo, ajudando os usuários a navegar pela plataforma. Além disso, oferecemos materiais de onboarding, comunicação interna sugerida e métricas de adoção em tempo real."
         }
       }
     },
     "cta": {
       "tag": "Comece Hoje",
-      "title": "Transforme o treinamento da sua organizaÃ§Ã£o",
+      "title": "Transforme o treinamento da sua organização",
       "subtitle": "Agende uma demo executiva e descubra como SofLIA pode impulsionar o desenvolvimento da sua equipe com resultados mensuráveis.",
       "form": {
         "name": "Seu nome",
@@ -499,10 +558,10 @@
       }
     },
     "footer": {
-      "description": "Plataforma de treinamento corporativo em IA que transforma o desenvolvimento de talentos com inteligÃªncia artificial, planejamento inteligente e certificaÃ§Ãµes verificáveis.",
+      "description": "Plataforma de treinamento corporativo em IA que transforma o desenvolvimento de talentos com inteligência artificial, planejamento inteligente e certificações verificáveis.",
       "sections": {
         "platform": "Plataforma",
-        "solutions": "SoluÃ§Ãµes",
+        "solutions": "Soluções",
         "resources": "Recursos",
         "company": "Empresa"
       },
@@ -518,13 +577,14 @@
         "sales": "Vendas",
         "partners": "Parceiros",
         "customers": "Clientes",
-        "documentation": "DocumentaÃ§Ã£o",
-        "integrations": "IntegraÃ§Ãµes",
-        "security": "SeguranÃ§a",
+        "documentation": "Documentação",
+        "integrations": "Integrações",
+        "security": "Segurança",
         "faq": "FAQ",
         "about": "Sobre Nós",
         "contact": "Contato",
-        "blog": "Blog"
+        "blog": "Blog",
+        "liaLink": "SofLIA"
       },
       "legal": {
         "privacy": "Privacidade",
@@ -588,8 +648,269 @@
       "errorLoading": "Erro ao carregar os calendários",
       "errorSaving": "Erro ao salvar a seleção",
       "staleWarning": "Alguns calendários selecionados não existem mais e foram removidos"
+    },
+    "calendar": {
+      "edit": "Editar",
+      "delete": "Excluir",
+      "newEvent": "Novo evento",
+      "close": "Fechar",
+      "addTitle": "Adicionar título",
+      "start": "Início",
+      "end": "Fim",
+      "startDate": "Data de início",
+      "endDate": "Data de fim",
+      "allDay": "Dia inteiro",
+      "location": "Localização",
+      "addLocation": "Adicionar localização",
+      "description": "Descrição",
+      "addDescription": "Adicionar descrição",
+      "color": "Cor",
+      "cancel": "Cancelar",
+      "saving": "Salvando...",
+      "createEvent": "Criar evento",
+      "saveChanges": "Salvar alterações",
+      "studySession": "Sessão de estudo",
+      "until": "Até",
+      "syncedFromGoogle": "Sincronizado do Google Calendar",
+      "syncedFromMicrosoft": "Sincronizado do Microsoft Calendar",
+      "plannedStudySession": "Sessão de estudo planejada",
+      "customEvent": "Evento personalizado",
+      "confirmDelete": "Confirmar exclusão",
+      "deleting": "Excluindo..."
     }
+  },
+  "profile": {
+    "loading": "Carregando perfil...",
+    "error": {
+      "title": "Erro ao carregar o perfil",
+      "description": "Isso pode ocorrer porque sua sessão expirou. Tente fazer login novamente.",
+      "retry": "Tentar novamente",
+      "login": "Fazer login"
+    },
+    "header": {
+      "back": "Voltar",
+      "saving": "Salvando...",
+      "saved": "Salvo",
+      "saveChanges": "Salvar alterações"
+    },
+    "hero": {
+      "noRole": "Sem cargo definido",
+      "memberSince": "Membro desde",
+      "emailVerified": "E-mail verificado",
+      "stats": {
+        "lessons": "Lições",
+        "certificates": "Certificados"
+      }
+    },
+    "tabs": {
+      "personal": "Informações Pessoais",
+      "security": "Segurança"
+    },
+    "personal": {
+      "firstName": "Nome",
+      "lastName": "Sobrenome",
+      "username": "Nome de Usuário",
+      "role": "Cargo na Empresa",
+      "phone": "Telefone",
+      "location": "Localização",
+      "bio": "Biografia"
+    },
+    "security": {
+      "email": "E-mail",
+      "passwordSection": "Alterar Senha",
+      "passwordDescription": "Certifique-se de usar uma senha segura",
+      "currentPassword": "Senha Atual",
+      "newPassword": "Nova Senha",
+      "confirmPassword": "Confirmar Senha",
+      "updating": "Atualizando...",
+      "updatePassword": "Atualizar Senha",
+      "passwordUpdated": "Senha atualizada!",
+      "error": "Erro"
+    },
+    "skills": {
+      "totalSkills": "Total de Skills",
+      "highestLevel": "Nível Mais Alto",
+      "categories": "Categorias",
+      "all": "Todas",
+      "categoryLabels": {
+        "general": "Geral",
+        "programming": "Programação",
+        "design": "Design",
+        "marketing": "Marketing",
+        "business": "Negócios",
+        "data": "Dados",
+        "ai": "Inteligência Artificial",
+        "cloud": "Computação em Nuvem",
+        "security": "Segurança",
+        "devops": "DevOps",
+        "leadership": "Liderança",
+        "communication": "Comunicação",
+        "other": "Outros"
+      }
+    }
+  },
+  "actions": {
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Salvar",
+    "saveChanges": "Salvar alterações",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "create": "Criar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "retry": "Tentar novamente",
+    "saving": "Salvando...",
+    "deleting": "Excluindo...",
+    "loading": "Carregando...",
+    "updating": "Atualizando...",
+    "viewDetails": "Ver detalhes",
+    "savedSuccessfully": "Salvo com sucesso",
+    "preview": "Pré-visualizar",
+    "customize": "Personalizar"
+  },
+  "certificates": {
+    "loading": "Carregando certificados...",
+    "errorTitle": "Erro ao carregar certificados",
+    "errorLoad": "Erro ao carregar certificados",
+    "errorDownload": "Erro ao baixar certificado",
+    "errorUnknown": "Erro desconhecido",
+    "retry": "Tentar novamente",
+    "backToPanel": "Voltar ao Painel",
+    "badge": "Certificados emitidos",
+    "pageTitle": "Certificados da SofLIA e empresas parceiras",
+    "pageSubtitle": "Cada cartão mostra o documento real emitido para esse curso.",
+    "statsCerts": "Certificados",
+    "statsOrgs": "Empresas",
+    "statsValid": "Válidos",
+    "sectionTitle": "Meus Certificados",
+    "sectionCount_one": "{{count}} certificado emitido",
+    "sectionCount_other": "{{count}} certificados emitidos",
+    "searchPlaceholder": "Pesquisar por curso, instrutor ou empresa...",
+    "emptyTitle": "Você ainda não tem certificados",
+    "emptyText": "Conclua o percurso de um curso para emitir seu certificado.",
+    "noResultsTitle": "Nenhum resultado encontrado",
+    "noResultsText": "Tente um termo de busca diferente.",
+    "issuedBy": "Emitido por {{name}}",
+    "issuedOn": "Emitido em {{date}}",
+    "view": "Ver",
+    "download": "Baixar",
+    "verifyValidity": "Verificar Validade",
+    "hashCopied": "Hash copiado para a área de transferência",
+    "loadingDetail": "Carregando certificado...",
+    "notFound": "Certificado não encontrado",
+    "detailErrorTitle": "Não foi possível abrir o certificado",
+    "backToCertificates": "Voltar aos Certificados",
+    "myCertificates": "Meus Certificados",
+    "statusValid": "Certificado válido",
+    "statusExpired": "Certificado expirado",
+    "statusInvalid": "Certificado inválido",
+    "labelIssuer": "Empresa emissora",
+    "labelInstructor": "Instrutor",
+    "labelIssuedAt": "Data de emissão",
+    "labelHash": "Hash de verificação",
+    "copyHash": "Copiar hash",
+    "hashDescription": "Este hash é validado contra a cadeia do certificado e é o mesmo utilizado na visualização pública de verificação.",
+    "downloadPdf": "Baixar PDF",
+    "verifyPublic": "Verificar publicamente",
+    "share": "Compartilhar certificado",
+    "shareTitle": "Certificado: {{title}}",
+    "shareText": "Concluí o curso \"{{title}}\" e este é meu certificado verificado no SofLIA.",
+    "shareDescription": "Compartilhe este certificado emitido por {{issuer}}.",
+    "invalidHash": "Hash de certificado inválido",
+    "errorValidate": "Erro ao validar o certificado",
+    "verifyBadge": "Verificação pública",
+    "verifyTitle": "Validação de certificado",
+    "verifySubtitle": "Esta visualização valida o hash, o estado do certificado e a integridade da cadeia registrada para o documento.",
+    "loadingValidation": "Validando certificado...",
+    "validateErrorTitle": "Não foi possível validar o certificado",
+    "validDescription": "O hash existe, a cadeia está íntegra e o documento corresponde ao certificado emitido.",
+    "invalidDescription": "A validação detectou um problema com a validade ou integridade do certificado.",
+    "hashVerified": "Hash verificado",
+    "chainIntegrity": "Integridade da cadeia",
+    "chainOk": "Correta",
+    "chainInconsistent": "Com inconsistências",
+    "lastOperation": "Última operação",
+    "noData": "Sem dados",
+    "docPreviewLabel": "Visualização do documento validado"
+  },
+  "liaPersonalization": {
+    "title": "Personalização da SofLIA",
+    "saveSuccess": "Configurações salvas com sucesso",
+    "saveError": "Erro ao salvar configurações",
+    "resetSuccess": "Configurações redefinidas",
+    "resetError": "Erro ao redefinir configurações",
+    "confirmReset": "Tem certeza de que deseja redefinir as configurações para os valores padrão?",
+    "styles": {
+      "professional": {
+        "label": "Profissional",
+        "description": "Tom formal e direto, adequado para o trabalho"
+      },
+      "casual": {
+        "label": "Casual",
+        "description": "Tom relaxado e conversacional"
+      },
+      "technical": {
+        "label": "Técnico",
+        "description": "Focado em detalhes técnicos e precisão"
+      },
+      "friendly": {
+        "label": "Amigável",
+        "description": "Caloroso e próximo, como um companheiro"
+      },
+      "formal": {
+        "label": "Formal",
+        "description": "Linguagem estruturada e respeitosa"
+      }
+    },
+    "instructionsPlaceholder": "Exemplo: Prefiro respostas curtas e diretas. Sempre inclua exemplos práticos.",
+    "nicknamePlaceholder": "Exemplo: Fer",
+    "styleLabel": "Estilo",
+    "characters": "caracteres",
+    "friendlyLabel": "Amigável",
+    "friendlyDesc": "Habilita um tom amigável e empático",
+    "enthusiasticLabel": "Entusiasmado",
+    "enthusiasticDesc": "Mostra entusiasmo e energia positiva",
+    "nicknameLabel": "Apelido",
+    "nicknameHint": "Nome e ocupação são obtidos automaticamente do sistema",
+    "voiceLabel": "Voz",
+    "voiceDesc": "Habilitar respostas por voz",
+    "dictationLabel": "Modo de Ditado",
+    "dictationDesc": "Permite ditar mensagens usando reconhecimento de voz",
+    "sections": {
+      "style": {
+        "title": "Estilo e tom base",
+        "description": "Configure o estilo e tom que a SofLIA usa ao responder"
+      },
+      "characteristics": {
+        "title": "Características",
+        "description": "Selecione outras personalizações além do estilo e tom base"
+      },
+      "instructions": {
+        "title": "Instruções personalizadas",
+        "description": "Preferências adicionais de comportamento, estilo e tom"
+      },
+      "about": {
+        "title": "Sobre você",
+        "description": "Informações pessoais para personalizar as respostas"
+      },
+      "advanced": {
+        "title": "Avançado",
+        "description": "Funções avançadas da SofLIA"
+      }
+    }
+  },
+  "comments": {
+    "confirmDelete": "Tem certeza de que deseja excluir este comentário?",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "report": "Reportar",
+    "reply": "Responder",
+    "replyPlaceholder": "Escreva uma resposta...",
+    "deleteError": "Erro ao excluir o comentário",
+    "hideReplies_one": "Ocultar {{count}} resposta",
+    "hideReplies_other": "Ocultar {{count}} respostas",
+    "viewReplies_one": "Ver {{count}} resposta",
+    "viewReplies_other": "Ver {{count}} respostas"
   }
 }
-
-

@@ -164,16 +164,16 @@ export default function BusinessPanelUsersPage() {
   if (isLoading) {
     return (
       <div className="p-6 min-h-screen animate-pulse">
-        <div className="h-48 rounded-3xl bg-gray-800/50 mb-8" />
+        <div className="h-48 rounded-3xl bg-gray-200 dark:bg-gray-800/50 mb-8" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-32 bg-gray-800/50 rounded-2xl" />
+            <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800/50 rounded-2xl" />
           ))}
         </div>
-        <div className="h-12 bg-gray-800/50 rounded-xl mb-6" />
+        <div className="h-12 bg-gray-200 dark:bg-gray-800/50 rounded-xl mb-6" />
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-48 bg-gray-800/50 rounded-2xl" />
+            <div key={i} className="h-48 bg-gray-200 dark:bg-gray-800/50 rounded-2xl" />
           ))}
         </div>
       </div>

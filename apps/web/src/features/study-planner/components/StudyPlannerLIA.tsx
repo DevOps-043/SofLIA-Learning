@@ -43,6 +43,8 @@ export function StudyPlannerSofLIA() {
     // Voice
     isListening,
     isSpeaking,
+    voiceError,
+    setVoiceError,
     toggleListening,
     toggleAudio,
     // Handlers
@@ -79,6 +81,12 @@ export function StudyPlannerSofLIA() {
 
   return (
     <>
+      {voiceError && (
+        <div className="fixed bottom-4 left-1/2 z-[9999] -translate-x-1/2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 shadow-lg">
+          <span>{voiceError}</span>
+          <button type="button" onClick={() => setVoiceError(null)} className="ml-3 text-red-300 hover:text-red-100">✕</button>
+        </div>
+      )}
       <StudyPlannerIntroOverlay
         isVisible={isVisible}
         showResumePrompt={showResumePrompt}

@@ -41,6 +41,7 @@ export function CommentsSection({
   const [showComments, setShowComments] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   const fetchComments = async () => {
     try {
@@ -84,10 +85,10 @@ export function CommentsSection({
         onCommentAdded?.(data.comment);
       } else {
         const errorData = await response.json();
-        alert('Error al crear el comentario: ' + errorData.error);
+        setCommentError('Error al crear el comentario: ' + errorData.error);
       }
     } catch (error) {
-      alert('Error al crear el comentario');
+      setCommentError('Error al crear el comentario');
     } finally {
       setIsSubmitting(false);
     }
@@ -122,10 +123,10 @@ export function CommentsSection({
         setReplyingTo(null);
       } else {
         const errorData = await response.json();
-        alert('Error al crear la respuesta: ' + errorData.error);
+        setCommentError('Error al crear la respuesta: ' + errorData.error);
       }
     } catch (error) {
-      alert('Error al crear la respuesta');
+      setCommentError('Error al crear la respuesta');
     } finally {
       setIsSubmitting(false);
     }
@@ -213,6 +214,9 @@ export function CommentsSection({
                     rows={3}
                     maxLength={1000}
                   />
+                  {commentError && (
+                    <p className="mt-2 text-xs text-red-400">{commentError}</p>
+                  )}
                   <div className="flex justify-between items-center mt-3">
                     <span className="text-xs text-slate-400">
                       {newComment.length}/1000

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import {
   ChevronDown,
@@ -14,6 +15,7 @@ import {
 import type { AdminActivity } from '../../services/adminActivities.service'
 import type { AdminLesson } from '../../services/adminLessons.service'
 import type { AdminMaterial } from '../../services/adminMaterials.service'
+import { useTranslation } from 'react-i18next'
 import { useCourseManagementContext } from './CourseManagementContext'
 import { formatDuration } from './CourseManagement.utils'
 import { LessonResourcePanel } from './LessonResourcePanel'
@@ -43,6 +45,9 @@ export function LessonItem({
     setShowActivityModal,
     handleDeleteLesson,
   } = useCourseManagementContext().state
+  const { t } = useTranslation('common')
+  const { t: ta } = useTranslation('admin')
+  const [pendingDelete, setPendingDelete] = useState(false)
 
   return (
     <Reorder.Item
@@ -101,7 +106,7 @@ export function LessonItem({
             whileHover={{ scale: 1.05, y: -1 }}
             whileTap={{ scale: 0.95 }}
             className="flex h-9 w-9 items-center justify-center rounded-md border border-[#10B981]/20 bg-[#10B981]/10 transition-all duration-200 hover:bg-[#10B981]/20 dark:border-[#10B981]/30 dark:bg-[#10B981]/20 dark:hover:bg-[#10B981]/30"
-            title="Editar leccion"
+            title={t('actions.edit')}
           >
             <Pencil className="h-3.5 w-3.5 text-[#10B981]" />
           </motion.button>
@@ -113,7 +118,7 @@ export function LessonItem({
             whileHover={{ scale: 1.05, y: -1 }}
             whileTap={{ scale: 0.95 }}
             className="flex h-9 w-9 items-center justify-center rounded-md border border-[#0A2540]/20 bg-[#0A2540]/10 transition-all duration-200 hover:bg-[#0A2540]/20 dark:border-[#0A2540]/40 dark:bg-[#0A2540]/30 dark:hover:bg-[#0A2540]/40"
-            title="Agregar material"
+            title={ta('courseManagement.addMaterial')}
           >
             <FileText className="h-3.5 w-3.5 text-[#0A2540] dark:text-[#00D4B3]" />
           </motion.button>
@@ -125,20 +130,29 @@ export function LessonItem({
             whileHover={{ scale: 1.05, y: -1 }}
             whileTap={{ scale: 0.95 }}
             className="flex h-9 w-9 items-center justify-center rounded-md border border-[#00D4B3]/20 bg-[#00D4B3]/10 transition-all duration-200 hover:bg-[#00D4B3]/20 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30"
-            title="Agregar actividad"
+            title={ta('courseManagement.addActivity')}
           >
             <ClipboardList className="h-3.5 w-3.5 text-[#00D4B3]" />
           </motion.button>
           <motion.button
-            onClick={() => handleDeleteLesson(lesson.lesson_id)}
+            onClick={() => setPendingDelete(true)}
             whileHover={{ scale: 1.05, y: -1 }}
             whileTap={{ scale: 0.95 }}
             className="flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 transition-all duration-200 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:hover:bg-red-900/30"
-            title="Eliminar leccion"
+            title={t('actions.delete')}
           >
             <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
           </motion.button>
         </div>
+        {pendingDelete && (
+          <div className="mt-1 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-2">
+            <p className="text-xs text-red-700 dark:text-red-400">{ta('courseManagement.confirmDeleteLesson')}</p>
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={() => setPendingDelete(false)} className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded hover:bg-red-50 transition-colors">{t('actions.cancel')}</button>
+              <button onClick={() => { setPendingDelete(false); handleDeleteLesson(lesson.lesson_id) }} className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors">{t('actions.delete')}</button>
+            </div>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

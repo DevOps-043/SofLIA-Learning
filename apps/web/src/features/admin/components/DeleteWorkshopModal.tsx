@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XMarkIcon, ExclamationTriangleIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { AdminWorkshop } from '../services/adminWorkshops.service'
 
 interface DeleteWorkshopModalProps {
@@ -15,6 +16,8 @@ interface DeleteWorkshopModalProps {
 export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: DeleteWorkshopModalProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
 
   useEffect(() => {
     if (isOpen) {
@@ -31,7 +34,7 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
       setDeleteError(
         error instanceof Error && error.message.trim().length > 0
           ? error.message
-          : 'No se pudo eliminar el taller. Intenta nuevamente.',
+          : t('generic.errorDeleting'),
       )
     } finally {
       setIsDeleting(false)
@@ -74,10 +77,10 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white">
-                          Eliminar Taller
+                          {t('workshops.deleteModal.title')}
                         </h3>
                         <p className="text-xs text-white/70">
-                          Esta acción no se puede deshacer
+                          {t('generic.irreversible')}
                         </p>
                       </div>
                     </div>
@@ -100,10 +103,10 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                     </div>
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-2">
-                        ¿Estás seguro de que quieres eliminar este taller?
+                        {t('workshops.deleteModal.confirmText')}
                       </h3>
                       <p className="text-sm text-[#6C757D] dark:text-white/60">
-                        Esta acción no se puede deshacer. Se eliminará permanentemente:
+                        {t('generic.irreversible')}
                       </p>
                     </div>
                   </div>
@@ -152,7 +155,7 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                       disabled={isDeleting}
                       className="px-6 py-2.5 text-[#6C757D] dark:text-white/70 bg-white dark:bg-[#1E2329] hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/30 rounded-xl text-sm font-medium transition-colors duration-200 border border-[#E9ECEF] dark:border-[#6C757D]/30 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Cancelar
+                      {tc('actions.cancel')}
                     </motion.button>
                     <motion.button
                       onClick={handleConfirm}
@@ -164,12 +167,12 @@ export function DeleteWorkshopModal({ isOpen, onClose, workshop, onConfirm }: De
                       {isDeleting ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                          <span>Eliminando...</span>
+                          <span>{tc('actions.deleting')}</span>
                         </>
                       ) : (
                         <>
                           <TrashIcon className="h-4 w-4" />
-                          <span>Eliminar Taller</span>
+                          <span>{tc('actions.delete')}</span>
                         </>
                       )}
                     </motion.button>

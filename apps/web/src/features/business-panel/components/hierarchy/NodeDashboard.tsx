@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useNodeDashboardState } from './node-dashboard/useNodeDashboardState';
 import {
     Users,
@@ -37,6 +38,8 @@ interface NodeDashboardProps {
 }
 
 export function NodeDashboard({ nodeId }: NodeDashboardProps) {
+    const { t } = useTranslation('business');
+    const { t: tc } = useTranslation('common');
     const {
         orgSlug,
         data,
@@ -56,6 +59,9 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
         fetchMembers,
         handleEditSave,
         handleRemoveMember,
+        handleConfirmRemoveMember,
+        pendingRemoveMemberId,
+        setPendingRemoveMemberId,
     } = useNodeDashboardState(nodeId);
 
     if (loading) {
@@ -411,13 +417,21 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                                     </span>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => handleRemoveMember(member.user_id)}
-                                className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                                title="Remover miembro"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
+                            {pendingRemoveMemberId === member.user_id ? (
+                                <div className="flex items-center gap-1">
+                                    <span className="text-xs text-red-400">{t('hierarchy.confirmRemoveMember')}</span>
+                                    <button onClick={() => setPendingRemoveMemberId(null)} className="px-2 py-1 text-xs border border-white/10 text-white/60 rounded hover:bg-white/5 transition-colors">{tc('actions.cancel')}</button>
+                                    <button onClick={handleConfirmRemoveMember} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">{tc('actions.confirm')}</button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => handleRemoveMember(member.user_id)}
+                                    className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                    title={t('hierarchy.confirmRemoveMember')}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

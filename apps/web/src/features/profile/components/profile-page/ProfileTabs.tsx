@@ -2,12 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { Shield, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ProfileColorPalette, ProfileTabId } from '../../types/profile.types'
-
-const tabs = [
-  { id: 'personal' as const, label: 'Información Personal', icon: <User className="w-4 h-4" /> },
-  { id: 'security' as const, label: 'Seguridad', icon: <Shield className="w-4 h-4" /> }
-]
 
 interface ProfileTabsProps {
   activeTab: ProfileTabId
@@ -16,6 +12,11 @@ interface ProfileTabsProps {
 }
 
 export function ProfileTabs({ activeTab, setActiveTab, colors }: ProfileTabsProps) {
+  const { t } = useTranslation('common')
+  const tabs = [
+    { id: 'personal' as const, label: t('profile.tabs.personal'), icon: <User className="w-4 h-4" /> },
+    { id: 'security' as const, label: t('profile.tabs.security'), icon: <Shield className="w-4 h-4" /> }
+  ]
   return (
     <div className="sticky top-16 z-40 backdrop-blur-xl border-b" style={{ backgroundColor: colors.bgPrimary, borderColor: colors.border }}>
       <div className="px-6 lg:px-12">

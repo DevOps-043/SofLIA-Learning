@@ -15,6 +15,7 @@ import {
   UserCheck,
   Users,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { AdminCommunity } from '../../services/adminCommunities.service'
 import { adminCommunitiesColors } from './shared'
 
@@ -27,23 +28,6 @@ interface AdminCommunityCardProps {
   onToggleVisibility: () => void
 }
 
-function resolveTypeInfo(community: AdminCommunity) {
-  if (community.visibility === 'private') {
-    return { label: 'Privada', icon: Lock, color: adminCommunitiesColors.warning, background: `${adminCommunitiesColors.warning}20` }
-  }
-
-  if (community.access_type === 'moderated') {
-    return {
-      label: 'Moderada',
-      icon: UserCheck,
-      color: adminCommunitiesColors.purple,
-      background: `${adminCommunitiesColors.purple}33`,
-    }
-  }
-
-  return { label: 'Publica', icon: Globe, color: adminCommunitiesColors.success, background: `${adminCommunitiesColors.success}20` }
-}
-
 export function AdminCommunityCard({
   community,
   index,
@@ -52,7 +36,20 @@ export function AdminCommunityCard({
   onDelete,
   onToggleVisibility,
 }: AdminCommunityCardProps) {
+  const { t } = useTranslation('common')
+  const { t: ta } = useTranslation('admin')
   const [isHovered, setIsHovered] = useState(false)
+
+  function resolveTypeInfo(c: AdminCommunity) {
+    if (c.visibility === 'private') {
+      return { label: ta('communityCard.typePrivate'), icon: Lock, color: adminCommunitiesColors.warning, background: `${adminCommunitiesColors.warning}20` }
+    }
+    if (c.access_type === 'moderated') {
+      return { label: ta('communityCard.typeModerated'), icon: UserCheck, color: adminCommunitiesColors.purple, background: `${adminCommunitiesColors.purple}33` }
+    }
+    return { label: ta('communityCard.typePublic'), icon: Globe, color: adminCommunitiesColors.success, background: `${adminCommunitiesColors.success}20` }
+  }
+
   const typeInfo = resolveTypeInfo(community)
   const TypeIcon = typeInfo.icon
 
@@ -121,7 +118,7 @@ export function AdminCommunityCard({
           >
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} className={`w-2 h-2 rounded-full ${community.is_active ? 'bg-emerald-400' : 'bg-gray-400'}`} />
             <span className={`text-xs font-semibold ${community.is_active ? 'text-emerald-400' : 'text-gray-400'}`}>
-              {community.is_active ? 'Activa' : 'Inactiva'}
+              {community.is_active ? ta('communityCard.statusActive') : ta('communityCard.statusInactive')}
             </span>
           </motion.div>
         </div>
@@ -129,16 +126,16 @@ export function AdminCommunityCard({
         <AnimatePresence>
           {isHovered && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="absolute bottom-4 left-4 right-4 flex items-center justify-center gap-2">
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onView() }} className="p-2.5 rounded-xl backdrop-blur-md bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors" title="Ver detalles">
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onView() }} className="p-2.5 rounded-xl backdrop-blur-md bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors" title={t('actions.viewDetails')}>
                 <Eye className="w-4 h-4" />
               </motion.button>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onToggleVisibility() }} className="p-2.5 rounded-xl backdrop-blur-md bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors" title={community.is_active ? 'Desactivar' : 'Activar'}>
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onToggleVisibility() }} className="p-2.5 rounded-xl backdrop-blur-md bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors" title={community.is_active ? ta('communityCard.deactivate') : ta('communityCard.activate')}>
                 {community.is_active ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </motion.button>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onEdit() }} className="p-2.5 rounded-xl backdrop-blur-md border border-white/20 text-white transition-colors" style={{ background: `${adminCommunitiesColors.accent}30` }} title="Editar">
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onEdit() }} className="p-2.5 rounded-xl backdrop-blur-md border border-white/20 text-white transition-colors" style={{ background: `${adminCommunitiesColors.accent}30` }} title={t('actions.edit')}>
                 <Edit3 className="w-4 h-4" />
               </motion.button>
-              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onDelete() }} className="p-2.5 rounded-xl backdrop-blur-md bg-red-500/30 border border-red-500/40 text-red-400 hover:bg-red-500/40 transition-colors" title="Eliminar">
+              <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} onClick={(event) => { event.stopPropagation(); onDelete() }} className="p-2.5 rounded-xl backdrop-blur-md bg-red-500/30 border border-red-500/40 text-red-400 hover:bg-red-500/40 transition-colors" title={t('actions.delete')}>
                 <Trash2 className="w-4 h-4" />
               </motion.button>
             </motion.div>
@@ -167,7 +164,7 @@ export function AdminCommunityCard({
             </div>
             <div>
               <p className="text-lg font-bold text-white">{community.member_count}</p>
-              <p className="text-xs text-gray-500">Miembros</p>
+              <p className="text-xs text-gray-500">{ta('communityCard.membersLabel')}</p>
             </div>
           </div>
 
@@ -177,7 +174,7 @@ export function AdminCommunityCard({
             </div>
             <div>
               <p className="text-lg font-bold text-white">{community.posts_count || 0}</p>
-              <p className="text-xs text-gray-500">Posts</p>
+              <p className="text-xs text-gray-500">{ta('communityCard.postsLabel')}</p>
             </div>
           </div>
         </div>
@@ -187,7 +184,7 @@ export function AdminCommunityCard({
             <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold" style={{ background: `linear-gradient(135deg, ${adminCommunitiesColors.accent} 0%, ${adminCommunitiesColors.primary} 100%)`, color: 'white' }}>
               {(community.creator_name || 'A')[0].toUpperCase()}
             </div>
-            <span className="text-sm text-gray-400 truncate max-w-[120px]">{community.creator_name || 'Sin creador'}</span>
+            <span className="text-sm text-gray-400 truncate max-w-[120px]">{community.creator_name || ta('communityCard.noCreator')}</span>
           </div>
 
           <div className="flex items-center gap-1.5 text-xs text-gray-500">

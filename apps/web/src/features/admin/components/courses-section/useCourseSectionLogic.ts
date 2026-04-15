@@ -221,7 +221,6 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   }
 
   const handleRemoveHierarchy = async (courseId: string) => {
-    if (!confirm('¿Revocar el acceso a este curso para TODA la organización?')) return
     try {
       const res = await fetch(`/api/admin/companies/${companyId}/courses?courseId=${courseId}`, { method: 'DELETE' })
       const data = await res.json()
@@ -235,7 +234,6 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   }
 
   const handleRemoveUserAssignment = async (assignmentId: string) => {
-    if (!confirm('¿Revocar esta asignación individual?')) return
     try {
       const res = await fetch(`/api/admin/companies/${companyId}/user-assignments?assignmentId=${assignmentId}`, { method: 'DELETE' })
       const data = await res.json()

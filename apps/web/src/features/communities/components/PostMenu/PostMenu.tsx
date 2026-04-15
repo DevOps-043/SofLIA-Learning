@@ -50,6 +50,7 @@ export function PostMenu({
   const [copied, setCopied] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showReportModal, setShowReportModal] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
   const { user } = useAuth()
@@ -112,16 +113,17 @@ export function PostMenu({
 
       if (response.ok) {
         setShowDeleteConfirm(false)
+        setDeleteError(null)
         onDelete?.()
         onPostUpdate?.()
       } else {
         const error = await response.json()
-        alert(error.message || 'Error al eliminar el post')
+        setDeleteError(error.message || 'Error al eliminar el post')
         setShowDeleteConfirm(false)
       }
     } catch (error) {
       console.error('Error deleting post:', error)
-      alert('Error al eliminar el post')
+      setDeleteError('Error al eliminar el post')
       setShowDeleteConfirm(false)
     } finally {
       setIsProcessing(false)
@@ -267,6 +269,10 @@ export function PostMenu({
         cancelText="Cancelar"
         isLoading={isProcessing}
       />
+
+      {deleteError && (
+        <p className="mt-1 text-xs text-red-400">{deleteError}</p>
+      )}
 
       {/* Modal de reporte */}
       <ReportPostModal

@@ -19,6 +19,7 @@ import {
   GlobeAltIcon,
   CodeBracketIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { useAdminApps } from '../hooks/useAdminApps'
 import { AdminApp } from '../services/adminApps.service'
 
@@ -50,6 +51,7 @@ export function AdminAppsPage() {
     toggleAppVerified
   } = useAdminApps()
   
+  const { t } = useTranslation('common')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
@@ -265,7 +267,7 @@ export function AdminAppsPage() {
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Buscar apps..."
+                  placeholder={t('searchPlaceholders.apps', { ns: 'admin' })}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -480,7 +482,7 @@ export function AdminAppsPage() {
                           setIsViewModalOpen(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                        title="Ver app"
+                        title={t('actions.viewDetails')}
                       >
                         <EyeIcon className="h-4 w-4" />
                       </button>
@@ -491,7 +493,7 @@ export function AdminAppsPage() {
                           setIsEditModalOpen(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title="Editar app"
+                        title={t('actions.edit')}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
@@ -502,7 +504,7 @@ export function AdminAppsPage() {
                           setIsDeleteModalOpen(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Eliminar app"
+                        title={t('actions.delete')}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>

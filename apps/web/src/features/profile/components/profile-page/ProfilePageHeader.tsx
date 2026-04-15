@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { ArrowLeft, Check, Save } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { ProfileColorPalette } from '../../types/profile.types'
 
 interface ProfilePageHeaderProps {
@@ -13,12 +14,13 @@ interface ProfilePageHeaderProps {
 }
 
 export function ProfilePageHeader({ colors, saving, showSaveSuccess, goBack, handleSave }: ProfilePageHeaderProps) {
+  const { t } = useTranslation('common')
   return (
     <div className="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl border-b" style={{ background: colors.bgPrimary, borderColor: colors.border }}>
       <div className="h-full px-6 flex items-center justify-between">
         <motion.button onClick={goBack} className="flex items-center gap-2 transition-colors" style={{ color: colors.textSecondary }} whileHover={{ x: -3, color: colors.text }}>
           <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">Volver</span>
+          <span className="font-medium">{t('profile.header.back')}</span>
         </motion.button>
 
         <motion.button
@@ -39,7 +41,7 @@ export function ProfilePageHeader({ colors, saving, showSaveSuccess, goBack, han
           ) : (
             <Save className="w-4 h-4" />
           )}
-          <span>{saving ? 'Guardando...' : showSaveSuccess ? 'Guardado' : 'Guardar cambios'}</span>
+          <span>{saving ? t('profile.header.saving') : showSaveSuccess ? t('profile.header.saved') : t('profile.header.saveChanges')}</span>
         </motion.button>
       </div>
     </div>

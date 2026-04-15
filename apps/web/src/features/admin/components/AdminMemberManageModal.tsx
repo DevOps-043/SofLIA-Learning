@@ -36,7 +36,8 @@ export function AdminMemberManageModal({
   primaryColor = SOFLIA_ADMIN_COLORS.primary,
   accentColor = SOFLIA_ADMIN_COLORS.accent
 }: AdminMemberManageModalProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState(member?.role || 'member')
@@ -61,13 +62,13 @@ export function AdminMemberManageModal({
       const data = await res.json()
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Error al actualizar el usuario')
+        throw new Error(data.error || t('users.manageModal.errorUpdate'))
       }
 
       onUpdate()
       onClose()
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Error al guardar los cambios'))
+      setError(getErrorMessage(err, t('users.manageModal.errorSave')))
     } finally {
       setLoading(false)
     }
@@ -85,22 +86,22 @@ export function AdminMemberManageModal({
       const data = await res.json()
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Error al eliminar el usuario')
+        throw new Error(data.error || t('users.manageModal.errorDelete'))
       }
 
       onUpdate()
       onClose()
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Error al eliminar usuario'))
+      setError(getErrorMessage(err, t('users.manageModal.errorDelete')))
     } finally {
       setLoading(false)
     }
   }
 
   const roleLabels = {
-    member: { label: 'Miembro', desc: 'Acceso básico a la plataforma' },
-    admin: { label: 'Administrador', desc: 'Puede gestionar usuarios y contenido' },
-    owner: { label: 'Propietario', desc: 'Control total de la organización' }
+    member: { label: t('users.roles.member.label'), desc: t('users.roles.member.description') },
+    admin: { label: t('users.roles.admin.label'), desc: t('users.roles.admin.description') },
+    owner: { label: t('users.roles.owner.label'), desc: t('users.roles.owner.description') }
   }
 
   return (
@@ -132,7 +133,7 @@ export function AdminMemberManageModal({
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {mode === 'edit' ? t('users.modals.manage.title', 'Gestionar Miembro') : t('users.modals.delete.title', 'Eliminar Miembro')}
+                    {mode === 'edit' ? t('users.manageModal.editTitle') : t('users.manageModal.deleteTitle')}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-[#8899A6]">
                     {member.user?.email || member.email}
@@ -163,7 +164,7 @@ export function AdminMemberManageModal({
             {mode === 'edit' ? (
               <div>
                 <label className="block text-sm font-bold text-gray-600 dark:text-white/70 mb-4 uppercase tracking-wider">
-                  {t('users.modals.manage.role.label', 'Cambiar Rol')}
+                  {t('users.manageModal.changeRole')}
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   {(['member', 'admin', 'owner'] as const).map((role) => (
@@ -196,8 +197,7 @@ export function AdminMemberManageModal({
               <div className="space-y-4">
                 <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
                   <p className="text-gray-600 dark:text-white/80">
-                    ¿Estás seguro de que deseas eliminar a <strong>{member.user?.email || 'este usuario'}</strong>?
-                    Esta acción no se puede deshacer y el usuario perderá acceso inmediato.
+                    {t('users.manageModal.deleteConfirm')}
                   </p>
                 </div>
               </div>
@@ -210,7 +210,7 @@ export function AdminMemberManageModal({
               onClick={onClose}
               className="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 dark:text-[#8899A6] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
             >
-              {t('common.buttons.cancel', 'Cancelar')}
+              {tc('actions.cancel')}
             </button>
             {mode === 'edit' ? (
               <button
@@ -220,7 +220,7 @@ export function AdminMemberManageModal({
                 style={{ backgroundColor: accentColor }}
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {t('common.buttons.save', 'Guardar Cambios')}
+                {tc('actions.saveChanges')}
               </button>
             ) : (
               <button
@@ -229,7 +229,7 @@ export function AdminMemberManageModal({
                 className="px-6 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-all disabled:opacity-50 flex items-center gap-2"
               >
                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {t('common.buttons.delete', 'Eliminar')}
+                {tc('actions.delete')}
               </button>
             )}
           </div>

@@ -25,6 +25,7 @@ export function AdminEditCompanyModal({ company, onClose, onSave, isSaving }: Ed
     activeTab, setActiveTab, formData, setFormData,
     isPlanOpen, setIsPlanOpen,
     uploadingLogo, uploadingBanner,
+    imageUploadError, setImageUploadError,
     logoInputRef, bannerInputRef,
     handleFileChange, applyThemePreset, updateBrandingColor,
   } = useCompanyFormState(company)
@@ -172,16 +173,24 @@ export function AdminEditCompanyModal({ company, onClose, onSave, isSaving }: Ed
                 )}
                 {activeTab === 'members' && <CompanyMembersTab company={company} />}
                 {activeTab === 'branding' && (
-                  <CompanyBrandingTab
-                    formData={formData}
-                    uploadingLogo={uploadingLogo}
-                    uploadingBanner={uploadingBanner}
-                    logoInputRef={logoInputRef}
-                    bannerInputRef={bannerInputRef}
-                    onFileChange={handleFileChange}
-                    onUpdateColor={updateBrandingColor}
-                    setFormData={setFormData}
-                  />
+                  <>
+                    {imageUploadError && (
+                      <p className="mb-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400 flex items-center justify-between">
+                        <span>{imageUploadError}</span>
+                        <button onClick={() => setImageUploadError(null)} className="ml-4 text-red-400 hover:text-red-300">×</button>
+                      </p>
+                    )}
+                    <CompanyBrandingTab
+                      formData={formData}
+                      uploadingLogo={uploadingLogo}
+                      uploadingBanner={uploadingBanner}
+                      logoInputRef={logoInputRef}
+                      bannerInputRef={bannerInputRef}
+                      onFileChange={handleFileChange}
+                      onUpdateColor={updateBrandingColor}
+                      setFormData={setFormData}
+                    />
+                  </>
                 )}
                 {activeTab === 'themes' && (
                   <CompanyThemesTab formData={formData} onApplyPreset={applyThemePreset} />

@@ -54,6 +54,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
   const reportRef = useRef<HTMLDivElement>(null)
   const printRef = useRef<HTMLDivElement>(null)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [pdfError, setPdfError] = useState<string | null>(null)
   const orgName = user?.organization?.name || 'Mi Organización'
 
 
@@ -138,7 +139,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
       pdf.save(`Reporte_LIA_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (error) {
       console.error('Error generando PDF:', error)
-      alert('Error al generar el PDF. Por favor intenta de nuevo.')
+      setPdfError('Error al generar el PDF. Por favor intenta de nuevo.')
     } finally {
       setIsDownloading(false)
     }
@@ -326,6 +327,9 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
                         {isDownloading ? t('reports.actions.generating') : t('reports.actions.downloadPdf')}
                     </button>
                 </div>
+                {pdfError && (
+                    <p className="mt-2 text-xs text-red-400">{pdfError}</p>
+                )}
 
                 <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-xl prose-h3:text-lg text-sm leading-relaxed">
                   <style

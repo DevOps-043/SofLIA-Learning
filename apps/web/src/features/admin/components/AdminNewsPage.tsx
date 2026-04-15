@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { 
+import { useTranslation } from 'react-i18next'
+import {
   PlusIcon, 
   MagnifyingGlassIcon, 
   FunnelIcon,
@@ -43,6 +44,7 @@ function isNewsStatusFilter(value: string): value is NewsStatusFilter {
 }
 
 export function AdminNewsPage() {
+  const { t } = useTranslation('admin')
   const { news, stats, isLoading, error, createNews, updateNews, deleteNews, toggleNewsStatus } = useAdminNews()
   
   const [searchTerm, setSearchTerm] = useState('')
@@ -262,7 +264,7 @@ export function AdminNewsPage() {
               <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
               <input
                 type="text"
-                placeholder="Buscar noticias..."
+                placeholder={t('news.page.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -338,7 +340,7 @@ export function AdminNewsPage() {
                           setShowViewModal(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                        title="Ver detalles"
+                        title={t('news.page.tooltipView')}
                       >
                         <EyeIcon className="h-4 w-4" />
                       </button>
@@ -349,7 +351,7 @@ export function AdminNewsPage() {
                           setShowEditModal(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title="Editar"
+                        title={t('news.page.tooltipEdit')}
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
@@ -360,7 +362,7 @@ export function AdminNewsPage() {
                           setShowDeleteModal(true)
                         }}
                         className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="Eliminar"
+                        title={t('news.page.tooltipDelete')}
                       >
                         <TrashIcon className="h-4 w-4" />
                       </button>

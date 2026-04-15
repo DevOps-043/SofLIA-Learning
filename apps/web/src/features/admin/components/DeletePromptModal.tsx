@@ -3,6 +3,7 @@
 import { Fragment } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import { AdminPrompt } from '../services/adminPrompts.service'
 
 interface DeletePromptModalProps {
@@ -13,13 +14,16 @@ interface DeletePromptModalProps {
   isDeleting?: boolean
 }
 
-export function DeletePromptModal({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  prompt, 
-  isDeleting = false 
+export function DeletePromptModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  prompt,
+  isDeleting = false
 }: DeletePromptModalProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+
   const handleConfirm = async () => {
     if (prompt) {
       await onConfirm(prompt)
@@ -62,23 +66,23 @@ export function DeletePromptModal({
                 </div>
 
                 <Dialog.Title as="h3" className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
-                  Eliminar Prompt
+                  {t('prompts.deleteModal.title')}
                 </Dialog.Title>
 
                 <div className="text-center mb-6">
                   <p className="text-gray-600 dark:text-gray-400 mb-4">
-                    ¿Estás seguro de que quieres eliminar este prompt?
+                    {t('prompts.deleteModal.confirmText')}
                   </p>
-                  
+
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 text-left">
                     <h4 className="font-medium text-gray-900 dark:text-white mb-2">{prompt.title}</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{prompt.description}</p>
-                    
+
                     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-500">
                       <span>Categoría: {prompt.category?.name || 'Sin categoría'}</span>
                       <span>Dificultad: {prompt.difficulty_level}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-500 mt-2">
                       <span>Vistas: {prompt.view_count}</span>
                       <span>Likes: {prompt.like_count}</span>
@@ -86,7 +90,7 @@ export function DeletePromptModal({
                   </div>
 
                   <p className="text-red-600 dark:text-red-400 text-sm mt-4">
-                    ⚠️ Esta acción no se puede deshacer. Se eliminarán también todas las calificaciones y favoritos asociados.
+                    ⚠️ {t('generic.irreversible')}
                   </p>
                 </div>
 
@@ -97,7 +101,7 @@ export function DeletePromptModal({
                     disabled={isDeleting}
                     className="px-6 py-3 text-gray-700 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-50"
                   >
-                    Cancelar
+                    {tc('actions.cancel')}
                   </button>
                   <button
                     type="button"
@@ -108,10 +112,10 @@ export function DeletePromptModal({
                     {isDeleting ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Eliminando...
+                        {tc('actions.deleting')}
                       </>
                     ) : (
-                      'Eliminar Prompt'
+                      tc('actions.delete')
                     )}
                   </button>
                 </div>

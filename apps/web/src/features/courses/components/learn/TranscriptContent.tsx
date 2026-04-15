@@ -33,6 +33,8 @@ export function TranscriptContent({
   const { t } = useTranslation("learn");
   const [isSaving, setIsSaving] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const hasTranscript = Boolean(
     transcriptContent && transcriptContent.trim().length > 0
@@ -71,7 +73,7 @@ export function TranscriptContent({
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     } catch {
-      alert("Error al copiar al portapapeles");
+      console.warn("Error al copiar al portapapeles");
     }
   };
 
@@ -114,13 +116,7 @@ export function TranscriptContent({
           errorData = { error: "Error al procesar respuesta del servidor" };
         }
 
-        alert(
-          `Error al guardar la transcripción en notas:\n\n${
-            errorData.error || "Error desconocido"
-          }\n\nDetalles: ${
-            errorData.message || "Sin detalles adicionales"
-          }\n\nCódigo de estado: ${response.status}`
-        );
+        setSaveError(errorData.error || "Error al guardar la transcripción en notas");
         return;
       }
 
@@ -131,13 +127,11 @@ export function TranscriptContent({
         await onStatsUpdate("create", lesson.lesson_id);
       }
 
-      alert("✅ Transcripción guardada exitosamente en notas");
+      setSaveError(null);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      alert(
-        `❌ Error al guardar la transcripción en notas:\n\n${
-          error instanceof Error ? error.message : "Error desconocido"
-        }\n\nRevisa la consola para más detalles.`
-      );
+      setSaveError(error instanceof Error ? error.message : "Error al guardar la transcripción en notas");
     } finally {
       setIsSaving(false);
     }
@@ -246,6 +240,12 @@ export function TranscriptContent({
               {isSaving ? t("transcript.savingToNotes") : t("transcript.saveToNotes")}
             </button>
           </div>
+          {saveError && (
+            <p className="mt-2 text-xs text-red-500">{saveError}</p>
+          )}
+          {saveSuccess && (
+            <p className="mt-2 text-xs text-green-500">{t("transcript.savedToNotes")}</p>
+          )}
         </div>
       </div>
     </div>

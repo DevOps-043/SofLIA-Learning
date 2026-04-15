@@ -115,6 +115,7 @@ export function UsersFilterBar({
 }: UsersFilterBarProps) {
   const {
     primaryColor,
+    onPrimaryColor,
     accentColor,
     isDark,
     cardBg,
@@ -179,7 +180,7 @@ export function UsersFilterBar({
             }`}
             style={{
               backgroundColor: activeTab === key ? primaryColor : 'transparent',
-              color: activeTab === key ? (isDark ? '#000000' : '#FFFFFF') : undefined,
+              color: activeTab === key ? onPrimaryColor : undefined,
             }}
           >
             {label}
@@ -276,7 +277,7 @@ export function UsersFilterBar({
                           setFilterRole(option.value)
                           setIsRoleDropdownOpen(false)
                         }}
-                        className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-white/5"
+                        className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                         style={{
                           backgroundColor:
                             filterRole === option.value ? `${primaryColor}20` : 'transparent',
@@ -360,7 +361,7 @@ export function UsersFilterBar({
                           setFilterStatus(option.value)
                           setIsStatusDropdownOpen(false)
                         }}
-                        className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-white/5"
+                        className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5"
                         style={{
                           backgroundColor:
                             filterStatus === option.value ? `${accentColor}20` : 'transparent',
@@ -397,7 +398,7 @@ export function UsersFilterBar({
               {activeFiltersCount > 0 && (
                 <span
                   className="px-1.5 py-0.5 rounded-full text-xs font-bold"
-                  style={{ backgroundColor: primaryColor, color: '#FFFFFF' }}
+                  style={{ backgroundColor: primaryColor, color: onPrimaryColor }}
                 >
                   {activeFiltersCount}
                 </span>

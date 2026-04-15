@@ -93,7 +93,10 @@
     "emptyCourses": {
       "title": "You don't have assigned courses yet",
       "description": "Your organization will assign you courses soon. In the meantime, explore what we have prepared for you."
-    }
+    },
+    "confirmResetLayout": "Are you sure you want to reset the default layout? This will delete your current customization.",
+    "restoreLayout": "Restore",
+    "addWidget": "Add widget:"
   },
   "users": {
     "title": "Users",
@@ -111,7 +114,14 @@
       "delete": "Delete User",
       "deleting": "Deleting...",
       "finish": "Finish",
-      "importAnother": "Import Another"
+      "importAnother": "Import Another",
+      "sending": "Sending...",
+      "sendInvite": "Send Invitation",
+      "close": "Close",
+      "newLink": "New Link",
+      "createAnother": "Create Another",
+      "done": "Done",
+      "createLink": "Create Link"
     },
     "placeholders": {
       "search": "Search by name, email or username..."
@@ -286,7 +296,7 @@
           "time": "Time",
           "lia": "LIA",
           "quiz": "Quiz",
-          "notes": "Notas"
+          "notes": "Notes"
         },
         "timeline": {
           "empty": "No progress to show",
@@ -322,7 +332,98 @@
           "lastConnection": "Last Connection",
           "typeRole": "Type of Role"
         }
+      },
+      "invite": {
+        "title": "Invite User",
+        "subtitle": "Send an invitation email to join the organization",
+        "fields": {
+          "email": "Email Address",
+          "name": "First Name",
+          "lastName": "Last Name",
+          "role": "Role"
+        },
+        "placeholders": {
+          "email": "user@company.com",
+          "name": "User first name",
+          "lastName": "User last name"
+        },
+        "roleDesc": {
+          "BusinessUser": "Employee access to courses and content",
+          "Business": "Full access to the administration panel"
+        },
+        "hints": {
+          "info": "An email with the activation link will be sent"
+        },
+        "success": {
+          "title": "Invitation Sent",
+          "message": "An invitation was sent to {{email}}"
+        },
+        "errorNoOrg": "Organization not found",
+        "errorSend": "Error sending invitation"
+      },
+      "bulkInvite": {
+        "title": "Create Bulk Invitation Link",
+        "subtitle": "Generate a link to invite multiple users at once",
+        "fields": {
+          "linkName": "Link Name",
+          "role": "Guest Role",
+          "maxUses": "Maximum Uses",
+          "expiresAt": "Expiration Date"
+        },
+        "placeholders": {
+          "linkName": "E.g: Link for sales team",
+          "maxUses": "No limit"
+        },
+        "roleDesc": {
+          "BusinessUser": "Employee access",
+          "Business": "Administrator access"
+        },
+        "hints": {
+          "unlimited": "Leave empty for unlimited uses",
+          "noExpiry": "Leave empty for no expiration",
+          "share": "Share this link with the users you want to invite"
+        },
+        "success": {
+          "title": "Link Created",
+          "message": "The invitation link has been generated",
+          "copy": "Copy Link",
+          "copied": "Link copied"
+        },
+        "errorCreate": "Error creating the link"
+      },
+      "manageLinks": {
+        "title": "Manage Invitation Links",
+        "subtitle": "Manage active invitation links",
+        "empty": {
+          "title": "No active links",
+          "description": "Create your first bulk invitation link"
+        },
+        "unnamed": "Unnamed link",
+        "uses": "uses",
+        "linkSingular": "link",
+        "linkPlural": "links",
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "expired": "Expired",
+          "unlimited": "Unlimited"
+        },
+        "actions": {
+          "copyLink": "Copy link",
+          "deactivate": "Deactivate",
+          "activate": "Activate",
+          "delete": "Delete"
+        },
+        "errorLoad": "Error loading links",
+        "errorDelete": "Error deleting the link",
+        "errorUpdate": "Error updating the link",
+        "errorOperation": "Operation error"
       }
+    },
+    "sections": {
+      "personalInfo": "Personal Information",
+      "professionalDetails": "Professional Details",
+      "accessConfig": "Access Configuration"
     }
   },
   "courses": {
@@ -451,7 +552,6 @@
     "title": "Settings",
     "subtitle": "Manage your organization settings"
   },
-
   "analytics": {
     "title": "Analytics",
     "headerTitle": "Analytics & Performance",
@@ -505,7 +605,9 @@
       "noDescription": "No description",
       "progress": "Progress",
       "time": "Time",
-      "coursesCompleted": "Courses Completed"
+      "coursesCompleted": "Courses Completed",
+      "totalChats": "Total SofLIA Chats",
+      "totalSofLIAChats": "Total SofLIA Chats"
     },
     "userDetail": {
       "streak": "Streak",
@@ -608,7 +710,8 @@
       "assigning": "Assigning...",
       "cancel": "Cancel",
       "suggestDate": "Suggest with LIA",
-      "suggesting": "Suggesting..."
+      "suggesting": "Suggesting...",
+      "confirmAssign": "Confirm Assignment"
     },
     "errors": {
       "selectUser": "You must select at least one user",
@@ -841,10 +944,22 @@
       "confidential": "Confidential - Exclusive use of"
     },
     "types": {
-      "liaAnalysis": { "label": "LIA Analysis", "description": "AI predictive analysis" },
-      "users": { "label": "Users", "description": "Detailed user information" },
-      "activity": { "label": "Activity", "description": "Recent activity tracking" },
-      "certificates": { "label": "Certificates", "description": "Issued certificates" }
+      "liaAnalysis": {
+        "label": "LIA Analysis",
+        "description": "AI predictive analysis"
+      },
+      "users": {
+        "label": "Users",
+        "description": "Detailed user information"
+      },
+      "activity": {
+        "label": "Activity",
+        "description": "Recent activity tracking"
+      },
+      "certificates": {
+        "label": "Certificates",
+        "description": "Issued certificates"
+      }
     },
     "actions": {
       "filters": "Filters",
@@ -952,5 +1067,140 @@
       "recentActivity": "Recent Activity",
       "last6Months": "Interactions last 6 months"
     }
+  },
+  "hierarchy": {
+    "errorCreateStructure": "Error creating structure",
+    "errorEnable": "Error enabling hierarchy",
+    "errorDisable": "Error disabling hierarchy",
+    "loadingConfig": "Loading Configuration...",
+    "types": {
+      "region": "Region",
+      "zone": "Zone",
+      "team": "Team"
+    },
+    "managers": {
+      "region": "Regional Manager",
+      "zone": "Zone Manager",
+      "team": "Team Leader"
+    },
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "unassigned": "Unassigned",
+    "stats": "Statistics",
+    "zones": "Zones",
+    "teams": "Teams",
+    "assignedUsers": "Assigned users",
+    "users": "Users",
+    "members": "Members",
+    "capacity": "Capacity",
+    "goal": "Goal",
+    "monthlyTarget": "Monthly Target",
+    "description": "Description",
+    "location": "Location",
+    "contact": "Contact",
+    "info": "Information",
+    "created": "Created",
+    "updated": "Updated",
+    "deleteConfirmError": "Write \"{{name}}\" to confirm",
+    "deleteWarning": "This action cannot be undone. Write",
+    "deleteWarningEnd": "to confirm.",
+    "errorDelete": "Error deleting",
+    "statusActiveBadge": "● Active",
+    "statusInactiveBadge": "○ Inactive",
+    "statRegions": "Regions",
+    "statZones": "Zones",
+    "statTeams": "Teams",
+    "statAssigned": "Assigned",
+    "statUnassigned": "Unassigned",
+    "basicStructureTitle": "Start with basic structure",
+    "basicStructureDesc": "Creates an initial region, zone and team automatically",
+    "enableLabel": "Enable hierarchy",
+    "disableLabel": "Disable hierarchy",
+    "unassignedWarning": "There are <strong>{{count}}</strong> user(s) without an assigned team. Assign them before enabling.",
+    "enableTitle": "Enable hierarchy",
+    "enableMessage": "When enabled, users will only be able to see data within their assigned scope (team, zone or region). Do you wish to continue?",
+    "disableTitle": "Disable hierarchy",
+    "disableMessage": "When disabled, all users will be able to see all data. The structure is maintained but no restrictions are applied.",
+    "confirmEnable": "Enable",
+    "confirmDisable": "Disable",
+    "processing": "Processing...",
+    "creating": "Creating...",
+    "creating2": "Create",
+    "saved": "Saved",
+    "userBehavior": {
+      "title": "User Behavior",
+      "subtitle": "Configure how users are managed within the hierarchy",
+      "autoAssign": {
+        "label": "Auto-assign new users",
+        "description": "New members will be automatically assigned to the default team when joining the organization."
+      },
+      "requireTeam": {
+        "label": "Require assigned team",
+        "description": "Users must have an assigned team to access the platform. Users without a team will see a notice."
+      }
+    },
+    "roles": {
+      "title": "Roles & Permissions",
+      "subtitle": "Each role determines the scope of data access within the hierarchy",
+      "scope": {
+        "owner": "Entire organization",
+        "admin": "Per assignment",
+        "regional_manager": "Assigned region",
+        "zone_manager": "Assigned zone",
+        "team_leader": "Assigned team",
+        "node_manager": "Specific node",
+        "member": "Own team only"
+      }
+    },
+    "cancel": "Cancel",
+    "addSubLevel": "Add Sub-level",
+    "leaderLabel": "Leader",
+    "membersCount": "{{count}} members",
+    "terminalLevel": "Terminal Level",
+    "confirmCancelAssignment": "Are you sure you want to cancel this assignment?",
+    "confirmRemoveMember": "Are you sure you want to remove this member from the node?",
+    "confirmDeleteNode": "Are you sure you want to delete {{name}} and all its descendants?",
+    "cancelError": "Error cancelling the assignment",
+    "saveNodeError": "Error saving the node",
+    "activeStructure": "Active Structure",
+    "selectStructure": "Select Structure",
+    "defaultBadge": "(Default)",
+    "newStructure": "New Structure",
+    "syncing": "Syncing...",
+    "emptyStructureTitle": "Empty structure",
+    "emptyStructureDesc": "This structure currently has no defined organizational levels.",
+    "initializeGeneral": "Initialize 'General'",
+    "noRootNode": "No root node found. Create a 'General' node first.",
+    "saveStructureError": "Error creating the structure",
+    "loadStructuresError": "Error loading structures",
+    "loadHierarchyError": "Error loading hierarchy"
+  },
+  "common": {
+    "optional": "Optional",
+    "refresh": "Refresh",
+    "copy": "Copy",
+    "openInNewTab": "Open in new tab"
+  },
+  "assignments": {
+    "loading": "Loading assignments...",
+    "emptyEntity": "No courses assigned to this entity",
+    "assign": "Assign Courses",
+    "totalUsers": "Total Users",
+    "assignedCount": "Assigned",
+    "completedCount": "Completed",
+    "completionRate": "Completion Rate",
+    "assignedAt": "Assigned:",
+    "dueDate": "Due:",
+    "assignedBy": "Assigned by:",
+    "editTitle": "Edit assignment",
+    "cancelTitle": "Cancel assignment",
+    "noTitle": "Untitled course",
+    "statusActive": "Active",
+    "statusCompleted": "Completed",
+    "statusCancelled": "Cancelled",
+    "emptyForEntity": "No courses assigned to {{name}}"
+  },
+  "chat": {
+    "confirmDeleteMessage": "Delete this message?"
   }
 }

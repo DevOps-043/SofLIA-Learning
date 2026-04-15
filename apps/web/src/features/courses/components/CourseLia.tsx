@@ -478,7 +478,7 @@ function CourseLiaPanelContent({
     const wasCopied = await copyTextToClipboard(content);
 
     if (!wasCopied) {
-      alert('No se pudo copiar el mensaje');
+      console.warn('No se pudo copiar el mensaje');
       return;
     }
 

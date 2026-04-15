@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import {
   Book,
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react'
 
 import type { AdminModule } from '../../services/adminModules.service'
+import { useTranslation } from 'react-i18next'
 import { useCourseManagementContext } from './CourseManagementContext'
 import { formatDuration } from './CourseManagement.utils'
 import { LessonItem } from './LessonItem'
@@ -43,6 +45,9 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
   } = useCourseManagementContext()
 
   const moduleLessons = getModuleLessons(module.module_id)
+  const { t } = useTranslation('common')
+  const { t: ta } = useTranslation('admin')
+  const [pendingDelete, setPendingDelete] = useState(false)
 
   return (
     <Reorder.Item
@@ -100,12 +105,12 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                   {module.is_published ? (
                     <>
                       <CheckCircle2 className="h-3 w-3" />
-                      Publicado
+                      {ta('courseManagement.published')}
                     </>
                   ) : (
                     <>
                       <FileText className="h-3 w-3" />
-                      Borrador
+                      {ta('courseManagement.draft')}
                     </>
                   )}
                 </motion.span>
@@ -115,8 +120,7 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-lg bg-[#E9ECEF]/50 px-2.5 py-1 text-xs text-[#6C757D] dark:bg-[#0A0D12] dark:text-white/60">
                   <Book className="h-3 w-3" />
-                  {moduleLessons.length}{' '}
-                  {moduleLessons.length === 1 ? 'leccion' : 'lecciones'}
+                  {ta('courseManagement.lessonCount', { count: moduleLessons.length })}
                 </span>
               </div>
 
@@ -138,10 +142,10 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
               whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
               className="flex w-full items-center justify-center gap-1.5 rounded-md border border-[#00D4B3]/20 bg-[#00D4B3]/10 px-2.5 py-2 text-xs font-medium text-[#00D4B3] transition-all duration-200 hover:bg-[#00D4B3]/20 dark:border-[#00D4B3]/30 dark:bg-[#00D4B3]/20 dark:hover:bg-[#00D4B3]/30 sm:min-w-[180px] sm:flex-1"
-              title="Agregar leccion"
+              title={ta('courseManagement.addLesson')}
             >
               <Plus className="h-3 w-3" />
-              <span>Leccion</span>
+              <span>{ta('courseManagement.addLessonShort')}</span>
             </motion.button>
             <motion.button
               onClick={() => {
@@ -151,20 +155,29 @@ export function ModuleCard({ module, index, isExpanded }: ModuleCardProps) {
               whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
               className="flex h-9 w-9 items-center justify-center rounded-md border border-[#E9ECEF] bg-[#E9ECEF] text-[#0A2540] transition-all duration-200 hover:bg-[#0A2540]/5 dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/80 dark:hover:bg-[#0A2540]/20"
-              title="Editar modulo"
+              title={t('actions.edit')}
             >
               <Pencil className="h-3.5 w-3.5" />
             </motion.button>
             <motion.button
-              onClick={() => handleDeleteModule(module.module_id)}
+              onClick={() => setPendingDelete(true)}
               whileHover={{ scale: 1.05, y: -1 }}
               whileTap={{ scale: 0.95 }}
               className="flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 transition-all duration-200 hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30"
-              title="Eliminar modulo"
+              title={t('actions.delete')}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </motion.button>
           </div>
+          {pendingDelete && (
+            <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-2">
+              <p className="text-xs text-red-700 dark:text-red-400">{ta('courseManagement.confirmDeleteModule')}</p>
+              <div className="flex gap-1 flex-shrink-0">
+                <button onClick={() => setPendingDelete(false)} className="px-2 py-1 text-xs bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded hover:bg-red-50 transition-colors">{t('actions.cancel')}</button>
+                <button onClick={() => { setPendingDelete(false); handleDeleteModule(module.module_id) }} className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors">{t('actions.delete')}</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

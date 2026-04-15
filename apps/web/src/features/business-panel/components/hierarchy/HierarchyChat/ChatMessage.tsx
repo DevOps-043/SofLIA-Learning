@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useTranslation } from 'react-i18next'
 import {
   Check,
   Download,
@@ -67,6 +69,9 @@ export function ChatMessage({
   formatFileSize,
 }: ChatMessageProps) {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
+  const [pendingDelete, setPendingDelete] = useState(false)
   const attachment = getAttachment(message)
   const isImage = Boolean(attachment && attachment.mimeType.startsWith('image/'))
   const textContent = sanitizeMessageContent(message.content, Boolean(attachment))
@@ -304,25 +309,35 @@ export function ChatMessage({
             </div>
 
             {isOwnMessage && (
-              <div className="absolute -left-16 top-1/2 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                <button
-                  type="button"
-                  onClick={() => onStartEdit(message)}
-                  className="rounded-full p-1.5 transition-colors"
-                  style={{ backgroundColor: theme.hoverBg }}
-                  title="Editar"
-                >
-                  <Edit2 className="h-3 w-3" style={{ color: theme.subtextColor }} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(message.id)}
-                  className="rounded-full p-1.5 transition-colors"
-                  style={{ backgroundColor: theme.hoverBg }}
-                  title="Eliminar"
-                >
-                  <Trash2 className="h-3 w-3" style={{ color: theme.dangerColor }} />
-                </button>
+              <div className="absolute -left-32 top-1/2 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                {pendingDelete ? (
+                  <>
+                    <span className="text-xs whitespace-nowrap" style={{ color: theme.dangerColor }}>{t('chat.confirmDeleteMessage')}</span>
+                    <button type="button" onClick={() => setPendingDelete(false)} className="rounded-full p-1.5 transition-colors text-xs" style={{ backgroundColor: theme.hoverBg, color: theme.subtextColor }}>{tc('actions.cancel')}</button>
+                    <button type="button" onClick={() => { setPendingDelete(false); onDelete(message.id) }} className="rounded-full p-1.5 transition-colors text-xs" style={{ backgroundColor: theme.hoverBg, color: theme.dangerColor }}>{tc('actions.delete')}</button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => onStartEdit(message)}
+                      className="rounded-full p-1.5 transition-colors"
+                      style={{ backgroundColor: theme.hoverBg }}
+                      title={tc('actions.edit')}
+                    >
+                      <Edit2 className="h-3 w-3" style={{ color: theme.subtextColor }} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPendingDelete(true)}
+                      className="rounded-full p-1.5 transition-colors"
+                      style={{ backgroundColor: theme.hoverBg }}
+                      title={tc('actions.delete')}
+                    >
+                      <Trash2 className="h-3 w-3" style={{ color: theme.dangerColor }} />
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>

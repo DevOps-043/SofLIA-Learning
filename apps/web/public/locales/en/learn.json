@@ -192,6 +192,8 @@
     "download": "Download",
     "saveToNotes": "Save to notes",
     "savingToNotes": "Saving...",
+    "savedToNotes": "Transcript saved to notes",
+    "saveNoteError": "Error saving transcript to notes",
     "lastUpdate": "Last update",
     "tips": {
       "checkAudio": "Verify that the video has audio",
@@ -272,5 +274,21 @@
         "description": "You now know how the course is organized. Move at your own pace, use each tool when you need it and reopen this guide anytime you want a quick refresher."
       }
     }
+  },
+  "scorm": {
+    "title": "SCORM Packages",
+    "subtitle": "Upload SCORM 1.2 or 2004 packages for this course",
+    "uploadPackage": "Upload Package",
+    "cancelUpload": "Cancel",
+    "loading": "Loading packages...",
+    "empty": "No SCORM packages",
+    "emptyHint": "Upload your first package to get started",
+    "preview": "Preview",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "statusActive": "Active",
+    "statusProcessing": "Processing",
+    "statusInactive": "Inactive",
+    "confirmDelete": "Are you sure you want to delete this SCORM package?"
   }
 }

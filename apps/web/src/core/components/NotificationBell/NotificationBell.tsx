@@ -68,6 +68,7 @@ export function NotificationBell({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const [isMobile, setIsMobile] = useState(false)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0, maxHeight: 0 })
+  const [notifToDelete, setNotifToDelete] = useState<string | null>(null)
 
   // Detectar si estamos en móvil
   useEffect(() => {
@@ -228,15 +229,23 @@ export function NotificationBell({
   }
 
   // Manejar eliminar
-  const handleDelete = async (e: React.MouseEvent, notificationId: string) => {
+  const handleDelete = (e: React.MouseEvent, notificationId: string) => {
     e.stopPropagation()
-    // Confirmar antes de eliminar
-    if (window.confirm('¿Estás seguro de que quieres eliminar esta notificación?')) {
-      try {
-        await deleteNotification(notificationId)
-      } catch (error) {
-      }
+    setNotifToDelete(notificationId)
+  }
+
+  const handleConfirmDelete = async (e: React.MouseEvent, notificationId: string) => {
+    e.stopPropagation()
+    setNotifToDelete(null)
+    try {
+      await deleteNotification(notificationId)
+    } catch (error) {
     }
+  }
+
+  const handleCancelDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setNotifToDelete(null)
   }
 
   // Manejar marcar todas como leídas
@@ -477,14 +486,31 @@ export function NotificationBell({
                                   >
                                     <Archive className="w-3.5 h-3.5" />
                                   </button>
-                                  <button
-                                    onClick={(e) => handleDelete(e, notification.notification_id)}
-                                    className="p-1.5 rounded-md text-[#6C757D] dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 active:scale-95"
-                                    title="Eliminar"
-                                    aria-label="Eliminar notificación"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                  {notifToDelete === notification.notification_id ? (
+                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                      <button
+                                        onClick={(e) => handleConfirmDelete(e, notification.notification_id)}
+                                        className="text-xs px-1.5 py-0.5 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+                                      >
+                                        Sí
+                                      </button>
+                                      <button
+                                        onClick={handleCancelDelete}
+                                        className="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-white/20 transition-colors"
+                                      >
+                                        No
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={(e) => handleDelete(e, notification.notification_id)}
+                                      className="p-1.5 rounded-md text-[#6C757D] dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 active:scale-95"
+                                      title="Eliminar"
+                                      aria-label="Eliminar notificación"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>

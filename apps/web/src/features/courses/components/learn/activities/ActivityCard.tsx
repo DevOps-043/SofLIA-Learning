@@ -151,6 +151,13 @@ export function ActivityCard({
                 <Check className="h-2.5 w-2.5" /> Completado
               </span>
             )}
+            {activity.is_required &&
+              quizInfo?.isCompleted &&
+              !quizInfo.isPassed && (
+                <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+                  Intentado {quizInfo.percentage}%
+                </span>
+              )}
             <CompletionBadge activity={activity} />
           </div>
         </div>
@@ -188,6 +195,7 @@ export function ActivityCard({
                   <QuizRenderer
                     quizData={quizPayload.questions}
                     totalPoints={quizPayload.totalPoints}
+                    quizStatusItem={quizInfo}
                     lessonId={lessonId}
                     slug={slug}
                     activityId={activity.activity_id}

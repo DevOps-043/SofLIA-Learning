@@ -14,6 +14,7 @@ export function useAdminCreateCompanyModal() {
   const [isPlanOpen, setIsPlanOpen] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [uploadingBanner, setUploadingBanner] = useState(false)
+  const [imageUploadError, setImageUploadError] = useState<string | null>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const bannerInputRef = useRef<HTMLInputElement>(null)
 
@@ -60,7 +61,7 @@ export function useAdminCreateCompanyModal() {
 
       throw new Error(result.error || 'Error al subir la imagen')
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Error al subir la imagen')
+      setImageUploadError(error instanceof Error ? error.message : 'Error al subir la imagen')
     } finally {
       if (imageType === 'logo') {
         setUploadingLogo(false)
@@ -94,6 +95,8 @@ export function useAdminCreateCompanyModal() {
     isPlanOpen,
     uploadingLogo,
     uploadingBanner,
+    imageUploadError,
+    setImageUploadError,
     logoInputRef,
     bannerInputRef,
     setActiveTab,

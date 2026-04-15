@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Filter, LayoutGrid, List, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { adminCommunitiesColors, type AdminCommunitiesViewMode } from './shared'
 
 interface AdminCommunitiesFiltersProps {
@@ -25,6 +26,7 @@ export function AdminCommunitiesFilters({
   viewMode,
   onViewModeChange,
 }: AdminCommunitiesFiltersProps) {
+  const { t } = useTranslation('admin')
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -37,7 +39,7 @@ export function AdminCommunitiesFilters({
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
         <input
           type="text"
-          placeholder="Buscar comunidades por nombre, descripcion o creador..."
+          placeholder={t('searchPlaceholders.communities')}
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
           className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] focus:ring-1 focus:ring-[#00D4B3] transition-all"

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Settings, Save, RefreshCw } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 interface GridLayoutItem {
   h: number
   i: string
@@ -83,14 +84,17 @@ interface DashboardLayoutManagerProps {
   onLayoutChange?: (widgets: WidgetConfig[]) => void
 }
 
-export function DashboardLayoutManager({ 
-  children, 
-  widgets, 
-  onLayoutChange 
+export function DashboardLayoutManager({
+  children,
+  widgets,
+  onLayoutChange
 }: DashboardLayoutManagerProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentLayout, setCurrentLayout] = useState<GridLayoutItem[]>([])
+  const [pendingReset, setPendingReset] = useState(false)
   
   // Convertir children a un mapa para acceso rápido
   const childrenMap = React.useMemo(() => {
@@ -180,16 +184,17 @@ export function DashboardLayoutManager({
     }
   }, [widgets])
 
-  const handleReset = useCallback(async () => {
-    if (!confirm('¿Estás seguro de que deseas restablecer el layout por defecto?')) {
-      return
-    }
+  const handleReset = useCallback(() => {
+    setPendingReset(true)
+  }, [])
 
+  const handleConfirmReset = useCallback(async () => {
+    setPendingReset(false)
     try {
       await fetch('/api/admin/dashboard/layout', {
         method: 'DELETE'
       })
-      
+
       // Recargar la página para aplicar el layout por defecto
       window.location.reload()
     } catch (error) {
@@ -199,6 +204,17 @@ export function DashboardLayoutManager({
 
   return (
     <div className="relative">
+      {/* Confirmación inline de reset */}
+      {pendingReset && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-3">
+          <p className="text-sm text-red-700 dark:text-red-400">{t('dashboard.confirmResetLayout')}</p>
+          <div className="flex gap-2 flex-shrink-0">
+            <button onClick={() => setPendingReset(false)} className="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded hover:bg-red-50 transition-colors">{tc('actions.cancel')}</button>
+            <button onClick={handleConfirmReset} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors">{tc('actions.confirm')}</button>
+          </div>
+        </div>
+      )}
+
       {/* Barra de herramientas */}
       <div className="flex justify-end gap-2 mb-4">
         {!isEditMode ? (
@@ -207,7 +223,7 @@ export function DashboardLayoutManager({
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Settings className="w-4 h-4" />
-            Personalizar Layout
+            {t('dashboard.customizeLayout')}
           </button>
         ) : (
           <>
@@ -217,20 +233,20 @@ export function DashboardLayoutManager({
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? 'Guardando...' : 'Guardar'}
+              {isSaving ? tc('actions.saving') : tc('actions.save')}
             </button>
             <button
               onClick={() => setIsEditMode(false)}
               className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
             >
-              Cancelar
+              {tc('actions.cancel')}
             </button>
             <button
               onClick={handleReset}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               <RefreshCw className="w-4 h-4" />
-              Restaurar
+              {t('dashboard.restoreLayout')}
             </button>
           </>
         )}

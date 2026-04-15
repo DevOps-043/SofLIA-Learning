@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertCircle, CheckCircle2, Lock, Mail, Shield } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { PremiumInput, PremiumPassword } from './ProfilePremiumFields'
 import type { ProfileColorPalette, UpdateProfileRequest } from '../../types/profile.types'
 
@@ -53,6 +54,7 @@ export function ProfileSecurityTab({
   handleChangePassword
 }: ProfileSecurityTabProps) {
   const isPasswordSubmitDisabled = isChangingPassword || !currentPassword || !newPassword || !confirmPassword
+  const { t } = useTranslation('common')
 
   return (
     <motion.div key="security" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-6">
@@ -69,7 +71,7 @@ export function ProfileSecurityTab({
               <CheckCircle2 className="w-5 h-5" style={{ color: colors.success }} />
             </div>
             <div>
-              <p className="font-semibold" style={{ color: colors.success }}>¡Contraseña actualizada!</p>
+              <p className="font-semibold" style={{ color: colors.success }}>{t('profile.security.passwordUpdated')}</p>
               <p className="text-sm" style={{ color: colors.textSecondary }}>{passwordChangeSuccess}</p>
             </div>
           </motion.div>
@@ -87,7 +89,7 @@ export function ProfileSecurityTab({
               <AlertCircle className="w-5 h-5" style={{ color: colors.error }} />
             </div>
             <div>
-              <p className="font-semibold" style={{ color: colors.error }}>Error</p>
+              <p className="font-semibold" style={{ color: colors.error }}>{t('profile.security.error')}</p>
               <p className="text-sm" style={{ color: colors.textSecondary }}>{passwordChangeError}</p>
             </div>
           </motion.div>
@@ -95,7 +97,7 @@ export function ProfileSecurityTab({
       </AnimatePresence>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <PremiumInput label="Correo Electrónico" value={formData.email || ''} onChange={value => handleInputChange('email', value)} icon={<Mail className="w-4 h-4" />} type="email" colors={colors} />
+        <PremiumInput label={t('profile.security.email')} value={formData.email || ''} onChange={value => handleInputChange('email', value)} icon={<Mail className="w-4 h-4" />} type="email" colors={colors} />
       </div>
 
       <div className="pt-4 flex items-center gap-4">
@@ -103,14 +105,14 @@ export function ProfileSecurityTab({
           <Shield className="w-6 h-6" style={{ color: colors.accent }} />
         </div>
         <div>
-          <h3 className="text-lg font-bold" style={{ color: colors.text }}>Cambiar Contraseña</h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>Asegúrate de usar una contraseña segura</p>
+          <h3 className="text-lg font-bold" style={{ color: colors.text }}>{t('profile.security.passwordSection')}</h3>
+          <p className="text-sm" style={{ color: colors.textSecondary }}>{t('profile.security.passwordDescription')}</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         <PremiumPassword
-          label="Contraseña Actual"
+          label={t('profile.security.currentPassword')}
           value={currentPassword}
           onChange={value => setPasswordValue('current_password', value)}
           show={showCurrentPassword}
@@ -119,7 +121,7 @@ export function ProfileSecurityTab({
           colors={colors}
         />
         <PremiumPassword
-          label="Nueva Contraseña"
+          label={t('profile.security.newPassword')}
           value={newPassword}
           onChange={value => setPasswordValue('new_password', value)}
           show={showNewPassword}
@@ -128,7 +130,7 @@ export function ProfileSecurityTab({
           colors={colors}
         />
         <PremiumPassword
-          label="Confirmar Contraseña"
+          label={t('profile.security.confirmPassword')}
           value={confirmPassword}
           onChange={value => setPasswordValue('confirm_password', value)}
           show={showConfirmPassword}
@@ -156,7 +158,7 @@ export function ProfileSecurityTab({
           ) : (
             <Lock className="w-5 h-5" />
           )}
-          {isChangingPassword ? 'Actualizando...' : 'Actualizar Contraseña'}
+          {isChangingPassword ? t('profile.security.updating') : t('profile.security.updatePassword')}
         </motion.button>
       </div>
     </motion.div>

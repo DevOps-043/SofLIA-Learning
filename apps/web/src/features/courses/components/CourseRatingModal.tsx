@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, X, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+
 import { StarRating } from './StarRating';
-import { CourseRatingService } from '../services/course-rating.service';
+import type { CourseRatingSubmissionInput } from '../services/course-rating.service';
 
 export interface CourseRatingModalProps {
   /**
@@ -16,25 +17,20 @@ export interface CourseRatingModalProps {
    */
   onClose: () => void;
   /**
-   * Course slug
-   */
-  courseSlug: string;
-  /**
    * Course title (for display)
    */
   courseTitle?: string;
   /**
    * Callback when rating is successfully submitted
    */
-  onRatingSubmitted?: () => void;
+  onSubmit: (submission: CourseRatingSubmissionInput) => Promise<void>;
 }
 
 export function CourseRatingModal({
   isOpen,
   onClose,
-  courseSlug,
   courseTitle,
-  onRatingSubmitted,
+  onSubmit,
 }: CourseRatingModalProps) {
   const [rating, setRating] = useState<number>(0);
   const [reviewTitle, setReviewTitle] = useState<string>('');
@@ -43,9 +39,17 @@ export function CourseRatingModal({
   const [error, setError] = useState<string | null>(null);
   const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
 
+  const resetForm = () => {
+    setRating(0);
+    setReviewTitle('');
+    setReviewContent('');
+    setError(null);
+    setShowCloseConfirmation(false);
+  };
+
   const handleSubmit = async () => {
     if (rating === 0) {
-      setError('Por favor selecciona una calificación');
+      setError('Por favor selecciona una calificacion');
       return;
     }
 
@@ -53,54 +57,41 @@ export function CourseRatingModal({
     setError(null);
 
     try {
-      await CourseRatingService.submitRating(
-        courseSlug,
+      await onSubmit({
         rating,
-        reviewTitle.trim() || undefined,
-        reviewContent.trim() || undefined
-      );
+        reviewTitle: reviewTitle.trim() || undefined,
+        reviewContent: reviewContent.trim() || undefined,
+      });
 
-      // Reset form
-      setRating(0);
-      setReviewTitle('');
-      setReviewContent('');
-
-      // Call success callback
-      if (onRatingSubmitted) {
-        onRatingSubmitted();
-      }
-
-      // Close modal
+      resetForm();
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al guardar la calificación');
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : 'Error al guardar la calificacion'
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
-      // Mostrar confirmación si intenta cerrar sin calificar
-      if (rating === 0) {
-        setShowCloseConfirmation(true);
-      } else {
-        // Si ya calificó, permitir cerrar
-        setRating(0);
-        setReviewTitle('');
-        setReviewContent('');
-        setError(null);
-        onClose();
-      }
+    if (isSubmitting) {
+      return;
     }
+
+    if (rating === 0) {
+      setShowCloseConfirmation(true);
+      return;
+    }
+
+    resetForm();
+    onClose();
   };
 
   const handleConfirmClose = () => {
-    // Cerrar sin guardar
-    setRating(0);
-    setReviewTitle('');
-    setReviewContent('');
-    setError(null);
+    resetForm();
     setShowCloseConfirmation(false);
     onClose();
   };
@@ -119,7 +110,6 @@ export function CourseRatingModal({
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={handleClose}
         >
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -127,15 +117,13 @@ export function CourseRatingModal({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             className="relative bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl max-w-md w-full p-6"
           >
-            {/* Close Button */}
             <button
               onClick={handleClose}
               disabled={isSubmitting}
@@ -144,7 +132,6 @@ export function CourseRatingModal({
               <X className="w-4 h-4 text-gray-500 dark:text-slate-400" />
             </button>
 
-            {/* Header */}
             <div className="mb-8 text-center">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
                 Califica este curso
@@ -154,7 +141,6 @@ export function CourseRatingModal({
                   {courseTitle}
                 </p>
               )}
-              {/* Mensaje informativo */}
               <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200/50 dark:border-blue-500/20 rounded-lg px-3 py-2 mt-4">
                 <p className="text-blue-700 dark:text-blue-300 text-xs font-normal">
                   Para ver tu certificado, completa esta encuesta
@@ -162,10 +148,9 @@ export function CourseRatingModal({
               </div>
             </div>
 
-            {/* Rating Stars */}
             <div className="mb-6">
               <label className="block text-gray-700 dark:text-slate-300 text-sm font-medium mb-3 text-center">
-                ¿Cómo calificarías este curso?
+                Como calificarias este curso?
               </label>
               <div className="flex justify-center">
                 <StarRating
@@ -177,15 +162,17 @@ export function CourseRatingModal({
               </div>
             </div>
 
-            {/* Review Title (Optional) */}
             <div className="mb-4">
               <label className="block text-gray-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Título de tu reseña <span className="text-gray-400 dark:text-slate-500 font-normal">(opcional)</span>
+                Titulo de tu resena{' '}
+                <span className="text-gray-400 dark:text-slate-500 font-normal">
+                  (opcional)
+                </span>
               </label>
               <input
                 type="text"
                 value={reviewTitle}
-                onChange={(e) => setReviewTitle(e.target.value)}
+                onChange={(event) => setReviewTitle(event.target.value)}
                 placeholder="Ej: Excelente curso"
                 disabled={isSubmitting}
                 className="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-50 dark:disabled:bg-slate-800/50"
@@ -193,14 +180,16 @@ export function CourseRatingModal({
               />
             </div>
 
-            {/* Review Content (Optional) */}
             <div className="mb-6">
               <label className="block text-gray-700 dark:text-slate-300 text-sm font-medium mb-2">
-                Comentarios <span className="text-gray-400 dark:text-slate-500 font-normal">(opcional)</span>
+                Comentarios{' '}
+                <span className="text-gray-400 dark:text-slate-500 font-normal">
+                  (opcional)
+                </span>
               </label>
               <textarea
                 value={reviewContent}
-                onChange={(e) => setReviewContent(e.target.value)}
+                onChange={(event) => setReviewContent(event.target.value)}
                 placeholder="Comparte tu experiencia con este curso..."
                 disabled={isSubmitting}
                 rows={4}
@@ -212,7 +201,6 @@ export function CourseRatingModal({
               </p>
             </div>
 
-            {/* Error Message */}
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -223,7 +211,6 @@ export function CourseRatingModal({
               </motion.div>
             )}
 
-            {/* Submit Button */}
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || rating === 0}
@@ -232,17 +219,16 @@ export function CourseRatingModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Guardando...</span>
+                  <span>Guardando y generando certificado...</span>
                 </>
               ) : (
-                <span>Enviar calificación</span>
+                <span>Enviar calificacion</span>
               )}
             </button>
           </motion.div>
         </motion.div>
       )}
 
-      {/* Modal de Confirmación de Cierre */}
       {showCloseConfirmation && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -251,7 +237,6 @@ export function CourseRatingModal({
           className="fixed inset-0 z-[60] flex items-center justify-center p-4"
           onClick={handleCancelClose}
         >
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -259,25 +244,22 @@ export function CourseRatingModal({
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
           />
 
-          {/* Modal Content */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
             className="relative bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-xl max-w-sm w-full p-6"
           >
-            {/* Título */}
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              ¿Salir sin completar?
+              Salir sin completar?
             </h3>
 
-            {/* Mensaje */}
             <p className="text-gray-600 dark:text-slate-400 mb-6 text-sm">
-              Necesitas completar la encuesta para acceder a tu certificado. ¿Estás seguro de que quieres salir?
+              Necesitas completar la encuesta para acceder a tu certificado. Estas
+              seguro de que quieres salir?
             </p>
 
-            {/* Botones */}
             <div className="flex gap-3">
               <button
                 onClick={handleCancelClose}
@@ -298,4 +280,3 @@ export function CourseRatingModal({
     </AnimatePresence>
   );
 }
-

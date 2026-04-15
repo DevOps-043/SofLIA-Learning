@@ -1,5 +1,6 @@
 import { X, Edit2, Trash2, Clock, MapPin, Calendar as CalendarIcon, Save, RefreshCw } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import {
   formatCalendarLabel,
   formatCalendarTime,
@@ -40,6 +41,8 @@ export function CalendarEventModal({
   setSelectedEvent,
   setIsEventModalOpen,
 }: CalendarEventModalProps) {
+  const { t } = useTranslation('common')
+
   function closeModal() {
     setIsEventModalOpen(false)
     setSelectedEvent(null)
@@ -73,19 +76,19 @@ export function CalendarEventModal({
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   {!isEditMode && !isCreatingEvent && selectedEvent && (
                     <>
-                      <button onClick={handleEditEvent} className="p-2 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors" aria-label="Editar">
+                      <button onClick={handleEditEvent} className="p-2 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors" aria-label={t('studyPlanner.calendar.edit')}>
                         <Edit2 className="w-5 h-5 text-[#6C757D] dark:text-gray-400" />
                       </button>
-                      <button onClick={handleDeleteEvent} disabled={isDeletingEvent} className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50" aria-label="Eliminar">
+                      <button onClick={handleDeleteEvent} disabled={isDeletingEvent} className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50" aria-label={t('studyPlanner.calendar.delete')}>
                         <Trash2 className="w-5 h-5 text-red-500 dark:text-red-400" />
                       </button>
                     </>
                   )}
                   <h2 className="text-lg font-semibold text-[#0A2540] dark:text-white flex-1 truncate">
-                    {isCreatingEvent ? 'Nuevo evento' : selectedEvent?.title || ''}
+                    {isCreatingEvent ? t('studyPlanner.calendar.newEvent') : selectedEvent?.title || ''}
                   </h2>
                 </div>
-                <button onClick={closeModal} className="p-2 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors" aria-label="Cerrar">
+                <button onClick={closeModal} className="p-2 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-lg transition-colors" aria-label={t('studyPlanner.calendar.close')}>
                   <X className="w-5 h-5 text-[#6C757D] dark:text-gray-400" />
                 </button>
               </div>
@@ -98,7 +101,7 @@ export function CalendarEventModal({
                         type="text"
                         value={eventForm.title}
                         onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                        placeholder="Añadir título"
+                        placeholder={t('studyPlanner.calendar.addTitle')}
                         className="w-full px-4 py-2.5 text-base font-medium bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all"
                         required
                         autoFocus
@@ -112,22 +115,22 @@ export function CalendarEventModal({
                           {!eventForm.isAllDay ? (
                             <>
                               <div>
-                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Inicio</label>
+                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">{t('studyPlanner.calendar.start')}</label>
                                 <input type="datetime-local" value={toDateTimeLocalValue(eventForm.start)} onChange={(e) => setEventForm({ ...eventForm, start: fromDateTimeLocalValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                               <div>
-                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Fin</label>
+                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">{t('studyPlanner.calendar.end')}</label>
                                 <input type="datetime-local" value={toDateTimeLocalValue(eventForm.end)} onChange={(e) => setEventForm({ ...eventForm, end: fromDateTimeLocalValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                             </>
                           ) : (
                             <>
                               <div>
-                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Fecha inicio</label>
+                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">{t('studyPlanner.calendar.startDate')}</label>
                                 <input type="date" value={toDateValue(eventForm.start)} onChange={(e) => setEventForm({ ...eventForm, start: fromDateOnlyStartValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                               <div>
-                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Fecha fin</label>
+                                <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">{t('studyPlanner.calendar.endDate')}</label>
                                 <input type="date" value={toDateValue(eventForm.end)} onChange={(e) => setEventForm({ ...eventForm, end: fromDateOnlyEndValue(e.target.value) })} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" required />
                               </div>
                             </>
@@ -137,23 +140,23 @@ export function CalendarEventModal({
 
                       <div className="flex items-center gap-3 pl-8">
                         <input type="checkbox" id="isAllDay" checked={eventForm.isAllDay} onChange={(e) => setEventForm({ ...eventForm, isAllDay: e.target.checked })} className="w-5 h-5 text-[#0A2540] border-[#E9ECEF] dark:border-[#6C757D] rounded-lg focus:ring-2 focus:ring-[#00D4B3] bg-white dark:bg-[#1E2329]" />
-                        <label htmlFor="isAllDay" className="text-sm font-medium text-[#0A2540] dark:text-white cursor-pointer">Todo el día</label>
+                        <label htmlFor="isAllDay" className="text-sm font-medium text-[#0A2540] dark:text-white cursor-pointer">{t('studyPlanner.calendar.allDay')}</label>
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
                       <MapPin className="w-5 h-5 text-[#6C757D] dark:text-gray-500 flex-shrink-0 mt-2.5" />
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Ubicación</label>
-                        <input type="text" value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} placeholder="Añadir ubicación" className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" />
+                        <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">{t('studyPlanner.calendar.location')}</label>
+                        <input type="text" value={eventForm.location} onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })} placeholder={t('studyPlanner.calendar.addLocation')} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all" />
                       </div>
                     </div>
 
                     <div className="flex items-start gap-3">
                       <CalendarIcon className="w-5 h-5 text-[#6C757D] dark:text-gray-500 flex-shrink-0 mt-2.5" />
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">Descripción</label>
-                        <textarea value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} placeholder="Añadir descripción" rows={4} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all resize-none" />
+                        <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-1.5">{t('studyPlanner.calendar.description')}</label>
+                        <textarea value={eventForm.description} onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })} placeholder={t('studyPlanner.calendar.addDescription')} rows={4} className="w-full px-3 py-2 text-sm border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-lg bg-white dark:bg-[#1E2329] text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00D4B3] focus:border-transparent transition-all resize-none" />
                       </div>
                     </div>
 
@@ -162,7 +165,7 @@ export function CalendarEventModal({
                         <div className="w-4 h-4 rounded-full" style={{ backgroundColor: eventForm.color }} />
                       </div>
                       <div className="flex-1">
-                        <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-2">Color</label>
+                        <label className="block text-xs font-medium text-[#6C757D] dark:text-gray-400 mb-2">{t('studyPlanner.calendar.color')}</label>
                         <div className="flex items-center gap-2.5 flex-wrap">
                           {eventColors.map((color) => (
                             <button
@@ -190,7 +193,7 @@ export function CalendarEventModal({
                         }}
                         className="px-5 py-2 text-xs font-medium text-[#6C757D] dark:text-gray-400 hover:bg-[#E9ECEF] dark:hover:bg-[#0A2540]/20 rounded-md transition-colors"
                       >
-                        Cancelar
+                        {t('studyPlanner.calendar.cancel')}
                       </button>
                       <button
                         type="submit"
@@ -199,9 +202,9 @@ export function CalendarEventModal({
                         style={{ backgroundColor: eventForm.color }}
                       >
                         {isSaving ? (
-                          <><RefreshCw className="w-4 h-4 animate-spin" />Guardando...</>
+                          <><RefreshCw className="w-4 h-4 animate-spin" />{t('studyPlanner.calendar.saving')}</>
                         ) : (
-                          <><Save className="w-4 h-4" />{isCreatingEvent ? 'Crear evento' : 'Guardar cambios'}</>
+                          <><Save className="w-4 h-4" />{isCreatingEvent ? t('studyPlanner.calendar.createEvent') : t('studyPlanner.calendar.saveChanges')}</>
                         )}
                       </button>
                     </div>
@@ -217,7 +220,7 @@ export function CalendarEventModal({
                         <h3 className="text-lg font-semibold text-[#0A2540] dark:text-white mb-1">{selectedEvent?.title}</h3>
                         {selectedEvent?.source === 'study_session' && (
                           <span className="inline-block px-2 py-0.5 text-xs font-medium text-[#0A2540] dark:text-[#00D4B3] bg-[#0A2540]/10 dark:bg-[#0A2540]/20 rounded-md">
-                            Sesión de estudio
+                            {t('studyPlanner.calendar.studySession')}
                           </span>
                         )}
                       </div>
@@ -229,7 +232,7 @@ export function CalendarEventModal({
                         <div className="flex-1">
                           {selectedEvent.isAllDay ? (
                             <div className="text-sm text-[#0A2540] dark:text-white">
-                              <div className="font-semibold mb-1">Todo el día</div>
+                              <div className="font-semibold mb-1">{t('studyPlanner.calendar.allDay')}</div>
                               <div className="text-[#6C757D] dark:text-gray-400">{formatCalendarLabel(selectedEvent.start, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
                             </div>
                           ) : (
@@ -237,7 +240,7 @@ export function CalendarEventModal({
                               <div className="font-semibold mb-1">{formatCalendarLabel(selectedEvent.start, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
                               <div className="text-[#6C757D] dark:text-gray-400">{formatCalendarTime(selectedEvent.start)} - {formatCalendarTime(selectedEvent.end)}</div>
                               {!isSameCalendarDay(selectedEvent.start, selectedEvent.end) && (
-                                <div className="text-[#6C757D] dark:text-gray-400 text-xs mt-1">Hasta {formatCalendarLabel(selectedEvent.end, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
+                                <div className="text-[#6C757D] dark:text-gray-400 text-xs mt-1">{t('studyPlanner.calendar.until')} {formatCalendarLabel(selectedEvent.end, "EEEE, d 'de' MMMM 'de' yyyy")}</div>
                               )}
                             </div>
                           )}
@@ -262,10 +265,10 @@ export function CalendarEventModal({
                     {selectedEvent && (
                       <div className="pt-4 border-t border-[#E9ECEF] dark:border-[#6C757D]/30">
                         <div className="text-xs font-medium text-[#6C757D] dark:text-gray-400">
-                          {selectedEvent.provider === 'google' && 'Sincronizado desde Google Calendar'}
-                          {selectedEvent.provider === 'microsoft' && 'Sincronizado desde Microsoft Calendar'}
-                          {selectedEvent.provider === 'study' && 'Sesión de estudio planificada'}
-                          {selectedEvent.provider === 'local' && 'Evento personalizado'}
+                          {selectedEvent.provider === 'google' && t('studyPlanner.calendar.syncedFromGoogle')}
+                          {selectedEvent.provider === 'microsoft' && t('studyPlanner.calendar.syncedFromMicrosoft')}
+                          {selectedEvent.provider === 'study' && t('studyPlanner.calendar.plannedStudySession')}
+                          {selectedEvent.provider === 'local' && t('studyPlanner.calendar.customEvent')}
                         </div>
                       </div>
                     )}
