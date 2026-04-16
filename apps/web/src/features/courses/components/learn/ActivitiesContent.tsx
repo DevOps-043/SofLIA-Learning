@@ -97,6 +97,7 @@ export function ActivitiesContent({
         type: activity.activity_type,
         description: activity.activity_description || "",
         prompts: extractPromptList(activity.ai_prompts),
+        timestamp: Date.now(),
       });
       openLia();
     },
@@ -125,8 +126,8 @@ export function ActivitiesContent({
           </p>
         </div>
         <div className="bg-white dark:bg-[#1E2329] rounded-xl border-2 border-[#E9ECEF] dark:border-[#6C757D]/30 p-8 text-center">
-          <div className="w-16 h-16 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Activity className="w-8 h-8 text-[#00D4B3] animate-pulse" />
+          <div className="w-16 h-16 bg-[#0A2540]/10 dark:bg-[#00D4B3]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Activity className="w-8 h-8 text-[#0A2540] dark:text-[#00D4B3] animate-pulse" />
           </div>
           <p
             className="text-[#6C757D] dark:text-white/80"
@@ -158,8 +159,8 @@ export function ActivitiesContent({
         </div>
 
         <div className="bg-white dark:bg-[#1E2329] rounded-xl border-2 border-[#E9ECEF] dark:border-[#6C757D]/30 p-8 text-center">
-          <div className="w-16 h-16 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Activity className="w-8 h-8 text-[#00D4B3]" />
+          <div className="w-16 h-16 bg-[#0A2540]/10 dark:bg-[#00D4B3]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Activity className="w-8 h-8 text-[#0A2540] dark:text-[#00D4B3]" />
           </div>
           <h3
             className="text-[#0A2540] dark:text-white text-lg font-semibold mb-2"

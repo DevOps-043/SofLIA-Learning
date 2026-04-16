@@ -20,18 +20,18 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
         className="flex items-center gap-3"
       >
         <div className="relative">
-          {organization?.favicon_url || organization?.logo_url ? (
+          {(organization?.brand_logo_url || organization?.logo_url || organization?.brand_favicon_url || organization?.favicon_url) ? (
             <motion.div
-              className="relative h-16 w-auto min-w-[36px] flex items-center justify-center"
+              className="relative flex items-center justify-center h-10 sm:h-12 w-auto min-w-[36px]"
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400 }}
             >
               <Image
-                src={organization.logo_url || organization.favicon_url || '/icono.png'}
-                alt={organization.name}
-                width={64}
-                height={64}
-                className="object-contain h-full w-auto"
+                src={organization?.brand_logo_url || organization?.logo_url || organization?.brand_favicon_url || organization?.favicon_url || '/icono.png'}
+                alt={organization?.name || 'Organización'}
+                width={180}
+                height={48}
+                className="object-contain h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[180px] rounded-lg"
                 onError={(event) => {
                   (event.target as HTMLImageElement).src = '/icono.png';
                 }}
@@ -62,7 +62,7 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
 
         {organization?.show_navbar_name !== false && (
           <div className="hidden sm:block">
-            <h1 className="text-lg font-bold leading-tight tracking-tight" style={{ color: colors.text }}>
+            <h1 className="text-sm sm:text-base font-bold leading-tight tracking-tight truncate max-w-[200px] sm:max-w-[300px]" style={{ color: colors.text }}>
               {organization?.name || t('header.myOrganization')}
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">

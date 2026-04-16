@@ -36,11 +36,12 @@ export class NoteService {
       
       const { data, error } = await supabase
         .from('user_lesson_notes')
-        .select('*')
+        .select('note_id, note_title, note_content, note_tags, is_auto_generated, source_type, created_at, updated_at, user_id, lesson_id')
         .eq('user_id', userId)
         .eq('lesson_id', lessonId)
         .order('updated_at', { ascending: false })
         .order('created_at', { ascending: false })
+        .limit(200)
 
       if (error) {
         throw new Error(`Error al obtener notas: ${error.message}`)
@@ -94,11 +95,12 @@ export class NoteService {
       // Obtener todas las notas de esas lecciones
       const { data, error } = await supabase
         .from('user_lesson_notes')
-        .select('*')
+        .select('note_id, note_title, note_content, note_tags, is_auto_generated, source_type, created_at, updated_at, user_id, lesson_id')
         .eq('user_id', userId)
         .in('lesson_id', lessonIds)
         .order('updated_at', { ascending: false })
         .order('created_at', { ascending: false })
+        .limit(500)
 
       if (error) {
         throw new Error(`Error al obtener notas: ${error.message}`)
@@ -219,39 +221,56 @@ export class NoteService {
     lastUpdate: string | null
   }> {
     try {
-      const notes = await this.getNotesByCourse(userId, courseId)
-      
-      // Obtener total de lecciones del curso
       const supabase = await createClient()
+
+      // Fetch modules, then notes + lesson count in parallel
       const { data: modules } = await supabase
         .from('course_modules')
         .select('module_id')
         .eq('course_id', courseId)
 
       const moduleIds = modules?.map(m => m.module_id) || []
-      
-      let totalLessons = 0
-      if (moduleIds.length > 0) {
-        const { data: lessons } = await supabase
-          .from('course_lessons')
-          .select('lesson_id')
-          .in('module_id', moduleIds)
-        
-        totalLessons = lessons?.length || 0
+
+      if (moduleIds.length === 0) {
+        return { totalNotes: 0, lessonsWithNotes: 0, totalLessons: 0, lastUpdate: null }
       }
 
-      const uniqueLessonIds = new Set(notes.map(n => n.lesson_id))
-      // Obtener la fecha de actualización más reciente de todas las notas
-      const lastUpdate = notes.length > 0 
-        ? notes.reduce((latest, note) => {
-            const noteDate = note.updated_at || note.created_at
-            const latestDate = latest || ''
-            return noteDate > latestDate ? noteDate : latest
-          }, null as string | null)
-        : null
+      // Get lesson IDs first (needed to scope notes query)
+      const { data: lessons } = await supabase
+        .from('course_lessons')
+        .select('lesson_id')
+        .in('module_id', moduleIds)
+
+      const lessonIds = lessons?.map(l => l.lesson_id) || []
+      const totalLessons = lessonIds.length
+
+      if (lessonIds.length === 0) {
+        return { totalNotes: 0, lessonsWithNotes: 0, totalLessons, lastUpdate: null }
+      }
+
+      // Get notes count and latest update using DB-level count
+      const [countResult, latestResult] = await Promise.all([
+        supabase
+          .from('user_lesson_notes')
+          .select('lesson_id')
+          .eq('user_id', userId)
+          .in('lesson_id', lessonIds)
+          .limit(5000),
+        supabase
+          .from('user_lesson_notes')
+          .select('updated_at')
+          .eq('user_id', userId)
+          .in('lesson_id', lessonIds)
+          .order('updated_at', { ascending: false })
+          .limit(1),
+      ])
+
+      const noteRows = countResult.data || []
+      const uniqueLessonIds = new Set(noteRows.map(n => n.lesson_id))
+      const lastUpdate = latestResult.data?.[0]?.updated_at || null
 
       return {
-        totalNotes: notes.length,
+        totalNotes: noteRows.length,
         lessonsWithNotes: uniqueLessonIds.size,
         totalLessons,
         lastUpdate

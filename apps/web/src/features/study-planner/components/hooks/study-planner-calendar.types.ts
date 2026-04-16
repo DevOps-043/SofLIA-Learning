@@ -44,5 +44,8 @@ export interface StudyPlannerCalendarWeekRange {
 export interface StudyPlannerCalendarEventPosition {
   top: number;
   height: number;
+  left: number;
+  width: number;
+  zIndex?: number;
   isAllDay: boolean;
 }

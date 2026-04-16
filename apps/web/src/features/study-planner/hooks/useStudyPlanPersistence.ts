@@ -6,6 +6,7 @@ import type {
 } from '../types/planner-ui.types';
 import type { StudyPlannerStoredLessonDistribution } from '../types/planner-schedule.types';
 import {
+  attachSessionIdsToDistribution,
   buildStudyPlanPayload,
   buildStudyPlanSuccessMessage,
   cleanupPreviousPlanEvents,
@@ -24,6 +25,7 @@ interface UseStudyPlanPersistenceParams {
   setConnectedCalendar: Dispatch<SetStateAction<'google' | 'microsoft' | null>>;
   setConversationHistory: Dispatch<SetStateAction<StudyPlannerMessage[]>>;
   setIsProcessing: Dispatch<SetStateAction<boolean>>;
+  setSavedLessonDistribution: Dispatch<SetStateAction<StudyPlannerStoredLessonDistribution[]>>;
   setSavedPlanId: Dispatch<SetStateAction<string | null>>;
   speakText: (text: string) => Promise<unknown>;
   studyApproach: StudyApproach | null;
@@ -81,6 +83,15 @@ export function useStudyPlanPersistence(params: UseStudyPlanPersistenceParams) {
 
       if (saveData.planId) {
         params.setSavedPlanId(saveData.planId);
+      }
+
+      if (saveData.sessions?.length) {
+        params.setSavedLessonDistribution((previousDistribution) =>
+          attachSessionIdsToDistribution({
+            savedLessonDistribution: previousDistribution,
+            savedSessions: saveData.sessions,
+          }),
+        );
       }
 
       const syncResult = params.connectedCalendar

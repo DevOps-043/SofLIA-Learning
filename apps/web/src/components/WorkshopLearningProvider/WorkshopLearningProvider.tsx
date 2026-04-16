@@ -22,7 +22,7 @@
 
 import { useState, useCallback, ReactNode } from 'react';
 import { useDifficultyDetection } from '../../hooks/useDifficultyDetection';
-import { ProactiveLIAAssistant, type OrganizationColors } from '../ProactiveLIAAssistant';
+import type { OrganizationColors } from '../ProactiveLIAAssistant';
 import { sessionRecorder } from '../../lib/rrweb/session-recorder';
 import type { DifficultyAnalysis } from '../../lib/rrweb/difficulty-pattern-detector';
 
@@ -127,19 +127,6 @@ export function WorkshopLearningProvider({
     <>
       {/* Contenido del taller */}
       {children}
-
-      {/* Asistente proactivo de LIA */}
-      {enabled && (
-        <ProactiveLIAAssistant
-          analysis={analysis}
-          show={shouldShowHelp && !suppressDisplay}
-          onAccept={handleAcceptHelp}
-          onDismiss={dismissHelp}
-          position={assistantPosition}
-          compact={assistantCompact}
-          colors={colors}
-        />
-      )}
 
       {/* Debug info - DESHABILITADO */}
       {/* {process.env.NODE_ENV === 'development' && isActive && (

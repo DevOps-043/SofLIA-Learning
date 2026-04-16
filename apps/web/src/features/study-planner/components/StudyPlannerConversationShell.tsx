@@ -150,7 +150,13 @@ export function StudyPlannerConversationShell({
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-white supports-[height:100dvh]:h-[100dvh] dark:bg-[#0F1419]" suppressHydrationWarning>
+    <div className="flex w-full h-[100dvh] overflow-hidden bg-white dark:bg-[#0F1419]">
+      <div 
+        className={`flex h-[100dvh] flex-col overflow-hidden bg-white supports-[height:100dvh]:h-[100dvh] dark:bg-[#0F1419] transition-all duration-500 ease-in-out ${
+          showSchedulePreview ? 'w-full sm:w-1/2 border-r border-[#E9ECEF] dark:border-[#6C757D]/30' : 'w-full'
+        }`} 
+        suppressHydrationWarning
+      >
       <StudyPlannerConversationHeader
         isMobile={isMobile}
         connectedCalendar={connectedCalendar}
@@ -444,6 +450,8 @@ export function StudyPlannerConversationShell({
           </div>
         </div>
       </div>
+      </div>
+      {/* The SchedulePreviewPanel will slide in on the right side over the remaining 50% on desktop, or overlay on mobile */}
     </div>
   );
 }

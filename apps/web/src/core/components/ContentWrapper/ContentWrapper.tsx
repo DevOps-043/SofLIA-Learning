@@ -17,7 +17,7 @@ export function ContentWrapper({ children }: { children: React.ReactNode }) {
   }
 
   // Detectar si estamos en rutas que tienen su propio sistema de temas
-  const isCustomThemedRoute = pathname?.startsWith('/business-panel') || pathname?.startsWith('/business-user');
+  const isCustomThemedRoute = pathname?.includes('/business-panel') || pathname?.includes('/business-user');
   
   // Detectar si estamos en rutas que manejan su propio layout (admin tiene su propio sistema)
   const isAdminRoute = pathname?.startsWith('/admin');

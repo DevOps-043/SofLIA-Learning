@@ -98,7 +98,7 @@ export function StudyPlannerIntroOverlay({
                   }}
                 >
                   <div className="relative h-full w-full overflow-hidden rounded-full bg-white/10 backdrop-blur-sm">
-                    <Image src="/lia-avatar.png" alt="LIA" fill sizes="256px" className="object-cover" priority />
+                    <Image src="/lia-avatar.png" alt="SofLIA" fill sizes="256px" className="object-cover" priority />
                   </div>
                 </motion.div>
 
@@ -350,7 +350,7 @@ export function StudyPlannerIntroOverlay({
                             ? 'Procesando tu pregunta...'
                             : isListening
                               ? 'Escuchando... Habla ahora'
-                              : 'Haz clic en el microfono para hablar con LIA'}
+                              : 'Haz clic en el microfono para hablar con SofLIA'}
                         </motion.p>
                       </motion.div>
                     )}

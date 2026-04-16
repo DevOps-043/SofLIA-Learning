@@ -241,7 +241,8 @@ export async function fetchGlobalAnalyticsQueryData(
       .select(
         'progress_id, user_id, lesson_id, enrollment_id, time_spent_minutes, is_completed, completed_at, started_at, last_accessed_at, quiz_completed, quiz_passed',
       )
-      .in('user_id', expandedUserIds),
+      .in('user_id', expandedUserIds)
+      .limit(50000),
 
     supabase
       .from('daily_progress')
@@ -249,12 +250,14 @@ export async function fetchGlobalAnalyticsQueryData(
         'user_id, progress_date, had_activity, streak_count, study_minutes, sessions_completed, sessions_missed',
       )
       .in('user_id', expandedUserIds)
-      .gte('progress_date', sixMonthsAgoStr),
+      .gte('progress_date', sixMonthsAgoStr)
+      .limit(50000),
 
     supabase
       .from('study_plans')
       .select('id, user_id, status, created_at')
-      .in('user_id', expandedUserIds),
+      .in('user_id', expandedUserIds)
+      .limit(10000),
 
     supabase
       .from('study_sessions')
@@ -262,27 +265,32 @@ export async function fetchGlobalAnalyticsQueryData(
         'id, user_id, start_time, actual_duration_minutes, duration_minutes, status, completed_at, session_type, is_ai_generated',
       )
       .in('user_id', expandedUserIds)
-      .gte('start_time', sixMonthsAgo.toISOString()),
+      .gte('start_time', sixMonthsAgo.toISOString())
+      .limit(50000),
 
     supabase
       .from('study_plan_progress')
       .select('plan_id, user_id, plan_name, total_sessions, sessions_completed, sessions_pending')
-      .in('user_id', expandedUserIds),
+      .in('user_id', expandedUserIds)
+      .limit(10000),
 
     supabase
       .from('lia_conversations')
       .select('conversation_id, user_id, context_type, created_at')
-      .in('user_id', expandedUserIds),
+      .in('user_id', expandedUserIds)
+      .limit(50000),
 
     supabase
       .from('work_teams')
       .select('team_id, name, description, image_url')
-      .eq('organization_id', organizationId),
+      .eq('organization_id', organizationId)
+      .limit(500),
 
     supabase
       .from('user_lesson_notes')
       .select('note_id, user_id, is_auto_generated')
-      .in('user_id', expandedUserIds),
+      .in('user_id', expandedUserIds)
+      .limit(50000),
   ])
 
   if (assignmentsResult.error) logger.error('Error fetching assignments:', assignmentsResult.error)
@@ -324,6 +332,7 @@ export async function fetchGlobalAnalyticsQueryData(
           .from('lia_messages')
           .select('id, conversation_id, role, user_id')
           .in('conversation_id', conversationIds)
+          .limit(100000)
       : { data: [], error: null },
   ])
 

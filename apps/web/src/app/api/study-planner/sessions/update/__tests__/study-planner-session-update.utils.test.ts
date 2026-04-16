@@ -27,6 +27,7 @@ describe('study-planner-session-update.utils', () => {
       planId: 'plan-1',
       updates: [
         {
+          clientReferenceId: undefined,
           dateStr: '2026-04-10',
           originalStartTime: '10:00',
           newStartTime: '11:00',
@@ -53,11 +54,15 @@ describe('study-planner-session-update.utils', () => {
     const lookup = buildStudyPlannerSessionLookup([
       {
         id: 'session-1',
+        client_reference_id: 'dist-1',
         start_time: '2026-04-10T10:00:00.000Z',
+        end_time: '2026-04-10T11:00:00.000Z',
       },
       {
         id: 'session-2',
+        client_reference_id: 'dist-2',
         start_time: '2026-04-10T11:01:00.000Z',
+        end_time: '2026-04-10T12:01:00.000Z',
       },
     ])
 
@@ -89,7 +94,9 @@ describe('study-planner-session-update.utils', () => {
     const lookup = buildStudyPlannerSessionLookup([
       {
         id: 'session-1',
+        client_reference_id: 'dist-1',
         start_time: new Date(2026, 3, 10, 10, 1, 0, 0).toISOString(),
+        end_time: new Date(2026, 3, 10, 11, 1, 0, 0).toISOString(),
       },
     ])
 
@@ -133,5 +140,39 @@ describe('study-planner-session-update.utils', () => {
         newEndTime: '10:30',
       }),
     ).toBeNull()
+  })
+
+  it('matches sessions by clientReferenceId when available', () => {
+    const lookup = buildStudyPlannerSessionLookup([
+      {
+        id: 'session-1',
+        client_reference_id: 'dist-1',
+        start_time: '2026-04-10T10:00:00.000Z',
+        end_time: '2026-04-10T11:00:00.000Z',
+      },
+    ])
+
+    const originalReference = parseOriginalSessionReference({
+      clientReferenceId: 'dist-1',
+      dateStr: '2026-04-10',
+      originalStartTime: '10:00',
+      newStartTime: '12:00',
+      newEndTime: '13:00',
+    })
+
+    expect(originalReference).not.toBeNull()
+    expect(
+      findMatchingStudySession(
+        lookup,
+        {
+          clientReferenceId: 'dist-1',
+          dateStr: '2026-04-10',
+          originalStartTime: '10:00',
+          newStartTime: '12:00',
+          newEndTime: '13:00',
+        },
+        originalReference!,
+      )?.id,
+    ).toBe('session-1')
   })
 })

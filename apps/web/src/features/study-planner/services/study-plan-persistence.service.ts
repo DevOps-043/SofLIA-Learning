@@ -21,6 +21,7 @@ export interface StudyPlanPreferredTimeBlock {
 }
 
 export interface StudyPlanSessionPayload {
+  clientReferenceId: string;
   title: string;
   description: string;
   courseId: string;
@@ -70,12 +71,40 @@ export interface BuildStudyPlanPayloadParams {
 export interface SaveStudyPlanApiData {
   planId?: string;
   sessionIds?: string[];
+  sessions?: Array<{
+    id: string;
+    clientReferenceId?: string;
+    startTime?: string;
+    endTime?: string;
+  }>;
 }
 
 export interface SyncStudyPlanSessionsResult {
   success: boolean;
   insertedCount: number;
   requiresReconnection: boolean;
+}
+
+export function attachSessionIdsToDistribution(params: {
+  savedLessonDistribution: StudyPlannerStoredLessonDistribution[];
+  savedSessions?: SaveStudyPlanApiData['sessions'];
+}): StudyPlannerStoredLessonDistribution[] {
+  if (!params.savedSessions || params.savedSessions.length === 0) {
+    return params.savedLessonDistribution;
+  }
+
+  const sessionsByClientReferenceId = new Map(
+    params.savedSessions
+      .filter((session) => session.clientReferenceId)
+      .map((session) => [session.clientReferenceId as string, session.id]),
+  );
+
+  return params.savedLessonDistribution.map((distribution) => ({
+    ...distribution,
+    sessionId:
+      sessionsByClientReferenceId.get(distribution.clientReferenceId)
+      || distribution.sessionId,
+  }));
 }
 
 function calculateGoalHoursPerWeek(
@@ -262,8 +291,11 @@ export function buildStudyPlanPayload(
       params.savedLessonDistribution[params.savedLessonDistribution.length - 1].dateStr,
     )
     : null;
-  const endDate = params.savedTargetDate
-    ? new Date(params.savedTargetDate).toISOString()
+  const parsedTargetDate = params.savedTargetDate ? parsePlannerDateString(params.savedTargetDate) : null;
+  const validTargetDate = parsedTargetDate && !Number.isNaN(parsedTargetDate.getTime()) ? parsedTargetDate : null;
+
+  const endDate = validTargetDate
+    ? validTargetDate.toISOString()
     : lastSlotDate && !Number.isNaN(lastSlotDate.getTime())
       ? lastSlotDate.toISOString()
       : undefined;
@@ -298,6 +330,7 @@ export function buildStudyPlanPayload(
       ?? '';
 
     return {
+      clientReferenceId: slot.clientReferenceId,
       title: buildSessionTitle(slot.lessons),
       description: buildSessionDescription(slot.lessons),
       courseId: resolvedCourseId,
@@ -392,7 +425,14 @@ export async function saveStudyPlanRequest(
   const responseData = await response.json() as {
     success?: boolean;
     error?: string;
-    data?: SaveStudyPlanApiData;
+    data?: SaveStudyPlanApiData & {
+      sessions?: Array<{
+        id: string;
+        clientReferenceId?: string;
+        startTime?: string;
+        endTime?: string;
+      }>;
+    };
   };
 
   if (!responseData.success) {

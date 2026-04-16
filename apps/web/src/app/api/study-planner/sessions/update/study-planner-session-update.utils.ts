@@ -53,6 +53,10 @@ export function parseUpdateSessionRequest(body: unknown): UpdateSessionRequest {
       typeof item.sessionId === 'string' && item.sessionId.trim()
         ? item.sessionId.trim()
         : undefined
+    const clientReferenceId =
+      typeof item.clientReferenceId === 'string' && item.clientReferenceId.trim()
+        ? item.clientReferenceId.trim()
+        : undefined
 
     if (!dateStr || !originalStartTime || !newStartTime || !newEndTime) {
       throw new Error(
@@ -62,6 +66,7 @@ export function parseUpdateSessionRequest(body: unknown): UpdateSessionRequest {
 
     return {
       sessionId,
+      clientReferenceId,
       dateStr,
       originalStartTime,
       newStartTime,
@@ -169,10 +174,17 @@ export function buildStudyPlannerSessionLookup(
   sessions: StudyPlannerSessionUpdateRecord[],
 ): StudyPlannerSessionLookup {
   const sessionsById = new Map<string, StudyPlannerSessionUpdateRecord>()
+  const sessionsByClientReferenceId = new Map<
+    string,
+    StudyPlannerSessionUpdateRecord
+  >()
   const sessionsByDate = new Map<string, StudyPlannerSessionUpdateRecord[]>()
 
   for (const session of sessions) {
     sessionsById.set(session.id, session)
+    if (session.client_reference_id) {
+      sessionsByClientReferenceId.set(session.client_reference_id, session)
+    }
 
     const key = buildLocalDateKey(new Date(session.start_time))
     const existingSessions = sessionsByDate.get(key)
@@ -187,6 +199,7 @@ export function buildStudyPlannerSessionLookup(
 
   return {
     sessionsById,
+    sessionsByClientReferenceId,
     sessionsByDate,
   }
 }
@@ -198,6 +211,10 @@ export function findMatchingStudySession(
 ): StudyPlannerSessionUpdateRecord | null {
   if (update.sessionId) {
     return lookup.sessionsById.get(update.sessionId) ?? null
+  }
+
+  if (update.clientReferenceId) {
+    return lookup.sessionsByClientReferenceId.get(update.clientReferenceId) ?? null
   }
 
   const candidateSessions =

@@ -17,6 +17,7 @@ export interface UseLiaCourseChatReturn {
   isLoading: boolean;
   error: Error | null;
   sendMessage: (message: string, courseContext?: CourseLessonContext, workshopContext?: CourseLessonContext, isSystemMessage?: boolean) => Promise<void>;
+  stop: () => void;
   clearHistory: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
   currentConversationId: string | null;
@@ -44,6 +45,9 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
   // ✅ ANALYTICS: Mantener conversationId en referencia para persistencia
   const conversationIdRef = useRef<string | null>(null);
   
+  // ✅ CONTROLADOR DE ABORTO PARA DETENER GENERACIÓN
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   // ✅ ACTIVIDADES: Tracking de tiempo de inicio de actividad
   const activityStartTimeRef = useRef<number | null>(null);
 
@@ -99,6 +103,12 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
 
     setIsLoading(true);
     setError(null);
+    
+    // Crear y almacenar el controlador
+    if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     // ✅ ACTIVIDADES: Iniciar tracking si es mensaje de usuario
     if (!isSystemMessage && !activityStartTimeRef.current) {
@@ -146,6 +156,7 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
           },
           stream: false // Usar modo JSON simple por compatibilidad con este hook
         }),
+        signal: abortControllerRef.current.signal
       });
 
       if (!response.ok) {
@@ -174,6 +185,10 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
         setMessages(prev => [...prev, assistantMessage]);
       }
     } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+         console.log('Generacion abortada por el usuario');
+         return; // No agregar msj de error si se aborta intencionalmente
+      }
       const errorMessage = err instanceof Error ? err : new Error('Error desconocido');
       setError(errorMessage);
       
@@ -187,8 +202,17 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
       setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   }, [isLoading, messages, user, language]);
+
+  const stop = useCallback(() => {
+    if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+        abortControllerRef.current = null;
+    }
+    setIsLoading(false);
+  }, []);
 
   const loadConversation = useCallback(async (conversationId: string) => {
     setIsLoading(true);
@@ -276,8 +300,9 @@ export function useLiaCourseChat(initialMessage?: string | null): UseLiaCourseCh
     isLoading,
     error,
     sendMessage,
+    stop,
     clearHistory,
     loadConversation,
     currentConversationId: conversationIdRef.current,
-  }), [messages, isLoading, error, sendMessage, clearHistory, loadConversation]);
+  }), [messages, isLoading, error, sendMessage, stop, clearHistory, loadConversation]);
 }

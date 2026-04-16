@@ -117,63 +117,68 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
       }, { status: 403 })
     }
 
-    const results = []
+    // Batch fetch course titles instead of N+1 loop
+    const { data: coursesData } = await supabase
+      .from('courses')
+      .select('id, title')
+      .in('id', course_ids)
+    const courseTitleMap = new Map(
+      (coursesData || []).map((c: { id: string; title: string }) => [c.id, c.title])
+    )
 
-    for (const courseId of course_ids) {
-      const { data: course } = await supabase.from('courses').select('title').eq('id', courseId).single()
-      const courseTitle = course?.title || 'Curso'
-
-      await supabase
-        .from('organization_node_courses')
-        .upsert({
-          node_id: entity_id,
-          course_id: courseId,
-          assigned_by: userId,
-          status: 'active',
-          assigned_at: new Date().toISOString(),
-          due_date: due_date || null,
-          message: message || null
-        }, { onConflict: 'node_id, course_id' })
-
-      if (user_ids.length > 0) {
-        const assignmentsToUpsert = user_ids.map((uid: string) => ({
-          organization_id: organizationId,
-          user_id: uid,
-          course_id: courseId,
-          assigned_by: userId,
-          assigned_at: new Date().toISOString(),
-          due_date: due_date || null,
-          start_date: start_date || null,
-          approach: approach || null,
-          message: message || null,
-          status: 'assigned',
-          completion_percentage: 0
-        }))
+    const results = await Promise.all(
+      course_ids.map(async (courseId: string) => {
+        const courseTitle = courseTitleMap.get(courseId) || 'Curso'
 
         await supabase
-          .from('organization_course_assignments')
-          .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' })
+          .from('organization_node_courses')
+          .upsert({
+            node_id: entity_id,
+            course_id: courseId,
+            assigned_by: userId,
+            status: 'active',
+            assigned_at: new Date().toISOString(),
+            due_date: due_date || null,
+            message: message || null
+          }, { onConflict: 'node_id, course_id' })
 
-        const enrollmentsToUpsert = user_ids.map((uid: string) => ({
-          user_id: uid,
-          course_id: courseId,
-          organization_id: organizationId,
-          enrollment_status: 'active',
-          enrolled_at: new Date().toISOString(),
-          last_accessed_at: new Date().toISOString()
-        }))
+        if (user_ids.length > 0) {
+          const assignmentsToUpsert = user_ids.map((uid: string) => ({
+            organization_id: organizationId,
+            user_id: uid,
+            course_id: courseId,
+            assigned_by: userId,
+            assigned_at: new Date().toISOString(),
+            due_date: due_date || null,
+            start_date: start_date || null,
+            approach: approach || null,
+            message: message || null,
+            status: 'assigned',
+            completion_percentage: 0
+          }))
 
-        await supabase
-          .from('user_course_enrollments')
-          .upsert(enrollmentsToUpsert, { onConflict: 'user_id, course_id', ignoreDuplicates: true })
-      }
+          const enrollmentsToUpsert = user_ids.map((uid: string) => ({
+            user_id: uid,
+            course_id: courseId,
+            organization_id: organizationId,
+            enrollment_status: 'active',
+            enrolled_at: new Date().toISOString(),
+            last_accessed_at: new Date().toISOString()
+          }))
 
-      results.push({
-        course_id: courseId,
-        course_title: courseTitle,
-        success: true
+          await Promise.all([
+            supabase
+              .from('organization_course_assignments')
+              .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' }),
+            supabase
+              .from('user_course_enrollments')
+              .upsert(enrollmentsToUpsert, { onConflict: 'user_id, course_id', ignoreDuplicates: true }),
+          ])
+        }
+
+        return { course_id: courseId, course_title: courseTitle, success: true }
       })
-    }
+    )
 
     return NextResponse.json({
       success: true,

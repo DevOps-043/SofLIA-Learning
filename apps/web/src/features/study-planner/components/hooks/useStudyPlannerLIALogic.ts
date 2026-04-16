@@ -241,6 +241,7 @@ export function useStudyPlannerLIALogic() {
     setConnectedCalendar,
     setConversationHistory,
     setIsProcessing,
+    setSavedLessonDistribution,
     setSavedPlanId,
     speakText,
     studyApproach,

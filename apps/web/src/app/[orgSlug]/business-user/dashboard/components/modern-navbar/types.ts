@@ -13,6 +13,8 @@ export interface ModernNavbarOrganization {
   slug: string;
   logo_url?: string | null;
   favicon_url?: string | null;
+  brand_logo_url?: string | null;
+  brand_favicon_url?: string | null;
   show_navbar_name?: boolean;
 }
 

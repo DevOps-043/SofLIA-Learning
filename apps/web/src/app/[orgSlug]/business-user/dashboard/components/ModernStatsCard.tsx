@@ -64,64 +64,52 @@ export function ModernStatsCard({
     <div
       id={id}
       onClick={onClick}
-      className={`
-        relative overflow-hidden rounded-2xl p-5
-        backdrop-blur-xl
-        transition-all duration-300 scroll-mt-24
-        ${isClickable ? 'cursor-pointer hover:scale-[1.02]' : ''}
-      `}
+      className={`group relative overflow-hidden rounded-[20px] p-4 sm:p-5 transition-all duration-300 scroll-mt-24 ${
+        isClickable ? 'cursor-pointer hover:-translate-y-1' : ''
+      }`}
       style={{
-        backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
-        border: `1px solid ${isLightMode ? borderColor : 'rgba(255, 255, 255, 0.1)'}`,
-        animationDelay: `${index * 100}ms`
+        backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(20, 25, 30, 0.4)',
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.06)'}`,
+        boxShadow: isLightMode 
+          ? (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.08)' : '0 4px 20px -10px rgba(0,0,0,0.05)') 
+          : (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.3)' : 'none'),
+        animationDelay: `${index * 50}ms`
       }}
     >
-      {/* Gradient overlay */}
-      <div
-        className="absolute inset-0 opacity-10"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor}30, ${primaryColor}20)`
-        }}
-      />
-
-      {/* Content */}
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-3">
-          <div
-            className="p-2.5 rounded-xl"
-            style={{
-              background: `linear-gradient(135deg, ${iconColor}25, ${iconColor}10)`,
-              border: `1px solid ${iconColor}30`
-            }}
-          >
-            <Icon className="w-5 h-5" style={{ color: iconColor }} />
-          </div>
+      <div className="relative z-10 flex items-center gap-4">
+        {/* Sleek icon wrapper */}
+        <div 
+          className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110"
+          style={{
+             background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
+             border: `1px solid ${iconColor}25`
+          }}
+        >
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6" style={{ color: iconColor }} />
         </div>
 
-        <p
-          className="text-3xl font-bold mb-1"
-          style={{ color: textColor }}
-        >
-          {value}
-        </p>
-        <p
-          className="text-sm"
-          style={{ color: isLightMode ? '#64748B' : '#9CA3AF' }}
-        >
-          {label}
-        </p>
+        {/* Text content */}
+        <div className="flex flex-col justify-center">
+          <p 
+            className="text-[10px] sm:text-[11px] uppercase tracking-wider font-bold mb-1 transition-opacity duration-300 group-hover:opacity-100" 
+            style={{ color: isLightMode ? '#64748B' : '#858E9B', opacity: 0.85 }}
+          >
+            {label}
+          </p>
+          <p 
+            className="text-2xl sm:text-3xl font-extrabold leading-none tracking-tight" 
+            style={{ color: textColor }}
+          >
+            {value}
+          </p>
+        </div>
       </div>
 
-      {/* Border gradient */}
-      <div
-        className="absolute inset-0 rounded-2xl pointer-events-none"
-        style={{
-          background: `linear-gradient(135deg, ${primaryColor}30, transparent, ${primaryColor}15)`,
-          padding: '1px',
-          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          maskComposite: 'exclude',
-          WebkitMaskComposite: 'xor'
-        }}
+      {/* Subtle modern abstract glow */}
+      <div 
+        className="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-all duration-700 ease-out group-hover:opacity-40 group-hover:scale-110"
+        style={{ backgroundColor: iconColor }}
       />
     </div>
   )

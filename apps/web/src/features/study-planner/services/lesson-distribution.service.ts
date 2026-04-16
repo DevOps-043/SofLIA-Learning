@@ -55,6 +55,14 @@ function getDistributionKey(item: Pick<StudyPlannerStoredLessonDistribution, 'da
   return `${item.dateStr}_${item.startTime}`;
 }
 
+function generateDistributionReferenceId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return `dist_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function isInformativeLessonTitle(title: string): boolean {
   const normalized = normalizeComparableText(title);
   if (!normalized || normalized.length <= 3) {
@@ -103,16 +111,29 @@ function chooseLessonsToKeep(
   return incoming.lessons;
 }
 
-export function parsePlannerDateString(dateStr: string): Date | null {
+export function ensureLessonDistributionIdentity(
+  distribution: Omit<StudyPlannerStoredLessonDistribution, 'clientReferenceId'> & {
+    clientReferenceId?: string;
+    sessionId?: string;
+  },
+): StudyPlannerStoredLessonDistribution {
+  return {
+    ...distribution,
+    clientReferenceId: distribution.clientReferenceId?.trim() || generateDistributionReferenceId(),
+    sessionId: distribution.sessionId?.trim() || undefined,
+  };
+}
+
+export function parsePlannerDateString(dateStr: string, contextDate?: Date): Date | null {
   const raw = dateStr.trim();
   const normalized = normalizeComparableText(raw);
 
-  const isoMatch = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const isoMatch = normalized.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (isoMatch) {
     return new Date(Number(isoMatch[1]), Number(isoMatch[2]) - 1, Number(isoMatch[3]));
   }
 
-  const slashMatch = normalized.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/);
+  const slashMatch = normalized.match(/(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})/);
   if (slashMatch) {
     return new Date(Number(slashMatch[3]), Number(slashMatch[2]) - 1, Number(slashMatch[1]));
   }
@@ -122,9 +143,15 @@ export function parsePlannerDateString(dateStr: string): Date | null {
     const month = MONTH_MAP[monthMatch[2]];
     if (month !== undefined) {
       const day = Number(monthMatch[1]);
-      const year = monthMatch[3] ? Number(monthMatch[3]) : new Date().getFullYear();
+      const year = monthMatch[3] ? Number(monthMatch[3]) : (contextDate ? contextDate.getFullYear() : new Date().getFullYear());
       return new Date(year, month, day);
     }
+  }
+
+  const partialDateMatch = normalized.match(/(?:lunes|martes|miercoles|jueves|viernes|sabado|domingo)\s+(\d{1,2})/i);
+  if (partialDateMatch && contextDate) {
+    const day = Number(partialDateMatch[1]);
+    return new Date(contextDate.getFullYear(), contextDate.getMonth(), day);
   }
 
   const parsed = new Date(raw);
@@ -232,11 +259,17 @@ export function serializeLessonDistributionForStorage(
       const parsedDate = parsePlannerDateString(item.slot.dateStr);
       const dayName = item.slot.dayName || (parsedDate ? getDayName(parsedDate) : 'Lunes');
 
+      const sumDuration = lessons.reduce((sum, l) => sum + (l.durationMinutes || 0), 0);
+      const totalMinutes = sumDuration > 0 ? sumDuration : lessons.length * 15;
+      const actualEnd = new Date(item.slot.start.getTime() + totalMinutes * 60000);
+      const finalEnd = actualEnd.getTime() > item.slot.end.getTime() ? item.slot.end : actualEnd;
+
       return {
+        clientReferenceId: generateDistributionReferenceId(),
         dateStr: item.slot.dateStr,
         dayName,
         startTime: formatPlannerTime24h(item.slot.start),
-        endTime: formatPlannerTime24h(item.slot.end),
+        endTime: formatPlannerTime24h(finalEnd),
         lessons,
       };
     })
@@ -255,10 +288,12 @@ export function mergeLessonDistributions(
     return sortLessonDistributions(
       incoming.map(item => {
         const current = existingMap.get(getDistributionKey(item));
-        return {
+        return ensureLessonDistributionIdentity({
           ...item,
+          clientReferenceId: current?.clientReferenceId || item.clientReferenceId,
+          sessionId: current?.sessionId || item.sessionId,
           lessons: chooseLessonsToKeep(current, item),
-        };
+        });
       })
     );
   }
@@ -269,10 +304,12 @@ export function mergeLessonDistributions(
     const key = getDistributionKey(item);
     const index = merged.findIndex(current => getDistributionKey(current) === key);
     const current = existingMap.get(key);
-    const nextItem = {
+    const nextItem = ensureLessonDistributionIdentity({
       ...item,
+      clientReferenceId: current?.clientReferenceId || item.clientReferenceId,
+      sessionId: current?.sessionId || item.sessionId,
       lessons: chooseLessonsToKeep(current, item),
-    };
+    });
 
     if (index >= 0) {
       merged[index] = nextItem;
@@ -305,6 +342,9 @@ export function shouldReplaceLessonDistribution(params: {
     lowerResponse.includes('sesiones programadas') ||
     lowerResponse.includes('plan de estudios') ||
     lowerResponse.includes('sesiones generadas') ||
+    lowerResponse.includes('ajustar') ||
+    lowerResponse.includes('ajuste') ||
+    lowerResponse.includes('plan actualizado') ||
     (params.extractedSchedulesCount >= 5 && params.existingSchedulesCount > 0);
 
   return looksLikeSummary || params.isAddingSchedules || params.isConfirmingSchedules;

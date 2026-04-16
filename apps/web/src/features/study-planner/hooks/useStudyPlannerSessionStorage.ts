@@ -8,6 +8,7 @@ import type {
   StudyPlannerMessage,
 } from '../types/planner-ui.types';
 import type { StudyPlannerStoredLessonDistribution } from '../types/planner-schedule.types';
+import { ensureLessonDistributionIdentity } from '../services/lesson-distribution.service';
 
 interface StudyPlannerSavedSession {
   conversationHistory?: StudyPlannerMessage[];
@@ -140,7 +141,11 @@ export function useStudyPlannerSessionStorage({
           setConversationHistory(session.conversationHistory);
         }
         if (session.savedLessonDistribution) {
-          setSavedLessonDistribution(session.savedLessonDistribution);
+          setSavedLessonDistribution(
+            session.savedLessonDistribution.map((distribution) =>
+              ensureLessonDistributionIdentity(distribution),
+            ),
+          );
         }
         if (session.currentStep) {
           setCurrentStep(session.currentStep);

@@ -42,6 +42,13 @@ const ADD_SCHEDULE_PHRASES = [
   'incluir',
   'suma',
   'sumar',
+  'continuar',
+  'continuemos',
+  'colocar',
+  'poner',
+  'extender',
+  'mas lecciones',
+  'mas tiempo',
 ] as const;
 
 const TARGET_DATE_ACTIONS = ['cambiar', 'cambia', 'extender', 'extiende', 'actualizar', 'actualiza'] as const;

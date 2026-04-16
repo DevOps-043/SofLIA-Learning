@@ -1,6 +1,6 @@
 # Migration Audit
 
-Fecha de auditoria: 2026-04-02
+Fecha de auditoria: 2026-04-06 (actualizado desde 2026-04-02)
 
 ## Resumen ejecutivo
 
@@ -91,8 +91,57 @@ Conclusion:
 3. Crear una linea base documentada del schema actual para reducir el costo de auditorias futuras.
 4. Seguir adelgazando rutas server-side que usan service role e integraciones OAuth en el mismo archivo.
 
+## Migraciones añadidas en Sprint 3 (2026-04-04)
+
+| Archivo | Propósito |
+| --- | --- |
+| `20260404120000_rls_missing_tables.sql` | RLS en `study_plans`, `lia_messages`, `calendar_integrations` (3 tablas antes sin políticas) |
+| `20260404130000_indexes_lia_progress.sql` | Índices compuestos: `idx_lia_conversations_user_id`, `idx_lia_messages_conversation_id`, `idx_user_lesson_progress_user_course` |
+
+**Estado RLS post-Sprint 3:** Las tablas con mayor riesgo de acceso sin restricción ya tienen RLS habilitado. La estrategia API-layer sigue como defensa principal, RLS como segunda capa.
+
 ## Estado despues de esta auditoria
 
 - Infraestructura de migraciones: mejor documentada, pero no consolidada por completo.
 - Seguridad BD: la estrategia real queda confirmada como API-layer security + service role server-side.
 - Rendimiento BD: mejora puntual aplicada en `calendar_integrations`, con deuda residual en consolidacion historica y verificacion de uso de indices auxiliares.
+
+---
+
+## Sprint 4 — Limpieza de migraciones y optimizacion (2026-04-06)
+
+### Acción: limpieza del directorio de migraciones
+
+Se eliminaron **49 archivos** de migración no ejecutados. Ninguno había sido aplicado al esquema de la base de datos. El conjunto retenido es el canónico a partir de esta fecha.
+
+**Razones de eliminación:**
+
+- Scripts sin timestamp (sin orden determinístico fuerte): `001_*`, `002_*`, `003_*`, `004_*`, `Database_Optimizations.sql`, `optimization-indexes.sql`, `optimize-indexes-for-scale.sql`, `optimize_organization_indexes.sql`, etc.
+- Sistema de jerarquía (Region > Zone > Team) — feature no activo en el código actual: `20260109_hierarchy_*`, `20260110_hierarchy_*`, `20260111_hierarchy_*`, `20260117_*`, `20260119_*`.
+- LIA personalization settings con columnas agregadas y eliminadas en días consecutivos: `20250108_*`, `20250109_*`.
+- Scripts de backfill de datos y cleanup histórico: `cleanup_redundancias.sql`, `restore_missing_elements.sql`, `update_lesson_durations.sql`, `fix-study-sessions-duration-minutes.sql`, `add_user_to_organizations.sql`, etc.
+- Features eliminados o no consolidados: `create_user_invitations.sql`, `create_panel_business_bucket.sql`, `create_cascade_delete_function.sql`.
+- Skills stub (función placeholder hardcodeada): `20260204120000_create_skills_tables.sql`.
+- Organization join requests: `20260214_create_organization_join_requests.sql`.
+
+### Migraciones retenidas (conjunto canónico)
+
+| Archivo | Propósito |
+| --- | --- |
+| `20260402113000_planner_notifications_query_indexes.sql` | Índices para study planner, calendar sync y notificaciones |
+| `20260402130000_add_calendar_integrations_lookup_index.sql` | Lookup de calendar integrations por usuario + updated_at |
+| `20260402143000_add_user_notifications_created_index.sql` | Índice cursor para feed de notificaciones |
+| `20260404120000_rls_missing_tables.sql` | RLS en `study_plans`, `lia_messages`, `calendar_integrations` |
+| `20260404130000_indexes_lia_progress.sql` | Índices compuestos para LIA conversations, messages y user lesson progress |
+| `20260406120000_core_lookup_indexes.sql` | Índices core: `users(email)`, `courses(slug)`, `user_course_enrollments`, `study_plans(user_id, start_date)`, `courses(is_active, created_at DESC)` |
+
+### Optimizaciones de código aplicadas (mismo sprint)
+
+| Archivo | Cambio |
+| --- | --- |
+| `app/api/admin/skills/route.ts` | `.select('*')` → campos explícitos |
+| `app/api/lia/conversations/[conversationId]/messages/route.ts` | `.select('*')` → 5 campos usados |
+| `app/api/admin/lia-analytics/conversations/route.ts` | `.select('*', count)` → 17 campos explícitos de la vista |
+| `app/api/account-settings/route.ts` | Validación Zod con `AccountSettingsSchema` |
+| `app/api/favorites/route.ts` | Validación Zod con `ToggleFavoriteSchema` (UUID strict) |
+| `app/api/profile/route.ts` | Validación Zod con `UpdateProfileSchema` (`.strict()`) |

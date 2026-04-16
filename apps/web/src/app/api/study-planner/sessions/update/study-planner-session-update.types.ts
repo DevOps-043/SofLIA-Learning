@@ -2,6 +2,7 @@ import type { createAdminClient } from '@/lib/supabase/admin'
 
 export interface SessionUpdateInput {
   sessionId?: string
+  clientReferenceId?: string
   dateStr: string
   originalStartTime: string
   newStartTime: string
@@ -15,11 +16,15 @@ export interface UpdateSessionRequest {
 
 export interface StudyPlannerSessionUpdateRecord {
   id: string
+  client_reference_id?: string
+  title?: string
   start_time: string
+  end_time: string
 }
 
 export interface StudyPlannerSessionLookup {
   sessionsById: Map<string, StudyPlannerSessionUpdateRecord>
+  sessionsByClientReferenceId: Map<string, StudyPlannerSessionUpdateRecord>
   sessionsByDate: Map<string, StudyPlannerSessionUpdateRecord[]>
 }
 
@@ -44,4 +49,11 @@ export type UpdateStudyPlannerSessionsServiceResult =
       updatedCount: number
       totalUpdates: number
       errors: string[]
+      updatedSessions: Array<{
+        id: string
+        clientReferenceId?: string
+        title?: string
+        startTime: string
+        endTime: string
+      }>
     }

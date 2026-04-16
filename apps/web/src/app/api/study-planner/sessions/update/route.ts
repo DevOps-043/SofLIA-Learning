@@ -53,6 +53,8 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
         updatedCount: result.updatedCount,
         totalUpdates: result.totalUpdates,
         errors: result.errors.length > 0 ? result.errors : undefined,
+        updatedSessions:
+          result.updatedSessions.length > 0 ? result.updatedSessions : undefined,
       },
     })
   } catch (error) {

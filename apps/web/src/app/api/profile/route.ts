@@ -1,7 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { logger } from '../../../lib/logger'
 import { ProfileServerService } from '../../../features/profile/services/profile-server.service'
 import { SessionService } from '../../../features/auth/services/session.service'
+
+const UpdateProfileSchema = z.object({
+  username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+  first_name: z.string().max(100).optional().nullable(),
+  last_name: z.string().max(100).optional().nullable(),
+  display_name: z.string().max(100).optional().nullable(),
+  phone: z.string().max(20).optional().nullable(),
+  bio: z.string().max(500).optional().nullable(),
+  location: z.string().max(100).optional().nullable(),
+  cargo_rol: z.string().optional().nullable(),
+  type_rol: z.string().optional().nullable(),
+  profile_picture_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
+  country_code: z.string().max(10).optional().nullable(),
+  curriculum_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
+  linkedin_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
+  github_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
+  website_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
+}).strict()
 
 export async function GET(_request: NextRequest) {
   try {
@@ -27,8 +46,15 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const updates = await request.json()
-    const updatedProfile = await ProfileServerService.updateProfile(user.id, updates)
+    const rawBody = await request.json()
+    const parsed = UpdateProfileSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos de perfil inválidos', details: parsed.error.format() },
+        { status: 400 }
+      )
+    }
+    const updatedProfile = await ProfileServerService.updateProfile(user.id, parsed.data)
 
     return NextResponse.json(updatedProfile)
   } catch (error) {

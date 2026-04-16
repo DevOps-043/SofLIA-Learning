@@ -2,15 +2,32 @@ import type { Dispatch, SetStateAction } from 'react';
 import type {
   StudyPlannerCalendarProvider,
   StudyPlannerMessage,
-  StudyPlannerStoredLessonDistribution,
 } from '../types/planner-ui.types';
-import type { StudyPlannerCalendarDataMap } from '../types/planner-schedule.types';
+import type {
+  StudyPlannerCalendarDataMap,
+  StudyPlannerStoredLessonDistribution,
+} from '../types/planner-schedule.types';
 
 export interface PlannerSessionTimeUpdate {
+  sessionId?: string;
+  clientReferenceId?: string;
   dateStr: string;
   originalStartTime: string;
   newStartTime: string;
   newEndTime: string;
+}
+
+export interface PlannerPatchResult {
+  success: boolean;
+  planId: string | null;
+  updatedSessions: Array<{
+    id: string;
+    clientReferenceId?: string;
+    title?: string;
+    startTime: string;
+    endTime: string;
+  }>;
+  errors: string[];
 }
 
 export function formatPlannerDisplayDate(dateStr: string, dayName: string): string {
@@ -35,19 +52,37 @@ export function getChangedSessionUpdates(
   updatedDistribution: StudyPlannerStoredLessonDistribution[],
   savedLessonDistribution: StudyPlannerStoredLessonDistribution[],
 ): PlannerSessionTimeUpdate[] {
+  const originalByClientReferenceId = new Map(
+    savedLessonDistribution.map((slot) => [slot.clientReferenceId, slot]),
+  );
+  const originalBySessionId = new Map(
+    savedLessonDistribution
+      .filter((slot) => slot.sessionId)
+      .map((slot) => [slot.sessionId as string, slot]),
+  );
+
   return updatedDistribution
     .map((slot, index) => {
-      const original = savedLessonDistribution[index];
+      const original =
+        originalByClientReferenceId.get(slot.clientReferenceId)
+        || (slot.sessionId ? originalBySessionId.get(slot.sessionId) : undefined)
+        || savedLessonDistribution[index];
       if (
         !original
         || !original.startTime
         || !slot.startTime
         || !slot.endTime
-        || (slot.startTime === original.startTime && slot.endTime === original.endTime)
+        || (
+          slot.dateStr === original.dateStr
+          && slot.startTime === original.startTime
+          && slot.endTime === original.endTime
+        )
       ) {
         return null;
       }
       return {
+        sessionId: original.sessionId,
+        clientReferenceId: original.clientReferenceId,
         dateStr: slot.dateStr,
         originalStartTime: original.startTime,
         newStartTime: slot.startTime,
@@ -132,5 +167,78 @@ export async function syncUpdatedStudyPlanSessions(params: {
   } catch (error) {
     console.error('Error actualizando sesiones en BD:', error);
     return planIdToUse;
+  }
+}
+
+export async function applyStudyPlanPatch(params: {
+  savedPlanId: string | null;
+  setSavedPlanId: Dispatch<SetStateAction<string | null>>;
+  operations: Array<Record<string, unknown>>;
+}): Promise<PlannerPatchResult> {
+  const planIdToUse = await getActivePlanId(params.savedPlanId);
+  if (!planIdToUse) {
+    return {
+      success: false,
+      planId: null,
+      updatedSessions: [],
+      errors: ['No se encontro un plan activo para actualizar'],
+    };
+  }
+
+  if (!params.savedPlanId) {
+    params.setSavedPlanId(planIdToUse);
+  }
+
+  if (params.operations.length === 0) {
+    return {
+      success: false,
+      planId: planIdToUse,
+      updatedSessions: [],
+      errors: ['No hay operaciones para aplicar'],
+    };
+  }
+
+  try {
+    const response = await fetch('/api/study-planner/plan/apply-patch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planId: planIdToUse,
+        operations: params.operations,
+      }),
+    });
+
+    const data = await response.json() as {
+      success?: boolean;
+      error?: string;
+      data?: {
+        errors?: string[];
+        updatedSessions?: Array<{
+          id: string;
+          clientReferenceId?: string;
+          title?: string;
+          startTime: string;
+          endTime: string;
+        }>;
+      };
+    };
+
+    return {
+      success: Boolean(response.ok && data.success),
+      planId: planIdToUse,
+      updatedSessions: data.data?.updatedSessions ?? [],
+      errors: data.data?.errors ?? (data.error ? [data.error] : []),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      planId: planIdToUse,
+      updatedSessions: [],
+      errors: [
+        error instanceof Error
+          ? error.message
+          : 'No se pudo aplicar el cambio al plan',
+      ],
+    };
   }
 }

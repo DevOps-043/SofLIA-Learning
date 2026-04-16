@@ -81,6 +81,13 @@ function groupDistributionsByDay(
   }, new Map<string, StudyPlannerComputedLessonDistribution[]>());
 }
 
+/**
+ * Minimum accumulated duration (minutes) before we allow a module-boundary
+ * break.  Below this threshold the session keeps accepting lessons from the
+ * next module so the user actually gets the session length they requested.
+ */
+const MIN_SESSION_BEFORE_MODULE_BREAK = 45;
+
 function assignLessonsToSlot(params: {
   approachMultiplier: number;
   assignedLessonIds: Set<string>;
@@ -107,6 +114,11 @@ function assignLessonsToSlot(params: {
 
     const finalDuration = Math.ceil((lesson.durationMinutes || 15) * params.approachMultiplier);
     const fits = usedDurationInSlot + finalDuration <= params.slotDuration;
+
+    if (!fits) {
+      break;
+    }
+
     const isSlotEmpty = lessonsForSlot.length === 0;
     const isSameModule =
       isSlotEmpty ||
@@ -116,7 +128,9 @@ function assignLessonsToSlot(params: {
         lesson.courseId === currentSlotCourseId
       );
 
-    if (!fits || (!isSlotEmpty && !isSameModule)) {
+    // Only break on module change when the session already has enough content.
+    // This prevents tiny 20-min sessions when the user asked for 60-90 min.
+    if (!isSlotEmpty && !isSameModule && usedDurationInSlot >= MIN_SESSION_BEFORE_MODULE_BREAK) {
       break;
     }
 

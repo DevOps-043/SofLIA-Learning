@@ -48,7 +48,7 @@ export async function GET(
     // IMPORTANTE: No limitar para mantener contexto completo
     const { data: messages, error } = await supabase
       .from('lia_messages')
-      .select('*')
+      .select('message_id, role, content, created_at, message_sequence')
       .eq('conversation_id', conversationId)
       .order('message_sequence', { ascending: true });
 
@@ -61,7 +61,7 @@ export async function GET(
     }
 
     // Formatear mensajes para el frontend
-    const formattedMessages = (messages || []).map((msg: Record<string, unknown>) => ({
+    const formattedMessages = (messages || []).map((msg) => ({
       id: msg.message_id,
       role: msg.role,
       content: msg.content,

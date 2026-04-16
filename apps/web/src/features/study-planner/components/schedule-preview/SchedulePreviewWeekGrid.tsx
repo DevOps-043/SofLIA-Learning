@@ -80,7 +80,7 @@ export function SchedulePreviewWeekGrid({
       {/* Day headers */}
       <div className="flex border-b border-gray-200 dark:border-white/10">
         {/* Time gutter */}
-        <div className="w-10 flex-shrink-0 border-r border-gray-200 dark:border-white/10" />
+        <div className="w-[50px] flex-shrink-0 border-r border-gray-200 dark:border-white/10" />
 
         {weekDays.map((day) => {
           const isToday = isSameDay(day, today);
@@ -109,7 +109,7 @@ export function SchedulePreviewWeekGrid({
       {/* All-day events row (only rendered when at least one exists) */}
       {weekDays.some((d) => getAllDayEventsForDay(d).length > 0) && (
         <div className="flex border-b border-gray-200 dark:border-white/10">
-          <div className="w-10 flex-shrink-0 border-r border-gray-200 px-0.5 py-1 text-right dark:border-white/10">
+          <div className="w-[50px] flex-shrink-0 border-r border-gray-200 px-0.5 py-1 text-right dark:border-white/10">
             <span className="text-[9px] text-gray-400">todo</span>
           </div>
           {weekDays.map((day) => (
@@ -136,15 +136,15 @@ export function SchedulePreviewWeekGrid({
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="flex">
           {/* Time gutter */}
-          <div className="w-10 flex-shrink-0 border-r border-gray-200 dark:border-white/10">
-            {hours.map((hour) => (
+          <div className="w-[50px] flex-shrink-0 border-r border-gray-200 dark:border-white/10 relative">
+            {hours.map((hour, index) => (
               <div
                 key={hour}
-                className="flex items-start justify-end border-b border-gray-100 pr-1 pt-0.5 dark:border-white/5"
+                className="flex items-start justify-end pr-1 border-b border-transparent"
                 style={{ height: `${ROW_HEIGHT_PX}px` }}
               >
-                <span className="text-[9px] text-gray-400 dark:text-gray-500">
-                  {hour.toString().padStart(2, '0')}
+                <span className="relative -top-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  {hour.toString().padStart(2, '0')}:00
                 </span>
               </div>
             ))}
@@ -172,19 +172,98 @@ export function SchedulePreviewWeekGrid({
                 ))}
 
                 {/* Positioned events */}
-                {timedEvents.map((event) => {
-                  const position = getEventPosition(event, firstVisibleHour);
-                  if (!position) return null;
+                {(() => {
+                  const dayTimedEvents = timedEvents.sort((a, b) => {
+                    if (a.startTime !== b.startTime) {
+                      return a.startTime.localeCompare(b.startTime);
+                    }
+                    if (a.source !== b.source) {
+                      return a.source === 'external_calendar' ? -1 : 1;
+                    }
+                    return a.endTime.localeCompare(b.endTime);
+                  });
 
-                  return (
-                    <SchedulePreviewEventBlock
-                      key={event.id}
-                      event={event}
-                      top={position.top}
-                      height={position.height}
-                    />
-                  );
-                })}
+                  if (dayTimedEvents.length === 0) return null;
+
+                  // Group events into clusters of overlaps
+                  const clusters: SchedulePreviewEvent[][] = [];
+                  let currentCluster: SchedulePreviewEvent[] = [];
+                  let clusterEndFormatted = '00:00';
+
+                  for (const event of dayTimedEvents) {
+                    if (event.startTime < clusterEndFormatted) {
+                      currentCluster.push(event);
+                      if (event.endTime > clusterEndFormatted) {
+                        clusterEndFormatted = event.endTime;
+                      }
+                    } else {
+                      if (currentCluster.length > 0) clusters.push(currentCluster);
+                      currentCluster = [event];
+                      clusterEndFormatted = event.endTime;
+                    }
+                  }
+                  if (currentCluster.length > 0) clusters.push(currentCluster);
+
+                  return clusters.flatMap(cluster => {
+                    const columns: SchedulePreviewEvent[][] = [];
+                    const eventToColumn = new Map<string, number>();
+
+                    for (const event of cluster) {
+                      let assigned = false;
+                      for (let i = 0; i < columns.length; i++) {
+                        const lastEventInColumn = columns[i][columns[i].length - 1];
+                        if (event.startTime >= lastEventInColumn.endTime) {
+                          columns[i].push(event);
+                          eventToColumn.set(event.id, i);
+                          assigned = true;
+                          break;
+                        }
+                      }
+                      if (!assigned) {
+                        columns.push([event]);
+                        eventToColumn.set(event.id, columns.length - 1);
+                      }
+                    }
+
+                    return cluster.map(event => {
+                      const position = getEventPosition(event, firstVisibleHour);
+                      if (!position) return null;
+                      
+                      // For study plans overlapping with external calendar, force secondary look
+                      const isStudyPlan = event.source === 'study_plan';
+                      const overlapsWithExternal = cluster.some(e => e.source === 'external_calendar');
+                      
+                      // Secondary look: indented to the right
+                      let left = 0;
+                      let width = 100;
+
+                      if (isStudyPlan && overlapsWithExternal) {
+                        left = 15;
+                        width = 85;
+                      } else {
+                        const totalColumns = columns.length;
+                        const colIndex = eventToColumn.get(event.id)!;
+                        const offsetPerColumn = 15;
+                        left = totalColumns > 1 
+                          ? Math.min(colIndex * offsetPerColumn, (colIndex / totalColumns) * 80)
+                          : 0;
+                        width = 100 - left;
+                      }
+
+                      return (
+                        <SchedulePreviewEventBlock
+                          key={event.id}
+                          event={event}
+                          top={position.top}
+                          height={position.height}
+                          left={left}
+                          width={width}
+                          zIndex={isStudyPlan ? 100 + left : left}
+                        />
+                      );
+                    });
+                  });
+                })()}
               </div>
             );
           })}

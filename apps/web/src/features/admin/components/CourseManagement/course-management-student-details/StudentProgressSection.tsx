@@ -152,12 +152,23 @@ interface StudentProgressSectionProps {
   selectedStudent: NonNullable<ReturnType<typeof import('../CourseManagementContext')['useCourseManagementContext']>['state']['selectedStudent']>
 }
 
+interface ConversationWeek { week?: string; count?: number }
+interface ConversationTopic { tema: string; count: number; color: string }
+interface TimeSlot { periodo: string; porcentaje: number; color: string }
+
+type StudentData = Record<string, unknown> & {
+  lia?: { conversationsByWeek?: ConversationWeek[]; conversationTopics?: ConversationTopic[]; [k: string]: unknown }
+  studySessions?: { preferredTimeSlots?: TimeSlot[]; [k: string]: unknown }
+  enrollment?: Record<string, unknown>
+  engagement?: Record<string, unknown>
+}
+
 export function StudentProgressSection({ studentDetailsData, selectedStudent }: {
   studentDetailsData: Record<string, unknown>
   selectedStudent: Record<string, unknown>
 }) {
-  const sd = studentDetailsData as any
-  const ss = selectedStudent as any
+  const sd = studentDetailsData as StudentData
+  const ss = selectedStudent as Record<string, unknown>
 
   const weeklyProgress =
     sd?.studySessions?.weeklyProgress?.length
@@ -177,7 +188,7 @@ export function StudentProgressSection({ studentDetailsData, selectedStudent }: 
       : DEFAULT_ACTIVE_DAYS
   const conversationsByWeek =
     sd?.lia?.conversationsByWeek?.length
-      ? sd.lia.conversationsByWeek.map((week: any, index: number) => ({
+      ? sd.lia.conversationsByWeek.map((week: ConversationWeek, index: number) => ({
           semana: week.week || `S${index + 1}`,
           conversaciones: week.count || 0,
         }))
@@ -390,7 +401,7 @@ export function StudentProgressSection({ studentDetailsData, selectedStudent }: 
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-          {conversationTopics.map((topic: any) => (
+          {(conversationTopics as ConversationTopic[]).map((topic) => (
             <div key={topic.tema} className={`p-3 text-center ${COURSE_MANAGEMENT_INSET_SURFACE_CLASS}`}>
               <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: topic.color }}>
                 {topic.count}
@@ -421,7 +432,7 @@ export function StudentProgressSection({ studentDetailsData, selectedStudent }: 
               <h4 className={`text-sm font-bold ${COURSE_MANAGEMENT_PRIMARY_TEXT_CLASS}`}>Horarios Preferidos</h4>
             </div>
             <div className="space-y-3">
-              {preferredTimeSlots.map((slot: any) => (
+              {(preferredTimeSlots as TimeSlot[]).map((slot) => (
                 <div key={slot.periodo}>
                   <div className="mb-1 flex items-center justify-between">
                     <span className={`text-xs font-medium ${COURSE_MANAGEMENT_MUTED_TEXT_CLASS}`}>{slot.periodo}</span>

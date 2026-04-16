@@ -95,19 +95,22 @@ function distributionToEvents(
 ): SchedulePreviewEvent[] {
   return distributions.map((slot, index) => {
     const lessonNames = slot.lessons.map((l) => l.lessonTitle).join(', ');
-    const totalMinutes = slot.lessons.reduce((sum, l) => sum + l.durationMinutes, 0);
+    const eventTitle =
+      slot.lessons.length === 0
+        ? 'Sesion de estudio'
+        : slot.lessons.length === 1
+          ? slot.lessons[0].lessonTitle
+          : `${slot.lessons[0].lessonTitle} y ${slot.lessons.length - 1} mas`;
 
     return {
       id: `plan-${slot.dateStr}-${index}`,
-      title: slot.lessons.length === 1
-        ? slot.lessons[0].lessonTitle
-        : `${slot.lessons.length} lecciones`,
+      title: eventTitle,
       dateStr: slot.dateStr,
       startTime: slot.startTime,
       endTime: slot.endTime,
       source: 'study_plan' as const,
       color: STUDY_SESSION_COLOR,
-      description: `${lessonNames} (${totalMinutes} min)`,
+      description: lessonNames,
     };
   });
 }

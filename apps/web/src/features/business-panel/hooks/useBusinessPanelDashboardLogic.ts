@@ -13,6 +13,9 @@ import {
   ChartBarIcon,
   PlusIcon,
   Cog6ToothIcon,
+  ClockIcon,
+  AcademicCapIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline'
 
 type DashboardChange = number | string | null | undefined
@@ -210,6 +213,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: `bg-gradient-to-br from-[${themeColors.primary}] to-[${themeColors.primary}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.primary}, ${themeColors.primary}cc)` },
       href: `/${orgSlug}/business-panel/users`,
+      icon: UsersIcon,
     },
     {
       title: t('dashboard.stats.assignedCourses'),
@@ -220,6 +224,7 @@ export function useBusinessPanelDashboardLogic() {
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.secondary}, ${themeColors.secondary}cc)` },
       href: `/${orgSlug}/business-panel/courses`,
       id: 'tour-stat-courses',
+      icon: BookOpenIcon,
     },
     {
       title: t('dashboard.stats.completed'),
@@ -228,6 +233,7 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/completed-card-bg.png',
       gradient: `bg-gradient-to-br from-[${themeColors.accent}] to-[${themeColors.accent}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.accent}, ${themeColors.accent}cc)` },
+      icon: CheckCircleIcon,
     },
     {
       title: t('dashboard.stats.avgProgress'),
@@ -236,6 +242,7 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/progress-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, #F59E0B, #F59E0Bcc)' },
+      icon: ClockIcon,
     },
     {
       title: t('dashboard.stats.certificates'),
@@ -245,6 +252,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, #8B5CF6, #8B5CF6cc)' },
       id: 'tour-stat-certificates',
+      icon: AcademicCapIcon,
     },
     {
       title: t('dashboard.stats.engagement'),
@@ -253,6 +261,7 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/engagement-card-bg.png',
       gradient: 'bg-gradient-to-br from-[#EC4899] to-[#EC4899]/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, #EC4899, #EC4899cc)' },
+      icon: ChartBarIcon,
     },
     {
       title: t('dashboard.stats.invitedUsers', 'Usuarios Invitados'),
@@ -262,6 +271,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-[#6366F1] to-[#6366F1]/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, #6366F1, #6366F1cc)' },
       href: `/${orgSlug}/business-panel/users?tab=invitations`,
+      icon: UsersIcon,
     },
     {
       title: t('dashboard.stats.inviteLinks', 'Enlaces de Invitacion'),
@@ -274,6 +284,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, #10B981, #10B981cc)' },
       href: `/${orgSlug}/business-panel/users?tab=links`,
+      icon: LinkIcon,
     },
   ] : [], [stats, themeColors, t, orgSlug]) // eslint-disable-line react-hooks/exhaustive-deps
 

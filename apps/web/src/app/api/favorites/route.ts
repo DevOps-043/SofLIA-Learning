@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { FavoritesService } from '../../../features/courses/services/favorites.service'
 import { formatApiError, logError } from '@/core/utils/api-errors'
+
+const ToggleFavoriteSchema = z.object({
+  userId: z.string().uuid('userId debe ser un UUID válido'),
+  courseId: z.string().uuid('courseId debe ser un UUID válido'),
+})
 
 // GET - Obtener favoritos de un usuario
 export async function GET(request: NextRequest) {
@@ -36,14 +42,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, courseId } = body
-
-    if (!userId || !courseId) {
+    const parsed = ToggleFavoriteSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'userId y courseId son requeridos' },
+        { error: 'Datos inválidos', details: parsed.error.format() },
         { status: 400 }
       )
     }
+    const { userId, courseId } = parsed.data
 
     const isFavorite = await FavoritesService.toggleFavorite(userId, courseId)
     

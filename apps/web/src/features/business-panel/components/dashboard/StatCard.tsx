@@ -1,8 +1,8 @@
 'use client'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import type { ComponentType } from 'react'
+import { ChartBarIcon } from '@heroicons/react/24/outline'
 
 interface StatCardTheme {
   cardBg?: string
@@ -13,79 +13,81 @@ interface StatCardTheme {
 export interface StatCardProps {
   title: string
   value: string | number
-  change: number
+  change?: number
   backgroundImage?: string
-  gradient: string
+  gradient?: string
   gradientStyle?: React.CSSProperties
   delay: number
   href?: string
   id?: string
   theme?: StatCardTheme
+  icon?: ComponentType<{ className?: string, style?: React.CSSProperties }>
 }
 
-export function StatCard({ title, value, change, backgroundImage, gradient, gradientStyle, delay, href, id, theme }: StatCardProps) {
-  const isPositive = change >= 0
+export function StatCard({ title, value, delay, href, id, theme, gradientStyle, icon: Icon = ChartBarIcon }: StatCardProps) {
+  const primaryColor = theme?.cardBg || '#0A2540'
+  const accentColor = gradientStyle?.background ? String(gradientStyle.background).split(',')[1]?.trim() || '#00D4B3' : '#00D4B3'
+  const actualAccentColor = accentColor.length === 7 || accentColor.length === 9 || accentColor.startsWith('#') ? accentColor : '#00D4B3'
+  const textColor = theme?.text || '#FFFFFF'
+  
+  const isLightMode = primaryColor.toLowerCase() === '#ffffff' || 
+    primaryColor.toLowerCase() === '#f8fafc' || 
+    primaryColor.startsWith('rgb(255')
+  
+  const iconColor = isLightMode ? '#0A2540' : actualAccentColor
 
   const CardContent = (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: delay * 0.08, duration: 0.4, ease: 'easeOut' }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="relative group overflow-hidden rounded-3xl cursor-pointer h-40 shadow-sm hover:shadow-md transition-shadow duration-300"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: delay * 0.05, duration: 0.4, ease: 'easeOut' }}
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
+      className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px]"
       id={id}
       style={{
-        backgroundColor: 'var(--org-card-background, #1E2329)',
-        border: `1.5px solid ${theme?.borderColor || '#6C757D'}80`,
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden'
+        backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(15, 20, 25, 0.6)',
+        backdropFilter: 'blur(20px)',
+        border: `1px solid ${isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)'}`,
+        boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.05)' : '0 10px 30px -10px rgba(0,0,0,0.4)',
       }}
     >
-      {backgroundImage && (
-        <div className="absolute inset-0 z-0" style={{ willChange: 'transform', transform: 'translateZ(0)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-          <Image
-            src={backgroundImage}
-            alt={title}
-            fill
-            className="object-cover opacity-70 group-hover:opacity-80 transition-opacity duration-300"
-            style={{ willChange: 'opacity', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }}
-            unoptimized={false}
-            priority={false}
-          />
-          <div className="absolute inset-0 bg-gradient-to-br transition-all duration-300" style={{ background: `linear-gradient(135deg, ${theme?.cardBg || '#1E2329'}B3, ${theme?.cardBg || '#1E2329'}66, transparent)`, willChange: 'auto', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }} />
-          <div className="absolute inset-0 bg-gradient-to-t transition-all duration-300" style={{ background: `linear-gradient(0deg, ${theme?.cardBg || '#1E2329'}CC, transparent, transparent)`, willChange: 'auto', transform: 'translateZ(0)', backfaceVisibility: 'hidden' }} />
-        </div>
-      )}
-
-      <div className="relative z-10 p-5 h-full flex flex-col justify-between" style={{ willChange: 'auto', transform: 'translateZ(0)', backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}>
-        <div className="flex items-start justify-between">
-          <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${theme?.text || '#FFFFFF'}0D`, border: `1px solid ${theme?.borderColor || '#FFFFFF'}1A`, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', willChange: 'auto', transform: 'translateZ(0)' }}>
-            <div className="w-8 h-1.5 rounded-full" style={gradientStyle} />
-          </div>
-          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${isPositive ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/15 text-rose-400 border-rose-500/30'}`} style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', willChange: 'auto', transform: 'translateZ(0)' }}>
-            {isPositive ? <ArrowTrendingUpIcon className="h-4 w-4" /> : <ArrowTrendingDownIcon className="h-4 w-4" />}
-            <span>{isPositive ? '+' : ''}{change}%</span>
-          </div>
+      <div className="relative z-10 flex items-center gap-4 w-full">
+        {/* Sleek icon wrapper */}
+        <div 
+          className="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-[14px] transition-transform duration-500 group-hover:scale-[1.05]"
+          style={{
+             background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
+             border: `1px solid ${iconColor}25`
+          }}
+        >
+          <Icon className="w-5 h-5" style={{ color: iconColor }} />
         </div>
 
-        <div className="space-y-1">
-          <h3 className="text-4xl font-black tracking-tight" style={{ color: theme?.text || 'var(--org-text-color, #FFFFFF)' }}>
-            {typeof value === 'number' ? value.toLocaleString() : value}
-          </h3>
-          <p className="text-sm font-semibold tracking-wide uppercase" style={{ color: theme?.text || 'var(--org-text-color, #FFFFFF)', opacity: 0.7, letterSpacing: '0.05em' }}>
+        {/* Text content */}
+        <div className="flex flex-col justify-center overflow-hidden">
+          <p 
+            className="text-[10px] uppercase tracking-widest font-bold mb-1 truncate w-full" 
+            style={{ color: isLightMode ? '#64748B' : '#858E9B', opacity: 0.9 }}
+          >
             {title}
           </p>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0 h-1 overflow-hidden" style={{ backgroundColor: `${theme?.text || '#FFFFFF'}0D` }}>
-          <div className="h-full rounded-r-full w-[60%]" style={{ background: `linear-gradient(90deg, ${gradientStyle?.background || 'var(--org-accent-color, #00D4B3)'}, transparent)` }} />
+          <p 
+            className="text-2xl font-extrabold leading-none tracking-tight truncate w-full" 
+            style={{ color: textColor }}
+          >
+            {value}
+          </p>
         </div>
       </div>
+
+      {/* Subtle modern abstract glow */}
+      <div 
+        className="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-all duration-700 ease-out group-hover:opacity-40 group-hover:scale-110"
+        style={{ backgroundColor: iconColor }}
+      />
     </motion.div>
   )
 
-  if (href) return <Link href={href}>{CardContent}</Link>
+  if (href) return <Link href={href} className="block w-full">{CardContent}</Link>
   return CardContent
 }

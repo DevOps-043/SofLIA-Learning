@@ -8,6 +8,8 @@ export interface StudyPlannerScheduledLesson {
 }
 
 export interface StudyPlannerStoredLessonDistribution {
+  clientReferenceId: string;
+  sessionId?: string;
   dateStr: string;
   dayName: string;
   startTime: string;
@@ -52,6 +54,7 @@ export interface StudyPlannerCalendarEventLike {
 export interface StudyPlannerCalendarDayData {
   busySlots: StudyPlannerCalendarBusySlot[];
   events: StudyPlannerCalendarEventLike[];
+  availability?: import('./calendar-integration.types').CalendarAvailability;
 }
 
 export type StudyPlannerCalendarDataMap = Record<string, StudyPlannerCalendarDayData>;

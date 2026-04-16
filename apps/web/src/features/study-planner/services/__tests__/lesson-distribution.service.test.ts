@@ -10,7 +10,14 @@ import {
 import type { StudyPlannerStoredLessonDistribution } from '../../types/planner-schedule.types'
 
 function makeDistribution(dateStr: string, startTime = '09:00'): StudyPlannerStoredLessonDistribution {
-  return { dateStr, dayName: 'Lunes', startTime, endTime: '10:00', lessons: [] }
+  return {
+    clientReferenceId: `dist-${dateStr}-${startTime}`,
+    dateStr,
+    dayName: 'Lunes',
+    startTime,
+    endTime: '10:00',
+    lessons: [],
+  }
 }
 
 // ---------------------------------------------------------------------------

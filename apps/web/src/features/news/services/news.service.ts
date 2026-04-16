@@ -37,10 +37,10 @@ export class NewsService {
   static async getPublishedNews(filters: NewsFilters = {}): Promise<NewsWithMetrics[]> {
     try {
       const supabase = createClient()
-      
+
       let query = supabase
         .from('news')
-        .select('*')
+        .select('id, title, slug, intro, content, hero_image_url, language, status, published_at, created_at, updated_at, author_id, category, tags, view_count, comment_count, metrics')
         .eq('status', 'published')
         .order('published_at', { ascending: false })
 
@@ -48,12 +48,11 @@ export class NewsService {
         query = query.eq('language', filters.language)
       }
 
-      if (filters.limit) {
-        query = query.limit(filters.limit)
-      }
-
+      const limit = filters.limit || 50
       if (filters.offset) {
-        query = query.range(filters.offset, filters.offset + (filters.limit || 10) - 1)
+        query = query.range(filters.offset, filters.offset + limit - 1)
+      } else {
+        query = query.limit(limit)
       }
 
       const { data, error } = await query
@@ -78,10 +77,10 @@ export class NewsService {
   static async getNewsBySlug(slug: string): Promise<NewsWithMetrics | null> {
     try {
       const supabase = createClient()
-      
+
       const { data, error } = await supabase
         .from('news')
-        .select('*')
+        .select('id, title, slug, intro, content, hero_image_url, language, status, published_at, created_at, updated_at, author_id, category, tags, view_count, comment_count, metrics')
         .eq('slug', slug)
         .eq('status', 'published')
         .single()
@@ -106,10 +105,10 @@ export class NewsService {
   static async getFeaturedNews(limit: number = 3): Promise<NewsWithMetrics[]> {
     try {
       const supabase = createClient()
-      
+
       const { data, error } = await supabase
         .from('news')
-        .select('*')
+        .select('id, title, slug, intro, hero_image_url, language, status, published_at, created_at, updated_at, author_id, category, tags, view_count, comment_count, metrics')
         .eq('status', 'published')
         .order('published_at', { ascending: false })
         .limit(limit)
@@ -131,17 +130,18 @@ export class NewsService {
   static async getNewsCategories(): Promise<string[]> {
     try {
       const supabase = createClient()
-      
+
+      // Fetch solo el campo language con límite razonable para extraer únicos
       const { data, error } = await supabase
         .from('news')
         .select('language')
         .eq('status', 'published')
+        .limit(1000)
 
       if (error) {
         throw new Error(`Error al obtener categorías: ${error.message}`)
       }
 
-      // Extraer categorías únicas
       const categories = [...new Set(data.map(item => item.language))].filter(Boolean)
       return categories
     } catch (error) {
@@ -156,25 +156,33 @@ export class NewsService {
   }> {
     try {
       const supabase = createClient()
-      
-      const { data, error } = await supabase
-        .from('news')
-        .select('metrics, language')
-        .eq('status', 'published')
 
-      if (error) {
-        throw new Error(`Error al obtener estadísticas: ${error.message}`)
+      // Usar count en DB y fetch ligero para categorías y vistas
+      const [countResult, statsResult] = await Promise.all([
+        supabase
+          .from('news')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'published'),
+        supabase
+          .from('news')
+          .select('language, view_count, metrics')
+          .eq('status', 'published'),
+      ])
+
+      if (countResult.error) {
+        throw new Error(`Error al obtener conteo: ${countResult.error.message}`)
+      }
+      if (statsResult.error) {
+        throw new Error(`Error al obtener estadísticas: ${statsResult.error.message}`)
       }
 
-      const totalNews = data.length
-      const totalCategories = new Set(data.map(item => item.language)).size
-      const totalViews = data.reduce((sum, item) => sum + (item.metrics?.views || 0), 0)
+      const totalNews = countResult.count || 0
+      const totalCategories = new Set(statsResult.data.map(item => item.language)).size
+      const totalViews = statsResult.data.reduce(
+        (sum, item) => sum + (item.view_count || item.metrics?.views || 0), 0
+      )
 
-      return {
-        totalNews,
-        totalCategories,
-        totalViews
-      }
+      return { totalNews, totalCategories, totalViews }
     } catch (error) {
       throw error
     }

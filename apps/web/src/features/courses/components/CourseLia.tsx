@@ -142,7 +142,7 @@ function CourseLiaFloatingButton() {
 // Panel Principal
 function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors, transcriptContent, summaryContent, lessonContent, onSaveNote }: CourseLiaProps) {
   const { isOpen, closeLia, currentActivity, registerLiaChat } = useLiaCourse();
-  const prevActivityIdRef = useRef<string | null>(null);
+  const prevActivityTriggerRef = useRef<number | null>(null);
   const { user } = useAuth();
   const router = useRouter();
   const { resolvedTheme } = useThemeStore();
@@ -182,7 +182,7 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
     : `¡Hola! 👋 Soy SofLIA, tu tutora del curso. Estoy aquí para ayudarte con "${lessonTitle || 'esta lección'}". ¿Tienes alguna duda?`;
 
   const liaChat = useLiaCourseChat(initialMessage);
-  const { messages, isLoading, sendMessage, clearHistory } = liaChat;
+  const { messages, isLoading, sendMessage, stop, clearHistory } = liaChat;
 
   // Registrar esta instancia en el contexto para acceso global (modales, etc.)
   useEffect(() => {
@@ -240,11 +240,15 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
 
   // 🚀 EFECTO: Detectar inicio de actividad y detonar bienvenida de LIA
   useEffect(() => {
-    if (isOpen && currentActivity && currentActivity.id !== prevActivityIdRef.current) {
-      prevActivityIdRef.current = currentActivity.id;
+    // Usamos el timestamp para arrancar siempre que se invoque, sin importar que sea la misma de antes.
+    if (isOpen && currentActivity && currentActivity.timestamp !== prevActivityTriggerRef.current) {
+      prevActivityTriggerRef.current = currentActivity.timestamp || null;
       
       // Lógica para detonar el mensaje inicial
       const triggerWelcomeByActivity = async () => {
+         // Borramos el historial primero para tener la conversacion limpia (la previa se persiste implícitamente por el hook base / backend en background)
+         clearHistory();
+
          const context = {
             lessonId,
             lessonTitle,
@@ -390,7 +394,15 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
                       </button>
                       {onSaveNote && (
                         <button 
-                          onClick={() => onSaveNote(message.content)}
+                          onClick={() => {
+                            // Parsear markdown básico a HTML para el WYSIWYG de Notas
+                            const htmlContent = message.content
+                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                              .replace(/\n/g, '<br/>');
+                            
+                            onSaveNote(htmlContent);
+                          }}
                           title="Guardar como nota"
                           style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
                         >
@@ -403,12 +415,29 @@ function CourseLiaPanelContent({ lessonId, lessonTitle, courseSlug, customColors
               </div>
             ))}
             {isLoading && (
-               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                 <div style={{ padding: '12px 16px', borderRadius: '16px', backgroundColor: themeColors.messageBubbleAssistant, display: 'flex', gap: '6px' }}>
-                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: themeColors.accentColor, animation: 'liaPulse 1s infinite' }} />
-                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: themeColors.accentColor, animation: 'liaPulse 1s infinite 0.2s' }} />
-                   <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: themeColors.accentColor, animation: 'liaPulse 1s infinite 0.4s' }} />
+               <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '10px' }}>
+                 <div 
+                   className="animate-pulse"
+                   style={{ 
+                     width: '32px', 
+                     height: '32px', 
+                     borderRadius: '50%', 
+                     overflow: 'hidden',
+                     border: `2px solid ${themeColors.accentColor}`
+                  }}
+                 >
+                   <img src="/lia-avatar.png" alt="Escribiendo..." style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                  </div>
+                 <button 
+                   onClick={() => stop()}
+                   title="Detener generación"
+                   style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px', opacity: 0.7, color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
+                 >
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                     <circle cx="12" cy="12" r="10"></circle>
+                     <rect x="9" y="9" width="6" height="6"></rect>
+                   </svg>
+                 </button>
                </div>
             )}
             <div ref={messagesEndRef} />

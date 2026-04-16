@@ -3,7 +3,10 @@ import type { StudyPlannerSessionUpdateRecord } from './study-planner-session-up
 
 const STUDY_SESSION_UPDATE_SELECT = `
   id,
-  start_time
+  title,
+  metrics,
+  start_time,
+  end_time
 `
 
 export async function getOwnedStudyPlan(
@@ -41,7 +44,16 @@ export async function getStudySessionsForPlan(
     throw new Error('Error al obtener sesiones')
   }
 
-  return data ?? []
+  return (data ?? []).map((session) => ({
+    id: session.id,
+    title: session.title,
+    start_time: session.start_time,
+    end_time: session.end_time,
+    client_reference_id:
+      typeof (session.metrics as { clientReferenceId?: string } | null)?.clientReferenceId === 'string'
+        ? (session.metrics as { clientReferenceId?: string }).clientReferenceId
+        : undefined,
+  }))
 }
 
 export async function updateStudySessionTimeWindow(

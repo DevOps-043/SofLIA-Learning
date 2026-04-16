@@ -20,9 +20,10 @@ export async function GET() {
 
     const { data: links, error } = await supabase
       .from('bulk_invite_links')
-      .select('*')
+      .select('id, code, role, max_uses, used_count, expires_at, created_at, created_by, is_active')
       .eq('organization_id', auth.organizationId)
       .order('created_at', { ascending: false })
+      .limit(100)
 
     if (error) {
       console.error('Error fetching bulk invite links:', error)

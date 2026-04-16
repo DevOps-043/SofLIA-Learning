@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
         // Configurar el modelo con safety settings relajados para el planificador
         const model = genAI.getGenerativeModel({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             safetySettings: [
                 {
                     category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -113,13 +113,13 @@ export async function POST(request: NextRequest) {
             ],
             generationConfig: {
                 temperature: 0.7,
-                maxOutputTokens: 4096,
+                maxOutputTokens: 8192,
                 topP: 0.95,
                 topK: 40,
             },
         });
 
-        logger.info('🚀 Iniciando chat con Gemini 2.0 Flash...');
+        logger.info('🚀 Iniciando chat con Gemini 2.5 Flash...');
 
         // Construir el historial para Gemini, filtrando mensajes vacíos o inválidos
         const geminiHistory = conversationHistory
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
                 },
                 {
                     role: 'model',
-                    parts: [{ text: 'Perfecto, he internalizado todas las instrucciones. Estoy listo para ayudar como LIA, el asistente del Planificador de Estudios. Responderé en español, de forma natural y amigable, siguiendo todas las reglas establecidas.' }]
+                    parts: [{ text: 'Perfecto, he internalizado todas las instrucciones. Estoy lista para ayudar como SofLIA, la asistente del Planificador de Estudios. Responderé en español, de forma natural y amigable, siguiendo todas las reglas establecidas.' }]
                 },
                 // Añadir el historial de conversación real
                 ...geminiHistory
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({
             response: responseText,
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             timestamp: new Date().toISOString()
         });
 

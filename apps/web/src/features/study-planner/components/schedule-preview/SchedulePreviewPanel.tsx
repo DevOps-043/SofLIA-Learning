@@ -12,8 +12,6 @@ import { useSchedulePreviewData } from './hooks/useSchedulePreviewData';
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
-/** Width of the panel on desktop (px). */
-const PANEL_WIDTH = 380;
 /** Swipe distance threshold to trigger open/close. */
 const SWIPE_THRESHOLD = 60;
 /** Width of the collapsed reopen tab (px). */
@@ -180,16 +178,15 @@ export function SchedulePreviewPanel({
         {isOpen && (
           <motion.div
             ref={panelRef}
-            initial={{ x: PANEL_WIDTH }}
+            initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: PANEL_WIDTH }}
+            exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 280 }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.15}
             onDragEnd={handleDragEnd}
-            className="fixed bottom-0 right-0 top-0 z-50 flex flex-col bg-white shadow-2xl dark:bg-gray-900"
-            style={{ width: `${PANEL_WIDTH}px`, maxWidth: '90vw' }}
+            className="fixed bottom-0 right-0 top-0 z-50 flex w-[90vw] flex-col bg-white shadow-2xl dark:bg-gray-900 sm:w-[50%]"
           >
             {/* Drag indicator (mobile) */}
             <div className="flex justify-center py-1 sm:hidden">

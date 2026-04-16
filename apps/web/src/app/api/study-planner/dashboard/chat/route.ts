@@ -120,6 +120,7 @@ export async function POST(
       activePlanId,
       actions,
       action,
+      message,
     )
 
     return withRateLimitHeaders(
