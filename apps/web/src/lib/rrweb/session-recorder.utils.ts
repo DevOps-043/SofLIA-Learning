@@ -101,7 +101,7 @@ export function createServerSessionRecorderMock(): SessionRecorderInstance {
     isActive: () => false,
     isPaused: () => false,
     pause: () => {},
-    resume: () => {},
+    resume: async () => {},
     isRrwebAvailable: () => false,
     exportSession: () => '',
     exportSessionBase64: () => '',

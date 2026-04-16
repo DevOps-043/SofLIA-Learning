@@ -30,8 +30,6 @@ function LiaFloatingButtonContent() {
       <AnimatePresence>
         {!isOpen ? (
           <div
-            id={SHARED_TOUR_TARGET_IDS.liaTrigger}
-            data-tour="lia-button"
             style={{
               position: 'fixed',
               bottom: `${LIA_BUTTON_BOTTOM_PX}px`,
@@ -44,6 +42,8 @@ function LiaFloatingButtonContent() {
             }}
           >
             <motion.button
+              id={SHARED_TOUR_TARGET_IDS.liaTrigger}
+              data-tour="lia-button"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}

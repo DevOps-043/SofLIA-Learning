@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { CourseLessonContext, SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
@@ -428,14 +428,17 @@ export function useLiaCourseChat(
     };
   }, [user]);
 
-  return {
-    messages,
-    isLoading,
-    error,
-    sendMessage,
-    stop,
-    clearHistory,
-    loadConversation,
-    currentConversationId: conversationIdRef.current,
-  };
+  return useMemo(
+    () => ({
+      messages,
+      isLoading,
+      error,
+      sendMessage,
+      stop,
+      clearHistory,
+      loadConversation,
+      currentConversationId: conversationIdRef.current,
+    }),
+    [messages, isLoading, error, sendMessage, stop, clearHistory, loadConversation]
+  );
 }

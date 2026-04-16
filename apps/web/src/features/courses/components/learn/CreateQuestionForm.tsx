@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { Loader2, MessageCircle, Send } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import type { CourseQuestion } from "./questions/types";
 
@@ -21,6 +22,26 @@ export function CreateQuestionForm({
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !isSubmitting) {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose, isSubmitting]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,36 +77,46 @@ export function CreateQuestionForm({
     }
   };
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-question-title"
     >
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md"
       />
 
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
-        className="relative bg-white rounded-2xl border border-gray-200 w-full max-w-2xl p-8 shadow-2xl overflow-hidden"
+        className="relative w-full max-w-2xl max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-white/10 p-5 sm:p-6 md:p-8 shadow-2xl dark:shadow-black/50"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-          <MessageCircle className="w-24 h-24 text-gray-900" />
+        <div className="absolute top-0 right-0 p-4 opacity-5 dark:opacity-10 pointer-events-none">
+          <MessageCircle className="w-24 h-24 text-gray-900 dark:text-white" />
         </div>
 
-        <h3 className="text-gray-900 font-semibold text-xl mb-6 relative z-10 font-[Inter,sans-serif]">
+        <h3
+          id="create-question-title"
+          className="text-gray-900 dark:text-white font-semibold text-lg sm:text-xl mb-5 sm:mb-6 relative z-10 font-[Inter,sans-serif]"
+        >
           Nueva pregunta
         </h3>
 
-        <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+        <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 relative z-10">
           <div>
-            <label className="block text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">
+            <label className="block text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">
               Título (opcional)
             </label>
             <input
@@ -93,12 +124,12 @@ export function CreateQuestionForm({
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Escribe un título breve..."
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all font-medium"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all font-medium"
             />
           </div>
 
           <div>
-            <label className="block text-gray-500 text-xs font-medium uppercase tracking-wider mb-2">
+            <label className="block text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">
               Contenido <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -107,26 +138,26 @@ export function CreateQuestionForm({
               placeholder="Describe tu duda o comentario en detalle..."
               required
               rows={6}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all resize-none leading-relaxed"
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all resize-none leading-relaxed"
             />
           </div>
 
           {submitError && (
-            <p className="text-sm text-red-500">{submitError}</p>
+            <p className="text-sm text-red-500 dark:text-red-400">{submitError}</p>
           )}
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all text-sm font-medium"
+              className="px-5 py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-all text-sm font-medium"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !content.trim()}
-              className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-[#0A2540]/20 dark:hover:shadow-[#00D4B3]/20 text-sm font-semibold flex items-center gap-2"
+              className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-[#0A2540]/20 dark:hover:shadow-[#00D4B3]/20 text-sm font-semibold flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -143,6 +174,7 @@ export function CreateQuestionForm({
           </div>
         </form>
       </motion.div>
-    </div>
+    </div>,
+    document.body
   );
 }
