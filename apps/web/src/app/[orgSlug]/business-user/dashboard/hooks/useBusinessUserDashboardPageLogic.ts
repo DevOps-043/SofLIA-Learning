@@ -17,7 +17,13 @@ import {
   getBusinessUserDisplayName,
   getBusinessUserInitials,
 } from '../services/business-user-dashboard.service'
-import type { AssignedCourse, DashboardStats, Organization, OrgRole } from '../types'
+import type {
+  AssignedCourse,
+  AssignedLearningPath,
+  DashboardStats,
+  Organization,
+  OrgRole,
+} from '../types'
 
 interface OrganizationResponse {
   success?: boolean
@@ -35,6 +41,7 @@ interface DashboardResponse {
   error?: string
   stats?: DashboardStats
   courses?: AssignedCourse[]
+  learningPaths?: AssignedLearningPath[]
 }
 
 export function useBusinessUserDashboardPageLogic() {
@@ -58,6 +65,7 @@ export function useBusinessUserDashboardPageLogic() {
     certificates: 0,
   })
   const [assignedCourses, setAssignedCourses] = useState<AssignedCourse[]>([])
+  const [learningPaths, setLearningPaths] = useState<AssignedLearningPath[]>([])
   const [isMounted, setIsMounted] = useState(false)
 
   const userDashboardStyles = effectiveStyles?.userDashboard
@@ -150,12 +158,14 @@ export function useBusinessUserDashboardPageLogic() {
           }
         )
         setAssignedCourses(dashboardData.courses || [])
+        setLearningPaths(dashboardData.learningPaths || [])
         return
       }
 
       if (dashboardData.stats && dashboardData.courses) {
         setStats(dashboardData.stats)
         setAssignedCourses(dashboardData.courses)
+        setLearningPaths(dashboardData.learningPaths || [])
         return
       }
 
@@ -169,6 +179,7 @@ export function useBusinessUserDashboardPageLogic() {
         certificates: 0,
       })
       setAssignedCourses([])
+      setLearningPaths([])
     } finally {
       setLoading(false)
     }
@@ -202,6 +213,14 @@ export function useBusinessUserDashboardPageLogic() {
     [router]
   )
 
+  const handleLearningPathCourseClick = useCallback(
+    (slug: string | null | undefined) => {
+      if (!slug) return
+      router.push(`/courses/${slug}/learn`)
+    },
+    [router]
+  )
+
   const handleLogout = useCallback(async () => {
     await logout()
     router.push('/auth')
@@ -228,6 +247,7 @@ export function useBusinessUserDashboardPageLogic() {
     currentTime,
     stats,
     assignedCourses,
+    learningPaths,
     isMounted,
     userDashboardStyles,
     backgroundStyle,
@@ -244,6 +264,7 @@ export function useBusinessUserDashboardPageLogic() {
     initials,
     loadDashboardData,
     handleCourseClick,
+    handleLearningPathCourseClick,
     handleLogout,
     handleProfileClick,
     handleCertificatesClick,

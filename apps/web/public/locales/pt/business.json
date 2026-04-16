@@ -3,6 +3,7 @@
     "dashboard": "Dashboard",
     "users": "Usuários",
     "courses": "Cursos",
+    "learningPaths": "Rotas",
     "teams": "Equipes",
     "reports": "Relatórios",
     "analytics": "Analytics",
@@ -95,6 +96,21 @@
       "description": "Sua organização atribuirá cursos em breve. Enquanto isso, explore o que preparamos para você."
     },
     "confirmResetLayout": "Tem certeza de que deseja restaurar o layout padrão? Isso excluirá sua personalização atual.",
+    "learningPaths": {
+      "title": "Rotas de aprendizagem",
+      "subtitle": "Avance pelos seus cursos na ordem recomendada",
+      "badge": "Rota de aprendizagem",
+      "progress": "Progresso",
+      "nextCourse": "Próximo curso",
+      "continueCta": "Continuar rota",
+      "completedCta": "Rota concluída",
+      "itemProgress": "avanço",
+      "status": {
+        "completed": "Concluído",
+        "available": "Disponível",
+        "locked": "Bloqueado"
+      }
+    },
     "restoreLayout": "Restaurar",
     "addWidget": "Adicionar widget:"
   },
@@ -1174,6 +1190,71 @@
     "saveStructureError": "Erro ao criar a estrutura",
     "loadStructuresError": "Erro ao carregar estruturas",
     "loadHierarchyError": "Erro ao carregar hierarquia"
+  },
+  "learningPathsPage": {
+    "title": "Rotas de aprendizagem",
+    "subtitle": "Atribua aos seus usuarios as rotas criadas pela plataforma diretamente do painel da empresa.",
+    "badge": "Gestao de rotas",
+    "searchPlaceholder": "Buscar por rota, descricao ou workshop...",
+    "stats": {
+      "paths": "Rotas ativas",
+      "workshops": "Workshops",
+      "assignedUsers": "Usuarios com rotas",
+      "activeAssignments": "Atribuicoes ativas"
+    },
+    "empty": {
+      "title": "Nao ha rotas disponiveis",
+      "description": "Quando a equipe administradora criar rotas ativas, elas aparecerao aqui para que sua empresa decida quais usuarios devem recebe-las."
+    },
+    "cards": {
+      "sequence": "Rota sequencial",
+      "sequencePreview": "Previa",
+      "noDescription": "Sem descricao disponivel.",
+      "noCourseTitle": "Workshop sem titulo",
+      "noCategory": "Sem categoria",
+      "noLevel": "Sem nivel",
+      "workshopsCountLabel": "Workshops",
+      "assignedUsersLabel": "Usuarios",
+      "assignedUsers": "{{count}} usuarios atribuidos",
+      "assignUsers": "Atribuir usuarios"
+    },
+    "assignmentsTitle": "Atribuicoes ativas",
+    "assignmentsDescription": "Revise quais usuarios possuem cada rota e revogue acessos individuais quando necessario.",
+    "noAssignmentsTitle": "Ainda nao ha atribuicoes",
+    "noAssignmentsDescription": "Escolha uma rota e atribua aos usuarios que devem segui-la.",
+    "columns": {
+      "user": "Usuario",
+      "learningPath": "Rota",
+      "assignedAt": "Atribuido"
+    },
+    "revoke": "Revogar",
+    "revoking": "Revogando...",
+    "messages": {
+      "assignSuccess": "Rota atribuida com sucesso",
+      "revokeSuccess": "Atribuicao revogada com sucesso",
+      "revokeError": "Nao foi possivel revogar a atribuicao"
+    },
+    "unnamedUser": "Usuario sem nome"
+  },
+  "assignLearningPath": {
+    "title": "Atribuir rota de aprendizagem",
+    "subtitle": "Selecione quais usuarios ativos da sua empresa receberao esta rota.",
+    "searchPlaceholder": "Buscar por nome ou email...",
+    "selectedCount": "{{count}} usuarios selecionados",
+    "availableCount": "{{count}} usuarios ativos disponiveis",
+    "selectAll": "Selecionar visiveis",
+    "clearSelection": "Limpar selecao",
+    "loading": "Carregando usuarios...",
+    "noUsers": "Nao ha usuarios disponiveis para esta rota.",
+    "alreadyAssigned": "Ja atribuido",
+    "previewTitle": "Resumo da rota",
+    "moreItems": "E mais {{count}} workshops nesta rota.",
+    "footerNote": "As atribuicoes serao aplicadas apenas a usuarios ativos desta empresa.",
+    "cancel": "Cancelar",
+    "confirm": "Atribuir rota ({{count}})",
+    "assigning": "Atribuindo...",
+    "selectUserError": "Selecione pelo menos um usuario para atribuir a rota.",
+    "assignError": "Nao foi possivel atribuir a rota de aprendizagem."
   },
   "common": {
     "optional": "Opcional",

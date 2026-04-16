@@ -131,13 +131,16 @@ export function CourseSidebarPanel({
                 {learningPathState ? (
                   <div className="mb-6 rounded-2xl border border-[#00D4B3]/20 bg-[#00D4B3]/5 p-4">
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#00D4B3]">
-                      Learning Path
+                      {t("leftPanel.learningPath.badge")}
                     </p>
                     <h3 className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                       {learningPathState.title}
                     </h3>
                     <p className="mt-1 text-xs text-gray-500 dark:text-white/60">
-                      {learningPathState.completedItemsCount}/{learningPathState.totalItemsCount} talleres completados
+                      {t("leftPanel.learningPath.completedCount", {
+                        completed: learningPathState.completedItemsCount,
+                        total: learningPathState.totalItemsCount,
+                      })}
                     </p>
                     <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
                       <div
@@ -163,10 +166,10 @@ export function CourseSidebarPanel({
                             </span>
                             <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-white/50">
                               {item.isCompleted
-                                ? "Completo"
+                                ? t("leftPanel.learningPath.status.completed")
                                 : item.isUnlocked
-                                  ? "Disponible"
-                                  : "Bloqueado"}
+                                  ? t("leftPanel.learningPath.status.available")
+                                  : t("leftPanel.learningPath.status.locked")}
                             </span>
                           </div>
                         </div>

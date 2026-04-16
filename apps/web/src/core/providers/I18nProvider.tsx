@@ -3,7 +3,7 @@
 import { ReactNode, useCallback, useEffect, useMemo, useState, createContext, useContext } from 'react';
 import { I18nextProvider } from 'react-i18next';
 
-import { initI18n, SupportedLanguage } from '../i18n/i18n';
+import { initI18n, SupportedLanguage, syncI18nResources } from '../i18n/i18n';
 
 interface LanguageContextValue {
   language: SupportedLanguage;
@@ -16,20 +16,27 @@ const STORAGE_KEY = 'app-language';
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const i18nInstance = useMemo(() => {
-    const instance = initI18n();
-    // Asegurar que la primera renderización (SSR/CSR) siempre sea en español
-    instance.changeLanguage('es').catch(() => {});
-    return instance;
+    return initI18n();
   }, []);
   const [language, setLanguageState] = useState<SupportedLanguage>('es');
 
   useEffect(() => {
+    syncI18nResources();
+  });
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    syncI18nResources();
+
     const savedLanguage = localStorage.getItem(STORAGE_KEY) as SupportedLanguage | null;
     const initialLang = savedLanguage || 'es';
     setLanguageState(initialLang);
     document.documentElement.lang = initialLang;
-    i18nInstance.changeLanguage(initialLang).catch(() => {});
+    // Only change language if different from current to avoid unnecessary reload cycles
+    if (i18nInstance.language !== initialLang) {
+      i18nInstance.changeLanguage(initialLang).catch(() => {});
+    }
   }, [i18nInstance]);
 
   const changeLanguage = useCallback(
@@ -66,5 +73,3 @@ export function useLanguage() {
   }
   return ctx;
 }
-
-

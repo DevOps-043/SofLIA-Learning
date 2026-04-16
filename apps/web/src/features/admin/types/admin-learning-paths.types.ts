@@ -53,6 +53,36 @@ export interface UserLearningPathAssignment {
   } | null
 }
 
+export interface LearningPathOrganizationAssignmentSummary {
+  id: string
+  organization_id: string
+  organization_name: string
+  organization_slug: string | null
+  assigned_at: string
+  status: 'active' | 'revoked'
+}
+
+export interface LearningPathUserAssignmentSummary {
+  id: string
+  organization_id: string
+  organization_name: string
+  user_id: string
+  assigned_at: string
+  status: 'assigned' | 'revoked'
+  user: {
+    id: string
+    email: string
+    display_name: string | null
+    first_name: string | null
+    last_name: string | null
+  } | null
+}
+
+export interface LearningPathAssignmentOverview {
+  organizationAssignments: LearningPathOrganizationAssignmentSummary[]
+  userAssignments: LearningPathUserAssignmentSummary[]
+}
+
 export interface LearningPathUpsertPayload {
   title: string
   slug?: string | null

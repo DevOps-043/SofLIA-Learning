@@ -23,6 +23,32 @@ export interface AssignedCourse {
   has_certificate?: boolean
 }
 
+export type AssignedLearningPathItemStatus = 'completed' | 'available' | 'locked'
+
+export interface AssignedLearningPathItem {
+  courseId: string
+  title: string
+  slug: string | null
+  thumbnail: string | null
+  position: number
+  progress: number
+  status: AssignedLearningPathItemStatus
+  isUnlocked: boolean
+  isCompleted: boolean
+  hasCertificate: boolean
+}
+
+export interface AssignedLearningPath {
+  id: string
+  title: string
+  description: string | null
+  progressPercentage: number
+  completedItemsCount: number
+  totalItemsCount: number
+  nextCourseSlug: string | null
+  items: AssignedLearningPathItem[]
+}
+
 export interface Organization {
   id: string
   name: string

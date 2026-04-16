@@ -26,6 +26,15 @@
     "collapseModule": "Collapse module",
     "completed": "completed",
     "completedPercentage": "complete",
+    "learningPath": {
+      "badge": "Learning path",
+      "completedCount": "{{completed}}/{{total}} workshops completed",
+      "status": {
+        "completed": "Complete",
+        "available": "Available",
+        "locked": "Locked"
+      }
+    },
     "notesSection": {
       "myNotes": "My Notes",
       "newNote": "New Note",
@@ -61,6 +70,11 @@
     "next": "Next",
     "backToCourses": "Back to My Courses",
     "completeCourse": "Complete Course"
+  },
+  "learningPath": {
+    "badge": "Learning path",
+    "blockedTitle": "This workshop is locked by sequence",
+    "availableCta": "Go to the next available workshop"
   },
   "lia": {
     "title": "SofLIA",

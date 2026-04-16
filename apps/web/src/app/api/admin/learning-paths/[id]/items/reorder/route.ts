@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
+
+const reorderLearningPathItemsSchema = z.object({
+  orderedItemIds: z.array(z.string().uuid('ItemId invalido')).min(1),
+})
+const learningPathParamsSchema = z.object({
+  id: z.string().uuid('LearningPathId invalido'),
+})
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -13,15 +21,12 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
-    const { id } = await params
-    const body = await request.json()
-    const orderedItemIds = Array.isArray(body.orderedItemIds)
-      ? body.orderedItemIds.filter((value: unknown): value is string => typeof value === 'string')
-      : []
+    const { id } = learningPathParamsSchema.parse(await params)
+    const body = reorderLearningPathItemsSchema.parse(await request.json())
 
     const learningPath = await AdminLearningPathsService.reorderItems(
       id,
-      orderedItemIds,
+      body.orderedItemIds,
     )
 
     return NextResponse.json({ success: true, learningPath })

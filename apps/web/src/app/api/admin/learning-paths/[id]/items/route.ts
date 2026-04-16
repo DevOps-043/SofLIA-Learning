@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
+
+const addLearningPathItemSchema = z.object({
+  courseId: z.string().uuid('CourseId invalido'),
+})
+const learningPathParamsSchema = z.object({
+  id: z.string().uuid('LearningPathId invalido'),
+})
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -13,17 +21,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
-    const { id } = await params
-    const body = await request.json()
+    const { id } = learningPathParamsSchema.parse(await params)
+    const body = addLearningPathItemSchema.parse(await request.json())
 
-    if (!body.courseId) {
-      return NextResponse.json(
-        { success: false, error: 'CourseId es requerido' },
-        { status: 400 },
-      )
-    }
-
-    const item = await AdminLearningPathsService.addItem(id, body.courseId)
+    const item = await AdminLearningPathsService.addItem(id, body.courseId, auth.userId)
     return NextResponse.json({ success: true, item }, { status: 201 })
   } catch (error) {
     logger.error('Error adding learning path item:', error)
