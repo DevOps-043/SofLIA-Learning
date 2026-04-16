@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
+
+const learningPathCreateSchema = z.object({
+  title: z.string().trim().min(1, 'El titulo de la ruta es requerido'),
+  slug: z.string().trim().optional().nullable(),
+  description: z.string().trim().optional().nullable(),
+  is_active: z.boolean().optional(),
+})
 
 export async function GET() {
   try {
@@ -25,7 +33,7 @@ export async function POST(request: NextRequest) {
     const auth = await requireAdmin()
     if (auth instanceof NextResponse) return auth
 
-    const body = await request.json()
+    const body = learningPathCreateSchema.parse(await request.json())
     const learningPath = await AdminLearningPathsService.createLearningPath(
       body,
       auth.userId,

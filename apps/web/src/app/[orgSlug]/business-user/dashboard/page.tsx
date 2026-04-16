@@ -48,11 +48,13 @@ export default function BusinessUserDashboardPage() {
         myStats={logic.myStats}
         stats={logic.stats}
         assignedCourses={logic.assignedCourses}
+        learningPaths={logic.learningPaths}
         restartTour={logic.restartTour}
         handleProfileClick={logic.handleProfileClick}
         handleLogout={logic.handleLogout}
         handleCertificatesClick={logic.handleCertificatesClick}
         handleCourseClick={logic.handleCourseClick}
+        handleLearningPathCourseClick={logic.handleLearningPathCourseClick}
         showVideoIntro={logic.showVideoIntro}
         handleVideoComplete={logic.handleVideoComplete}
         introVideos={logic.introVideos}

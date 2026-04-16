@@ -247,7 +247,6 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   }
 
   const handleRemoveOrganizationLearningPath = async (assignmentId: string) => {
-    if (!confirm('¿Revocar este learning path para toda la organización?')) return
     try {
       const res = await fetch(`/api/admin/companies/${companyId}/learning-paths?assignmentId=${assignmentId}`, {
         method: 'DELETE'
@@ -263,7 +262,6 @@ export function useCourseSectionLogic({ companyId }: UseCourseSectionLogicProps)
   }
 
   const handleRemoveUserLearningPathAssignment = async (assignmentId: string) => {
-    if (!confirm('¿Revocar esta asignación individual de learning path?')) return
     try {
       const res = await fetch(`/api/admin/companies/${companyId}/user-learning-path-assignments?assignmentId=${assignmentId}`, {
         method: 'DELETE'

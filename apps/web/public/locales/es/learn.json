@@ -26,6 +26,15 @@
     "collapseModule": "Colapsar módulo",
     "completed": "completados",
     "completedPercentage": "completado",
+    "learningPath": {
+      "badge": "Ruta de aprendizaje",
+      "completedCount": "{{completed}}/{{total}} talleres completados",
+      "status": {
+        "completed": "Completo",
+        "available": "Disponible",
+        "locked": "Bloqueado"
+      }
+    },
     "notesSection": {
       "myNotes": "Mis Notas",
       "newNote": "Nueva Nota",
@@ -61,6 +70,11 @@
     "next": "Siguiente",
     "backToCourses": "Volver a Mis Cursos",
     "completeCourse": "Completar Curso"
+  },
+  "learningPath": {
+    "badge": "Ruta de aprendizaje",
+    "blockedTitle": "Este taller está bloqueado por secuencia",
+    "availableCta": "Ir al siguiente taller disponible"
   },
   "lia": {
     "title": "SofLIA",

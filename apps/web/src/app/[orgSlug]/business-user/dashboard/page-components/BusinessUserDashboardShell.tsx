@@ -5,14 +5,16 @@ import { Suspense, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List } from 'lucide-react'
+import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, Route } from 'lucide-react'
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
+import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
-import type { ModernNavbarStyleConfig } from '../components/modern-navbar/types'
+import { LearningPathCard } from '../components/LearningPathCard'
 import { formatBusinessUserDashboardDate } from '../services/business-user-dashboard.service'
 import type {
   AssignedCourse,
+  AssignedLearningPath,
   BusinessUserDashboardColors,
   BusinessUserDashboardStatItem,
   Organization,
@@ -46,7 +48,7 @@ interface BusinessUserDashboardShellProps {
   } | null
   organization: Organization | null
   orgRole: OrgRole
-  userDashboardStyles: ModernNavbarStyleConfig | null | undefined
+  userDashboardStyles: StyleConfig | null | undefined
   backgroundStyle: CSSProperties
   cssVariables: CSSProperties
   orgColors: BusinessUserDashboardColors
@@ -58,11 +60,13 @@ interface BusinessUserDashboardShellProps {
   myStats: BusinessUserDashboardStatItem[]
   stats: { certificates: number }
   assignedCourses: AssignedCourse[]
+  learningPaths: AssignedLearningPath[]
   restartTour: () => void
   handleProfileClick: () => void
   handleLogout: () => void
   handleCertificatesClick: () => void
   handleCourseClick: (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => void
+  handleLearningPathCourseClick: (slug: string | null | undefined) => void
   showVideoIntro: boolean
   handleVideoComplete: () => void
   introVideos: string[]
@@ -86,11 +90,13 @@ export function BusinessUserDashboardShell({
   myStats,
   stats,
   assignedCourses,
+  learningPaths,
   restartTour,
   handleProfileClick,
   handleLogout,
   handleCertificatesClick,
   handleCourseClick,
+  handleLearningPathCourseClick,
   showVideoIntro,
   handleVideoComplete,
   introVideos,
@@ -325,6 +331,53 @@ export function BusinessUserDashboardShell({
               </div>
             </section>
           </div>
+
+          {learningPaths.length > 0 ? (
+            <section className="mb-10">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="mb-6 flex items-center justify-between gap-4"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="rounded-xl border p-2"
+                    style={{
+                      background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
+                      borderColor: `${orgColors.iconColor}30`,
+                    }}
+                  >
+                    <Route className="h-5 w-5" style={{ color: orgColors.iconColor }} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
+                      {t('dashboard.learningPaths.title', 'Rutas de aprendizaje')}
+                    </h2>
+                    <p className="text-sm" style={{ color: orgColors.textSecondary }}>
+                      {t(
+                        'dashboard.learningPaths.subtitle',
+                        'Avanza por tus cursos en el orden recomendado'
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+
+              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+                {learningPaths.map((learningPath, index) => (
+                  <LearningPathCard
+                    key={learningPath.id}
+                    learningPath={learningPath}
+                    index={index}
+                    orgColors={orgColors}
+                    onOpenCourse={handleLearningPathCourseClick}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section>
             <motion.div

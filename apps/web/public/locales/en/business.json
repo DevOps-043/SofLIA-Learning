@@ -3,6 +3,7 @@
     "dashboard": "Dashboard",
     "users": "Users",
     "courses": "Courses",
+    "learningPaths": "Paths",
     "teams": "Teams",
     "reports": "Reports",
     "analytics": "Analytics",
@@ -95,6 +96,21 @@
       "description": "Your organization will assign you courses soon. In the meantime, explore what we have prepared for you."
     },
     "confirmResetLayout": "Are you sure you want to reset the default layout? This will delete your current customization.",
+    "learningPaths": {
+      "title": "Learning paths",
+      "subtitle": "Move through your courses in the recommended order",
+      "badge": "Learning path",
+      "progress": "Progress",
+      "nextCourse": "Next course",
+      "continueCta": "Continue path",
+      "completedCta": "Path completed",
+      "itemProgress": "progress",
+      "status": {
+        "completed": "Completed",
+        "available": "Available",
+        "locked": "Locked"
+      }
+    },
     "restoreLayout": "Restore",
     "addWidget": "Add widget:"
   },
@@ -1174,6 +1190,71 @@
     "saveStructureError": "Error creating the structure",
     "loadStructuresError": "Error loading structures",
     "loadHierarchyError": "Error loading hierarchy"
+  },
+  "learningPathsPage": {
+    "title": "Learning paths",
+    "subtitle": "Assign platform-created paths to your users directly from your company panel.",
+    "badge": "Path management",
+    "searchPlaceholder": "Search by path, description, or workshop...",
+    "stats": {
+      "paths": "Active paths",
+      "workshops": "Workshops",
+      "assignedUsers": "Users with paths",
+      "activeAssignments": "Active assignments"
+    },
+    "empty": {
+      "title": "No paths available",
+      "description": "When the admin team creates active paths, they will appear here so your company can decide which users should receive them."
+    },
+    "cards": {
+      "sequence": "Sequential path",
+      "sequencePreview": "Preview",
+      "noDescription": "No description available.",
+      "noCourseTitle": "Untitled workshop",
+      "noCategory": "No category",
+      "noLevel": "No level",
+      "workshopsCountLabel": "Workshops",
+      "assignedUsersLabel": "Users",
+      "assignedUsers": "{{count}} assigned users",
+      "assignUsers": "Assign users"
+    },
+    "assignmentsTitle": "Active assignments",
+    "assignmentsDescription": "Review which users have each path and revoke individual access when needed.",
+    "noAssignmentsTitle": "No assignments yet",
+    "noAssignmentsDescription": "Choose a path and assign it to the users who should follow it.",
+    "columns": {
+      "user": "User",
+      "learningPath": "Path",
+      "assignedAt": "Assigned"
+    },
+    "revoke": "Revoke",
+    "revoking": "Revoking...",
+    "messages": {
+      "assignSuccess": "Path assigned successfully",
+      "revokeSuccess": "Assignment revoked successfully",
+      "revokeError": "Could not revoke the assignment"
+    },
+    "unnamedUser": "Unnamed user"
+  },
+  "assignLearningPath": {
+    "title": "Assign learning path",
+    "subtitle": "Select which active users in your company should receive this path.",
+    "searchPlaceholder": "Search by name or email...",
+    "selectedCount": "{{count}} selected users",
+    "availableCount": "{{count}} active users available",
+    "selectAll": "Select visible",
+    "clearSelection": "Clear selection",
+    "loading": "Loading users...",
+    "noUsers": "There are no available users for this path.",
+    "alreadyAssigned": "Already assigned",
+    "previewTitle": "Path summary",
+    "moreItems": "And {{count}} more workshops in this path.",
+    "footerNote": "Assignments will only be applied to active users in this company.",
+    "cancel": "Cancel",
+    "confirm": "Assign path ({{count}})",
+    "assigning": "Assigning...",
+    "selectUserError": "Select at least one user to assign the path.",
+    "assignError": "Could not assign the learning path."
   },
   "common": {
     "optional": "Optional",

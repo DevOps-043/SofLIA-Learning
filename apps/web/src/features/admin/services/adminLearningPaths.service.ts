@@ -1,9 +1,10 @@
-import 'server-only'
+﻿import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 import type {
+  LearningPathAssignmentOverview,
   LearningPath,
   LearningPathItem,
   LearningPathUpsertPayload,
@@ -12,6 +13,11 @@ import type {
 } from '../types'
 
 type LooseRow = Record<string, unknown>
+type SupabaseMutationError = {
+  message: string
+  code?: string
+  details?: string
+} | null
 
 interface LearningPathRow extends LooseRow {
   id: string
@@ -22,7 +28,6 @@ interface LearningPathRow extends LooseRow {
   created_at: string
   updated_at: string
 }
-
 interface LearningPathItemRow extends LooseRow {
   id: string
   learning_path_id: string
@@ -42,8 +47,21 @@ interface OrganizationLearningPathAssignmentRow extends LooseRow {
   id: string
   organization_id: string
   learning_path_id: string
+  assigned_by: string | null
   assigned_at: string
   status: 'active' | 'revoked'
+}
+
+interface OrganizationLearningPathAssignmentSummaryRow extends LooseRow {
+  id: string
+  organization_id: string
+  assigned_at: string
+  status: 'active' | 'revoked'
+  organizations?: {
+    id: string
+    name: string
+    slug: string | null
+  } | null
 }
 
 interface UserLearningPathAssignmentRow extends LooseRow {
@@ -51,8 +69,29 @@ interface UserLearningPathAssignmentRow extends LooseRow {
   organization_id: string
   user_id: string
   learning_path_id: string
+  assigned_by: string | null
   assigned_at: string
   status: 'assigned' | 'revoked'
+  users?: {
+    id: string
+    email: string
+    display_name: string | null
+    first_name: string | null
+    last_name: string | null
+  } | null
+}
+
+interface UserLearningPathAssignmentSummaryRow extends LooseRow {
+  id: string
+  organization_id: string
+  user_id: string
+  assigned_at: string
+  status: 'assigned' | 'revoked'
+  organizations?: {
+    id: string
+    name: string
+    slug: string | null
+  } | null
   users?: {
     id: string
     email: string
@@ -72,6 +111,25 @@ function normalizeSlug(value: string | null | undefined) {
     .replace(/^-+|-+$/g, '')
 }
 
+function buildLearningPathMutationErrorMessage(
+  error: SupabaseMutationError,
+  fallbackMessage: string,
+) {
+  if (!error) {
+    return fallbackMessage
+  }
+
+  if (error.code === '23505') {
+    return 'Ya existe un learning path con ese slug'
+  }
+
+  if (error.code === '23503') {
+    return 'No se pudo asociar el learning path con el administrador actual'
+  }
+
+  return error.message || error.details || fallbackMessage
+}
+
 function mapLearningPathItems(rows: LearningPathItemRow[]): LearningPathItem[] {
   return rows
     .sort((left, right) => left.position - right.position)
@@ -83,7 +141,7 @@ function mapLearningPathItems(rows: LearningPathItemRow[]): LearningPathItem[] {
       course: row.courses
         ? {
             id: row.courses.id,
-            title: row.courses.title || 'Curso sin título',
+            title: row.courses.title || 'Curso sin tÃ­tulo',
             slug: row.courses.slug,
             thumbnail_url: row.courses.thumbnail_url,
             category: row.courses.category,
@@ -98,7 +156,7 @@ async function loadItemsByPathIds(pathIds: string[]) {
     return new Map<string, LearningPathItem[]>()
   }
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data, error } = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
     .select(`
       id,
@@ -119,7 +177,7 @@ async function loadItemsByPathIds(pathIds: string[]) {
 
   if (error) {
     logger.error('Error loading learning path items:', error)
-    throw new Error('No se pudieron cargar los ítems del learning path')
+    throw new Error('No se pudieron cargar los Ã­tems del learning path')
   }
 
   const itemsByPathId = new Map<string, LearningPathItem[]>()
@@ -157,7 +215,7 @@ function mapLearningPaths(
 async function ensureUniqueSlug(slug: string | null, currentPathId?: string) {
   if (!slug) return
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   let query = fromLoose<LearningPathRow>(supabase, 'learning_paths')
     .select('id, slug, title, description, is_active, created_at, updated_at')
     .eq('slug', slug)
@@ -185,7 +243,7 @@ async function syncCourseAccessForOrganization(
 ) {
   if (courseIds.length === 0) return
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   for (const courseId of courseIds) {
     const existing = await fromLoose<LooseRow>(supabase, 'hierarchy_course_assignments')
@@ -224,7 +282,7 @@ async function syncCourseAccessForUser(
 ) {
   if (courseIds.length === 0) return
 
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   for (const courseId of courseIds) {
     const existing = await supabase
@@ -237,7 +295,7 @@ async function syncCourseAccessForUser(
 
     if (existing.error) {
       logger.error('Error checking user course assignment for learning path:', existing.error)
-      throw new Error('No se pudo sincronizar la asignación individual')
+      throw new Error('No se pudo sincronizar la asignaciÃ³n individual')
     }
 
     if (!existing.data) {
@@ -253,7 +311,7 @@ async function syncCourseAccessForUser(
 
       if (assignmentInsert.error) {
         logger.error('Error creating user course assignment for learning path:', assignmentInsert.error)
-        throw new Error('No se pudo sincronizar la asignación individual')
+        throw new Error('No se pudo sincronizar la asignaciÃ³n individual')
       }
     }
 
@@ -278,9 +336,66 @@ async function syncCourseAccessForUser(
   }
 }
 
+async function syncNewCourseAccessForExistingLearningPathAssignments(
+  learningPathId: string,
+  courseId: string,
+  adminUserId: string,
+) {
+  const supabase = createAdminClient()
+
+  const [organizationAssignments, userAssignments] = await Promise.all([
+    fromLoose<OrganizationLearningPathAssignmentRow>(
+      supabase,
+      'organization_learning_path_assignments',
+    )
+      .select('id, organization_id, learning_path_id, assigned_by, assigned_at, status')
+      .eq('learning_path_id', learningPathId)
+      .eq('status', 'active'),
+    fromLoose<UserLearningPathAssignmentRow>(supabase, 'user_learning_path_assignments')
+      .select('id, organization_id, user_id, learning_path_id, assigned_by, assigned_at, status')
+      .eq('learning_path_id', learningPathId)
+      .eq('status', 'assigned'),
+  ])
+
+  if (organizationAssignments.error) {
+    logger.error(
+      'Error loading organization assignments for learning path item sync:',
+      organizationAssignments.error,
+    )
+    throw new Error('No se pudo sincronizar el nuevo taller con las empresas asignadas')
+  }
+
+  if (userAssignments.error) {
+    logger.error(
+      'Error loading user assignments for learning path item sync:',
+      userAssignments.error,
+    )
+    throw new Error('No se pudo sincronizar el nuevo taller con los usuarios asignados')
+  }
+
+  for (const assignment of organizationAssignments.data || []) {
+    await syncCourseAccessForOrganization(
+      assignment.organization_id,
+      [courseId],
+      assignment.assigned_by || adminUserId,
+    )
+  }
+
+  for (const assignment of userAssignments.data || []) {
+    const assignedBy = assignment.assigned_by || adminUserId
+    await syncCourseAccessForOrganization(assignment.organization_id, [courseId], assignedBy)
+    await syncCourseAccessForUser(
+      assignment.organization_id,
+      assignment.user_id,
+      [courseId],
+      assignedBy,
+    )
+  }
+}
+
 export class AdminLearningPathsService {
   static async listLearningPaths(): Promise<LearningPath[]> {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data, error } = await fromLoose<LearningPathRow>(supabase, 'learning_paths')
       .select('id, title, slug, description, is_active, created_at, updated_at')
       .order('created_at', { ascending: false })
@@ -296,7 +411,7 @@ export class AdminLearningPathsService {
   }
 
   static async getLearningPathById(id: string): Promise<LearningPath | null> {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data, error } = await fromLoose<LearningPathRow>(supabase, 'learning_paths')
       .select('id, title, slug, description, is_active, created_at, updated_at')
       .eq('id', id)
@@ -320,13 +435,13 @@ export class AdminLearningPathsService {
     const title = payload.title?.trim()
 
     if (!title) {
-      throw new Error('El título del learning path es requerido')
+      throw new Error('El tÃ­tulo del learning path es requerido')
     }
 
     const slug = normalizeSlug(payload.slug || title)
     await ensureUniqueSlug(slug)
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data, error } = await fromLoose<LearningPathRow>(supabase, 'learning_paths')
       .insert({
         title,
@@ -340,7 +455,12 @@ export class AdminLearningPathsService {
 
     if (error || !data) {
       logger.error('Error creating learning path:', error)
-      throw new Error('No se pudo crear el learning path')
+      throw new Error(
+        buildLearningPathMutationErrorMessage(
+          error,
+          'No se pudo crear el learning path',
+        ),
+      )
     }
 
     return {
@@ -369,7 +489,7 @@ export class AdminLearningPathsService {
     const nextSlug = normalizeSlug(payload.slug ?? existing.slug ?? nextTitle)
     await ensureUniqueSlug(nextSlug, id)
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { error } = await fromLoose<LearningPathRow>(supabase, 'learning_paths')
       .update({
         title: nextTitle,
@@ -394,7 +514,7 @@ export class AdminLearningPathsService {
   }
 
   static async deleteLearningPath(id: string) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { error } = await fromLoose<LearningPathRow>(supabase, 'learning_paths')
       .delete()
       .eq('id', id)
@@ -408,6 +528,7 @@ export class AdminLearningPathsService {
   static async addItem(
     learningPathId: string,
     courseId: string,
+    adminUserId: string,
   ): Promise<LearningPathItem> {
     const currentPath = await this.getLearningPathById(learningPathId)
     if (!currentPath) {
@@ -418,7 +539,7 @@ export class AdminLearningPathsService {
       throw new Error('Ese taller ya existe dentro del learning path')
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const nextPosition = currentPath.items.length + 1
 
     const { data, error } = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
@@ -448,11 +569,17 @@ export class AdminLearningPathsService {
       throw new Error('No se pudo agregar el taller al learning path')
     }
 
+    await syncNewCourseAccessForExistingLearningPathAssignments(
+      learningPathId,
+      courseId,
+      adminUserId,
+    )
+
     return mapLearningPathItems([data])[0]
   }
 
   static async removeItem(learningPathId: string, itemId: string) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data: item, error: itemError } = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
       .select('id, learning_path_id, course_id, position')
       .eq('learning_path_id', learningPathId)
@@ -461,11 +588,11 @@ export class AdminLearningPathsService {
 
     if (itemError) {
       logger.error('Error loading learning path item:', itemError)
-      throw new Error('No se pudo cargar el ítem del learning path')
+      throw new Error('No se pudo cargar el Ã­tem del learning path')
     }
 
     if (!item) {
-      throw new Error('Ítem del learning path no encontrado')
+      throw new Error('Ãtem del learning path no encontrado')
     }
 
     const { error } = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
@@ -474,7 +601,7 @@ export class AdminLearningPathsService {
 
     if (error) {
       logger.error('Error removing learning path item:', error)
-      throw new Error('No se pudo eliminar el ítem del learning path')
+      throw new Error('No se pudo eliminar el Ã­tem del learning path')
     }
 
     const { data: remaining, error: remainingError } = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
@@ -515,7 +642,7 @@ export class AdminLearningPathsService {
     }
 
     if (orderedItemIds.length !== currentPath.items.length) {
-      throw new Error('El nuevo orden no coincide con los ítems actuales')
+      throw new Error('El nuevo orden no coincide con los Ã­tems actuales')
     }
 
     const currentItemIds = new Set(currentPath.items.map((item) => item.id))
@@ -527,11 +654,11 @@ export class AdminLearningPathsService {
 
     for (const itemId of orderedItemIds) {
       if (!currentItemIds.has(itemId)) {
-        throw new Error('El nuevo orden contiene ítems inválidos')
+        throw new Error('El nuevo orden contiene Ã­tems invÃ¡lidos')
       }
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     for (const [index, itemId] of orderedItemIds.entries()) {
       const stagingResult = await fromLoose<LearningPathItemRow>(supabase, 'learning_path_items')
@@ -574,7 +701,7 @@ export class AdminLearningPathsService {
   static async listOrganizationAssignments(
     organizationId: string,
   ): Promise<OrganizationLearningPathAssignment[]> {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data, error } = await fromLoose<OrganizationLearningPathAssignmentRow>(
       supabase,
       'organization_learning_path_assignments',
@@ -618,7 +745,7 @@ export class AdminLearningPathsService {
       adminUserId,
     )
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const existing = await fromLoose<OrganizationLearningPathAssignmentRow>(
       supabase,
       'organization_learning_path_assignments',
@@ -647,7 +774,7 @@ export class AdminLearningPathsService {
 
         if (reactivated.error) {
           logger.error('Error reactivating organization learning path assignment:', reactivated.error)
-          throw new Error('No se pudo reactivar la asignación del learning path')
+          throw new Error('No se pudo reactivar la asignaciÃ³n del learning path')
         }
       }
 
@@ -690,7 +817,7 @@ export class AdminLearningPathsService {
   }
 
   static async revokeFromOrganization(organizationId: string, assignmentId: string) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { error } = await fromLoose<OrganizationLearningPathAssignmentRow>(
       supabase,
       'organization_learning_path_assignments',
@@ -711,7 +838,7 @@ export class AdminLearningPathsService {
   static async listUserAssignments(
     organizationId: string,
   ): Promise<UserLearningPathAssignment[]> {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data, error } = await fromLoose<UserLearningPathAssignmentRow>(
       supabase,
       'user_learning_path_assignments',
@@ -778,7 +905,7 @@ export class AdminLearningPathsService {
       adminUserId,
     )
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const existing = await fromLoose<UserLearningPathAssignmentRow>(
       supabase,
       'user_learning_path_assignments',
@@ -822,7 +949,7 @@ export class AdminLearningPathsService {
 
         if (reactivated.error) {
           logger.error('Error reactivating user learning path assignment:', reactivated.error)
-          throw new Error('No se pudo reactivar la asignación del learning path')
+          throw new Error('No se pudo reactivar la asignaciÃ³n del learning path')
         }
       }
 
@@ -887,7 +1014,7 @@ export class AdminLearningPathsService {
     organizationId: string,
     assignmentId: string,
   ) {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { error } = await fromLoose<UserLearningPathAssignmentRow>(
       supabase,
       'user_learning_path_assignments',
@@ -901,7 +1028,95 @@ export class AdminLearningPathsService {
 
     if (error) {
       logger.error('Error revoking user learning path assignment:', error)
-      throw new Error('No se pudo revocar la asignación individual')
+      throw new Error('No se pudo revocar la asignaciÃ³n individual')
+    }
+  }
+
+  static async listAssignmentsForLearningPath(
+    learningPathId: string,
+  ): Promise<LearningPathAssignmentOverview> {
+    const supabase = createAdminClient()
+
+    const [organizationAssignmentsResult, userAssignmentsResult] = await Promise.all([
+      fromLoose<OrganizationLearningPathAssignmentSummaryRow>(
+        supabase,
+        'organization_learning_path_assignments',
+      )
+        .select(`
+          id,
+          organization_id,
+          assigned_at,
+          status,
+          organizations:organization_id (
+            id,
+            name,
+            slug
+          )
+        `)
+        .eq('learning_path_id', learningPathId)
+        .order('assigned_at', { ascending: false }),
+      fromLoose<UserLearningPathAssignmentSummaryRow>(
+        supabase,
+        'user_learning_path_assignments',
+      )
+        .select(`
+          id,
+          organization_id,
+          user_id,
+          assigned_at,
+          status,
+          organizations:organization_id (
+            id,
+            name,
+            slug
+          ),
+          users:user_id (
+            id,
+            email,
+            display_name,
+            first_name,
+            last_name
+          )
+        `)
+        .eq('learning_path_id', learningPathId)
+        .order('assigned_at', { ascending: false }),
+    ])
+
+    if (organizationAssignmentsResult.error) {
+      logger.error(
+        'Error fetching organization summaries for learning path:',
+        organizationAssignmentsResult.error,
+      )
+      throw new Error('No se pudieron cargar las asignaciones organizacionales del learning path')
+    }
+
+    if (userAssignmentsResult.error) {
+      logger.error(
+        'Error fetching user summaries for learning path:',
+        userAssignmentsResult.error,
+      )
+      throw new Error('No se pudieron cargar las asignaciones individuales del learning path')
+    }
+
+    return {
+      organizationAssignments: (organizationAssignmentsResult.data || []).map((row) => ({
+        id: row.id,
+        organization_id: row.organization_id,
+        organization_name: row.organizations?.name || 'Organizacion sin nombre',
+        organization_slug: row.organizations?.slug || null,
+        assigned_at: row.assigned_at,
+        status: row.status,
+      })),
+      userAssignments: (userAssignmentsResult.data || []).map((row) => ({
+        id: row.id,
+        organization_id: row.organization_id,
+        organization_name: row.organizations?.name || 'Organizacion sin nombre',
+        user_id: row.user_id,
+        assigned_at: row.assigned_at,
+        status: row.status,
+        user: row.users || null,
+      })),
     }
   }
 }
+

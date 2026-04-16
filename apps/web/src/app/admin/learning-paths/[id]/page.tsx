@@ -9,8 +9,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params
 
   return {
-    title: 'Editar Learning Path | Panel de Administración',
-    description: `Gestiona el contenido y orden del learning path ${id}.`,
+    title: 'Editar ruta de aprendizaje | Panel de Administracion',
+    description: `Gestiona el contenido y orden de la ruta de aprendizaje ${id}.`,
   }
 }
 

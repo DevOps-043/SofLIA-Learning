@@ -3,6 +3,7 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Plus, X, BookOpen, CheckCircle, ChevronDown, GraduationCap, Building, Route } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type {
   Course,
   AssignedCourse,
@@ -143,6 +144,8 @@ export function LearningPathCatalogModal({
   isOpen, onClose, search, setSearch,
   filteredLearningPaths, activeAssignments, assigningId, onAssign
 }: LearningPathCatalogModalProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -157,8 +160,8 @@ export function LearningPathCatalogModal({
             <div className="p-8 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Catálogo de Learning Paths</h4>
-                  <p className="text-sm" style={{ color: colors.grayMedium }}>Asigna rutas completas manteniendo el orden secuencial de talleres.</p>
+                  <h4 className="text-2xl font-black text-white uppercase tracking-tighter">{t('coursesSection.pathCatalogTitle')}</h4>
+                  <p className="text-sm" style={{ color: colors.grayMedium }}>{t('coursesSection.pathCatalogSubtitle')}</p>
                 </div>
                 <button onClick={onClose} className="p-3 rounded-2xl hover:bg-white/5 text-white/40 hover:text-white transition-all">
                   <X className="w-6 h-6" />
@@ -169,7 +172,7 @@ export function LearningPathCatalogModal({
                 <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: colors.grayMedium }} />
                 <input
                   autoFocus
-                  placeholder="Busca por título o descripción..."
+                  placeholder={t('coursesSection.pathSearchPlaceholder')}
                   className="w-full pl-14 pr-6 py-4 rounded-[1.5rem] border-0 text-white focus:outline-none focus:ring-2 transition-all shadow-inner"
                   style={{ backgroundColor: colors.bgTertiary }}
                   value={search}
@@ -182,7 +185,7 @@ export function LearningPathCatalogModal({
               {filteredLearningPaths.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <Route className="w-16 h-16 mb-4 opacity-5" />
-                  <p className="text-lg font-bold text-white/20">No se encontraron learning paths</p>
+                  <p className="text-lg font-bold text-white/20">{t('coursesSection.noLearningPathsFound')}</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -196,20 +199,20 @@ export function LearningPathCatalogModal({
                         style={{ backgroundColor: colors.bgTertiary, borderColor: 'rgba(255,255,255,0.05)' }}
                       >
                         <div className="p-6 flex-1 flex flex-col">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>Ruta Secuencial</p>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>{t('coursesSection.sequentialPath')}</p>
                           <h5 className="text-lg font-bold text-white leading-tight mb-2">{path.title}</h5>
                           <p className="text-sm line-clamp-3 mb-6" style={{ color: colors.grayMedium }}>
-                            {path.description || 'Sin descripción'}
+                            {path.description || t('coursesSection.noDescription')}
                           </p>
                           <div className="text-[11px] font-medium mb-6" style={{ color: colors.grayMedium }}>
-                            {path.item_count} talleres en secuencia
+                            {t('coursesSection.workshopsInSequence', { count: path.item_count })}
                           </div>
 
                           <div className="mt-auto pt-6 border-t border-white/5 flex items-center justify-between">
                             {isAlreadyAssigned ? (
                               <div className="flex items-center gap-2 text-success">
                                 <CheckCircle className="w-4 h-4" />
-                                <span className="text-xs font-bold uppercase">Ya asignado</span>
+                                <span className="text-xs font-bold uppercase">{t('coursesSection.alreadyAssigned')}</span>
                               </div>
                             ) : (
                               <button
@@ -218,7 +221,9 @@ export function LearningPathCatalogModal({
                                 className="w-full py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all hover:scale-[1.02] flex items-center justify-center gap-2"
                                 style={{ backgroundColor: colors.accent, color: colors.primary }}
                               >
-                                {assigningId === path.id ? 'Procesando...' : 'Asignar Ruta'}
+                                {assigningId === path.id
+                                  ? t('coursesSection.processing')
+                                  : t('coursesSection.assignPath')}
                               </button>
                             )}
                           </div>
@@ -349,6 +354,8 @@ export function AssignLearningPathModal({
   selectedLearningPathForUser, setSelectedLearningPathForUser,
   isAssigning, onConfirm
 }: AssignLearningPathModalProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -360,13 +367,13 @@ export function AssignLearningPathModal({
             className="relative w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl border"
             style={{ backgroundColor: colors.bgSecondary, borderColor: 'rgba(255,255,255,0.1)' }}>
             <div className="p-8 border-b" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-              <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Asignar Learning Path</h4>
-              <p className="text-sm" style={{ color: colors.grayMedium }}>Entrega una ruta completa respetando el orden de desbloqueo.</p>
+              <h4 className="text-2xl font-black text-white uppercase tracking-tighter">{t('coursesSection.assignPathTitle')}</h4>
+              <p className="text-sm" style={{ color: colors.grayMedium }}>{t('coursesSection.assignPathSubtitle')}</p>
             </div>
 
             <div className="p-8 space-y-8">
               <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.grayMedium }}>Seleccionar Miembro</label>
+                <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.grayMedium }}>{t('coursesSection.selectMember')}</label>
                 <div className="relative group">
                   <select
                     className="w-full h-14 pl-5 pr-10 rounded-2xl bg-black/20 border-white/5 border text-white text-sm appearance-none outline-none focus:ring-2"
@@ -374,7 +381,7 @@ export function AssignLearningPathModal({
                     value={selectedUserForLearningPath || ''}
                     onChange={(e) => setSelectedUserForLearningPath(e.target.value)}
                   >
-                    <option value="">Buscar miembro...</option>
+                    <option value="">{t('coursesSection.memberPlaceholder')}</option>
                     {members.map(m => (
                       <option key={m.user_id} value={m.user_id}>
                         {m.user.display_name || m.user.email}
@@ -386,7 +393,7 @@ export function AssignLearningPathModal({
               </div>
 
               <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.grayMedium }}>Seleccionar Learning Path</label>
+                <label className="text-[10px] font-black uppercase tracking-widest" style={{ color: colors.grayMedium }}>{t('coursesSection.selectLearningPath')}</label>
                 <div className="relative group">
                   <select
                     className="w-full h-14 pl-5 pr-10 rounded-2xl bg-black/20 border-white/5 border text-white text-sm appearance-none outline-none focus:ring-2"
@@ -394,7 +401,7 @@ export function AssignLearningPathModal({
                     value={selectedLearningPathForUser || ''}
                     onChange={(e) => setSelectedLearningPathForUser(e.target.value)}
                   >
-                    <option value="">Buscar learning path...</option>
+                    <option value="">{t('coursesSection.pathPlaceholder')}</option>
                     {learningPaths.map(path => (
                       <option key={path.id} value={path.id}>{path.title}</option>
                     ))}
@@ -405,14 +412,16 @@ export function AssignLearningPathModal({
             </div>
 
             <div className="p-8 border-t flex gap-4" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-              <button onClick={onClose} className="flex-1 py-4 text-sm font-bold text-white/40 hover:text-white transition-all">Cancelar</button>
+              <button onClick={onClose} className="flex-1 py-4 text-sm font-bold text-white/40 hover:text-white transition-all">{t('coursesSection.cancel')}</button>
               <button
                 disabled={!selectedUserForLearningPath || !selectedLearningPathForUser || isAssigning}
                 onClick={onConfirm}
                 className="flex-[2] py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all disabled:opacity-30 shadow-xl"
                 style={{ backgroundColor: colors.accent, color: colors.primary }}
               >
-                {isAssigning ? 'Asignando...' : 'Confirmar Asignación'}
+                {isAssigning
+                  ? t('coursesSection.assigning')
+                  : t('coursesSection.confirmAssignment')}
               </button>
             </div>
           </motion.div>
@@ -451,7 +460,6 @@ interface CoursesHeaderProps {
   onOpenCatalog: () => void
   onOpenLearningPathCatalog: () => void
   onAssignUser: () => void
-  onAssignLearningPath: () => void
 }
 
 export function CoursesHeader({
@@ -460,8 +468,9 @@ export function CoursesHeader({
   onOpenCatalog,
   onOpenLearningPathCatalog,
   onAssignUser,
-  onAssignLearningPath
 }: CoursesHeaderProps) {
+  const { t } = useTranslation('admin')
+
   return (
     <>
       <div className="flex p-1 rounded-2xl w-fit" style={{ backgroundColor: colors.bgTertiary }}>
@@ -512,7 +521,7 @@ export function CoursesHeader({
             style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}
           >
             <Route className="w-5 h-5" />
-            Asignar Learning Path
+            {t('coursesSection.assignPath')}
           </motion.button>
           {activeTab === 'users' && (
             <>
@@ -525,16 +534,6 @@ export function CoursesHeader({
               >
                 <GraduationCap className="w-5 h-5" />
                 Asignar Curso
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onAssignLearningPath}
-                className="px-6 py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 border"
-                style={{ borderColor: colors.accent, color: colors.accent, backgroundColor: `${colors.accent}10` }}
-              >
-                <Route className="w-5 h-5" />
-                Asignar Ruta
               </motion.button>
             </>
           )}

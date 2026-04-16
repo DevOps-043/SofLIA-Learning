@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Menu, Transition } from '@headlessui/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sun, Moon, Monitor, Check } from 'lucide-react'
@@ -38,6 +38,8 @@ interface AdminUserDropdownProps {
 export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false)
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false)
+  const [avatarError, setAvatarError] = useState(false)
+  const handleAvatarError = useCallback(() => setAvatarError(true), [])
   const router = useRouter()
   const { logout } = useAuth()
   const { t, i18n } = useTranslation()
@@ -134,15 +136,16 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
           >
             {/* Avatar */}
             <div className="relative">
-              {user.profile_picture_url ? (
+              {user.profile_picture_url && !avatarError ? (
                 <motion.img
                   src={user.profile_picture_url}
                   alt={getDisplayName()}
                   className="w-9 h-9 rounded-full object-cover ring-2 ring-[#E9ECEF] dark:ring-[#334155] group-hover:ring-[#00D4B3] transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
+                  onError={handleAvatarError}
                 />
               ) : (
-                <motion.div 
+                <motion.div
                   className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[#0A2540]/20"
                   whileHover={{ scale: 1.05 }}
                 >
@@ -187,11 +190,12 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
           {/* Header del Dropdown */}
           <div className="p-4 border-b border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC]/50 dark:bg-[#0A0D12]/30">
             <div className="flex items-center gap-3 mb-2">
-              {user.profile_picture_url ? (
+              {user.profile_picture_url && !avatarError ? (
                 <img
                   src={user.profile_picture_url}
                   alt={getDisplayName()}
                   className="w-10 h-10 rounded-full object-cover ring-2 ring-[#E9ECEF] dark:ring-[#334155]"
+                  onError={handleAvatarError}
                 />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center text-white text-xs font-bold">

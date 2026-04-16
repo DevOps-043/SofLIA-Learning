@@ -3,6 +3,7 @@
     "dashboard": "Dashboard",
     "users": "Usuarios",
     "courses": "Cursos",
+    "learningPaths": "Rutas",
     "teams": "Equipos",
     "reports": "Reportes",
     "analytics": "Analytics",
@@ -95,6 +96,21 @@
       "description": "Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti."
     },
     "confirmResetLayout": "¿Estás seguro de que deseas restablecer el layout por defecto? Esto eliminará tu personalización actual.",
+    "learningPaths": {
+      "title": "Rutas de aprendizaje",
+      "subtitle": "Avanza por tus cursos en el orden recomendado",
+      "badge": "Ruta de aprendizaje",
+      "progress": "Progreso",
+      "nextCourse": "Siguiente curso",
+      "continueCta": "Continuar ruta",
+      "completedCta": "Ruta completada",
+      "itemProgress": "avance",
+      "status": {
+        "completed": "Completado",
+        "available": "Disponible",
+        "locked": "Bloqueado"
+      }
+    },
     "restoreLayout": "Restablecer",
     "addWidget": "Agregar widget:"
   },
@@ -1174,6 +1190,71 @@
     "saveStructureError": "Error al crear la estructura",
     "loadStructuresError": "Error cargando estructuras",
     "loadHierarchyError": "Error cargando jerarquía"
+  },
+  "learningPathsPage": {
+    "title": "Rutas de aprendizaje",
+    "subtitle": "Asigna a tus usuarios las rutas creadas por la plataforma desde el panel de tu empresa.",
+    "badge": "Gestion de rutas",
+    "searchPlaceholder": "Buscar por ruta, descripcion o taller...",
+    "stats": {
+      "paths": "Rutas activas",
+      "workshops": "Talleres",
+      "assignedUsers": "Usuarios con rutas",
+      "activeAssignments": "Asignaciones activas"
+    },
+    "empty": {
+      "title": "No hay rutas disponibles",
+      "description": "Cuando el equipo administrador cree rutas activas, apareceran aqui para que tu empresa decida a que usuarios asignarlas."
+    },
+    "cards": {
+      "sequence": "Ruta secuencial",
+      "sequencePreview": "Vista previa",
+      "noDescription": "Sin descripcion disponible.",
+      "noCourseTitle": "Taller sin titulo",
+      "noCategory": "Sin categoria",
+      "noLevel": "Sin nivel",
+      "workshopsCountLabel": "Talleres",
+      "assignedUsersLabel": "Usuarios",
+      "assignedUsers": "{{count}} usuarios asignados",
+      "assignUsers": "Asignar usuarios"
+    },
+    "assignmentsTitle": "Asignaciones activas",
+    "assignmentsDescription": "Revisa que usuarios tienen cada ruta y revoca accesos individuales cuando haga falta.",
+    "noAssignmentsTitle": "Todavia no hay asignaciones",
+    "noAssignmentsDescription": "Selecciona una ruta y asignala a los usuarios que deban seguirla.",
+    "columns": {
+      "user": "Usuario",
+      "learningPath": "Ruta",
+      "assignedAt": "Asignado"
+    },
+    "revoke": "Revocar",
+    "revoking": "Revocando...",
+    "messages": {
+      "assignSuccess": "Ruta asignada correctamente",
+      "revokeSuccess": "Asignacion revocada correctamente",
+      "revokeError": "No se pudo revocar la asignacion"
+    },
+    "unnamedUser": "Usuario sin nombre"
+  },
+  "assignLearningPath": {
+    "title": "Asignar ruta de aprendizaje",
+    "subtitle": "Selecciona que usuarios activos de tu empresa recibiran esta ruta.",
+    "searchPlaceholder": "Buscar por nombre o email...",
+    "selectedCount": "{{count}} usuarios seleccionados",
+    "availableCount": "{{count}} usuarios activos disponibles",
+    "selectAll": "Seleccionar visibles",
+    "clearSelection": "Limpiar seleccion",
+    "loading": "Cargando usuarios...",
+    "noUsers": "No hay usuarios disponibles para esta ruta.",
+    "alreadyAssigned": "Ya asignado",
+    "previewTitle": "Resumen de la ruta",
+    "moreItems": "Y {{count}} talleres mas en la ruta.",
+    "footerNote": "Las asignaciones se aplicaran solo a usuarios activos de esta empresa.",
+    "cancel": "Cancelar",
+    "confirm": "Asignar ruta ({{count}})",
+    "assigning": "Asignando...",
+    "selectUserError": "Selecciona al menos un usuario para asignar la ruta.",
+    "assignError": "No se pudo asignar la ruta de aprendizaje."
   },
   "common": {
     "optional": "Opcional",

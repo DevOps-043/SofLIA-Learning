@@ -33,18 +33,19 @@ interface AdminSidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { name: 'Usuarios', href: '/admin/users', icon: Users },
-  { name: 'Talleres', href: '/admin/workshops', icon: BookOpen },
-  { name: 'Learning Paths', href: '/admin/learning-paths', icon: Route },
-  { name: 'SofLIA Analytics', href: '/admin/lia-analytics', icon: BarChart3 },
-  { name: 'Estadísticas de Usuarios', href: '/admin/user-stats', icon: MapPin },
-  { name: 'Empresas', href: '/admin/companies', icon: Building2 },
-  { name: 'Reportes', href: '/admin/reportes', icon: FileText },
-  { name: 'Revisiones', href: '/admin/courses/pending', icon: ClipboardCheck },
+  { section: 'dashboard', labelKey: 'navigation.dashboard', fallbackLabel: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { section: 'users', labelKey: 'navigation.users', fallbackLabel: 'Usuarios', href: '/admin/users', icon: Users },
+  { section: 'workshops', labelKey: 'navigation.workshops', fallbackLabel: 'Talleres', href: '/admin/workshops', icon: BookOpen },
+  { section: 'learning-paths', labelKey: 'navigation.learningPaths', fallbackLabel: 'Rutas de aprendizaje', href: '/admin/learning-paths', icon: Route },
+  { section: 'lia-analytics', labelKey: 'navigation.liaAnalytics', fallbackLabel: 'SofLIA Analytics', href: '/admin/lia-analytics', icon: BarChart3 },
+  { section: 'user-stats', labelKey: 'navigation.userStats', fallbackLabel: 'Estadísticas de Usuarios', href: '/admin/user-stats', icon: MapPin },
+  { section: 'companies', labelKey: 'navigation.companies', fallbackLabel: 'Empresas', href: '/admin/companies', icon: Building2 },
+  { section: 'reports', labelKey: 'navigation.reports', fallbackLabel: 'Reportes', href: '/admin/reportes', icon: FileText },
+  { section: 'reviews', labelKey: 'navigation.reviews', fallbackLabel: 'Revisiones', href: '/admin/courses/pending', icon: ClipboardCheck },
 ]
 
 export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, isCollapsed, onToggleCollapse }: AdminSidebarProps) {
+  const { t } = useTranslation('admin')
   const pathname = usePathname()
   const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -238,9 +239,10 @@ export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, 
               {navigation.map((item, index) => {
                 const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
                 const Icon = item.icon
+                const label = t(item.labelKey, { defaultValue: item.fallbackLabel })
                 return (
                   <motion.li
-                    key={item.name}
+                    key={item.href}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
@@ -249,7 +251,7 @@ export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, 
                       href={item.href}
                       onClick={(event) => {
                         event.stopPropagation()
-                        onSectionChange(item.name.toLowerCase())
+                        onSectionChange(item.section)
                         onClose()
                       }}
                       className={`
@@ -276,7 +278,7 @@ export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, 
                           e.currentTarget.style.opacity = '0.7';
                         }
                       }}
-                      title={(isCollapsed && !shouldExpand) ? item.name : undefined}
+                      title={(isCollapsed && !shouldExpand) ? label : undefined}
                     >
                       <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
                       
@@ -287,7 +289,7 @@ export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, 
                           exit={{ opacity: 0, width: 0 }}
                           className="text-sm font-medium whitespace-nowrap overflow-hidden flex-1"
                         >
-                          {item.name}
+                          {label}
                         </motion.span>
                       )}
 

@@ -103,16 +103,26 @@ export async function processOAuthCallback<TProviderTokens>({
     if (existingUser) {
       userId = existingUser.id;
 
+      const profileUpdates: Record<string, unknown> = {};
+
       if (orgContext.orgId && invitedRole) {
-        const { error: roleUpdateError } = await supabase
+        profileUpdates.cargo_rol = 'Business';
+      }
+
+      if (normalizedProfile.picture) {
+        profileUpdates.profile_picture_url = normalizedProfile.picture;
+      }
+
+      if (Object.keys(profileUpdates).length > 0) {
+        const { error: updateError } = await supabase
           .from('users')
-          .update({ cargo_rol: 'Business' })
+          .update(profileUpdates)
           .eq('id', userId);
 
-        if (roleUpdateError) {
+        if (updateError) {
           logger.error(
-            `${provider.providerLabel} OAuth: No se pudo actualizar cargo_rol`,
-            roleUpdateError,
+            `${provider.providerLabel} OAuth: No se pudo actualizar perfil`,
+            updateError,
             { userId }
           );
         }

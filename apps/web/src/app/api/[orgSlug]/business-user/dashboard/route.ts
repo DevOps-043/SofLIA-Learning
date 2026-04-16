@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/utils/logger'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
+import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
+import type { AssignedLearningPathDashboard } from '@/features/learning-paths/services/learning-path-dashboard.service'
 
 interface DashboardStats {
   total_assigned: number
@@ -335,16 +337,25 @@ export async function GET(request: NextRequest, context: RouteContext) {
         }
       })
 
+    let learningPaths: AssignedLearningPathDashboard[] = []
+    try {
+      learningPaths = await loadBusinessUserLearningPaths({ userId, organizationId })
+    } catch (learningPathError) {
+      logger.error('Error preparing learning paths for dashboard:', learningPathError)
+    }
+
     logger.log('✅ Dashboard data prepared:', {
       stats,
       coursesCount: courses.length,
+      learningPathsCount: learningPaths.length,
       orgSlug
     })
 
     return NextResponse.json({
       success: true,
       stats: stats,
-      courses: courses
+      courses: courses,
+      learningPaths
     }, {
       headers: {
         'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
@@ -362,7 +373,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
           completed: 0,
           certificates: 0
         },
-        courses: []
+        courses: [],
+        learningPaths: []
       },
       { status: 500 }
     )

@@ -101,12 +101,18 @@ interface OrgLearningPathsGridProps {
 }
 
 export function OrgLearningPathsGrid({ assignments, onRemove }: OrgLearningPathsGridProps) {
+  const [pendingRevokeId, setPendingRevokeId] = useState<string | null>(null)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {assignments.length === 0 ? (
         <div className="col-span-full py-16 rounded-3xl border-2 border-dashed flex flex-col items-center justify-center" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
           <Route className="w-12 h-12 mb-4 opacity-10" />
-          <p className="text-sm text-center px-10" style={{ color: colors.grayMedium }}>No hay learning paths asignados a toda la organización.</p>
+          <p className="text-sm text-center px-10" style={{ color: colors.grayMedium }}>
+            {t('coursesSection.noOrgLearningPaths')}
+          </p>
         </div>
       ) : (
         assignments.map(assignment => (
@@ -119,10 +125,12 @@ export function OrgLearningPathsGrid({ assignments, onRemove }: OrgLearningPaths
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>Learning Path</p>
-                <h5 className="text-lg font-bold text-white">{assignment.learning_path?.title || 'Ruta sin título'}</h5>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: colors.accent }}>{t('coursesSection.learningPath')}</p>
+                <h5 className="text-lg font-bold text-white">
+                  {assignment.learning_path?.title || t('coursesSection.untitledPath')}
+                </h5>
                 <p className="text-sm mt-2" style={{ color: colors.grayMedium }}>
-                  {assignment.learning_path?.description || 'Sin descripción'}
+                  {assignment.learning_path?.description || t('coursesSection.noDescription')}
                 </p>
               </div>
               <Route className="w-5 h-5" style={{ color: colors.accent }} />
@@ -130,14 +138,31 @@ export function OrgLearningPathsGrid({ assignments, onRemove }: OrgLearningPaths
 
             <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between">
               <div className="text-[11px]" style={{ color: colors.grayMedium }}>
-                {assignment.learning_path?.item_count || 0} talleres · Asignado {new Date(assignment.assigned_at).toLocaleDateString()}
+                {t('coursesSection.workshopsCount', { count: assignment.learning_path?.item_count || 0 })} · {t('coursesSection.assignedOn', { date: new Date(assignment.assigned_at).toLocaleDateString() })}
               </div>
-              <button
-                onClick={() => onRemove(assignment.id)}
-                className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
-              >
-                Revocar Ruta
-              </button>
+              {pendingRevokeId === assignment.id ? (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPendingRevokeId(null)}
+                    className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 hover:bg-white/5 transition-all"
+                  >
+                    {tc('actions.cancel')}
+                  </button>
+                  <button
+                    onClick={() => { setPendingRevokeId(null); onRemove(assignment.id) }}
+                    className="px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-400 bg-red-500/10 hover:bg-red-500/20 transition-all"
+                  >
+                    {tc('actions.confirm')}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setPendingRevokeId(assignment.id)}
+                  className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
+                >
+                  {t('coursesSection.revokePath')}
+                </button>
+              )}
             </div>
           </motion.div>
         ))
@@ -225,28 +250,32 @@ export function UserAssignmentsTable({ activeUserAssignments, onRemove }: UserAs
 
 interface UserLearningPathAssignmentsTableProps {
   assignments: UserLearningPathAssignment[]
-  onRemove: (assignmentId: string) => void
+  onRemove?: (assignmentId: string) => void
 }
 
 export function UserLearningPathAssignmentsTable({
   assignments,
   onRemove,
 }: UserLearningPathAssignmentsTableProps) {
+  const [pendingRevokeId, setPendingRevokeId] = useState<string | null>(null)
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+
   return (
     <div className="overflow-hidden rounded-3xl border" style={{ backgroundColor: colors.bgTertiary, borderColor: 'rgba(255,255,255,0.05)' }}>
       <table className="w-full text-left">
         <thead style={{ backgroundColor: 'rgba(255,255,255,0.02)' }}>
           <tr>
-            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.grayMedium }}>Usuario</th>
-            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.grayMedium }}>Learning Path</th>
-            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-right" style={{ color: colors.grayMedium }}>Acciones</th>
+            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.grayMedium }}>{t('coursesSection.user')}</th>
+            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider" style={{ color: colors.grayMedium }}>{t('coursesSection.learningPath')}</th>
+            <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-wider text-right" style={{ color: colors.grayMedium }}>{t('coursesSection.actionsHeader')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
           {assignments.length === 0 ? (
             <tr>
               <td colSpan={3} className="px-6 py-16 text-center text-sm" style={{ color: colors.grayMedium }}>
-                No hay asignaciones individuales de learning paths registradas.
+                {t('coursesSection.noUserLearningPaths')}
               </td>
             </tr>
           ) : (
@@ -266,18 +295,31 @@ export function UserLearningPathAssignmentsTable({
                   </div>
                 </td>
                 <td className="px-6 py-4">
-                  <p className="text-sm text-white line-clamp-1">{assignment.learning_path?.title || 'Ruta sin título'}</p>
+                  <p className="text-sm text-white line-clamp-1">
+                    {assignment.learning_path?.title || t('coursesSection.untitledPath')}
+                  </p>
                   <p className="text-[10px]" style={{ color: colors.grayMedium }}>
-                    {assignment.learning_path?.item_count || 0} talleres
+                    {t('coursesSection.workshopsCount', { count: assignment.learning_path?.item_count || 0 })}
                   </p>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button
-                    onClick={() => onRemove(assignment.id)}
-                    className="p-2 rounded-xl hover:bg-red-500/10 text-red-400 opacity-40 hover:opacity-100 transition-all"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {onRemove && pendingRevokeId === assignment.id ? (
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => setPendingRevokeId(null)} className="px-2 py-1 text-xs border border-white/10 text-white/60 rounded hover:bg-white/5 transition-colors">{tc('actions.cancel')}</button>
+                      <button onClick={() => { setPendingRevokeId(null); onRemove(assignment.id) }} className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors">{tc('actions.confirm')}</button>
+                    </div>
+                  ) : onRemove ? (
+                    <button
+                      onClick={() => setPendingRevokeId(assignment.id)}
+                      className="p-2 rounded-xl hover:bg-red-500/10 text-red-400 opacity-40 hover:opacity-100 transition-all"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <span className="text-xs font-semibold" style={{ color: colors.grayMedium }}>
+                      {t('coursesSection.learningPathAssignmentsManagedByCompany', 'Gestionado por empresa')}
+                    </span>
+                  )}
                 </td>
               </tr>
             ))

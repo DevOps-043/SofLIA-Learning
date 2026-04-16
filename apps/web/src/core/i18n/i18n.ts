@@ -81,7 +81,28 @@ const resources: Resource = {
   },
 };
 
+const ALL_NAMESPACES = [
+  'common', 'dashboard', 'content', 'learn', 'my-courses',
+  'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin',
+] as const;
+
+/** Ensures all resource bundles are present in the singleton, idempotent. */
+function syncResourceBundles() {
+  (['es', 'en', 'pt'] as SupportedLanguage[]).forEach(lang => {
+    ALL_NAMESPACES.forEach(ns => {
+      const bundle = (resources[lang] as Record<string, unknown>)[ns];
+      if (bundle) {
+        i18n.addResourceBundle(lang, ns, bundle, true, true);
+      }
+    });
+  });
+}
+
 let initialized = false;
+
+export const syncI18nResources = () => {
+  syncResourceBundles();
+};
 
 export const initI18n = () => {
   if (!initialized && !i18n.isInitialized) {
@@ -89,7 +110,7 @@ export const initI18n = () => {
       resources,
       lng: 'es',
       fallbackLng: 'es',
-      ns: ['common', 'dashboard', 'content', 'learn', 'my-courses', 'statistics-results', 'communities', 'news', 'business', 'instructor', 'admin'],
+      ns: [...ALL_NAMESPACES],
       defaultNS: 'common',
       interpolation: {
         escapeValue: false,
@@ -98,17 +119,11 @@ export const initI18n = () => {
         useSuspense: false,
       },
     });
+    syncResourceBundles();
     initialized = true;
   } else {
-    // Ensure business namespace is loaded even if i18n was already initialized (HMR/Singleton fix)
-    (['es', 'en', 'pt'] as SupportedLanguage[]).forEach(lang => {
-      // Always add/update resource bundles to ensure latest content (HMR/Singleton fix)
-      i18n.addResourceBundle(lang, 'common', resources[lang].common, true, true);
-      i18n.addResourceBundle(lang, 'learn', resources[lang].learn, true, true);
-      i18n.addResourceBundle(lang, 'business', resources[lang].business, true, true);
-      i18n.addResourceBundle(lang, 'instructor', resources[lang].instructor, true, true);
-      i18n.addResourceBundle(lang, 'admin', resources[lang].admin, true, true);
-    });
+    // HMR / StrictMode double-invoke fix: always re-sync ALL namespaces
+    syncResourceBundles();
   }
 
   return i18n;

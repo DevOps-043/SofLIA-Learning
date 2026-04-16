@@ -218,10 +218,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               <Lock className="h-7 w-7" />
             </div>
             <p className="mt-6 text-xs font-bold uppercase tracking-[0.28em] text-amber-600">
-              Learning Path
+              {t('learningPath.badge')}
             </p>
             <h1 className="mt-3 text-3xl font-bold text-[#0A2540] dark:text-white">
-              Este taller esta bloqueado por secuencia
+              {t('learningPath.blockedTitle')}
             </h1>
             <p className="mt-4 text-sm leading-6 text-[#52606D] dark:text-white/75">
               {learningPathBlockState.message}
@@ -231,8 +231,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                 {learningPathBlockState.learningPath.title}
               </h2>
               <p className="mt-1 text-xs text-[#52606D] dark:text-white/60">
-                {learningPathBlockState.learningPath.completedItemsCount}/
-                {learningPathBlockState.learningPath.totalItemsCount} talleres completados
+                {t('leftPanel.learningPath.completedCount', {
+                  completed: learningPathBlockState.learningPath.completedItemsCount,
+                  total: learningPathBlockState.learningPath.totalItemsCount,
+                })}
               </p>
               <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
                 <div
@@ -260,10 +262,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                       </span>
                       <span className="text-[10px] uppercase tracking-[0.18em] text-gray-500 dark:text-white/50">
                         {item.isCompleted
-                          ? 'Completo'
+                          ? t('leftPanel.learningPath.status.completed')
                           : item.isUnlocked
-                            ? 'Disponible'
-                            : 'Bloqueado'}
+                            ? t('leftPanel.learningPath.status.available')
+                            : t('leftPanel.learningPath.status.locked')}
                       </span>
                     </div>
                   </div>
@@ -278,7 +280,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                   }
                   className="rounded-xl bg-[#0A2540] px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#0d2f4d]"
                 >
-                  Ir al siguiente taller disponible
+                  {t('learningPath.availableCta')}
                 </button>
               ) : null}
               <button

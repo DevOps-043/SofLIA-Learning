@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useCourseSectionLogic } from './useCourseSectionLogic'
 import {
@@ -16,7 +17,6 @@ import {
   CatalogModal,
   LearningPathCatalogModal,
   AssignUserModal,
-  AssignLearningPathModal,
 } from './CoursesFilters'
 import { colors } from './courses-section.types'
 
@@ -25,6 +25,7 @@ interface CoursesSectionProps {
 }
 
 export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => {
+  const { t } = useTranslation('admin')
   const logic = useCourseSectionLogic({ companyId })
 
   if (logic.loading) {
@@ -52,7 +53,6 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
         onOpenCatalog={() => logic.setIsCatalogOpen(true)}
         onOpenLearningPathCatalog={() => logic.setIsLearningPathCatalogOpen(true)}
         onAssignUser={() => logic.setIsAssignUserModalOpen(true)}
-        onAssignLearningPath={() => logic.setIsAssignLearningPathModalOpen(true)}
       />
 
       <CoursesSearchBar
@@ -97,9 +97,14 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
             <h4 className="mb-4 text-sm font-black uppercase tracking-[0.2em]" style={{ color: colors.grayMedium }}>
               Learning Paths Asignados Individualmente
             </h4>
+            <p className="mb-4 text-sm" style={{ color: colors.grayMedium }}>
+              {t(
+                'coursesSection.learningPathAssignmentsManagedByCompany',
+                'Las asignaciones individuales de rutas se gestionan desde el panel de cada empresa.',
+              )}
+            </p>
             <UserLearningPathAssignmentsTable
               assignments={logic.activeUserLearningPathAssignments}
-              onRemove={logic.handleRemoveUserLearningPathAssignment}
             />
           </div>
         </div>
@@ -138,19 +143,6 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ companyId }) => 
         setSelectedCourseForUser={logic.setSelectedCourseForUser}
         isAssigning={logic.isAssigning}
         onConfirm={logic.handleAssignToUser}
-      />
-
-      <AssignLearningPathModal
-        isOpen={logic.isAssignLearningPathModalOpen}
-        onClose={() => logic.setIsAssignLearningPathModalOpen(false)}
-        members={logic.members}
-        learningPaths={logic.allLearningPaths}
-        selectedUserForLearningPath={logic.selectedUserForLearningPath}
-        setSelectedUserForLearningPath={logic.setSelectedUserForLearningPath}
-        selectedLearningPathForUser={logic.selectedLearningPathForUser}
-        setSelectedLearningPathForUser={logic.setSelectedLearningPathForUser}
-        isAssigning={logic.isAssigning}
-        onConfirm={logic.handleAssignLearningPathToUser}
       />
     </div>
   )
