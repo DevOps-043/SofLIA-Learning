@@ -1,37 +1,24 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader2, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { redirectToDashboard } from '../../actions/dashboard-redirect';
-
-function getRedirectDigest(error: unknown): string | null {
-  if (!error || typeof error !== 'object' || !('digest' in error)) {
-    return null;
-  }
-
-  return typeof error.digest === 'string' ? error.digest : null;
-}
 
 export function DashboardButton() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDashboardClick = async () => {
     try {
       setIsLoading(true);
-      await redirectToDashboard();
+      const response = await fetch('/api/auth/dashboard-destination');
+      const data = await response.json();
+      router.push(data.destination || '/dashboard');
     } catch (error) {
-      // Verificar si es una redirección de Next.js (no es un error real)
-      if (error && typeof error === 'object' && 'digest' in error) {
-        const digest = getRedirectDigest(error);
-        if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
-          // Es una redirección exitosa, dejar que Next.js la maneje
-          return;
-        }
-      }
-
-      // Solo es un error real si llegamos aquí
       console.error('Error redirigiendo al dashboard:', error);
+      router.push('/dashboard');
+    } finally {
       setIsLoading(false);
     }
   };

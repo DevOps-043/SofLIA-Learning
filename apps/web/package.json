@@ -104,6 +104,7 @@
     "recharts": "^3.3.0",
     "rrweb": "^2.0.0-alpha.18",
     "rrweb-player": "^2.0.0-alpha.18",
+    "server-only": "^0.0.1",
     "swapy": "^1.0.5",
     "swr": "^2.2.0",
     "tailwind-merge": "^2.6.1",

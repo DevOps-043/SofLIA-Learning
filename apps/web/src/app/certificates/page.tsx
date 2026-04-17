@@ -20,7 +20,7 @@ import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingBut
 import { LiaSidePanel } from '@/core/components/LiaSidePanel'
 import { useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
 import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
-import { BusinessPanelStatCard } from '@/features/business-panel/components/shared/BusinessPanelStatCard'
+
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { CertificateDocumentPreview } from '@/features/certificates/components/CertificateDocumentPreview'
 import type { CertificateListItem } from '@/features/certificates/types/certificate'
@@ -124,8 +124,7 @@ export default function CertificatesPage() {
     }
   }
 
-  const completedCount = certificates.length
-  const activeOrganizations = new Set(certificates.map((certificate) => certificate.issuerName)).size
+
 
   if (loading) {
     return (
@@ -223,30 +222,6 @@ export default function CertificatesPage() {
               <p className="mt-3 max-w-2xl text-sm md:text-base" style={{ color: theme.inverseSubtextColor }}>
                 {t('certificates.pageSubtitle')}
               </p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:w-[420px]">
-              <BusinessPanelStatCard
-                compact
-                title={t('certificates.statsCerts')}
-                value={completedCount}
-                icon={<Award className="h-full w-full" />}
-                iconColor={theme.actionColor}
-              />
-              <BusinessPanelStatCard
-                compact
-                title={t('certificates.statsOrgs')}
-                value={activeOrganizations}
-                icon={<Building2 className="h-full w-full" />}
-                iconColor={theme.warningColor}
-              />
-              <BusinessPanelStatCard
-                compact
-                title={t('certificates.statsValid')}
-                value={completedCount}
-                icon={<Shield className="h-full w-full" />}
-                iconColor={theme.successColor}
-              />
             </div>
           </div>
         </section>

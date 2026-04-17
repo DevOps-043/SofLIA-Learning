@@ -26,6 +26,13 @@ interface AssignedCourse {
   completed_at?: string
   has_certificate?: boolean
   source?: 'direct'
+  learning_path_position?: number | null
+}
+
+interface LearningPathItemPositionRow {
+  course_id: string
+  position: number
+  learning_path_id: string
 }
 
 interface CourseAssignmentCourse {
@@ -342,6 +349,44 @@ export async function GET(request: NextRequest, context: RouteContext) {
       learningPaths = await loadBusinessUserLearningPaths({ userId, organizationId })
     } catch (learningPathError) {
       logger.error('Error preparing learning paths for dashboard:', learningPathError)
+    }
+
+    // =====================================================
+    // 🔢 Ordenar cursos según posición en learning paths
+    // Usamos los datos de learningPaths que ya se cargaron
+    // exitosamente (evita problemas de RLS en queries adicionales).
+    // Cursos del learning path primero (por position), luego los demás.
+    // =====================================================
+    if (courses.length > 0 && learningPaths.length > 0) {
+      const coursePositionMap = new Map<string, number>()
+
+      for (const lp of learningPaths) {
+        for (const item of lp.items) {
+          const existingPos = coursePositionMap.get(item.courseId)
+          if (existingPos === undefined || item.position < existingPos) {
+            coursePositionMap.set(item.courseId, item.position)
+          }
+        }
+      }
+
+      if (coursePositionMap.size > 0) {
+        // Annotate courses with their learning path position
+        for (const course of courses) {
+          const pos = coursePositionMap.get(course.course_id)
+          if (pos !== undefined) {
+            course.learning_path_position = pos
+          }
+        }
+
+        // Sort: learning path courses first (by position), then the rest
+        courses.sort((a, b) => {
+          const posA = a.learning_path_position ?? Infinity
+          const posB = b.learning_path_position ?? Infinity
+          return posA - posB
+        })
+
+        logger.log('🔢 Courses sorted by learning path position:', coursePositionMap)
+      }
     }
 
     logger.log('✅ Dashboard data prepared:', {
