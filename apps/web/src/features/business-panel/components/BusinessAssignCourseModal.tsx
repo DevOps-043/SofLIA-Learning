@@ -13,7 +13,6 @@ import {
   ChevronRight,
   BookOpen,
   Calendar,
-  XCircle,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -202,6 +201,12 @@ export function BusinessAssignCourseModal({
                         const isAlreadyAssigned = modal.alreadyAssignedUserIds.has(user.id)
                         const isSelected = modal.selectedUserIds.has(user.id)
                         const displayName = getBusinessAssignCourseDisplayName(user)
+                        const sourceInfo = modal.assignedUserSources.get(user.id)
+                        const sourceLabel = sourceInfo?.source === 'learning_path'
+                          ? `Ruta: ${sourceInfo.learning_path_title || 'Ruta de aprendizaje'}`
+                          : sourceInfo?.source === 'team'
+                            ? `Equipo: ${sourceInfo.team_name || 'Equipo'}`
+                            : 'Asignado'
 
                         return (
                           <motion.button
@@ -239,8 +244,9 @@ export function BusinessAssignCourseModal({
                                <p className="text-[10px] font-medium opacity-40 truncate">{user.email}</p>
                             </div>
                             {isAlreadyAssigned && (
-                               <div className="absolute top-2 right-2">
-                                  <XCircle className="w-4 h-4 opacity-50" />
+                               <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ backgroundColor: `${accentColor}15` }}>
+                                  <UserCheck className="w-3 h-3" style={{ color: accentColor }} />
+                                  <span className="text-[8px] font-bold uppercase tracking-widest max-w-[100px] truncate" style={{ color: accentColor }}>{sourceLabel}</span>
                                </div>
                             )}
                           </motion.button>

@@ -40,6 +40,7 @@ export function useBusinessAssignCourseModal({
   const [alreadyAssignedUserIds, setAlreadyAssignedUserIds] = useState<Set<string>>(
     new Set(),
   )
+  const [assignedUserSources, setAssignedUserSources] = useState<Map<string, { source: string; team_name?: string; learning_path_title?: string }>>(new Map())
   const [isSuggesting, setIsSuggesting] = useState(false)
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null)
 
@@ -69,9 +70,26 @@ export function useBusinessAssignCourseModal({
           return
         }
 
-        const data = (await response.json()) as { user_ids?: string[]; success?: boolean }
+        const data = (await response.json()) as {
+          user_ids?: string[]
+          assigned_users?: Array<{ user_id: string; source: string; team_name?: string; learning_path_title?: string }>
+          success?: boolean
+        }
         if (!isCancelled && data.success && Array.isArray(data.user_ids)) {
           setAlreadyAssignedUserIds(new Set(data.user_ids))
+
+          // Build source map
+          if (Array.isArray(data.assigned_users)) {
+            const sourceMap = new Map<string, { source: string; team_name?: string; learning_path_title?: string }>()
+            for (const user of data.assigned_users) {
+              sourceMap.set(user.user_id, {
+                source: user.source,
+                team_name: user.team_name,
+                learning_path_title: user.learning_path_title,
+              })
+            }
+            setAssignedUserSources(sourceMap)
+          }
         }
       } catch (fetchError) {
         console.error('Error fetching assigned users:', fetchError)
@@ -239,6 +257,7 @@ IMPORTANTE: Tu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido con este
     selectedUserCount,
     selectedUserIds,
     selectedUsers,
+    assignedUserSources,
     setDueDate,
     setSearchTerm,
     setSuggestionReason,

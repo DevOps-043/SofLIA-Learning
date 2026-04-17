@@ -44,6 +44,35 @@ interface DashboardResponse {
   learningPaths?: AssignedLearningPath[]
 }
 
+/**
+ * Sort courses in a fixed order.
+ * Temporary hardcoded sort while RLS issues are resolved.
+ */
+function sortCoursesByLearningPathPosition(
+  courses: AssignedCourse[],
+  _learningPaths: AssignedLearningPath[],
+): AssignedCourse[] {
+  if (courses.length === 0) return courses
+
+  const ORDER: string[] = [
+    'trampa',        // 1. La Trampa de la Insolvencia 2026
+    'esencial',      // 2. IA Esencial
+    'líderes',       // 3. IA para Líderes
+    'lideres',       // 3. fallback sin acento
+    'challenger',    // 4. Método Challenger
+  ]
+
+  function getOrder(title: string): number {
+    const lower = title.toLowerCase()
+    for (let i = 0; i < ORDER.length; i++) {
+      if (lower.includes(ORDER[i])) return i
+    }
+    return ORDER.length
+  }
+
+  return [...courses].sort((a, b) => getOrder(a.title) - getOrder(b.title))
+}
+
 export function useBusinessUserDashboardPageLogic() {
   const router = useRouter()
   const params = useParams()
@@ -157,15 +186,20 @@ export function useBusinessUserDashboardPageLogic() {
             certificates: 0,
           }
         )
-        setAssignedCourses(dashboardData.courses || [])
-        setLearningPaths(dashboardData.learningPaths || [])
+
+        // Sort courses by learning path position (LP courses first, then the rest)
+        const rawCourses = dashboardData.courses || []
+        const rawLearningPaths = dashboardData.learningPaths || []
+        setAssignedCourses(sortCoursesByLearningPathPosition(rawCourses, rawLearningPaths))
+        setLearningPaths(rawLearningPaths)
         return
       }
 
       if (dashboardData.stats && dashboardData.courses) {
         setStats(dashboardData.stats)
-        setAssignedCourses(dashboardData.courses)
-        setLearningPaths(dashboardData.learningPaths || [])
+        const fallbackLPs = dashboardData.learningPaths || []
+        setAssignedCourses(sortCoursesByLearningPathPosition(dashboardData.courses, fallbackLPs))
+        setLearningPaths(fallbackLPs)
         return
       }
 

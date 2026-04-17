@@ -1,5 +1,7 @@
 'use client';
 
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Joyride from 'react-joyride';
 import { StudyPlannerCalendar } from '../../../features/study-planner/components/StudyPlannerCalendar';
 import {
@@ -10,10 +12,15 @@ import {
 } from '../../../features/study-planner/components/dashboard';
 import { StudyPlannerDashboardToolbarV2 } from '../../../features/study-planner/components/dashboard/StudyPlannerDashboardToolbarV2';
 import { useStudyPlannerDashboardLogicV2 } from '../../../features/study-planner/hooks/useStudyPlannerDashboardLogicV2';
-import { redirectToDashboard } from '../../../features/auth/actions/dashboard-redirect';
 import { ToastNotification } from '../../../core/components/ToastNotification';
 
 export default function StudyPlannerDashboardPage() {
+  const router = useRouter();
+
+  const handleGoBack = useCallback(() => {
+    router.push('/dashboard');
+  }, [router]);
+
   const {
     availablePlans,
     messages,
@@ -80,7 +87,7 @@ export default function StudyPlannerDashboardPage() {
           isDeletingPlan={isDeletingPlan}
           isRecreatingPlan={isRecreatingPlan}
           onDeletePlan={handleDeletePlan}
-          onGoBack={redirectToDashboard}
+          onGoBack={handleGoBack}
           onOpenCalendarConfig={() => setIsCalendarConfigOpen(true)}
           onOpenCalendarModal={() => setIsCalendarModalOpen(true)}
           onRecreatePlan={handleRecreatePlan}

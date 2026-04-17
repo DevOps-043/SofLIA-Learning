@@ -24,6 +24,13 @@ interface AssignedCourse {
   completed_at?: string
   has_certificate?: boolean
   source?: 'direct' | 'team'
+  learning_path_position?: number | null
+}
+
+interface LearningPathItemPositionRow {
+  course_id: string
+  position: number
+  learning_path_id: string
 }
 
 interface RelatedCourseSummary {
@@ -425,6 +432,49 @@ export async function GET() {
           source: assignment.source
         }
       })
+
+    // =====================================================
+    // 🔢 Ordenar cursos según posición en learning paths
+    // =====================================================
+    if (courses.length > 0) {
+      try {
+        const assignedCourseIds = courses.map(c => c.course_id)
+
+        const { data: lpItems, error: lpItemsError } = await supabase
+          .from('learning_path_items')
+          .select('course_id, position, learning_path_id')
+          .in('course_id', assignedCourseIds)
+          .order('position', { ascending: true })
+          .returns<LearningPathItemPositionRow[]>()
+
+        if (!lpItemsError && lpItems && lpItems.length > 0) {
+          const coursePositionMap = new Map<string, number>()
+          for (const item of lpItems) {
+            const existingPos = coursePositionMap.get(item.course_id)
+            if (existingPos === undefined || item.position < existingPos) {
+              coursePositionMap.set(item.course_id, item.position)
+            }
+          }
+
+          for (const course of courses) {
+            const pos = coursePositionMap.get(course.course_id)
+            if (pos !== undefined) {
+              course.learning_path_position = pos
+            }
+          }
+
+          courses.sort((a, b) => {
+            const posA = a.learning_path_position ?? Infinity
+            const posB = b.learning_path_position ?? Infinity
+            return posA - posB
+          })
+
+          logger.log('🔢 Courses sorted by learning path position:', coursePositionMap.size, 'courses mapped')
+        }
+      } catch (sortError) {
+        logger.error('Error sorting courses by learning path position:', sortError)
+      }
+    }
 
     logger.log('✅ Dashboard data prepared:', {
       stats,

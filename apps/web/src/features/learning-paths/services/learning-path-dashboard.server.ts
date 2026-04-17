@@ -1,7 +1,6 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 import {
   buildBusinessUserLearningPaths,
@@ -16,42 +15,73 @@ interface LearningPathAssignmentIdRow {
   learning_path_id: string
 }
 
+interface LearningPathCourseJoinRow {
+  id: string
+  title: string | null
+  slug: string | null
+  thumbnail_url: string | null
+}
+
 function uniqueValues(values: string[]) {
   return [...new Set(values)]
 }
 
+/**
+ * Load the learning path IDs assigned to a user via organization-level
+ * assignments and user-level assignments.
+ *
+ * Uses direct `supabase.from(...)` calls with `.returns<>()` to avoid RLS
+ * issues that occurred with fromLoose + nested joins.
+ */
 async function loadAssignedLearningPathIds(userId: string, organizationId: string) {
   const supabase = await createClient()
 
   const [organizationAssignments, userAssignments] = await Promise.all([
-    fromLoose<LearningPathAssignmentIdRow>(supabase, 'organization_learning_path_assignments')
+    supabase
+      .from('organization_learning_path_assignments')
       .select('learning_path_id')
       .eq('organization_id', organizationId)
-      .eq('status', 'active'),
-    fromLoose<LearningPathAssignmentIdRow>(supabase, 'user_learning_path_assignments')
+      .eq('status', 'active')
+      .returns<LearningPathAssignmentIdRow[]>(),
+    supabase
+      .from('user_learning_path_assignments')
       .select('learning_path_id')
       .eq('organization_id', organizationId)
       .eq('user_id', userId)
-      .eq('status', 'assigned'),
+      .eq('status', 'assigned')
+      .returns<LearningPathAssignmentIdRow[]>(),
   ])
 
   if (organizationAssignments.error) {
     logger.error(
-      'Error loading organization learning path ids for dashboard:',
+      '❌ Error loading org learning path assignments for dashboard:',
       organizationAssignments.error,
     )
-    throw new Error('No se pudieron cargar las rutas de aprendizaje')
+    // Don't throw — return empty so the dashboard still loads
+    return []
   }
 
   if (userAssignments.error) {
-    logger.error('Error loading user learning path ids for dashboard:', userAssignments.error)
-    throw new Error('No se pudieron cargar las rutas de aprendizaje')
+    logger.error(
+      '❌ Error loading user learning path assignments for dashboard:',
+      userAssignments.error,
+    )
+    // Don't throw — return empty so the dashboard still loads
+    return []
   }
 
-  return uniqueValues([
+  const ids = uniqueValues([
     ...(organizationAssignments.data || []).map((row) => row.learning_path_id),
     ...(userAssignments.data || []).map((row) => row.learning_path_id),
   ])
+
+  logger.log(
+    `📚 Learning path IDs for user ${userId} in org ${organizationId}:`,
+    ids.length,
+    ids,
+  )
+
+  return ids
 }
 
 export async function loadBusinessUserLearningPaths(params: {
@@ -63,51 +93,76 @@ export async function loadBusinessUserLearningPaths(params: {
   const learningPathIds = await loadAssignedLearningPathIds(userId, organizationId)
 
   if (learningPathIds.length === 0) {
+    logger.log('📚 No learning paths assigned — skipping')
     return []
   }
 
-  const [{ data: paths, error: pathsError }, { data: items, error: itemsError }] =
+  // =====================================================
+  // STEP 1: Load paths and items in parallel.
+  //
+  // We split the items query into two parts:
+  //   a) load path items (flat columns only — no nested join)
+  //   b) load course info separately
+  //
+  // This avoids RLS-based silent failures when the authenticated
+  // user cannot see the parent `learning_paths` row (RLS requires
+  // a valid assignment, but the nested `courses` join via
+  // `fromLoose` was short-circuited by the `learning_path_items`
+  // visibility policy that depends on the parent `learning_paths`
+  // row being visible first).
+  // =====================================================
+  const [{ data: paths, error: pathsError }, { data: rawItems, error: itemsError }] =
     await Promise.all([
-      fromLoose<LearningPathDashboardPathRow>(supabase, 'learning_paths')
+      supabase
+        .from('learning_paths')
         .select('id, title, description, is_active')
         .in('id', learningPathIds)
-        .eq('is_active', true),
-      fromLoose<LearningPathDashboardItemRow>(supabase, 'learning_path_items')
-        .select(`
-          id,
-          learning_path_id,
-          course_id,
-          position,
-          courses (
-            id,
-            title,
-            slug,
-            thumbnail_url
-          )
-        `)
+        .eq('is_active', true)
+        .returns<LearningPathDashboardPathRow[]>(),
+      supabase
+        .from('learning_path_items')
+        .select('id, learning_path_id, course_id, position')
         .in('learning_path_id', learningPathIds)
-        .order('position', { ascending: true }),
+        .order('position', { ascending: true })
+        .returns<Omit<LearningPathDashboardItemRow, 'courses'>[]>(),
     ])
 
   if (pathsError) {
-    logger.error('Error loading learning paths for dashboard:', pathsError)
-    throw new Error('No se pudieron cargar las rutas de aprendizaje')
+    logger.error('❌ Error loading learning paths for dashboard:', pathsError)
+    return []
   }
 
   if (itemsError) {
-    logger.error('Error loading learning path items for dashboard:', itemsError)
-    throw new Error('No se pudieron cargar las rutas de aprendizaje')
+    logger.error('❌ Error loading learning path items for dashboard:', itemsError)
+    return []
   }
 
-  const courseIds = uniqueValues((items || []).map((item) => item.course_id))
+  logger.log(
+    `📚 Loaded ${(paths || []).length} paths, ${(rawItems || []).length} items`,
+  )
+
+  if (!paths || paths.length === 0 || !rawItems || rawItems.length === 0) {
+    return []
+  }
+
+  // =====================================================
+  // STEP 2: Load course info separately (bypasses nested-join RLS issues)
+  // =====================================================
+  const courseIds = uniqueValues(rawItems.map((item) => item.course_id))
   if (courseIds.length === 0) {
     return []
   }
 
   const [
+    { data: courses, error: coursesError },
     { data: enrollments, error: enrollmentsError },
     { data: certificates, error: certificatesError },
   ] = await Promise.all([
+    supabase
+      .from('courses')
+      .select('id, title, slug, thumbnail_url')
+      .in('id', courseIds)
+      .returns<LearningPathCourseJoinRow[]>(),
     supabase
       .from('user_course_enrollments')
       .select('course_id, organization_id, overall_progress_percentage, enrollment_status, completed_at')
@@ -122,17 +177,45 @@ export async function loadBusinessUserLearningPaths(params: {
       .returns<LearningPathDashboardCertificateRow[]>(),
   ])
 
+  if (coursesError) {
+    logger.error('❌ Error loading courses for learning path dashboard:', coursesError)
+    return []
+  }
+
   if (enrollmentsError) {
-    logger.error('Error loading enrollments for learning path dashboard:', enrollmentsError)
+    logger.error('❌ Error loading enrollments for learning path dashboard:', enrollmentsError)
   }
 
   if (certificatesError) {
-    logger.error('Error loading certificates for learning path dashboard:', certificatesError)
+    logger.error('❌ Error loading certificates for learning path dashboard:', certificatesError)
   }
 
+  // Build a map { courseId -> course } for quick lookup
+  const courseMap = new Map<string, LearningPathCourseJoinRow>()
+  for (const course of courses || []) {
+    courseMap.set(course.id, course)
+  }
+
+  // Re-assemble items with their course data so the shape matches
+  // the existing `LearningPathDashboardItemRow` interface.
+  const items: LearningPathDashboardItemRow[] = rawItems.map((item) => {
+    const course = courseMap.get(item.course_id)
+    return {
+      ...item,
+      courses: course
+        ? {
+            id: course.id,
+            title: course.title,
+            slug: course.slug,
+            thumbnail_url: course.thumbnail_url,
+          }
+        : null,
+    }
+  })
+
   return buildBusinessUserLearningPaths({
-    paths: paths || [],
-    items: items || [],
+    paths,
+    items,
     enrollments: enrollmentsError ? [] : enrollments || [],
     certificates: certificatesError ? [] : certificates || [],
     organizationId,
