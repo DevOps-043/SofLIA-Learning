@@ -299,12 +299,19 @@ export class CertificateService {
 
       certificateUrl = ensuredPdf.publicUrl
     } catch (pdfError) {
-      logger.error('Error asegurando PDF de certificado; se mantiene el registro emitido', {
+      logger.error('Error asegurando PDF de certificado', {
         certificateId,
         courseId,
         userId,
         error: pdfError instanceof Error ? pdfError.message : 'Error desconocido',
       })
+
+      if (shouldRegeneratePdf) {
+        // El PDF es obligatorio para certificados nuevos o regenerados.
+        // Propagar para evitar un estado inconsistente donde el registro existe en BD
+        // pero el archivo no está en Storage.
+        throw pdfError
+      }
     }
 
     return {

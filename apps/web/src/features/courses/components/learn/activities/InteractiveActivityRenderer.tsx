@@ -1,17 +1,14 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Check, Clipboard, ExternalLink, Loader2, Sparkles } from "lucide-react";
 
-import type { CourseLessonContext } from "@/core/types/lia.types";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import { normalizeContentForRenderer } from "@/lib/course-content";
 import {
-  buildActivitySofliaEvaluationMessage,
   hasActivityResponseForSofliaEvaluation,
 } from "@/features/courses/services/activity-soflia-evaluation-message.service";
 
-import { useLiaCourse } from "../../../context/LiaCourseContext";
 import { FormattedContentRenderer } from "../ContentRenderers";
 import type { LearnActivity } from "../types";
 import { ChecklistActivityRenderer } from "./ChecklistActivityRenderer";
@@ -64,9 +61,7 @@ export function InteractiveActivityRenderer({
   onSubmissionSaved?: () => void | Promise<void>;
   slug: string;
 }) {
-  const [liaEvaluationPending, setLiaEvaluationPending] = useState(false);
   const [toolActionMessage, setToolActionMessage] = useState<string | null>(null);
-  const { liaChat, openLia, courseContext } = useLiaCourse();
   const activityConfig = activity.activity_config;
   const normalizedContent = useMemo(
     () => normalizeContentForRenderer(activity.activity_content),
@@ -86,6 +81,8 @@ export function InteractiveActivityRenderer({
     updateEvidenceText,
     updateInlineAnswer,
     updateResponseText,
+    validateWithSoflia,
+    validating,
     saveDraft,
     submitActivity,
   } = useActivitySubmission({
@@ -110,87 +107,6 @@ export function InteractiveActivityRenderer({
     activity,
     request: requestPayload,
   });
-  const isLiaBusy = Boolean(liaChat?.isLoading);
-
-  const handleEvaluateWithSoflia = useCallback(async () => {
-    setFeedbackMessage(null);
-
-    if (isLiaBusy) {
-      setFeedbackMessage(
-        "SofLIA ya esta generando una respuesta. Deten la generacion actual en el panel y vuelve a intentarlo."
-      );
-      return;
-    }
-
-    const evaluationPrompt = buildActivitySofliaEvaluationMessage({
-      activity,
-      request: requestPayload,
-    });
-
-    if (!evaluationPrompt) {
-      setFeedbackMessage(
-        "Completa al menos una respuesta antes de pedir la evaluacion de SofLIA."
-      );
-      return;
-    }
-
-    openLia();
-
-    if (!liaChat?.sendMessage) {
-      setFeedbackMessage(
-        "SofLIA todavia no esta lista. Intenta de nuevo en unos segundos."
-      );
-      return;
-    }
-
-    const evaluationContext = {
-      ...courseContext,
-      lessonId: courseContext?.lessonId ?? lessonId,
-      activitiesContext: {
-        ...courseContext?.activitiesContext,
-        totalActivities: 1,
-        requiredActivities: activity.is_required ? 1 : 0,
-        completedActivities: activity.latest_submission_summary?.completionSatisfied
-          ? 1
-          : 0,
-        pendingRequiredCount:
-          activity.is_required &&
-          !activity.latest_submission_summary?.completionSatisfied
-            ? 1
-            : 0,
-        currentActivityFocus: {
-          title: activity.activity_title,
-          type: activity.activity_type,
-          isRequired: activity.is_required,
-          isCompleted: !!activity.latest_submission_summary?.completionSatisfied,
-          description: activity.activity_description || activity.activity_title,
-        },
-      },
-    } satisfies CourseLessonContext;
-
-    setFeedbackMessage("SofLIA esta evaluando tu actividad en el panel derecho.");
-    setLiaEvaluationPending(true);
-
-    try {
-      await liaChat.sendMessage(
-        evaluationPrompt,
-        evaluationContext,
-        undefined,
-        true
-      );
-    } finally {
-      setLiaEvaluationPending(false);
-    }
-  }, [
-    activity,
-    courseContext,
-    isLiaBusy,
-    lessonId,
-    liaChat,
-    openLia,
-    requestPayload,
-    setFeedbackMessage,
-  ]);
 
   return (
     <div className="space-y-4">
@@ -381,7 +297,7 @@ export function InteractiveActivityRenderer({
             setFeedbackMessage(null);
             void saveDraft();
           }}
-          disabled={loading || saving || liaEvaluationPending}
+          disabled={loading || saving || validating}
           className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/5 dark:text-white"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -393,7 +309,7 @@ export function InteractiveActivityRenderer({
             setFeedbackMessage(null);
             void submitActivity();
           }}
-          disabled={loading || saving || liaEvaluationPending}
+          disabled={loading || saving || validating}
           className="inline-flex items-center gap-2 rounded-lg bg-[#0A2540] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0d2f4d] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#00D4B3] dark:text-[#08141F] dark:hover:bg-[#00b79c]"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -403,18 +319,13 @@ export function InteractiveActivityRenderer({
           <button
             type="button"
             onClick={() => {
-              void handleEvaluateWithSoflia();
+              setFeedbackMessage(null);
+              void validateWithSoflia();
             }}
-            disabled={
-              loading ||
-              saving ||
-              liaEvaluationPending ||
-              isLiaBusy ||
-              !canEvaluateWithSoflia
-            }
+            disabled={loading || saving || validating || !canEvaluateWithSoflia}
             className="inline-flex items-center gap-2 rounded-lg border border-[#6E57B5]/20 bg-[#F7F4FF] px-4 py-2 text-sm font-medium text-[#4C3A85] transition hover:bg-[#EFE8FF] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#7E67BA]/30 dark:bg-[#171127] dark:text-[#D7CBFF] dark:hover:bg-[#211937]"
           >
-            {liaEvaluationPending || isLiaBusy ? (
+            {validating ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Sparkles className="h-4 w-4" />

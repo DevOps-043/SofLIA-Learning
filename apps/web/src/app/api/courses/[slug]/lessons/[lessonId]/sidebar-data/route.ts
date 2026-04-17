@@ -7,6 +7,9 @@ import { buildQuizSubmissionSnapshot } from '@/features/courses/services/quiz-su
 import { withCacheHeaders, cacheHeaders } from '@/lib/utils/cache-headers'
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import {
+  buildActivitySubmissionSummaryMap,
+} from '@/features/courses/services/activity-submission.server.service'
+import {
   normalizeLearnLanguage,
   resolveCourseLessonByLanguage,
 } from '@/app/api/courses/_services/lesson-language-resolution.service'
@@ -85,7 +88,7 @@ export async function GET(
     const currentUser = await SessionService.getCurrentUser()
     const { data: course, error: courseError } = await supabase
       .from('courses')
-      .select('id')
+      .select('id, title, instructor_id')
       .eq('slug', slug)
       .single()
 
@@ -254,6 +257,33 @@ export async function GET(
         )
         .map((submission) => submission.activity_id),
     ])
+
+    if (currentUser && enrollmentResult) {
+      const activitySubmissionSummaryMap = await buildActivitySubmissionSummaryMap(
+        supabase,
+        {
+          courseId: course.id,
+          courseTitle:
+            typeof course.title === 'string' ? course.title : 'Curso',
+          enrollmentId: enrollmentResult.enrollment_id,
+          instructorId:
+            typeof course.instructor_id === 'string'
+              ? course.instructor_id
+              : null,
+          lessonId: resolvedLessonId,
+          organizationId:
+            enrollmentResult.organization_id ?? organizationId ?? null,
+          userId: currentUser.id,
+        },
+        rawActivities,
+      )
+
+      activitySubmissionSummaryMap.forEach((summary, activityId) => {
+        if (summary.completionSatisfied) {
+          completedActivityIds.add(activityId)
+        }
+      })
+    }
 
     const activities = rawActivities.map((activity) => ({
       ...activity,

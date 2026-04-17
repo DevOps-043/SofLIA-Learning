@@ -103,6 +103,20 @@ describe('activity completion helpers', () => {
       getPendingRequiredActivities(activities).map((activity) => activity.activity_id)
     ).toEqual(['a1'])
   })
+
+  it('does not block navigation for read-only reflection activities', () => {
+    expect(
+      getPendingRequiredActivities([
+        {
+          activity_id: 'reflection-reading',
+          activity_title: 'Lectura complementaria',
+          activity_type: 'reflection',
+          is_required: true,
+          is_completed: false,
+        },
+      ]),
+    ).toEqual([])
+  })
 })
 
 describe('isLessonVideoCompleted', () => {

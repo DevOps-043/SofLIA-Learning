@@ -22,9 +22,9 @@ describe('activity-content-compatibility.service', () => {
     expect(config.submission.fields[0]?.id).toBe('blank_1')
   })
 
-  it('builds checklist config from legacy checklist content', () => {
+  it('builds checklist config from legacy exercise checklist content', () => {
     const config = resolveActivityConfig({
-      activityType: 'reflection',
+      activityType: 'exercise',
       activityContent: '[ ] Analiza el prompt\n[x] Documenta tu respuesta',
     })
 
@@ -37,6 +37,36 @@ describe('activity-content-compatibility.service', () => {
       'Analiza el prompt',
       'Documenta tu respuesta',
     ])
+  })
+
+  it('keeps reflection activities read-only when they have no explicit config', () => {
+    const config = resolveActivityConfig({
+      activityType: 'reflection',
+      activityContent: '[ ] Analiza el prompt\n[x] Documenta tu respuesta',
+    })
+
+    expect(config).toBeNull()
+    expect(isInteractiveLessonActivity('reflection')).toBe(false)
+  })
+
+  it('keeps explicitly configured reflection activities read-only', () => {
+    const config = resolveActivityConfig({
+      activityType: 'reflection',
+      activityContent: 'Escribe una conclusion breve.',
+      rawActivityConfig: {
+        interactionType: 'long_text',
+        submission: {
+          responsePlaceholder: 'Escribe tu conclusion.',
+        },
+        validation: {
+          enabled: false,
+          requiredForCompletion: false,
+          rubric: [],
+        },
+      },
+    })
+
+    expect(config).toBeNull()
   })
 
   it('merges tool detection and SofLIA validation into fallback config', () => {

@@ -46,12 +46,6 @@ export function LearnPageHeader({
             >
               {courseTitle}
             </h1>
-            <p
-              className="hidden md:block text-xs text-[#6C757D] dark:text-white/60"
-              style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
-            >
-              {t("header.workshop")}
-            </p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">

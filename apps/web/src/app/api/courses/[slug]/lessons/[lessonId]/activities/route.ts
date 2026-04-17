@@ -87,10 +87,29 @@ export async function GET(
       lessonContext,
       translatedActivities,
     )
+    const activityIds = translatedActivities.map(
+      (activity) => activity.activity_id,
+    )
+    const { data: liaCompletions } =
+      activityIds.length > 0
+        ? await supabase
+            .from('lia_activity_completions')
+            .select('activity_id, status')
+            .eq('user_id', currentUser.id)
+            .eq('status', 'completed')
+            .in('activity_id', activityIds)
+        : { data: [] }
+
+    const completedLiaActivityIds = new Set(
+      ((liaCompletions || []) as Array<{ activity_id: string }>).map(
+        (completion) => completion.activity_id,
+      ),
+    )
 
     const normalizedActivities = translatedActivities.map((activity) => {
       const normalizedActivity = normalizeLessonActivityRecord(activity)
       const resolvedActivityConfig = resolveActivityConfigFromRecord(normalizedActivity)
+      const submissionSummary = summaryMap.get(activity.activity_id) || null
       const toolKey =
         resolvedActivityConfig?.toolTask?.toolKey ??
         (typeof normalizedActivity.external_tool_key === 'string'
@@ -103,8 +122,12 @@ export async function GET(
         external_tool: toolKey
           ? getExternalToolDefinition(toolKey as ExternalToolKey)
           : null,
-        latest_submission_summary:
-          summaryMap.get(activity.activity_id) || null,
+        is_completed: Boolean(
+          normalizedActivity.is_completed ||
+            submissionSummary?.completionSatisfied ||
+            completedLiaActivityIds.has(activity.activity_id),
+        ),
+        latest_submission_summary: submissionSummary,
         requires_soflia_validation: Boolean(
           normalizedActivity.requires_soflia_validation ||
             resolvedActivityConfig?.validation.enabled,

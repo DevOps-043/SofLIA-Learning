@@ -36,6 +36,18 @@ export const NOTES_EDITOR_STYLE_CONTENT = `
   .notes-editor u {
     text-decoration: underline;
   }
+  .notes-editor a {
+    color: var(--color-primary);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .dark .notes-editor a {
+    color: var(--color-accent);
+  }
+  .notes-editor a:hover {
+    opacity: 0.85;
+  }
 `;
 
 export type NoteShortcutAction =
@@ -168,4 +180,50 @@ export function buildNotePdfFileName(
   const datePart = date.toISOString().split('T')[0];
 
   return `${sanitizedTitle || 'nota'}_${datePart}.${suffix}`;
+}
+
+export function normalizeNoteLinkUrl(rawUrl: string): string | null {
+  const trimmedUrl = rawUrl.trim();
+
+  if (!trimmedUrl) {
+    return null;
+  }
+
+  if (trimmedUrl.startsWith('#') || /^\/(?!\/)/.test(trimmedUrl)) {
+    return trimmedUrl;
+  }
+
+  if (/^\/\//.test(trimmedUrl)) {
+    return `https:${trimmedUrl}`;
+  }
+
+  if (/^(mailto:|tel:)/i.test(trimmedUrl)) {
+    return trimmedUrl;
+  }
+
+  if (/^https?:\/\//i.test(trimmedUrl)) {
+    return trimmedUrl;
+  }
+
+  if (/^[^\s@]+\.[^\s@]{2,}(?:[/?#].*)?$/i.test(trimmedUrl)) {
+    return `https://${trimmedUrl}`;
+  }
+
+  return null;
+}
+
+export function escapeNoteLinkHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+export function buildNoteLinkHtml(url: string, text = url): string {
+  const escapedUrl = escapeNoteLinkHtml(url);
+  const escapedText = escapeNoteLinkHtml(text);
+
+  return `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer">${escapedText}</a>`;
 }

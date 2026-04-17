@@ -277,7 +277,11 @@ function mergeValidationState(
 }
 
 export function isInteractiveLessonActivity(activityType?: string | null) {
-  return activityType !== 'quiz' && activityType !== 'ai_chat'
+  return (
+    activityType !== 'quiz' &&
+    activityType !== 'ai_chat' &&
+    activityType !== 'reflection'
+  )
 }
 
 export function resolveActivityConfig({
@@ -295,6 +299,7 @@ export function resolveActivityConfig({
   const normalizedContent = normalizeContentForRenderer(activityContent)
   const normalizedPrompts = parsePromptList(aiPrompts)
   const parsedConfig = normalizeActivityConfig(rawActivityConfig)
+
   const detectedToolKey = detectExternalToolKey({
     activityContent: normalizedContent,
     aiPrompts: normalizedPrompts,
