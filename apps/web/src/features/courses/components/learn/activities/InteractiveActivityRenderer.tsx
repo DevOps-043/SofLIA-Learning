@@ -62,6 +62,7 @@ export function InteractiveActivityRenderer({
   slug: string;
 }) {
   const [toolActionMessage, setToolActionMessage] = useState<string | null>(null);
+  const { liaChat, openLia, courseContext, isLiaChatLoading } = useLiaCourse();
   const activityConfig = activity.activity_config;
   const normalizedContent = useMemo(
     () => normalizeContentForRenderer(activity.activity_content),
@@ -107,6 +108,87 @@ export function InteractiveActivityRenderer({
     activity,
     request: requestPayload,
   });
+  const isLiaBusy = isLiaChatLoading;
+
+  const handleEvaluateWithSoflia = useCallback(async () => {
+    setFeedbackMessage(null);
+
+    if (isLiaBusy) {
+      setFeedbackMessage(
+        "SofLIA ya esta generando una respuesta. Deten la generacion actual en el panel y vuelve a intentarlo."
+      );
+      return;
+    }
+
+    const evaluationPrompt = buildActivitySofliaEvaluationMessage({
+      activity,
+      request: requestPayload,
+    });
+
+    if (!evaluationPrompt) {
+      setFeedbackMessage(
+        "Completa al menos una respuesta antes de pedir la evaluacion de SofLIA."
+      );
+      return;
+    }
+
+    openLia();
+
+    if (!liaChat?.sendMessage) {
+      setFeedbackMessage(
+        "SofLIA todavia no esta lista. Intenta de nuevo en unos segundos."
+      );
+      return;
+    }
+
+    const evaluationContext = {
+      ...courseContext,
+      lessonId: courseContext?.lessonId ?? lessonId,
+      activitiesContext: {
+        ...courseContext?.activitiesContext,
+        totalActivities: 1,
+        requiredActivities: activity.is_required ? 1 : 0,
+        completedActivities: activity.latest_submission_summary?.completionSatisfied
+          ? 1
+          : 0,
+        pendingRequiredCount:
+          activity.is_required &&
+          !activity.latest_submission_summary?.completionSatisfied
+            ? 1
+            : 0,
+        currentActivityFocus: {
+          title: activity.activity_title,
+          type: activity.activity_type,
+          isRequired: activity.is_required,
+          isCompleted: !!activity.latest_submission_summary?.completionSatisfied,
+          description: activity.activity_description || activity.activity_title,
+        },
+      },
+    } satisfies CourseLessonContext;
+
+    setFeedbackMessage("SofLIA esta evaluando tu actividad en el panel derecho.");
+    setLiaEvaluationPending(true);
+
+    try {
+      await liaChat.sendMessage(
+        evaluationPrompt,
+        evaluationContext,
+        undefined,
+        true
+      );
+    } finally {
+      setLiaEvaluationPending(false);
+    }
+  }, [
+    activity,
+    courseContext,
+    isLiaBusy,
+    lessonId,
+    liaChat,
+    openLia,
+    requestPayload,
+    setFeedbackMessage,
+  ]);
 
   return (
     <div className="space-y-4">

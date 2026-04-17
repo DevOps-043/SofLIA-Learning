@@ -17,6 +17,7 @@ vi.mock('../../../context/LiaCourseContext', () => ({
     openLia: vi.fn(),
     isOpen: false,
     liaChat: null,
+    isLiaChatLoading: false,
     courseContext: null,
   }),
 }))

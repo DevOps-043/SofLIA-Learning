@@ -94,8 +94,8 @@ export function ModernNavbarMobileMenu({
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{getDisplayName()}</p>
-                <p className="text-xs text-white/60 truncate">{user?.email || ''}</p>
+                <p className="text-sm font-semibold truncate" style={{ color: colors.text }}>{getDisplayName()}</p>
+                <p className="text-xs truncate" style={{ color: `${colors.text}60` }}>{user?.email || ''}</p>
               </div>
             </div>
 
@@ -119,8 +119,8 @@ export function ModernNavbarMobileMenu({
                   <LayoutDashboard className="h-4 w-4" />
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <span className="text-white font-medium block text-sm">{t('header.adminPanel')}</span>
-                  <span className="text-xs text-white/50">{t('header.manageOrganization')}</span>
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('header.adminPanel')}</span>
+                  <span className="text-xs" style={{ color: `${colors.text}50` }}>{t('header.manageOrganization')}</span>
                 </div>
               </motion.button>
             )}
@@ -150,10 +150,10 @@ export function ModernNavbarMobileMenu({
                   {hasStudyPlan ? <CalendarDays className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <span className="text-white font-medium block text-sm">
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>
                     {hasStudyPlan ? t('header.myPlanner') : t('header.createStudyPlan')}
                   </span>
-                  <span className="text-xs text-white/50">
+                  <span className="text-xs" style={{ color: `${colors.text}50` }}>
                     {hasStudyPlan ? t('header.viewSchedule') : t('header.organizeLearning')}
                   </span>
                 </div>
@@ -179,8 +179,8 @@ export function ModernNavbarMobileMenu({
                 <Building2 className="h-4 w-4" />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <span className="text-white font-medium block text-sm">Mis organizaciones</span>
-                <span className="text-xs text-white/50">Cambiar de organización</span>
+                <span className="font-medium block text-sm" style={{ color: colors.text }}>Mis organizaciones</span>
+                <span className="text-xs" style={{ color: `${colors.text}50` }}>Cambiar de organización</span>
               </div>
             </motion.button>
 
@@ -200,8 +200,8 @@ export function ModernNavbarMobileMenu({
                 <User className="h-4 w-4" style={{ color: colors.accent }} />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <span className="text-white font-medium block text-sm">{t('header.editProfile')}</span>
-                <span className="text-xs text-white/50">{t('header.updateInfo')}</span>
+                <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('header.editProfile')}</span>
+                <span className="text-xs" style={{ color: `${colors.text}50` }}>{t('header.updateInfo')}</span>
               </div>
             </motion.button>
 
@@ -284,7 +284,7 @@ export function ModernNavbarMobileMenu({
               </div>
               <div className="text-left flex-1 min-w-0">
                 <span className="text-red-400 font-medium block text-sm">{t('header.logout')}</span>
-                <span className="text-xs text-white/50">{t('header.exitAccount')}</span>
+                <span className="text-xs" style={{ color: `${colors.text}50` }}>{t('header.exitAccount')}</span>
               </div>
             </motion.button>
           </div>

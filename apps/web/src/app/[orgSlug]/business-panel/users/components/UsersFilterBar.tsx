@@ -161,17 +161,18 @@ export function UsersFilterBar({
   return (
     <div className="flex flex-col space-y-4">
       <div
-        className="flex items-center p-1 rounded-xl w-fit"
+        className="flex items-center p-1 rounded-xl overflow-x-auto scrollbar-hide max-w-full"
         style={{
           backgroundColor: cardBg,
           border: `1px solid ${borderColor}`,
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {tabs.map(({ key, label, count }) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${
+            className={`px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all whitespace-nowrap shrink-0 ${
               activeTab === key
                 ? 'shadow-lg'
                 : isDark
@@ -185,7 +186,7 @@ export function UsersFilterBar({
           >
             {label}
             <span
-              className={`ml-2 py-0.5 px-2 rounded-full text-[10px] ${
+              className={`ml-1.5 sm:ml-2 py-0.5 px-1.5 sm:px-2 rounded-full text-[10px] ${
                 activeTab === key ? 'bg-white/20' : isDark ? 'bg-white/10' : 'bg-black/5'
               }`}
             >
@@ -195,7 +196,7 @@ export function UsersFilterBar({
         ))}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <BusinessPanelSearchInput
           value={searchTerm}
           onChange={setSearchTerm}
