@@ -812,6 +812,7 @@
     "copyHash": "Copy hash",
     "hashDescription": "This hash is validated against the certificate chain and is the same one used in the public verification view.",
     "downloadPdf": "Download PDF",
+    "generatingPdf": "Generating PDF...",
     "verifyPublic": "Verify publicly",
     "share": "Share certificate",
     "shareTitle": "Certificate: {{title}}",

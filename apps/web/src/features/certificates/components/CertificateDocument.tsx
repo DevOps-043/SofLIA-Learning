@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import QRCode from 'react-qr-code'
 import {
   CERTIFICATE_RENDER_HEIGHT_PX,
@@ -9,6 +9,16 @@ import type { CertificateDocumentModel } from '@/features/certificates/types/cer
 interface CertificateDocumentProps {
   model: CertificateDocumentModel
   className?: string
+}
+
+interface LineFieldProps {
+  label: string
+  description?: string
+  children: ReactNode
+  borderColor: string
+  mutedColor: string
+  primaryColor: string
+  align?: 'left' | 'center' | 'right'
 }
 
 function formatCertificateDate(dateString: string): string {
@@ -23,6 +33,21 @@ function formatCertificateDate(dateString: string): string {
   }
 }
 
+function colorWithAlpha(color: string, alpha: number, fallback: string): string {
+  const normalized = color.trim()
+  const hexMatch = normalized.match(/^#([0-9a-f]{6})$/i)
+
+  if (!hexMatch) {
+    return fallback
+  }
+
+  const alphaHex = Math.round(alpha * 255)
+    .toString(16)
+    .padStart(2, '0')
+
+  return `${normalized}${alphaHex}`
+}
+
 function buildFrameStyle(input: {
   width: string
   height: string
@@ -33,7 +58,7 @@ function buildFrameStyle(input: {
   return {
     width: input.width,
     height: input.height,
-    borderRadius: '18px',
+    borderRadius: '14px',
     border: `1px solid ${input.borderColor}`,
     background: input.backgroundColor,
     display: 'flex',
@@ -53,9 +78,10 @@ function buildSignatureContent(model: CertificateDocumentModel) {
       <img
         src={signatureUrl}
         alt={`Firma de ${model.document.instructorName}`}
+        loading="eager"
         style={{
-          maxWidth: '180px',
-          maxHeight: '44px',
+          maxWidth: '230px',
+          maxHeight: '46px',
           objectFit: 'contain',
         }}
       />
@@ -66,7 +92,7 @@ function buildSignatureContent(model: CertificateDocumentModel) {
     return (
       <div
         style={{
-          fontSize: '22px',
+          fontSize: '24px',
           lineHeight: 1,
           color: model.branding.visualTokens.primaryColor,
           fontFamily: '"Brush Script MT", "Segoe Script", cursive',
@@ -77,14 +103,7 @@ function buildSignatureContent(model: CertificateDocumentModel) {
     )
   }
 
-  return (
-    <div
-      style={{
-        width: '150px',
-        borderBottom: `2px solid ${model.branding.visualTokens.borderColor}`,
-      }}
-    />
-  )
+  return <div style={{ height: '30px' }} />
 }
 
 function buildPlatformLogo(model: CertificateDocumentModel) {
@@ -92,6 +111,7 @@ function buildPlatformLogo(model: CertificateDocumentModel) {
     <img
       src={model.branding.platform.logoUrl}
       alt={model.branding.platform.name}
+      loading="eager"
       style={{
         width: '56px',
         height: '56px',
@@ -107,9 +127,10 @@ function buildIssuerLogo(model: CertificateDocumentModel, primaryColor: string) 
       <img
         src={model.branding.issuer.logoUrl}
         alt={model.branding.issuer.name}
+        loading="eager"
         style={{
-          maxWidth: '150px',
-          maxHeight: '40px',
+          maxWidth: '162px',
+          maxHeight: '42px',
           width: '100%',
           height: '100%',
           objectFit: 'contain',
@@ -134,6 +155,79 @@ function buildIssuerLogo(model: CertificateDocumentModel, primaryColor: string) 
   )
 }
 
+function LineField({
+  label,
+  description,
+  children,
+  borderColor,
+  mutedColor,
+  primaryColor,
+  align = 'left',
+}: LineFieldProps) {
+  const justifyContent =
+    align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start'
+
+  return (
+    <div
+      style={{
+        minHeight: '118px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-end',
+      }}
+    >
+      <div
+        style={{
+          minHeight: '58px',
+          borderBottom: `2px solid ${borderColor}`,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent,
+          padding: '0 8px 9px',
+          textAlign: align,
+        }}
+      >
+        {children}
+      </div>
+
+      <div
+        style={{
+          paddingTop: '10px',
+          textAlign: align,
+        }}
+      >
+        <div
+          style={{
+            fontSize: '11px',
+            lineHeight: 1.25,
+            letterSpacing: 0,
+            textTransform: 'uppercase',
+            color: mutedColor,
+            fontWeight: 800,
+          }}
+        >
+          {label}
+        </div>
+
+        {description ? (
+          <div
+            style={{
+              marginTop: '6px',
+              fontSize: '16px',
+              lineHeight: 1.25,
+              color: primaryColor,
+              fontWeight: 800,
+              wordBreak: 'break-word',
+            }}
+          >
+            {description}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 export function CertificateDocument({
   model,
   className = '',
@@ -146,24 +240,27 @@ export function CertificateDocument({
     textColor,
     mutedColor,
   } = model.branding.visualTokens
-  const hasSignatureVisual = Boolean(
-    model.document.instructorSignatureUrl ||
-      model.document.instructorSignatureName?.trim(),
-  )
+
+  const surfaceColor = 'rgb(255,255,255)'
+  const softSurfaceColor = 'rgba(255,255,255,0.88)'
+  const primarySoft = colorWithAlpha(primaryColor, 0.1, 'rgba(10,37,64,0.1)')
+  const primaryLine = colorWithAlpha(primaryColor, 0.18, 'rgba(10,37,64,0.18)')
+  const accentSoft = colorWithAlpha(accentColor, 0.13, 'rgba(0,212,179,0.13)')
+  const accentLine = colorWithAlpha(accentColor, 0.35, 'rgba(0,212,179,0.35)')
 
   const platformFrameStyle = buildFrameStyle({
-    width: '148px',
-    height: '70px',
+    width: '146px',
+    height: '68px',
     borderColor,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: softSurfaceColor,
     padding: '10px',
   })
 
   const issuerFrameStyle = buildFrameStyle({
-    width: '186px',
-    height: '70px',
+    width: '194px',
+    height: '68px',
     borderColor,
-    backgroundColor: 'rgba(255,255,255,0.94)',
+    backgroundColor: softSurfaceColor,
     padding: '10px 14px',
   })
 
@@ -178,8 +275,8 @@ export function CertificateDocument({
         overflow: 'hidden',
         borderRadius: '24px',
         border: `1px solid ${borderColor}`,
-        background: `radial-gradient(circle at 100% 0%, ${accentColor}16 0%, transparent 24%), linear-gradient(135deg, ${backgroundColor} 0%, #FFFFFF 54%, #F5FAFF 100%)`,
-        boxShadow: '0 24px 60px rgba(15, 23, 42, 0.14)',
+        background: `radial-gradient(circle at 12% 10%, ${accentSoft} 0%, transparent 26%), radial-gradient(circle at 96% 0%, ${primarySoft} 0%, transparent 30%), linear-gradient(135deg, ${backgroundColor} 0%, ${surfaceColor} 54%, rgb(245,250,255) 100%)`,
+        boxShadow: '0 24px 60px rgba(15,23,42,0.14)',
         color: textColor,
         fontFamily: '"Segoe UI", "Inter", sans-serif',
       }}
@@ -187,7 +284,7 @@ export function CertificateDocument({
       <div
         style={{
           position: 'absolute',
-          inset: '14px',
+          inset: '15px',
           borderRadius: '20px',
           border: `1px solid ${borderColor}`,
           pointerEvents: 'none',
@@ -197,9 +294,9 @@ export function CertificateDocument({
       <div
         style={{
           position: 'absolute',
-          inset: '26px',
-          borderRadius: '18px',
-          border: `1px solid ${primaryColor}1F`,
+          inset: '28px',
+          borderRadius: '16px',
+          border: `1px solid ${primaryLine}`,
           pointerEvents: 'none',
         }}
       />
@@ -210,8 +307,22 @@ export function CertificateDocument({
           top: 0,
           left: 0,
           right: 0,
-          height: '8px',
+          height: '9px',
           background: `linear-gradient(90deg, ${primaryColor} 0%, ${accentColor} 100%)`,
+        }}
+      />
+
+      <div
+        style={{
+          position: 'absolute',
+          right: '-84px',
+          top: '-92px',
+          width: '260px',
+          height: '260px',
+          borderRadius: '50%',
+          border: `42px solid ${accentLine}`,
+          opacity: 0.55,
+          pointerEvents: 'none',
         }}
       />
 
@@ -221,16 +332,16 @@ export function CertificateDocument({
           inset: 0,
           display: 'flex',
           flexDirection: 'column',
-          gap: '14px',
-          padding: '28px 30px 24px',
+          gap: '16px',
+          padding: '30px 38px 30px',
         }}
       >
         <header
           style={{
             display: 'grid',
-            gridTemplateColumns: '148px 1fr 186px',
+            gridTemplateColumns: '146px 1fr 194px',
             alignItems: 'center',
-            gap: '16px',
+            gap: '20px',
           }}
         >
           <div style={platformFrameStyle}>{buildPlatformLogo(model)}</div>
@@ -238,14 +349,44 @@ export function CertificateDocument({
           <div style={{ textAlign: 'center' }}>
             <div
               style={{
-                fontSize: '12px',
-                letterSpacing: '0.34em',
-                textTransform: 'uppercase',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '14px',
                 color: mutedColor,
+                fontSize: '13px',
+                lineHeight: 1.2,
                 fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: 0,
               }}
             >
+              <span
+                style={{
+                  width: '72px',
+                  height: '2px',
+                  background: `linear-gradient(90deg, transparent, ${borderColor})`,
+                }}
+              />
               Certificado de finalizacion
+              <span
+                style={{
+                  width: '72px',
+                  height: '2px',
+                  background: `linear-gradient(90deg, ${borderColor}, transparent)`,
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                marginTop: '8px',
+                fontSize: '12px',
+                lineHeight: 1.2,
+                color: mutedColor,
+                fontWeight: 600,
+              }}
+            >
+              Credencial verificable de aprendizaje
             </div>
           </div>
 
@@ -269,7 +410,7 @@ export function CertificateDocument({
             alignItems: 'center',
             justifyContent: 'center',
             textAlign: 'center',
-            padding: '0 20px',
+            padding: '2px 54px 4px',
           }}
         >
           <div
@@ -277,7 +418,7 @@ export function CertificateDocument({
               fontSize: '18px',
               lineHeight: 1.4,
               color: mutedColor,
-              fontWeight: 500,
+              fontWeight: 600,
               marginBottom: '10px',
             }}
           >
@@ -286,13 +427,14 @@ export function CertificateDocument({
 
           <div
             style={{
-              maxWidth: '860px',
-              fontSize: '50px',
+              maxWidth: '930px',
+              fontSize: '54px',
               lineHeight: 1.04,
-              letterSpacing: '-0.05em',
+              letterSpacing: 0,
               fontWeight: 900,
               color: primaryColor,
-              marginBottom: '12px',
+              marginBottom: '14px',
+              wordBreak: 'break-word',
             }}
           >
             {model.document.learnerName}
@@ -300,10 +442,20 @@ export function CertificateDocument({
 
           <div
             style={{
+              width: '112px',
+              height: '4px',
+              borderRadius: '999px',
+              background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})`,
+              marginBottom: '18px',
+            }}
+          />
+
+          <div
+            style={{
               fontSize: '18px',
               lineHeight: 1.4,
               color: mutedColor,
-              fontWeight: 500,
+              fontWeight: 600,
               marginBottom: '12px',
             }}
           >
@@ -312,12 +464,15 @@ export function CertificateDocument({
 
           <div
             style={{
-              maxWidth: '860px',
-              fontSize: '24px',
+              maxWidth: '900px',
+              padding: '14px 30px',
+              borderTop: `1px solid ${borderColor}`,
+              borderBottom: `1px solid ${borderColor}`,
+              fontSize: '27px',
               lineHeight: 1.24,
-              fontWeight: 800,
+              fontWeight: 850,
               color: textColor,
-              marginBottom: '10px',
+              wordBreak: 'break-word',
             }}
           >
             {model.document.courseTitle}
@@ -326,9 +481,11 @@ export function CertificateDocument({
           <div
             style={{
               maxWidth: '760px',
-              fontSize: '16px',
+              marginTop: '14px',
+              fontSize: '15px',
               lineHeight: 1.45,
               color: mutedColor,
+              fontWeight: 500,
             }}
           >
             {model.document.programText}
@@ -337,193 +494,154 @@ export function CertificateDocument({
 
         <footer
           style={{
-            display: 'grid',
-            gridTemplateColumns: '0.94fr 0.62fr 0.98fr',
+            display: 'flex',
+            flexDirection: 'column',
             gap: '14px',
-            alignItems: 'stretch',
           }}
         >
-          <section
+          <div
             style={{
-              minHeight: hasSignatureVisual ? '112px' : '96px',
-              borderRadius: '18px',
-              border: `1px solid ${borderColor}`,
-              background: 'rgba(255,255,255,0.82)',
-              padding: '14px 18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0,1fr) 154px minmax(0,1fr)',
+              gap: '28px',
+              alignItems: 'end',
             }}
           >
-            <div
-              style={{
-                minHeight: hasSignatureVisual ? '28px' : '14px',
-                display: 'flex',
-                alignItems: 'flex-end',
-              }}
+            <LineField
+              label="Instructor"
+              description={model.document.instructorName}
+              borderColor={borderColor}
+              mutedColor={mutedColor}
+              primaryColor={primaryColor}
             >
               {buildSignatureContent(model)}
-            </div>
+            </LineField>
 
             <div
               style={{
-                marginTop: '8px',
-                paddingTop: '10px',
-                borderTop: `2px solid ${borderColor}`,
+                minHeight: '130px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '8px',
               }}
             >
               <div
                 style={{
-                  fontSize: '11px',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: mutedColor,
-                  fontWeight: 800,
-                  marginBottom: '8px',
+                  padding: '8px',
+                  borderRadius: '16px',
+                  background: surfaceColor,
+                  border: `1px solid ${borderColor}`,
+                  boxShadow: '0 12px 24px rgba(15,23,42,0.08)',
                 }}
               >
-                Instructor
-              </div>
-
-              <div
-                style={{
-                  fontSize: '16px',
-                  lineHeight: 1.3,
-                  color: primaryColor,
-                  fontWeight: 800,
-                  wordBreak: 'break-word',
-                }}
-              >
-                {model.document.instructorName}
-              </div>
-            </div>
-          </section>
-
-          <section
-            style={{
-              minHeight: '122px',
-              borderRadius: '18px',
-              border: `1px solid ${borderColor}`,
-              background: 'rgba(255,255,255,0.82)',
-              padding: '14px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }}
-          >
-            <div
-              style={{
-                padding: '8px',
-                borderRadius: '16px',
-                background: '#FFFFFF',
-                border: `1px solid ${borderColor}`,
-              }}
-            >
-              <QRCode
-                size={88}
-                value={model.verificationUrl}
-                fgColor={primaryColor}
-                bgColor="#FFFFFF"
-              />
-            </div>
-
-            <div
-              style={{
-                fontSize: '10px',
-                lineHeight: 1.4,
-                color: mutedColor,
-                textAlign: 'center',
-              }}
-            >
-              Escanea para validar este certificado
-            </div>
-          </section>
-
-          <section
-            style={{
-              minHeight: '122px',
-              borderRadius: '18px',
-              border: `1px solid ${borderColor}`,
-              background: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(247,251,255,0.94) 100%)',
-              padding: '14px 18px',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: '11px',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: mutedColor,
-                  fontWeight: 800,
-                  marginBottom: '8px',
-                }}
-              >
-                Fecha de emision
-              </div>
-
-              <div
-                style={{
-                  fontSize: '18px',
-                  lineHeight: 1.25,
-                  fontWeight: 800,
-                  color: textColor,
-                }}
-              >
-                {formatCertificateDate(model.document.issuedAt)}
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: '8px',
-                paddingTop: '10px',
-                borderTop: `2px solid ${borderColor}`,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '11px',
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: mutedColor,
-                  fontWeight: 800,
-                  marginBottom: '8px',
-                }}
-              >
-                Folio y hash
-              </div>
-
-              <div
-                style={{
-                  fontSize: '11.5px',
-                  lineHeight: 1.3,
-                  fontWeight: 800,
-                  color: primaryColor,
-                  wordBreak: 'break-all',
-                  marginBottom: '5px',
-                }}
-              >
-                {model.certificateId}
+                <QRCode
+                  size={92}
+                  value={model.verificationUrl}
+                  fgColor={primaryColor}
+                  bgColor={surfaceColor}
+                />
               </div>
 
               <div
                 style={{
                   fontSize: '10px',
-                  lineHeight: 1.4,
+                  lineHeight: 1.3,
                   color: mutedColor,
+                  textAlign: 'center',
+                  fontWeight: 600,
+                }}
+              >
+                Escanea para validar
+              </div>
+            </div>
+
+            <LineField
+              label="Fecha de emision"
+              borderColor={borderColor}
+              mutedColor={mutedColor}
+              primaryColor={primaryColor}
+              align="right"
+            >
+              <div
+                style={{
+                  fontSize: '22px',
+                  lineHeight: 1.2,
+                  fontWeight: 850,
+                  color: textColor,
+                }}
+              >
+                {formatCertificateDate(model.document.issuedAt)}
+              </div>
+            </LineField>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0,0.95fr) minmax(0,1.25fr)',
+              gap: '18px',
+              borderRadius: '14px',
+              border: `1px solid ${borderColor}`,
+              background: 'rgba(255,255,255,0.74)',
+              padding: '12px 16px',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: '10px',
+                  lineHeight: 1.2,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0,
+                  color: mutedColor,
+                  fontWeight: 800,
+                  marginBottom: '5px',
+                }}
+              >
+                Folio
+              </div>
+              <div
+                style={{
+                  fontSize: '12px',
+                  lineHeight: 1.3,
+                  fontWeight: 800,
+                  color: primaryColor,
                   wordBreak: 'break-all',
                 }}
               >
-                Hash: {model.certificateHash}
+                {model.certificateId}
               </div>
             </div>
-          </section>
+
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: '10px',
+                  lineHeight: 1.2,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0,
+                  color: mutedColor,
+                  fontWeight: 800,
+                  marginBottom: '5px',
+                }}
+              >
+                Hash SHA-256
+              </div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  lineHeight: 1.35,
+                  color: mutedColor,
+                  wordBreak: 'break-all',
+                  fontWeight: 600,
+                }}
+              >
+                {model.certificateHash}
+              </div>
+            </div>
+          </div>
         </footer>
       </div>
     </div>

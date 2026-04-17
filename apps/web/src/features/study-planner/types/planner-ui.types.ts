@@ -10,6 +10,7 @@ export interface StudyPlannerCourseOption {
   title: string;
   category: string;
   progress: number;
+  organizationId?: string;
   organizationName?: string;
 }
 
@@ -45,6 +46,7 @@ export interface StudyPlannerAssignedCourse {
   planningWindowStart?: string | null;
   planningWindowEnd?: string | null;
   hasActivePlan?: boolean;
+  organizationId?: string | null;
   organizationName?: string | null;
   progress?: number;
 }

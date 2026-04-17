@@ -1,4 +1,5 @@
 import { hexToRgb } from '../../../../../../features/business-panel/utils/styles';
+import { buildStudyPlannerEntryPath } from '../../../../../../features/study-planner/services/study-planner-navigation.service';
 import type { ModernNavbarColors, ModernNavbarStyleConfig } from './types';
 
 export function getModernNavbarColors(
@@ -34,9 +35,17 @@ export function getModernNavbarColors(
   };
 }
 
-export async function fetchStudyPlanStatus(fetchImpl: typeof fetch = fetch): Promise<boolean> {
+export { buildStudyPlannerEntryPath };
+
+export async function fetchStudyPlanStatus(
+  fetchImpl: typeof fetch = fetch,
+  organizationSlug?: string | null,
+): Promise<boolean> {
   try {
-    const response = await fetchImpl('/api/study-planner/status', {
+    const query = organizationSlug
+      ? `?orgSlug=${encodeURIComponent(organizationSlug)}`
+      : '';
+    const response = await fetchImpl(`/api/study-planner/status${query}`, {
       cache: 'no-store',
       headers: {
         Pragma: 'no-cache',

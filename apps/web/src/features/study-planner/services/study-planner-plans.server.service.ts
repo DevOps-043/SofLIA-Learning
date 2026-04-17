@@ -15,6 +15,16 @@ interface RawStudyPlan {
   updated_at?: string | null
 }
 
+interface RawOrganizationMembershipRow {
+  organization_id?: string | null
+  organizations?: unknown
+  role?: string | null
+}
+
+interface OrganizationRelation {
+  slug?: string | null
+}
+
 interface RawCourseRow {
   id: string
   title: string | null
@@ -44,6 +54,9 @@ export interface ListedStudyPlan {
   courseIds: string[]
   /** Organization that owns this plan. Undefined for B2C plans. */
   organizationId?: string
+  organizationSlug?: string
+  organizationRole?: string
+  dashboardDestination?: string
   primaryCourseId?: string
   primaryCourseTitle?: string
   totalSessions: number
@@ -106,6 +119,41 @@ export function buildPlannedCourseKey(courseId: string, organizationId?: string 
   return organizationId ? `${courseId}::${organizationId}` : courseId
 }
 
+export function buildStudyPlannerDashboardDestination(
+  organizationSlug?: string | null,
+  organizationRole?: string | null,
+): string | undefined {
+  if (!organizationSlug) {
+    return undefined
+  }
+
+  if (organizationRole === 'owner' || organizationRole === 'admin') {
+    return `/${organizationSlug}/business-panel/dashboard`
+  }
+
+  return `/${organizationSlug}/business-user/dashboard`
+}
+
+function extractOrganizationSlug(organization: unknown): string | undefined {
+  if (!organization) {
+    return undefined
+  }
+
+  const relation = Array.isArray(organization)
+    ? organization[0]
+    : organization
+
+  if (!relation || typeof relation !== 'object') {
+    return undefined
+  }
+
+  const organizationRelation = relation as OrganizationRelation
+
+  return typeof organizationRelation.slug === 'string'
+    ? organizationRelation.slug
+    : undefined
+}
+
 export async function listUserStudyPlans(
   userId: string,
 ): Promise<ListedStudyPlan[]> {
@@ -134,8 +182,17 @@ export async function listUserStudyPlans(
   )
 
   const allPlanIds = plans.map((plan) => plan.id)
+  const organizationIds = Array.from(
+    new Set(
+      plans
+        .map((plan) => plan.organization_id)
+        .filter((organizationId): organizationId is string =>
+          typeof organizationId === 'string' && organizationId.trim() !== '',
+        ),
+    ),
+  )
 
-  const [{ data: rawCourses }, { data: rawSessions }] = await Promise.all([
+  const [{ data: rawCourses }, { data: rawSessions }, { data: rawMemberships }] = await Promise.all([
     allCourseIds.length > 0
       ? supabase
           .from('courses')
@@ -146,6 +203,14 @@ export async function listUserStudyPlans(
       .from('study_sessions')
       .select('id, plan_id, start_time, status, course_id, metrics')
       .in('plan_id', allPlanIds),
+    organizationIds.length > 0
+      ? supabase
+          .from('organization_users')
+          .select('organization_id, role, organizations!inner(slug)')
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .in('organization_id', organizationIds)
+      : Promise.resolve({ data: [] satisfies RawOrganizationMembershipRow[] }),
   ])
 
   const courseTitleById = new Map(
@@ -166,6 +231,39 @@ export async function listUserStudyPlans(
     sessionsByPlanId.set(session.plan_id, planSessions)
   }
 
+  const organizationContextById = new Map<
+    string,
+    {
+      dashboardDestination: string
+      organizationRole?: string
+      organizationSlug: string
+    }
+  >()
+
+  for (const membership of (rawMemberships || []) as RawOrganizationMembershipRow[]) {
+    const organizationId = membership.organization_id
+    const organizationSlug = extractOrganizationSlug(membership.organizations)
+
+    if (!organizationId || !organizationSlug) {
+      continue
+    }
+
+    const dashboardDestination = buildStudyPlannerDashboardDestination(
+      organizationSlug,
+      membership.role,
+    )
+
+    if (!dashboardDestination) {
+      continue
+    }
+
+    organizationContextById.set(organizationId, {
+      dashboardDestination,
+      organizationRole: membership.role || undefined,
+      organizationSlug,
+    })
+  }
+
   const now = Date.now()
 
   return plans.map((plan) => {
@@ -177,6 +275,9 @@ export async function listUserStudyPlans(
       ]),
     )
     const primaryCourseId = courseIds[0]
+    const organizationContext = plan.organization_id
+      ? organizationContextById.get(plan.organization_id)
+      : undefined
 
     return {
       id: plan.id,
@@ -186,6 +287,9 @@ export async function listUserStudyPlans(
       endDate: plan.end_date || undefined,
       timezone: plan.timezone || undefined,
       organizationId: plan.organization_id || undefined,
+      organizationSlug: organizationContext?.organizationSlug,
+      organizationRole: organizationContext?.organizationRole,
+      dashboardDestination: organizationContext?.dashboardDestination,
       createdAt: plan.created_at || undefined,
       updatedAt: plan.updated_at || undefined,
       courseIds,

@@ -12,7 +12,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useOrganizationStylesContext } from '../../../business-panel/contexts/OrganizationStylesContext';
 import { useAuth } from '../../../auth/hooks/useAuth';
 import { STUDY_PLANNER_STEPS } from '../../constants/studyPlannerSteps';
@@ -38,6 +38,7 @@ import type { StudyPlannerCalendarProvider } from '../../types/planner-ui.types'
 export function useStudyPlannerLIALogic() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   const restartTour = () => {};
@@ -393,7 +394,9 @@ export function useStudyPlannerLIALogic() {
 
   // ── Navigation & audio handlers sub-hook ──────────────────────────────────
   const orgSlugParam = params?.orgSlug;
-  const orgSlug = user?.organization?.slug
+  const fromOrgSlug = searchParams.get('fromOrg');
+  const orgSlug = fromOrgSlug
+    || user?.organization?.slug
     || (typeof orgSlugParam === 'string'
       ? orgSlugParam
       : Array.isArray(orgSlugParam)

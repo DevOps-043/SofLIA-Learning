@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   AlertCircle,
@@ -22,7 +22,13 @@ import { useCurrentOrganizationSlug } from '@/core/stores/organizationStore'
 import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
 
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import { CertificateDocument } from '@/features/certificates/components/CertificateDocument'
 import { CertificateDocumentPreview } from '@/features/certificates/components/CertificateDocumentPreview'
+import { downloadCertificatePdf } from '@/features/certificates/services/certificate-client-pdf.service'
+import {
+  CERTIFICATE_RENDER_HEIGHT_PX,
+  CERTIFICATE_RENDER_WIDTH_PX,
+} from '@/features/certificates/constants/certificate-branding'
 import type { CertificateListItem } from '@/features/certificates/types/certificate'
 
 interface CertificatesResponse {
@@ -48,11 +54,14 @@ export default function CertificatesPage() {
   const theme = useBusinessPanelTheme()
   const orgSlug = useCurrentOrganizationSlug()
   const { t } = useTranslation('common')
+  const downloadDocumentRef = useRef<HTMLDivElement | null>(null)
   const [certificates, setCertificates] = useState<CertificateListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const [downloadTarget, setDownloadTarget] = useState<CertificateListItem | null>(null)
+  const [downloadingCertificateId, setDownloadingCertificateId] = useState<string | null>(null)
 
   useEffect(() => {
     void fetchCertificates()
@@ -99,32 +108,38 @@ export default function CertificatesPage() {
     )
   }, [certificates, searchTerm])
 
-  async function handleDownload(certificateId: string, fileName: string): Promise<void> {
-    try {
-      const response = await fetch(`/api/certificates/${certificateId}/download`, {
-        credentials: 'include',
+  async function waitForDownloadRender(): Promise<void> {
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve())
       })
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string; details?: string }
-        throw new Error(data.details || data.error || t('certificates.errorDownload'))
-      }
-
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = downloadUrl
-      anchor.download = fileName
-      document.body.appendChild(anchor)
-      anchor.click()
-      document.body.removeChild(anchor)
-      window.URL.revokeObjectURL(downloadUrl)
-    } catch (err) {
-      setDownloadError(err instanceof Error ? err.message : t('certificates.errorDownload'))
-    }
+    })
   }
 
+  async function handleDownload(certificate: CertificateListItem): Promise<void> {
+    try {
+      setDownloadError(null)
+      setDownloadTarget(certificate)
+      setDownloadingCertificateId(certificate.certificateId)
 
+      await waitForDownloadRender()
+
+      const downloadElement = downloadDocumentRef.current
+      if (!downloadElement) {
+        throw new Error(t('certificates.errorDownload'))
+      }
+
+      await downloadCertificatePdf({
+        element: downloadElement,
+        fileName: certificate.documentModel.fileName,
+      })
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : t('certificates.errorDownload'))
+    } finally {
+      setDownloadingCertificateId(null)
+      setDownloadTarget(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -342,21 +357,23 @@ export default function CertificatesPage() {
                       {t('certificates.view')}
                     </button>
                     <button
-                      onClick={() =>
-                        void handleDownload(
-                          certificate.certificateId,
-                          certificate.documentModel.fileName,
-                        )
-                      }
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                      onClick={() => void handleDownload(certificate)}
+                      disabled={downloadingCertificateId !== null}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                       style={{
                         backgroundColor: theme.cardBg,
                         borderColor: theme.borderColor,
                         color: theme.textColor,
                       }}
                     >
-                      <Download className="h-4 w-4" />
-                      {t('certificates.download')}
+                      {downloadingCertificateId === certificate.certificateId ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      {downloadingCertificateId === certificate.certificateId
+                        ? t('certificates.generatingPdf')
+                        : t('certificates.download')}
                     </button>
                     <button
                       onClick={() => router.push(`/certificates/verify/${certificate.certificateHash}`)}
@@ -377,6 +394,25 @@ export default function CertificatesPage() {
           </div>
         )}
       </div>
+
+      {downloadTarget ? (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: '-10000px',
+            width: `${CERTIFICATE_RENDER_WIDTH_PX}px`,
+            height: `${CERTIFICATE_RENDER_HEIGHT_PX}px`,
+            pointerEvents: 'none',
+            overflow: 'hidden',
+          }}
+        >
+          <div ref={downloadDocumentRef}>
+            <CertificateDocument model={downloadTarget.documentModel} />
+          </div>
+        </div>
+      ) : null}
 
       <LiaSidePanel />
       <LiaFloatingButton />

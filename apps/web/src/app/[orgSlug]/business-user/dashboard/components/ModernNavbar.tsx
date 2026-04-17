@@ -43,7 +43,7 @@ export function ModernNavbar({
     setMobileMenuOpen,
     setUserDropdownOpen,
     userDropdownOpen,
-  } = useModernNavbar(styles, resolvedTheme, initializeTheme);
+  } = useModernNavbar(styles, resolvedTheme, initializeTheme, organization?.slug);
 
   return (
     <>

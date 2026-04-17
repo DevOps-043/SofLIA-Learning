@@ -15,8 +15,12 @@ import type { ReactNode } from 'react';
 type CalendarProvider = 'google' | 'microsoft' | null;
 
 interface DashboardPlanListItem {
+  dashboardDestination?: string;
   id: string;
   name: string;
+  organizationId?: string;
+  organizationRole?: string;
+  organizationSlug?: string;
   primaryCourseTitle?: string;
   totalSessions: number;
   upcomingSessions: number;

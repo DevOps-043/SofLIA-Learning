@@ -88,13 +88,16 @@ export function useStudyPlannerCourseSelectionFlow({
             const courseId = course.courseId || '';
             // Generate a unique selection key so the same course assigned by
             // different organizations appears as separate, independently selectable items.
-            const id = course.organizationName
-              ? `${courseId}__${course.organizationName}`
+            const id = course.organizationId
+              ? `${courseId}__${course.organizationId}`
+              : course.organizationName
+                ? `${courseId}__${course.organizationName}`
               : courseId || course.id || '';
             return {
               category: 'General',
               courseId,
               id,
+              organizationId: course.organizationId ?? undefined,
               organizationName: course.organizationName ?? undefined,
               progress: course.progress ?? 0,
               title: course.title,

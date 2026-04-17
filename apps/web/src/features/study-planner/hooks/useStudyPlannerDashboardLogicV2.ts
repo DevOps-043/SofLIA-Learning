@@ -4,10 +4,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStudyPlannerDashboardSofLIA } from './useStudyPlannerDashboardSofLIA';
 import { useStudyPlannerDashboardTour } from './useStudyPlannerDashboardTour';
+import { resolveInitialStudyPlannerPlanId } from '../services/study-planner-navigation.service';
 
 interface DashboardPlanListItem {
+  dashboardDestination?: string;
   id: string;
   name: string;
+  organizationId?: string;
+  organizationRole?: string;
+  organizationSlug?: string;
   primaryCourseTitle?: string;
   totalSessions: number;
   upcomingSessions: number;
@@ -121,11 +126,17 @@ export function useStudyPlannerDashboardLogicV2() {
       const urlPlanId = typeof window !== 'undefined'
         ? new URLSearchParams(window.location.search).get('planId')
         : null;
+      const fromOrgSlug = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('fromOrg')
+        : null;
       // Use the ref instead of state to avoid re-creating this callback on every plan change
-      const candidatePlanId = preferredPlanId ?? selectedPlanIdRef.current ?? urlPlanId;
-      const nextPlanId = candidatePlanId && plans.some((plan) => plan.id === candidatePlanId)
-        ? candidatePlanId
-        : plans[0]?.id || null;
+      const nextPlanId = resolveInitialStudyPlannerPlanId({
+        fromOrgSlug,
+        plans,
+        preferredPlanId,
+        selectedPlanId: selectedPlanIdRef.current,
+        urlPlanId,
+      });
 
       selectedPlanIdRef.current = nextPlanId;
       setSelectedPlanId(nextPlanId);

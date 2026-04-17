@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fetchStudyPlanStatus, getModernNavbarColors } from '../service';
+import {
+  buildStudyPlannerEntryPath,
+  fetchStudyPlanStatus,
+  getModernNavbarColors,
+} from '../service';
 
 describe('modern-navbar.service', () => {
   it('builds light theme colors from style config', () => {
@@ -32,5 +36,28 @@ describe('modern-navbar.service', () => {
     });
 
     await expect(fetchStudyPlanStatus(fetchMock)).resolves.toBe(true);
+  });
+
+  it('requests study plan status scoped to the current organization slug', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ hasPlan: false }),
+    });
+
+    await fetchStudyPlanStatus(fetchMock, 'board-ready');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/study-planner/status?orgSlug=board-ready',
+      expect.objectContaining({ cache: 'no-store' }),
+    );
+  });
+
+  it('builds planner links with source organization context', () => {
+    expect(
+      buildStudyPlannerEntryPath({
+        hasStudyPlan: true,
+        organizationSlug: 'board-ready',
+      }),
+    ).toBe('/study-planner/dashboard?fromOrg=board-ready');
   });
 });
