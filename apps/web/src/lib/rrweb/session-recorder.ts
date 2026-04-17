@@ -52,7 +52,7 @@ export const sessionRecorder = {
     return getRecorder().pause()
   },
 
-  resume(): void {
+  resume(): Promise<void> {
     return getRecorder().resume()
   },
 

@@ -38,9 +38,13 @@ function LiaFloatingButtonContent() {
               right: `${LIA_BUTTON_RIGHT_PX}px`,
               width: `${LIA_BUTTON_SIZE_PX}px`,
               height: `${LIA_BUTTON_SIZE_PX}px`,
-              zIndex: 9998,
+              zIndex: 11000,
               background: 'rgba(0,0,0,0.01)',
               borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
             }}
           >
             <motion.button
@@ -62,6 +66,7 @@ function LiaFloatingButtonContent() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                pointerEvents: 'auto',
               }}
               aria-label="Abrir asistente SofLIA"
             >

@@ -37,7 +37,7 @@ export interface SessionRecorderInstance {
   isActive(): boolean
   isPaused(): boolean
   pause(): void
-  resume(): void
+  resume(): Promise<void>
   isRrwebAvailable(): boolean
   exportSession(session: RecordingSession): string
   exportSessionBase64(session: RecordingSession): string

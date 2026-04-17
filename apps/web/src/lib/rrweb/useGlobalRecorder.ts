@@ -1,17 +1,22 @@
 /**
- * Hook global para grabar sesiones en background
- * Se inicia automáticamente al montar la app y mantiene los últimos 3 minutos
- * 
- * VERSIÓN SIMPLIFICADA:
- * - Evita race conditions verificando existencia de métodos
- * - No usa detector de inactividad por ahora (causaba errores)
+ * Hook global para grabar sesiones en background.
+ *
+ * CORTOCIRCUITOS DE EFICIENCIA (performance mobile):
+ * - Antes de inicializar, consulta `evaluateRecordingGate()` y sale si
+ *   el entorno no es apto (mobile viewport, save-data, reduced-motion,
+ *   flag de opt-out, etc.).
+ * - Salta el ciclo de restart cuando la pestaña está oculta para evitar
+ *   snapshots costosos en background.
  */
 
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { evaluateRecordingGate } from './recording-gate';
 
-// Flag global para evitar inicializaciones duplicadas
+const RESTART_INTERVAL_MS = 180000;
+
+// Flags globales para evitar inicializaciones duplicadas entre remounts.
 let isInitialized = false;
 let errorInterceptorStarted = false;
 
@@ -20,100 +25,125 @@ export function useGlobalRecorder() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Solo en el cliente
     if (typeof window === 'undefined') return;
-    
+
+    const decision = evaluateRecordingGate();
+    if (!decision.allowed) {
+      if (process.env.NODE_ENV === 'development') {
+        console.info('[GlobalRecorder] Grabación omitida:', decision.reason);
+      }
+      return;
+    }
+
     mountedRef.current = true;
 
-    // Si ya está inicializado, no hacer nada
     if (isInitialized) {
       return;
     }
 
     const initRecorder = async () => {
       try {
-        // Cargar el módulo
         const { sessionRecorder } = await import('./session-recorder');
-        
-        // Verificar que el componente siga montado
-        if (!mountedRef.current) {
-          return;
-        }
 
-        // Verificar que sessionRecorder tenga los métodos necesarios
+        if (!mountedRef.current) return;
+
         if (!sessionRecorder || typeof sessionRecorder.startRecording !== 'function') {
-          console.warn('[Global] ⚠️ sessionRecorder no está disponible o no tiene los métodos requeridos');
+          console.warn('[GlobalRecorder] sessionRecorder no disponible');
           return;
         }
 
-        // Iniciar error interceptor (si no está iniciado)
         if (!errorInterceptorStarted) {
           try {
             const { startErrorInterceptor } = await import('./error-interceptor');
             startErrorInterceptor();
             errorInterceptorStarted = true;
-          } catch (e) {
-            // Silenciar
+          } catch {
+            // Silenciar: no bloquear la grabación por fallo del interceptor
           }
         }
 
-        // Solo iniciar grabación si no hay una activa
         const isActive = typeof sessionRecorder.isActive === 'function' && sessionRecorder.isActive();
-        
         if (!isActive) {
           try {
-            await sessionRecorder.startRecording(180000); // 3 minutos
-          } catch (error) {
+            await sessionRecorder.startRecording(RESTART_INTERVAL_MS);
+          } catch {
             // Silenciar errores de grabación ya activa
           }
-        } else {
         }
-        
+
         isInitialized = true;
 
-        // Reiniciar grabación cada 3 minutos
         if (!intervalRef.current) {
           intervalRef.current = setInterval(async () => {
             if (!mountedRef.current) return;
-            
+
+            // Evitar snapshots costosos cuando la pestaña está oculta:
+            // rrweb.record re-toma el snapshot del DOM al reiniciar, lo cual
+            // es inútil en background y genera picos de CPU.
+            if (typeof document !== 'undefined' && document.hidden) {
+              return;
+            }
+
             try {
               const mod = await import('./session-recorder');
               const recorder = mod.sessionRecorder;
-              
+
               if (!recorder || typeof recorder.isActive !== 'function') return;
-              
-              // Verificar si hay grabación activa antes de detener
+
               if (!recorder.isActive()) {
-                await recorder.startRecording(180000);
+                await recorder.startRecording(RESTART_INTERVAL_MS);
                 return;
               }
-              
-              // Detener y reiniciar
+
               if (typeof recorder.stop === 'function') {
                 recorder.stop();
               }
-              
-              await new Promise(resolve => setTimeout(resolve, 300));
-              
+
+              await new Promise((resolve) => setTimeout(resolve, 300));
+
               if (mountedRef.current) {
-                await recorder.startRecording(180000);
+                await recorder.startRecording(RESTART_INTERVAL_MS);
               }
-            } catch (error) {
-              // Silenciar errores
+            } catch {
+              // Silenciar errores de grabación
             }
-          }, 180000); // 3 minutos
+          }, RESTART_INTERVAL_MS);
         }
       } catch (error) {
-        console.error('[Global] Error inicializando recorder:', error);
+        console.error('[GlobalRecorder] Error inicializando recorder:', error);
       }
     };
 
     initRecorder();
 
-    // Cleanup
+    // Pausa/reanudación según visibilidad de la pestaña.
+    // Usa la API pause/resume existente del recorder.
+    const onVisibilityChange = () => {
+      if (!mountedRef.current) return;
+      import('./session-recorder').then((mod) => {
+        const recorder = mod.sessionRecorder;
+        if (!recorder) return;
+        if (document.hidden) {
+          if (typeof recorder.pause === 'function' && recorder.isActive?.()) {
+            recorder.pause();
+          }
+        } else {
+          if (typeof recorder.resume === 'function' && recorder.isPaused?.()) {
+            recorder.resume();
+          }
+        }
+      }).catch(() => {
+        // Silenciar: la pausa/reanudación es best-effort
+      });
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
     return () => {
       mountedRef.current = false;
-      
+
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;

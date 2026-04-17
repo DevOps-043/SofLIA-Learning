@@ -28,6 +28,7 @@ export class SessionRecorder {
   private initialSnapshot: eventWithTime | null = null
   private rrwebAvailable = false
   private sessionStartTime: number | null = null
+  private maxDurationTimeoutId: ReturnType<typeof setTimeout> | null = null
 
   private constructor() {}
 
@@ -54,6 +55,49 @@ export class SessionRecorder {
       this.rrwebAvailable = false
       return false
     }
+  }
+
+  private async attachRrwebListeners(): Promise<void> {
+    const rrweb = await loadRrweb()
+
+    if (!rrweb || typeof rrweb.record !== 'function') {
+      throw new Error('rrweb.record no esta disponible')
+    }
+
+    const recordOptions = buildSessionRecorderRecordOptions({
+      isDev: process.env.NODE_ENV === 'development',
+      getEvents: () => this.events,
+      maxEvents: this.maxEvents,
+      getInitialSnapshot: () => this.initialSnapshot,
+      setEvents: (events) => {
+        this.events = events
+      },
+      setInitialSnapshot: (snapshot) => {
+        this.initialSnapshot = snapshot
+      },
+    })
+
+    const stopRecording = rrweb.record(recordOptions)
+
+    if (typeof stopRecording !== 'function') {
+      throw new Error('rrweb.record no retorno una funcion de detencion')
+    }
+
+    this.stopRecording = stopRecording
+  }
+
+  private scheduleMaxDurationStop(): void {
+    if (this.maxDurationTimeoutId) {
+      clearTimeout(this.maxDurationTimeoutId)
+    }
+    this.maxDurationTimeoutId = setTimeout(() => {
+      this.maxDurationTimeoutId = null
+      if (!this.isRecording || this.isPausedState) {
+        return
+      }
+      this.stopRecording?.()
+      this.isRecording = false
+    }, this.maxDuration)
   }
 
   async startRecording(maxDuration?: number): Promise<void> {
@@ -85,41 +129,8 @@ export class SessionRecorder {
     this.sessionStartTime = Date.now()
 
     try {
-      const rrweb = await loadRrweb()
-
-      if (!rrweb || typeof rrweb.record !== 'function') {
-        throw new Error('rrweb.record no esta disponible')
-      }
-
-      const recordOptions = buildSessionRecorderRecordOptions({
-        isDev: process.env.NODE_ENV === 'development',
-        getEvents: () => this.events,
-        maxEvents: this.maxEvents,
-        getInitialSnapshot: () => this.initialSnapshot,
-        setEvents: (events) => {
-          this.events = events
-        },
-        setInitialSnapshot: (snapshot) => {
-          this.initialSnapshot = snapshot
-        },
-      })
-
-      const stopRecording = rrweb.record(recordOptions)
-
-      if (typeof stopRecording !== 'function') {
-        throw new Error('rrweb.record no retorno una funcion de detencion')
-      }
-
-      this.stopRecording = stopRecording
-
-      setTimeout(() => {
-        if (!this.isRecording) {
-          return
-        }
-
-        this.stopRecording?.()
-        this.isRecording = false
-      }, this.maxDuration)
+      await this.attachRrwebListeners()
+      this.scheduleMaxDurationStop()
     } catch (error) {
       console.error('[SessionRecorder] Error iniciando grabacion:', error)
       this.isRecording = false
@@ -156,6 +167,12 @@ export class SessionRecorder {
 
     this.stopRecording?.()
     this.isRecording = false
+    this.isPausedState = false
+
+    if (this.maxDurationTimeoutId) {
+      clearTimeout(this.maxDurationTimeoutId)
+      this.maxDurationTimeoutId = null
+    }
 
     const session = buildRecordingSession(this.events, this.initialSnapshot)
     if (!session) {
@@ -186,15 +203,45 @@ export class SessionRecorder {
     return this.isPausedState
   }
 
+  /**
+   * Desengancha los listeners de rrweb para liberar CPU/memoria (típicamente
+   * cuando la pestaña queda oculta). Preserva el buffer de eventos y el
+   * snapshot inicial para que `resume()` continúe la misma sesión.
+   */
   pause(): void {
-    if (this.isRecording && !this.isPausedState) {
-      this.isPausedState = true
+    if (!this.isRecording || this.isPausedState) {
+      return
+    }
+
+    this.isPausedState = true
+    this.stopRecording?.()
+    this.stopRecording = null
+
+    if (this.maxDurationTimeoutId) {
+      clearTimeout(this.maxDurationTimeoutId)
+      this.maxDurationTimeoutId = null
     }
   }
 
-  resume(): void {
-    if (this.isRecording && this.isPausedState) {
+  /**
+   * Re-adjunta los listeners de rrweb sobre el buffer existente y reprograma
+   * el corte por duración máxima. Si el re-attach falla, deja la sesión en un
+   * estado consistente (no recording, no paused).
+   */
+  async resume(): Promise<void> {
+    if (!this.isRecording || !this.isPausedState) {
+      return
+    }
+
+    try {
+      await this.attachRrwebListeners()
       this.isPausedState = false
+      this.scheduleMaxDurationStop()
+    } catch (error) {
+      console.error('[SessionRecorder] Error reanudando grabacion:', error)
+      this.isRecording = false
+      this.isPausedState = false
+      this.stopRecording = null
     }
   }
 

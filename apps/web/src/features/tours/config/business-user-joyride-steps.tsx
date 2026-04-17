@@ -89,7 +89,7 @@ export function buildBusinessUserJoyrideSteps({
       placement: isMobile ? 'top' : 'top-end',
       disableBeacon: true,
       disableScrolling: true,
-      spotlightPadding: isMobile ? 12 : 20,
+      spotlightPadding: isMobile ? 0 : 20,
       data: {
         icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
       },

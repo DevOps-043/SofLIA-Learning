@@ -56,6 +56,7 @@ export function useBusinessUserJoyride(
   const [stepIndex, setStepIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
+  const [isTourFinishedInSession, setIsTourFinishedInSession] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
@@ -71,43 +72,44 @@ export function useBusinessUserJoyride(
   }, []);
 
   const steps = useMemo(() => {
-    const candidateSteps = resolveBusinessUserJoyrideSteps(isMobile);
-
-    if (!hasMounted) {
-      return candidateSteps;
-    }
-
-    return candidateSteps.filter(targetExists);
-  }, [hasMounted, isMobile]);
+    return resolveBusinessUserJoyrideSteps(isMobile);
+  }, [isMobile]);
 
   useEffect(() => {
-    if (!enabled || isLoading || !shouldShowTour) {
+    if (!enabled || isLoading || !shouldShowTour || isTourFinishedInSession || run || showVideoIntro) {
       return;
     }
 
     const timer = window.setTimeout(() => {
+      console.log('[useBusinessUserJoyride] Auto-starting tour video intro');
       setShowVideoIntro(true);
     }, 2000);
 
     return () => window.clearTimeout(timer);
-  }, [enabled, isLoading, shouldShowTour]);
+  }, [enabled, isLoading, shouldShowTour, isTourFinishedInSession, run, showVideoIntro]);
 
   const handleVideoComplete = useCallback(() => {
+    console.log('[useBusinessUserJoyride] Video complete, preparing to start tour');
     setShowVideoIntro(false);
     setStepIndex(0);
-    setRun(false);
+    
+    // We use a small timeout to let the DOM settle after the video modal closes
+    // This ensures elements like the SofLIA button are correctly positioned for Joyride
+    setTimeout(() => {
+      if (steps.length === 0) {
+        console.warn('[useBusinessUserJoyride] No steps found, completing tour');
+        completeTour().catch((err) =>
+          console.error('[useBusinessUserJoyride] No steps available:', err),
+        );
+        return;
+      }
 
-    if (steps.length === 0) {
-      completeTour().catch((err) =>
-        console.error('[useBusinessUserJoyride] No steps available:', err),
+      console.log('[useBusinessUserJoyride] Starting Joyride with', steps.length, 'steps');
+      startTour().catch((err) =>
+        console.error('[useBusinessUserJoyride] DB start failed', err),
       );
-      return;
-    }
-
-    startTour().catch((err) =>
-      console.error('[useBusinessUserJoyride] DB start failed', err),
-    );
-    setRun(true);
+      setRun(true);
+    }, 300);
   }, [completeTour, startTour, steps.length]);
 
   const handleJoyrideCallback = useCallback(
@@ -115,7 +117,9 @@ export function useBusinessUserJoyride(
       const { action, index, status, type } = data;
 
       if (status === STATUS.FINISHED) {
+        console.log('[useBusinessUserJoyride] Tour finished');
         setRun(false);
+        setIsTourFinishedInSession(true);
         completeTour().catch((err) =>
           console.error('[useBusinessUserJoyride] Complete failed', err),
         );
@@ -123,7 +127,9 @@ export function useBusinessUserJoyride(
       }
 
       if (status === STATUS.SKIPPED || action === ACTIONS.SKIP) {
+        console.log('[useBusinessUserJoyride] Tour skipped');
         setRun(false);
+        setIsTourFinishedInSession(true);
         skipTour().catch((err) =>
           console.error('[useBusinessUserJoyride] Skip failed', err),
         );
@@ -131,7 +137,9 @@ export function useBusinessUserJoyride(
       }
 
       if (action === ACTIONS.CLOSE) {
+        console.log('[useBusinessUserJoyride] Tour closed');
         setRun(false);
+        setIsTourFinishedInSession(true);
         skipTour().catch((err) =>
           console.error('[useBusinessUserJoyride] Close failed', err),
         );
@@ -144,9 +152,18 @@ export function useBusinessUserJoyride(
           return;
         }
 
-        setStepIndex((currentStepIndex) =>
-          Math.min(currentStepIndex + 1, Math.max(steps.length - 1, 0)),
-        );
+        // If we're on the last step and moving forward, finish the tour
+        if (index >= steps.length - 1) {
+          console.log('[useBusinessUserJoyride] Last step reached, finishing tour');
+          setRun(false);
+          setIsTourFinishedInSession(true);
+          completeTour().catch((err) =>
+            console.error('[useBusinessUserJoyride] Complete failed (last step)', err),
+          );
+          return;
+        }
+
+        setStepIndex(index + 1);
       }
     },
     [completeTour, skipTour, steps.length],
@@ -158,8 +175,10 @@ export function useBusinessUserJoyride(
   }, []);
 
   const manualStartTour = useCallback(() => {
+    console.log('[useBusinessUserJoyride] Manually restarting tour');
     setStepIndex(0);
     setRun(false);
+    setIsTourFinishedInSession(false);
     setShowVideoIntro(true);
   }, []);
 
@@ -219,6 +238,7 @@ export function useBusinessUserJoyride(
       },
     },
     shouldShowTour,
+    isTourFinishedInSession,
     isLoading,
     run,
     stepIndex,
