@@ -91,7 +91,7 @@ export function CourseCard3D({
 
   return (
     <div
-      className={`group relative flex overflow-hidden rounded-[20px] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${viewMode === 'list' ? 'flex-col lg:flex-row items-stretch' : 'flex-col'}`}
+      className={`group relative flex overflow-hidden rounded-[20px] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${viewMode === 'list' ? 'flex-row items-stretch' : 'flex-col'}`}
       style={{
         backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
         border: `1px solid ${isLightMode ? borderColor : 'rgba(255, 255, 255, 0.08)'}`,
@@ -102,7 +102,7 @@ export function CourseCard3D({
     >
       {/* Thumbnail */}
       <div 
-        className={`relative bg-black/5 overflow-hidden border-r shrink-0 ${viewMode === 'list' ? 'w-full lg:w-[35%] lg:min-w-[240px] lg:max-w-[300px] aspect-video' : 'aspect-video w-full'}`} 
+        className={`relative bg-black/5 overflow-hidden border-r shrink-0 ${viewMode === 'list' ? 'w-[40%] sm:w-[35%] max-h-[120px] sm:max-h-none lg:min-w-[240px] lg:max-w-[300px]' : 'aspect-video w-full'}`} 
         style={{ 
           backgroundColor: isLightMode ? '#F8FAFC' : '#0F172A',
           borderColor: isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'
@@ -140,7 +140,7 @@ export function CourseCard3D({
       </div>
 
       {/* Content */}
-      <div className={`flex flex-col flex-1 ${viewMode === 'list' ? 'p-4 sm:p-5' : 'p-3.5'}`}>
+      <div className={`flex flex-col flex-1 ${viewMode === 'list' ? 'p-3 sm:p-4 lg:p-5' : 'p-3.5'}`}>
         <h3 
           className="text-sm font-bold leading-snug mb-1 transition-colors group-hover:opacity-80"
           style={{ color: textColor }}

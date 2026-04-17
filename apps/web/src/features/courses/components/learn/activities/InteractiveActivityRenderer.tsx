@@ -66,7 +66,7 @@ export function InteractiveActivityRenderer({
 }) {
   const [liaEvaluationPending, setLiaEvaluationPending] = useState(false);
   const [toolActionMessage, setToolActionMessage] = useState<string | null>(null);
-  const { liaChat, openLia, courseContext } = useLiaCourse();
+  const { liaChat, openLia, courseContext, isLiaChatLoading } = useLiaCourse();
   const activityConfig = activity.activity_config;
   const normalizedContent = useMemo(
     () => normalizeContentForRenderer(activity.activity_content),
@@ -110,7 +110,7 @@ export function InteractiveActivityRenderer({
     activity,
     request: requestPayload,
   });
-  const isLiaBusy = Boolean(liaChat?.isLoading);
+  const isLiaBusy = isLiaChatLoading;
 
   const handleEvaluateWithSoflia = useCallback(async () => {
     setFeedbackMessage(null);

@@ -1,6 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import type { UseLiaCourseChatReturn } from '../../../core/hooks/useLiaCourseChat';
 import type { CourseLessonContext } from '../../../core/types/lia.types';
@@ -15,8 +22,13 @@ interface LiaCourseContextType {
   setActivity: (activity: ActivityContextType | null) => void;
   courseContext: CourseLessonContext | null;
   setCourseContext: (context: CourseLessonContext | null) => void;
-  // Instancia compartida del chat (para invocar desde modales, etc.)
-  liaChat: UseLiaCourseChatReturn | null;
+  // API compartida del chat para invocar desde modales y actividades sin
+  // propagar todo el estado del hook a traves del contexto.
+  liaChat: Pick<
+    UseLiaCourseChatReturn,
+    'sendMessage' | 'stop' | 'clearHistory' | 'loadConversation'
+  > | null;
+  isLiaChatLoading: boolean;
   registerLiaChat: (chat: UseLiaCourseChatReturn | null) => void;
 }
 
@@ -42,25 +54,58 @@ export function LiaCourseProvider({ children }: { children: React.ReactNode }) {
   // Estado para la actividad actual
   const [currentActivity, setCurrentActivity] = useState<ActivityContextType | null>(null);
   const [courseContext, setCourseContext] = useState<CourseLessonContext | null>(null);
-  
-  // Estado para la instancia del chat
-  const [liaChat, setLiaChat] = useState<UseLiaCourseChatReturn | null>(null);
+  const [isLiaChatLoading, setIsLiaChatLoading] = useState(false);
+  const liaChatRef = useRef<LiaCourseContextType['liaChat']>(null);
 
   const setActivity = useCallback((activity: ActivityContextType | null) => {
     setCurrentActivity(activity);
   }, []);
 
   const registerLiaChat = useCallback((chat: UseLiaCourseChatReturn | null) => {
-    setLiaChat(chat);
+    liaChatRef.current = chat
+      ? {
+          sendMessage: chat.sendMessage,
+          stop: chat.stop,
+          clearHistory: chat.clearHistory,
+          loadConversation: chat.loadConversation,
+        }
+      : null;
+
+    setIsLiaChatLoading((previous) => {
+      const nextValue = chat?.isLoading ?? false;
+      return previous === nextValue ? previous : nextValue;
+    });
   }, []);
 
+  const contextValue = useMemo(
+    () => ({
+      isOpen,
+      openLia,
+      closeLia,
+      toggleLia,
+      currentActivity,
+      setActivity,
+      courseContext,
+      setCourseContext,
+      liaChat: liaChatRef.current,
+      isLiaChatLoading,
+      registerLiaChat,
+    }),
+    [
+      closeLia,
+      courseContext,
+      currentActivity,
+      isLiaChatLoading,
+      isOpen,
+      openLia,
+      registerLiaChat,
+      setActivity,
+      toggleLia,
+    ],
+  );
+
   return (
-    <LiaCourseContext.Provider value={{ 
-      isOpen, openLia, closeLia, toggleLia, 
-      currentActivity, setActivity,
-      courseContext, setCourseContext,
-      liaChat, registerLiaChat 
-    }}>
+    <LiaCourseContext.Provider value={contextValue}>
       {children}
     </LiaCourseContext.Provider>
   );

@@ -410,15 +410,15 @@ export function BusinessUserDashboardShell({
                 <div className="flex items-center p-1 rounded-lg border shrink-0" style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}>
                   <button
                     onClick={() => setCourseView('grid')}
-                    className={`p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                   >
-                    <LayoutGrid className="w-4 h-4" style={{ color: courseView === 'grid' ? orgColors.iconColor : orgColors.textSecondary }} />
+                    <LayoutGrid className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'grid' ? orgColors.iconColor : orgColors.textSecondary }} />
                   </button>
                   <button
                     onClick={() => setCourseView('list')}
-                    className={`p-1.5 rounded-md transition-colors ${courseView === 'list' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'list' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                   >
-                    <List className="w-4 h-4" style={{ color: courseView === 'list' ? orgColors.iconColor : orgColors.textSecondary }} />
+                    <List className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'list' ? orgColors.iconColor : orgColors.textSecondary }} />
                   </button>
                 </div>
               )}
@@ -486,7 +486,7 @@ export function BusinessUserDashboardShell({
                 />
               </motion.div>
             ) : (
-              <div className={`grid ${courseView === 'list' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
+              <div className={`grid ${courseView === 'list' ? 'grid-cols-1 gap-3 sm:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
                 <Suspense
                   fallback={
                     <>

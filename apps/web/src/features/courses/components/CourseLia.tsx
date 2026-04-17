@@ -654,7 +654,7 @@ function CourseLiaPanelContent({
           </div>
 
           {/* Input */}
-          <div style={{ padding: '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>
+          <div style={{ padding: isMobile ? '10px 3% 12px' : '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>
             <input
               ref={attachmentInputRef}
               type="file"
@@ -688,7 +688,7 @@ function CourseLiaPanelContent({
                 {attachmentError}
               </div>
             ) : null}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: themeColors.inputBg, borderRadius: '24px', padding: '10px 16px', border: `1px solid ${themeColors.inputBorder}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '12px', backgroundColor: themeColors.inputBg, borderRadius: '24px', padding: isMobile ? '8px 3%' : '10px 16px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
                <button
                  type="button"
                  onClick={handleAttachmentButtonClick}
@@ -714,9 +714,10 @@ function CourseLiaPanelContent({
                  title={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
                  aria-label={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
                  style={{ 
-                   minWidth: isLoading ? '112px' : '44px', 
+                   minWidth: isLoading ? (isMobile ? 'auto' : '112px') : '44px', 
+                   maxWidth: isLoading && isMobile ? '30%' : undefined,
                    height: '44px', 
-                   padding: isLoading ? '0 14px' : '0',
+                   padding: isLoading ? (isMobile ? '0 8px' : '0 14px') : '0',
                    borderRadius: isLoading ? '16px' : '50%', 
                    backgroundColor: isLoading
                      ? (isLightTheme ? '#DC2626' : '#EF4444')
@@ -727,13 +728,14 @@ function CourseLiaPanelContent({
                    alignItems: 'center', 
                    justifyContent: 'center',
                    gap: isLoading ? '8px' : '0',
+                   flexShrink: 0,
                    transition: 'all 180ms ease'
                  }}
                >
                  {isLoading ? (
                    <>
                      <Square style={{ width: '15px', height: '15px', color: '#FFFFFF', fill: '#FFFFFF' }} />
-                     <span style={{ color: '#FFFFFF', fontSize: '13px', fontWeight: 600, lineHeight: 1 }}>
+                     <span style={{ color: '#FFFFFF', fontSize: isMobile ? '12px' : '13px', fontWeight: 600, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                        Detener
                      </span>
                    </>

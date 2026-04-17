@@ -193,7 +193,7 @@ export default function BusinessPanelUsersPage() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-8" style={{ color: theme.textColor }}>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8" style={{ color: theme.textColor }}>
       <UsersPageHeader
         t={t}
         onDownloadTemplate={handleDownloadTemplate}
