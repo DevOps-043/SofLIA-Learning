@@ -30,20 +30,24 @@ function LiaFloatingButtonContent() {
       <AnimatePresence>
         {!isOpen ? (
           <div
+            id={SHARED_TOUR_TARGET_IDS.liaTrigger}
+            data-tour="lia-button"
             style={{
               position: 'fixed',
               bottom: `${LIA_BUTTON_BOTTOM_PX}px`,
               right: `${LIA_BUTTON_RIGHT_PX}px`,
               width: `${LIA_BUTTON_SIZE_PX}px`,
               height: `${LIA_BUTTON_SIZE_PX}px`,
-              zIndex: 9998,
+              zIndex: 11000,
               background: 'rgba(0,0,0,0.01)',
               borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              pointerEvents: 'none',
             }}
           >
             <motion.button
-              id={SHARED_TOUR_TARGET_IDS.liaTrigger}
-              data-tour="lia-button"
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
@@ -62,6 +66,7 @@ function LiaFloatingButtonContent() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                pointerEvents: 'auto',
               }}
               aria-label="Abrir asistente SofLIA"
             >

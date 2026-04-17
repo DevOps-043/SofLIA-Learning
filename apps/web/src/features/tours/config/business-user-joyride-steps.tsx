@@ -86,10 +86,10 @@ export function buildBusinessUserJoyrideSteps({
       title: 'Tu asistente SofLIA',
       content:
         'SofLIA esta aqui para resolver dudas, darte contexto y acompanarte durante tu aprendizaje.',
-      placement: 'top-end',
+      placement: isMobile ? 'top' : 'top-end',
       disableBeacon: true,
-      disableScrolling: false,
-      spotlightPadding: isMobile ? 8 : 20,
+      disableScrolling: true,
+      spotlightPadding: isMobile ? 0 : 20,
       data: {
         icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
       },

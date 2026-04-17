@@ -80,7 +80,7 @@ export function useBusinessUserDashboardPageLogic() {
     []
   )
 
-  const { joyrideProps, startTour: restartTour, showVideoIntro, handleVideoComplete } =
+  const { joyrideProps, shouldShowTour, startTour: restartTour, showVideoIntro, handleVideoComplete } =
     useBusinessUserJoyride({
       enabled: orgRole !== null && orgRole !== 'superadmin',
     })
@@ -254,6 +254,7 @@ export function useBusinessUserDashboardPageLogic() {
     cssVariables,
     orgColors,
     joyrideProps,
+    shouldShowTour,
     restartTour,
     showVideoIntro,
     handleVideoComplete,

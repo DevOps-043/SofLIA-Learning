@@ -60,7 +60,12 @@ export default function BusinessUserDashboardPage() {
         introVideos={logic.introVideos}
         t={logic.translate}
       />
-      {logic.isMounted && <Joyride {...logic.joyrideProps} />}
+      {logic.isMounted && logic.joyrideProps.run && (
+        <Joyride
+          key={logic.shouldShowTour ? 'active-tour' : 'completed-tour'}
+          {...logic.joyrideProps}
+        />
+      )}
     </>
   )
 }
