@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  BookOpen,
   Check,
   ChevronDown,
   ChevronRight,
@@ -128,6 +129,8 @@ export function ActivityCard({
             <MessageCircle className="h-4 w-4 text-indigo-500 dark:text-white/60" />
           ) : isQuiz ? (
             <FileText className="h-4 w-4 text-gray-500 dark:text-white/60" />
+          ) : activity.activity_type === "reading" ? (
+            <BookOpen className="h-4 w-4 text-gray-500 dark:text-white/60" />
           ) : (
             <Activity className="h-4 w-4 text-gray-500 dark:text-white/60" />
           )}

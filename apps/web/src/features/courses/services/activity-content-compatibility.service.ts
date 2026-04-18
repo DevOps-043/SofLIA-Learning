@@ -277,7 +277,11 @@ function mergeValidationState(
 }
 
 export function isInteractiveLessonActivity(activityType?: string | null) {
-  return activityType !== 'quiz' && activityType !== 'ai_chat'
+  return (
+    activityType !== 'quiz' &&
+    activityType !== 'ai_chat' &&
+    activityType !== 'reading'
+  )
 }
 
 export function resolveActivityConfig({

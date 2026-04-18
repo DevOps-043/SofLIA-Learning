@@ -13,6 +13,10 @@ import {
   type ActivitySubmissionStatus,
   type ActivitySubmissionSummary,
 } from '../types/activity-config'
+import {
+  getActivitySubmissionRequirementIssues,
+  summarizeActivitySubmissionRequirementIssues,
+} from './activity-submission-requirements.service'
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
@@ -584,18 +588,28 @@ export async function saveActivitySubmission(
   const now = new Date().toISOString()
   const submissionPayload = buildSubmissionUpsertPayload(context, request, now)
 
-  if (
-    request.status === 'submitted' &&
-    !hasAnyActivityResponse(context.resolvedActivityConfig, {
-      response_payload: submissionPayload.response_payload,
-      response_text: submissionPayload.response_text,
-      evidence_payload: submissionPayload.evidence_payload,
-    })
-  ) {
+  const submissionRequirementIssues =
+    request.status === 'submitted'
+      ? getActivitySubmissionRequirementIssues(
+          context.resolvedActivityConfig,
+          {
+            responsePayload: submissionPayload.response_payload,
+            responseText: submissionPayload.response_text,
+            evidencePayload: submissionPayload.evidence_payload,
+          },
+        )
+      : []
+
+  if (submissionRequirementIssues.length > 0) {
+    const issues = submissionRequirementIssues
+
     throw new CourseActivityError(
       'INVALID_SUBMISSION',
       400,
-      'Debes capturar una respuesta antes de enviar la actividad',
+      summarizeActivitySubmissionRequirementIssues(issues),
+      {
+        issues: issues.map((issue) => issue.code),
+      },
     )
   }
 

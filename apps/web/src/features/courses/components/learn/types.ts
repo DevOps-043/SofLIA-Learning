@@ -72,7 +72,8 @@ export type LearnActivityType =
   | "exercise"
   | "quiz"
   | "discussion"
-  | "ai_chat";
+  | "ai_chat"
+  | "reading";
 
 export type LearnMaterialType =
   | "pdf"

@@ -54,6 +54,22 @@ describe('adminActivityPayload.service', () => {
     expect(payload.activity_type).toBe('quiz')
   })
 
+  it('drops activity_config for reading payloads to keep a simple content flow', () => {
+    const payload = validateCreateActivityPayload({
+      activity_title: 'Lectura guiada',
+      activity_type: 'reading',
+      activity_content: 'Texto de lectura',
+      activity_config: {
+        interactionType: 'long_text',
+        submission: {},
+        validation: { enabled: true, requiredForCompletion: true, rubric: [] },
+      },
+    })
+
+    expect(payload.activity_type).toBe('reading')
+    expect(payload.activity_config).toBeNull()
+  })
+
   it('rejects mismatched external tool keys', () => {
     expect(() =>
       validateUpdateActivityPayload({

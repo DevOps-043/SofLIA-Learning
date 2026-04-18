@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { Plus, Trash2 } from 'lucide-react'
+import { BookOpen, Clock, Plus, Sparkles, Trash2, Type } from 'lucide-react'
 import { QuizBuilder, type QuizQuestion } from './QuizBuilder'
 import { normalizeQuizQuestions } from './material-modal/useMaterialFormState'
+import { calculateReadingTimeDetailed, READING_SPEEDS } from '@/lib/utils/readingTime'
 import type {
   AdminActivity,
   CreateActivityData,
@@ -103,6 +104,84 @@ function parseRubricText(items: ActivityValidationRubricItem[]): string {
   return items.map((item) => item.description?.trim() || item.label).join('\n')
 }
 
+function ReadingActivityEditor({
+  value,
+  estimatedMinutes,
+  onChange,
+}: {
+  value: string
+  estimatedMinutes: number | ''
+  onChange: (nextValue: string, nextEstimatedMinutes: number) => void
+}) {
+  const readingInfo = useMemo(
+    () => calculateReadingTimeDetailed(value, 'slow'),
+    [value],
+  )
+
+  return (
+    <div className="space-y-4">
+      <label className="space-y-2">
+        <span className="flex items-center gap-2 text-sm font-medium text-[#0A2540] dark:text-white">
+          <BookOpen className="h-4 w-4 text-[#00D4B3]" />
+          Contenido de la lectura
+        </span>
+        <textarea
+          rows={12}
+          value={value}
+          onChange={(event) =>
+            onChange(
+              event.target.value,
+              calculateReadingTimeDetailed(event.target.value, 'slow').estimatedMinutes,
+            )
+          }
+          className="w-full rounded-xl border border-[#D0D7DE] px-4 py-3 text-sm text-[#0A2540] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white"
+          placeholder="Pega o escribe el contenido completo de la lectura."
+        />
+      </label>
+
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-[#00D4B3]/20 bg-[#00D4B3]/10 px-4 py-3 dark:bg-[#00D4B3]/10">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00D4B3]/20">
+            <Type className="h-4 w-4 text-[#00D4B3]" />
+          </div>
+          <div>
+            <p className="text-xs text-[#52606D] dark:text-white/60">Palabras</p>
+            <p className="text-sm font-semibold text-[#0A2540] dark:text-white">
+              {readingInfo.wordCount.toLocaleString()}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00D4B3]/20">
+            <Clock className="h-4 w-4 text-[#00D4B3]" />
+          </div>
+          <div>
+            <p className="text-xs text-[#52606D] dark:text-white/60">Tiempo estimado</p>
+            <p className="text-sm font-semibold text-[#0A2540] dark:text-white">
+              {estimatedMinutes === '' ? readingInfo.formattedTime : `${estimatedMinutes} min`}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00D4B3]/20">
+            <Sparkles className="h-4 w-4 text-[#00D4B3]" />
+          </div>
+          <div>
+            <p className="text-xs text-[#52606D] dark:text-white/60">Velocidad usada</p>
+            <p className="text-xs font-medium text-[#0A2540] dark:text-white">
+              {READING_SPEEDS.slow.wordsPerMinute} ppm
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <p className="text-xs text-[#52606D] dark:text-white/60">
+        El tiempo estimado se actualiza automaticamente con una lectura reflexiva, igual que en materiales.
+      </p>
+    </div>
+  )
+}
+
 export function ActivityModal({
   activity,
   lessonId: _lessonId,
@@ -134,12 +213,23 @@ export function ActivityModal({
   const [rubricText, setRubricText] = useState('')
 
   const supportsInteractiveConfig =
-    form.activity_type !== 'quiz' && form.activity_type !== 'ai_chat'
+    form.activity_type !== 'quiz' &&
+    form.activity_type !== 'ai_chat' &&
+    form.activity_type !== 'reading'
+  const visibleTabs = supportsInteractiveConfig
+    ? tabs
+    : tabs.filter((tab) => tab.id === 'basic' || tab.id === 'content')
 
   const selectedToolLabel = useMemo(() => {
     if (!toolKey) return ''
     return externalToolRegistry[toolKey]?.label ?? toolKey
   }, [toolKey])
+
+  useEffect(() => {
+    if (!visibleTabs.some((tab) => tab.id === activeTab)) {
+      setActiveTab('basic')
+    }
+  }, [activeTab, visibleTabs])
 
   useEffect(() => {
     if (!activity) {
@@ -265,6 +355,11 @@ export function ActivityModal({
           throw new Error('Agrega al menos un prompt para la actividad ai_chat.')
         }
         payload.ai_prompts = JSON.stringify(normalizedPrompts)
+      } else if (form.activity_type === 'reading') {
+        payload.activity_config = null
+        payload.external_tool_key = null
+        payload.requires_soflia_validation = false
+        payload.ai_prompts = ''
       } else {
         payload.requires_soflia_validation = validationEnabled
         payload.external_tool_key = toolKey || null
@@ -361,7 +456,7 @@ export function ActivityModal({
         </div>
         <form onSubmit={handleSubmit}>
           <div className="flex gap-2 border-b border-[#E9ECEF] px-6 py-3 dark:border-[#6C757D]/30">
-            {tabs.map((tab) => (
+            {visibleTabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -413,6 +508,7 @@ export function ActivityModal({
                   >
                     <option value="reflection">Reflexion</option>
                     <option value="exercise">Ejercicio</option>
+                    <option value="reading">Lectura</option>
                     <option value="quiz">Quiz</option>
                     <option value="discussion">Discusion</option>
                     <option value="ai_chat">Chat con IA</option>
@@ -440,6 +536,10 @@ export function ActivityModal({
                     <p className="text-xs text-amber-600 dark:text-amber-400">
                       Esta actividad aun no tiene un tiempo guardado en la base de datos.
                     </p>
+                  ) : form.activity_type === 'reading' ? (
+                    <p className="text-xs text-[#52606D] dark:text-white/60">
+                      Para lecturas, el tiempo se calcula automaticamente en la pestana de contenido.
+                    </p>
                   ) : null}
                 </label>
                 <label className="flex items-start gap-3 rounded-xl border border-[#D0D7DE] p-4 text-sm dark:border-[#6C757D]/30 md:col-span-2">
@@ -455,7 +555,9 @@ export function ActivityModal({
                 </label>
                 {!supportsInteractiveConfig ? (
                   <div className="rounded-xl border border-[#D0D7DE] bg-[#F8FAFC] px-4 py-3 text-sm text-[#52606D] dark:border-[#6C757D]/30 dark:bg-[#0A0D12] dark:text-white/70 md:col-span-2">
-                    {form.activity_type === 'quiz'
+                    {form.activity_type === 'reading'
+                      ? 'Las lecturas usan un flujo simple: contenido renderizado y tiempo estimado automatico.'
+                      : form.activity_type === 'quiz'
                       ? 'Los quizzes mantienen su flujo actual y se configuran desde el contenido del quiz.'
                       : 'Las actividades ai_chat mantienen su flujo actual y usan prompts estructurados.'}
                   </div>
@@ -464,7 +566,21 @@ export function ActivityModal({
             )}
             {activeTab === 'content' && (
               <div className="space-y-4">
-                {form.activity_type !== 'quiz' ? (
+                {form.activity_type === 'reading' ? (
+                  <ReadingActivityEditor
+                    value={form.activity_content}
+                    estimatedMinutes={form.estimated_time_minutes}
+                    onChange={(activityContent, estimatedTimeMinutes) =>
+                      setForm((current) => ({
+                        ...current,
+                        activity_content: activityContent,
+                        estimated_time_minutes: estimatedTimeMinutes,
+                      }))
+                    }
+                  />
+                ) : null}
+
+                {form.activity_type !== 'quiz' && form.activity_type !== 'reading' ? (
                   <label className="space-y-2">
                     <span className="text-sm font-medium text-[#0A2540] dark:text-white">Contenido renderizado</span>
                     <textarea

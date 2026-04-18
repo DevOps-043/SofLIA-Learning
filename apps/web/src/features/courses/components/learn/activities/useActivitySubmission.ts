@@ -6,6 +6,10 @@ import type {
   LearnActivity,
   LearnActivitySubmission,
 } from "../types";
+import {
+  getActivitySubmissionRequirementIssues,
+  summarizeActivitySubmissionRequirementIssues,
+} from "@/features/courses/services/activity-submission-requirements.service";
 
 type ActivityFormState = {
   checklist: Record<string, boolean>;
@@ -235,6 +239,17 @@ export function useActivitySubmission({
     () => buildSubmissionRequest(activity, state),
     [activity, state]
   );
+  const submissionRequirementIssues = useMemo(() => {
+    if (!activity.activity_config) {
+      return [];
+    }
+
+    return getActivitySubmissionRequirementIssues(activity.activity_config, {
+      evidencePayload: requestPayload.evidencePayload,
+      responsePayload: requestPayload.responsePayload,
+      responseText: requestPayload.responseText,
+    });
+  }, [activity.activity_config, requestPayload]);
 
   const updateResponseText = useCallback((value: string) => {
     setState((currentState) => ({
@@ -272,6 +287,15 @@ export function useActivitySubmission({
 
   const saveSubmission = useCallback(
     async (status: "draft" | "submitted") => {
+      if (status === "submitted" && submissionRequirementIssues.length > 0) {
+        setError(
+          summarizeActivitySubmissionRequirementIssues(
+            submissionRequirementIssues
+          )
+        );
+        return;
+      }
+
       try {
         setSaving(true);
         setError(null);
@@ -310,7 +334,14 @@ export function useActivitySubmission({
         setSaving(false);
       }
     },
-    [activity, lessonId, onSubmissionSaved, requestPayload, slug]
+    [
+      activity,
+      lessonId,
+      onSubmissionSaved,
+      requestPayload,
+      slug,
+      submissionRequirementIssues,
+    ]
   );
 
   const validateWithSoflia = useCallback(async () => {
@@ -354,6 +385,7 @@ export function useActivitySubmission({
     saving,
     setFeedbackMessage,
     state,
+    submissionRequirementIssues,
     submission,
     toggleChecklistItem,
     updateEvidenceText,

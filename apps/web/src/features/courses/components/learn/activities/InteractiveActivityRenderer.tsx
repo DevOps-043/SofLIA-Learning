@@ -81,6 +81,7 @@ export function InteractiveActivityRenderer({
     saving,
     setFeedbackMessage,
     state,
+    submissionRequirementIssues,
     submission,
     toggleChecklistItem,
     updateEvidenceText,
@@ -106,6 +107,8 @@ export function InteractiveActivityRenderer({
 
   const latestEvaluation = submission?.latestEvaluation?.feedback;
   const promptText = activityConfig.toolTask?.promptTemplate?.trim() || "";
+  const isSubmissionStructurallyComplete =
+    submissionRequirementIssues.length === 0;
   const canEvaluateWithSoflia = hasActivityResponseForSofliaEvaluation({
     activity,
     request: requestPayload,
@@ -333,6 +336,17 @@ export function InteractiveActivityRenderer({
         </div>
       )}
 
+      {!loading && submissionRequirementIssues.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+          <p className="font-medium">Falta completar la configuracion requerida de esta actividad.</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {submissionRequirementIssues.map((issue) => (
+              <li key={issue.code}>{issue.message}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {latestEvaluation && (
         <div className="rounded-xl border border-[#E3D9FF] bg-[#F7F4FF] px-4 py-4 dark:border-[#7E67BA]/30 dark:bg-[#171127]">
           <div className="mb-2 flex items-center gap-2">
@@ -393,7 +407,12 @@ export function InteractiveActivityRenderer({
             setFeedbackMessage(null);
             void submitActivity();
           }}
-          disabled={loading || saving || liaEvaluationPending}
+          disabled={
+            loading ||
+            saving ||
+            liaEvaluationPending ||
+            !isSubmissionStructurallyComplete
+          }
           className="inline-flex items-center gap-2 rounded-lg bg-[#0A2540] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#0d2f4d] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#00D4B3] dark:text-[#08141F] dark:hover:bg-[#00b79c]"
         >
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -410,6 +429,7 @@ export function InteractiveActivityRenderer({
               saving ||
               liaEvaluationPending ||
               isLiaBusy ||
+              !isSubmissionStructurallyComplete ||
               !canEvaluateWithSoflia
             }
             className="inline-flex items-center gap-2 rounded-lg border border-[#6E57B5]/20 bg-[#F7F4FF] px-4 py-2 text-sm font-medium text-[#4C3A85] transition hover:bg-[#EFE8FF] disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#7E67BA]/30 dark:bg-[#171127] dark:text-[#D7CBFF] dark:hover:bg-[#211937]"

@@ -7,10 +7,13 @@ import {
 } from '../types/activity-config'
 import {
   CourseActivityError,
-  hasAnyActivityResponse,
   type CourseActivityContext,
   type CourseLessonContext,
 } from './activity-submission.server.service'
+import {
+  getActivitySubmissionRequirementIssues,
+  summarizeActivitySubmissionRequirementIssues,
+} from './activity-submission-requirements.service'
 
 type SubmissionForValidation = {
   evidencePayload: Record<string, unknown> | null
@@ -103,17 +106,19 @@ export async function evaluateActivitySubmissionWithSoflia(input: {
     )
   }
 
-  if (
-    !hasAnyActivityResponse(context.resolvedActivityConfig, {
-      evidence_payload: submission.evidencePayload,
-      response_payload: submission.responsePayload,
-      response_text: submission.responseText,
-    })
-  ) {
+  const requirementIssues = getActivitySubmissionRequirementIssues(
+    context.resolvedActivityConfig,
+    submission,
+  )
+
+  if (requirementIssues.length > 0) {
     throw new CourseActivityError(
       'INVALID_SUBMISSION',
       400,
-      'Debes capturar una respuesta antes de validar con SofLIA',
+      summarizeActivitySubmissionRequirementIssues(requirementIssues),
+      {
+        issues: requirementIssues.map((issue) => issue.code),
+      },
     )
   }
 

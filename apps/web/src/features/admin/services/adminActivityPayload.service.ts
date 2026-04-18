@@ -14,6 +14,7 @@ const activityTypeSchema = z.enum([
   'quiz',
   'discussion',
   'ai_chat',
+  'reading',
 ])
 
 const externalToolKeySchema = z.enum(supportedExternalToolKeys).nullable()
@@ -48,7 +49,11 @@ function normalizeActivityConfigValue(
     return null
   }
 
-  if (activityType === 'quiz' || activityType === 'ai_chat') {
+  if (
+    activityType === 'quiz' ||
+    activityType === 'ai_chat' ||
+    activityType === 'reading'
+  ) {
     return null
   }
 

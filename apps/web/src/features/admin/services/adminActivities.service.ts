@@ -9,7 +9,7 @@ export interface AdminActivity {
   activity_id: string
   activity_title: string
   activity_description: string | null
-  activity_type: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat'
+  activity_type: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat' | 'reading'
   activity_content: string
   activity_config: ActivityConfig | null
   activity_schema_version: number
@@ -26,7 +26,7 @@ export interface AdminActivity {
 export interface CreateActivityData {
   activity_title: string
   activity_description?: string
-  activity_type: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat'
+  activity_type: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat' | 'reading'
   activity_content: string
   activity_config?: ActivityConfig | null
   activity_schema_version?: number
@@ -40,7 +40,7 @@ export interface CreateActivityData {
 export interface UpdateActivityData {
   activity_title?: string
   activity_description?: string
-  activity_type?: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat'
+  activity_type?: 'reflection' | 'exercise' | 'quiz' | 'discussion' | 'ai_chat' | 'reading'
   activity_content?: string
   activity_config?: ActivityConfig | null
   activity_schema_version?: number
