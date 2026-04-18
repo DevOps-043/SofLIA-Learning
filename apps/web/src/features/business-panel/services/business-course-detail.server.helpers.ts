@@ -3,6 +3,10 @@ import type {
   BusinessCourseModule,
   BusinessCourseReview
 } from '../types/business-course-detail.types'
+export {
+  extractGeneratedCourseInstructorHint,
+  type GeneratedCourseInstructorHint
+} from '../../../lib/generated-course-instructor'
 
 export interface CourseModuleRow {
   module_id: string

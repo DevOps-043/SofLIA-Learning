@@ -6,6 +6,60 @@ import { SubscriptionService } from '@/features/business-panel/services/subscrip
 import { SessionService } from '@/features/auth/services/session.service'
 
 /**
+ * DELETE /api/[orgSlug]/business/courses/[id]/assign
+ * Revoca asignaciones directas de un curso para los usuarios indicados.
+ * Solo puede revocar asignaciones con source = 'direct' (organization_course_assignments).
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ orgSlug: string; id: string }> }
+) {
+  try {
+    const { orgSlug, id: courseId } = await params
+
+    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    if (auth instanceof NextResponse) return auth
+
+    if (!auth.organizationId) {
+      return NextResponse.json({ success: false, error: 'No tienes una organización asignada' }, { status: 403 })
+    }
+
+    const organizationId = auth.organizationId
+    const body = await request.json() as { user_ids?: unknown }
+    const { user_ids } = body
+
+    if (!Array.isArray(user_ids) || user_ids.length === 0) {
+      return NextResponse.json({ success: false, error: 'Debes indicar al menos un usuario' }, { status: 400 })
+    }
+
+    const supabase = await createClient()
+
+    const { error: deleteError, count } = await supabase
+      .from('organization_course_assignments')
+      .delete({ count: 'exact' })
+      .eq('organization_id', organizationId)
+      .eq('course_id', courseId)
+      .in('user_id', user_ids as string[])
+
+    if (deleteError) {
+      logger.error('Error revoking course assignments:', deleteError)
+      return NextResponse.json({ success: false, error: 'Error al revocar las asignaciones' }, { status: 500 })
+    }
+
+    logger.info(`✅ Revoked ${count} direct course assignment(s) for course ${courseId}`)
+
+    return NextResponse.json({
+      success: true,
+      message: `Se revocaron ${count ?? 0} asignación(es) directa(s)`,
+      revoked_count: count ?? 0,
+    })
+  } catch (error) {
+    logger.error('💥 Error in DELETE /api/[orgSlug]/business/courses/[id]/assign:', error)
+    return NextResponse.json({ success: false, error: 'Error interno del servidor' }, { status: 500 })
+  }
+}
+
+/**
  * POST /api/[orgSlug]/business/courses/[id]/assign
  * Asigna un curso a usuarios de la organización
  * Requiere: membresía activa Y que el usuario haya adquirido el curso primero

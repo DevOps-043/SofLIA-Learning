@@ -89,13 +89,21 @@ interface CardProps {
 }
 
 function Card({ title, description, icon: Icon, iconColor = colors.accent, children, actions }: CardProps) {
+    const usesThemeActionColor = iconColor === colors.accent
+
     return (
         <div className="rounded-2xl overflow-hidden bg-white dark:bg-[#1E2329] border border-gray-100 dark:border-white/5 shadow-sm">
             <div className="p-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     {Icon && (
-                        <div className="p-3 rounded-xl" style={{ backgroundColor: `${iconColor}15` }}>
-                            <Icon className="h-5 w-5" style={{ color: iconColor }} />
+                        <div
+                            className={`p-3 rounded-xl ${usesThemeActionColor ? 'bg-[#0A2540]/10 dark:bg-[#00D4B3]/15' : ''}`}
+                            style={usesThemeActionColor ? undefined : { backgroundColor: `${iconColor}15` }}
+                        >
+                            <Icon
+                                className={`h-5 w-5 ${usesThemeActionColor ? 'text-[#0A2540] dark:text-[#00D4B3]' : ''}`}
+                                style={usesThemeActionColor ? undefined : { color: iconColor }}
+                            />
                         </div>
                     )}
                     <div>
@@ -137,7 +145,7 @@ function InputField({ label, value, onChange, type = 'text', placeholder, icon: 
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3] dark:focus:border-[#00D4B3] transition-colors`}
+                    className={`w-full ${Icon ? 'pl-10' : 'px-4'} pr-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#0A2540] dark:focus:border-[#00D4B3] transition-colors`}
                 />
             </div>
         </div>

@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import {
   buildBusinessUserLearningPaths,
@@ -34,7 +34,9 @@ function uniqueValues(values: string[]) {
  * issues that occurred with fromLoose + nested joins.
  */
 async function loadAssignedLearningPathIds(userId: string, organizationId: string) {
-  const supabase = await createClient()
+  // Use admin client to bypass RLS — business users cannot read these tables directly.
+  // Auth is already validated by the calling route handler (requireBusinessUser).
+  const supabase = createAdminClient()
 
   const [organizationAssignments, userAssignments] = await Promise.all([
     supabase
@@ -89,7 +91,9 @@ export async function loadBusinessUserLearningPaths(params: {
   organizationId: string
 }): Promise<AssignedLearningPathDashboard[]> {
   const { userId, organizationId } = params
-  const supabase = await createClient()
+  // Admin client bypasses RLS for all queries in this function.
+  // Auth is validated upstream by requireBusinessUser.
+  const supabase = createAdminClient()
   const learningPathIds = await loadAssignedLearningPathIds(userId, organizationId)
 
   if (learningPathIds.length === 0) {

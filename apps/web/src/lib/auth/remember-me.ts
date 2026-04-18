@@ -7,7 +7,7 @@ const REMEMBER_ME_KEY = 'aprende-y-aplica-remember-me';
 
 export interface RememberedCredentials {
   emailOrUsername: string;
-  password: string;
+  password?: string;
 }
 
 /**
@@ -17,7 +17,10 @@ export function saveCredentials(credentials: RememberedCredentials): void {
   if (typeof window === 'undefined') return;
   
   try {
-    localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(credentials));
+    localStorage.setItem(
+      REMEMBER_ME_KEY,
+      JSON.stringify({ emailOrUsername: credentials.emailOrUsername })
+    );
   } catch (error) {
     console.error('Error al guardar credenciales:', error);
   }
@@ -33,7 +36,19 @@ export function getSavedCredentials(): RememberedCredentials | null {
     const saved = localStorage.getItem(REMEMBER_ME_KEY);
     if (!saved) return null;
     
-    return JSON.parse(saved) as RememberedCredentials;
+    const parsed = JSON.parse(saved) as Partial<RememberedCredentials>;
+    if (!parsed.emailOrUsername || typeof parsed.emailOrUsername !== 'string') {
+      localStorage.removeItem(REMEMBER_ME_KEY);
+      return null;
+    }
+
+    const sanitizedCredentials = { emailOrUsername: parsed.emailOrUsername };
+
+    if (parsed.password) {
+      localStorage.setItem(REMEMBER_ME_KEY, JSON.stringify(sanitizedCredentials));
+    }
+
+    return sanitizedCredentials;
   } catch (error) {
     console.error('Error al obtener credenciales guardadas:', error);
     return null;
@@ -52,4 +67,3 @@ export function clearSavedCredentials(): void {
     console.error('Error al eliminar credenciales guardadas:', error);
   }
 }
-

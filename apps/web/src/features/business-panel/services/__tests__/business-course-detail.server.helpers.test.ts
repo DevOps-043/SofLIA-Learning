@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildBusinessCourseModules,
+  extractGeneratedCourseInstructorHint,
   mapBusinessCourseReviews,
   resolveBusinessCourseInstructorId,
   type CourseLessonRow,
@@ -142,5 +143,34 @@ describe('business-course-detail.server.helpers', () => {
         user: { name: 'Ada Lovelace', profile_picture_url: null }
       })
     ])
+  })
+
+  it('extracts instructor identity hints from generated course payloads', () => {
+    expect(
+      extractGeneratedCourseInstructorHint({
+        course: {
+          instructor_email: 'creator@soflia.com'
+        }
+      })
+    ).toEqual({
+      instructorId: null,
+      email: 'creator@soflia.com'
+    })
+
+    expect(
+      extractGeneratedCourseInstructorHint({
+        source: {
+          user_id: '2d74845c-56f9-4ef8-83a5-4e0cc4f0d7bb'
+        },
+        course: {
+          instructor: {
+            email: 'nested@soflia.com'
+          }
+        }
+      })
+    ).toEqual({
+      instructorId: '2d74845c-56f9-4ef8-83a5-4e0cc4f0d7bb',
+      email: 'nested@soflia.com'
+    })
   })
 })

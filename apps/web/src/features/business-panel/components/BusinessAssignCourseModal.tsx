@@ -198,15 +198,24 @@ export function BusinessAssignCourseModal({
                       </div>
                     ) : (
                       modal.availableUsers.map((user, index) => {
-                        const isAlreadyAssigned = modal.alreadyAssignedUserIds.has(user.id)
-                        const isSelected = modal.selectedUserIds.has(user.id)
-                        const displayName = getBusinessAssignCourseDisplayName(user)
                         const sourceInfo = modal.assignedUserSources.get(user.id)
+                        const isAlreadyAssigned = modal.alreadyAssignedUserIds.has(user.id)
+                        const isDirect = sourceInfo?.source === 'direct'
+                        const isLockedAssigned = isAlreadyAssigned && !isDirect
+                        const isSelected = modal.selectedUserIds.has(user.id)
+                        const isPendingRemoval = modal.pendingRemovalIds.has(user.id)
+                        const displayName = getBusinessAssignCourseDisplayName(user)
                         const sourceLabel = sourceInfo?.source === 'learning_path'
-                          ? `Ruta: ${sourceInfo.learning_path_title || 'Ruta de aprendizaje'}`
+                          ? `Ruta: ${sourceInfo.learning_path_title ?? 'Ruta de aprendizaje'}`
                           : sourceInfo?.source === 'team'
-                            ? `Equipo: ${sourceInfo.team_name || 'Equipo'}`
-                            : 'Asignado'
+                            ? `Equipo: ${sourceInfo.team_name ?? 'Equipo'}`
+                            : null
+
+                        const handleClick = () => {
+                          if (isLockedAssigned) return
+                          if (isDirect) modal.handleToggleRemoval(user.id)
+                          else modal.handleToggleUser(user.id)
+                        }
 
                         return (
                           <motion.button
@@ -214,40 +223,60 @@ export function BusinessAssignCourseModal({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.02 }}
-                            onClick={() => !isAlreadyAssigned && modal.handleToggleUser(user.id)}
-                            disabled={isAlreadyAssigned}
-                            className={`group relative p-4 rounded-[1.8rem] text-left transition-all border flex items-center gap-4 ${isSelected ? 'scale-[1.02] shadow-xl' : 'hover:border-white/20'}`}
-                            style={{ 
-                              backgroundColor: isSelected ? `${primaryColor}15` : inputBg, 
-                              borderColor: isSelected ? primaryColor : borderColor,
-                              opacity: isAlreadyAssigned ? 0.4 : 1
+                            onClick={handleClick}
+                            disabled={isLockedAssigned}
+                            title={isLockedAssigned && sourceLabel ? `No se puede remover aquí: ${sourceLabel}` : undefined}
+                            className={`group relative p-4 rounded-[1.8rem] text-left transition-all border flex items-center gap-4 ${isSelected || isPendingRemoval ? 'scale-[1.02] shadow-xl' : !isLockedAssigned ? 'hover:border-white/20' : ''}`}
+                            style={{
+                              backgroundColor: isPendingRemoval ? `${panelTheme.dangerColor}12` : isSelected ? `${primaryColor}15` : inputBg,
+                              borderColor: isPendingRemoval ? panelTheme.dangerColor : isSelected ? primaryColor : borderColor,
+                              opacity: isLockedAssigned ? 0.45 : 1,
+                              cursor: isLockedAssigned ? 'not-allowed' : 'pointer',
                             }}
                           >
                             <div className="relative shrink-0">
-                               {user.profile_picture_url ? (
-                                 <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/5">
-                                   <img src={user.profile_picture_url} alt={displayName} className="w-full h-full object-cover" />
-                                 </div>
+                              {user.profile_picture_url ? (
+                                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/5">
+                                  <img src={user.profile_picture_url} alt={displayName} className="w-full h-full object-cover" />
+                                </div>
                               ) : (
-                                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
-                                   {displayName[0].toUpperCase()}
-                                 </div>
+                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black"
+                                  style={{ backgroundColor: isPendingRemoval ? panelTheme.dangerColor : primaryColor, color: onPrimaryColor }}>
+                                  {displayName[0].toUpperCase()}
+                                </div>
                               )}
                               {isSelected && (
-                                 <div className="absolute -top-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center shadow-lg" style={{ backgroundColor: primaryColor }}>
-                                   <Check className="w-3 h-3" style={{ color: onPrimaryColor }} strokeWidth={4} />
-                                 </div>
+                                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center shadow-lg" style={{ backgroundColor: primaryColor }}>
+                                  <Check className="w-3 h-3" style={{ color: onPrimaryColor }} strokeWidth={4} />
+                                </div>
+                              )}
+                              {isPendingRemoval && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center shadow-lg" style={{ backgroundColor: panelTheme.dangerColor }}>
+                                  <X className="w-3 h-3 text-white" strokeWidth={3} />
+                                </div>
                               )}
                             </div>
+
                             <div className="flex-1 min-w-0">
-                               <h4 className="text-sm font-bold truncate" style={{ color: textColor }}>{displayName}</h4>
-                               <p className="text-[10px] font-medium opacity-40 truncate">{user.email}</p>
+                              <h4 className="text-sm font-bold truncate" style={{ color: isPendingRemoval ? panelTheme.dangerColor : textColor }}>{displayName}</h4>
+                              <p className="text-[10px] font-medium opacity-40 truncate">{user.email}</p>
                             </div>
-                            {isAlreadyAssigned && (
-                               <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg" style={{ backgroundColor: `${accentColor}15` }}>
-                                  <UserCheck className="w-3 h-3" style={{ color: accentColor }} />
-                                  <span className="text-[8px] font-bold uppercase tracking-widest max-w-[100px] truncate" style={{ color: accentColor }}>{sourceLabel}</span>
-                               </div>
+
+                            {isPendingRemoval && (
+                              <div className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: `${panelTheme.dangerColor}18` }}>
+                                <X className="w-3 h-3" style={{ color: panelTheme.dangerColor }} />
+                                <span className="text-[8px] font-bold uppercase tracking-widest" style={{ color: panelTheme.dangerColor }}>Quitar</span>
+                              </div>
+                            )}
+                            {!isPendingRemoval && isAlreadyAssigned && (
+                              <div className="absolute top-2 right-2 flex items-center gap-1.5 px-2 py-1 rounded-lg"
+                                style={{ backgroundColor: isDirect ? `${panelTheme.dangerColor}10` : `${accentColor}15` }}>
+                                <UserCheck className="w-3 h-3" style={{ color: isDirect ? panelTheme.dangerColor : accentColor }} />
+                                <span className="text-[8px] font-bold uppercase tracking-widest max-w-[120px] truncate"
+                                  style={{ color: isDirect ? panelTheme.dangerColor : accentColor }}>
+                                  {isDirect ? 'Click para quitar' : sourceLabel ?? 'Asignado'}
+                                </span>
+                              </div>
                             )}
                           </motion.button>
                         )
@@ -328,16 +357,26 @@ export function BusinessAssignCourseModal({
                </div>
                <div className="flex items-center gap-3 w-full sm:w-auto">
                   <button type="button" onClick={modal.handleClose} className="flex-1 sm:flex-none px-6 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all" style={{ color: mutedText, backgroundColor: inputBg, borderColor }}>{t('users.buttons.cancel')}</button>
-                  <motion.button 
+                  <motion.button
                     onClick={modal.handleAssign}
-                    disabled={modal.isAssigning || modal.selectedUserCount === 0}
-                    whileHover={{ scale: 1.02 }} 
-                    whileTap={{ scale: 0.98 }} 
-                    className="flex-[2] sm:flex-none px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:grayscale" 
-                    style={{ backgroundColor: primaryColor, color: onPrimaryColor }}
+                    disabled={modal.isAssigning || (modal.selectedUserCount === 0 && modal.pendingRemovalIds.size === 0)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex-[2] sm:flex-none px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:grayscale"
+                    style={{ backgroundColor: modal.pendingRemovalIds.size > 0 && modal.selectedUserCount === 0 ? panelTheme.dangerColor : primaryColor, color: onPrimaryColor }}
                   >
                      {modal.isAssigning ? (
                        <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: `${onPrimaryColor}4D`, borderTopColor: onPrimaryColor }} />
+                     ) : modal.pendingRemovalIds.size > 0 && modal.selectedUserCount === 0 ? (
+                       <>
+                         <span className="font-black">Confirmar ({modal.pendingRemovalIds.size} a quitar)</span>
+                         <ChevronRight className="w-4 h-4" strokeWidth={3} />
+                       </>
+                     ) : modal.pendingRemovalIds.size > 0 ? (
+                       <>
+                         <span className="font-black">Confirmar ({modal.selectedUserCount} asignar · {modal.pendingRemovalIds.size} quitar)</span>
+                         <ChevronRight className="w-4 h-4" strokeWidth={3} />
+                       </>
                      ) : (
                        <>
                          <span className="font-black">{t('assignCourse.buttons.confirmAssign', 'Confirmar Asignación')} ({modal.selectedUserCount})</span>

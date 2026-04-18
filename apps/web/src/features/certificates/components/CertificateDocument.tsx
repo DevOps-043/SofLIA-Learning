@@ -69,7 +69,7 @@ function buildFrameStyle(input: {
   }
 }
 
-function buildSignatureContent(model: CertificateDocumentModel) {
+function buildSignatureContent(model: CertificateDocumentModel): ReactNode {
   const signatureUrl = model.document.instructorSignatureUrl
   const signatureName = model.document.instructorSignatureName?.trim()
 
@@ -103,7 +103,7 @@ function buildSignatureContent(model: CertificateDocumentModel) {
     )
   }
 
-  return <div style={{ height: '30px' }} />
+  return null
 }
 
 function buildPlatformLogo(model: CertificateDocumentModel) {
@@ -509,12 +509,31 @@ export function CertificateDocument({
           >
             <LineField
               label="Instructor"
-              description={model.document.instructorName}
               borderColor={borderColor}
               mutedColor={mutedColor}
               primaryColor={primaryColor}
             >
-              {buildSignatureContent(model)}
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                  gap: '6px',
+                }}
+              >
+                {buildSignatureContent(model)}
+                <div
+                  style={{
+                    fontSize: '22px',
+                    lineHeight: 1.2,
+                    fontWeight: 850,
+                    color: primaryColor,
+                    wordBreak: 'break-word',
+                  }}
+                >
+                  {model.document.instructorName}
+                </div>
+              </div>
             </LineField>
 
             <div

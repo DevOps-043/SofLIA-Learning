@@ -17,20 +17,30 @@ export function Navbar() {
   const { t } = useTranslation('common');
 
   useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      if (timeout) return; // debounce: skip if a timeout is already pending
+      timeout = setTimeout(() => {
+        setIsScrolled(window.scrollY > 50);
+        timeout = null;
+      }, 150);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (timeout) clearTimeout(timeout);
+    };
   }, []);
 
   return (
     <motion.nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-          ? 'backdrop-blur-md border-b navbar-scrolled'
+      className={`fixed top-0 left-0 right-0 z-50 transition duration-300 ${isScrolled
+          ? 'backdrop-blur-sm border-b navbar-scrolled'
           : 'bg-transparent'
         }`}
+      style={{ willChange: isScrolled ? 'transform' : undefined }}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}

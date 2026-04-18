@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { initiateMicrosoftLogin } from '../../actions/oauth';
+import { clearAuthUserCache } from '../../../../lib/auth/user-auth-cache';
 
 function hasRedirectDigest(error: unknown): boolean {
   return Boolean(error && typeof error === 'object' && 'digest' in error);
@@ -38,8 +39,13 @@ export function MicrosoftLoginButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (isLoading) {
+      return;
+    }
+
     try {
       setIsLoading(true);
+      clearAuthUserCache();
       await initiateMicrosoftLogin({
         organizationId,
         organizationSlug,
@@ -81,4 +87,3 @@ export function MicrosoftLoginButton({
     </motion.button>
   );
 }
-

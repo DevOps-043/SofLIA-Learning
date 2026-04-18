@@ -136,7 +136,8 @@
       "Bash(python add_assignments_keys.py)",
       "Bash(python add_hierarchy_tree_keys.py)",
       "Bash(python3 \"c:/tmp/parity_check.py\")",
-      "Bash(grep -v \"//.*confirm\\\\\\(\")"
+      "Bash(grep -v \"//.*confirm\\\\\\(\")",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ],
     "deny": [],
     "ask": []

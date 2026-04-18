@@ -7,7 +7,7 @@ import {
     createNewCourseFromPayload,
     updateExistingCourseFromPayload,
     buildCoursePreviewFromPayload,
-    resolveInstructor,
+    resolveInstructorFromPayload,
 } from '../../../lib/courseImport'
 import { buildCourseDiff } from '../../../lib/courseDiff'
 
@@ -336,7 +336,7 @@ export async function approveCourse(stagingId: string, _adminId: string): Promis
     }
 
     try {
-        const instructorId = await resolveInstructor(supabase, staging.payload?.course?.instructor_email)
+        const instructorId = await resolveInstructorFromPayload(supabase, staging.payload)
 
         let courseId: string
 
@@ -358,7 +358,12 @@ export async function approveCourse(stagingId: string, _adminId: string): Promis
         // Marcar staging como aprobado
         await supabase
             .from('courses_staging')
-            .update({ status: 'approved', reviewed_by: effectiveAdminId, reviewed_at: new Date().toISOString() })
+            .update({
+                status: 'approved',
+                reviewed_by: effectiveAdminId,
+                reviewed_at: new Date().toISOString(),
+                course_id: courseId,
+            })
             .eq('id', stagingId)
 
         revalidatePath('/admin/courses/pending')

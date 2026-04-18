@@ -169,15 +169,15 @@ export class CertificatePdfService {
 
         return page.pdf({
           printBackground: true,
-          format: 'A4',
-          landscape: true,
+          width: `${CERTIFICATE_RENDER_WIDTH_PX}px`,
+          height: `${CERTIFICATE_RENDER_HEIGHT_PX}px`,
           margin: {
-            top: '0mm',
-            right: '0mm',
-            bottom: '0mm',
-            left: '0mm',
+            top: '0px',
+            right: '0px',
+            bottom: '0px',
+            left: '0px',
           },
-          preferCSSPageSize: true,
+          preferCSSPageSize: false,
         })
       } finally {
         await context.close()

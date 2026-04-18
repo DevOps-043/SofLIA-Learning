@@ -77,22 +77,33 @@ function AuthPageContent() {
       {/* Contenido principal */}
       <div className="relative z-10 w-full min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto">
         <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Logo - Izquierda en desktop, arriba en móvil */}
+          {/* Formulario — primero en DOM → arriba en móvil, derecha en desktop */}
+          <div className="w-full max-w-md mx-auto lg:max-w-lg lg:order-2">
+            <Suspense fallback={
+              <div className="w-full h-40 sm:h-56 flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-[#0A2540]/30 dark:border-[#00D4B3]/30 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin"></div>
+              </div>
+            }>
+              <AuthTabs />
+            </Suspense>
+          </div>
+
+          {/* Logo — segundo en DOM → abajo en móvil, izquierda en desktop */}
           <motion.div
             initial={{ opacity: 0, x: -50, y: 0 }}
             animate={{ opacity: 1, x: 0, y: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
-            className="flex items-center justify-center lg:block"
+            className="flex items-center justify-center lg:block lg:order-1"
           >
-            <div className="relative w-full max-w-[280px] sm:max-w-md mx-auto lg:mx-0">
+            <div className="relative w-full max-w-[200px] sm:max-w-[240px] lg:max-w-md mx-auto lg:mx-0">
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ 
-                  scale: 1, 
+                animate={{
+                  scale: 1,
                   opacity: 1,
                   y: [0, -20, 0],
                 }}
-                transition={{ 
+                transition={{
                   scale: { delay: 0.2, duration: 0.5 },
                   opacity: { delay: 0.2, duration: 0.5 },
                   y: {
@@ -114,17 +125,6 @@ function AuthPageContent() {
               </motion.div>
             </div>
           </motion.div>
-
-          {/* Formulario a la derecha en desktop, abajo en móvil */}
-          <div className="w-full max-w-md mx-auto lg:max-w-lg">
-          <Suspense fallback={
-            <div className="w-full h-40 sm:h-56 flex items-center justify-center">
-              <div className="w-8 h-8 border-4 border-[#0A2540]/30 dark:border-[#00D4B3]/30 border-t-[#0A2540] dark:border-t-[#00D4B3] rounded-full animate-spin"></div>
-            </div>
-          }>
-            <AuthTabs />
-          </Suspense>
-          </div>
         </div>
       </div>
     </div>

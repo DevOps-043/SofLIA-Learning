@@ -3,6 +3,7 @@ import { logger } from '../../../lib/logger'
 import { SubscriptionService } from './subscription.service'
 import {
   buildBusinessCourseModules,
+  extractGeneratedCourseInstructorHint,
   mapBusinessCourseReviews,
   resolveBusinessCourseInstructorId,
   type CourseLessonRow,
@@ -29,6 +30,26 @@ type CourseRow = {
   learning_objectives: string[] | null
   created_at: string
   updated_at: string
+}
+
+type GeneratedCourseMetadataRow = {
+  payload: unknown
+}
+
+type GeneratedCourseMetadataQueryResult = {
+  data: GeneratedCourseMetadataRow[] | null
+  error: { message?: string } | null
+}
+
+interface GeneratedCourseMetadataQueryBuilder {
+  select(columns: string): GeneratedCourseMetadataQueryBuilder
+  eq(column: string, value: string): GeneratedCourseMetadataQueryBuilder
+  order(column: string, options: { ascending: boolean }): GeneratedCourseMetadataQueryBuilder
+  limit(count: number): PromiseLike<GeneratedCourseMetadataQueryResult>
+}
+
+interface GeneratedCourseMetadataClient {
+  from(table: 'courses_staging' | 'courseengine_inbox'): GeneratedCourseMetadataQueryBuilder
 }
 
 type InstructorRow = {
@@ -76,6 +97,112 @@ function mapInstructor(instructor: InstructorRow | null): BusinessCourseInstruct
     cargo_rol: instructor.cargo_rol,
     type_rol: instructor.type_rol
   }
+}
+
+async function fetchInstructorById(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  instructorId: string
+): Promise<InstructorRow | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, first_name, last_name, display_name, username, email, profile_picture_url, bio, linkedin_url, github_url, website_url, location, cargo_rol, type_rol')
+    .eq('id', instructorId)
+    .maybeSingle<InstructorRow>()
+
+  if (error) {
+    logger.warn('Error loading course instructor by id', { error, instructorId })
+  }
+
+  return data || null
+}
+
+async function fetchInstructorByEmail(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  email: string
+): Promise<InstructorRow | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, first_name, last_name, display_name, username, email, profile_picture_url, bio, linkedin_url, github_url, website_url, location, cargo_rol, type_rol')
+    .eq('email', email)
+    .maybeSingle<InstructorRow>()
+
+  if (error) {
+    logger.warn('Error loading generated course instructor by email', { error, email })
+  }
+
+  return data || null
+}
+
+async function fetchGeneratedCourseMetadataRows(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  course: Pick<CourseRow, 'id' | 'slug'>
+): Promise<GeneratedCourseMetadataRow[]> {
+  const metadataClient = supabase as unknown as GeneratedCourseMetadataClient
+  const rows: GeneratedCourseMetadataRow[] = []
+
+  async function appendRows(
+    table: 'courses_staging' | 'courseengine_inbox',
+    column: string,
+    value: string
+  ) {
+    try {
+      const { data, error } = await metadataClient
+        .from(table)
+        .select('payload')
+        .eq(column, value)
+        .order('updated_at', { ascending: false })
+        .limit(5)
+
+      if (error) {
+        logger.warn('Error loading generated course metadata', { error, table, column })
+        return
+      }
+
+      rows.push(...(data || []))
+    } catch (error) {
+      logger.warn('Generated course metadata lookup failed', { error, table, column })
+    }
+  }
+
+  await appendRows('courses_staging', 'course_id', course.id)
+
+  if (course.slug) {
+    await appendRows('courses_staging', 'source_slug', course.slug)
+    await appendRows('courseengine_inbox', 'course_slug', course.slug)
+  }
+
+  return rows
+}
+
+async function resolveGeneratedCourseInstructor(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  course: Pick<CourseRow, 'id' | 'slug'>
+): Promise<InstructorRow | null> {
+  const metadataRows = await fetchGeneratedCourseMetadataRows(supabase, course)
+  const visitedIds = new Set<string>()
+  const visitedEmails = new Set<string>()
+
+  for (const row of metadataRows) {
+    const hint = extractGeneratedCourseInstructorHint(row.payload)
+
+    if (hint.instructorId && !visitedIds.has(hint.instructorId)) {
+      visitedIds.add(hint.instructorId)
+      const instructor = await fetchInstructorById(supabase, hint.instructorId)
+      if (instructor) {
+        return instructor
+      }
+    }
+
+    if (hint.email && !visitedEmails.has(hint.email)) {
+      visitedEmails.add(hint.email)
+      const instructor = await fetchInstructorByEmail(supabase, hint.email)
+      if (instructor) {
+        return instructor
+      }
+    }
+  }
+
+  return null
 }
 
 async function fetchSubscriptionStatus(
@@ -256,15 +383,13 @@ export class BusinessCourseDetailServerService {
     const modulesWithLessons = buildBusinessCourseModules(modules, lessons, materials, activities)
     const instructorId = resolveBusinessCourseInstructorId(course.instructor_id, modulesWithLessons)
 
-    const instructor = instructorId
-      ? mapInstructor(
-          ((await supabase
-            .from('users')
-            .select('id, first_name, last_name, display_name, username, email, profile_picture_url, bio, linkedin_url, github_url, website_url, location, cargo_rol, type_rol')
-            .eq('id', instructorId)
-            .single()).data as InstructorRow | null) || null
-        )
-      : null
+    let instructorRow = instructorId ? await fetchInstructorById(supabase, instructorId) : null
+
+    if (!instructorRow) {
+      instructorRow = await resolveGeneratedCourseInstructor(supabase, course)
+    }
+
+    const instructor = mapInstructor(instructorRow)
 
     const totalModules = modulesWithLessons.length
     const totalLessons = modulesWithLessons.reduce((sum, module) => sum + module.lessons.length, 0)

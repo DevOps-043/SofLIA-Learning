@@ -6,6 +6,7 @@ import {
   ShieldCheckIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 
 interface AdminDashboardHeroProps {
   greeting: string
@@ -18,6 +19,8 @@ export function AdminDashboardHero({
   todayLabel,
   userName,
 }: AdminDashboardHeroProps) {
+  const { disableHeavy } = useMotionSafe()
+
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
@@ -25,30 +28,42 @@ export function AdminDashboardHero({
       initial={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.6 }}
     >
-      <div className="absolute inset-0 opacity-10">
+      {/* Static background orbs — no JS animation needed */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none">
         <div className="absolute right-0 top-0 h-96 w-96 translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00D4B3] blur-3xl" />
         <div className="absolute bottom-0 left-0 h-64 w-64 -translate-x-1/2 translate-y-1/2 rounded-full bg-[#00D4B3] blur-3xl" />
       </div>
 
-      <motion.div
-        animate={{ opacity: [0.5, 1, 0.5], y: [0, -10, 0] }}
-        className="absolute right-20 top-10 h-2 w-2 rounded-full bg-[#00D4B3]"
-        transition={{ duration: 3, repeat: Infinity }}
-      />
-      <motion.div
-        animate={{ opacity: [0.3, 0.8, 0.3], y: [0, 10, 0] }}
-        className="absolute bottom-10 right-40 h-3 w-3 rounded-full bg-[#00D4B3]"
-        transition={{ delay: 1, duration: 4, repeat: Infinity }}
-      />
+      {/* Floating particles — desktop only */}
+      {!disableHeavy && (
+        <>
+          <motion.div
+            animate={{ opacity: [0.5, 1, 0.5], y: [0, -10, 0] }}
+            className="absolute right-20 top-10 h-2 w-2 rounded-full bg-[#00D4B3]"
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          <motion.div
+            animate={{ opacity: [0.3, 0.8, 0.3], y: [0, 10, 0] }}
+            className="absolute bottom-10 right-40 h-3 w-3 rounded-full bg-[#00D4B3]"
+            transition={{ delay: 1, duration: 4, repeat: Infinity }}
+          />
+        </>
+      )}
 
       <div className="relative z-10">
         <div className="mb-2 flex items-center gap-3">
-          <motion.div
-            animate={{ rotate: [0, 360] }}
-            transition={{ duration: 20, ease: 'linear', repeat: Infinity }}
-          >
-            <SparklesIcon className="h-6 w-6 text-[#00D4B3]" />
-          </motion.div>
+          {/* Sparkles icon — spinning only on desktop */}
+          {disableHeavy
+            ? <SparklesIcon className="h-6 w-6 text-[#00D4B3]" />
+            : (
+              <motion.div
+                animate={{ rotate: [0, 360] }}
+                transition={{ duration: 20, ease: 'linear', repeat: Infinity }}
+              >
+                <SparklesIcon className="h-6 w-6 text-[#00D4B3]" />
+              </motion.div>
+            )
+          }
           <span className="text-sm font-medium uppercase tracking-wide text-[#00D4B3]">
             Panel de Control
           </span>

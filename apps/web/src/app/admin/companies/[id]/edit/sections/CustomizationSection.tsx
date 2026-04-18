@@ -24,7 +24,7 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
             >
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
-                        <label className="block text-xs font-medium text-white/70 mb-2">Color Primario</label>
+                        <label className="block text-xs font-medium text-gray-600 dark:text-white/70 mb-2">Color Primario</label>
                         <div className="flex items-center gap-3">
                             <input
                                 type="color"
@@ -101,7 +101,7 @@ function CustomizationSection({ company, setCompany }: { company: CompanyData; s
                     <select
                         value={fontFamily}
                         onChange={(e) => setCompany({ ...company, brand_font_family: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3]"
+                        className="w-full px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#0A2540] dark:focus:border-[#00D4B3]"
                     >
                         {validFonts.map((font) => (
                             <option key={font} value={font}>{font}</option>

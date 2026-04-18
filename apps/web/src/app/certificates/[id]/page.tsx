@@ -262,77 +262,81 @@ export default function CertificateDetailPage() {
             </div>
           </section>
 
-          <aside className="space-y-5">
+          <aside>
             <section
-              className="rounded-[28px] border p-6"
+              className="rounded-[28px] border p-5"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.borderColor,
               }}
             >
+              {/* Status + title */}
               <div
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
                 style={{
                   backgroundColor: `${theme.successColor}18`,
                   color: theme.successColor,
                 }}
               >
-                <Shield className="h-3.5 w-3.5" />
+                <Shield className="h-3 w-3" />
                 {t('certificates.statusValid')}
               </div>
 
-              <h1 className="mt-4 text-[2rem] font-black leading-tight" style={{ color: theme.textColor }}>
+              <h1
+                className="mt-3 line-clamp-3 text-lg font-black leading-snug"
+                style={{ color: theme.textColor }}
+              >
                 {certificate.courseTitle}
               </h1>
 
-              <div className="mt-5 space-y-3 text-sm" style={{ color: theme.subtextColor }}>
-                <div className="flex items-start gap-3">
-                  <Building2 className="mt-0.5 h-4 w-4" />
-                  <div>
-                    <div className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelIssuer')}
-                    </div>
-                    <div>{certificate.issuerName}</div>
-                  </div>
+              {/* Meta compact */}
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
+                  <span className="text-xs" style={{ color: theme.subtextColor }}>
+                    <span className="font-semibold" style={{ color: theme.textColor }}>
+                      {t('certificates.labelIssuer')}:
+                    </span>{' '}
+                    {certificate.issuerName}
+                  </span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <UserRound className="mt-0.5 h-4 w-4" />
-                  <div>
-                    <div className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelInstructor')}
-                    </div>
-                    <div>{certificate.instructorName}</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
+                  <span className="text-xs" style={{ color: theme.subtextColor }}>
+                    <span className="font-semibold" style={{ color: theme.textColor }}>
+                      {t('certificates.labelInstructor')}:
+                    </span>{' '}
+                    {certificate.instructorName}
+                  </span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Calendar className="mt-0.5 h-4 w-4" />
-                  <div>
-                    <div className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelIssuedAt')}
-                    </div>
-                    <div>{formatDate(certificate.issuedAt)}</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
+                  <span className="text-xs" style={{ color: theme.subtextColor }}>
+                    <span className="font-semibold" style={{ color: theme.textColor }}>
+                      {t('certificates.labelIssuedAt')}:
+                    </span>{' '}
+                    {formatDate(certificate.issuedAt)}
+                  </span>
                 </div>
               </div>
-            </section>
 
-            <section
-              className="rounded-[28px] border p-6"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.borderColor,
-              }}
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" style={{ color: theme.actionColor }} />
-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em]" style={{ color: theme.subtextColor }}>
+              {/* Divider */}
+              <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+
+              {/* Hash compact */}
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5" style={{ color: theme.actionColor }} />
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-[0.18em]"
+                    style={{ color: theme.subtextColor }}
+                  >
                     {t('certificates.labelHash')}
-                  </h2>
+                  </span>
                 </div>
                 <button
                   onClick={copyHash}
-                  className="rounded-xl border p-2"
+                  className="rounded-lg border p-1.5"
                   style={{
                     borderColor: theme.borderColor,
                     backgroundColor: theme.inputBg,
@@ -340,46 +344,38 @@ export default function CertificateDetailPage() {
                   }}
                   aria-label={t('certificates.copyHash')}
                 >
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-3.5 w-3.5" />
                 </button>
               </div>
-
               <div
-                className="rounded-2xl border px-4 py-3 font-mono text-xs leading-6"
+                className="truncate rounded-xl border px-3 py-2 font-mono text-[10px]"
                 style={{
                   backgroundColor: theme.inputBg,
                   borderColor: theme.borderColor,
                   color: theme.textColor,
-                  wordBreak: 'break-all',
                 }}
               >
                 {certificate.certificateHash}
               </div>
-
               {hashCopied && (
-                <p className="mt-2 text-xs text-green-400">{t('certificates.hashCopied')}</p>
+                <p className="mt-1.5 text-[11px] text-green-400">{t('certificates.hashCopied')}</p>
               )}
-
-              <p className="mt-3 text-xs leading-5" style={{ color: theme.subtextColor }}>
+              <p className="mt-2 text-[11px] leading-4" style={{ color: theme.subtextColor }}>
                 {t('certificates.hashDescription')}
               </p>
-            </section>
 
-            <section
-              className="rounded-[28px] border p-6"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.borderColor,
-              }}
-            >
+              {/* Divider */}
+              <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+
+              {/* Actions */}
               {downloadError && (
-                <p className="mb-3 text-xs text-red-400">{downloadError}</p>
+                <p className="mb-2 text-xs text-red-400">{downloadError}</p>
               )}
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 <button
                   onClick={() => void handleDownload()}
                   disabled={isDownloading}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                   style={{
                     backgroundColor: theme.actionColor,
                     color: theme.onActionColor,
@@ -394,7 +390,7 @@ export default function CertificateDetailPage() {
                 </button>
                 <button
                   onClick={() => router.push(`/certificates/verify/${certificate.certificateHash}`)}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
                   style={{
                     backgroundColor: theme.inputBg,
                     borderColor: theme.borderColor,
@@ -406,7 +402,7 @@ export default function CertificateDetailPage() {
                 </button>
                 <button
                   onClick={shareCertificate}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
                   style={{
                     backgroundColor: theme.cardBg,
                     borderColor: theme.borderColor,

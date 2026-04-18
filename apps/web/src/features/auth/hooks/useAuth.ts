@@ -1,7 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import useSWR from 'swr'
+
+import { clearAuthUserCache, USER_AUTH_CACHE_KEY } from '@/lib/auth/user-auth-cache'
+import { performClientLogout } from '../services/logout-client.service'
 
 interface User {
   id: string
@@ -11,9 +13,10 @@ interface User {
   last_name?: string
   display_name?: string
   cargo_rol?: string
-  job_title?: string // Cargo/puesto del usuario en la organización (viene de organization_users)
-  // type_rol?: string // DEPRECATED: Eliminado por migración - usar organization_users.job_title
+  created_at?: string
+  job_title?: string
   profile_picture_url?: string
+  updated_at?: string
   organization_id?: string | null
   organization?: {
     id: string
@@ -26,165 +29,145 @@ interface User {
   } | null
 }
 
-// Cache key para localStorage
-const USER_CACHE_KEY = 'user-auth-cache'
-const CACHE_EXPIRY_MS = 5 * 60 * 1000 // 5 minutos
+interface CachedUserPayload {
+  user: User | null
+  timestamp: number
+}
 
-// Helper para obtener usuario desde cache
+interface AuthMeResponse {
+  success?: boolean
+  user?: User | null
+}
+
+const USER_CACHE_KEY = USER_AUTH_CACHE_KEY
+const CACHE_EXPIRY_MS = 5 * 60 * 1000
+
+function isCachedUserPayload(value: unknown): value is CachedUserPayload {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  const payload = value as Partial<CachedUserPayload>
+  return typeof payload.timestamp === 'number' && 'user' in payload
+}
+
 const getCachedUser = (): User | null => {
-  if (typeof window === 'undefined') return null
+  if (typeof window === 'undefined') {
+    return null
+  }
+
   try {
     const cached = localStorage.getItem(USER_CACHE_KEY)
-    if (!cached) return null
-    const { user, timestamp } = JSON.parse(cached)
-    // Verificar si el cache ha expirado
-    if (Date.now() - timestamp > CACHE_EXPIRY_MS) {
-      localStorage.removeItem(USER_CACHE_KEY)
+    if (!cached) {
       return null
     }
-    return user
+
+    const parsed: unknown = JSON.parse(cached)
+    if (!isCachedUserPayload(parsed)) {
+      clearAuthUserCache()
+      return null
+    }
+
+    if (Date.now() - parsed.timestamp > CACHE_EXPIRY_MS) {
+      clearAuthUserCache()
+      return null
+    }
+
+    return parsed.user
   } catch {
     return null
   }
 }
 
-// Helper para guardar usuario en cache
 const setCachedUser = (user: User | null) => {
-  if (typeof window === 'undefined') return
+  if (typeof window === 'undefined') {
+    return
+  }
+
   try {
     if (user) {
-      localStorage.setItem(USER_CACHE_KEY, JSON.stringify({ user, timestamp: Date.now() }))
+      localStorage.setItem(
+        USER_CACHE_KEY,
+        JSON.stringify({ user, timestamp: Date.now() })
+      )
     } else {
-      localStorage.removeItem(USER_CACHE_KEY)
+      clearAuthUserCache()
     }
   } catch {
-    // Silenciar errores de localStorage
+    // localStorage can be blocked by the browser.
   }
 }
 
-// Fetcher optimizado para autenticación con cache
 const authFetcher = async (url: string): Promise<User | null> => {
   try {
     const response = await fetch(url, {
-      method: 'GET',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
       },
+      method: 'GET',
     })
 
     if (!response.ok) {
-      // Si no está autenticado, limpiar cache y retornar null
       if (response.status === 401 || response.status === 403) {
         setCachedUser(null)
         return null
       }
+
       throw new Error('Error fetching user')
     }
 
-    const data = await response.json()
-    const user = data.success && data.user ? data.user : null
-
-    // Guardar en cache para carga instantánea en próximas visitas
+    const data = (await response.json()) as AuthMeResponse
+    const user = data.success === true && data.user ? data.user : null
     setCachedUser(user)
 
     return user
   } catch (error) {
-    // Manejar errores de red de forma silenciosa
-    // "Failed to fetch" puede ocurrir cuando el componente se desmonta durante la navegación
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      // Error de red esperado durante navegación - retornar cache si existe
       return getCachedUser()
     }
 
-    if (process.env.NODE_ENV === 'development') {
-    }
-    return getCachedUser() // Intentar retornar cache en caso de error
+    return getCachedUser()
   }
 }
 
 export function useAuth() {
-  const router = useRouter()
-
-  // OPTIMIZACIÓN: Usar cache de localStorage como fallbackData para carga instantánea
   const cachedUser = typeof window !== 'undefined' ? getCachedUser() : null
 
-  // SWR maneja el estado global, deduplicación y caché automáticamente
   const { data: user, error, isLoading, mutate } = useSWR<User | null>(
     '/api/auth/me',
     authFetcher,
     {
-      // Configuración optimizada para autenticación
-      revalidateOnFocus: false, // No revalidar al cambiar de pestaña (el usuario no cambia constantemente)
-      revalidateOnReconnect: true, // Sí revalidar al reconectar (podría haber cambiado la sesión)
-      dedupingInterval: 5000, // Deduplicar solicitudes dentro de 5 segundos - CLAVE para evitar múltiples llamadas
-      refreshInterval: 0, // No hacer polling automático
-      shouldRetryOnError: false, // No reintentar en errores (si no está autenticado, no hay que reintentar)
-      errorRetryCount: 0, // No reintentar
-      fallbackData: cachedUser, // OPTIMIZADO: Usar cache para mostrar datos instantáneamente
-      onError: (error) => {
-        // Ignorar errores de red esperados (Failed to fetch durante navegación)
-        if (error instanceof TypeError && error.message === 'Failed to fetch') {
-          return // No hacer nada, el fetcher ya retorna null
+      dedupingInterval: 5000,
+      errorRetryCount: 0,
+      fallbackData: cachedUser,
+      refreshInterval: 0,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      shouldRetryOnError: false,
+      onError: (authError) => {
+        if (
+          authError instanceof TypeError &&
+          authError.message === 'Failed to fetch'
+        ) {
+          return
         }
       },
     }
   )
 
   const logout = async () => {
-    try {
-      // ⚠️ CRITICAL SECURITY FIX: Limpiar TODO el localStorage de auth PRIMERO
-      if (typeof window !== 'undefined') {
-        // Limpiar auth-storage (Zustand persist) - CRÍTICO
-        localStorage.removeItem('auth-storage');
-        // Limpiar cache de usuario
-        localStorage.removeItem(USER_CACHE_KEY);
-        // Limpiar tokens
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-
-      }
-
-      // Llamar a la API de logout para destruir cookies del servidor
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      // Limpiar caché de SWR completamente
-      await mutate(null, false)
-
-      // SECURITY FIX: Forzar recarga completa para limpiar todo el estado en memoria
-      window.location.href = '/'
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error during logout:', error)
-      }
-
-      // ⚠️ CRITICAL: Asegurar limpieza incluso si hay error
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth-storage');
-        localStorage.removeItem(USER_CACHE_KEY);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-      }
-
-      await mutate(null, false)
-      window.location.href = '/'
-    }
+    await performClientLogout({
+      clearUserCache: () => mutate(null, false),
+      redirectTo: '/',
+    })
   }
 
   const refreshUser = async () => {
     try {
-      // mutate() revalida y devuelve los nuevos datos
       const updatedUser = await mutate()
       return updatedUser ?? null
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-      }
+    } catch {
       return null
     }
   }
@@ -192,8 +175,9 @@ export function useAuth() {
   return {
     user: user ?? null,
     loading: isLoading,
-    isLoading, // Alias para compatibilidad
+    isLoading,
     logout,
+    mutate,
     refreshUser,
     isAuthenticated: !!user && !error,
   }

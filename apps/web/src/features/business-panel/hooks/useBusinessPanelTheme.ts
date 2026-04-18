@@ -108,9 +108,9 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
     const onActionColor = isDark ? '#04130F' : '#FFFFFF'
     const actionSurface = isDark ? 'rgba(0,212,179,0.12)' : 'rgba(10,37,64,0.08)'
 
-    const accentColor = isDark
-      ? '#00D4B3'
-      : (panelStyles?.accent_color ?? '#00D4B3')
+    // Acciones, iconos y textos destacados de UI siguen el modo:
+    // claro = azul profundo, oscuro = aqua.
+    const accentColor = actionColor
 
     const secondaryColor = panelStyles?.secondary_button_color ?? '#8B5CF6'
 

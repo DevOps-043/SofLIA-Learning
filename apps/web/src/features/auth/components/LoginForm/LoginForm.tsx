@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Loader2, LogIn } from 'lucide-react';
 import { LoginFormData } from '../../types/auth.types';
@@ -16,6 +15,7 @@ import { PasswordInput } from '../PasswordInput';
 import { SocialLoginButtons } from '../SocialLoginButtons';
 import Link from 'next/link';
 import { useAuthTab } from '../AuthTabs/AuthTabContext';
+import { clearAuthUserCache } from '../../../../lib/auth/user-auth-cache';
 
 function hasRedirectTarget(
   result: Awaited<ReturnType<typeof loginAction>> | null | undefined
@@ -44,7 +44,7 @@ export function LoginForm() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const router = useRouter();
+  const submitInFlightRef = useRef(false);
   const { setActiveTab } = useAuthTab();
 
   const {
@@ -69,16 +69,30 @@ export function LoginForm() {
     const savedCredentials = getSavedCredentials();
     if (savedCredentials) {
       setValue('emailOrUsername', savedCredentials.emailOrUsername);
-      setValue('password', savedCredentials.password);
+      if (savedCredentials.password) {
+        setValue('password', savedCredentials.password);
+      }
       setValue('rememberMe', true);
     }
   }, [setValue]);
 
   const onSubmit = async (data: LoginFormData) => {
+    if (submitInFlightRef.current) {
+      return;
+    }
+
+    submitInFlightRef.current = true;
     setError(null);
     setIsPending(true);
 
+    const finishPending = () => {
+      submitInFlightRef.current = false;
+      setIsPending(false);
+    };
+
     try {
+      clearAuthUserCache();
+
       // Guardar o eliminar credenciales según el estado de "recuérdame"
       if (data.rememberMe) {
         saveCredentials({
@@ -98,14 +112,17 @@ export function LoginForm() {
 
       if (result?.error) {
         setError(result.error);
-        setIsPending(false);
+        finishPending();
+        return;
       } else if (isSuccessfulLoginResult(result)) {
         // ✅ Login exitoso - navegar a la URL indicada
         // IMPORTANTE: Usar window.location.href en lugar de router.push
         // para forzar navegación completa y que las cookies del servidor se propaguen
         window.location.href = result.redirectTo;
         // No resetear isPending - la página recargará completamente
+        return;
       }
+      finishPending();
     } catch (error: unknown) {
       // Verificar si es una redirección de Next.js (no es un error real)
       if (error && typeof error === 'object') {
@@ -114,12 +131,14 @@ export function LoginForm() {
           const digest = error.digest;
           if (typeof digest === 'string' && digest.startsWith('NEXT_REDIRECT')) {
             // Es una redirección exitosa, re-lanzar para que Next.js la maneje
+            submitInFlightRef.current = false;
             throw error;
           }
         }
 
         // También puede ser un error de redirección de otra forma
         if (error.message && error.message.includes('NEXT_REDIRECT')) {
+          submitInFlightRef.current = false;
           throw error;
         }
       }
@@ -144,7 +163,7 @@ export function LoginForm() {
       }
 
       setError(errorMessage);
-      setIsPending(false);
+      finishPending();
     }
   };
 
@@ -186,6 +205,11 @@ export function LoginForm() {
                 label="Correo o Usuario"
                 placeholder="tu@correo.com o usuario123"
                 icon={Mail}
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                disabled={isPending}
                 error={errors.emailOrUsername?.message}
                 focusedField={focusedField}
                 onFocus={() => setFocusedField('emailOrUsername')}
@@ -202,6 +226,8 @@ export function LoginForm() {
               <PasswordInput
                 id="password"
                 placeholder="••••••••"
+                autoComplete="current-password"
+                disabled={isPending}
                 error={errors.password?.message}
                 focusedField={focusedField}
                 onFocus={() => setFocusedField('password')}
@@ -271,6 +297,7 @@ export function LoginForm() {
             <motion.button
               type="submit"
               disabled={isPending}
+              aria-disabled={isPending}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.4 }}

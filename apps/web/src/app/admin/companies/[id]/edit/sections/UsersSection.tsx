@@ -157,19 +157,19 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
             <div className="flex items-center gap-2 border-b border-gray-100 dark:border-white/5 p-1">
                 <button
                     onClick={() => setActiveSubTab('members')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'members' ? 'bg-[#00D4B3]/10 text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'members' ? 'bg-[#0A2540]/10 text-[#0A2540] dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                 >
                     Miembros
                 </button>
                 <button
                     onClick={() => setActiveSubTab('invitations')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'invitations' ? 'bg-[#00D4B3]/10 text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'invitations' ? 'bg-[#0A2540]/10 text-[#0A2540] dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                 >
                     Invitaciones Individuales
                 </button>
                 <button
                     onClick={() => setActiveSubTab('links')}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'links' ? 'bg-[#00D4B3]/10 text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${activeSubTab === 'links' ? 'bg-[#0A2540]/10 text-[#0A2540] dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
                 >
                     Enlaces de Invitación
                 </button>
@@ -223,14 +223,14 @@ function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: (
                             }
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:border-[#0A2540] dark:focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
                         />
                     </div>
                     {activeSubTab === 'members' && (
                         <select
                             value={roleFilter}
                             onChange={(e) => setRoleFilter(e.target.value)}
-                            className="px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
+                            className="px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white focus:outline-none focus:border-[#0A2540] dark:focus:border-[#00D4B3] bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10"
                         >
                             <option value="all">Todos los roles</option>
                             <option value="owner">Owner</option>

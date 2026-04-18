@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createAdminSupabase, resolveInstructor } from '@/lib/courseImport'
+import { createAdminSupabase, resolveInstructorFromPayload } from '@/lib/courseImport'
 
 // ============================================================
 // Schema de validación del payload
@@ -39,8 +39,8 @@ async function processInboxItem(
     const { course: courseData, source } = validation.data
     const slug = courseData.slug || item.course_slug
 
-    // Resolver instructor (para validación, no se necesita guardar aquí)
-    await resolveInstructor(supabase, courseData.instructor_email)
+    // Resolver instructor para validar que la identidad compartida del generador exista en SofLIA.
+    await resolveInstructorFromPayload(supabase, item.payload)
 
     // ¿El curso ya existe en producción? → determina is_update
     const { data: existingCourse } = await supabase

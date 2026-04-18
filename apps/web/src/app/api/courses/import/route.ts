@@ -5,6 +5,7 @@ import {
     normalizeImportedActivityContent,
     normalizeImportedMaterialContent,
 } from '@/lib/course-content'
+import { extractGeneratedCourseInstructorHint } from '@/lib/generated-course-instructor'
 
 interface QuizQuestionLike {
     id?: string
@@ -234,17 +235,25 @@ export async function POST(request: Request) {
         const { course: courseData, modules } = validation.data
         const supabase = createServiceClient()
 
-        // 3. Obtener Usuario Admin/Instructor por defecto (Para evitar fallos si no viene email)
-        // En este caso, usaremos el primer usuario admin o un fallback.
-        // O si viene email, lo buscamos.
+        // 3. Obtener usuario instructor desde la identidad compartida del generador.
         let instructorId: string | undefined
+        const instructorHint = extractGeneratedCourseInstructorHint(body)
 
-        if (courseData.instructor_email) {
+        if (instructorHint.instructorId) {
             const { data: instructor } = await supabase
                 .from('users')
                 .select('id')
-                .eq('email', courseData.instructor_email)
-                .single()
+                .eq('id', instructorHint.instructorId)
+                .maybeSingle()
+            instructorId = instructor?.id
+        }
+
+        if (!instructorId && instructorHint.email) {
+            const { data: instructor } = await supabase
+                .from('users')
+                .select('id')
+                .eq('email', instructorHint.email)
+                .maybeSingle()
             instructorId = instructor?.id
         }
 

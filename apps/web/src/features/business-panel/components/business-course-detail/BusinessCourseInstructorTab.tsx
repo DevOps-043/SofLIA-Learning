@@ -48,14 +48,25 @@ export function BusinessCourseInstructorTab({
                 {course.instructor.name[0]?.toUpperCase()}
               </div>
             )}
-            <div>
+            <div className="min-w-0">
               <h3 className="mb-1 text-2xl font-bold" style={{ color: textColor }}>
                 {course.instructor.name}
               </h3>
-              <p className="mb-4 text-lg" style={{ color: mutedTextColor }}>
-                Instructor
-              </p>
-              <div className="flex items-center gap-3">
+              {course.instructor.email ? (
+                <a
+                  href={`mailto:${course.instructor.email}`}
+                  className="mb-4 flex min-w-0 items-center gap-2 text-sm font-medium transition-opacity hover:opacity-80"
+                  style={{ color: mutedTextColor }}
+                >
+                  <Mail className="h-4 w-4 flex-shrink-0" style={{ color: accentColor }} />
+                  <span className="break-all">{course.instructor.email}</span>
+                </a>
+              ) : (
+                <p className="mb-4 text-lg" style={{ color: mutedTextColor }}>
+                  Instructor
+                </p>
+              )}
+              <div className="flex flex-wrap items-center gap-3">
                 {course.instructor.linkedin_url ? (
                   <a
                     href={course.instructor.linkedin_url}
@@ -87,15 +98,6 @@ export function BusinessCourseInstructorTab({
                     style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
                   >
                     <Globe className="h-5 w-5" />
-                  </a>
-                ) : null}
-                {course.instructor.email ? (
-                  <a
-                    href={`mailto:${course.instructor.email}`}
-                    className="flex h-10 w-10 items-center justify-center rounded-xl transition-colors"
-                    style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
-                  >
-                    <Mail className="h-5 w-5" />
                   </a>
                 ) : null}
               </div>

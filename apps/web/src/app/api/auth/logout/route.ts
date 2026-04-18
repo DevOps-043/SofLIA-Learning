@@ -1,31 +1,52 @@
 import { NextResponse } from 'next/server'
-import { logger } from '@/lib/utils/logger';
-import { SessionService } from '../../../../features/auth/services/session.service'
-import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
 
-export async function POST(request: Request) {
+import { logger } from '@/lib/logger'
+import { SessionService } from '@/features/auth/services/session.service'
+
+const AUTH_COOKIE_NAMES = [
+  'access_token',
+  'refresh_token',
+  'aprende-y-aplica-session',
+] as const
+
+function clearAuthCookies(response: NextResponse): void {
+  for (const cookieName of AUTH_COOKIE_NAMES) {
+    response.cookies.set(cookieName, '', {
+      expires: new Date(0),
+      httpOnly: true,
+      maxAge: 0,
+      path: '/',
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    })
+  }
+}
+
+function buildLogoutResponse(
+  body: { success: true; message: string },
+  status: number = 200
+): NextResponse {
+  const response = NextResponse.json(body, { status })
+  response.headers.set('Cache-Control', 'no-store')
+  clearAuthCookies(response)
+  return response
+}
+
+export async function POST(_request?: Request) {
   try {
-    const rateLimitResponse = applyAuthRateLimit(request)
-    if (rateLimitResponse) {
-      return rateLimitResponse
-    }
-
-    logger.log('🚪 API Logout: Iniciando...')
-    
-    // Destruir la sesión usando SessionService
+    logger.auth('Logout request received')
     await SessionService.destroySession()
-    
-    logger.log('✅ API Logout: Sesión destruida exitosamente')
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Sesión cerrada exitosamente' 
+
+    return buildLogoutResponse({
+      success: true,
+      message: 'Sesion cerrada exitosamente',
     })
   } catch (error) {
-    logger.error('💥 API Logout Error:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Error al cerrar sesión' 
-    }, { status: 500 })
+    logger.error('Logout session destruction failed', error)
+
+    return buildLogoutResponse({
+      success: true,
+      message: 'Sesion local cerrada',
+    })
   }
 }

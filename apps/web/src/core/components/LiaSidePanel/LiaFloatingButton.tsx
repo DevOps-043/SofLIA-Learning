@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TourRestartButton } from '../tours/TourRestartButton';
 import { SHARED_TOUR_TARGET_IDS } from '../../constants/tourTargets';
 import { useLiaPanel } from '../../contexts/LiaPanelContext';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 const LIA_BUTTON_BOTTOM_PX = 24;
 const LIA_BUTTON_RIGHT_PX = 24;
@@ -14,6 +15,7 @@ const LIA_BUTTON_SIZE_PX = 56;
 
 function LiaFloatingButtonContent() {
   const { isOpen, togglePanel } = useLiaPanel();
+  const { disableHeavy } = useMotionSafe();
 
   return (
     <>
@@ -67,27 +69,31 @@ function LiaFloatingButtonContent() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 pointerEvents: 'auto',
+                willChange: 'transform',
               }}
               aria-label="Abrir asistente SofLIA"
             >
-              <motion.div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  borderRadius: '50%',
-                  backgroundColor: '#00D4B3',
-                  zIndex: 0,
-                }}
-                animate={{
-                  scale: [1, 1.4, 1.4],
-                  opacity: [0.4, 0, 0],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: 'easeOut',
-                }}
-              />
+              {/* Pulse ring — hidden on mobile to prevent constant GPU use */}
+              {!disableHeavy && (
+                <motion.div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: '50%',
+                    backgroundColor: '#00D4B3',
+                    zIndex: 0,
+                  }}
+                  animate={{
+                    scale: [1, 1.4, 1.4],
+                    opacity: [0.4, 0, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeOut',
+                  }}
+                />
+              )}
 
               <img
                 src="/lia-avatar.png"

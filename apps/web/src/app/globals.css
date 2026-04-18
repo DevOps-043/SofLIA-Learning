@@ -473,15 +473,8 @@ a {
 }
 
 @keyframes glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-  }
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
 }
 
 /* Utility classes */
@@ -587,7 +580,7 @@ a {
 
 /* Card hover effects */
 .card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
@@ -599,7 +592,7 @@ a {
 .btn-hover {
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
 }
 
 .btn-hover::before {
@@ -692,11 +685,11 @@ a {
 
 /* Custom transitions */
 .transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .transition-bounce {
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: opacity 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* Dark mode specific styles */
@@ -900,7 +893,8 @@ a {
   -webkit-backdrop-filter: blur(10px);
   border-radius: 1rem;
   padding: 1.5rem;
-  transition: all 0.3s;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  contain: layout style paint;
 }
 
 .dark .community-post {
@@ -1311,6 +1305,7 @@ a {
   background: rgba(30, 41, 59, 0.4);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(71, 85, 105, 0.3);
+  contain: layout style paint;
 }
 
 .glass-card:hover {
@@ -1320,8 +1315,8 @@ a {
 
 /* Button enhancements - Nueva Paleta SOFLIA */
 .btn-primary {
-  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
-  /* Azul Profundo */
+  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] dark:text-[#0A2540] dark:shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+  /* Azul Profundo en claro / Aqua en oscuro */
 }
 
 .btn-secondary {
@@ -1333,8 +1328,8 @@ a {
 }
 
 .btn-accent {
-  @apply bg-[#00D4B3] hover:bg-[#00b89a] text-white shadow-lg shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
-  /* Aqua */
+  @apply bg-[#0A2540] hover:bg-[#0d2f4d] text-white shadow-lg shadow-[#0A2540]/25 dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] dark:text-[#0A2540] dark:shadow-[#00D4B3]/25 rounded-xl py-3 px-6 font-medium transition-all duration-300;
+  /* AcciÃ³n UI: Azul Profundo en claro / Aqua en oscuro */
 }
 
 /* Text gradients - Nueva Paleta SOFLIA */
@@ -1880,7 +1875,7 @@ select {
   font-size: 18px !important;
   font-weight: 600 !important;
   padding: 0 !important;
-  transition: all 0.2s ease !important;
+  transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease !important;
   z-index: 10 !important;
   background: #ffffff !important;
   border-radius: 50% !important;
@@ -1934,5 +1929,36 @@ select {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   Reduces GPU load on phones to prevent jank and overheating
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Disable smooth scroll on mobile — causes layout recalc on every scroll event */
+  html, body {
+    scroll-behavior: auto !important;
+  }
+
+  /* Reduce backdrop-blur intensity on mobile — stacked blurs = GPU thrash */
+  .bg-glass-enhanced,
+  .glass,
+  .glass-dark,
+  .glass-card,
+  .community-post {
+    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(4px) !important;
+  }
+
+  /* Disable CSS infinite animations on mobile (animate-pulse etc.) when not needed */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

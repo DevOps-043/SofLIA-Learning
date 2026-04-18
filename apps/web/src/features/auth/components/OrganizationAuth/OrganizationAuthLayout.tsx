@@ -115,7 +115,7 @@ export function OrganizationAuthLayout({
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center relative overflow-y-auto transition-all duration-500"
+      className="min-h-screen flex items-center justify-center relative overflow-x-hidden overflow-y-auto transition-all duration-500"
       style={{
         ...pageBackground,
         ...backgroundStyle,
@@ -170,81 +170,19 @@ export function OrganizationAuthLayout({
         </>
       )}
 
-      {/* Two-Column Layout Container */}
-      <div className="w-full min-h-screen flex items-center justify-center p-4 lg:p-8 relative z-10 py-12 lg:py-0">
-        <div className="w-full max-w-7xl flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
-          
-          {/* LEFT SIDE - 3D Floating Logo */}
+      {/* Layout: form first (top on mobile), logo second (bottom on mobile / left on desktop) */}
+      <div className="relative z-10 w-full min-h-screen flex flex-col lg:flex-row items-center justify-center gap-6 lg:gap-12 p-4 sm:p-6 lg:p-8 py-8 lg:py-12">
+
+          {/* FORM — always rendered first: top on mobile, right on desktop */}
           <motion.div
-            className="flex-1 flex items-center justify-center relative w-full lg:w-auto mb-8 lg:mb-0"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* Floating Animation Container */}
-            <motion.div
-              className="relative"
-              animate={{
-                y: [-10, 10, -10],
-              }}
-              transition={{
-                duration: 6,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            >
-              {/* 3D Logo Container - Clean */}
-              <div className="relative w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] lg:w-[280px] lg:h-[280px] flex items-center justify-center">
-
-                {/* Logo/Favicon - Center */}
-                <motion.div
-                  className="relative w-full h-full flex items-center justify-center"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                >
-                    <Image
-                      src={faviconUrl}
-                      alt={`${organization.name} Logo`}
-                      fill
-                      className="object-contain drop-shadow-2xl"
-                      sizes="(max-width: 768px) 240px, 400px"
-                      priority
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/icono.png';
-                      }}
-                    />
-                </motion.div>
-
-                {/* Subtle Glow Effect behind logo */}
-                <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-[60px]"
-                  style={{
-                    background: `radial-gradient(circle, ${finalPrimaryColor}40, transparent 70%)`,
-                  }}
-                  animate={{
-                    scale: [0.8, 1.2, 0.8],
-                    opacity: [0.3, 0.6, 0.3],
-                  }}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                />
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* RIGHT SIDE - Login Form Panel */}
-          <motion.div
-            className="flex-1 w-full max-w-md lg:max-w-xl"
+            className="w-full max-w-md lg:max-w-xl lg:order-2 shrink-0"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
           >
             {/* Login Card */}
             <div 
-              className="relative backdrop-blur-xl p-6 lg:p-8 shadow-2xl rounded-3xl border overflow-hidden min-h-[300px] flex flex-col justify-center"
+              className="relative backdrop-blur-xl p-5 sm:p-6 lg:p-8 shadow-2xl rounded-3xl border overflow-hidden min-h-0 sm:min-h-[300px] flex flex-col justify-center"
               style={{
                 backgroundColor: cardBackgroundColor,
                 borderColor: borderColor,
@@ -356,6 +294,63 @@ export function OrganizationAuthLayout({
                 )}
               </div>
             </div>
+            {/* Mobile logo — below card, hidden on desktop */}
+            <div className="lg:hidden flex justify-center mt-6 pb-2">
+              <motion.div
+                animate={{ y: [-8, 8, -8] }}
+                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                className="relative w-20 h-20"
+              >
+                <Image
+                  src={faviconUrl}
+                  alt={`${organization.name} Logo`}
+                  fill
+                  className="object-contain drop-shadow-2xl"
+                  sizes="80px"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/icono.png'; }}
+                />
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* LOGO — desktop only, left column */}
+          <motion.div
+            className="hidden lg:flex lg:order-1 flex-1 items-center justify-center"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <motion.div
+              className="relative"
+              animate={{ y: [-10, 10, -10] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <div className="relative w-[280px] h-[280px] flex items-center justify-center">
+                <motion.div
+                  className="relative w-full h-full flex items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                >
+                  <Image
+                    src={faviconUrl}
+                    alt={`${organization.name} Logo`}
+                    fill
+                    className="object-contain drop-shadow-2xl"
+                    sizes="280px"
+                    priority
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/icono.png';
+                    }}
+                  />
+                </motion.div>
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none -z-10 blur-[60px]"
+                  style={{ background: `radial-gradient(circle, ${finalPrimaryColor}40, transparent 70%)` }}
+                  animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                />
+              </div>
+            </motion.div>
           </motion.div>
         </div>
       </div>
