@@ -6,8 +6,8 @@
 import {
   GLOBAL_UI_CONTEXT,
   LIA_BUG_REPORT_CONFIRMATION_OVERRIDE,
-  LIA_SYSTEM_PROMPT,
 } from './prompt-base.service';
+import { LIA_SYSTEM_PROMPT } from './prompt-main-v2.service';
 import { buildUserContextSection } from './prompt-context.service';
 import {
   buildBusinessRoutesSection,
@@ -15,7 +15,7 @@ import {
 } from './prompt-instructions.service';
 import type { PlatformContext } from './platform-context.service';
 
-export { LIA_SYSTEM_PROMPT } from './prompt-base.service';
+export { LIA_SYSTEM_PROMPT } from './prompt-main-v2.service';
 
 export function getLIASystemPrompt(context?: PlatformContext): string {
   let prompt = context
