@@ -82,19 +82,18 @@ export function StudyPlannerIntroOverlay({
               <div className="relative mb-1.5 h-28 w-28 sm:mb-2 sm:h-36 sm:w-36 md:mb-3 md:h-44 md:w-44">
                 <motion.div
                   className="absolute inset-8 overflow-hidden rounded-full bg-gradient-to-br from-[#00D4B3] via-[#00D4B3] to-[#00b89a] p-1 sm:inset-10 md:inset-12"
-                  animate={{
-                    scale: isSpeaking ? [1, 1.08, 1] : 1,
+                  animate={
+                    isSpeaking && !isMobile
+                      ? { scale: [1, 1.08, 1] }
+                      : {}
+                  }
+                  style={{
                     boxShadow: isSpeaking
-                      ? [
-                          '0 0 30px rgba(59, 130, 246, 0.6)',
-                          '0 0 80px rgba(168, 85, 247, 0.9)',
-                          '0 0 30px rgba(59, 130, 246, 0.6)',
-                        ]
+                      ? '0 0 50px rgba(168, 85, 247, 0.7)'
                       : '0 0 50px rgba(139, 92, 246, 0.7)',
                   }}
                   transition={{
                     scale: { duration: 0.6, repeat: Infinity, ease: 'easeInOut' },
-                    boxShadow: { duration: 1.2, repeat: Infinity, ease: 'easeInOut' },
                   }}
                 >
                   <div className="relative h-full w-full overflow-hidden rounded-full bg-white/10 backdrop-blur-sm">
@@ -102,9 +101,9 @@ export function StudyPlannerIntroOverlay({
                   </div>
                 </motion.div>
 
-                {[...Array(8)].map((_, index) => {
-                  const radius = isMobile ? 50 : 70;
-
+                {/* Floating particles — desktop only to avoid GPU overload on mobile */}
+                {!isMobile && [...Array(8)].map((_, index) => {
+                  const radius = 70;
                   return (
                     <motion.div
                       key={index}
@@ -116,12 +115,7 @@ export function StudyPlannerIntroOverlay({
                         opacity: [0, 1, 0],
                         scale: [0, 1, 0],
                       }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        delay: index * 0.2,
-                        ease: 'easeOut',
-                      }}
+                      transition={{ duration: 3, repeat: Infinity, delay: index * 0.2, ease: 'easeOut' }}
                     />
                   );
                 })}
@@ -143,14 +137,13 @@ export function StudyPlannerIntroOverlay({
                 transition={{ type: 'spring', stiffness: 300, damping: 30, duration: 0.5 }}
                 className="relative flex min-h-0 w-full flex-shrink overflow-hidden rounded-xl border border-gray-200/50 bg-gradient-to-br from-white/95 via-white/90 to-white/95 p-2.5 shadow-2xl backdrop-blur-2xl dark:border-gray-700/50 dark:from-gray-900/95 dark:via-gray-800/95 dark:to-gray-900/95 sm:rounded-2xl sm:p-3 md:p-4"
               >
-                <motion.div
-                  className="absolute inset-0 rounded-3xl opacity-30"
+                {/* Static gradient overlay — animated version only on desktop */}
+                <div
+                  className="absolute inset-0 rounded-3xl opacity-30 pointer-events-none"
                   style={{
                     background:
                       'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(59, 130, 246, 0.1) 100%)',
                   }}
-                  animate={{ backgroundPosition: ['0% 0%', '100% 100%'] }}
-                  transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
                 />
 
                 <div className="relative z-10 w-full">
@@ -194,30 +187,18 @@ export function StudyPlannerIntroOverlay({
 
                   <div className="mb-1.5 flex items-center justify-center gap-1 sm:mb-2 sm:gap-1.5 md:mb-3">
                     {STUDY_PLANNER_STEPS.map((_, index) => (
-                      <motion.div key={index} className="relative" whileHover={{ scale: 1.2 }}>
-                        <motion.div
+                      <div key={index} className="relative">
+                        {/* Step indicator — CSS animate-pulse instead of JS box-shadow loop */}
+                        <div
                           className={`h-1 rounded-full transition-all sm:h-1.5 ${
                             index === currentStep
-                              ? 'w-6 bg-gradient-to-r from-[#00D4B3] via-[#00D4B3] to-[#00b89a] shadow-lg shadow-[#00D4B3]/50 sm:w-8 md:w-10'
+                              ? 'w-6 bg-gradient-to-r from-[#00D4B3] via-[#00D4B3] to-[#00b89a] shadow-lg shadow-[#00D4B3]/50 sm:w-8 md:w-10 animate-pulse'
                               : index < currentStep
                                 ? 'w-4 bg-gradient-to-r from-green-500 to-emerald-500 sm:w-5 md:w-6'
                                 : 'w-4 bg-gray-300 dark:bg-gray-600 sm:w-5 md:w-6'
                           }`}
-                          animate={
-                            index === currentStep
-                              ? {
-                                  scale: [1, 1.15, 1],
-                                  boxShadow: [
-                                    '0 0 0px rgba(59, 130, 246, 0.5)',
-                                    '0 0 20px rgba(168, 85, 247, 0.8)',
-                                    '0 0 0px rgba(59, 130, 246, 0.5)',
-                                  ],
-                                }
-                              : {}
-                          }
-                          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                         />
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
 
@@ -394,13 +375,7 @@ export function StudyPlannerIntroOverlay({
                         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                         className="relative w-full overflow-hidden rounded-lg bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 px-6 py-2 text-sm font-bold text-white shadow-xl shadow-green-500/30 sm:w-auto sm:px-8 sm:py-2.5 sm:text-base dark:shadow-green-500/20"
                       >
-                        <motion.span
-                          className="relative z-10"
-                          animate={{ scale: [1, 1.05] }}
-                          transition={{ type: 'tween', duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
-                        >
-                          Comenzar
-                        </motion.span>
+                        <span className="relative z-10">Comenzar</span>
                       </motion.button>
                     )}
                   </div>

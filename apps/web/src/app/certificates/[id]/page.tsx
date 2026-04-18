@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   AlertCircle,
@@ -20,6 +20,11 @@ import { useShareModalContext } from '@/core/providers/ShareModalProvider'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { CertificateDocument } from '@/features/certificates/components/CertificateDocument'
 import { CertificateDocumentViewport } from '@/features/certificates/components/CertificateDocumentViewport'
+import { downloadCertificatePdf } from '@/features/certificates/services/certificate-client-pdf.service'
+import {
+  CERTIFICATE_RENDER_HEIGHT_PX,
+  CERTIFICATE_RENDER_WIDTH_PX,
+} from '@/features/certificates/constants/certificate-branding'
 import type { CertificateListItem } from '@/features/certificates/types/certificate'
 
 interface CertificateResponse {
@@ -48,11 +53,13 @@ export default function CertificateDetailPage() {
   const { openShareModal } = useShareModalContext()
   const certificateId = params.id as string
   const isPrintMode = searchParams.get('print') === '1'
+  const downloadDocumentRef = useRef<HTMLDivElement | null>(null)
 
   const [certificate, setCertificate] = useState<CertificateListItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [downloadError, setDownloadError] = useState<string | null>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
   const [hashCopied, setHashCopied] = useState(false)
 
   useEffect(() => {
@@ -91,27 +98,24 @@ export default function CertificateDetailPage() {
       return
     }
 
+    const downloadElement = downloadDocumentRef.current
+    if (!downloadElement) {
+      setDownloadError(t('certificates.errorDownload'))
+      return
+    }
+
     try {
-      const response = await fetch(`/api/certificates/${certificate.certificateId}/download`, {
-        credentials: 'include',
+      setDownloadError(null)
+      setIsDownloading(true)
+
+      await downloadCertificatePdf({
+        element: downloadElement,
+        fileName: certificate.documentModel.fileName,
       })
-
-      if (!response.ok) {
-        const data = (await response.json().catch(() => ({}))) as { error?: string; details?: string }
-        throw new Error(data.details ?? data.error ?? t('certificates.errorDownload'))
-      }
-
-      const blob = await response.blob()
-      const downloadUrl = window.URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = downloadUrl
-      anchor.download = certificate.documentModel.fileName
-      document.body.appendChild(anchor)
-      anchor.click()
-      document.body.removeChild(anchor)
-      window.URL.revokeObjectURL(downloadUrl)
     } catch (err) {
       setDownloadError(err instanceof Error ? err.message : t('certificates.errorDownload'))
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -258,77 +262,81 @@ export default function CertificateDetailPage() {
             </div>
           </section>
 
-          <aside className="space-y-5">
+          <aside>
             <section
-              className="rounded-[28px] border p-6"
+              className="rounded-[28px] border p-5"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.borderColor,
               }}
             >
+              {/* Status + title */}
               <div
-                className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]"
+                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
                 style={{
                   backgroundColor: `${theme.successColor}18`,
                   color: theme.successColor,
                 }}
               >
-                <Shield className="h-3.5 w-3.5" />
+                <Shield className="h-3 w-3" />
                 {t('certificates.statusValid')}
               </div>
 
-              <h1 className="mt-4 text-[2rem] font-black leading-tight" style={{ color: theme.textColor }}>
+              <h1
+                className="mt-3 line-clamp-3 text-lg font-black leading-snug"
+                style={{ color: theme.textColor }}
+              >
                 {certificate.courseTitle}
               </h1>
 
-              <div className="mt-5 space-y-3 text-sm" style={{ color: theme.subtextColor }}>
-                <div className="flex items-start gap-3">
-                  <Building2 className="mt-0.5 h-4 w-4" />
-                  <div>
-                    <div className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelIssuer')}
-                    </div>
-                    <div>{certificate.issuerName}</div>
-                  </div>
+              {/* Meta compact */}
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
+                  <span className="text-xs" style={{ color: theme.subtextColor }}>
+                    <span className="font-semibold" style={{ color: theme.textColor }}>
+                      {t('certificates.labelIssuer')}:
+                    </span>{' '}
+                    {certificate.issuerName}
+                  </span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <UserRound className="mt-0.5 h-4 w-4" />
-                  <div>
-                    <div className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelInstructor')}
-                    </div>
-                    <div>{certificate.instructorName}</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
+                  <span className="text-xs" style={{ color: theme.subtextColor }}>
+                    <span className="font-semibold" style={{ color: theme.textColor }}>
+                      {t('certificates.labelInstructor')}:
+                    </span>{' '}
+                    {certificate.instructorName}
+                  </span>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Calendar className="mt-0.5 h-4 w-4" />
-                  <div>
-                    <div className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelIssuedAt')}
-                    </div>
-                    <div>{formatDate(certificate.issuedAt)}</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
+                  <span className="text-xs" style={{ color: theme.subtextColor }}>
+                    <span className="font-semibold" style={{ color: theme.textColor }}>
+                      {t('certificates.labelIssuedAt')}:
+                    </span>{' '}
+                    {formatDate(certificate.issuedAt)}
+                  </span>
                 </div>
               </div>
-            </section>
 
-            <section
-              className="rounded-[28px] border p-6"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.borderColor,
-              }}
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" style={{ color: theme.actionColor }} />
-                  <h2 className="text-sm font-bold uppercase tracking-[0.18em]" style={{ color: theme.subtextColor }}>
+              {/* Divider */}
+              <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+
+              {/* Hash compact */}
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5" style={{ color: theme.actionColor }} />
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-[0.18em]"
+                    style={{ color: theme.subtextColor }}
+                  >
                     {t('certificates.labelHash')}
-                  </h2>
+                  </span>
                 </div>
                 <button
                   onClick={copyHash}
-                  className="rounded-xl border p-2"
+                  className="rounded-lg border p-1.5"
                   style={{
                     borderColor: theme.borderColor,
                     backgroundColor: theme.inputBg,
@@ -336,56 +344,53 @@ export default function CertificateDetailPage() {
                   }}
                   aria-label={t('certificates.copyHash')}
                 >
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-3.5 w-3.5" />
                 </button>
               </div>
-
               <div
-                className="rounded-2xl border px-4 py-3 font-mono text-xs leading-6"
+                className="truncate rounded-xl border px-3 py-2 font-mono text-[10px]"
                 style={{
                   backgroundColor: theme.inputBg,
                   borderColor: theme.borderColor,
                   color: theme.textColor,
-                  wordBreak: 'break-all',
                 }}
               >
                 {certificate.certificateHash}
               </div>
-
               {hashCopied && (
-                <p className="mt-2 text-xs text-green-400">{t('certificates.hashCopied')}</p>
+                <p className="mt-1.5 text-[11px] text-green-400">{t('certificates.hashCopied')}</p>
               )}
-
-              <p className="mt-3 text-xs leading-5" style={{ color: theme.subtextColor }}>
+              <p className="mt-2 text-[11px] leading-4" style={{ color: theme.subtextColor }}>
                 {t('certificates.hashDescription')}
               </p>
-            </section>
 
-            <section
-              className="rounded-[28px] border p-6"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.borderColor,
-              }}
-            >
+              {/* Divider */}
+              <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+
+              {/* Actions */}
               {downloadError && (
-                <p className="mb-3 text-xs text-red-400">{downloadError}</p>
+                <p className="mb-2 text-xs text-red-400">{downloadError}</p>
               )}
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 <button
                   onClick={() => void handleDownload()}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold"
+                  disabled={isDownloading}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
                   style={{
                     backgroundColor: theme.actionColor,
                     color: theme.onActionColor,
                   }}
                 >
-                  <Download className="h-4 w-4" />
-                  {t('certificates.downloadPdf')}
+                  {isDownloading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                  {isDownloading ? t('certificates.generatingPdf') : t('certificates.downloadPdf')}
                 </button>
                 <button
                   onClick={() => router.push(`/certificates/verify/${certificate.certificateHash}`)}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
                   style={{
                     backgroundColor: theme.inputBg,
                     borderColor: theme.borderColor,
@@ -397,7 +402,7 @@ export default function CertificateDetailPage() {
                 </button>
                 <button
                   onClick={shareCertificate}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
                   style={{
                     backgroundColor: theme.cardBg,
                     borderColor: theme.borderColor,
@@ -410,6 +415,23 @@ export default function CertificateDetailPage() {
               </div>
             </section>
           </aside>
+        </div>
+      </div>
+
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: '-10000px',
+          width: `${CERTIFICATE_RENDER_WIDTH_PX}px`,
+          height: `${CERTIFICATE_RENDER_HEIGHT_PX}px`,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+        }}
+      >
+        <div ref={downloadDocumentRef}>
+          <CertificateDocument model={certificate.documentModel} />
         </div>
       </div>
     </div>

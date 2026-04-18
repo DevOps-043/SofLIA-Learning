@@ -150,7 +150,36 @@ export async function exportNotePdfWithJsPdf({
     y += titleLineHeight;
   });
 
-  y += 2;
+  y += 4;
+  if (tags.length > 0) {
+    ensurePageSpace(lineHeight * 2);
+    pdf.setFontSize(11);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(107, 114, 128);
+    pdf.text('Etiquetas:', margin, y);
+    y += lineHeight;
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    let tagX = margin;
+    tags.forEach((tag) => {
+      const tagWidth = pdf.getTextWidth(tag) + 6;
+      if (tagX + tagWidth > pageWidth - margin) {
+        y += lineHeight;
+        ensurePageSpace(lineHeight);
+        tagX = margin;
+      }
+      pdf.setFillColor(59, 130, 246);
+      pdf.roundedRect(tagX, y - 4, tagWidth, 6, 2, 2, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.text(tag, tagX + 3, y);
+      tagX += tagWidth + 4;
+    });
+
+    pdf.setTextColor(0, 0, 0);
+    y += lineHeight + 2;
+  }
+
   pdf.setDrawColor(59, 130, 246);
   pdf.line(margin, y, pageWidth - margin, y);
   y += 8;
@@ -182,36 +211,6 @@ export async function exportNotePdfWithJsPdf({
       y += lineHeight;
     });
   });
-
-  if (tags.length > 0) {
-    y += 10;
-    ensurePageSpace(lineHeight * 2);
-    pdf.setFontSize(11);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(107, 114, 128);
-    pdf.text('Etiquetas:', margin, y);
-    y += lineHeight;
-    pdf.setFontSize(10);
-    pdf.setFont('helvetica', 'normal');
-
-    let tagX = margin;
-    tags.forEach((tag) => {
-      const tagWidth = pdf.getTextWidth(tag) + 6;
-      if (tagX + tagWidth > pageWidth - margin) {
-        y += lineHeight;
-        ensurePageSpace(lineHeight);
-        tagX = margin;
-      }
-      pdf.setFillColor(59, 130, 246);
-      pdf.roundedRect(tagX, y - 4, tagWidth, 6, 2, 2, 'F');
-      pdf.setTextColor(255, 255, 255);
-      pdf.text(tag, tagX + 3, y);
-      tagX += tagWidth + 4;
-    });
-
-    pdf.setTextColor(0, 0, 0);
-    y += lineHeight + 5;
-  }
 
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');

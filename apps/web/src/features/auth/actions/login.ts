@@ -87,6 +87,28 @@ function getRedirectMembershipSlug(record: OrganizationMembershipRedirectRow): s
   return record.organizations?.slug ?? null
 }
 
+const EXPIRED_SESSION_CLEANUP_INTERVAL_MS = 15 * 60 * 1000
+let lastExpiredSessionCleanupAt = 0
+let expiredSessionCleanupPromise: Promise<void> | null = null
+
+function scheduleExpiredSessionCleanup(): void {
+  const now = Date.now()
+
+  if (
+    expiredSessionCleanupPromise ||
+    now - lastExpiredSessionCleanupAt < EXPIRED_SESSION_CLEANUP_INTERVAL_MS
+  ) {
+    return
+  }
+
+  lastExpiredSessionCleanupAt = now
+  expiredSessionCleanupPromise = AuthService.clearExpiredSessions()
+    .catch(() => undefined)
+    .finally(() => {
+      expiredSessionCleanupPromise = null
+    })
+}
+
 function getOrganizationSlug(
   organizations: OrganizationSummary | OrganizationSummary[] | null | undefined,
 ): string | null {
@@ -396,12 +418,8 @@ export async function loginAction(formData: FormData) {
       return { error: 'Error al crear la sesión. Por favor, intenta nuevamente.' }
     }
 
-    // 7. Limpiar sesiones expiradas (mantenimiento)
-    try {
-      await AuthService.clearExpiredSessions()
-    } catch (clearError) {
-      // No fallar el login si falla la limpieza
-    }
+    // 7. Limpiar sesiones expiradas (mantenimiento) fuera del camino critico.
+    scheduleExpiredSessionCleanup()
 
     // 7.5. Actualizar last_login_at en la tabla users
     try {

@@ -15,6 +15,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+import { clearClientSessionState } from '@/features/auth/services/logout-client.service';
+
 interface UseInactivityLogoutOptions {
   /** Tiempo de inactividad antes de logout en minutos (default: 60) */
   timeoutMinutes?: number;
@@ -108,12 +110,7 @@ export function useInactivityLogout(
 
     onLogout?.();
 
-    // Llamar a API de logout
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (error) {
-      console.error('Error en logout:', error);
-    }
+    await clearClientSessionState();
 
     // Redirigir al login
     router.push('/login?reason=inactivity');

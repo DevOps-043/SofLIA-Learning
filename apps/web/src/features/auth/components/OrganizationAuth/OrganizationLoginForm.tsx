@@ -52,7 +52,7 @@ export function OrganizationLoginForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" aria-busy={isPending}>
         <motion.div
           className="text-center space-y-2 mb-7"
           initial={{ opacity: 0, y: 10 }}
@@ -192,10 +192,15 @@ export function OrganizationLoginForm({
                   id="emailOrUsername"
                   type="text"
                   placeholder="tu@email.com o usuario"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  disabled={isPending}
                   {...register('emailOrUsername')}
                   onFocus={() => setFocusedField('emailOrUsername')}
                   onBlur={() => setFocusedField(null)}
-                  className="flex-1 w-full bg-transparent outline-none placeholder:opacity-40 transition-colors text-sm font-normal"
+                  className="flex-1 w-full bg-transparent outline-none placeholder:opacity-40 transition-colors text-sm font-normal disabled:cursor-not-allowed disabled:opacity-70"
                   style={{ color: palette.textColor }}
                 />
               </div>
@@ -265,10 +270,12 @@ export function OrganizationLoginForm({
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
+                  autoComplete="current-password"
+                  disabled={isPending}
                   {...register('password')}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
-                  className="flex-1 w-full bg-transparent outline-none placeholder:opacity-40 transition-colors text-sm font-normal tracking-widest"
+                  className="flex-1 w-full bg-transparent outline-none placeholder:opacity-40 transition-colors text-sm font-normal tracking-widest disabled:cursor-not-allowed disabled:opacity-70"
                   style={{
                     color: palette.textColor,
                     letterSpacing: '0.15em',
@@ -277,6 +284,7 @@ export function OrganizationLoginForm({
                 <motion.button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isPending}
                   className="ml-2 p-1.5 rounded-lg transition-colors flex-shrink-0 hover:opacity-70"
                   style={{
                     color:
@@ -365,6 +373,7 @@ export function OrganizationLoginForm({
           <motion.button
             type="submit"
             disabled={isPending}
+            aria-disabled={isPending}
             className="w-full relative overflow-hidden group rounded-xl py-3.5 px-5 font-semibold text-sm text-white transition-all duration-300 border-0"
             style={{
               backgroundColor: palette.primaryColor,

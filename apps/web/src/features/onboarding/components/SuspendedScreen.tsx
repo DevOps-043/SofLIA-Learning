@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { ShieldX, LogOut, Mail, X } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+
+import { performClientLogout } from '@/features/auth/services/logout-client.service'
 
 interface SuspendedScreenProps {
   /** 'suspended' = org-level, 'banned' = global ban */
@@ -66,16 +67,10 @@ function buildEmailLinks(type: 'suspended' | 'banned', organizationName?: string
 }
 
 export function SuspendedScreen({ type, organizationName, banReason }: SuspendedScreenProps) {
-  const router = useRouter()
   const [showEmailPicker, setShowEmailPicker] = useState(false)
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-    } catch {
-      // silently fail
-    }
-    router.push('/auth')
+    await performClientLogout({ redirectTo: '/auth' })
   }
 
   const isBanned = type === 'banned'

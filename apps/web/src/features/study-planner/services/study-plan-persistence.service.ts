@@ -50,6 +50,7 @@ export interface StudyPlanConfigPayload {
   description: string;
   userType: 'b2b' | 'b2c';
   courseIds: string[];
+  organizationId?: string;
   goalHoursPerWeek: number;
   startDate: string;
   endDate?: string;
@@ -397,6 +398,16 @@ export function buildStudyPlanPayload(
     params.selectedCourseIds.includes(course.id),
   )
   const courseName = selectedCourse?.title?.trim() || 'Curso'
+  const selectedOrganizationIds = Array.from(
+    new Set(
+      params.availableCourses
+        .filter((course) => params.selectedCourseIds.includes(course.id))
+        .map((course) => course.organizationId)
+        .filter((organizationId): organizationId is string =>
+          typeof organizationId === 'string' && organizationId.trim() !== '',
+        ),
+    ),
+  )
 
   return {
     planConfig: {
@@ -406,6 +417,9 @@ export function buildStudyPlanPayload(
       courseIds: params.selectedCourseIds.map(
         (selId) => getPureCourseId(params.availableCourses.find((c) => c.id === selId)?.courseId ?? selId),
       ),
+      organizationId: selectedOrganizationIds.length === 1
+        ? selectedOrganizationIds[0]
+        : undefined,
       goalHoursPerWeek,
       startDate,
       endDate,

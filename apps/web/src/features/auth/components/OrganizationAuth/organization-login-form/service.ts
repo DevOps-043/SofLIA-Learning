@@ -1,4 +1,5 @@
 import type { LoginFormData } from '../../../types/auth.types'
+import { clearAuthUserCache } from '../../../../../lib/auth/user-auth-cache'
 
 export interface OrganizationLoginRedirectInfo {
   to: string
@@ -69,4 +70,8 @@ export function isNextRedirectError(error: unknown): boolean {
   return 'message' in error && typeof error.message === 'string'
     ? error.message.includes('NEXT_REDIRECT')
     : false
+}
+
+export function clearPreviousLoginUserState(): void {
+  clearAuthUserCache()
 }

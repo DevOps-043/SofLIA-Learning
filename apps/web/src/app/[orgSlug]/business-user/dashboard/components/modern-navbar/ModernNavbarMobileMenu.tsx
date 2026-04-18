@@ -13,6 +13,7 @@ import {
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
 import { ModernNavbarAvatar } from './ModernNavbarAvatar';
+import { buildStudyPlannerEntryPath } from './service';
 import type { ModernNavbarColors, ModernNavbarOrganization, ModernNavbarUser } from './types';
 
 interface ModernNavbarMobileMenuProps {
@@ -127,7 +128,12 @@ export function ModernNavbarMobileMenu({
             {hasStudyPlan !== null && (
               <motion.button
                 onClick={() => {
-                  router.push(hasStudyPlan ? '/study-planner/dashboard' : '/study-planner/create');
+                  router.push(
+                    buildStudyPlannerEntryPath({
+                      hasStudyPlan,
+                      organizationSlug: organization?.slug,
+                    }),
+                  );
                   onClose();
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"

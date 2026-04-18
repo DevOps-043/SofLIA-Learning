@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
+import { useMotionSafe } from '../../../lib/utils/motion';
 import { Statistic } from '@aprende-y-aplica/shared';
 import { Users, Briefcase, Star, Clock } from 'lucide-react';
 
@@ -57,17 +58,18 @@ function AnimatedCounter({ endValue, duration = 2 }: { endValue: string; duratio
 
 export function StatisticsSection({ statistics }: StatisticsSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
+  const { disableHeavy } = useMotionSafe();
   const isInView = useInView(sectionRef, { once: false, amount: 0.1 });
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start']
   });
 
-  // Parallax effects más intensos
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -150]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  // Parallax effects — disabled on mobile to eliminate scroll listener overhead
+  const y1 = useTransform(scrollYProgress, [0, 1], disableHeavy ? [0, 0] : [0, -150]);
+  const y2 = useTransform(scrollYProgress, [0, 1], disableHeavy ? [0, 0] : [0, 150]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0.3]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1.1]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], disableHeavy ? [1, 1, 1] : [0.8, 1, 1.1]);
 
   return (
     <section 
@@ -81,47 +83,23 @@ export function StatisticsSection({ statistics }: StatisticsSectionProps) {
       />
       
       {/* Animated Background Effects con parallax - Extended beyond section */}
+      {/* Background orbs — static on mobile */}
       <motion.div
         className="absolute -top-[200px] -left-[200px] w-[800px] h-[800px] bg-[#00D4B3]/20 rounded-full blur-3xl"
         style={{ y: y1 }}
-        animate={{
-          scale: [1, 1.4, 1],
-          opacity: [0.3, 0.6, 0.3],
-          x: [0, 50, 0],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: 'easeInOut'
-        }}
+        animate={disableHeavy ? {} : { scale: [1, 1.4, 1], opacity: [0.3, 0.6, 0.3], x: [0, 50, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
         className="absolute -bottom-[200px] -right-[200px] w-[800px] h-[800px] bg-[#10B981]/20 rounded-full blur-3xl"
         style={{ y: y2 }}
-        animate={{
-          scale: [1, 1.5, 1],
-          opacity: [0.2, 0.5, 0.2],
-          x: [0, -50, 0],
-        }}
-        transition={{
-          duration: 12,
-          repeat: Infinity,
-          ease: 'easeInOut',
-          delay: 1
-        }}
+        animate={disableHeavy ? {} : { scale: [1, 1.5, 1], opacity: [0.2, 0.5, 0.2], x: [0, -50, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
-      
-      {/* Patrón de fondo animado */}
-      <motion.div 
-        className="absolute inset-0 opacity-[0.03]"
-        animate={{
-          backgroundPosition: ['0% 0%', '100% 100%'],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear'
-        }}
+
+      {/* Static dot pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
           backgroundSize: '60px 60px',
@@ -149,69 +127,24 @@ export function StatisticsSection({ statistics }: StatisticsSectionProps) {
                 }}
                 style={{ transformStyle: 'preserve-3d' }}
               >
-                {/* Icon flotante */}
+                {/* Icon — floating animation desktop only */}
                 <motion.div
                   className="mb-4 flex justify-center"
-                  animate={isInView ? {
-                    y: [0, -10, 0],
-                    rotate: [0, 3, -3, 0],
-                  } : {}}
-                  transition={{
-                    duration: 4,
-                    repeat: Infinity,
-                    delay: index * 0.5,
-                    ease: 'easeInOut'
-                  }}
+                  animate={!disableHeavy && isInView ? { y: [0, -10, 0], rotate: [0, 3, -3, 0] } : {}}
+                  transition={{ duration: 4, repeat: Infinity, delay: index * 0.5, ease: 'easeInOut' }}
                 >
                   <div className="relative">
-                    {/* Glow effect */}
-                    <motion.div
-                      className="absolute inset-0 bg-[#00D4B3] rounded-full blur-xl opacity-20"
-                      animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.2, 0.4, 0.2],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        delay: index * 0.3
-                      }}
-                    />
-                    {/* Icon */}
+                    <div className="absolute inset-0 bg-[#00D4B3] rounded-full blur-xl opacity-20" />
                     <div className="relative w-12 h-12 lg:w-14 lg:h-14 bg-gradient-to-br from-[#00D4B3]/40 to-[#00D4B3]/20 rounded-xl flex items-center justify-center border-2 border-[#00D4B3]/50 backdrop-blur-sm">
                       <IconComponent className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
                     </div>
                   </div>
                 </motion.div>
 
-                {/* Number con efecto de pulso */}
-                <motion.div
-                  className="text-white dark:text-white mb-2 relative"
-                  style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
-                  animate={isInView ? {
-                    scale: [1, 1.05, 1],
-                  } : {}}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    delay: index * 0.4,
-                    ease: 'easeInOut'
-                  }}
-              >
-                <AnimatedCounter endValue={stat.value} />
-                  {/* Glow effect en el número */}
-                  <motion.div
-                    className="absolute inset-0 bg-[#00D4B3] blur-lg opacity-0"
-                    animate={isInView ? {
-                      opacity: [0, 0.2, 0],
-                    } : {}}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      delay: index * 0.4
-                    }}
-                  />
-              </motion.div>
+                {/* Number — no infinite scale loop */}
+                <div className="text-white dark:text-white mb-2 relative" style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}>
+                  <AnimatedCounter endValue={stat.value} />
+                </div>
 
                 {/* Label con animación */}
               <motion.p

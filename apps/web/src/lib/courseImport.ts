@@ -14,6 +14,7 @@ import {
     normalizeImportedActivityContent,
     normalizeImportedMaterialContent,
 } from './course-content'
+import { extractGeneratedCourseInstructorHint } from './generated-course-instructor'
 
 interface QuizQuestionLike {
     id?: string
@@ -78,6 +79,16 @@ interface CourseEngineCourseData {
 }
 
 interface CourseEnginePayload {
+    source?: {
+        user_id?: string | null
+        userId?: string | null
+        user_email?: string | null
+        userEmail?: string | null
+        created_by?: string | null
+        createdBy?: string | null
+        created_by_email?: string | null
+        createdByEmail?: string | null
+    }
     course: CourseEngineCourseData
     modules?: CourseEngineModule[]
 }
@@ -152,6 +163,25 @@ export async function resolveInstructor(
     const { data } = await supabase.from('users').select('id').limit(1).single()
     if (!data?.id) throw new Error('[courseImport] No users found in database')
     return data.id
+}
+
+export async function resolveInstructorFromPayload(
+    supabase: ReturnType<typeof createAdminSupabase>,
+    payload: unknown
+): Promise<string> {
+    const hint = extractGeneratedCourseInstructorHint(payload)
+
+    if (hint.instructorId) {
+        const { data } = await supabase.from('users').select('id').eq('id', hint.instructorId).maybeSingle()
+        if (data?.id) return data.id
+    }
+
+    if (hint.email) {
+        const { data } = await supabase.from('users').select('id').eq('email', hint.email).maybeSingle()
+        if (data?.id) return data.id
+    }
+
+    return resolveInstructor(supabase)
 }
 
 // ─── Core: apply modules + lessons from payload to an existing course ────────

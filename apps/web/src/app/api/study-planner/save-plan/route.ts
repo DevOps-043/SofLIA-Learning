@@ -76,6 +76,88 @@ interface SessionMetricsPayload {
   }>;
 }
 
+interface OrganizationIdRow {
+  organization_id?: string | null;
+}
+
+function normalizeOrganizationId(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
+async function getActiveMembershipOrganizationId(
+  supabase: ReturnType<typeof createAdminClient>,
+  params: {
+    requestedOrganizationId?: string | null;
+    userId: string;
+  },
+): Promise<string | null> {
+  let query = supabase
+    .from('organization_users')
+    .select('organization_id')
+    .eq('user_id', params.userId)
+    .eq('status', 'active');
+
+  const { data, error } = params.requestedOrganizationId
+    ? await query
+        .eq('organization_id', params.requestedOrganizationId)
+        .maybeSingle()
+    : await query
+        .limit(1)
+        .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return normalizeOrganizationId((data as OrganizationIdRow | null)?.organization_id);
+}
+
+async function getUniqueCourseAssignmentOrganizationId(
+  supabase: ReturnType<typeof createAdminClient>,
+  params: {
+    courseId: string;
+    userId: string;
+  },
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('organization_course_assignments')
+    .select('organization_id')
+    .eq('user_id', params.userId)
+    .eq('course_id', params.courseId)
+    .neq('status', 'cancelled');
+
+  if (error) {
+    throw error;
+  }
+
+  const organizationIds = Array.from(
+    new Set(
+      ((data || []) as OrganizationIdRow[])
+        .map((row) => normalizeOrganizationId(row.organization_id))
+        .filter((organizationId): organizationId is string => Boolean(organizationId)),
+    ),
+  );
+
+  return organizationIds.length === 1 ? organizationIds[0] : null;
+}
+
+async function getUserProfileOrganizationId(
+  supabase: ReturnType<typeof createAdminClient>,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('users')
+    .select('organization_id')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return normalizeOrganizationId((data as OrganizationIdRow | null)?.organization_id);
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse<SavePlanResponse>> {
   try {
     // Verificar autenticación
@@ -140,28 +222,36 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
     }
 
     if (userType === 'b2b') {
-      // Primary source: users.organization_id (single-org fast path)
-      const { data: userData } = await supabase
-        .from('users')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single();
+      const requestedOrganizationId = normalizeOrganizationId(body.config.organizationId);
+      const selectedCourseId = body.config.courseIds[0];
 
-      if (userData?.organization_id) {
-        organizationId = userData.organization_id;
-      } else {
-        // Fallback: organization_users table (handles users where users.organization_id is null)
-        const { data: orgUserData } = await supabase
-          .from('organization_users')
-          .select('organization_id')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .limit(1)
-          .maybeSingle();
+      if (requestedOrganizationId) {
+        organizationId = await getActiveMembershipOrganizationId(supabase, {
+          requestedOrganizationId,
+          userId: user.id,
+        });
 
-        if (orgUserData?.organization_id) {
-          organizationId = orgUserData.organization_id;
+        if (!organizationId) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'No tienes una membresía activa en la organización seleccionada.',
+            },
+            { status: 403 },
+          );
         }
+      } else {
+        // Prefer the selected course assignment so multi-org users do not fall
+        // back to a different primary organization.
+        organizationId =
+          await getUniqueCourseAssignmentOrganizationId(supabase, {
+            courseId: selectedCourseId,
+            userId: user.id,
+          })
+          || await getUserProfileOrganizationId(supabase, user.id)
+          || await getActiveMembershipOrganizationId(supabase, {
+            userId: user.id,
+          });
       }
     }
 
@@ -212,6 +302,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<SavePlanR
         // También guardar en metadata para compatibilidad
         ai_generation_metadata: {
           userType: userType,
+          organizationId,
           courseIds: body.config.courseIds,
           minSessionMinutes: body.config.minSessionMinutes,
           maxSessionMinutes: body.config.maxSessionMinutes,

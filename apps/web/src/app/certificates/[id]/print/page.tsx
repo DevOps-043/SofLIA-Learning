@@ -30,38 +30,33 @@ export default async function CertificatePrintPage({
   return (
     <div
       data-certificate-print-ready="true"
-      className="min-h-screen bg-white"
       style={{
-        width: '297mm',
-        height: '210mm',
+        width: `${CERTIFICATE_RENDER_WIDTH_PX}px`,
+        height: `${CERTIFICATE_RENDER_HEIGHT_PX}px`,
         margin: 0,
         padding: 0,
+        overflow: 'hidden',
       }}
     >
       <style>{`
         @page {
-          size: A4 landscape;
+          size: ${CERTIFICATE_RENDER_WIDTH_PX}px ${CERTIFICATE_RENDER_HEIGHT_PX}px;
           margin: 0;
         }
 
         html, body {
           margin: 0;
           padding: 0;
+          width: ${CERTIFICATE_RENDER_WIDTH_PX}px;
+          height: ${CERTIFICATE_RENDER_HEIGHT_PX}px;
+          overflow: hidden;
           background: #ffffff;
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
       `}</style>
 
-      <div
-        style={{
-          width: `${CERTIFICATE_RENDER_WIDTH_PX}px`,
-          height: `${CERTIFICATE_RENDER_HEIGHT_PX}px`,
-          margin: '0 auto',
-        }}
-      >
-        <CertificateDocument model={certificate.documentModel} />
-      </div>
+      <CertificateDocument model={certificate.documentModel} />
     </div>
   )
 }

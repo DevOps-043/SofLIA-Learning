@@ -45,10 +45,49 @@ export async function GET(request: NextRequest) {
         }
 
         // Consultar el plan más reciente del usuario
-        const { data: plans, error } = await supabase
+        const orgSlug = request.nextUrl.searchParams.get('orgSlug');
+        let organizationId: string | null = null;
+
+        if (orgSlug) {
+            const { data: membership, error: membershipError } = await supabase
+                .from('organization_users')
+                .select('organization_id, organizations!inner(slug)')
+                .eq('user_id', user.id)
+                .eq('status', 'active')
+                .eq('organizations.slug', orgSlug)
+                .maybeSingle();
+
+            if (membershipError) {
+                console.error('Error verificando organización del planificador:', membershipError);
+                return NextResponse.json(
+                    { success: false, error: 'Error al verificar organización' },
+                    { status: 500 }
+                );
+            }
+
+            organizationId = typeof membership?.organization_id === 'string'
+                ? membership.organization_id
+                : null;
+
+            if (!organizationId) {
+                return NextResponse.json({
+                    success: true,
+                    hasPlan: false,
+                    planId: null
+                });
+            }
+        }
+
+        let planQuery = supabase
             .from('study_plans')
-            .select('id, user_id, name, created_at')
-            .eq('user_id', user.id)
+            .select('id, user_id, name, created_at, organization_id')
+            .eq('user_id', user.id);
+
+        if (organizationId) {
+            planQuery = planQuery.eq('organization_id', organizationId);
+        }
+
+        const { data: plans, error } = await planQuery
             .order('created_at', { ascending: false })
             .limit(1);
 

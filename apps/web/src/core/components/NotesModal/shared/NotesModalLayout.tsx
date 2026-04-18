@@ -228,7 +228,12 @@ export function NotesModalLayout({
                   <button className={classes.toolbarButton} onClick={() => editor.execCommand('underline')} title="Subrayado">
                     <Underline className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('createLink')} title="Enlace">
+                  <button
+                    className={classes.toolbarButton}
+                    onClick={editor.applyLink}
+                    onMouseDown={(event) => event.preventDefault()}
+                    title="Enlace"
+                  >
                     <Link className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
                 </div>
@@ -287,6 +292,7 @@ export function NotesModalLayout({
                   className="notes-editor w-full flex-1 text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/20 focus:outline-none resize-none overflow-y-auto"
                   contentEditable
                   data-placeholder="Comienza a escribir tu nota aqui..."
+                  onClick={editor.handleEditorClick}
                   onInput={editor.updateContent}
                   ref={editor.editorRef}
                   style={{ lineHeight: '1.7', minHeight: '150px' }}

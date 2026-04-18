@@ -16,6 +16,7 @@ import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../../core/
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
 import { ModernNavbarAvatar } from './ModernNavbarAvatar';
+import { buildStudyPlannerEntryPath } from './service';
 import type { ModernNavbarColors, ModernNavbarOrganization, ModernNavbarUser } from './types';
 
 interface ModernNavbarDesktopMenuProps {
@@ -163,7 +164,12 @@ export function ModernNavbarDesktopMenu({
                 {hasStudyPlan !== null && (
                   <motion.button
                     onClick={() => {
-                      router.push(hasStudyPlan ? '/study-planner/dashboard' : '/study-planner/create');
+                      router.push(
+                        buildStudyPlannerEntryPath({
+                          hasStudyPlan,
+                          organizationSlug: organization?.slug,
+                        }),
+                      );
                       onClose();
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"

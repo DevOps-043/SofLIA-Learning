@@ -812,6 +812,7 @@
     "copyHash": "Copiar hash",
     "hashDescription": "Este hash é validado contra a cadeia do certificado e é o mesmo utilizado na visualização pública de verificação.",
     "downloadPdf": "Baixar PDF",
+    "generatingPdf": "Gerando PDF...",
     "verifyPublic": "Verificar publicamente",
     "share": "Compartilhar certificado",
     "shareTitle": "Certificado: {{title}}",

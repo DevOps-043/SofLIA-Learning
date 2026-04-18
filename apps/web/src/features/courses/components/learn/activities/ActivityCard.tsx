@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Activity,
   BookOpen,
@@ -8,6 +9,7 @@ import {
   ChevronRight,
   FileText,
   HelpCircle,
+  Loader2,
   MessageCircle,
   Sparkles,
 } from "lucide-react";
@@ -52,7 +54,7 @@ function QuizFallback({
     <div className="prose prose-slate max-w-none dark:prose-invert">
       <p className={`${colorClasses} mb-2`}>{message}</p>
       <div
-        className="whitespace-pre-wrap text-[#0A2540] dark:text-white"
+        className="whitespace-pre-wrap text-primary dark:text-white"
         style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
       >
         {typeof rawContent === "string"
@@ -68,7 +70,7 @@ function CompletionBadge({ activity }: { activity: LearnActivity }) {
     return null;
   }
 
-  if (activity.latest_submission_summary?.completionSatisfied) {
+  if (activity.is_completed || activity.latest_submission_summary?.completionSatisfied) {
     return (
       <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
         <Check className="h-2.5 w-2.5" /> Completado
@@ -108,6 +110,55 @@ export function ActivityCard({
   const quizInfo = isQuiz
     ? findQuizStatusItem(quizStatus, activity.activity_id, "activity")
     : undefined;
+  const [aiCompletionCompleted, setAiCompletionCompleted] = useState(false);
+  const [aiCompletionSaving, setAiCompletionSaving] = useState(false);
+  const [aiCompletionError, setAiCompletionError] = useState<string | null>(null);
+  const aiActivityCompleted = Boolean(activity.is_completed || aiCompletionCompleted);
+
+  const markAiChatActivityCompleted = async () => {
+    if (aiActivityCompleted || aiCompletionSaving) {
+      return;
+    }
+
+    try {
+      setAiCompletionSaving(true);
+      setAiCompletionError(null);
+
+      const response = await fetch("/api/lia/complete-activity", {
+        body: JSON.stringify({
+          activityType: activity.activity_id,
+          generatedOutput: {
+            source: "course_ai_chat_activity",
+            title: activity.activity_title,
+            type: activity.activity_type,
+          },
+        }),
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(
+          typeof payload.error === "string"
+            ? payload.error
+            : "No fue posible completar la actividad con SofLIA."
+        );
+      }
+
+      setAiCompletionCompleted(true);
+      void Promise.resolve(onQuizSubmitted()).catch(() => undefined);
+    } catch (error) {
+      setAiCompletionError(
+        error instanceof Error
+          ? error.message
+          : "No fue posible completar la actividad con SofLIA."
+      );
+    } finally {
+      setAiCompletionSaving(false);
+    }
+  };
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:bg-gray-50 dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none dark:hover:bg-white/[0.04]">
@@ -161,7 +212,11 @@ export function ActivityCard({
                   Intentado {quizInfo.percentage}%
                 </span>
               )}
-            <CompletionBadge activity={activity} />
+            <CompletionBadge
+              activity={
+                aiActivityCompleted ? { ...activity, is_completed: true } : activity
+              }
+            />
           </div>
         </div>
 
@@ -224,16 +279,27 @@ export function ActivityCard({
                     Inicia una conversación guiada para completar esta actividad
                   </p>
                   <button
+                    disabled={aiCompletionSaving}
                     onClick={(event) => {
                       event.stopPropagation();
                       onStartAiChat(activity);
+                      void markAiChatActivityCompleted();
                     }}
-                    className="inline-flex items-center gap-2 rounded-lg bg-[#0A2540] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:text-[#0A1724] dark:hover:bg-[#00b89a]"
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-accent dark:text-primary"
                   >
-                    <Sparkles className="h-4 w-4" />
-                    Comenzar
+                    {aiCompletionSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {aiActivityCompleted ? "Continuar" : "Comenzar"}
                     <ChevronRight className="h-4 w-4 opacity-50" />
                   </button>
+                  {aiCompletionError && (
+                    <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                      {aiCompletionError}
+                    </p>
+                  )}
                 </div>
               ) : isInteractive ? (
                 <InteractiveActivityRenderer

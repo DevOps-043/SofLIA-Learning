@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Joyride from 'react-joyride';
 import { StudyPlannerCalendar } from '../../../features/study-planner/components/StudyPlannerCalendar';
 import {
@@ -13,13 +13,11 @@ import {
 import { StudyPlannerDashboardToolbarV2 } from '../../../features/study-planner/components/dashboard/StudyPlannerDashboardToolbarV2';
 import { useStudyPlannerDashboardLogicV2 } from '../../../features/study-planner/hooks/useStudyPlannerDashboardLogicV2';
 import { ToastNotification } from '../../../core/components/ToastNotification';
+import { resolveStudyPlannerDashboardDestination } from '../../../features/study-planner/services/study-planner-navigation.service';
 
 export default function StudyPlannerDashboardPage() {
   const router = useRouter();
-
-  const handleGoBack = useCallback(() => {
-    router.push('/dashboard');
-  }, [router]);
+  const searchParams = useSearchParams();
 
   const {
     availablePlans,
@@ -69,6 +67,16 @@ export default function StudyPlannerDashboardPage() {
     handleRecreatePlan,
     handleSendMessage,
   } = useStudyPlannerDashboardLogicV2();
+
+  const handleGoBack = useCallback(() => {
+    router.push(
+      resolveStudyPlannerDashboardDestination({
+        fromOrgSlug: searchParams.get('fromOrg'),
+        plans: availablePlans,
+        selectedPlanId,
+      }),
+    );
+  }, [availablePlans, router, searchParams, selectedPlanId]);
 
   return (
     <div className="min-h-screen flex overflow-hidden bg-white dark:bg-[#0F1419]">

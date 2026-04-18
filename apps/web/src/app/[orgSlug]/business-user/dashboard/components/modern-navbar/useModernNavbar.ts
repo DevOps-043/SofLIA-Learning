@@ -7,7 +7,8 @@ import type { ModernNavbarStyleConfig } from './types';
 export function useModernNavbar(
   styles: ModernNavbarStyleConfig | null | undefined,
   resolvedTheme: string | null | undefined,
-  initializeTheme: () => void
+  initializeTheme: () => void,
+  organizationSlug?: string | null
 ) {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -46,11 +47,15 @@ export function useModernNavbar(
     }
 
     const loadStudyPlan = async () => {
-      setHasStudyPlan(await fetchStudyPlanStatus());
+      setHasStudyPlan(await fetchStudyPlanStatus(fetch, organizationSlug));
     };
 
     void loadStudyPlan();
-  }, [hasStudyPlan, mobileMenuOpen, userDropdownOpen]);
+  }, [hasStudyPlan, mobileMenuOpen, organizationSlug, userDropdownOpen]);
+
+  useEffect(() => {
+    setHasStudyPlan(null);
+  }, [organizationSlug]);
 
   const closeDesktopMenu = () => {
     setUserDropdownOpen(false);

@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 
 import {
-  isInteractiveLessonActivity,
   resolveActivityConfigFromRecord,
 } from './activity-content-compatibility.service'
 import {
@@ -427,7 +426,11 @@ export async function resolveCourseActivityContext(
     )
   }
 
-  if (!isInteractiveLessonActivity(activity.activity_type)) {
+  const resolvedActivityConfig = resolveActivityConfigFromRecord(
+    activity as ActivityLikeRecord,
+  )
+
+  if (!resolvedActivityConfig) {
     throw new CourseActivityError(
       'ACTIVITY_NOT_INTERACTIVE',
       400,
@@ -438,9 +441,7 @@ export async function resolveCourseActivityContext(
   return {
     ...lessonContext,
     activity: activity as ActivityLikeRecord,
-    resolvedActivityConfig: resolveActivityConfigFromRecord(
-      activity as ActivityLikeRecord,
-    ),
+    resolvedActivityConfig,
   }
 }
 
@@ -450,7 +451,7 @@ export async function buildActivitySubmissionSummaryMap(
   activities: ActivityLikeRecord[],
 ) {
   const interactiveActivities = activities.filter((activity) =>
-    isInteractiveLessonActivity(activity.activity_type),
+    Boolean(resolveActivityConfigFromRecord(activity)),
   )
 
   const activityIds = interactiveActivities.map((activity) => activity.activity_id)
@@ -659,7 +660,7 @@ export async function computeLessonActivityProgress(
     .order('activity_order_index', { ascending: true })
 
   const interactiveActivities = ((activities || []) as ActivityLikeRecord[]).filter(
-    (activity) => isInteractiveLessonActivity(activity.activity_type),
+    (activity) => Boolean(resolveActivityConfigFromRecord(activity)),
   )
 
   const requiredActivities = interactiveActivities.filter(

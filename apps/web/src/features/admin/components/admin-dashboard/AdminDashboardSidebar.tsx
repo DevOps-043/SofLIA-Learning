@@ -2,6 +2,7 @@
 
 import type { ComponentProps, JSX } from 'react'
 import { motion } from 'framer-motion'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import {
   BuildingOffice2Icon,
   ChartBarIcon,
@@ -99,6 +100,8 @@ export function AdminDashboardSidebar({
   quickActions: AdminDashboardQuickActionItem[]
   themeColors: AdminDashboardThemeColors
 }) {
+  const { disableHeavy } = useMotionSafe()
+
   return (
     <motion.div
       animate={{ opacity: 1, x: 0 }}
@@ -133,13 +136,19 @@ export function AdminDashboardSidebar({
         transition={{ delay: 1 }}
       >
         <div className="mb-4 flex items-center gap-3">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            className="rounded-lg bg-[#10B981] p-2"
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <RocketLaunchIcon className="h-5 w-5 text-white" />
-          </motion.div>
+          {/* Icon pulse — static on mobile */}
+          {disableHeavy
+            ? <div className="rounded-lg bg-[#10B981] p-2"><RocketLaunchIcon className="h-5 w-5 text-white" /></div>
+            : (
+              <motion.div
+                animate={{ scale: [1, 1.2, 1] }}
+                className="rounded-lg bg-[#10B981] p-2"
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <RocketLaunchIcon className="h-5 w-5 text-white" />
+              </motion.div>
+            )
+          }
           <div>
             <h3 className="font-semibold text-white">Sistema Saludable</h3>
             <p className="text-xs text-[#10B981]">Todos los servicios activos</p>

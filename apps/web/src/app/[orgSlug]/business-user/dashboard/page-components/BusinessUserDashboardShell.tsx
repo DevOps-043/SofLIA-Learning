@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { Suspense, useState } from 'react'
+import { Suspense, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
@@ -10,7 +10,6 @@ import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/con
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
-import { LearningPathCard } from '../components/LearningPathCard'
 import { formatBusinessUserDashboardDate } from '../services/business-user-dashboard.service'
 import type {
   AssignedCourse,
@@ -35,6 +34,10 @@ const ModernStatsCard = dynamic(
 )
 const CourseCard3D = dynamic(
   () => import('../components/CourseCard3D').then((m) => ({ default: m.CourseCard3D })),
+  { ssr: false }
+)
+const LearningPathView = dynamic(
+  () => import('../components/LearningPathView').then((m) => ({ default: m.LearningPathView })),
   { ssr: false }
 )
 
@@ -102,7 +105,23 @@ export function BusinessUserDashboardShell({
   introVideos,
   t,
 }: BusinessUserDashboardShellProps) {
-  const [courseView, setCourseView] = useState<'grid' | 'list'>('grid')
+  const [courseView, setCourseView] = useState<'grid' | 'list' | 'path'>('grid')
+
+  const coursePathMap = useMemo(() => {
+    const map = new Map<string, { pathTitle: string; position: number; isUnlocked: boolean }>()
+    for (const path of learningPaths) {
+      for (const item of path.items) {
+        if (!map.has(item.courseId)) {
+          map.set(item.courseId, {
+            pathTitle: path.title,
+            position: item.position,
+            isUnlocked: item.isUnlocked,
+          })
+        }
+      }
+    }
+    return map
+  }, [learningPaths])
 
   return (
     <div
@@ -332,52 +351,6 @@ export function BusinessUserDashboardShell({
             </section>
           </div>
 
-          {learningPaths.length > 0 ? (
-            <section className="mb-10">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.35 }}
-                className="mb-6 flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="rounded-xl border p-2"
-                    style={{
-                      background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
-                      borderColor: `${orgColors.iconColor}30`,
-                    }}
-                  >
-                    <Route className="h-5 w-5" style={{ color: orgColors.iconColor }} />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
-                      {t('dashboard.learningPaths.title', 'Rutas de aprendizaje')}
-                    </h2>
-                    <p className="text-sm" style={{ color: orgColors.textSecondary }}>
-                      {t(
-                        'dashboard.learningPaths.subtitle',
-                        'Avanza por tus cursos en el orden recomendado'
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-                {learningPaths.map((learningPath, index) => (
-                  <LearningPathCard
-                    key={learningPath.id}
-                    learningPath={learningPath}
-                    index={index}
-                    orgColors={orgColors}
-                    onOpenCourse={handleLearningPathCourseClick}
-                    t={t}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
 
           <section>
             <motion.div
@@ -411,20 +384,38 @@ export function BusinessUserDashboardShell({
                   <button
                     onClick={() => setCourseView('grid')}
                     className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    title="Vista cuadrícula"
                   >
                     <LayoutGrid className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'grid' ? orgColors.iconColor : orgColors.textSecondary }} />
                   </button>
                   <button
                     onClick={() => setCourseView('list')}
                     className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'list' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                    title="Vista lista"
                   >
                     <List className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'list' ? orgColors.iconColor : orgColors.textSecondary }} />
                   </button>
+                  {learningPaths.length > 0 && (
+                    <button
+                      onClick={() => setCourseView('path')}
+                      className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'path' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+                      title="Vista por rutas de aprendizaje"
+                    >
+                      <Route className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'path' ? orgColors.iconColor : orgColors.textSecondary }} />
+                    </button>
+                  )}
                 </div>
               )}
             </motion.div>
 
-            {assignedCourses.length === 0 ? (
+            {courseView === 'path' ? (
+              <LearningPathView
+                learningPaths={learningPaths}
+                orgColors={orgColors}
+                onOpenCourse={handleLearningPathCourseClick}
+                t={t}
+              />
+            ) : assignedCourses.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -486,7 +477,7 @@ export function BusinessUserDashboardShell({
                 />
               </motion.div>
             ) : (
-              <div className={`grid ${courseView === 'list' ? 'grid-cols-1 gap-3 sm:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
+              <div className={`grid ${courseView !== 'grid' ? 'grid-cols-1 gap-3 sm:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
                 <Suspense
                   fallback={
                     <>
@@ -503,21 +494,27 @@ export function BusinessUserDashboardShell({
                     </>
                   }
                 >
-                  {assignedCourses.map((course, index) => (
-                    <CourseCard3D
-                      key={course.id}
-                      course={course}
-                      index={index}
-                      onClick={() => handleCourseClick(course)}
-                      onCertificateClick={
-                        course.progress === 100 && course.has_certificate
-                          ? () => handleCourseClick(course, 'certificate')
-                          : undefined
-                      }
-                      styles={userDashboardStyles}
-                      viewMode={courseView}
-                    />
-                  ))}
+                  {assignedCourses.map((course, index) => {
+                    const pathInfo = coursePathMap.get(course.course_id)
+                    return (
+                      <CourseCard3D
+                        key={course.id}
+                        course={course}
+                        index={index}
+                        onClick={() => handleCourseClick(course)}
+                        onCertificateClick={
+                          course.progress === 100 && course.has_certificate
+                            ? () => handleCourseClick(course, 'certificate')
+                            : undefined
+                        }
+                        styles={userDashboardStyles}
+                        viewMode={courseView === 'path' ? 'grid' : courseView}
+                        learningPathTitle={pathInfo?.pathTitle}
+                        learningPathPosition={pathInfo?.position}
+                        isLockedInPath={pathInfo ? !pathInfo.isUnlocked : false}
+                      />
+                    )
+                  })}
                 </Suspense>
               </div>
             )}

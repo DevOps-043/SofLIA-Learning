@@ -15,9 +15,11 @@ import type { LoginFormData } from '../../../types/auth.types'
 import {
   buildForcedAuthRedirectUrl,
   buildOrganizationLoginActionFormData,
+  clearPreviousLoginUserState,
   isNextRedirectError,
   type OrganizationLoginRedirectInfo,
 } from './service'
+import { clearClientSessionState } from '../../../services/logout-client.service'
 
 interface UseOrganizationLoginFormParams {
   organizationId: string
@@ -68,6 +70,7 @@ export function useOrganizationLoginForm({
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const redirectUrlRef = useRef<string | null>(null)
+  const submitInFlightRef = useRef(false)
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -85,7 +88,9 @@ export function useOrganizationLoginForm({
     }
 
     form.setValue('emailOrUsername', savedCredentials.emailOrUsername)
-    form.setValue('password', savedCredentials.password)
+    if (savedCredentials.password) {
+      form.setValue('password', savedCredentials.password)
+    }
     form.setValue('rememberMe', true)
   }, [form])
 
@@ -96,6 +101,7 @@ export function useOrganizationLoginForm({
         countdownIntervalRef.current = null
       }
       redirectUrlRef.current = null
+      submitInFlightRef.current = false
     }
   }, [])
 
@@ -126,19 +132,9 @@ export function useOrganizationLoginForm({
     }
 
     if (urlToRedirect === '/auth' || urlToRedirect.startsWith('/auth')) {
-      fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      void clearClientSessionState().finally(() => {
+        performRedirect()
       })
-        .then(() => {
-          performRedirect()
-        })
-        .catch(() => {
-          performRedirect()
-        })
     } else {
       performRedirect()
     }
@@ -152,10 +148,28 @@ export function useOrganizationLoginForm({
   }, [redirectInfo])
 
   async function onSubmit(data: LoginFormData) {
+    if (submitInFlightRef.current) {
+      return
+    }
+
+    submitInFlightRef.current = true
     setError(null)
+    setRedirectInfo(null)
     setIsPending(true)
 
+    const finishPending = () => {
+      submitInFlightRef.current = false
+      setIsPending(false)
+    }
+
     try {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current)
+        countdownIntervalRef.current = null
+      }
+
+      clearPreviousLoginUserState()
+
       if (data.rememberMe) {
         saveCredentials({
           emailOrUsername: data.emailOrUsername,
@@ -224,12 +238,12 @@ export function useOrganizationLoginForm({
             )
           }, 1000)
 
-          setIsPending(false)
+          finishPending()
           return
         }
 
         setError(result.error)
-        setIsPending(false)
+        finishPending()
         return
       }
 
@@ -239,15 +253,16 @@ export function useOrganizationLoginForm({
       }
     } catch (submissionError) {
       if (isNextRedirectError(submissionError)) {
+        submitInFlightRef.current = false
         throw submissionError
       }
 
       setError('Error inesperado al iniciar sesión')
-      setIsPending(false)
+      finishPending()
       return
     }
 
-    setIsPending(false)
+    finishPending()
   }
 
   return {

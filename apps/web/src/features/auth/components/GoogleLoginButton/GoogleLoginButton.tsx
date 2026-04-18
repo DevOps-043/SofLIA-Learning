@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { initiateGoogleLogin } from '../../actions/oauth';
+import { clearAuthUserCache } from '../../../../lib/auth/user-auth-cache';
 
 function getRedirectDigest(error: unknown): string | null {
   if (!error || typeof error !== 'object' || !('digest' in error)) {
@@ -55,8 +56,13 @@ export function GoogleLoginButton({
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
+    if (isLoading) {
+      return;
+    }
+
     try {
       setIsLoading(true);
+      clearAuthUserCache();
       await initiateGoogleLogin({
         organizationId,
         organizationSlug,

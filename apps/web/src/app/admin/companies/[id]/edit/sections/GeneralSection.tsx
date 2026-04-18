@@ -29,7 +29,7 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                         value={company.description || ''}
                         onChange={(e) => setCompany({ ...company, description: e.target.value })}
                         rows={3}
-                        className="w-full px-4 py-3 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3] dark:focus:border-[#00D4B3] transition-colors resize-none"
+                        className="w-full px-4 py-3 rounded-xl border text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#0A2540] dark:focus:border-[#00D4B3] transition-colors resize-none"
                         placeholder="Descripción de la empresa..."
                     />
                 </div>
@@ -129,7 +129,7 @@ function GeneralSection({ company, setCompany }: { company: CompanyData; setComp
                             min="1"
                             value={company.max_users || ''}
                             onChange={(e) => setCompany({ ...company, max_users: parseInt(e.target.value) || null })}
-                            className="w-full px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#00D4B3] dark:focus:border-[#00D4B3]"
+                            className="w-full px-4 py-2.5 rounded-xl border text-sm text-gray-900 dark:text-white bg-gray-50 dark:bg-[#0F1419] border-gray-200 dark:border-white/10 focus:outline-none focus:border-[#0A2540] dark:focus:border-[#00D4B3]"
                         />
                     </div>
                     <div>

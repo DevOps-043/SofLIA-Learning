@@ -140,7 +140,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 <motion.img
                   src={user.profile_picture_url}
                   alt={getDisplayName()}
-                  className="w-9 h-9 rounded-full object-cover ring-2 ring-[#E9ECEF] dark:ring-[#334155] group-hover:ring-[#00D4B3] transition-all duration-300"
+                  className="w-9 h-9 rounded-full object-cover ring-2 ring-[#E9ECEF] dark:ring-[#334155] group-hover:ring-[#0A2540] dark:group-hover:ring-[#00D4B3] transition-all duration-300"
                   whileHover={{ scale: 1.05 }}
                   onError={handleAvatarError}
                 />
@@ -161,7 +161,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
               <p className="text-sm font-bold text-[#0A2540] dark:text-white leading-none mb-1">
                 {getDisplayName()}
               </p>
-              <p className="text-[11px] font-medium text-[#00D4B3] uppercase tracking-wider leading-none">
+              <p className="text-[11px] font-medium text-[#0A2540] dark:text-[#00D4B3] uppercase tracking-wider leading-none">
                 {user.cargo_rol}
               </p>
             </div>
@@ -211,7 +211,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 </p>
               </div>
             </div>
-            <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#00D4B3]/10 text-[#00D4B3] uppercase tracking-wider border border-[#00D4B3]/20">
+            <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A2540]/10 text-[#0A2540] uppercase tracking-wider border border-[#0A2540]/20 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3] dark:border-[#00D4B3]/20">
               {user.cargo_rol}
             </div>
           </div>
@@ -225,10 +225,10 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                     <Link href="/admin/dashboard">
                       <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                         active 
-                          ? 'bg-[#00D4B3]/5 text-[#00D4B3]' 
+                          ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
                           : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                       }`}>
-                        <ShieldCheckIcon className={`w-5 h-5 ${active ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
+                        <ShieldCheckIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
                         <span className="text-sm font-medium">Panel de Administración</span>
                       </div>
                     </Link>
@@ -240,10 +240,10 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                     <Link href="/auth/select-organization">
                       <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                         active 
-                          ? 'bg-[#00D4B3]/5 text-[#00D4B3]' 
+                          ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
                           : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                       }`}>
-                        <GlobeAltIcon className={`w-5 h-5 ${active ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
+                        <GlobeAltIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
                         <span className="text-sm font-medium">Mis organizaciones</span>
                       </div>
                     </Link>
@@ -258,10 +258,10 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 <Link href="/study-planner/create">
                   <div id="tour-dropdown-create-plan" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                     active 
-                      ? 'bg-[#00D4B3]/5 text-[#00D4B3]' 
+                      ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
                       : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                   }`}>
-                    <AcademicCapIcon className={`w-5 h-5 ${active ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
+                    <AcademicCapIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
                     <span className="text-sm font-medium">Crear Plan de Estudio</span>
                   </div>
                 </Link>
@@ -274,10 +274,10 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 <Link href="/profile">
                   <div id="tour-dropdown-edit-profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                     active 
-                      ? 'bg-[#00D4B3]/5 text-[#00D4B3]' 
+                      ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
                       : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                   }`}>
-                    <UserIcon className={`w-5 h-5 ${active ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
+                    <UserIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
                     <span className="text-sm font-medium">Editar perfil</span>
                   </div>
                 </Link>
@@ -330,7 +330,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors ${
                               i18n.language === option.value
-                                ? 'text-[#00D4B3] bg-[#00D4B3]/5'
+                                ? 'text-[#0A2540] bg-[#0A2540]/5 dark:text-[#00D4B3] dark:bg-[#00D4B3]/5'
                                 : 'text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white'
                             }`}
                           >
@@ -392,7 +392,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                             }}
                             className={`w-full flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors ${
                               theme === option.value
-                                ? 'text-[#00D4B3] bg-[#00D4B3]/5'
+                                ? 'text-[#0A2540] bg-[#0A2540]/5 dark:text-[#00D4B3] dark:bg-[#00D4B3]/5'
                                 : 'text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white'
                             }`}
                           >

@@ -8,6 +8,7 @@ export interface StudyPlanConfig {
   description?: string;
   userType: UserType;
   courseIds: string[];
+  organizationId?: string | null;
   learningRouteId?: string;
   goalHoursPerWeek: number;
   startDate?: string;

@@ -41,6 +41,7 @@ export function useBusinessAssignCourseModal({
     new Set(),
   )
   const [assignedUserSources, setAssignedUserSources] = useState<Map<string, { source: string; team_name?: string; learning_path_title?: string }>>(new Map())
+  const [pendingRemovalIds, setPendingRemovalIds] = useState<Set<string>>(new Set())
   const [isSuggesting, setIsSuggesting] = useState(false)
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null)
 
@@ -114,6 +115,7 @@ export function useBusinessAssignCourseModal({
 
   function resetState() {
     setSelectedUserIds(new Set())
+    setPendingRemovalIds(new Set())
     setDueDate('')
     setError(null)
     setSearchTerm('')
@@ -131,6 +133,21 @@ export function useBusinessAssignCourseModal({
     )
   }
 
+  function handleToggleRemoval(userId: string) {
+    const source = assignedUserSources.get(userId)?.source
+    if (source !== 'direct') return
+
+    setPendingRemovalIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(userId)) {
+        next.delete(userId)
+      } else {
+        next.add(userId)
+      }
+      return next
+    })
+  }
+
   function handleSelectAllUsers() {
     if (selectableUserIds.length === 0) {
       return
@@ -142,7 +159,10 @@ export function useBusinessAssignCourseModal({
   }
 
   async function handleAssign() {
-    if (selectedUserIds.size === 0) {
+    const hasAssignments = selectedUserIds.size > 0
+    const hasRemovals = pendingRemovalIds.size > 0
+
+    if (!hasAssignments && !hasRemovals) {
       setError(t('assignCourse.errors.selectUser'))
       return
     }
@@ -151,21 +171,34 @@ export function useBusinessAssignCourseModal({
     setError(null)
 
     try {
-      const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(
-          buildBusinessAssignCoursePayload({
-            selectedUserIds,
-            dueDate,
-          }),
-        ),
-      })
+      // Revocar asignaciones directas seleccionadas
+      if (hasRemovals) {
+        const deleteResponse = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
+          method: 'DELETE',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_ids: Array.from(pendingRemovalIds) }),
+        })
+        const deleteData = (await deleteResponse.json()) as { error?: string }
+        if (!deleteResponse.ok) {
+          throw new Error(deleteData.error ?? t('assignCourse.errors.assignFailed'))
+        }
+      }
 
-      const data = (await response.json()) as { error?: string }
-      if (!response.ok) {
-        throw new Error(data.error || t('assignCourse.errors.assignFailed'))
+      // Crear nuevas asignaciones
+      if (hasAssignments) {
+        const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(
+            buildBusinessAssignCoursePayload({ selectedUserIds, dueDate }),
+          ),
+        })
+        const data = (await response.json()) as { error?: string }
+        if (!response.ok) {
+          throw new Error(data.error ?? t('assignCourse.errors.assignFailed'))
+        }
       }
 
       resetState()
@@ -243,21 +276,23 @@ IMPORTANTE: Tu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido con este
     availableUserCount,
     allUsersSelected,
     alreadyAssignedUserIds,
+    assignedUserSources,
     dueDate,
     error,
     handleAssign,
     handleClose,
     handleSelectAllUsers,
     handleSuggestLiaDate,
+    handleToggleRemoval,
     handleToggleUser,
     isAssigning,
     isSuggesting,
     loadingUsers,
+    pendingRemovalIds,
     searchTerm,
     selectedUserCount,
     selectedUserIds,
     selectedUsers,
-    assignedUserSources,
     setDueDate,
     setSearchTerm,
     setSuggestionReason,

@@ -76,6 +76,8 @@ module.exports = {
         'glass': '8px',
       },
       animation: {
+        'communities-orb-1': 'communitiesOrb1 10s ease-in-out infinite',
+        'communities-orb-2': 'communitiesOrb2 8s ease-in-out infinite',
         'fade-in': 'fadeIn 0.5s ease',
         'slide-up': 'slideUp 0.5s ease',
         'slide-in': 'slideIn 0.3s ease',
@@ -163,6 +165,14 @@ module.exports = {
         pulseGlow: {
           '0%, 100%': { boxShadow: '0 0 5px rgba(0, 212, 179, 0.3)' }, /* Aqua */
           '50%': { boxShadow: '0 0 20px rgba(0, 212, 179, 0.6), 0 0 30px rgba(0, 212, 179, 0.4)' },
+        },
+        communitiesOrb1: {
+          '0%, 100%': { transform: 'translate(0, 0)' },
+          '50%': { transform: 'translate(100px, -50px)' },
+        },
+        communitiesOrb2: {
+          '0%, 100%': { transform: 'translate(0, 0)' },
+          '50%': { transform: 'translate(-50px, 50px)' },
         },
       },
     },

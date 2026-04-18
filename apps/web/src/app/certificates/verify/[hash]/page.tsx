@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
-import { CertificateDocumentPreview } from '@/features/certificates/components/CertificateDocumentPreview'
+import { CertificateDocumentViewport } from '@/features/certificates/components/CertificateDocumentViewport'
 import type { CertificateVerificationResult } from '@/features/certificates/types/certificate'
 
 export default function CertificateVerifyPage() {
@@ -83,7 +83,7 @@ export default function CertificateVerifyPage() {
       <div className="mx-auto max-w-[1500px] px-4 py-8 md:px-6 md:py-10">
         <button
           onClick={() => router.push('/certificates')}
-          className="mb-6 inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
+          className="mb-4 inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
           style={{
             backgroundColor: theme.cardBg,
             borderColor: theme.borderColor,
@@ -94,35 +94,6 @@ export default function CertificateVerifyPage() {
           {t('certificates.myCertificates')}
         </button>
 
-        <header
-          className="rounded-[28px] border p-6 md:p-8"
-          style={{
-            background: theme.heroBackground,
-            borderColor: theme.heroBorderColor,
-            color: theme.inverseTextColor,
-          }}
-        >
-          <div className="max-w-3xl">
-            <div
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
-              style={{
-                backgroundColor: theme.inverseSurface,
-                borderColor: theme.inverseBorderColor,
-                color: theme.inverseSubtextColor,
-              }}
-            >
-              <Shield className="h-3.5 w-3.5" />
-              {t('certificates.verifyBadge')}
-            </div>
-            <h1 className="mt-4 text-3xl font-black md:text-5xl">
-              {t('certificates.verifyTitle')}
-            </h1>
-            <p className="mt-3 text-sm md:text-base" style={{ color: theme.inverseSubtextColor }}>
-              {t('certificates.verifySubtitle')}
-            </p>
-          </div>
-        </header>
-
         {loading ? (
           <div className="flex min-h-[420px] items-center justify-center">
             <div className="flex flex-col items-center gap-4">
@@ -132,7 +103,7 @@ export default function CertificateVerifyPage() {
           </div>
         ) : error ? (
           <div
-            className="mt-8 rounded-[28px] border p-8 text-center"
+            className="rounded-[28px] border p-8 text-center"
             style={{
               backgroundColor: theme.cardBg,
               borderColor: theme.borderColor,
@@ -157,127 +128,126 @@ export default function CertificateVerifyPage() {
             </button>
           </div>
         ) : validation ? (
-          <div className="mt-8 grid gap-8 xl:grid-cols-[360px_minmax(0,1fr)]">
-            <aside className="space-y-5">
+          <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+            <aside>
               <section
-                className="rounded-[28px] border p-6"
+                className="rounded-[28px] border p-5"
                 style={{
                   backgroundColor: theme.cardBg,
                   borderColor: theme.borderColor,
                 }}
               >
+                {/* Status badge */}
                 <div
-                  className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-[0.18em]"
+                  className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
                   style={{
                     backgroundColor: isValid ? `${theme.successColor}18` : `${theme.dangerColor}18`,
                     color: isValid ? theme.successColor : theme.dangerColor,
                   }}
                 >
-                  {isValid ? <CheckCircle2 className="h-4 w-4" /> : <ShieldAlert className="h-4 w-4" />}
-                  {isValid ? t('certificates.statusValid') : validation.expired ? t('certificates.statusExpired') : t('certificates.statusInvalid')}
+                  {isValid ? <CheckCircle2 className="h-3 w-3" /> : <ShieldAlert className="h-3 w-3" />}
+                  {isValid
+                    ? t('certificates.statusValid')
+                    : validation.expired
+                      ? t('certificates.statusExpired')
+                      : t('certificates.statusInvalid')}
                 </div>
 
-                <h2 className="mt-4 text-3xl font-black leading-tight" style={{ color: theme.textColor }}>
+                {/* Title */}
+                <h2
+                  className="mt-3 line-clamp-3 text-lg font-black leading-snug"
+                  style={{ color: theme.textColor }}
+                >
                   {validation.certificate.courseTitle}
                 </h2>
 
-                <p className="mt-3 text-sm leading-6" style={{ color: theme.subtextColor }}>
+                {/* Status description */}
+                <p className="mt-2 text-xs leading-5" style={{ color: theme.subtextColor }}>
                   {isValid ? t('certificates.validDescription') : t('certificates.invalidDescription')}
                 </p>
-              </section>
 
-              <section
-                className="rounded-[28px] border p-6"
-                style={{
-                  backgroundColor: theme.cardBg,
-                  borderColor: theme.borderColor,
-                }}
-              >
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" style={{ color: theme.actionColor }} />
-                    <h3 className="text-sm font-bold uppercase tracking-[0.18em]" style={{ color: theme.subtextColor }}>
+                <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+
+                {/* Hash compact */}
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="h-3.5 w-3.5" style={{ color: theme.actionColor }} />
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-[0.18em]"
+                      style={{ color: theme.subtextColor }}
+                    >
                       {t('certificates.hashVerified')}
-                    </h3>
+                    </span>
                   </div>
                   <button
                     onClick={copyHash}
-                    className="rounded-xl border p-2"
+                    className="rounded-lg border p-1.5"
                     style={{
                       borderColor: theme.borderColor,
                       backgroundColor: theme.inputBg,
                       color: theme.textColor,
                     }}
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy className="h-3.5 w-3.5" />
                   </button>
                 </div>
-
                 <div
-                  className="rounded-2xl border px-4 py-3 font-mono text-xs leading-6"
+                  className="truncate rounded-xl border px-3 py-2 font-mono text-[10px]"
                   style={{
                     backgroundColor: theme.inputBg,
                     borderColor: theme.borderColor,
                     color: theme.textColor,
-                    wordBreak: 'break-all',
                   }}
                 >
                   {validation.certificate.certificateHash}
                 </div>
-
                 {hashCopied && (
-                  <p className="mt-1 text-xs text-green-400">{t('certificates.hashCopied')}</p>
+                  <p className="mt-1.5 text-[11px] text-green-400">{t('certificates.hashCopied')}</p>
                 )}
 
-                <dl className="mt-4 space-y-3 text-sm" style={{ color: theme.subtextColor }}>
-                  <div>
+                <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+
+                {/* Chain info compact */}
+                <dl className="space-y-2.5 text-xs" style={{ color: theme.subtextColor }}>
+                  <div className="flex items-center justify-between gap-2">
                     <dt className="font-semibold" style={{ color: theme.textColor }}>
                       {t('certificates.chainIntegrity')}
                     </dt>
-                    <dd>{validation.chainOk ? t('certificates.chainOk') : t('certificates.chainInconsistent')}</dd>
+                    <dd style={{ color: validation.chainOk ? theme.successColor : theme.dangerColor }}>
+                      {validation.chainOk ? t('certificates.chainOk') : t('certificates.chainInconsistent')}
+                    </dd>
                   </div>
-                  <div>
+                  <div className="flex items-center justify-between gap-2">
                     <dt className="font-semibold" style={{ color: theme.textColor }}>
                       {t('certificates.lastOperation')}
                     </dt>
                     <dd>{validation.lastOperation ?? t('certificates.noData')}</dd>
                   </div>
-                  <div>
+                  <div className="flex items-center justify-between gap-2">
                     <dt className="font-semibold" style={{ color: theme.textColor }}>
                       {t('certificates.labelIssuer')}
                     </dt>
-                    <dd>{validation.certificate.issuerName}</dd>
+                    <dd className="truncate text-right">{validation.certificate.issuerName}</dd>
                   </div>
                 </dl>
               </section>
             </aside>
 
             <section
-              className="rounded-[28px] border p-6"
+              className="rounded-[28px] border p-5"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.borderColor,
               }}
             >
               <div
-                className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em]"
-                style={{
-                  backgroundColor: theme.inputBg,
-                  borderColor: theme.borderColor,
-                  color: theme.subtextColor,
-                }}
-              >
-                {t('certificates.docPreviewLabel')}
-              </div>
-
-              <div
-                className="mt-5 overflow-x-auto rounded-[24px] border p-4"
+                className="rounded-[24px] border p-4"
                 style={{
                   backgroundColor: theme.inputBg,
                   borderColor: theme.borderColor,
                 }}
               >
-                <CertificateDocumentPreview model={validation.certificate.documentModel} scale={0.58} />
+                <CertificateDocumentViewport model={validation.certificate.documentModel} />
               </div>
             </section>
           </div>

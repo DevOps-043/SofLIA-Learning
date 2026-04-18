@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   addUniqueNoteTag,
   buildNotePdfFileName,
+  buildNoteLinkHtml,
   createNotesHistoryState,
+  escapeNoteLinkHtml,
   getNoteShortcutAction,
   hasNoteContent,
+  normalizeNoteLinkUrl,
   pushNotesHistoryEntry,
   removeNoteTag,
   stepNotesHistory,
@@ -65,5 +68,28 @@ describe('notes-modal.utils', () => {
         new Date('2026-03-31T10:00:00.000Z')
       )
     ).toBe('mi_nota_final_2026-03-31.pdf');
+  });
+
+  it('normalizes note link URLs and rejects unsafe protocols', () => {
+    expect(normalizeNoteLinkUrl('example.com/recurso')).toBe(
+      'https://example.com/recurso'
+    );
+    expect(normalizeNoteLinkUrl('https://soflia.ai')).toBe('https://soflia.ai');
+    expect(normalizeNoteLinkUrl('/courses/demo/learn')).toBe(
+      '/courses/demo/learn'
+    );
+    expect(normalizeNoteLinkUrl('mailto:hola@soflia.ai')).toBe(
+      'mailto:hola@soflia.ai'
+    );
+    expect(normalizeNoteLinkUrl('javascript:alert(1)')).toBeNull();
+  });
+
+  it('escapes link HTML before inserting it into the editor', () => {
+    expect(escapeNoteLinkHtml('"Hola" & <script>')).toBe(
+      '&quot;Hola&quot; &amp; &lt;script&gt;'
+    );
+    expect(buildNoteLinkHtml('https://example.com?a=1&b=2', 'Click aqui')).toBe(
+      '<a href="https://example.com?a=1&amp;b=2" target="_blank" rel="noopener noreferrer">Click aqui</a>'
+    );
   });
 });
