@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+
+import { useThemeStore } from '../../../../core/stores/themeStore';
 import { getBackgroundStyle, generateCSSVariables, hexToRgb } from '../../../business-panel/utils/styles';
 import type { StyleConfig } from '../../../business-panel/hooks/useOrganizationStyles';
 
@@ -22,8 +24,6 @@ interface OrganizationAuthLayoutProps {
   isLoading?: boolean;
   error?: string | null;
 }
-
-import { useThemeStore } from '../../../../core/stores/themeStore';
 
 export function OrganizationAuthLayout({
   organization,
