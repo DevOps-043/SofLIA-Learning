@@ -112,16 +112,17 @@ export function OrganizationAuthLayout({
     loginStyles?.background_type === 'image' && loginStyles.background_value
       ? {}
       : { backgroundColor: defaultPageBg };
+  const pageStyle: React.CSSProperties = {
+    ...pageBackground,
+    ...backgroundStyle,
+    ...cssVariables,
+    color: textColor,
+  };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center relative overflow-x-hidden overflow-y-auto transition-all duration-500"
-      style={{
-        ...pageBackground,
-        ...backgroundStyle,
-        ...cssVariables,
-        color: textColor // Asegurar que el texto herede el color correcto globalmente
-      } as React.CSSProperties}
+      style={pageStyle}
     >
       {/* Animated Gradient Orbs */}
       {!loginStyles?.background_type && (
@@ -268,7 +269,7 @@ export function OrganizationAuthLayout({
                       Cargando...
                     </p>
                   </div>
-                )} { /* ... existing error and content logic ... */ }
+                )}
 
                 {/* Error State */}
                 {error && !isLoading && (
@@ -353,7 +354,6 @@ export function OrganizationAuthLayout({
             </motion.div>
           </motion.div>
         </div>
-      </div>
     </div>
   );
 }
