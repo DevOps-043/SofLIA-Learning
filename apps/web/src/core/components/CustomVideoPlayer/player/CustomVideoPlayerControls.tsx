@@ -76,7 +76,9 @@ export function CustomVideoPlayerControls({
                   className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center transition-all duration-200 pointer-events-auto group"
                   exit={{ opacity: 0, scale: 0.8 }}
                   initial={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     void controller.togglePlay();
                   }}
                 >
@@ -126,7 +128,9 @@ export function CustomVideoPlayerControls({
                 <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
                   <button
                     className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       void controller.togglePlay();
                     }}
                     title={controller.isPlaying ? 'Pausar' : 'Reproducir'}
@@ -145,7 +149,11 @@ export function CustomVideoPlayerControls({
                   >
                     <button
                       className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                      onClick={controller.toggleMute}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        controller.toggleMute();
+                      }}
                       title={controller.isMuted ? 'Activar sonido' : 'Silenciar'}
                     >
                       {controller.isMuted || controller.volume === 0 ? (
@@ -250,7 +258,9 @@ export function CustomVideoPlayerControls({
 
                   <button
                     className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       void controller.toggleFullscreen();
                     }}
                     title={

@@ -45,6 +45,7 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
   const [videoError, setVideoError] = useState<string | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isSlowConnection, setIsSlowConnection] = useState(false);
+  const [showControls, setShowControls] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevVideosRef = useRef<string[]>([]);
@@ -98,10 +99,37 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
     if (videoRef.current && !hasError && currentVideoIndex > 0) {
       videoRef.current
         .play()
-        .then(() => setIsPlaying(true))
+        .then(() => { setIsPlaying(true); setShowControls(true); })
         .catch((err) => console.error('[OnboardingVideoPlayer] autoplay error:', err));
     }
   }, [currentVideoIndex, videos, hasError]);
+
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const resetControlsTimeout = useCallback(() => {
+    setShowControls(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    if (isPlaying) {
+      resetControlsTimeout();
+    } else {
+      setShowControls(true);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
+  }, [isPlaying, resetControlsTimeout]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   // ── Buffering event handlers ───────────────────────────────────────────────
   const handleWaiting  = useCallback(() => setIsBuffering(true), []);
@@ -126,8 +154,17 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
       setIsPlaying(false);
     } else {
       el.play().catch((err) => console.error('[OnboardingVideoPlayer] play error:', err));
+      setShowControls(true);
     }
   }, [isPlaying]);
+
+  const handleInteraction = useCallback(() => {
+    if (isPlaying) {
+      resetControlsTimeout();
+    } else {
+      setShowControls(true);
+    }
+  }, [isPlaying, resetControlsTimeout]);
 
   const toggleMute = useCallback(() => {
     const el = videoRef.current;
@@ -166,7 +203,13 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
         exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
         className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-md"
       >
-        <div className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group">
+        <div 
+          className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group"
+          onMouseMove={handleInteraction}
+          onTouchStart={handleInteraction}
+          onClick={handleInteraction}
+          onMouseLeave={() => isPlaying && setShowControls(false)}
+        >
 
           {/*
             ONE video element with preload="auto".
@@ -237,61 +280,61 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
           {/* Controls overlay */}
           {!hasError && (
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 transition-opacity duration-300 pointer-events-none flex flex-col justify-between p-6 ${
-                isPlaying && !isBuffering ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+              className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 transition-opacity duration-300 pointer-events-none flex flex-col justify-between p-2 sm:p-4 md:p-6 pb-2 md:pb-6 ${
+                (showControls || !isPlaying || isBuffering) ? 'opacity-100' : 'opacity-0'
               }`}
             >
               {/* Top bar */}
-              <div className="flex justify-between items-center w-full pointer-events-auto">
-                <div className="flex items-center gap-3">
-                  <div className="text-white/80 text-sm font-medium bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-md">
+              <div className="flex justify-between items-center w-full pointer-events-auto gap-1 sm:gap-2">
+                <div className="flex items-center gap-1 sm:gap-3">
+                  <div className="text-white/80 text-[10px] sm:text-sm font-medium bg-black/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full backdrop-blur-md whitespace-nowrap">
                     Video {currentVideoIndex + 1} de {videos.length}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <button
-                      onClick={handleBack}
+                      onClick={(e) => { e.stopPropagation(); handleBack(); }}
                       disabled={currentVideoIndex === 0}
-                      className={`p-1.5 rounded-full backdrop-blur-md transition-all ${
+                      className={`p-1 sm:p-1.5 rounded-full backdrop-blur-md transition-all flex items-center justify-center ${
                         currentVideoIndex === 0
                           ? 'text-white/20 bg-black/20 cursor-not-allowed'
                           : 'text-white/80 bg-black/40 hover:bg-white/20 hover:text-white'
                       }`}
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                     <button
-                      onClick={handleNext}
-                      className="flex items-center gap-2 text-white/80 hover:text-white bg-black/40 hover:bg-white/20 px-3 py-1.5 rounded-full transition-all backdrop-blur-md"
+                      onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                      className="flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white bg-black/40 hover:bg-white/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all backdrop-blur-md"
                     >
-                      <span className="text-sm font-medium">
+                      <span className="text-[10px] sm:text-sm font-medium whitespace-nowrap">
                         {currentVideoIndex < videos.length - 1 ? 'Siguiente' : 'Iniciar Tour'}
                       </span>
-                      <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
                 </div>
                 <button
-                  onClick={skipVideo}
-                  className="flex items-center gap-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition-all backdrop-blur-md"
+                  onClick={(e) => { e.stopPropagation(); skipVideo(); }}
+                  className="flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all backdrop-blur-md"
                 >
-                  <span>Saltar Intro</span>
-                  <SkipForward className="w-4 h-4" />
+                  <span className="text-[10px] sm:text-sm whitespace-nowrap">Saltar Intro</span>
+                  <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                 </button>
               </div>
 
               {/* Bottom controls */}
-              <div className="flex items-center justify-center gap-6 w-full pointer-events-auto pb-4">
+              <div className="flex items-center justify-center gap-4 sm:gap-6 w-full pointer-events-auto pb-1 sm:pb-4">
                 <button
-                  onClick={togglePlay}
-                  className="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
+                  onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
                 >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
+                  {isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5 sm:ml-1" />}
                 </button>
                 <button
-                  onClick={toggleMute}
-                  className="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                  className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
                 >
-                  {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                  {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </button>
               </div>
             </div>

@@ -15,7 +15,7 @@ interface AddUserModalProps {
 
 export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
   const {
-    formData, setFormData, isLoading, error,
+    formData, setFormData, confirmPassword, setConfirmPassword, isLoading, error,
     activeTab, setActiveTab, handleChange, handleSubmit
   } = useAddUserFormState({ onSave, onClose })
 
@@ -101,6 +101,8 @@ export function AddUserModal({ isOpen, onClose, onSave }: AddUserModalProps) {
                       formData={formData}
                       onChange={handleChange}
                       onRoleChange={(value) => setFormData(prev => ({ ...prev, cargo_rol: value }))}
+                      confirmPassword={confirmPassword}
+                      onConfirmPasswordChange={(e) => setConfirmPassword(e.target.value)}
                     />
                   </div>
 

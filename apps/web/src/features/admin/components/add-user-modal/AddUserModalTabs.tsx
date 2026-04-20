@@ -17,9 +17,11 @@ interface AddUserModalTabsProps {
   formData: NewAdminUserData
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
   onRoleChange: (value: string) => void
+  confirmPassword?: string
+  onConfirmPasswordChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange }: AddUserModalTabsProps) {
+export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange, confirmPassword = '', onConfirmPasswordChange }: AddUserModalTabsProps) {
   return (
     <AnimatePresence mode="wait">
       {activeTab === 'basic' && (
@@ -68,6 +70,20 @@ export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange }
                 <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
                 <input
                   type="password" name="password" value={formData.password} onChange={onChange}
+                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                  required minLength={6}
+                />
+              </div>
+            </div>
+
+            <div className="group">
+              <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">
+                Confirmar Contraseña *
+              </label>
+              <div className="relative">
+                <LockClosedIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#6C757D] dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                <input
+                  type="password" name="confirmPassword" value={confirmPassword} onChange={onConfirmPasswordChange}
                   className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
                   required minLength={6}
                 />

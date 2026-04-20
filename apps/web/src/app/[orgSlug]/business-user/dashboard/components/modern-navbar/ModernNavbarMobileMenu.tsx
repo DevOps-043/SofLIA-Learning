@@ -69,13 +69,13 @@ export function ModernNavbarMobileMenu({
           animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
           exit={disableHeavyEffects ? undefined : { opacity: 0, y: -20 }}
           transition={disableHeavyEffects ? undefined : { duration: 0.3, ease: 'easeInOut' }}
-          className="md:hidden fixed inset-x-0 top-16 bottom-0 z-[100] overflow-y-auto"
+          className="md:hidden fixed inset-x-0 top-16 bottom-0 z-[100] flex flex-col"
           style={{
             backgroundColor: colors.cardBg,
             borderTop: `1px solid ${colors.border}`,
           }}
         >
-          <div className="px-4 py-4 space-y-2">
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 pb-8">
             <div
               className="flex items-center gap-3 p-3 rounded-xl mb-3"
               style={{
@@ -97,7 +97,7 @@ export function ModernNavbarMobileMenu({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate" style={{ color: colors.text }}>{getDisplayName()}</p>
-                <p className="text-xs truncate" style={{ color: `${colors.text}60` }}>{user?.email || ''}</p>
+                <p className="text-xs truncate opacity-70" style={{ color: colors.text }}>{user?.email || ''}</p>
               </div>
             </div>
 
@@ -122,7 +122,7 @@ export function ModernNavbarMobileMenu({
                 </div>
                 <div className="text-left flex-1 min-w-0">
                   <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('header.adminPanel')}</span>
-                  <span className="text-xs" style={{ color: `${colors.text}50` }}>{t('header.manageOrganization')}</span>
+                  <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('header.manageOrganization')}</span>
                 </div>
               </motion.button>
             )}
@@ -155,7 +155,7 @@ export function ModernNavbarMobileMenu({
                   <span className="font-medium block text-sm" style={{ color: colors.text }}>
                     {hasStudyPlan ? t('header.myPlanner') : t('header.createStudyPlan')}
                   </span>
-                  <span className="text-xs" style={{ color: `${colors.text}50` }}>
+                  <span className="text-xs opacity-70" style={{ color: colors.text }}>
                     {hasStudyPlan ? t('header.viewSchedule') : t('header.organizeLearning')}
                   </span>
                 </div>
@@ -182,7 +182,7 @@ export function ModernNavbarMobileMenu({
               </div>
               <div className="text-left flex-1 min-w-0">
                 <span className="font-medium block text-sm" style={{ color: colors.text }}>Mis organizaciones</span>
-                <span className="text-xs" style={{ color: `${colors.text}50` }}>Cambiar de organización</span>
+                <span className="text-xs opacity-70" style={{ color: colors.text }}>Cambiar de organización</span>
               </div>
             </motion.button>
 
@@ -203,7 +203,7 @@ export function ModernNavbarMobileMenu({
               </div>
               <div className="text-left flex-1 min-w-0">
                 <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('header.editProfile')}</span>
-                <span className="text-xs" style={{ color: `${colors.text}50` }}>{t('header.updateInfo')}</span>
+                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('header.updateInfo')}</span>
               </div>
             </motion.button>
 
@@ -225,7 +225,8 @@ export function ModernNavbarMobileMenu({
                     style={{
                       backgroundColor: language === option.value ? `${colors.accent}15` : 'transparent',
                       borderColor: language === option.value ? `${colors.accent}30` : colors.border,
-                      color: language === option.value ? colors.accent : `${colors.text}60`,
+                      color: language === option.value ? colors.accent : colors.text,
+                      opacity: language === option.value ? 1 : 0.7,
                     }}
                     whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
                   >
@@ -257,7 +258,8 @@ export function ModernNavbarMobileMenu({
                       style={{
                         backgroundColor: theme === option.value ? `${colors.accent}15` : 'transparent',
                         borderColor: theme === option.value ? `${colors.accent}30` : colors.border,
-                        color: theme === option.value ? colors.accent : `${colors.text}60`,
+                        color: theme === option.value ? colors.accent : colors.text,
+                        opacity: theme === option.value ? 1 : 0.7,
                       }}
                       whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
                     >
@@ -286,13 +288,13 @@ export function ModernNavbarMobileMenu({
               </div>
               <div className="text-left flex-1 min-w-0">
                 <span className="text-red-400 font-medium block text-sm">{t('header.logout')}</span>
-                <span className="text-xs" style={{ color: `${colors.text}50` }}>{t('header.exitAccount')}</span>
+                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('header.exitAccount')}</span>
               </div>
             </motion.button>
           </div>
 
           <div
-            className="absolute bottom-0 left-0 right-0 h-1"
+            className="h-1 w-full flex-shrink-0"
             style={{
               background: `linear-gradient(90deg, ${colors.primary}, ${colors.accent})`,
             }}

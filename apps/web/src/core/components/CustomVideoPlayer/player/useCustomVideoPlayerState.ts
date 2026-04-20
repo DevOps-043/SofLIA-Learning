@@ -148,21 +148,34 @@ export function useCustomVideoPlayerState(
     };
   }, [onPiPChange]);
 
-  useEffect(() => {
-    if (!isHovering && isPlaying && showControls) {
-      const hideControlsTimeout = window.setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
+  const timeoutRef = useRef<number | null>(null);
 
-      return () => window.clearTimeout(hideControlsTimeout);
+  const resetControlsTimeout = useCallback(() => {
+    setShowControls(true);
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
     }
-  }, [isHovering, isPlaying, showControls]);
+    timeoutRef.current = window.setTimeout(() => {
+      setShowControls(false);
+      setIsHovering(false); 
+    }, 3000);
+  }, []);
 
   useEffect(() => {
-    if (isHovering) {
+    if (isHovering || isPlaying) {
+      resetControlsTimeout();
+    }
+    if (!isPlaying) {
       setShowControls(true);
+      if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
     }
-  }, [isHovering]);
+  }, [isHovering, isPlaying, resetControlsTimeout]);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) window.clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -434,9 +447,11 @@ export function useCustomVideoPlayerState(
     }
 
     if (isMuted) {
+      videoElement.muted = false;
       videoElement.volume = volume || 0.5;
       setIsMuted(false);
     } else {
+      videoElement.muted = true;
       videoElement.volume = 0;
       setIsMuted(true);
     }
@@ -446,8 +461,9 @@ export function useCustomVideoPlayerState(
 
   const toggleFullscreen = async () => {
     const containerElement = containerRef.current;
+    const videoElement = videoRef.current;
 
-    if (!containerElement) {
+    if (!containerElement || !videoElement) {
       return;
     }
 
@@ -459,7 +475,15 @@ export function useCustomVideoPlayerState(
           const webkitContainer = containerElement as HTMLDivElement & {
             webkitRequestFullscreen?: () => Promise<void>;
           };
-          await webkitContainer.webkitRequestFullscreen?.();
+          if (webkitContainer.webkitRequestFullscreen) {
+            await webkitContainer.webkitRequestFullscreen();
+          } else {
+            // Fallback for iOS iPhone (native video fullscreen)
+            const webkitVideo = videoElement as HTMLVideoElement & {
+              webkitEnterFullscreen?: () => void;
+            };
+            webkitVideo.webkitEnterFullscreen?.();
+          }
         }
       } else if (document.exitFullscreen) {
         await document.exitFullscreen();
@@ -467,7 +491,15 @@ export function useCustomVideoPlayerState(
         const webkitDocument = document as Document & {
           webkitExitFullscreen?: () => Promise<void>;
         };
-        await webkitDocument.webkitExitFullscreen?.();
+        if (webkitDocument.webkitExitFullscreen) {
+          await webkitDocument.webkitExitFullscreen();
+        } else {
+          // Fallback for iOS iPhone (native video exit fullscreen)
+          const webkitVideo = videoElement as HTMLVideoElement & {
+            webkitExitFullscreen?: () => void;
+          };
+          webkitVideo.webkitExitFullscreen?.();
+        }
       }
     } finally {
       setIsFullscreen(Boolean(document.fullscreenElement));
@@ -623,7 +655,10 @@ export function useCustomVideoPlayerState(
     isPlaying,
     onRootMouseEnter: () => setIsHovering(true),
     onRootMouseLeave: () => setIsHovering(false),
-    onRootMouseMove: () => setShowControls(true),
+    onRootMouseMove: () => {
+      setShowControls(true);
+      if (isPlaying) resetControlsTimeout();
+    },
     playbackRate,
     playbackRates: VIDEO_PLAYBACK_RATES,
     progressBarRef,

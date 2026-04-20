@@ -18,7 +18,6 @@ export function CreateQuestionForm({
   onSuccess,
   slug,
 }: CreateQuestionFormProps) {
-  const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -55,7 +54,7 @@ export function CreateQuestionForm({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: title.trim() || null,
+          title: null,
           content: content.trim(),
         }),
       });
@@ -63,7 +62,6 @@ export function CreateQuestionForm({
       if (response.ok) {
         const newQuestion = (await response.json()) as CourseQuestion;
         onSuccess(newQuestion);
-        setTitle("");
         setContent("");
         return;
       }
@@ -115,19 +113,6 @@ export function CreateQuestionForm({
         </h3>
 
         <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 relative z-10">
-          <div>
-            <label className="block text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">
-              Título (opcional)
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Escribe un título breve..."
-              className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-[#0A2540]/40 dark:focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#0A2540]/15 dark:focus:ring-[#00D4B3]/20 transition-all font-medium"
-            />
-          </div>
-
           <div>
             <label className="block text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">
               Contenido <span className="text-red-500">*</span>

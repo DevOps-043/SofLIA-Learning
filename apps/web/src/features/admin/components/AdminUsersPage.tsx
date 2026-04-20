@@ -436,7 +436,7 @@ export function AdminUsersPage() {
                         exit={{ opacity: 0, y: -10 }}
                         className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl shadow-xl z-50 overflow-hidden"
                       >
-                        {['all', 'Usuario', 'Instructor', 'Administrador'].map((role) => (
+                        {['all', 'Usuario', 'Instructor', 'Administrador', 'Business'].map((role) => (
                           <button
                             key={role}
                             onClick={() => {
@@ -481,10 +481,10 @@ export function AdminUsersPage() {
                 </p>
               </motion.div>
             ) : (
-              <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
+              <div className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-sm overflow-hidden flex flex-col">
+                <div className="overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] min-h-[300px]">
                   <table className="min-w-full divide-y divide-[#E9ECEF] dark:divide-[#6C757D]/30">
-                    <thead className="bg-[#E9ECEF]/50 dark:bg-[#0A0D12]">
+                    <thead className="bg-gray-50 dark:bg-[#0A0D12] sticky top-0 z-10 ring-1 ring-black/5 dark:ring-white/5">
                       <tr>
                         <th className="px-4 py-3 text-left text-xs font-semibold text-[#6C757D] dark:text-white/70 uppercase tracking-wider">
                           Usuario
@@ -541,18 +541,20 @@ export function AdminUsersPage() {
                                       </motion.div>
                                     )}
                                   </div>
-                                  <div>
-                                    <div className="text-sm font-semibold text-[#0A2540] dark:text-white">
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold text-[#0A2540] dark:text-white truncate max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]" title={displayName}>
                                       {displayName}
                                     </div>
-                                    <div className="text-xs text-[#6C757D] dark:text-white/60">
+                                    <div className="text-xs text-[#6C757D] dark:text-white/60 truncate max-w-[120px] sm:max-w-[150px] lg:max-w-[200px]" title={`@${user.username}`}>
                                       @{user.username}
                                     </div>
                                   </div>
                                 </div>
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap">
-                                <div className="text-sm text-[#0A2540] dark:text-white">{user.email}</div>
+                                <div className="text-sm text-[#0A2540] dark:text-white truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[250px]" title={user.email}>
+                                  {user.email}
+                                </div>
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <motion.span

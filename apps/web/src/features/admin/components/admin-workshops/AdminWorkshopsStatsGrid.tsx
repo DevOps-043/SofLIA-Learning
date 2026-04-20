@@ -47,7 +47,7 @@ export function AdminWorkshopsStatsGrid({
     >
       <motion.div
         variants={itemVariants}
-        className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#0A2540] dark:to-[#0A2540]/60 rounded-xl border border-[#E9ECEF] dark:border-[#0A2540]/20 shadow-sm dark:shadow-lg"
+        className="p-4 bg-white dark:bg-gray-800 dark:bg-gradient-to-br dark:from-[#0A2540] dark:to-[#0A2540]/60 rounded-xl border border-[#E9ECEF] dark:border-[#0A2540]/20 shadow-sm dark:shadow-lg"
       >
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-lg">
@@ -66,7 +66,7 @@ export function AdminWorkshopsStatsGrid({
 
       <motion.div
         variants={itemVariants}
-        className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#10B981]/20 dark:to-[#10B981]/10 rounded-xl border border-[#E9ECEF] dark:border-[#10B981]/20 shadow-sm dark:shadow-lg"
+        className="p-4 bg-white dark:bg-gray-800 dark:bg-gradient-to-br dark:from-[#10B981]/20 dark:to-[#10B981]/10 rounded-xl border border-[#E9ECEF] dark:border-[#10B981]/20 shadow-sm dark:shadow-lg"
       >
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#10B981]/10 dark:bg-[#10B981]/20 rounded-lg">
@@ -85,7 +85,7 @@ export function AdminWorkshopsStatsGrid({
 
       <motion.div
         variants={itemVariants}
-        className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#00D4B3]/20 dark:to-[#00D4B3]/10 rounded-xl border border-[#E9ECEF] dark:border-[#00D4B3]/20 shadow-sm dark:shadow-lg"
+        className="p-4 bg-white dark:bg-gray-800 dark:bg-gradient-to-br dark:from-[#00D4B3]/20 dark:to-[#00D4B3]/10 rounded-xl border border-[#E9ECEF] dark:border-[#00D4B3]/20 shadow-sm dark:shadow-lg"
       >
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-lg">
@@ -104,7 +104,7 @@ export function AdminWorkshopsStatsGrid({
 
       <motion.div
         variants={itemVariants}
-        className="p-4 bg-white dark:bg-gradient-to-br dark:from-[#F59E0B]/20 dark:to-[#F59E0B]/10 rounded-xl border border-[#E9ECEF] dark:border-[#F59E0B]/20 shadow-sm dark:shadow-lg"
+        className="p-4 bg-white dark:bg-gray-800 dark:bg-gradient-to-br dark:from-[#F59E0B]/20 dark:to-[#F59E0B]/10 rounded-xl border border-[#E9ECEF] dark:border-[#F59E0B]/20 shadow-sm dark:shadow-lg"
       >
         <div className="flex items-center gap-3">
           <div className="p-2 bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20 rounded-lg">

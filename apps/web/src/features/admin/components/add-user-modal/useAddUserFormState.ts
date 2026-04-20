@@ -53,6 +53,7 @@ interface UseAddUserFormStateProps {
 
 export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProps) {
   const [formData, setFormData] = useState<NewAdminUserData>(INITIAL_FORM)
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
@@ -70,9 +71,16 @@ export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProp
     setIsLoading(true)
     setError(null)
 
+    if (formData.password !== confirmPassword) {
+      setError('Las contraseñas no coinciden')
+      setIsLoading(false)
+      return
+    }
+
     try {
       await onSave(formData)
       setFormData(INITIAL_FORM)
+      setConfirmPassword('')
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al crear usuario')
@@ -84,6 +92,8 @@ export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProp
   return {
     formData,
     setFormData,
+    confirmPassword,
+    setConfirmPassword,
     isLoading,
     error,
     activeTab,

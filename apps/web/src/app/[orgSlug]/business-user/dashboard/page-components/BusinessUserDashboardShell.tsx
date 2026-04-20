@@ -5,7 +5,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, Route } from 'lucide-react'
+import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, Route, ChevronDown, ChevronUp } from 'lucide-react'
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
@@ -113,6 +113,7 @@ export function BusinessUserDashboardShell({
   const [visibleCourseCount, setVisibleCourseCount] = useState(
     disableHeavyEffects ? 6 : assignedCourses.length
   )
+  const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
 
   const coursePathMap = useMemo(() => {
     const map = new Map<string, { pathTitle: string; position: number; isUnlocked: boolean }>()
@@ -206,13 +207,13 @@ export function BusinessUserDashboardShell({
 
           <div
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.heroSection}
-            className="scroll-mt-28 mb-10"
+            className="scroll-mt-28 mb-6 md:mb-10"
           >
             <motion.div
               initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
               animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
               transition={disableHeavyEffects ? undefined : { duration: 0.6 }}
-              className="relative overflow-hidden rounded-3xl p-8 group"
+              className="relative overflow-hidden rounded-2xl md:rounded-3xl p-4 md:p-8 group"
             >
               <div
                 className="absolute inset-0 z-0 overflow-hidden"
@@ -275,7 +276,7 @@ export function BusinessUserDashboardShell({
 
               <div className="relative z-10">
                 <motion.h1
-                  className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-3"
+                  className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 leading-tight"
                   style={{ color: '#FFFFFF' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
@@ -285,7 +286,7 @@ export function BusinessUserDashboardShell({
                 </motion.h1>
 
                 <motion.p
-                  className="text-lg max-w-xl mb-6"
+                  className="text-xs md:text-lg max-w-xl mb-4 md:mb-6 line-clamp-2 md:line-clamp-none"
                   style={{ color: 'rgba(255,255,255,0.8)' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
@@ -295,13 +296,13 @@ export function BusinessUserDashboardShell({
                 </motion.p>
 
                 <motion.div
-                  className="flex flex-wrap items-center gap-6"
+                  className="flex flex-wrap items-center gap-4 md:gap-6"
                   initial={disableHeavyEffects ? false : { opacity: 0 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1 }}
                   transition={disableHeavyEffects ? undefined : { delay: 0.5 }}
                 >
-                  <div className="flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                    <Clock className="w-4 h-4" />
+                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
+                    <Clock className="w-3 h-3 md:w-4 md:h-4" />
                     {formatBusinessUserDashboardDate(currentTime, language)}
                   </div>
                 </motion.div>
@@ -326,16 +327,16 @@ export function BusinessUserDashboardShell({
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statsSection}
             className="scroll-mt-32 relative"
           >
-            <section className="mb-10">
+            <section className="mb-6 md:mb-10">
               <motion.div
                 initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
                 animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
                 transition={disableHeavyEffects ? undefined : { delay: 0.3 }}
-                className="flex items-center justify-between mb-6"
+                className="flex items-center justify-between mb-4 md:mb-6"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="p-2 rounded-xl border"
+                    className="p-2 rounded-xl border flex-shrink-0"
                     style={{
                       background: `linear-gradient(135deg, ${orgColors.iconColor}25, ${orgColors.iconColor}08)`,
                       borderColor: `${orgColors.iconColor}30`,
@@ -344,17 +345,26 @@ export function BusinessUserDashboardShell({
                     <TrendingUp className="w-5 h-5" style={{ color: orgColors.iconColor }} />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
+                    <h2 className="text-lg md:text-xl font-bold" style={{ color: orgColors.text }}>
                       {t('dashboard.generalStats', 'Tu Progreso')}
                     </h2>
-                    <p className="text-sm" style={{ color: orgColors.textSecondary }}>
+                    <p className="text-xs md:text-sm" style={{ color: orgColors.textSecondary }}>
                       {t('dashboard.keyMetrics', 'Metricas de tu aprendizaje')}
                     </p>
                   </div>
                 </div>
+                <button
+                  onClick={() => setIsStatsOpenMobile(!isStatsOpenMobile)}
+                  className="md:hidden flex items-center justify-center p-2 rounded-full transition-colors flex-shrink-0 ml-2"
+                  style={{ backgroundColor: `${orgColors.iconColor}15`, color: orgColors.iconColor }}
+                  aria-label="Toggle statistics"
+                >
+                  {isStatsOpenMobile ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
               </motion.div>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+              <div className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
                 <Suspense
                   fallback={
                     <>
@@ -396,6 +406,7 @@ export function BusinessUserDashboardShell({
                     )
                   })}
                 </Suspense>
+              </div>
               </div>
             </section>
           </div>
