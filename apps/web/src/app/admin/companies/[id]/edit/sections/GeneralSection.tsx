@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { motion } from 'framer-motion'
 import { BuildingOffice2Icon, Cog6ToothIcon, EnvelopeIcon, PhoneIcon, GlobeAltIcon, PhotoIcon, ShieldCheckIcon } from '@heroicons/react/24/outline'
 import type { CompanyData } from '@/features/admin/hooks/useEditCompanyLogic'
 import { colors, SectionWrapper, Card, InputField } from './shared'

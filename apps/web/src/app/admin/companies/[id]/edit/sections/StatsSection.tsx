@@ -1,15 +1,17 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { ArrowPathIcon, AcademicCapIcon, ChartBarIcon, ExclamationTriangleIcon, UsersIcon, SparklesIcon } from '@heroicons/react/24/outline'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts'
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, Legend } from 'recharts'
+import { useTheme } from '@/core/hooks/useTheme'
 import type { CompanyData } from '@/features/admin/hooks/useEditCompanyLogic'
-import { colors, SectionWrapper, Card } from './shared'
+import { colors, SectionWrapper, Card, type StatsData, type CourseProgress } from './shared'
 
 function StatsSection({ company }: { company: CompanyData }) {
     const [stats, setStats] = useState<StatsData | null>(null)
     const [loading, setLoading] = useState(true)
-    const { isDark } = useTheme() // Assuming useTheme() provides isDark
+    const { isDark } = useTheme()
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -163,7 +165,7 @@ function StatsSection({ company }: { company: CompanyData }) {
                                     paddingAngle={5}
                                     dataKey="value"
                                 >
-                                    {teamDistribution.map((entry, index: number) => (
+                                    {teamDistribution.map((_entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS_CHART[index % COLORS_CHART.length]} />
                                     ))}
                                 </Pie>

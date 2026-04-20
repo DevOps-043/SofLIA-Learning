@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BookOpen, ChevronLeft, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../../core/constants/tourTargets";
+import { useSwipe } from "../../../../../hooks/useSwipe";
 import { NotesSidebarSection } from "../NotesSidebarSection";
 import type {
   LearnActivityMap,
@@ -80,6 +81,28 @@ export function CourseSidebarPanel({
 }: CourseSidebarPanelProps) {
   const { t } = useTranslation("learn");
 
+  const swipeToCloseRef = useSwipe<HTMLDivElement>({
+    onSwipeLeft: () => {
+      if (isMobile && isOpen) {
+        onClose();
+      }
+    },
+    threshold: 60,
+    velocity: 0.3,
+    enabled: isMobile && isOpen,
+  });
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   return (
     <>
       <AnimatePresence>
@@ -96,6 +119,7 @@ export function CourseSidebarPanel({
             )}
 
             <motion.div
+              ref={swipeToCloseRef}
               id={COURSE_LEARN_TOUR_TARGET_IDS.sidebar}
               initial={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
               animate={isMobile ? { x: 0 } : { width: 320, opacity: 1 }}
@@ -107,27 +131,14 @@ export function CourseSidebarPanel({
                   : "relative h-full"
               } flex flex-col overflow-hidden border-r border-gray-200 bg-white dark:border-white/5 dark:bg-[#0F1419]`}
             >
-              <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-white/5 dark:bg-[#0F1419]">
-                <h2
-                  className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white"
-                  style={{ fontFamily: "Inter, sans-serif" }}
-                >
-                  <BookOpen className="h-4 w-4 text-[#0A2540] dark:text-[#00D4B3]" />
-                  {t("leftPanel.content")}
-                </h2>
-                <button
-                  onClick={onClose}
-                  className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-slate-700/50"
-                >
-                  {isMobile ? (
-                    <X className="h-4 w-4 text-[#6C757D] dark:text-white/70" />
-                  ) : (
-                    <ChevronLeft className="h-4 w-4 text-[#6C757D] dark:text-white/70" />
-                  )}
-                </button>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 pb-24 md:pb-6">
+              <div
+                className="flex-1 overflow-y-auto px-6 pb-24 md:pb-6"
+                style={{
+                  paddingTop: isMobile
+                    ? `calc(4.5rem + env(safe-area-inset-top, 0px))`
+                    : "4.5rem",
+                }}
+              >
                 {learningPathState ? (
                   <div className="mb-6 rounded-2xl border border-[#00D4B3]/20 bg-[#00D4B3]/5 p-4">
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#00D4B3]">
@@ -191,6 +202,7 @@ export function CourseSidebarPanel({
                   onToggleModule={onToggleModuleExpand}
                   onToggleLesson={onToggleLessonExpand}
                   onSelectLesson={onSelectLesson}
+                  onClosePanel={onClose}
                 />
 
                 <div className="mb-6 border-b border-[#E9ECEF] dark:border-[#6C757D]/30" />
