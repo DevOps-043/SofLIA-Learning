@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, useInView, useSpring, useTransform } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown, Clock, DollarSign, Award, BarChart3 } from 'lucide-react';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 interface CounterProps {
   target: number;
@@ -85,6 +86,7 @@ const metrics = [
 
 export function ROIImpactSection() {
   const { t } = useTranslation('common');
+  const { disableHeavy } = useMotionSafe();
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
 
@@ -173,7 +175,7 @@ export function ROIImpactSection() {
                 
                 {/* Trend Arrow */}
                 <motion.div
-                  animate={{ y: metric.trend === 'up' ? [0, -4, 0] : [0, 4, 0] }}
+                  animate={disableHeavy ? {} : { y: metric.trend === 'up' ? [0, -4, 0] : [0, 4, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
                   {metric.trend === 'up' ? (

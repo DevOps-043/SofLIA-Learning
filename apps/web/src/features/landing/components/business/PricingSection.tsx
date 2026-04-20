@@ -7,6 +7,7 @@ import { Button } from '@aprende-y-aplica/ui';
 import { PricingTier } from '@aprende-y-aplica/shared';
 import { fadeIn, slideUp, staggerContainer, staggerItem } from '../../../../shared/utils/animations';
 import { Check, ArrowRight, Sparkles } from 'lucide-react';
+import { useMotionSafe } from '../../../../lib/utils/motion';
 
 interface PricingSectionProps {
   title: string;
@@ -20,6 +21,7 @@ interface PricingWithAnnual extends PricingTier {
 
 export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) {
   const [isAnnual, setIsAnnual] = useState(true);
+  const { disableHeavy } = useMotionSafe();
   
   // Calcular precios anuales (20% descuento)
   const tiersWithAnnual: PricingWithAnnual[] = tiers.map(tier => {
@@ -194,13 +196,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           <motion.div
                             className="px-2.5 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wide"
                             style={{ backgroundColor: '#0A2540', fontFamily: 'Inter, sans-serif', fontWeight: 700 }}
-                            animate={{
-                              scale: [1, 1.05, 1],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                            }}
+                            animate={disableHeavy ? {} : { scale: [1, 1.05, 1] }}
+                            transition={{ duration: 2, repeat: Infinity }}
                           >
                             ⭐ Recomendado
                           </motion.div>
@@ -292,15 +289,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           <motion.div
                             className="absolute -inset-1 rounded-xl opacity-75 blur-xl"
                             style={{ backgroundColor: '#00D4B3' }}
-                            animate={{
-                              opacity: [0.5, 0.75, 0.5],
-                              scale: [1, 1.05, 1],
-                            }}
-                            transition={{
-                              duration: 2,
-                              repeat: Infinity,
-                              ease: 'easeInOut',
-                            }}
+                            animate={disableHeavy ? {} : { opacity: [0.5, 0.75, 0.5], scale: [1, 1.05, 1] }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                           />
                         )}
                         
@@ -327,19 +317,12 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                             borderColor: isPopular ? undefined : '#00D4B3',
                           }}
                         >
-                          {/* Shimmer Effect for Popular Plan */}
-                          {isPopular && (
+                          {/* Shimmer Effect for Popular Plan — desktop only */}
+                          {isPopular && !disableHeavy && (
                             <motion.div
                               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                              animate={{
-                                x: ['-100%', '100%'],
-                              }}
-                              transition={{
-                                duration: 2.5,
-                                repeat: Infinity,
-                                ease: 'linear',
-                                repeatDelay: 0.5,
-                              }}
+                              animate={{ x: ['-100%', '100%'] }}
+                              transition={{ duration: 2.5, repeat: Infinity, ease: 'linear', repeatDelay: 0.5 }}
                             />
                           )}
 
@@ -347,14 +330,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                           <span className="relative z-10 flex items-center justify-center gap-2">
                             {tier.ctaText}
                             <motion.div
-                              animate={{
-                                x: [0, 4, 0],
-                              }}
-                              transition={{
-                                duration: 1.5,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              }}
+                              animate={disableHeavy ? {} : { x: [0, 4, 0] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                             >
                               <ArrowRight className="w-4 h-4" />
                             </motion.div>
@@ -365,15 +342,8 @@ export function PricingSection({ title, subtitle, tiers }: PricingSectionProps) 
                             <motion.div
                               className="absolute inset-0 rounded-xl border-2"
                               style={{ borderColor: '#00D4B3' }}
-                              animate={{
-                                opacity: [0.3, 0.6, 0.3],
-                                scale: [1, 1.02, 1],
-                              }}
-                              transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              }}
+                              animate={disableHeavy ? {} : { opacity: [0.3, 0.6, 0.3], scale: [1, 1.02, 1] }}
+                              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                             />
                           )}
                         </motion.button>

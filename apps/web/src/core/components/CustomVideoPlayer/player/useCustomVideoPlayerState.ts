@@ -241,6 +241,18 @@ export function useCustomVideoPlayerState(
       }, 300);
     };
 
+    const handleStalled = () => {
+      // "stalled" fires when the browser stops downloading (common on iOS Safari
+      // and slow connections). A micro-seek forces the browser to resume buffering
+      // from the current position without visible jump.
+      const currentPos = videoElement.currentTime;
+      if (currentPos > 0) {
+        videoElement.currentTime = currentPos + 0.001;
+      }
+      if (bufferingTimeout) clearTimeout(bufferingTimeout);
+      bufferingTimeout = setTimeout(() => setIsBuffering(true), 500);
+    };
+
     const handleCanPlay = () => {
       if (bufferingTimeout) {
         clearTimeout(bufferingTimeout);
@@ -276,6 +288,7 @@ export function useCustomVideoPlayerState(
     videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
     videoElement.addEventListener('ended', handleEnded);
     videoElement.addEventListener('waiting', handleWaiting);
+    videoElement.addEventListener('stalled', handleStalled);
     videoElement.addEventListener('canplay', handleCanPlay);
     videoElement.addEventListener('playing', handlePlaying);
     videoElement.addEventListener('play', handleNativePlay);
@@ -290,6 +303,7 @@ export function useCustomVideoPlayerState(
       videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
       videoElement.removeEventListener('ended', handleEnded);
       videoElement.removeEventListener('waiting', handleWaiting);
+      videoElement.removeEventListener('stalled', handleStalled);
       videoElement.removeEventListener('canplay', handleCanPlay);
       videoElement.removeEventListener('playing', handlePlaying);
       videoElement.removeEventListener('play', handleNativePlay);

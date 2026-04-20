@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { BookOpen, Calendar, Clock, Sparkles, Users } from 'lucide-react'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BusinessUser } from '../../services/businessUsers.service'
 import { getBusinessAssignCourseDisplayName } from './service'
@@ -24,6 +25,7 @@ export function BusinessAssignCoursePreviewPanel({
   t,
 }: BusinessAssignCoursePreviewPanelProps) {
   const theme = useBusinessPanelTheme()
+  const { disableHeavy } = useMotionSafe()
   const progressPercent = availableUserCount > 0
     ? (selectedUserCount / availableUserCount) * 100
     : 0
@@ -58,7 +60,7 @@ export function BusinessAssignCoursePreviewPanel({
           <BookOpen className="h-10 w-10" style={{ color: theme.onPrimaryColor }} />
 
           <motion.div
-            animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+            animate={disableHeavy ? {} : { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity }}
             className="absolute -right-3 -top-3 z-20 flex h-10 w-10 items-center justify-center rounded-2xl shadow-xl"
             style={{ backgroundColor: theme.accentColor }}

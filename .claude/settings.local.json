@@ -137,7 +137,16 @@
       "Bash(python add_hierarchy_tree_keys.py)",
       "Bash(python3 \"c:/tmp/parity_check.py\")",
       "Bash(grep -v \"//.*confirm\\\\\\(\")",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(sed -n '165,195p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/features/landing/components/ROIImpactSection.tsx\")",
+      "Bash(sed -n '190,215p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/features/landing/components/UseCasesSection.tsx\")",
+      "Bash(sed -n '55,100p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/features/landing/components/business/SectionTabs.tsx\")",
+      "Bash(sed -n '190,215p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/features/landing/components/business/PricingSection.tsx\")",
+      "Bash(sed -n '290,380p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/features/landing/components/business/PricingSection.tsx\")",
+      "Bash(sed -n '280,295p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/core/components/NotificationBell/NotificationBell.tsx\")",
+      "Bash(sed -n '380,392p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/core/components/NotificationBell/NotificationBell.tsx\")",
+      "Bash(sed -n '528,540p' \"c:/Users/fysg5/OneDrive/Escritorio/Pulse Hub/SofLIA - Learning/SofLIA-Learning/apps/web/src/core/components/NotificationBell/NotificationBell.tsx\")",
+      "Bash(grep -v \".next\\\\|node_modules\\\\|README\\\\|\\\\.md$\")"
     ],
     "deny": [],
     "ask": []

@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 export function LiaLandingCta() {
+  const { disableHeavy } = useMotionSafe();
   return (
     <section className="py-32 relative bg-gradient-to-br from-[#0A2540] via-[#0A2540] to-[#00D4B3]">
       <div className="container mx-auto px-4">
@@ -15,7 +17,7 @@ export function LiaLandingCta() {
           <motion.h2
             className="text-4xl lg:text-6xl font-bold mb-6 text-white"
             style={{ fontFamily: 'Inter, sans-serif', fontWeight: 900 }}
-            animate={{ scale: [1, 1.02, 1] }}
+            animate={disableHeavy ? {} : { scale: [1, 1.02, 1] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           >
             ¿Listo para comenzar con LIA?

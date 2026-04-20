@@ -19,8 +19,10 @@ import {
   TabButton,
 } from './business-analytics'
 import { useBusinessAnalyticsLogic } from '../hooks/useBusinessAnalyticsLogic'
+import { useMotionSafe } from '../../../lib/utils/motion'
 
 export function BusinessAnalytics() {
+  const { disableHeavy } = useMotionSafe()
   const {
     t,
     data,
@@ -118,18 +120,22 @@ export function BusinessAnalytics() {
           />
         </div>
 
-        <motion.div
-          animate={{ y: [0, -10, 0], opacity: [0.4, 0.9, 0.4] }}
-          transition={{ duration: 3, repeat: Infinity }}
-          className="absolute top-12 right-24 w-3 h-3 rounded-full"
-          style={{ backgroundColor: panelTheme.accentColor }}
-        />
-        <motion.div
-          animate={{ y: [0, 10, 0], opacity: [0.3, 0.7, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, delay: 0.8 }}
-          className="absolute bottom-10 right-40 w-2 h-2 rounded-full"
-          style={{ backgroundColor: panelTheme.accentColor }}
-        />
+        {!disableHeavy && (
+          <>
+            <motion.div
+              animate={{ y: [0, -10, 0], opacity: [0.4, 0.9, 0.4] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute top-12 right-24 w-3 h-3 rounded-full"
+              style={{ backgroundColor: panelTheme.accentColor }}
+            />
+            <motion.div
+              animate={{ y: [0, 10, 0], opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 4, repeat: Infinity, delay: 0.8 }}
+              className="absolute bottom-10 right-40 w-2 h-2 rounded-full"
+              style={{ backgroundColor: panelTheme.accentColor }}
+            />
+          </>
+        )}
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-3">

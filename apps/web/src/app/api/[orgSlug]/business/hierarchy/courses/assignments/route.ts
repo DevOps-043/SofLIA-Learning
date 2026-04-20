@@ -129,6 +129,8 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: { ...assignment, entity_type, entity_id, entity }
+    }, {
+      headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=30' }
     })
   } catch (error: unknown) {
     logger.error('Error inesperado en GET [orgSlug]/hierarchy/courses/assignments/[id]:', error)

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
 
 interface WorkshopThumbnailProps {
@@ -13,6 +14,7 @@ export function WorkshopThumbnail({
   thumbnailUrl,
   title,
 }: WorkshopThumbnailProps) {
+  const { disableHeavy } = useMotionSafe()
   const [imageError, setImageError] = useState(false)
 
   if (!thumbnailUrl || imageError) {
@@ -33,7 +35,7 @@ export function WorkshopThumbnail({
           />
         </div>
         <motion.div
-          animate={{
+          animate={disableHeavy ? {} : {
             scale: [1, 1.15, 1],
             rotate: [0, 10, -10, 0],
           }}
@@ -64,16 +66,18 @@ export function WorkshopThumbnail({
         onError={() => setImageError(true)}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none"
-        animate={{ x: ['-100%', '200%'] }}
-        transition={{
-          duration: 1.5,
-          repeat: Infinity,
-          repeatDelay: 2,
-          ease: 'easeInOut',
-        }}
-      />
+      {!disableHeavy && (
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none"
+          animate={{ x: ['-100%', '200%'] }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            repeatDelay: 2,
+            ease: 'easeInOut',
+          }}
+        />
+      )}
     </div>
   )
 }

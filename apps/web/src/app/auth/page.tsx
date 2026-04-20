@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import { useMotionSafe } from '../../lib/utils/motion';
 
 // âš¡ OPTIMIZACIÓN: Lazy load de AuthTabs (contiene RegisterForm pesado)
 const AuthTabs = dynamic(
@@ -23,6 +24,7 @@ function AuthPageContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const isLogin = !tabParam || tabParam === 'login';
+  const { disableHeavy } = useMotionSafe();
 
   return (
     <div className="min-h-screen flex items-center justify-center p-0 relative overflow-hidden bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
@@ -31,7 +33,7 @@ function AuthPageContent() {
         {/* Círculos animados de fondo */}
         <motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-[#00D4B3]/5 dark:bg-[#00D4B3]/10 rounded-full blur-3xl"
-          animate={{
+          animate={disableHeavy ? {} : {
             x: [0, 100, 0],
             y: [0, 50, 0],
             scale: [1, 1.2, 1],
@@ -44,7 +46,7 @@ function AuthPageContent() {
         />
         <motion.div
           className="absolute bottom-20 right-10 w-96 h-96 bg-[#0A2540]/5 dark:bg-[#0A2540]/10 rounded-full blur-3xl"
-          animate={{
+          animate={disableHeavy ? {} : {
             x: [0, -80, 0],
             y: [0, -60, 0],
             scale: [1, 1.3, 1],
@@ -57,7 +59,7 @@ function AuthPageContent() {
         />
         <motion.div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#00D4B3]/3 dark:bg-[#00D4B3]/5 rounded-full blur-3xl"
-          animate={{
+          animate={disableHeavy ? {} : {
             scale: [1, 1.5, 1],
             opacity: [0.3, 0.6, 0.3],
           }}
@@ -101,7 +103,7 @@ function AuthPageContent() {
                 animate={{
                   scale: 1,
                   opacity: 1,
-                  y: [0, -20, 0],
+                  ...(disableHeavy ? {} : { y: [0, -20, 0] }),
                 }}
                 transition={{
                   scale: { delay: 0.2, duration: 0.5 },

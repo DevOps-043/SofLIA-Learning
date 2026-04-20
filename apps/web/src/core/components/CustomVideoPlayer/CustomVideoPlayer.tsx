@@ -33,7 +33,7 @@ export const CustomVideoPlayer = forwardRef<
         onLoadedData={controller.handleVideoLoadedData}
         onLoadStart={controller.handleVideoLoadStart}
         playsInline
-        preload="auto"
+        preload="metadata"
         ref={controller.videoRef}
         src={controller.src}
       />

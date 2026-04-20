@@ -8,6 +8,7 @@ import { Button } from '@aprende-y-aplica/ui';
 import { ArrowRight } from 'lucide-react';
 import { HeroContent } from '@aprende-y-aplica/shared';
 import { fadeIn, slideUp, slideInFromLeft, slideInFromRight, staggerContainer, staggerItem } from '../../../shared/utils/animations';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 interface HeroSectionProps {
   content: HeroContent;
@@ -15,6 +16,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ content }: HeroSectionProps) {
   const { tag, title, highlightWord, description, ctaText, benefits } = content;
+  const { disableHeavy } = useMotionSafe();
 
   return (
     <section className="min-h-screen flex items-center relative overflow-x-hidden hero-section bg-white dark:bg-[#0F1419]">
@@ -72,7 +74,7 @@ export function HeroSection({ content }: HeroSectionProps) {
                   <span className="relative z-10 flex items-center gap-2">
                     {ctaText}
                     <motion.div
-                      animate={{ x: [0, 4, 0] }}
+                      animate={disableHeavy ? {} : { x: [0, 4, 0] }}
                       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                     >
                       <ArrowRight className="w-5 h-5 text-white" />
@@ -96,7 +98,7 @@ export function HeroSection({ content }: HeroSectionProps) {
                     <span className="relative z-10 flex items-center gap-2">
                       Conoce al Tutor
                       <motion.div
-                        animate={{ rotate: [0, 15, -15, 0] }}
+                        animate={disableHeavy ? {} : { rotate: [0, 15, -15, 0] }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
                       >
                         <ArrowRight className="w-5 h-5" />
@@ -120,9 +122,9 @@ export function HeroSection({ content }: HeroSectionProps) {
             <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                           animate={{
-                  scale: 1, 
+                  scale: 1,
                   opacity: 1,
-                  y: [0, -20, 0],
+                  ...(disableHeavy ? {} : { y: [0, -20, 0] }),
                           }}
                           transition={{
                   scale: { delay: 0.2, duration: 0.5 },

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertCircle, Check, CheckCircle, Copy, Info, Link as LinkIcon, Loader2, Save, Settings2, Sparkles } from 'lucide-react'
+import { useMotionSafe } from '../../../lib/utils/motion'
 import { type OrganizationData } from '../hooks/useBusinessSettings'
 
 export function PersonalizationTab({
@@ -21,6 +22,7 @@ export function PersonalizationTab({
   saveError: string | null
   setSaveError: (msg: string | null) => void
 }) {
+  const { disableHeavy } = useMotionSafe()
   const [slug, setSlug] = useState(organization?.slug || '')
   const [isSaving, setIsSaving] = useState(false)
   const [slugError, setSlugError] = useState<string | null>(null)
@@ -503,7 +505,7 @@ export function PersonalizationTab({
       >
         <div className="flex items-start gap-4 relative z-10">
           <motion.div
-            animate={{ rotate: [0, 10, -10, 0] }}
+            animate={disableHeavy ? {} : { rotate: [0, 10, -10, 0] }}
             transition={{ duration: 3, repeat: Infinity }}
             className="p-2 rounded-lg bg-blue-500/20"
           >

@@ -6,6 +6,7 @@ import { ChevronRight, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { isLastOnboardingStep, shouldShowOnboardingStepAction } from './navigation';
 import type { OnboardingStep } from './types';
+import { useMotionSafe } from '../../../../lib/utils/motion';
 
 interface OnboardingModalProps {
   currentStep: number;
@@ -37,6 +38,7 @@ export function OnboardingModal({
   steps,
 }: OnboardingModalProps) {
   const { t } = useTranslation('common');
+  const { disableHeavy } = useMotionSafe();
   const step = steps[currentStep];
   const isLastStep = isLastOnboardingStep(currentStep, steps.length);
 
@@ -85,7 +87,7 @@ export function OnboardingModal({
                     </div>
                   </motion.div>
 
-                  {[...Array(8)].map((_, index) => {
+                  {!disableHeavy && [...Array(8)].map((_, index) => {
                     const radius = isMobile ? 50 : 70;
 
                     return (
@@ -132,7 +134,7 @@ export function OnboardingModal({
                       background:
                         'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 50%, rgba(59, 130, 246, 0.1) 100%)',
                     }}
-                    animate={{ backgroundPosition: ['0% 0%', '100% 100%'] }}
+                    animate={disableHeavy ? {} : { backgroundPosition: ['0% 0%', '100% 100%'] }}
                     transition={{ duration: 3, repeat: Infinity, repeatType: 'reverse' }}
                   />
 
@@ -209,7 +211,7 @@ export function OnboardingModal({
                                   : 'w-4 sm:w-5 md:w-6 bg-gray-300 dark:bg-gray-600'
                             }`}
                             animate={
-                              index === currentStep
+                              index === currentStep && !disableHeavy
                                 ? {
                                     scale: [1, 1.15, 1],
                                     boxShadow: [
@@ -222,7 +224,7 @@ export function OnboardingModal({
                             }
                             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
                           />
-                          {index === currentStep && (
+                          {index === currentStep && !disableHeavy && (
                             <motion.div
                               className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 blur-md opacity-50"
                               animate={{ opacity: [0.3, 0.6, 0.3] }}
@@ -330,7 +332,7 @@ export function OnboardingModal({
                           />
                           <motion.span
                             className="relative z-10"
-                            animate={{ scale: [1, 1.05] }}
+                            animate={disableHeavy ? {} : { scale: [1, 1.05] }}
                             transition={{ type: 'tween', duration: 2, repeat: Infinity, repeatType: 'reverse', ease: 'easeInOut' }}
                           >
                             {t('onboarding.buttons.start')}

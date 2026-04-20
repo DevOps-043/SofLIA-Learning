@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 export function LiaLandingBackground() {
+  const { disableHeavy } = useMotionSafe();
+
   return (
     <div className="fixed inset-0 pointer-events-none z-0" style={{ overflow: 'visible', clipPath: 'none' }}>
       <div
@@ -12,26 +15,30 @@ export function LiaLandingBackground() {
         }}
       />
 
-      <motion.div
-        className="absolute -top-[400px] -left-[400px] w-[1000px] h-[1000px] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3], x: [0, 100, 0], y: [0, 100, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute -bottom-[400px] -right-[400px] w-[1000px] h-[1000px] bg-[#0A2540]/10 dark:bg-[#0A2540]/20 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0.5, 0.2], x: [0, -100, 0], y: [0, -100, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-      <motion.div
-        className="absolute top-1/2 -left-[200px] w-[600px] h-[600px] bg-[#00D4B3]/5 dark:bg-[#00D4B3]/10 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2], x: [0, 50, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
-      <motion.div
-        className="absolute top-1/2 -right-[200px] w-[600px] h-[600px] bg-[#0A2540]/5 dark:bg-[#0A2540]/10 rounded-full blur-3xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2], x: [0, -50, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-      />
+      {!disableHeavy && (
+        <>
+          <motion.div
+            className="absolute -top-[400px] -left-[400px] w-[1000px] h-[1000px] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3], x: [0, 100, 0], y: [0, 100, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <motion.div
+            className="absolute -bottom-[400px] -right-[400px] w-[1000px] h-[1000px] bg-[#0A2540]/10 dark:bg-[#0A2540]/20 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0.5, 0.2], x: [0, -100, 0], y: [0, -100, 0] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          />
+          <motion.div
+            className="absolute top-1/2 -left-[200px] w-[600px] h-[600px] bg-[#00D4B3]/5 dark:bg-[#00D4B3]/10 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2], x: [0, 50, 0] }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
+          <motion.div
+            className="absolute top-1/2 -right-[200px] w-[600px] h-[600px] bg-[#0A2540]/5 dark:bg-[#0A2540]/10 rounded-full blur-3xl"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2], x: [0, -50, 0] }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          />
+        </>
+      )}
     </div>
   );
 }

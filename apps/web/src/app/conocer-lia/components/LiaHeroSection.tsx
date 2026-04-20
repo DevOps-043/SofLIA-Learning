@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import type { RefObject } from 'react';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 interface LiaHeroSectionProps {
   heroRef: RefObject<HTMLElement | null>;
@@ -8,6 +9,7 @@ interface LiaHeroSectionProps {
 }
 
 export function LiaHeroSection({ heroRef, heroInView }: LiaHeroSectionProps) {
+  const { disableHeavy } = useMotionSafe()
   return (
     <section ref={heroRef} className="container mx-auto px-4 py-16 lg:py-24 relative z-10">
       <div className="max-w-6xl mx-auto relative z-10">
@@ -58,13 +60,13 @@ export function LiaHeroSection({ heroRef, heroInView }: LiaHeroSectionProps) {
           <div className="relative w-64 h-64 lg:w-80 lg:h-80">
             <motion.div
               className="absolute inset-0 rounded-full bg-gradient-to-br from-[#00D4B3] to-[#0A2540] opacity-20 blur-2xl"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
+              animate={disableHeavy ? {} : { scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
             />
 
             <motion.div
               className="absolute inset-0 rounded-full border-4 border-[#00D4B3]/30"
-              animate={{ rotate: [0, 360] }}
+              animate={disableHeavy ? {} : { rotate: [0, 360] }}
               transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
             />
 

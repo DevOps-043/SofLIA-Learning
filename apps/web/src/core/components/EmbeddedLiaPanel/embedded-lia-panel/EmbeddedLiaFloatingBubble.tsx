@@ -38,11 +38,7 @@ export function EmbeddedLiaFloatingBubble({
               animate={{ scale: 1 }}
               className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white dark:border-slate-900 z-10"
             >
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                className="w-full h-full bg-red-500 rounded-full"
-              />
+              <div className="w-full h-full bg-red-500 rounded-full animate-ping opacity-75" />
             </motion.div>
           )}
         </motion.button>

@@ -2,8 +2,8 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
-import { 
-  GraduationCap 
+import {
+  GraduationCap
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { UserDropdown } from '../UserDropdown'
@@ -12,6 +12,7 @@ import { NotificationBell } from '../NotificationBell'
 import { useLogoEasterEgg } from '../../hooks/useLogoEasterEgg'
 import { useRouter, usePathname } from 'next/navigation'
 import { usePrefetchOnHover } from '../../hooks/usePrefetch'
+import { useMotionSafe } from '../../../lib/utils/motion'
 
 interface DashboardNavbarProps {
   activeItem?: string
@@ -27,6 +28,7 @@ export function DashboardNavbar({ activeItem = 'workshops' }: DashboardNavbarPro
   const { t } = useTranslation('common')
   const { clickCount, isActivated, handleLogoClick } = useLogoEasterEgg()
   const prefetchOnHover = usePrefetchOnHover()
+  const { disableHeavy } = useMotionSafe()
 
   // Determinar item activo basado en pathname para móvil
   const getMobileActiveItem = (): string => {
@@ -171,7 +173,7 @@ export function DashboardNavbar({ activeItem = 'workshops' }: DashboardNavbarPro
                     {isActive && (
                       <motion.div
                         className="absolute inset-0 bg-[#00D4B3] blur-md opacity-30 -z-10"
-                        animate={{
+                        animate={disableHeavy ? {} : {
                           scale: [1, 1.2, 1],
                           opacity: [0.3, 0.5, 0.3]
                         }}
@@ -306,7 +308,7 @@ export function DashboardNavbar({ activeItem = 'workshops' }: DashboardNavbarPro
                     {isActive && (
                       <motion.div
                         className="absolute inset-0 bg-[#00D4B3] blur-lg opacity-20 -z-10"
-                        animate={{
+                        animate={disableHeavy ? {} : {
                           scale: [1, 1.3, 1],
                           opacity: [0.2, 0.4, 0.2]
                         }}

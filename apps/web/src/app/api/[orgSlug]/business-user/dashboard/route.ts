@@ -222,7 +222,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const [
       { data: enrollments, error: enrollmentsError },
-      { data: instructors }
+      { data: instructors },
+      learningPaths
     ] = await Promise.all([
       // Enrollments (límite 100)
       courseIds.length > 0
@@ -242,7 +243,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
             .select('id, first_name, last_name, username')
             .in('id', instructorIds)
             .returns<InstructorRow[]>()
-        : Promise.resolve({ data: [] })
+        : Promise.resolve({ data: [] }),
+
+      // Learning paths — independiente de enrollments/instructores, corre en paralelo
+      loadBusinessUserLearningPaths({ userId, organizationId }).catch((err: unknown) => {
+        logger.error('Error preparing learning paths for dashboard:', err)
+        return [] as AssignedLearningPathDashboard[]
+      })
     ])
 
     if (!enrollmentsError && enrollments) {
@@ -343,13 +350,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
           source: assignment.source
         }
       })
-
-    let learningPaths: AssignedLearningPathDashboard[] = []
-    try {
-      learningPaths = await loadBusinessUserLearningPaths({ userId, organizationId })
-    } catch (learningPathError) {
-      logger.error('Error preparing learning paths for dashboard:', learningPathError)
-    }
 
     // =====================================================
     // 🔢 Ordenar cursos según posición en learning paths

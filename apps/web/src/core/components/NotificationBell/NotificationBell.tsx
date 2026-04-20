@@ -10,6 +10,7 @@ import { es } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getNotificationIcon, getNotificationBorderColor, getNotificationBgColor, getNotificationTextColor } from '@/features/notifications/utils/notification-categories'
+import { useMotionSafe } from '../../../lib/utils/motion'
 
 /**
  * Props del componente NotificationBell
@@ -63,6 +64,7 @@ export function NotificationBell({
     setIsDropdownOpen
   } = useNotifications()
 
+  const { disableHeavy } = useMotionSafe()
   const router = useRouter()
   const dropdownRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -282,7 +284,7 @@ export function NotificationBell({
         {showPulse && criticalCount > 0 && (
           <motion.div
             className="absolute inset-0 bg-[#0A2540]/20 dark:bg-[#00D4B3]/20 rounded-lg"
-            animate={{
+            animate={disableHeavy ? {} : {
               scale: [1, 1.1, 1],
               opacity: [0.3, 0.5, 0.3]
             }}
@@ -531,7 +533,7 @@ export function NotificationBell({
                 >
                   <span className="truncate">Ver todas las notificaciones</span>
                   <motion.div
-                    animate={{ x: [0, 4, 0] }}
+                    animate={disableHeavy ? {} : { x: [0, 4, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                     className="flex-shrink-0"
                   >

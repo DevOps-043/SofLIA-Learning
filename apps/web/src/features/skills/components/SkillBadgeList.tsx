@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { useMotionSafe } from '../../../lib/utils/motion'
 import { Filter, Search, Eye, EyeOff } from 'lucide-react'
 import { SkillBadge, SkillBadgeProps } from './SkillBadge'
 import { SkillLevel } from '../constants/skillLevels'
@@ -47,6 +48,7 @@ export function SkillBadgeList({
   className = '',
   layout = 'grid'
 }: SkillBadgeListProps) {
+  const { disableHeavy } = useMotionSafe()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [hiddenSkills, setHiddenSkills] = useState<Set<string>>(new Set())
@@ -172,7 +174,7 @@ export function SkillBadgeList({
               initial={{ opacity: 0, scale: layout === 'overlap' ? 0.95 : 0.9 }}
               animate={
                 layout === 'overlap'
-                  ? { opacity: 1, scale: 1, y: [0, -4, 0] }
+                  ? { opacity: 1, scale: 1, ...(disableHeavy ? {} : { y: [0, -4, 0] }) }
                   : { opacity: 1, scale: 1 }
               }
               transition={

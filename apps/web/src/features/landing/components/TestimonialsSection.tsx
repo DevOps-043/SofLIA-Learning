@@ -4,6 +4,7 @@ import React, { useRef, useState } from 'react';
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { Newspaper, Video, Users, Calendar } from 'lucide-react';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 interface PlatformFeature {
   id: string;
@@ -57,15 +58,16 @@ const platformFeatures: PlatformFeature[] = [
 export function TestimonialsSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const { disableHeavy } = useMotionSafe();
   const isInView = useInView(sectionRef, { once: false, amount: 0.1 });
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start end', 'end start']
   });
 
-  // Parallax effects
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -150]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  // Parallax disabled on mobile to eliminate scroll listener overhead
+  const y1 = useTransform(scrollYProgress, [0, 1], disableHeavy ? [0, 0] : [0, -150]);
+  const y2 = useTransform(scrollYProgress, [0, 1], disableHeavy ? [0, 0] : [0, 150]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0.3]);
 
   return (
@@ -82,29 +84,14 @@ export function TestimonialsSection() {
         <motion.div
           className="absolute -top-[200px] -left-[200px] w-[700px] h-[700px] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 rounded-full blur-3xl"
           style={{ y: y1 }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: 'easeInOut'
-          }}
+          animate={disableHeavy ? {} : { scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
           className="absolute -bottom-[200px] -right-[200px] w-[700px] h-[700px] bg-[#0A2540]/10 dark:bg-[#0A2540]/20 rounded-full blur-3xl"
           style={{ y: y2 }}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 1
-          }}
+          animate={disableHeavy ? {} : { scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         />
         
         {/* Grid Pattern */}

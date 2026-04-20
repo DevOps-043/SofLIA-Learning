@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useMotionSafe } from '../../../../lib/utils/motion'
 import {
   BarChart3,
   Clock,
@@ -90,6 +91,7 @@ const previewStats: PreviewStat[] = [
 ] as const
 
 export function CoursePreviewTab() {
+  const { disableHeavy } = useMotionSafe()
   const { workshopPreview, previewLoading } = useCourseManagementContext().state
 
   return (
@@ -138,7 +140,7 @@ export function CoursePreviewTab() {
                 ) : (
                   <div className={COURSE_MANAGEMENT_PREVIEW_FALLBACK_CLASS}>
                     <motion.div
-                      animate={{
+                      animate={disableHeavy ? {} : {
                         scale: [1, 1.08, 1],
                         rotate: [0, 5, -5, 0],
                       }}

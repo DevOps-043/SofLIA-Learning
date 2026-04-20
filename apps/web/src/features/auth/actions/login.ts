@@ -336,20 +336,11 @@ export async function loginAction(formData: FormData) {
         headers: requestHeaders
       })
 
-      // 6.1. Crear sesión con refresh tokens (genera tokens y los guarda en DB)
-
-      const sessionInfo = await RefreshTokenService.createSession(
-        user.id,
-        parsed.rememberMe,
-        mockRequest
-      )
-
-      // 6.2. Crear sesión legacy ANTES de establecer cookies
-
-      const legacySession = await SessionService.createLegacySession(
-        user.id,
-        parsed.rememberMe
-      )
+      // 6.1 + 6.2. Crear ambas sesiones en paralelo — son independientes entre sí
+      const [sessionInfo, legacySession] = await Promise.all([
+        RefreshTokenService.createSession(user.id, parsed.rememberMe, mockRequest),
+        SessionService.createLegacySession(user.id, parsed.rememberMe),
+      ])
 
       // 6.3. Establecer TODAS las cookies usando la misma instancia de cookieStore
       // IMPORTANTE: Reutilizar cookieStore obtenido anteriormente para mantener el contexto
@@ -421,19 +412,15 @@ export async function loginAction(formData: FormData) {
     // 7. Limpiar sesiones expiradas (mantenimiento) fuera del camino critico.
     scheduleExpiredSessionCleanup()
 
-    // 7.5. Actualizar last_login_at en la tabla users
-    try {
-      const { error: updateLoginError } = await supabase
-        .from('users')
-        .update({ last_login_at: new Date().toISOString() })
-        .eq('id', user.id)
-      
-      if (updateLoginError) {
-        console.warn('No se pudo actualizar last_login_at:', updateLoginError)
-      }
-    } catch (loginUpdateError) {
-      // No fallar el login si falla la actualización del timestamp
-    }
+    // 7.5. Actualizar last_login_at — fire-and-forget, no bloquea la respuesta
+    void supabase
+      .from('users')
+      .update({ last_login_at: new Date().toISOString() })
+      .eq('id', user.id)
+      .then(({ error }) => {
+        if (error) console.warn('No se pudo actualizar last_login_at:', error)
+      })
+      .catch(() => undefined)
 
     // 8. Redirección basada en cargo_rol (enfoque B2B)
     // - Administrador -> /admin/dashboard

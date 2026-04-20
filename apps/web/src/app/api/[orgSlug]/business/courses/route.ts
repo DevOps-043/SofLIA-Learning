@@ -119,6 +119,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({
       success: true,
       courses: coursesWithInstructors
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=120, stale-while-revalidate=60'
+      }
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business/courses:', error)

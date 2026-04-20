@@ -56,16 +56,7 @@ export function SectionTabs({ activeTab, onTabChange }: SectionTabsProps) {
           <Building2 className={`w-5 h-5 ${activeTab === 'companies' ? 'text-white' : 'text-primary'}`} />
           <span className="font-bold text-lg">Para Empresas</span>
           {activeTab === 'companies' && (
-            <motion.div
-              className="absolute -top-2 -right-2 w-3 h-3 bg-success rounded-full"
-              animate={{
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-              }}
-            />
+            <div className="absolute -top-2 -right-2 w-3 h-3 bg-success rounded-full animate-pulse" />
           )}
         </motion.button>
 
@@ -83,16 +74,7 @@ export function SectionTabs({ activeTab, onTabChange }: SectionTabsProps) {
           <GraduationCap className={`w-5 h-5 ${activeTab === 'instructors' ? 'text-white' : 'text-primary'}`} />
           <span className="font-bold text-lg">Para Instructores</span>
           {activeTab === 'instructors' && (
-            <motion.div
-              className="absolute -top-2 -right-2 w-3 h-3 bg-success rounded-full"
-              animate={{
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-              }}
-            />
+            <div className="absolute -top-2 -right-2 w-3 h-3 bg-success rounded-full animate-pulse" />
           )}
         </motion.button>
       </div>

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { Clock, Building2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useMotionSafe } from '../../../lib/utils/motion'
 
 interface PendingJoinScreenProps {
   organizationName?: string
@@ -10,6 +11,7 @@ interface PendingJoinScreenProps {
 
 export function PendingJoinScreen({ organizationName }: PendingJoinScreenProps) {
   const { t } = useTranslation('common')
+  const { disableHeavy } = useMotionSafe()
 
   return (
     <motion.div
@@ -18,7 +20,7 @@ export function PendingJoinScreen({ organizationName }: PendingJoinScreenProps) 
       className="max-w-md mx-auto text-center"
     >
       <motion.div
-        animate={{ rotate: [0, 10, -10, 0] }}
+        animate={disableHeavy ? {} : { rotate: [0, 10, -10, 0] }}
         transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
         className="w-20 h-20 rounded-2xl bg-teal-500/10 flex items-center justify-center mx-auto mb-6"
       >

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
+import { useMotionSafe } from '../../../lib/utils/motion';
 import { ArrowRight, Calendar, FileText, CheckCircle2, Bot, BarChart3, Rocket, LucideIcon, GraduationCap, Sparkles } from 'lucide-react';
 
 interface Benefit {
@@ -47,6 +48,7 @@ const fadeInUp = {
 
 export function HeroSectionB2B() {
   const { t } = useTranslation('common');
+  const { disableHeavy } = useMotionSafe();
 
   return (
     <section className="min-h-screen flex items-center relative overflow-hidden bg-white dark:bg-[#0F1419] pt-20">
@@ -58,10 +60,7 @@ export function HeroSectionB2B() {
           style={{
             background: 'radial-gradient(circle, rgba(0, 212, 179, 0.3), transparent 60%)',
           }}
-          animate={{
-            scale: [1, 1.1, 1],
-            x: [0, 30, 0],
-          }}
+          animate={disableHeavy ? {} : { scale: [1, 1.1, 1], x: [0, 30, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
@@ -69,10 +68,7 @@ export function HeroSectionB2B() {
           style={{
             background: 'radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 60%)',
           }}
-          animate={{
-            scale: [1, 1.15, 1],
-            y: [0, -30, 0],
-          }}
+          animate={disableHeavy ? {} : { scale: [1, 1.15, 1], y: [0, -30, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
         />
 
@@ -175,18 +171,13 @@ export function HeroSectionB2B() {
                 style={{
                   background: 'radial-gradient(circle, #00D4B3, transparent 70%)',
                 }}
-                animate={{
-                  scale: [1, 1.1, 1],
-                  opacity: [0.2, 0.3, 0.2],
-                }}
+                animate={disableHeavy ? {} : { scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
                 transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
               />
 
               {/* Logo */}
               <motion.div
-                animate={{
-                  y: [0, -15, 0],
-                }}
+                animate={disableHeavy ? {} : { y: [0, -15, 0] }}
                 transition={{
                   duration: 4,
                   repeat: Infinity,

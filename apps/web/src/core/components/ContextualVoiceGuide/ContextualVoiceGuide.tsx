@@ -7,9 +7,11 @@ import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { ContextualVoiceGuideProps } from './types';
 import { useContextualVoiceGuideLogic } from './hooks/useContextualVoiceGuideLogic';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
   const { t } = useTranslation('common');
+  const { disableHeavy } = useMotionSafe();
 
   const {
     isVisible,
@@ -91,7 +93,7 @@ export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
                   </motion.div>
 
                   {/* Partículas flotantes - Más pequeñas y compactas */}
-                  {[...Array(8)].map((_, i) => {
+                  {!disableHeavy && [...Array(8)].map((_, i) => {
                     // Radio más pequeño para pantallas pequeñas
                     const radius = isMobile ? 50 : 70;
                     return (
@@ -155,7 +157,7 @@ export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
                     style={{
                       background: 'linear-gradient(135deg, rgba(10, 37, 64, 0.1) 0%, rgba(0, 212, 179, 0.1) 50%, rgba(10, 37, 64, 0.1) 100%)',
                     }}
-                    animate={{
+                    animate={disableHeavy ? {} : {
                       backgroundPosition: ['0% 0%', '100% 100%'],
                     }}
                     transition={{
@@ -257,7 +259,7 @@ export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
                                 ? 'w-4 sm:w-5 md:w-6 bg-gradient-to-r from-[#10B981] to-[#10B981]'
                                 : 'w-4 sm:w-5 md:w-6 bg-[#E9ECEF] dark:bg-[#6C757D]/30'
                             }`}
-                            animate={idx === currentStep ? {
+                            animate={idx === currentStep && !disableHeavy ? {
                               scale: [1, 1.15, 1],
                               boxShadow: [
                                 '0 0 0px rgba(0, 212, 179, 0.5)',
@@ -271,7 +273,7 @@ export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
                               ease: 'easeInOut'
                             }}
                           />
-                          {idx === currentStep && (
+                          {idx === currentStep && !disableHeavy && (
                             <motion.div
                               className="absolute inset-0 rounded-full bg-gradient-to-r from-[#0A2540] to-[#00D4B3] blur-md opacity-50"
                               animate={{
@@ -430,7 +432,7 @@ export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
                           />
                           <motion.span
                             className="relative z-10"
-                            animate={{
+                            animate={disableHeavy ? {} : {
                               scale: [1, 1.05],
                             }}
                             transition={{

@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useMotionSafe } from '../../../lib/utils/motion';
 import { 
   Brain, 
   Rocket, 
@@ -76,6 +77,7 @@ const cardVariants = {
 
 export function UseCasesSection() {
   const { t } = useTranslation('common');
+  const { disableHeavy } = useMotionSafe();
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
 
@@ -198,7 +200,7 @@ export function UseCasesSection() {
                 {/* Arrow */}
                 <motion.div
                   className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  animate={{ x: [0, 4, 0] }}
+                  animate={disableHeavy ? {} : { x: [0, 4, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
                   <ArrowRight size={20} style={{ color: useCase.color }} />

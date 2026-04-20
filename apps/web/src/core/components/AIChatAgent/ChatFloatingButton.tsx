@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bug, ChevronUp } from 'lucide-react';
+import { useMotionSafe } from '../../../lib/utils/motion';
 
 interface ChatFloatingButtonProps {
   bottomPosition: string | number
@@ -26,6 +27,7 @@ export function ChatFloatingButton({
   reportProblemLabel,
   handleToggle,
 }: ChatFloatingButtonProps) {
+  const { disableHeavy } = useMotionSafe()
   return (
     <div
       className="fixed right-6 z-40 flex flex-col gap-2 items-end bottom-6 md:bottom-6"
@@ -101,7 +103,7 @@ export function ChatFloatingButton({
         >
           <motion.div
             className="absolute inset-0 rounded-full bg-gradient-to-r from-[#00D4B3] via-[#00D4B3] to-[#00b89a]"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.7, 0, 0.7] }}
+            animate={disableHeavy ? {} : { scale: [1, 1.2, 1], opacity: [0.7, 0, 0.7] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           />
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden rounded-full">
