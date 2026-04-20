@@ -38,6 +38,7 @@ export interface ModernNavbarProps {
   onLogout: () => void;
   styles?: ModernNavbarStyleConfig | null;
   onRestartTour?: () => void;
+  disableHeavyEffects?: boolean;
 }
 
 export interface ModernNavbarColors {

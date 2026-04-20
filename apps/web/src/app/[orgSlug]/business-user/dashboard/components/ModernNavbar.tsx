@@ -24,6 +24,7 @@ export function ModernNavbar({
   onLogout,
   styles,
   onRestartTour,
+  disableHeavyEffects = false,
 }: ModernNavbarProps) {
   const canAccessAdminPanel = orgRole === 'owner' || orgRole === 'admin' || orgRole === 'superadmin';
   const router = useRouter();
@@ -48,7 +49,7 @@ export function ModernNavbar({
   return (
     <>
       <nav
-        className="sticky top-0 z-[120] w-full backdrop-blur-xl"
+        className={`sticky top-0 z-[120] w-full ${disableHeavyEffects ? '' : 'backdrop-blur-xl'}`}
         style={{
           backgroundColor: colors.navBg,
         }}
@@ -100,9 +101,12 @@ export function ModernNavbar({
                   backgroundColor: mobileMenuOpen ? `${colors.primary}15` : 'transparent',
                   borderColor: mobileMenuOpen ? colors.borderActive : colors.border,
                 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
               >
-                <motion.div animate={{ rotate: mobileMenuOpen ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                <motion.div
+                  animate={disableHeavyEffects ? undefined : { rotate: mobileMenuOpen ? 90 : 0 }}
+                  transition={disableHeavyEffects ? undefined : { duration: 0.2 }}
+                >
                   {mobileMenuOpen ? (
                     <X className="h-5 w-5" style={{ color: colors.accent }} />
                   ) : (
@@ -137,6 +141,7 @@ export function ModernNavbar({
             t={t}
             theme={theme}
             user={user}
+            disableHeavyEffects={disableHeavyEffects}
           />,
           document.body
         )}

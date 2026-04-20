@@ -50,12 +50,12 @@ function LiaFloatingButtonContent() {
             }}
           >
             <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+              initial={disableHeavy ? false : { scale: 0, opacity: 0 }}
+              animate={disableHeavy ? undefined : { scale: 1, opacity: 1 }}
+              exit={disableHeavy ? undefined : { scale: 0, opacity: 0 }}
+              transition={disableHeavy ? undefined : { type: 'spring', stiffness: 400, damping: 20 }}
+              whileHover={disableHeavy ? undefined : { scale: 1.1 }}
+              whileTap={disableHeavy ? undefined : { scale: 0.95 }}
               onClick={togglePanel}
               style={{
                 width: '100%',
@@ -69,7 +69,7 @@ function LiaFloatingButtonContent() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 pointerEvents: 'auto',
-                willChange: 'transform',
+                willChange: disableHeavy ? 'auto' : 'transform',
               }}
               aria-label="Abrir asistente SofLIA"
             >

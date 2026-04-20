@@ -31,6 +31,7 @@ interface CourseCard3DProps {
   learningPathTitle?: string
   learningPathPosition?: number
   isLockedInPath?: boolean
+  disableHeavyEffects?: boolean
 }
 
 /**
@@ -47,6 +48,7 @@ export function CourseCard3D({
   learningPathTitle,
   learningPathPosition,
   isLockedInPath = false,
+  disableHeavyEffects = false,
 }: CourseCard3DProps) {
   const { resolvedTheme } = useThemeStore()
   const isSystemLight = resolvedTheme === 'light'
@@ -98,7 +100,7 @@ export function CourseCard3D({
   if (viewMode === 'list') {
     return (
       <div
-        className={`group flex flex-row items-center gap-0 overflow-hidden rounded-2xl transition-all duration-200 ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
+        className={`group flex flex-row items-center gap-0 overflow-hidden rounded-2xl ${disableHeavyEffects ? '' : 'transition-all duration-200'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
         style={{
           backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
           border: `1px solid ${isLightMode ? borderColor : 'rgba(255,255,255,0.07)'}`,
@@ -126,7 +128,7 @@ export function CourseCard3D({
             src={course.thumbnail || '/images/course-placeholder.png'}
             alt={course.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className={`object-cover ${disableHeavyEffects ? '' : 'transition-transform duration-500 group-hover:scale-105'}`}
             sizes="64px"
           />
         </div>
@@ -190,7 +192,7 @@ export function CourseCard3D({
 
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-[20px] transition-all duration-300 ${isLockedInPath ? 'cursor-not-allowed' : 'hover:-translate-y-1 hover:shadow-xl cursor-pointer'}`}
+      className={`group relative flex flex-col overflow-hidden rounded-[20px] ${disableHeavyEffects ? '' : 'transition-all duration-300'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:-translate-y-1 hover:shadow-xl cursor-pointer'}`}
       style={{
         backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
         border: `1px solid ${isLightMode ? borderColor : 'rgba(255, 255, 255, 0.08)'}`,
@@ -209,7 +211,7 @@ export function CourseCard3D({
           src={course.thumbnail || '/images/course-placeholder.png'}
           alt={course.title}
           fill
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          className={`object-cover ${disableHeavyEffects ? '' : 'transition-transform duration-700 ease-out group-hover:scale-105'}`}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
@@ -219,7 +221,7 @@ export function CourseCard3D({
             <Lock className="w-7 h-7 text-white/80" />
           </div>
         ) : (
-          <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase text-white bg-black/40 backdrop-blur-md border border-white/20">
+          <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase text-white bg-black/40 border border-white/20 ${disableHeavyEffects ? '' : 'backdrop-blur-md'}`}>
             {getStatusIcon()}
             {course.status}
           </div>
@@ -228,7 +230,7 @@ export function CourseCard3D({
         {course.has_certificate && course.progress === 100 && onCertificateClick && (
           <button
             onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
-            className="absolute top-3 right-3 p-2 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-yellow-400 transition-all duration-300 hover:scale-110 hover:bg-white hover:text-yellow-600 shadow-sm"
+            className={`absolute top-3 right-3 p-2 rounded-full bg-white/20 border border-white/40 text-yellow-400 shadow-sm ${disableHeavyEffects ? '' : 'backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-white hover:text-yellow-600'}`}
           >
             <Award className="w-4 h-4" />
           </button>
@@ -265,7 +267,7 @@ export function CourseCard3D({
           </div>
           <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: isLightMode ? '#F1F5F9' : 'rgba(255,255,255,0.08)' }}>
             <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
+              className={`h-full rounded-full ${disableHeavyEffects ? '' : 'transition-all duration-700 ease-out'}`}
               style={{ width: `${course.progress}%`, background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})` }}
             />
           </div>

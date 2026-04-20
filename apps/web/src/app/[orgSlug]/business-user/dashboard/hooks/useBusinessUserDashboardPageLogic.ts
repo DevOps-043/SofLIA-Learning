@@ -8,6 +8,7 @@ import { useOrganizationStyles } from '../../../../../features/business-panel/ho
 import { getBackgroundStyle, generateCSSVariables } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
 import { useBusinessUserJoyride } from '../../../../../features/tours/hooks/useBusinessUserJoyride'
+import { useMobilePerformanceMode } from '../../../../../lib/utils/mobile-performance'
 import {
   buildBusinessUserDashboardColors,
   buildBusinessUserDashboardStats,
@@ -81,6 +82,7 @@ export function useBusinessUserDashboardPageLogic() {
   const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStyles()
   const { resolvedTheme } = useThemeStore()
+  const { disableHeavyEffects, isMobileViewport } = useMobilePerformanceMode()
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -112,6 +114,7 @@ export function useBusinessUserDashboardPageLogic() {
   const { joyrideProps, shouldShowTour, startTour: restartTour, showVideoIntro, handleVideoComplete } =
     useBusinessUserJoyride({
       enabled: orgRole !== null && orgRole !== 'superadmin',
+      mobilePerformanceMode: disableHeavyEffects,
     })
 
   const translate = useCallback(
@@ -221,9 +224,36 @@ export function useBusinessUserDashboardPageLogic() {
 
   useEffect(() => {
     if (orgSlug) {
+      if (process.env.NODE_ENV === 'development' && typeof performance !== 'undefined') {
+        performance.mark('business-user-dashboard:load-start')
+      }
       void loadDashboardData()
     }
   }, [loadDashboardData, orgSlug])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development' || loading || typeof performance === 'undefined') {
+      return
+    }
+
+    performance.mark('business-user-dashboard:load-end')
+    performance.measure(
+      'business-user-dashboard:load-duration',
+      'business-user-dashboard:load-start',
+      'business-user-dashboard:load-end'
+    )
+
+    const measures = performance.getEntriesByName('business-user-dashboard:load-duration')
+    const lastMeasure = measures[measures.length - 1]
+
+    console.debug('[business-user-dashboard] load complete', {
+      assignedCourses: assignedCourses.length,
+      disableHeavyEffects,
+      isMobileViewport,
+      learningPaths: learningPaths.length,
+      loadDurationMs: Math.round(lastMeasure?.duration || 0),
+    })
+  }, [assignedCourses.length, disableHeavyEffects, isMobileViewport, learningPaths.length, loading])
 
   const handleCourseClick = useCallback(
     async (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => {
@@ -287,6 +317,8 @@ export function useBusinessUserDashboardPageLogic() {
     backgroundStyle,
     cssVariables,
     orgColors,
+    disableHeavyEffects,
+    isMobileViewport,
     joyrideProps,
     shouldShowTour,
     restartTour,

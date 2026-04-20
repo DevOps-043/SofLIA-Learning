@@ -9,6 +9,7 @@ import { useTourProgress } from './useTourProgress';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;
+  mobilePerformanceMode?: boolean;
 }
 
 function targetExists(step: Step): boolean {
@@ -40,7 +41,7 @@ function resolveBusinessUserJoyrideSteps(isMobile: boolean): Step[] {
 export function useBusinessUserJoyride(
   options: UseBusinessUserJoyrideOptions = {},
 ) {
-  const { enabled = true } = options;
+  const { enabled = true, mobilePerformanceMode = false } = options;
   const { setRestart } = useTourRestart();
 
   const {
@@ -76,7 +77,15 @@ export function useBusinessUserJoyride(
   }, [isMobile]);
 
   useEffect(() => {
-    if (!enabled || isLoading || !shouldShowTour || isTourFinishedInSession || run || showVideoIntro) {
+    if (
+      !enabled ||
+      mobilePerformanceMode ||
+      isLoading ||
+      !shouldShowTour ||
+      isTourFinishedInSession ||
+      run ||
+      showVideoIntro
+    ) {
       return;
     }
 
@@ -86,7 +95,7 @@ export function useBusinessUserJoyride(
     }, 2000);
 
     return () => window.clearTimeout(timer);
-  }, [enabled, isLoading, shouldShowTour, isTourFinishedInSession, run, showVideoIntro]);
+  }, [enabled, isLoading, shouldShowTour, isTourFinishedInSession, run, showVideoIntro, mobilePerformanceMode]);
 
   const handleVideoComplete = useCallback(() => {
     console.log('[useBusinessUserJoyride] Video complete, preparing to start tour');
@@ -179,8 +188,17 @@ export function useBusinessUserJoyride(
     setStepIndex(0);
     setRun(false);
     setIsTourFinishedInSession(false);
+    if (mobilePerformanceMode) {
+      setShowVideoIntro(false);
+      startTour().catch((err) =>
+        console.error('[useBusinessUserJoyride] Manual mobile start failed', err),
+      );
+      setRun(true);
+      return;
+    }
+
     setShowVideoIntro(true);
-  }, []);
+  }, [mobilePerformanceMode, startTour]);
 
   useEffect(() => {
     setRestart(manualStartTour, 'Reiniciar tutorial');

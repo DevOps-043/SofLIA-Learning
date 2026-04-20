@@ -59,6 +59,7 @@ export default function BusinessUserDashboardPage() {
         handleVideoComplete={logic.handleVideoComplete}
         introVideos={logic.introVideos}
         t={logic.translate}
+        disableHeavyEffects={logic.disableHeavyEffects}
       />
       {logic.isMounted && logic.joyrideProps.run && (
         <Joyride

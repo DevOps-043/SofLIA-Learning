@@ -13,6 +13,7 @@ interface LearnPageMobileNavProps {
   onOpenMaterial: () => void;
   onNavigatePrevious: () => void;
   onNavigateNext: () => void;
+  disableHeavyEffects?: boolean;
 }
 
 export function LearnPageMobileNav({
@@ -23,14 +24,15 @@ export function LearnPageMobileNav({
   onOpenMaterial,
   onNavigatePrevious,
   onNavigateNext,
+  disableHeavyEffects = false,
 }: LearnPageMobileNavProps) {
   if (!isVisible) return null;
 
   return (
     <motion.div
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 dark:bg-[#1E2329]/95 backdrop-blur-lg border-t border-[#E9ECEF] dark:border-[#6C757D]/30 shadow-2xl"
+      initial={disableHeavyEffects ? false : { y: 100, opacity: 0 }}
+      animate={disableHeavyEffects ? undefined : { y: 0, opacity: 1 }}
+      className={`fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 dark:bg-[#1E2329]/95 border-t border-[#E9ECEF] dark:border-[#6C757D]/30 ${disableHeavyEffects ? '' : 'backdrop-blur-lg shadow-2xl'}`}
       style={{
         paddingBottom: "max(env(safe-area-inset-bottom), 8px)",
         height: "calc(70px + max(env(safe-area-inset-bottom), 8px))",

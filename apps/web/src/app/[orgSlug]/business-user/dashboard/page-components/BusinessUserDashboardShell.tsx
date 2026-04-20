@@ -1,7 +1,7 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { Suspense, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
@@ -74,6 +74,7 @@ interface BusinessUserDashboardShellProps {
   handleVideoComplete: () => void
   introVideos: string[]
   t: (key: string, defaultValue?: string) => string
+  disableHeavyEffects: boolean
 }
 
 export function BusinessUserDashboardShell({
@@ -104,8 +105,14 @@ export function BusinessUserDashboardShell({
   handleVideoComplete,
   introVideos,
   t,
+  disableHeavyEffects,
 }: BusinessUserDashboardShellProps) {
-  const [courseView, setCourseView] = useState<'grid' | 'list' | 'path'>('grid')
+  const [courseView, setCourseView] = useState<'grid' | 'list' | 'path'>(
+    disableHeavyEffects ? 'list' : 'grid'
+  )
+  const [visibleCourseCount, setVisibleCourseCount] = useState(
+    disableHeavyEffects ? 6 : assignedCourses.length
+  )
 
   const coursePathMap = useMemo(() => {
     const map = new Map<string, { pathTitle: string; position: number; isUnlocked: boolean }>()
@@ -123,6 +130,36 @@ export function BusinessUserDashboardShell({
     return map
   }, [learningPaths])
 
+  const displayedCourses = useMemo(() => {
+    if (!disableHeavyEffects || courseView === 'path') {
+      return assignedCourses
+    }
+
+    return assignedCourses.slice(0, visibleCourseCount)
+  }, [assignedCourses, courseView, disableHeavyEffects, visibleCourseCount])
+
+  useEffect(() => {
+    if (!disableHeavyEffects) {
+      setVisibleCourseCount(assignedCourses.length)
+      return
+    }
+
+    setCourseView((currentView) => (currentView === 'path' ? currentView : 'list'))
+    setVisibleCourseCount(6)
+  }, [assignedCourses.length, disableHeavyEffects])
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') {
+      return
+    }
+
+    console.debug('[business-user-dashboard] initial cards', {
+      disableHeavyEffects,
+      renderedCards: displayedCourses.length,
+      totalCourses: assignedCourses.length,
+    })
+  }, [assignedCourses.length, disableHeavyEffects, displayedCourses.length])
+
   return (
     <div
       className="min-h-screen"
@@ -134,7 +171,7 @@ export function BusinessUserDashboardShell({
       <Suspense
         fallback={
           <nav
-            className="sticky top-0 z-50 w-full backdrop-blur-xl h-16"
+            className={`sticky top-0 z-50 w-full h-16 ${disableHeavyEffects ? '' : 'backdrop-blur-xl'}`}
             style={{
               backgroundColor: orgColors.sidebarBg,
               borderBottom: `1px solid ${orgColors.border}`,
@@ -152,6 +189,7 @@ export function BusinessUserDashboardShell({
           onLogout={handleLogout}
           styles={userDashboardStyles}
           onRestartTour={restartTour}
+          disableHeavyEffects={disableHeavyEffects}
         />
       </Suspense>
 
@@ -171,9 +209,9 @@ export function BusinessUserDashboardShell({
             className="scroll-mt-28 mb-10"
           >
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
+              animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+              transition={disableHeavyEffects ? undefined : { duration: 0.6 }}
               className="relative overflow-hidden rounded-3xl p-8 group"
             >
               <div
@@ -186,54 +224,62 @@ export function BusinessUserDashboardShell({
                   src="/images/teams-header.png"
                   alt="Learning Panel Background"
                   fill
-                  className="object-cover opacity-50"
+                  className={`object-cover ${disableHeavyEffects ? 'opacity-35' : 'opacity-50'}`}
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/20 to-transparent pointer-events-none z-0" />
-                <div
-                  className="absolute inset-0 opacity-[0.1]"
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
-                    `,
-                    backgroundSize: '50px 50px',
-                  }}
-                />
-                <div
-                  className="absolute -right-20 top-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-[120px]"
-                  style={{ backgroundColor: `${orgColors.accent}20` }}
-                />
-                <div
-                  className="absolute right-1/4 bottom-0 w-64 h-64 rounded-full blur-[100px]"
-                  style={{ backgroundColor: `${orgColors.primary}15` }}
-                />
+                {!disableHeavyEffects ? (
+                  <>
+                    <div
+                      className="absolute inset-0 opacity-[0.1]"
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                          linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                        `,
+                        backgroundSize: '50px 50px',
+                      }}
+                    />
+                    <div
+                      className="absolute -right-20 top-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-[120px]"
+                      style={{ backgroundColor: `${orgColors.accent}20` }}
+                    />
+                    <div
+                      className="absolute right-1/4 bottom-0 w-64 h-64 rounded-full blur-[100px]"
+                      style={{ backgroundColor: `${orgColors.primary}15` }}
+                    />
+                  </>
+                ) : null}
               </div>
 
-              <div
-                className="absolute top-6 right-12 w-2 h-2 rounded-full z-10"
-                style={{ backgroundColor: orgColors.accent }}
-              />
-              <div
-                className="absolute bottom-8 right-24 w-1.5 h-1.5 rounded-full z-10 opacity-60"
-                style={{ backgroundColor: orgColors.primary }}
-              />
-              <div
-                className="absolute top-1/2 right-16 w-1 h-1 rounded-full z-10 opacity-40"
-                style={{ backgroundColor: orgColors.primary }}
-              />
-              <div
-                className="absolute bottom-12 right-32 w-3 h-3 rounded-full"
-                style={{ backgroundColor: `${orgColors.primary}40` }}
-              />
+              {!disableHeavyEffects ? (
+                <>
+                  <div
+                    className="absolute top-6 right-12 w-2 h-2 rounded-full z-10"
+                    style={{ backgroundColor: orgColors.accent }}
+                  />
+                  <div
+                    className="absolute bottom-8 right-24 w-1.5 h-1.5 rounded-full z-10 opacity-60"
+                    style={{ backgroundColor: orgColors.primary }}
+                  />
+                  <div
+                    className="absolute top-1/2 right-16 w-1 h-1 rounded-full z-10 opacity-40"
+                    style={{ backgroundColor: orgColors.primary }}
+                  />
+                  <div
+                    className="absolute bottom-12 right-32 w-3 h-3 rounded-full"
+                    style={{ backgroundColor: `${orgColors.primary}40` }}
+                  />
+                </>
+              ) : null}
 
               <div className="relative z-10">
                 <motion.h1
                   className="text-3xl lg:text-4xl xl:text-5xl font-bold mb-3"
                   style={{ color: '#FFFFFF' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                  initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
+                  animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+                  transition={disableHeavyEffects ? undefined : { delay: 0.3 }}
                 >
                   {greeting}, <span className="text-white">{user?.first_name || 'Usuario'}</span>
                 </motion.h1>
@@ -241,18 +287,18 @@ export function BusinessUserDashboardShell({
                 <motion.p
                   className="text-lg max-w-xl mb-6"
                   style={{ color: 'rgba(255,255,255,0.8)' }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
+                  animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+                  transition={disableHeavyEffects ? undefined : { delay: 0.4 }}
                 >
                   {t('dashboard.subtitle')}
                 </motion.p>
 
                 <motion.div
                   className="flex flex-wrap items-center gap-6"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
+                  initial={disableHeavyEffects ? false : { opacity: 0 }}
+                  animate={disableHeavyEffects ? undefined : { opacity: 1 }}
+                  transition={disableHeavyEffects ? undefined : { delay: 0.5 }}
                 >
                   <div className="flex items-center gap-2 text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
                     <Clock className="w-4 h-4" />
@@ -261,16 +307,18 @@ export function BusinessUserDashboardShell({
                 </motion.div>
               </div>
 
-              <div
-                className="absolute inset-0 rounded-3xl pointer-events-none"
-                style={{
-                  background: `linear-gradient(135deg, ${orgColors.primary}50, transparent, ${orgColors.primary}30)`,
-                  padding: '1px',
-                  mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                  maskComposite: 'exclude',
-                  WebkitMaskComposite: 'xor',
-                }}
-              />
+              {!disableHeavyEffects ? (
+                <div
+                  className="absolute inset-0 rounded-3xl pointer-events-none"
+                  style={{
+                    background: `linear-gradient(135deg, ${orgColors.primary}50, transparent, ${orgColors.primary}30)`,
+                    padding: '1px',
+                    mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    maskComposite: 'exclude',
+                    WebkitMaskComposite: 'xor',
+                  }}
+                />
+              ) : null}
             </motion.div>
           </div>
 
@@ -280,9 +328,9 @@ export function BusinessUserDashboardShell({
           >
             <section className="mb-10">
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
+                initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
+                animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+                transition={disableHeavyEffects ? undefined : { delay: 0.3 }}
                 className="flex items-center justify-between mb-6"
               >
                 <div className="flex items-center gap-3">
@@ -336,6 +384,7 @@ export function BusinessUserDashboardShell({
                         onClick={isCertificates && stats.certificates > 0 ? handleCertificatesClick : undefined}
                         isClickable={isCertificates && stats.certificates > 0}
                         styles={userDashboardStyles}
+                        disableHeavyEffects={disableHeavyEffects}
                         id={
                           index === 0
                             ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCourses
@@ -354,9 +403,9 @@ export function BusinessUserDashboardShell({
 
           <section>
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
+              animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+              transition={disableHeavyEffects ? undefined : { delay: 0.4 }}
               className="flex items-center justify-between mb-6"
             >
               <div className="flex items-center gap-3">
@@ -417,9 +466,9 @@ export function BusinessUserDashboardShell({
               />
             ) : assignedCourses.length === 0 ? (
               <motion.div
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative overflow-hidden rounded-2xl backdrop-blur-xl p-12 text-center"
+                initial={disableHeavyEffects ? false : { opacity: 0, scale: 0.98 }}
+                animate={disableHeavyEffects ? undefined : { opacity: 1, scale: 1 }}
+                className={`relative overflow-hidden rounded-2xl p-12 text-center ${disableHeavyEffects ? '' : 'backdrop-blur-xl'}`}
                 style={{
                   backgroundColor: orgColors.cardBg,
                   border: `1px solid ${orgColors.border}`,
@@ -433,9 +482,9 @@ export function BusinessUserDashboardShell({
                 />
 
                 <motion.div
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: 'spring' }}
+                  initial={disableHeavyEffects ? false : { scale: 0.8 }}
+                  animate={disableHeavyEffects ? undefined : { scale: 1 }}
+                  transition={disableHeavyEffects ? undefined : { delay: 0.2, type: 'spring' }}
                   className="relative z-10"
                 >
                   <div
@@ -465,16 +514,18 @@ export function BusinessUserDashboardShell({
                   </div>
                 </motion.div>
 
-                <div
-                  className="absolute inset-0 rounded-2xl pointer-events-none"
-                  style={{
-                    background: `linear-gradient(135deg, ${orgColors.primary}30, transparent, ${orgColors.accent}15)`,
-                    padding: '1px',
-                    mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                    maskComposite: 'exclude',
-                    WebkitMaskComposite: 'xor',
-                  }}
-                />
+                {!disableHeavyEffects ? (
+                  <div
+                    className="absolute inset-0 rounded-2xl pointer-events-none"
+                    style={{
+                      background: `linear-gradient(135deg, ${orgColors.primary}30, transparent, ${orgColors.accent}15)`,
+                      padding: '1px',
+                      mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                      maskComposite: 'exclude',
+                      WebkitMaskComposite: 'xor',
+                    }}
+                  />
+                ) : null}
               </motion.div>
             ) : (
               <div className={`grid ${courseView !== 'grid' ? 'grid-cols-1 gap-3 sm:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
@@ -494,7 +545,7 @@ export function BusinessUserDashboardShell({
                     </>
                   }
                 >
-                  {assignedCourses.map((course, index) => {
+                  {displayedCourses.map((course, index) => {
                     const pathInfo = coursePathMap.get(course.course_id)
                     return (
                       <CourseCard3D
@@ -512,17 +563,34 @@ export function BusinessUserDashboardShell({
                         learningPathTitle={pathInfo?.pathTitle}
                         learningPathPosition={pathInfo?.position}
                         isLockedInPath={pathInfo ? !pathInfo.isUnlocked : false}
+                        disableHeavyEffects={disableHeavyEffects}
                       />
                     )
                   })}
                 </Suspense>
               </div>
             )}
+            {disableHeavyEffects && courseView !== 'path' && displayedCourses.length < assignedCourses.length ? (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCourseCount((current) => Math.min(current + 6, assignedCourses.length))}
+                  className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors"
+                  style={{
+                    borderColor: orgColors.border,
+                    backgroundColor: orgColors.cardBg,
+                    color: orgColors.text,
+                  }}
+                >
+                  {t('dashboard.actions.loadMoreCourses', 'Ver mas talleres')}
+                </button>
+              </div>
+            ) : null}
           </section>
         </div>
       </main>
 
-      {showVideoIntro && introVideos.length > 0 && (
+      {showVideoIntro && introVideos.length > 0 && !disableHeavyEffects && (
         <OnboardingVideoPlayer videos={introVideos} onComplete={handleVideoComplete} />
       )}
     </div>

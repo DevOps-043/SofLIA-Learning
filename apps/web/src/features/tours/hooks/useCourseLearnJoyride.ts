@@ -35,6 +35,7 @@ type UseCourseLearnJoyrideOptions = {
   setActiveTab: (tab: LearnTab) => void;
   pauseVideoPlayback?: () => void;
   clearPendingAutoPlay?: () => void;
+  mobilePerformanceMode?: boolean;
 };
 
 function waitForLayoutSync(): Promise<void> {
@@ -79,6 +80,7 @@ export function useCourseLearnJoyride({
   setActiveTab,
   pauseVideoPlayback,
   clearPendingAutoPlay,
+  mobilePerformanceMode = false,
 }: UseCourseLearnJoyrideOptions) {
   const { t } = useTranslation('learn');
   const translate = useMemo<CourseLearnJoyrideTranslator>(
@@ -109,9 +111,10 @@ export function useCourseLearnJoyride({
   const [stepIndex, setStepIndex] = useState(0);
   const [isTourActive, setIsTourActive] = useState(false);
 
+  const pendingAutoTour = !mobilePerformanceMode && shouldShowTour
   const suppressVideoPlayback =
-    enabled && (isLoading || shouldShowTour || isTourActive);
-  const skipVideoAutoplay = enabled && (shouldShowTour || isTourActive);
+    enabled && (isLoading || pendingAutoTour || isTourActive);
+  const skipVideoAutoplay = enabled && (pendingAutoTour || isTourActive);
 
   const resetTourState = useCallback(() => {
     setRun(false);
@@ -169,7 +172,7 @@ export function useCourseLearnJoyride({
   }, [prepareStep, startTour]);
 
   useEffect(() => {
-    if (!enabled || isLoading || !shouldShowTour) {
+    if (!enabled || mobilePerformanceMode || isLoading || !shouldShowTour) {
       return;
     }
 
@@ -178,7 +181,7 @@ export function useCourseLearnJoyride({
     }, TOUR_START_DELAY_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [enabled, isLoading, launchTour, shouldShowTour]);
+  }, [enabled, isLoading, launchTour, mobilePerformanceMode, shouldShowTour]);
 
   const restartTour = useCallback(() => {
     void launchTour();

@@ -25,6 +25,7 @@ import {
 } from '../../../../features/courses/components/learn'
 import type { LearnPageLogicResult } from '../../../../features/courses/hooks/useLearnPageLogic'
 import { useCourseLearnJoyride } from '../../../../features/tours/hooks/useCourseLearnJoyride'
+import { useMobilePerformanceMode } from '../../../../lib/utils/mobile-performance'
 import { useVideoPlayerOptional } from './VideoPlayerContext'
 
 const NotesModal = dynamic(
@@ -62,6 +63,7 @@ interface CourseLearnPageShellProps {
 
 export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   const videoPlayerContext = useVideoPlayerOptional()
+  const { disableHeavyEffects } = useMobilePerformanceMode()
   const {
     slug,
     router,
@@ -169,6 +171,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     clearPendingAutoPlay: videoPlayerContext
       ? () => videoPlayerContext.setShouldAutoPlay(false)
       : undefined,
+    mobilePerformanceMode: disableHeavyEffects,
   })
 
   const handleValidationClose = () => {
@@ -350,6 +353,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               onBack={() => router.back()}
               onRestartTour={courseTour.restartTour}
               restartTourLabel={t('tour.replayLabel')}
+              disableHeavyEffects={disableHeavyEffects}
             />
 
             {translationFallbackWarning ? (
@@ -366,7 +370,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               className="flex-1 flex flex-col md:flex-row overflow-hidden bg-white dark:bg-[#0F1419] relative z-10"
               style={{
                 marginRight: isLiaOpen && !isMobile ? '420px' : 0,
-                transition: 'margin-right 0.3s ease-in-out',
+                transition: disableHeavyEffects ? 'none' : 'margin-right 0.3s ease-in-out',
               }}
             >
               <CourseSidebarPanel
@@ -404,7 +408,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                 }}
               />
 
-              <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-[#1E2329] backdrop-blur-sm rounded-lg shadow-xl my-0 md:my-2 mx-0 md:mx-2 border-2 border-[#E9ECEF] dark:border-[#6C757D]/30">
+              <div className={`flex-1 flex flex-col overflow-hidden bg-white dark:bg-[#1E2329] rounded-lg my-0 md:my-2 mx-0 md:mx-2 border-2 border-[#E9ECEF] dark:border-[#6C757D]/30 ${disableHeavyEffects ? '' : 'backdrop-blur-sm shadow-xl'}`}>
                 {modules.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center">
                     <div className="text-center">
@@ -489,10 +493,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                       <AnimatePresence mode="wait">
                         <motion.div
                           key={activeTab}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          transition={{ duration: 0.3 }}
+                          initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
+                          animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+                          exit={disableHeavyEffects ? undefined : { opacity: 0, y: -20 }}
+                          transition={disableHeavyEffects ? undefined : { duration: 0.3 }}
                           className="h-auto p-3 md:p-6 flex flex-col gap-4"
                         >
                           {activeTab === 'video' && (
@@ -525,7 +529,9 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               suppressVideoPlayback={
                                 courseTour.suppressVideoPlayback
                               }
-                              skipVideoAutoplay={courseTour.skipVideoAutoplay}
+                              skipVideoAutoplay={
+                                disableHeavyEffects || courseTour.skipVideoAutoplay
+                              }
                             />
                           )}
                           {activeTab === 'activities' && (
@@ -577,6 +583,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               onOpenMaterial={openLeftPanel}
               onNavigatePrevious={navigateToPreviousLesson}
               onNavigateNext={navigateToNextLesson}
+              disableHeavyEffects={disableHeavyEffects}
             />
 
             {noteError && (

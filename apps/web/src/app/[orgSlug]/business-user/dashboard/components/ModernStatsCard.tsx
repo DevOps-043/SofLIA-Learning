@@ -15,6 +15,7 @@ interface ModernStatsCardProps {
   isClickable?: boolean
   styles?: Partial<StyleConfig> | null
   id?: string
+  disableHeavyEffects?: boolean
 }
 
 /**
@@ -30,7 +31,8 @@ export function ModernStatsCard({
   onClick,
   isClickable,
   styles,
-  id
+  id,
+  disableHeavyEffects = false,
 }: ModernStatsCardProps) {
   const { resolvedTheme } = useThemeStore()
   const isSystemLight = resolvedTheme === 'light'
@@ -69,18 +71,18 @@ export function ModernStatsCard({
       }`}
       style={{
         backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(20, 25, 30, 0.4)',
-        backdropFilter: 'blur(20px)',
+        backdropFilter: disableHeavyEffects ? undefined : 'blur(20px)',
         border: `1px solid ${isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.06)'}`,
         boxShadow: isLightMode 
           ? (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.08)' : '0 4px 20px -10px rgba(0,0,0,0.05)') 
           : (isClickable ? '0 10px 30px -10px rgba(0,0,0,0.3)' : 'none'),
-        animationDelay: `${index * 50}ms`
+        animationDelay: disableHeavyEffects ? undefined : `${index * 50}ms`
       }}
     >
       <div className="relative z-10 flex items-center gap-4">
         {/* Sleek icon wrapper */}
-        <div 
-          className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-2xl transition-transform duration-500 group-hover:scale-110"
+        <div
+          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center rounded-2xl ${disableHeavyEffects ? '' : 'transition-transform duration-500 group-hover:scale-110'}`}
           style={{
              background: `linear-gradient(135deg, ${iconColor}15, transparent)`,
              border: `1px solid ${iconColor}25`
@@ -107,10 +109,12 @@ export function ModernStatsCard({
       </div>
 
       {/* Subtle modern abstract glow */}
-      <div 
-        className="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-all duration-700 ease-out group-hover:opacity-40 group-hover:scale-110"
-        style={{ backgroundColor: iconColor }}
-      />
+      {!disableHeavyEffects ? (
+        <div
+          className="absolute -right-8 -top-8 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-all duration-700 ease-out group-hover:opacity-40 group-hover:scale-110"
+          style={{ backgroundColor: iconColor }}
+        />
+      ) : null}
     </div>
   )
 }

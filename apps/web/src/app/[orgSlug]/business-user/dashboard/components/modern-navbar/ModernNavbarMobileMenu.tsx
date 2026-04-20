@@ -36,6 +36,7 @@ interface ModernNavbarMobileMenuProps {
   t: (key: string) => string;
   theme: Theme;
   user: ModernNavbarUser | null;
+  disableHeavyEffects?: boolean;
 }
 
 export function ModernNavbarMobileMenu({
@@ -58,15 +59,16 @@ export function ModernNavbarMobileMenu({
   t,
   theme,
   user,
+  disableHeavyEffects = false,
 }: ModernNavbarMobileMenuProps) {
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
+          animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+          exit={disableHeavyEffects ? undefined : { opacity: 0, y: -20 }}
+          transition={disableHeavyEffects ? undefined : { duration: 0.3, ease: 'easeInOut' }}
           className="md:hidden fixed inset-x-0 top-16 bottom-0 z-[100] overflow-y-auto"
           style={{
             backgroundColor: colors.cardBg,
@@ -106,7 +108,7 @@ export function ModernNavbarMobileMenu({
                   onClose();
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-                whileTap={{ scale: 0.98 }}
+                whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
                 style={{
                   backgroundColor: `${colors.primary}10`,
                   border: `1px solid ${colors.border}`,
@@ -137,7 +139,7 @@ export function ModernNavbarMobileMenu({
                   onClose();
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-                whileTap={{ scale: 0.98 }}
+                whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
                 style={{
                   backgroundColor: `${colors.accent}10`,
                   border: `1px solid ${colors.border}`,
@@ -166,7 +168,7 @@ export function ModernNavbarMobileMenu({
                 onClose();
               }}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-              whileTap={{ scale: 0.98 }}
+              whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
               style={{
                 backgroundColor: `${colors.primary}10`,
                 border: `1px solid ${colors.border}`,
@@ -190,7 +192,7 @@ export function ModernNavbarMobileMenu({
                 onClose();
               }}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-              whileTap={{ scale: 0.98 }}
+              whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
               style={{
                 backgroundColor: `${colors.primary}10`,
                 border: `1px solid ${colors.border}`,
@@ -225,7 +227,7 @@ export function ModernNavbarMobileMenu({
                       borderColor: language === option.value ? `${colors.accent}30` : colors.border,
                       color: language === option.value ? colors.accent : `${colors.text}60`,
                     }}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
                   >
                     {option.compactLabel}
                   </motion.button>
@@ -257,7 +259,7 @@ export function ModernNavbarMobileMenu({
                         borderColor: theme === option.value ? `${colors.accent}30` : colors.border,
                         color: theme === option.value ? colors.accent : `${colors.text}60`,
                       }}
-                      whileTap={{ scale: 0.95 }}
+                      whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
                     >
                       <ThemeIcon className="w-3 h-3" />
                       {option.label}
@@ -273,7 +275,7 @@ export function ModernNavbarMobileMenu({
                 onClose();
               }}
               className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-              whileTap={{ scale: 0.98 }}
+              whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
               style={{
                 backgroundColor: 'rgba(239, 68, 68, 0.08)',
                 border: '1px solid rgba(239, 68, 68, 0.15)',
