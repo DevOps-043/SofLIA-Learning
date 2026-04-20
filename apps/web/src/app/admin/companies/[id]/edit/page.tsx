@@ -10,44 +10,15 @@ import {
     BuildingOffice2Icon,
     CheckCircleIcon,
     ArrowPathIcon,
-    UserGroupIcon,
-    AcademicCapIcon,
-    ChartBarIcon,
-    PaintBrushIcon,
-    BellIcon,
-    DocumentTextIcon,
-    Cog6ToothIcon,
     ExclamationTriangleIcon,
-    EnvelopeIcon,
-    PhoneIcon,
-    GlobeAltIcon,
-    PhotoIcon,
-    PencilSquareIcon,
-    TrashIcon,
-    UsersIcon,
-    SparklesIcon,
-    ShieldCheckIcon,
-    PlusIcon,
-    MagnifyingGlassIcon,
-    ChevronRightIcon,
-    SwatchIcon,
-    LinkIcon
 } from '@heroicons/react/24/outline'
+import { NAV_ITEMS } from './sections/shared'
 import { GeneralSection } from './sections/GeneralSection'
 import { UsersSection } from './sections/UsersSection'
 import { StatsSection } from './sections/StatsSection'
 import { CustomizationSection } from './sections/CustomizationSection'
 import { NotificationsSection } from './sections/NotificationsSection'
 import { CertificatesSection } from './sections/CertificatesSection'
-
-interface CourseProgress {
-    id: string
-    title: string
-    enrolledCount: number
-    completedCount: number
-    averageProgress: number
-    completionRate: number
-}
 
 export default function EditCompanyPage() {
     const {
@@ -191,7 +162,7 @@ export default function EditCompanyPage() {
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 p-4 md:p-6">
                     <AnimatePresence mode="wait">
                         {renderSection()}
                     </AnimatePresence>

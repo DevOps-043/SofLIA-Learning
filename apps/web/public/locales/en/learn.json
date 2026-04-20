@@ -21,6 +21,7 @@
     "notes": "Notes",
     "expandContent": "Expand Content",
     "collapseContent": "Collapse Content",
+    "closePanel": "Close content panel",
     "expandModule": "Expand module",
     "collapseModule": "Collapse module",
     "completed": "completed",

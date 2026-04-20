@@ -2,6 +2,15 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import {
+    Cog6ToothIcon,
+    UserGroupIcon,
+    AcademicCapIcon,
+    ChartBarIcon,
+    PaintBrushIcon,
+    BellIcon,
+    DocumentTextIcon,
+} from '@heroicons/react/24/outline'
 import type { CompanyData, CompanyMember } from '@/features/admin/hooks/useEditCompanyLogic'
 
 export type { CompanyData, CompanyMember }
@@ -20,7 +29,7 @@ const colors = {
 
 // Types are imported from the hook (CompanyData, CompanyMember)
 
-interface CourseProgress {
+export interface CourseProgress {
     id: string
     title: string
     enrolledCount: number
@@ -28,7 +37,7 @@ interface CourseProgress {
     averageProgress: number
 }
 
-interface StatsData {
+export interface StatsData {
     overview: {
         totalUsers: number
         engagementRate: number
@@ -152,4 +161,4 @@ function InputField({ label, value, onChange, type = 'text', placeholder, icon: 
     )
 }
 
-export { colors, SectionWrapper, Card, InputField }
+export { colors, NAV_ITEMS, SectionWrapper, Card, InputField }

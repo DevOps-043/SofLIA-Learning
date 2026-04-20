@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { motion } from 'framer-motion'
 import { UserGroupIcon, DocumentTextIcon, EnvelopeIcon, PencilSquareIcon, TrashIcon, PlusIcon, MagnifyingGlassIcon, LinkIcon } from '@heroicons/react/24/outline'
 import { AdminUnifiedInviteModal } from '@/features/admin/components/AdminUnifiedInviteModal'
 import { AdminMemberManageModal } from '@/features/admin/components/AdminMemberManageModal'
@@ -8,7 +9,7 @@ import { resendInvitationAction, revokeInvitationAction } from '@/features/auth/
 import { SuccessModal } from '@/core/components/SuccessModal/SuccessModal'
 import { ErrorModal } from '@/core/components/ErrorModal/ErrorModal'
 import { ConfirmationModal } from '@/features/admin/components/ConfirmationModal'
-import type { CompanyData } from '@/features/admin/hooks/useEditCompanyLogic'
+import type { CompanyData, CompanyMember } from '@/features/admin/hooks/useEditCompanyLogic'
 import { colors, SectionWrapper, Card } from './shared'
 
 function UsersSection({ company, onUpdate }: { company: CompanyData; onUpdate: () => void }) {
