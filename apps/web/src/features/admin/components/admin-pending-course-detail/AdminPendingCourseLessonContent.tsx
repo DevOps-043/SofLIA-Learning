@@ -8,6 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { PendingCourseActivity, PendingCourseLesson, PendingCourseMaterial, PendingCourseModule } from './types';
 import { parseMaterialContent, resolveVideoEmbedUrl } from './utils';
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 
 type LessonTab = 'summary' | 'transcript' | 'activities' | 'materials';
 
@@ -39,6 +40,9 @@ interface ScriptData {
 }
 
 function VideoPlayer({ provider, providerId }: { provider: string; providerId: string }) {
+  const [hasActivatedEmbed, setHasActivatedEmbed] = useState(false);
+  const playbackPolicy = useMediaPlaybackPolicy('preview');
+  const { t } = useTranslation('common');
   const embedUrl = resolveVideoEmbedUrl(provider, providerId);
 
   if (!providerId) {
@@ -46,18 +50,47 @@ function VideoPlayer({ provider, providerId }: { provider: string; providerId: s
   }
 
   if (embedUrl && (provider === 'youtube' || provider === 'vimeo')) {
+    if (playbackPolicy.shouldUseEmbedFacade && !hasActivatedEmbed) {
+      return (
+        <button
+          type="button"
+          className="flex h-full w-full items-center justify-center bg-gray-900 text-white"
+          onClick={() => setHasActivatedEmbed(true)}
+        >
+          <span className="flex flex-col items-center gap-2">
+            <PlayCircleIcon className="h-12 w-12" />
+            <span className="text-sm font-medium">{t('media.tapToPlay')}</span>
+          </span>
+        </button>
+      );
+    }
+
     return (
       <iframe
         src={embedUrl}
         className="w-full h-full"
         frameBorder="0"
-        allow={provider === 'vimeo' ? 'autoplay; fullscreen; picture-in-picture' : undefined}
+        allow={
+          playbackPolicy.allowIframeAutoplay
+            ? 'autoplay; fullscreen; picture-in-picture'
+            : 'fullscreen; picture-in-picture'
+        }
         allowFullScreen
+        loading="lazy"
       />
     );
   }
 
-  return <video src={providerId} className="w-full h-full object-contain" controls controlsList="nodownload" />;
+  return (
+    <video
+      src={providerId}
+      className="w-full h-full object-contain"
+      controls
+      controlsList="nodownload"
+      playsInline
+      preload={playbackPolicy.nativeVideoPreload}
+    />
+  );
 }
 
 function QuizViewer({ data }: { data: QuizData | null }) {

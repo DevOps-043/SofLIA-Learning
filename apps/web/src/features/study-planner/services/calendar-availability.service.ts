@@ -12,6 +12,12 @@ import type {
   CalendarAvailability,
   TimeBlock,
 } from '../types/user-context.types';
+import {
+  computeTimeBlockTotals,
+  eventToTimeBlock,
+  sortTimeBlocks,
+  subtractBusyFromContainers,
+} from './calendar-availability-timeblocks.service';
 
 // ---------------------------------------------------------------------------
 // Work Block heuristic constants
@@ -133,13 +139,13 @@ export class CalendarAvailabilityService {
         if (workBlockEvents.length > 0) {
           // ── Case A: work-block day ────────────────────────────────────────
           const containers = workBlockEvents.map(
-            CalendarAvailabilityService.eventToTimeBlock
+            eventToTimeBlock
           );
           const busySlotsFromMeetings = standardEvents.map(
-            CalendarAvailabilityService.eventToTimeBlock
+            eventToTimeBlock
           );
 
-          freeSlots = CalendarAvailabilityService.subtractBusyFromContainers(
+          freeSlots = subtractBusyFromContainers(
             containers,
             busySlotsFromMeetings
           );
@@ -147,13 +153,11 @@ export class CalendarAvailabilityService {
         } else {
           // ── Case B: regular day (original behavior) ───────────────────────
           busySlots = standardEvents.map(
-            CalendarAvailabilityService.eventToTimeBlock
+            eventToTimeBlock
           );
 
-          busySlots.sort(
-            (a, b) =>
-              a.startHour * 60 + a.startMinute - (b.startHour * 60 + b.startMinute)
-          );
+          busySlots = sortTimeBlocks(busySlots);
+
 
           freeSlots = [];
           let lastEndHour = workingHours.start;
@@ -193,8 +197,8 @@ export class CalendarAvailabilityService {
           date: currentDate.toISOString().split('T')[0],
           freeSlots,
           busySlots,
-          totalFreeMinutes: CalendarAvailabilityService.computeTotals(freeSlots),
-          totalBusyMinutes: CalendarAvailabilityService.computeTotals(busySlots),
+          totalFreeMinutes: computeTimeBlockTotals(freeSlots),
+          totalBusyMinutes: computeTimeBlockTotals(busySlots),
         });
       }
 
@@ -229,90 +233,5 @@ export class CalendarAvailabilityService {
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  /** Converts a CalendarEvent to a TimeBlock using its ISO timestamps. */
-  private static eventToTimeBlock(event: CalendarEvent): TimeBlock {
-    const start = new Date(event.startTime);
-    const end = new Date(event.endTime);
-    return {
-      startHour: start.getHours(),
-      startMinute: start.getMinutes(),
-      endHour: end.getHours(),
-      endMinute: end.getMinutes(),
-    };
-  }
 
-  /**
-   * Subtracts busy periods from one or more container windows and returns
-   * the remaining free slots.
-   *
-   * Each container is processed independently. Busy slots are clipped to the
-   * container's boundaries before subtraction so out-of-container events are
-   * ignored for that container.
-   */
-  private static subtractBusyFromContainers(
-    containers: TimeBlock[],
-    busySlots: TimeBlock[]
-  ): TimeBlock[] {
-    const freeSlots: TimeBlock[] = [];
-
-    const sortedContainers = [...containers].sort(
-      (a, b) => a.startHour * 60 + a.startMinute - (b.startHour * 60 + b.startMinute)
-    );
-    const sortedBusy = [...busySlots].sort(
-      (a, b) => a.startHour * 60 + a.startMinute - (b.startHour * 60 + b.startMinute)
-    );
-
-    for (const container of sortedContainers) {
-      const containerStart = container.startHour * 60 + container.startMinute;
-      const containerEnd = container.endHour * 60 + container.endMinute;
-
-      let cursor = containerStart;
-
-      for (const busy of sortedBusy) {
-        const busyStart = busy.startHour * 60 + busy.startMinute;
-        const busyEnd = busy.endHour * 60 + busy.endMinute;
-
-        // Clip busy to container boundaries
-        const clippedStart = Math.max(busyStart, containerStart);
-        const clippedEnd = Math.min(busyEnd, containerEnd);
-
-        if (clippedStart >= clippedEnd) continue; // busy is outside container
-
-        if (clippedStart > cursor) {
-          // There is a free gap before this busy slot
-          freeSlots.push({
-            startHour: Math.floor(cursor / 60),
-            startMinute: cursor % 60,
-            endHour: Math.floor(clippedStart / 60),
-            endMinute: clippedStart % 60,
-          });
-        }
-
-        if (clippedEnd > cursor) {
-          cursor = clippedEnd;
-        }
-      }
-
-      // Remaining time after the last busy slot (or the full container if no busy)
-      if (cursor < containerEnd) {
-        freeSlots.push({
-          startHour: Math.floor(cursor / 60),
-          startMinute: cursor % 60,
-          endHour: Math.floor(containerEnd / 60),
-          endMinute: containerEnd % 60,
-        });
-      }
-    }
-
-    return freeSlots;
-  }
-
-  /** Sums the total minutes across an array of TimeBlock objects. */
-  private static computeTotals(slots: TimeBlock[]): number {
-    return slots.reduce(
-      (total, slot) =>
-        total + (slot.endHour * 60 + slot.endMinute - (slot.startHour * 60 + slot.startMinute)),
-      0
-    );
-  }
 }

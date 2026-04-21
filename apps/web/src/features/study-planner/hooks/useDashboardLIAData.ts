@@ -1,24 +1,22 @@
-/**
- * useDashboardLIAData
- *
- * Sub-hook extracted from useStudyPlannerDashboardLIA.
- * Handles data fetching: loading the active plan and checking calendar changes.
- */
-
 import { useCallback, useRef } from 'react';
+import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
   ActiveStudyPlan,
   CalendarChange,
   DashboardMessage,
   StudyPlannerDashboardState,
 } from './useStudyPlannerDashboardLIA';
-
-// Constante para el check de calendario (verificar cada vez, pero no más de cada hora)
-const CALENDAR_CHECK_INTERVAL = 60 * 60 * 1000; // 1 hora
+import { formatCalendarChangesMessage } from './dashboard-calendar-changes-message';
+import {
+  CALENDAR_CHECK_INTERVAL,
+  createLoadingPlanMessage,
+  createNoPlanMessage,
+} from './dashboard-lia-initial-messages';
+import { loadProactiveAnalysis } from './dashboard-lia-proactive-analysis';
 
 interface UseDashboardLIADataParams {
   userId: string | undefined;
-  setState: React.Dispatch<React.SetStateAction<StudyPlannerDashboardState>>;
+  setState: Dispatch<SetStateAction<StudyPlannerDashboardState>>;
   getMessagesLength: () => number;
 }
 
@@ -26,49 +24,7 @@ interface UseDashboardLIADataReturn {
   loadActivePlan: () => Promise<void>;
   checkCalendarChanges: () => Promise<void>;
   checkCalendarChangesIfNeeded: () => Promise<void>;
-  hasCheckedCalendarRef: React.MutableRefObject<boolean>;
-}
-
-function formatCalendarChangesMessage(changes: CalendarChange[]): string {
-  const deletedEvents = changes.filter(c => c.type === 'deleted_event');
-  const modifiedEvents = changes.filter(c => c.type === 'modified_event');
-  const conflicts = changes.filter(c => c.type === 'conflict');
-
-  let message = '🔔 **He detectado cambios importantes en tu calendario:**\n\n';
-
-  if (deletedEvents.length > 0) {
-    message += '❌ **Sesiones eliminadas del calendario:**\n';
-    deletedEvents.forEach(c => {
-      message += `• "${c.sessionTitle}" (${c.eventTime})\n`;
-    });
-    message += '\n';
-    message += 'Estas sesiones ya no aparecen en tu calendario pero siguen en tu plan. ¿Quieres que las elimine del plan también?\n\n';
-  }
-
-  if (modifiedEvents.length > 0) {
-    message += '🔄 **Sesiones modificadas en el calendario:**\n';
-    modifiedEvents.forEach(c => {
-      message += `• "${c.sessionTitle}" - ${c.suggestedAction || 'Hora cambiada'}\n`;
-    });
-    message += '\n';
-    message += '¿Quieres que actualice los horarios en tu plan para que coincidan?\n\n';
-  }
-
-  if (conflicts.length > 0) {
-    message += '⚠️ **Conflictos encontrados:**\n';
-    conflicts.forEach(c => {
-      message += `• ${c.eventTitle} (${c.eventTime}) - ${c.suggestedAction}\n`;
-    });
-    message += '\n';
-  }
-
-  if (deletedEvents.length === 0 && modifiedEvents.length === 0 && conflicts.length === 0) {
-    message = '✅ Todo está sincronizado. No he detectado cambios en tu calendario.';
-  } else {
-    message += 'Dime cómo quieres proceder y te ayudo a actualizar tu plan.';
-  }
-
-  return message;
+  hasCheckedCalendarRef: MutableRefObject<boolean>;
 }
 
 export function useDashboardLIAData({
@@ -93,113 +49,32 @@ export function useDashboardLIAData({
             ...prev,
             activePlan: null,
             isLoading: false,
-            messages: [{
-              id: `no-plan-${Date.now()}`,
-              role: 'assistant',
-              content: `¡Hola! 👋 Soy SofLIA, tu asistente de estudios.
-
-Aún no tienes un plan de estudios activo. ¿Te gustaría crear uno?
-
-Puedo ayudarte a organizar tu tiempo de estudio de manera eficiente según tu disponibilidad y objetivos.
-
-[Ir a crear un plan](/study-planner/create)`,
-              timestamp: new Date(),
-            }],
+            messages: [createNoPlanMessage()],
           }));
           return;
         }
+
         console.error('Error del servidor:', data.error || response.statusText);
         throw new Error(data.error || 'Error al cargar el plan de estudios');
       }
 
-      if (data.success && data.data) {
-        const plan: ActiveStudyPlan = data.data;
-        const isFirstLoad = getMessagesLength() === 0;
+      if (!data.success || !data.data) {
+        setState(prev => ({ ...prev, activePlan: null, isLoading: false }));
+        return;
+      }
 
-        setState(prev => ({
-          ...prev,
-          activePlan: plan,
-          isLoading: false,
-          messages: prev.messages.length === 0 ? [{
-            id: `loading-${Date.now()}`,
-            role: 'assistant' as const,
-            content: `¡Hola! Soy SofLIA. Estoy analizando tu calendario y plan de estudios...`,
-            timestamp: new Date(),
-          }] : prev.messages,
-        }));
+      const plan: ActiveStudyPlan = data.data;
+      const isFirstLoad = getMessagesLength() === 0;
 
-        if (isFirstLoad) {
-          try {
-            const chatResponse = await fetch('/api/study-planner/dashboard/chat', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                trigger: 'proactive_init',
-                activePlanId: plan.id,
-                conversationHistory: [],
-              }),
-            });
+      setState(prev => ({
+        ...prev,
+        activePlan: plan,
+        isLoading: false,
+        messages: prev.messages.length === 0 ? [createLoadingPlanMessage()] : prev.messages,
+      }));
 
-            const chatData = await chatResponse.json();
-
-            if (chatData.success && chatData.response) {
-              setState(prev => ({
-                ...prev,
-                messages: [{
-                  id: `proactive-${Date.now()}`,
-                  role: 'assistant' as const,
-                  content: chatData.response,
-                  timestamp: new Date(),
-                  actionType: chatData.action?.type,
-                  actionData: chatData.action?.data,
-                  actionStatus: chatData.action?.status,
-                }],
-              }));
-
-              if (chatData.action?.status === 'success') {
-                setTimeout(() => {
-                  fetch('/api/study-planner/dashboard/plan')
-                    .then(res => res.json())
-                    .then(planData => {
-                      if (planData.success && planData.data) {
-                        setState(prev => ({ ...prev, activePlan: planData.data }));
-                      }
-                    })
-                    .catch(err => console.error('Error recargando plan:', err));
-                }, 500);
-              }
-            } else {
-              console.warn('[SofLIA Dashboard] Respuesta sin éxito:', chatData.error || 'Sin respuesta');
-              throw new Error(chatData.error || 'Sin respuesta del análisis');
-            }
-          } catch (chatError) {
-            console.error('[SofLIA Dashboard] Error obteniendo análisis proactivo:', chatError);
-            setState(prev => ({
-              ...prev,
-              messages: [{
-                id: `welcome-${Date.now()}`,
-                role: 'assistant' as const,
-                content: `¡Hola! 👋 Soy SofLIA, tu asistente para gestionar tu plan de estudios "${plan.name}".
-
-Puedo ayudarte a:
-• 📅 **Mover sesiones** a horarios más convenientes
-• ⏱️ **Ajustar la duración** de tus bloques de estudio
-• ❌ **Eliminar sesiones** que ya no necesites
-• ➕ **Crear nuevas sesiones** de estudio
-• 🔄 **Reorganizar tu semana** según tu disponibilidad
-
-¿En qué te puedo ayudar hoy?`,
-                timestamp: new Date(),
-              }],
-            }));
-          }
-        }
-      } else {
-        setState(prev => ({
-          ...prev,
-          activePlan: null,
-          isLoading: false,
-        }));
+      if (isFirstLoad) {
+        await loadProactiveAnalysis(plan, setState);
       }
     } catch (error) {
       console.error('Error cargando plan activo:', error);
@@ -226,60 +101,39 @@ Puedo ayudarte a:
 
       const data = await response.json();
       const now = new Date();
-
       localStorage.setItem(`calendar_check_${userId}`, now.toISOString());
 
-      if (data.success && data.data) {
-        const changes: CalendarChange[] = data.data.changes || [];
-
-        if (changes.length > 0) {
-          setState(prev => ({
-            ...prev,
-            calendarChanges: changes,
-            lastCalendarCheck: now,
-            hasNewCalendarChanges: true,
-          }));
-
-          loadActivePlan().catch(err => console.error('Error recargando plan después de cambios:', err));
-
-          const changeMessage: DashboardMessage = {
-            id: `calendar-changes-${Date.now()}`,
-            role: 'assistant',
-            content: formatCalendarChangesMessage(changes),
-            timestamp: now,
-          };
-
-          setState(prev => {
-            const recentChangeMessage = prev.messages.find(m =>
-              m.role === 'assistant' &&
-              m.content.includes('cambios importantes en tu calendario') &&
-              (now.getTime() - m.timestamp.getTime()) < 5 * 60 * 1000
-            );
-
-            if (recentChangeMessage) {
-              return prev;
-            }
-
-            return {
-              ...prev,
-              messages: [...prev.messages, changeMessage],
-            };
-          });
-        } else {
-          setState(prev => ({
-            ...prev,
-            lastCalendarCheck: now,
-            hasNewCalendarChanges: false,
-            calendarChanges: [],
-          }));
-        }
-      } else {
+      if (!data.success || !data.data) {
         setState(prev => ({
           ...prev,
           lastCalendarCheck: now,
           hasNewCalendarChanges: false,
         }));
+        return;
       }
+
+      const changes: CalendarChange[] = data.data.changes || [];
+      if (changes.length === 0) {
+        setState(prev => ({
+          ...prev,
+          lastCalendarCheck: now,
+          hasNewCalendarChanges: false,
+          calendarChanges: [],
+        }));
+        return;
+      }
+
+      setState(prev => ({
+        ...prev,
+        calendarChanges: changes,
+        lastCalendarCheck: now,
+        hasNewCalendarChanges: true,
+      }));
+
+      loadActivePlan().catch(err =>
+        console.error('Error recargando plan despues de cambios:', err),
+      );
+      appendCalendarChangesMessage(changes, now, setState);
     } catch (error) {
       console.error('Error verificando calendario:', error);
     }
@@ -293,7 +147,7 @@ Puedo ayudarte a:
       const lastCheck = lastCheckStr ? new Date(lastCheckStr) : null;
       const now = new Date();
 
-      if (lastCheck && (now.getTime() - lastCheck.getTime()) < CALENDAR_CHECK_INTERVAL) {
+      if (lastCheck && now.getTime() - lastCheck.getTime() < CALENDAR_CHECK_INTERVAL) {
         setState(prev => ({ ...prev, lastCalendarCheck: lastCheck }));
         return;
       }
@@ -310,4 +164,29 @@ Puedo ayudarte a:
     checkCalendarChangesIfNeeded,
     hasCheckedCalendarRef,
   };
+}
+
+function appendCalendarChangesMessage(
+  changes: CalendarChange[],
+  now: Date,
+  setState: Dispatch<SetStateAction<StudyPlannerDashboardState>>,
+) {
+  const changeMessage: DashboardMessage = {
+    id: `calendar-changes-${Date.now()}`,
+    role: 'assistant',
+    content: formatCalendarChangesMessage(changes),
+    timestamp: now,
+  };
+
+  setState(prev => {
+    const recentChangeMessage = prev.messages.find(message =>
+      message.role === 'assistant'
+      && message.content.includes('cambios importantes en tu calendario')
+      && now.getTime() - message.timestamp.getTime() < 5 * 60 * 1000,
+    );
+
+    return recentChangeMessage
+      ? prev
+      : { ...prev, messages: [...prev.messages, changeMessage] };
+  });
 }

@@ -1,8 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useMemo } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Play } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { createClient } from '@/lib/supabase/client';
+import type { MediaPlaybackContext } from '@/lib/media';
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 import { CustomVideoPlayer, type CustomVideoPlayerRef } from '../CustomVideoPlayer/CustomVideoPlayer';
 
 interface VideoPlayerProps {
@@ -15,6 +18,7 @@ interface VideoPlayerProps {
   onPiPChange?: (isPiP: boolean) => void;
   initialTime?: number;
   initialPlaybackRate?: number;
+  playbackContext?: MediaPlaybackContext;
   // Video tracking props
   lessonId?: string;
   trackingId?: string;
@@ -114,6 +118,7 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
   onPiPChange,
   initialTime = 0,
   initialPlaybackRate = 1,
+  playbackContext = 'lesson',
   lessonId,
   trackingId
 }, ref) => {
@@ -125,7 +130,10 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasActivatedEmbed, setHasActivatedEmbed] = useState(false);
   const customVideoRef = useRef<CustomVideoPlayerRef>(null);
+  const playbackPolicy = useMediaPlaybackPolicy(playbackContext);
+  const { t } = useTranslation('common');
 
   // Forward the ref to the CustomVideoPlayer
   useImperativeHandle(ref, () => ({
@@ -186,6 +194,7 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
   useEffect(() => {
     setIsLoading(true);
     setError(null);
+    setHasActivatedEmbed(false);
   }, [videoProviderId]);
 
   // Manejar carga del iframe
@@ -256,6 +265,9 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
           onPiPChange={onPiPChange}
           initialTime={initialTime}
           initialPlaybackRate={initialPlaybackRate}
+          pauseWhenHidden={playbackPolicy.pauseWhenHidden}
+          pauseWhenOutsideViewport={playbackPolicy.pauseWhenOutsideViewport}
+          preload={playbackPolicy.nativeVideoPreload}
           lessonId={lessonId}
           trackingId={trackingId}
         />
@@ -267,6 +279,53 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
     // Para tracking completo en estos providers, se requeriría usar sus APIs específicas:
     // - YouTube IFrame API: https://developers.google.com/youtube/iframe_api_reference
     // - Vimeo Player API: https://developer.vimeo.com/player/sdk
+    const shouldRenderEmbed =
+      !playbackPolicy.shouldUseEmbedFacade || hasActivatedEmbed;
+    const thumbnailUrl =
+      videoProvider === 'youtube'
+        ? `https://img.youtube.com/vi/${videoProviderId}/hqdefault.jpg`
+        : null;
+    const iframeAllow = [
+      'accelerometer',
+      playbackPolicy.allowIframeAutoplay ? 'autoplay' : null,
+      'clipboard-write',
+      'encrypted-media',
+      'gyroscope',
+      'picture-in-picture',
+    ]
+      .filter(Boolean)
+      .join('; ');
+
+    if (!shouldRenderEmbed) {
+      return (
+        <button
+          type="button"
+          className="relative flex h-full min-h-64 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-900 text-white"
+          onClick={() => {
+            setHasActivatedEmbed(true);
+            setIsLoading(true);
+          }}
+        >
+          {thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt={title || t('media.videoPreview')}
+              className="absolute inset-0 h-full w-full object-cover opacity-70"
+              loading="lazy"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gray-800" />
+          )}
+          <span className="relative z-10 flex flex-col items-center gap-3">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+              <Play className="h-7 w-7 fill-white text-white" />
+            </span>
+            <span className="text-sm font-medium">{t('media.tapToPlay')}</span>
+          </span>
+        </button>
+      );
+    }
+
     return (
       <div className="relative w-full h-full">
         {isLoading && (
@@ -279,8 +338,9 @@ export const VideoPlayer = forwardRef<CustomVideoPlayerRef, VideoPlayerProps>(({
           src={videoUrl}
           title={title || 'Video de la lección'}
           className="w-full h-full rounded-lg"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow={iframeAllow}
           allowFullScreen
+          loading="lazy"
           onLoad={handleIframeLoad}
           onError={handleIframeError}
           style={{ display: isLoading ? 'none' : 'block' }}
@@ -306,7 +366,8 @@ export function YouTubePlayer({
   onProgress,
   onComplete,
   initialTime,
-  initialPlaybackRate
+  initialPlaybackRate,
+  playbackContext
 }: {
   videoId: string;
   title?: string;
@@ -315,6 +376,7 @@ export function YouTubePlayer({
   onComplete?: () => void;
   initialTime?: number;
   initialPlaybackRate?: number;
+  playbackContext?: MediaPlaybackContext;
 }) {
   return (
     <VideoPlayer
@@ -326,6 +388,7 @@ export function YouTubePlayer({
       onComplete={onComplete}
       initialTime={initialTime}
       initialPlaybackRate={initialPlaybackRate}
+      playbackContext={playbackContext}
     />
   );
 }
@@ -338,7 +401,8 @@ export function VimeoPlayer({
   onProgress,
   onComplete,
   initialTime,
-  initialPlaybackRate
+  initialPlaybackRate,
+  playbackContext
 }: {
   videoId: string;
   title?: string;
@@ -347,6 +411,7 @@ export function VimeoPlayer({
   onComplete?: () => void;
   initialTime?: number;
   initialPlaybackRate?: number;
+  playbackContext?: MediaPlaybackContext;
 }) {
   return (
     <VideoPlayer
@@ -358,6 +423,7 @@ export function VimeoPlayer({
       onComplete={onComplete}
       initialTime={initialTime}
       initialPlaybackRate={initialPlaybackRate}
+      playbackContext={playbackContext}
     />
   );
 }
@@ -370,7 +436,8 @@ export function DirectVideoPlayer({
   onProgress,
   onComplete,
   initialTime,
-  initialPlaybackRate
+  initialPlaybackRate,
+  playbackContext
 }: {
   videoUrl: string;
   title?: string;
@@ -379,6 +446,7 @@ export function DirectVideoPlayer({
   onComplete?: () => void;
   initialTime?: number;
   initialPlaybackRate?: number;
+  playbackContext?: MediaPlaybackContext;
 }) {
   return (
     <VideoPlayer
@@ -390,6 +458,7 @@ export function DirectVideoPlayer({
       onComplete={onComplete}
       initialTime={initialTime}
       initialPlaybackRate={initialPlaybackRate}
+      playbackContext={playbackContext}
     />
   );
 }

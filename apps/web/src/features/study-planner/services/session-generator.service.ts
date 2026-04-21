@@ -1,60 +1,23 @@
-/**
- * Session Generator Service
- * Genera sesiones de estudio distribuidas con descansos
- */
+import { LessonTimeService } from './lesson-time.service';
+import { SessionValidatorService } from './session-validator.service';
+import type {
+  CourseLesson,
+  GeneratedSession,
+  SessionConfig,
+  SessionGenerationResult,
+} from './session-generator.types';
+import {
+  calculateSessionStats,
+  groupSessionsByWeek,
+} from './session-generator-stats.service';
 
-import { SessionValidatorService, BreakSchedule } from './session-validator.service';
-import { LessonTimeService, LessonTimeEstimate } from './lesson-time.service';
-
-export interface SessionConfig {
-  selectedDays: string[];
-  timeBlocks: TimeBlockConfig[];
-  minSessionMinutes: number;
-  maxSessionMinutes: number;
-  startDate: Date;
-  endDate?: Date;
-}
-
-export interface TimeBlockConfig {
-  day: string;
-  startHour: number;
-  startMinute: number;
-  endHour: number;
-  endMinute: number;
-}
-
-export interface GeneratedSession {
-  id: string;
-  date: Date;
-  dayOfWeek: string;
-  startTime: string;
-  endTime: string;
-  durationMinutes: number;
-  netStudyMinutes: number;
-  courseId: string;
-  courseTitle: string;
-  lessonId: string;
-  lessonTitle: string;
-  breaks: BreakSchedule[];
-  order: number;
-}
-
-export interface SessionGenerationResult {
-  sessions: GeneratedSession[];
-  totalSessions: number;
-  totalStudyMinutes: number;
-  totalBreakMinutes: number;
-  estimatedEndDate: Date;
-  warnings: string[];
-}
-
-export interface CourseLesson {
-  courseId: string;
-  courseTitle: string;
-  lessonId: string;
-  lessonTitle: string;
-  durationMinutes: number;
-}
+export type {
+  CourseLesson,
+  GeneratedSession,
+  SessionConfig,
+  SessionGenerationResult,
+  TimeBlockConfig,
+} from './session-generator.types';
 
 export class SessionGeneratorService {
   private static readonly DAYS_ORDER = [
@@ -261,31 +224,7 @@ export class SessionGeneratorService {
    * Agrupa sesiones por semana
    */
   static groupSessionsByWeek(sessions: GeneratedSession[]): Map<string, GeneratedSession[]> {
-    const weeks = new Map<string, GeneratedSession[]>();
-
-    for (const session of sessions) {
-      const weekStart = this.getWeekStart(session.date);
-      const weekKey = weekStart.toISOString().split('T')[0];
-
-      if (!weeks.has(weekKey)) {
-        weeks.set(weekKey, []);
-      }
-      weeks.get(weekKey)!.push(session);
-    }
-
-    return weeks;
-  }
-
-  /**
-   * Obtiene el inicio de la semana (lunes)
-   */
-  private static getWeekStart(date: Date): Date {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    d.setDate(diff);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return groupSessionsByWeek(sessions);
   }
 
   /**
@@ -297,29 +236,6 @@ export class SessionGeneratorService {
     sessionsPerWeek: number;
     studyHoursPerWeek: number;
   } {
-    if (sessions.length === 0) {
-      return {
-        avgSessionMinutes: 0,
-        avgBreakMinutes: 0,
-        sessionsPerWeek: 0,
-        studyHoursPerWeek: 0
-      };
-    }
-
-    const totalStudy = sessions.reduce((sum, s) => sum + s.netStudyMinutes, 0);
-    const totalBreaks = sessions.reduce((sum, s) =>
-      sum + s.breaks.reduce((bSum, b) => bSum + b.breakDurationMinutes, 0), 0
-    );
-
-    const weeks = this.groupSessionsByWeek(sessions);
-    const weekCount = weeks.size || 1;
-
-    return {
-      avgSessionMinutes: Math.round(totalStudy / sessions.length),
-      avgBreakMinutes: Math.round(totalBreaks / sessions.length),
-      sessionsPerWeek: Math.round(sessions.length / weekCount),
-      studyHoursPerWeek: Math.round((totalStudy / weekCount) / 60 * 10) / 10
-    };
+    return calculateSessionStats(sessions);
   }
 }
-

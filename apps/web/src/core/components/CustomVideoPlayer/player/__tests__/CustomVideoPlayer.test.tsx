@@ -48,6 +48,17 @@ describe('CustomVideoPlayer completion fallback', () => {
       configurable: true,
       value: vi.fn(),
     })
+
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: false,
+    })
+  })
+
+  it('does not start playback automatically on mount', () => {
+    render(<CustomVideoPlayer src="https://example.com/video.mp4" />)
+
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled()
   })
 
   it('notifies completion when playback reaches the end during timeupdate', async () => {
@@ -99,5 +110,58 @@ describe('CustomVideoPlayer completion fallback', () => {
     })
 
     expect(onComplete).toHaveBeenCalledTimes(1)
+  })
+
+  it('pauses playback when the document becomes hidden', () => {
+    const { container } = render(
+      <CustomVideoPlayer src="https://example.com/video.mp4" />
+    )
+    const videoElement = container.querySelector('video')
+
+    expect(videoElement).not.toBeNull()
+
+    if (!videoElement) {
+      return
+    }
+
+    Object.defineProperty(videoElement, 'paused', {
+      configurable: true,
+      get: () => false,
+    })
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: true,
+    })
+
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'))
+    })
+
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled()
+  })
+
+  it('does not micro-seek when the browser reports a stalled video', () => {
+    const { container } = render(
+      <CustomVideoPlayer src="https://example.com/video.mp4" />
+    )
+    const videoElement = container.querySelector('video')
+
+    expect(videoElement).not.toBeNull()
+
+    if (!videoElement) {
+      return
+    }
+
+    Object.defineProperty(videoElement, 'currentTime', {
+      configurable: true,
+      writable: true,
+      value: 42,
+    })
+
+    act(() => {
+      fireEvent(videoElement, new Event('stalled'))
+    })
+
+    expect(videoElement.currentTime).toBe(42)
   })
 })

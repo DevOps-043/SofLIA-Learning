@@ -3,6 +3,8 @@ import { createClient } from '../../../../lib/supabase/server';
 import { resolveOAuthDashboardDestination } from '../../../../features/auth/services/oauth-flow';
 import { SessionService } from '../../../../features/auth/services/session.service';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/auth/dashboard-destination
  * 

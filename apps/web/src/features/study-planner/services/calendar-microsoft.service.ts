@@ -1,58 +1,11 @@
-/**
- * CalendarMicrosoftService
- *
- * Microsoft Graph API operations for calendar integration:
- * - Calendar list
- * - Events CRUD (create, delete)
- * - User email retrieval
- */
-
 import type { CalendarEvent } from '../types/user-context.types';
-
-interface MicrosoftUserProfile {
-  mail?: string | null;
-  userPrincipalName?: string | null;
-}
-
-interface MicrosoftCalendarSummary {
-  id: string;
-  name?: string | null;
-  isDefaultCalendar?: boolean;
-  canEdit?: boolean;
-  hexColor?: string;
-}
-
-interface MicrosoftCalendarsResponse {
-  value?: MicrosoftCalendarSummary[];
-}
-
-interface MicrosoftEventDateTime {
-  dateTime?: string;
-}
-
-interface MicrosoftEventLocation {
-  displayName?: string;
-}
-
-interface MicrosoftCalendarEventRow {
-  id: string;
-  subject?: string | null;
-  bodyPreview?: string | null;
-  start?: MicrosoftEventDateTime | null;
-  end?: MicrosoftEventDateTime | null;
-  isAllDay?: boolean;
-  seriesMasterId?: string | null;
-  location?: MicrosoftEventLocation | null;
-  showAs?: string | null;
-}
-
-interface MicrosoftCalendarEventsResponse {
-  value?: MicrosoftCalendarEventRow[];
-}
-
-interface MicrosoftCreatedEventResponse {
-  id: string;
-}
+import type {
+  MicrosoftCalendarEventRow,
+  MicrosoftCalendarEventsResponse,
+  MicrosoftCalendarsResponse,
+  MicrosoftCreatedEventResponse,
+  MicrosoftUserProfile,
+} from './calendar-microsoft.types';
 
 export class CalendarMicrosoftService {
   /**

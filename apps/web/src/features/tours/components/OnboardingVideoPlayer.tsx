@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, SkipForward, ChevronLeft, ChevronRight, Wifi } from 'lucide-react';
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 
 interface OnboardingVideoPlayerProps {
   videos: string[];
@@ -49,6 +50,7 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevVideosRef = useRef<string[]>([]);
+  const playbackPolicy = useMediaPlaybackPolicy('tour');
 
   // Respect OS-level "reduce motion" preference — skip overlay fade animation
   const shouldReduceMotion = useReducedMotion();
@@ -77,9 +79,9 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
   // <video> element so only ONE hardware decoder is ever active at a time.
   useEffect(() => {
     const nextUrl = videos[currentVideoIndex + 1];
-    if (!nextUrl) return;
+    if (!nextUrl || !playbackPolicy.shouldPrefetchVideo) return;
     return injectPrefetchLink(nextUrl);
-  }, [currentVideoIndex, videos]);
+  }, [currentVideoIndex, playbackPolicy.shouldPrefetchVideo, videos]);
 
   // ── Reload player when video list changes ─────────────────────────────────
   useEffect(() => {
@@ -95,14 +97,23 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
       videoRef.current?.load();
     }
 
-    // Auto-play subsequent videos (user already interacted with video 1)
-    if (videoRef.current && !hasError && currentVideoIndex > 0) {
+    // Auto-play subsequent videos only when the shared policy allows it.
+    // iOS/mobile keeps playback user-initiated to avoid rejected play() loops
+    // and extra decoder wake-ups.
+    if (
+      playbackPolicy.allowAutoplay &&
+      videoRef.current &&
+      !hasError &&
+      currentVideoIndex > 0
+    ) {
       videoRef.current
         .play()
         .then(() => { setIsPlaying(true); setShowControls(true); })
         .catch((err) => console.error('[OnboardingVideoPlayer] autoplay error:', err));
+    } else if (currentVideoIndex > 0) {
+      setIsPlaying(false);
     }
-  }, [currentVideoIndex, videos, hasError]);
+  }, [currentVideoIndex, playbackPolicy.allowAutoplay, videos, hasError]);
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -219,7 +230,7 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
           <video
             ref={videoRef}
             src={videos[currentVideoIndex]}
-            preload="auto"
+            preload={playbackPolicy.nativeVideoPreload}
             playsInline
             muted={isMuted}
             className={`w-full h-full object-contain ${hasError ? 'hidden' : 'block'}`}

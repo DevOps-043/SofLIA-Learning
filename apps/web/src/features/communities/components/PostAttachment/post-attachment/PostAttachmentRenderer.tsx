@@ -1,14 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import NextImage from 'next/image'
+import { useTranslation } from 'react-i18next'
 import {
   Download,
   ExternalLink,
   FileText,
   Image,
   Link,
+  Play,
   Youtube,
 } from 'lucide-react'
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy'
 import { ImageModal } from '../../ImageModal'
 import {
   buildYouTubeEmbedUrl,
@@ -33,6 +37,70 @@ export function PostAttachmentRenderer({
   onOpenImage,
   onCloseImage,
 }: PostAttachmentRendererProps) {
+  const [hasActivatedEmbed, setHasActivatedEmbed] = useState(false)
+  const playbackPolicy = useMediaPlaybackPolicy('attachment')
+  const { t } = useTranslation('common')
+
+  const iframeAllow = [
+    'accelerometer',
+    playbackPolicy.allowIframeAutoplay ? 'autoplay' : null,
+    'clipboard-write',
+    'encrypted-media',
+    'gyroscope',
+    'picture-in-picture',
+  ]
+    .filter(Boolean)
+    .join('; ')
+
+  const renderYouTubeEmbed = (
+    embedUrl: string,
+    videoId: string | null,
+    iframeTitle: string,
+  ) => {
+    if (playbackPolicy.shouldUseEmbedFacade && !hasActivatedEmbed) {
+      const thumbnailUrl = videoId
+        ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+        : null
+
+      return (
+        <button
+          type="button"
+          className="absolute top-0 left-0 flex h-full w-full items-center justify-center overflow-hidden bg-gray-900 text-white"
+          onClick={() => setHasActivatedEmbed(true)}
+        >
+          {thumbnailUrl ? (
+            <img
+              src={thumbnailUrl}
+              alt={iframeTitle}
+              className="absolute inset-0 h-full w-full object-cover opacity-70"
+              loading="lazy"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gray-800" />
+          )}
+          <span className="relative z-10 flex flex-col items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+              <Play className="h-6 w-6 fill-white text-white" />
+            </span>
+            <span className="text-sm font-medium">{t('media.tapToPlay')}</span>
+          </span>
+        </button>
+      )
+    }
+
+    return (
+      <iframe
+        src={embedUrl}
+        title={iframeTitle}
+        className="absolute top-0 left-0 w-full h-full"
+        frameBorder="0"
+        allow={iframeAllow}
+        allowFullScreen
+        loading="lazy"
+      />
+    )
+  }
+
   if (attachmentType === 'image') {
     const isBase64 = attachmentUrl.startsWith('data:')
 
@@ -85,22 +153,14 @@ export function PostAttachmentRenderer({
       attachmentUrl.includes('youtube.com/watch')
 
     if (isYouTubeUrl) {
-      const embedUrl = buildYouTubeEmbedUrl(
-        extractYouTubeVideoId(attachmentUrl, attachmentData),
-      )
+      const videoId = extractYouTubeVideoId(attachmentUrl, attachmentData)
+      const embedUrl = buildYouTubeEmbedUrl(videoId)
 
       return (
         <div className="bg-gray-100 dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700 rounded-lg overflow-hidden">
           {embedUrl ? (
             <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              <iframe
-                src={embedUrl}
-                title="Video de YouTube"
-                className="absolute top-0 left-0 w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+              {renderYouTubeEmbed(embedUrl, videoId, 'Video de YouTube')}
             </div>
           ) : (
             <div className="w-full h-48 bg-gray-100 dark:bg-slate-700 flex items-center justify-center">
@@ -129,7 +189,9 @@ export function PostAttachmentRenderer({
           src={attachmentUrl}
           controls
           className="w-full max-h-96 rounded-lg"
+          playsInline
           poster={attachmentData?.thumbnail}
+          preload={playbackPolicy.nativeVideoPreload}
         />
         <div className="absolute top-2 right-2 bg-black/50 rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <Download
@@ -184,22 +246,18 @@ export function PostAttachmentRenderer({
   }
 
   if (attachmentType === 'youtube') {
-    const embedUrl = buildYouTubeEmbedUrl(
-      extractYouTubeVideoId(attachmentUrl, attachmentData),
-    )
+    const videoId = extractYouTubeVideoId(attachmentUrl, attachmentData)
+    const embedUrl = buildYouTubeEmbedUrl(videoId)
+    const iframeTitle =
+      typeof attachmentData?.title === 'string'
+        ? attachmentData.title
+        : 'Video de YouTube'
 
     return (
       <div className="bg-gray-100 dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700 rounded-lg overflow-hidden">
         {embedUrl ? (
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-            <iframe
-              src={embedUrl}
-              title={attachmentData?.title || 'Video de YouTube'}
-              className="absolute top-0 left-0 w-full h-full"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            {renderYouTubeEmbed(embedUrl, videoId, iframeTitle)}
           </div>
         ) : (
           <div className="w-full h-48 bg-slate-700 flex items-center justify-center">
@@ -224,22 +282,18 @@ export function PostAttachmentRenderer({
 
   if (attachmentType === 'link') {
     if (attachmentData?.isYouTube) {
-      const embedUrl = buildYouTubeEmbedUrl(
-        extractYouTubeVideoId(attachmentUrl, attachmentData),
-      )
+      const videoId = extractYouTubeVideoId(attachmentUrl, attachmentData)
+      const embedUrl = buildYouTubeEmbedUrl(videoId)
+      const iframeTitle =
+        typeof attachmentData?.title === 'string'
+          ? attachmentData.title
+          : 'Video de YouTube'
 
       return (
         <div className="bg-gray-100 dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700 rounded-lg overflow-hidden">
           {embedUrl ? (
             <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-              <iframe
-                src={embedUrl}
-                className="absolute top-0 left-0 w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={attachmentData?.title || 'Video de YouTube'}
-              />
+              {renderYouTubeEmbed(embedUrl, videoId, iframeTitle)}
             </div>
           ) : (
             <div className="p-4">

@@ -12,6 +12,10 @@
     "label": "Idioma: {{language}}",
     "active": "Activo"
   },
+  "media": {
+    "tapToPlay": "Toca para reproducir",
+    "videoPreview": "Vista previa del video"
+  },
   "dashboardNav": {
     "workshops": "Talleres",
     "directory": "Directorio IA",
@@ -643,6 +647,8 @@
       "refresh": "Actualizar",
       "refreshing": "Actualizando...",
       "primary": "Principal",
+      "connectedPrimary": "Principal de la cuenta conectada: {{email}}",
+      "accountLabel": "Cuenta: {{email}}",
       "minOneRequired": "Debes seleccionar al menos un calendario",
       "noCalendarsFound": "No se encontraron calendarios",
       "errorLoading": "Error al cargar los calendarios",
@@ -677,6 +683,14 @@
       "customEvent": "Evento personalizado",
       "confirmDelete": "Confirmar eliminación",
       "deleting": "Eliminando..."
+    },
+    "dashboardAssistant": {
+      "actionCompleted": "AcciÃ³n completada",
+      "actionFailed": "AcciÃ³n con error",
+      "confirmationRequired": "Se requiere confirmaciÃ³n antes de aplicar el cambio",
+      "errorCode": "CÃ³digo",
+      "traceId": "Trace ID",
+      "openAssistant": "Abrir asistente"
     }
   },
   "profile": {

@@ -1,71 +1,14 @@
-import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type {
   StudyApproach,
   StudyPlannerAssignedCourse,
-  StudyPlannerMessage,
   StudyPlannerPendingLesson,
 } from '../types/planner-ui.types';
-
-interface StudyPlannerB2BProfile {
-  organization?: {
-    name?: string | null;
-  } | null;
-  professionalProfile?: {
-    area?: { nombre?: string | null } | null;
-    nivel?: { nombre?: string | null } | null;
-    rol?: { nombre?: string | null } | null;
-  } | null;
-}
-
-interface StudyPlannerMetadataLesson {
-  durationSeconds?: number;
-  lessonId: string;
-  lessonOrderIndex?: number;
-  lessonTitle?: string;
-  totalDurationMinutes?: number;
-}
-
-interface StudyPlannerMetadataModule {
-  lessons?: StudyPlannerMetadataLesson[];
-  moduleOrderIndex?: number;
-  moduleTitle?: string;
-}
-
-interface StudyPlannerCourseAnalysis {
-  completedLessons: number;
-  courseId: string;
-  daysUntilDeadline: number;
-  dueDate: string;
-  dueDateObj: Date;
-  pendingLessons: number;
-  pendingLessonsDetails: Array<{
-    durationMinutes: number;
-    lessonId: string;
-    lessonOrderIndex: number;
-    lessonTitle: string;
-    moduleOrderIndex: number;
-    moduleTitle: string;
-  }>;
-  title: string;
-  totalLessons: number;
-  weeksUntilDeadline: number;
-}
-
-interface UseStudyPlannerB2BCalendarAnalysisParams {
-  analyzeCalendarAndSuggest: (
-    provider: string,
-    effectiveTargetDate?: string,
-    effectiveApproach?: StudyApproach,
-    skipB2BRedirect?: boolean,
-  ) => Promise<void>;
-  pendingLessonsRef: MutableRefObject<StudyPlannerPendingLesson[]>;
-  selectedCourseIds: string[];
-  setConversationHistory: Dispatch<SetStateAction<StudyPlannerMessage[]>>;
-  setIsProcessing: Dispatch<SetStateAction<boolean>>;
-  setPendingLessonsWithNames: Dispatch<SetStateAction<StudyPlannerPendingLesson[]>>;
-  setSelectedCourseIds: Dispatch<SetStateAction<string[]>>;
-  setTargetDate: Dispatch<SetStateAction<string | null>>;
-}
+import type {
+  StudyPlannerB2BProfile,
+  StudyPlannerCourseAnalysis,
+  StudyPlannerMetadataModule,
+  UseStudyPlannerB2BCalendarAnalysisParams,
+} from './useStudyPlannerB2BCalendarAnalysis.types';
 
 function resolveB2BDeadlineWindow(
   approach: StudyApproach,

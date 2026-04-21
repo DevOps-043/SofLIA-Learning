@@ -43,15 +43,6 @@ class EmailService {
           ciphers: 'HIGH:!aNULL:!MD5',
         },
       });
-
-      this.transporter.verify((verifyError) => {
-        if (verifyError) {
-          logger.error('SMTP connection verification failed', verifyError);
-          this.transporter = null;
-        } else {
-          logger.info('SMTP connection verified OK - ready to send emails');
-        }
-      });
     } catch (error) {
       logger.error('Error initializing email service', error);
       this.transporter = null;

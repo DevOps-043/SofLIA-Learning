@@ -19,7 +19,10 @@ export interface DashboardMessage {
   timestamp: Date;
   actionType?: StudyPlannerAction;
   actionData?: Record<string, unknown>;
-  actionStatus?: 'pending' | 'success' | 'error';
+  actionStatus?: 'pending' | 'success' | 'error' | 'confirmation_needed';
+  actionMessage?: string;
+  actionCode?: string;
+  traceId?: string;
 }
 
 // Tipos de acciones que SofLIA puede ejecutar
@@ -39,7 +42,8 @@ export type StudyPlannerAction =
   | 'create_micro_session'
   | 'reduce_session_load'
   | 'recover_missed_session'
-  | 'update_calendar_selection';
+  | 'update_calendar_selection'
+  | 'delete_plan';
 
 // Datos de una sesión de estudio
 export interface StudySession {

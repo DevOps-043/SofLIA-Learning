@@ -314,7 +314,27 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Failed to upsert course', details: createError.message }, { status: 500 })
         }
 
-        // B. Crear Módulos y Lecciones
+        // B. Si el curso ya existía, eliminar módulos previos para evitar duplicación.
+        // Las FK con CASCADE limpian course_lessons, lesson_activities y lesson_materials.
+        const { count: existingModulesCount } = await supabase
+            .from('course_modules')
+            .select('*', { count: 'exact', head: true })
+            .eq('course_id', newCourse.id)
+
+        if (existingModulesCount && existingModulesCount > 0) {
+            console.info(`[IMPORT API] Re-import detected for course "${newCourse.id}". Clearing ${existingModulesCount} existing module(s) before re-inserting.`)
+            const { error: deleteError } = await supabase
+                .from('course_modules')
+                .delete()
+                .eq('course_id', newCourse.id)
+
+            if (deleteError) {
+                console.error('[IMPORT API] Error deleting existing modules:', deleteError)
+                return NextResponse.json({ error: 'Failed to clear existing course content', details: deleteError.message }, { status: 500 })
+            }
+        }
+
+        // C. Crear Módulos y Lecciones
         try {
             for (const mod of modules) {
                 // Crear Módulo

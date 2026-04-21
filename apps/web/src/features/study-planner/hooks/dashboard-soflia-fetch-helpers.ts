@@ -1,0 +1,126 @@
+import type { Dispatch, SetStateAction } from 'react';
+import type {
+  ActiveStudyPlan,
+  DashboardMessage,
+  StudyPlannerDashboardState,
+} from './useStudyPlannerDashboardSofLIA';
+
+interface DashboardChatResponse {
+  action?: {
+    data?: Record<string, unknown>;
+    status?: 'pending' | 'success' | 'error' | 'confirmation_needed';
+    type?: DashboardMessage['actionType'];
+  };
+  error?: string;
+  response?: string;
+  success?: boolean;
+}
+
+export function createSofLIANoPlanMessage(): DashboardMessage {
+  return {
+    id: `no-plan-${Date.now()}`,
+    role: 'assistant',
+    content: `Hola, soy SofLIA, tu asistente de estudios.
+
+Aun no tienes un plan de estudios activo. Te gustaria crear uno?
+
+Puedo ayudarte a organizar tu tiempo segun tu disponibilidad y objetivos.
+
+[Ir a crear un plan](/study-planner/create)`,
+    timestamp: new Date(),
+  };
+}
+
+export function createSofLIALoadingMessage(): DashboardMessage {
+  return {
+    id: `loading-${Date.now()}`,
+    role: 'assistant',
+    content: 'Hola, soy SofLIA. Estoy analizando tu calendario y plan de estudios...',
+    timestamp: new Date(),
+  };
+}
+
+export function createSofLIAWelcomeMessage(plan: ActiveStudyPlan): DashboardMessage {
+  return {
+    id: `welcome-${Date.now()}`,
+    role: 'assistant',
+    content: `Hola, soy SofLIA, tu asistente para gestionar tu plan "${plan.name}".
+
+Puedo ayudarte a mover sesiones, ajustar duraciones, eliminar bloques, crear nuevas sesiones y reorganizar tu semana.
+
+En que te puedo ayudar hoy?`,
+    timestamp: new Date(),
+  };
+}
+
+export async function loadSofLIAProactiveAnalysis({
+  plan,
+  planQuery,
+  setState,
+}: {
+  plan: ActiveStudyPlan;
+  planQuery: string;
+  setState: Dispatch<SetStateAction<StudyPlannerDashboardState>>;
+}) {
+  try {
+    const chatResponse = await fetch('/api/study-planner/dashboard/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        trigger: 'proactive_init',
+        activePlanId: plan.id,
+        conversationHistory: [],
+      }),
+    });
+
+    if (!chatResponse.ok) {
+      const chatError = await chatResponse.json().catch(() => null as { error?: string } | null);
+      throw new Error(chatError?.error || 'No se pudo obtener el analisis proactivo');
+    }
+
+    const chatData = await chatResponse.json() as DashboardChatResponse;
+    if (!chatData.success || !chatData.response) {
+      console.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
+      throw new Error(chatData.error || 'Sin respuesta del analisis');
+    }
+
+    setState(prev => ({
+      ...prev,
+      messages: [{
+        id: `proactive-${Date.now()}`,
+        role: 'assistant',
+        content: chatData.response || '',
+        timestamp: new Date(),
+        actionType: chatData.action?.type,
+        actionData: chatData.action?.data,
+        actionStatus: chatData.action?.status,
+      }],
+    }));
+
+    if (chatData.action?.status === 'success') {
+      refreshSofLIAPlanAfterAction(planQuery, setState);
+    }
+  } catch (chatError) {
+    console.error('[SofLIA Dashboard] Error obteniendo analisis proactivo:', chatError);
+    setState(prev => ({
+      ...prev,
+      messages: [createSofLIAWelcomeMessage(plan)],
+    }));
+  }
+}
+
+function refreshSofLIAPlanAfterAction(
+  planQuery: string,
+  setState: Dispatch<SetStateAction<StudyPlannerDashboardState>>,
+) {
+  setTimeout(() => {
+    fetch(`/api/study-planner/dashboard/plan${planQuery}`)
+      .then(response => response.json())
+      .then(planData => {
+        if (planData.success && planData.data) {
+          setState(prev => ({ ...prev, activePlan: planData.data }));
+        }
+      })
+      .catch(err => console.error('Error recargando plan:', err));
+  }, 500);
+}

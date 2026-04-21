@@ -1,5 +1,4 @@
 import { logger } from '../../../../../lib/utils/logger'
-import { createAdminClient } from './calendar.service'
 import {
   executeCreateCalendarEvent,
   executeDeleteCalendarEvent,
@@ -21,93 +20,14 @@ import {
   executeResizeSessionV2,
   executeUpdateSessionV2,
 } from './actions/session-actions-v2.service'
-import type { ActionResult, ActionType } from './types'
-
-const WEEKDAY_PATTERNS: Array<{ weekday: number; patterns: string[] }> = [
-  { weekday: 0, patterns: ['domingo'] },
-  { weekday: 1, patterns: ['lunes', 'monday'] },
-  { weekday: 2, patterns: ['martes', 'tuesday'] },
-  { weekday: 3, patterns: ['miercoles', 'miércoles', 'wednesday'] },
-  { weekday: 4, patterns: ['jueves', 'thursday'] },
-  { weekday: 5, patterns: ['viernes', 'friday'] },
-  { weekday: 6, patterns: ['sabado', 'sábado', 'saturday'] },
-]
-
-function inferRequestedWeekday(message?: string): number | null {
-  if (!message) {
-    return null
-  }
-
-  const normalized = message.toLowerCase()
-  for (const option of WEEKDAY_PATTERNS) {
-    if (option.patterns.some((pattern) => normalized.includes(pattern))) {
-      return option.weekday
-    }
-  }
-
-  return null
-}
-
-async function resolveMissingSessionReference(params: {
-  userId: string
-  planId: string
-  action: ActionResult
-  userMessage?: string
-}): Promise<ActionResult> {
-  if (!['move_session', 'delete_session', 'resize_session', 'recover_missed_session'].includes(params.action.type)) {
-    return params.action
-  }
-
-  const actionData =
-    params.action.data && typeof params.action.data === 'object'
-      ? { ...(params.action.data as Record<string, unknown>) }
-      : {}
-
-  if (typeof actionData.sessionId === 'string' && actionData.sessionId.trim()) {
-    return { ...params.action, data: actionData }
-  }
-
-  const requestedWeekday = inferRequestedWeekday(params.userMessage)
-  if (requestedWeekday === null) {
-    return params.action
-  }
-
-  const supabase = createAdminClient()
-  const now = new Date()
-  const searchEnd = new Date(now.getTime() + 21 * 24 * 60 * 60 * 1000)
-  const { data: sessions, error } = await supabase
-    .from('study_sessions')
-    .select('id, title, start_time, end_time, status')
-    .eq('user_id', params.userId)
-    .eq('plan_id', params.planId)
-    .gte('start_time', now.toISOString())
-    .lte('start_time', searchEnd.toISOString())
-    .order('start_time', { ascending: true })
-
-  if (error || !sessions?.length) {
-    return params.action
-  }
-
-  const candidates = sessions.filter((session) => {
-    return new Date(session.start_time).getDay() === requestedWeekday
-  })
-
-  if (candidates.length === 1) {
-    actionData.sessionId = candidates[0].id
-    return { ...params.action, data: actionData }
-  }
-
-  if (candidates.length > 1) {
-    return {
-      ...params.action,
-      status: 'confirmation_needed',
-      message: `Encontré ${candidates.length} sesiones para ese día. Indícame cuál quieres mover o borrar: ${candidates.map((session) => `"${session.title}"`).join(' | ')}`,
-      data: actionData,
-    }
-  }
-
-  return params.action
-}
+import {
+  defaultConfirmationMessage,
+  isMutativeDashboardAction,
+  normalizeActionType,
+  parseActionTagContent,
+} from './chat-action-validation.service'
+import { resolveMissingSessionReference } from './chat-action-session-reference.service'
+import type { ActionProposal, ActionResult } from './types'
 
 export function extractActionTags(response: string): {
   action: ActionResult | null
@@ -118,24 +38,13 @@ export function extractActionTags(response: string): {
   const actions: ActionResult[] = []
 
   for (const actionMatch of actionMatches) {
-    try {
-      const actionData = JSON.parse(actionMatch[1].trim())
+    const parsedAction = parseActionTagContent(actionMatch[1])
 
-      if (!actionData.type) {
-        continue
-      }
-
-      actions.push({
-        type: String(actionData.type).toLowerCase() as ActionType,
-        data: actionData.data || {},
-        status: actionData.confirmationNeeded
-          ? 'confirmation_needed'
-          : 'pending',
-        message: actionData.confirmationMessage,
-      })
-    } catch (error) {
-      logger.error('Error parsing action JSON:', error)
+    if (parsedAction.code === 'invalid_action_json') {
+      logger.error('Error parsing action JSON from dashboard chat response')
     }
+
+    actions.push(parsedAction)
   }
 
   return {
@@ -150,17 +59,31 @@ export async function executeDashboardAction(
   planId: string,
   action: ActionResult,
   userMessage?: string,
+  options?: { confirmed?: boolean; traceId?: string },
 ): Promise<ActionResult> {
+  const actionForResolution =
+    options?.confirmed && action.status === 'confirmation_needed'
+      ? { ...action, status: 'pending' as const }
+      : action
+
   const resolvedAction = await resolveMissingSessionReference({
     userId,
     planId,
-    action,
+    action: actionForResolution,
     userMessage,
   })
 
   if (resolvedAction.status === 'confirmation_needed') {
     return resolvedAction
   }
+
+  logger.info('[StudyPlanner] Ejecutando accion de dashboard', {
+    actionType: resolvedAction.type,
+    confirmationState: options?.confirmed ? 'confirmed' : resolvedAction.status,
+    planId,
+    traceId: options?.traceId,
+    userId,
+  })
 
   switch (resolvedAction.type) {
     case 'move_session':
@@ -196,10 +119,15 @@ export async function executeDashboardAction(
     case 'rebalance':
     case 'rebalanzar':
     case 'redistribuir':
-      return executeRebalancePlanV2(userId, planId, {
-        ...resolvedAction,
-        type: 'rebalance_plan',
-      }, userMessage)
+      return executeRebalancePlanV2(
+        userId,
+        planId,
+        {
+          ...resolvedAction,
+          type: 'rebalance_plan',
+        },
+        userMessage,
+      )
     default:
       return {
         ...resolvedAction,
@@ -215,13 +143,41 @@ export async function resolveDashboardChatAction(
   actions: ActionResult[],
   fallbackAction: ActionResult | null,
   userMessage?: string,
+  traceId?: string,
 ) {
   if (!activePlanId || actions.length === 0) {
     return fallbackAction || undefined
   }
 
-  const pendingActions = actions.filter((action) => action.status === 'pending')
-  const confirmationActions = actions.filter(
+  const readOnlyMode = process.env.STUDY_PLANNER_ACTIONS_READONLY === 'true'
+  const normalizedActions = actions.map((action) => ({
+    ...action,
+    traceId,
+    type: normalizeActionType(action.type),
+  }))
+
+  const errorAction = normalizedActions.find((action) => action.status === 'error')
+  if (errorAction) {
+    return errorAction
+  }
+
+  const mutativeProposal = normalizedActions.find((action) =>
+    action.status === 'confirmation_needed' ||
+    isMutativeDashboardAction(action.type) ||
+    readOnlyMode,
+  )
+
+  if (mutativeProposal) {
+    return {
+      ...mutativeProposal,
+      status: 'confirmation_needed' as const,
+      requiresConfirmation: true,
+      message: mutativeProposal.message || defaultConfirmationMessage(mutativeProposal),
+    }
+  }
+
+  const pendingActions = normalizedActions.filter((action) => action.status === 'pending')
+  const confirmationActions = normalizedActions.filter(
     (action) => action.status === 'confirmation_needed',
   )
 
@@ -235,6 +191,7 @@ export async function resolveDashboardChatAction(
           activePlanId,
           pendingAction,
           userMessage,
+          { traceId },
         ),
       )
     }
@@ -244,4 +201,37 @@ export async function resolveDashboardChatAction(
   }
 
   return confirmationActions[0] || fallbackAction || undefined
+}
+
+export function buildActionProposals(
+  actions: ActionResult[],
+  traceId?: string,
+): ActionProposal[] {
+  return actions
+    .filter((action) =>
+      action.status === 'confirmation_needed' ||
+      action.status === 'error' ||
+      isMutativeDashboardAction(action.type),
+    )
+    .map((action) => {
+      const normalizedAction: ActionProposal = {
+        ...action,
+        data: action.data && typeof action.data === 'object' ? action.data : {},
+        requiresConfirmation:
+          action.status !== 'error' &&
+          (action.requiresConfirmation || isMutativeDashboardAction(action.type)),
+        status: action.status === 'error' ? 'error' : 'confirmation_needed',
+        traceId,
+        type: normalizeActionType(action.type),
+      }
+
+      return {
+        ...normalizedAction,
+        message:
+          normalizedAction.message ||
+          (normalizedAction.status === 'error'
+            ? 'La accion propuesta no es valida.'
+            : defaultConfirmationMessage(normalizedAction)),
+      }
+    })
 }

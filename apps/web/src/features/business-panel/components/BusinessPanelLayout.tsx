@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '@/core/components/LiaSidePanel'
 import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
 import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
 import { useBusinessPanelJoyride } from '@/features/tours/hooks/useBusinessPanelJoyride'
@@ -32,6 +33,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const { styles, effectiveStyles, loading: stylesLoading } =
     useOrganizationStylesContext()
   const normalizedUserRole = user?.cargo_rol?.toLowerCase().trim()
+  const tourPlaybackPolicy = useMediaPlaybackPolicy('tour')
   const { joyrideProps, startTour, resetTour, run, showVideoIntro, handleVideoComplete, shouldShowTour } =
     useBusinessPanelJoyride({
       enabled:
@@ -106,7 +108,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   // start (the setTimeout in useBusinessPanelJoyride) before the player mounts
   // and requests the file, dramatically reducing the initial buffering stall.
   useEffect(() => {
-    if (!shouldShowTour || !introVideos[0]) return
+    if (!shouldShowTour || !introVideos[0] || !tourPlaybackPolicy.shouldPrefetchVideo) return
 
     const link = document.createElement('link')
     link.rel = 'preload'
@@ -117,7 +119,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
     return () => {
       if (document.head.contains(link)) document.head.removeChild(link)
     }
-  }, [shouldShowTour, introVideos])
+  }, [shouldShowTour, introVideos, tourPlaybackPolicy.shouldPrefetchVideo])
 
   useEffect(() => {
     setIsMounted(true)

@@ -27,7 +27,7 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
     selectAll,
     deselectAll,
     saveSelection,
-  } = useCalendarSelection();
+  } = useCalendarSelection(provider);
 
   useEffect(() => {
     fetchCalendars();

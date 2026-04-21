@@ -1,0 +1,118 @@
+import {
+  addDays,
+  format,
+  parseISO,
+  startOfWeek,
+} from 'date-fns';
+import { es } from 'date-fns/locale';
+import type { StudyPlannerStoredLessonDistribution } from '../../../types/planner-schedule.types';
+import type {
+  SchedulePreviewEvent,
+  SchedulePreviewWeekRange,
+} from '../schedule-preview.types';
+
+const STUDY_SESSION_COLOR = '#8E24AA';
+const EXTERNAL_GOOGLE_COLOR = '#0066CC';
+const EXTERNAL_MICROSOFT_COLOR = '#0078D4';
+const EXTERNAL_DEFAULT_COLOR = '#4A90D9';
+const VISIBLE_HOUR_START = 6;
+const VISIBLE_HOUR_END = 23;
+
+export interface ExternalCalendarEventPayload {
+  id?: string;
+  title?: string;
+  summary?: string;
+  start?: string;
+  end?: string;
+  isAllDay?: boolean;
+  provider?: 'google' | 'microsoft';
+  color?: string;
+}
+
+export function buildWeekRange(referenceDate: Date): SchedulePreviewWeekRange {
+  const monday = startOfWeek(referenceDate, { weekStartsOn: 1 });
+  const sunday = addDays(monday, 6);
+  const startLabel = format(monday, 'd', { locale: es });
+  const endLabel = format(sunday, 'd', { locale: es });
+  const monthLabel = format(sunday, 'MMM', { locale: es });
+  const yearLabel = format(sunday, 'yyyy');
+
+  return {
+    start: monday,
+    end: sunday,
+    label: `${startLabel} - ${endLabel} ${monthLabel} ${yearLabel}`,
+  };
+}
+
+export function buildWeekDays(monday: Date): Date[] {
+  return Array.from({ length: 7 }, (_, index) => addDays(monday, index));
+}
+
+export function buildHours(): number[] {
+  return Array.from(
+    { length: VISIBLE_HOUR_END - VISIBLE_HOUR_START + 1 },
+    (_, index) => VISIBLE_HOUR_START + index,
+  );
+}
+
+export function distributionToEvents(
+  distributions: StudyPlannerStoredLessonDistribution[],
+): SchedulePreviewEvent[] {
+  return distributions.map((slot, index) => {
+    const lessonNames = slot.lessons.map(lesson => lesson.lessonTitle).join(', ');
+    const eventTitle =
+      slot.lessons.length === 0
+        ? 'Sesion de estudio'
+        : slot.lessons.length === 1
+          ? slot.lessons[0].lessonTitle
+          : `${slot.lessons[0].lessonTitle} y ${slot.lessons.length - 1} mas`;
+
+    return {
+      id: `plan-${slot.dateStr}-${index}`,
+      title: eventTitle,
+      dateStr: slot.dateStr,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      source: 'study_plan',
+      color: STUDY_SESSION_COLOR,
+      description: lessonNames,
+    };
+  });
+}
+
+export function externalToEvents(
+  payload: ExternalCalendarEventPayload[],
+): SchedulePreviewEvent[] {
+  return payload
+    .filter(event => event.start && event.title)
+    .map((event, index) => {
+      const startDate = parseISO(event.start!);
+      const endDate = event.end ? parseISO(event.end) : startDate;
+
+      return {
+        id: `ext-${event.id || index}`,
+        title: event.title || event.summary || 'Evento',
+        dateStr: format(startDate, 'yyyy-MM-dd'),
+        startTime: event.isAllDay ? '00:00' : format(startDate, 'HH:mm'),
+        endTime: event.isAllDay ? '23:59' : format(endDate, 'HH:mm'),
+        source: 'external_calendar',
+        color: getExternalEventColor(event),
+        isAllDay: event.isAllDay ?? false,
+      };
+    });
+}
+
+export function getEventsForDay(
+  events: SchedulePreviewEvent[],
+  day: Date,
+): SchedulePreviewEvent[] {
+  const dayStr = format(day, 'yyyy-MM-dd');
+  return events.filter(event => event.dateStr === dayStr);
+}
+
+function getExternalEventColor(event: ExternalCalendarEventPayload): string {
+  if (event.color) return event.color;
+  if (event.provider === 'google') return EXTERNAL_GOOGLE_COLOR;
+  if (event.provider === 'microsoft') return EXTERNAL_MICROSOFT_COLOR;
+  return EXTERNAL_DEFAULT_COLOR;
+}

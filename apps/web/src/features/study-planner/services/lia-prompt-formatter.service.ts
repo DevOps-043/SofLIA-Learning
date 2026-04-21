@@ -1,39 +1,10 @@
-/**
- * lia-prompt-formatter.service.ts
- *
- * Formats StudyPlannerContext and pre-calculated sessions into prompt strings
- * for SofLIA.
- */
-
 import type { StudyPlannerContext } from './lia-context.types';
-
-type PreCalculatedSessionsResult = {
-  sessions: Array<{
-    weekNumber: number;
-    dayName: string;
-    date: string;
-    timeSlot: string;
-    startTime: string;
-    endTime: string;
-    totalMinutes: number;
-    lessons: Array<{ title: string; duration: number }>;
-  }>;
-  summary: {
-    totalWeeks: number;
-    totalSessions: number;
-    totalLessons: number;
-    finishDate: string;
-  };
-};
+import type { PreCalculatedSessionsResult } from './lia-prompt-formatter.types';
 
 export class LiaPromptFormatterService {
-  /**
-   * Formatea el contexto como string para incluir en el prompt de SofLIA
-   */
   static formatContextForPrompt(context: StudyPlannerContext): string {
     let prompt = '';
 
-    // Tipo de usuario
     prompt += `\n## TIPO DE USUARIO\n`;
     if (context.userType === 'b2b') {
       const hasCourses = context.courses && context.courses.length > 0;
@@ -44,7 +15,6 @@ export class LiaPromptFormatterService {
       prompt += 'Usuario B2C (usuario independiente con flexibilidad total)\n';
     }
 
-    // Perfil profesional
     prompt += `\n## PERFIL PROFESIONAL\n`;
     if (context.userProfile.nombre) {
       prompt += `- Nombre: ${context.userProfile.nombre}\n`;
@@ -61,7 +31,6 @@ export class LiaPromptFormatterService {
       prompt += '\n';
     }
 
-    // Organización (B2B)
     if (context.organization) {
       prompt += `\n## ORGANIZACIÓN\n`;
       prompt += `- Nombre: ${context.organization.name}\n`;
@@ -73,7 +42,6 @@ export class LiaPromptFormatterService {
       }
     }
 
-    // Equipos de trabajo (B2B)
     if (context.workTeams && context.workTeams.length > 0) {
       prompt += `\n## EQUIPOS DE TRABAJO\n`;
       for (const team of context.workTeams) {
@@ -81,7 +49,6 @@ export class LiaPromptFormatterService {
       }
     }
 
-    // Cursos
     prompt += `\n## CURSOS (${context.courses.length})\n`;
     for (const course of context.courses) {
       prompt += `- ${course.title}\n`;
@@ -98,13 +65,11 @@ export class LiaPromptFormatterService {
         prompt += `  - Asignado por: ${course.assignedBy}\n`;
       }
 
-      // Agregar módulos y lecciones si están disponibles
       if (course.modules && course.modules.length > 0) {
         let totalLessons = 0;
         let completedLessons = 0;
         let pendingLessons = 0;
 
-        // Primero contar todas las lecciones para el resumen
         for (const module of course.modules) {
           for (const lesson of module.lessons) {
             totalLessons++;
@@ -116,8 +81,6 @@ export class LiaPromptFormatterService {
           }
         }
 
-        // IMPORTANTE: Solo mostrar lecciones PENDIENTES a SofLIA
-        // Las lecciones completadas no deben incluirse en el plan de estudios
         if (pendingLessons > 0) {
           prompt += `  \n  LECCIONES PENDIENTES - USA ESTOS DATOS EXACTOS (nombres, números y duraciones):\n`;
           prompt += `  IMPORTANTE: Copia EXACTAMENTE el número de lección y la duración que aparece aquí.\n`;
@@ -140,7 +103,6 @@ export class LiaPromptFormatterService {
       }
     }
 
-    // Análisis de cursos
     if (context.courseAnalysis) {
       prompt += `\n## ANÁLISIS DE CURSOS\n`;
       prompt += `- Tiempo total restante: ${Math.round(context.courseAnalysis.totalMinutes / 60 * 10) / 10} horas\n`;
@@ -175,7 +137,6 @@ export class LiaPromptFormatterService {
       prompt += `\nINSTRUCCIÓN PARA SofLIA: Cuando el usuario seleccione el tipo de sesión, usa las duraciones sugeridas arriba, NO uses valores fijos genéricos como 25/45/60.\n`;
     }
 
-    // Calendario
     prompt += `\n## CALENDARIO\n`;
     if (context.calendarConnected) {
       prompt += `- Calendario conectado: ${context.calendarProvider === 'google' ? 'Google Calendar' : 'Microsoft Calendar'}\n`;
@@ -200,7 +161,6 @@ export class LiaPromptFormatterService {
       }
     }
 
-    // Preferencias existentes
     if (context.existingPreferences) {
       prompt += `\n## PREFERENCIAS GUARDADAS\n`;
       if (context.existingPreferences.timezone) {
@@ -239,7 +199,6 @@ export class LiaPromptFormatterService {
     prompt += `INSTRUCCIÓN CRÍTICA: Los cálculos de hora ya están hechos. NO recalcules.\n`;
     prompt += `Copia EXACTAMENTE las horas de inicio y fin que aparecen aquí.\n\n`;
 
-    // Agrupar por semana
     const byWeek = new Map<number, typeof preCalculatedData.sessions>();
     for (const session of preCalculatedData.sessions) {
       if (!byWeek.has(session.weekNumber)) {
@@ -253,7 +212,6 @@ export class LiaPromptFormatterService {
       const lastDate = sessions[sessions.length - 1].date;
       prompt += `**Semana ${weekNum} (${firstDate} - ${lastDate}):**\n\n`;
 
-      // Agrupar por día
       const byDay = new Map<string, typeof sessions>();
       for (const session of sessions) {
         if (!byDay.has(session.date)) {

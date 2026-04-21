@@ -1,158 +1,25 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import type {
+  ListedStudyPlan,
+  RawCourseRow,
+  RawOrganizationMembershipRow,
+  RawSessionRow,
+  RawStudyPlan,
+} from './study-planner-plans.types'
+import {
+  buildPlannedCourseKey,
+  buildStudyPlannerDashboardDestination,
+  extractOrganizationSlug,
+  extractPlanCourseIds,
+  extractSessionCourseIds,
+} from './study-planner-plans.helpers'
 
-interface RawStudyPlan {
-  ai_generation_metadata?: {
-    courseIds?: unknown
-  } | null
-  created_at?: string | null
-  description?: string | null
-  end_date?: string | null
-  id: string
-  name: string
-  organization_id?: string | null
-  start_date?: string | null
-  timezone?: string | null
-  updated_at?: string | null
-}
-
-interface RawOrganizationMembershipRow {
-  organization_id?: string | null
-  organizations?: unknown
-  role?: string | null
-}
-
-interface OrganizationRelation {
-  slug?: string | null
-}
-
-interface RawCourseRow {
-  id: string
-  title: string | null
-}
-
-interface RawSessionRow {
-  course_id: string | null
-  id: string
-  metrics?: {
-    plannedCourseId?: unknown
-    plannedLessons?: Array<{ courseId?: unknown }> | unknown
-  } | null
-  plan_id: string | null
-  start_time: string
-  status: string
-}
-
-export interface ListedStudyPlan {
-  id: string
-  name: string
-  description?: string
-  startDate?: string
-  endDate?: string
-  timezone?: string
-  createdAt?: string
-  updatedAt?: string
-  courseIds: string[]
-  /** Organization that owns this plan. Undefined for B2C plans. */
-  organizationId?: string
-  organizationSlug?: string
-  organizationRole?: string
-  dashboardDestination?: string
-  primaryCourseId?: string
-  primaryCourseTitle?: string
-  totalSessions: number
-  completedSessions: number
-  upcomingSessions: number
-}
-
-export function extractPlanCourseIds(
-  aiGenerationMetadata: RawStudyPlan['ai_generation_metadata'],
-): string[] {
-  const rawCourseIds = aiGenerationMetadata?.courseIds
-
-  if (!Array.isArray(rawCourseIds)) {
-    return []
-  }
-
-  return rawCourseIds.filter(
-    (courseId): courseId is string =>
-      typeof courseId === 'string' && courseId.trim().length > 0,
-  )
-}
-
-function extractSessionCourseIds(session: RawSessionRow): string[] {
-  const courseIds = new Set<string>()
-
-  if (typeof session.course_id === 'string' && session.course_id.trim().length > 0) {
-    courseIds.add(session.course_id)
-  }
-
-  if (
-    typeof session.metrics?.plannedCourseId === 'string'
-    && session.metrics.plannedCourseId.trim().length > 0
-  ) {
-    courseIds.add(session.metrics.plannedCourseId)
-  }
-
-  if (Array.isArray(session.metrics?.plannedLessons)) {
-    for (const lesson of session.metrics.plannedLessons) {
-      if (
-        lesson
-        && typeof lesson === 'object'
-        && typeof lesson.courseId === 'string'
-        && lesson.courseId.trim().length > 0
-      ) {
-        courseIds.add(lesson.courseId)
-      }
-    }
-  }
-
-  return Array.from(courseIds)
-}
-
-/**
- * Builds a composite key that uniquely identifies a planned (course, organization) pair.
- * For B2C plans (no org), the key is just the courseId.
- * This prevents the same course planned for two different organizations from
- * blocking each other.
- */
-export function buildPlannedCourseKey(courseId: string, organizationId?: string | null): string {
-  return organizationId ? `${courseId}::${organizationId}` : courseId
-}
-
-export function buildStudyPlannerDashboardDestination(
-  organizationSlug?: string | null,
-  organizationRole?: string | null,
-): string | undefined {
-  if (!organizationSlug) {
-    return undefined
-  }
-
-  if (organizationRole === 'owner' || organizationRole === 'admin') {
-    return `/${organizationSlug}/business-panel/dashboard`
-  }
-
-  return `/${organizationSlug}/business-user/dashboard`
-}
-
-function extractOrganizationSlug(organization: unknown): string | undefined {
-  if (!organization) {
-    return undefined
-  }
-
-  const relation = Array.isArray(organization)
-    ? organization[0]
-    : organization
-
-  if (!relation || typeof relation !== 'object') {
-    return undefined
-  }
-
-  const organizationRelation = relation as OrganizationRelation
-
-  return typeof organizationRelation.slug === 'string'
-    ? organizationRelation.slug
-    : undefined
-}
+export type { ListedStudyPlan } from './study-planner-plans.types'
+export {
+  buildPlannedCourseKey,
+  buildStudyPlannerDashboardDestination,
+  extractPlanCourseIds,
+} from './study-planner-plans.helpers'
 
 export async function listUserStudyPlans(
   userId: string,
@@ -323,13 +190,6 @@ export async function getUserStudyPlanByIdOrLatest(params: {
   return plans.find((plan) => plan.id === params.planId) || null
 }
 
-/**
- * Returns a Set of composite keys ("courseId::orgId" for B2B, "courseId" for B2C)
- * representing all (course, organization) pairs that already have an active plan.
- *
- * Using a composite key prevents blocking a second plan for the same course
- * when the user belongs to two different organizations that both assigned it.
- */
 export async function getUserPlannedCourseKeys(userId: string): Promise<Set<string>> {
   const plans = await listUserStudyPlans(userId)
 
@@ -340,10 +200,6 @@ export async function getUserPlannedCourseKeys(userId: string): Promise<Set<stri
   return new Set(keys)
 }
 
-/**
- * @deprecated Use getUserPlannedCourseKeys for multi-org aware duplicate detection.
- * Kept for backwards compatibility with callers that only need courseId-based lookup.
- */
 export async function getUserPlannedCourseIds(userId: string): Promise<Set<string>> {
   const plans = await listUserStudyPlans(userId)
   return new Set(plans.flatMap((plan) => plan.courseIds))

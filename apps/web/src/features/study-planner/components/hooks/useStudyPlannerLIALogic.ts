@@ -1,486 +1,195 @@
 'use client';
-
-/**
- * useStudyPlannerLIALogic – orchestrator
- *
- * State is split into two focused sub-hooks:
- *   - useMessageProcessor  → conversation / processing state
- *   - useResponseHandler   → UI response state (modals, courses, calendar, …)
- *
- * All business-logic is still delegated to the same domain hooks as before;
- * the public API (return shape) is unchanged.
- */
-
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRef } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { useOrganizationStylesContext } from '../../../business-panel/contexts/OrganizationStylesContext';
 import { useAuth } from '../../../auth/hooks/useAuth';
 import { STUDY_PLANNER_STEPS } from '../../constants/studyPlannerSteps';
-import { useStudyPlannerCourseSelectionFlow } from '../../hooks/useStudyPlannerCourseSelectionFlow';
-import { useStudyPlannerInitializationFlow } from '../../hooks/useStudyPlannerInitializationFlow';
 import { useSofLIAData } from '../../hooks/useSofLIAData';
-import { useStudyPlannerCalendarUiFlow } from '../../hooks/useStudyPlannerCalendarUiFlow';
-import { useStudyPlannerPendingLessonsSync } from '../../hooks/useStudyPlannerPendingLessonsSync';
-import { useStudyPlanPersistence } from '../../hooks/useStudyPlanPersistence';
-import { fetchStudyPlannerUserContext } from '../../services/planner-user-context-client.service';
 import { useStudyPlannerSessionStorage } from '../../hooks/useStudyPlannerSessionStorage';
-import { useStudyPlannerWelcomeFlow } from '../../hooks/useStudyPlannerWelcomeFlow';
-import { useStudyPlannerVoiceInteraction } from '../../hooks/useStudyPlannerVoiceInteraction';
-import { useStudyPlannerMessageHandler } from '../../hooks/useStudyPlannerMessageHandler';
-import { useStudyPlannerVoiceQuestionHandler } from '../../hooks/useStudyPlannerVoiceQuestionHandler';
-import { useStudyPlannerCalendarActions } from './useStudyPlannerCalendarActions';
-import { useStudyPlannerNavigationHandlers } from './useStudyPlannerNavigationHandlers';
 import { useMessageProcessor } from './useMessageProcessor';
 import { useResponseHandler } from './useResponseHandler';
-import { createPlannerRedirectScheduler, type AnalyzeCalendarAndSuggest } from './planner-redirect.utils';
-import type { StudyPlannerCalendarProvider } from '../../types/planner-ui.types';
-
+import { createPlannerRedirectScheduler } from './planner-redirect.utils';
+import { useStudyPlannerLIAViewState } from './useStudyPlannerLIAViewState';
+import { useStudyPlannerSchedulePreviewState } from './useStudyPlannerSchedulePreviewState';
+import { resolveStudyPlannerOrgSlug } from './study-planner-org-slug.utils';
+import { useStudyPlannerLIAOrchestration } from './useStudyPlannerLIAOrchestration';
+import { buildStudyPlannerLIALogicResult } from './buildStudyPlannerLIALogicResult';
+import { useStudyPlannerLIAInteractionHandlers } from './useStudyPlannerLIAInteractionHandlers';
+import { useStudyPlannerLIAPlanningBridge } from './useStudyPlannerLIAPlanningBridge';
+import { buildStudyPlannerLIALogicSections } from './study-planner-lia-logic-sections';
+import { buildStudyPlannerLIAHandlers } from './buildStudyPlannerLIAHandlers';
+import { useStudyPlannerVoiceBridge } from './useStudyPlannerVoiceBridge';
 export function useStudyPlannerLIALogic() {
-  const router = useRouter();
-  const params = useParams();
-  const searchParams = useSearchParams();
+  const router = useRouter(); const params = useParams(); const searchParams = useSearchParams();
   const { user } = useAuth();
-
-  const restartTour = () => {};
-  const { styles, loading: loadingStyles } = useOrganizationStylesContext();
-  const [isVisible, setIsVisible] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    if (styles?.panel && typeof document !== 'undefined') {
-      const root = document.documentElement;
-      const panelStyles = styles.panel;
-
-      if (panelStyles.primary_button_color) root.style.setProperty('--color-primary', panelStyles.primary_button_color);
-      if (panelStyles.secondary_button_color) root.style.setProperty('--color-secondary', panelStyles.secondary_button_color);
-      if (panelStyles.accent_color) root.style.setProperty('--color-accent', panelStyles.accent_color);
-      if (panelStyles.sidebar_background) root.style.setProperty('--color-bg-dark', panelStyles.sidebar_background);
-      if (panelStyles.card_background) root.style.setProperty('--color-bg-card', panelStyles.card_background);
-      if (panelStyles.text_color) root.style.setProperty('--color-text-primary', panelStyles.text_color);
-    }
-  }, [styles]);
-
-  // ── Sub-hook: message / conversation state ──────────────────────────────
+  const { styles } = useOrganizationStylesContext();
+  const viewState = useStudyPlannerLIAViewState(styles);
   const {
-    isProcessing, setIsProcessing,
-    conversationHistory, setConversationHistory,
-    liaConversationId, setLiaConversationId,
+    isVisible,
+    setIsVisible,
+    currentStep,
+    setCurrentStep,
+    isAudioEnabled,
+    setIsAudioEnabled,
+    hasUserInteracted,
+    setHasUserInteracted,
+  } = viewState;
+  const messageProcessor = useMessageProcessor();
+  const {
+    isProcessing,
+    setIsProcessing,
+    conversationHistory,
+    setConversationHistory,
+    liaConversationId,
+    setLiaConversationId,
     processingRef,
     lastVoiceQuestionRef,
     conversationHistoryRef,
     pendingLessonsRef,
-  } = useMessageProcessor();
-
-  // ── Sub-hook: UI response / modal state ─────────────────────────────────
+  } = messageProcessor;
+  const responseHandler = useResponseHandler();
   const {
-    showConversation, setShowConversation,
-    userMessage, setUserMessage,
-    hoveredButton, setHoveredButton,
-    showCourseSelector, setShowCourseSelector,
-    availableCourses, setAvailableCourses,
-    selectedCourseIds, setSelectedCourseIds,
-    isLoadingCourses, setIsLoadingCourses,
-    courseSearchQuery, setCourseSearchQuery,
-    showCalendarModal, setShowCalendarModal,
-    isConnectingCalendar, setIsConnectingCalendar,
-    connectedCalendar, setConnectedCalendar,
-    calendarSkipped, setCalendarSkipped,
-    showCalendarConfig, setShowCalendarConfig,
-    hasConfiguredCalendars, setHasConfiguredCalendars,
-    studyApproach, setStudyApproach,
-    targetDate, setTargetDate,
-    hasAskedApproach, setHasAskedApproach,
-    hasAskedTargetDate, setHasAskedTargetDate,
-    showApproachModal, setShowApproachModal,
-    showApproachButtons, setShowApproachButtons,
-    showDateModal, setShowDateModal,
-    selectedDate, setSelectedDate,
-    currentMonth, setCurrentMonth,
-    savedLessonDistribution, setSavedLessonDistribution,
-    savedTargetDate, setSavedTargetDate,
-    savedTotalLessons, setSavedTotalLessons,
-    savedPlanId, setSavedPlanId,
-    hasShownFinalSummary, setHasShownFinalSummary,
-    savedCalendarData, setSavedCalendarData,
-    currentUserId, setCurrentUserId,
-    userContext, setUserContext,
-    assignedCourses, setAssignedCourses,
-    pendingLessonsWithNames, setPendingLessonsWithNames,
-  } = useResponseHandler();
-
+    showConversation,
+    setShowConversation,
+    showCourseSelector,
+    setShowCourseSelector,
+    availableCourses,
+    setAvailableCourses,
+    selectedCourseIds,
+    setSelectedCourseIds,
+    connectedCalendar,
+    setConnectedCalendar,
+    studyApproach,
+    setStudyApproach,
+    targetDate,
+    setTargetDate,
+    hasAskedApproach,
+    setHasAskedApproach,
+    hasAskedTargetDate,
+    setHasAskedTargetDate,
+    showDateModal,
+    setShowDateModal,
+    savedLessonDistribution,
+    setSavedLessonDistribution,
+    savedTargetDate,
+    savedTotalLessons,
+    savedPlanId,
+    setSavedPlanId,
+    hasShownFinalSummary,
+    setHasShownFinalSummary,
+    savedCalendarData,
+    setSavedCalendarData,
+    currentUserId,
+    setCurrentUserId,
+    userContext,
+    setUserContext,
+    assignedCourses,
+    setAssignedCourses,
+    pendingLessonsWithNames,
+    setPendingLessonsWithNames,
+  } = responseHandler;
   const liaData = useSofLIAData();
-
-  // ── Schedule Preview panel state ───────────────────────────────────────
-  const [showSchedulePreview, setShowSchedulePreview] = useState(false);
-  const [showSchedulePreviewTab, setShowSchedulePreviewTab] = useState(false);
-  const prevDistributionLengthRef = useRef(savedLessonDistribution.length);
-
-  // Auto-open panel when LIA generates a plan (distribution goes from 0 → N).
-  useEffect(() => {
-    const prevLen = prevDistributionLengthRef.current;
-    const currLen = savedLessonDistribution.length;
-    prevDistributionLengthRef.current = currLen;
-
-    if (prevLen === 0 && currLen > 0) {
-      setShowSchedulePreview(true);
-      setShowSchedulePreviewTab(true);
-    }
-  }, [savedLessonDistribution.length]);
-
-  const handleSchedulePreviewClose = useCallback(() => {
-    setShowSchedulePreview(false);
-  }, []);
-
-  const handleSchedulePreviewOpen = useCallback(() => {
-    setShowSchedulePreview(true);
-  }, []);
-
+  const schedulePreviewState = useStudyPlannerSchedulePreviewState(savedLessonDistribution.length);
   const handleVoiceQuestionRef = useRef<(question: string) => Promise<void>>(async () => {});
   const hasAttemptedOpenRef = useRef<boolean>(false);
-  const isOpeningRef = useRef<boolean>(false);
-  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // Forward-reference ref so hooks called before useStudyPlannerCalendarActions
-  // can still invoke analyzeCalendarAndSuggest at call time (not at render time).
-  const analyzeCalendarAndSuggestRef = useRef<AnalyzeCalendarAndSuggest>(async () => {});
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    conversationHistoryRef.current = conversationHistory;
-  }, [conversationHistory]);
-
-  useStudyPlannerPendingLessonsSync({
+  const voice = useStudyPlannerVoiceBridge({
+    handleVoiceQuestionRef,
+    isAudioEnabled,
+    isProcessing,
+  });
+  const scheduleStudyPlannerRedirect = createPlannerRedirectScheduler(router);
+  const sessionStorage = useStudyPlannerSessionStorage({
+    conversationHistory,
+    currentStep,
+    currentUserId,
+    hasShownFinalSummary,
+    savedLessonDistribution,
+    setConversationHistory,
+    setCurrentStep,
+    setHasShownFinalSummary,
+    setSavedLessonDistribution,
+    setStudyApproach,
+    setTargetDate,
+    showConversation,
+    studyApproach,
+    targetDate,
+  });
+  const handleDuplicatePlanRef = useRef<() => void>(() => {});
+  const planningFlow = useStudyPlannerLIAPlanningBridge({
+    handleDuplicatePlanRef,
+    messageProcessor,
+    responseHandler,
+    userId: user?.id,
+    viewState,
+    voice,
+  });
+  useStudyPlannerLIAOrchestration({
     assignedCourses,
+    conversationHistory,
+    conversationHistoryRef,
+    currentStep,
+    currentUserId,
+    getAnalyzeCalendarAndSuggest: () => planningFlow.analyzeCalendarAndSuggest,
+    getLessonsForPrompt: liaData.getLessonsForPrompt,
+    handleDuplicatePlanRef,
+    hasAttemptedOpenRef,
+    isAudioEnabled,
+    isVisible,
     lessons: liaData.lessons,
     lessonsAreLoading: liaData.isLoading,
     lessonsAreReady: liaData.isReady,
     lessonsError: liaData.error,
     loadPendingLessons: liaData.loadPendingLessons,
+    loadUserCourses: planningFlow.loadUserCourses,
     pendingLessonsRef,
-    setPendingLessonsWithNames,
-  });
-
-  useStudyPlannerInitializationFlow({
-    currentUserId,
-    getAnalyzeCalendarAndSuggest: () => analyzeCalendarAndSuggest,
-    hasAttemptedOpenRef,
+    savedCalendarData,
     setAssignedCourses,
     setConnectedCalendar,
     setConversationHistory,
     setCurrentUserId,
-    setHasConfiguredCalendars,
+    setHasConfiguredCalendars: responseHandler.setHasConfiguredCalendars,
     setHasShownFinalSummary,
+    setHasUserInteracted,
+    setIsProcessing,
     setIsVisible,
+    setLiaConversationId,
+    setPendingLessonsWithNames,
     setSavedLessonDistribution,
     setSelectedCourseIds,
+    setShowApproachButtons: responseHandler.setShowApproachButtons,
     setShowConversation,
     setUserContext,
-  });
-
-  useEffect(() => {
-    if (isVisible && currentStep === 0 && isAudioEnabled) {
-      const timer = setTimeout(() => {
-        speakText(STUDY_PLANNER_STEPS[0].speech);
-        setHasUserInteracted(true);
-      }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isVisible]);
-
-  const { isListening, isSpeaking, voiceError, setVoiceError, speakText, stopAllAudio, toggleListening } = useStudyPlannerVoiceInteraction({
-    isAudioEnabled,
-    isProcessing,
-    onTranscript: async (question: string) => {
-      await handleVoiceQuestionRef.current(question);
-    },
-  });
-
-  const scheduleStudyPlannerRedirect = createPlannerRedirectScheduler(router);
-
-  const {
-    clearStudyPlannerSessionStorage,
-    handleDiscardSession,
-    handleResumeSession,
-    savedSessionDate,
-    showResumePrompt,
-  } = useStudyPlannerSessionStorage({
-    conversationHistory,
-    currentStep,
-    currentUserId,
-    hasShownFinalSummary,
-    savedLessonDistribution,
-    setConversationHistory,
-    setCurrentStep,
-    setHasShownFinalSummary,
-    setSavedLessonDistribution,
-    setStudyApproach,
-    setTargetDate,
-    showConversation,
-    studyApproach,
-    targetDate,
-  });
-
-  // Ref para el callback de plan duplicado — se asigna después de definir loadUserCourses.
-  const handleDuplicatePlanRef = useRef<() => void>(() => {});
-
-  const { saveStudyPlan: persistStudyPlan } = useStudyPlanPersistence({
-    availableCourses,
-    connectedCalendar,
-    isAudioEnabled,
-    savedLessonDistribution,
-    savedPlanId,
-    savedTargetDate,
-    selectedCourseIds,
-    setConnectedCalendar,
-    setConversationHistory,
-    setIsProcessing,
-    setSavedLessonDistribution,
-    setSavedPlanId,
-    speakText,
-    studyApproach,
-    userType: userContext?.userType === 'b2b' ? 'b2b' : null,
-    onDuplicatePlan: () => handleDuplicatePlanRef.current(),
-  });
-
-  const {
-    handleApproachSelection,
-    handleCalendarConfigSaveSuccess,
-    handleCalendarConnect,
-    handleCalendarModalCloseButtonClick,
-    handleCalendarModalOverlayClose,
-    handleDateMonthChange,
-    handleDateSelection,
-    handleTargetDateResponse,
-  } = useStudyPlannerCalendarUiFlow({
-    assignedCourses,
-    calendarSkipped,
-    connectedCalendar,
-    conversationHistory,
-    getAnalyzeCalendarAndSuggest: () => analyzeCalendarAndSuggest,
-    isAudioEnabled,
-    setConnectedCalendar,
-    setConversationHistory,
-    setCurrentMonth,
-    setHasAskedTargetDate,
-    setHasConfiguredCalendars,
-    setIsConnectingCalendar,
-    setIsProcessing,
-    setSelectedDate,
-    setShowApproachButtons,
-    setShowApproachModal,
-    setShowCalendarConfig,
-    setShowCalendarModal,
-    setShowDateModal,
-    setStudyApproach,
-    setTargetDate,
-    speakText,
-    studyApproach,
-    targetDate,
-    userContext,
-  });
-
-  const {
-    confirmCourseSelection,
-    handleComplete,
-    handleSkip,
-    loadUserCourses,
-    toggleCourseSelection,
-  } = useStudyPlannerCourseSelectionFlow({
-    assignedCourses,
-    availableCourses,
-    isAudioEnabled,
-    selectedCourseIds,
-    setAvailableCourses,
-    setConversationHistory,
-    setHasAskedApproach,
-    setIsLoadingCourses,
-    setIsProcessing,
-    setIsVisible,
-    setSelectedCourseIds,
-    setShowApproachButtons,
-    setShowConversation,
-    setShowCourseSelector,
-    speakText,
-    stopAllAudio,
-  });
-
-  // Asignar el handler real ahora que loadUserCourses está disponible.
-  // Usa un ref para evitar problemas de orden de definición y dependencias circulares.
-  useEffect(() => {
-    handleDuplicatePlanRef.current = async () => {
-      let freshCourses: typeof assignedCourses | undefined;
-      try {
-        const userData = await fetchStudyPlannerUserContext();
-        if (userData.success) {
-          setAssignedCourses(userData.assignedCourses);
-          freshCourses = userData.assignedCourses;
-        }
-      } catch {
-        // Si falla el refresh, el filtro hasActivePlan del selector
-        // bloqueará el curso en el siguiente intento de guardado.
-      }
-      setSelectedCourseIds([]);
-      // Pasar los courses frescos directamente para evitar el closure stale.
-      void loadUserCourses(freshCourses);
-    };
-  }, [loadUserCourses, setAssignedCourses, setSelectedCourseIds]);
-
-  useStudyPlannerWelcomeFlow({
-    assignedCourses,
-    conversationHistoryLength: conversationHistory.length,
-    getLessonsForPrompt: liaData.getLessonsForPrompt,
-    isAudioEnabled,
-    lessonsAreReady: liaData.isReady,
-    // After the welcome message renders, open the course selector automatically
-    // so the user doesn't have to type the course name (RUX-02, RF-03).
-    onWelcomeComplete: loadUserCourses,
-    savedCalendarData,
-    setConversationHistory,
-    setIsProcessing,
-    setLiaConversationId,
-    setShowApproachButtons,
     showConversation,
     showCourseSelector,
-    speakText,
+    speakText: voice.speakText,
     userContext,
+    welcomeSpeech: STUDY_PLANNER_STEPS[0].speech,
   });
-
-  // ── Calendar actions sub-hook ──────────────────────────────────────────────
-  const {
-    analyzeCalendarAndSuggest,
-    analyzeCalendarAndSuggestB2B,
-    disconnectCalendar,
-    skipCalendarConnection,
-  } = useStudyPlannerCalendarActions({
+  const orgSlug = resolveStudyPlannerOrgSlug({
+    fromOrgSlug: searchParams.get('fromOrg'),
+    userOrgSlug: user?.organization?.slug,
+    orgSlugParam: params?.orgSlug,
+  });
+  const interactionHandlers = useStudyPlannerLIAInteractionHandlers({
     availableCourses,
     assignedCourses,
-    isAudioEnabled,
-    isProcessing,
-    pendingLessonsRef,
-    pendingLessonsWithNames,
-    selectedCourseIds,
-    setCalendarSkipped,
-    setConnectedCalendar,
-    setConversationHistory,
-    setIsConnectingCalendar,
-    setIsProcessing,
-    setPendingLessonsWithNames,
-    setSavedCalendarData,
-    setSavedLessonDistribution,
-    setSavedTargetDate,
-    setSavedTotalLessons,
-    setSelectedCourseIds,
-    setShowCalendarModal,
-    setTargetDate,
-    setUserContext,
-    speakText,
-    studyApproach,
-    targetDate,
-    userContext,
-    userId: user?.id,
-  });
-
-  // ── Navigation & audio handlers sub-hook ──────────────────────────────────
-  const orgSlugParam = params?.orgSlug;
-  const fromOrgSlug = searchParams.get('fromOrg');
-  const orgSlug = fromOrgSlug
-    || user?.organization?.slug
-    || (typeof orgSlugParam === 'string'
-      ? orgSlugParam
-      : Array.isArray(orgSlugParam)
-        ? orgSlugParam[0]
-        : null);
-
-  const {
-    executeFinalPlanSave,
-    handleNext,
-    handlePlannerBack,
-    handlePrevious,
-    handleStudyApproachResponse,
-    handleVoiceCourseSelectorRequest,
-    handleVoiceStudyApproachDetected,
-    handleVoiceTargetDateDetected,
-    saveStudyPlan,
-    toggleAudio,
-  } = useStudyPlannerNavigationHandlers({
-    clearStudyPlannerSessionStorage,
-    currentStep,
-    handleApproachSelection,
-    handleComplete,
-    handleTargetDateResponse,
-    hasUserInteracted,
-    isAudioEnabled,
-    loadUserCourses,
-    orgSlug,
-    persistStudyPlan,
-    router,
-    scheduleStudyPlannerRedirect,
-    setCurrentStep,
-    setHasUserInteracted,
-    setIsAudioEnabled,
-    setIsProcessing,
-    setStudyApproach,
-    setTargetDate,
-    speakText,
-    stopAllAudio,
-  });
-
-  const { handleVoiceQuestion } = useStudyPlannerVoiceQuestionHandler({
-    assignedCourses,
-    connectedCalendar,
-    conversationHistoryRef,
-    getLessonsForPrompt: liaData.getLessonsForPrompt,
-    hasAskedApproach,
-    hasAskedTargetDate,
-    isAudioEnabled,
-    lastVoiceQuestionRef,
-    lessons: liaData.lessons,
-    lessonsAreReady: liaData.isReady,
-    onCourseSelectorRequested: handleVoiceCourseSelectorRequest,
-    onStudyApproachDetected: handleVoiceStudyApproachDetected,
-    onTargetDateDetected: handleVoiceTargetDateDetected,
-    pendingLessonsRef,
-    processingRef,
-    savedLessonDistribution,
-    selectedCourseIds,
-    setConversationHistory,
-    setIsProcessing,
-    showDateModal,
-    speakText,
-    stopAllAudio,
-    studyApproach,
-    targetDate,
-    totalPendingLessons: liaData.totalPending || pendingLessonsRef.current.length,
-    userContext,
-  });
-
-  useEffect(() => {
-    handleVoiceQuestionRef.current = handleVoiceQuestion;
-  }, [handleVoiceQuestion]);
-
-  const { handleSendMessage } = useStudyPlannerMessageHandler({
-    availableCourses,
-    assignedCourses,
+    clearStudyPlannerSessionStorage: sessionStorage.clearStudyPlannerSessionStorage,
     connectedCalendar,
     conversationHistory,
-    executeFinalPlanSave,
+    conversationHistoryRef,
+    currentStep,
+    executePlanSave: planningFlow.persistStudyPlan,
+    handleApproachSelection: planningFlow.handleApproachSelection,
+    handleComplete: planningFlow.handleComplete,
+    handleTargetDateResponse: planningFlow.handleTargetDateResponse,
+    handleVoiceQuestionRef,
     hasAskedApproach,
     hasAskedTargetDate,
     hasShownFinalSummary,
+    hasUserInteracted,
     isAudioEnabled,
     isProcessing,
+    lastVoiceQuestionRef,
     liaConversationId,
     liaData: {
       getLessonsForPrompt: liaData.getLessonsForPrompt,
@@ -488,18 +197,23 @@ export function useStudyPlannerLIALogic() {
       lessons: liaData.lessons,
       totalPending: liaData.totalPending,
     },
-    loadUserCourses,
-    onStudyApproachResponse: handleStudyApproachResponse,
-    onTargetDateResponse: handleTargetDateResponse,
+    loadUserCourses: planningFlow.loadUserCourses,
+    orgSlug,
     pendingLessonsRef,
+    processingRef,
+    router,
     savedCalendarData,
     savedLessonDistribution,
     savedPlanId,
     savedTargetDate,
     savedTotalLessons,
+    scheduleStudyPlannerRedirect,
     selectedCourseIds,
     setConversationHistory,
+    setCurrentStep,
     setHasShownFinalSummary,
+    setHasUserInteracted,
+    setIsAudioEnabled,
     setIsProcessing,
     setLiaConversationId,
     setSavedLessonDistribution,
@@ -507,151 +221,28 @@ export function useStudyPlannerLIALogic() {
     setStudyApproach,
     setTargetDate,
     showDateModal,
-    speakText,
-    stopAllAudio,
+    speakText: voice.speakText,
+    stopAllAudio: voice.stopAllAudio,
     studyApproach,
     targetDate,
     userContext,
   });
-
-  return {
-    // State
-    isVisible,
-    currentStep,
-    isAudioEnabled,
-    hasUserInteracted,
-    isMobile,
-    showConversation,
-    userMessage,
-    showCourseSelector,
-    hoveredButton,
-    availableCourses,
-    selectedCourseIds,
-    isLoadingCourses,
-    courseSearchQuery,
-    showCalendarModal,
-    isConnectingCalendar,
-    connectedCalendar,
-    calendarSkipped,
-    showCalendarConfig,
-    hasConfiguredCalendars,
-    studyApproach,
-    targetDate,
-    hasAskedApproach,
-    hasAskedTargetDate,
-    showApproachModal,
-    showApproachButtons,
-    showDateModal,
-    selectedDate,
-    currentMonth,
-    savedLessonDistribution,
-    savedTargetDate,
-    savedTotalLessons,
-    savedPlanId,
-    hasShownFinalSummary,
-    savedCalendarData,
-    currentUserId,
-    userContext,
-    assignedCourses,
-    pendingLessonsWithNames,
-    isProcessing,
-    conversationHistory,
-    liaConversationId,
-    // Setters
-    setIsVisible,
-    setCurrentStep,
-    setIsAudioEnabled,
-    setHasUserInteracted,
-    setIsMobile,
-    setShowConversation,
-    setUserMessage,
-    setShowCourseSelector,
-    setHoveredButton,
-    setAvailableCourses,
-    setSelectedCourseIds,
-    setIsLoadingCourses,
-    setCourseSearchQuery,
-    setShowCalendarModal,
-    setIsConnectingCalendar,
-    setConnectedCalendar,
-    setCalendarSkipped,
-    setShowCalendarConfig,
-    setHasConfiguredCalendars,
-    setStudyApproach,
-    setTargetDate,
-    setHasAskedApproach,
-    setHasAskedTargetDate,
-    setShowApproachModal,
-    setShowApproachButtons,
-    setShowDateModal,
-    setSelectedDate,
-    setCurrentMonth,
-    setSavedLessonDistribution,
-    setSavedTargetDate,
-    setSavedTotalLessons,
-    setSavedPlanId,
-    setHasShownFinalSummary,
-    setSavedCalendarData,
-    setCurrentUserId,
-    setUserContext,
-    setAssignedCourses,
-    setPendingLessonsWithNames,
-    setIsProcessing,
-    setConversationHistory,
-    setLiaConversationId,
-    // Voice
-    isListening,
-    isSpeaking,
-    voiceError,
-    setVoiceError,
-    speakText,
-    stopAllAudio,
-    toggleListening,
-    // Handlers
-    restartTour,
-    handleNext,
-    handlePrevious,
-    handleComplete,
-    handleSkip,
-    handleStudyApproachResponse,
-    handleVoiceCourseSelectorRequest,
-    handleVoiceStudyApproachDetected,
-    handleVoiceTargetDateDetected,
-    handleVoiceQuestion,
-    analyzeCalendarAndSuggest,
-    analyzeCalendarAndSuggestB2B,
-    disconnectCalendar,
-    skipCalendarConnection,
-    saveStudyPlan,
-    executeFinalPlanSave,
-    handleSendMessage,
-    toggleAudio,
-    handlePlannerBack,
-    // Calendar UI flow handlers
-    handleApproachSelection,
-    handleCalendarConfigSaveSuccess,
-    handleCalendarConnect,
-    handleCalendarModalCloseButtonClick,
-    handleCalendarModalOverlayClose,
-    handleDateMonthChange,
-    handleDateSelection,
-    handleTargetDateResponse,
-    // Course selection handlers
-    confirmCourseSelection,
-    loadUserCourses,
-    toggleCourseSelection,
-    // Session storage
-    clearStudyPlannerSessionStorage,
-    handleDiscardSession,
-    handleResumeSession,
-    savedSessionDate,
-    showResumePrompt,
-    // Redirect
-    scheduleStudyPlannerRedirect,
-    // Schedule Preview
-    showSchedulePreview,
-    showSchedulePreviewTab,
-    onSchedulePreviewClose: handleSchedulePreviewClose,
-    onSchedulePreviewOpen: handleSchedulePreviewOpen,
-  };
+  return buildStudyPlannerLIALogicResult(
+    buildStudyPlannerLIALogicSections({
+      viewState,
+      messageProcessor,
+      responseHandler,
+      schedulePreview: schedulePreviewState,
+      voice,
+      handlers: buildStudyPlannerLIAHandlers({
+        restartTour: () => {},
+        interactionHandlers,
+        planningFlow,
+      }),
+      sessionStorage: {
+        ...sessionStorage,
+        scheduleStudyPlannerRedirect,
+      },
+    }),
+  );
 }

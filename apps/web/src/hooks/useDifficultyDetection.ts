@@ -19,6 +19,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { sessionRecorder } from '../lib/rrweb/session-recorder';
+import { evaluateRecordingGate } from '../lib/rrweb/recording-gate';
 import { 
   DifficultyPatternDetector,
   type DifficultyAnalysis,
@@ -95,7 +96,7 @@ export function useDifficultyDetection(
 
   // Inicializar detector
   useEffect(() => {
-    if (enabled) {
+    if (enabled && evaluateRecordingGate().allowed) {
       detectorRef.current = new DifficultyPatternDetector(thresholds);
       setIsActive(true);
 
@@ -115,6 +116,15 @@ export function useDifficultyDetection(
     if (!enabled || !detectorRef.current) return;
 
     try {
+      const recordingDecision = evaluateRecordingGate();
+      if (
+        !recordingDecision.allowed ||
+        !sessionRecorder.isActive() ||
+        sessionRecorder.isPaused()
+      ) {
+        return;
+      }
+
       // Capturar snapshot de la sesión actual
       const snapshot = sessionRecorder.captureSnapshot();
       
@@ -148,6 +158,7 @@ export function useDifficultyDetection(
   // Iniciar análisis periódico
   useEffect(() => {
     if (!enabled) return;
+    if (!evaluateRecordingGate().allowed) return;
 
     // Análisis inicial después de 30 segundos
     const initialTimeout = setTimeout(() => {

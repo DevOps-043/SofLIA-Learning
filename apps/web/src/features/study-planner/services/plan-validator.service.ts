@@ -1,10 +1,3 @@
-/**
- * Servicio de Validación de Factibilidad del Plan de Estudios
- *
- * Valida si un plan de estudios es factible dados los slots disponibles,
- * lecciones pendientes y fecha límite.
- */
-
 export interface ExtensionRequirement {
   isFeasible: boolean;
   reason?: string;
@@ -28,12 +21,6 @@ export interface PlanValidationConfig {
 }
 
 export class PlanValidatorService {
-  /**
-   * Valida si un plan de estudios es factible
-   *
-   * @param config - Configuración de validación
-   * @returns Resultado de la validación con sugerencias
-   */
   static validatePlanFeasibility(config: PlanValidationConfig): ExtensionRequirement {
     const {
       totalLessons,
@@ -44,42 +31,31 @@ export class PlanValidatorService {
       averageLessonDurationMinutes = 30, // Default: 30 min por lección
     } = config;
 
-    // 1. Calcular minutos totales requeridos
     const minutesRequired = totalLessons * averageLessonDurationMinutes;
 
-    // 2. Calcular minutos disponibles (slots * duración de sesión)
     const minutesAvailable = availableSlots * sessionDurationMinutes;
 
-    // 3. Calcular brecha
     const minutesMissing = Math.max(0, minutesRequired - minutesAvailable);
 
-    // 4. Determinar si es factible
     const isFeasible = minutesMissing === 0;
 
-    // 5. Calcular días necesarios de extensión (si no es factible)
     let daysNeeded = 0;
     let weeksNeeded = 0;
     let suggestedNewDeadline: Date | undefined;
 
     if (!isFeasible) {
-      // Calcular cuántos días adicionales se necesitan
-      // Asumiendo 1 sesión por día en promedio
       daysNeeded = Math.ceil(minutesMissing / sessionDurationMinutes);
 
-      // Convertir a semanas (redondeando hacia arriba)
       weeksNeeded = Math.ceil(daysNeeded / 7);
 
-      // Calcular nueva fecha sugerida
       suggestedNewDeadline = new Date(targetDate);
       suggestedNewDeadline.setDate(targetDate.getDate() + (weeksNeeded * 7));
     }
 
-    // 6. Calcular score de factibilidad (0-100%)
     const feasibilityScore = minutesRequired > 0
       ? Math.min(100, (minutesAvailable / minutesRequired) * 100)
       : 100;
 
-    // 7. Generar razón descriptiva
     let reason: string | undefined;
     if (!isFeasible) {
       if (userType === 'b2b') {

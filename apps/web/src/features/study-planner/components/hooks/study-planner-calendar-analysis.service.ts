@@ -1,23 +1,17 @@
-'use client';
-
 import { calculateStudyPlannerTotalLessonsNeeded } from '../../services/planner-course-workload.service';
-import {
-  buildStudyPlannerAudioSummary,
-  buildStudyPlannerCalendarRecommendationMessage,
-  buildStudyPlannerLessonDistribution,
-} from '../../services/planner-calendar-recommendation.service';
+import { buildStudyPlannerAudioSummary, buildStudyPlannerCalendarRecommendationMessage, buildStudyPlannerLessonDistribution } from '../../services/planner-calendar-recommendation.service';
 import { resolveStudyPlannerPendingLessonsForRecommendations } from '../../services/planner-pending-lessons.service';
 import { analyzeStudyPlannerSlotCalendar } from '../../services/planner-slot-analysis.service';
 import { selectStudyPlannerFinalSlots } from '../../services/planner-slot-selection.service';
 import { resolveStudyPlannerTargetWindow } from '../../services/planner-target-window.service';
 import { fetchStudyPlannerUserContext } from '../../services/planner-user-context-client.service';
-import type { StudyApproach } from '../../types/planner-ui.types';
 import {
   appendCalendarRecommendationMessage,
   buildCalendarAnalysisErrorMessage,
   fetchStudyPlannerCalendarEvents,
   normalizePlannerUserType,
 } from './study-planner-calendar-actions.shared';
+import { resolveStudyPlannerEffectiveTargetDate } from './study-planner-calendar-target-date.service';
 import type {
   StudyPlannerAnalyzeCalendarAndSuggest,
   StudyPlannerAnalyzeCalendarAndSuggestParams,
@@ -37,63 +31,7 @@ const defaultDependencies = {
 
 type StudyPlannerCalendarAnalysisDependencies = typeof defaultDependencies;
 
-interface ResolveStudyPlannerEffectiveTargetDateParams {
-  approachParam?: StudyApproach | null;
-  assignedCourses: StudyPlannerAnalyzeCalendarAndSuggestParams['assignedCourses'];
-  studyApproach: StudyApproach | null;
-  targetDate: string | null;
-  targetDateParam?: string;
-}
-
-export function resolveStudyPlannerEffectiveTargetDate({
-  approachParam,
-  assignedCourses,
-  studyApproach,
-  targetDate,
-  targetDateParam,
-}: ResolveStudyPlannerEffectiveTargetDateParams): {
-  effectiveApproach: StudyApproach | null;
-  effectiveTargetDate: string | null;
-} {
-  const effectiveApproach =
-    approachParam !== undefined ? approachParam : studyApproach;
-  let effectiveTargetDate = targetDateParam || targetDate;
-
-  if (!effectiveTargetDate) {
-    const nearestAssignedCourse = assignedCourses.find((course) => course.dueDate);
-    if (nearestAssignedCourse?.dueDate) {
-      effectiveTargetDate = new Date(nearestAssignedCourse.dueDate).toLocaleDateString(
-        'es-ES',
-        {
-          day: 'numeric',
-          month: 'long',
-          year: 'numeric',
-        },
-      );
-    }
-  }
-
-  if (!effectiveTargetDate && effectiveApproach) {
-    const weeksToAdd =
-      effectiveApproach === 'corto'
-        ? 2
-        : effectiveApproach === 'balance'
-          ? 4
-          : 8;
-    const fallbackTargetDate = new Date();
-    fallbackTargetDate.setDate(fallbackTargetDate.getDate() + weeksToAdd * 7);
-    effectiveTargetDate = fallbackTargetDate.toLocaleDateString('es-ES', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  }
-
-  return {
-    effectiveApproach,
-    effectiveTargetDate,
-  };
-}
+export { resolveStudyPlannerEffectiveTargetDate } from './study-planner-calendar-target-date.service';
 
 export function createAnalyzeCalendarAndSuggestHandler(
   params: StudyPlannerAnalyzeCalendarAndSuggestParams,
