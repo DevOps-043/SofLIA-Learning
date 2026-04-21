@@ -228,7 +228,7 @@ export function useBusinessAssignCourseModal({
           messages: [
             {
               role: 'user',
-              content: `Actúa como un planificador de formación experto (LIA).
+              content: `Actúa como un planificador de formación experto (SofLIA).
 Estoy asignando el curso "${courseTitle}" (ID: ${courseId}).
 Analiza la duración típica y complejidad de un curso con este título.
 Sugiere una fecha límite realista (deadline) contando desde hoy (${today}), asumiendo un ritmo de estudio profesional (2-3 horas semanales).

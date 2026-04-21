@@ -409,14 +409,14 @@ export function BusinessAnalyticsUserDetailModal({
                 <div className="p-5 rounded-3xl border" style={sectionStyle}>
                   <h3 className="font-semibold mb-4 flex items-center gap-2">
                     <Zap className="w-5 h-5" style={{ color: panelTheme.accentColor }} />
-                    Interacciones con LIA
+                    Interacciones con SofLIA
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <CourseMiniStat label="Conversaciones" value={user.stats?.lia?.total_conversations || 0} color={panelTheme.accentColor} />
                     <CourseMiniStat label="Mensajes Totales" value={user.stats?.lia?.total_messages || 0} color={panelTheme.secondaryColor} />
                     <CourseMiniStat label="Preguntas del Usuario" value={user.stats?.lia?.user_messages || 0} color={panelTheme.warningColor} />
-                    <CourseMiniStat label="Respuestas de LIA" value={user.stats?.lia?.assistant_responses || 0} color={panelTheme.successColor} />
+                    <CourseMiniStat label="Respuestas de SofLIA" value={user.stats?.lia?.assistant_responses || 0} color={panelTheme.successColor} />
                   </div>
 
                   {(user.stats?.lia?.contexts?.ai_chat > 0 ||

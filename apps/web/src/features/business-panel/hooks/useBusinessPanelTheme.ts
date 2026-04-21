@@ -160,8 +160,8 @@ export function useBusinessPanelTheme(): BusinessPanelThemeTokens {
       roleColors: {
         owner: { text: '#A855F7', bg: 'rgba(168,85,247,0.12)' },
         admin: {
-          text: brandColor,
-          bg: isDark ? 'rgba(10,37,64,0.26)' : 'rgba(10,37,64,0.1)',
+          text: isDark ? '#60A5FA' : brandColor,
+          bg: isDark ? 'rgba(96, 165, 250, 0.16)' : 'rgba(10,37,64,0.1)',
         },
         member: {
           text: actionColor,

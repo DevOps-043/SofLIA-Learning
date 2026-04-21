@@ -105,7 +105,7 @@ export async function generateLiaAnalysisReport(
   const model = genAI.getGenerativeModel({ model: modelName })
 
   const prompt = `
-    Actua como LIA, la experta en analisis de datos y recursos humanos de la plataforma SofLIA.
+    Actua como SofLIA, la experta en analisis de datos y recursos humanos de la plataforma SofLIA.
 
     Tu tarea es generar un "Reporte Ejecutivo de Analisis Predictivo y Rendimiento" para el administrador de la organizacion.
     Debes analizar los datos proporcionados y generar un informe profesional, detallado y util para la toma de decisiones.
@@ -127,7 +127,7 @@ export async function generateLiaAnalysisReport(
     - Tasa de Adherencia al Plan (Cumplimiento): ${adherenceRate.toFixed(1)}%
     - Sesiones de Estudio Completadas: ${completedSessions}
 
-    INTERACCION CON INTELIGENCIA ARTIFICIAL (LIA):
+    INTERACCION CON INTELIGENCIA ARTIFICIAL (SofLIA):
     - Conversaciones de Orientacion General: ${aiChatConversations}
     - Consultas sobre Cursos Especificos: ${courseContextConversations}
     - Total Interacciones: ${totalLiaConversations}
@@ -148,14 +148,14 @@ export async function generateLiaAnalysisReport(
     1. Resumen Ejecutivo: Breve vision general del estado de la capacitacion y la salud digital de la organizacion.
     2. Analisis de Rendimiento y Adopcion:
        - Evalua el ritmo de aprendizaje.
-       - IMPORTANTE: Analiza la adopcion de herramientas de productividad como el "Planificador de Estudios" y el asistente "LIA". ¿Estan usando la IA para aprender mejor?
+       - IMPORTANTE: Analiza la adopcion de herramientas de productividad como el "Planificador de Estudios" y el asistente "SofLIA". ¿Estan usando la IA para aprender mejor?
     3. Estructura y Equipos: Comenta sobre la organizacion en equipos (${teamsCount} equipos detectados). ¿Se esta aprovechando la estructura grupal?
     4. Top Talent y Riesgos:
        - Menciona usuarios destacados.
        - Identifica usuarios en riesgo.
     5. Predicciones y Sugerencias Estrategicas:
        - Basado en la adherencia (${adherenceRate.toFixed(1)}%), predice si se cumpliran las metas trimestrales.
-       - Sugiere acciones para mejorar el uso del Planificador y LIA si las metricas son bajas.
+       - Sugiere acciones para mejorar el uso del Planificador y SofLIA si las metricas son bajas.
     6. Conclusion Profesional: Cierre motivador.
 
     FORMATO:

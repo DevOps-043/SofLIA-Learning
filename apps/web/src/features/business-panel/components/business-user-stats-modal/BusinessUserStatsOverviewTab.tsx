@@ -76,7 +76,7 @@ export function BusinessUserStatsOverviewTab({
                      <ActivityItem
                         icon={MessageSquare}
                         value={stats.lia_conversations_total}
-                        label={t('users.stats.platformActivity.liaQueries', 'Consultas LIA')}
+                        label={t('users.stats.platformActivity.liaQueries', 'Consultas SofLIA')}
                         helper={`${stats.lia_messages_total || 0} ${t('users.stats.platformActivity.messages', 'mensajes')}`}
                         color={theme.primaryColor}
                         theme={theme}
@@ -96,7 +96,7 @@ export function BusinessUserStatsOverviewTab({
                      <ActivityItem
                         icon={Zap}
                         value={stats.lia_activities_completed}
-                        label={t('users.stats.platformActivity.liaActivities', 'Actividades LIA')}
+                        label={t('users.stats.platformActivity.liaActivities', 'Actividades SofLIA')}
                         helper={`${stats.lia_activities_total || 0} ${t('users.stats.platformActivity.total', 'en total')}`}
                         color={isDark ? '#F43F5E' : '#E11D48'}
                         theme={theme}

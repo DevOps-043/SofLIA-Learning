@@ -125,7 +125,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
               </div>
 
               <div className="space-y-3 pt-8">
-                {['Datos básicos', 'Gestión LIA', 'Localización'].map(item => (
+                {['Datos básicos', 'Gestión SofLIA', 'Localización'].map(item => (
                   <div key={item} className="flex items-center gap-3" style={{ color: theme.inverseMutedTextColor }}>
                     <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: theme.actionColor }} />
                     <span className="text-[10px] font-black uppercase tracking-widest leading-none">{item}</span>

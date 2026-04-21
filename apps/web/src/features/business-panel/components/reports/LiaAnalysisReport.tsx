@@ -136,7 +136,7 @@ function LiaAnalysisReport({ data }: { data: LiaAnalysisReportData }) {
         }
       }
 
-      pdf.save(`Reporte_LIA_${new Date().toISOString().split('T')[0]}.pdf`)
+      pdf.save(`Reporte_SofLIA_${new Date().toISOString().split('T')[0]}.pdf`)
     } catch (error) {
       console.error('Error generando PDF:', error)
       setPdfError('Error al generar el PDF. Por favor intenta de nuevo.')

@@ -287,11 +287,11 @@
         },
         "platformActivity": {
           "title": "Actividad en la Plataforma",
-          "liaQueries": "Consultas LIA",
+          "liaQueries": "Consultas SofLIA",
           "messages": "mensajes",
           "quizzesPassed": "Quiz Aprobados",
           "average": "promedio",
-          "liaActivities": "Actividades LIA",
+          "liaActivities": "Actividades SofLIA",
           "total": "total"
         },
         "generalProgress": {
@@ -310,7 +310,7 @@
           "notStarted": "Sin iniciar",
           "progress": "Progreso del curso",
           "time": "Tiempo",
-          "lia": "LIA",
+          "lia": "SofLIA",
           "quiz": "Quiz",
           "notes": "Notas"
         },
@@ -714,7 +714,7 @@
       "assign": "Asignar Curso",
       "assigning": "Asignando...",
       "cancel": "Cancelar",
-      "suggestDate": "Sugerir con LIA",
+      "suggestLia": "Sugerir con SofLIA",
       "suggesting": "Sugiriendo...",
       "confirmAssign": "Confirmar Asignación"
     },
@@ -750,7 +750,7 @@
     "titleTeam": "Asignar Curso a Equipo"
   },
   "liaSuggestion": {
-    "title": "Sugerencias de LIA",
+    "title": "Sugerencias de SofLIA",
     "error": "Error al obtener sugerencias",
     "steps": {
       "approach": {
@@ -948,10 +948,10 @@
     "subtitle": "Centro de Reportes",
     "description": "Genera reportes detallados de usuarios, actividad y certificados. Exporta los datos en formato Excel para un análisis más profundo.",
     "liaAnalysis": {
-      "title": "Análisis Predictivo SOFLIA LIA",
+      "title": "Análisis Predictivo SofLIA",
       "subtitle": "Reporte ejecutivo generado con Inteligencia Artificial",
       "generatedBy": "Generado por SOFLIA AI Engine",
-      "pdfHeader": "Reporte LIA",
+      "pdfHeader": "Reporte SofLIA",
       "pdfSubheader": "Análisis Predictivo & Inteligencia Artificial",
       "organization": "Organización:",
       "generatedByLabel": "Generado por:",
@@ -961,7 +961,7 @@
     },
     "types": {
       "liaAnalysis": {
-        "label": "Análisis LIA",
+        "label": "Análisis SofLIA",
         "description": "Análisis predictivo con IA"
       },
       "users": {
