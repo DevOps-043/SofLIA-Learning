@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Image, 
@@ -14,6 +14,7 @@ import {
   Archive,
   ExternalLink
 } from 'lucide-react';
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 
 interface AttachmentViewerProps {
   attachmentUrl: string;
@@ -24,6 +25,60 @@ interface AttachmentViewerProps {
 export function AttachmentViewer({ attachmentUrl, attachmentType, fileName }: AttachmentViewerProps) {
   const [showFullscreen, setShowFullscreen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const playbackPolicy = useMediaPlaybackPolicy('attachment');
+
+  useEffect(() => {
+    if (!playbackPolicy.pauseWhenHidden) {
+      return;
+    }
+
+    const videoElement = videoRef.current;
+    if (!videoElement) {
+      return;
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.hidden && !videoElement.paused) {
+        videoElement.pause();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [playbackPolicy.pauseWhenHidden]);
+
+  useEffect(() => {
+    if (
+      !playbackPolicy.pauseWhenOutsideViewport ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
+      return;
+    }
+
+    const videoElement = videoRef.current;
+    if (!videoElement) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry && !entry.isIntersecting && !videoElement.paused) {
+          videoElement.pause();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(videoElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [playbackPolicy.pauseWhenOutsideViewport, attachmentUrl]);
 
   const getFileIcon = (type: string) => {
     if (type.startsWith('image/')) return Image;
@@ -142,10 +197,13 @@ export function AttachmentViewer({ attachmentUrl, attachmentType, fileName }: At
       >
         <div className="relative overflow-hidden rounded-xl bg-gray-100 dark:bg-slate-800">
           <video
+            ref={videoRef}
             src={attachmentUrl}
             controls
             className="w-full h-auto max-h-96"
+            playsInline
             poster=""
+            preload={playbackPolicy.nativeVideoPreload}
           >
             Tu navegador no soporta el elemento de video.
           </video>

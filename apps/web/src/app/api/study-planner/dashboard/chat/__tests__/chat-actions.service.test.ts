@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  buildActionProposals,
   extractActionTags,
   resolveDashboardChatAction,
 } from '../chat-actions.service'
@@ -14,6 +15,10 @@ vi.mock('../actions/session-actions-v2.service', () => ({
   executeUpdateSessionV2: vi.fn(),
 }))
 
+vi.mock('../calendar.service', () => ({
+  createAdminClient: vi.fn(),
+}))
+
 vi.mock('../actions/calendar-actions.service', () => ({
   executeCreateCalendarEvent: vi.fn(),
   executeDeleteCalendarEvent: vi.fn(),
@@ -23,6 +28,7 @@ vi.mock('../actions/calendar-actions.service', () => ({
 
 vi.mock('../actions/planning-actions-v2.service', () => ({
   executeCreateMicroSessionV2: vi.fn(),
+  executeDeletePlan: vi.fn(),
   executeRebalancePlanV2: vi.fn(),
   executeRecoverMissedSessionV2: vi.fn(),
   executeReduceSessionLoadV2: vi.fn(),
@@ -44,13 +50,7 @@ describe('chat-actions.service', () => {
     expect(result.cleanResponse).toBe('Texto visible  otro')
   })
 
-  it('normalizes rebalance aliases during execution', async () => {
-    vi.mocked(executeRebalancePlanV2).mockResolvedValue({
-      type: 'rebalance_plan',
-      status: 'success',
-      data: {},
-    })
-
+  it('normalizes rebalance aliases and requires confirmation before execution', async () => {
     const result = await resolveDashboardChatAction('user-1', 'plan-1', [
       {
         type: 'rebalanzar',
@@ -59,23 +59,13 @@ describe('chat-actions.service', () => {
       },
     ], null)
 
-    expect(executeRebalancePlanV2).toHaveBeenCalledWith(
-      'user-1',
-      'plan-1',
-      expect.objectContaining({ type: 'rebalance_plan' }),
-      undefined,
-    )
-    expect(result?.status).toBe('success')
+    expect(executeRebalancePlanV2).not.toHaveBeenCalled()
+    expect(result?.type).toBe('rebalance_plan')
+    expect(result?.status).toBe('confirmation_needed')
   })
 
-  it('passes the original user message to update_session actions', async () => {
-    vi.mocked(executeUpdateSessionV2).mockResolvedValue({
-      type: 'update_session',
-      status: 'success',
-      data: {},
-    })
-
-    await resolveDashboardChatAction(
+  it('requires confirmation before update_session actions execute', async () => {
+    const result = await resolveDashboardChatAction(
       'user-1',
       'plan-1',
       [
@@ -89,11 +79,44 @@ describe('chat-actions.service', () => {
       'muevela al domingo aunque sea mi descanso',
     )
 
-    expect(executeUpdateSessionV2).toHaveBeenCalledWith(
-      'user-1',
-      'plan-1',
-      expect.objectContaining({ type: 'update_session' }),
-      'muevela al domingo aunque sea mi descanso',
+    expect(executeUpdateSessionV2).not.toHaveBeenCalled()
+    expect(result).toEqual(
+      expect.objectContaining({
+        type: 'update_session',
+        status: 'confirmation_needed',
+      }),
     )
+  })
+
+  it('returns an error action when action json is invalid', () => {
+    const result = extractActionTags(
+      'Texto <action>{"type":"move_session","data":</action>',
+    )
+
+    expect(result.action?.status).toBe('error')
+    expect(result.action?.code).toBe('invalid_action_json')
+  })
+
+  it('builds confirmation proposals for mutative actions', () => {
+    const proposals = buildActionProposals([
+      {
+        type: 'move_session',
+        status: 'confirmation_needed',
+        data: {
+          sessionId: 'session-1',
+          newStartTime: '2026-04-21T10:00:00-06:00',
+          newEndTime: '2026-04-21T11:00:00-06:00',
+        },
+      },
+    ], 'trace-1')
+
+    expect(proposals).toEqual([
+      expect.objectContaining({
+        type: 'move_session',
+        status: 'confirmation_needed',
+        requiresConfirmation: true,
+        traceId: 'trace-1',
+      }),
+    ])
   })
 })

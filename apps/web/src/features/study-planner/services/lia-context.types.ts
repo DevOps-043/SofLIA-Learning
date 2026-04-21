@@ -108,5 +108,5 @@ export interface StudyPlannerContext {
 
   // Fase actual del flujo
   currentPhase?: number;
-  phaseData?: Record<string, any>;
+  phaseData?: Record<string, unknown>;
 }

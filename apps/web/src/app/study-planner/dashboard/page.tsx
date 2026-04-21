@@ -60,6 +60,7 @@ export default function StudyPlannerDashboardPage() {
     toast,
     setToast,
     confirmDialog,
+    executeAction,
     handleConnect,
     handleDisconnect,
     handleDeletePlan,
@@ -132,6 +133,7 @@ export default function StudyPlannerDashboardPage() {
           setIsLiaPanelOpen(true);
           setIsLiaCollapsed(false);
         }}
+        onExecuteAction={executeAction}
         onSendMessage={handleSendMessage}
         setIsCollapsed={setIsLiaCollapsed}
       />

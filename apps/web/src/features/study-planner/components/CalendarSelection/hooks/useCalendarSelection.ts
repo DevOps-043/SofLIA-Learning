@@ -18,7 +18,7 @@ interface UseCalendarSelectionReturn {
   saveSelection: () => Promise<boolean>;
 }
 
-export function useCalendarSelection(): UseCalendarSelectionReturn {
+export function useCalendarSelection(provider: CalendarProvider): UseCalendarSelectionReturn {
   const [calendars, setCalendars] = useState<CalendarListItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +43,7 @@ export function useCalendarSelection(): UseCalendarSelectionReturn {
     setStaleWarning(false);
 
     try {
-      const response = await fetch('/api/study-planner/calendar/list');
+      const response = await fetch(`/api/study-planner/calendar/list?provider=${provider}`);
       const data = await response.json();
 
       if (!response.ok) {
@@ -68,7 +68,7 @@ export function useCalendarSelection(): UseCalendarSelectionReturn {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [provider]);
 
   const toggleCalendar = useCallback((id: string) => {
     setSelectedIds(prev => {
@@ -93,7 +93,7 @@ export function useCalendarSelection(): UseCalendarSelectionReturn {
   const deselectAll = useCallback(() => {
     // No permitir deseleccionar todos, mantener al menos el primero
     if (calendars.length > 0) {
-      const primary = calendars.find(c => c.isPrimary);
+      const primary = calendars.find(c => c.isConnectedAccountPrimary) || calendars.find(c => c.isPrimary);
       setSelectedIds(new Set([primary?.id || calendars[0].id]));
     }
     setError(null);
@@ -114,6 +114,7 @@ export function useCalendarSelection(): UseCalendarSelectionReturn {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           selectedCalendarIds: Array.from(selectedIds),
+          provider,
         }),
       });
 
@@ -134,7 +135,7 @@ export function useCalendarSelection(): UseCalendarSelectionReturn {
     } finally {
       setIsSaving(false);
     }
-  }, [selectedIds]);
+  }, [provider, selectedIds]);
 
   return {
     calendars,

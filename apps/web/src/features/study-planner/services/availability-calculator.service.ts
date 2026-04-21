@@ -1,9 +1,12 @@
-/**
- * Availability Calculator Service
- * Calcula la disponibilidad de tiempo del usuario basada en su perfil profesional
- */
-
 import { UserProfile } from './user-context.service';
+import {
+  AREA_MULTIPLIERS,
+  AVAILABILITY_BY_LEVEL,
+  COMPANY_SIZE_MULTIPLIERS,
+  C_LEVEL_PATTERNS,
+  MANAGEMENT_PATTERNS,
+  SENIOR_PATTERNS,
+} from './availability-calculator.config';
 
 // Tipos para disponibilidad
 export interface AvailabilityEstimate {
@@ -21,120 +24,14 @@ export interface AvailabilityEstimate {
   explanation: string;
 }
 
-// Configuración de disponibilidad por nivel/rol
-interface RoleAvailabilityConfig {
-  dailyMinutesMin: number;
-  dailyMinutesMax: number;
-  weeklyHoursMin: number;
-  weeklyHoursMax: number;
-  recommendedSessionType: 'short' | 'medium' | 'long';
-}
-
-// Patrones de roles por categoría
-const C_LEVEL_PATTERNS = [
-  'ceo', 'cto', 'cfo', 'coo', 'cmo', 'cio', 'chief', 
-  'director general', 'presidente', 'fundador', 'founder',
-  'owner', 'dueño', 'propietario', 'socio'
-];
-
-const MANAGEMENT_PATTERNS = [
-  'gerente', 'manager', 'director', 'jefe', 'head', 'lead',
-  'supervisor', 'coordinador', 'líder', 'responsable'
-];
-
-const SENIOR_PATTERNS = [
-  'senior', 'sr', 'especialista', 'expert', 'consultant',
-  'consultor', 'arquitecto', 'principal'
-];
-
 export class AvailabilityCalculatorService {
-  // Configuraciones base por nivel
-  private static readonly AVAILABILITY_BY_LEVEL: Record<string, RoleAvailabilityConfig> = {
-    // Nivel C-Level/Ejecutivo
-    'c-level': {
-      dailyMinutesMin: 15,
-      dailyMinutesMax: 30,
-      weeklyHoursMin: 1,
-      weeklyHoursMax: 2,
-      recommendedSessionType: 'short'
-    },
-    // Gerencia/Dirección
-    'gerencia': {
-      dailyMinutesMin: 30,
-      dailyMinutesMax: 45,
-      weeklyHoursMin: 2,
-      weeklyHoursMax: 3,
-      recommendedSessionType: 'short'
-    },
-    // Profesional Senior
-    'senior': {
-      dailyMinutesMin: 45,
-      dailyMinutesMax: 60,
-      weeklyHoursMin: 3,
-      weeklyHoursMax: 4,
-      recommendedSessionType: 'medium'
-    },
-    // Profesional
-    'profesional': {
-      dailyMinutesMin: 45,
-      dailyMinutesMax: 60,
-      weeklyHoursMin: 3,
-      weeklyHoursMax: 5,
-      recommendedSessionType: 'medium'
-    },
-    // Junior/Entry Level
-    'junior': {
-      dailyMinutesMin: 60,
-      dailyMinutesMax: 90,
-      weeklyHoursMin: 5,
-      weeklyHoursMax: 7,
-      recommendedSessionType: 'long'
-    },
-    // Default
-    'default': {
-      dailyMinutesMin: 45,
-      dailyMinutesMax: 60,
-      weeklyHoursMin: 3,
-      weeklyHoursMax: 5,
-      recommendedSessionType: 'medium'
-    }
-  };
-
-  // Multiplicadores por tamaño de empresa
-  private static readonly COMPANY_SIZE_MULTIPLIERS: Record<string, number> = {
-    'micro': 1.2,      // 1-10 empleados: +20%
-    'pequeña': 1.0,    // 11-50: Base
-    'mediana': 0.9,    // 51-200: -10%
-    'grande': 0.8,     // 201-1000: -20%
-    'corporativa': 0.7 // 1000+: -30%
-  };
-
-  // Multiplicadores por área
-  private static readonly AREA_MULTIPLIERS: Record<string, number> = {
-    'tecnología': 1.1,
-    'tecnologia': 1.1,
-    'it': 1.1,
-    'desarrollo': 1.1,
-    'ingeniería': 1.1,
-    'ingenieria': 1.1,
-    'ventas': 0.85,
-    'comercial': 0.85,
-    'marketing': 0.95,
-    'recursos humanos': 1.0,
-    'rrhh': 1.0,
-    'finanzas': 0.95,
-    'operaciones': 0.9,
-    'legal': 0.9,
-    'default': 1.0
-  };
-
   /**
    * Calcula la disponibilidad estimada basada en el perfil del usuario
    */
   static calculateAvailability(profile: UserProfile): AvailabilityEstimate {
     // 1. Determinar nivel/rol del usuario
     const roleLevel = this.determineRoleLevel(profile);
-    const baseConfig = this.AVAILABILITY_BY_LEVEL[roleLevel] || this.AVAILABILITY_BY_LEVEL['default'];
+    const baseConfig = AVAILABILITY_BY_LEVEL[roleLevel] || AVAILABILITY_BY_LEVEL['default'];
 
     // 2. Calcular multiplicador por tamaño de empresa
     const companySizeMultiplier = this.getCompanySizeMultiplier(profile.tamano_empresa);
@@ -226,11 +123,11 @@ export class AvailabilityCalculatorService {
 
     if (maxEmpleados === null) return 1.0;
 
-    if (maxEmpleados <= 10) return this.COMPANY_SIZE_MULTIPLIERS['micro'];
-    if (maxEmpleados <= 50) return this.COMPANY_SIZE_MULTIPLIERS['pequeña'];
-    if (maxEmpleados <= 200) return this.COMPANY_SIZE_MULTIPLIERS['mediana'];
-    if (maxEmpleados <= 1000) return this.COMPANY_SIZE_MULTIPLIERS['grande'];
-    return this.COMPANY_SIZE_MULTIPLIERS['corporativa'];
+    if (maxEmpleados <= 10) return COMPANY_SIZE_MULTIPLIERS['micro'];
+    if (maxEmpleados <= 50) return COMPANY_SIZE_MULTIPLIERS['pequeña'];
+    if (maxEmpleados <= 200) return COMPANY_SIZE_MULTIPLIERS['mediana'];
+    if (maxEmpleados <= 1000) return COMPANY_SIZE_MULTIPLIERS['grande'];
+    return COMPANY_SIZE_MULTIPLIERS['corporativa'];
   }
 
   /**
@@ -241,13 +138,13 @@ export class AvailabilityCalculatorService {
 
     const areaLower = area.toLowerCase();
 
-    for (const [key, multiplier] of Object.entries(this.AREA_MULTIPLIERS)) {
+    for (const [key, multiplier] of Object.entries(AREA_MULTIPLIERS)) {
       if (areaLower.includes(key)) {
         return multiplier;
       }
     }
 
-    return this.AREA_MULTIPLIERS['default'];
+    return AREA_MULTIPLIERS['default'];
   }
 
   /**
@@ -340,4 +237,3 @@ export class AvailabilityCalculatorService {
     };
   }
 }
-

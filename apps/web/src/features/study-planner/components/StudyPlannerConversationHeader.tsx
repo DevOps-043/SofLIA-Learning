@@ -1,12 +1,11 @@
 'use client';
 
-import type { ReactNode } from 'react';
-
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, HelpCircle, Settings, Volume2, VolumeX, Zap } from 'lucide-react';
 
 import { StudyPlannerCalendarProviderIcon } from './StudyPlannerCalendarProviderIcon';
+import { StudyPlannerHeaderActionButton } from './StudyPlannerHeaderActionButton';
 import type { StudyPlannerCalendarProvider } from '../types/planner-ui.types';
 
 interface StudyPlannerConversationHeaderProps {
@@ -25,63 +24,6 @@ interface StudyPlannerConversationHeaderProps {
   onRestartTour: () => void;
   onAskHowItWorks: () => void;
   onToggleAudio: () => void;
-}
-
-interface HeaderActionButtonProps {
-  buttonId?: string;
-  label: string;
-  hoverKey: string;
-  isMobile: boolean;
-  hoveredButton: string | null;
-  disabled?: boolean;
-  className: string;
-  onClick: () => void;
-  onHoverChange: (value: string | null) => void;
-  children: ReactNode;
-  badge?: ReactNode;
-}
-
-function HeaderActionButton({
-  buttonId,
-  label,
-  hoverKey,
-  isMobile,
-  hoveredButton,
-  disabled,
-  className,
-  onClick,
-  onHoverChange,
-  children,
-  badge,
-}: HeaderActionButtonProps) {
-  return (
-    <motion.button
-      id={buttonId}
-      layout
-      onClick={onClick}
-      disabled={disabled}
-      onMouseEnter={() => !isMobile && onHoverChange(hoverKey)}
-      onMouseLeave={() => !isMobile && onHoverChange(null)}
-      whileTap={{ scale: 0.95 }}
-      className={className}
-    >
-      {children}
-      {badge}
-      <AnimatePresence>
-        {hoveredButton === hoverKey && !isMobile && (
-          <motion.span
-            initial={{ width: 0, opacity: 0, marginLeft: 0 }}
-            animate={{ width: 'auto', opacity: 1, marginLeft: 8 }}
-            exit={{ width: 0, opacity: 0, marginLeft: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="inline-block overflow-hidden whitespace-nowrap text-sm font-medium"
-          >
-            {label}
-          </motion.span>
-        )}
-      </AnimatePresence>
-    </motion.button>
-  );
 }
 
 export function StudyPlannerConversationHeader({
@@ -137,7 +79,7 @@ export function StudyPlannerConversationHeader({
 
         <div className="mask-gradient-right no-scrollbar flex w-full items-center gap-2 overflow-x-auto pb-1 sm:w-auto sm:pb-0">
           {connectedCalendar ? (
-            <HeaderActionButton
+            <StudyPlannerHeaderActionButton
               buttonId="lia-calendar-button"
               label={`${connectedCalendar === 'google' ? 'Google' : 'Microsoft'} conectado`}
               hoverKey="calendar-connected"
@@ -153,9 +95,9 @@ export function StudyPlannerConversationHeader({
               <div className="flex items-center justify-center">
                 <StudyPlannerCalendarProviderIcon provider={connectedCalendar} className="h-5 w-5" />
               </div>
-            </HeaderActionButton>
+            </StudyPlannerHeaderActionButton>
           ) : (
-            <HeaderActionButton
+            <StudyPlannerHeaderActionButton
               buttonId="lia-calendar-button"
               label="Conectar calendario"
               hoverKey="calendar"
@@ -171,10 +113,10 @@ export function StudyPlannerConversationHeader({
               }`}
             >
               <Calendar size={20} />
-            </HeaderActionButton>
+            </StudyPlannerHeaderActionButton>
           )}
 
-          <HeaderActionButton
+          <StudyPlannerHeaderActionButton
             label="Configurar calendarios"
             hoverKey="calendar-config"
             isMobile={isMobile}
@@ -195,9 +137,9 @@ export function StudyPlannerConversationHeader({
                 <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
               </span>
             )}
-          </HeaderActionButton>
+          </StudyPlannerHeaderActionButton>
 
-          <HeaderActionButton
+          <StudyPlannerHeaderActionButton
             label="Ver Tour"
             hoverKey="tour"
             isMobile={isMobile}
@@ -212,9 +154,9 @@ export function StudyPlannerConversationHeader({
             }`}
           >
             <Zap size={20} />
-          </HeaderActionButton>
+          </StudyPlannerHeaderActionButton>
 
-          <HeaderActionButton
+          <StudyPlannerHeaderActionButton
             label="Como funciona?"
             hoverKey="help"
             isMobile={isMobile}
@@ -229,7 +171,7 @@ export function StudyPlannerConversationHeader({
             }`}
           >
             <HelpCircle size={20} />
-          </HeaderActionButton>
+          </StudyPlannerHeaderActionButton>
 
           <motion.button
             layout

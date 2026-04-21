@@ -1,37 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { SessionService } from '../../../../../features/auth/services/session.service';
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service';
-import type { CalendarIntegrationMetadata } from '../../../../../features/study-planner/types/user-context.types';
 
-function createAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Variables de Supabase no configuradas');
-  }
-
-  return createServiceClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-}
+type CalendarProvider = 'google' | 'microsoft';
 
 /**
  * GET /api/study-planner/calendar/selection
  * Retorna los IDs de calendarios seleccionados actualmente
  */
-export async function GET() {
+function parseProvider(value: string | null): CalendarProvider | undefined {
+  return value === 'google' || value === 'microsoft' ? value : undefined;
+}
+
+export async function GET(request: NextRequest) {
   try {
     const user = await SessionService.getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
     }
 
-    const selectedIds = await CalendarIntegrationService.getSelectedCalendarIds(user.id);
+    const provider = parseProvider(request.nextUrl.searchParams.get('provider'));
+    const selectedIds = await CalendarIntegrationService.getSelectedCalendarIds(user.id, provider);
 
     return NextResponse.json({
       success: true,
@@ -58,7 +47,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { selectedCalendarIds } = body;
+    const { selectedCalendarIds, provider } = body as {
+      selectedCalendarIds?: unknown;
+      provider?: CalendarProvider;
+    };
 
     // Validación: debe ser un array con al menos un elemento
     if (!Array.isArray(selectedCalendarIds) || selectedCalendarIds.length === 0) {
@@ -74,7 +66,13 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    await CalendarIntegrationService.saveSelectedCalendarIds(user.id, selectedCalendarIds);
+    if (provider && !['google', 'microsoft'].includes(provider)) {
+      return NextResponse.json({
+        error: 'Proveedor de calendario invalido'
+      }, { status: 400 });
+    }
+
+    await CalendarIntegrationService.saveSelectedCalendarIds(user.id, selectedCalendarIds, provider);
 
     return NextResponse.json({
       success: true,

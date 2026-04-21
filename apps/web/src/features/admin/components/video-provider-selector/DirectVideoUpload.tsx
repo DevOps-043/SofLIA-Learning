@@ -51,7 +51,14 @@ export function DirectVideoUpload({
       {hasPreview ? (
         <div className="relative group">
           <div className="relative bg-gray-100 dark:bg-gray-800 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-700">
-            <video ref={videoRef} src={videoPreview ?? undefined} className="w-full h-64 object-contain bg-black" controls />
+            <video
+              ref={videoRef}
+              src={videoPreview ?? undefined}
+              className="w-full h-64 object-contain bg-black"
+              controls
+              playsInline
+              preload="metadata"
+            />
 
             <button
               type="button"

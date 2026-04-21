@@ -35,7 +35,15 @@ export interface ActionResult {
   type: ActionType;
   data?: unknown;
   status: 'success' | 'error' | 'pending' | 'confirmation_needed';
+  code?: string;
+  requiresConfirmation?: boolean;
+  traceId?: string;
   message?: string;
+}
+
+export interface ActionProposal extends ActionResult {
+  status: 'confirmation_needed' | 'error' | 'pending';
+  requiresConfirmation: boolean;
 }
 
 export interface ChatRequest {
@@ -43,12 +51,17 @@ export interface ChatRequest {
   conversationHistory?: Array<{ role: string; content: string }>;
   activePlanId?: string;
   trigger?: 'user_message' | 'proactive_init';
+  confirmedAction?: ActionResult;
+  traceId?: string;
 }
 
 export interface ChatResponse {
   success: boolean;
   response: string;
   action?: ActionResult;
+  actions?: ActionProposal[];
+  needsConfirmation?: boolean;
+  traceId?: string;
   error?: string;
 }
 

@@ -129,11 +129,11 @@ export function VideoContent({
   summaryContent,
   transcriptContent,
   suppressVideoPlayback = false,
-  skipVideoAutoplay = false,
 }: VideoContentProps) {
   const videoPlayerContext = useVideoPlayerOptional();
+  const setShouldAutoPlay = videoPlayerContext?.setShouldAutoPlay;
+  const pauseAllVideos = videoPlayerContext?.pauseAllVideos;
   const currentTimeRef = useRef(0);
-  const autoPlayedForLessonRef = useRef<string | null>(null);
   const completionTransitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleVideoComplete = useCallback(() => {
@@ -175,111 +175,17 @@ export function VideoContent({
   }, []);
 
   useEffect(() => {
-    if (!hasVideo || !lesson.lesson_id) {
-      return;
-    }
-
-    if (skipVideoAutoplay) {
-      autoPlayedForLessonRef.current = lesson.lesson_id;
-      videoPlayerContext?.setShouldAutoPlay(false);
-      return;
-    }
-
-    if (suppressVideoPlayback) {
-      return;
-    }
-
-    if (autoPlayedForLessonRef.current === lesson.lesson_id) {
-      return;
-    }
-
-    let cancelled = false;
-    const retryIds: ReturnType<typeof setTimeout>[] = [];
-
-    const tryAutoPlay = () => {
-      if (cancelled) {
-        return;
-      }
-
-      const video = document.querySelector(".aspect-video video") as
-        | HTMLVideoElement
-        | null;
-
-      if (!video) {
-        videoPlayerContext?.setShouldAutoPlay(true);
-        autoPlayedForLessonRef.current = lesson.lesson_id;
-        return;
-      }
-
-      if (!video.paused) {
-        autoPlayedForLessonRef.current = lesson.lesson_id;
-        return;
-      }
-
-      video.muted = false;
-      video.play().then(
-        () => {
-          autoPlayedForLessonRef.current = lesson.lesson_id;
-        },
-        () => {
-          video.muted = true;
-          video.play().then(() => {
-            autoPlayedForLessonRef.current = lesson.lesson_id;
-          }, () => undefined);
-        }
-      );
-    };
-
-    const waitAndTry = () => {
-      if (cancelled) {
-        return;
-      }
-
-      const video = document.querySelector(".aspect-video video") as
-        | HTMLVideoElement
-        | null;
-
-      if (!video) {
-        return;
-      }
-
-      if (video.readyState >= 3) {
-        tryAutoPlay();
-        return;
-      }
-
-      video.addEventListener("canplay", tryAutoPlay, { once: true });
-    };
-
-    waitAndTry();
-
-    [500, 1000, 2000].forEach((delay) => {
-      const timeoutId = setTimeout(() => {
-        if (cancelled || autoPlayedForLessonRef.current === lesson.lesson_id) {
-          return;
-        }
-
-        waitAndTry();
-      }, delay);
-
-      retryIds.push(timeoutId);
-    });
-
-    return () => {
-      cancelled = true;
-      retryIds.forEach((timeoutId) => clearTimeout(timeoutId));
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasVideo, lesson.lesson_id, skipVideoAutoplay, suppressVideoPlayback]);
+    setShouldAutoPlay?.(false);
+  }, [lesson.lesson_id, setShouldAutoPlay]);
 
   useEffect(() => {
     if (!suppressVideoPlayback) {
       return;
     }
 
-    videoPlayerContext?.setShouldAutoPlay(false);
-    videoPlayerContext?.pauseAllVideos?.();
-  }, [suppressVideoPlayback, videoPlayerContext]);
+    setShouldAutoPlay?.(false);
+    pauseAllVideos?.();
+  }, [pauseAllVideos, setShouldAutoPlay, suppressVideoPlayback]);
 
   useEffect(() => {
     let cleanupFn: (() => void) | undefined;
@@ -307,11 +213,7 @@ export function VideoContent({
       isSetup = true;
 
       if (videoContext && lesson.lesson_id) {
-        const restoreAndPlay = async () => {
-          const shouldPlay =
-            !skipVideoAutoplay &&
-            !suppressVideoPlayback &&
-            (videoContext.shouldAutoPlayRef?.current || false);
+        const restoreProgress = async () => {
           const cachedTime = videoContext.getVideoProgress(lesson.lesson_id);
           let resumeCheckpoint = cachedTime;
           let resumePlaybackRate = 1;
@@ -346,19 +248,16 @@ export function VideoContent({
             currentTimeRef.current = resumeCheckpoint;
           }
 
-          if (shouldPlay) {
-            videoElement.play().catch(() => undefined);
-            videoContext.setShouldAutoPlay(false);
-          }
+          videoContext.setShouldAutoPlay(false);
         };
 
         if (videoElement.readyState >= 3) {
-          void restoreAndPlay();
+          void restoreProgress();
         } else if (videoElement.readyState >= 1) {
           videoElement.addEventListener(
             "canplay",
             () => {
-              void restoreAndPlay();
+              void restoreProgress();
             },
             {
               once: true,
@@ -369,14 +268,14 @@ export function VideoContent({
             "loadedmetadata",
             () => {
               if (videoElement.readyState >= 3) {
-                void restoreAndPlay();
+                void restoreProgress();
                 return;
               }
 
               videoElement.addEventListener(
                 "canplay",
                 () => {
-                  void restoreAndPlay();
+                  void restoreProgress();
                 },
                 {
                   once: true,
@@ -533,6 +432,7 @@ export function VideoContent({
               title={lesson.lesson_title}
               className="w-full h-full"
               lessonId={lesson.lesson_id}
+              playbackContext="lesson"
               onComplete={handleVideoComplete}
             />
             <VideoNavigationOverlay

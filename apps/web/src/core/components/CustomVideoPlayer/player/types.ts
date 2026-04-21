@@ -6,6 +6,7 @@ import type {
   SyntheticEvent,
   TouchEvent,
 } from 'react';
+import type { NativeVideoPreload } from '@/lib/media';
 
 export interface CustomVideoPlayerProps {
   className?: string;
@@ -16,6 +17,9 @@ export interface CustomVideoPlayerProps {
   onPiPChange?: (isPiP: boolean) => void;
   onProgress?: (progress: number) => void;
   onTrackingError?: (error: Error) => void;
+  pauseWhenHidden?: boolean;
+  pauseWhenOutsideViewport?: boolean;
+  preload?: NativeVideoPreload;
   src: string;
   title?: string;
   trackingId?: string;
@@ -66,6 +70,7 @@ export interface CustomVideoPlayerController {
   onRootMouseMove: () => void;
   playbackRate: number;
   playbackRates: number[];
+  preload: NativeVideoPreload;
   progressBarRef: RefObject<HTMLDivElement>;
   setShowSettings: Dispatch<SetStateAction<boolean>>;
   setShowVolumeControl: Dispatch<SetStateAction<boolean>>;

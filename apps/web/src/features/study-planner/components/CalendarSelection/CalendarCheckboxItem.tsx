@@ -13,6 +13,7 @@ interface CalendarCheckboxItemProps {
 
 export function CalendarCheckboxItem({ calendar, isSelected, onToggle, disabled }: CalendarCheckboxItemProps) {
   const { t } = useTranslation('common');
+  const showGenericPrimaryBadge = calendar.isPrimary && !calendar.isConnectedAccountPrimary && !calendar.accountEmail;
 
   return (
     <motion.label
@@ -42,11 +43,26 @@ export function CalendarCheckboxItem({ calendar, isSelected, onToggle, disabled 
         />
       )}
 
-      <span className="flex-1 text-sm text-gray-900 dark:text-white truncate">
-        {calendar.name}
-      </span>
+      <div className="min-w-0 flex-1">
+        <span className="block truncate text-sm text-gray-900 dark:text-white">
+          {calendar.name}
+        </span>
+        {calendar.accountEmail && (
+          <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
+            {t('studyPlanner.calendarSelection.accountLabel', {
+              email: calendar.accountEmail,
+            })}
+          </span>
+        )}
+      </div>
 
-      {calendar.isPrimary && (
+      {calendar.isConnectedAccountPrimary ? (
+        <span className="text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent font-medium flex-shrink-0">
+          {t('studyPlanner.calendarSelection.connectedPrimary', {
+            email: calendar.accountEmail || '',
+          })}
+        </span>
+      ) : showGenericPrimaryBadge && (
         <span className="text-xs px-1.5 py-0.5 rounded bg-accent/20 text-accent font-medium flex-shrink-0">
           {t('studyPlanner.calendarSelection.primary')}
         </span>

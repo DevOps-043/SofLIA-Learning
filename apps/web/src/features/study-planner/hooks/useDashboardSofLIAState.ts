@@ -6,35 +6,17 @@
  */
 
 import { useCallback, useRef } from 'react';
+import { useDashboardSofLIAActionExecution } from './useDashboardSofLIAActionExecution';
+import type { DashboardMessage } from './useStudyPlannerDashboardSofLIA';
 import type {
-  DashboardMessage,
-  StudyPlannerAction,
-  StudyPlannerDashboardState,
-} from './useStudyPlannerDashboardSofLIA';
+  DashboardChatErrorPayload,
+  DashboardChatSuccessPayload,
+  UseDashboardSofLIAStateParams,
+  UseDashboardSofLIAStateReturn,
+} from './useDashboardSofLIAState.types';
 
 const isAbortError = (error: unknown): error is DOMException =>
   error instanceof DOMException && error.name === 'AbortError';
-
-interface UseDashboardSofLIAStateParams {
-  userId: string | undefined;
-  getState: () => StudyPlannerDashboardState;
-  setState: React.Dispatch<React.SetStateAction<StudyPlannerDashboardState>>;
-  loadActivePlan: () => Promise<void>;
-}
-
-interface UseDashboardSofLIAStateReturn {
-  sendMessage: (message: string) => Promise<void>;
-  executeAction: (action: StudyPlannerAction, data: Record<string, unknown>) => Promise<void>;
-  clearMessages: () => void;
-  clearError: () => void;
-  dismissCalendarChanges: () => void;
-  abortControllerRef: React.MutableRefObject<AbortController | null>;
-}
-
-interface DashboardChatErrorPayload {
-  error?: string;
-  response?: string;
-}
 
 export function useDashboardSofLIAState({
   userId,
@@ -43,6 +25,12 @@ export function useDashboardSofLIAState({
   loadActivePlan,
 }: UseDashboardSofLIAStateParams): UseDashboardSofLIAStateReturn {
   const abortControllerRef = useRef<AbortController | null>(null);
+  const executeAction = useDashboardSofLIAActionExecution({
+    userId,
+    getState,
+    setState,
+    loadActivePlan,
+  });
 
   const sendMessage = useCallback(async (message: string) => {
     const state = getState();
@@ -95,16 +83,20 @@ export function useDashboardSofLIAState({
         );
       }
 
-      const data = await response.json();
+      const data = await response.json() as DashboardChatSuccessPayload;
+      const primaryAction = data.action || data.actions?.[0];
 
       const assistantMessage: DashboardMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: data.response,
+        content: data.response || '',
         timestamp: new Date(),
-        actionType: data.action?.type,
-        actionData: data.action?.data,
-        actionStatus: data.action?.status,
+        actionType: primaryAction?.type,
+        actionData: primaryAction?.data,
+        actionStatus: primaryAction?.status,
+        actionMessage: primaryAction?.message,
+        actionCode: primaryAction?.code,
+        traceId: data.traceId || primaryAction?.traceId,
       };
 
       setState(prev => ({
@@ -113,7 +105,7 @@ export function useDashboardSofLIAState({
         isSending: false,
       }));
 
-      if (data.action?.status === 'success') {
+      if (primaryAction?.status === 'success') {
         await loadActivePlan();
       }
     } catch (error: unknown) {
@@ -130,59 +122,6 @@ export function useDashboardSofLIAState({
       }));
     }
   }, [getState, setState, loadActivePlan]);
-
-  const executeAction = useCallback(async (action: StudyPlannerAction, data: Record<string, unknown>) => {
-    const state = getState();
-    if (!userId || !state.activePlan) return;
-
-    setState(prev => ({ ...prev, isSending: true }));
-
-    try {
-      const response = await fetch('/api/study-planner/dashboard/actions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action,
-          data,
-          planId: state.activePlan!.id,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al ejecutar acción');
-      }
-
-      const result = await response.json();
-
-      if (result.success) {
-        await loadActivePlan();
-
-        const confirmMessage: DashboardMessage = {
-          id: `action-${Date.now()}`,
-          role: 'assistant',
-          content: result.message || '✅ Acción completada correctamente.',
-          timestamp: new Date(),
-          actionType: action,
-          actionStatus: 'success',
-        };
-
-        setState(prev => ({
-          ...prev,
-          messages: [...prev.messages, confirmMessage],
-          isSending: false,
-        }));
-      } else {
-        throw new Error(result.error || 'Error desconocido');
-      }
-    } catch (error) {
-      console.error('Error ejecutando acción:', error);
-      setState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Error al ejecutar la acción',
-        isSending: false,
-      }));
-    }
-  }, [userId, getState, setState, loadActivePlan]);
 
   const clearMessages = useCallback(() => {
     setState(prev => ({ ...prev, messages: [] }));

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomUUID } from 'crypto'
 import {
   STUDY_PLANNER_CHAT_RATE_LIMIT,
   applyRouteRateLimit,
@@ -12,6 +13,7 @@ import { resolvePlanSelectionForChat } from './plan-resolution.service'
 import { setCurrentTimezone } from './format.utils'
 import type { ChatRequest } from './types'
 import {
+  buildActionProposals,
   extractActionTags,
   resolveDashboardChatAction,
 } from './chat-actions.service'
@@ -71,6 +73,7 @@ export async function POST(
       trigger,
       isProactiveInit,
     } = parsedRequest.data!
+    const traceId = randomUUID()
     const liaLogger = new SofLIALogger(user.id)
     let conversationId: string | undefined
 
@@ -121,6 +124,7 @@ export async function POST(
     const { context: planContext, timezone } = await getPlanContext(
       user.id,
       resolvedPlanId,
+      { traceId },
     )
     setCurrentTimezone(timezone)
 
@@ -148,19 +152,27 @@ export async function POST(
     const { action, actions, cleanResponse } = extractActionTags(
       generationResult.responseText,
     )
+    const actionProposals = buildActionProposals(actions, traceId)
     const executedAction = await resolveDashboardChatAction(
       user.id,
       resolvedPlanId,
       actions,
       action,
       message,
+      traceId,
     )
+    const needsConfirmation =
+      actionProposals.some((proposal) => proposal.status === 'confirmation_needed') ||
+      executedAction?.status === 'confirmation_needed'
 
     return withRateLimitHeaders(
       NextResponse.json({
         success: true,
         response: cleanResponse,
+        actions: actionProposals,
         action: executedAction,
+        needsConfirmation,
+        traceId,
       }),
       rateLimit,
     )

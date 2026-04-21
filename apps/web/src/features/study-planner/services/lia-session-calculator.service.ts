@@ -1,15 +1,4 @@
-/**
- * lia-session-calculator.service.ts
- *
- * Pre-calculates study sessions with exact start/end times so that SofLIA
- * only needs to copy the results without performing arithmetic.
- */
-
 export class LiaSessionCalculatorService {
-  /**
-   * Pre-calcula las sesiones de estudio con horas exactas para evitar errores de aritmética de LIA
-   * Este método agrupa lecciones decimales, calcula horas de fin correctamente, y cuenta semanas
-   */
   static preCalculateStudySessions(
     lessons: Array<{
       lessonTitle: string;
@@ -55,17 +44,14 @@ export class LiaSessionCalculatorService {
       lessons: Array<{ title: string; duration: number }>;
     }> = [];
 
-    // Agrupar lecciones por número base (1 con 1.1, 2 con 2.1, etc.)
     const groupedLessons = this.groupDecimalLessons(lessons);
 
-    // Mapear tiempo de slot
     const slotTimes: Record<string, string> = {
       'mañana': '08:00',
       'tarde': '14:00',
       'noche': '20:00'
     };
 
-    // Mapear días a números (0 = domingo)
     const dayNumbers: Record<string, number> = {
       'domingo': 0, 'lunes': 1, 'martes': 2, 'miércoles': 3,
       'miercoles': 3, 'jueves': 4, 'viernes': 5, 'sábado': 6, 'sabado': 6

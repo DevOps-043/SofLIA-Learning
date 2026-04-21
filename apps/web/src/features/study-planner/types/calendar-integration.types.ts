@@ -35,12 +35,18 @@ export interface CalendarListItem {
   id: string;
   name: string;
   isPrimary: boolean;
+  isConnectedAccountPrimary?: boolean;
   accessRole: 'owner' | 'writer' | 'reader' | 'freeBusyReader';
+  accountEmail?: string;
   color?: string;
   provider: CalendarProvider;
+  providerAccountId?: string;
+  source?: string;
 }
 
 export interface CalendarIntegrationMetadata {
+  account_email?: string;
+  provider_account_id?: string;
   secondary_calendar_id?: string;
   selected_calendar_ids?: string[];
 }

@@ -14,7 +14,6 @@
  *   calendar-availability.service.ts – Availability analysis
  */
 
-// Re-export sub-services for consumers that import them directly
 export { CalendarDbService } from './calendar-db.service';
 export { CalendarAuthService, REDIRECT_URI } from './calendar-auth.service';
 export { CalendarGoogleService, PLATFORM_CALENDAR_NAME } from './calendar-google.service';
@@ -27,6 +26,12 @@ import { CalendarAuthService } from './calendar-auth.service';
 import { CalendarGoogleService } from './calendar-google.service';
 import { CalendarMicrosoftService } from './calendar-microsoft.service';
 import { CalendarAvailabilityService } from './calendar-availability.service';
+import {
+  getCalendarEventsForUser,
+  getCalendarIdForUser as resolveCalendarIdForUser,
+} from './calendar-integration-cross-provider.service';
+
+type CalendarProvider = 'google' | 'microsoft';
 
 /**
  * CalendarIntegrationService
@@ -75,12 +80,19 @@ export class CalendarIntegrationService {
     return CalendarDbService.getSecondaryCalendarId(userId);
   }
 
-  static async getSelectedCalendarIds(userId: string): Promise<string[] | null> {
-    return CalendarDbService.getSelectedCalendarIds(userId);
+  static async getSelectedCalendarIds(
+    userId: string,
+    provider?: CalendarProvider,
+  ): Promise<string[] | null> {
+    return CalendarDbService.getSelectedCalendarIds(userId, provider);
   }
 
-  static async saveSelectedCalendarIds(userId: string, calendarIds: string[]): Promise<void> {
-    return CalendarDbService.saveSelectedCalendarIds(userId, calendarIds);
+  static async saveSelectedCalendarIds(
+    userId: string,
+    calendarIds: string[],
+    provider?: CalendarProvider,
+  ): Promise<void> {
+    return CalendarDbService.saveSelectedCalendarIds(userId, calendarIds, provider);
   }
 
   // ─── Google Calendar ──────────────────────────────────────────────────────
@@ -212,25 +224,7 @@ export class CalendarIntegrationService {
     startDate: Date,
     endDate: Date
   ): Promise<CalendarEvent[]> {
-    const accessToken = await CalendarAuthService.refreshTokenIfNeeded(userId);
-
-    if (!accessToken) {
-      return [];
-    }
-
-    const integration = await CalendarDbService.getCalendarIntegration(userId);
-
-    if (!integration || !integration.isConnected) {
-      return [];
-    }
-
-    const selectedCalendarIds = await CalendarDbService.getSelectedCalendarIds(userId);
-
-    if (integration.provider === 'google') {
-      return CalendarGoogleService.getGoogleCalendarEvents(accessToken, startDate, endDate, selectedCalendarIds || undefined);
-    } else {
-      return CalendarMicrosoftService.getMicrosoftCalendarEvents(accessToken, startDate, endDate, selectedCalendarIds || undefined);
-    }
+    return getCalendarEventsForUser(userId, startDate, endDate);
   }
 
   /**
@@ -241,30 +235,7 @@ export class CalendarIntegrationService {
     accessToken: string | null;
     provider: 'google' | 'microsoft' | null;
   }> {
-    const accessToken = await CalendarAuthService.refreshTokenIfNeeded(userId);
-    if (!accessToken) {
-      return { calendarId: null, accessToken: null, provider: null };
-    }
-
-    const integration = await CalendarDbService.getCalendarIntegration(userId);
-    if (!integration || !integration.isConnected) {
-      return { calendarId: null, accessToken: null, provider: null };
-    }
-
-    if (integration.provider !== 'google') {
-      return { calendarId: null, accessToken, provider: integration.provider };
-    }
-
-    let calendarId = await CalendarDbService.getSecondaryCalendarId(userId);
-
-    if (!calendarId) {
-      calendarId = await CalendarGoogleService.getOrCreatePlatformCalendar(accessToken);
-      if (calendarId) {
-        await CalendarDbService.saveSecondaryCalendarId(userId, calendarId);
-      }
-    }
-
-    return { calendarId, accessToken, provider: integration.provider };
+    return resolveCalendarIdForUser(userId);
   }
 
   // ─── Availability ─────────────────────────────────────────────────────────

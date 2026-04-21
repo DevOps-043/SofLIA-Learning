@@ -33,6 +33,9 @@ export function useCustomVideoPlayerState(
     onPiPChange,
     onProgress,
     onTrackingError,
+    pauseWhenHidden = true,
+    pauseWhenOutsideViewport = false,
+    preload = 'metadata',
     src,
     title,
     trackingId,
@@ -80,6 +83,72 @@ export function useCustomVideoPlayerState(
       if (document.pictureInPictureElement !== videoElement) videoElement.pause();
     };
   }, []);
+
+  useEffect(() => {
+    if (!pauseWhenHidden) {
+      return;
+    }
+
+    const videoElement = videoRef.current;
+
+    if (!videoElement) {
+      return;
+    }
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        return;
+      }
+
+      const isInPiP = document.pictureInPictureElement === videoElement;
+      if (!isInPiP && !videoElement.paused) {
+        videoElement.pause();
+        setIsPlaying(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [pauseWhenHidden]);
+
+  useEffect(() => {
+    if (!pauseWhenOutsideViewport || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const containerElement = containerRef.current;
+    const videoElement = videoRef.current;
+
+    if (!containerElement || !videoElement) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry || entry.isIntersecting) {
+          return;
+        }
+
+        const isInPiP = document.pictureInPictureElement === videoElement;
+        if (!isInPiP && !videoElement.paused) {
+          videoElement.pause();
+          setIsPlaying(false);
+        }
+      },
+      {
+        threshold: 0.1,
+      }
+    );
+
+    observer.observe(containerElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [pauseWhenOutsideViewport, src]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -242,13 +311,8 @@ export function useCustomVideoPlayerState(
     };
 
     const handleStalled = () => {
-      // "stalled" fires when the browser stops downloading (common on iOS Safari
-      // and slow connections). A micro-seek forces the browser to resume buffering
-      // from the current position without visible jump.
-      const currentPos = videoElement.currentTime;
-      if (currentPos > 0) {
-        videoElement.currentTime = currentPos + 0.001;
-      }
+      // Safari can emit "stalled" during normal bandwidth management. Avoid
+      // synthetic seeks here: they wake the decoder and can increase heat on iOS.
       if (bufferingTimeout) clearTimeout(bufferingTimeout);
       bufferingTimeout = setTimeout(() => setIsBuffering(true), 500);
     };
@@ -626,6 +690,7 @@ export function useCustomVideoPlayerState(
     onRootMouseMove: () => setShowControls(true),
     playbackRate,
     playbackRates: VIDEO_PLAYBACK_RATES,
+    preload,
     progressBarRef,
     setShowSettings,
     setShowVolumeControl,

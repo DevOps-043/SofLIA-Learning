@@ -11,61 +11,15 @@
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-
-// ============================================================================
-// TIPOS
-// ============================================================================
-
-export interface LessonData {
-  lessonId: string;
-  lessonTitle: string;
-  lessonOrderIndex: number;
-  durationMinutes: number;
-  moduleId: string;
-  moduleTitle: string;
-  moduleOrderIndex: number;
-  courseId: string;
-  courseTitle: string;
-}
-
-export interface CourseData {
-  courseId: string;
-  courseTitle: string;
-  dueDate: string | null;
-  totalLessons: number;
-  completedLessons: number;
-  pendingCount: number;
-}
-
-interface LessonDataResponse {
-  lessonId: string;
-  lessonTitle: string;
-  lessonOrderIndex?: number | null;
-  durationMinutes?: number | null;
-  moduleId?: string | null;
-  moduleTitle?: string | null;
-  moduleOrderIndex?: number | null;
-  courseId?: string | null;
-  courseTitle?: string | null;
-}
-
-interface CourseDataResponse {
-  courseId: string;
-  courseTitle: string;
-  dueDate?: string | null;
-  totalLessons?: number | null;
-  completedLessons?: number | null;
-  pendingCount?: number | null;
-}
-
-export interface LIADataState {
-  lessons: LessonData[];
-  courses: CourseData[];
-  totalPending: number;
-  isLoading: boolean;
-  isReady: boolean;
-  error: string | null;
-}
+import type {
+  CourseData,
+  CourseDataResponse,
+  LessonData,
+  LessonDataResponse,
+  SofLIADataState,
+} from './useSofLIAData.types';
+export type { CourseData, LessonData } from './useSofLIAData.types';
+export type LIADataState = SofLIADataState;
 
 // ============================================================================
 // HOOK
@@ -144,13 +98,6 @@ export function useLIAData() {
         isReady: true,
         error: null,
       });
-
-      
-      // Log de verificación
-      if (lessons.length > 0) {
-        lessons.slice(0, 3).forEach((l, i) => {
-        });
-      }
 
     } catch (error) {
       console.error('❌ [useLIAData] Error cargando lecciones:', error);

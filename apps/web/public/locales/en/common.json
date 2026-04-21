@@ -12,6 +12,10 @@
     "label": "Language: {{language}}",
     "active": "Active"
   },
+  "media": {
+    "tapToPlay": "Tap to play",
+    "videoPreview": "Video preview"
+  },
   "dashboardNav": {
     "workshops": "Workshops",
     "directory": "AI Directory",
@@ -643,6 +647,8 @@
       "refresh": "Refresh",
       "refreshing": "Refreshing...",
       "primary": "Primary",
+      "connectedPrimary": "Primary calendar for connected account: {{email}}",
+      "accountLabel": "Account: {{email}}",
       "minOneRequired": "You must select at least one calendar",
       "noCalendarsFound": "No calendars found",
       "errorLoading": "Error loading calendars",
@@ -677,6 +683,14 @@
       "customEvent": "Custom event",
       "confirmDelete": "Confirm deletion",
       "deleting": "Deleting..."
+    },
+    "dashboardAssistant": {
+      "actionCompleted": "Action completed",
+      "actionFailed": "Action failed",
+      "confirmationRequired": "Confirmation is required before applying the change",
+      "errorCode": "Code",
+      "traceId": "Trace ID",
+      "openAssistant": "Open assistant"
     }
   },
   "profile": {
