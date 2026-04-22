@@ -1,3 +1,5 @@
+import { resolveStudyPlannerCourseId, resolveStudyPlannerCourseIds } from './study-planner-course-id.shared';
+
 interface StudyPlannerMyCourseRecord {
   course_id?: string;
   id?: string;
@@ -40,7 +42,8 @@ async function fetchRemainingLessonsForCourse(
   courseId: string,
   courses: StudyPlannerMyCourseRecord[],
 ): Promise<number> {
-  const courseData = courses.find((course) => (course.course_id || course.id) === courseId);
+  const resolvedCourseId = resolveStudyPlannerCourseId(courseId);
+  const courseData = courses.find((course) => (course.course_id || course.id) === resolvedCourseId);
   const courseSlug = courseData?.courses?.slug || courseData?.slug || null;
   const enrollmentId = courseData?.enrollment_id || '';
 
@@ -50,7 +53,7 @@ async function fetchRemainingLessonsForCourse(
 
   const [modulesResponse, progressResponse] = await Promise.all([
     fetch(`/api/courses/${courseSlug}/modules`),
-    fetch(`/api/study-planner/course-progress?enrollmentId=${enrollmentId}&courseId=${courseId}`),
+    fetch(`/api/study-planner/course-progress?enrollmentId=${enrollmentId}&courseId=${resolvedCourseId}`),
   ]);
 
   if (!modulesResponse.ok) {
@@ -99,7 +102,7 @@ export async function calculateStudyPlannerTotalLessonsNeeded(
     const courses = normalizeCourseCollection(myCoursesData);
 
     const courseLessonCounts = await Promise.all(
-      input.selectedCourseIds.map(async (courseId) => {
+      resolveStudyPlannerCourseIds(input.selectedCourseIds).map(async (courseId) => {
         try {
           const remainingLessons = await fetchRemainingLessonsForCourse(courseId, courses);
           return remainingLessons > 0 ? remainingLessons : 10;

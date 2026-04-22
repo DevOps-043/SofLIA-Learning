@@ -1,11 +1,13 @@
 import {
   addDays,
+  endOfDay,
   format,
   parseISO,
   startOfWeek,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { StudyPlannerStoredLessonDistribution } from '../../../types/planner-schedule.types';
+import { STUDY_PLANNER_WEEK_STARTS_ON } from '../../hooks/study-planner-calendar.constants';
 import type {
   SchedulePreviewEvent,
   SchedulePreviewWeekRange,
@@ -30,22 +32,24 @@ export interface ExternalCalendarEventPayload {
 }
 
 export function buildWeekRange(referenceDate: Date): SchedulePreviewWeekRange {
-  const monday = startOfWeek(referenceDate, { weekStartsOn: 1 });
-  const sunday = addDays(monday, 6);
-  const startLabel = format(monday, 'd', { locale: es });
-  const endLabel = format(sunday, 'd', { locale: es });
-  const monthLabel = format(sunday, 'MMM', { locale: es });
-  const yearLabel = format(sunday, 'yyyy');
+  const weekStart = startOfWeek(referenceDate, {
+    weekStartsOn: STUDY_PLANNER_WEEK_STARTS_ON,
+  });
+  const weekEndDay = addDays(weekStart, 6);
+  const startLabel = format(weekStart, 'd', { locale: es });
+  const endLabel = format(weekEndDay, 'd', { locale: es });
+  const monthLabel = format(weekEndDay, 'MMM', { locale: es });
+  const yearLabel = format(weekEndDay, 'yyyy');
 
   return {
-    start: monday,
-    end: sunday,
+    start: weekStart,
+    end: endOfDay(weekEndDay),
     label: `${startLabel} - ${endLabel} ${monthLabel} ${yearLabel}`,
   };
 }
 
-export function buildWeekDays(monday: Date): Date[] {
-  return Array.from({ length: 7 }, (_, index) => addDays(monday, index));
+export function buildWeekDays(weekStart: Date): Date[] {
+  return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
 }
 
 export function buildHours(): number[] {

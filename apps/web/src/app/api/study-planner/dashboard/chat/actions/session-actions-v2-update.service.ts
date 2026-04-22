@@ -1,10 +1,11 @@
 import { createAdminClient, syncSessionWithCalendar } from '../calendar.service';
 import type { ActionResult } from '../types';
+import { validateStrictLessonOrder } from './lesson-order-guardrails.service';
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service';
 
 export async function executeUpdateSessionV2(
   userId: string,
-  _planId: string,
+  planId: string,
   action: ActionResult,
   userMessage?: string,
 ): Promise<ActionResult> {
@@ -50,6 +51,21 @@ export async function executeUpdateSessionV2(
 
     if (!placementValidation.valid) {
       return { ...action, status: 'error', message: placementValidation.message };
+    }
+
+    const orderValidation = await validateStrictLessonOrder({
+      userId,
+      planId,
+      proposedMoves: [{ sessionId, newStartTime: nextStartTime }],
+    });
+
+    if (!orderValidation.valid) {
+      return {
+        ...action,
+        status: 'error',
+        code: orderValidation.code,
+        message: orderValidation.message,
+      };
     }
   }
 

@@ -7,6 +7,9 @@
 
 import { useCallback, useRef } from 'react';
 import { useDashboardSofLIAActionExecution } from './useDashboardSofLIAActionExecution';
+import {
+  buildDashboardAssistantMessage,
+} from './dashboard-soflia-chat-response.service';
 import type { DashboardMessage } from './useStudyPlannerDashboardSofLIA';
 import type {
   DashboardChatErrorPayload,
@@ -84,20 +87,10 @@ export function useDashboardSofLIAState({
       }
 
       const data = await response.json() as DashboardChatSuccessPayload;
-      const primaryAction = data.action || data.actions?.[0];
-
-      const assistantMessage: DashboardMessage = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: data.response || '',
-        timestamp: new Date(),
-        actionType: primaryAction?.type,
-        actionData: primaryAction?.data,
-        actionStatus: primaryAction?.status,
-        actionMessage: primaryAction?.message,
-        actionCode: primaryAction?.code,
-        traceId: data.traceId || primaryAction?.traceId,
-      };
+      const assistantMessage: DashboardMessage = buildDashboardAssistantMessage({
+        idPrefix: 'assistant',
+        payload: data,
+      });
 
       setState(prev => ({
         ...prev,
@@ -105,7 +98,7 @@ export function useDashboardSofLIAState({
         isSending: false,
       }));
 
-      if (primaryAction?.status === 'success') {
+      if (assistantMessage.actionStatus === 'success') {
         await loadActivePlan();
       }
     } catch (error: unknown) {

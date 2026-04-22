@@ -1,6 +1,7 @@
-﻿import { createAdminClient, syncSessionWithCalendar } from '../calendar.service'
+import { createAdminClient, syncSessionWithCalendar } from '../calendar.service'
 import { logger } from '../../../../../../lib/utils/logger'
 import type { ActionResult } from '../types'
+import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 import { withTimezoneOffset } from './planning-actions-v2-timezone.service'
 
@@ -11,7 +12,7 @@ export async function executeRebalancePlanV2(
   userMessage?: string,
 ): Promise<ActionResult> {
   const supabase = createAdminClient()
-  let { sessionsToMove } = (action.data || {}) as {
+  const { sessionsToMove } = (action.data || {}) as {
     sessionsToMove?: Array<{
       sessionId: string
       newStartTime: string
@@ -24,6 +25,24 @@ export async function executeRebalancePlanV2(
       ...action,
       status: 'error',
       message: 'No se especificaron sesiones para rebalancear de forma segura.',
+    }
+  }
+
+  const orderValidation = await validateStrictLessonOrder({
+    userId,
+    planId,
+    proposedMoves: sessionsToMove.map((sessionMove) => ({
+      sessionId: sessionMove.sessionId,
+      newStartTime: withTimezoneOffset(sessionMove.newStartTime),
+    })),
+  })
+
+  if (!orderValidation.valid) {
+    return {
+      ...action,
+      status: 'error',
+      code: orderValidation.code,
+      message: orderValidation.message,
     }
   }
 
@@ -90,9 +109,8 @@ export async function executeRebalancePlanV2(
     status: successCount > 0 ? 'success' : 'error',
     message:
       successCount > 0
-        ? `Plan rebalanceado: ${successCount}/${sessionsToMove.length} sesiones reprogramadas sin violar las reglas del calendario.`
+        ? `Plan rebalanceado: ${successCount}/${sessionsToMove.length} sesiones reprogramadas sin violar las reglas del calendario ni el orden pedagógico.`
         : 'No se pudieron reprogramar las sesiones sin violar las reglas de trabajo/calendario.',
     data: { results, sessionsRebalanced: successCount },
   }
 }
-

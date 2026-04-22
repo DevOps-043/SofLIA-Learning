@@ -30,7 +30,7 @@ export function detectPlannerDays(message: string): string[] {
   }
 
   const matches = normalizedMsg.match(
-    /lunes|lune|lun|martes|mar|miercoles|miÃ©rcoles|mier|jueves|jue|viernes|vier|vie|sabado|sÃ¡bado|sab|domingo|dom/gi,
+    /lunes|lune|lun|martes|mar|miercoles|mier|jueves|jue|viernes|vier|vie|sabado|sab|domingo|dom/gi,
   )
   if (!matches) return []
 
@@ -74,7 +74,7 @@ export function detectPlannerTimes(message: string): string[] {
     return ['manana', 'tarde']
   }
 
-  const matches = normalizedMsg.match(/manana|maÃ±ana|tarde|noche/gi)
+  const matches = normalizedMsg.match(/manana|tarde|noche/gi)
   return matches ? [...new Set(matches.map((value) => normalizePreferenceText(value)))] : ['manana']
 }
 

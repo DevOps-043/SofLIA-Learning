@@ -7,6 +7,7 @@ import {
   buildChangeTargetDateContext,
   buildFinalPlanSummaryContext,
 } from '../services/planner-message-context.service';
+import { buildStudyPlannerSpeechText } from '../services/study-planner-voice-text.service';
 import { resolvePlannerMessageIntent } from '../services/planner-message-intent.service';
 import {
   detectStudyPlannerApproachFromMessage,
@@ -176,7 +177,9 @@ export function useStudyPlannerMessageHandler(params: UseStudyPlannerMessageHand
         setTimeout(() => { void params.executeFinalPlanSave(); }, 2000);
       }
 
-      if (params.isAudioEnabled) await params.speakText(liaResponse);
+      if (params.isAudioEnabled) {
+        await params.speakText(buildStudyPlannerSpeechText(liaResponse));
+      }
     } catch (error) {
       console.error('Error enviando mensaje:', error);
       params.setConversationHistory(prev => [

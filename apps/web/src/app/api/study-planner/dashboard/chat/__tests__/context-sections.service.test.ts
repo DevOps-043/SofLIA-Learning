@@ -144,7 +144,10 @@ describe('context-sections.service', () => {
         plannedMinutes: 180,
         completedMinutes: 60,
         remainingMinutes: 120,
+        overdueMinutes: 120,
+        upcomingMinutes: 0,
         onTrack: false,
+        status: 'actionable',
         suggestion: 'Te conviene redistribuir.',
       },
       consistencyAlert: {

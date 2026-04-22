@@ -118,4 +118,22 @@ describe('calculateStudyPlannerTotalLessonsNeeded', () => {
 
     expect(result).toBe(1)
   })
+
+  it('supports composite selected course ids from the planner selector', async () => {
+    mockFetch
+      .mockResolvedValueOnce(makeMyCoursesResponse([
+        { course_id: 'c1', courses: { slug: 'course-1' }, enrollment_id: 'e1' },
+      ]))
+      .mockResolvedValueOnce(makeModulesResponse([
+        { lesson_id: 'l1', lesson_title: 'Lesson 1' },
+        { lesson_id: 'l2', lesson_title: 'Lesson 2' },
+      ]))
+      .mockResolvedValueOnce(makeProgressResponse([]))
+
+    const result = await calculateStudyPlannerTotalLessonsNeeded({
+      selectedCourseIds: ['c1__org-board'],
+    })
+
+    expect(result).toBe(2)
+  })
 })

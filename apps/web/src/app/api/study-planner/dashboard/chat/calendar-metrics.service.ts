@@ -20,6 +20,9 @@ export interface SessionMetricsPayload {
     courseTitle?: string
     lessonId?: string
     lessonTitle?: string
+    lessonOrderIndex?: number
+    moduleOrderIndex?: number
+    moduleTitle?: string
     durationMinutes?: number
   }>
   calendarSync?: SessionCalendarSyncMetadata | null

@@ -20,6 +20,15 @@ describe('calendar-events.utils', () => {
     expect(result.endDate.toISOString()).toBe('2026-04-15T10:00:00.000Z')
   })
 
+  it('treats date-only end dates as inclusive through the end of the day', () => {
+    const result = parseCalendarDateRange(
+      'https://example.com/api/study-planner/calendar/events?startDate=2026-04-19&endDate=2026-04-25',
+    )
+
+    expect(result.startDate.toISOString()).toBe('2026-04-19T00:00:00.000Z')
+    expect(result.endDate.toISOString()).toBe('2026-04-25T23:59:59.999Z')
+  })
+
   it('detects refresh need for missing or expired tokens', () => {
     const now = new Date('2026-04-01T00:00:00.000Z')
     expect(needsCalendarTokenRefresh(null, now)).toBe(true)

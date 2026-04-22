@@ -1,11 +1,17 @@
-﻿import { createAdminClient, deleteGoogleCalendarEvent, getCalendarAccessToken, syncSessionWithCalendar } from '../calendar.service'
+import {
+  createAdminClient,
+  deleteGoogleCalendarEvent,
+  getCalendarAccessToken,
+  syncSessionWithCalendar,
+} from '../calendar.service'
 import type { ActionResult } from '../types'
+import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 import { hasTimezoneOffset, withTimezoneOffset } from './planning-actions-v2-timezone.service'
 
 export async function executeReduceSessionLoadV2(
   userId: string,
-  _planId: string,
+  planId: string,
   action: ActionResult,
   userMessage?: string,
 ) {
@@ -128,6 +134,17 @@ export async function executeReduceSessionLoadV2(
         continue
       }
 
+      const orderValidation = await validateStrictLessonOrder({
+        userId,
+        planId,
+        proposedMoves: [{ sessionId, newStartTime: startTimeISO }],
+      })
+
+      if (!orderValidation.valid) {
+        reduceResults.push({ sessionId, action: 'moved', success: false })
+        continue
+      }
+
       const start = new Date(startTimeISO)
       const end = new Date(endTimeISO)
       const durationMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60))
@@ -162,4 +179,3 @@ export async function executeReduceSessionLoadV2(
     data: { results: reduceResults },
   }
 }
-

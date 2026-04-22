@@ -17,9 +17,9 @@ export type ActionType =
   | 'move_calendar_event'
   | 'delete_calendar_event'
   // Acciones proactivas de optimización
-  | 'rebalance_plan'        // Redistribuir sesiones cuando el plan está atrasado
-  | 'create_micro_session'  // Crear sesión corta de 15-30 min para ventanas libres
-  | 'reduce_session_load'   // Reducir carga de días sobrecargados
+  | 'rebalance_plan' // Redistribuir sesiones cuando el plan está atrasado
+  | 'create_micro_session' // Crear sesión corta de 15-30 min para ventanas libres
+  | 'reduce_session_load' // Reducir carga de días sobrecargados
   | 'recover_missed_session' // Reprogramar una sesión perdida
   // Configuración de calendarios
   | 'update_calendar_selection' // Cambiar qué calendarios considerar para disponibilidad
@@ -29,128 +29,131 @@ export type ActionType =
   | 'rebalance'
   | 'rebalanzar'
   | 'redistribuir'
-  | 'none';
+  | 'none'
 
 export interface ActionResult {
-  type: ActionType;
-  data?: unknown;
-  status: 'success' | 'error' | 'pending' | 'confirmation_needed';
-  code?: string;
-  requiresConfirmation?: boolean;
-  traceId?: string;
-  message?: string;
+  type: ActionType
+  data?: unknown
+  status: 'success' | 'error' | 'pending' | 'confirmation_needed'
+  code?: string
+  requiresConfirmation?: boolean
+  traceId?: string
+  message?: string
 }
 
 export interface ActionProposal extends ActionResult {
-  status: 'confirmation_needed' | 'error' | 'pending';
-  requiresConfirmation: boolean;
+  status: 'confirmation_needed' | 'error' | 'pending'
+  requiresConfirmation: boolean
 }
 
 export interface ChatRequest {
-  message?: string; // Opcional para triggers proactivos
-  conversationHistory?: Array<{ role: string; content: string }>;
-  activePlanId?: string;
-  trigger?: 'user_message' | 'proactive_init';
-  confirmedAction?: ActionResult;
-  traceId?: string;
+  message?: string
+  conversationHistory?: Array<{ role: string; content: string }>
+  activePlanId?: string
+  trigger?: 'user_message' | 'proactive_init'
+  confirmedAction?: ActionResult
+  traceId?: string
 }
 
 export interface ChatResponse {
-  success: boolean;
-  response: string;
-  action?: ActionResult;
-  actions?: ActionProposal[];
-  needsConfirmation?: boolean;
-  traceId?: string;
-  error?: string;
+  success: boolean
+  response: string
+  action?: ActionResult
+  actions?: ActionProposal[]
+  needsConfirmation?: boolean
+  traceId?: string
+  error?: string
 }
 
 export interface SyncResult {
-  deletedFromDb: string[];
-  orphanedSessions: string[];
-  message: string;
+  deletedFromDb: string[]
+  orphanedSessions: string[]
+  message: string
 }
 
 export interface CalendarEvent {
-  id: string;
-  title: string;
-  description?: string;
-  start: string;
-  end: string;
-  isAllDay: boolean;
-  isStudySession: boolean;
+  id: string
+  title: string
+  description?: string
+  start: string
+  end: string
+  isAllDay: boolean
+  isStudySession: boolean
 }
 
 export interface ProactiveAnalysis {
   conflicts: Array<{
-    sessionTitle: string;
-    sessionId: string;
-    sessionDate: string; // Fecha de la sesión (ej: "miércoles 17 de diciembre de 2025")
-    sessionTime: string; // Solo hora (ej: "19:20 - 20:40")
-    conflictingEvent: string;
-    conflictTime: string;
-    suggestedAlternatives: string[];
-  }>;
+    sessionTitle: string
+    sessionId: string
+    sessionDate: string // Fecha de la sesión (ej: "miércoles 17 de diciembre de 2025")
+    sessionTime: string // Solo hora (ej: "19:20 - 20:40")
+    conflictingEvent: string
+    conflictTime: string
+    suggestedAlternatives: string[]
+  }>
   overloadedDays: Array<{
-    date: string;
-    totalHours: number;
-    events: string[];
-    suggestion: string;
-  }>;
+    date: string
+    totalHours: number
+    events: string[]
+    suggestion: string
+  }>
   missedSessions: Array<{
-    sessionTitle: string;
-    sessionId: string;
-    originalTime: string;
-    suggestedRecoverySlots: string[];
-  }>;
+    sessionTitle: string
+    sessionId: string
+    originalTime: string
+    suggestedRecoverySlots: string[]
+  }>
   overdueSessions: Array<{
-    sessionTitle: string;
-    sessionId: string;
-    scheduledTime: string;
-    hoursOverdue: number;
-    suggestedRecoverySlots: string[];
-  }>;
+    sessionTitle: string
+    sessionId: string
+    scheduledTime: string
+    hoursOverdue: number
+    suggestedRecoverySlots: string[]
+  }>
   effectivelyCompletedSessions: Array<{
-    sessionTitle: string;
-    sessionId: string;
-    scheduledEndTime: string;
-    calendarEventLinked: boolean;
-    completedEarly: boolean;
-  }>;
+    sessionTitle: string
+    sessionId: string
+    scheduledEndTime: string
+    calendarEventLinked: boolean
+    completedEarly: boolean
+  }>
   partialSessions: Array<{
-    sessionTitle: string;
-    sessionId: string;
-    progressPct: number;
-    remainingMinutes: number;
-    suggestedCompletionSlots: string[];
-  }>;
+    sessionTitle: string
+    sessionId: string
+    progressPct: number
+    remainingMinutes: number
+    suggestedCompletionSlots: string[]
+  }>
   freeSlots: Array<{
-    date: string;
-    startTime: string;
-    endTime: string;
-    duration: number;
-    suggestion: string;
-  }>;
+    date: string
+    startTime: string
+    endTime: string
+    duration: number
+    suggestion: string
+  }>
   weeklyProgress: {
-    plannedMinutes: number;
-    completedMinutes: number;
-    remainingMinutes: number;
-    onTrack: boolean;
-    suggestion: string;
-  };
+    plannedMinutes: number
+    completedMinutes: number
+    remainingMinutes: number
+    overdueMinutes: number
+    upcomingMinutes: number
+    onTrack: boolean
+    status: 'neutral' | 'informative' | 'actionable'
+    suggestion: string
+  }
   consistencyAlert: {
-    daysWithoutStudy: number;
-    lastStudyDate: string | null;
-    suggestion: string;
-  } | null;
+    daysWithoutStudy: number
+    lastStudyDate: string | null
+    suggestion: string
+  } | null
   burnoutRisk: {
-    level: 'low' | 'medium' | 'high';
-    consecutiveHeavyDays: number;
-    suggestion: string;
-  } | null;
+    level: 'low' | 'medium' | 'high'
+    consecutiveHeavyDays: number
+    suggestion: string
+  } | null
   patterns: {
-    frequentRescheduleTime: string | null;
-    preferredStudyTime: string | null;
-    suggestion: string | null;
-  };
+    frequentRescheduleTime: string | null
+    preferredStudyTime: string | null
+    suggestion: string | null
+  }
 }

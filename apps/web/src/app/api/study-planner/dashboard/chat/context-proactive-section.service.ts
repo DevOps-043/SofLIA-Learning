@@ -61,7 +61,7 @@ export function buildProactiveAnalysisSection(
 
   appendProgressSections(lines, proactiveAnalysis)
   appendCompletionSections(lines, proactiveAnalysis)
-  appendLiaInstructions(lines)
+  appendLiaInstructions(lines, proactiveAnalysis)
 
   return lines.join('\n')
 }
@@ -70,7 +70,14 @@ function appendProgressSections(lines: string[], proactiveAnalysis: ProactiveAna
   lines.push('### PROGRESO SEMANAL')
   lines.push(`- Planificado: ${Math.round(proactiveAnalysis.weeklyProgress.plannedMinutes / 60)}h`)
   lines.push(`- Completado: ${Math.round(proactiveAnalysis.weeklyProgress.completedMinutes / 60)}h`)
-  lines.push(`- Estado: ${proactiveAnalysis.weeklyProgress.onTrack ? 'En camino' : 'Atrasado'}`)
+  lines.push(`- Pendiente total: ${Math.round(proactiveAnalysis.weeklyProgress.remainingMinutes / 60)}h`)
+  if (proactiveAnalysis.weeklyProgress.overdueMinutes > 0) {
+    lines.push(`- Vencido: ${Math.round(proactiveAnalysis.weeklyProgress.overdueMinutes / 60)}h`)
+  }
+  if (proactiveAnalysis.weeklyProgress.upcomingMinutes > 0) {
+    lines.push(`- Proximo por cursar: ${Math.round(proactiveAnalysis.weeklyProgress.upcomingMinutes / 60)}h`)
+  }
+  lines.push(`- Estado: ${getWeeklyProgressLabel(proactiveAnalysis.weeklyProgress.status)}`)
   if (proactiveAnalysis.weeklyProgress.suggestion) {
     lines.push(`- ${proactiveAnalysis.weeklyProgress.suggestion}`)
   }
@@ -118,15 +125,37 @@ function appendCompletionSections(lines: string[], proactiveAnalysis: ProactiveA
   }
 }
 
-function appendLiaInstructions(lines: string[]): void {
+function appendLiaInstructions(lines: string[], proactiveAnalysis: ProactiveAnalysis): void {
+  const isActionable =
+    proactiveAnalysis.conflicts.length > 0
+    || proactiveAnalysis.overloadedDays.length > 0
+    || proactiveAnalysis.missedSessions.length > 0
+    || proactiveAnalysis.overdueSessions.length > 0
+    || proactiveAnalysis.weeklyProgress.status === 'actionable'
+
   lines.push(
     `---
 INSTRUCCIONES PARA LIA:
 1. Si hay conflictos, mencionarlos primero y ofrecer soluciones.
 2. Si hay dias sobrecargados o riesgo de burnout, sugerir reducir la carga.
 3. Si hay sesiones perdidas o no realizadas, ofrecer ayuda para recuperarlas.
-4. Si el progreso semanal esta atrasado, ofrecer rebalancear el plan.
-5. Si hay huecos libres, sugerir micro-sesiones de repaso.
-6. Ser proactiva, empatica y no juzgar al usuario.`,
+4. Solo ofrecer rebalancear el plan si el progreso semanal esta en estado ACTIONABLE o si ya hay sesiones vencidas reales.
+5. Si el progreso semanal esta en estado NEUTRAL o INFORMATIVE, mantente en modo informativo: saluda, contextualiza y evita proponer cambios mutativos por defecto.
+6. Ninguna accion puede romper el orden estricto de lecciones pendientes del mismo curso.
+7. Si hay huecos libres, sugerir micro-sesiones de repaso.
+8. Ser proactiva, empatica y no juzgar al usuario.
+9. Estado global sugerido para esta apertura: ${isActionable ? 'ACCIONABLE' : 'INFORMATIVO'}.`,
   )
+}
+
+function getWeeklyProgressLabel(status: ProactiveAnalysis['weeklyProgress']['status']): string {
+  switch (status) {
+    case 'actionable':
+      return 'Accion recomendada'
+    case 'informative':
+      return 'En camino'
+    case 'neutral':
+    default:
+      return 'Sin señales de atraso'
+  }
 }

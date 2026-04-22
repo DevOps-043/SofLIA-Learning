@@ -15,6 +15,7 @@ import type { CalendarDate } from '../calendar/types';
 import {
   DEFAULT_EVENT_COLOR,
   DEFAULT_EVENT_FORM,
+  STUDY_PLANNER_WEEK_STARTS_ON,
 } from './study-planner-calendar.constants';
 import type {
   CalendarEvent,
@@ -50,13 +51,19 @@ export function buildWeekRange(
   currentDate: CalendarDate
 ): StudyPlannerCalendarWeekRange {
   return {
-    start: startOfWeek(currentDate, { weekStartsOn: 1 }),
-    end: endOfWeek(currentDate, { weekStartsOn: 1 }),
+    start: startOfWeek(currentDate, {
+      weekStartsOn: STUDY_PLANNER_WEEK_STARTS_ON,
+    }),
+    end: endOfWeek(currentDate, {
+      weekStartsOn: STUDY_PLANNER_WEEK_STARTS_ON,
+    }),
   };
 }
 
 export function buildWeekDays(currentDate: CalendarDate): CalendarDate[] {
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+  const weekStart = startOfWeek(currentDate, {
+    weekStartsOn: STUDY_PLANNER_WEEK_STARTS_ON,
+  });
   return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
 }
 
@@ -65,7 +72,9 @@ export function buildMonthDays(
   today: CalendarDate
 ): StudyPlannerCalendarMonthDay[] {
   const monthStart = startOfMonth(currentDate);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const gridStart = startOfWeek(monthStart, {
+    weekStartsOn: STUDY_PLANNER_WEEK_STARTS_ON,
+  });
 
   return Array.from({ length: 42 }, (_, index) => {
     const date = addDays(gridStart, index);
@@ -85,7 +94,7 @@ export function resolveCalendarRange(
 ): { startDate: CalendarDate; endDate: CalendarDate } | null {
   if (view === 'month') {
     const startDate = startOfWeek(startOfMonth(currentDate), {
-      weekStartsOn: 1,
+      weekStartsOn: STUDY_PLANNER_WEEK_STARTS_ON,
     });
 
     return {

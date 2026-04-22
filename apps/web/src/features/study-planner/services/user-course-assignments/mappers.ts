@@ -75,6 +75,8 @@ export function buildTeamAssignment(
     id: item.id,
     teamId,
     teamName,
+    organizationId: 'organization_id' in item ? item.organization_id ?? undefined : undefined,
+    organizationName: 'organization' in item ? item.organization?.name ?? undefined : undefined,
     courseId: item.course_id,
     course: mapCourseInfo(item.courses),
     assignedBy: item.assigned_by ?? '',

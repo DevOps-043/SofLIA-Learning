@@ -3,13 +3,39 @@ import {
   buildStudyPlannerUserContext,
   enrichUserCourses,
 } from '../study-planner-user-context.server.service'
+import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { CourseAnalysisService } from '../course-analysis.service'
+import { createClient } from '@/lib/supabase/server'
+import {
+  buildPlannedCourseKey,
+  getUserPlannedCourseKeys,
+} from '../study-planner-plans.server.service'
+import { loadActiveOrganizationMemberships } from '../user-course-assignments/organization-memberships.service'
 import { UserContextService } from '../user-context.service'
 
 vi.mock('../course-analysis.service', () => ({
   CourseAnalysisService: {
     getUserCourseProgressMap: vi.fn(),
   },
+}))
+
+vi.mock('@/features/learning-paths/services/learning-path-dashboard.server', () => ({
+  loadBusinessUserLearningPaths: vi.fn(),
+}))
+
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn(),
+}))
+
+vi.mock('../study-planner-plans.server.service', () => ({
+  buildPlannedCourseKey: vi.fn((courseId: string, organizationId?: string | null) =>
+    organizationId ? `${courseId}::${organizationId}` : courseId
+  ),
+  getUserPlannedCourseKeys: vi.fn(),
+}))
+
+vi.mock('../user-course-assignments/organization-memberships.service', () => ({
+  loadActiveOrganizationMemberships: vi.fn(),
 }))
 
 vi.mock('../user-context.service', () => ({
@@ -21,6 +47,18 @@ vi.mock('../user-context.service', () => ({
 describe('study-planner-user-context.server.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(loadBusinessUserLearningPaths).mockResolvedValue([])
+    vi.mocked(loadActiveOrganizationMemberships).mockResolvedValue([])
+    vi.mocked(getUserPlannedCourseKeys).mockResolvedValue(new Set())
+    vi.mocked(createClient).mockResolvedValue({
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          in: vi.fn(() => ({
+            returns: vi.fn().mockResolvedValue({ data: [], error: null }),
+          })),
+        })),
+      })),
+    } as never)
   })
 
   it('enriches only the courses that have progress data', () => {
@@ -156,5 +194,93 @@ describe('study-planner-user-context.server.service', () => {
     expect(result.courses[1]).toMatchObject({
       completionPercentage: 5,
     })
+  })
+
+  it('adds unlocked learning path courses that are missing from direct assignments', async () => {
+    vi.mocked(UserContextService.getFullUserContext).mockResolvedValue({
+      user: {
+        id: 'user-1',
+        username: 'ana',
+      },
+      userType: 'b2b',
+      organization: {
+        id: 'org-1',
+        name: 'Board Vision',
+      },
+      courses: [],
+    })
+    vi.mocked(loadActiveOrganizationMemberships).mockResolvedValue([
+      {
+        organizationId: 'org-1',
+        organizationName: 'Board Vision',
+        teamId: null,
+        zoneId: null,
+        regionId: null,
+      },
+    ])
+    vi.mocked(loadBusinessUserLearningPaths).mockResolvedValue([
+      {
+        id: 'lp-1',
+        title: 'Ruta 1',
+        description: null,
+        progressPercentage: 0,
+        completedItemsCount: 0,
+        totalItemsCount: 1,
+        nextCourseSlug: 'trampa-insolvencia',
+        items: [
+          {
+            courseId: 'course-lp-1',
+            title: 'La Trampa de la Insolvencia',
+            slug: 'trampa-insolvencia',
+            thumbnail: null,
+            position: 1,
+            progress: 0,
+            status: 'available',
+            isUnlocked: true,
+            isCompleted: false,
+            hasCertificate: false,
+          },
+        ],
+      },
+    ])
+    vi.mocked(CourseAnalysisService.getUserCourseProgressMap).mockResolvedValue(new Map())
+
+    const fromMock = vi.fn(() => ({
+      select: vi.fn(() => ({
+        in: vi.fn(() => ({
+          returns: vi.fn().mockResolvedValue({
+            data: [
+              {
+                id: 'course-lp-1',
+                title: 'La Trampa de la Insolvencia',
+                slug: 'trampa-insolvencia',
+                category: 'Finanzas',
+                level: 'beginner',
+                duration_total_minutes: 120,
+                is_active: true,
+              },
+            ],
+            error: null,
+          }),
+        })),
+      })),
+    }))
+    vi.mocked(createClient).mockResolvedValue({ from: fromMock } as never)
+
+    const result = await buildStudyPlannerUserContext('user-1')
+
+    expect(loadBusinessUserLearningPaths).toHaveBeenCalledWith({
+      userId: 'user-1',
+      organizationId: 'org-1',
+    })
+    expect(result.courses).toHaveLength(1)
+    expect(result.courses[0]).toMatchObject({
+      courseId: 'course-lp-1',
+      organizationId: 'org-1',
+      organizationName: 'Board Vision',
+      source: 'organization',
+      status: 'assigned',
+    })
+    expect(buildPlannedCourseKey).toHaveBeenCalledWith('course-lp-1', 'org-1')
   })
 })

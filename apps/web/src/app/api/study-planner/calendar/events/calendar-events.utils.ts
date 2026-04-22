@@ -1,3 +1,4 @@
+import { endOfDay, startOfDay } from 'date-fns'
 import type {
   CalendarDateRange,
   ExternalCalendarEvent,
@@ -11,6 +12,31 @@ function isValidDate(value: Date) {
   return !Number.isNaN(value.getTime())
 }
 
+function isDateOnlyValue(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+}
+
+function parseRangeBoundary(
+  value: string | null,
+  fallback: Date,
+  boundary: 'start' | 'end',
+): Date {
+  if (!value) {
+    return fallback
+  }
+
+  const parsedDate = new Date(value)
+  if (!isValidDate(parsedDate)) {
+    return fallback
+  }
+
+  if (isDateOnlyValue(value)) {
+    return boundary === 'start' ? startOfDay(parsedDate) : endOfDay(parsedDate)
+  }
+
+  return parsedDate
+}
+
 export function parseCalendarDateRange(
   requestUrl: string,
   now = new Date(),
@@ -19,15 +45,15 @@ export function parseCalendarDateRange(
   const startDateParam = searchParams.get('startDate')
   const endDateParam = searchParams.get('endDate')
 
-  const startDate = startDateParam ? new Date(startDateParam) : new Date(now)
   const defaultEndDate = new Date(
     now.getTime() + DEFAULT_RANGE_DAYS * 24 * 60 * 60 * 1000,
   )
-  const endDate = endDateParam ? new Date(endDateParam) : defaultEndDate
+  const startDate = parseRangeBoundary(startDateParam, new Date(now), 'start')
+  const endDate = parseRangeBoundary(endDateParam, defaultEndDate, 'end')
 
   return {
-    startDate: isValidDate(startDate) ? startDate : new Date(now),
-    endDate: isValidDate(endDate) ? endDate : defaultEndDate,
+    startDate,
+    endDate,
   }
 }
 

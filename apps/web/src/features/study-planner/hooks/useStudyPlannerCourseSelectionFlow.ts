@@ -53,6 +53,46 @@ function scheduleSpeech(
   }, 500);
 }
 
+function mergeCoursesForPlannerSelection(
+  courses: StudyPlannerAssignedCourse[],
+): StudyPlannerCourseOption[] {
+  const optionsByAssignmentKey = new Map<string, StudyPlannerCourseOption>()
+
+  courses
+    .filter((course) => !course.hasActivePlan && Boolean(course.courseId))
+    .forEach((course) => {
+      const courseId = course.courseId || ''
+      const assignmentKey = course.organizationId
+        ? `${courseId}__${course.organizationId}`
+        : course.organizationName
+          ? `${courseId}__${course.organizationName}`
+          : courseId || course.id || ''
+
+      if (optionsByAssignmentKey.has(assignmentKey)) {
+        return
+      }
+
+      optionsByAssignmentKey.set(assignmentKey, {
+        category: 'General',
+        courseId,
+        id: assignmentKey,
+        organizationId: course.organizationId ?? undefined,
+        organizationName: course.organizationName ?? undefined,
+        progress: course.progress ?? 0,
+        title: course.title,
+      })
+    })
+
+  return [...optionsByAssignmentKey.values()].sort((left, right) => {
+    const titleComparison = left.title.localeCompare(right.title)
+    if (titleComparison !== 0) {
+      return titleComparison
+    }
+
+    return (left.organizationName || '').localeCompare(right.organizationName || '')
+  })
+}
+
 export function useStudyPlannerCourseSelectionFlow({
   assignedCourses,
   availableCourses,
@@ -81,29 +121,7 @@ export function useStudyPlannerCourseSelectionFlow({
 
     try {
       const sourceCourses = overrideCourses ?? assignedCourses;
-      setAvailableCourses(
-        sourceCourses
-          .filter((course) => !course.hasActivePlan)
-          .map((course) => {
-            const courseId = course.courseId || '';
-            // Generate a unique selection key so the same course assigned by
-            // different organizations appears as separate, independently selectable items.
-            const id = course.organizationId
-              ? `${courseId}__${course.organizationId}`
-              : course.organizationName
-                ? `${courseId}__${course.organizationName}`
-              : courseId || course.id || '';
-            return {
-              category: 'General',
-              courseId,
-              id,
-              organizationId: course.organizationId ?? undefined,
-              organizationName: course.organizationName ?? undefined,
-              progress: course.progress ?? 0,
-              title: course.title,
-            };
-          }),
-      );
+      setAvailableCourses(mergeCoursesForPlannerSelection(sourceCourses));
     } finally {
       setIsLoadingCourses(false);
       setShowCourseSelector(true);

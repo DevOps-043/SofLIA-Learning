@@ -54,7 +54,7 @@ function addUniqueTeamCourses(
   )
 
   for (const assignment of teamAssignments) {
-    const key = `${assignment.courseId}::`
+    const key = `${assignment.courseId}::${assignment.organizationId ?? ''}`
     if (!assignedKeys.has(key)) {
       courses.push({
         courseId: assignment.courseId,
@@ -62,6 +62,8 @@ function addUniqueTeamCourses(
         userType: 'b2b',
         dueDate: assignment.dueDate,
         assignedBy: assignment.assignedByName,
+        organizationId: assignment.organizationId,
+        organizationName: assignment.organizationName,
         status: assignment.status,
         completionPercentage: 0,
         source: 'team',

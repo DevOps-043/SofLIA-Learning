@@ -27,9 +27,9 @@ export interface SchedulePreviewEvent {
 }
 
 export interface SchedulePreviewWeekRange {
-  /** Monday of the displayed week. */
-  start: Date;
   /** Sunday of the displayed week. */
+  start: Date;
+  /** Saturday of the displayed week. */
   end: Date;
   /** Label like "7 - 13 Abr 2026". */
   label: string;

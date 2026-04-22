@@ -6,7 +6,7 @@ export function createLegacyAdminClient() {
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY no estÃ¡ configurada. Necesaria para operaciones del servidor.')
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY no está configurada. Necesaria para operaciones del servidor.')
   }
 
   return createServiceClient<Database>(supabaseUrl, supabaseServiceKey, {

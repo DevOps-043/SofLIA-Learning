@@ -42,6 +42,16 @@ describe('chat-action-validation.service', () => {
     expect(result.code).toBe('invalid_action_data')
   })
 
+  it('rejects rebalance actions without sessions to move', () => {
+    const result = parseActionTagContent(JSON.stringify({
+      type: 'rebalance_plan',
+      data: {},
+    }))
+
+    expect(result.status).toBe('error')
+    expect(result.code).toBe('invalid_action_data')
+  })
+
   it('builds human confirmation messages by action type', () => {
     const message = defaultConfirmationMessage({
       type: 'delete_plan',

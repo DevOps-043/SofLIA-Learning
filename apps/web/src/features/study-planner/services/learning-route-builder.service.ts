@@ -43,7 +43,7 @@ export function buildRouteItems(
 
 export function getLevelName(level: string): string {
   const names: Record<string, string> = {
-    beginner: 'bÃ¡sico',
+    beginner: 'básico',
     intermediate: 'intermedio',
     advanced: 'avanzado',
   }
@@ -70,11 +70,11 @@ export function generateRouteDescription(courses: CourseWithProgress[]): string 
   const hasAllLevels = levels.includes('beginner') && levels.includes('advanced')
 
   if (hasAllLevels) {
-    return 'Una ruta completa que te llevarÃ¡ desde los fundamentos hasta tÃ©cnicas avanzadas.'
+    return 'Una ruta completa que te llevará desde los fundamentos hasta técnicas avanzadas.'
   }
 
   if (levels.includes('beginner')) {
-    return 'Ruta enfocada en establecer bases sÃ³lidas de conocimiento.'
+    return 'Ruta enfocada en establecer bases sólidas de conocimiento.'
   }
 
   if (levels.includes('advanced')) {
@@ -105,7 +105,7 @@ function getCourseReason(
 
   const previousCourse = allCourses[index - 1]
   if (previousCourse && previousCourse.level !== course.level) {
-    return `Avance a nivel ${getLevelName(level)} despuÃ©s de completar los fundamentos`
+    return `Avance a nivel ${getLevelName(level)} después de completar los fundamentos`
   }
 
   return `Curso ${getLevelName(level)} complementario`

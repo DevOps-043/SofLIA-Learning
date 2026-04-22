@@ -2,6 +2,7 @@ import { createAdminClient, syncSessionWithCalendar } from '../calendar.service'
 import { getCurrentTimezone, getTimezoneOffset } from '../format.utils'
 import { logger } from '../../../../../../lib/utils/logger'
 import type { ActionResult } from '../types'
+import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 
 export { executeUpdateSessionV2 } from './session-actions-v2-update.service'
@@ -12,7 +13,7 @@ function hasTimezoneOffset(timestamp: string): boolean {
 
 export async function executeMoveSessionV2(
   userId: string,
-  _planId: string,
+  planId: string,
   action: ActionResult,
   userMessage?: string,
 ): Promise<ActionResult> {
@@ -43,6 +44,21 @@ export async function executeMoveSessionV2(
 
   if (!placementValidation.valid) {
     return { ...action, status: 'error', message: placementValidation.message }
+  }
+
+  const orderValidation = await validateStrictLessonOrder({
+    userId,
+    planId,
+    proposedMoves: [{ sessionId, newStartTime: startTimeISO }],
+  })
+
+  if (!orderValidation.valid) {
+    return {
+      ...action,
+      status: 'error',
+      code: orderValidation.code,
+      message: orderValidation.message,
+    }
   }
 
   const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'update', {
@@ -178,6 +194,26 @@ export async function executeCreateSessionV2(
 
   if (!placementValidation.valid) {
     return { ...action, status: 'error', message: placementValidation.message }
+  }
+
+  const orderValidation = await validateStrictLessonOrder({
+    userId,
+    planId,
+    proposedCreates: [{
+      title,
+      startTime,
+      courseId,
+      lessonId,
+    }],
+  })
+
+  if (!orderValidation.valid) {
+    return {
+      ...action,
+      status: 'error',
+      code: orderValidation.code,
+      message: orderValidation.message,
+    }
   }
 
   const { error } = await supabase

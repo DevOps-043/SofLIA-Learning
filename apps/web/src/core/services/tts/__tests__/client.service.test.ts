@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { isTTSAbortError, requestTTSAudio } from '../client.service';
+import {
+  isTTSAbortError,
+  requestTTSAudio,
+  selectPreferredWebSpeechVoice,
+} from '../client.service';
 
 describe('tts client service', () => {
   const originalFetch = global.fetch;
@@ -48,5 +52,29 @@ describe('tts client service', () => {
     expect(isTTSAbortError(abortError)).toBe(true);
 
     expect(isTTSAbortError(new Error('different error'))).toBe(false);
+  });
+
+  it('prefers feminine voices when selecting a browser speech voice', () => {
+    const selectedVoice = selectPreferredWebSpeechVoice(
+      [
+        {
+          name: 'Microsoft Jorge - es-MX',
+          lang: 'es-MX',
+          voiceURI: 'jorge',
+          default: true,
+          localService: true,
+        } as SpeechSynthesisVoice,
+        {
+          name: 'Microsoft Sabina - es-MX',
+          lang: 'es-MX',
+          voiceURI: 'sabina',
+          default: false,
+          localService: true,
+        } as SpeechSynthesisVoice,
+      ],
+      'es-MX'
+    );
+
+    expect(selectedVoice?.name).toBe('Microsoft Sabina - es-MX');
   });
 });

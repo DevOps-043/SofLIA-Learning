@@ -22,6 +22,7 @@ import {
   buildFallbackLessonsContext,
   detectExplicitSessionDuration,
 } from './planner-chat-planning-context.service'
+import { resolveStudyPlannerCourseIds } from './study-planner-course-id.shared'
 
 interface BuildStudyPlannerChatRequestContextParams {
   message: string
@@ -87,7 +88,7 @@ export async function buildStudyPlannerChatRequestContext(
 
   const resolvedCourseIds =
     params.selectedCourseIds && params.selectedCourseIds.length > 0
-      ? params.selectedCourseIds
+      ? resolveStudyPlannerCourseIds(params.selectedCourseIds)
       : undefined
 
   const filteredLessons = resolvedCourseIds?.length
@@ -96,7 +97,7 @@ export async function buildStudyPlannerChatRequestContext(
 
   const lessonsContext =
     params.lessonsAreReady && filteredLessons.length > 0
-      ? params.getLessonsForPrompt(params.selectedCourseIds)
+      ? params.getLessonsForPrompt(resolvedCourseIds)
       : buildFallbackLessonsContext(params.pendingLessons, resolvedCourseIds)
 
   const filteredPendingCount = filteredLessons.length || params.totalPendingLessons

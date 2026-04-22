@@ -4,19 +4,19 @@ import type {
 } from '../types/planner-schedule.types'
 
 const WORK_BLOCK_TITLE_PATTERN =
-  /(trabajo|work|oficina|jornada|laboral|shift|turno|servi[cÃƒÂ§]o|expediente)/i
+  /(trabajo|work|oficina|jornada|laboral|shift|turno|servi[cç]o|expediente)/i
 const WORK_BLOCK_EXCLUDE_PATTERN =
-  /(junta|reuni[oÃƒÂ³]n|reuni[aÃƒÂ£]o|meeting|llamada|chamada|profundo|deep[\s-]?work|focus[\s-]?time|concentraci[oÃƒÂ³]n)/i
+  /(junta|reuni[oó]n|reuni[aã]o|meeting|llamada|chamada|profundo|deep[\s-]?work|focus[\s-]?time|concentraci[oó]n)/i
 const WORK_BLOCK_MIN_DURATION_MINUTES = 180
 
 const dayNames: Record<number, string> = {
   0: 'Domingo',
   1: 'Lunes',
   2: 'Martes',
-  3: 'Miercoles',
+  3: 'Miércoles',
   4: 'Jueves',
   5: 'Viernes',
-  6: 'Sabado',
+  6: 'Sábado',
 }
 
 const dayOfWeekToPlannerName: Record<number, string> = {
@@ -104,9 +104,9 @@ export function buildWorkBlockScheduleContext(
 
   const lines = entries
     .sort(([left], [right]) => Number(left) - Number(right))
-    .map(([dow, window]) => {
-      return `  - ${dayNames[Number(dow)] ?? `Dia ${dow}`}: trabajo de ${window.start} a ${window.end} -> agenda sesiones SOLO dentro de este horario`
-    })
+    .map(([dow, window]) =>
+      `  - ${dayNames[Number(dow)] ?? `Dia ${dow}`}: trabajo de ${window.start} a ${window.end} -> agenda sesiones SOLO dentro de este horario`,
+    )
 
   return [
     '\n\nHORARIO LABORAL DETECTADO EN CALENDARIO (RESTRICCION OBLIGATORIA):',

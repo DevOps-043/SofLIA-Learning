@@ -29,6 +29,8 @@ export const DEFAULT_CONFIRM_DIALOG: StudyPlannerCalendarConfirmDialogState = {
   onCancel: () => {},
 };
 
+export const STUDY_PLANNER_WEEK_STARTS_ON = 0;
+
 export const STUDY_PLANNER_EVENT_COLORS = [
   { name: 'Azul Profundo', value: '#0A2540' },
   { name: 'Aqua', value: '#00D4B3' },
@@ -43,13 +45,13 @@ export const STUDY_PLANNER_EVENT_COLORS = [
 ];
 
 export const STUDY_PLANNER_WEEKDAY_NAMES = [
+  'Dom',
   'Lun',
   'Mar',
   'Mie',
   'Jue',
   'Vie',
   'Sab',
-  'Dom',
 ];
 
 export const STUDY_PLANNER_HOURS = Array.from({ length: 24 }, (_, index) => index);

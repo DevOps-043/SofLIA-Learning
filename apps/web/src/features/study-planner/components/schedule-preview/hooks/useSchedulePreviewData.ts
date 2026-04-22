@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { addDays, format, parseISO } from 'date-fns';
+import { addDays, parseISO } from 'date-fns';
 import type { StudyPlannerStoredLessonDistribution } from '../../../types/planner-schedule.types';
 import type {
   SchedulePreviewEvent,
@@ -70,10 +70,8 @@ export function useSchedulePreviewData({
     async function fetchExternal() {
       setIsLoadingExternal(true);
       try {
-        const startDate = format(weekRange.start, 'yyyy-MM-dd');
-        const endDate = format(weekRange.end, 'yyyy-MM-dd');
         const response = await fetch(
-          `/api/study-planner/calendar/events?startDate=${startDate}&endDate=${endDate}`,
+          `/api/study-planner/calendar/events?startDate=${encodeURIComponent(weekRange.start.toISOString())}&endDate=${encodeURIComponent(weekRange.end.toISOString())}`,
         );
 
         if (!response.ok || cancelled) {

@@ -5,10 +5,10 @@ const WEEKDAY_PATTERNS: Array<{ weekday: number; patterns: string[] }> = [
   { weekday: 0, patterns: ['domingo'] },
   { weekday: 1, patterns: ['lunes', 'monday'] },
   { weekday: 2, patterns: ['martes', 'tuesday'] },
-  { weekday: 3, patterns: ['miercoles', 'miÃ©rcoles', 'wednesday'] },
+  { weekday: 3, patterns: ['miercoles', 'miércoles', 'wednesday'] },
   { weekday: 4, patterns: ['jueves', 'thursday'] },
   { weekday: 5, patterns: ['viernes', 'friday'] },
-  { weekday: 6, patterns: ['sabado', 'sÃ¡bado', 'saturday'] },
+  { weekday: 6, patterns: ['sabado', 'sábado', 'saturday'] },
 ]
 
 function inferRequestedWeekday(message?: string): number | null {
@@ -82,7 +82,7 @@ export async function resolveMissingSessionReference(params: {
     return {
       ...params.action,
       status: 'confirmation_needed',
-      message: `EncontrÃ© ${candidates.length} sesiones para ese dÃ­a. IndÃ­came cuÃ¡l quieres mover o borrar: ${candidates.map((session) => `"${session.title}"`).join(' | ')}`,
+      message: `Encontré ${candidates.length} sesiones para ese día. Indícame cuál quieres mover o borrar: ${candidates.map((session) => `"${session.title}"`).join(' | ')}`,
       data: actionData,
     }
   }

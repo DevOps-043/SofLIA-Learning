@@ -41,6 +41,7 @@ export interface HierarchyAssignmentRow {
   message: string | null
   courses?: CourseRow | null
   assigner?: PersonNameRow | null
+  organization?: { name: string | null } | null
 }
 
 export interface NamedEntityRow {

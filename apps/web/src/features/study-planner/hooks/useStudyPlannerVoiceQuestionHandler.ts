@@ -10,6 +10,7 @@ import {
   buildStudyPlannerChatRequestContext,
   sendStudyPlannerChatRequest,
 } from '../services/planner-chat-request.service';
+import { buildStudyPlannerSpeechText } from '../services/study-planner-voice-text.service';
 import {
   detectStudyPlannerApproachFromMessage,
   looksLikeStudyPlannerTargetDateMessage,
@@ -170,7 +171,7 @@ export function useStudyPlannerVoiceQuestionHandler({
       }
 
       if (isAudioEnabled) {
-        await speakText(liaResponse);
+        await speakText(buildStudyPlannerSpeechText(liaResponse));
       }
     } catch (error) {
       console.error('Error procesando pregunta por voz:', error);

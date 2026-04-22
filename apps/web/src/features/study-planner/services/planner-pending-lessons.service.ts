@@ -2,6 +2,7 @@ import type {
   StudyPlannerCourseOption,
   StudyPlannerPendingLesson,
 } from '../types/planner-ui.types';
+import { resolveStudyPlannerCourseId, resolveStudyPlannerCourseIds } from './study-planner-course-id.shared';
 
 interface PlannerMyCourseRecord {
   course_id?: string | null;
@@ -69,8 +70,7 @@ function sortPendingLessons(
   pendingLessons: StudyPlannerPendingLesson[],
   selectedCourseIds: string[],
 ): StudyPlannerPendingLesson[] {
-  // Resolve actual course UUIDs from selection keys (may contain "__OrgName" suffix).
-  const resolvedIds = selectedCourseIds.map((id) => id.split('__')[0]);
+  const resolvedIds = resolveStudyPlannerCourseIds(selectedCourseIds);
 
   // Filter to only include lessons from the selected course(s).
   const filtered = resolvedIds.length > 0
@@ -196,13 +196,16 @@ export async function resolveStudyPlannerPendingLessonsForRecommendations({
     );
     const pendingLessons: StudyPlannerPendingLesson[] = [];
     const addedLessonIds = new Set<string>();
+    const resolvedSelectedCourseIds = resolveStudyPlannerCourseIds(selectedCourseIds);
 
     await Promise.all(
-      selectedCourseIds
+      resolvedSelectedCourseIds
         .filter((courseId) => availableCourseIds.has(courseId))
         .map(async (courseId) => {
         const courseTitle =
-          availableCourses.find((course) => course.id === courseId)?.title || 'Curso';
+          availableCourses.find((course) =>
+            course.courseId === courseId || resolveStudyPlannerCourseId(course.id) === courseId
+          )?.title || 'Curso';
         const [courseLessons, completedLessonIds] = await Promise.all([
           fetchCourseLessonSummary(courseId, fetchImpl),
           fetchCompletedLessonIds(courseId, fetchImpl, userId),

@@ -1,21 +1,14 @@
 import type { Dispatch, SetStateAction } from 'react';
 import type {
   ActiveStudyPlan,
-  DashboardMessage,
   StudyPlannerDashboardState,
 } from './useStudyPlannerDashboardLIA';
+import {
+  buildDashboardAssistantMessage,
+  resolveDashboardPrimaryAction,
+} from './dashboard-soflia-chat-response.service';
 import { createDashboardWelcomeMessage } from './dashboard-lia-initial-messages';
-
-interface DashboardChatResponse {
-  action?: {
-    data?: Record<string, unknown>;
-    status?: 'pending' | 'success' | 'error' | 'confirmation_needed';
-    type?: DashboardMessage['actionType'];
-  };
-  error?: string;
-  response?: string;
-  success?: boolean;
-}
+import type { DashboardChatSuccessPayload } from './useDashboardSofLIAState.types';
 
 export async function loadProactiveAnalysis(
   plan: ActiveStudyPlan,
@@ -31,7 +24,7 @@ export async function loadProactiveAnalysis(
         conversationHistory: [],
       }),
     });
-    const chatData = await response.json() as DashboardChatResponse;
+    const chatData = await response.json() as DashboardChatSuccessPayload;
 
     if (!chatData.success || !chatData.response) {
       console.warn('[SofLIA Dashboard] Respuesta sin exito:', chatData.error || 'Sin respuesta');
@@ -40,18 +33,15 @@ export async function loadProactiveAnalysis(
 
     setState(prev => ({
       ...prev,
-      messages: [{
-        id: `proactive-${Date.now()}`,
-        role: 'assistant',
-        content: chatData.response || '',
-        timestamp: new Date(),
-        actionType: chatData.action?.type,
-        actionData: chatData.action?.data,
-        actionStatus: chatData.action?.status,
-      }],
+      messages: [
+        buildDashboardAssistantMessage({
+          idPrefix: 'proactive',
+          payload: chatData,
+        }),
+      ],
     }));
 
-    if (chatData.action?.status === 'success') {
+    if (resolveDashboardPrimaryAction(chatData)?.status === 'success') {
       refreshPlanAfterAction(setState);
     }
   } catch (chatError) {

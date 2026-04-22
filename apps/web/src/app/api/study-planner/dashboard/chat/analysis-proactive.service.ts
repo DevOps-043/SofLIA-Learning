@@ -21,7 +21,10 @@ function createEmptyAnalysis(): ProactiveAnalysis {
       plannedMinutes: 0,
       completedMinutes: 0,
       remainingMinutes: 0,
+      overdueMinutes: 0,
+      upcomingMinutes: 0,
       onTrack: true,
+      status: 'neutral',
       suggestion: '',
     },
     consistencyAlert: null,
@@ -47,7 +50,7 @@ export async function analyzeProactively(
   todayStart.setHours(0, 0, 0, 0)
 
   logger.info(
-    `Iniciando analisis proactivo para usuario ${userId} con ${sessions.length} sesiones y ${calendarEvents.length} eventos`,
+    `Iniciando análisis proactivo para usuario ${userId} con ${sessions.length} sesiones y ${calendarEvents.length} eventos`,
   )
 
   const activeSessions = sessions.filter((session) => session.plan_id === planId)
@@ -94,7 +97,7 @@ export async function analyzeProactively(
   })
 
   logger.info(
-    `Analisis completado: ${analysis.conflicts.length} conflictos, ${analysis.overloadedDays.length} dias sobrecargados, ${analysis.missedSessions.length} sesiones perdidas, ${analysis.overdueSessions.length} sesiones no realizadas`,
+    `Análisis completado: ${analysis.conflicts.length} conflictos, ${analysis.overloadedDays.length} días sobrecargados, ${analysis.missedSessions.length} sesiones perdidas, ${analysis.overdueSessions.length} sesiones no realizadas`,
   )
 
   return analysis

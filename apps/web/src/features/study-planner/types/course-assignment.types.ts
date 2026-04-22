@@ -83,6 +83,8 @@ export interface TeamCourseAssignment {
   id: string;
   teamId: string;
   teamName: string;
+  organizationId?: string;
+  organizationName?: string;
   courseId: string;
   course: CourseInfo;
   assignedBy: string;

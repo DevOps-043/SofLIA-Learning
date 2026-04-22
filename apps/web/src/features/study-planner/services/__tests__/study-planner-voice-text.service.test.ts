@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildStudyPlannerSpeechText,
   formatTextForTTS,
   resolveSpeechQueue,
   stripMarkdownForSpeech,
@@ -30,7 +31,17 @@ describe('study-planner-voice-text.service', () => {
       'Primero revisa tus sesiones. Luego valida el calendario. Despues confirma el ajuste. Finalmente revisa el panel y el detalle adicional que dejare en pantalla para que no se corte la lectura completa.',
     );
 
-    expect(result).toBe('Tengo el detalle listo en pantalla.');
+    expect(result).toBe('Primero revisa tus sesiones. Luego valida el calendario.');
+  });
+
+  it('builds an explicit spoken summary before hitting TTS formatting', () => {
+    const result = buildStudyPlannerSpeechText(
+      'Semana 1: estudiaras las primeras lecciones el lunes y martes. Semana 2: continuaremos con el resto del contenido. Al final veras el detalle completo del plan con todas las sesiones programadas y el resumen visual.',
+    );
+
+    expect(result).toBe(
+      'Semana 1: estudiaras las primeras lecciones el lunes y martes. Semana 2: continuaremos con el resto del contenido.',
+    );
   });
 
   it('keeps queued items unless the user interrupts or replaces playback', () => {

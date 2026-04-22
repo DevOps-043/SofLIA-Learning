@@ -18,6 +18,7 @@ import type {
   LessonDataResponse,
   SofLIADataState,
 } from './useSofLIAData.types';
+import { resolveStudyPlannerCourseIds } from '../services/study-planner-course-id.shared';
 export type { CourseData, LessonData, SofLIADataState } from './useSofLIAData.types';
 
 // ============================================================================
@@ -122,9 +123,13 @@ export function useSofLIAData() {
       return 'No hay lecciones pendientes definidas aún.';
     }
 
+    const resolvedCourseIds = selectedCourseIds
+      ? resolveStudyPlannerCourseIds(selectedCourseIds)
+      : undefined;
+
     // Filter by selected courses when provided
-    const filteredLessons = selectedCourseIds && selectedCourseIds.length > 0
-      ? allLessons.filter(l => selectedCourseIds.includes(l.courseId))
+    const filteredLessons = resolvedCourseIds && resolvedCourseIds.length > 0
+      ? allLessons.filter((lesson) => resolvedCourseIds.includes(lesson.courseId))
       : allLessons;
 
     if (filteredLessons.length === 0) {

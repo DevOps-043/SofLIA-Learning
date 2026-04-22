@@ -37,6 +37,7 @@ export interface DashboardChatActionPayload {
 export interface DashboardChatSuccessPayload {
   action?: DashboardChatActionPayload;
   actions?: DashboardChatActionPayload[];
+  error?: string;
   response?: string;
   success?: boolean;
   traceId?: string;

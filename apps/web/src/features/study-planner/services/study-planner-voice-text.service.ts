@@ -1,7 +1,7 @@
 export type VoicePlaybackMode = 'enqueue' | 'replace' | 'interruptByUser';
 
 export const STUDY_PLANNER_TTS_SUMMARY_FALLBACK =
-  'Tengo el detalle listo en pantalla.';
+  'Ya prepare un resumen breve de la respuesta.';
 
 function numberToWords(num: number): string {
   const numbers: Record<number, string> = {
@@ -60,10 +60,59 @@ function summarizeForAutoSpeech(text: string, maxCharacters = 280): string {
     .length;
 
   if (normalized.length > maxCharacters || sentenceCount >= 4) {
-    return STUDY_PLANNER_TTS_SUMMARY_FALLBACK;
+    const summarySentences = normalized
+      .split(/(?<=[.!?])\s+/)
+      .map((sentence) => sentence.trim())
+      .filter(Boolean)
+      .slice(0, 2);
+
+    const spokenSummary = summarySentences.join(' ').trim();
+    if (spokenSummary.length === 0) {
+      return STUDY_PLANNER_TTS_SUMMARY_FALLBACK;
+    }
+
+    if (spokenSummary.length <= maxCharacters) {
+      return spokenSummary;
+    }
+
+    return `${spokenSummary.slice(0, maxCharacters - 1).trimEnd()}.`;
   }
 
   return normalized;
+}
+
+export function buildStudyPlannerSpeechText(
+  text: string,
+  maxCharacters = 220,
+): string {
+  const normalized = stripMarkdownForSpeech(text);
+  if (!normalized) {
+    return '';
+  }
+
+  if (normalized.length <= maxCharacters) {
+    return normalized;
+  }
+
+  const summarySentences = normalized
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+
+  const condensed = summarySentences
+    .slice(0, 2)
+    .join(' ')
+    .trim();
+
+  if (!condensed) {
+    return STUDY_PLANNER_TTS_SUMMARY_FALLBACK;
+  }
+
+  if (condensed.length <= maxCharacters) {
+    return condensed;
+  }
+
+  return `${condensed.slice(0, maxCharacters - 1).trimEnd()}.`;
 }
 
 export function formatTextForTTS(text: string): string {

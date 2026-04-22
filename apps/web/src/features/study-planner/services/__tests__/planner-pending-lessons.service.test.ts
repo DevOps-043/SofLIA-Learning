@@ -115,4 +115,81 @@ describe('planner-pending-lessons.service', () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(fetchMock).not.toHaveBeenCalledWith('/api/workshops/course-2/metadata');
   });
+
+  it('resolves composite selection ids before checking access and metadata', async () => {
+    const fetchMock = vi.fn(async (input: string) => {
+      if (input === '/api/my-courses') {
+        return {
+          ok: true,
+          json: async () => ({
+            courses: [{ course_id: 'course-1' }],
+          }),
+        };
+      }
+
+      if (input === '/api/workshops/course-1/metadata') {
+        return {
+          ok: true,
+          json: async () => ({
+            metadata: {
+              modules: [
+                {
+                  moduleTitle: 'Modulo 1',
+                  moduleOrderIndex: 0,
+                  lessons: [
+                    {
+                      lessonId: 'lesson-1',
+                      lessonOrderIndex: 1,
+                      lessonTitle: 'Leccion 1',
+                      totalDurationMinutes: 20,
+                    },
+                  ],
+                },
+              ],
+            },
+          }),
+        };
+      }
+
+      if (input === '/api/study-planner/course-progress?courseId=course-1') {
+        return {
+          ok: true,
+          json: async () => ({
+            completedLessonIds: [],
+          }),
+        };
+      }
+
+      throw new Error(`Unexpected fetch: ${input}`);
+    });
+
+    const result = await resolveStudyPlannerPendingLessonsForRecommendations({
+      availableCourses: [
+        {
+          id: 'course-1__org-board',
+          courseId: 'course-1',
+          title: 'Curso uno',
+          category: 'A',
+          progress: 10,
+        },
+      ],
+      cachedPendingLessons: [],
+      fetchImpl: fetchMock as unknown as typeof fetch,
+      selectedCourseIds: ['course-1__org-board'],
+      userId: 'user-1',
+    });
+
+    expect(result).toEqual([
+      {
+        courseId: 'course-1',
+        courseTitle: 'Curso uno',
+        durationMinutes: 20,
+        lessonId: 'lesson-1',
+        lessonOrderIndex: 1,
+        lessonTitle: 'Leccion 1',
+        moduleOrderIndex: 0,
+        moduleTitle: 'Modulo 1',
+      },
+    ]);
+  });
 });

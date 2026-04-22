@@ -20,30 +20,65 @@ export function addWeeklyProgressInsights(params: {
       continue
     }
 
-    params.analysis.weeklyProgress.plannedMinutes += session.duration_minutes || 60
+    const durationMinutes = session.duration_minutes || 60
+    params.analysis.weeklyProgress.plannedMinutes += durationMinutes
 
     if (session.status === 'completed') {
-      params.analysis.weeklyProgress.completedMinutes += session.duration_minutes || 60
-    } else if (sessionDate < params.now) {
-      params.analysis.weeklyProgress.remainingMinutes += session.duration_minutes || 60
+      params.analysis.weeklyProgress.completedMinutes += durationMinutes
+      continue
     }
+
+    params.analysis.weeklyProgress.remainingMinutes += durationMinutes
+
+    if (sessionDate < params.now) {
+      params.analysis.weeklyProgress.overdueMinutes += durationMinutes
+      continue
+    }
+
+    params.analysis.weeklyProgress.upcomingMinutes += durationMinutes
   }
 
-  const completionRate =
-    params.analysis.weeklyProgress.plannedMinutes > 0
-      ? params.analysis.weeklyProgress.completedMinutes
-        / params.analysis.weeklyProgress.plannedMinutes
-      : 0
+  const hasPastDueWork =
+    params.analysis.weeklyProgress.overdueMinutes > 0
+    || params.analysis.missedSessions.length > 0
+    || params.analysis.overdueSessions.length > 0
+  const hasActionableOperationalIssue =
+    params.analysis.conflicts.length > 0
+    || params.analysis.overloadedDays.length > 0
+    || params.analysis.burnoutRisk?.level === 'high'
 
-  params.analysis.weeklyProgress.onTrack = completionRate >= 0.7
-
-  if (
-    !params.analysis.weeklyProgress.onTrack
-    && params.analysis.weeklyProgress.remainingMinutes > 0
-  ) {
+  if (params.analysis.weeklyProgress.plannedMinutes === 0) {
+    params.analysis.weeklyProgress.status = 'neutral'
+    params.analysis.weeklyProgress.onTrack = true
     params.analysis.weeklyProgress.suggestion =
-      `Vas atrasado esta semana. Te faltan ${Math.round(params.analysis.weeklyProgress.remainingMinutes / 60)} horas de estudio. Â¿Quieres que redistribuya las sesiones restantes?`
+      'Esta semana no hay sesiones evaluables todavía.'
+    return
   }
+
+  if (!hasPastDueWork && params.analysis.weeklyProgress.completedMinutes === 0) {
+    params.analysis.weeklyProgress.status = hasActionableOperationalIssue
+      ? 'informative'
+      : 'neutral'
+    params.analysis.weeklyProgress.onTrack = true
+    params.analysis.weeklyProgress.suggestion =
+      'El plan apenas va arrancando esta semana. Todavía no hay evidencia de atraso real.'
+    return
+  }
+
+  if (!hasPastDueWork) {
+    params.analysis.weeklyProgress.status = 'informative'
+    params.analysis.weeklyProgress.onTrack = true
+    params.analysis.weeklyProgress.suggestion =
+      params.analysis.weeklyProgress.upcomingMinutes > 0
+        ? `Vas en camino. Aún quedan ${Math.round(params.analysis.weeklyProgress.upcomingMinutes / 60)} horas programadas por cursar esta semana.`
+        : 'Vas en camino con tu plan semanal.'
+    return
+  }
+
+  params.analysis.weeklyProgress.status = 'actionable'
+  params.analysis.weeklyProgress.onTrack = false
+  params.analysis.weeklyProgress.suggestion =
+    `Ya hay sesiones vencidas esta semana por ${Math.round(params.analysis.weeklyProgress.overdueMinutes / 60)} horas. ¿Quieres que redistribuya únicamente las pendientes sin romper el orden de lecciones?`
 }
 
 export function addConsistencyInsights(params: {
@@ -74,7 +109,7 @@ export function addConsistencyInsights(params: {
     lastStudyDate: formatDate(lastStudyDate),
     suggestion:
       daysSinceStudy >= 7
-        ? `Llevas ${daysSinceStudy} dias sin estudiar. Â¿Te gustaria retomar con una sesion corta?`
-        : `Han pasado ${daysSinceStudy} dias desde tu ultima sesion. Es buen momento para retomar.`,
+        ? `Llevas ${daysSinceStudy} días sin estudiar. ¿Te gustaría retomar con una sesión corta?`
+        : `Han pasado ${daysSinceStudy} días desde tu última sesión. Es buen momento para retomar.`,
   }
 }

@@ -1,13 +1,21 @@
-﻿import { createAdminClient, createGoogleCalendarEvent, getCalendarAccessToken, parseSessionMetrics, persistSessionCalendarSync, syncSessionWithCalendar } from '../calendar.service'
+import {
+  createAdminClient,
+  createGoogleCalendarEvent,
+  getCalendarAccessToken,
+  parseSessionMetrics,
+  persistSessionCalendarSync,
+  syncSessionWithCalendar,
+} from '../calendar.service'
 import { getCurrentTimezone } from '../format.utils'
 import { logger } from '../../../../../../lib/utils/logger'
 import type { ActionResult } from '../types'
+import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 import { withTimezoneOffset } from './planning-actions-v2-timezone.service'
 
 export async function executeRecoverMissedSessionV2(
   userId: string,
-  _planId: string,
+  planId: string,
   action: ActionResult,
   userMessage?: string,
 ) {
@@ -34,6 +42,21 @@ export async function executeRecoverMissedSessionV2(
 
   if (!placementValidation.valid) {
     return { ...action, status: 'error', message: placementValidation.message }
+  }
+
+  const orderValidation = await validateStrictLessonOrder({
+    userId,
+    planId,
+    proposedMoves: [{ sessionId, newStartTime: startTimeISO }],
+  })
+
+  if (!orderValidation.valid) {
+    return {
+      ...action,
+      status: 'error',
+      code: orderValidation.code,
+      message: orderValidation.message,
+    }
   }
 
   const { data: originalSession, error: getError } = await supabase
@@ -73,6 +96,7 @@ export async function executeRecoverMissedSessionV2(
   } else {
     const { accessToken, provider, calendarId } = await getCalendarAccessToken(userId)
     if (accessToken && provider === 'google') {
+      const parsedMetrics = parseSessionMetrics(originalSession.metrics)
       const eventId = await createGoogleCalendarEvent(
         accessToken,
         {
@@ -83,8 +107,8 @@ export async function executeRecoverMissedSessionV2(
           sessionId: originalSession.id,
           planId: originalSession.plan_id,
           clientReferenceId:
-            typeof parseSessionMetrics(originalSession.metrics)?.clientReferenceId === 'string'
-              ? parseSessionMetrics(originalSession.metrics)?.clientReferenceId
+            typeof parsedMetrics?.clientReferenceId === 'string'
+              ? parsedMetrics.clientReferenceId
               : undefined,
         },
         getCurrentTimezone() || 'America/Mexico_City',
@@ -112,4 +136,3 @@ export async function executeRecoverMissedSessionV2(
     data: { sessionId },
   }
 }
-

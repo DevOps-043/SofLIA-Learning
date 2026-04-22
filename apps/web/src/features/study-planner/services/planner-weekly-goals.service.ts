@@ -1,4 +1,5 @@
 import type { StudyPlannerCourseOption } from '../types/planner-ui.types';
+import { resolveStudyPlannerCourseId, resolveStudyPlannerCourseIds } from './study-planner-course-id.shared';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -65,7 +66,10 @@ async function fetchCourseMetrics(
   courseId: string,
   availableCourses: StudyPlannerCourseOption[],
 ): Promise<WeeklyGoalCourseMetrics> {
-  const courseFromList = availableCourses.find(course => course.id === courseId);
+  const resolvedCourseId = resolveStudyPlannerCourseId(courseId);
+  const courseFromList = availableCourses.find((course) =>
+    course.courseId === resolvedCourseId || resolveStudyPlannerCourseId(course.id) === resolvedCourseId
+  );
   const fallbackTitle = courseFromList?.title || 'Curso';
 
   try {
@@ -78,7 +82,9 @@ async function fetchCourseMetrics(
       const topLevelCourses = asRecordArray(myCoursesData);
       const nestedCourses = asRecord(myCoursesData)?.courses;
       const courses = topLevelCourses.length > 0 ? topLevelCourses : asRecordArray(nestedCourses);
-      const courseData = courses.find(course => readString(course, 'course_id', 'id') === courseId);
+      const courseData = courses.find(
+        (course) => readString(course, 'course_id', 'id') === resolvedCourseId,
+      );
 
       if (courseData) {
         const nestedCourse = asRecord(courseData.courses);
@@ -163,7 +169,9 @@ export async function calculateStudyPlannerWeeklyGoals(
 
   try {
     const validCourses = await Promise.all(
-      selectedCourseIds.map(courseId => fetchCourseMetrics(courseId, availableCourses)),
+      resolveStudyPlannerCourseIds(selectedCourseIds).map((courseId) =>
+        fetchCourseMetrics(courseId, availableCourses),
+      ),
     );
 
     if (validCourses.length === 0) {

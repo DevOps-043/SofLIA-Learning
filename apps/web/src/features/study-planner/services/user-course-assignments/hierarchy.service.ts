@@ -9,7 +9,6 @@ import {
   hierarchyAssignmentsTable,
   organizationRegionsTable,
   organizationTeamsTable,
-  organizationUsersTable,
   organizationZonesTable,
   regionAssignmentLinksTable,
   teamAssignmentLinksTable,
@@ -17,6 +16,7 @@ import {
   workTeamMembersTable,
   zoneAssignmentLinksTable,
 } from './tables'
+import { loadActiveOrganizationMemberships } from './organization-memberships.service'
 import type {
   HierarchyEntity,
   HierarchyEntityType,
@@ -26,60 +26,78 @@ export async function getTeamCourseAssignments(
   userId: string,
 ): Promise<TeamCourseAssignment[]> {
   const supabase = await createClient()
+  const memberships = await loadActiveOrganizationMemberships(userId)
 
-  const { data: orgUser, error: orgUserError } = await organizationUsersTable(
-    supabase,
+  if (memberships.length === 0) {
+    return getLegacyTeamCourseAssignments(userId)
+  }
+  const assignmentSets = await Promise.all(
+    memberships.map(async (membership) => {
+      const entity = resolveHierarchyEntity({
+        team_id: membership.teamId,
+        zone_id: membership.zoneId,
+        region_id: membership.regionId,
+      })
+
+      if (!entity) {
+        return []
+      }
+
+      const assignmentIds = await getHierarchyAssignmentIds(supabase, entity.type, entity.id)
+      if (assignmentIds.length === 0) {
+        return []
+      }
+
+      const { data, error } = await hierarchyAssignmentsTable(supabase)
+        .select(`
+          id,
+          organization_id,
+          course_id,
+          assigned_by,
+          assigned_at,
+          due_date,
+          status,
+          message,
+          courses:course_id (
+            ${COURSE_INFO_SELECT}
+          ),
+          assigner:assigned_by (
+            ${PERSON_NAME_SELECT}
+          ),
+          organization:organization_id (
+            name
+          )
+        `)
+        .eq('organization_id', membership.organizationId)
+        .in('id', assignmentIds)
+        .in('status', ['active'])
+
+      if (error) {
+        console.error('Error obteniendo asignaciones jerarquicas:', error)
+        return []
+      }
+
+      const entityName = await getHierarchyEntityName(supabase, entity.type, entity.id)
+
+      return (data ?? [])
+        .map((item) => buildTeamAssignment(item, entity.id, entityName))
+        .filter((assignment): assignment is TeamCourseAssignment => Boolean(assignment))
+    }),
   )
-    .select('organization_id, team_id, zone_id, region_id')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .single()
 
-  if (orgUserError || !orgUser?.organization_id) {
+  const uniqueAssignments = new Map<string, TeamCourseAssignment>()
+  for (const assignment of assignmentSets.flat()) {
+    const key = `${assignment.courseId}::${assignment.organizationId ?? ''}::${assignment.teamId}`
+    if (!uniqueAssignments.has(key)) {
+      uniqueAssignments.set(key, assignment)
+    }
+  }
+
+  if (uniqueAssignments.size === 0) {
     return getLegacyTeamCourseAssignments(userId)
   }
 
-  const entity = resolveHierarchyEntity(orgUser)
-  if (!entity) {
-    return []
-  }
-
-  const assignmentIds = await getHierarchyAssignmentIds(supabase, entity.type, entity.id)
-  if (assignmentIds.length === 0) {
-    return []
-  }
-
-  const { data, error } = await hierarchyAssignmentsTable(supabase)
-    .select(`
-      id,
-      organization_id,
-      course_id,
-      assigned_by,
-      assigned_at,
-      due_date,
-      status,
-      message,
-      courses:course_id (
-        ${COURSE_INFO_SELECT}
-      ),
-      assigner:assigned_by (
-        ${PERSON_NAME_SELECT}
-      )
-    `)
-    .eq('organization_id', orgUser.organization_id)
-    .in('id', assignmentIds)
-    .in('status', ['active'])
-
-  if (error) {
-    console.error('Error obteniendo asignaciones jerarquicas:', error)
-    return getLegacyTeamCourseAssignments(userId)
-  }
-
-  const entityName = await getHierarchyEntityName(supabase, entity.type, entity.id)
-
-  return (data ?? [])
-    .map((item) => buildTeamAssignment(item, entity.id, entityName))
-    .filter((assignment): assignment is TeamCourseAssignment => Boolean(assignment))
+  return [...uniqueAssignments.values()]
 }
 
 function resolveHierarchyEntity(value: {
