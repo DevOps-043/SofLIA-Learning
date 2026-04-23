@@ -27,7 +27,7 @@ export function parseListChatsParams(request: Request): ListChatsParams {
   return {
     entityType,
     entityId,
-    chatType: isChatType(chatType) ? chatType : null,
+    chatType,
   }
 }
 

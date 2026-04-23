@@ -29,7 +29,7 @@ export interface HierarchyChatRpcParticipant {
 export interface ListChatsParams {
   entityType: EntityType
   entityId: string
-  chatType: ChatType | null
+  chatType: string | null
 }
 
 export interface CreateChatPayload {
