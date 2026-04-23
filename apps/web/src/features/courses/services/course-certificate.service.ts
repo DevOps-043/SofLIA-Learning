@@ -13,6 +13,8 @@ export interface GenerateCourseCertificateRequest {
   organizationId?: string | null;
 }
 
+// Gives the router enough time to initiate navigation before checking if it succeeded.
+// 200 ms covers typical Next.js router push latency without being perceptible to users.
 const CERTIFICATE_NAVIGATION_FALLBACK_DELAY_MS = 200;
 
 function buildCertificateErrorMessage(
@@ -38,18 +40,22 @@ function buildCertificateErrorMessage(
   return fallbackMessage || "Error al generar el certificado";
 }
 
-export class CourseCertificateService {
-  static getCertificateRoute(certificateId?: string | null): string {
+function fallbackToBrowserNavigation(route: string): void {
+  if (typeof window !== "undefined") {
+    window.location.assign(route);
+  }
+}
+
+/**
+ * Client-side service for certificate generation and navigation.
+ * All methods are stateless — no class instantiation needed.
+ */
+export const CourseCertificateService = {
+  getCertificateRoute(certificateId?: string | null): string {
     return certificateId ? `/certificates/${certificateId}` : "/certificates";
-  }
+  },
 
-  private static fallbackToBrowserNavigation(route: string): void {
-    if (typeof window !== "undefined") {
-      window.location.assign(route);
-    }
-  }
-
-  static navigateToCertificateRoute(
+  navigateToCertificateRoute(
     route: string,
     router: Pick<AppRouterInstance, "push" | "replace">
   ): void {
@@ -59,41 +65,42 @@ export class CourseCertificateService {
       } else if (typeof router.push === "function") {
         router.push(route);
       } else {
-        CourseCertificateService.fallbackToBrowserNavigation(route);
+        fallbackToBrowserNavigation(route);
         return;
       }
     } catch (navigationError) {
       console.error("Error redirecting to certificate route:", navigationError);
-      CourseCertificateService.fallbackToBrowserNavigation(route);
+      fallbackToBrowserNavigation(route);
       return;
     }
 
-    if (typeof window === "undefined") {
-      return;
-    }
+    if (typeof window === "undefined") return;
 
     const expectedPathname = new URL(route, window.location.origin).pathname;
-
     window.setTimeout(() => {
       if (window.location.pathname !== expectedPathname) {
-        CourseCertificateService.fallbackToBrowserNavigation(route);
+        fallbackToBrowserNavigation(route);
       }
     }, CERTIFICATE_NAVIGATION_FALLBACK_DELAY_MS);
-  }
+  },
 
-  static async generateCertificate(
-    request: GenerateCourseCertificateRequest
+  /**
+   * @param request - Accepts a full request object or a bare courseId string (legacy shorthand).
+   */
+  async generateCertificate(
+    request: GenerateCourseCertificateRequest | string
   ): Promise<GenerateCourseCertificateResponse> {
+    const normalizedRequest =
+      typeof request === "string" ? { courseId: request } : request;
+
     const response = await fetch("/api/certificates/generate", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       credentials: "include",
       body: JSON.stringify({
-        course_id: request.courseId,
-        enrollment_id: request.enrollmentId ?? undefined,
-        organization_id: request.organizationId ?? undefined,
+        course_id: normalizedRequest.courseId,
+        enrollment_id: normalizedRequest.enrollmentId ?? undefined,
+        organization_id: normalizedRequest.organizationId ?? undefined,
       }),
     });
 
@@ -113,5 +120,5 @@ export class CourseCertificateService {
       certificate_id: responseData.certificate_id,
       certificate_url: responseData.certificate_url,
     };
-  }
-}
+  },
+} as const

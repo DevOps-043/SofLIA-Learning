@@ -97,8 +97,6 @@ export class DifficultyPatternDetector {
     const warmUpPeriod = 45 * 1000; // 45 segundos
 
     if (sessionDuration < warmUpPeriod) {
-      const remainingSeconds = Math.ceil((warmUpPeriod - sessionDuration) / 1000);
-
       return this.createAnalysis(0, [], false, '');
     }
 
@@ -164,7 +162,7 @@ export class DifficultyPatternDetector {
       if (e.type === 3 && e.data && typeof e.data === 'object' && 'source' in e.data) {
         const source = getIncrementalEventData(e)?.source;
         // source: 2=MouseInteraction (clicks), 3=Scroll, 5=Input
-        return [2, 3, 5].includes(source);
+        return source !== undefined && [2, 3, 5].includes(source);
       }
       return false;
     });
@@ -259,7 +257,7 @@ export class DifficultyPatternDetector {
     // Detectar patrón de ciclos: si hay muchos clicks alternando entre pocos IDs únicos
     // Ejemplo: [177, 184, 192, 177, 184, 192] = cambio entre tabs
     const uniqueIds = new Set(clickedIds);
-    let tabClickEvents: eventWithTime[] = [];
+    const tabClickEvents: eventWithTime[] = [];
     let alternations = 0;
     
     // Si hay 5+ clicks alternando entre 3-15 elementos únicos = probable navegación entre tabs
@@ -381,7 +379,7 @@ export class DifficultyPatternDetector {
     
     // Filtrar ventanas con actividad significativa (50+ eventos por segundo = scroll activo)
     const activeWindows = Array.from(timeWindows.entries())
-      .filter(([_, count]) => count >= 50)
+      .filter((entry) => entry[1] >= 50)
       .map(([second, count]) => ({ second, count }))
       .sort((a, b) => a.second - b.second);
     
@@ -474,6 +472,7 @@ export class DifficultyPatternDetector {
     // Detectar clicks en el mismo lugar repetidamente (probablemente elemento no responde)
     const clickPositions = clickEvents.map(event => {
       const data = getIncrementalEventData(event);
+      if (!data) return '0,0';
       return `${data.x || 0},${data.y || 0}`;
     });
 

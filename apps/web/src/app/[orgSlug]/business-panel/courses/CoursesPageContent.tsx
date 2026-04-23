@@ -218,7 +218,7 @@ export function CoursesPageContent() {
           <button
             onClick={() => {/* setViewMode('grid') */}}
             className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-            style={{ backgroundColor: true ? `${primaryColor}30` : 'transparent' }}
+            style={{ backgroundColor: `${primaryColor}30` }}
           >
             <LayoutGrid className="w-5 h-5" style={{ color: primaryColor }} />
           </button>

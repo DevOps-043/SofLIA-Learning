@@ -37,6 +37,7 @@ export function sanitizeUntrustedString(
   const withoutMarkup = stripMarkupArtifacts(input)
   const withoutHiddenHints = stripHiddenStyleHints(withoutMarkup)
   const normalized = withoutHiddenHints
+    // eslint-disable-next-line no-control-regex
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ')
     .replace(/\r\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')

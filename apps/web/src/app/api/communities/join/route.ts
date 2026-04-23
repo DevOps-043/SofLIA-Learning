@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '../../../../lib/supabase/server';
+import { PROFESIONALES_COMMUNITY_SLUG } from '../community-policy.constants';
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,14 +42,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Lógica especial para "Profesionales"
-    if (community.slug === 'profesionales') {
+    if (community.slug === PROFESIONALES_COMMUNITY_SLUG) {
       // Verificar si el usuario ya tiene membresía en OTRAS comunidades (excluir Profesionales)
       const { data: allMemberships, error: allMembershipsError } = await supabase
         .from('community_members')
         .select('community_id, communities!inner(name, slug)')
         .eq('user_id', user.id)
         .eq('is_active', true)
-        .neq('communities.slug', 'profesionales');
+        .neq('communities.slug', PROFESIONALES_COMMUNITY_SLUG);
 
       if (allMembershipsError) {
         logger.error('Error checking all memberships:', allMembershipsError);
@@ -83,12 +84,12 @@ export async function POST(request: NextRequest) {
 
     // Si está uniéndose a una comunidad diferente de "Profesionales",
     // remover automáticamente de "Profesionales" si está allí
-    if (community.slug !== 'profesionales') {
+    if (community.slug !== PROFESIONALES_COMMUNITY_SLUG) {
       // Buscar la comunidad "Profesionales"
       const { data: profesionalesComm } = await supabase
         .from('communities')
         .select('id, member_count')
-        .eq('slug', 'profesionales')
+        .eq('slug', PROFESIONALES_COMMUNITY_SLUG)
         .single();
 
       if (profesionalesComm) {

@@ -1,801 +1,89 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useTranslation } from 'react-i18next'
-import { useSwipe } from '../../../hooks/useSwipe'
-import type { DifficultyAnalysis } from '../../../lib/rrweb/difficulty-pattern-detector'
-import type { CourseLessonContext } from '../../../core/types/lia.types'
-import { useCurrentOrganizationId } from '../../../core/stores/organizationStore'
-import { useVideoPlayerOptional } from '../../../app/courses/[slug]/learn/VideoPlayerContext'
-import { useAuth } from '../../auth/hooks/useAuth'
-import {
-  canCompleteOrderedLesson,
-  findOrderedLessonIndex,
-  getOrderedLessons,
-  hasIncompleteActivities,
-  isLessonVideoCompleted,
-} from './lessonNavigation.utils'
-import { useCourseTheme } from './useCourseTheme'
-import {
-  buildLearnLessonContext,
-} from './learn-page/learn-page.service'
-import { useLearnPageCourseData } from './learn-page/useLearnPageCourseData'
-import { useLearnPageLayout } from './learn-page/useLearnPageLayout'
-import {
-  buildWorkshopEnrichedLessonContext,
-  buildWorkshopHelpMessage,
-} from '../services/learn-workshop-assistant.service'
-import { CourseCertificateService } from '../services/course-certificate.service'
-import { useCourseCompletionFlow } from './useCourseCompletionFlow'
+import { useState } from 'react'
+
+import { buildLearnPageLogicResult, useLearnPageBase, useLearnPageCompletionActions, useLearnPageDataLoader, useLearnPageLayout, useLearnPageLessonContext, useLearnPageMobileMetrics, useLearnPageNavigationSetup, useLearnPageOrderedLessons, useLearnPagePrompts, useLearnPageState, useLearnPageTabGuard, useLearnPageTabs, useLearnPageTranslationFallback, useLearnPageVideoAutoRedirect, useLearnPageVideoCompletion, useLearnPageVideoTransition, useLearnPageWorkshopHelp } from './learn-page'
 import { useLessonCompletion } from './useLessonCompletion'
-import { useLessonNavigation } from './useLessonNavigation'
 import { useLessonSidebarState } from './useLessonSidebarState'
 import { useNotesManagement } from './useNotesManagement'
 import { useUserBehaviorLog } from './useUserBehaviorLog'
-import { useLiaCourse } from '../context/LiaCourseContext'
-import type {
-  LearnCourseData,
-  LearnLesson,
-  LearnModule,
-  LearnPathBlockState,
-  LearnPathState,
-  LearnTab,
-  LearnTranslationContext,
-} from '../components/learn/types'
 
-type Lesson = LearnLesson
-type Module = LearnModule
-type CourseData = LearnCourseData
-
-const MOBILE_BOTTOM_NAV_HEIGHT_PX = 104
-const CONTENT_BOTTOM_PADDING_MOBILE = 32
-
+/**
+ * Top-level orchestrator for the course learning page.
+ *
+ * Composes the following domain hooks in dependency order:
+ *   1. base          — slug, language, closeLia, videoPlayerContext
+ *   2. state         — course, modules, currentLesson, progress, LIA transcript
+ *   3. layout        — activeTab, isMobile, handleTabChange
+ *   4. sidebar       — lesson list, notes collapse, translation contexts
+ *   5. mobile        — mobile-specific viewport metrics
+ *   6. notes         — note CRUD, stats, modals
+ *   7. behavior      — user behavior event logging
+ *   8. prompts       — tab-aware AI prompt suggestions
+ *   9. videoCompletion — video-driven lesson completion signals
+ *  10. ordered        — ordered lesson list, canCompleteLesson guard
+ *  11. validation     — lesson completion + quiz validation
+ *  12. completion     — post-completion flow (certificates, ratings)
+ *  13. navigation     — lesson navigation actions and preloading
+ *  14. lessonContext  — assembled lesson data for rendering
+ *  15. workshopHelp   — workshop-specific side panel
+ *  16. tabs           — tab definitions (i18n)
+ *  17. translationFallbackWarning — missing translation detection
+ *
+ * Returns a flat object via `buildLearnPageLogicResult`. Use `LearnPageLogicResult`
+ * as the type for prop-drilling or context consumers.
+ */
 export function useLearnPageLogic() {
-  const params = useParams()
-  const router = useRouter()
-  const slug = params.slug as string
-
-  const { isOpen: isLiaOpen, openLia, closeLia, liaChat } = useLiaCourse()
-  const { user } = useAuth()
-  const organizationId = useCurrentOrganizationId()
-  const colors = useCourseTheme()
-  const { t, i18n, ready } = useTranslation('learn')
-  const selectedLang =
-    i18n.language === 'en' ? 'en' : i18n.language === 'pt' ? 'pt' : 'es'
-
-  const [mounted, setMounted] = useState(false)
-  const [course, setCourse] = useState<CourseData | null>(null)
-  const [modules, setModules] = useState<Module[]>([])
-  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
-  const [workshopMetadata, setWorkshopMetadata] =
-    useState<CourseLessonContext | null>(null)
-  const [liaTranscript, setLiaTranscript] = useState<string | null>(null)
-  const [liaSummary, setLiaSummary] = useState<string | null>(null)
-  const [learningPathState, setLearningPathState] =
-    useState<LearnPathState | null>(null)
-  const [learningPathBlockState, setLearningPathBlockState] =
-    useState<LearnPathBlockState | null>(null)
-  const [learnDataTranslationContext, setLearnDataTranslationContext] =
-    useState<LearnTranslationContext | null>(null)
-  const [isLiaTranscriptLoading, setIsLiaTranscriptLoading] = useState(false)
-  const [isLiaSummaryLoading, setIsLiaSummaryLoading] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [courseProgress, setCourseProgress] = useState(6)
+  const base = useLearnPageBase()
+  const state = useLearnPageState()
+  const layout = useLearnPageLayout({ currentLesson: state.currentLesson, videoPlayerContext: base.videoPlayerContext })
+  const sidebar = useLessonSidebarState({ slug: base.slug, selectedLang: base.selectedLang, modules: state.modules, currentLesson: state.currentLesson, isMobile: layout.isMobile })
+  const mobile = useLearnPageMobileMetrics({ layout, sidebar })
+  const notes = useNotesManagement({ slug: base.slug, modules: state.modules, currentLesson: state.currentLesson, isNotesCollapsed: sidebar.isNotesCollapsed, closeLia: base.closeLia })
   const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false)
-  const [currentActivityPrompts, setCurrentActivityPrompts] = useState<string[]>(
-    [],
-  )
-  const [isPromptsCollapsed, setIsPromptsCollapsed] = useState(false)
-  const [pendingVideoTransitionLessonId, setPendingVideoTransitionLessonId] =
-    useState<string | null>(null)
 
-  const prevPromptsLengthRef = useRef<number>(0)
-  const checkedAutoRedirectRef = useRef<string | null>(null)
-  const videoPlayerContext = useVideoPlayerOptional()
+  useLearnPageDataLoader({ base, state, notes })
 
-  const sendLiaMessage = useCallback(
-    async (
-      message: string,
-      courseContext?: CourseLessonContext,
-      workshopContext?: CourseLessonContext,
-      isSystemMessage: boolean = false,
-    ) => {
-      if (!liaChat?.sendMessage) {
-        console.warn('LIA Chat no inicializado')
-        return
-      }
+  const behavior = useUserBehaviorLog(state.currentLesson)
+  const prompts = useLearnPagePrompts(layout.activeTab)
+  const videoCompletion = useLearnPageVideoCompletion({ loadLessonActivitiesAndMaterials: sidebar.loadLessonActivitiesAndMaterials, setCurrentLesson: state.setCurrentLesson, setModules: state.setModules })
 
-      if (!isLiaOpen) {
-        openLia()
-      }
+  useLearnPageVideoAutoRedirect({ layout, sidebar, currentLesson: state.currentLesson })
+  const ordered = useLearnPageOrderedLessons(state.modules, state.currentLesson)
+  const validation = useLessonCompletion({ slug: base.slug, currentLesson: state.currentLesson, modules: state.modules, setModules: state.setModules, setCurrentLesson: state.setCurrentLesson, setCourseProgress: state.setCourseProgress, canCompleteLesson: ordered.canCompleteLesson })
+  const completion = useLearnPageCompletionActions({ base, course: state.course, currentLesson: state.currentLesson, markLessonAsCompleted: validation.markLessonAsCompleted, canCompleteLesson: ordered.canCompleteLesson })
+  const handleTabChange = useLearnPageTabGuard({ layout, validation, behavior, currentLesson: state.currentLesson })
+  const navigation = useLearnPageNavigationSetup({ base, behavior, layout, ordered, sidebar, state, validation })
 
-      await liaChat.sendMessage(
-        message,
-        courseContext,
-        workshopContext,
-        isSystemMessage,
-      )
-    },
-    [isLiaOpen, liaChat, openLia],
-  )
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const {
-    activeTab,
-    setActiveTab,
-    handleTabChange: handleBaseTabChange,
-    isMobile,
-    screenHeight,
-    visualViewportHeight,
-    getInputAreaPadding,
-  } = useLearnPageLayout({
-    currentLesson,
-    videoPlayerContext,
+  useLearnPageVideoTransition({ layout, sidebar, navigation, currentLesson: state.currentLesson, videoCompletion })
+  const lessonContext = useLearnPageLessonContext({ base, state, layout, sidebar, prompts, notes })
+  const workshopHelp = useLearnPageWorkshopHelp({ base, state, layout, sidebar, behavior, lessonContext })
+  const tabs = useLearnPageTabs(base.t)
+  const translationFallbackWarning = useLearnPageTranslationFallback({
+    currentLesson: state.currentLesson,
+    learnDataTranslationContext: state.learnDataTranslationContext,
+    lessonTranslationContexts: sidebar.lessonTranslationContexts,
+    selectedLang: base.selectedLang,
   })
 
-  const {
-    closeLeftPanel,
-    expandedLessons,
-    expandedModules,
-    isLeftPanelOpen,
-    isMaterialCollapsed,
-    isNotesCollapsed,
-    lessonsActivities,
-    lessonsMaterials,
-    lessonsQuizStatus,
-    lessonTranslationContexts,
-    loadLessonActivitiesAndMaterials,
-    openContentSection,
-    openLeftPanel,
-    openNotesSection,
-    toggleLessonExpand,
-    toggleMaterialCollapsed,
-    toggleModuleExpand,
-    toggleNotesCollapsed,
-  } = useLessonSidebarState({
-    slug,
-    selectedLang,
-    modules,
-    currentLesson,
-    isMobile,
+  return buildLearnPageLogicResult({
+    base,
+    state,
+    layout: { ...layout, handleTabChange },
+    mobile,
+    sidebar,
+    notes,
+    ordered,
+    validation,
+    navigation,
+    completion,
+    prompts,
+    videoCompletion,
+    lessonContext,
+    workshopHelp,
+    ui: { tabs, translationFallbackWarning, isClearHistoryModalOpen, setIsClearHistoryModalOpen },
+    behavior,
   })
-
-  const swipeRef = useSwipe({
-    onSwipeRight: () => {
-      if (isMobile && !isLeftPanelOpen) {
-        openLeftPanel()
-      }
-    },
-    onSwipeLeft: () => {},
-    threshold: 50,
-    velocity: 0.3,
-    enabled: isMobile && !isLeftPanelOpen,
-  })
-
-  const isMobileBottomNavVisible = isMobile && !isLeftPanelOpen
-  const mobileContentPaddingBottom = isMobileBottomNavVisible
-    ? `calc(${MOBILE_BOTTOM_NAV_HEIGHT_PX}px + env(safe-area-inset-bottom, 0px) + ${CONTENT_BOTTOM_PADDING_MOBILE}px)`
-    : `calc(env(safe-area-inset-bottom, 0px) + ${CONTENT_BOTTOM_PADDING_MOBILE}px)`
-
-  const calculateLiaMaxHeight = useMemo(() => {
-    if (isMobile) {
-      if (visualViewportHeight !== null) {
-        const headerHeight = 56
-        const bottomNavHeight = isMobileBottomNavVisible
-          ? MOBILE_BOTTOM_NAV_HEIGHT_PX
-          : 0
-
-        return `calc(${visualViewportHeight - headerHeight - bottomNavHeight}px - env(safe-area-inset-bottom, 0px))`
-      }
-
-      return undefined
-    }
-
-    return 'calc(100vh - 3rem)'
-  }, [isMobile, isMobileBottomNavVisible, visualViewportHeight])
-
-  const {
-    addNoteToLocalState,
-    applyServerNotesStats,
-    closeDeleteNoteConfirm,
-    closeNotesModal,
-    confirmDeleteNote,
-    editingNote,
-    handleDeleteNote,
-    handleSaveNote,
-    initializeNotesStats,
-    isDeleteNoteConfirmOpen,
-    isDeletingNote,
-    isNotesModalOpen,
-    noteError,
-    setNoteError,
-    notesStats,
-    openEditNoteModal,
-    openLiaNoteModal,
-    openNewNoteModal,
-    savedNotes,
-    updateNotesStatsOptimized,
-  } = useNotesManagement({
-    slug,
-    modules,
-    currentLesson,
-    isNotesCollapsed,
-    closeLia,
-  })
-
-  useLearnPageCourseData({
-    slug,
-    selectedLang,
-    organizationId,
-    userJobTitle: user?.job_title || undefined,
-    currentLesson,
-    modules,
-    notesStatsLessonsWithNotes: notesStats.lessonsWithNotes,
-    applyServerNotesStats,
-    initializeNotesStats,
-    setCourse,
-    setModules,
-    setCurrentLesson,
-    setWorkshopMetadata,
-    setLiaTranscript,
-    setLiaSummary,
-    setIsLiaTranscriptLoading,
-    setIsLiaSummaryLoading,
-    setLoading,
-    setCourseProgress,
-    setLearningPathState,
-    setLearningPathBlockState,
-    setLearnDataTranslationContext,
-  })
-
-  const { userBehaviorLog, trackUserAction, analyzeUserBehavior } =
-    useUserBehaviorLog(currentLesson)
-
-  useEffect(() => {
-    if (activeTab !== 'activities') {
-      setCurrentActivityPrompts([])
-      setIsPromptsCollapsed(false)
-      prevPromptsLengthRef.current = 0
-    }
-  }, [activeTab])
-
-  useEffect(() => {
-    const previousLength = prevPromptsLengthRef.current
-    const currentLength = currentActivityPrompts.length
-
-    if (previousLength === 0 && currentLength > 0) {
-      setIsPromptsCollapsed(false)
-    }
-
-    prevPromptsLengthRef.current = currentLength
-  }, [currentActivityPrompts.length])
-
-  const handlePromptsChange = useCallback((prompts: string[]) => {
-    setCurrentActivityPrompts(prompts)
-  }, [])
-
-  const handleVideoCompleted = useCallback(
-    (lessonId: string) => {
-      setModules((prevModules) =>
-        prevModules.map((module) => ({
-          ...module,
-          lessons: module.lessons.map((lesson) =>
-            lesson.lesson_id === lessonId
-              ? {
-                  ...lesson,
-                  progress_percentage: 100,
-                }
-              : lesson,
-          ),
-        })),
-      )
-      setCurrentLesson((prevLesson) =>
-        prevLesson?.lesson_id === lessonId
-          ? {
-              ...prevLesson,
-              progress_percentage: 100,
-            }
-          : prevLesson,
-      )
-      setPendingVideoTransitionLessonId(lessonId)
-      void loadLessonActivitiesAndMaterials(lessonId)
-    },
-    [loadLessonActivitiesAndMaterials],
-  )
-
-  useEffect(() => {
-    if (!currentLesson?.lesson_id) {
-      return
-    }
-
-    const lessonId = currentLesson.lesson_id
-    if (checkedAutoRedirectRef.current === lessonId) {
-      return
-    }
-
-    const activitiesList = lessonsActivities[lessonId]
-    if (activitiesList === undefined) {
-      return
-    }
-
-    checkedAutoRedirectRef.current = lessonId
-
-    if (activeTab !== 'video') {
-      return
-    }
-
-    const videoFullyWatched = isLessonVideoCompleted(currentLesson)
-    const hasPending =
-      activitiesList.length > 0 && hasIncompleteActivities(activitiesList)
-
-    if (videoFullyWatched && hasPending) {
-      setActiveTab('activities')
-    }
-  }, [
-    activeTab,
-    currentLesson?.is_completed,
-    currentLesson?.lesson_id,
-    currentLesson?.progress_percentage,
-    lessonsActivities,
-    setActiveTab,
-  ])
-
-  const orderedLessons = useMemo(() => getOrderedLessons(modules), [modules])
-
-  const currentLessonIndex = useMemo(
-    () => findOrderedLessonIndex(orderedLessons, currentLesson?.lesson_id),
-    [orderedLessons, currentLesson?.lesson_id],
-  )
-
-  const canCompleteLesson = useCallback(
-    (lessonId: string) => canCompleteOrderedLesson(orderedLessons, lessonId),
-    [orderedLessons],
-  )
-
-  const {
-    markLessonAsCompleted,
-    openValidationModal,
-    validationModal,
-    setValidationModal,
-  } = useLessonCompletion({
-    slug,
-    currentLesson,
-    modules,
-    setModules,
-    setCurrentLesson,
-    setCourseProgress,
-    canCompleteLesson,
-  })
-
-  const courseId = course?.id ?? course?.course_id ?? null
-  const courseEnrollmentId = course?.enrollment_id ?? null
-  const courseOrganizationId = course?.organization_id ?? organizationId ?? null
-
-  const handleCertificateReady = useCallback(
-    (route: string) => {
-      CourseCertificateService.navigateToCertificateRoute(route, router)
-    },
-    [router],
-  )
-
-  const {
-    closeCannotCompleteModal,
-    closeRatingModal,
-    handleCourseCompletedClose,
-    handleRatingSubmit,
-    hasUserRated,
-    isCannotCompleteModalOpen,
-    isCourseCompletedModalOpen,
-    isRatingModalOpen,
-    openCannotCompleteModal,
-    openCourseCompletedModal,
-  } = useCourseCompletionFlow({
-    courseId,
-    enrollmentId: courseEnrollmentId,
-    organizationId: courseOrganizationId,
-    courseSlug: slug,
-    onCertificateReady: handleCertificateReady,
-  })
-
-  const handleTabChange = useCallback(
-    async (newTab: LearnTab) => {
-      if (
-        newTab === 'activities' &&
-        currentLesson &&
-        !isLessonVideoCompleted(currentLesson)
-      ) {
-        trackUserAction('attempted_activities_access_before_video_completed', {
-          lessonId: currentLesson.lesson_id,
-          lessonTitle: currentLesson.lesson_title,
-        })
-        openValidationModal({
-          title: 'Finaliza el video para continuar',
-          message:
-            'Por favor, finaliza el video antes de continuar con las actividades.',
-          type: 'video',
-          lessonId: currentLesson.lesson_id,
-          redirectTab: 'video',
-        })
-        return
-      }
-
-      await handleBaseTabChange(newTab)
-    },
-    [currentLesson, handleBaseTabChange, openValidationModal, trackUserAction],
-  )
-
-  const {
-    getPreviousLesson,
-    getNextLesson,
-    handleLessonChange,
-    navigateToPreviousLesson,
-    navigateToNextLesson,
-    openLessonById,
-  } = useLessonNavigation({
-    orderedLessons,
-    modules,
-    currentLesson,
-    lessonsActivities,
-    lessonsMaterials,
-    setCurrentLesson,
-    setActiveTab,
-    markLessonAsCompleted,
-    loadLessonActivitiesAndMaterials,
-    openValidationModal,
-    trackUserAction,
-    videoPlayerContext,
-  })
-
-  const completeCurrentCourse = useCallback(async () => {
-    if (!currentLesson?.lesson_id) {
-      return
-    }
-
-    if (!canCompleteLesson(currentLesson.lesson_id)) {
-      openCannotCompleteModal()
-      return
-    }
-
-    const success = await markLessonAsCompleted(currentLesson.lesson_id)
-
-    if (success) {
-      openCourseCompletedModal()
-    }
-  }, [
-    canCompleteLesson,
-    currentLesson?.lesson_id,
-    markLessonAsCompleted,
-    openCannotCompleteModal,
-    openCourseCompletedModal,
-  ])
-
-  // Effect para transición automática tras completar video.
-  // Ubicado después de useLessonNavigation para evitar TDZ de navigateToNextLesson.
-  useEffect(() => {
-    if (!pendingVideoTransitionLessonId || !currentLesson?.lesson_id) {
-      return
-    }
-
-    if (pendingVideoTransitionLessonId !== currentLesson.lesson_id) {
-      setPendingVideoTransitionLessonId(null)
-      return
-    }
-
-    if (activeTab !== 'video') {
-      setPendingVideoTransitionLessonId(null)
-      return
-    }
-
-    const activitiesList = lessonsActivities[pendingVideoTransitionLessonId]
-
-    if (activitiesList === undefined) {
-      return
-    }
-
-    const hasPendingActivities = hasIncompleteActivities(activitiesList)
-
-    setPendingVideoTransitionLessonId(null)
-
-    if (hasPendingActivities) {
-      setActiveTab('activities')
-      return
-    }
-
-    void navigateToNextLesson()
-  }, [
-    activeTab,
-    currentLesson?.lesson_id,
-    lessonsActivities,
-    navigateToNextLesson,
-    pendingVideoTransitionLessonId,
-    setActiveTab,
-  ])
-
-  const handleSaveLiaNote = useCallback(
-    (content: string) => {
-      openLiaNoteModal(content)
-    },
-    [openLiaNoteModal],
-  )
-
-  const getLessonContext = useCallback(() => {
-    const currentActivities = currentLesson
-      ? lessonsActivities[currentLesson.lesson_id]
-      : undefined
-    const currentMaterials = currentLesson
-      ? lessonsMaterials[currentLesson.lesson_id]
-      : undefined
-    const currentQuizStatus = currentLesson
-      ? lessonsQuizStatus[currentLesson.lesson_id]
-      : undefined
-
-    return buildLearnLessonContext({
-      course,
-      currentLesson,
-      modules,
-      workshopMetadata,
-      slug,
-      userJobTitle: user?.job_title || undefined,
-      transcriptContent: liaTranscript,
-      summaryContent: liaSummary,
-      activeTab,
-      currentPage:
-        typeof window !== 'undefined' ? window.location.pathname : undefined,
-      currentActivities,
-      currentMaterials,
-      quizStatus: currentQuizStatus,
-      currentActivityPrompts,
-    })
-  }, [
-    activeTab,
-    course,
-    currentActivityPrompts,
-    currentLesson,
-    liaSummary,
-    liaTranscript,
-    lessonsActivities,
-    lessonsMaterials,
-    lessonsQuizStatus,
-    modules,
-    slug,
-    user?.job_title,
-    workshopMetadata,
-  ])
-
-  const handleWorkshopHelpAccepted = useCallback(
-    async (analysis: DifficultyAnalysis) => {
-      openLia()
-
-      const visibleUserMessage = buildWorkshopHelpMessage(analysis)
-      const behaviorAnalysis = analyzeUserBehavior()
-      const currentActivities = currentLesson
-        ? lessonsActivities[currentLesson.lesson_id] || []
-        : []
-      const lessonContext = getLessonContext()
-      const enrichedLessonContext = buildWorkshopEnrichedLessonContext({
-        lessonContext,
-        analysis,
-        behaviorAnalysis,
-        currentActivities,
-        activeTab,
-        currentLesson,
-        modules,
-        userJobTitle: user?.job_title || undefined,
-      })
-
-      if (
-        workshopMetadata &&
-        enrichedLessonContext?.contextType === 'workshop'
-      ) {
-        await sendLiaMessage(
-          visibleUserMessage,
-          undefined,
-          enrichedLessonContext,
-          true,
-        )
-        return
-      }
-
-      await sendLiaMessage(
-        visibleUserMessage,
-        enrichedLessonContext,
-        undefined,
-        true,
-      )
-    },
-    [
-      activeTab,
-      analyzeUserBehavior,
-      currentLesson,
-      getLessonContext,
-      lessonsActivities,
-      modules,
-      openLia,
-      sendLiaMessage,
-      user?.job_title,
-      workshopMetadata,
-    ],
-  )
-
-  const tabs = useMemo(
-    () => [
-      { id: 'video' as const, label: t('tabs.video'), icon: 'Play' },
-      {
-        id: 'activities' as const,
-        label: t('tabs.activities'),
-        icon: 'Activity',
-      },
-      {
-        id: 'questions' as const,
-        label: t('tabs.questions'),
-        icon: 'MessageCircle',
-      },
-    ],
-    [t],
-  )
-
-  const translationFallbackWarning = useMemo(() => {
-    const context =
-      (currentLesson
-        ? lessonTranslationContexts[currentLesson.lesson_id]
-        : null) || learnDataTranslationContext
-
-    if (!context?.usedFallback) {
-      return null
-    }
-
-    const details =
-      context.missingPieces.length > 0
-        ? context.missingPieces.join(', ')
-        : 'lesson_text'
-
-    if (selectedLang === 'en') {
-      return {
-        title: 'Some translations are missing',
-        message:
-          'This lesson is shown partially in its original language to avoid blocking your progress.',
-        details,
-      }
-    }
-
-    if (selectedLang === 'pt') {
-      return {
-        title: 'Faltam algumas traducoes',
-        message:
-          'Esta licao esta sendo exibida parcialmente no idioma original para evitar bloqueios.',
-        details,
-      }
-    }
-
-    return {
-      title: 'Faltan algunas traducciones',
-      message:
-        'Esta leccion se muestra parcialmente en su idioma original para evitar bloqueos.',
-      details,
-    }
-  }, [
-    currentLesson,
-    learnDataTranslationContext,
-    lessonTranslationContexts,
-    selectedLang,
-  ])
-
-  return {
-    slug,
-    router,
-    user,
-    colors,
-    t,
-    i18n,
-    ready,
-    selectedLang,
-    translationFallbackWarning,
-    mounted,
-    course,
-    modules,
-    currentLesson,
-    setCurrentLesson,
-    workshopMetadata,
-    learningPathState,
-    learningPathBlockState,
-    loading,
-    courseProgress,
-    liaTranscript,
-    liaSummary,
-    isLiaTranscriptLoading,
-    isLiaSummaryLoading,
-    isLiaOpen,
-    openLia,
-    closeLia,
-    sendLiaMessage,
-    handleSaveLiaNote,
-    handleVideoCompleted,
-    getLessonContext,
-    handleWorkshopHelpAccepted,
-    activeTab,
-    setActiveTab,
-    handleTabChange,
-    tabs,
-    isMobile,
-    screenHeight,
-    visualViewportHeight,
-    isMobileBottomNavVisible,
-    mobileContentPaddingBottom,
-    calculateLiaMaxHeight,
-    getInputAreaPadding,
-    swipeRef,
-    closeLeftPanel,
-    expandedLessons,
-    expandedModules,
-    isLeftPanelOpen,
-    isMaterialCollapsed,
-    isNotesCollapsed,
-    lessonsActivities,
-    lessonsMaterials,
-    lessonsQuizStatus,
-    lessonTranslationContexts,
-    loadLessonActivitiesAndMaterials,
-    openContentSection,
-    openLeftPanel,
-    openNotesSection,
-    toggleLessonExpand,
-    toggleMaterialCollapsed,
-    toggleModuleExpand,
-    toggleNotesCollapsed,
-    addNoteToLocalState,
-    closeDeleteNoteConfirm,
-    closeNotesModal,
-    confirmDeleteNote,
-    editingNote,
-    handleDeleteNote,
-    handleSaveNote,
-    isDeleteNoteConfirmOpen,
-    isDeletingNote,
-    isNotesModalOpen,
-    noteError,
-    setNoteError,
-    notesStats,
-    openEditNoteModal,
-    openNewNoteModal,
-    savedNotes,
-    updateNotesStatsOptimized,
-    getPreviousLesson,
-    getNextLesson,
-    handleLessonChange,
-    navigateToPreviousLesson,
-    navigateToNextLesson,
-    openLessonById,
-    orderedLessons,
-    currentLessonIndex,
-    canCompleteLesson,
-    completeCurrentCourse,
-    markLessonAsCompleted,
-    closeCannotCompleteModal,
-    closeRatingModal,
-    handleCourseCompletedClose,
-    handleRatingSubmit,
-    hasUserRated,
-    isCourseCompletedModalOpen,
-    isCannotCompleteModalOpen,
-    isClearHistoryModalOpen,
-    setIsClearHistoryModalOpen,
-    isRatingModalOpen,
-    openCannotCompleteModal,
-    openCourseCompletedModal,
-    validationModal,
-    setValidationModal,
-    currentActivityPrompts,
-    isPromptsCollapsed,
-    setIsPromptsCollapsed,
-    handlePromptsChange,
-    trackUserAction,
-    analyzeUserBehavior,
-    userBehaviorLog,
-  }
 }
 
 export type LearnPageLogicResult = ReturnType<typeof useLearnPageLogic>

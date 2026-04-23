@@ -1,0 +1,1 @@
+export { handleDetailedInstructorStatsRequest } from './handler'

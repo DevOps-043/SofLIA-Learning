@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "type-check": "tsc --noEmit -p tsconfig.typecheck.json",
+    "type-check:release": "tsc --noEmit -p tsconfig.release-check.json",
     "clean": "if exist .next rmdir /s /q .next && echo Cleaned .next directory || echo .next directory not found",
     "build:clean": "npm run clean && npm run build",
     "test:responsive": "playwright test",

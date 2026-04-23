@@ -114,7 +114,8 @@ export async function GET(
     }
 
     return NextResponse.json({ app })
-  } catch {
+  } catch (error) {
+    console.error('[AdminApps GET] Unhandled error', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -221,7 +222,8 @@ export async function DELETE(
     }
 
     return NextResponse.json({ success: true })
-  } catch {
+  } catch (error) {
+    console.error('[AdminApps PUT/DELETE] Unhandled error', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

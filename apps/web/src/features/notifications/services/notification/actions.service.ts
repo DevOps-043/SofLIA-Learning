@@ -76,11 +76,11 @@ export async function markNotificationAsRead(
   if (existing.status === 'read') {
     const { data } = await supabase
       .from('user_notifications')
-      .select('notification_id, user_id, type, title, message, status, priority, read_at, created_at, updated_at, expires_at, metadata, action_url')
+      .select('notification_id, user_id, notification_type, title, message, status, priority, read_at, created_at, updated_at, expires_at, metadata')
       .eq('notification_id', notificationId)
       .single()
 
-    return data as Notification
+    return data as unknown as Notification
   }
 
   const { data, error } = await supabase
@@ -99,7 +99,7 @@ export async function markNotificationAsRead(
     throw new Error(`Error al marcar como leida: ${error.message}`)
   }
 
-  return data as Notification
+  return data as unknown as Notification
 }
 
 export async function markMultipleNotificationsAsRead(
@@ -153,7 +153,7 @@ export async function archiveNotification(
     throw new Error(`Error al archivar: ${error.message}`)
   }
 
-  return data as Notification
+  return data as unknown as Notification
 }
 
 export async function deleteNotification(

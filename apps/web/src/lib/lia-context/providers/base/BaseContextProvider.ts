@@ -97,6 +97,7 @@ export abstract class BaseContextProvider {
    */
   protected sanitize(content: string): string {
     // Eliminar caracteres de control
+    // eslint-disable-next-line no-control-regex
     let sanitized = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
     // Limitar longitud excesiva
     if (sanitized.length > 10000) {

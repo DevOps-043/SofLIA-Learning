@@ -778,13 +778,12 @@ async function runAllTests() {
   if (totalFailed === 0) {
     console.log('\nðŸŽ‰ ¡TODOS LOS TESTS PASARON!');
   } else {
-    console.log(`\nâš ï¸ ${totalFailed} tests fallaron`);
+    console.log(`\n[WARN] ${totalFailed} tests fallaron`);
     process.exit(1);
   }
 }
 
 runAllTests().catch(console.error);
-
 
 
 

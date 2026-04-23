@@ -1,0 +1,1 @@
+export { handleBusinessCourseDetailRequest } from './handler'

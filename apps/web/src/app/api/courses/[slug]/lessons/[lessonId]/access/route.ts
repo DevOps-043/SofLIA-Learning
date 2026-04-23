@@ -3,10 +3,12 @@ import { createClient } from '@/lib/supabase/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function normalizeOrganizationId(value: unknown): string | null {
-  return typeof value === 'string' && value.trim().length > 0
-    ? value.trim()
-    : null;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return UUID_REGEX.test(trimmed) ? trimmed : null;
 }
 
 async function readOrganizationIdFromRequest(request: NextRequest) {
@@ -117,13 +119,18 @@ export async function POST(
       .single();
 
     if (existingProgress) {
-      // Actualizar last_accessed_at y lesson_status si es necesario
-      const updateData: Record<string, unknown> = {
+      interface LessonProgressUpdate {
+        last_accessed_at: string
+        updated_at: string
+        lesson_status?: string
+        started_at?: string
+      }
+
+      const updateData: LessonProgressUpdate = {
         last_accessed_at: now,
         updated_at: now,
       };
 
-      // Si la lección no ha sido iniciada, marcarla como in_progress
       if (existingProgress.lesson_status === 'not_started') {
         updateData.lesson_status = 'in_progress';
         updateData.started_at = now;
@@ -168,7 +175,11 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    // No retornar error, es solo tracking
+    // Lesson access tracking is fire-and-forget — never fail the client.
+    // Log so broken tracking is visible in production.
+    console.warn('[LessonAccess] Tracking failed silently', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json({ success: true });
   }
 }

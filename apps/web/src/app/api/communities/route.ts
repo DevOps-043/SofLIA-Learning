@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../lib/supabase/server';
 import { cacheHeaders } from '../../../lib/utils/cache-headers';
 import { logger } from '@/lib/utils/logger';
+import { PROFESIONALES_COMMUNITY_SLUG } from './community-policy.constants';
 
 export async function GET(request: NextRequest) {
   try {
@@ -190,7 +191,7 @@ export async function GET(request: NextRequest) {
     // Enriquecer comunidades con información del usuario
     const enrichedCommunities = filteredCommunities.map(community => {
       // Lógica especial para "Profesionales" - siempre mostrar como miembro
-      if (community.slug === 'profesionales') {
+      if (community.slug === PROFESIONALES_COMMUNITY_SLUG) {
         // Verificar si el usuario tiene ALGUNA otra membresía
         const hasOtherMembership = Array.from(membershipMap.keys()).some(
           communityId => communityId !== community.id

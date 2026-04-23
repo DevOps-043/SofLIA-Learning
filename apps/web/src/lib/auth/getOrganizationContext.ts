@@ -208,7 +208,10 @@ function extractOrgSlugFromPath(pathname: string): string | null {
  * query = addOrganizationFilter(query, orgContext.organizationId);
  * ```
  */
-export function addOrganizationFilter<T extends { eq: Function; is: Function }>(
+export function addOrganizationFilter<T extends {
+  eq: (column: string, value: string) => T
+  is: (column: string, value: null) => T
+}>(
   query: T,
   organizationId: string | null
 ): T {

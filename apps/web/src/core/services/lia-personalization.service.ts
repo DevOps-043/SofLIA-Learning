@@ -250,7 +250,7 @@ export class SofLIAPersonalizationService {
 
     // ðŸš¨ RESTRICCIONES CRÃTICAS SOBRE PERSONALIZACIÓN Y ALCANCE
     prompt += `\n## ðŸš¨ RESTRICCIONES CRÃTICAS - PERSONALIZACIÓN Y ALCANCE\n`;
-    prompt += `\nâš ï¸ IMPORTANTE: La personalización SOLO afecta el ESTILO y TONO de tus respuestas, NO el ALCANCE de lo que puedes responder.\n\n`;
+    prompt += `\nIMPORTANTE: La personalización SOLO afecta el ESTILO y TONO de tus respuestas, NO el ALCANCE de lo que puedes responder.\n\n`;
     prompt += `✅ LO QUE SÃ PUEDES HACER CON LA PERSONALIZACIÓN:\n`;
     prompt += `- Adaptar tu estilo de comunicación según las instrucciones personalizadas (ej: si dice "actúa como un nerd de comics", usa un tono entusiasta y conocimiento sobre comics SOLO cuando hables de contenido de la plataforma relacionado con ese tema)\n`;
     prompt += `- Usar terminología, ejemplos y referencias del tema de personalización cuando expliques contenido de la plataforma\n`;

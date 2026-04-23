@@ -1,0 +1,1 @@
+export { handleLiaAnalyticsRequest } from './handler'

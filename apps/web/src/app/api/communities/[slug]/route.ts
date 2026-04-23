@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '../../../../lib/supabase/server';
 import { cacheHeaders } from '../../../../lib/utils/cache-headers';
 import { logger } from '../../../../lib/utils/logger';
+import { PROFESIONALES_COMMUNITY_SLUG } from '../community-policy.constants';
 
 export async function GET(
   request: NextRequest,
@@ -106,7 +107,7 @@ export async function GET(
     let userRole = membership?.role || null;
     let canJoin = true;
     
-    if (community.slug === 'profesionales') {
+    if (community.slug === PROFESIONALES_COMMUNITY_SLUG) {
       // Verificar si el usuario tiene membresías en OTRAS comunidades (excluir Profesionales)
       const hasOtherMemberships = allMemberships && allMemberships.some(m => m.community_id !== community.id);
       
@@ -130,7 +131,7 @@ export async function GET(
     // Para "Profesionales", calcular el member_count real (solo usuarios sin otras comunidades)
     let realMemberCount = community.member_count;
 
-    if (community.slug === 'profesionales') {
+    if (community.slug === PROFESIONALES_COMMUNITY_SLUG) {
       // Obtener todos los miembros de "Profesionales"
       const { data: profMembers } = await supabase
         .from('community_members')

@@ -87,7 +87,10 @@ export async function resolveAiChatConversationId(
     if (analyticsResult.conversationId && !conversationId) {
       conversationId = analyticsResult.conversationId
     }
-  } catch {
+  } catch (error) {
+    logger.warn('resolveAiChatConversationId timed out or failed', {
+      error: error instanceof Error ? error.message : String(error),
+    })
     return conversationId || undefined
   }
 
