@@ -35,6 +35,9 @@ export function useDashboardSofLIAActionExecution({
     const payloadData = { ...data };
     delete payloadData.traceId;
     delete payloadData.userMessage;
+    const retryData = userMessage
+      ? { ...payloadData, userMessage }
+      : payloadData;
 
     setState(prev => ({ ...prev, error: null, isSending: true }));
 
@@ -104,7 +107,10 @@ export function useDashboardSofLIAActionExecution({
         timestamp: new Date(),
         actionType: action,
         actionCode: actionResult?.code,
-        actionData: actionResult?.data as Record<string, unknown> | undefined,
+        actionData: {
+          ...((actionResult?.data as Record<string, unknown> | undefined) || payloadData),
+          ...(userMessage ? { userMessage } : {}),
+        },
         actionMessage,
         actionStatus: actionStatus === 'confirmation_needed' ? 'confirmation_needed' : 'error',
         traceId: actionTraceId,
@@ -118,15 +124,14 @@ export function useDashboardSofLIAActionExecution({
     } catch (error: unknown) {
       console.error('Error ejecutando accion:', error);
 
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error al ejecutar la accion';
+      const errorMessage = getActionExecutionErrorMessage(error);
       const failedActionMessage: DashboardMessage = {
         id: `action-error-${Date.now()}`,
         role: 'assistant',
         content: errorMessage,
         timestamp: new Date(),
         actionType: action,
-        actionData: payloadData,
+        actionData: retryData,
         actionMessage: errorMessage,
         actionStatus: 'error',
         traceId,
@@ -139,4 +144,12 @@ export function useDashboardSofLIAActionExecution({
       }));
     }
   }, [userId, getState, setState, loadActivePlan]);
+}
+
+function getActionExecutionErrorMessage(error: unknown): string {
+  if (error instanceof TypeError && error.message === 'Failed to fetch') {
+    return 'No se pudo conectar con el servidor para ejecutar la acción. Revisa tu conexión o intenta nuevamente.';
+  }
+
+  return error instanceof Error ? error.message : 'Error al ejecutar la acción';
 }

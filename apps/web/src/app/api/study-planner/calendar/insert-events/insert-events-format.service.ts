@@ -1,34 +1,34 @@
 export interface LessonItem {
-  courseTitle: string;
-  lessonTitle: string;
-  lessonOrderIndex: number;
-  durationMinutes: number;
-  moduleTitle?: string;
+  courseTitle: string
+  lessonTitle: string
+  lessonOrderIndex: number
+  durationMinutes: number
+  moduleTitle?: string
 }
 
 export interface SlotDistribution {
   slot: {
-    date: string;
-    start: string;
-    end: string;
-    dayName: string;
-    durationMinutes: number;
-  };
-  lessons: LessonItem[];
+    date: string
+    start: string
+    end: string
+    dayName: string
+    durationMinutes: number
+  }
+  lessons: LessonItem[]
 }
 
 export interface InsertEventsRequest {
-  lessonDistribution: SlotDistribution[];
-  timezone: string;
-  planName?: string;
+  lessonDistribution: SlotDistribution[]
+  timezone: string
+  planName?: string
 }
 
 export interface EventToInsert {
-  title: string;
-  description: string;
-  startTime: string;
-  endTime: string;
-  timezone: string;
+  title: string
+  description: string
+  startTime: string
+  endTime: string
+  timezone: string
 }
 
 export function buildEventsToInsert(
@@ -37,9 +37,9 @@ export function buildEventsToInsert(
   planName?: string,
 ): EventToInsert[] {
   return lessonDistribution.map(({ slot, lessons }) => {
-    const lessonTitles = lessons.map((lesson) => lesson.lessonTitle).join(' | ');
-    const courseTitle = lessons[0]?.courseTitle || 'Curso';
-    const title = `ðŸ“š ${courseTitle}: ${lessonTitles}`;
+    const lessonTitles = lessons.map((lesson) => lesson.lessonTitle).join(' | ')
+    const courseTitle = lessons[0]?.courseTitle || 'Curso'
+    const title = `Plan de estudio | ${courseTitle}: ${lessonTitles}`
 
     return {
       title: title.length > 200 ? `${title.substring(0, 197)}...` : title,
@@ -47,31 +47,31 @@ export function buildEventsToInsert(
       startTime: slot.start,
       endTime: slot.end,
       timezone: timezone || 'America/Mexico_City',
-    };
-  });
+    }
+  })
 }
 
 function createEventDescription(lessons: LessonItem[], planName?: string): string {
-  const lines: string[] = [];
+  const lines: string[] = []
 
   if (planName) {
-    lines.push(`ðŸ“– Plan: ${planName}`);
-    lines.push('');
+    lines.push(`Plan: ${planName}`)
+    lines.push('')
   }
 
-  lines.push('ðŸ“š Lecciones en esta sesiÃ³n:');
+  lines.push('Lecciones en esta sesión:')
 
   for (const lesson of lessons) {
-    const moduleInfo = lesson.moduleTitle ? ` (${lesson.moduleTitle})` : '';
-    lines.push(`â€¢ ${lesson.lessonTitle}${moduleInfo} - ${lesson.durationMinutes} min`);
+    const moduleInfo = lesson.moduleTitle ? ` (${lesson.moduleTitle})` : ''
+    lines.push(`- ${lesson.lessonTitle}${moduleInfo} - ${lesson.durationMinutes} min`)
   }
 
-  const totalDuration = lessons.reduce((sum, lesson) => sum + lesson.durationMinutes, 0);
-  lines.push('');
-  lines.push(`â±ï¸ DuraciÃ³n total: ${totalDuration} minutos`);
-  lines.push('');
-  lines.push('---');
-  lines.push('Creado automÃ¡ticamente por SofLIA - Planificador de Estudios');
+  const totalDuration = lessons.reduce((sum, lesson) => sum + lesson.durationMinutes, 0)
+  lines.push('')
+  lines.push(`Duración total: ${totalDuration} minutos`)
+  lines.push('')
+  lines.push('---')
+  lines.push('Creado automáticamente por SofLIA - Planificador de Estudios')
 
-  return lines.join('\n');
+  return lines.join('\n')
 }

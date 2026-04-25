@@ -63,6 +63,7 @@ async function markSessionAsOrphaned(params: {
   }
 
   params.result.orphanedSessions.push(params.session.title)
+  params.result.orphanedSessionIds?.push(params.session.id)
 }
 
 async function restoreFutureSessionLink(params: {
@@ -120,6 +121,7 @@ export async function syncSessionsWithCalendar(
   const supabase = createAdminClient()
   const result: SyncResult = {
     deletedFromDb: [],
+    orphanedSessionIds: [],
     orphanedSessions: [],
     message: '',
   }

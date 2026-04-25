@@ -30,7 +30,7 @@ function looksLikeWorkEvent(title: string | undefined): boolean {
 export function userExplicitlyAllowsOutsideWorkBlocks(
   message: string | undefined,
 ): boolean {
-  const normalized = (message || '').toLowerCase()
+  const normalized = normalizeConsentText(message || '')
 
   const explicitConsentSignals = [
     'domingo',
@@ -56,9 +56,22 @@ export function userExplicitlyAllowsOutsideWorkBlocks(
     'usa mi domingo',
     'usa mi sabado',
     'usa mi sábado',
+    'mueve las lecciones',
+    'mover las lecciones',
+    'mueve mis lecciones',
+    'mover mis lecciones',
+    'reasigna las lecciones',
+    'reasignar las lecciones',
   ]
 
-  return explicitConsentSignals.some((signal) => normalized.includes(signal))
+  return explicitConsentSignals.some((signal) => normalized.includes(normalizeConsentText(signal)))
+}
+
+function normalizeConsentText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
 }
 
 async function hasOverlappingStudySession(params: {

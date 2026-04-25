@@ -13,6 +13,9 @@ export function StudyPlannerDashboardAssistantLauncher({
   onOpen,
 }: StudyPlannerDashboardAssistantLauncherProps) {
   const { t } = useTranslation('common');
+  const openAssistantLabel = t('studyPlanner.dashboardAssistant.openAssistant', {
+    defaultValue: 'Abrir asistente',
+  });
 
   return (
     <motion.button
@@ -21,8 +24,8 @@ export function StudyPlannerDashboardAssistantLauncher({
       exit={{ scale: 0, opacity: 0 }}
       transition={{ type: 'spring', damping: 20, stiffness: 300 }}
       onClick={onOpen}
-      className="group fixed right-4 bottom-4 z-50 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-2xl ring-4 ring-[#0A2540]/20 transition-all hover:scale-110 hover:shadow-[#0A2540]/50 active:scale-95 dark:ring-[#00D4B3]/30 dark:hover:shadow-[#00D4B3]/50"
-      title={t('studyPlanner.dashboardAssistant.openAssistant')}
+      className="group fixed right-4 bottom-4 z-50 flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-2xl ring-4 ring-primary/20 transition-all hover:scale-110 hover:shadow-primary/50 active:scale-95 dark:ring-accent/30 dark:hover:shadow-accent/50"
+      title={openAssistantLabel}
     >
       <div className="relative h-full w-full">
         <img

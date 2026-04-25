@@ -12,6 +12,7 @@ const MUTATIVE_ACTION_TYPES = new Set<ActionType>([
   'delete_calendar_event',
   'create_micro_session',
   'recover_missed_session',
+  'resync_calendar_sessions',
   'rebalance_plan',
   'reduce_session_load',
   'update_calendar_selection',
@@ -37,6 +38,7 @@ const actionTypeSchema = z.enum([
   'create_micro_session',
   'reduce_session_load',
   'recover_missed_session',
+  'resync_calendar_sessions',
   'update_calendar_selection',
   'delete_plan',
   'rebalance',
@@ -79,7 +81,8 @@ const createSessionSchema = z.object({
 })
 
 const rebalanceSchema = z.object({
-  sessionsToMove: z.array(sessionMoveSchema).min(1),
+  reason: z.string().optional(),
+  sessionsToMove: z.array(sessionMoveSchema).min(1).optional(),
 })
 
 const reduceSessionLoadSchema = z.object({
@@ -97,6 +100,10 @@ const reduceSessionLoadSchema = z.object({
 
 const updateCalendarSelectionSchema = z.object({
   selectedCalendarIds: z.array(z.string().min(1)).min(1),
+})
+
+const resyncCalendarSessionsSchema = z.object({
+  sessionIds: z.array(z.string().min(1)).min(1),
 })
 
 export function normalizeActionType(type: ActionType): ActionType {
@@ -120,10 +127,12 @@ export function defaultConfirmationMessage(action: ActionResult): string {
     case 'move_session':
     case 'recover_missed_session':
       return 'Confirma si quieres reprogramar esta sesion.'
+    case 'resync_calendar_sessions':
+      return 'Confirma si quieres recrear en Google Calendar los eventos perdidos de estas sesiones.'
     case 'update_calendar_selection':
       return 'Confirma si quieres cambiar los calendarios usados para calcular tu disponibilidad.'
     case 'rebalance_plan':
-      return 'Confirma si quieres rebalancear el plan con estos cambios.'
+      return 'Confirma si quieres redistribuir las sesiones atrasadas del plan.'
     case 'reduce_session_load':
       return 'Confirma si quieres reducir la carga de sesiones.'
     default:
@@ -147,6 +156,8 @@ function validateActionData(type: ActionType, data: Record<string, unknown>) {
       return createSessionSchema.pick({ endTime: true, startTime: true }).passthrough().safeParse(data)
     case 'recover_missed_session':
       return sessionMoveSchema.safeParse(data)
+    case 'resync_calendar_sessions':
+      return resyncCalendarSessionsSchema.safeParse(data)
     case 'rebalance_plan':
       return rebalanceSchema.safeParse(data)
     case 'reduce_session_load':
@@ -163,7 +174,7 @@ function validateActionData(type: ActionType, data: Record<string, unknown>) {
 function validationMessage(error: z.ZodError): string {
   const issue = error.issues[0]
   const path = issue?.path.length ? issue.path.join('.') : 'data'
-  return `Accion invalida: ${path} ${issue?.message || 'no es valido'}`
+  return `Acción inválida: ${path} ${issue?.message || 'no es válido'}`
 }
 
 export function parseActionTagContent(content: string): ActionResult {
@@ -215,7 +226,7 @@ export function parseActionTagContent(content: string): ActionResult {
       data: {},
       status: 'error',
       code: 'invalid_action_json',
-      message: 'No pude interpretar una accion propuesta por SofLIA.',
+      message: 'No pude interpretar una acción propuesta por SofLIA.',
       requiresConfirmation: false,
     }
   }

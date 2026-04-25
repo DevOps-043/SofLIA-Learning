@@ -90,6 +90,7 @@ export function useDashboardSofLIAState({
       const assistantMessage: DashboardMessage = buildDashboardAssistantMessage({
         idPrefix: 'assistant',
         payload: data,
+        sourceUserMessage: message,
       });
 
       setState(prev => ({

@@ -42,6 +42,7 @@ export type StudyPlannerAction =
   | 'create_micro_session'
   | 'reduce_session_load'
   | 'recover_missed_session'
+  | 'resync_calendar_sessions'
   | 'update_calendar_selection'
   | 'delete_plan';
 

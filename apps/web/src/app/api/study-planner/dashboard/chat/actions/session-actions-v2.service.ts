@@ -61,11 +61,6 @@ export async function executeMoveSessionV2(
     }
   }
 
-  const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'update', {
-    start_time: startTimeISO,
-    end_time: endTimeISO,
-  })
-
   const { error } = await supabase
     .from('study_sessions')
     .update({
@@ -82,6 +77,11 @@ export async function executeMoveSessionV2(
     return { ...action, status: 'error', message: `Error al mover la sesion: ${error.message}` }
   }
 
+  const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'update', {
+    start_time: startTimeISO,
+    end_time: endTimeISO,
+  })
+
   const calendarMsg = calendarSync.success ? ' y actualizada en tu calendario' : ''
   return { ...action, status: 'success', message: `Sesion movida correctamente${calendarMsg}` }
 }
@@ -94,8 +94,6 @@ export async function executeDeleteSessionV2(
   const supabase = createAdminClient()
   const { sessionId } = action.data as { sessionId: string }
 
-  const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'delete')
-
   const { error } = await supabase
     .from('study_sessions')
     .delete()
@@ -105,6 +103,8 @@ export async function executeDeleteSessionV2(
   if (error) {
     return { ...action, status: 'error', message: `Error al eliminar la sesion: ${error.message}` }
   }
+
+  const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'delete')
 
   const calendarMsg = calendarSync.success ? ' y eliminada de tu calendario' : ''
   return { ...action, status: 'success', message: `Sesion eliminada correctamente${calendarMsg}` }
@@ -147,11 +147,6 @@ export async function executeResizeSessionV2(
     return { ...action, status: 'error', message: placementValidation.message }
   }
 
-  const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'update', {
-    start_time: session.start_time,
-    end_time: newEndTime.toISOString(),
-  })
-
   const { error } = await supabase
     .from('study_sessions')
     .update({
@@ -164,6 +159,11 @@ export async function executeResizeSessionV2(
   if (error) {
     return { ...action, status: 'error', message: `Error al ajustar duracion: ${error.message}` }
   }
+
+  const calendarSync = await syncSessionWithCalendar(userId, sessionId, 'update', {
+    start_time: session.start_time,
+    end_time: newEndTime.toISOString(),
+  })
 
   const calendarMsg = calendarSync.success ? ' y actualizada en tu calendario' : ''
   return { ...action, status: 'success', message: `Duracion ajustada a ${newDurationMinutes} minutos${calendarMsg}` }

@@ -36,7 +36,7 @@ type SessionOrderEntry = {
 
 type OrderValidationResult = {
   valid: boolean
-  code?: 'lesson_order_violation'
+  code?: 'lesson_order_violation' | 'lesson_order_validation_failed'
   message?: string
 }
 
@@ -75,8 +75,8 @@ export function validateLessonOrderEntries(entries: SessionOrderEntry[]): OrderV
         valid: false,
         code: 'lesson_order_violation',
         message:
-          `No puedo dejar "${current.title}" antes que "${next.title}" ` +
-          'porque rompería el orden estricto de lecciones pendientes del curso.',
+          `No puedo dejar "${current.title}" antes que "${next.title}" `
+          + 'porque romper\u00eda el orden estricto de lecciones pendientes del curso.',
       }
     }
   }
@@ -98,7 +98,9 @@ export async function validateStrictLessonOrder(params: {
     .eq('plan_id', params.planId)
 
   if (error || !sessions) {
-    return { valid: true }
+    return buildValidationFailureResult(
+      'No pude validar el orden de lecciones porque no fue posible cargar las sesiones del plan.',
+    )
   }
 
   const moveOverrides = new Map(
@@ -110,21 +112,28 @@ export async function validateStrictLessonOrder(params: {
     (params.proposedCreates || []).flatMap((item) => item.lessonId ? [item.lessonId] : []),
   )
 
-  const lessonMetadata = await loadLessonMetadata(allLessonIds)
-  const completedLessonIds = await loadCompletedLessonIds(params.userId, allLessonIds)
+  const lessonMetadataResult = await loadLessonMetadata(allLessonIds)
+  if (!lessonMetadataResult.valid) {
+    return lessonMetadataResult
+  }
+
+  const completedLessonIdsResult = await loadCompletedLessonIds(params.userId, allLessonIds)
+  if (!completedLessonIdsResult.valid) {
+    return completedLessonIdsResult
+  }
 
   const entries = buildEntriesForExistingSessions({
     sessions,
-    lessonMetadata,
-    completedLessonIds,
+    lessonMetadata: lessonMetadataResult.metadata,
+    completedLessonIds: completedLessonIdsResult.completedLessonIds,
     moveOverrides,
   })
 
   for (const createProposal of params.proposedCreates || []) {
     const createEntry = buildEntryForCreateProposal({
       createProposal,
-      lessonMetadata,
-      completedLessonIds,
+      lessonMetadata: lessonMetadataResult.metadata,
+      completedLessonIds: completedLessonIdsResult.completedLessonIds,
     })
     if (createEntry) {
       entries.push(createEntry)
@@ -134,37 +143,52 @@ export async function validateStrictLessonOrder(params: {
   return validateLessonOrderEntries(entries)
 }
 
-async function loadLessonMetadata(lessonIds: string[]): Promise<Map<string, PendingLessonRef>> {
+async function loadLessonMetadata(lessonIds: string[]): Promise<
+  | { valid: true; metadata: Map<string, PendingLessonRef> }
+  | OrderValidationResult
+> {
   if (lessonIds.length === 0) {
-    return new Map()
+    return { valid: true, metadata: new Map() }
   }
 
   const supabase = createAdminClient()
-  const { data: lessonRows } = await supabase
+  const { data: lessonRows, error: lessonError } = await supabase
     .from('course_lessons')
     .select('lesson_id, lesson_order_index, module_id')
     .in('lesson_id', lessonIds)
 
-  const moduleIds = Array.from(
-    new Set((lessonRows || []).map((row) => row.module_id).filter(Boolean)),
-  )
-  const { data: moduleRows } = moduleIds.length === 0
-    ? { data: [] as ModuleMetadataRow[] }
+  if (lessonError || !lessonRows) {
+    return buildValidationFailureResult(
+      'No pude validar el orden de lecciones porque falt\u00f3 metadata de lecciones.',
+    )
+  }
+
+  const moduleIds = Array.from(new Set(lessonRows.map((row) => row.module_id).filter(Boolean)))
+  const { data: moduleRows, error: moduleError } = moduleIds.length === 0
+    ? { data: [] as ModuleMetadataRow[], error: null }
     : await supabase
       .from('course_modules')
       .select('module_id, module_order_index, course_id')
       .in('module_id', moduleIds)
 
+  if (moduleError || !moduleRows) {
+    return buildValidationFailureResult(
+      'No pude validar el orden de lecciones porque falt\u00f3 metadata de m\u00f3dulos.',
+    )
+  }
+
   const moduleById = new Map<string, ModuleMetadataRow>()
-  for (const row of (moduleRows || []) as ModuleMetadataRow[]) {
+  for (const row of moduleRows as ModuleMetadataRow[]) {
     moduleById.set(row.module_id, row)
   }
 
   const metadataByLessonId = new Map<string, PendingLessonRef>()
-  for (const row of (lessonRows || []) as LessonMetadataRow[]) {
+  for (const row of lessonRows as LessonMetadataRow[]) {
     const module = moduleById.get(row.module_id)
     if (!module) {
-      continue
+      return buildValidationFailureResult(
+        'No pude validar el orden de lecciones porque algunas lecciones no tienen m\u00f3dulo asociado.',
+      )
     }
 
     metadataByLessonId.set(row.lesson_id, {
@@ -175,29 +199,41 @@ async function loadLessonMetadata(lessonIds: string[]): Promise<Map<string, Pend
     })
   }
 
-  return metadataByLessonId
+  return { valid: true, metadata: metadataByLessonId }
 }
 
 async function loadCompletedLessonIds(
   userId: string,
   lessonIds: string[],
-): Promise<Set<string>> {
+): Promise<
+  | { valid: true; completedLessonIds: Set<string> }
+  | OrderValidationResult
+> {
   if (lessonIds.length === 0) {
-    return new Set()
+    return { valid: true, completedLessonIds: new Set() }
   }
 
   const supabase = createAdminClient()
-  const { data: progressRows } = await supabase
+  const { data: progressRows, error } = await supabase
     .from('user_lesson_progress')
     .select('lesson_id, is_completed')
     .eq('user_id', userId)
     .in('lesson_id', lessonIds)
 
-  return new Set(
-    (progressRows || [])
-      .filter((row) => Boolean(row.is_completed))
-      .map((row) => row.lesson_id),
-  )
+  if (error || !progressRows) {
+    return buildValidationFailureResult(
+      'No pude validar el orden de lecciones porque no fue posible consultar el progreso del usuario.',
+    )
+  }
+
+  return {
+    valid: true,
+    completedLessonIds: new Set(
+      progressRows
+        .filter((row) => Boolean(row.is_completed))
+        .map((row) => row.lesson_id),
+    ),
+  }
 }
 
 function buildEntriesForExistingSessions(params: {
@@ -255,7 +291,7 @@ function buildEntryForCreateProposal(params: {
 
   return {
     sessionId: `new:${createProposal.lessonId}`,
-    title: createProposal.title || 'Nueva sesión',
+    title: createProposal.title || 'Nueva sesi\u00f3n',
     courseId: createProposal.courseId,
     startTime: createProposal.startTime,
     sequence: {
@@ -359,4 +395,12 @@ function compareSequence(
   }
 
   return left.lessonOrderIndex - right.lessonOrderIndex
+}
+
+function buildValidationFailureResult(message: string): OrderValidationResult {
+  return {
+    valid: false,
+    code: 'lesson_order_validation_failed',
+    message,
+  }
 }

@@ -639,6 +639,10 @@
     "calendarSelection": {
       "title": "Selecionar calendários",
       "subtitle": "Escolha quais calendários serão usados para análise de disponibilidade",
+      "modalTitle": "Configuração",
+      "planOnlyTitle": "Apenas eventos do plano",
+      "planOnlyDescription": "Oculta eventos externos no calendário",
+      "planOnlyAriaLabel": "Mostrar apenas eventos do plano",
       "selectAll": "Selecionar todos",
       "deselectAll": "Desmarcar todos",
       "save": "Salvar seleção",
@@ -685,10 +689,10 @@
       "deleting": "Excluindo..."
     },
     "dashboardAssistant": {
-      "actionCompleted": "AÃ§Ã£o concluÃ­da",
-      "actionFailed": "AÃ§Ã£o com erro",
-      "confirmationRequired": "Ã‰ necessÃ¡ria confirmaÃ§Ã£o antes de aplicar a alteraÃ§Ã£o",
-      "errorCode": "CÃ³digo",
+      "actionCompleted": "Ação concluída",
+      "actionFailed": "Ação com erro",
+      "confirmationRequired": "É necessária confirmação antes de aplicar a alteração",
+      "errorCode": "Código",
       "traceId": "Trace ID",
       "openAssistant": "Abrir assistente"
     }

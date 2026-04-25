@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { Settings, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { CalendarSelectionPanel } from '../CalendarSelection';
 
 interface StudyPlannerDashboardCalendarConfigModalProps {
@@ -21,6 +22,20 @@ export function StudyPlannerDashboardCalendarConfigModal({
   showOnlyPlanEvents,
   toggleShowOnlyPlanEvents,
 }: StudyPlannerDashboardCalendarConfigModalProps) {
+  const { t } = useTranslation('common');
+  const modalTitle = t('studyPlanner.calendarSelection.modalTitle', {
+    defaultValue: 'Configuracion',
+  });
+  const planOnlyTitle = t('studyPlanner.calendarSelection.planOnlyTitle', {
+    defaultValue: 'Solo eventos del plan',
+  });
+  const planOnlyDescription = t('studyPlanner.calendarSelection.planOnlyDescription', {
+    defaultValue: 'Oculta eventos externos en el calendario',
+  });
+  const planOnlyAriaLabel = t('studyPlanner.calendarSelection.planOnlyAriaLabel', {
+    defaultValue: 'Mostrar solo eventos del plan',
+  });
+
   return (
     <AnimatePresence>
       {isOpen && provider && (
@@ -48,7 +63,7 @@ export function StudyPlannerDashboardCalendarConfigModal({
                     <Settings className="w-5 h-5 text-accent" />
                   </div>
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Configuracion
+                    {modalTitle}
                   </h2>
                 </div>
                 <button
@@ -63,10 +78,10 @@ export function StudyPlannerDashboardCalendarConfigModal({
                 <div className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-[#0A2540]/10 border border-gray-200 dark:border-[#6C757D]/20">
                   <div>
                     <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      Solo eventos del plan
+                      {planOnlyTitle}
                     </span>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      Oculta eventos externos en el calendario
+                      {planOnlyDescription}
                     </p>
                   </div>
                   <motion.button
@@ -78,7 +93,7 @@ export function StudyPlannerDashboardCalendarConfigModal({
                     }`}
                     role="switch"
                     aria-checked={showOnlyPlanEvents}
-                    aria-label="Mostrar solo eventos del plan"
+                    aria-label={planOnlyAriaLabel}
                     whileTap={{ scale: 0.95 }}
                   >
                     <motion.span

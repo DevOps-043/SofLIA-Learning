@@ -154,7 +154,7 @@ export function buildChangeTargetDateContext(params: PlannerMessageContextParams
   lines.push('1. MANTEN todos los horarios existentes listados arriba')
   lines.push('2. Extrae la nueva fecha limite del mensaje del usuario')
   lines.push('3. Si la nueva fecha es posterior a la anterior, puedes agregar mas horarios hasta la nueva fecha')
-  lines.push('4. Si la nueva fecha es anterior, mantÃ©n solo los horarios que esten antes de la nueva fecha')
+  lines.push('4. Si la nueva fecha es anterior, mantén solo los horarios que esten antes de la nueva fecha')
   lines.push('5. Muestra un resumen COMPLETO con TODOS los horarios (existentes + nuevos si aplica)')
   lines.push('6. ORDENA TODOS LOS HORARIOS cronologicamente')
   lines.push('7. USA EXACTAMENTE LAS LECCIONES ASIGNADAS EN CADA HORARIO EXISTENTE')
@@ -194,14 +194,14 @@ function appendCoverageVerification(
       : `Se completaran todas las ${params.savedTotalLessons} lecciones del plan.`)
   } else if (params.userType === 'b2b') {
     lines.push(
-      `**ALERTA CRITICA:** Se han asignado ${params.totalLessonsAssigned} de ${params.savedTotalLessons} lecciones. ` +
-      `Faltan ${Math.max(params.savedTotalLessons - params.totalLessonsAssigned, 0)} por asignar.`,
+      `**ALERTA CRITICA:** Se han asignado ${params.totalLessonsAssigned} de ${params.savedTotalLessons} lecciones. `
+      + `Faltan ${Math.max(params.savedTotalLessons - params.totalLessonsAssigned, 0)} por asignar.`,
     )
     lines.push('Para cumplir con los plazos organizacionales, es necesario asignar TODAS las lecciones.')
   } else {
     lines.push(
-      `Se han asignado ${params.totalLessonsAssigned} de ${params.savedTotalLessons} lecciones. ` +
-      `Faltan ${Math.max(params.savedTotalLessons - params.totalLessonsAssigned, 0)} por asignar.`,
+      `Se han asignado ${params.totalLessonsAssigned} de ${params.savedTotalLessons} lecciones. `
+      + `Faltan ${Math.max(params.savedTotalLessons - params.totalLessonsAssigned, 0)} por asignar.`,
     )
   }
 
@@ -220,8 +220,8 @@ function appendSummaryInstructions(lines: string[], totalLessonsAssigned: number
   lines.push('- Cada horario ya tiene lecciones especificas asignadas; usa exactamente esas lecciones')
   lines.push('')
   lines.push(
-    '*Genera un resumen completo con TODOS los horarios, usando exactamente las lecciones asignadas arriba en cada horario. ' +
-    'NO inventes lecciones.*',
+    '*Genera un resumen completo con TODOS los horarios, usando exactamente las lecciones asignadas arriba en cada horario. '
+    + 'NO inventes lecciones.*',
   )
 }
 

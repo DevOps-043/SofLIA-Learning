@@ -121,7 +121,7 @@ export async function POST(
 
     // Guaranteed: status === 'resolved', plan is always present.
     const resolvedPlanId = planResolution.plan!.id
-    const { context: planContext, timezone } = await getPlanContext(
+    const { context: planContext, syncResult, timezone } = await getPlanContext(
       user.id,
       resolvedPlanId,
       { traceId },
@@ -152,12 +152,14 @@ export async function POST(
     const { action, actions, cleanResponse } = extractActionTags(
       generationResult.responseText,
     )
-    const actionProposals = buildActionProposals(actions, traceId)
+    const deterministicActions = buildDeterministicActionsFromContext(syncResult)
+    const resolvedActions = actions.length > 0 ? actions : deterministicActions
+    const actionProposals = buildActionProposals(resolvedActions, traceId)
     const executedAction = await resolveDashboardChatAction(
       user.id,
       resolvedPlanId,
-      actions,
-      action,
+      resolvedActions,
+      action || deterministicActions[0] || null,
       message,
       traceId,
     )
@@ -191,4 +193,21 @@ export async function POST(
       rateLimit,
     )
   }
+}
+
+function buildDeterministicActionsFromContext(
+  syncResult: Awaited<ReturnType<typeof getPlanContext>>['syncResult'],
+) {
+  const sessionIds = syncResult?.orphanedSessionIds || []
+  if (sessionIds.length === 0) {
+    return []
+  }
+
+  return [{
+    type: 'resync_calendar_sessions' as const,
+    data: { sessionIds },
+    status: 'confirmation_needed' as const,
+    requiresConfirmation: true,
+    message: 'Confirma si quieres resincronizar estas sesiones con Google Calendar.',
+  }]
 }

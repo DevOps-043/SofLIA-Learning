@@ -42,14 +42,14 @@ describe('chat-action-validation.service', () => {
     expect(result.code).toBe('invalid_action_data')
   })
 
-  it('rejects rebalance actions without sessions to move', () => {
+  it('allows rebalance actions without explicit moves so the server can calculate them', () => {
     const result = parseActionTagContent(JSON.stringify({
       type: 'rebalance_plan',
       data: {},
     }))
 
-    expect(result.status).toBe('error')
-    expect(result.code).toBe('invalid_action_data')
+    expect(result.status).toBe('confirmation_needed')
+    expect(result.requiresConfirmation).toBe(true)
   })
 
   it('builds human confirmation messages by action type', () => {

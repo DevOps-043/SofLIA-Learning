@@ -2,6 +2,7 @@ import { createAdminClient, syncSessionWithCalendar } from '../calendar.service'
 import { logger } from '../../../../../../lib/utils/logger'
 import type { ActionResult } from '../types'
 import { validateStrictLessonOrder } from './lesson-order-guardrails.service'
+import { calculateRebalanceCandidates } from './planning-actions-v2-rebalance-candidates.service'
 import { validatePlacementAgainstCalendarRules } from './scheduling-guardrails.service'
 import { withTimezoneOffset } from './planning-actions-v2-timezone.service'
 
@@ -12,7 +13,7 @@ export async function executeRebalancePlanV2(
   userMessage?: string,
 ): Promise<ActionResult> {
   const supabase = createAdminClient()
-  const { sessionsToMove } = (action.data || {}) as {
+  let { sessionsToMove } = (action.data || {}) as {
     sessionsToMove?: Array<{
       sessionId: string
       newStartTime: string
@@ -21,11 +22,16 @@ export async function executeRebalancePlanV2(
   }
 
   if (!sessionsToMove || sessionsToMove.length === 0) {
-    return {
-      ...action,
-      status: 'error',
-      message: 'No se especificaron sesiones para rebalancear de forma segura.',
+    const calculated = await calculateRebalanceCandidates({ userId, planId, supabase })
+    if ('error' in calculated) {
+      return {
+        ...action,
+        status: 'error',
+        message: calculated.error,
+      }
     }
+
+    sessionsToMove = calculated.sessionsToMove
   }
 
   const orderValidation = await validateStrictLessonOrder({
@@ -84,9 +90,11 @@ export async function executeRebalancePlanV2(
         start_time: startTimeISO,
         end_time: endTimeISO,
         duration_minutes: durationMinutes,
+        status: 'planned',
       })
       .eq('id', sessionMove.sessionId)
       .eq('plan_id', planId)
+      .eq('user_id', userId)
 
     if (error) {
       results.push({ sessionId: sessionMove.sessionId, success: false })
@@ -109,7 +117,7 @@ export async function executeRebalancePlanV2(
     status: successCount > 0 ? 'success' : 'error',
     message:
       successCount > 0
-        ? `Plan rebalanceado: ${successCount}/${sessionsToMove.length} sesiones reprogramadas sin violar las reglas del calendario ni el orden pedagógico.`
+        ? `Plan redistribuido: ${successCount}/${sessionsToMove.length} sesiones reprogramadas sin violar las reglas del calendario ni el orden pedagógico.`
         : 'No se pudieron reprogramar las sesiones sin violar las reglas de trabajo/calendario.',
     data: { results, sessionsRebalanced: successCount },
   }

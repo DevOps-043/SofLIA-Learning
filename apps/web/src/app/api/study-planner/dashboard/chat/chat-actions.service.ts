@@ -5,6 +5,7 @@ import {
   executeListCalendarEvents,
   executeMoveCalendarEvent,
 } from './actions/calendar-actions.service'
+import { executeResyncCalendarSessions } from './actions/calendar-resync-actions.service'
 import {
   executeCreateMicroSessionV2,
   executeDeletePlan,
@@ -108,6 +109,8 @@ export async function executeDashboardAction(
       return executeCreateMicroSessionV2(userId, planId, resolvedAction, userMessage)
     case 'recover_missed_session':
       return executeRecoverMissedSessionV2(userId, planId, resolvedAction, userMessage)
+    case 'resync_calendar_sessions':
+      return executeResyncCalendarSessions(userId, planId, resolvedAction)
     case 'rebalance_plan':
       return executeRebalancePlanV2(userId, planId, resolvedAction, userMessage)
     case 'reduce_session_load':

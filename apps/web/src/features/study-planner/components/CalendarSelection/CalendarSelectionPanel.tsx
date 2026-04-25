@@ -40,11 +40,31 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
     }
   };
 
+  const text = {
+    refreshing: t('studyPlanner.calendarSelection.refreshing', { defaultValue: 'Actualizando...' }),
+    title: t('studyPlanner.calendarSelection.title', { defaultValue: 'Seleccionar calendarios' }),
+    subtitle: t('studyPlanner.calendarSelection.subtitle', {
+      defaultValue: 'Elige que calendarios se usaran para analizar tu disponibilidad',
+    }),
+    refresh: t('studyPlanner.calendarSelection.refresh', { defaultValue: 'Actualizar' }),
+    staleWarning: t('studyPlanner.calendarSelection.staleWarning', {
+      defaultValue: 'Algunos calendarios seleccionados ya no existen y fueron removidos',
+    }),
+    noCalendarsFound: t('studyPlanner.calendarSelection.noCalendarsFound', {
+      defaultValue: 'No se encontraron calendarios',
+    }),
+    selectAll: t('studyPlanner.calendarSelection.selectAll', { defaultValue: 'Seleccionar todos' }),
+    deselectAll: t('studyPlanner.calendarSelection.deselectAll', { defaultValue: 'Deseleccionar todos' }),
+    saving: t('studyPlanner.calendarSelection.saving', { defaultValue: 'Guardando...' }),
+    saved: t('studyPlanner.calendarSelection.saved', { defaultValue: 'Seleccion guardada' }),
+    save: t('studyPlanner.calendarSelection.save', { defaultValue: 'Guardar seleccion' }),
+  };
+
   if (isLoading && calendars.length === 0) {
     return (
       <div className="p-4 flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
         <RefreshCw className="w-4 h-4 animate-spin" />
-        <span className="text-sm">{t('studyPlanner.calendarSelection.refreshing')}</span>
+        <span className="text-sm">{text.refreshing}</span>
       </div>
     );
   }
@@ -55,17 +75,17 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-sm font-medium text-gray-900 dark:text-white">
-            {t('studyPlanner.calendarSelection.title')}
+            {text.title}
           </h4>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            {t('studyPlanner.calendarSelection.subtitle')}
+            {text.subtitle}
           </p>
         </div>
         <button
           onClick={fetchCalendars}
           disabled={isLoading}
           className="p-1.5 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
-          title={t('studyPlanner.calendarSelection.refresh')}
+          title={text.refresh}
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
         </button>
@@ -81,7 +101,7 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
             className="flex items-start gap-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-xs"
           >
             <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-            <span>{t('studyPlanner.calendarSelection.staleWarning')}</span>
+            <span>{text.staleWarning}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -105,7 +125,7 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
       {calendars.length === 0 && !isLoading && (
         <div className="py-6 text-center text-gray-500 dark:text-gray-400">
           <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">{t('studyPlanner.calendarSelection.noCalendarsFound')}</p>
+          <p className="text-sm">{text.noCalendarsFound}</p>
         </div>
       )}
 
@@ -118,14 +138,14 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
               onClick={selectAll}
               className="text-accent hover:underline"
             >
-              {t('studyPlanner.calendarSelection.selectAll')}
+              {text.selectAll}
             </button>
             <span className="text-gray-300 dark:text-gray-600">|</span>
             <button
               onClick={deselectAll}
               className="text-gray-500 dark:text-gray-400 hover:underline"
             >
-              {t('studyPlanner.calendarSelection.deselectAll')}
+              {text.deselectAll}
             </button>
           </div>
 
@@ -156,15 +176,15 @@ export function CalendarSelectionPanel({ provider, onSaveSuccess }: CalendarSele
             {isSaving ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                {t('studyPlanner.calendarSelection.saving')}
+                {text.saving}
               </>
             ) : !hasChanges ? (
               <>
                 <Check className="w-4 h-4" />
-                {t('studyPlanner.calendarSelection.saved')}
+                {text.saved}
               </>
             ) : (
-              t('studyPlanner.calendarSelection.save')
+              text.save
             )}
           </button>
         </>

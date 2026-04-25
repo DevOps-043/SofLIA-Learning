@@ -32,6 +32,21 @@ export function StudyPlannerDashboardAssistantMessage({
   onExecuteAction,
 }: StudyPlannerDashboardAssistantMessageProps) {
   const { t } = useTranslation('common');
+  const text = {
+    actionCompleted: t('studyPlanner.dashboardAssistant.actionCompleted', {
+      defaultValue: 'Acción completada',
+    }),
+    confirmationRequired: t('studyPlanner.dashboardAssistant.confirmationRequired', {
+      defaultValue: 'Se requiere confirmación antes de aplicar el cambio',
+    }),
+    actionFailed: t('studyPlanner.dashboardAssistant.actionFailed', {
+      defaultValue: 'Acción con error',
+    }),
+    errorCode: t('studyPlanner.dashboardAssistant.errorCode', { defaultValue: 'Código' }),
+    traceId: t('studyPlanner.dashboardAssistant.traceId', { defaultValue: 'Trace ID' }),
+    confirm: t('actions.confirm', { defaultValue: 'Confirmar' }),
+    retry: t('actions.retry', { defaultValue: 'Reintentar' }),
+  };
   const isUser = message.role === 'user';
   const canConfirm = !isUser && message.actionStatus === 'confirmation_needed' && !!message.actionType;
   const canRetry = !isUser && canRetryAction(message);
@@ -68,8 +83,8 @@ export function StudyPlannerDashboardAssistantMessage({
       <div
         className={`max-w-[85%] px-4 py-3 ${
           isUser
-            ? 'rounded-[16px_16px_4px_16px] bg-[#0A2540] text-white dark:bg-[#0A2540]'
-            : 'rounded-[16px_16px_16px_4px] bg-gray-100 text-gray-900 dark:bg-[#1e2a35] dark:text-white'
+            ? 'rounded-[16px_16px_4px_16px] bg-primary text-white dark:bg-primary'
+            : 'rounded-[16px_16px_16px_4px] bg-gray-100 text-gray-900 dark:bg-carbon-800 dark:text-white'
         }`}
       >
         <div className="m-0 whitespace-pre-wrap text-sm leading-relaxed">
@@ -88,21 +103,21 @@ export function StudyPlannerDashboardAssistantMessage({
         {message.actionStatus === 'success' && (
           <div className="mt-2 flex items-center gap-1 text-xs text-green-500">
             <CheckCircle className="h-3 w-3" />
-            <span>{t('studyPlanner.dashboardAssistant.actionCompleted')}</span>
+            <span>{text.actionCompleted}</span>
           </div>
         )}
 
         {message.actionStatus === 'confirmation_needed' && (
           <div className="mt-2 flex items-center gap-1 text-xs text-amber-500">
             <AlertCircle className="h-3 w-3" />
-            <span>{t('studyPlanner.dashboardAssistant.confirmationRequired')}</span>
+            <span>{text.confirmationRequired}</span>
           </div>
         )}
 
         {message.actionStatus === 'error' && (
           <div className="mt-2 flex items-center gap-1 text-xs text-red-500">
             <XCircle className="h-3 w-3" />
-            <span>{t('studyPlanner.dashboardAssistant.actionFailed')}</span>
+            <span>{text.actionFailed}</span>
           </div>
         )}
 
@@ -110,12 +125,12 @@ export function StudyPlannerDashboardAssistantMessage({
           <div className="mt-2 space-y-1 text-[11px] text-gray-500 dark:text-gray-400">
             {message.actionCode && (
               <p className="m-0 break-all">
-                {t('studyPlanner.dashboardAssistant.errorCode')}: {message.actionCode}
+                {text.errorCode}: {message.actionCode}
               </p>
             )}
             {message.traceId && (
               <p className="m-0 break-all">
-                {t('studyPlanner.dashboardAssistant.traceId')}: {message.traceId}
+                {text.traceId}: {message.traceId}
               </p>
             )}
           </div>
@@ -135,7 +150,7 @@ export function StudyPlannerDashboardAssistantMessage({
                 ) : (
                   <CheckCircle className="h-3.5 w-3.5" />
                 )}
-                <span>{t('actions.confirm')}</span>
+                <span>{text.confirm}</span>
               </button>
             )}
 
@@ -151,7 +166,7 @@ export function StudyPlannerDashboardAssistantMessage({
                 ) : (
                   <RefreshCw className="h-3.5 w-3.5" />
                 )}
-                <span>{t('actions.retry')}</span>
+                <span>{text.retry}</span>
               </button>
             )}
           </div>

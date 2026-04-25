@@ -63,6 +63,8 @@ export async function executeRecoverMissedSessionV2(
     .from('study_sessions')
     .select('*')
     .eq('id', sessionId)
+    .eq('user_id', userId)
+    .eq('plan_id', planId)
     .single()
 
   if (getError || !originalSession) {
@@ -82,6 +84,8 @@ export async function executeRecoverMissedSessionV2(
       status: 'planned',
     })
     .eq('id', sessionId)
+    .eq('user_id', userId)
+    .eq('plan_id', planId)
 
   if (updateError) {
     logger.error('Error recuperando sesion:', updateError)

@@ -21,6 +21,7 @@ export type ActionType =
   | 'create_micro_session' // Crear sesión corta de 15-30 min para ventanas libres
   | 'reduce_session_load' // Reducir carga de días sobrecargados
   | 'recover_missed_session' // Reprogramar una sesión perdida
+  | 'resync_calendar_sessions' // Recrear eventos de calendario perdidos para sesiones del plan
   // Configuración de calendarios
   | 'update_calendar_selection' // Cambiar qué calendarios considerar para disponibilidad
   // Borrado completo del plan (sesiones + calendario + registro BD)
@@ -67,6 +68,7 @@ export interface ChatResponse {
 
 export interface SyncResult {
   deletedFromDb: string[]
+  orphanedSessionIds?: string[]
   orphanedSessions: string[]
   message: string
 }

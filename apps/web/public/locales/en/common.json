@@ -639,6 +639,10 @@
     "calendarSelection": {
       "title": "Select calendars",
       "subtitle": "Choose which calendars to use for availability analysis",
+      "modalTitle": "Settings",
+      "planOnlyTitle": "Plan events only",
+      "planOnlyDescription": "Hide external events in the calendar",
+      "planOnlyAriaLabel": "Show plan events only",
       "selectAll": "Select all",
       "deselectAll": "Deselect all",
       "save": "Save selection",

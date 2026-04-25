@@ -55,4 +55,30 @@ describe('dashboard-soflia-chat-response.service', () => {
     expect(message.actionMessage).toBe('Accion invalida');
     expect(message.traceId).toBe('trace-from-response');
   });
+
+  it('carries the source user message on confirmation actions', () => {
+    const message = buildDashboardAssistantMessage({
+      idPrefix: 'assistant',
+      sourceUserMessage: 'mueve las lecciones al fin de semana',
+      payload: {
+        action: {
+          type: 'move_session',
+          status: 'confirmation_needed',
+          data: {
+            sessionId: 'session-1',
+            newStartTime: '2026-04-26T10:00:00-06:00',
+            newEndTime: '2026-04-26T11:00:00-06:00',
+          },
+        },
+        response: 'Puedo moverla, confirma el cambio.',
+        success: true,
+      },
+    });
+
+    expect(message.actionData).toEqual(
+      expect.objectContaining({
+        userMessage: 'mueve las lecciones al fin de semana',
+      }),
+    );
+  });
 });
