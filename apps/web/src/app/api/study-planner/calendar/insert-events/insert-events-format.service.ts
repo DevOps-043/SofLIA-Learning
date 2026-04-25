@@ -1,3 +1,5 @@
+import { buildStudySessionTitleFromCourseTitle } from '../../study-session-title.utils'
+
 export interface LessonItem {
   courseTitle: string
   lessonTitle: string
@@ -37,9 +39,8 @@ export function buildEventsToInsert(
   planName?: string,
 ): EventToInsert[] {
   return lessonDistribution.map(({ slot, lessons }) => {
-    const lessonTitles = lessons.map((lesson) => lesson.lessonTitle).join(' | ')
     const courseTitle = lessons[0]?.courseTitle || 'Curso'
-    const title = `Plan de estudio | ${courseTitle}: ${lessonTitles}`
+    const title = buildStudySessionTitleFromCourseTitle(courseTitle)
 
     return {
       title: title.length > 200 ? `${title.substring(0, 197)}...` : title,

@@ -19,6 +19,11 @@ import {
   formatInvalidSessionsError,
   mapCreatedSessions,
 } from './save-plan-sessions.service'
+import {
+  findExistingStudySessionConflict,
+  findInPayloadSessionConflict,
+  formatSavePlanConflictError,
+} from './save-plan-conflicts.service'
 import type {
   CreatedStudySessionRow,
   SavePlanRequest,
@@ -139,6 +144,35 @@ export async function POST(
           error: 'No hay sesiones validas para guardar despues de la validacion.',
         },
         { status: 400 },
+      )
+    }
+
+    const inPayloadConflict = findInPayloadSessionConflict(sessionsToInsert)
+    if (inPayloadConflict) {
+      await supabase.from('study_plans').delete().eq('id', plan.id)
+      return NextResponse.json(
+        {
+          success: false,
+          error: formatSavePlanConflictError(inPayloadConflict),
+        },
+        { status: 409 },
+      )
+    }
+
+    const existingSessionConflict = await findExistingStudySessionConflict({
+      supabase,
+      userId: user.id,
+      sessions: sessionsToInsert,
+    })
+
+    if (existingSessionConflict) {
+      await supabase.from('study_plans').delete().eq('id', plan.id)
+      return NextResponse.json(
+        {
+          success: false,
+          error: formatSavePlanConflictError(existingSessionConflict),
+        },
+        { status: 409 },
       )
     }
 

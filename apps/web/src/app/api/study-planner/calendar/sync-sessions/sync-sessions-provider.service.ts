@@ -1,4 +1,5 @@
 import { CalendarIntegrationService } from '../../../../../features/study-planner/services/calendar-integration.service'
+import { resolveStudySessionTitle } from '../../study-session-title.utils'
 import type { StudySessionRecord, SyncSessionEventResult } from './sync-sessions.types'
 import {
   buildStudySessionDescription,
@@ -17,7 +18,7 @@ function buildGoogleEventPayload(
       : undefined
 
   return {
-    summary: session.title,
+    summary: resolveStudySessionTitle(session),
     description: buildStudySessionDescription(session),
     start: {
       dateTime: formatDateTimeInTimezone(startTime, timezone),
@@ -53,7 +54,7 @@ function buildMicrosoftEventPayload(
   const { startTime, endTime } = isValidSessionDateRange(session)
 
   return {
-    subject: session.title,
+    subject: resolveStudySessionTitle(session),
     body: {
       contentType: 'HTML',
       content: buildStudySessionDescription(session),

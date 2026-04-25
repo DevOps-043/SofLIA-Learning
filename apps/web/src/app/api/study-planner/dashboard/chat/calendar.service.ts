@@ -4,6 +4,7 @@
  */
 
 import { logger } from '../../../../../lib/utils/logger'
+import { resolveStudySessionTitle } from '../../study-session-title.utils'
 import {
   createAdminClient,
   createLegacyAdminClient,
@@ -147,7 +148,7 @@ export async function syncSessionWithCalendar(
         accessToken,
         resolvedEventId,
         {
-          title: session.title,
+          title: resolveStudySessionTitle(session),
           description: session.description || '',
           start_time: newData.start_time,
           end_time: newData.end_time,
@@ -169,7 +170,7 @@ export async function syncSessionWithCalendar(
     const eventId = await createGoogleCalendarEvent(
       accessToken,
       {
-        title: session.title,
+        title: resolveStudySessionTitle(session),
         description: session.description || '',
         start_time: newData.start_time,
         end_time: newData.end_time,

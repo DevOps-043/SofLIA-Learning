@@ -91,5 +91,7 @@ describe('buildStudyPlanPayload', () => {
     expect(payload.planConfig.courseIds).toEqual(['course-1'])
     expect(payload.planConfig.organizationId).toBe('org-board')
     expect(payload.sessions[0].courseId).toBe('course-1')
+    expect(payload.sessions[0].title).toBe('Sesión de estudio de Metodo Challenger')
+    expect(payload.sessions[0].description).toBe('1. Intro')
   })
 })

@@ -1,4 +1,5 @@
 import { logger } from '../../../../../lib/utils/logger'
+import { resolveStudySessionTitle } from '../../study-session-title.utils'
 import {
   createAdminClient,
   createGoogleCalendarEvent,
@@ -82,7 +83,7 @@ async function restoreFutureSessionLink(params: {
   const eventId = await createGoogleCalendarEvent(
     params.accessToken,
     {
-      title: params.session.title,
+      title: resolveStudySessionTitle(params.session),
       start_time: params.session.start_time,
       end_time: params.session.end_time,
       description: '',

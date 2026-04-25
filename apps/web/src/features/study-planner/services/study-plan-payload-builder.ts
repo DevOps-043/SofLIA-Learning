@@ -86,24 +86,11 @@ function resolveSessionPreferences(studyApproach: StudyApproach | null) {
   return { preferredSessionType: 'medium' as const, minSessionMinutes: 45, maxSessionMinutes: 60, breakDurationMinutes: 10 };
 }
 
-function buildSessionTitle(lessons: StudyPlannerScheduledLesson[]): string {
-  const valid = lessons.filter((l) => l.lessonTitle && l.lessonTitle.trim() !== '');
-  if (valid.length === 0) return 'Sesion de estudio';
-  if (valid.length === 1) {
-    return valid[0].lessonTitle.trim()
-      .replace(/^(?:curso|leccion|tema|modulo|clase|sesion|capitulo|taller)\s*[^:]*:\s*/i, '')
-      || 'Sesion de estudio';
-  }
-  if (valid.length === 2) {
-    const combined = `${valid[0].lessonTitle.trim()} y ${valid[1].lessonTitle.trim()}`;
-    return combined.length > 100
-      ? `${valid[0].lessonTitle.trim().slice(0, 50)}... y ${valid[1].lessonTitle.trim().slice(0, 40)}...`
-      : combined;
-  }
-  const first = valid[0].lessonTitle.trim();
-  return first.length > 60
-    ? `${first.slice(0, 60)}... y ${valid.length - 1} mas`
-    : `${first} y ${valid.length - 1} mas`;
+function buildSessionTitle(courseTitle: string): string {
+  const normalizedCourseTitle = courseTitle.trim();
+  return normalizedCourseTitle
+    ? `Sesión de estudio de ${normalizedCourseTitle}`
+    : 'Sesión de estudio';
 }
 
 function buildSessionDescription(lessons: StudyPlannerScheduledLesson[]): string {
@@ -190,7 +177,7 @@ export function buildStudyPlanPayload(params: BuildStudyPlanPayloadParams): Stud
 
     return {
       clientReferenceId: slot.clientReferenceId,
-      title: buildSessionTitle(slot.lessons),
+      title: buildSessionTitle(courseTitle),
       description: buildSessionDescription(slot.lessons),
       courseId: resolvedCourseId,
       lessonId: firstLesson?.lessonId ?? undefined,

@@ -2,9 +2,11 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import {
   normalizeExternalEventId,
 } from './calendar-events.utils'
+import { resolveStudySessionTitle } from '../../study-session-title.utils'
 import type {
   CalendarIntegrationRecord,
   CalendarProvider,
+  ExternalCalendarEvent,
 } from './calendar-events.types'
 
 type CalendarAdminClient = ReturnType<typeof createAdminClient>
@@ -22,6 +24,18 @@ interface StudySessionExternalEventRow {
 interface UserCalendarEventRow {
   google_event_id?: string | null
   microsoft_event_id?: string | null
+}
+
+interface StudySessionCalendarEventRow {
+  id: string
+  plan_id: string | null
+  title: string | null
+  description: string | null
+  start_time: string
+  end_time: string
+  status: string | null
+  external_event_id: string | null
+  metrics?: unknown
 }
 
 const CALENDAR_INTEGRATION_SELECT = `
@@ -110,4 +124,33 @@ export async function getOrphanedCalendarEventIds(
       )
       .filter((eventId: string) => Boolean(eventId) && !activeEventIds.has(eventId)),
   )
+}
+
+export async function getStudySessionCalendarEvents(
+  supabase: CalendarAdminClient,
+  userId: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<ExternalCalendarEvent[]> {
+  const { data } = await supabase
+    .from('study_sessions')
+    .select('id, plan_id, title, description, start_time, end_time, status, external_event_id, metrics')
+    .eq('user_id', userId)
+    .lt('start_time', endDate.toISOString())
+    .gt('end_time', startDate.toISOString())
+
+  return ((data || []) as StudySessionCalendarEventRow[])
+    .filter((session) => !['cancelled', 'canceled', 'deleted'].includes(session.status || ''))
+    .map((session) => ({
+      id: `study-session:${session.id}`,
+      title: resolveStudySessionTitle(session),
+      description: session.description || '',
+      start: session.start_time,
+      end: session.end_time,
+      location: '',
+      status: session.status || 'planned',
+      isAllDay: false,
+      linkedStudySessionId: session.id,
+      linkedStudyPlanId: session.plan_id || undefined,
+    }))
 }
