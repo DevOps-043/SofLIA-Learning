@@ -51,6 +51,7 @@ export interface StudyPlannerCalendarEventLike {
   summary?: string;
   description?: string;
   isAllDay?: boolean;
+  status?: string;
 }
 
 export interface StudyPlannerCalendarDayData {
@@ -83,6 +84,7 @@ export interface StudyPlannerCalendarDayAnalysis {
   totalBusyMinutes: number;
   totalFreeMinutes: number;
   heavyEvents: StudyPlannerCalendarHeavyEvent[];
+  hasWorkBlock?: boolean;
   requiresRestAfter: boolean;
   restReason: string | null;
 }

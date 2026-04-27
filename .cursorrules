@@ -1,7 +1,7 @@
-# Especificaciones del Proyecto - Aprende y Aplica
+# Especificaciones del Proyecto - SofLIA Learning
 
 ## 📋 Información General
-- **Nombre del Proyecto**: Aprende y Aplica
+- **Nombre del Proyecto**: SofLIA Learning
 - **Tipo**: Aplicación web full-stack
 - **Arquitectura**: Monorepo con Next.js (frontend) y Node.js/Express (backend)
 - **Base de datos**: Supabase

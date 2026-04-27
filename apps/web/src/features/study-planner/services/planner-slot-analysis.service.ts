@@ -156,7 +156,7 @@ export function analyzeStudyPlannerSlotCalendar(
       const freeSlots = day.workBlockEvents.length > 0
         ? buildWorkBlockFreeSlots(day.date, day.workBlockEvents, merged, input.currentTime)
         : merged.length === 0 ? buildCompletelyFreeDaySlots(day.date, input.currentTime) : buildBusyDayFreeSlots(day.date, merged, input.currentTime);
-      return { date: day.date, dateStr: day.dateStr, dayName: day.dayName, events: day.events, busySlots: merged, freeSlots, totalBusyMinutes, totalFreeMinutes: freeSlots.reduce((s, sl) => s + sl.durationMinutes, 0), heavyEvents: day.heavyEvents, requiresRestAfter: day.requiresRestAfter, restReason: day.restReason };
+      return { date: day.date, dateStr: day.dateStr, dayName: day.dayName, events: day.events, busySlots: merged, freeSlots, totalBusyMinutes, totalFreeMinutes: freeSlots.reduce((s, sl) => s + sl.durationMinutes, 0), heavyEvents: day.heavyEvents, hasWorkBlock: day.workBlockEvents.length > 0, requiresRestAfter: day.requiresRestAfter, restReason: day.restReason };
     });
 
   const calendarDataToSave = daysAnalysis.reduce<StudyPlannerCalendarDataMap>((acc, day) => {

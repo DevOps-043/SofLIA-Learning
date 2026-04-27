@@ -18,13 +18,29 @@ const TIME_MAP: Record<string, string> = {
   mañana: '08:00', manana: '08:00', tarde: '14:00', noche: '20:00',
 };
 
+function isSundayDateKey(dateKey: string): boolean {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return new Date(year, month - 1, day).getDay() === 0;
+}
+
+function hasSundayWorkBlock(prefs: Preferences): boolean {
+  const startTimes = prefs.calendarStartTimesByDay || {};
+  const endTimes = prefs.calendarEndTimesByDay || {};
+
+  return Object.keys(startTimes).some((dateKey) =>
+    Boolean(endTimes[dateKey] && isSundayDateKey(dateKey)),
+  );
+}
+
 export function generateTimeSlots(prefs: Preferences, minSlotsNeeded: number): GeneratedTimeSlot[] {
   const slots: GeneratedTimeSlot[] = [];
   const start = new Date(prefs.startDate || new Date());
+  const allowSunday = Boolean(prefs.allowSunday || hasSundayWorkBlock(prefs));
 
   const targetDays = prefs.days
     .map((d) => DAY_MAP[d.toLowerCase().trim()])
-    .filter((d) => d !== undefined);
+    .filter((d) => d !== undefined)
+    .filter((d) => d !== 0 || allowSunday);
   if (targetDays.length === 0) targetDays.push(1, 2, 3, 4, 5);
 
   const fallbackTimes = prefs.times.map((t) => ({

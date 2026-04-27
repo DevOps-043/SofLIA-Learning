@@ -17,6 +17,9 @@ import {
 } from '../../../core/reporting/report-problem.contract';
 import { buildLiaImageAttachment } from '../../../core/reporting/report-problem.client';
 import { copyTextToClipboard } from '../../../lib/clipboard';
+import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
+import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
+import type { LessonSuggestionsActivityFocus } from '../../../app/api/lia/lesson-suggestions/lesson-suggestions.types';
 
 // Tipos necesarios
 interface CourseLiaProps {
@@ -255,6 +258,52 @@ function CourseLiaPanelContent({
 
   const liaChat = useLiaCourseChat(initialMessage);
   const { messages, isLoading, sendMessage, stop, clearHistory } = liaChat;
+
+  const suggestionActivityFocus = useMemo<
+    LessonSuggestionsActivityFocus | undefined
+  >(() => {
+    if (!currentActivity?.title || !currentActivity.type) {
+      return undefined;
+    }
+
+    return {
+      title: currentActivity.title,
+      type: currentActivity.type,
+      description: currentActivity.description || undefined,
+    };
+  }, [currentActivity]);
+
+  const resolvedLessonId = resolvedLessonContext?.lessonId;
+  const resolvedCourseSlug = resolvedLessonContext?.courseSlug;
+
+  const {
+    suggestions: lessonSuggestions,
+    isLoading: isLoadingSuggestions,
+    markUsed: markSuggestionUsed,
+    reset: resetSuggestions,
+  } = useLessonChatSuggestions({
+    lessonId: resolvedLessonId,
+    courseSlug: resolvedCourseSlug,
+    enabled: isOpen && Boolean(resolvedLessonId && resolvedCourseSlug),
+    activityFocus: suggestionActivityFocus,
+  });
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetSuggestions();
+    }
+  }, [isOpen, resetSuggestions]);
+
+  const handleSuggestionClick = useCallback(
+    (suggestion: { id: string; text: string }) => {
+      if (isLoading) {
+        return;
+      }
+      markSuggestionUsed(suggestion.id);
+      void sendMessage(suggestion.text, resolvedLessonContext);
+    },
+    [isLoading, markSuggestionUsed, resolvedLessonContext, sendMessage],
+  );
 
   // Registrar esta instancia en el contexto para acceso global (modales, etc.)
   useEffect(() => {
@@ -652,6 +701,20 @@ function CourseLiaPanelContent({
             )}
             <div ref={messagesEndRef} />
           </div>
+
+          <ChatSuggestionsChips
+            suggestions={lessonSuggestions}
+            isLoading={isLoadingSuggestions}
+            isLightTheme={isLightTheme}
+            theme={{
+              accentColor: themeColors.accentColor,
+              borderColor: themeColors.borderColor,
+              inputBg: themeColors.inputBg,
+              textPrimary: themeColors.textPrimary,
+              textSecondary: themeColors.textSecondary,
+            }}
+            onSuggestionClick={handleSuggestionClick}
+          />
 
           {/* Input */}
           <div style={{ padding: isMobile ? '10px 3% 12px' : '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>

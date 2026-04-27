@@ -136,15 +136,14 @@ export function buildExpandedScheduleAcceptanceMessage(
   });
 
   const baseDays = Array.from(detectedDays);
-  const allDays = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+  const allDays = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
   const suggestedDays: string[] = [];
 
   if (!detectedDays.has('sabado')) suggestedDays.push('sabado');
-  if (!detectedDays.has('domingo')) suggestedDays.push('domingo');
 
   if (suggestedDays.length < 2) {
     const missingWeekdays = allDays.filter(
-      (day) => !detectedDays.has(day) && day !== 'sabado' && day !== 'domingo',
+      (day) => !detectedDays.has(day) && day !== 'sabado',
     );
     suggestedDays.push(...missingWeekdays.slice(0, 2 - suggestedDays.length));
   }

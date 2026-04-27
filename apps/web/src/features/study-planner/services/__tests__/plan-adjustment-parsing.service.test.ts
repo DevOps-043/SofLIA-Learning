@@ -19,6 +19,10 @@ describe('userExplicitlyAllowsOutsideWorkBlocks', () => {
   it('does not treat generic move requests as explicit consent', () => {
     expect(userExplicitlyAllowsOutsideWorkBlocks('mueve la sesion al viernes')).toBe(false);
   });
+
+  it('does not treat negative sunday mentions as explicit consent', () => {
+    expect(userExplicitlyAllowsOutsideWorkBlocks('no quiero domingo')).toBe(false);
+  });
 });
 
 describe('extractTimeChangeRequest', () => {
@@ -127,7 +131,7 @@ describe('extractDateChangeRequest', () => {
       sourceDate: '2026-04-10',
       targetDate: '2026-04-11',
       sourceDayName: 'Viernes',
-      targetDayName: 'Sabado',
+      targetDayName: 'Sábado',
     });
   });
 });

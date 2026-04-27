@@ -16,6 +16,7 @@ import {
   detectPlannerDays,
   detectPlannerTimes,
 } from './planner-chat-preferences-parser.service'
+import { userExplicitlyAllowsSunday } from './sunday-eligibility.service'
 
 export { detectExplicitSessionDuration } from './planner-chat-preferences-parser.service'
 
@@ -150,10 +151,17 @@ export async function buildDeterministicPlanContext(params: {
   resolvedCourseIds?: string[]
 }): Promise<DeterministicPlanContextResult> {
   let uniqueDays = detectPlannerDays(params.message)
+  const explicitSundayAllowed = userExplicitlyAllowsSunday(params.message)
 
   if (uniqueDays.length === 0 && params.calendarData) {
     uniqueDays = deriveWorkBlockDaysFromCalendar(params.calendarData)
   }
+
+  const hasSundayWorkBlock = params.calendarData
+    ? deriveWorkBlockDaysFromCalendar(params.calendarData).includes('domingo')
+    : false
+  const allowSunday = explicitSundayAllowed || hasSundayWorkBlock
+  uniqueDays = uniqueDays.filter((day) => day !== 'domingo' || allowSunday)
 
   if (uniqueDays.length === 0 || params.lessons.length === 0) {
     return { blockPlanGeneration: false, preCalculatedPlanContext: '' }
@@ -193,6 +201,7 @@ export async function buildDeterministicPlanContext(params: {
         calendarStartTimesByDay: calendarConstraints.calendarStartTimesByDay,
         calendarEndTimesByDay: calendarConstraints.calendarEndTimesByDay,
         availabilityMap: calendarConstraints.availabilityMap,
+        allowSunday,
       },
       deadlineDate,
       maxSessionMinutes,

@@ -7,6 +7,7 @@ import { isWorkBlock } from './calendar-availability.service';
 import type {
   StudyPlannerPlacementValidationResult,
 } from './plan-adjustment.types';
+import { canUseSunday, userExplicitlyAllowsSunday } from './sunday-eligibility.service';
 
 export { validateScheduleConflict } from './plan-adjustment-conflict.service';
 
@@ -53,8 +54,11 @@ export function normalizeDayIdentifier(value: string): string {
 export function userExplicitlyAllowsOutsideWorkBlocks(message: string): boolean {
   const normalized = normalizeDayIdentifier(message || '');
 
+  if (normalized.includes('domingo')) {
+    return userExplicitlyAllowsSunday(message);
+  }
+
   return [
-    'domingo',
     'sabado',
     'tiempo libre',
     'fuera del trabajo',
@@ -68,10 +72,7 @@ export function userExplicitlyAllowsOutsideWorkBlocks(message: string): boolean 
     'en mi descanso',
     'dia de descanso',
     'fin de semana',
-    'aunque sea domingo',
     'aunque sea sabado',
-    'puedes usar mi domingo',
-    'usa mi domingo',
     'usa mi sabado',
   ].some((signal) => normalized.includes(signal));
 }
@@ -185,6 +186,17 @@ export function validateSchedulePlacementRules(params: {
   }
 
   const dayData = savedCalendarData?.[targetSlot.dateStr];
+  if (!canUseSunday({
+    date: proposedStartTime,
+    events: dayData?.events || [],
+    userMessage,
+  })) {
+    return {
+      valid: false,
+      message: 'Solo puedo programar sesiones en domingo si tienes un bloque de trabajo ese dia o si me indicas explicitamente que quieres estudiar en domingo.',
+    };
+  }
+
   if (!dayData) {
     return { valid: true };
   }

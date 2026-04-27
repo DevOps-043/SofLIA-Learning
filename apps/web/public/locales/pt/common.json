@@ -173,6 +173,10 @@
       "recommend": "Me recomende",
       "help": "Ajuda rápida"
     },
+    "lessonSuggestions": {
+      "title": "Posso ajudar você com...",
+      "loading": "Gerando sugestões..."
+    },
     "header": {
       "title": "SofLIA",
       "subtitle": "Assistente de IA"
