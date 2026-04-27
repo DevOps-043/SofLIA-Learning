@@ -17,6 +17,7 @@ export function OrganizationRegisterField({
   onPaste,
   rightAdornment,
   helperText,
+  max,
 }: OrganizationRegisterFieldProps) {
   return (
     <div className="space-y-1.5">
@@ -49,6 +50,7 @@ export function OrganizationRegisterField({
               placeholder={placeholder}
               disabled={disabled}
               readOnly={readOnly}
+              max={max}
               onPaste={onPaste}
               className={`flex-1 w-full bg-transparent outline-none placeholder:opacity-40 transition-colors text-sm font-normal ${
                 disabled || readOnly ? 'cursor-not-allowed opacity-60' : ''

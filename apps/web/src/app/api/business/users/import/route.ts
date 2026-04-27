@@ -4,6 +4,12 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { BusinessUsersServerService } from '@/features/business-panel/services/businessUsers.server.service'
 import { createClient } from '@/lib/supabase/server'
 import bcrypt from 'bcryptjs'
+import {
+  UserDemographicsSchema,
+  normalizeDateOfBirthForStorage,
+  normalizeGenderForStorage,
+  type UserGender,
+} from '@/lib/schemas/user-demographics.schema'
 
 interface ImportResult {
   success: number
@@ -23,6 +29,8 @@ interface UserInsertData {
   type_rol: string
   organization_id: string
   password_hash: string
+  date_of_birth: string | null
+  gender: UserGender | null
 }
 
 export async function POST(request: NextRequest) {
@@ -113,10 +121,20 @@ export async function POST(request: NextRequest) {
     // Mapeo de alias para job_title
     const jobTitleAliases = ['job_title', 'cargo', 'puesto', 'rol', 'role']
     const jobTitleHeaderIndex = headers.findIndex(h => jobTitleAliases.includes(h))
+    const dateOfBirthAliases = ['date_of_birth', 'fecha_nacimiento', 'birth_date', 'dob']
+    const dateOfBirthHeaderIndex = headers.findIndex(h => dateOfBirthAliases.includes(h))
+    const genderAliases = ['gender', 'genero', 'género']
+    const genderHeaderIndex = headers.findIndex(h => genderAliases.includes(h))
 
     // Si encontramos un alias, normalizamos el header para facilitar el acceso luego
     if (jobTitleHeaderIndex !== -1) {
       headers[jobTitleHeaderIndex] = 'job_title'
+    }
+    if (dateOfBirthHeaderIndex !== -1) {
+      headers[dateOfBirthHeaderIndex] = 'date_of_birth'
+    }
+    if (genderHeaderIndex !== -1) {
+      headers[genderHeaderIndex] = 'gender'
     }
 
     const requiredFields = ['username', 'email', 'job_title'] // Agregamos job_title como requerido
@@ -242,6 +260,22 @@ export async function POST(request: NextRequest) {
           continue
         }
 
+        const demographicsResult = UserDemographicsSchema.safeParse({
+          date_of_birth: userData.date_of_birth,
+          gender: userData.gender,
+        })
+
+        if (!demographicsResult.success) {
+          result.errors.push({
+            row: i + 1,
+            error:
+              demographicsResult.error.errors[0]?.message ||
+              'Datos demograficos invalidos',
+            data: userData
+          })
+          continue
+        }
+
         // Verificar si el usuario ya existe y su estado en la organización
         const { data: existingUser } = await supabase
           .from('users')
@@ -313,7 +347,11 @@ export async function POST(request: NextRequest) {
           cargo_rol: 'Business User',
           type_rol: 'Business User',
           organization_id: organizationId,
-          password_hash: passwordHash
+          password_hash: passwordHash,
+          date_of_birth: normalizeDateOfBirthForStorage(
+            demographicsResult.data.date_of_birth,
+          ),
+          gender: normalizeGenderForStorage(demographicsResult.data.gender)
         }
 
         const { data: newUser, error: userError } = await supabase

@@ -3,6 +3,10 @@ import { z } from 'zod'
 import { logger } from '../../../lib/logger'
 import { ProfileServerService } from '../../../features/profile/services/profile-server.service'
 import { SessionService } from '../../../features/auth/services/session.service'
+import {
+  DateOfBirthSchema,
+  UserGenderSchema,
+} from '../../../lib/schemas/user-demographics.schema'
 
 const UpdateProfileSchema = z.object({
   username: z.string().min(3).max(30).regex(/^[a-zA-Z0-9_-]+$/).optional(),
@@ -16,6 +20,8 @@ const UpdateProfileSchema = z.object({
   type_rol: z.string().optional().nullable(),
   profile_picture_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
   country_code: z.string().max(10).optional().nullable(),
+  date_of_birth: DateOfBirthSchema.optional(),
+  gender: UserGenderSchema.optional(),
   curriculum_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
   linkedin_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
   github_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),

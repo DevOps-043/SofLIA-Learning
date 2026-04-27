@@ -9,19 +9,24 @@ import {
   FlagIcon,
   LockClosedIcon
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import type { TabType, NewAdminUserData } from './useAddUserFormState'
 import { RoleSelect } from './RoleSelect'
+import { USER_GENDER_VALUES } from '../../../../lib/schemas/user-demographics.schema'
 
 interface AddUserModalTabsProps {
   activeTab: TabType
   formData: NewAdminUserData
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void
   onRoleChange: (value: string) => void
   confirmPassword?: string
   onConfirmPasswordChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange, confirmPassword = '', onConfirmPasswordChange }: AddUserModalTabsProps) {
+  const { t } = useTranslation('common')
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
+
   return (
     <AnimatePresence mode="wait">
       {activeTab === 'basic' && (
@@ -121,6 +126,25 @@ export function AddUserModalTabs({ activeTab, formData, onChange, onRoleChange, 
               <label className="block text-xs font-semibold text-[#6C757D] dark:text-white/70 mb-1.5 uppercase tracking-wide">Nombre para mostrar</label>
               <input type="text" name="display_name" value={formData.display_name} onChange={onChange}
                 className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">{t('demographics.dateOfBirth')}</label>
+              <input type="date" name="date_of_birth" value={formData.date_of_birth} onChange={onChange} max={maxDateOfBirth}
+                className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-cyan-400/40 focus:border-transparent transition-all duration-200" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">{t('demographics.gender.label')}</label>
+              <select name="gender" value={formData.gender} onChange={onChange}
+                className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-cyan-400/40 focus:border-transparent transition-all duration-200">
+                <option value="">{t('demographics.gender.placeholder')}</option>
+                {USER_GENDER_VALUES.map((gender) => (
+                  <option key={gender} value={gender}>
+                    {t(`demographics.gender.options.${gender}`)}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="group">

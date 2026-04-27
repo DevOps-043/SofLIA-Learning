@@ -135,4 +135,5 @@ export const USER_NULL_UPDATE_TABLES: DeleteTableConfig[] = [
   { tableName: 'organization_zones', column: 'manager_id' },
   // organization_join_requests — reviewed_by (nullable)
   { tableName: 'organization_join_requests', column: 'reviewed_by' },
+  { tableName: 'community_access_requests', column: 'reviewed_by' },
 ]

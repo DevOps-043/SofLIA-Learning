@@ -3,6 +3,7 @@ import type {
   CreateBusinessUserRequest,
   UpdateBusinessUserRequest,
 } from '../businessUsers.service'
+import type { UserGender } from '../../../../lib/schemas/user-demographics.schema'
 
 export type OrganizationRole = NonNullable<BusinessUser['org_role']>
 export type OrganizationStatus = NonNullable<BusinessUser['org_status']>
@@ -20,6 +21,8 @@ export interface BusinessUserProfileRow {
   bio: string | null
   location: string | null
   phone: string | null
+  date_of_birth: string | null
+  gender: UserGender | null
   last_login_at: string | null
   created_at: string
   updated_at: string
@@ -56,6 +59,8 @@ export interface UserInsertRow {
   display_name: string | null
   cargo_rol: string
   password_hash: string
+  date_of_birth?: string | null
+  gender?: UserGender | null
 }
 
 export interface UserUpdateRow {
@@ -68,6 +73,8 @@ export interface UserUpdateRow {
   bio?: string
   location?: string
   phone?: string
+  date_of_birth?: string | null
+  gender?: UserGender | null
 }
 
 export interface OrganizationUserUpdateRow {

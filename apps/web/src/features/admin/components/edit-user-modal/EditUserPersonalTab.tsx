@@ -8,7 +8,9 @@ import {
   PhoneIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 import type { EditUserFormData } from './types'
+import { USER_GENDER_VALUES } from '../../../../lib/schemas/user-demographics.schema'
 
 interface EditUserPersonalTabProps {
   formData: EditUserFormData
@@ -23,6 +25,9 @@ export function EditUserPersonalTab({
   formData,
   onFieldChange,
 }: EditUserPersonalTabProps) {
+  const { t } = useTranslation('common')
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
+
   return (
     <motion.div
       key="personal"
@@ -109,6 +114,39 @@ export function EditUserPersonalTab({
             }
             className="w-full px-4 py-2.5 bg-white dark:bg-[#0A0D12] border border-[#E9ECEF] dark:border-[#6C757D]/30 rounded-xl text-[#0A2540] dark:text-white placeholder-[#6C757D] dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
           />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            {t('demographics.dateOfBirth')}
+          </label>
+          <input
+            type="date"
+            value={formData.date_of_birth}
+            max={maxDateOfBirth}
+            onChange={(e) =>
+              onFieldChange('date_of_birth', e.target.value, e.target.type)
+            }
+            className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-cyan-400/40 focus:border-transparent transition-all duration-200"
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
+            {t('demographics.gender.label')}
+          </label>
+          <select
+            value={formData.gender}
+            onChange={(e) => onFieldChange('gender', e.target.value)}
+            className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-cyan-400/40 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">{t('demographics.gender.placeholder')}</option>
+            {USER_GENDER_VALUES.map((gender) => (
+              <option key={gender} value={gender}>
+                {t(`demographics.gender.options.${gender}`)}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="group">

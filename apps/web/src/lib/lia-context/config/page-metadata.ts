@@ -793,54 +793,6 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   },
 
   // ============================================================================
-  // BUSINESS PANEL - ANALYTICS
-  // ============================================================================
-  '/[orgSlug]/business-panel/analytics': {
-    route: '/[orgSlug]/business-panel/analytics',
-    routePattern: '/{orgSlug}/business-panel/analytics',
-    pageType: 'business_panel_analytics',
-    components: [
-      {
-        name: 'BusinessAnalyticsPage',
-        path: 'apps/web/src/app/[orgSlug]/business-panel/analytics/page.tsx',
-        description: 'Página de analytics con gráficos y métricas',
-        props: [],
-        commonErrors: [
-          'Gráficos no renderizan: Error en datos',
-          'Exportación falla: Error generando archivo'
-        ]
-      }
-    ],
-    apis: [
-      {
-        endpoint: '/api/[orgSlug]/business/analytics',
-        method: 'GET',
-        description: 'Obtiene datos de analytics',
-        commonErrors: [
-          '403 Forbidden: Sin permisos',
-          '500 Internal Error: Error calculando métricas'
-        ]
-      }
-    ],
-    userFlows: [
-      {
-        name: 'Analizar progreso de usuarios',
-        steps: [
-          '1. Seleccionar rango de fechas',
-          '2. Ver gráficos de progreso',
-          '3. Filtrar por equipo o usuario',
-          '4. Exportar reporte'
-        ],
-        commonBreakpoints: [
-          'Paso 2: Gráficos vacíos',
-          'Paso 4: Error exportando'
-        ]
-      }
-    ],
-    commonIssues: []
-  },
-
-  // ============================================================================
   // BUSINESS PANEL - PROGRESS
   // ============================================================================
   '/[orgSlug]/business-panel/progress': {
@@ -888,7 +840,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
   },
 
   // ============================================================================
-  // BUSINESS PANEL - REPORTS
+  // BUSINESS PANEL - REPORTS AND ANALYTICS
   // ============================================================================
   '/[orgSlug]/business-panel/reports': {
     route: '/[orgSlug]/business-panel/reports',
@@ -896,45 +848,31 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     pageType: 'business_panel_reports',
     components: [
       {
-        name: 'BusinessReportsPage',
-        path: 'apps/web/src/app/[orgSlug]/business-panel/reports/page.tsx',
-        description: 'Generación y descarga de reportes',
+        name: 'BusinessReportsAnalytics',
+        path: 'apps/web/src/features/business-panel/components/BusinessReportsAnalytics.tsx',
+        description: 'Panel unificado nuevo para reconstruir reportes, analytics y exportaciones',
         props: [],
         commonErrors: [
-          'Reporte no genera: Error en generación',
-          'Descarga falla: Error de archivo'
+          'Vista no carga: verificar la ruta del Business Panel',
+          'Texto faltante: revisar llaves reportsAnalytics en business.json'
         ]
       }
     ],
-    apis: [
-      {
-        endpoint: '/api/[orgSlug]/business/reports',
-        method: 'POST',
-        description: 'Genera un reporte específico',
-        commonErrors: [
-          '403 Forbidden: Sin permisos',
-          '500 Internal Error: Error generando reporte'
-        ]
-      }
-    ],
+    apis: [],
     userFlows: [
       {
-        name: 'Generar reporte de progreso',
+        name: 'Abrir panel unificado',
         steps: [
-          '1. Seleccionar tipo de reporte',
-          '2. Configurar filtros y fechas',
-          '3. Generar reporte',
-          '4. Descargar archivo'
+          '1. Navegar a Reportes y Analytics en el Business Panel',
+          '2. Usar la nueva superficie unificada como base de reconstrucción'
         ],
         commonBreakpoints: [
-          'Paso 3: Error generando',
-          'Paso 4: Archivo no descarga'
+          'Paso 1: la ruta antigua de analytics debe redirigir a reports'
         ]
       }
     ],
     commonIssues: []
   },
-
   // ============================================================================
   // BUSINESS PANEL - SETTINGS
   // ============================================================================

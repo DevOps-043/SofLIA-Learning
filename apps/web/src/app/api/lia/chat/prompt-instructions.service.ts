@@ -29,7 +29,7 @@ export function buildBusinessRoutesSection(
     `- [Dashboard de Negocios](${orgPrefix}/business-panel/dashboard)\n` +
     `- [Jerarquia](${orgPrefix}/business-panel/hierarchy)\n` +
     `- [Catalogo de Cursos](${orgPrefix}/business-panel/courses)\n` +
-    `- [Analytics](${orgPrefix}/business-panel/analytics)\n` +
+    `- [Reportes y Analytics](${orgPrefix}/business-panel/reports)\n` +
     `- [Configuracion](${orgPrefix}/business-panel/settings)`;
 
   const routesPattern = new RegExp(

@@ -5,11 +5,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, Phone, Loader2, UserPlus } from 'lucide-react';
+import { Calendar, User, Mail, Phone, Loader2, UserPlus } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useTranslation } from 'react-i18next';
 import { RegisterFormData } from '../../types/auth.types';
 import { registerSchema } from './RegisterForm.schema';
 import { registerAction } from '../../actions/register';
+import { USER_GENDER_VALUES, type UserGender } from '../../../../lib/schemas/user-demographics.schema';
 import { ToastNotification } from '../../../../core/components/ToastNotification';
 import { TextInput } from '../TextInput';
 import { PasswordInput } from '../PasswordInput';
@@ -24,6 +26,7 @@ const LegalDocumentsModal = dynamic(() => import('../LegalDocumentsModal').then(
 
 export function RegisterForm() {
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [selectedCountryCode, setSelectedCountryCode] = useState('MX');
   const [dialCode, setDialCode] = useState('+52');
@@ -46,6 +49,8 @@ export function RegisterForm() {
       username: '',
       countryCode: 'MX',
       phoneNumber: '',
+      dateOfBirth: '',
+      gender: null,
       email: '',
       confirmEmail: '',
       password: '',
@@ -55,11 +60,17 @@ export function RegisterForm() {
   });
 
   const acceptTerms = watch('acceptTerms');
+  const selectedGender = watch('gender');
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10);
 
   const countryOptions: SelectOption[] = COUNTRIES.map(country => ({
     value: country.code,
     label: `${country.flag} ${country.dialCode} ${country.name}`,
     flag: country.flag,
+  }));
+  const genderOptions: SelectOption[] = USER_GENDER_VALUES.map(gender => ({
+    value: gender,
+    label: t(`demographics.gender.options.${gender}`),
   }));
 
   const handleCountryChange = (countryCode: string | number) => {
@@ -81,6 +92,8 @@ export function RegisterForm() {
       Object.entries(data).forEach(([key, value]) => {
         if (typeof value === 'boolean') {
           formData.append(key, value ? 'true' : 'false');
+        } else if (value === null || value === undefined) {
+          formData.append(key, '');
         } else {
           formData.append(key, String(value));
         }
@@ -259,6 +272,44 @@ export function RegisterForm() {
                 </div>
               </div>
             </motion.div>
+
+            <div className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[#6C757D] dark:text-white/60">
+                {t('demographics.sectionTitle')}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.48, duration: 0.4 }}
+                >
+                  <TextInput
+                    id="dateOfBirth"
+                    label={t('demographics.dateOfBirth')}
+                    icon={Calendar}
+                    error={errors.dateOfBirth?.message}
+                    type="date"
+                    max={maxDateOfBirth}
+                    {...register('dateOfBirth')}
+                  />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5, duration: 0.4 }}
+                >
+                  <SelectField
+                    value={selectedGender || ''}
+                    onChange={(value) => setValue('gender', value ? value as UserGender : null, { shouldValidate: true })}
+                    options={genderOptions}
+                    placeholder={t('demographics.gender.placeholder')}
+                    label={t('demographics.gender.label')}
+                    error={errors.gender?.message}
+                  />
+                </motion.div>
+              </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <motion.div

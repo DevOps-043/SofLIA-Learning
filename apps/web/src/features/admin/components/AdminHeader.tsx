@@ -1,12 +1,17 @@
 'use client'
 
+import { useMemo } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { Bars3Icon } from '@heroicons/react/24/outline'
-import { AdminUserDropdown } from './AdminUserDropdown'
-import { AdminNotifications } from './AdminNotifications'
-import { useAdminUser } from '../hooks/useAdminUser'
-import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
+import { Menu } from 'lucide-react'
+
 import { useThemeStore } from '@/core/stores/themeStore'
+import { useAdminUser } from '../hooks/useAdminUser'
+import { useBusinessPanelTheme } from '../../business-panel/hooks/useBusinessPanelTheme'
+import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
+import { hexToRgb } from '../../business-panel/utils/styles'
+import { AdminNotifications } from './AdminNotifications'
+import { AdminUserDropdown } from './AdminUserDropdown'
 
 interface AdminHeaderProps {
   onMenuClick: () => void
@@ -15,97 +20,97 @@ interface AdminHeaderProps {
   onToggleCollapse?: () => void
 }
 
-export function AdminHeader({ onMenuClick, title, isCollapsed, onToggleCollapse }: AdminHeaderProps) {
+export function AdminHeader({ onMenuClick, title }: AdminHeaderProps) {
   const { user, isLoading } = useAdminUser()
-  
-  // Obtener tema del usuario (light/dark)
   const { resolvedTheme } = useThemeStore()
-  const isLightTheme = resolvedTheme === 'light'
-  
-  // Colores del tema
-  const themeColors = {
-    // Fondo sólido sin transparencia/blur
-    background: isLightTheme ? '#FFFFFF' : '#0F1419',
-    borderColor: isLightTheme ? '#E2E8F0' : '#334155',
-    textPrimary: isLightTheme ? '#0A2540' : '#FFFFFF',
-    textSecondary: isLightTheme ? '#6C757D' : '#9CA3AF',
-    hoverBg: isLightTheme ? '#F1F5F9' : 'rgba(10, 37, 64, 0.2)',
-  }
+  const panelTheme = useBusinessPanelTheme()
+  const { styles, effectiveStyles } = useOrganizationStylesContext()
 
-  const sidebarWidth = isCollapsed ? 'lg:left-16' : 'lg:left-64'
+  const navbarStyle = useMemo(() => {
+    const panelStyles = effectiveStyles?.panel || styles?.panel
+    const sidebarBg = panelStyles?.sidebar_background || panelTheme.panelBg
+    const sidebarOpacity =
+      panelStyles?.sidebar_opacity !== undefined ? panelStyles.sidebar_opacity : 0.85
+    const borderColor = panelStyles?.border_color || panelTheme.borderColor
+    const textColor = panelStyles?.text_color || panelTheme.textColor
+
+    let backgroundColor = sidebarBg
+    if (sidebarBg && typeof sidebarBg === 'string' && sidebarBg.startsWith('#')) {
+      backgroundColor = `rgba(${hexToRgb(sidebarBg)}, ${sidebarOpacity})`
+    } else if (
+      sidebarBg &&
+      typeof sidebarBg === 'string' &&
+      sidebarBg.startsWith('rgba')
+    ) {
+      const rgbaMatch = sidebarBg.match(/rgba?\(([^)]+)\)/)
+      if (rgbaMatch) {
+        const parts = rgbaMatch[1].split(',')
+        if (parts.length >= 3) {
+          backgroundColor = `rgba(${parts[0]}, ${parts[1]}, ${parts[2]}, ${sidebarOpacity})`
+        }
+      }
+    }
+
+    return {
+      backgroundColor,
+      borderColor,
+      color: textColor,
+      hoverBg:
+        resolvedTheme === 'light'
+          ? 'rgba(0, 0, 0, 0.04)'
+          : 'rgba(255, 255, 255, 0.05)',
+    }
+  }, [effectiveStyles, panelTheme, resolvedTheme, styles])
 
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className={`fixed top-0 right-0 z-[40] shadow-sm border-b transition-all duration-300 ${sidebarWidth} left-0 backdrop-blur-md`}
-      style={{ 
-        backgroundColor: isLightTheme ? 'rgba(255, 255, 255, 0.8)' : 'rgba(15, 20, 25, 0.8)',
-        borderColor: themeColors.borderColor
+      className="sticky top-0 z-[999] w-full border-b backdrop-blur-xl"
+      style={{
+        backgroundColor: navbarStyle.backgroundColor,
+        borderColor: navbarStyle.borderColor,
       }}
     >
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-3 sm:h-20">
-          {/* Left side */}
-          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-            <motion.button
+      <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-12">
+        <div className="flex h-16 items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
               onClick={onMenuClick}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="lg:hidden p-2 rounded-lg transition-colors"
-              style={{ color: themeColors.textSecondary }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = themeColors.hoverBg;
-                e.currentTarget.style.color = themeColors.textPrimary;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.color = themeColors.textSecondary;
-              }}
+              className="rounded-lg p-2 transition-colors hover:opacity-80 lg:hidden"
+              style={{ color: navbarStyle.color }}
+              aria-label="Abrir menu"
             >
-              <Bars3Icon className="h-6 w-6" />
-            </motion.button>
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="hidden min-w-0 items-center gap-2 sm:flex">
-                <h1 className="truncate text-lg font-semibold" style={{ color: themeColors.textPrimary }}>
-                  {title}
-                </h1>
-              </div>
-              <div className="min-w-0 sm:hidden">
-                <h1 className="truncate text-base font-semibold" style={{ color: themeColors.textPrimary }}>
-                  {title}
-                </h1>
-              </div>
+              <Menu className="h-5 w-5" />
+            </button>
+
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Image
+                src="/Logo.png"
+                alt="SofLIA"
+                width={180}
+                height={48}
+                priority
+                className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
+              />
+              <h1
+                className="hidden min-w-0 truncate text-sm font-semibold sm:block sm:max-w-[300px] sm:text-base lg:max-w-[360px]"
+                style={{ color: navbarStyle.color }}
+              >
+                {title}
+              </h1>
             </div>
           </div>
 
-          {/* Right side */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            {/* Notifications */}
             <AdminNotifications />
 
-            {/* User Menu */}
             {isLoading ? (
-              <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-full animate-pulse" style={{ backgroundColor: isLightTheme ? '#E9ECEF' : '#1E2329' }}></div>
-                <div className="hidden md:block">
-                  <div className="w-20 h-4 rounded animate-pulse mb-1" style={{ backgroundColor: isLightTheme ? '#E9ECEF' : '#1E2329' }}></div>
-                  <div className="w-16 h-3 rounded animate-pulse" style={{ backgroundColor: isLightTheme ? '#E9ECEF' : '#1E2329' }}></div>
-                </div>
-              </div>
+              <div className="h-9 w-9 animate-pulse rounded-full" style={{ backgroundColor: panelTheme.hoverBg }} />
             ) : user ? (
               <AdminUserDropdown user={user} />
-            ) : (
-              <div className="flex items-center space-x-3">
-                <div className="w-9 h-9 rounded-full" style={{ backgroundColor: isLightTheme ? '#E9ECEF' : '#1E2329' }}></div>
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium" style={{ color: themeColors.textSecondary }}>
-                    Usuario no encontrado
-                  </p>
-                </div>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

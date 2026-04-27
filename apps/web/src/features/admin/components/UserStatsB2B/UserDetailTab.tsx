@@ -3,11 +3,13 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ChevronLeft, ChevronRight, UserCheck, Filter } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useUserDetail } from '../../hooks/useUserStatsB2B'
 import { UserProgressModal } from './UserProgressModal'
 import type { UserDetail } from './types'
 
 export function UserDetailTab() {
+  const { t } = useTranslation('common')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [orgFilter, setOrgFilter] = useState('')
@@ -38,6 +40,11 @@ export function UserDetailTab() {
     if (!date) return 'Nunca'
     return new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
   }
+
+  const formatGender = (gender: string | null) =>
+    gender
+      ? t(`demographics.gender.options.${gender}`, { defaultValue: gender })
+      : t('demographics.notSpecified')
 
   return (
     <div className="space-y-4">
@@ -77,6 +84,8 @@ export function UserDetailTab() {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Usuario</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Organización</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Rol</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('demographics.gender.label')}</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{t('demographics.age')}</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cursos</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Progreso</th>
                 <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Horas</th>
@@ -87,7 +96,7 @@ export function UserDetailTab() {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center">
+                  <td colSpan={10} className="px-4 py-12 text-center">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500" />
                     </div>
@@ -127,6 +136,8 @@ export function UserDetailTab() {
                         <span className="text-gray-500 text-sm">—</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{formatGender(user.gender)}</td>
+                    <td className="px-4 py-3 text-center text-sm text-gray-900 dark:text-white">{user.age ?? t('demographics.notSpecified')}</td>
                     <td className="px-4 py-3 text-center text-sm text-gray-900 dark:text-white">{user.coursesEnrolled}</td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -146,7 +157,7 @@ export function UserDetailTab() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
+                  <td colSpan={10} className="px-4 py-12 text-center text-gray-400">
                     No se encontraron usuarios
                   </td>
                 </tr>

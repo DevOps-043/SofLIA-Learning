@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  DateOfBirthSchema,
+  UserGenderSchema,
+} from './user-demographics.schema';
 
 /**
  * Schema para crear usuario
@@ -32,6 +36,8 @@ export const CreateUserSchema = z.object({
   phone: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),
+  date_of_birth: DateOfBirthSchema.optional(),
+  gender: UserGenderSchema.optional(),
   
   bio: z.string()
     .max(500, 'La biografía no puede exceder 500 caracteres')
@@ -75,6 +81,8 @@ export const UpdateUserSchema = z.object({
   phone: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
   country_code: z.string().optional().nullable(),
+  date_of_birth: DateOfBirthSchema.optional(),
+  gender: UserGenderSchema.optional(),
   email_verified: z.boolean().optional(),
   
   bio: z.string()

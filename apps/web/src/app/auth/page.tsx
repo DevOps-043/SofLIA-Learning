@@ -27,7 +27,7 @@ function AuthPageContent() {
   const { disableHeavy } = useMotionSafe();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-0 relative overflow-hidden bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
+    <div className="min-h-screen flex items-center justify-center p-0 relative overflow-x-hidden bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
       {/* Fondo animado con formas geométricas */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Círculos animados de fondo */}
@@ -77,8 +77,8 @@ function AuthPageContent() {
       </div>
 
       {/* Contenido principal */}
-      <div className="relative z-10 w-full min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto">
-        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="relative z-10 w-full min-h-screen flex items-start lg:items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto">
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center">
           {/* Formulario — primero en DOM → arriba en móvil, derecha en desktop */}
           <div className="w-full max-w-md mx-auto lg:max-w-lg lg:order-2">
             <Suspense fallback={

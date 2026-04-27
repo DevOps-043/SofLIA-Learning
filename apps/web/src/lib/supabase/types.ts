@@ -7601,11 +7601,13 @@ export type Database = {
           cargo_rol: string | null
           country_code: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string | null
           email: string | null
           email_verified: boolean
           email_verified_at: string | null
           first_name: string | null
+          gender: string | null
           id: string
           is_banned: boolean
           last_login_at: string | null
@@ -7634,11 +7636,13 @@ export type Database = {
           cargo_rol?: string | null
           country_code?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           email?: string | null
           email_verified?: boolean
           email_verified_at?: string | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           is_banned?: boolean
           last_login_at?: string | null
@@ -7667,11 +7671,13 @@ export type Database = {
           cargo_rol?: string | null
           country_code?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           email?: string | null
           email_verified?: boolean
           email_verified_at?: string | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           is_banned?: boolean
           last_login_at?: string | null

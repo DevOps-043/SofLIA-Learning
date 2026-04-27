@@ -12,6 +12,23 @@
     "label": "Idioma: {{language}}",
     "active": "Ativo"
   },
+  "demographics": {
+    "sectionTitle": "Dados demograficos",
+    "dateOfBirth": "Data de nascimento",
+    "age": "Idade",
+    "notSpecified": "Nao especificado",
+    "gender": {
+      "label": "Genero",
+      "placeholder": "Selecione o genero",
+      "options": {
+        "female": "Mulher",
+        "male": "Homem",
+        "non_binary": "Nao binario",
+        "other": "Outro",
+        "prefer_not_to_say": "Prefiro nao dizer"
+      }
+    }
+  },
   "media": {
     "tapToPlay": "Toque para reproduzir",
     "videoPreview": "Previa do video"

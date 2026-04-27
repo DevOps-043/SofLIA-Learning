@@ -19,14 +19,14 @@ export async function GET(
         role,
         job_title,
         users:users!organization_users_user_id_fkey (
-          username, email, first_name, last_name, display_name
+          username, email, first_name, last_name, display_name, date_of_birth, gender
         )
       `)
       .eq('organization_id', auth.organizationId)
 
     // ... (Construcción del CSV idéntica a la original)
     
-    const csvContent = '\uFEFF' + 'username,email,first_name,last_name,display_name,job_title,org_role,password\n'
+    const csvContent = '\uFEFF' + 'username,email,first_name,last_name,display_name,date_of_birth,gender,job_title,org_role,password\n'
     // (Aquí iría la lógica de mapeo de orgUsers a filas CSV)
 
     return new NextResponse(csvContent, {

@@ -192,26 +192,12 @@ Ruta base: /business-panel
   - **Paso 2**: Ver fechas sugeridas con duración estimada
   - **Paso 3**: Confirmar selección
 
-**5. REPORTES Y ANALÍTICAS (/business-panel/analytics)**
-- **Componente BusinessAnalytics**: Dashboard de métricas avanzado
-- **Secciones**:
-  - **Progreso**: Curvas de avance en el tiempo, gráficos de línea
-  - **Engagement**: Frecuencia de acceso de los usuarios, horas activas
-  - **Contenido**: Qué cursos son más populares o difíciles
-  - **Comparativas**: Rendimiento entre equipos, zonas y regiones de la jerarquía
-- **Exportación**: Posibilidad de descargar reportes en CSV/PDF
-- **Filtros**: Por fecha, equipo (de la jerarquía), zona, región, curso, usuario
+**5. REPORTES Y ANALYTICS (/business-panel/reports)**
+- Panel unificado para la nueva implementacion de reportes, metricas y exportaciones del Business Panel.
+- La ruta anterior de analytics redirige a este panel unificado.
+- El sistema anterior de reportes/analytics fue retirado para reconstruirse desde cero.
 
-**6. REPORTES (/business-panel/reports)**
-- **BusinessReports**: Generación de reportes personalizados
-- **ReportTable**: Tablas de datos exportables
-- **Tipos de reportes**:
-  - Progreso por usuario
-  - Progreso por equipo, zona y región (jerarquía)
-  - Completados por curso
-  - Engagement semanal/mensual
-
-**7. CONFIGURACIÓN (/business-panel/settings)**
+**6. CONFIGURACIÓN (/business-panel/settings)**
 - **BusinessSettings**: Panel de configuración completo
 - **Pestañas disponibles**:
   - **General**: Datos de la empresa (Nombre, Sector, Tamaño, Logo)
@@ -232,7 +218,7 @@ Ruta base: /business-panel
     - Gestión de métodos de pago
     - Historial de facturas
 
-**8. PROGRESO (/business-panel/progress)**
+**7. PROGRESO (/business-panel/progress)**
 - **BusinessTeamProgress**: Vista de progreso por equipos de la jerarquía
 - Métricas de avance visual
 - Alertas de usuarios rezagados

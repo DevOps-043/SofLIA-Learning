@@ -1,3 +1,5 @@
+import type { UserGender } from '../../../lib/schemas/user-demographics.schema'
+
 export interface BusinessUser {
   id: string
   username: string
@@ -13,6 +15,9 @@ export interface BusinessUser {
   bio?: string | null
   location?: string | null
   phone?: string | null
+  date_of_birth?: string | null
+  gender?: UserGender | null
+  age?: number | null
   points: number
   last_login_at?: string | null
   created_at: string
@@ -70,6 +75,8 @@ export interface CreateBusinessUserRequest {
   first_name?: string
   last_name?: string
   display_name?: string
+  date_of_birth?: string | null
+  gender?: UserGender | null
   job_title: string  // Antes type_rol - cargo/puesto en la organización
   org_role?: 'owner' | 'admin' | 'member'
   send_invitation?: boolean
@@ -88,6 +95,8 @@ export interface UpdateBusinessUserRequest {
   bio?: string
   location?: string
   phone?: string
+  date_of_birth?: string | null
+  gender?: UserGender | null
 }
 
 export class BusinessUsersService {

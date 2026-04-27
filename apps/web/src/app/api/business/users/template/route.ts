@@ -12,6 +12,8 @@ interface OrganizationTemplateUser {
         first_name: string | null
         last_name: string | null
         display_name: string | null
+        date_of_birth: string | null
+        gender: string | null
       }
     | Array<{
         username: string | null
@@ -19,6 +21,8 @@ interface OrganizationTemplateUser {
         first_name: string | null
         last_name: string | null
         display_name: string | null
+        date_of_birth: string | null
+        gender: string | null
       }>
     | null
 }
@@ -42,7 +46,9 @@ export async function GET() {
           email,
           first_name,
           last_name,
-          display_name
+          display_name,
+          date_of_birth,
+          gender
         )
       `)
       .eq('organization_id', auth.organizationId)
@@ -65,6 +71,8 @@ export async function GET() {
       'first_name',
       'last_name',
       'display_name',
+      'date_of_birth',
+      'gender',
       'job_title',
       'org_role',
       'password'
@@ -82,6 +90,8 @@ export async function GET() {
       const firstName = userData?.first_name || ''
       const lastName = userData?.last_name || ''
       const displayName = userData?.display_name || ''
+      const dateOfBirth = userData?.date_of_birth || ''
+      const gender = userData?.gender || ''
       const jobTitle = orgUser.job_title || ''
       const role = orgUser.role || 'member'
 
@@ -103,6 +113,8 @@ export async function GET() {
         escapeCsv(firstName),
         escapeCsv(lastName),
         escapeCsv(displayName),
+        escapeCsv(dateOfBirth),
+        escapeCsv(gender),
         escapeCsv(jobTitle),
         role,
         password

@@ -24,12 +24,9 @@ import {
 } from '@/core/layout'
 import { LessonModal } from '@/features/admin/components/LessonModal'
 import { BusinessAddUserModal } from '@/features/business-panel/components/BusinessAddUserModal'
-import { ReportTable } from '@/features/business-panel/components/ReportTable'
-import { BusinessAnalyticsUsersTable } from '@/features/business-panel/components/business-analytics/BusinessAnalyticsUsersTable'
 
 import type { ResponsiveSmokeScenarioId } from './constants'
 import {
-  smokeBusinessUsers,
   smokeMetrics,
   smokeModules,
   smokeReportColumns,
@@ -73,8 +70,8 @@ export function ResponsiveSmokeScenarioPage({
       return <AdminUsersModalScenario />
     case 'business-dashboard':
       return <BusinessDashboardScenario />
-    case 'business-reports':
-      return <BusinessReportsScenario />
+    case 'business-unified-panel':
+      return <BusinessUnifiedPanelScenario />
     case 'business-users-modal':
       return <BusinessUsersModalScenario />
     case 'instructor-course-management':
@@ -575,14 +572,15 @@ function BusinessDashboardScenario() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.8fr)]">
         <Surface
-          title="Reporte ejecutivo"
+          title="Resumen ejecutivo"
           subtitle="La tabla cambia a cards en mobile y conserva contexto."
           testId="business-dashboard-report-surface"
         >
-          <ReportTable
+          <ResponsiveDataTable
             data={smokeReportRows}
             columns={smokeReportColumns}
-            searchPlaceholder="Buscar reporte"
+            keyExtractor={(item) => item.id}
+            tableMinWidthClassName="min-w-[760px]"
           />
         </Surface>
 
@@ -593,7 +591,7 @@ function BusinessDashboardScenario() {
           <div className="space-y-3">
             {[
               'Actualizar cohortes inactivas',
-              'Revisar reportes marcados por soporte',
+              'Revisar elementos marcados por soporte',
               'Invitar nuevos lideres comerciales',
             ].map((task) => (
               <div
@@ -610,12 +608,12 @@ function BusinessDashboardScenario() {
   )
 }
 
-function BusinessReportsScenario() {
+function BusinessUnifiedPanelScenario() {
   return (
     <ScenarioCanvas
       eyebrow="Responsive Smoke"
-      title="Business Reports"
-      description="Caso aislado de la tabla react-table con metadata mobile. Se valida desktop table, card mode en mobile y ausencia de overflow lateral."
+      title="Business Unified Panel"
+      description="Caso aislado de tabla responsive con metadata mobile. Se valida desktop table, card mode en mobile y ausencia de overflow lateral."
       actions={
         <ActionButton
           icon={<LayoutDashboard className="h-4 w-4" />}
@@ -624,14 +622,15 @@ function BusinessReportsScenario() {
       }
     >
       <Surface
-        title="Reportes por area"
+        title="Vista operativa por area"
         subtitle="Las etiquetas mobile se leen sin depender del header render context."
-        testId="business-reports-surface"
+        testId="business-unified-surface"
       >
-        <ReportTable
+        <ResponsiveDataTable
           data={smokeReportRows}
           columns={smokeReportColumns}
-          searchPlaceholder="Buscar area"
+          keyExtractor={(item) => item.id}
+          tableMinWidthClassName="min-w-[760px]"
         />
       </Surface>
     </ScenarioCanvas>
@@ -657,9 +656,11 @@ function BusinessUsersModalScenario() {
           title="Adopcion por usuario"
           subtitle="La tabla se convierte en lista de cards debajo de md."
         >
-          <BusinessAnalyticsUsersTable
-            users={smokeBusinessUsers}
-            onSelectUser={() => undefined}
+          <ResponsiveDataTable
+            data={smokeUserRows}
+            columns={smokeUserColumns}
+            keyExtractor={(item) => item.id}
+            tableMinWidthClassName="min-w-[720px]"
           />
         </Surface>
       </ScenarioCanvas>
@@ -820,4 +821,3 @@ function BusinessPublicScenario() {
     </ScenarioCanvas>
   )
 }
-

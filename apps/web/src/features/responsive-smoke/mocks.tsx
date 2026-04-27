@@ -1,6 +1,4 @@
 import type { ResponsiveDataTableColumn } from '@/core/layout'
-import type { BusinessAnalyticsUser } from '@/features/business-panel/types/analytics.types'
-import type { ResponsiveReportColumnDef } from '@/features/business-panel/components/ReportTable'
 
 export interface SmokeMetric {
   id: string
@@ -228,52 +226,40 @@ export const smokeReportRows: SmokeReportRow[] = [
   },
 ]
 
-export const smokeReportColumns: ResponsiveReportColumnDef<SmokeReportRow>[] = [
+export const smokeReportColumns: ResponsiveDataTableColumn<SmokeReportRow>[] = [
   {
-    accessorKey: 'area',
     id: 'area',
     header: 'Area',
-    meta: {
-      mobileOrder: 0,
-      mobileCardTitle: true,
-    },
+    mobileOrder: 0,
+    cell: (item) => <span className="font-semibold text-[#0A2540] dark:text-white">{item.area}</span>,
   },
   {
-    accessorKey: 'owner',
     id: 'owner',
     header: 'Responsable',
-    meta: {
-      mobileOrder: 1,
-      mobileCardSubtitle: true,
-    },
+    mobileOrder: 1,
+    mobileLabel: 'Responsable',
+    cell: (item) => item.owner,
   },
   {
-    accessorKey: 'completion',
     id: 'completion',
     header: 'Avance',
-    cell: ({ getValue }) => `${getValue<number>()}%`,
-    meta: {
-      mobileOrder: 2,
-      mobileLabel: 'Avance',
-    },
+    mobileOrder: 2,
+    mobileLabel: 'Avance',
+    cell: (item) => `${item.completion}%`,
   },
   {
-    accessorKey: 'learners',
     id: 'learners',
     header: 'Usuarios',
-    meta: {
-      mobileOrder: 3,
-      mobileLabel: 'Usuarios',
-    },
+    mobileOrder: 3,
+    mobileLabel: 'Usuarios',
+    cell: (item) => item.learners.toString(),
   },
   {
-    accessorKey: 'updatedAt',
     id: 'updatedAt',
     header: 'Actualizado',
-    meta: {
-      mobileOrder: 4,
-      mobileLabel: 'Actualizado',
-    },
+    mobileOrder: 4,
+    mobileLabel: 'Actualizado',
+    cell: (item) => item.updatedAt,
   },
 ]
 
@@ -298,158 +284,5 @@ export const smokeModules: SmokeModule[] = [
     duration: '58m',
     lessons: 3,
     status: 'Borrador',
-  },
-]
-
-export const smokeBusinessUsers: BusinessAnalyticsUser[] = [
-  {
-    user_id: 'bu-1',
-    display_name: 'Jimena Ortega',
-    name: 'Jimena Ortega',
-    first_name: 'Jimena',
-    last_name: 'Ortega',
-    email: 'jimena@soflia.dev',
-    username: 'jimena.ortega',
-    role: 'admin',
-    profile_picture_url: null,
-    courses_assigned: 12,
-    courses_completed: 9,
-    average_progress: 84,
-    total_time_hours: 42,
-    total_time_minutes: 2520,
-    certificates_count: 4,
-    last_login_at: '2026-04-10T09:48:00.000Z',
-    last_active: '2026-04-10T09:48:00.000Z',
-    joined_at: '2025-06-18T12:00:00.000Z',
-    stats: {
-      current_streak: 12,
-      planner: {
-        adherence: 88,
-        total_sessions: 18,
-        completed_sessions: 16,
-        completed: 16,
-        pending: 2,
-      },
-      activity_calendar: [],
-      hourly_distribution: [2, 4, 5],
-      courses: {
-        total_lesson_time_minutes: 840,
-        lessons_completed: 28,
-        quizzes_completed: 11,
-        quizzes_passed: 10,
-        notes_count: 14,
-        breakdown: [],
-      },
-      lia: {
-        total_conversations: 24,
-        total_messages: 164,
-        user_messages: 82,
-        assistant_responses: 82,
-        contexts: {
-          ai_chat: 12,
-          course: 12,
-        },
-      },
-    },
-  },
-  {
-    user_id: 'bu-2',
-    display_name: 'Luis Padilla',
-    name: 'Luis Padilla',
-    first_name: 'Luis',
-    last_name: 'Padilla',
-    email: 'luis@soflia.dev',
-    username: 'luis.padilla',
-    role: 'member',
-    profile_picture_url: null,
-    courses_assigned: 7,
-    courses_completed: 4,
-    average_progress: 61,
-    total_time_hours: 18,
-    total_time_minutes: 1080,
-    certificates_count: 1,
-    last_login_at: '2026-04-09T17:15:00.000Z',
-    last_active: '2026-04-09T17:15:00.000Z',
-    joined_at: '2025-09-03T12:00:00.000Z',
-    stats: {
-      current_streak: 4,
-      planner: {
-        adherence: 67,
-        total_sessions: 12,
-        completed_sessions: 8,
-        completed: 8,
-        pending: 4,
-      },
-      activity_calendar: [],
-      hourly_distribution: [1, 2, 3],
-      courses: {
-        total_lesson_time_minutes: 420,
-        lessons_completed: 12,
-        quizzes_completed: 5,
-        quizzes_passed: 4,
-        notes_count: 7,
-        breakdown: [],
-      },
-      lia: {
-        total_conversations: 8,
-        total_messages: 42,
-        user_messages: 21,
-        assistant_responses: 21,
-        contexts: {
-          ai_chat: 5,
-          course: 3,
-        },
-      },
-    },
-  },
-  {
-    user_id: 'bu-3',
-    display_name: 'Paula Vera',
-    name: 'Paula Vera',
-    first_name: 'Paula',
-    last_name: 'Vera',
-    email: 'paula@soflia.dev',
-    username: 'paula.vera',
-    role: 'instructor',
-    profile_picture_url: null,
-    courses_assigned: 15,
-    courses_completed: 13,
-    average_progress: 93,
-    total_time_hours: 56,
-    total_time_minutes: 3360,
-    certificates_count: 6,
-    last_login_at: '2026-04-08T13:40:00.000Z',
-    last_active: '2026-04-08T13:40:00.000Z',
-    joined_at: '2025-04-22T12:00:00.000Z',
-    stats: {
-      current_streak: 18,
-      planner: {
-        adherence: 95,
-        total_sessions: 21,
-        completed_sessions: 20,
-        completed: 20,
-        pending: 1,
-      },
-      activity_calendar: [],
-      hourly_distribution: [5, 7, 8],
-      courses: {
-        total_lesson_time_minutes: 1180,
-        lessons_completed: 42,
-        quizzes_completed: 16,
-        quizzes_passed: 15,
-        notes_count: 22,
-        breakdown: [],
-      },
-      lia: {
-        total_conversations: 31,
-        total_messages: 208,
-        user_messages: 104,
-        assistant_responses: 104,
-        contexts: {
-          ai_chat: 16,
-          course: 15,
-        },
-      },
-    },
   },
 ]

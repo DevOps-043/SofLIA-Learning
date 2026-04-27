@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { UserGender } from '../../../../lib/schemas/user-demographics.schema'
 
 export type TabType = 'basic' | 'personal' | 'additional'
 
@@ -14,6 +15,8 @@ export interface NewAdminUserData {
   cargo_rol: string
   type_rol: string
   phone: string
+  date_of_birth: string
+  gender: UserGender | ''
   bio: string
   location: string
   profile_picture_url: string
@@ -35,6 +38,8 @@ const INITIAL_FORM: NewAdminUserData = {
   cargo_rol: 'Usuario',
   type_rol: '',
   phone: '',
+  date_of_birth: '',
+  gender: '',
   bio: '',
   location: '',
   profile_picture_url: '',
@@ -58,7 +63,9 @@ export function useAddUserFormState({ onSave, onClose }: UseAddUserFormStateProp
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('basic')
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value, type } = e.target
     setFormData(prev => ({
       ...prev,

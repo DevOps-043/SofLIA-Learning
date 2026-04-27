@@ -20,6 +20,8 @@ export function createEditUserFormData(
     type_rol: user?.type_rol || '',
     email_verified: user?.email_verified || false,
     phone: user?.phone || '',
+    date_of_birth: user?.date_of_birth || '',
+    gender: user?.gender || '',
     bio: user?.bio || '',
     location: user?.location || '',
     profile_picture_url: user?.profile_picture_url || '',

@@ -1,4 +1,5 @@
 import type { AdminUser } from '../../services/adminUsers.service'
+import type { UserGender } from '../../../../lib/schemas/user-demographics.schema'
 
 export interface EditUserFormData {
   username: string
@@ -10,6 +11,8 @@ export interface EditUserFormData {
   type_rol: string
   email_verified: boolean
   phone: string
+  date_of_birth: string
+  gender: UserGender | ''
   bio: string
   location: string
   profile_picture_url: string

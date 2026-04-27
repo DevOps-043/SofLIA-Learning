@@ -37,7 +37,7 @@ describe('detectContextFromURL', () => {
 
   it('detects business context from business-panel', () => {
     expect(detectContextFromURL('/business-panel')).toBe('business');
-    expect(detectContextFromURL('/business-panel/analytics')).toBe('business');
+    expect(detectContextFromURL('/business-panel/reports')).toBe('business');
   });
 
   it('detects profile context', () => {

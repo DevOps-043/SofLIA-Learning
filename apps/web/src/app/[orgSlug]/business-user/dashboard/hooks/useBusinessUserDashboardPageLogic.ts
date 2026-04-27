@@ -45,6 +45,13 @@ interface DashboardResponse {
   learningPaths?: AssignedLearningPath[]
 }
 
+class ApiJsonResponseError extends Error {
+  constructor(message: string, readonly shouldRedirectToAuth = false) {
+    super(message)
+    this.name = 'ApiJsonResponseError'
+  }
+}
+
 /**
  * Sort courses in a fixed order.
  * Temporary hardcoded sort while RLS issues are resolved.
@@ -160,7 +167,10 @@ export function useBusinessUserDashboardPageLogic() {
       ])
 
       if (organizationResponse.ok) {
-        const organizationData = (await organizationResponse.json()) as OrganizationResponse
+        const organizationData = await readApiJson<OrganizationResponse>(
+          organizationResponse,
+          'Error al cargar datos de la organizacion',
+        )
         if (organizationData.success && organizationData.organization) {
           setOrganization({
             ...organizationData.organization,
@@ -172,7 +182,10 @@ export function useBusinessUserDashboardPageLogic() {
         }
       }
 
-      const dashboardData = (await dashboardResponse.json()) as DashboardResponse
+      const dashboardData = await readApiJson<DashboardResponse>(
+        dashboardResponse,
+        'Error al cargar datos del dashboard',
+      )
 
       if (!dashboardResponse.ok) {
         throw new Error(
@@ -208,6 +221,11 @@ export function useBusinessUserDashboardPageLogic() {
 
       throw new Error(dashboardData.error || 'Error al obtener datos')
     } catch (loadError) {
+      if (loadError instanceof ApiJsonResponseError && loadError.shouldRedirectToAuth) {
+        router.push('/auth?error=session_expired')
+        return
+      }
+
       setError(loadError instanceof Error ? loadError.message : 'Error desconocido')
       setStats({
         total_assigned: 0,
@@ -220,7 +238,7 @@ export function useBusinessUserDashboardPageLogic() {
     } finally {
       setLoading(false)
     }
-  }, [orgSlug])
+  }, [orgSlug, router])
 
   useEffect(() => {
     if (orgSlug) {
@@ -298,6 +316,11 @@ export function useBusinessUserDashboardPageLogic() {
     router.push('/certificates')
   }, [router])
 
+  const handleAnalyticsClick = useCallback(() => {
+    if (!orgSlug) return
+    router.push(`/${orgSlug}/business-user/analytics`)
+  }, [orgSlug, router])
+
   return {
     orgSlug,
     user,
@@ -335,5 +358,20 @@ export function useBusinessUserDashboardPageLogic() {
     handleLogout,
     handleProfileClick,
     handleCertificatesClick,
+    handleAnalyticsClick,
   }
+}
+
+async function readApiJson<T>(response: Response, fallbackMessage: string): Promise<T> {
+  const contentType = response.headers.get('content-type') || ''
+
+  if (contentType.includes('application/json')) {
+    return response.json() as Promise<T>
+  }
+
+  if (response.redirected || response.url.includes('/auth')) {
+    throw new ApiJsonResponseError('Sesion expirada. Inicia sesion nuevamente.', true)
+  }
+
+  throw new ApiJsonResponseError(`${fallbackMessage}. Respuesta inesperada del servidor (${response.status}).`)
 }

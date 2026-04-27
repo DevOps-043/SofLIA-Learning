@@ -7,7 +7,8 @@ import {
   BusinessUserStats,
   BusinessInvitation,
   BulkInviteLink,
-  CreateBusinessUserRequest
+  CreateBusinessUserRequest,
+  UpdateBusinessUserRequest,
 } from '../services/businessUsers.service'
 
 type OrganizationStoreState = ReturnType<typeof useOrganizationStore.getState>
@@ -126,20 +127,10 @@ export function useBusinessUsers(orgSlugProp?: string) {
     }
   }
 
-  const updateUser = async (userId: string, userData: {
-    first_name?: string
-    last_name?: string
-    display_name?: string
-    email?: string
-    cargo_rol?: string
-    job_title?: string
-    org_role?: 'owner' | 'admin' | 'member'
-    org_status?: 'active' | 'invited' | 'suspended' | 'removed'
-    profile_picture_url?: string
-    bio?: string
-    location?: string
-    phone?: string
-  }) => {
+  const updateUser = async (
+    userId: string,
+    userData: UpdateBusinessUserRequest,
+  ) => {
     try {
       const updatedUser = await BusinessUsersService.updateUser(orgSlug, userId, userData)
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RegisterDemographicsSchema } from '../../../../lib/schemas/user-demographics.schema';
 
 export const registerSchema = z
   .object({
@@ -23,6 +24,8 @@ export const registerSchema = z
       .min(8, 'El número debe tener al menos 8 dígitos')
       .max(15, 'El número no puede exceder 15 dígitos')
       .regex(/^[0-9]+$/, 'Solo se permiten números'),
+    dateOfBirth: RegisterDemographicsSchema.shape.dateOfBirth,
+    gender: RegisterDemographicsSchema.shape.gender,
     email: z.string().email('Ingresa un correo válido'),
     confirmEmail: z.string().email('Ingresa un correo válido'),
     password: z

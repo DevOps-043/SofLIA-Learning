@@ -1,31 +1,30 @@
 'use client'
 
-import type { ComponentProps, JSX } from 'react'
 import { motion } from 'framer-motion'
-import { BellAlertIcon, ClockIcon, EyeIcon } from '@heroicons/react/24/outline'
-import Link from 'next/link'
+import { ClockIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+import { PanelSectionTitle } from '@/core/components/panel'
 
 import type {
   AdminDashboardActivityItem,
   AdminDashboardThemeColors,
 } from './types'
 
-const SafeLink = Link as unknown as (
-  props: ComponentProps<typeof Link>
-) => JSX.Element
-
-function getActivityTypeColor(type: AdminDashboardActivityItem['type']) {
+function getActivityTypeColor(
+  type: AdminDashboardActivityItem['type'],
+  themeColors: AdminDashboardThemeColors
+) {
   switch (type) {
     case 'user':
-      return 'bg-[#0A2540] border-[#0A2540]/50'
+      return themeColors.primary
     case 'workshop':
-      return 'bg-[#10B981] border-[#10B981]/50'
+      return themeColors.secondary
     case 'ai-app':
-      return 'bg-[#00D4B3] border-[#00D4B3]/50'
+      return themeColors.accent
     case 'news':
-      return 'bg-[#F59E0B] border-[#F59E0B]/50'
+      return 'var(--color-warning)'
     default:
-      return 'bg-[#6C757D] border-[#6C757D]/50'
+      return themeColors.borderColor
   }
 }
 
@@ -38,18 +37,19 @@ function AdminDashboardActivityItemRow({
   delay: number
   themeColors: AdminDashboardThemeColors
 }) {
-  const hoverBackground =
-    themeColors.cardBackground === '#FFFFFF' ? '#F1F5F9' : '#1E2329'
+  const { t } = useTranslation('admin')
 
   return (
     <motion.div
       animate={{ opacity: 1, x: 0 }}
-      className="flex items-start gap-4 rounded-xl border-l-2 border-transparent p-4 transition-all duration-300 hover:border-[#00D4B3]"
+      className="flex items-start gap-4 rounded-xl border-l-2 border-transparent p-4 transition-all duration-200 hover:border-[var(--org-accent-color)] hover:bg-gray-50/80 dark:hover:bg-white/[0.03]"
       initial={{ opacity: 0, x: -20 }}
       transition={{ delay: delay * 0.08, duration: 0.4 }}
-      whileHover={{ backgroundColor: hoverBackground, y: -2 }}
     >
-      <div className={`mt-2 h-2 w-2 rounded-full ${getActivityTypeColor(activity.type)}`} />
+      <div
+        className="mt-2 h-2 w-2 rounded-full"
+        style={{ backgroundColor: getActivityTypeColor(activity.type, themeColors) }}
+      />
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-4">
@@ -70,7 +70,9 @@ function AdminDashboardActivityItemRow({
         <p className="mt-1 line-clamp-1 text-xs" style={{ color: themeColors.textSecondary }}>
           {activity.description}
         </p>
-        <p className="mt-1 text-xs font-medium text-[#00D4B3]">por {activity.user}</p>
+        <p className="mt-1 text-xs font-medium" style={{ color: themeColors.accent }}>
+          {t('dashboard.activityBy')} {activity.user}
+        </p>
       </div>
     </motion.div>
   )
@@ -85,60 +87,60 @@ export function AdminDashboardActivitySection({
   isLoading: boolean
   themeColors: AdminDashboardThemeColors
 }) {
+  const { t } = useTranslation('admin')
+  const panelTheme = {
+    accent: themeColors.accent,
+    borderColor: themeColors.borderColor,
+    cardBg: themeColors.cardBackground,
+    inputBg: themeColors.inputBg,
+    isLightMode: themeColors.isLightMode,
+    primary: themeColors.primary,
+    secondary: themeColors.secondary,
+    subtext: themeColors.textSecondary,
+    text: themeColors.textPrimary,
+  }
+
   return (
-    <section>
+    <section id="tour-activity-section">
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6 flex items-center justify-between"
         initial={{ opacity: 0, y: 10 }}
         transition={{ delay: 0.6 }}
       >
-        <div>
-          <h2 className="text-xl font-bold" style={{ color: themeColors.textPrimary }}>
-            Actividad Reciente
-          </h2>
-          <p className="mt-1 text-sm" style={{ color: themeColors.textSecondary }}>
-            Ultimas acciones en la plataforma
-          </p>
-        </div>
-        <SafeLink href="/admin/activity">
-          <motion.button
-            className="flex items-center gap-2 text-sm font-medium text-[#00D4B3] hover:underline"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <EyeIcon className="h-4 w-4" />
-            Ver todo
-          </motion.button>
-        </SafeLink>
+        <PanelSectionTitle
+          title={t('dashboard.activityTitle')}
+          subtitle={t('dashboard.activitySubtitle')}
+          theme={panelTheme}
+        />
       </motion.div>
 
       <motion.div
+        id="tour-activity-card"
         animate={{ opacity: 1, y: 0 }}
         className="overflow-hidden rounded-2xl border"
         initial={{ opacity: 0, y: 20 }}
         style={{
           backgroundColor: themeColors.cardBackground,
-          borderColor: `${themeColors.borderColor}20`,
+          borderColor: themeColors.isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.04)',
         }}
         transition={{ delay: 0.7 }}
       >
         {isLoading ? (
           <div className="space-y-4 p-6">
             {[...Array(5)].map((_, index) => (
-              <div key={index} className="flex gap-4 animate-pulse">
+              <div key={index} className="flex animate-pulse gap-4">
                 <div
                   className="mt-2 h-2 w-2 rounded-full"
-                  style={{ backgroundColor: `${themeColors.textSecondary}30` }}
+                  style={{ backgroundColor: themeColors.borderColor }}
                 />
                 <div className="flex-1 space-y-2">
                   <div
                     className="h-4 w-3/4 rounded"
-                    style={{ backgroundColor: `${themeColors.textSecondary}20` }}
+                    style={{ backgroundColor: themeColors.borderColor }}
                   />
                   <div
                     className="h-3 w-1/2 rounded"
-                    style={{ backgroundColor: `${themeColors.textSecondary}20` }}
+                    style={{ backgroundColor: themeColors.borderColor }}
                   />
                 </div>
               </div>
@@ -146,23 +148,32 @@ export function AdminDashboardActivitySection({
           </div>
         ) : activities.length === 0 ? (
           <div className="p-12 text-center">
-            <BellAlertIcon
+            <ClockIcon
               className="mx-auto mb-4 h-12 w-12"
-              style={{ color: `${themeColors.textSecondary}50` }}
+              style={{ color: themeColors.textSecondary, opacity: 0.3 }}
             />
             <p style={{ color: themeColors.textSecondary }}>
-              No hay actividad reciente
+              {t('dashboard.activityEmpty')}
             </p>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="flex flex-col">
             {activities.map((activity, index) => (
-              <AdminDashboardActivityItemRow
+              <div
                 key={activity.id}
-                activity={activity}
-                delay={index}
-                themeColors={themeColors}
-              />
+                style={{
+                  borderBottom:
+                    index < activities.length - 1
+                      ? `1px solid ${themeColors.isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.04)'}`
+                      : 'none',
+                }}
+              >
+                <AdminDashboardActivityItemRow
+                  activity={activity}
+                  delay={index}
+                  themeColors={themeColors}
+                />
+              </div>
             ))}
           </div>
         )}

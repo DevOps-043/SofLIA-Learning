@@ -12,6 +12,8 @@ describe('organization register form service', () => {
       email: 'invited@example.com',
       confirmEmail: 'invited@example.com',
       countryCode: 'MX',
+      dateOfBirth: '',
+      gender: null,
       acceptTerms: false,
     })
   })
@@ -24,6 +26,8 @@ describe('organization register form service', () => {
         username: 'juanperez',
         countryCode: 'MX',
         phoneNumber: '5512345678',
+        dateOfBirth: '1990-05-10',
+        gender: 'female',
         email: 'juan@example.com',
         confirmEmail: 'juan@example.com',
         password: 'Password1!',
@@ -38,6 +42,8 @@ describe('organization register form service', () => {
 
     expect(formData.get('organizationId')).toBe('org-id')
     expect(formData.get('organizationSlug')).toBe('acme')
+    expect(formData.get('dateOfBirth')).toBe('1990-05-10')
+    expect(formData.get('gender')).toBe('female')
     expect(formData.get('acceptTerms')).toBe('true')
     expect(formData.get('invitationToken')).toBe('token-1')
     expect(formData.get('bulkInviteToken')).toBe('bulk-1')

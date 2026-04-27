@@ -18,12 +18,16 @@ describe('profile.shared', () => {
         first_name: 'Ada',
         email: 'ada@example.com',
         bio: 'Engineer',
-        github_url: 'https://github.com/ada'
+        github_url: 'https://github.com/ada',
+        date_of_birth: '1990-05-10',
+        gender: 'female'
       })
     ).toEqual({
       first_name: 'Ada',
       bio: 'Engineer',
-      github_url: 'https://github.com/ada'
+      github_url: 'https://github.com/ada',
+      date_of_birth: '1990-05-10',
+      gender: 'female'
     })
   })
 

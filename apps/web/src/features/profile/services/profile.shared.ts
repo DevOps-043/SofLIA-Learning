@@ -1,4 +1,8 @@
 import type { Database } from '../../../lib/supabase/types'
+import {
+  normalizeDateOfBirthForStorage,
+  normalizeGenderForStorage,
+} from '../../../lib/schemas/user-demographics.schema'
 import type {
   ProfileColorPalette,
   UpdateProfileRequest,
@@ -75,6 +79,8 @@ export function mapUserProfileRow(data: UserProfileRow): UserProfile {
     github_url: data.github_url || '',
     website_url: data.website_url || '',
     country_code: data.country_code || '',
+    date_of_birth: data.date_of_birth || null,
+    gender: normalizeGenderForStorage(data.gender),
     points: data.points || 0,
     created_at: data.created_at,
     last_login_at: data.last_login_at || data.created_at,
@@ -119,14 +125,48 @@ export function pickAllowedProfileUpdates(updates: UpdateProfileRequest): Partia
     'location',
     'profile_picture_url',
     'country_code',
+    'curriculum_url',
+    'linkedin_url',
+    'github_url',
+    'website_url',
+    'date_of_birth',
+    'gender',
   ]
 
   return allowedFields.reduce<Partial<UpdateProfileRequest>>((accumulator, field) => {
     if (updates[field] !== undefined) {
-      accumulator[field] = updates[field]
+      accumulator[field] = (
+        field === 'date_of_birth'
+          ? normalizeDateOfBirthForStorage(updates[field] as string | null | undefined)
+          : field === 'gender'
+            ? normalizeGenderForStorage(updates[field] as string | null | undefined)
+            : updates[field]
+      ) as never
     }
     return accumulator
   }, {})
+}
+
+export function createProfileUpdateRequest(profile: UserProfile): UpdateProfileRequest {
+  return {
+    username: profile.username,
+    first_name: profile.first_name,
+    last_name: profile.last_name,
+    display_name: profile.display_name,
+    phone: profile.phone,
+    bio: profile.bio,
+    location: profile.location,
+    cargo_rol: profile.cargo_rol,
+    type_rol: profile.type_rol,
+    profile_picture_url: profile.profile_picture_url,
+    curriculum_url: profile.curriculum_url,
+    linkedin_url: profile.linkedin_url,
+    github_url: profile.github_url,
+    website_url: profile.website_url,
+    country_code: profile.country_code,
+    date_of_birth: profile.date_of_birth,
+    gender: profile.gender,
+  }
 }
 
 export function resolveChangedProfileFields(

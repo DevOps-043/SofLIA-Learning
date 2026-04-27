@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { CheckCircle, Mail, Shield, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { USER_GENDER_VALUES } from '../../../../../lib/schemas/user-demographics.schema'
 import { OrganizationRegisterField } from './OrganizationRegisterField'
 import type { OrganizationRegisterIdentityFieldsProps } from './types'
 
@@ -15,6 +17,9 @@ export function OrganizationRegisterIdentityFields({
   bulkInviteToken,
   success,
 }: OrganizationRegisterIdentityFieldsProps) {
+  const { t } = useTranslation('common')
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
+
   return (
     <>
       <motion.div
@@ -104,6 +109,61 @@ export function OrganizationRegisterIdentityFields({
           error={errors.username?.message}
         />
       </motion.div>
+
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: palette.textColor }}>
+          {t('demographics.sectionTitle')}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+          >
+            <OrganizationRegisterField
+              id="dateOfBirth"
+              label={t('demographics.dateOfBirth')}
+              type="date"
+              placeholder=""
+              registration={register('dateOfBirth')}
+              palette={palette}
+              error={errors.dateOfBirth?.message}
+              max={maxDateOfBirth}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="space-y-1.5"
+          >
+            <label
+              htmlFor="gender"
+              className="block text-xs font-medium uppercase tracking-wider mb-1.5"
+              style={{ color: palette.textColor }}
+            >
+              {t('demographics.gender.label')}
+            </label>
+            <div className="relative rounded-xl border overflow-hidden" style={{ backgroundColor: palette.inputBgColor, borderColor: palette.borderColor }}>
+              <select
+                id="gender"
+                className="w-full bg-transparent px-4 py-3 text-sm outline-none"
+                style={{ color: palette.textColor }}
+                {...register('gender')}
+              >
+                <option value="">{t('demographics.gender.placeholder')}</option>
+                {USER_GENDER_VALUES.map((gender) => (
+                  <option key={gender} value={gender}>
+                    {t(`demographics.gender.options.${gender}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.gender ? <p className="auth-error">{errors.gender.message}</p> : null}
+          </motion.div>
+        </div>
+      </div>
 
       {invitedRole && invitedRoleLabel ? (
         <motion.div

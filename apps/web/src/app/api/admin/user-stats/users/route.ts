@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
+import { calculateAgeFromDateOfBirth } from '@/lib/schemas/user-demographics.schema'
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit
 
     // Build user query
-    let userQuery = supabase.from('users').select('id, username, email, display_name, first_name, last_name, profile_picture_url, last_login_at, country_code', { count: 'exact' })
+    let userQuery = supabase.from('users').select('id, username, email, display_name, first_name, last_name, profile_picture_url, last_login_at, country_code, date_of_birth, gender', { count: 'exact' })
 
     if (search) {
       userQuery = userQuery.or(`username.ilike.%${search}%,email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%`)
@@ -103,6 +104,9 @@ export async function GET(request: NextRequest) {
         email: u.email,
         displayName: u.display_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || null,
         profilePictureUrl: u.profile_picture_url,
+        dateOfBirth: u.date_of_birth,
+        gender: u.gender,
+        age: calculateAgeFromDateOfBirth(u.date_of_birth),
         organization: orgInfo?.org || null,
         orgRole: orgInfo?.role || null,
         coursesEnrolled: enrollInfo?.count || 0,

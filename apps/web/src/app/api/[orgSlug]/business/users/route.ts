@@ -113,6 +113,8 @@ export async function POST(
       first_name: body.first_name,
       last_name: body.last_name,
       display_name: body.display_name,
+      date_of_birth: body.date_of_birth,
+      gender: body.gender,
       job_title: body.job_title,
       org_role: requestedRole,
       send_invitation: body.send_invitation !== undefined ? body.send_invitation : !body.password

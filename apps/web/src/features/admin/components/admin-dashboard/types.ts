@@ -8,10 +8,16 @@ import type {
 } from '@heroicons/react/24/outline'
 
 export interface AdminDashboardThemeColors {
+  accent: string
   background: string
   borderColor: string
   cardBackground: string
   inputBg: string
+  inverseSubtext: string
+  inverseText: string
+  isLightMode: boolean
+  primary: string
+  secondary: string
   textPrimary: string
   textSecondary: string
 }
@@ -24,8 +30,12 @@ export interface AdminDashboardProfileLike {
 }
 
 export interface AdminDashboardPanelStyles {
+  accent_color?: string | null
   background_value?: string | null
+  border_color?: string | null
   card_background?: string | null
+  primary_button_color?: string | null
+  secondary_button_color?: string | null
 }
 
 export interface AdminDashboardActivityUser {
@@ -55,9 +65,9 @@ export interface AdminDashboardActivityItem {
 
 export interface AdminDashboardStatItem {
   change: number
-  gradient: string
   href: string
   iconKey: 'courses' | 'engagement' | 'organizations' | 'users'
+  iconColor: string
   title: string
   value: number | string
 }

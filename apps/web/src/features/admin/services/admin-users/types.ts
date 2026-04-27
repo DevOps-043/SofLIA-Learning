@@ -1,3 +1,5 @@
+import type { UserGender } from '../../../../lib/schemas/user-demographics.schema'
+
 export interface AdminUser {
   id: string
   username: string
@@ -14,6 +16,9 @@ export interface AdminUser {
   location?: string | null
   profile_picture_url: string | null
   country_code?: string | null
+  date_of_birth?: string | null
+  gender?: UserGender | null
+  age?: number | null
   created_at: string | null
   updated_at: string | null
   last_login_at: string | null
@@ -63,4 +68,6 @@ export interface AdminUserCreateInput {
   location?: string | null
   profile_picture_url?: string | null
   country_code?: string | null
+  date_of_birth?: string | null
+  gender?: UserGender | null
 }

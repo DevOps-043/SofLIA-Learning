@@ -68,6 +68,7 @@ interface BusinessUserDashboardShellProps {
   handleProfileClick: () => void
   handleLogout: () => void
   handleCertificatesClick: () => void
+  handleAnalyticsClick: () => void
   handleCourseClick: (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => void
   handleLearningPathCourseClick: (slug: string | null | undefined) => void
   showVideoIntro: boolean
@@ -99,6 +100,7 @@ export function BusinessUserDashboardShell({
   handleProfileClick,
   handleLogout,
   handleCertificatesClick,
+  handleAnalyticsClick,
   handleCourseClick,
   handleLearningPathCourseClick,
   showVideoIntro,
@@ -364,7 +366,7 @@ export function BusinessUserDashboardShell({
               </motion.div>
 
               <div className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
                 <Suspense
                   fallback={
                     <>
@@ -382,7 +384,8 @@ export function BusinessUserDashboardShell({
                   }
                 >
                   {myStats.map((stat, index) => {
-                    const isCertificates = stat.label === 'Certificados'
+                    const isCertificates = stat.kind === 'certificates'
+                    const isAnalytics = stat.kind === 'analytics'
                     return (
                       <ModernStatsCard
                         key={stat.label}
@@ -391,8 +394,14 @@ export function BusinessUserDashboardShell({
                         icon={stat.icon}
                         color={stat.color}
                         index={index}
-                        onClick={isCertificates && stats.certificates > 0 ? handleCertificatesClick : undefined}
-                        isClickable={isCertificates && stats.certificates > 0}
+                        onClick={
+                          isCertificates && stats.certificates > 0
+                            ? handleCertificatesClick
+                            : isAnalytics
+                              ? handleAnalyticsClick
+                              : undefined
+                        }
+                        isClickable={(isCertificates && stats.certificates > 0) || isAnalytics}
                         styles={userDashboardStyles}
                         disableHeavyEffects={disableHeavyEffects}
                         id={
@@ -400,6 +409,8 @@ export function BusinessUserDashboardShell({
                             ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCourses
                             : index === 3
                               ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCertificates
+                              : isAnalytics
+                                ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statAnalytics
                               : undefined
                         }
                       />
