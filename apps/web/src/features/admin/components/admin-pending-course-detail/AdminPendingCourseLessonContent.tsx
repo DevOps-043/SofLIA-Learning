@@ -1,52 +1,70 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+'use client'
+
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   CheckCircleIcon,
   ChevronLeftIcon,
   DocumentTextIcon,
   PlayCircleIcon,
-} from '@heroicons/react/24/outline';
-import type { PendingCourseActivity, PendingCourseLesson, PendingCourseMaterial, PendingCourseModule } from './types';
-import { parseMaterialContent, resolveVideoEmbedUrl } from './utils';
-import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
+} from '@heroicons/react/24/outline'
 
-type LessonTab = 'summary' | 'transcript' | 'activities' | 'materials';
+import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminStatusBadge, AdminSurface, AdminTabs } from '../ui'
+import type { PendingCourseActivity, PendingCourseLesson, PendingCourseMaterial, PendingCourseModule } from './types'
+import { parseMaterialContent, resolveVideoEmbedUrl } from './utils'
+
+type LessonTab = 'summary' | 'transcript' | 'activities' | 'materials'
 
 interface QuizQuestion {
-  correct_answer?: number | string;
-  correctAnswer?: number | string;
-  explanation?: string;
-  id?: string | number;
-  options?: string[];
-  question?: string;
+  correct_answer?: number | string
+  correctAnswer?: number | string
+  explanation?: string
+  id?: string | number
+  options?: string[]
+  question?: string
 }
 
 interface ScriptScene {
-  character?: string;
-  emotion?: string;
-  message?: string;
+  character?: string
+  emotion?: string
+  message?: string
 }
 
 interface QuizData {
-  items?: QuizQuestion[];
-  passing_score?: number;
-  questions?: QuizQuestion[];
+  items?: QuizQuestion[]
+  passing_score?: number
+  questions?: QuizQuestion[]
 }
 
 interface ScriptData {
-  conclusion?: string;
-  introduction?: string;
-  scenes?: ScriptScene[];
+  conclusion?: string
+  introduction?: string
+  scenes?: ScriptScene[]
+}
+
+function getContentTone(type?: string) {
+  if (type === 'quiz') return 'warning' as const
+  if (type === 'ai_chat' || type === 'lia_script') return 'info' as const
+  if (type === 'interactive') return 'primary' as const
+  return 'neutral' as const
 }
 
 function VideoPlayer({ provider, providerId }: { provider: string; providerId: string }) {
-  const [hasActivatedEmbed, setHasActivatedEmbed] = useState(false);
-  const playbackPolicy = useMediaPlaybackPolicy('preview');
-  const { t } = useTranslation('common');
-  const embedUrl = resolveVideoEmbedUrl(provider, providerId);
+  const [hasActivatedEmbed, setHasActivatedEmbed] = useState(false)
+  const playbackPolicy = useMediaPlaybackPolicy('preview')
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminTheme()
+  const embedUrl = resolveVideoEmbedUrl(provider, providerId)
 
   if (!providerId) {
-    return <div className="w-full h-full flex items-center justify-center bg-gray-900 text-gray-500">Video no disponible</div>;
+    return (
+      <div className="flex h-full w-full items-center justify-center" style={{ backgroundColor: theme.surfaceSubtle, color: theme.textMuted }}>
+        {t('lessonContent.videoUnavailable')}
+      </div>
+    )
   }
 
   if (embedUrl && (provider === 'youtube' || provider === 'vimeo')) {
@@ -54,343 +72,382 @@ function VideoPlayer({ provider, providerId }: { provider: string; providerId: s
       return (
         <button
           type="button"
-          className="flex h-full w-full items-center justify-center bg-gray-900 text-white"
+          className="flex h-full w-full items-center justify-center"
+          style={{ backgroundColor: theme.surfaceSubtle, color: theme.text }}
           onClick={() => setHasActivatedEmbed(true)}
         >
           <span className="flex flex-col items-center gap-2">
-            <PlayCircleIcon className="h-12 w-12" />
-            <span className="text-sm font-medium">{t('media.tapToPlay')}</span>
+            <PlayCircleIcon className="h-12 w-12" style={{ color: theme.action }} />
+            <span className="text-sm font-semibold">{tc('media.tapToPlay')}</span>
           </span>
         </button>
-      );
+      )
     }
 
     return (
       <iframe
         src={embedUrl}
-        className="w-full h-full"
+        className="h-full w-full"
         frameBorder="0"
-        allow={
-          playbackPolicy.allowIframeAutoplay
-            ? 'autoplay; fullscreen; picture-in-picture'
-            : 'fullscreen; picture-in-picture'
-        }
+        allow={playbackPolicy.allowIframeAutoplay ? 'autoplay; fullscreen; picture-in-picture' : 'fullscreen; picture-in-picture'}
         allowFullScreen
         loading="lazy"
       />
-    );
+    )
   }
 
   return (
     <video
       src={providerId}
-      className="w-full h-full object-contain"
+      className="h-full w-full object-contain"
       controls
       controlsList="nodownload"
       playsInline
       preload={playbackPolicy.nativeVideoPreload}
     />
-  );
+  )
 }
 
 function QuizViewer({ data }: { data: QuizData | null }) {
-  const questions = data?.questions || data?.items;
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const questions = data?.questions || data?.items
+
   if (!data || !questions) {
-    return <p className="text-gray-400 italic">Datos de Quiz inválidos</p>;
+    return <p className="text-sm italic" style={{ color: theme.textMuted }}>{t('lessonContent.invalidQuiz')}</p>
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center text-xs text-gray-500 border-b border-gray-200 dark:border-gray-700 pb-2">
-        <span>Passing Score: {data.passing_score}%</span>
-        <span>{questions.length} Preguntas</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2 text-xs" style={{ borderColor: theme.divider, color: theme.textMuted }}>
+        <span>{t('lessonContent.passingScore', { score: data.passing_score ?? 0 })}</span>
+        <span>{t('lessonContent.questionsCount', { count: questions.length })}</span>
       </div>
 
       {questions.map((item, index) => (
-        <div
-          key={item.id || index}
-          className="bg-white dark:bg-gray-900/50 p-3 rounded border border-gray-100 dark:border-gray-800"
-        >
-          <p className="font-medium text-gray-800 dark:text-gray-200 mb-2">
+        <AdminSurface key={item.id || index} className="p-3" style={{ boxShadow: 'none' }}>
+          <p className="mb-2 text-sm font-semibold" style={{ color: theme.text }}>
             {index + 1}. {item.question}
           </p>
           <div className="space-y-1 pl-2">
             {item.options?.map((option, optionIndex) => {
-              const correctAnswer = item.correct_answer !== undefined ? item.correct_answer : item.correctAnswer;
+              const correctAnswer = item.correct_answer !== undefined ? item.correct_answer : item.correctAnswer
               const isCorrect =
-                (typeof correctAnswer === 'number' && correctAnswer === optionIndex) || correctAnswer === option;
+                (typeof correctAnswer === 'number' && correctAnswer === optionIndex) || correctAnswer === option
 
               return (
                 <div
                   key={optionIndex}
-                  className={`flex items-center gap-2 text-xs ${
-                    isCorrect
-                      ? 'text-green-600 dark:text-green-400 font-medium'
-                      : 'text-gray-600 dark:text-gray-400'
-                  }`}
+                  className="flex items-center gap-2 text-xs"
+                  style={{ color: isCorrect ? theme.success : theme.textMuted }}
                 >
                   {isCorrect ? (
                     <CheckCircleIcon className="h-4 w-4" />
                   ) : (
-                    <div className="h-4 w-4 rounded-full border border-gray-300 dark:border-gray-600" />
+                    <div className="h-4 w-4 rounded-full border" style={{ borderColor: theme.border }} />
                   )}
                   <span>{option}</span>
                 </div>
-              );
+              )
             })}
           </div>
-          {item.explanation && (
-            <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10 p-2 rounded">
-              <span className="font-bold">Explicación:</span> {item.explanation}
-            </div>
-          )}
-        </div>
+          {item.explanation ? (
+            <AdminSurface className="mt-2 p-2" style={{ backgroundColor: theme.actionSurface, boxShadow: 'none' }}>
+              <p className="text-xs" style={{ color: theme.text }}>
+                <span className="font-bold">{t('lessonContent.explanation')}</span> {item.explanation}
+              </p>
+            </AdminSurface>
+          ) : null}
+        </AdminSurface>
       ))}
     </div>
-  );
+  )
 }
 
 function ScriptViewer({ data }: { data: ScriptData | null }) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   if (!data?.scenes) {
-    return <p className="text-gray-400 italic">Datos de Script inválidos</p>;
+    return <p className="text-sm italic" style={{ color: theme.textMuted }}>{t('lessonContent.invalidScript')}</p>
   }
 
   return (
     <div className="space-y-4">
-      {data.introduction && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded text-sm text-blue-800 dark:text-blue-200 italic mb-4">
-          "{data.introduction}"
-        </div>
-      )}
+      {data.introduction ? (
+        <AdminSurface className="p-3" style={{ backgroundColor: theme.actionSurface, boxShadow: 'none' }}>
+          <p className="text-sm italic" style={{ color: theme.text }}>"{data.introduction}"</p>
+        </AdminSurface>
+      ) : null}
 
       <div className="space-y-3">
-        {data.scenes.map((scene, index) => (
-          <div key={index} className={`flex gap-3 ${scene.character === 'Usuario' ? 'flex-row-reverse' : ''}`}>
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 ${
-                scene.character === 'Lia' ? 'bg-purple-500' : 'bg-gray-500'
-              }`}
-            >
-              {scene.character?.[0] || '?'}
-            </div>
-            <div
-              className={`max-w-[80%] p-3 rounded-2xl text-sm ${
-                scene.character === 'Usuario'
-                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-100 rounded-tr-none'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-none'
-              }`}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-bold text-xs opacity-70">{scene.character}</span>
-                {scene.emotion && (
-                  <span className="text-[10px] uppercase tracking-wide opacity-50 border border-current px-1 rounded">
-                    {scene.emotion}
-                  </span>
-                )}
+        {data.scenes.map((scene, index) => {
+          const isUser = scene.character?.toLowerCase() === 'usuario' || scene.character?.toLowerCase() === 'user'
+
+          return (
+            <div key={index} className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
+              <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                style={{ backgroundColor: isUser ? theme.actionSurface : theme.surfaceSubtle, color: isUser ? theme.action : theme.textMuted }}
+              >
+                {scene.character?.[0] || '?'}
               </div>
-              <p>{scene.message}</p>
+              <div
+                className="max-w-[80%] rounded-2xl p-3 text-sm"
+                style={{ backgroundColor: isUser ? theme.actionSurface : theme.surfaceSubtle, color: theme.text }}
+              >
+                <div className="mb-1 flex items-center gap-2">
+                  <span className="text-xs font-bold opacity-75">{scene.character}</span>
+                  {scene.emotion ? (
+                    <span className="rounded border px-1 text-[10px] uppercase tracking-wide opacity-60" style={{ borderColor: theme.border }}>
+                      {scene.emotion}
+                    </span>
+                  ) : null}
+                </div>
+                <p>{scene.message}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
-      {data.conclusion && (
-        <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded border-l-4 border-green-500 text-sm text-green-900 dark:text-green-100">
-          <span className="font-bold">Conclusión:</span> {data.conclusion}
-        </div>
-      )}
+      {data.conclusion ? (
+        <AdminSurface className="mt-4 p-3" style={{ backgroundColor: theme.surfaceSubtle, boxShadow: 'none' }}>
+          <p className="text-sm" style={{ color: theme.text }}>
+            <span className="font-bold">{t('lessonContent.conclusion')}</span> {data.conclusion}
+          </p>
+        </AdminSurface>
+      ) : null}
     </div>
-  );
+  )
 }
 
 function ActivityItem({ activity }: { activity: PendingCourseActivity }) {
-  const { error, parsedContent } = parseMaterialContent(activity.activity_content);
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const { error, parsedContent } = parseMaterialContent(activity.activity_content)
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-              activity.activity_type === 'quiz'
-                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                : activity.activity_type === 'ai_chat' || activity.activity_type === 'lia_script'
-                  ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300'
-                  : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-            }`}
-          >
-            {activity.activity_type}
-          </span>
-          <h5 className="font-semibold text-sm text-gray-800 dark:text-gray-200">{activity.activity_title}</h5>
+    <AdminSurface className="overflow-hidden" style={{ boxShadow: 'none' }}>
+      <div className="flex items-center justify-between gap-3 border-b px-4 py-3" style={{ borderColor: theme.divider }}>
+        <div className="flex min-w-0 items-center gap-2">
+          <AdminStatusBadge tone={getContentTone(activity.activity_type)}>{activity.activity_type}</AdminStatusBadge>
+          <h5 className="truncate text-sm font-semibold" style={{ color: theme.text }}>
+            {activity.activity_title}
+          </h5>
         </div>
       </div>
 
       <div className="p-4">
         {error ? (
-          <div className="text-red-500 text-xs font-mono p-2 bg-red-50 dark:bg-red-900/20 rounded">
-            {error}. Raw: {String(activity.activity_content).substring(0, 100)}...
+          <div className="rounded-xl p-3 text-xs font-mono" style={{ backgroundColor: theme.dangerSurface, color: theme.danger }}>
+            {t('lessonContent.parseError', { error })}
+            {' '}
+            {t('lessonContent.rawPrefix', { value: String(activity.activity_content).substring(0, 100) })}
           </div>
         ) : (
           <div className="text-sm">
-            {activity.activity_type === 'quiz' && <QuizViewer data={parsedContent as QuizData | null} />}
-            {(activity.activity_type === 'lia_script' || activity.activity_type === 'ai_chat') && (
+            {activity.activity_type === 'quiz' ? <QuizViewer data={parsedContent as QuizData | null} /> : null}
+            {activity.activity_type === 'lia_script' || activity.activity_type === 'ai_chat' ? (
               <ScriptViewer data={parsedContent as ScriptData | null} />
-            )}
+            ) : null}
             {activity.activity_type !== 'quiz' &&
-              activity.activity_type !== 'lia_script' &&
-              activity.activity_type !== 'ai_chat' && (
-                <pre className="text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded overflow-x-auto">
-                  {JSON.stringify(parsedContent, null, 2)}
-                </pre>
-              )}
+            activity.activity_type !== 'lia_script' &&
+            activity.activity_type !== 'ai_chat' ? (
+              <pre className="overflow-x-auto rounded-xl p-3 text-xs" style={{ backgroundColor: theme.surfaceSubtle, color: theme.text }}>
+                {JSON.stringify(parsedContent, null, 2)}
+              </pre>
+            ) : null}
           </div>
         )}
       </div>
-    </div>
-  );
+    </AdminSurface>
+  )
 }
 
 function MaterialItem({ material }: { material: PendingCourseMaterial }) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   if (!material.material_type || (material.material_type !== 'quiz' && material.material_type !== 'interactive')) {
     return (
       <a
         href={material.file_url || material.external_url || '#'}
         target="_blank"
         rel="noreferrer"
-        className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 transition-colors group"
+        className="flex items-center gap-3 rounded-xl border p-3 transition hover:opacity-85"
+        style={{ borderColor: theme.border, color: theme.text }}
       >
-        <DocumentTextIcon className="h-5 w-5 text-gray-400 group-hover:text-blue-500" />
-        <span className="text-sm text-gray-700 dark:text-gray-200">{material.material_title}</span>
-        <span className="text-xs ml-auto text-gray-400 uppercase">{material.material_type || 'archivo'}</span>
+        <DocumentTextIcon className="h-5 w-5 shrink-0" style={{ color: theme.textMuted }} />
+        <span className="min-w-0 flex-1 truncate text-sm">{material.material_title}</span>
+        <AdminStatusBadge tone="neutral">{material.material_type || t('lessonContent.fileFallback')}</AdminStatusBadge>
       </a>
-    );
+    )
   }
 
-  const { error, parsedContent } = parseMaterialContent(material.content_data);
+  const { error, parsedContent } = parseMaterialContent(material.content_data)
 
   return (
-    <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-              material.material_type === 'quiz'
-                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
-                : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
-            }`}
-          >
-            {material.material_type}
-          </span>
-          <h5 className="font-semibold text-sm text-gray-800 dark:text-gray-200">{material.material_title}</h5>
+    <AdminSurface className="overflow-hidden" style={{ boxShadow: 'none' }}>
+      <div className="flex items-center justify-between gap-3 border-b px-4 py-3" style={{ borderColor: theme.divider }}>
+        <div className="flex min-w-0 items-center gap-2">
+          <AdminStatusBadge tone={getContentTone(material.material_type)}>{material.material_type}</AdminStatusBadge>
+          <h5 className="truncate text-sm font-semibold" style={{ color: theme.text }}>
+            {material.material_title}
+          </h5>
         </div>
       </div>
 
       <div className="p-4">
         {error ? (
-          <div className="text-red-500 text-xs font-mono p-2 bg-red-50 dark:bg-red-900/20 rounded">{error}</div>
+          <div className="rounded-xl p-3 text-xs font-mono" style={{ backgroundColor: theme.dangerSurface, color: theme.danger }}>
+            {error}
+          </div>
         ) : (
-          <div className="text-sm">{material.material_type === 'quiz' && <QuizViewer data={parsedContent as QuizData | null} />}</div>
+          <div className="text-sm">
+            {material.material_type === 'quiz' ? <QuizViewer data={parsedContent as QuizData | null} /> : null}
+          </div>
         )}
       </div>
-    </div>
-  );
+    </AdminSurface>
+  )
 }
 
 export function AdminPendingCourseLessonDetails({ lesson }: { lesson: PendingCourseLesson }) {
-  const [activeTab, setActiveTab] = useState<LessonTab>('summary');
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const [activeTab, setActiveTab] = useState<LessonTab>('summary')
+  const tabs = [
+    { value: 'summary' as const, label: t('lessonContent.summary') },
+    { value: 'transcript' as const, label: t('lessonContent.transcript') },
+    { value: 'activities' as const, label: t('lessonContent.activitiesCount', { count: lesson.activities?.length || 0 }) },
+    { value: 'materials' as const, label: t('lessonContent.materialsCount', { count: lesson.materials?.length || 0 }) },
+  ]
 
   return (
-    <>
-      <div className="mb-6 bg-black rounded-lg overflow-hidden aspect-video max-w-2xl mx-auto">
+    <div className="space-y-5">
+      <div className="mx-auto aspect-video max-w-2xl overflow-hidden rounded-2xl border" style={{ backgroundColor: theme.surfaceSubtle, borderColor: theme.border }}>
         <VideoPlayer provider={lesson.video_provider} providerId={lesson.video_provider_id} />
       </div>
 
-      <div className="flex border-b border-gray-200 dark:border-gray-700 mb-4">
-        <button onClick={() => setActiveTab('summary')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'summary' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Resumen</button>
-        <button onClick={() => setActiveTab('transcript')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'transcript' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Transcripción</button>
-        <button onClick={() => setActiveTab('activities')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'activities' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Actividades ({lesson.activities?.length || 0})</button>
-        <button onClick={() => setActiveTab('materials')} className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'materials' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Materiales ({lesson.materials?.length || 0})</button>
-      </div>
+      <AdminTabs<LessonTab> value={activeTab} onChange={setActiveTab} tabs={tabs} />
 
-      <div className="bg-white dark:bg-[#1E2329] p-4 rounded-lg border border-gray-200 dark:border-gray-700 min-h-[150px]">
-        {activeTab === 'summary' && (
-          <div className="prose dark:prose-invert max-w-none text-sm">
-            {lesson.summary_content ? lesson.summary_content : <p className="text-gray-400 italic">No hay resumen disponible.</p>}
+      <AdminSurface className="min-h-[150px] p-4" style={{ boxShadow: 'none' }}>
+        {activeTab === 'summary' ? (
+          <div className="max-w-none text-sm leading-6" style={{ color: theme.text }}>
+            {lesson.summary_content ? lesson.summary_content : <p className="italic" style={{ color: theme.textMuted }}>{t('lessonContent.noSummary')}</p>}
           </div>
-        )}
-        {activeTab === 'transcript' && (
-          <div className="h-64 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-900 rounded text-sm font-mono text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-            {lesson.transcript_content || 'No hay transcripción disponible.'}
+        ) : null}
+
+        {activeTab === 'transcript' ? (
+          <div className="h-64 overflow-y-auto whitespace-pre-wrap rounded-xl p-3 text-sm" style={{ backgroundColor: theme.surfaceSubtle, color: theme.textMuted }}>
+            {lesson.transcript_content || t('lessonContent.noTranscript')}
           </div>
-        )}
-        {activeTab === 'activities' && (
+        ) : null}
+
+        {activeTab === 'activities' ? (
           <div className="space-y-4">
-            {lesson.activities?.length ? lesson.activities.map((activity) => <ActivityItem key={activity.activity_id} activity={activity} />) : <p className="text-gray-400 italic">No hay actividades creadas.</p>}
+            {lesson.activities?.length ? (
+              lesson.activities.map((activity) => <ActivityItem key={activity.activity_id} activity={activity} />)
+            ) : (
+              <p className="italic" style={{ color: theme.textMuted }}>{t('lessonContent.noActivities')}</p>
+            )}
           </div>
-        )}
-        {activeTab === 'materials' && (
+        ) : null}
+
+        {activeTab === 'materials' ? (
           <div className="space-y-2">
-            {lesson.materials?.length ? lesson.materials.map((material) => <MaterialItem key={material.material_id} material={material} />) : <p className="text-gray-400 italic">No hay materiales adicionales.</p>}
+            {lesson.materials?.length ? (
+              lesson.materials.map((material) => <MaterialItem key={material.material_id} material={material} />)
+            ) : (
+              <p className="italic" style={{ color: theme.textMuted }}>{t('lessonContent.noMaterials')}</p>
+            )}
           </div>
-        )}
-      </div>
-    </>
-  );
+        ) : null}
+      </AdminSurface>
+    </div>
+  )
 }
 
 function LessonItem({ lesson }: { lesson: PendingCourseLesson }) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const { t } = useTranslation('admin');
+  const [isExpanded, setIsExpanded] = useState(false)
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
 
   return (
-    <div className="border-b border-gray-100 dark:border-gray-800 last:border-0">
-      <div
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer flex items-center gap-3"
+    <div style={{ borderTop: `1px solid ${theme.divider}` }}>
+      <button
+        type="button"
+        onClick={() => setIsExpanded((current) => !current)}
+        className="flex w-full items-center gap-3 p-4 text-left transition hover:opacity-85"
       >
-        <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg">
-          <PlayCircleIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+        <div className="rounded-xl p-2" style={{ backgroundColor: theme.actionSurface, color: theme.action }}>
+          <PlayCircleIcon className="h-5 w-5" />
         </div>
-        <div className="flex-1">
-          <h4 className="font-medium text-gray-900 dark:text-gray-100">{lesson.lesson_title}</h4>
-          <p className="text-xs text-gray-500">
-            {lesson.duration_seconds} seg • {lesson.video_provider}
+        <div className="min-w-0 flex-1">
+          <h4 className="truncate font-semibold" style={{ color: theme.text }}>
+            {lesson.lesson_title}
+          </h4>
+          <p className="text-xs" style={{ color: theme.textMuted }}>
+            {t('lessonContent.durationSeconds', {
+              seconds: lesson.duration_seconds,
+              provider: lesson.video_provider,
+            })}
           </p>
         </div>
-        <div className="flex gap-2 mr-4">
-          {lesson.transcript_content && <span title={t('lessonContent.transcript')} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">T</span>}
-          {lesson.summary_content && <span title={t('lessonContent.summary')} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">R</span>}
-          {lesson.activities?.length ? <span title={t('lessonContent.activities')} className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-500">A:{lesson.activities.length}</span> : null}
+        <div className="mr-2 hidden flex-wrap gap-2 sm:flex">
+          {lesson.transcript_content ? <AdminStatusBadge tone="neutral">{t('lessonContent.transcriptBadge')}</AdminStatusBadge> : null}
+          {lesson.summary_content ? <AdminStatusBadge tone="neutral">{t('lessonContent.summaryBadge')}</AdminStatusBadge> : null}
+          {lesson.activities?.length ? (
+            <AdminStatusBadge tone="info">{t('lessonContent.activityBadge', { count: lesson.activities.length })}</AdminStatusBadge>
+          ) : null}
         </div>
-        <ChevronLeftIcon className={`h-4 w-4 text-gray-400 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
-      </div>
+        <ChevronLeftIcon
+          className={`h-4 w-4 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`}
+          style={{ color: theme.textMuted }}
+        />
+      </button>
 
-      {isExpanded && (
-        <div className="bg-gray-50 dark:bg-gray-800/30 p-4 border-t border-gray-100 dark:border-gray-800">
+      {isExpanded ? (
+        <div className="border-t p-4" style={{ backgroundColor: theme.surfaceSubtle, borderColor: theme.divider }}>
           <AdminPendingCourseLessonDetails lesson={lesson} />
         </div>
-      )}
+      ) : null}
     </div>
-  );
+  )
 }
 
 export function AdminPendingCourseLessonContent({ modules }: { modules?: PendingCourseModule[] }) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
+  if (!modules?.length) {
+    return (
+      <AdminSurface className="mb-8 p-6 text-center">
+        <p className="text-sm" style={{ color: theme.textMuted }}>{t('lessonContent.noModules')}</p>
+      </AdminSurface>
+    )
+  }
+
   return (
-    <div className="space-y-4 mb-8">
-      {modules?.map((module) => (
-        <div key={module.module_id} className="bg-white dark:bg-[#1E2329] rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="bg-gray-50 dark:bg-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-200">
-              Módulo {module.module_order_index}: {module.module_title}
+    <div className="mb-8 space-y-4">
+      {modules.map((module) => (
+        <AdminSurface key={module.module_id} className="overflow-hidden">
+          <div className="border-b px-6 py-4" style={{ backgroundColor: theme.surfaceSubtle, borderColor: theme.divider }}>
+            <h3 className="font-bold" style={{ color: theme.text }}>
+              {t('lessonContent.moduleTitle', {
+                order: module.module_order_index,
+                title: module.module_title,
+              })}
             </h3>
           </div>
-          <div className="divide-y divide-gray-100 dark:divide-gray-800">
+          <div>
             {module.lessons?.map((lesson) => (
               <LessonItem key={lesson.lesson_id} lesson={lesson} />
             ))}
           </div>
-        </div>
+        </AdminSurface>
       ))}
     </div>
-  );
+  )
 }

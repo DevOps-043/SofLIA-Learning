@@ -1,73 +1,74 @@
-import { ClockIcon } from '@heroicons/react/24/outline';
-import { formatCourseDurationHours } from './utils';
-import type { PendingCourseDetail } from './types';
+'use client'
+
+import { ClockIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { AdminStatusBadge, AdminSurface } from '../ui'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { formatCourseDurationHours } from './utils'
+import type { PendingCourseDetail } from './types'
 
 interface AdminPendingCourseHeaderProps {
-  course: PendingCourseDetail;
+  course: PendingCourseDetail
 }
 
 export function AdminPendingCourseHeader({ course }: AdminPendingCourseHeaderProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   return (
-    <div className="bg-white dark:bg-[#1E2329] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800 mb-6">
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-1/3 aspect-video bg-gray-200 rounded-xl overflow-hidden relative">
-          {course.thumbnail_url && <img src={course.thumbnail_url} alt="Portada" className="w-full h-full object-cover" />}
-          <div className="absolute top-4 right-4 flex flex-col items-end gap-1">
-            {course.approval_status === 'rejected' ? (
-              <span className="backdrop-blur-md bg-[#EF4444]/20 dark:bg-[#EF4444]/30 text-[#EF4444] dark:text-[#FCA5A5] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#EF4444]/30 dark:border-[#EF4444]/40 uppercase tracking-widest">
-                Rechazado
-              </span>
-            ) : (
-              <span className="backdrop-blur-md bg-[#F59E0B]/20 dark:bg-[#F59E0B]/30 text-[#F59E0B] dark:text-[#FCD34D] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#F59E0B]/30 dark:border-[#F59E0B]/40 uppercase tracking-widest">
-                Pendiente
-              </span>
-            )}
-            {course.is_update ? (
-              <span className="backdrop-blur-md bg-[#3B82F6]/20 dark:bg-[#3B82F6]/30 text-[#3B82F6] dark:text-[#93C5FD] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#3B82F6]/30 dark:border-[#3B82F6]/40 uppercase tracking-widest">
-                Actualización
-              </span>
-            ) : (
-              <span className="backdrop-blur-md bg-[#10B981]/20 dark:bg-[#10B981]/30 text-[#10B981] dark:text-[#6EE7B7] text-xs font-semibold px-2.5 py-0.5 rounded border border-[#10B981]/30 dark:border-[#10B981]/40 uppercase tracking-widest">
-                Nuevo
-              </span>
-            )}
+    <AdminSurface className="mb-6 p-6">
+      <div className="flex flex-col gap-6 md:flex-row">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl md:w-1/3" style={{ backgroundColor: theme.surfaceSubtle }}>
+          {course.thumbnail_url ? (
+            <img src={course.thumbnail_url} alt={course.title} className="h-full w-full object-cover" />
+          ) : null}
+          <div className="absolute right-4 top-4 flex flex-col items-end gap-2">
+            <AdminStatusBadge tone={course.approval_status === 'rejected' ? 'danger' : 'warning'} className="uppercase tracking-widest">
+              {course.approval_status === 'rejected' ? t('pendingCourses.statusRejected') : t('pendingCourses.statusPending')}
+            </AdminStatusBadge>
+            <AdminStatusBadge tone={course.is_update ? 'primary' : 'info'} className="uppercase tracking-widest">
+              {course.is_update ? t('pendingCourses.statusUpdate') : t('pendingCourses.statusNew')}
+            </AdminStatusBadge>
           </div>
         </div>
 
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{course.title}</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">{course.description}</p>
+        <div className="min-w-0 flex-1">
+          <h1 className="mb-2 text-2xl font-bold" style={{ color: theme.text }}>{course.title}</h1>
+          <p className="mb-4 text-sm leading-6" style={{ color: theme.textMuted }}>{course.description}</p>
 
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300">
-            <span className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+          <div className="flex flex-wrap gap-3 text-sm">
+            <span className="flex items-center gap-1 rounded-full px-3 py-1" style={{ backgroundColor: theme.surfaceSubtle, color: theme.textMuted }}>
               <ClockIcon className="h-4 w-4" />
-              {formatCourseDurationHours(course.duration_total_minutes)} horas
+              {t('pendingCourseDetail.durationHours', { hours: formatCourseDurationHours(course.duration_total_minutes) })}
             </span>
-            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full capitalize">
-              Nivel: {course.level}
+            <span className="rounded-full px-3 py-1 capitalize" style={{ backgroundColor: theme.surfaceSubtle, color: theme.textMuted }}>
+              {t('pendingCourseDetail.levelLabel', { level: course.level })}
             </span>
-            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-full capitalize">
-              Categoría: {course.category}
+            <span className="rounded-full px-3 py-1 capitalize" style={{ backgroundColor: theme.surfaceSubtle, color: theme.textMuted }}>
+              {t('pendingCourseDetail.categoryLabel', { category: course.category })}
             </span>
           </div>
 
-          <div className="mt-6 flex items-center gap-3 pt-4 border-t dark:border-gray-700">
+          <div className="mt-6 flex items-center gap-3 border-t pt-4" style={{ borderColor: theme.divider }}>
             {course.instructor?.profile_picture_url ? (
-              <img src={course.instructor.profile_picture_url} className="w-8 h-8 rounded-full" />
+              <img src={course.instructor.profile_picture_url} alt="" className="h-9 w-9 rounded-full object-cover" />
             ) : (
-              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs">I</div>
+              <div className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold" style={{ backgroundColor: theme.action, color: theme.onAction }}>
+                I
+              </div>
             )}
-            <div>
-              <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                {course.instructor?.display_name || 'Instructor'}
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold" style={{ color: theme.text }}>
+                {course.instructor?.display_name || t('pendingCourseDetail.instructorFallback')}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="truncate text-xs" style={{ color: theme.textMuted }}>
                 {course.instructor?.first_name} {course.instructor?.last_name}
               </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </AdminSurface>
+  )
 }

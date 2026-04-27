@@ -1,7 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ClockIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme, type AdminThemeTokens } from '../../hooks/useAdminTheme'
+import { AdminSurface } from '../ui'
 
 interface RecentActivity {
   id: string
@@ -16,7 +20,25 @@ interface RecentActivityWidgetProps {
   period?: '24h' | '7d' | '30d'
 }
 
+function getActivityColor(theme: AdminThemeTokens, type: RecentActivity['type']) {
+  switch (type) {
+    case 'user_registered':
+    case 'course_created':
+      return theme.action
+    case 'community_created':
+      return theme.primary
+    case 'prompt_added':
+      return theme.warning
+    case 'ai_app_added':
+      return theme.info
+    default:
+      return theme.textMuted
+  }
+}
+
 export function RecentActivityWidget({ period = '24h' }: RecentActivityWidgetProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
   const [data, setData] = useState<RecentActivity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -26,106 +48,93 @@ export function RecentActivityWidget({ period = '24h' }: RecentActivityWidgetPro
       try {
         setIsLoading(true)
         setError(null)
-        
+
         const response = await fetch(`/api/admin/statistics/recent-activity?period=${period}`)
         const result = await response.json()
-        
+
         if (result.success) {
           setData(result.data)
         } else {
-          setError(result.error || 'Error al cargar datos')
+          setError(result.error || t('statisticsWidgets.errors.loadData'))
         }
       } catch (err) {
-        setError('Error al cargar actividad reciente')
+        setError(t('statisticsWidgets.errors.recentActivity'))
         console.error(err)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchData()
-  }, [period])
-
-  const getPeriodLabel = () => {
-    switch (period) {
-      case '24h':
-        return 'Últimas 24 horas'
-      case '7d':
-        return 'Últimos 7 días'
-      case '30d':
-        return 'Últimos 30 días'
-      default:
-        return 'Últimas 24 horas'
-    }
-  }
+    void fetchData()
+  }, [period, t])
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
           <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="h-12 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
             ))}
           </div>
         </div>
-      </div>
+      </AdminSurface>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
-      </div>
+      <AdminSurface className="p-6">
+        <p className="text-sm font-semibold" style={{ color: theme.danger }}>
+          {error}
+        </p>
+      </AdminSurface>
     )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Actividad Reciente
+    <AdminSurface className="p-6">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-lg font-bold" style={{ color: theme.text }}>
+          {t('statisticsWidgets.recentActivity.title')}
         </h3>
-        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <ClockIcon className="h-4 w-4 mr-1" />
-          {getPeriodLabel()}
+        <div className="flex items-center text-sm" style={{ color: theme.textMuted }}>
+          <ClockIcon className="mr-1 h-4 w-4" />
+          {t(`statisticsWidgets.recentActivity.periods.${period}`)}
         </div>
       </div>
-      
-      <div className="space-y-4">
+
+      <div className="space-y-1">
         {data.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-            No hay actividad reciente
+          <p className="py-8 text-center text-sm" style={{ color: theme.textMuted }}>
+            {t('statisticsWidgets.recentActivity.empty')}
           </p>
         ) : (
           data.map((activity, index) => (
             <div
               key={activity.id}
-              className={`flex items-center justify-between py-3 ${
-                index < data.length - 1
-                  ? 'border-b border-gray-200 dark:border-gray-700'
-                  : ''
-              }`}
+              className="flex items-center justify-between gap-4 py-3"
+              style={{
+                borderBottom: index < data.length - 1 ? `1px solid ${theme.divider}` : undefined,
+              }}
             >
-              <div className="flex items-center">
+              <div className="flex min-w-0 items-center">
                 <div
-                  className="w-2 h-2 rounded-full mr-3"
-                  style={{ backgroundColor: activity.color }}
-                ></div>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  className="mr-3 h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: getActivityColor(theme, activity.type) }}
+                />
+                <span className="truncate text-sm" style={{ color: theme.textMuted }}>
                   {activity.description}
                 </span>
               </div>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="shrink-0 text-sm" style={{ color: theme.textSubtle }}>
                 {activity.timeAgo}
               </span>
             </div>
           ))
         )}
       </div>
-    </div>
+    </AdminSurface>
   )
 }
-

@@ -1,143 +1,123 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { UserCircleIcon, TrophyIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react'
+import { TrophyIcon, UserCircleIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminSelect, AdminSurface } from '../ui'
 
 interface TopUser {
-  rank: number;
+  rank: number
   user: {
-    id: string;
-    name: string;
-    email: string;
-    avatar: string | null;
-    role: string | null;
-  } | null;
+    id: string
+    name: string
+    email: string
+    avatar: string | null
+    role: string | null
+  } | null
   stats: {
-    conversations: number;
-    messages: number;
-    liaMessages: number;
-    tokens: number;
-    cost: number;
-    avgTokensPerConversation: number;
-    avgCostPerConversation: number;
-  };
+    conversations: number
+    messages: number
+    liaMessages: number
+    tokens: number
+    cost: number
+    avgTokensPerConversation: number
+    avgCostPerConversation: number
+  }
 }
 
 interface TopUsersWidgetProps {
-  period?: string;
-  limit?: number;
-  isLoading?: boolean;
+  period?: string
+  limit?: number
+  isLoading?: boolean
 }
 
-type SortBy = 'cost' | 'tokens' | 'messages' | 'conversations';
+type SortBy = 'cost' | 'tokens' | 'messages' | 'conversations'
 
 export function TopUsersWidget({ period = 'month', limit = 10, isLoading: externalLoading }: TopUsersWidgetProps) {
-  const [users, setUsers] = useState<TopUser[]>([]);
-  const [sortBy, setSortBy] = useState<SortBy>('cost');
-  const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const [users, setUsers] = useState<TopUser[]>([])
+  const [sortBy, setSortBy] = useState<SortBy>('cost')
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchTopUsers = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
         const response = await fetch(
-          `/api/admin/lia-analytics/top-users?period=${period}&limit=${limit}&sortBy=${sortBy}`
-        );
-        const data = await response.json();
-        
+          `/api/admin/lia-analytics/top-users?period=${period}&limit=${limit}&sortBy=${sortBy}`,
+        )
+        const data = await response.json()
+
         if (data.success) {
-          setUsers(data.data.users);
+          setUsers(data.data.users)
         }
       } catch (error) {
-        console.error('Error fetching top users:', error);
+        console.error('Error fetching top users:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchTopUsers();
-  }, [period, limit, sortBy]);
+    void fetchTopUsers()
+  }, [period, limit, sortBy])
 
   const formatNumber = (value: number) => {
-    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-    return value.toString();
-  };
-
-  const getRankBadge = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return (
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/20 text-amber-500">
-            <TrophyIcon className="w-4 h-4" />
-          </div>
-        );
-      case 2:
-        return (
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-400/20 text-gray-400">
-            <span className="text-xs font-bold">2</span>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-700/20 text-amber-700">
-            <span className="text-xs font-bold">3</span>
-          </div>
-        );
-      default:
-        return (
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400">
-            <span className="text-xs font-medium">{rank}</span>
-          </div>
-        );
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`
     }
-  };
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`
+    }
+    return value.toString()
+  }
 
   const sortOptions: { value: SortBy; label: string }[] = [
-    { value: 'cost', label: 'Por Costo' },
-    { value: 'tokens', label: 'Por Tokens' },
-    { value: 'messages', label: 'Por Mensajes' },
-    { value: 'conversations', label: 'Por Conversaciones' },
-  ];
+    { value: 'cost', label: t('liaAnalyticsWidgets.topUsers.sort.cost') },
+    { value: 'tokens', label: t('liaAnalyticsWidgets.topUsers.sort.tokens') },
+    { value: 'messages', label: t('liaAnalyticsWidgets.topUsers.sort.messages') },
+    { value: 'conversations', label: t('liaAnalyticsWidgets.topUsers.sort.conversations') },
+  ]
 
   if (isLoading || externalLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 py-3">
-              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
+          {[...Array(5)].map((_, index) => (
+            <div key={index} className="flex items-center gap-3 py-3">
+              <div className="h-6 w-6 rounded-full" style={{ backgroundColor: theme.surfaceSubtle }} />
+              <div className="h-10 w-10 rounded-full" style={{ backgroundColor: theme.surfaceSubtle }} />
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-1"></div>
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                <div className="mb-1 h-4 w-1/2 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
+                <div className="h-3 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
               </div>
             </div>
           ))}
         </div>
-      </div>
-    );
+      </AdminSurface>
+    )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <UsersIcon className="w-5 h-5 text-indigo-500" />
-          Top Usuarios de SofLIA
+    <AdminSurface className="p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="flex items-center gap-2 text-lg font-bold" style={{ color: theme.text }}>
+          <UsersIcon className="h-5 w-5" style={{ color: theme.action }} />
+          {t('liaAnalyticsWidgets.topUsers.title')}
         </h3>
-        <select
+        <AdminSelect
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as SortBy)}
-          className="text-sm bg-gray-100 dark:bg-gray-700 border-0 rounded-lg px-3 py-1.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+          onChange={(event) => setSortBy(event.target.value as SortBy)}
         >
           {sortOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
-        </select>
+        </AdminSelect>
       </div>
 
       {users.length > 0 ? (
@@ -145,48 +125,68 @@ export function TopUsersWidget({ period = 'month', limit = 10, isLoading: extern
           {users.map((item) => (
             <div
               key={item.user?.id || item.rank}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              className="flex items-center gap-3 rounded-xl p-3 transition-opacity hover:opacity-85"
+              style={{ backgroundColor: theme.surfaceSubtle }}
             >
-              {getRankBadge(item.rank)}
-              
+              <RankBadge rank={item.rank} />
+
               {item.user?.avatar ? (
                 <img
                   src={item.user.avatar}
                   alt={item.user.name}
-                  className="w-10 h-10 rounded-full object-cover"
+                  className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
-                  <UserCircleIcon className="w-6 h-6 text-indigo-500" />
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full"
+                  style={{ backgroundColor: theme.actionSurface, color: theme.action }}
+                >
+                  <UserCircleIcon className="h-6 w-6" />
                 </div>
               )}
 
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {item.user?.name || 'Usuario desconocido'}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold" style={{ color: theme.text }}>
+                  {item.user?.name || t('liaAnalyticsWidgets.topUsers.unknownUser')}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {item.user?.email}
+                <p className="truncate text-xs" style={{ color: theme.textMuted }}>
+                  {item.user?.email || t('liaAnalyticsWidgets.topUsers.noEmail')}
                 </p>
               </div>
 
               <div className="text-right">
-                <p className="text-sm font-semibold text-emerald-500">
+                <p className="text-sm font-bold" style={{ color: theme.action }}>
                   ${item.stats.cost.toFixed(4)}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatNumber(item.stats.tokens)} tokens
+                <p className="text-xs" style={{ color: theme.textMuted }}>
+                  {t('liaAnalyticsWidgets.topUsers.tokenValue', { value: formatNumber(item.stats.tokens) })}
                 </p>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="py-8 text-center text-gray-500 dark:text-gray-400">
-          No hay datos de usuarios
+        <div className="py-8 text-center text-sm" style={{ color: theme.textMuted }}>
+          {t('liaAnalyticsWidgets.topUsers.empty')}
         </div>
       )}
-    </div>
-  );
+    </AdminSurface>
+  )
 }
 
+function RankBadge({ rank }: { rank: number }) {
+  const theme = useAdminTheme()
+  const isFirst = rank === 1
+
+  return (
+    <div
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+      style={{
+        backgroundColor: isFirst ? theme.warningSurface : theme.actionSurface,
+        color: isFirst ? theme.warning : theme.action,
+      }}
+    >
+      {isFirst ? <TrophyIcon className="h-4 w-4" /> : rank}
+    </div>
+  )
+}

@@ -22,11 +22,11 @@ describe('admin-dashboard service', () => {
       })
     ).toEqual({
       background: '#FAFAFA',
-      borderColor: '#E2E8F0',
+      borderColor: 'var(--color-gray-200)',
       cardBackground: '#FFFFFF',
-      inputBg: '#F1F5F9',
-      textPrimary: '#1E293B',
-      textSecondary: '#64748B',
+      inputBg: 'var(--color-gray-700)',
+      textPrimary: 'var(--color-gray-100)',
+      textSecondary: 'var(--color-gray-600)',
     })
   })
 

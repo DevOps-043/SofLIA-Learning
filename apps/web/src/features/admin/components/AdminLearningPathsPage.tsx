@@ -1,12 +1,24 @@
 'use client'
 
-import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FormEvent } from 'react'
+import { ListChecks, Plus, Power, RefreshCw, Route, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { PageShell } from '@/core/layout'
+
 import { ConfirmationModal } from './ConfirmationModal'
 import { useAdminLearningPaths } from '../hooks'
 import type { LearningPath } from '../types'
+import {
+  AdminButton,
+  AdminFormField,
+  AdminInput,
+  AdminLinkButton,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminStatusBadge,
+  AdminSurface,
+  AdminTextarea,
+} from './ui'
 
 type FormState = {
   title: string
@@ -37,7 +49,7 @@ export function AdminLearningPathsPage() {
     [learningPaths],
   )
 
-  async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitting(true)
     setSubmitError(null)
@@ -113,177 +125,143 @@ export function AdminLearningPathsPage() {
   }
 
   return (
-    <PageShell spacing="relaxed">
-      <section className="space-y-8">
-        <header className="overflow-hidden rounded-3xl border border-white/10 bg-gray-900 p-6 text-white sm:p-8">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0 space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--color-accent)]">
-                {lp('badge', 'Rutas de aprendizaje')}
-              </p>
-              <h1 className="break-words text-3xl font-bold">
-                {lp('listTitle', 'Secuencias administrables de talleres')}
-              </h1>
-              <p className="max-w-3xl break-words text-sm text-white/70">
-                {lp(
-                  'heroDescription',
-                  'Crea rutas ordenadas de talleres y administra su secuencia desde este panel.',
-                )}
-              </p>
-            </div>
+    <AdminPageShell maxWidth="content">
+      <div className="space-y-7">
+        <AdminSectionHeader
+          size="page"
+          icon={Route}
+          kicker={lp('badge', 'Rutas de aprendizaje')}
+          title={lp('listTitle', 'Secuencias administrables de talleres')}
+          description={lp('heroDescription', 'Crea rutas ordenadas de talleres y administra su secuencia desde este panel.')}
+        />
 
-            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 xl:max-w-[18rem]">
-              <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="break-words text-[11px] uppercase tracking-[0.16em] text-white/50">
-                  {lp('statsTotal', 'Total')}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{learningPaths.length}</p>
-              </div>
-              <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="break-words text-[11px] uppercase tracking-[0.16em] text-white/50">
-                  {lp('statsActive', 'Activos')}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{activeCount}</p>
-              </div>
-            </div>
-          </div>
-        </header>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <AdminMetricCard
+            label={lp('statsTotal', 'Total')}
+            value={learningPaths.length}
+            icon={ListChecks}
+            tone="primary"
+          />
+          <AdminMetricCard
+            label={lp('statsActive', 'Activos')}
+            value={activeCount}
+            icon={Power}
+            tone="info"
+          />
+        </div>
 
-        <section className="grid gap-8 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
-          <form
-            onSubmit={handleCreate}
-            className="min-w-0 space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800"
-          >
-            <div>
-              <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {lp('createTitle', 'Crear ruta de aprendizaje')}
-              </h2>
-              <p className="mt-1 text-sm text-slate-500 dark:text-white/60">
-                {lp('createDescription', 'Empieza con metadatos mínimos; el orden se administra en el detalle.')}
-              </p>
-            </div>
-
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-700 dark:text-white/80">
-                {lp('titleLabel', 'Título')}
-              </span>
-              <input
-                value={form.title}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, title: event.target.value }))
-                }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
-                placeholder={lp('titlePlaceholder', 'Ruta de onboarding comercial')}
-                required
+        <section className="grid gap-7 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+          <AdminSurface className="p-5">
+            <form onSubmit={handleCreate} className="space-y-4">
+              <AdminSectionHeader
+                size="compact"
+                title={lp('createTitle', 'Crear ruta de aprendizaje')}
+                description={lp('createDescription', 'Empieza con metadatos minimos; el orden se administra en el detalle.')}
+                className="mb-2"
               />
-            </label>
 
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-700 dark:text-white/80">
-                {lp('slugLabel', 'Slug')}
-              </span>
-              <input
-                value={form.slug}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, slug: event.target.value }))
-                }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
-                placeholder={lp('slugPlaceholder', 'ruta-onboarding-comercial')}
-              />
-            </label>
+              <AdminFormField label={lp('titleLabel', 'Titulo')}>
+                <AdminInput
+                  value={form.title}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, title: event.target.value }))
+                  }
+                  placeholder={lp('titlePlaceholder', 'Ruta de onboarding comercial')}
+                  required
+                />
+              </AdminFormField>
 
-            <label className="block space-y-2">
-              <span className="text-sm font-medium text-slate-700 dark:text-white/80">
-                {lp('descriptionLabel', 'Descripción')}
-              </span>
-              <textarea
-                value={form.description}
-                onChange={(event) =>
-                  setForm((current) => ({ ...current, description: event.target.value }))
-                }
-                className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
-                placeholder={lp('descriptionPlaceholder', 'Qué objetivo cubre esta ruta y a quién está dirigida.')}
-              />
-            </label>
+              <AdminFormField label={lp('slugLabel', 'Slug')}>
+                <AdminInput
+                  value={form.slug}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, slug: event.target.value }))
+                  }
+                  placeholder={lp('slugPlaceholder', 'ruta-onboarding-comercial')}
+                />
+              </AdminFormField>
 
-            {submitError ? (
-              <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-                {submitError}
-              </p>
-            ) : null}
+              <AdminFormField label={lp('descriptionLabel', 'Descripcion')}>
+                <AdminTextarea
+                  value={form.description}
+                  onChange={(event) =>
+                    setForm((current) => ({ ...current, description: event.target.value }))
+                  }
+                  placeholder={lp('descriptionPlaceholder', 'Que objetivo cubre esta ruta y a quien esta dirigida.')}
+                  className="min-h-28"
+                />
+              </AdminFormField>
 
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full rounded-2xl bg-[var(--color-accent)] px-4 py-3 text-sm font-semibold text-[var(--color-primary)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {submitting
-                ? lp('creating', 'Creando...')
-                : lp('createButton', 'Crear ruta de aprendizaje')}
-            </button>
-          </form>
+              {submitError ? (
+                <AdminStatusBadge tone="danger" className="w-full justify-center rounded-xl">
+                  {submitError}
+                </AdminStatusBadge>
+              ) : null}
 
-          <section className="min-w-0 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
-                  {lp('existingTitle', 'Rutas de aprendizaje existentes')}
-                </h2>
-                <p className="mt-1 break-words text-sm text-slate-500 dark:text-white/60">
-                  {lp('existingDescription', 'Administra metadatos, estado activo y contenido ordenado.')}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => void reload()}
-                className="w-full rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5 sm:w-auto"
+              <AdminButton
+                type="submit"
+                disabled={submitting}
+                icon={Plus}
+                className="w-full"
               >
-                {lp('reload', 'Recargar')}
-              </button>
-            </div>
+                {submitting
+                  ? lp('creating', 'Creando...')
+                  : lp('createButton', 'Crear ruta de aprendizaje')}
+              </AdminButton>
+            </form>
+          </AdminSurface>
+
+          <AdminSurface className="p-5">
+            <AdminSectionHeader
+              size="compact"
+              title={lp('existingTitle', 'Rutas de aprendizaje existentes')}
+              description={lp('existingDescription', 'Administra metadatos, estado activo y contenido ordenado.')}
+              actions={(
+                <AdminButton
+                  type="button"
+                  icon={RefreshCw}
+                  onClick={() => void reload()}
+                  variant="secondary"
+                  size="sm"
+                >
+                  {lp('reload', 'Recargar')}
+                </AdminButton>
+              )}
+            />
 
             {loading ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 dark:border-white/10 dark:text-white/60">
+              <AdminSurface className="border-dashed p-8 text-center text-sm">
                 {lp('loading', 'Cargando rutas de aprendizaje...')}
-              </div>
+              </AdminSurface>
             ) : error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+              <AdminStatusBadge tone="danger" className="w-full justify-center rounded-xl">
                 {error}
-              </div>
+              </AdminStatusBadge>
             ) : learningPaths.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 dark:border-white/10 dark:text-white/60">
-                {lp('empty', 'Todavía no hay rutas de aprendizaje creadas.')}
-              </div>
+              <AdminSurface className="border-dashed p-8 text-center text-sm">
+                {lp('empty', 'Todavia no hay rutas de aprendizaje creadas.')}
+              </AdminSurface>
             ) : (
               <div className="space-y-4">
                 {learningPaths.map((learningPath) => (
-                  <article
-                    key={learningPath.id}
-                    className="min-w-0 rounded-3xl border border-slate-200 bg-slate-50 p-5 dark:border-white/10 dark:bg-white/[0.03]"
-                  >
+                  <AdminSurface key={learningPath.id} className="p-4" interactive>
                     <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="min-w-0 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="break-words text-lg font-semibold text-slate-900 dark:text-white">
+                          <h3 className="break-words text-lg font-semibold">
                             {learningPath.title}
                           </h3>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              learningPath.is_active
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                                : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-white/60'
-                            }`}
-                          >
+                          <AdminStatusBadge tone={learningPath.is_active ? 'primary' : 'neutral'}>
                             {learningPath.is_active
                               ? lp('active', 'Activo')
                               : lp('inactive', 'Inactivo')}
-                          </span>
+                          </AdminStatusBadge>
                         </div>
 
-                        <p className="break-words text-sm text-slate-500 dark:text-white/60">
-                          {learningPath.description || lp('noDescription', 'Sin descripción')}
+                        <p className="break-words text-sm opacity-75">
+                          {learningPath.description || lp('noDescription', 'Sin descripcion')}
                         </p>
-                        <div className="flex flex-wrap gap-3 text-xs text-slate-500 dark:text-white/50">
+                        <div className="flex flex-wrap gap-3 text-xs opacity-65">
                           <span>
                             {lp('workshopsCount', '{{count}} talleres', {
                               count: learningPath.item_count,
@@ -303,50 +281,54 @@ export function AdminLearningPathsPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-2 xl:shrink-0">
-                        <Link
+                        <AdminLinkButton
                           href={`/admin/learning-paths/${learningPath.id}`}
-                          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
+                          variant="secondary"
+                          size="sm"
                         >
                           {lp('manageContent', 'Gestionar contenido')}
-                        </Link>
-                        <button
+                        </AdminLinkButton>
+                        <AdminButton
                           type="button"
                           onClick={() => void handleToggleActive(learningPath.id, learningPath.is_active)}
-                          className="rounded-2xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
+                          variant="secondary"
+                          size="sm"
                         >
                           {learningPath.is_active
                             ? lp('deactivate', 'Desactivar')
                             : lp('activate', 'Activar')}
-                        </button>
-                        <button
+                        </AdminButton>
+                        <AdminButton
                           type="button"
                           onClick={() => setDeleteTarget(learningPath)}
-                          className="rounded-2xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10"
+                          variant="danger"
+                          size="sm"
+                          icon={Trash2}
                         >
                           {lp('delete', 'Eliminar')}
-                        </button>
+                        </AdminButton>
                       </div>
                     </div>
-                  </article>
+                  </AdminSurface>
                 ))}
               </div>
             )}
-          </section>
+          </AdminSurface>
         </section>
-      </section>
+      </div>
 
       <ConfirmationModal
         isOpen={Boolean(deleteTarget)}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => void handleConfirmedDelete()}
         title={lp('deleteTitle', 'Eliminar ruta de aprendizaje')}
-        message={lp('deleteMessage', 'Se eliminará "{{title}}" y dejará de estar disponible para nuevas asignaciones. El progreso histórico se conserva.', {
+        message={lp('deleteMessage', 'Se eliminara "{{title}}" y dejara de estar disponible para nuevas asignaciones. El progreso historico se conserva.', {
           title: deleteTarget?.title || '',
         })}
         confirmText={lp('deleteConfirm', 'Eliminar')}
         type="danger"
         isLoading={Boolean(deletingId)}
       />
-    </PageShell>
+    </AdminPageShell>
   )
 }

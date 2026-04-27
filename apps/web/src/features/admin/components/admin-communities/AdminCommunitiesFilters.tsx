@@ -3,7 +3,9 @@
 import { motion } from 'framer-motion'
 import { Filter, LayoutGrid, List, Search } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { adminCommunitiesColors, type AdminCommunitiesViewMode } from './shared'
+import { AdminInput, AdminSelect, AdminToolbar } from '../ui'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import type { AdminCommunitiesViewMode } from './shared'
 
 interface AdminCommunitiesFiltersProps {
   searchTerm: string
@@ -27,66 +29,81 @@ export function AdminCommunitiesFilters({
   onViewModeChange,
 }: AdminCommunitiesFiltersProps) {
   const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
+  const viewButtonStyle = (active: boolean) => ({
+    backgroundColor: active ? theme.action : 'transparent',
+    color: active ? theme.onAction : theme.textMuted,
+  })
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="flex flex-col lg:flex-row gap-4 p-5 rounded-2xl"
-      style={{ background: adminCommunitiesColors.bgSecondary }}
     >
-      <div className="flex-1 relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-        <input
-          type="text"
-          placeholder={t('searchPlaceholders.communities')}
-          value={searchTerm}
-          onChange={(event) => onSearchChange(event.target.value)}
-          className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#00D4B3] focus:ring-1 focus:ring-[#00D4B3] transition-all"
-        />
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-gray-500">
-          <Filter className="w-4 h-4" />
+      <AdminToolbar className="mb-0">
+        <div className="relative min-w-0 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: theme.textMuted }} />
+          <AdminInput
+            type="text"
+            placeholder={t('searchPlaceholders.communities')}
+            value={searchTerm}
+            onChange={(event) => onSearchChange(event.target.value)}
+            className="pl-9"
+          />
         </div>
 
-        <select
-          value={filterCategory}
-          onChange={(event) => onCategoryChange(event.target.value)}
-          className="px-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white focus:outline-none focus:border-[#00D4B3] transition-all cursor-pointer"
-        >
-          <option value="all">Todas las categorias</option>
-          <option value="Publica">Publicas</option>
-          <option value="Privada">Privadas</option>
-          <option value="Moderada">Moderadas</option>
-        </select>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="hidden items-center gap-2 lg:flex" style={{ color: theme.textMuted }}>
+            <Filter className="w-4 h-4" />
+          </div>
 
-        <select
-          value={filterStatus}
-          onChange={(event) => onStatusChange(event.target.value)}
-          className="px-4 py-3.5 rounded-xl bg-[#0F1419] border border-white/10 text-white focus:outline-none focus:border-[#00D4B3] transition-all cursor-pointer"
-        >
-          <option value="all">Todos los estados</option>
-          <option value="active">Activas</option>
-          <option value="inactive">Inactivas</option>
-        </select>
+          <AdminSelect
+            value={filterCategory}
+            onChange={(event) => onCategoryChange(event.target.value)}
+            className="min-w-[180px]"
+          >
+            <option value="all">{t('communities.filters.allCategories')}</option>
+            <option value="Publica">{t('communities.filters.public')}</option>
+            <option value="Privada">{t('communities.filters.private')}</option>
+            <option value="Moderada">{t('communities.filters.moderated')}</option>
+          </AdminSelect>
 
-        <div className="flex items-center gap-1 p-1.5 rounded-xl" style={{ background: adminCommunitiesColors.bgTertiary }}>
-          <button
-            onClick={() => onViewModeChange('grid')}
-            className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-[#00D4B3] text-white' : 'text-gray-500 hover:text-white'}`}
+          <AdminSelect
+            value={filterStatus}
+            onChange={(event) => onStatusChange(event.target.value)}
+            className="min-w-[160px]"
           >
-            <LayoutGrid className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => onViewModeChange('list')}
-            className={`p-2.5 rounded-lg transition-all ${viewMode === 'list' ? 'bg-[#00D4B3] text-white' : 'text-gray-500 hover:text-white'}`}
-          >
-            <List className="w-4 h-4" />
-          </button>
+            <option value="all">{t('communities.filters.allStatuses')}</option>
+            <option value="active">{t('communities.filters.active')}</option>
+            <option value="inactive">{t('communities.filters.inactive')}</option>
+          </AdminSelect>
+
+          <div className="flex items-center gap-1 rounded-xl border p-1" style={{ backgroundColor: theme.surfaceSubtle, borderColor: theme.border }}>
+            <button
+              type="button"
+              onClick={() => onViewModeChange('grid')}
+              className="rounded-lg p-2.5 transition hover:opacity-80"
+              style={viewButtonStyle(viewMode === 'grid')}
+              aria-label={t('communities.filters.gridView')}
+              title={t('communities.filters.gridView')}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange('list')}
+              className="rounded-lg p-2.5 transition hover:opacity-80"
+              style={viewButtonStyle(viewMode === 'list')}
+              aria-label={t('communities.filters.listView')}
+              title={t('communities.filters.listView')}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      </div>
+      </AdminToolbar>
     </motion.div>
   )
 }

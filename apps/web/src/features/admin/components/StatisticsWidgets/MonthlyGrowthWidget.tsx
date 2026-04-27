@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { CalendarIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 
-// Lazy load Nivo components
-const ResponsiveLine = dynamic(() => import('@nivo/line').then(mod => mod.ResponsiveLine), { ssr: false })
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminSurface } from '../ui'
+
+const ResponsiveLine = dynamic(() => import('@nivo/line').then((mod) => mod.ResponsiveLine), { ssr: false })
 
 interface MonthlyGrowthData {
   month: string
@@ -24,6 +27,8 @@ interface MonthlyGrowthWidgetProps {
 }
 
 export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: MonthlyGrowthWidgetProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
   const [data, setData] = useState<MonthlyGrowthData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,85 +38,76 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
       try {
         setIsLoading(true)
         setError(null)
-        
+
         const response = await fetch(`/api/admin/statistics/monthly-growth?period=${period}`)
         const result = await response.json()
-        
+
         if (result.success) {
           setData(result.data)
         } else {
-          setError(result.error || 'Error al cargar datos')
+          setError(result.error || t('statisticsWidgets.errors.loadData'))
         }
       } catch (err) {
-        setError('Error al cargar datos de crecimiento mensual')
+        setError(t('statisticsWidgets.errors.monthlyGrowth'))
         console.error(err)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchData()
-  }, [period])
+    void fetchData()
+  }, [period, t])
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
+          <div className="h-64 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
         </div>
-      </div>
+      </AdminSurface>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <p className="text-red-600 dark:text-red-400">{error}</p>
-      </div>
+      <AdminSurface className="p-6">
+        <p className="text-sm font-semibold" style={{ color: theme.danger }}>
+          {error}
+        </p>
+      </AdminSurface>
     )
   }
 
-  // Preparar datos para Nivo
-  const chartData = metrics.map(metric => {
-    const colorMap: Record<string, string> = {
-      users: '#3b82f6',
-      courses: '#10b981',
-      communities: '#8b5cf6',
-      prompts: '#f97316',
-      aiApps: '#ec4899'
-    }
+  const labelMap: Record<string, string> = {
+    users: t('statisticsWidgets.metrics.users'),
+    courses: t('statisticsWidgets.metrics.courses'),
+    communities: t('statisticsWidgets.metrics.communities'),
+    prompts: t('statisticsWidgets.metrics.prompts'),
+    aiApps: t('statisticsWidgets.metrics.aiApps'),
+  }
 
-    const labelMap: Record<string, string> = {
-      users: 'Usuarios',
-      courses: 'Talleres',
-      communities: 'Comunidades',
-      prompts: 'Prompts',
-      aiApps: 'Apps de IA'
-    }
-
-    return {
-      id: labelMap[metric] || metric,
-      color: colorMap[metric] || '#3b82f6',
-      data: data.map(item => ({
-        x: item.month,
-        y: item[metric as keyof MonthlyGrowthData] as number
-      }))
-    }
-  })
+  const chartData = metrics.map((metric, index) => ({
+    id: labelMap[metric] || metric,
+    color: theme.chartColors[index % theme.chartColors.length],
+    data: data.map((item) => ({
+      x: item.month,
+      y: item[metric as keyof MonthlyGrowthData] as number,
+    })),
+  }))
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Crecimiento Mensual
+    <AdminSurface className="p-6">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h3 className="text-lg font-bold" style={{ color: theme.text }}>
+          {t('statisticsWidgets.monthlyGrowth.title')}
         </h3>
-        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-          <CalendarIcon className="h-4 w-4 mr-1" />
-          Últimos {period} meses
+        <div className="flex items-center text-sm" style={{ color: theme.textMuted }}>
+          <CalendarIcon className="mr-1 h-4 w-4" />
+          {t('statisticsWidgets.monthlyGrowth.period', { period })}
         </div>
       </div>
-      
+
       <div className="h-64">
         <ResponsiveLine
           data={chartData}
@@ -122,7 +118,7 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
             min: 0,
             max: 'auto',
             stacked: false,
-            reverse: false
+            reverse: false,
           }}
           yFormat=" >-.0f"
           axisTop={null}
@@ -131,24 +127,25 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
             tickSize: 5,
             tickPadding: 5,
             tickRotation: 0,
-            legend: 'Mes',
+            legend: t('statisticsWidgets.monthlyGrowth.monthAxis'),
             legendOffset: 36,
-            legendPosition: 'middle'
+            legendPosition: 'middle',
           }}
           axisLeft={{
             tickSize: 5,
             tickPadding: 5,
             tickRotation: 0,
-            legend: 'Cantidad',
+            legend: t('statisticsWidgets.monthlyGrowth.countAxis'),
             legendOffset: -40,
-            legendPosition: 'middle'
+            legendPosition: 'middle',
           }}
+          colors={{ datum: 'color' }}
           pointSize={8}
           pointColor={{ theme: 'background' }}
           pointBorderWidth={2}
           pointBorderColor={{ from: 'serieColor' }}
           pointLabelYOffset={-12}
-          useMesh={true}
+          useMesh
           legends={[
             {
               anchor: 'bottom-right',
@@ -167,61 +164,60 @@ export function MonthlyGrowthWidget({ period = 8, metrics = ['users'] }: Monthly
                 {
                   on: 'hover',
                   style: {
-                    itemBackground: 'rgba(0, 0, 0, .03)',
-                    itemOpacity: 1
-                  }
-                }
-              ]
-            }
+                    itemBackground: theme.hover,
+                    itemOpacity: 1,
+                  },
+                },
+              ],
+            },
           ]}
           theme={{
             axis: {
               domain: {
                 line: {
-                  stroke: '#777777',
-                  strokeWidth: 1
-                }
+                  stroke: theme.border,
+                  strokeWidth: 1,
+                },
               },
               legend: {
                 text: {
-                  fill: '#777777',
-                  fontSize: 12
-                }
+                  fill: theme.textMuted,
+                  fontSize: 12,
+                },
               },
               ticks: {
                 line: {
-                  stroke: '#777777',
-                  strokeWidth: 1
+                  stroke: theme.border,
+                  strokeWidth: 1,
                 },
                 text: {
-                  fill: '#777777',
-                  fontSize: 11
-                }
-              }
+                  fill: theme.textMuted,
+                  fontSize: 11,
+                },
+              },
             },
             grid: {
               line: {
-                stroke: '#dddddd',
-                strokeWidth: 1
-              }
+                stroke: theme.divider,
+                strokeWidth: 1,
+              },
             },
             legends: {
               text: {
-                fill: '#777777',
-                fontSize: 11
-              }
+                fill: theme.textMuted,
+                fontSize: 11,
+              },
             },
             tooltip: {
               container: {
-                background: '#ffffff',
-                color: '#333333',
-                fontSize: 12
-              }
-            }
+                background: theme.surface,
+                color: theme.text,
+                fontSize: 12,
+              },
+            },
           }}
         />
       </div>
-    </div>
+    </AdminSurface>
   )
 }
-

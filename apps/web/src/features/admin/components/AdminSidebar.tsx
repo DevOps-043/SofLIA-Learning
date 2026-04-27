@@ -1,27 +1,35 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import { useMemo } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
-  LayoutDashboard,
-  Users,
-  BookOpen,
-  Route,
+  AppWindow,
   BarChart3,
-  FileText,
-  X,
-  ChevronRight,
-  MapPin,
+  BookOpen,
   Building2,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
-  ChevronLeft
+  FileText,
+  Flag,
+  GraduationCap,
+  LayoutDashboard,
+  MessageSquareText,
+  Newspaper,
+  PlaySquare,
+  Route,
+  ShieldCheck,
+  Sparkles,
+  UserCheck,
+  Users,
+  X,
 } from 'lucide-react'
-import Image from 'next/image'
-import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
-import { useThemeStore } from '@/core/stores/themeStore'
 import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../hooks/useAdminTheme'
 
 interface AdminSidebarProps {
   isOpen: boolean
@@ -33,311 +41,174 @@ interface AdminSidebarProps {
 }
 
 const navigation = [
-  { section: 'dashboard', labelKey: 'navigation.dashboard', fallbackLabel: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-  { section: 'users', labelKey: 'navigation.users', fallbackLabel: 'Usuarios', href: '/admin/users', icon: Users },
-  { section: 'workshops', labelKey: 'navigation.workshops', fallbackLabel: 'Talleres', href: '/admin/workshops', icon: BookOpen },
-  { section: 'learning-paths', labelKey: 'navigation.learningPaths', fallbackLabel: 'Rutas de aprendizaje', href: '/admin/learning-paths', icon: Route },
-  { section: 'lia-analytics', labelKey: 'navigation.liaAnalytics', fallbackLabel: 'SofLIA Analytics', href: '/admin/lia-analytics', icon: BarChart3 },
-  { section: 'user-stats', labelKey: 'navigation.userStats', fallbackLabel: 'Estadísticas de Usuarios', href: '/admin/user-stats', icon: MapPin },
-  { section: 'companies', labelKey: 'navigation.companies', fallbackLabel: 'Empresas', href: '/admin/companies', icon: Building2 },
-  { section: 'reports', labelKey: 'navigation.reports', fallbackLabel: 'Reportes', href: '/admin/reportes', icon: FileText },
-  { section: 'reviews', labelKey: 'navigation.reviews', fallbackLabel: 'Revisiones', href: '/admin/courses/pending', icon: ClipboardCheck },
+  { section: 'dashboard', labelKey: 'navigation.dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+  { section: 'companies', labelKey: 'navigation.companies', href: '/admin/companies', icon: Building2 },
+  { section: 'users', labelKey: 'navigation.users', href: '/admin/users', icon: Users },
+  { section: 'workshops', labelKey: 'navigation.workshops', href: '/admin/workshops', icon: BookOpen },
+  { section: 'learning-paths', labelKey: 'navigation.learningPaths', href: '/admin/learning-paths', icon: Route },
+  { section: 'access-requests', labelKey: 'navigation.accessRequests', href: '/admin/access-requests', icon: UserCheck },
+  { section: 'communities', labelKey: 'navigation.communities', href: '/admin/communities', icon: MessageSquareText },
+  { section: 'apps', labelKey: 'navigation.apps', href: '/admin/apps', icon: AppWindow },
+  { section: 'prompts', labelKey: 'navigation.prompts', href: '/admin/prompts', icon: Sparkles },
+  { section: 'news', labelKey: 'navigation.news', href: '/admin/news', icon: Newspaper },
+  { section: 'reels', labelKey: 'navigation.reels', href: '/admin/reels', icon: PlaySquare },
+  { section: 'skills', labelKey: 'navigation.skills', href: '/admin/skills', icon: GraduationCap },
+  { section: 'reviews', labelKey: 'navigation.reviews', href: '/admin/courses/pending', icon: ClipboardCheck },
+  { section: 'reports', labelKey: 'navigation.reports', href: '/admin/reportes', icon: FileText },
+  { section: 'statistics', labelKey: 'navigation.statistics', href: '/admin/statistics', icon: BarChart3 },
+  { section: 'moderation-ai', labelKey: 'navigation.moderation', href: '/admin/moderation-ai', icon: ShieldCheck },
+  { section: 'lia-analytics', labelKey: 'navigation.liaAnalytics', href: '/admin/lia-analytics', icon: ShieldCheck },
+  { section: 'user-stats', labelKey: 'navigation.userStats', href: '/admin/user-stats', icon: Flag },
 ]
 
-export function AdminSidebar({ isOpen, onClose, activeSection, onSectionChange, isCollapsed, onToggleCollapse }: AdminSidebarProps) {
+export function AdminSidebar({
+  isOpen,
+  onClose,
+  onSectionChange,
+  isCollapsed,
+  onToggleCollapse,
+}: AdminSidebarProps) {
   const { t } = useTranslation('admin')
   const pathname = usePathname()
-  const sidebarRef = useRef<HTMLDivElement>(null)
+  const theme = useAdminTheme()
+  const width = isCollapsed ? 80 : 280
 
-  // Obtener tema del usuario (light/dark)
-  const { resolvedTheme } = useThemeStore()
-  const isLightTheme = resolvedTheme === 'light'
-
-  // Obtener estilos de la organización para el tema
-  const { styles: orgStyles } = useOrganizationStylesContext()
-  const panelStyles = orgStyles?.panel
-
-  // Colores del tema
-  const primaryColor = panelStyles?.primary_button_color || '#3b82f6'
-  const accentColor = panelStyles?.accent_color || '#00D4B3'
-  const textColor = isLightTheme ? '#0A2540' : '#FFFFFF'
-  const borderColor = isLightTheme ? '#E2E8F0' : 'rgba(255,255,255,0.1)'
-  const hoverBg = isLightTheme ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.1)'
-  const sidebarBackground = isLightTheme ? '#FFFFFF' : '#0a0a0a'
-
-  // Calcular estilos dinámicos para el fondo (Glassmorphism)
-  const sidebarStyle: React.CSSProperties = useMemo(() => {
-    const opacity = 0.95
-    if (isLightTheme) {
-      return { backgroundColor: `rgba(255, 255, 255, ${opacity})` }
-    }
-    return { backgroundColor: `rgba(10, 10, 10, ${opacity})` }
-  }, [isLightTheme])
-
-  // Lógica para determinar si el sidebar debe estar expandido
-  const shouldExpand = !isCollapsed
-  const actualWidth = isCollapsed ? 'w-16' : 'w-64'
-
-  // Detectar clics fuera del sidebar para cerrarlo
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        if (!isCollapsed) {
-          onToggleCollapse()
-        }
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isCollapsed, onToggleCollapse])
-
-  // Detectar tecla Escape para cerrar el sidebar
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (isOpen) {
-          onClose()
-        }
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown)
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isOpen, onClose])
-
+  const navItems = useMemo(
+    () =>
+      navigation.map((item) => ({
+        ...item,
+        label: t(item.labelKey),
+      })),
+    [t],
+  )
 
   return (
     <>
-      {/* Mobile backdrop */}
       <AnimatePresence>
-        {isOpen && (
+        {isOpen ? (
           <motion.div
-            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            className="fixed inset-0 z-40 backdrop-blur-sm lg:hidden"
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+            initial={{ opacity: 0 }}
             onClick={onClose}
+            style={{ backgroundColor: theme.overlay }}
           />
-        )}
+        ) : null}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <motion.div
-        ref={sidebarRef}
+      <motion.aside
+        animate={{ width }}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r transition-transform duration-300 lg:translate-x-0 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
         initial={false}
-        animate={{
-          width: isCollapsed && !shouldExpand ? 64 : 256,
-        }}
-        className={`fixed inset-y-0 left-0 z-[50] shadow-xl lg:flex lg:flex-col overflow-hidden transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
-        transition={{
-          width: { duration: 0.3, ease: [0.4, 0, 0.2, 1] }
-        }}
         style={{
-          ...sidebarStyle,
-          backdropFilter: 'blur(20px)',
-          borderRight: `1px solid ${borderColor}`,
-          willChange: 'width'
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
         }}
+        transition={{ width: { duration: 0.25, ease: 'easeInOut' } }}
       >
-        <div
-          className="w-full h-full flex flex-col relative"
-          style={{
-            width: '100%',
-            minWidth: isCollapsed ? '64px' : '256px'
-          }}
-        >
-          {/* Decoracion de fondo sutil */}
-          <div
-            className="absolute inset-0 pointer-events-none opacity-20"
-            style={{
-              background: `radial-gradient(circle at 100% 0%, ${primaryColor}40 0%, transparent 20%), 
-                           radial-gradient(circle at 0% 100%, ${accentColor}40 0%, transparent 20%)`
-            }}
-          />
-          {/* Header */}
-          <div
-            className="flex items-center justify-between h-20 border-b flex-shrink-0 overflow-hidden relative z-10"
-            style={{
-              borderColor,
-              paddingLeft: (!isCollapsed || shouldExpand) ? '1.5rem' : '0',
-              paddingRight: (!isCollapsed || shouldExpand) ? '1.5rem' : '0',
-            }}
-          >
-            <AnimatePresence mode="wait">
-              {(!isCollapsed || shouldExpand) ? (
-                <motion.div
-                  key="logo-expanded"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center gap-3 min-w-0"
-                >
-                  <div className="h-10 w-10 p-2 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 relative overflow-hidden shadow-lg border border-white/10">
-                    <Image
-                      src="/Logo.png"
-                      alt="SOFLIA Logo"
-                      width={28}
-                      height={28}
-                      className="object-contain"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-lg font-bold tracking-tight" style={{ color: textColor }}>SOFLIA</p>
-                    <p className="text-[10px] font-medium uppercase tracking-[0.2em] opacity-50" style={{ color: textColor }}>SuperAdmin</p>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="logo-collapsed"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.3 }}
-                  className="flex items-center justify-center w-full"
-                >
-                  <div className="h-10 w-10 p-2 rounded-xl bg-white/5 flex items-center justify-center relative overflow-hidden shadow-lg border border-white/10">
-                    <Image
-                      src="/Logo.png"
-                      alt="SOFLIA Logo"
-                      width={28}
-                      height={28}
-                      className="object-contain"
-                    />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+        <div className="flex h-20 shrink-0 items-center border-b px-4" style={{ borderColor: theme.border }}>
+          <div className={isCollapsed ? 'flex w-full justify-center' : 'flex min-w-0 flex-1 items-center gap-3'}>
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border"
+              style={{ backgroundColor: theme.surfaceSubtle, borderColor: theme.border }}
+            >
+              <Image src="/Logo.png" alt="SofLIA" width={28} height={28} className="object-contain" />
+            </div>
+            {!isCollapsed ? (
+              <div className="min-w-0">
+                <p className="truncate text-base font-bold" style={{ color: theme.text }}>
+                  SofLIA
+                </p>
+                <p className="truncate text-[10px] font-semibold uppercase tracking-wider" style={{ color: theme.textMuted }}>
+                  {t('navigation.superadmin')}
+                </p>
+              </div>
+            ) : null}
+          </div>
 
-            {/* Mobile Close Button */}
-            <motion.button
-              onClick={(event) => {
-                event.stopPropagation()
-                onClose()
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="lg:hidden p-2 rounded-lg transition-colors"
-              style={{ color: textColor, opacity: 0.7 }}
+          {!isCollapsed ? (
+            <button
+              type="button"
+              className="rounded-xl p-2 lg:hidden"
+              onClick={onClose}
+              style={{ color: theme.textMuted }}
+              aria-label={t('navigation.close')}
             >
               <X className="h-5 w-5" />
-            </motion.button>
-          </div>
-
-
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-6 overflow-y-auto overflow-x-hidden relative z-10 custom-scrollbar">
-            <ul className="space-y-1.5">
-              {navigation.map((item, index) => {
-                const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
-                const Icon = item.icon
-                const label = t(item.labelKey, { defaultValue: item.fallbackLabel })
-                return (
-                  <motion.li
-                    key={item.href}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Link
-                      href={item.href}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        onSectionChange(item.section)
-                        onClose()
-                      }}
-                      className={`
-                        group relative flex items-center px-3 py-3 rounded-xl
-                        transition-all duration-300 ease-out
-                        ${isActive ? 'shadow-lg' : 'hover:bg-white/5'}
-                        ${(isCollapsed && !shouldExpand) ? 'justify-center' : 'justify-start gap-3'}
-                      `}
-                      style={{
-                        backgroundColor: isActive ? primaryColor : 'transparent',
-                        color: isActive ? '#FFFFFF' : textColor,
-                        boxShadow: isActive ? `0 4px 20px -5px ${primaryColor}60` : 'none',
-                        opacity: isActive ? 1 : 0.7
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isActive) {
-                          e.currentTarget.style.backgroundColor = hoverBg;
-                          e.currentTarget.style.opacity = '1';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive) {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.opacity = '0.7';
-                        }
-                      }}
-                      title={(isCollapsed && !shouldExpand) ? label : undefined}
-                    >
-                      <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                      
-                      {(!isCollapsed || shouldExpand) && (
-                        <motion.span
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
-                          exit={{ opacity: 0, width: 0 }}
-                          className="text-sm font-medium whitespace-nowrap overflow-hidden flex-1"
-                        >
-                          {label}
-                        </motion.span>
-                      )}
-
-                      {isActive && (!isCollapsed || shouldExpand) && (
-                        <motion.div
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                        >
-                          <ChevronRight className="w-4 h-4 opacity-50" />
-                        </motion.div>
-                      )}
-
-                      {/* Active Indicator Glow for Collapsed */}
-                      {isCollapsed && !shouldExpand && isActive && (
-                        <div
-                          className="absolute inset-0 rounded-xl blur-md -z-10 opacity-60"
-                          style={{ background: primaryColor }}
-                        />
-                      )}
-                    </Link>
-                  </motion.li>
-                )
-              })}
-            </ul>
-          </nav>
-
-          {/* Footer Section */}
-          <div className="mt-auto px-4 pb-6 pt-2 relative z-10">
-            {/* Collapse Toggle Button - Desktop Only */}
-            <div className={`flex ${(!isCollapsed || shouldExpand) ? 'justify-end' : 'justify-center'}`}>
-              <button
-                onClick={(e) => { e.stopPropagation(); onToggleCollapse(); }}
-                className="w-10 h-10 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95 border"
-                style={{
-                  color: textColor,
-                  opacity: 0.6,
-                  borderColor,
-                  backgroundColor: 'rgba(255,255,255,0.05)'
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBg; e.currentTarget.style.opacity = '1'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'; e.currentTarget.style.opacity = '0.6'; }}
-              >
-                {isCollapsed && !shouldExpand ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
+            </button>
+          ) : null}
         </div>
-      </motion.div>
+
+        <nav className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-4 scrollbar-thin">
+          <ul className="space-y-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
+              const Icon = item.icon
+
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => {
+                      onSectionChange(item.section)
+                      onClose()
+                    }}
+                    className={`group flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold transition ${
+                      isCollapsed ? 'justify-center' : 'gap-3'
+                    }`}
+                    style={{
+                      backgroundColor: isActive ? theme.action : 'transparent',
+                      color: isActive ? theme.onAction : theme.textMuted,
+                    }}
+                    title={isCollapsed ? item.label : undefined}
+                    onMouseEnter={(event) => {
+                      if (!isActive) {
+                        event.currentTarget.style.backgroundColor = theme.hover
+                        event.currentTarget.style.color = theme.text
+                      }
+                    }}
+                    onMouseLeave={(event) => {
+                      if (!isActive) {
+                        event.currentTarget.style.backgroundColor = 'transparent'
+                        event.currentTarget.style.color = theme.textMuted
+                      }
+                    }}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {!isCollapsed ? <span className="truncate">{item.label}</span> : null}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </nav>
+
+        <div className="border-t p-2" style={{ borderColor: theme.border }}>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={`flex h-11 w-full items-center rounded-xl px-3 text-sm font-semibold transition ${
+              isCollapsed ? 'justify-center' : 'justify-between'
+            }`}
+            style={{ color: theme.textMuted }}
+            onMouseEnter={(event) => {
+              event.currentTarget.style.backgroundColor = theme.hover
+              event.currentTarget.style.color = theme.text
+            }}
+            onMouseLeave={(event) => {
+              event.currentTarget.style.backgroundColor = 'transparent'
+              event.currentTarget.style.color = theme.textMuted
+            }}
+            aria-label={t('navigation.toggle')}
+          >
+            {!isCollapsed ? <span>{t('navigation.collapse')}</span> : null}
+            {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          </button>
+        </div>
+      </motion.aside>
     </>
   )
 }

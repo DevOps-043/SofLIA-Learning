@@ -8,6 +8,7 @@ import {
   CpuChipIcon,
   LightBulbIcon,
 } from "@heroicons/react/24/outline";
+import { useTranslation } from "react-i18next";
 import {
   LiaStatsCards,
   CostOverviewWidget,
@@ -19,6 +20,15 @@ import {
   TopQuestionsWidget,
   CourseAnalyticsWidget,
 } from "./LiaAnalyticsWidgets";
+import { useAdminTheme } from "../hooks/useAdminTheme";
+import {
+  AdminButton,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminSelect,
+  AdminSurface,
+  AdminTabs,
+} from "./ui";
 
 interface AnalyticsData {
   period: {
@@ -74,14 +84,9 @@ interface AnalyticsData {
 
 type PeriodType = "day" | "week" | "month" | "year";
 
-const PERIOD_OPTIONS: { value: PeriodType; label: string }[] = [
-  { value: "day", label: "Hoy" },
-  { value: "week", label: "Última semana" },
-  { value: "month", label: "Último mes" },
-  { value: "year", label: "Último año" },
-];
-
 export function LiaAnalyticsPage() {
+  const { t } = useTranslation("admin");
+  const theme = useAdminTheme();
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<PeriodType>("month");
@@ -89,10 +94,16 @@ export function LiaAnalyticsPage() {
   const [chartType, setChartType] = useState<"area" | "bar">("area");
   const [provider, setProvider] = useState<"openai" | "gemini">("openai");
 
+  const periodOptions: { value: PeriodType; label: string }[] = [
+    { value: "day", label: t("liaAnalyticsPage.periods.day") },
+    { value: "week", label: t("liaAnalyticsPage.periods.week") },
+    { value: "month", label: t("liaAnalyticsPage.periods.month") },
+    { value: "year", label: t("liaAnalyticsPage.periods.year") },
+  ];
+
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Agregar timestamp para evitar cache y forzar datos frescos
       const timestamp = Date.now();
       const response = await fetch(
         `/api/admin/lia-analytics?period=${period}&provider=${provider}&_t=${timestamp}`,
@@ -124,7 +135,6 @@ export function LiaAnalyticsPage() {
   const handleExportCSV = () => {
     if (!data) return;
 
-    // Crear CSV con los datos de costos por período
     const headers = ["Fecha", "Costo (USD)", "Tokens", "Mensajes"];
     const rows = data.costsByPeriod.map((item) => [
       item.date,
@@ -153,115 +163,66 @@ export function LiaAnalyticsPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1800px] mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <div className="p-2 bg-indigo-500/20 rounded-xl">
-                <CpuChipIcon className="w-8 h-8 text-indigo-500" />
-              </div>
-              SofLIA Analytics Dashboard
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
-              Monitorea el uso, costos y rendimiento del asistente de IA
-            </p>
-            {lastUpdated && (
-              <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                Última actualización: {lastUpdated.toLocaleTimeString("es-ES")}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Selector de Proveedor */}
-            <div className="relative">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center pointer-events-none">
-                {provider === "openai" ? (
-                  <span className="text-lg">🤖</span> // Icono temporal para OpenAI
-                ) : (
-                  <span className="text-lg">✨</span> // Icono temporal para Gemini
-                )}
-              </div>
-              <select
+    <AdminPageShell maxWidth="wide">
+      <div className="space-y-7">
+        <AdminSectionHeader
+          size="page"
+          icon={CpuChipIcon}
+          kicker={t("navigation.liaAnalytics")}
+          title={t("liaAnalyticsPage.title")}
+          description={t("liaAnalyticsPage.description")}
+          actions={(
+            <>
+              <AdminSelect
                 value={provider}
-                onChange={(e) =>
-                  setProvider(e.target.value as "openai" | "gemini")
-                }
-                className="pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none cursor-pointer min-w-[140px]"
+                onChange={(event) => setProvider(event.target.value as "openai" | "gemini")}
+                className="min-w-[140px]"
               >
                 <option value="openai">OpenAI</option>
                 <option value="gemini">Gemini</option>
-              </select>
-            </div>
+              </AdminSelect>
 
-            {/* Selector de período */}
-            <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value as PeriodType)}
-                className="pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent appearance-none cursor-pointer"
-              >
-                {PERIOD_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+              <div className="relative">
+                <CalendarIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: theme.textMuted }} />
+                <AdminSelect
+                  value={period}
+                  onChange={(event) => setPeriod(event.target.value as PeriodType)}
+                  className="min-w-[170px] pl-9"
+                >
+                  {periodOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </AdminSelect>
+              </div>
 
-            {/* Tipo de gráfico */}
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
-              <button
-                onClick={() => setChartType("area")}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  chartType === "area"
-                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                }`}
-              >
-                Área
-              </button>
-              <button
-                onClick={() => setChartType("bar")}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  chartType === "bar"
-                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                }`}
-              >
-                Barras
-              </button>
-            </div>
-
-            {/* Botones de acción */}
-            <button
-              onClick={fetchData}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl transition-colors"
-            >
-              <ArrowPathIcon
-                className={`w-5 h-5 ${isLoading ? "animate-spin" : ""}`}
+              <AdminTabs
+                value={chartType}
+                onChange={setChartType}
+                tabs={[
+                  { value: "area", label: t("liaAnalyticsPage.chartArea") },
+                  { value: "bar", label: t("liaAnalyticsPage.chartBars") },
+                ]}
               />
-              <span className="hidden sm:inline">Actualizar</span>
-            </button>
 
-            <button
-              onClick={handleExportCSV}
-              disabled={!data}
-              className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ArrowDownTrayIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">Exportar CSV</span>
-            </button>
-          </div>
-        </div>
-      </div>
+              <AdminButton onClick={fetchData} disabled={isLoading} icon={ArrowPathIcon} variant="secondary">
+                {t("liaAnalyticsPage.refresh")}
+              </AdminButton>
 
-      {/* Stats Cards */}
-      <div className="mb-8">
+              <AdminButton onClick={handleExportCSV} disabled={!data} icon={ArrowDownTrayIcon}>
+                {t("liaAnalyticsPage.exportCsv")}
+              </AdminButton>
+            </>
+          )}
+        />
+
+        {lastUpdated ? (
+          <p className="text-xs" style={{ color: theme.textMuted }}>
+            {t("liaAnalyticsPage.lastUpdated", { time: lastUpdated.toLocaleTimeString("es-ES") })}
+          </p>
+        ) : null}
+
         <LiaStatsCards
           summary={
             data?.summary || {
@@ -292,68 +253,53 @@ export function LiaAnalyticsPage() {
           projectedMonthlyCost={data?.projections.monthlyEstimate || 0}
           isLoading={isLoading}
         />
-      </div>
 
-      {/* Main Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <CostOverviewWidget
-          data={data?.costsByPeriod || []}
-          isLoading={isLoading}
-          chartType={chartType}
-        />
-        <ContextDistributionWidget
-          data={data?.contextDistribution || []}
-          isLoading={isLoading}
-        />
-      </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <CostOverviewWidget
+            data={data?.costsByPeriod || []}
+            isLoading={isLoading}
+            chartType={chartType}
+          />
+          <ContextDistributionWidget
+            data={data?.contextDistribution || []}
+            isLoading={isLoading}
+          />
+        </div>
 
-      {/* Course Analytics Row */}
-      <div className="mb-8">
         <CourseAnalyticsWidget period={period} isLoading={isLoading} />
-      </div>
 
-      {/* Secondary Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <TokenUsageWidget
-          modelUsage={data?.modelUsage || []}
-          totalTokens={data?.summary.totalTokens || 0}
-          isLoading={isLoading}
-        />
-        <ActivityHeatmapWidget period={period} isLoading={isLoading} />
-      </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <TokenUsageWidget
+            modelUsage={data?.modelUsage || []}
+            totalTokens={data?.summary.totalTokens || 0}
+            isLoading={isLoading}
+          />
+          <ActivityHeatmapWidget period={period} isLoading={isLoading} />
+        </div>
 
-      {/* Third Row - Top Questions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <TopQuestionsWidget period={period} limit={8} isLoading={isLoading} />
-        <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <TopQuestionsWidget period={period} limit={8} isLoading={isLoading} />
           <TopUsersWidget period={period} limit={8} isLoading={isLoading} />
         </div>
-      </div>
 
-      {/* Fourth Row - Conversations Table */}
-      <div className="mb-8">
         <ConversationsTableWidget period={period} />
-      </div>
 
-      {/* Info Footer */}
-      <div className="mt-8 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-indigo-500/20 rounded-lg flex-shrink-0">
-            <LightBulbIcon className="w-5 h-5 text-indigo-500" />
+        <AdminSurface className="p-4" style={{ backgroundColor: theme.actionSurface }}>
+          <div className="flex items-start gap-3">
+            <div className="rounded-lg p-2" style={{ backgroundColor: theme.surface, color: theme.action }}>
+              <LightBulbIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="font-medium" style={{ color: theme.text }}>
+                {t("liaAnalyticsPage.costInfoTitle")}
+              </h4>
+              <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+                {t("liaAnalyticsPage.costInfoDescription")}
+              </p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-medium text-indigo-900 dark:text-indigo-300">
-              Información sobre costos
-            </h4>
-            <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-1">
-              Los costos se calculan en tiempo real basados en las tarifas
-              oficiales del modelo utilizado (OpenAI GPT-4o-mini o Google Gemini
-              Flash) por cada millón de tokens. La proyección mensual se basa en
-              el promedio diario del período seleccionado.
-            </p>
-          </div>
-        </div>
+        </AdminSurface>
       </div>
-    </div>
+    </AdminPageShell>
   );
 }

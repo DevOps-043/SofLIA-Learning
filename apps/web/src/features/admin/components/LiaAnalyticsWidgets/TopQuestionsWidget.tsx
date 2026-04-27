@@ -1,192 +1,179 @@
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { ChatBubbleLeftRightIcon, SparklesIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react'
+import {
+  ChatBubbleLeftRightIcon,
+  QuestionMarkCircleIcon,
+  SparklesIcon,
+} from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminStatusBadge, AdminSurface } from '../ui'
 
 interface TopQuestion {
-  question: string;
-  count: number;
-  category: string;
-  avgResponseTime: number;
-  sentiment: 'positive' | 'neutral' | 'negative';
+  question: string
+  count: number
+  category: string
+  avgResponseTime: number
+  sentiment: 'positive' | 'neutral' | 'negative'
 }
 
 interface TopQuestionsWidgetProps {
-  period?: string;
-  limit?: number;
-  isLoading?: boolean;
+  period?: string
+  limit?: number
+  isLoading?: boolean
 }
 
-const CATEGORY_COLORS: Record<string, { bg: string; text: string; icon: string }> = {
-  course: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300', icon: '📚' },
-  general: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-300', icon: '💬' },
-  activity: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300', icon: '✍️' },
-  technical: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', icon: '⚙️' },
-  concept: { bg: 'bg-indigo-100 dark:bg-indigo-900/30', text: 'text-indigo-700 dark:text-indigo-300', icon: '💡' },
-  other: { bg: 'bg-gray-100 dark:bg-gray-700', text: 'text-gray-700 dark:text-gray-300', icon: '❓' },
-};
+function getSentimentTone(sentiment: TopQuestion['sentiment']) {
+  if (sentiment === 'positive') {
+    return 'success' as const
+  }
+  if (sentiment === 'negative') {
+    return 'danger' as const
+  }
+  return 'neutral' as const
+}
 
 export function TopQuestionsWidget({ period = 'month', limit = 8, isLoading: externalLoading }: TopQuestionsWidgetProps) {
-  const [questions, setQuestions] = useState<TopQuestion[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [totalQuestions, setTotalQuestions] = useState(0);
-  const [topCategory, setTopCategory] = useState<string | null>(null);
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const [questions, setQuestions] = useState<TopQuestion[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [totalQuestions, setTotalQuestions] = useState(0)
+  const [topCategory, setTopCategory] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const response = await fetch(`/api/admin/lia-analytics/top-questions?period=${period}&limit=${limit}`);
-        const result = await response.json();
+        const response = await fetch(`/api/admin/lia-analytics/top-questions?period=${period}&limit=${limit}`)
+        const result = await response.json()
 
         if (result.success) {
-          setQuestions(result.data.questions);
-          setTotalQuestions(result.data.totalQuestions);
-          setTopCategory(result.data.topCategory);
+          setQuestions(result.data.questions)
+          setTotalQuestions(result.data.totalQuestions)
+          setTopCategory(result.data.topCategory)
         }
       } catch (error) {
-        console.error('Error fetching top questions:', error);
+        console.error('Error fetching top questions:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-
-    fetchData();
-  }, [period, limit]);
-
-  const getCategoryStyle = (category: string) => {
-    return CATEGORY_COLORS[category] || CATEGORY_COLORS.other;
-  };
-
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'text-green-500';
-      case 'negative': return 'text-red-500';
-      default: return 'text-gray-400';
     }
-  };
+
+    void fetchData()
+  }, [period, limit])
 
   if (isLoading || externalLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
           <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="h-12 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
             ))}
           </div>
         </div>
-      </div>
-    );
+      </AdminSurface>
+    )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+    <AdminSurface className="p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <ChatBubbleLeftRightIcon className="w-5 h-5 text-violet-500" />
-            Temas Frecuentes
+          <h3 className="flex items-center gap-2 text-lg font-bold" style={{ color: theme.text }}>
+            <ChatBubbleLeftRightIcon className="h-5 w-5" style={{ color: theme.action }} />
+            {t('liaAnalyticsWidgets.topQuestions.title')}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {totalQuestions.toLocaleString()} preguntas analizadas
+          <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+            {t('liaAnalyticsWidgets.topQuestions.analyzed', { count: totalQuestions.toLocaleString() })}
           </p>
         </div>
-        {topCategory && (
-          <div className={`px-3 py-1.5 rounded-full ${getCategoryStyle(topCategory).bg}`}>
-            <span className={`text-xs font-medium ${getCategoryStyle(topCategory).text}`}>
-              {getCategoryStyle(topCategory).icon} Top: {topCategory}
-            </span>
-          </div>
-        )}
+        {topCategory ? (
+          <AdminStatusBadge tone="info">
+            {t('liaAnalyticsWidgets.topQuestions.topCategory', {
+              category: t(`liaAnalyticsWidgets.context.labels.${topCategory}`, { defaultValue: topCategory }),
+            })}
+          </AdminStatusBadge>
+        ) : null}
       </div>
 
-      {/* Questions List */}
       {questions.length === 0 ? (
-        <div className="text-center py-8">
-          <QuestionMarkCircleIcon className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-gray-400">No hay suficientes datos</p>
+        <div className="py-8 text-center" style={{ color: theme.textMuted }}>
+          <QuestionMarkCircleIcon className="mx-auto mb-3 h-12 w-12 opacity-50" />
+          <p className="text-sm">{t('liaAnalyticsWidgets.topQuestions.empty')}</p>
         </div>
       ) : (
         <div className="space-y-2">
-          {questions.map((q, index) => {
-            const style = getCategoryStyle(q.category);
-            const maxCount = questions[0]?.count || 1;
-            const widthPercent = (q.count / maxCount) * 100;
+          {questions.map((question, index) => {
+            const maxCount = questions[0]?.count || 1
+            const widthPercent = (question.count / maxCount) * 100
 
             return (
-              <div
-                key={index}
-                className="relative group"
-              >
-                {/* Progress bar background */}
-                <div 
-                  className={`absolute inset-0 ${style.bg} rounded-lg transition-all duration-300 opacity-50 group-hover:opacity-70`}
-                  style={{ width: `${widthPercent}%` }}
+              <div key={index} className="relative overflow-hidden rounded-xl border" style={{ borderColor: theme.border }}>
+                <div
+                  className="absolute inset-y-0 left-0 transition-all duration-300"
+                  style={{ width: `${widthPercent}%`, backgroundColor: theme.actionSurface }}
                 />
-                
-                {/* Content */}
-                <div className="relative p-3 flex items-center gap-3">
-                  {/* Rank */}
-                  <div className={`
-                    w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                    ${index < 3 
-                      ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white' 
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}
-                  `}>
+                <div className="relative flex items-center gap-3 p-3">
+                  <div
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                    style={{ backgroundColor: theme.surfaceSubtle, color: theme.text }}
+                  >
                     {index + 1}
                   </div>
 
-                  {/* Question text */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-900 dark:text-white truncate font-medium">
-                      {q.question}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold" style={{ color: theme.text }}>
+                      {question.question}
                     </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-xs ${style.text}`}>
-                        {style.icon} {q.category}
-                      </span>
-                      <span className="text-xs text-gray-400">•</span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {q.avgResponseTime}ms avg
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <AdminStatusBadge tone="neutral">
+                        {t(`liaAnalyticsWidgets.context.labels.${question.category}`, { defaultValue: question.category })}
+                      </AdminStatusBadge>
+                      <span className="text-xs" style={{ color: theme.textMuted }}>
+                        {t('liaAnalyticsWidgets.topQuestions.avgResponse', { value: question.avgResponseTime })}
                       </span>
                     </div>
                   </div>
 
-                  {/* Count */}
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs ${getSentimentColor(q.sentiment)}`}>
-                      {q.sentiment === 'positive' ? '😊' : q.sentiment === 'negative' ? '😟' : '😐'}
-                    </span>
+                    <AdminStatusBadge tone={getSentimentTone(question.sentiment)}>
+                      {t(`liaAnalyticsWidgets.topQuestions.sentiment.${question.sentiment}`)}
+                    </AdminStatusBadge>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-gray-900 dark:text-white">
-                        {q.count}
+                      <p className="text-sm font-bold" style={{ color: theme.text }}>
+                        {question.count}
                       </p>
-                      <p className="text-xs text-gray-500">veces</p>
+                      <p className="text-xs" style={{ color: theme.textMuted }}>
+                        {t('liaAnalyticsWidgets.topQuestions.times')}
+                      </p>
                     </div>
                   </div>
                 </div>
               </div>
-            );
+            )
           })}
         </div>
       )}
 
-      {/* Footer insight */}
-      {questions.length > 0 && (
-        <div className="mt-4 p-3 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-lg">
+      {questions.length > 0 ? (
+        <div className="mt-4 rounded-xl p-3" style={{ backgroundColor: theme.actionSurface }}>
           <div className="flex items-start gap-2">
-            <SparklesIcon className="w-4 h-4 text-violet-500 mt-0.5 flex-shrink-0" />
-            <p className="text-xs text-gray-600 dark:text-gray-300">
-              <span className="font-semibold">Insight:</span> Las preguntas sobre{' '}
-              <span className="text-violet-600 dark:text-violet-400 font-medium">{topCategory}</span>{' '}
-              representan la mayoría de consultas. Considera mejorar el contenido en esta área.
+            <SparklesIcon className="mt-0.5 h-4 w-4 flex-shrink-0" style={{ color: theme.action }} />
+            <p className="text-xs leading-5" style={{ color: theme.textMuted }}>
+              {t('liaAnalyticsWidgets.topQuestions.insight', {
+                category: topCategory
+                  ? t(`liaAnalyticsWidgets.context.labels.${topCategory}`, { defaultValue: topCategory })
+                  : t('liaAnalyticsWidgets.topQuestions.generalCategory'),
+              })}
             </p>
           </div>
         </div>
-      )}
-    </div>
-  );
+      ) : null}
+    </AdminSurface>
+  )
 }

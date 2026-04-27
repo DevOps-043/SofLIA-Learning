@@ -3,13 +3,11 @@
 import { useEffect, useState } from 'react'
 
 import { useAdminStats } from '@/features/admin/hooks/useAdminStats'
-import { useOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
+import { useAdminTheme } from '@/features/admin/hooks/useAdminTheme'
 import { useProfile } from '@/features/profile/hooks/useProfile'
-import { useThemeStore } from '@/core/stores/themeStore'
 
 import {
   buildAdminDashboardStatsData,
-  buildAdminDashboardThemeColors,
   getAdminDashboardGreeting,
   getAdminDashboardQuickActions,
   getAdminDashboardUserName,
@@ -20,8 +18,7 @@ import type { AdminDashboardActivityRecord } from './types'
 export function useAdminDashboardLogic() {
   const { stats, isLoading, error } = useAdminStats()
   const { profile } = useProfile()
-  const { resolvedTheme } = useThemeStore()
-  const { styles: orgStyles } = useOrganizationStylesContext()
+  const adminTheme = useAdminTheme()
 
   const [activityRecords, setActivityRecords] = useState<AdminDashboardActivityRecord[]>(
     []
@@ -29,10 +26,14 @@ export function useAdminDashboardLogic() {
   const [activitiesLoading, setActivitiesLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
 
-  const themeColors = buildAdminDashboardThemeColors(
-    resolvedTheme === 'light',
-    orgStyles?.panel
-  )
+  const themeColors = {
+    background: adminTheme.background,
+    borderColor: adminTheme.border,
+    cardBackground: adminTheme.surface,
+    inputBg: adminTheme.surfaceSubtle,
+    textPrimary: adminTheme.text,
+    textSecondary: adminTheme.textMuted,
+  }
 
   useEffect(() => {
     const timer = window.setInterval(() => setCurrentTime(new Date()), 60000)

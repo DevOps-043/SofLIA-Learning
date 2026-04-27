@@ -7,9 +7,8 @@ import { useTranslation } from 'react-i18next'
 import { LiaFloatingButton } from '../../../core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '../../../core/components/LiaSidePanel'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
-import { useThemeStore } from '../../../core/stores/themeStore'
 import { useAuth } from '../../auth/hooks/useAuth'
-import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
+import { useAdminTheme } from '../hooks/useAdminTheme'
 import { AdminHeader } from './AdminHeader'
 import { AdminSidebar } from './AdminSidebar'
 
@@ -24,19 +23,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isRedirecting, setIsRedirecting] = useState(false)
-
-  const { resolvedTheme } = useThemeStore()
-  const isLightTheme = resolvedTheme === 'light'
-
-  const { styles: orgStyles } = useOrganizationStylesContext()
-  const panelStyles = orgStyles?.panel
-
-  const themeColors = {
-    background: isLightTheme ? '#F8FAFC' : '#0F1419',
-    cardBackground: isLightTheme
-      ? (panelStyles?.card_background || '#FFFFFF')
-      : '#0F1419',
-  }
+  const theme = useAdminTheme()
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -46,7 +33,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   })
 
   const { contentOffsetPx } = useResponsiveLiaLayout({
-    reservedWidthPx: sidebarCollapsed ? 64 : 256,
+    reservedWidthPx: sidebarCollapsed ? 80 : 280,
   })
 
   const isLoading = typeof authLoading === 'boolean' ? authLoading : true
@@ -95,14 +82,17 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     return (
       <div
         className="flex min-h-screen items-center justify-center transition-colors duration-300"
-        style={{ backgroundColor: themeColors.background }}
+        style={{ backgroundColor: theme.background }}
       >
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="h-16 w-16 rounded-full border-4 border-[#E9ECEF] dark:border-[#6C757D]/30" />
-            <div className="absolute left-0 top-0 h-16 w-16 animate-spin rounded-full border-4 border-t-[#0A2540] dark:border-t-[#00D4B3]" />
+            <div className="h-16 w-16 rounded-full border-4" style={{ borderColor: theme.border }} />
+            <div
+              className="absolute left-0 top-0 h-16 w-16 animate-spin rounded-full border-4 border-transparent"
+              style={{ borderTopColor: theme.action }}
+            />
           </div>
-          <p className="text-sm text-[#6C757D] dark:text-gray-400">Cargando...</p>
+          <p className="text-sm" style={{ color: theme.textMuted }}>Cargando...</p>
         </div>
       </div>
     )
@@ -117,7 +107,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div
       className="min-h-screen max-w-full overflow-x-clip transition-colors duration-300"
-      style={{ backgroundColor: themeColors.background }}
+      style={{ backgroundColor: theme.background, color: theme.text }}
     >
       <AdminSidebar
         isOpen={sidebarOpen}
@@ -130,9 +120,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
       <div
         className={`min-h-screen max-w-full overflow-x-clip transition-all duration-300 ease-in-out ${
-          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
+          sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-[280px]'
         }`}
-        style={{ backgroundColor: themeColors.background }}
+        style={{ backgroundColor: theme.background }}
       >
         <AdminHeader
           onMenuClick={() => setSidebarOpen(true)}
@@ -144,7 +134,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <main
           className="min-h-screen max-w-full overflow-x-clip pt-20 transition-all duration-300 ease-in-out"
           style={{
-            backgroundColor: themeColors.background,
+            backgroundColor: theme.background,
             paddingRight: contentOffsetPx > 0 ? `${contentOffsetPx}px` : undefined,
           }}
         >

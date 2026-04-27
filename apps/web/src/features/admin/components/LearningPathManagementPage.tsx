@@ -1,11 +1,39 @@
 'use client'
 
 import Link from 'next/link'
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  BookOpen,
+  Building2,
+  Info,
+  Layers3,
+  Plus,
+  Route,
+  Save,
+  Trash2,
+  UserCheck,
+  Users,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { PageShell } from '@/core/layout'
 import { useLearningPathManagement } from '../hooks'
+import { useAdminTheme } from '../hooks/useAdminTheme'
 import { ConfirmationModal } from './ConfirmationModal'
+import {
+  AdminButton,
+  AdminFormField,
+  AdminIconButton,
+  AdminInput,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminSelect,
+  AdminStatusBadge,
+  AdminSurface,
+  AdminTextarea,
+} from './ui'
 
 interface LearningPathManagementPageProps {
   learningPathId: string
@@ -30,8 +58,9 @@ export function LearningPathManagementPage({
   learningPathId,
 }: LearningPathManagementPageProps) {
   const { t } = useTranslation('admin')
-  const lp = (key: string, defaultValue: string, options?: Record<string, unknown>) =>
-    t(`learningPathsPage.${key}`, { defaultValue, ...(options || {}) })
+  const theme = useAdminTheme()
+  const lp = (key: string, options?: Record<string, unknown>) =>
+    t(`learningPathsPage.${key}`, options)
   const {
     learningPath,
     availableCourses,
@@ -60,132 +89,146 @@ export function LearningPathManagementPage({
 
   if (loading) {
     return (
-      <PageShell spacing="relaxed">
-        <div className="rounded-2xl border border-dashed border-gray-200 p-8 text-sm text-gray-500 dark:border-white/10 dark:text-white/60">
-          {lp('loading', 'Cargando rutas de aprendizaje...')}
-        </div>
-      </PageShell>
+      <AdminPageShell maxWidth="wide">
+        <AdminSurface className="p-8">
+          <div className="flex items-center gap-3">
+            <div
+              className="h-10 w-10 animate-spin rounded-full border-2 border-t-transparent"
+              style={{ borderColor: theme.border, borderTopColor: 'transparent' }}
+            />
+            <p className="text-sm font-semibold" style={{ color: theme.textMuted }}>
+              {lp('loading')}
+            </p>
+          </div>
+        </AdminSurface>
+      </AdminPageShell>
     )
   }
 
   if (!learningPath) {
     return (
-      <PageShell spacing="relaxed">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-8 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-          {error || lp('notFound', 'Ruta de aprendizaje no encontrada')}
-        </div>
-      </PageShell>
+      <AdminPageShell maxWidth="wide">
+        <AdminSurface className="p-8">
+          <p className="text-sm font-semibold" style={{ color: theme.danger }}>
+            {error || lp('notFound')}
+          </p>
+        </AdminSurface>
+      </AdminPageShell>
     )
   }
 
+  const orderedItems = learningPath.items
+    .slice()
+    .sort((left, right) => left.position - right.position)
+
   return (
-    <PageShell spacing="relaxed">
-      <section className="space-y-8">
-        <header className="overflow-hidden rounded-2xl border border-white/10 bg-gray-900 p-6 text-white sm:p-8">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
-            <div className="min-w-0 space-y-3">
+    <AdminPageShell maxWidth="wide">
+      <section className="space-y-6">
+        <AdminSurface className="p-5 sm:p-6">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
               <Link
                 href="/admin/learning-paths"
-                className="inline-flex text-sm font-medium text-[var(--color-accent)]"
+                className="mb-4 inline-flex items-center gap-2 text-sm font-semibold transition hover:opacity-80"
+                style={{ color: theme.action }}
               >
-                {lp('backToList', 'Volver a rutas de aprendizaje')}
+                <ArrowLeft className="h-4 w-4" />
+                {lp('backToList')}
               </Link>
-              <div className="space-y-2">
-                <h1 className="break-words text-3xl font-bold sm:text-4xl">{learningPath.title}</h1>
-                <p className="max-w-3xl break-words text-sm text-white/70">
-                  {learningPath.description || lp('noDescriptionYet', 'Sin descripción todavía.')}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-3 text-xs text-white/60">
-                <span>
-                  {lp('workshopsCount', '{{count}} talleres', {
-                    count: learningPath.item_count,
-                  })}
-                </span>
-                <span>
-                  {lp('slugValue', 'Slug: {{slug}}', {
-                    slug: learningPath.slug || lp('autoSlug', 'auto'),
-                  })}
-                </span>
-                <span>
-                  {learningPath.is_active
-                    ? lp('active', 'Activo')
-                    : lp('inactive', 'Inactivo')}
-                </span>
+
+              <AdminSectionHeader
+                className="mb-0"
+                icon={Route}
+                kicker={lp('badge')}
+                size="page"
+                title={learningPath.title}
+                description={learningPath.description || lp('noDescriptionYet')}
+                actions={
+                  <AdminStatusBadge tone={learningPath.is_active ? 'info' : 'neutral'}>
+                    {learningPath.is_active ? lp('active') : lp('inactive')}
+                  </AdminStatusBadge>
+                }
+              />
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                <AdminStatusBadge tone="neutral">
+                  {lp('workshopsCount', { count: learningPath.item_count })}
+                </AdminStatusBadge>
+                <AdminStatusBadge tone="neutral">
+                  {lp('slugValue', { slug: learningPath.slug || lp('autoSlug') })}
+                </AdminStatusBadge>
               </div>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 xl:max-w-[30rem]">
-              <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="break-words text-[11px] uppercase tracking-[0.16em] text-white/50">
-                  {lp('statsWorkshops', 'Talleres')}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{learningPath.item_count}</p>
-              </div>
-              <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="break-words text-[11px] uppercase tracking-[0.16em] text-white/50">
-                  {lp('statsOrganizations', 'Empresas')}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{activeOrganizationAssignments.length}</p>
-              </div>
-              <div className="min-w-0 rounded-2xl border border-white/10 bg-white/5 p-4">
-                <p className="break-words text-[11px] uppercase tracking-[0.16em] text-white/50">
-                  {lp('statsUsers', 'Usuarios')}
-                </p>
-                <p className="mt-2 text-2xl font-bold">{activeUserAssignments.length}</p>
-              </div>
+            <div className="grid w-full gap-3 sm:grid-cols-3 xl:max-w-xl">
+              <AdminMetricCard
+                icon={BookOpen}
+                label={lp('statsWorkshops')}
+                value={learningPath.item_count}
+                tone="info"
+                className="min-h-[104px]"
+              />
+              <AdminMetricCard
+                icon={Building2}
+                label={lp('statsOrganizations')}
+                value={activeOrganizationAssignments.length}
+                tone="primary"
+                className="min-h-[104px]"
+              />
+              <AdminMetricCard
+                icon={Users}
+                label={lp('statsUsers')}
+                value={activeUserAssignments.length}
+                tone="neutral"
+                className="min-h-[104px]"
+              />
             </div>
           </div>
-        </header>
+        </AdminSurface>
 
         {error ? (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
-            {error}
-          </div>
+          <AdminSurface className="p-4">
+            <p className="text-sm font-semibold" style={{ color: theme.danger }}>
+              {error}
+            </p>
+          </AdminSurface>
         ) : null}
 
-        <section className="grid gap-8 xl:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
+        <section className="grid gap-6 xl:grid-cols-[minmax(320px,420px)_minmax(0,1fr)]">
           <div className="min-w-0 space-y-6">
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {lp('metadata', 'Metadatos')}
-              </h2>
-              <div className="mt-4 space-y-4">
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-white/80">
-                    {lp('titleLabel', 'Título')}
-                  </span>
-                  <input
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                size="compact"
+                title={lp('metadata')}
+                description={lp('existingDescription')}
+              />
+
+              <div className="space-y-4">
+                <AdminFormField label={lp('titleLabel')}>
+                  <AdminInput
                     value={learningPath.title}
                     onChange={(event) =>
                       setLearningPath((current) =>
                         current ? { ...current, title: event.target.value } : current,
                       )
                     }
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
                   />
-                </label>
+                </AdminFormField>
 
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-white/80">
-                    {lp('slugLabel', 'Slug')}
-                  </span>
-                  <input
+                <AdminFormField label={lp('slugLabel')}>
+                  <AdminInput
                     value={learningPath.slug || ''}
                     onChange={(event) =>
                       setLearningPath((current) =>
                         current ? { ...current, slug: event.target.value } : current,
                       )
                     }
-                    className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
                   />
-                </label>
+                </AdminFormField>
 
-                <label className="block space-y-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-white/80">
-                    {lp('descriptionLabel', 'Descripción')}
-                  </span>
-                  <textarea
+                <AdminFormField label={lp('descriptionLabel')}>
+                  <AdminTextarea
+                    rows={5}
                     value={learningPath.description || ''}
                     onChange={(event) =>
                       setLearningPath((current) =>
@@ -194,14 +237,14 @@ export function LearningPathManagementPage({
                           : current,
                       )
                     }
-                    className="min-h-32 w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
                   />
-                </label>
+                </AdminFormField>
 
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <AdminButton
+                    className="w-full sm:flex-1"
                     disabled={saving}
+                    icon={Save}
                     onClick={() =>
                       void handleMetadataSave({
                         title: learningPath.title,
@@ -210,307 +253,281 @@ export function LearningPathManagementPage({
                         is_active: learningPath.is_active,
                       })
                     }
-                    className="w-full rounded-2xl bg-[var(--color-accent)] px-4 py-3 text-center text-sm font-semibold text-[var(--color-primary)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
                   >
-                    {saving
-                      ? lp('saving', 'Guardando...')
-                      : lp('saveMetadata', 'Guardar metadatos')}
-                  </button>
-                  <button
-                    type="button"
+                    {saving ? lp('saving') : lp('saveMetadata')}
+                  </AdminButton>
+                  <AdminButton
+                    className="w-full sm:w-auto"
                     disabled={saving}
                     onClick={() =>
                       void handleMetadataSave({ is_active: !learningPath.is_active })
                     }
-                    className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5 sm:w-auto"
+                    variant="secondary"
                   >
-                    {learningPath.is_active
-                      ? lp('deactivate', 'Desactivar')
-                      : lp('activate', 'Activar')}
-                  </button>
+                    {learningPath.is_active ? lp('deactivate') : lp('activate')}
+                  </AdminButton>
                 </div>
               </div>
-            </div>
+            </AdminSurface>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {lp('addWorkshop', 'Agregar taller')}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
-                {lp(
-                  'addWorkshopDescription',
-                  'El mismo taller puede vivir en varias rutas, pero una sola vez dentro de esta.',
-                )}
-              </p>
-
-              <div className="mt-4 space-y-3">
-                <select
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                icon={Plus}
+                size="compact"
+                title={lp('addWorkshop')}
+                description={lp('addWorkshopDescription')}
+              />
+              <div className="space-y-3">
+                <AdminSelect
+                  className="w-full"
                   value={selectedCourseId}
                   onChange={(event) => setSelectedCourseId(event.target.value)}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 >
-                  <option value="">{lp('selectWorkshop', 'Selecciona un taller')}</option>
+                  <option value="">{lp('selectWorkshop')}</option>
                   {availableCourses.map((course) => (
                     <option key={course.id} value={course.id}>
                       {course.title}
                     </option>
                   ))}
-                </select>
-
-                <button
-                  type="button"
+                </AdminSelect>
+                <AdminButton
+                  className="w-full"
                   disabled={!selectedCourseId || saving}
+                  icon={Plus}
                   onClick={() => void handleAddCourse()}
-                  className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5"
+                  variant="secondary"
                 >
-                  {saving
-                    ? lp('adding', 'Agregando...')
-                    : lp('addToPath', 'Agregar a la ruta')}
-                </button>
+                  {saving ? lp('adding') : lp('addToPath')}
+                </AdminButton>
               </div>
-            </div>
+            </AdminSurface>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {lp('assignOrganizationTitle', 'Asignar a empresa')}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
-                {lp(
-                  'assignOrganizationDescription',
-                  'Entrega esta ruta completa a una organización con el orden secuencial ya definido.',
-                )}
-              </p>
-
-              <div className="mt-4 space-y-3">
-                <select
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                icon={Building2}
+                size="compact"
+                title={lp('assignOrganizationTitle')}
+                description={lp('assignOrganizationDescription')}
+              />
+              <div className="space-y-3">
+                <AdminSelect
+                  className="w-full"
                   value={selectedOrganizationId}
                   onChange={(event) => setSelectedOrganizationId(event.target.value)}
-                  className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 >
-                  <option value="">
-                    {lp('selectOrganization', 'Selecciona una empresa')}
-                  </option>
+                  <option value="">{lp('selectOrganization')}</option>
                   {availableOrganizations.map((company) => (
                     <option key={company.id} value={company.id}>
                       {company.name}
                     </option>
                   ))}
-                </select>
-
-                <button
-                  type="button"
+                </AdminSelect>
+                <AdminButton
+                  className="w-full"
                   disabled={!selectedOrganizationId || saving}
+                  icon={Building2}
                   onClick={() => void handleAssignToOrganization()}
-                  className="w-full rounded-2xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {saving
-                    ? lp('assigning', 'Asignando...')
-                    : lp('assignOrganizationButton', 'Asignar a empresa')}
-                </button>
+                  {saving ? lp('assigning') : lp('assignOrganizationButton')}
+                </AdminButton>
               </div>
-            </div>
+            </AdminSurface>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {lp('assignUserDelegatedTitle', 'Asignacion a usuarios desde empresa')}
-              </h2>
-              <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
-                {lp(
-                  'assignUserDelegatedDescription',
-                  'Una vez creada la ruta y entregada a una empresa, esa organizacion decide desde su propio panel a que usuarios asignarla.',
-                )}
-              </p>
-
-              <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.03] dark:text-white/70">
-                {lp(
-                  'assignUserDelegatedHint',
-                  'El panel admin mantiene la creacion, edicion y asignacion por empresa. La asignacion individual queda delegada al panel de cada organizacion.',
-                )}
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                icon={UserCheck}
+                size="compact"
+                title={lp('assignUserDelegatedTitle')}
+                description={lp('assignUserDelegatedDescription')}
+              />
+              <div
+                className="rounded-2xl border border-dashed p-4 text-sm leading-6"
+                style={{
+                  backgroundColor: theme.surfaceSubtle,
+                  borderColor: theme.border,
+                  color: theme.textMuted,
+                }}
+              >
+                <div className="mb-2 flex items-center gap-2 font-semibold" style={{ color: theme.text }}>
+                  <Info className="h-4 w-4" />
+                  {lp('managedByCompany')}
+                </div>
+                {lp('assignUserDelegatedHint')}
               </div>
-            </div>
+            </AdminSurface>
           </div>
 
           <div className="min-w-0 space-y-6">
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {lp('sequenceTitle', 'Secuencia de la ruta')}
-                </h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
-                  {lp(
-                    'sequenceDescription',
-                    'El siguiente taller se desbloqueará solo cuando el anterior esté completado.',
-                  )}
-                </p>
-              </div>
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                icon={Layers3}
+                size="section"
+                title={lp('sequenceTitle')}
+                description={lp('sequenceDescription')}
+              />
 
-              {learningPath.items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 p-8 text-center text-sm text-gray-500 dark:border-white/10 dark:text-white/60">
-                  {lp(
-                    'emptySequence',
-                    'Esta ruta está vacía. Agrega el primer taller para iniciar la secuencia.',
-                  )}
+              {orderedItems.length === 0 ? (
+                <div
+                  className="rounded-2xl border border-dashed p-8 text-center text-sm"
+                  style={{ borderColor: theme.border, color: theme.textMuted }}
+                >
+                  {lp('emptySequence')}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {learningPath.items
-                    .slice()
-                    .sort((left, right) => left.position - right.position)
-                    .map((item, index) => (
-                      <div
-                        key={item.id}
-                        className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5 dark:border-white/10 dark:bg-white/[0.03] xl:flex-row xl:items-start xl:justify-between"
-                      >
-                        <div className="flex min-w-0 items-start gap-4">
-                          <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-bold text-[var(--color-accent)]">
-                            <div className="absolute inset-0 rounded-2xl bg-[var(--color-accent)] opacity-10" />
-                            <span className="relative">{item.position}</span>
-                          </div>
-                          <div className="min-w-0 space-y-1">
-                            <p className="break-words text-base font-semibold leading-snug text-gray-900 dark:text-white">
-                              {item.course?.title || lp('untitledCourse', 'Curso sin título')}
-                            </p>
-                            <p className="break-words text-sm text-gray-500 dark:text-white/60">
-                              {(item.course?.category || lp('noCategory', 'Sin categoría'))}
-                              {' / '}
-                              {(item.course?.level || lp('noLevel', 'Sin nivel'))}
-                            </p>
-                          </div>
+                <div className="space-y-3">
+                  {orderedItems.map((item, index) => (
+                    <div
+                      key={item.id}
+                      className="flex min-w-0 flex-col gap-4 rounded-2xl border p-4 lg:flex-row lg:items-center lg:justify-between"
+                      style={{
+                        backgroundColor: theme.surfaceSubtle,
+                        borderColor: theme.border,
+                      }}
+                    >
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-sm font-bold"
+                          style={{
+                            backgroundColor: theme.actionSurface,
+                            borderColor: theme.border,
+                            color: theme.action,
+                          }}
+                        >
+                          {item.position}
                         </div>
-
-                        <div className="flex flex-wrap gap-2 xl:shrink-0 xl:justify-end">
-                          <button
-                            type="button"
-                            disabled={index === 0 || saving}
-                            onClick={() => void handleReorder(index, index - 1)}
-                            className="rounded-2xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-40 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
-                          >
-                            {lp('moveUp', 'Subir')}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={index === learningPath.items.length - 1 || saving}
-                            onClick={() => void handleReorder(index, index + 1)}
-                            className="rounded-2xl border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:opacity-40 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
-                          >
-                            {lp('moveDown', 'Bajar')}
-                          </button>
-                          <button
-                            type="button"
-                            disabled={saving}
-                            onClick={() => setRemoveTargetId(item.id)}
-                            className="rounded-2xl border border-red-200 px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10"
-                          >
-                            {lp('removeWorkshop', 'Eliminar')}
-                          </button>
+                        <div className="min-w-0">
+                          <p className="break-words text-base font-bold" style={{ color: theme.text }}>
+                            {item.course?.title || lp('untitledCourse')}
+                          </p>
+                          <p className="mt-1 break-words text-sm" style={{ color: theme.textMuted }}>
+                            {item.course?.category || lp('noCategory')}
+                            {' / '}
+                            {item.course?.level || lp('noLevel')}
+                          </p>
                         </div>
                       </div>
-                    ))}
+
+                      <div className="flex flex-wrap gap-2 lg:shrink-0">
+                        <AdminIconButton
+                          disabled={index === 0 || saving}
+                          icon={ArrowUp}
+                          label={lp('moveUp')}
+                          onClick={() => void handleReorder(index, index - 1)}
+                          tone="neutral"
+                        />
+                        <AdminIconButton
+                          disabled={index === orderedItems.length - 1 || saving}
+                          icon={ArrowDown}
+                          label={lp('moveDown')}
+                          onClick={() => void handleReorder(index, index + 1)}
+                          tone="neutral"
+                        />
+                        <AdminIconButton
+                          disabled={saving}
+                          icon={Trash2}
+                          label={lp('removeWorkshop')}
+                          onClick={() => setRemoveTargetId(item.id)}
+                          tone="danger"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
-            </div>
+            </AdminSurface>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {lp('organizationAssignmentsTitle', 'Empresas con esta ruta')}
-                </h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
-                  {lp(
-                    'organizationAssignmentsDescription',
-                    'Controla qué organizaciones tienen activa esta ruta de aprendizaje.',
-                  )}
-                </p>
-              </div>
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                icon={Building2}
+                size="section"
+                title={lp('organizationAssignmentsTitle')}
+                description={lp('organizationAssignmentsDescription')}
+              />
 
               {activeOrganizationAssignments.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-sm text-gray-500 dark:border-white/10 dark:text-white/60">
-                  {lp(
-                    'noOrganizationAssignments',
-                    'Esta ruta todavía no está asignada a ninguna empresa.',
-                  )}
+                <div
+                  className="rounded-2xl border border-dashed p-6 text-sm"
+                  style={{ borderColor: theme.border, color: theme.textMuted }}
+                >
+                  {lp('noOrganizationAssignments')}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {activeOrganizationAssignments.map((assignment) => (
                     <div
                       key={assignment.id}
-                      className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 xl:flex-row xl:items-center xl:justify-between"
+                      className="flex min-w-0 flex-col gap-4 rounded-2xl border p-4 lg:flex-row lg:items-center lg:justify-between"
+                      style={{ borderColor: theme.border }}
                     >
-                      <div className="min-w-0 space-y-1">
-                        <p className="break-words font-semibold text-gray-900 dark:text-white">
+                      <div className="min-w-0">
+                        <p className="break-words font-bold" style={{ color: theme.text }}>
                           {assignment.organization_name}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-white/60">
-                          {lp('assignedAt', 'Asignado: {{date}}', {
+                        <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+                          {lp('assignedAt', {
                             date: new Date(assignment.assigned_at).toLocaleDateString(),
                           })}
                         </p>
                       </div>
 
-                      <button
-                        type="button"
+                      <AdminButton
                         disabled={saving}
                         onClick={() => setOrganizationAssignmentToRevoke(assignment)}
-                        className="w-full rounded-2xl border border-red-200 px-4 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10 sm:w-auto xl:shrink-0"
+                        variant="danger"
                       >
-                        {lp('revokeOrganizationAssignment', 'Revocar asignación')}
-                      </button>
+                        {lp('revokeOrganizationAssignment')}
+                      </AdminButton>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </AdminSurface>
 
-            <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-gray-800">
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {lp('userAssignmentsTitle', 'Usuarios con asignación individual')}
-                </h2>
-                <p className="mt-1 text-sm text-gray-500 dark:text-white/60">
-                  {lp(
-                    'userAssignmentsReadonlyDescription',
-                    'Consulta las asignaciones hechas por cada empresa desde su panel. Este listado es solo informativo.',
-                  )}
-                </p>
-              </div>
+            <AdminSurface className="p-5">
+              <AdminSectionHeader
+                icon={Users}
+                size="section"
+                title={lp('userAssignmentsTitle')}
+                description={lp('userAssignmentsReadonlyDescription')}
+              />
 
               {activeUserAssignments.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 p-6 text-sm text-gray-500 dark:border-white/10 dark:text-white/60">
-                  {lp(
-                    'noUserAssignments',
-                    'Esta ruta todavía no tiene asignaciones individuales.',
-                  )}
+                <div
+                  className="rounded-2xl border border-dashed p-6 text-sm"
+                  style={{ borderColor: theme.border, color: theme.textMuted }}
+                >
+                  {lp('noUserAssignments')}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {activeUserAssignments.map((assignment) => (
                     <div
                       key={assignment.id}
-                      className="flex min-w-0 flex-col gap-4 rounded-2xl border border-gray-200 p-4 dark:border-white/10 xl:flex-row xl:items-center xl:justify-between"
+                      className="flex min-w-0 flex-col gap-4 rounded-2xl border p-4 lg:flex-row lg:items-center lg:justify-between"
+                      style={{ borderColor: theme.border }}
                     >
-                      <div className="min-w-0 space-y-1">
-                        <p className="break-words font-semibold text-gray-900 dark:text-white">
-                          {getUserLabel(assignment.user) || lp('unnamedUser', 'Usuario sin nombre')}
+                      <div className="min-w-0">
+                        <p className="break-words font-bold" style={{ color: theme.text }}>
+                          {getUserLabel(assignment.user) || lp('unnamedUser')}
                         </p>
-                        <p className="break-words text-sm text-gray-500 dark:text-white/60">
+                        <p className="mt-1 break-words text-sm" style={{ color: theme.textMuted }}>
                           {assignment.organization_name}
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-white/60">
-                          {lp('assignedAt', 'Asignado: {{date}}', {
+                        <p className="text-sm" style={{ color: theme.textMuted }}>
+                          {lp('assignedAt', {
                             date: new Date(assignment.assigned_at).toLocaleDateString(),
                           })}
                         </p>
                       </div>
 
-                      <span className="w-full rounded-full bg-gray-100 px-3 py-2 text-center text-xs font-semibold text-gray-600 dark:bg-white/5 dark:text-white/60 sm:w-auto xl:shrink-0">
-                        {lp('managedByCompany', 'Gestionado por empresa')}
-                      </span>
+                      <AdminStatusBadge className="justify-center" tone="neutral">
+                        {lp('managedByCompany')}
+                      </AdminStatusBadge>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </AdminSurface>
           </div>
         </section>
       </section>
@@ -519,12 +536,9 @@ export function LearningPathManagementPage({
         isOpen={Boolean(removeTargetId)}
         onClose={() => setRemoveTargetId(null)}
         onConfirm={() => void handleConfirmedRemoveItem()}
-        title={lp('removeTitle', 'Quitar taller de la ruta')}
-        message={lp(
-          'removeMessage',
-          'El taller se quitará de la secuencia, pero no se revocará el acceso que ya haya sido otorgado por otras asignaciones.',
-        )}
-        confirmText={lp('removeConfirm', 'Quitar taller')}
+        title={lp('removeTitle')}
+        message={lp('removeMessage')}
+        confirmText={lp('removeConfirm')}
         type="danger"
         isLoading={saving}
       />
@@ -533,19 +547,14 @@ export function LearningPathManagementPage({
         isOpen={Boolean(organizationAssignmentToRevoke)}
         onClose={() => setOrganizationAssignmentToRevoke(null)}
         onConfirm={() => void handleConfirmRevokeOrganizationAssignment()}
-        title={lp('revokeOrganizationTitle', 'Revocar asignación organizacional')}
-        message={lp(
-          'revokeOrganizationMessage',
-          'La empresa "{{organization}}" dejará de tener esta ruta activa para nuevas consultas. Los accesos directos ya otorgados por otras vías no se eliminan automáticamente.',
-          {
+        title={lp('revokeOrganizationTitle')}
+        message={lp('revokeOrganizationMessage', {
           organization: organizationAssignmentToRevoke?.organization_name || '',
-          },
-        )}
-        confirmText={lp('revokeOrganizationAssignment', 'Revocar asignación')}
+        })}
+        confirmText={lp('revokeOrganizationAssignment')}
         type="danger"
         isLoading={saving}
       />
-
-    </PageShell>
+    </AdminPageShell>
   )
 }

@@ -1,114 +1,82 @@
-'use client';
+'use client'
 
-import { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { ChartPieIcon } from '@heroicons/react/24/outline';
+import { useMemo } from 'react'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import { ChartPieIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminSurface } from '../ui'
 
 interface ContextData {
-  contextType: string;
-  count: number;
-  cost: number;
-  tokens: number;
-  percentage: number;
+  contextType: string
+  count: number
+  cost: number
+  tokens: number
+  percentage: number
 }
 
 interface ContextDistributionWidgetProps {
-  data: ContextData[];
-  isLoading?: boolean;
+  data: ContextData[]
+  isLoading?: boolean
 }
 
 interface ChartContextData extends ContextData {
-  name: string;
-  color: string;
+  name: string
+  color: string
 }
 
 interface ContextTooltipProps {
-  active?: boolean;
+  active?: boolean
   payload?: Array<{
-    payload: ChartContextData;
-  }>;
+    payload: ChartContextData
+  }>
 }
 
 interface ContextLabelProps {
-  cx?: number;
-  cy?: number;
-  midAngle?: number;
-  innerRadius?: number;
-  outerRadius?: number;
-  percent?: number;
+  cx?: number
+  cy?: number
+  midAngle?: number
+  innerRadius?: number
+  outerRadius?: number
+  percent?: number
 }
 
-const CONTEXT_COLORS: Record<string, string> = {
-  course: '#8b5cf6',
-  general: '#6366f1',
-  workshop: '#14b8a6',
-  prompts: '#f97316',
-  community: '#ec4899',
-  news: '#3b82f6',
-  default: '#9ca3af',
-};
-
-const CONTEXT_LABELS: Record<string, string> = {
-  course: 'Cursos',
-  general: 'General',
-  workshop: 'Talleres',
-  prompts: 'Prompts',
-  community: 'Comunidades',
-  news: 'Noticias',
-};
-
 export function ContextDistributionWidget({ data, isLoading }: ContextDistributionWidgetProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
   const chartData = useMemo<ChartContextData[]>(() => {
-    return data.map((item) => ({
+    return data.map((item, index) => ({
       ...item,
-      name: CONTEXT_LABELS[item.contextType] || item.contextType,
-      color: CONTEXT_COLORS[item.contextType] || CONTEXT_COLORS.default,
-    }));
-  }, [data]);
+      name: t(`liaAnalyticsWidgets.context.labels.${item.contextType}`, { defaultValue: item.contextType }),
+      color: theme.chartColors[index % theme.chartColors.length],
+    }))
+  }, [data, t, theme.chartColors])
 
-  const totalConversations = useMemo(() => {
-    return data.reduce((sum, item) => sum + item.count, 0);
-  }, [data]);
-
-  const totalCost = useMemo(() => {
-    return data.reduce((sum, item) => sum + item.cost, 0);
-  }, [data]);
+  const totalConversations = useMemo(() => data.reduce((sum, item) => sum + item.count, 0), [data])
+  const totalCost = useMemo(() => data.reduce((sum, item) => sum + item.cost, 0), [data])
 
   const CustomTooltip = ({ active, payload }: ContextTooltipProps) => {
-    const tooltipData = payload?.[0]?.payload;
-    if (active && tooltipData) {
-      return (
-        <div className="bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
-          <div className="flex items-center gap-2 mb-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: tooltipData.color }}
-            />
-            <p className="text-white font-medium">{tooltipData.name}</p>
-          </div>
-          <div className="space-y-1 text-sm">
-            <p className="text-violet-400">
-              <span className="text-gray-400">Conversaciones:</span>{' '}
-              <span className="font-semibold">{tooltipData.count}</span>
-            </p>
-            <p className="text-emerald-400">
-              <span className="text-gray-400">Costo:</span>{' '}
-              <span className="font-semibold">${tooltipData.cost.toFixed(4)}</span>
-            </p>
-            <p className="text-amber-400">
-              <span className="text-gray-400">Tokens:</span>{' '}
-              <span className="font-semibold">{tooltipData.tokens.toLocaleString()}</span>
-            </p>
-            <p className="text-blue-400">
-              <span className="text-gray-400">Porcentaje:</span>{' '}
-              <span className="font-semibold">{tooltipData.percentage}%</span>
-            </p>
-          </div>
-        </div>
-      );
+    const tooltipData = payload?.[0]?.payload
+    if (!active || !tooltipData) {
+      return null
     }
-    return null;
-  };
+
+    return (
+      <div className="rounded-xl border p-3 shadow-xl" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+        <div className="mb-2 flex items-center gap-2">
+          <div className="h-3 w-3 rounded-full" style={{ backgroundColor: tooltipData.color }} />
+          <p className="font-semibold" style={{ color: theme.text }}>{tooltipData.name}</p>
+        </div>
+        <div className="space-y-1 text-sm" style={{ color: theme.textMuted }}>
+          <p>{t('liaAnalyticsWidgets.context.conversations')}: <span className="font-semibold" style={{ color: theme.text }}>{tooltipData.count}</span></p>
+          <p>{t('liaAnalyticsWidgets.context.cost')}: <span className="font-semibold" style={{ color: theme.text }}>${tooltipData.cost.toFixed(4)}</span></p>
+          <p>{t('liaAnalyticsWidgets.context.tokens')}: <span className="font-semibold" style={{ color: theme.text }}>{tooltipData.tokens.toLocaleString()}</span></p>
+          <p>{t('liaAnalyticsWidgets.context.percentage')}: <span className="font-semibold" style={{ color: theme.text }}>{tooltipData.percentage}%</span></p>
+        </div>
+      </div>
+    )
+  }
 
   const renderCustomLabel = ({
     cx,
@@ -118,60 +86,63 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
     outerRadius,
     percent,
   }: ContextLabelProps) => {
-    const safePercent = percent ?? 0;
-    if (safePercent < 0.05) return null;
+    const safePercent = percent ?? 0
+    if (safePercent < 0.05) {
+      return null
+    }
 
-    const RADIAN = Math.PI / 180;
-    const safeCx = cx ?? 0;
-    const safeCy = cy ?? 0;
-    const safeMidAngle = midAngle ?? 0;
-    const safeInnerRadius = innerRadius ?? 0;
-    const safeOuterRadius = outerRadius ?? 0;
-    const radius = safeInnerRadius + (safeOuterRadius - safeInnerRadius) * 0.5;
-    const x = safeCx + radius * Math.cos(-safeMidAngle * RADIAN);
-    const y = safeCy + radius * Math.sin(-safeMidAngle * RADIAN);
+    const radian = Math.PI / 180
+    const safeCx = cx ?? 0
+    const safeCy = cy ?? 0
+    const safeMidAngle = midAngle ?? 0
+    const safeInnerRadius = innerRadius ?? 0
+    const safeOuterRadius = outerRadius ?? 0
+    const radius = safeInnerRadius + (safeOuterRadius - safeInnerRadius) * 0.5
+    const x = safeCx + radius * Math.cos(-safeMidAngle * radian)
+    const y = safeCy + radius * Math.sin(-safeMidAngle * radian)
 
     return (
       <text
         x={x}
         y={y}
-        fill="white"
+        fill={theme.inverseText}
         textAnchor="middle"
         dominantBaseline="central"
-        className="text-xs font-medium"
+        className="text-xs font-semibold"
       >
         {`${(safePercent * 100).toFixed(0)}%`}
       </text>
-    );
-  };
+    )
+  }
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
-          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto w-64" />
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
+          <div className="mx-auto h-64 w-64 rounded-full" style={{ backgroundColor: theme.surfaceSubtle }} />
         </div>
-      </div>
-    );
+      </AdminSurface>
+    )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <ChartPieIcon className="w-5 h-5 text-violet-500" />
-            Distribucion por Contexto
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {totalConversations} conversaciones - ${totalCost.toFixed(4)} total
-          </p>
-        </div>
+    <AdminSurface className="p-6">
+      <div className="mb-4">
+        <h3 className="flex items-center gap-2 text-lg font-bold" style={{ color: theme.text }}>
+          <ChartPieIcon className="h-5 w-5" style={{ color: theme.action }} />
+          {t('liaAnalyticsWidgets.context.title')}
+        </h3>
+        <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+          {t('liaAnalyticsWidgets.context.summary', {
+            conversations: totalConversations,
+            cost: `$${totalCost.toFixed(4)}`,
+          })}
+        </p>
       </div>
 
       {chartData.length > 0 ? (
-        <div className="flex flex-col lg:flex-row items-center gap-4">
+        <div className="flex flex-col items-center gap-4 lg:flex-row">
           <div className="h-56 w-full lg:w-1/2">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -195,24 +166,22 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
             </ResponsiveContainer>
           </div>
 
-          <div className="w-full lg:w-1/2 space-y-2">
+          <div className="w-full space-y-2 lg:w-1/2">
             {chartData.map((item) => (
               <div
                 key={item.contextType}
-                className="flex items-center justify-between p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                className="flex items-center justify-between gap-3 rounded-xl p-3 transition-opacity hover:opacity-85"
+                style={{ backgroundColor: theme.surfaceSubtle }}
               >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="h-3 w-3 flex-shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
+                  <span className="truncate text-sm font-semibold" style={{ color: theme.text }}>
                     {item.name}
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                  <span>{item.count} conv.</span>
-                  <span className="text-emerald-500 font-medium">
+                <div className="flex shrink-0 items-center gap-3 text-xs" style={{ color: theme.textMuted }}>
+                  <span>{t('liaAnalyticsWidgets.context.conversationShort', { count: item.count })}</span>
+                  <span className="font-semibold" style={{ color: theme.action }}>
                     ${item.cost.toFixed(4)}
                   </span>
                 </div>
@@ -221,10 +190,10 @@ export function ContextDistributionWidget({ data, isLoading }: ContextDistributi
           </div>
         </div>
       ) : (
-        <div className="h-56 flex items-center justify-center text-gray-500 dark:text-gray-400">
-          No hay datos de distribucion
+        <div className="flex h-56 items-center justify-center text-sm" style={{ color: theme.textMuted }}>
+          {t('liaAnalyticsWidgets.context.empty')}
         </div>
       )}
-    </div>
-  );
+    </AdminSurface>
+  )
 }

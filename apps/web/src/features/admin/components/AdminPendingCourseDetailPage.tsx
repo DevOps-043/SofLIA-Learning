@@ -1,124 +1,147 @@
-'use client';
+'use client'
 
-import { ChevronLeftIcon, BookOpenIcon } from '@heroicons/react/24/outline';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useAdminCourseDetail } from '../hooks/useAdminCourseDetail';
-import { ConfirmationModal } from './ConfirmationModal';
-import { AdminPendingCourseActionBar } from './admin-pending-course-detail/AdminPendingCourseActionBar';
-import { AdminPendingCourseDiff } from './admin-pending-course-detail/AdminPendingCourseDiff';
-import { AdminPendingCourseHeader } from './admin-pending-course-detail/AdminPendingCourseHeader';
-import { AdminPendingCourseLessonContent } from './admin-pending-course-detail/AdminPendingCourseLessonContent';
-import type { PendingCourseDetail } from './admin-pending-course-detail/types';
+import { BookOpenIcon, ChevronLeftIcon } from '@heroicons/react/24/outline'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminCourseDetail } from '../hooks/useAdminCourseDetail'
+import { useAdminTheme } from '../hooks/useAdminTheme'
+import { ConfirmationModal } from './ConfirmationModal'
+import { AdminPendingCourseActionBar } from './admin-pending-course-detail/AdminPendingCourseActionBar'
+import { AdminPendingCourseDiff } from './admin-pending-course-detail/AdminPendingCourseDiff'
+import { AdminPendingCourseHeader } from './admin-pending-course-detail/AdminPendingCourseHeader'
+import { AdminPendingCourseLessonContent } from './admin-pending-course-detail/AdminPendingCourseLessonContent'
+import type { PendingCourseDetail } from './admin-pending-course-detail/types'
+import { AdminButton, AdminPageShell, AdminSectionHeader, AdminSurface } from './ui'
 
 interface AdminPendingCourseDetailPageProps {
-  courseId: string;
-  successRedirectPath?: string;
+  courseId: string
+  successRedirectPath?: string
 }
 
 export function AdminPendingCourseDetailPage({
   courseId,
   successRedirectPath = '/admin/courses/pending',
 }: AdminPendingCourseDetailPageProps) {
-  const router = useRouter();
-  const { t } = useTranslation('admin');
-  const { course: courseData, isLoading, error, approveCourse, rejectCourse, deleteCourse, reconsiderCourse } = useAdminCourseDetail(courseId);
-  const [showApproveModal, setShowApproveModal] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showDiffView, setShowDiffView] = useState(true);
-  const [actionError, setActionError] = useState<string | null>(null);
+  const router = useRouter()
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const { course: courseData, isLoading, error, approveCourse, rejectCourse, deleteCourse, reconsiderCourse } = useAdminCourseDetail(courseId)
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showDiffView, setShowDiffView] = useState(true)
+  const [actionError, setActionError] = useState<string | null>(null)
 
-  const course = courseData as PendingCourseDetail | null;
+  const course = courseData as PendingCourseDetail | null
 
   const handleApprove = async () => {
-    const success = await approveCourse('');
+    const success = await approveCourse('')
     if (success) {
-      router.push(successRedirectPath);
+      router.push(successRedirectPath)
     } else {
-      setActionError(t('pendingCourseDetail.errorApprove'));
+      setActionError(t('pendingCourseDetail.errorApprove'))
     }
-    setShowApproveModal(false);
-  };
+    setShowApproveModal(false)
+  }
 
   const handleReject = async () => {
-    const success = await rejectCourse('Rechazado desde panel de detalle');
+    const success = await rejectCourse(t('pendingCourseDetail.defaultRejectReason'))
     if (success) {
-      router.push(successRedirectPath);
+      router.push(successRedirectPath)
     } else {
-      setActionError(t('pendingCourseDetail.errorReject'));
+      setActionError(t('pendingCourseDetail.errorReject'))
     }
-    setShowRejectModal(false);
-  };
+    setShowRejectModal(false)
+  }
 
   const handleDelete = async () => {
-    const success = await deleteCourse();
+    const success = await deleteCourse()
     if (success) {
-      router.push(successRedirectPath);
+      router.push(successRedirectPath)
     } else {
-      setActionError(t('pendingCourseDetail.errorDelete'));
+      setActionError(t('pendingCourseDetail.errorDelete'))
     }
-    setShowDeleteModal(false);
-  };
+    setShowDeleteModal(false)
+  }
 
   const handleReconsider = async () => {
-    const success = await reconsiderCourse();
+    const success = await reconsiderCourse()
     if (!success) {
-      setActionError(t('pendingCourseDetail.errorReconsider'));
+      setActionError(t('pendingCourseDetail.errorReconsider'))
     }
-  };
+  }
 
   if (isLoading) {
     return (
-      <div className="p-8 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-      </div>
-    );
+      <AdminPageShell maxWidth="content">
+        <div className="flex min-h-[240px] items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-2 border-transparent" style={{ borderBottomColor: theme.action }} />
+        </div>
+      </AdminPageShell>
+    )
   }
 
   if (error) {
-    return <div className="p-8 text-red-500">Error: {error}</div>;
+    return (
+      <AdminPageShell maxWidth="content">
+        <AdminSurface className="p-6 text-sm" style={{ color: theme.danger }}>
+          {t('pendingCourses.errorPrefix', { error })}
+        </AdminSurface>
+      </AdminPageShell>
+    )
   }
 
   if (!course) {
-    return <div className="p-8">{t('pendingCourseDetail.notFound')}</div>;
+    return (
+      <AdminPageShell maxWidth="content">
+        <AdminSurface className="p-6 text-sm" style={{ color: theme.text }}>
+          {t('pendingCourseDetail.notFound')}
+        </AdminSurface>
+      </AdminPageShell>
+    )
   }
 
-  const isRejected = course.approval_status === 'rejected';
-  const diff = course.diff || undefined;
-  const hasDiff = Boolean(diff);
+  const isRejected = course.approval_status === 'rejected'
+  const diff = course.diff || undefined
+  const hasDiff = Boolean(diff)
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <button
+    <AdminPageShell maxWidth="content">
+      <AdminButton
         onClick={() => router.back()}
-        className="flex items-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6 transition-colors"
+        icon={ChevronLeftIcon}
+        variant="ghost"
+        className="mb-6"
       >
-        <ChevronLeftIcon className="h-4 w-4 mr-1" />
         {t('pendingCourseDetail.backToPending')}
-      </button>
+      </AdminButton>
 
-      {actionError && (
-        <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center justify-between">
+      {actionError ? (
+        <AdminSurface className="mb-4 flex items-center justify-between gap-4 px-4 py-3 text-sm" style={{ backgroundColor: theme.dangerSurface, color: theme.danger }}>
           <span>{actionError}</span>
-          <button onClick={() => setActionError(null)} className="ml-4 text-red-400 hover:text-red-300">×</button>
-        </div>
-      )}
+          <button type="button" onClick={() => setActionError(null)} className="transition hover:opacity-80">x</button>
+        </AdminSurface>
+      ) : null}
 
       <AdminPendingCourseHeader course={course} />
 
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <BookOpenIcon className="h-6 w-6 text-blue-500" />
-        {t('pendingCourseDetail.courseContent')}
-      </h2>
+      <AdminSectionHeader
+        icon={BookOpenIcon}
+        title={t('pendingCourseDetail.courseContent')}
+        description={hasDiff ? t('pendingCourseDetail.courseContentWithDiff') : undefined}
+      />
 
-      {hasDiff && diff && showDiffView ? (
-        <AdminPendingCourseDiff
-          diff={diff}
-          onToggle={() => setShowDiffView(!showDiffView)}
-          showDiffView={showDiffView}
-        />
+      {hasDiff && diff ? (
+        <>
+          <AdminPendingCourseDiff
+            diff={diff}
+            onToggle={() => setShowDiffView(!showDiffView)}
+            showDiffView={showDiffView}
+          />
+          {!showDiffView ? <AdminPendingCourseLessonContent modules={course.modules} /> : null}
+        </>
       ) : (
         <AdminPendingCourseLessonContent modules={course.modules} />
       )}
@@ -158,6 +181,6 @@ export function AdminPendingCourseDetailPage({
         confirmText={t('pendingCourseDetail.deleteModal.confirm')}
         type="danger"
       />
-    </div>
-  );
+    </AdminPageShell>
+  )
 }

@@ -55,18 +55,18 @@ export interface AdminDashboardActivityItem {
 
 export interface AdminDashboardStatItem {
   change: number
-  gradient: string
   href: string
   iconKey: 'courses' | 'engagement' | 'organizations' | 'users'
+  tone: 'accent' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
   title: string
   value: number | string
 }
 
 export interface AdminDashboardQuickActionItem {
-  color: string
   description: string
   href: string
   iconKey: 'courses' | 'documents' | 'engagement' | 'organizations' | 'users'
+  tone: 'accent' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'neutral'
   title: string
 }
 

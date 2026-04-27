@@ -1,130 +1,87 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Users, CheckCircle, Clock, Award, PieChart, BarChart3 } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { Award, BarChart3, CheckCircle, Clock, PieChart, Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
 import { useOverviewStats } from '../../hooks/useUserStatsB2B'
-import { BarChartComponent, PieChartComponent, EmptyState } from './charts'
+import { BarChartComponent, EmptyState, PieChartComponent } from './charts'
+import {
+  UserStatsChartCard,
+  UserStatsErrorState,
+  UserStatsLoadingState,
+  UserStatsMetricCard,
+} from './UserStatsTabPrimitives'
 
 export function OverviewTab() {
-  const { data, isLoading, error } = useOverviewStats()
+  const { t } = useTranslation('admin')
+  const { data: stats, isLoading, error } = useOverviewStats()
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
-      </div>
-    )
+    return <UserStatsLoadingState />
   }
 
   if (error) {
-    return (
-      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-        <p className="text-red-400">Error al cargar datos de resumen</p>
-      </div>
-    )
+    return <UserStatsErrorState message={t('userStatsPage.errors.overview')} />
   }
-
-  const stats = data
 
   return (
     <div className="space-y-6">
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Usuarios Activos (30d)"
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <UserStatsMetricCard
+          label={t('userStatsPage.overview.activeUsers30d')}
           value={stats?.activeUsers30d ?? 0}
           icon={Users}
-          color="text-blue-500"
         />
-        <StatCard
-          label="Tasa de Finalización"
+        <UserStatsMetricCard
+          label={t('userStatsPage.overview.completionRate')}
           value={`${stats?.completionRate ?? 0}%`}
           icon={CheckCircle}
-          color="text-green-500"
         />
-        <StatCard
-          label="Horas de Estudio (mes)"
+        <UserStatsMetricCard
+          label={t('userStatsPage.overview.studyHoursMonth')}
           value={stats?.studyHoursMonth ?? 0}
           icon={Clock}
-          color="text-purple-500"
         />
-        <StatCard
-          label="Certificados (mes)"
+        <UserStatsMetricCard
+          label={t('userStatsPage.overview.certificatesMonth')}
           value={stats?.certificatesMonth ?? 0}
           icon={Award}
-          color="text-yellow-500"
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Usuarios por Organización" icon={PieChart}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <UserStatsChartCard title={t('userStatsPage.overview.usersByOrganization')} icon={PieChart}>
           {stats?.usersByOrganization && stats.usersByOrganization.length > 0 ? (
             <PieChartComponent data={stats.usersByOrganization} dataKey="count" nameKey="name" />
           ) : (
             <EmptyState />
           )}
-        </ChartCard>
+        </UserStatsChartCard>
 
-        <ChartCard title="Actividad Diaria (30d)" icon={BarChart3}>
+        <UserStatsChartCard title={t('userStatsPage.overview.dailyActivity')} icon={BarChart3}>
           {stats?.dailyActivity && stats.dailyActivity.length > 0 ? (
             <BarChartComponent data={stats.dailyActivity} dataKey="count" nameKey="date" />
           ) : (
             <EmptyState />
           )}
-        </ChartCard>
+        </UserStatsChartCard>
 
-        <ChartCard title="Distribución de Progreso" icon={PieChart}>
-          {stats?.progressDistribution && stats.progressDistribution.some(d => d.count > 0) ? (
+        <UserStatsChartCard title={t('userStatsPage.overview.progressDistribution')} icon={PieChart}>
+          {stats?.progressDistribution && stats.progressDistribution.some((item) => item.count > 0) ? (
             <PieChartComponent data={stats.progressDistribution} dataKey="count" nameKey="range" />
           ) : (
             <EmptyState />
           )}
-        </ChartCard>
+        </UserStatsChartCard>
 
-        <ChartCard title="Roles en Organizaciones" icon={PieChart}>
+        <UserStatsChartCard title={t('userStatsPage.overview.roleDistribution')} icon={PieChart}>
           {stats?.roleDistribution && stats.roleDistribution.length > 0 ? (
             <PieChartComponent data={stats.roleDistribution} dataKey="count" nameKey="role" />
           ) : (
             <EmptyState />
           )}
-        </ChartCard>
+        </UserStatsChartCard>
       </div>
     </div>
-  )
-}
-
-function StatCard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: LucideIcon; color: string }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm">{label}</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
-        </div>
-        <Icon className={`w-8 h-8 ${color}`} />
-      </div>
-    </motion.div>
-  )
-}
-
-function ChartCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 min-h-[350px]"
-    >
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-        <Icon className="w-5 h-5" />
-        {title}
-      </h3>
-      {children}
-    </motion.div>
   )
 }

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useMotionSafe } from '../../../../lib/utils/motion'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
 
 interface WorkshopThumbnailProps {
   thumbnailUrl?: string
@@ -15,6 +16,7 @@ export function WorkshopThumbnail({
   title,
 }: WorkshopThumbnailProps) {
   const { disableHeavy } = useMotionSafe()
+  const theme = useAdminTheme()
   const [imageError, setImageError] = useState(false)
 
   if (!thumbnailUrl || imageError) {
@@ -22,14 +24,17 @@ export function WorkshopThumbnail({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0A2540] via-[#00D4B3]/30 to-[#0A2540] dark:from-[#0A2540] dark:via-[#00D4B3]/20 dark:to-[#0A2540]"
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          background: `linear-gradient(135deg, ${theme.primary}, ${theme.actionSurface}, ${theme.primary})`,
+        }}
       >
         <div className="absolute inset-0 opacity-10">
           <div
             className="absolute inset-0"
             style={{
               backgroundImage:
-                'radial-gradient(circle at 2px 2px, #00D4B3 1px, transparent 0)',
+                'radial-gradient(circle at 2px 2px, var(--color-accent) 1px, transparent 0)',
               backgroundSize: '40px 40px',
             }}
           />
@@ -47,7 +52,7 @@ export function WorkshopThumbnail({
           className="relative z-10"
         >
           <div className="p-6 bg-white/10 dark:bg-white/5 rounded-2xl backdrop-blur-sm border border-white/20 dark:border-white/10">
-            <BookOpenIcon className="h-24 w-24 text-[#00D4B3] dark:text-[#00D4B3]/60" />
+            <BookOpenIcon className="h-24 w-24" style={{ color: theme.accent }} />
           </div>
         </motion.div>
       </motion.div>

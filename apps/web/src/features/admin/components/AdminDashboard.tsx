@@ -7,6 +7,7 @@ import {
   AdminDashboardStatsSection,
   useAdminDashboardLogic,
 } from './admin-dashboard'
+import { AdminPageShell } from './ui'
 
 export function AdminDashboard() {
   const {
@@ -23,10 +24,7 @@ export function AdminDashboard() {
   } = useAdminDashboardLogic()
 
   return (
-    <div
-      className="min-h-screen p-6 transition-colors duration-300 lg:p-8"
-      style={{ backgroundColor: themeColors.background }}
-    >
+    <AdminPageShell className="py-6 lg:py-8" maxWidth="wide">
       <AdminDashboardHero
         greeting={greeting}
         todayLabel={todayLabel}
@@ -56,6 +54,6 @@ export function AdminDashboard() {
           />
         </div>
       </div>
-    </div>
+    </AdminPageShell>
   )
 }

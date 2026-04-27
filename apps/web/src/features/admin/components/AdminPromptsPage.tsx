@@ -2,86 +2,116 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { 
-  PlusIcon, 
-  MagnifyingGlassIcon, 
-  FunnelIcon,
+import {
   EyeIcon,
-  PencilIcon,
-  TrashIcon,
-  StarIcon,
-  HeartIcon,
   EyeSlashIcon,
-  TagIcon
+  FunnelIcon,
+  HeartIcon,
+  MagnifyingGlassIcon,
+  PencilIcon,
+  PlusIcon,
+  StarIcon,
+  TagIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../hooks'
 import { useAdminPrompts } from '../hooks/useAdminPrompts'
-import { AdminPrompt } from '../services/adminPrompts.service'
+import type { AdminPrompt } from '../services/adminPrompts.service'
+import {
+  AdminButton,
+  AdminIconButton,
+  AdminInput,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminSelect,
+  AdminStatusBadge,
+  AdminSurface,
+  AdminToolbar,
+} from './ui'
 
-// Lazy loading de modales de Prompts
-const AddPromptModal = dynamic(() => import('./AddPromptModal').then(mod => ({ default: mod.AddPromptModal })), {
-  ssr: false
+const AddPromptModal = dynamic(() => import('./AddPromptModal').then((mod) => ({ default: mod.AddPromptModal })), {
+  ssr: false,
+})
+const EditPromptModal = dynamic(() => import('./EditPromptModal').then((mod) => ({ default: mod.EditPromptModal })), {
+  ssr: false,
+})
+const DeletePromptModal = dynamic(() => import('./DeletePromptModal').then((mod) => ({ default: mod.DeletePromptModal })), {
+  ssr: false,
+})
+const ViewPromptModal = dynamic(() => import('./ViewPromptModal').then((mod) => ({ default: mod.ViewPromptModal })), {
+  ssr: false,
 })
 
-const EditPromptModal = dynamic(() => import('./EditPromptModal').then(mod => ({ default: mod.EditPromptModal })), {
-  ssr: false
-})
+const statusFilters = ['all', 'active', 'inactive', 'featured']
 
-const DeletePromptModal = dynamic(() => import('./DeletePromptModal').then(mod => ({ default: mod.DeletePromptModal })), {
-  ssr: false
-})
+function getPromptTags(tags: AdminPrompt['tags']) {
+  if (Array.isArray(tags)) return tags
+  if (typeof tags === 'string') {
+    return tags
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+  }
+  return []
+}
 
-const ViewPromptModal = dynamic(() => import('./ViewPromptModal').then(mod => ({ default: mod.ViewPromptModal })), {
-  ssr: false
-})
+function getDifficultyTone(level: string) {
+  switch (level.toLowerCase()) {
+    case 'advanced':
+      return 'danger' as const
+    case 'intermediate':
+      return 'warning' as const
+    case 'beginner':
+      return 'primary' as const
+    default:
+      return 'neutral' as const
+  }
+}
 
 export function AdminPromptsPage() {
-  const { 
-    prompts, 
-    stats, 
-    isLoading, 
-    error, 
-    refetch, 
+  const {
+    prompts,
+    stats,
+    isLoading,
+    error,
+    refetch,
     createPrompt,
     updatePrompt,
-    deletePrompt, 
-    togglePromptStatus, 
-    togglePromptFeatured 
+    deletePrompt,
+    togglePromptStatus,
+    togglePromptFeatured,
   } = useAdminPrompts()
-  
-  const { t } = useTranslation('common')
+
+  const theme = useAdminTheme()
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [isProcessing, setIsProcessing] = useState<string | null>(null)
-
-  // Estados para modales
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
   const [selectedPrompt, setSelectedPrompt] = useState<AdminPrompt | null>(null)
 
-  // Filtrar prompts
-  const filteredPrompts = prompts.filter(prompt => {
-    // Manejar tags correctamente (puede ser array, string o null)
-    let tagsString = ''
-    if (Array.isArray(prompt.tags)) {
-      tagsString = prompt.tags.join(' ')
-    } else if (typeof prompt.tags === 'string') {
-      tagsString = prompt.tags
-    }
-
-    const matchesSearch = prompt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         prompt.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tagsString.toLowerCase().includes(searchTerm.toLowerCase())
-
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const filteredPrompts = prompts.filter((prompt) => {
+    const tags = getPromptTags(prompt.tags).join(' ').toLowerCase()
+    const matchesSearch =
+      !normalizedSearch ||
+      prompt.title.toLowerCase().includes(normalizedSearch) ||
+      prompt.description.toLowerCase().includes(normalizedSearch) ||
+      tags.includes(normalizedSearch)
     const matchesCategory = selectedCategory === 'all' || prompt.category_id === selectedCategory
-
-    const matchesStatus = selectedStatus === 'all' ||
-                         (selectedStatus === 'active' && prompt.is_active) ||
-                         (selectedStatus === 'inactive' && !prompt.is_active) ||
-                         (selectedStatus === 'featured' && prompt.is_featured)
+    const matchesStatus =
+      selectedStatus === 'all' ||
+      (selectedStatus === 'active' && prompt.is_active) ||
+      (selectedStatus === 'inactive' && !prompt.is_active) ||
+      (selectedStatus === 'featured' && prompt.is_featured)
 
     return matchesSearch && matchesCategory && matchesStatus
   })
@@ -92,33 +122,23 @@ export function AdminPromptsPage() {
       await deletePrompt(prompt.prompt_id)
       setIsDeleteModalOpen(false)
       setSelectedPrompt(null)
-    } catch (error) {
     } finally {
       setIsProcessing(null)
     }
   }
 
   const handleSaveNewPrompt = async (promptData: Partial<AdminPrompt>) => {
-    try {
-      await createPrompt(promptData)
-    } catch (error) {
-      throw error
-    }
+    await createPrompt(promptData)
   }
 
   const handleSaveEditPrompt = async (promptId: string, promptData: Partial<AdminPrompt>) => {
-    try {
-      await updatePrompt(promptId, promptData)
-    } catch (error) {
-      throw error
-    }
+    await updatePrompt(promptId, promptData)
   }
 
   const handleToggleStatus = async (prompt: AdminPrompt) => {
     try {
       setIsProcessing(prompt.prompt_id)
       await togglePromptStatus(prompt.prompt_id, !prompt.is_active)
-    } catch (error) {
     } finally {
       setIsProcessing(null)
     }
@@ -128,338 +148,212 @@ export function AdminPromptsPage() {
     try {
       setIsProcessing(prompt.prompt_id)
       await togglePromptFeatured(prompt.prompt_id, !prompt.is_featured)
-    } catch (error) {
     } finally {
       setIsProcessing(null)
     }
   }
 
-  const getDifficultyColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case 'beginner': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-      case 'advanced': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-    }
-  }
-
-  const getStatusColor = (isActive: boolean) => {
-    return isActive 
-      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-      : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
-  }
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Cargando prompts...</p>
+      <AdminPageShell maxWidth="wide">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: theme.action }} />
+            <p className="text-sm font-medium" style={{ color: theme.textMuted }}>
+              {t('prompts.page.loading')}
+            </p>
+          </div>
         </div>
-      </div>
+      </AdminPageShell>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 mb-4">Error al cargar prompts: {error}</p>
-          <button
-            onClick={refetch}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            Reintentar
-          </button>
-        </div>
-      </div>
+      <AdminPageShell maxWidth="wide">
+        <AdminSurface className="p-6 text-center">
+          <p className="text-sm font-medium" style={{ color: theme.danger }}>
+            {t('prompts.page.loadError', { error })}
+          </p>
+          <AdminButton className="mt-4" onClick={refetch}>
+            {tc('actions.retry')}
+          </AdminButton>
+        </AdminSurface>
+      </AdminPageShell>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-800">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Prompts</h1>
-              <p className="text-gray-600 dark:text-gray-400">Administra todos los prompts del directorio</p>
-            </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              <PlusIcon className="h-5 w-5 mr-2" />
-              Agregar Prompt
-            </button>
-          </div>
-        </div>
+    <AdminPageShell maxWidth="wide">
+      <AdminSectionHeader
+        size="page"
+        title={t('prompts.page.title')}
+        description={t('prompts.page.description')}
+        actions={
+          <AdminButton onClick={() => setIsAddModalOpen(true)} icon={PlusIcon} size="lg">
+            {t('prompts.page.add')}
+          </AdminButton>
+        }
+      />
+
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <AdminMetricCard icon={TagIcon} label={t('prompts.page.stats.total')} tone="primary" value={stats.totalPrompts} />
+        <AdminMetricCard icon={HeartIcon} label={t('prompts.page.stats.likes')} tone="info" value={stats.totalLikes.toLocaleString()} />
+        <AdminMetricCard icon={EyeIcon} label={t('prompts.page.stats.views')} tone="neutral" value={stats.totalViews.toLocaleString()} />
+        <AdminMetricCard icon={StarIcon} label={t('prompts.page.stats.featured')} tone="primary" value={stats.featuredPrompts} />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 dark:bg-blue-600/20 rounded-lg">
-                <TagIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Prompts</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalPrompts}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 dark:bg-green-600/20 rounded-lg">
-                <HeartIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Likes</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalLikes}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 dark:bg-purple-600/20 rounded-lg">
-                <EyeIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Vistas</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalViews}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 bg-orange-100 dark:bg-orange-600/20 rounded-lg">
-                <StarIcon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Destacados</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.featuredPrompts}</p>
-              </div>
-            </div>
-          </div>
+      <AdminToolbar>
+        <div className="relative flex-1">
+          <MagnifyingGlassIcon
+            className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2"
+            style={{ color: theme.textMuted }}
+          />
+          <AdminInput
+            className="pl-10"
+            placeholder={t('prompts.page.searchPlaceholder')}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
         </div>
-
-        {/* Search and Filters */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700 mb-8">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Buscar prompts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="relative">
-                <FunnelIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-500 dark:text-gray-400" />
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="pl-10 pr-8 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                >
-                  <option value="all">Todas las categorías</option>
-                  {/* TODO: Cargar categorías dinámicamente */}
-                </select>
-              </div>
-              
-              <div className="relative">
-                <select
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                  className="pl-4 pr-8 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
-                >
-                  <option value="all">Todos los estados</option>
-                  <option value="active">Activos</option>
-                  <option value="inactive">Inactivos</option>
-                  <option value="featured">Destacados</option>
-                </select>
-              </div>
-            </div>
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto">
+          <div className="relative">
+            <FunnelIcon
+              className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2"
+              style={{ color: theme.textMuted }}
+            />
+            <AdminSelect className="w-full pl-10 lg:w-56" value={selectedCategory} onChange={(event) => setSelectedCategory(event.target.value)}>
+              <option value="all">{t('prompts.page.allCategories')}</option>
+            </AdminSelect>
           </div>
+          <AdminSelect className="w-full lg:w-52" value={selectedStatus} onChange={(event) => setSelectedStatus(event.target.value)}>
+            {statusFilters.map((status) => (
+              <option key={status} value={status}>
+                {t(`prompts.page.filters.${status}`)}
+              </option>
+            ))}
+          </AdminSelect>
         </div>
+      </AdminToolbar>
 
-        {/* Prompts List */}
-        <div className="space-y-6">
-          {filteredPrompts.length === 0 ? (
-            <div className="text-center py-12">
-              <TagIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No se encontraron prompts</p>
-            </div>
-          ) : (
-            filteredPrompts.map((prompt) => (
-              <div key={prompt.prompt_id} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(prompt.is_active)}`}>
-                          {prompt.is_active ? 'Activo' : 'Inactivo'}
-                        </span>
-                        {prompt.is_featured && (
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full border bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800">
-                            Destacado
-                          </span>
-                        )}
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getDifficultyColor(prompt.difficulty_level)}`}>
-                          {prompt.difficulty_level}
-                        </span>
+      {filteredPrompts.length === 0 ? (
+        <AdminSurface className="px-6 py-12 text-center">
+          <TagIcon className="mx-auto h-12 w-12" style={{ color: theme.textMuted }} />
+          <p className="mt-4 text-sm font-medium" style={{ color: theme.textMuted }}>
+            {t('prompts.page.empty')}
+          </p>
+        </AdminSurface>
+      ) : (
+        <div className="space-y-4">
+          {filteredPrompts.map((prompt) => {
+            const tags = getPromptTags(prompt.tags)
+            const authorName = prompt.author?.display_name || prompt.author?.first_name || t('prompts.page.unknownAuthor')
+
+            return (
+              <AdminSurface key={prompt.prompt_id} className="p-5" interactive>
+                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-4 flex flex-wrap items-center gap-2">
+                      <AdminStatusBadge tone={prompt.is_active ? 'primary' : 'neutral'}>
+                        {prompt.is_active ? t('prompts.page.status.active') : t('prompts.page.status.inactive')}
+                      </AdminStatusBadge>
+                      {prompt.is_featured ? <AdminStatusBadge tone="warning">{t('prompts.page.status.featured')}</AdminStatusBadge> : null}
+                      <AdminStatusBadge tone={getDifficultyTone(prompt.difficulty_level)}>{prompt.difficulty_level}</AdminStatusBadge>
+                    </div>
+
+                    <div className="flex min-w-0 gap-4">
+                      <div
+                        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border"
+                        style={{ backgroundColor: theme.actionSurface, borderColor: theme.border, color: theme.action }}
+                      >
+                        <TagIcon className="h-7 w-7" />
                       </div>
-                      
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{prompt.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">{prompt.description}</p>
-                      
-                      <div className="flex flex-wrap gap-2 mb-4">
-                        {prompt.tags && Array.isArray(prompt.tags) && prompt.tags.length > 0 ? (
-                          prompt.tags.map((tag, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full"
-                            >
-                              {tag}
-                            </span>
-                          ))
-                        ) : prompt.tags && typeof prompt.tags === 'string' && prompt.tags.trim() ? (
-                          prompt.tags.split(',').map((tag, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex px-3 py-1 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full"
-                            >
-                              {tag.trim()}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-500 dark:text-gray-400 text-sm">Sin tags</span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center text-sm text-gray-600 dark:text-gray-500 mb-4">
-                        <span className="flex items-center mr-4">
-                          <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full mr-2"></span>
-                          {prompt.author?.display_name || prompt.author?.first_name || 'Autor desconocido'}
-                        </span>
-                        <span className="flex items-center">
-                          <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full mr-2"></span>
-                          {new Date(prompt.created_at).toLocaleDateString()}
-                        </span>
+                      <div className="min-w-0">
+                        <h2 className="truncate text-xl font-bold" style={{ color: theme.text }}>
+                          {prompt.title}
+                        </h2>
+                        <p className="mt-2 line-clamp-2 text-sm leading-6" style={{ color: theme.textMuted }}>
+                          {prompt.description}
+                        </p>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center space-x-2 ml-4">
-                      <div className="text-right">
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-1">
-                          <HeartIcon className="h-4 w-4 mr-1" />
-                          {prompt.like_count}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                          <EyeIcon className="h-4 w-4 mr-1" />
-                          {prompt.view_count}
-                        </div>
-                      </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {tags.length ? (
+                        tags.slice(0, 8).map((tag) => (
+                          <span key={tag} className="rounded-full border px-3 py-1 text-xs font-medium" style={{ borderColor: theme.border, color: theme.textMuted }}>
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm" style={{ color: theme.textMuted }}>
+                          {t('prompts.page.noTags')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" style={{ color: theme.textMuted }}>
+                      <span>{authorName}</span>
+                      <span>{prompt.category?.name || t('prompts.page.uncategorized')}</span>
+                      <span>{new Date(prompt.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <button
+
+                  <div className="flex shrink-0 flex-col gap-4 xl:items-end">
+                    <div className="flex items-center gap-4 text-sm" style={{ color: theme.textMuted }}>
+                      <span className="inline-flex items-center gap-1"><HeartIcon className="h-4 w-4" />{prompt.like_count}</span>
+                      <span className="inline-flex items-center gap-1"><EyeIcon className="h-4 w-4" />{prompt.view_count}</span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                      <AdminIconButton
+                        label={prompt.is_active ? t('prompts.page.actions.deactivate') : t('prompts.page.actions.activate')}
                         onClick={() => handleToggleStatus(prompt)}
                         disabled={isProcessing === prompt.prompt_id}
-                        className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                          prompt.is_active 
-                            ? 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/20' 
-                            : 'text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/20'
-                        }`}
-                        title={prompt.is_active ? "Desactivar prompt" : "Activar prompt"}
-                      >
-                        {isProcessing === prompt.prompt_id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-600 dark:border-green-400"></div>
-                        ) : (
-                          <EyeSlashIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                      
-                      <button
+                        icon={EyeSlashIcon}
+                      />
+                      <AdminIconButton
+                        label={prompt.is_featured ? t('prompts.page.actions.unfeature') : t('prompts.page.actions.feature')}
                         onClick={() => handleToggleFeatured(prompt)}
                         disabled={isProcessing === prompt.prompt_id}
-                        className={`p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                          prompt.is_featured 
-                            ? 'text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/20' 
-                            : 'text-gray-500 dark:text-gray-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/20'
-                        }`}
-                        title={prompt.is_featured ? "Quitar destacado" : "Destacar prompt"}
-                      >
-                        {isProcessing === prompt.prompt_id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 dark:border-orange-400"></div>
-                        ) : (
-                          <StarIcon className="h-4 w-4" />
-                        )}
-                      </button>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <button
+                        icon={StarIcon}
+                        tone="warning"
+                      />
+                      <AdminIconButton
+                        label={tc('actions.viewDetails')}
                         onClick={() => {
                           setSelectedPrompt(prompt)
                           setIsViewModalOpen(true)
                         }}
-                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-                        title={t('actions.viewDetails')}
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
-                      
-                      <button
+                        icon={EyeIcon}
+                        tone="neutral"
+                      />
+                      <AdminIconButton
+                        label={tc('actions.edit')}
                         onClick={() => {
                           setSelectedPrompt(prompt)
                           setIsEditModalOpen(true)
                         }}
-                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title={t('actions.edit')}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      
-                      <button
+                        icon={PencilIcon}
+                      />
+                      <AdminIconButton
+                        label={tc('actions.delete')}
                         onClick={() => {
                           setSelectedPrompt(prompt)
                           setIsDeleteModalOpen(true)
                         }}
-                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title={t('actions.delete')}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                        icon={TrashIcon}
+                        tone="danger"
+                      />
                     </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
+              </AdminSurface>
+            )
+          })}
         </div>
-      </div>
+      )}
 
-      {/* Modales */}
-      <AddPromptModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={handleSaveNewPrompt}
-      />
-
+      <AddPromptModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSave={handleSaveNewPrompt} />
       <EditPromptModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -469,7 +363,6 @@ export function AdminPromptsPage() {
         onSave={handleSaveEditPrompt}
         prompt={selectedPrompt}
       />
-
       <DeletePromptModal
         isOpen={isDeleteModalOpen}
         onClose={() => {
@@ -480,7 +373,6 @@ export function AdminPromptsPage() {
         prompt={selectedPrompt}
         isDeleting={isProcessing === selectedPrompt?.prompt_id}
       />
-
       <ViewPromptModal
         isOpen={isViewModalOpen}
         onClose={() => {
@@ -489,6 +381,6 @@ export function AdminPromptsPage() {
         }}
         prompt={selectedPrompt}
       />
-    </div>
+    </AdminPageShell>
   )
 }

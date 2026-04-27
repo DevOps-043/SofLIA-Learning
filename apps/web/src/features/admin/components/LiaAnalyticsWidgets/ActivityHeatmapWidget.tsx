@@ -1,133 +1,142 @@
-'use client';
+'use client'
 
-import { useState, useEffect, useMemo } from 'react';
-import { FireIcon } from '@heroicons/react/24/outline';
-import { HeatmapDetailModal } from './HeatmapDetailModal';
+import { useEffect, useMemo, useState } from 'react'
+import { FireIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminSurface } from '../ui'
+import { HeatmapDetailModal } from './HeatmapDetailModal'
 
 interface HeatmapData {
-  dayOfWeek: number; // 0-6 (Domingo-Sábado)
-  hour: number; // 0-23
-  count: number;
-  avgResponseTime?: number;
+  dayOfWeek: number
+  hour: number
+  count: number
+  avgResponseTime?: number
 }
 
 interface ActivityHeatmapWidgetProps {
-  period?: string;
-  isLoading?: boolean;
+  period?: string
+  isLoading?: boolean
 }
 
-const DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
+const HOURS = Array.from({ length: 24 }, (_, index) => index)
 
 export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoading }: ActivityHeatmapWidgetProps) {
-  const [data, setData] = useState<HeatmapData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null);
-  const [selectedCell, setSelectedCell] = useState<{ day: number; hour: number } | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [totalMessages, setTotalMessages] = useState(0);
-  const [peakHour, setPeakHour] = useState<{ day: string; hour: string; count: number } | null>(null);
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+  const [data, setData] = useState<HeatmapData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [hoveredCell, setHoveredCell] = useState<{ day: number; hour: number } | null>(null)
+  const [selectedCell, setSelectedCell] = useState<{ day: number; hour: number } | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [totalMessages, setTotalMessages] = useState(0)
+  const [peakHour, setPeakHour] = useState<{ day: string; hour: string; count: number } | null>(null)
+  const days = [
+    t('liaAnalyticsWidgets.heatmap.days.sun'),
+    t('liaAnalyticsWidgets.heatmap.days.mon'),
+    t('liaAnalyticsWidgets.heatmap.days.tue'),
+    t('liaAnalyticsWidgets.heatmap.days.wed'),
+    t('liaAnalyticsWidgets.heatmap.days.thu'),
+    t('liaAnalyticsWidgets.heatmap.days.fri'),
+    t('liaAnalyticsWidgets.heatmap.days.sat'),
+  ]
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true);
+      setIsLoading(true)
       try {
-        const response = await fetch(`/api/admin/lia-analytics/heatmap?period=${period}`);
-        const result = await response.json();
+        const response = await fetch(`/api/admin/lia-analytics/heatmap?period=${period}`)
+        const result = await response.json()
 
         if (result.success) {
-          setData(result.data.heatmap);
-          setTotalMessages(result.data.totalMessages);
-          setPeakHour(result.data.peakHour);
+          setData(result.data.heatmap)
+          setTotalMessages(result.data.totalMessages)
+          setPeakHour(result.data.peakHour)
         }
       } catch (error) {
-        console.error('Error fetching heatmap data:', error);
+        console.error('Error fetching heatmap data:', error)
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, [period]);
+    void fetchData()
+  }, [period])
 
-  // Crear matriz de datos para el heatmap
   const heatmapMatrix = useMemo(() => {
-    const matrix: number[][] = Array(7).fill(null).map(() => Array(24).fill(0));
-    let maxCount = 0;
+    const matrix: number[][] = Array(7).fill(null).map(() => Array(24).fill(0))
+    let maxCount = 0
 
-    data.forEach(item => {
-      matrix[item.dayOfWeek][item.hour] = item.count;
-      if (item.count > maxCount) maxCount = item.count;
-    });
+    data.forEach((item) => {
+      matrix[item.dayOfWeek][item.hour] = item.count
+      if (item.count > maxCount) {
+        maxCount = item.count
+      }
+    })
 
-    return { matrix, maxCount };
-  }, [data]);
+    return { matrix, maxCount }
+  }, [data])
 
-  // Función para obtener el color basado en la intensidad
   const getColor = (count: number, maxCount: number) => {
-    if (count === 0) return 'bg-gray-100 dark:bg-gray-800';
-    
-    const intensity = count / maxCount;
-    
-    if (intensity < 0.2) return 'bg-emerald-100 dark:bg-emerald-900/30';
-    if (intensity < 0.4) return 'bg-emerald-200 dark:bg-emerald-800/40';
-    if (intensity < 0.6) return 'bg-emerald-300 dark:bg-emerald-700/50';
-    if (intensity < 0.8) return 'bg-emerald-400 dark:bg-emerald-600/60';
-    return 'bg-emerald-500 dark:bg-emerald-500';
-  };
+    if (count === 0 || maxCount === 0) {
+      return theme.surfaceSubtle
+    }
 
-  // Obtener datos de una celda específica
-  const getCellData = (day: number, hour: number) => {
-    return data.find(d => d.dayOfWeek === day && d.hour === hour);
-  };
+    const intensity = Math.max(14, Math.round((count / maxCount) * 84))
+    return `color-mix(in srgb, ${theme.action} ${intensity}%, ${theme.surfaceSubtle})`
+  }
+
+  const getCellData = (day: number, hour: number) => data.find((item) => item.dayOfWeek === day && item.hour === hour)
 
   if (isLoading || externalLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-          <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
+          <div className="h-48 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
         </div>
-      </div>
-    );
+      </AdminSurface>
+    )
   }
 
+  const hoveredData = hoveredCell ? getCellData(hoveredCell.day, hoveredCell.hour) : null
+
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+    <AdminSurface className="p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <FireIcon className="w-5 h-5 text-orange-500" />
-            Mapa de Actividad
+          <h3 className="flex items-center gap-2 text-lg font-bold" style={{ color: theme.text }}>
+            <FireIcon className="h-5 w-5" style={{ color: theme.action }} />
+            {t('liaAnalyticsWidgets.heatmap.title')}
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {totalMessages.toLocaleString()} mensajes en el período
+          <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+            {t('liaAnalyticsWidgets.heatmap.messagesInPeriod', { count: totalMessages.toLocaleString() })}
           </p>
         </div>
-        {peakHour && (
-          <div className="text-right">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Hora pico</p>
-            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+        {peakHour ? (
+          <div className="text-left sm:text-right">
+            <p className="text-xs" style={{ color: theme.textMuted }}>{t('liaAnalyticsWidgets.heatmap.peakHour')}</p>
+            <p className="text-sm font-semibold" style={{ color: theme.action }}>
               {peakHour.day} {peakHour.hour}
             </p>
-            <p className="text-xs text-gray-500">{peakHour.count} msgs</p>
+            <p className="text-xs" style={{ color: theme.textMuted }}>
+              {t('liaAnalyticsWidgets.heatmap.messageShort', { count: peakHour.count })}
+            </p>
           </div>
-        )}
+        ) : null}
       </div>
 
-      {/* Heatmap Grid */}
       <div className="overflow-x-auto">
         <div className="min-w-[600px]">
-          {/* Hours header */}
-          <div className="flex mb-1">
-            <div className="w-10 flex-shrink-0"></div>
-            <div className="flex-1 flex">
-              {HOURS.filter((_, i) => i % 3 === 0).map(hour => (
-                <div 
-                  key={hour} 
-                  className="flex-1 text-center text-xs text-gray-500 dark:text-gray-400"
-                  style={{ minWidth: '24px' }}
+          <div className="mb-1 flex">
+            <div className="w-10 flex-shrink-0" />
+            <div className="flex flex-1">
+              {HOURS.filter((_, index) => index % 3 === 0).map((hour) => (
+                <div
+                  key={hour}
+                  className="flex-1 text-center text-xs"
+                  style={{ minWidth: '24px', color: theme.textMuted }}
                 >
                   {hour}h
                 </div>
@@ -135,33 +144,35 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
             </div>
           </div>
 
-          {/* Grid rows */}
-          {DAYS.map((day, dayIndex) => (
-            <div key={day} className="flex items-center mb-1">
-              <div className="w-10 flex-shrink-0 text-xs text-gray-500 dark:text-gray-400 pr-2 text-right">
+          {days.map((day, dayIndex) => (
+            <div key={day} className="mb-1 flex items-center">
+              <div className="w-10 flex-shrink-0 pr-2 text-right text-xs" style={{ color: theme.textMuted }}>
                 {day}
               </div>
-              <div className="flex-1 flex gap-1">
-                {HOURS.map(hour => {
-                  const count = heatmapMatrix.matrix[dayIndex][hour];
-                  const isHovered = hoveredCell?.day === dayIndex && hoveredCell?.hour === hour;
-                  
+              <div className="flex flex-1 gap-1">
+                {HOURS.map((hour) => {
+                  const count = heatmapMatrix.matrix[dayIndex][hour]
+                  const isHovered = hoveredCell?.day === dayIndex && hoveredCell?.hour === hour
+
                   return (
-                    <div
+                    <button
                       key={hour}
-                      className={`
-                        w-4 h-4 sm:w-5 sm:h-5 rounded-sm cursor-pointer transition-all duration-150
-                        ${getColor(count, heatmapMatrix.maxCount)}
-                        ${isHovered ? 'ring-2 ring-emerald-500 ring-offset-1 dark:ring-offset-gray-800 scale-125 z-10' : ''}
-                      `}
+                      type="button"
+                      aria-label={t('liaAnalyticsWidgets.heatmap.cellLabel', { day, hour, count })}
+                      className="h-4 w-4 rounded-sm transition-all duration-150 sm:h-5 sm:w-5"
+                      style={{
+                        backgroundColor: getColor(count, heatmapMatrix.maxCount),
+                        boxShadow: isHovered ? `0 0 0 2px ${theme.action}` : undefined,
+                        transform: isHovered ? 'scale(1.2)' : undefined,
+                      }}
                       onMouseEnter={() => setHoveredCell({ day: dayIndex, hour })}
                       onMouseLeave={() => setHoveredCell(null)}
                       onClick={() => {
-                        setSelectedCell({ day: dayIndex, hour });
-                        setIsModalOpen(true);
+                        setSelectedCell({ day: dayIndex, hour })
+                        setIsModalOpen(true)
                       }}
                     />
-                  );
+                  )
                 })}
               </div>
             </div>
@@ -169,61 +180,61 @@ export function ActivityHeatmapWidget({ period = 'month', isLoading: externalLoa
         </div>
       </div>
 
-      {/* Tooltip */}
-      {hoveredCell && (
-        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-          <div className="flex items-center justify-between">
+      {hoveredCell ? (
+        <div className="mt-3 rounded-xl p-3" style={{ backgroundColor: theme.surfaceSubtle }}>
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {DAYS[hoveredCell.day]} a las {hoveredCell.hour}:00
+              <p className="text-sm font-semibold" style={{ color: theme.text }}>
+                {t('liaAnalyticsWidgets.heatmap.cellTime', { day: days[hoveredCell.day], hour: hoveredCell.hour })}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {heatmapMatrix.matrix[hoveredCell.day][hoveredCell.hour]} mensajes
+              <p className="text-xs" style={{ color: theme.textMuted }}>
+                {t('liaAnalyticsWidgets.heatmap.messages', { count: heatmapMatrix.matrix[hoveredCell.day][hoveredCell.hour] })}
               </p>
             </div>
-            {getCellData(hoveredCell.day, hoveredCell.hour)?.avgResponseTime && (
+            {hoveredData?.avgResponseTime ? (
               <div className="text-right">
-                <p className="text-xs text-gray-500">Tiempo promedio</p>
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                  {Math.round(getCellData(hoveredCell.day, hoveredCell.hour)?.avgResponseTime || 0)}ms
+                <p className="text-xs" style={{ color: theme.textMuted }}>{t('liaAnalyticsWidgets.heatmap.avgTime')}</p>
+                <p className="text-sm font-semibold" style={{ color: theme.action }}>
+                  {Math.round(hoveredData.avgResponseTime)}ms
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2">
-            💡 Haz clic para ver detalles
+          <p className="mt-2 text-xs" style={{ color: theme.action }}>
+            {t('liaAnalyticsWidgets.heatmap.clickHint')}
           </p>
         </div>
-      )}
+      ) : null}
 
-      {/* Legend */}
-      <div className="flex items-center justify-between mt-4">
-        <p className="text-xs text-gray-400 italic">Clic en celda = ver detalles</p>
-        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-          <span>Menos</span>
-          <div className="w-3 h-3 rounded-sm bg-gray-100 dark:bg-gray-800"></div>
-          <div className="w-3 h-3 rounded-sm bg-emerald-100 dark:bg-emerald-900/30"></div>
-          <div className="w-3 h-3 rounded-sm bg-emerald-200 dark:bg-emerald-800/40"></div>
-          <div className="w-3 h-3 rounded-sm bg-emerald-300 dark:bg-emerald-700/50"></div>
-          <div className="w-3 h-3 rounded-sm bg-emerald-400 dark:bg-emerald-600/60"></div>
-          <div className="w-3 h-3 rounded-sm bg-emerald-500 dark:bg-emerald-500"></div>
-          <span>Más</span>
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs italic" style={{ color: theme.textSubtle }}>
+          {t('liaAnalyticsWidgets.heatmap.legendHint')}
+        </p>
+        <div className="flex items-center gap-1 text-xs" style={{ color: theme.textMuted }}>
+          <span>{t('liaAnalyticsWidgets.heatmap.less')}</span>
+          {[0, 18, 34, 50, 68, 84].map((intensity) => (
+            <div
+              key={intensity}
+              className="h-3 w-3 rounded-sm"
+              style={{ backgroundColor: intensity === 0 ? theme.surfaceSubtle : `color-mix(in srgb, ${theme.action} ${intensity}%, ${theme.surfaceSubtle})` }}
+            />
+          ))}
+          <span>{t('liaAnalyticsWidgets.heatmap.more')}</span>
         </div>
       </div>
 
-      {/* Detail Modal */}
-      {selectedCell && (
+      {selectedCell ? (
         <HeatmapDetailModal
           isOpen={isModalOpen}
           onClose={() => {
-            setIsModalOpen(false);
-            setSelectedCell(null);
+            setIsModalOpen(false)
+            setSelectedCell(null)
           }}
           dayOfWeek={selectedCell.day}
           hour={selectedCell.hour}
           period={period}
         />
-      )}
-    </div>
-  );
+      ) : null}
+    </AdminSurface>
+  )
 }

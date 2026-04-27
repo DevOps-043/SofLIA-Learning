@@ -54,29 +54,29 @@ export function getWorkshopLevelTone(level: string): WorkshopBadgeTone {
     case 'beginner':
     case 'Principiante':
       return {
-        bg: 'bg-[#10B981]/10 dark:bg-[#10B981]/20',
-        text: 'text-[#10B981]',
-        border: 'border-[#10B981]/20',
+        bg: 'bg-success/10 dark:bg-success/20',
+        text: 'text-success',
+        border: 'border-success/20',
       }
     case 'intermediate':
     case 'Intermedio':
       return {
-        bg: 'bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20',
-        text: 'text-[#F59E0B]',
-        border: 'border-[#F59E0B]/20',
+        bg: 'bg-warning/10 dark:bg-warning/20',
+        text: 'text-warning',
+        border: 'border-warning/20',
       }
     case 'advanced':
     case 'Avanzado':
       return {
-        bg: 'bg-[#EF4444]/10 dark:bg-[#EF4444]/20',
-        text: 'text-[#EF4444]',
-        border: 'border-[#EF4444]/20',
+        bg: 'bg-error/10 dark:bg-error/20',
+        text: 'text-error',
+        border: 'border-error/20',
       }
     default:
       return {
-        bg: 'bg-[#6C757D]/10 dark:bg-[#6C757D]/20',
-        text: 'text-[#6C757D]',
-        border: 'border-[#6C757D]/20',
+        bg: 'bg-gray-500/10 dark:bg-gray-500/20',
+        text: 'text-gray-500',
+        border: 'border-gray-500/20',
       }
   }
 }
@@ -86,38 +86,38 @@ export function getWorkshopCategoryTone(category: string): WorkshopBadgeTone {
     case 'Frontend':
     case 'frontend':
       return {
-        bg: 'bg-[#0A2540]/10 dark:bg-[#0A2540]/30',
-        text: 'text-[#0A2540] dark:text-[#00D4B3]',
-        border: 'border-[#0A2540]/20 dark:border-[#00D4B3]/30',
+        bg: 'bg-primary/10 dark:bg-primary/30',
+        text: 'text-primary dark:text-accent',
+        border: 'border-primary/20 dark:border-accent/30',
       }
     case 'Backend':
     case 'backend':
     case 'tecnologia':
       return {
-        bg: 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20',
-        text: 'text-[#00D4B3]',
-        border: 'border-[#00D4B3]/20',
+        bg: 'bg-accent/10 dark:bg-accent/20',
+        text: 'text-accent',
+        border: 'border-accent/20',
       }
     case 'Diseno':
     case 'diseno':
     case 'design':
       return {
-        bg: 'bg-[#F59E0B]/10 dark:bg-[#F59E0B]/20',
-        text: 'text-[#F59E0B]',
-        border: 'border-[#F59E0B]/20',
+        bg: 'bg-warning/10 dark:bg-warning/20',
+        text: 'text-warning',
+        border: 'border-warning/20',
       }
     case 'ia':
     case 'Inteligencia Artificial':
       return {
-        bg: 'bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20',
-        text: 'text-[#00D4B3]',
-        border: 'border-[#00D4B3]/20',
+        bg: 'bg-accent/10 dark:bg-accent/20',
+        text: 'text-accent',
+        border: 'border-accent/20',
       }
     default:
       return {
-        bg: 'bg-[#6C757D]/10 dark:bg-[#6C757D]/20',
-        text: 'text-[#6C757D]',
-        border: 'border-[#6C757D]/20',
+        bg: 'bg-gray-500/10 dark:bg-gray-500/20',
+        text: 'text-gray-500',
+        border: 'border-gray-500/20',
       }
   }
 }

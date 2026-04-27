@@ -1,12 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import {
-  ClockIcon,
-  ShieldCheckIcon,
-  SparklesIcon,
-} from '@heroicons/react/24/outline'
-import { useMotionSafe } from '../../../../lib/utils/motion'
+import Image from 'next/image'
+import { ClockIcon, SparklesIcon } from '@heroicons/react/24/outline'
+
+import { AdminSurface } from '../ui'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
 
 interface AdminDashboardHeroProps {
   greeting: string
@@ -19,101 +17,55 @@ export function AdminDashboardHero({
   todayLabel,
   userName,
 }: AdminDashboardHeroProps) {
-  const { disableHeavy } = useMotionSafe()
+  const theme = useAdminTheme()
 
   return (
-    <motion.div
-      animate={{ opacity: 1, y: 0 }}
-      className="relative mb-8 overflow-hidden rounded-3xl bg-gradient-to-br from-[#0A2540] via-[#0A2540] to-[#0A2540]/90 p-8"
-      initial={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.6 }}
-    >
-      {/* Static background orbs — no JS animation needed */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none">
-        <div className="absolute right-0 top-0 h-96 w-96 translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00D4B3] blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-64 w-64 -translate-x-1/2 translate-y-1/2 rounded-full bg-[#00D4B3] blur-3xl" />
+    <AdminSurface className="relative mb-8 overflow-hidden p-5 sm:p-8">
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-10 mix-blend-multiply opacity-90" style={{ backgroundColor: theme.primary }} />
+        <div
+          className="absolute inset-0 z-10"
+          style={{ background: `linear-gradient(to right, ${theme.primary}, ${theme.primary}, transparent)` }}
+        />
+        <Image
+          src="/images/dashboard-header.png"
+          alt=""
+          fill
+          priority
+          unoptimized
+          className="object-cover opacity-70"
+          sizes="(max-width: 768px) 100vw, 100vw"
+        />
       </div>
 
-      {/* Floating particles — desktop only */}
-      {!disableHeavy && (
-        <>
-          <motion.div
-            animate={{ opacity: [0.5, 1, 0.5], y: [0, -10, 0] }}
-            className="absolute right-20 top-10 h-2 w-2 rounded-full bg-[#00D4B3]"
-            transition={{ duration: 3, repeat: Infinity }}
-          />
-          <motion.div
-            animate={{ opacity: [0.3, 0.8, 0.3], y: [0, 10, 0] }}
-            className="absolute bottom-10 right-40 h-3 w-3 rounded-full bg-[#00D4B3]"
-            transition={{ delay: 1, duration: 4, repeat: Infinity }}
-          />
-        </>
-      )}
-
-      <div className="relative z-10">
-        <div className="mb-2 flex items-center gap-3">
-          {/* Sparkles icon — spinning only on desktop */}
-          {disableHeavy
-            ? <SparklesIcon className="h-6 w-6 text-[#00D4B3]" />
-            : (
-              <motion.div
-                animate={{ rotate: [0, 360] }}
-                transition={{ duration: 20, ease: 'linear', repeat: Infinity }}
-              >
-                <SparklesIcon className="h-6 w-6 text-[#00D4B3]" />
-              </motion.div>
-            )
-          }
-          <span className="text-sm font-medium uppercase tracking-wide text-[#00D4B3]">
-            Panel de Control
-          </span>
+      <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider" style={{ color: theme.inverseText }}>
+            <SparklesIcon className="h-5 w-5" style={{ color: theme.accent }} />
+            <span>Panel de control</span>
+          </div>
+          <h1 className="text-2xl font-bold leading-tight tracking-normal text-white sm:text-4xl" style={{ color: theme.inverseText }}>
+            {greeting}, {userName}
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 sm:text-base" style={{ color: theme.inverseText, opacity: 0.78 }}>
+            Gestiona la plataforma, empresas, contenido y revisiones desde una vista operativa centralizada.
+          </p>
         </div>
 
-        <motion.h1
-          animate={{ opacity: 1, x: 0 }}
-          className="mb-2 text-3xl font-bold text-white lg:text-4xl"
-          initial={{ opacity: 0, x: -20 }}
-          transition={{ delay: 0.2 }}
-        >
-          {greeting}, {userName}
-        </motion.h1>
-
-        <motion.p
-          animate={{ opacity: 1, x: 0 }}
-          className="max-w-xl text-lg text-white/70"
-          initial={{ opacity: 0, x: -20 }}
-          transition={{ delay: 0.3 }}
-        >
-          Gestiona tu plataforma de aprendizaje con IA. Tienes el control total.
-        </motion.p>
-
-        <motion.div
-          animate={{ opacity: 1 }}
-          className="mt-6 flex items-center gap-6"
-          initial={{ opacity: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <div className="flex items-center gap-2 text-sm text-white/60">
-            <ClockIcon className="h-4 w-4" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--color-bg-light) 12%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--color-bg-light) 16%, transparent)',
+              color: theme.inverseText,
+            }}
+          >
+            <ClockIcon className="h-3.5 w-3.5" />
             {todayLabel}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 animate-pulse rounded-full bg-[#10B981]" />
-            <span className="text-sm font-medium text-[#10B981]">
-              Sistema Operativo
-            </span>
-          </div>
-        </motion.div>
+        </div>
       </div>
-
-      <motion.div
-        animate={{ opacity: 0.1, scale: 1 }}
-        className="absolute right-8 top-1/2 hidden -translate-y-1/2 lg:block"
-        initial={{ opacity: 0, scale: 0.5 }}
-        transition={{ delay: 0.5, duration: 0.8 }}
-      >
-        <ShieldCheckIcon className="h-48 w-48 text-white" />
-      </motion.div>
-    </motion.div>
+    </AdminSurface>
   )
 }

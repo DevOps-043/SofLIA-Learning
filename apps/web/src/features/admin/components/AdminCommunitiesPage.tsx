@@ -1,6 +1,6 @@
 'use client'
 
-import { Activity, Crown, MessageCircle, Users } from 'lucide-react'
+import { Activity, Crown, MessageCircle, Plus, Users } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useAdminCommunitiesPageLogic } from '../hooks/useAdminCommunitiesPageLogic'
@@ -8,18 +8,23 @@ import { AddCommunityModal } from './AddCommunityModal'
 import { DeleteCommunityModal } from './DeleteCommunityModal'
 import { EditCommunityModal } from './EditCommunityModal'
 import {
+  AdminButton,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminSectionHeader,
+} from './ui'
+import { useAdminTheme } from '../hooks/useAdminTheme'
+import {
   AdminCommunitiesEmptyState,
   AdminCommunitiesErrorState,
   AdminCommunitiesFilters,
-  AdminCommunitiesHeader,
   AdminCommunitiesLoadingState,
-  AdminCommunitiesStatCard,
   AdminCommunityCard,
-  adminCommunitiesColors,
 } from './admin-communities'
 
 export function AdminCommunitiesPage() {
   const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
   const logic = useAdminCommunitiesPageLogic()
 
   if (logic.isLoading) {
@@ -32,45 +37,45 @@ export function AdminCommunitiesPage() {
 
   return (
     <>
-      <div className="min-h-screen p-6 lg:p-8" style={{ background: adminCommunitiesColors.bgPrimary }}>
-        <div className="max-w-7xl mx-auto space-y-8">
-          <AdminCommunitiesHeader onCreate={() => logic.setIsAddModalOpen(true)} />
+      <AdminPageShell maxWidth="content">
+        <div className="space-y-7">
+          <AdminSectionHeader
+            size="page"
+            icon={Users}
+            kicker={t('communities.page.kicker')}
+            title={t('communities.page.title')}
+            description={t('communities.page.description')}
+            actions={(
+              <AdminButton icon={Plus} onClick={() => logic.setIsAddModalOpen(true)}>
+                {t('communities.page.create')}
+              </AdminButton>
+            )}
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.total')}
+            <AdminMetricCard
+              label={t('communities.stats.total')}
               value={logic.stats?.totalCommunities || 0}
-              Icon={Users}
-              iconColor={adminCommunitiesColors.accent}
-              gradientClassName="bg-gradient-to-br from-[#00D4B3]/20 to-transparent"
-              delay={0}
-              trend={12}
+              icon={Users}
+              tone="primary"
             />
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.members')}
+            <AdminMetricCard
+              label={t('communities.stats.members')}
               value={logic.stats?.totalMembers || 0}
-              Icon={Crown}
-              iconColor={adminCommunitiesColors.warning}
-              gradientClassName="bg-gradient-to-br from-[#F59E0B]/20 to-transparent"
-              delay={1}
-              trend={8}
+              icon={Crown}
+              tone="warning"
             />
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.posts')}
+            <AdminMetricCard
+              label={t('communities.stats.posts')}
               value={logic.stats?.totalPosts || 0}
-              Icon={MessageCircle}
-              iconColor={adminCommunitiesColors.success}
-              gradientClassName="bg-gradient-to-br from-[#10B981]/20 to-transparent"
-              delay={2}
-              trend={24}
+              icon={MessageCircle}
+              tone="primary"
             />
-            <AdminCommunitiesStatCard
-              title={t('communities.stats.active')}
+            <AdminMetricCard
+              label={t('communities.stats.active')}
               value={logic.stats?.activeCommunities || 0}
-              Icon={Activity}
-              iconColor="#8B5CF6"
-              gradientClassName="bg-gradient-to-br from-[#8B5CF6]/20 to-transparent"
-              delay={3}
+              icon={Activity}
+              tone="info"
             />
           </div>
 
@@ -86,7 +91,7 @@ export function AdminCommunitiesPage() {
           />
 
           <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: theme.textMuted }}>
               {t('communities.showing', { filtered: logic.filteredCommunities.length, total: logic.communities.length })}
             </p>
           </div>
@@ -114,7 +119,7 @@ export function AdminCommunitiesPage() {
             </motion.div>
           )}
         </div>
-      </div>
+      </AdminPageShell>
 
       <EditCommunityModal
         community={logic.editingCommunity}

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { Inter, Montserrat } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '../core/components/ThemeProvider';
 
@@ -23,18 +22,6 @@ import {
   AGENT_POLICY_META_CONTENT,
   AGENT_POLICY_VERSION,
 } from '../lib/security/agent-policy';
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  weight: ['400', '500', '700'], // Regular, Medium, Bold
-});
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  variable: '--font-montserrat',
-  weight: ['400', '500', '700', '800'],
-});
 
 export const metadata: Metadata = {
   title: 'SofLIA',
@@ -71,7 +58,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className={`${inter.variable} ${montserrat.variable}`} suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head>
         {/* ðŸ”§ Script para manejar errores de chunks (ChunkLoadError) */}
         <script
@@ -194,10 +181,7 @@ export default function RootLayout({
         />
 
         {/* 🚀 Resource Hints - Mejora conexión a APIs externas 20-30% */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://odbxqmhbnkfledqcqujl.supabase.co" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://odbxqmhbnkfledqcqujl.supabase.co" />
 
         {/* 📱 PWA Meta Tags */}
@@ -222,7 +206,7 @@ export default function RootLayout({
         {/* ðŸŽ¨ Splash Screens iOS */}
         <link rel="apple-touch-startup-image" href="/icon-512x512.png" />
       </head>
-      <body className={`${inter.className} antialiased bg-[var(--color-bg-dark)] text-[var(--color-contrast)] transition-colors duration-300`} suppressHydrationWarning>
+      <body className="antialiased bg-[var(--color-bg-dark)] text-[var(--color-contrast)] transition-colors duration-300" suppressHydrationWarning>
         <a
           href="/api/_agent-trap?source=layout"
           rel="nofollow noreferrer"

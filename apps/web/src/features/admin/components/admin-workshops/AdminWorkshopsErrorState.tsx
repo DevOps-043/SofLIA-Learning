@@ -3,6 +3,9 @@
 import { motion } from 'framer-motion'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
+import { AdminButton, AdminPageShell, AdminSurface } from '../ui'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+
 interface AdminWorkshopsErrorStateProps {
   error: string
   onRetry: () => void
@@ -12,33 +15,36 @@ export function AdminWorkshopsErrorState({
   error,
   onRetry,
 }: AdminWorkshopsErrorStateProps) {
+  const theme = useAdminTheme()
+
   return (
-    <div className="p-6">
+    <AdminPageShell className="py-6 lg:py-8" maxWidth="wide">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-red-500/10 dark:bg-red-500/20 border border-red-500/20 dark:border-red-500/30 rounded-xl p-6"
       >
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-red-500/20 rounded-lg">
-            <XMarkIcon className="h-5 w-5 text-red-500" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-red-500 dark:text-red-400 mb-1">
-              Error al cargar los talleres
-            </h3>
-            <p className="text-xs text-red-500/80 dark:text-red-400/80">
-              {error}
-            </p>
-            <button
-              onClick={onRetry}
-              className="mt-3 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 rounded-lg text-sm font-medium transition-colors"
+        <AdminSurface className="p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: theme.dangerSurface, color: theme.danger }}
             >
-              Reintentar
-            </button>
+              <XMarkIcon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-sm font-semibold" style={{ color: theme.text }}>
+                Error al cargar los talleres
+              </h3>
+              <p className="mt-1 text-sm leading-6" style={{ color: theme.textMuted }}>
+                {error}
+              </p>
+              <AdminButton className="mt-4" onClick={onRetry} size="sm" variant="danger">
+                Reintentar
+              </AdminButton>
+            </div>
           </div>
-        </div>
+        </AdminSurface>
       </motion.div>
-    </div>
+    </AdminPageShell>
   )
 }

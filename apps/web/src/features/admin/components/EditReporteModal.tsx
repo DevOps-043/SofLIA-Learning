@@ -1,9 +1,19 @@
 'use client'
 
-import { Fragment, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { useEffect, useState } from 'react'
+import { CheckCircle2, ClipboardList } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
 import { AdminReporte } from '../services/adminReportes.service'
+import { useAdminTheme } from '../hooks/useAdminTheme'
+import {
+  AdminButton,
+  AdminFormField,
+  AdminModalShell,
+  AdminSelect,
+  AdminSurface,
+  AdminTextarea,
+} from './ui'
 
 interface EditReporteModalProps {
   reporte: AdminReporte
@@ -16,174 +26,126 @@ interface EditReporteModalProps {
       admin_asignado?: string
       notas_admin?: string
       prioridad?: AdminReporte['prioridad']
-    }
+    },
   ) => Promise<void>
   isProcessing: boolean
 }
 
-export function EditReporteModal({ reporte, isOpen, onClose, onSave, isProcessing }: EditReporteModalProps) {
+export function EditReporteModal({
+  reporte,
+  isOpen,
+  onClose,
+  onSave,
+  isProcessing,
+}: EditReporteModalProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
   const [estado, setEstado] = useState(reporte.estado)
   const [prioridad, setPrioridad] = useState(reporte.prioridad)
   const [notasAdmin, setNotasAdmin] = useState(reporte.notas_admin || '')
 
+  useEffect(() => {
+    setEstado(reporte.estado)
+    setPrioridad(reporte.prioridad)
+    setNotasAdmin(reporte.notas_admin || '')
+  }, [reporte])
+
   const handleSave = async () => {
-    try {
-      await onSave(reporte.id, {
-        estado,
-        prioridad,
-        notas_admin: notasAdmin.trim() || undefined
-      })
-    } catch (error) {
-      // El error se maneja en el componente padre
-    }
+    await onSave(reporte.id, {
+      estado,
+      prioridad,
+      notas_admin: notasAdmin.trim() || undefined,
+    })
   }
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-[#0F1419]/80 backdrop-blur-sm" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white dark:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#334155] shadow-2xl transition-all">
-                {/* Header */}
-                <div className="bg-[#0A2540] px-6 py-4 flex items-center justify-between border-b border-[#334155]">
-                  <Dialog.Title className="text-xl font-bold text-white flex items-center gap-2">
-                    <CheckCircleIcon className="h-6 w-6 text-[#00D4B3]" />
-                    Editar Reporte
-                  </Dialog.Title>
-                  <button
-                    onClick={onClose}
-                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                  >
-                    <XMarkIcon className="h-5 w-5" />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="p-8">
-                  <div className="space-y-6">
-                    {/* Estado */}
-                    <div>
-                      <label className="block text-sm font-bold text-[#0A2540] dark:text-gray-300 mb-2 uppercase tracking-wider">
-                        Estado
-                      </label>
-                      <select
-                        value={estado}
-                        onChange={(e) => setEstado(e.target.value as AdminReporte['estado'])}
-                        className="w-full px-4 py-3 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F1419] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] transition-all"
-                      >
-                        <option value="pendiente">Pendiente</option>
-                        <option value="en_revision">En Revisión</option>
-                        <option value="en_progreso">En Progreso</option>
-                        <option value="resuelto">Resuelto</option>
-                        <option value="rechazado">Rechazado</option>
-                        <option value="duplicado">Duplicado</option>
-                      </select>
-                    </div>
-
-                    {/* Prioridad */}
-                    <div>
-                      <label className="block text-sm font-bold text-[#0A2540] dark:text-gray-300 mb-2 uppercase tracking-wider">
-                        Prioridad
-                      </label>
-                      <select
-                        value={prioridad}
-                        onChange={(e) => setPrioridad(e.target.value as AdminReporte['prioridad'])}
-                        className="w-full px-4 py-3 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F1419] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] transition-all"
-                      >
-                        <option value="baja">Baja</option>
-                        <option value="media">Media</option>
-                        <option value="alta">Alta</option>
-                        <option value="critica">Crítica</option>
-                      </select>
-                    </div>
-
-                    {/* Notas del Admin */}
-                    <div>
-                      <label className="block text-sm font-bold text-[#0A2540] dark:text-gray-300 mb-2 uppercase tracking-wider">
-                        Notas del Administrador
-                      </label>
-                      <textarea
-                        value={notasAdmin}
-                        onChange={(e) => setNotasAdmin(e.target.value)}
-                        rows={6}
-                        className="w-full px-4 py-3 rounded-xl border border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC] dark:bg-[#0F1419] text-[#0A2540] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00D4B3] transition-all resize-none placeholder-gray-400"
-                        placeholder="Agrega notas internas sobre este reporte..."
-                      />
-                    </div>
-
-                    {/* Información del reporte (solo lectura) */}
-                    <div className="p-5 bg-[#0A2540]/5 dark:bg-[#0A2540]/20 rounded-xl border border-[#0A2540]/10 dark:border-[#0A2540]/40">
-                      <h3 className="text-sm font-bold uppercase tracking-wider text-[#0A2540] dark:text-[#00D4B3] mb-3">
-                        Resumen del Reporte
-                      </h3>
-                      <div className="space-y-2 text-sm text-[#6C757D] dark:text-gray-400">
-                        <p><span className="font-semibold text-[#0A2540] dark:text-gray-300">Título:</span> {reporte.titulo}</p>
-                        <p><span className="font-semibold text-[#0A2540] dark:text-gray-300">Categoría:</span> {reporte.categoria}</p>
-                        {reporte.usuario && (
-                          <p>
-                            <span className="font-semibold text-[#0A2540] dark:text-gray-300">Usuario:</span>{' '}
-                            {reporte.usuario.display_name || reporte.usuario.username}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="bg-[#F8FAFC] dark:bg-[#0F1419] px-6 py-4 flex justify-end gap-3 border-t border-[#E9ECEF] dark:border-[#334155]">
-                  <button
-                    onClick={onClose}
-                    disabled={isProcessing}
-                    className="px-5 py-2.5 text-[#0A2540] dark:text-white hover:bg-white dark:hover:bg-[#1E2329] border border-[#E9ECEF] dark:border-[#334155] rounded-xl transition-all font-medium text-sm shadow-sm disabled:opacity-50"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={isProcessing}
-                    className="px-5 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-xl transition-all font-medium text-sm shadow-md hover:shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Guardando...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircleIcon className="h-5 w-5" />
-                        Guardar Cambios
-                      </>
-                    )}
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+    <AdminModalShell
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={ClipboardList}
+      title={t('reportsPage.modal.editTitle')}
+      description={t('reportsPage.modal.reportId', { id: reporte.id.slice(0, 8) })}
+      className="max-w-2xl"
+      footer={
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <AdminButton onClick={onClose} disabled={isProcessing} variant="secondary">
+            {t('reportsPage.modal.cancel')}
+          </AdminButton>
+          <AdminButton
+            onClick={() => void handleSave()}
+            disabled={isProcessing}
+            icon={CheckCircle2}
+          >
+            {isProcessing ? t('reportsPage.modal.saving') : t('reportsPage.modal.saveChanges')}
+          </AdminButton>
         </div>
-      </Dialog>
-    </Transition>
+      }
+    >
+      <div className="space-y-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <AdminFormField label={t('reportsPage.modal.status')}>
+            <AdminSelect
+              className="w-full"
+              value={estado || 'pendiente'}
+              onChange={(event) => setEstado(event.target.value as AdminReporte['estado'])}
+            >
+              <option value="pendiente">{t('reportsPage.status.pending')}</option>
+              <option value="en_revision">{t('reportsPage.status.inReview')}</option>
+              <option value="en_progreso">{t('reportsPage.status.inProgress')}</option>
+              <option value="resuelto">{t('reportsPage.status.resolved')}</option>
+              <option value="rechazado">{t('reportsPage.status.rejected')}</option>
+              <option value="duplicado">{t('reportsPage.status.duplicated')}</option>
+            </AdminSelect>
+          </AdminFormField>
+
+          <AdminFormField label={t('reportsPage.modal.priority')}>
+            <AdminSelect
+              className="w-full"
+              value={prioridad || 'media'}
+              onChange={(event) => setPrioridad(event.target.value as AdminReporte['prioridad'])}
+            >
+              <option value="baja">{t('reportsPage.priorities.low')}</option>
+              <option value="media">{t('reportsPage.priorities.medium')}</option>
+              <option value="alta">{t('reportsPage.priorities.high')}</option>
+              <option value="critica">{t('reportsPage.priorities.critical')}</option>
+            </AdminSelect>
+          </AdminFormField>
+        </div>
+
+        <AdminFormField label={t('reportsPage.modal.adminNotes')}>
+          <AdminTextarea
+            value={notasAdmin}
+            onChange={(event) => setNotasAdmin(event.target.value)}
+            rows={6}
+            placeholder={t('reportsPage.modal.adminNotesPlaceholder')}
+            className="resize-none"
+          />
+        </AdminFormField>
+
+        <AdminSurface className="p-4">
+          <h3 className="text-sm font-bold uppercase tracking-widest" style={{ color: theme.text }}>
+            {t('reportsPage.modal.reportSummary')}
+          </h3>
+          <dl className="mt-3 space-y-2 text-sm" style={{ color: theme.text }}>
+            <div className="grid gap-1 sm:grid-cols-[120px_minmax(0,1fr)]">
+              <dt className="font-semibold" style={{ color: theme.textMuted }}>{t('reportsPage.modal.titleLabel')}</dt>
+              <dd className="min-w-0 break-words">{reporte.titulo}</dd>
+            </div>
+            <div className="grid gap-1 sm:grid-cols-[120px_minmax(0,1fr)]">
+              <dt className="font-semibold" style={{ color: theme.textMuted }}>{t('reportsPage.modal.category')}</dt>
+              <dd className="min-w-0 break-words">{reporte.categoria}</dd>
+            </div>
+            {reporte.usuario ? (
+              <div className="grid gap-1 sm:grid-cols-[120px_minmax(0,1fr)]">
+                <dt className="font-semibold" style={{ color: theme.textMuted }}>{t('reportsPage.modal.user')}</dt>
+                <dd className="min-w-0 break-words">
+                  {reporte.usuario.display_name || reporte.usuario.username}
+                </dd>
+              </div>
+            ) : null}
+          </dl>
+        </AdminSurface>
+      </div>
+    </AdminModalShell>
   )
 }
-

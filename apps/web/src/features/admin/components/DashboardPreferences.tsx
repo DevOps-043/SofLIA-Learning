@@ -1,7 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Settings, X } from 'lucide-react'
+import { Settings } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../hooks/useAdminTheme'
+import {
+  AdminButton,
+  AdminFormField,
+  AdminModalShell,
+  AdminSelect,
+} from './ui'
 
 interface DashboardPreferences {
   activity_period: '24h' | '7d' | '30d'
@@ -12,22 +21,25 @@ interface DashboardPreferencesProps {
   onPreferencesChange?: (preferences: DashboardPreferences) => void
 }
 
-const AVAILABLE_METRICS = [
-  { id: 'users', label: 'Usuarios', color: '#3b82f6' },
-  { id: 'courses', label: 'Talleres', color: '#10b981' },
-  { id: 'communities', label: 'Comunidades', color: '#8b5cf6' },
-  { id: 'prompts', label: 'Prompts', color: '#f97316' },
-  { id: 'aiApps', label: 'Apps de IA', color: '#ec4899' }
-]
-
 export function DashboardPreferences({ onPreferencesChange }: DashboardPreferencesProps) {
+  const { t } = useTranslation('admin')
+  const { t: tc } = useTranslation('common')
+  const theme = useAdminTheme()
   const [isOpen, setIsOpen] = useState(false)
   const [preferences, setPreferences] = useState<DashboardPreferences>({
     activity_period: '24h',
-    growth_chart_metrics: ['users']
+    growth_chart_metrics: ['users'],
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+
+  const availableMetrics = [
+    { id: 'users', label: t('statisticsPage.preferences.metrics.users'), color: theme.chartColors[0] },
+    { id: 'courses', label: t('statisticsPage.preferences.metrics.courses'), color: theme.chartColors[1] },
+    { id: 'communities', label: t('statisticsPage.preferences.metrics.communities'), color: theme.chartColors[2] },
+    { id: 'prompts', label: t('statisticsPage.preferences.metrics.prompts'), color: theme.chartColors[3] },
+    { id: 'aiApps', label: t('statisticsPage.preferences.metrics.aiApps'), color: theme.chartColors[4] },
+  ]
 
   useEffect(() => {
     fetchPreferences()
@@ -38,11 +50,11 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
       setIsLoading(true)
       const response = await fetch('/api/admin/dashboard/preferences')
       const data = await response.json()
-      
+
       if (data.success && data.preferences) {
         setPreferences({
           activity_period: data.preferences.activity_period || '24h',
-          growth_chart_metrics: data.preferences.growth_chart_metrics || ['users']
+          growth_chart_metrics: data.preferences.growth_chart_metrics || ['users'],
         })
       }
     } catch (error) {
@@ -58,16 +70,14 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
       const response = await fetch('/api/admin/dashboard/preferences', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify(preferences)
+        body: JSON.stringify(preferences),
       })
 
       const data = await response.json()
       if (data.success) {
-        if (onPreferencesChange) {
-          onPreferencesChange(preferences)
-        }
+        onPreferencesChange?.(preferences)
         setIsOpen(false)
       }
     } catch (error) {
@@ -78,21 +88,20 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
   }
 
   const toggleMetric = (metricId: string) => {
-    setPreferences(prev => {
+    setPreferences((prev) => {
       const metrics = [...prev.growth_chart_metrics]
       const index = metrics.indexOf(metricId)
-      
+
       if (index > -1) {
-        // Si solo queda una métrica, no permitir eliminarla
         if (metrics.length === 1) return prev
         metrics.splice(index, 1)
       } else {
         metrics.push(metricId)
       }
-      
+
       return {
         ...prev,
-        growth_chart_metrics: metrics
+        growth_chart_metrics: metrics,
       }
     })
   }
@@ -103,109 +112,80 @@ export function DashboardPreferences({ onPreferencesChange }: DashboardPreferenc
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+      <AdminButton icon={Settings} onClick={() => setIsOpen(true)} variant="secondary">
+        {t('statisticsPage.preferences.button')}
+      </AdminButton>
+
+      <AdminModalShell
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        icon={Settings}
+        title={t('statisticsPage.preferences.title')}
+        footer={(
+          <div className="flex justify-end gap-3">
+            <AdminButton onClick={() => setIsOpen(false)} variant="secondary">
+              {tc('actions.cancel')}
+            </AdminButton>
+            <AdminButton onClick={handleSave} disabled={isSaving}>
+              {isSaving ? tc('actions.saving') : tc('actions.save')}
+            </AdminButton>
+          </div>
+        )}
       >
-        <Settings className="w-4 h-4" />
-        Preferencias
-      </button>
+        <div className="space-y-6">
+          <AdminFormField label={t('statisticsPage.preferences.activityPeriod')}>
+            <AdminSelect
+              value={preferences.activity_period}
+              onChange={(event) => setPreferences((prev) => ({
+                ...prev,
+                activity_period: event.target.value as '24h' | '7d' | '30d',
+              }))}
+              className="w-full"
+            >
+              <option value="24h">{t('statisticsPage.preferences.period24h')}</option>
+              <option value="7d">{t('statisticsPage.preferences.period7d')}</option>
+              <option value="30d">{t('statisticsPage.preferences.period30d')}</option>
+            </AdminSelect>
+          </AdminFormField>
 
-      {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Preferencias del Dashboard
-              </h2>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-6">
-              {/* Período de actividad */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Período de Actividad Reciente
-                </label>
-                <select
-                  value={preferences.activity_period}
-                  onChange={(e) => setPreferences(prev => ({
-                    ...prev,
-                    activity_period: e.target.value as '24h' | '7d' | '30d'
-                  }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="24h">Últimas 24 horas</option>
-                  <option value="7d">Últimos 7 días</option>
-                  <option value="30d">Últimos 30 días</option>
-                </select>
-              </div>
-
-              {/* Métricas del gráfico de crecimiento */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Métricas del Gráfico de Crecimiento
-                </label>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Selecciona las métricas que deseas mostrar en el gráfico de crecimiento mensual
-                </p>
-                <div className="space-y-2">
-                  {AVAILABLE_METRICS.map((metric) => {
-                    const isSelected = preferences.growth_chart_metrics.includes(metric.id)
-                    return (
-                      <label
-                        key={metric.id}
-                        className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                          isSelected
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleMetric(metric.id)}
-                          disabled={isSelected && preferences.growth_chart_metrics.length === 1}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                        <div
-                          className="w-3 h-3 rounded-full ml-3"
-                          style={{ backgroundColor: metric.color }}
-                        ></div>
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                          {metric.label}
-                        </span>
-                      </label>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {isSaving ? 'Guardando...' : 'Guardar'}
-              </button>
+          <div>
+            <h3 className="text-sm font-semibold" style={{ color: theme.text }}>
+              {t('statisticsPage.preferences.growthMetrics')}
+            </h3>
+            <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+              {t('statisticsPage.preferences.growthMetricsHelp')}
+            </p>
+            <div className="mt-3 space-y-2">
+              {availableMetrics.map((metric) => {
+                const isSelected = preferences.growth_chart_metrics.includes(metric.id)
+                return (
+                  <label
+                    key={metric.id}
+                    className="flex cursor-pointer items-center rounded-xl border p-3 transition"
+                    style={{
+                      backgroundColor: isSelected ? theme.actionSurface : theme.surfaceSubtle,
+                      borderColor: isSelected ? theme.action : theme.border,
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleMetric(metric.id)}
+                      disabled={isSelected && preferences.growth_chart_metrics.length === 1}
+                      className="h-4 w-4 rounded"
+                      style={{ accentColor: theme.action }}
+                    />
+                    <span className="ml-3 h-3 w-3 rounded-full" style={{ backgroundColor: metric.color }} />
+                    <span className="ml-2 text-sm" style={{ color: theme.text }}>
+                      {metric.label}
+                    </span>
+                  </label>
+                )
+              })}
             </div>
           </div>
         </div>
-      )}
+      </AdminModalShell>
     </>
   )
 }
-

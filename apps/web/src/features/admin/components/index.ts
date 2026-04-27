@@ -24,6 +24,7 @@ export { AdminLearningPathsPage } from './AdminLearningPathsPage'
 export { LearningPathManagementPage } from './LearningPathManagementPage'
 export * from './admin-companies'
 export * from './admin-dashboard'
+export * from './ui'
 export * from './lesson-modal'
 export { LiaAnalyticsPage } from './LiaAnalyticsPage'
 

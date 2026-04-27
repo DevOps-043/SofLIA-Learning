@@ -32,6 +32,41 @@
         "label": "Proprietário",
         "description": "Controle total da organização"
       }
+    },
+    "page": {
+      "title": "Gest\u00e3o de Usu\u00e1rios",
+      "found": "{{count}} usu\u00e1rios encontrados",
+      "addUser": "Adicionar Usu\u00e1rio",
+      "loading": "Carregando usu\u00e1rios...",
+      "loadErrorTitle": "Erro ao carregar usu\u00e1rios",
+      "updateError": "Erro ao atualizar usu\u00e1rio",
+      "deleteError": "Erro ao excluir usu\u00e1rio",
+      "createError": "Erro ao criar usu\u00e1rio",
+      "allRoles": "Todas as fun\u00e7\u00f5es",
+      "emptyTitle": "Nenhum usu\u00e1rio encontrado",
+      "emptyFiltered": "Tente ajustar os filtros de busca",
+      "emptyAll": "N\u00e3o h\u00e1 usu\u00e1rios registrados no sistema",
+      "never": "Nunca",
+      "noEmail": "Sem email",
+      "roleFallback": "Sem fun\u00e7\u00e3o",
+      "stats": {
+        "total": "Total de usu\u00e1rios",
+        "verified": "Verificados",
+        "instructors": "Instrutores",
+        "administrators": "Administradores"
+      },
+      "table": {
+        "user": "Usu\u00e1rio",
+        "email": "Email",
+        "role": "Fun\u00e7\u00e3o",
+        "status": "Estado",
+        "lastAccess": "\u00daltimo acesso",
+        "actions": "A\u00e7\u00f5es"
+      },
+      "status": {
+        "verified": "Verificado",
+        "pending": "Pendente"
+      }
     }
   },
   "skills": {
@@ -41,11 +76,37 @@
       "warningText": "Esta ação marcará a skill como inativa. Os usuários que já a têm vão mantê-la, mas ela não poderá ser atribuída a novos cursos."
     },
     "page": {
+      "title": "Gest\u00e3o de Skills",
+      "description": "Gerencie as skills dispon\u00edveis na plataforma.",
+      "newSkill": "Nova Skill",
       "searchPlaceholder": "Pesquisar habilidades...",
       "emptyFiltered": "Nenhuma habilidade encontrada com os filtros aplicados",
       "emptyAll": "Nenhuma habilidade registrada. Crie a primeira habilidade.",
+      "defaultLevel": "beginner",
       "tooltipEdit": "Editar",
-      "tooltipDelete": "Excluir"
+      "tooltipDelete": "Excluir",
+      "filters": {
+        "all": "Todos os estados",
+        "active": "Ativas",
+        "inactive": "Inativas"
+      },
+      "stats": {
+        "total": "Total de Skills",
+        "active": "Ativas",
+        "featured": "Destaques",
+        "results": "Resultados"
+      },
+      "table": {
+        "skill": "Skill",
+        "category": "Categoria",
+        "level": "N\u00edvel",
+        "status": "Estado",
+        "actions": "A\u00e7\u00f5es"
+      },
+      "status": {
+        "active": "Ativa",
+        "inactive": "Inativa"
+      }
     },
     "categories": {
       "all": "Todas",
@@ -70,7 +131,31 @@
       "confirmText": "Tem certeza que deseja excluir esta notícia?"
     },
     "page": {
+      "title": "Gest\u00e3o de Not\u00edcias",
+      "description": "Gerencie publica\u00e7\u00f5es, estados e leitura de not\u00edcias.",
+      "add": "Nova Not\u00edcia",
       "searchPlaceholder": "Pesquisar notícias...",
+      "empty": "Nenhuma not\u00edcia encontrada",
+      "listTitle": "Not\u00edcias ({{count}})",
+      "views": "{{count}} visualiza\u00e7\u00f5es",
+      "comments": "{{count}} coment\u00e1rios",
+      "stats": {
+        "total": "Total de Not\u00edcias",
+        "published": "Publicadas",
+        "drafts": "Rascunhos",
+        "views": "Total de Visualiza\u00e7\u00f5es"
+      },
+      "filters": {
+        "all": "Todos os estados",
+        "published": "Publicadas",
+        "draft": "Rascunhos",
+        "archived": "Arquivadas"
+      },
+      "status": {
+        "published": "Publicado",
+        "draft": "Rascunho",
+        "archived": "Arquivado"
+      },
       "tooltipView": "Ver detalhes",
       "tooltipEdit": "Editar",
       "tooltipDelete": "Excluir"
@@ -80,12 +165,96 @@
     "deleteModal": {
       "title": "Excluir App",
       "confirmText": "Tem certeza que deseja excluir este aplicativo?"
+    },
+    "page": {
+      "title": "Gest\u00e3o de Apps de IA",
+      "description": "Gerencie o diret\u00f3rio de ferramentas, estados e visibilidade.",
+      "add": "Adicionar App",
+      "loading": "Carregando apps...",
+      "loadError": "Erro ao carregar apps: {{error}}",
+      "allCategories": "Todas as categorias",
+      "empty": "Nenhum app encontrado",
+      "noFeatures": "Sem recursos",
+      "uncategorized": "Sem categoria",
+      "stats": {
+        "total": "Total de Apps",
+        "likes": "Total de Likes",
+        "views": "Total de Visualiza\u00e7\u00f5es",
+        "featured": "Destaques"
+      },
+      "filters": {
+        "all": "Todos os estados",
+        "active": "Ativas",
+        "inactive": "Inativas",
+        "featured": "Destaques",
+        "verified": "Verificadas"
+      },
+      "status": {
+        "active": "Ativa",
+        "inactive": "Inativa",
+        "featured": "Destaque",
+        "verified": "Verificada"
+      },
+      "pricing": {
+        "free": "Gratuito",
+        "freemium": "Freemium",
+        "paid": "Pago",
+        "subscription": "Assinatura"
+      },
+      "platform": {
+        "mobile": "M\u00f3vel",
+        "extension": "Extens\u00e3o"
+      },
+      "actions": {
+        "activate": "Ativar app",
+        "deactivate": "Desativar app",
+        "feature": "Destacar app",
+        "unfeature": "Remover destaque",
+        "verify": "Verificar app",
+        "unverify": "Remover verifica\u00e7\u00e3o"
+      }
     }
   },
   "prompts": {
     "deleteModal": {
       "title": "Excluir Prompt",
       "confirmText": "Tem certeza que deseja excluir este prompt?"
+    },
+    "page": {
+      "title": "Gest\u00e3o de Prompts",
+      "description": "Gerencie prompts, tags, dificuldade e visibilidade no diret\u00f3rio.",
+      "add": "Adicionar Prompt",
+      "loading": "Carregando prompts...",
+      "loadError": "Erro ao carregar prompts: {{error}}",
+      "searchPlaceholder": "Pesquisar prompts...",
+      "allCategories": "Todas as categorias",
+      "empty": "Nenhum prompt encontrado",
+      "noTags": "Sem tags",
+      "unknownAuthor": "Autor desconhecido",
+      "uncategorized": "Sem categoria",
+      "stats": {
+        "total": "Total de Prompts",
+        "likes": "Total de Likes",
+        "views": "Total de Visualiza\u00e7\u00f5es",
+        "featured": "Destaques"
+      },
+      "filters": {
+        "all": "Todos os estados",
+        "active": "Ativos",
+        "inactive": "Inativos",
+        "featured": "Destaques"
+      },
+      "status": {
+        "active": "Ativo",
+        "inactive": "Inativo",
+        "featured": "Destaque"
+      },
+      "actions": {
+        "activate": "Ativar prompt",
+        "deactivate": "Desativar prompt",
+        "feature": "Destacar prompt",
+        "unfeature": "Remover destaque"
+      }
     }
   },
   "reels": {
@@ -94,9 +263,35 @@
       "confirmText": "Tem certeza que deseja excluir este reel?"
     },
     "page": {
+      "title": "Administrar Reels",
+      "description": "Gerencie todos os reels da plataforma.",
+      "add": "Adicionar Reel",
       "searchPlaceholder": "Pesquisar reels...",
       "statusActive": "Ativo",
       "statusInactive": "Inativo",
+      "statusFeatured": "Destaque",
+      "empty": "Nenhum reel encontrado",
+      "allCategories": "Todas as categorias",
+      "filters": {
+        "all": "Todos os estados",
+        "active": "Ativos",
+        "inactive": "Inativos"
+      },
+      "stats": {
+        "total": "Total de Reels",
+        "active": "Ativos",
+        "views": "Total de Visualiza\u00e7\u00f5es",
+        "likes": "Total de Likes"
+      },
+      "table": {
+        "reel": "Reel",
+        "category": "Categoria",
+        "duration": "Dura\u00e7\u00e3o",
+        "stats": "Estat\u00edsticas",
+        "status": "Estado",
+        "date": "Data",
+        "actions": "A\u00e7\u00f5es"
+      },
       "tooltipView": "Ver detalhes",
       "tooltipEdit": "Editar",
       "tooltipDeactivate": "Desativar",
@@ -110,6 +305,27 @@
     "deleteModal": {
       "title": "Excluir Comunidade",
       "confirmText": "Tem certeza que deseja excluir esta comunidade?"
+    },
+    "page": {
+      "kicker": "Comunidades",
+      "title": "Comunidades",
+      "description": "Gerencie, modere e supervisione as comunidades de aprendizagem da plataforma.",
+      "create": "Criar comunidade",
+      "loading": "Carregando comunidades...",
+      "errorTitle": "Erro ao carregar comunidades",
+      "emptyTitle": "Nenhuma comunidade encontrada",
+      "emptyDescription": "Ajuste os filtros ou crie uma nova comunidade."
+    },
+    "filters": {
+      "allCategories": "Todas as categorias",
+      "public": "Publicas",
+      "private": "Privadas",
+      "moderated": "Moderadas",
+      "allStatuses": "Todos os estados",
+      "active": "Ativas",
+      "inactive": "Inativas",
+      "gridView": "Vista em cartoes",
+      "listView": "Vista em lista"
     },
     "stats": {
       "total": "Total Comunidades",
@@ -125,6 +341,51 @@
       "confirmText": "Tem certeza que deseja excluir esta oficina?"
     }
   },
+  "accessRequests": {
+    "page": {
+      "title": "Solicita\u00e7\u00f5es de Acesso",
+      "description": "Gerencie solicita\u00e7\u00f5es de entrada em comunidades privadas.",
+      "loading": "Carregando solicita\u00e7\u00f5es...",
+      "loadError": "Erro ao carregar solicita\u00e7\u00f5es",
+      "unknownError": "Erro desconhecido",
+      "approveError": "Erro ao aprovar solicita\u00e7\u00e3o",
+      "rejectError": "Erro ao rejeitar solicita\u00e7\u00e3o",
+      "refresh": "Atualizar",
+      "empty": "Nenhuma solicita\u00e7\u00e3o encontrada",
+      "noNote": "Sem nota",
+      "reviewedAt": "Revisado {{date}}",
+      "processed": "Processado",
+      "stats": {
+        "pending": "Pendentes",
+        "approved": "Aprovadas",
+        "rejected": "Rejeitadas",
+        "total": "Total"
+      },
+      "filters": {
+        "all": "Todos os estados",
+        "pending": "Pendentes",
+        "approved": "Aprovadas",
+        "rejected": "Rejeitadas"
+      },
+      "status": {
+        "pending": "Pendente",
+        "approved": "Aprovada",
+        "rejected": "Rejeitada"
+      },
+      "table": {
+        "user": "Usu\u00e1rio",
+        "community": "Comunidade",
+        "note": "Nota",
+        "status": "Estado",
+        "date": "Data",
+        "actions": "A\u00e7\u00f5es"
+      },
+      "actions": {
+        "approve": "Aprovar",
+        "reject": "Rejeitar"
+      }
+    }
+  },
   "generic": {
     "irreversible": "Esta ação não pode ser desfeita.",
     "errorDeleting": "Erro ao excluir",
@@ -133,6 +394,8 @@
   "pendingCourses": {
     "title": "Revisões Pendentes",
     "subtitle": "Revisar e aprovar cursos enviados pelo CourseForge",
+    "errorPrefix": "Erro: {{error}}",
+    "defaultRejectReason": "Rejeitado pelo administrador",
     "tabPending": "Pendentes",
     "tabRejected": "Rejeitados",
     "searchPlaceholder": "Pesquisar por título ou instrutor...",
@@ -154,6 +417,12 @@
     "errorApprove": "Erro ao aprovar o curso",
     "errorReject": "Erro ao rejeitar o curso",
     "errorDelete": "Erro ao excluir o curso",
+    "metrics": {
+      "pending": "Pendentes",
+      "rejected": "Rejeitados",
+      "updates": "Atualizacoes",
+      "new": "Cursos novos"
+    },
     "approveModal": {
       "title": "Aprovar Curso",
       "message": "Tem certeza de que deseja aprovar este curso? Ele ficará público e visível para os alunos imediatamente.",
@@ -176,11 +445,52 @@
   "pendingCourseDetail": {
     "backToPending": "Voltar aos pendentes",
     "courseContent": "Conteúdo do Curso",
+    "courseContentWithDiff": "Revise as mudancas detectadas antes de aprovar a publicacao.",
     "notFound": "Curso não encontrado",
     "errorApprove": "Erro ao aprovar",
     "errorReject": "Erro ao rejeitar",
     "errorDelete": "Erro ao excluir",
     "errorReconsider": "Erro ao reconsiderar",
+    "defaultRejectReason": "Rejeitado no painel de detalhes",
+    "durationHours": "{{hours}} horas",
+    "levelLabel": "Nivel: {{level}}",
+    "categoryLabel": "Categoria: {{category}}",
+    "instructorFallback": "Instrutor",
+    "actions": {
+      "delete": "Excluir",
+      "reconsider": "Reconsiderar",
+      "reject": "Rejeitar curso",
+      "approve": "Aprovar",
+      "approvePublish": "Aprovar e publicar"
+    },
+    "diff": {
+      "summaryTitle": "Resumo de mudancas ({{count}})",
+      "summaryDescription": "Compare a versao publicada com a versao pendente antes de aprovar.",
+      "showFinal": "Ver versao final",
+      "showDiff": "Ver mudancas",
+      "noStructuralChanges": "Nenhuma mudanca estrutural detectada no curso.",
+      "courseChanges": "Mudancas nos dados gerais do curso",
+      "generalDataChanges": "Dados gerais modificados",
+      "moduleChanges": "Mudancas do modulo",
+      "lessonChanges": "Mudancas nesta aula",
+      "before": "Antes: {{value}}",
+      "lessonMeta": "{{duration}} seg / {{provider}}",
+      "noProvider": "Sem provedor",
+      "status": {
+        "added": "Novo",
+        "removed": "Eliminado",
+        "modified": "Modificado",
+        "unchanged": "Sem mudancas"
+      },
+      "summary": {
+        "modulesAdded": "Novos modulos: {{count}}",
+        "modulesRemoved": "Modulos removidos: {{count}}",
+        "modulesModified": "Modulos modificados: {{count}}",
+        "lessonsAdded": "Novas aulas: {{count}}",
+        "lessonsRemoved": "Aulas removidas: {{count}}",
+        "lessonsModified": "Aulas modificadas: {{count}}"
+      }
+    },
     "approveModal": {
       "title": "Confirmar Publicação",
       "message": "Tem certeza de que deseja publicar este curso? Ele ficará imediatamente visível para os alunos.",
@@ -195,6 +505,95 @@
       "title": "Excluir Curso",
       "message": "Tem certeza de que deseja excluir permanentemente este curso? Esta ação não pode ser desfeita.",
       "confirm": "Sim, Excluir"
+    }
+  },
+  "reportsPage": {
+    "title": "Gestao de Relatorios",
+    "description": "Gerencie relatos de problemas, evidencias e acompanhamento operacional de usuarios.",
+    "loading": "Carregando relatorios...",
+    "error": "Erro ao carregar relatorios: {{error}}",
+    "emptyTitle": "Nenhum relatorio encontrado",
+    "emptyDescription": "Tente ajustar os filtros de busca.",
+    "categoryLabel": "Categoria:",
+    "withImage": "Com imagem",
+    "stats": {
+      "total": "Total",
+      "pending": "Pendentes",
+      "inProgress": "Em progresso",
+      "resolved": "Resolvidos"
+    },
+    "filters": {
+      "allStatuses": "Todos os estados",
+      "allCategories": "Todas as categorias",
+      "allPriorities": "Todas as prioridades",
+      "apply": "Filtrar",
+      "clear": "Limpar"
+    },
+    "status": {
+      "pending": "Pendente",
+      "inReview": "Em revisao",
+      "inProgress": "Em progresso",
+      "resolved": "Resolvido",
+      "rejected": "Rejeitado",
+      "duplicated": "Duplicado",
+      "unknown": "Sem estado"
+    },
+    "categories": {
+      "bug": "Bug",
+      "suggestion": "Sugestao",
+      "content": "Conteudo",
+      "performance": "Performance",
+      "uiux": "UI/UX",
+      "other": "Outro"
+    },
+    "priorities": {
+      "critical": "Critica",
+      "high": "Alta",
+      "medium": "Media",
+      "low": "Baixa",
+      "unknown": "Sem prioridade"
+    },
+    "modal": {
+      "editTitle": "Gerenciar relatorio",
+      "reportId": "ID: {{id}}",
+      "notAvailable": "N/D",
+      "category": "Categoria",
+      "status": "Estado",
+      "priority": "Prioridade",
+      "reportedBy": "Relatado por",
+      "created": "Criado",
+      "time": "Hora",
+      "description": "Descricao",
+      "steps": "Passos para reproduzir",
+      "expectedBehavior": "Comportamento esperado",
+      "technicalContext": "Contexto tecnico",
+      "url": "URL",
+      "browser": "Navegador",
+      "resolution": "Resolucao",
+      "operationalContext": "Contexto operacional",
+      "source": "Origem",
+      "courseLesson": "Curso / Aula",
+      "irisSync": "Sincronizacao IRIS",
+      "unknownCourse": "Curso nao identificado",
+      "unknownLesson": "Aula nao identificada",
+      "noExternalIssue": "Sem issue externo vinculado",
+      "evidence": "Evidencia",
+      "screenshotAlt": "Captura do relatorio",
+      "viewOriginalImage": "Ver imagem original",
+      "recordingAvailable": "Gravacao de sessao disponivel",
+      "recordingDescription": "Reproduza a sessao exata do usuario para entender o contexto do problema passo a passo.",
+      "recordingLoadError": "Nao foi possivel carregar a gravacao",
+      "playRecording": "Reproduzir sessao",
+      "adminNotes": "Notas do administrador",
+      "adminNotesPlaceholder": "Adicione notas internas sobre este relatorio...",
+      "reportSummary": "Resumo do relatorio",
+      "titleLabel": "Titulo",
+      "user": "Usuario",
+      "close": "Fechar",
+      "cancel": "Cancelar",
+      "manageReport": "Gerenciar relatorio",
+      "saving": "Salvando...",
+      "saveChanges": "Salvar alteracoes"
     }
   },
   "companies": {
@@ -287,9 +686,31 @@
     "addLessonShort": "Aula"
   },
   "lessonContent": {
-    "transcript": "Transcrição",
+    "transcript": "Transcricao",
     "summary": "Resumo",
-    "activities": "Atividades"
+    "activities": "Atividades",
+    "videoUnavailable": "Video indisponivel",
+    "invalidQuiz": "Dados de quiz invalidos",
+    "passingScore": "Pontuacao minima: {{score}}%",
+    "questionsCount": "{{count}} perguntas",
+    "explanation": "Explicacao:",
+    "invalidScript": "Dados de script invalidos",
+    "conclusion": "Conclusao:",
+    "parseError": "{{error}}.",
+    "rawPrefix": "Raw: {{value}}...",
+    "fileFallback": "arquivo",
+    "activitiesCount": "Atividades ({{count}})",
+    "materialsCount": "Materiais ({{count}})",
+    "noSummary": "Nao ha resumo disponivel.",
+    "noTranscript": "Nao ha transcricao disponivel.",
+    "noActivities": "Nao ha atividades criadas.",
+    "noMaterials": "Nao ha materiais adicionais.",
+    "durationSeconds": "{{seconds}} seg / {{provider}}",
+    "transcriptBadge": "T",
+    "summaryBadge": "R",
+    "activityBadge": "A:{{count}}",
+    "noModules": "Nao ha modulos para mostrar.",
+    "moduleTitle": "Modulo {{order}}: {{title}}"
   },
   "searchPlaceholders": {
     "apps": "Buscar apps...",
@@ -300,20 +721,521 @@
     "accessRequests": "Buscar por usuário, email ou comunidade..."
   },
   "navigation": {
-    "dashboard": "Dashboard",
-    "users": "Usuários",
-    "workshops": "Workshops",
-    "learningPaths": "Rotas de aprendizagem",
-    "liaAnalytics": "SofLIA Analytics",
-    "userStats": "Estatísticas de Usuários",
+    "accessRequests": "Solicitações",
+    "apps": "Apps de IA",
+    "close": "Fechar navegação",
+    "collapse": "Recolher",
+    "communities": "Comunidades",
     "companies": "Empresas",
+    "dashboard": "Dashboard",
+    "learningPaths": "Trilhas",
+    "liaAnalytics": "SofLIA Analytics",
+    "moderation": "Moderação IA",
+    "news": "Notícias",
+    "prompts": "Prompts",
+    "reels": "Reels",
     "reports": "Relatórios",
-    "reviews": "Revisões"
+    "reviews": "Revisões",
+    "skills": "Skills",
+    "statistics": "Estatísticas",
+    "superadmin": "Superadmin",
+    "toggle": "Alternar barra lateral",
+    "userStats": "Usuários B2B",
+    "users": "Usuários",
+    "workshops": "Workshops"
   },
   "dashboard": {
     "confirmResetLayout": "Tem certeza de que deseja restaurar o layout padrão?",
     "customizeLayout": "Personalizar Layout",
-    "restoreLayout": "Restaurar"
+    "restoreLayout": "Restaurar",
+    "noWidgets": "Nenhum widget para mostrar",
+    "editModeHint": "Modo de edicao ativado: arraste os widgets pela alca de configuracao para reorganiza-los e redimensione-os pelos cantos."
+  },
+  "statisticsPage": {
+    "title": "Estatisticas da Plataforma",
+    "description": "Veja metricas e tendencias operacionais da plataforma.",
+    "layoutError": "Erro ao carregar o layout do dashboard",
+    "periods": {
+      "one": "Ultimo mes",
+      "three": "Ultimos 3 meses",
+      "six": "Ultimos 6 meses",
+      "eight": "Ultimos 8 meses",
+      "year": "Ultimo ano"
+    },
+    "preferences": {
+      "button": "Preferencias",
+      "title": "Preferencias do dashboard",
+      "activityPeriod": "Periodo de atividade recente",
+      "period24h": "Ultimas 24 horas",
+      "period7d": "Ultimos 7 dias",
+      "period30d": "Ultimos 30 dias",
+      "growthMetrics": "Metricas do grafico de crescimento",
+      "growthMetricsHelp": "Selecione as metricas visiveis no grafico de crescimento mensal.",
+      "metrics": {
+        "users": "Usuarios",
+        "courses": "Workshops",
+        "communities": "Comunidades",
+        "prompts": "Prompts",
+        "aiApps": "Apps de IA"
+      }
+    }
+  },
+  "statisticsWidgets": {
+    "empty": "Nenhum dado disponivel",
+    "errors": {
+      "loadData": "Erro ao carregar dados",
+      "monthlyGrowth": "Erro ao carregar dados de crescimento mensal",
+      "contentDistribution": "Erro ao carregar distribuicao de conteudo",
+      "recentActivity": "Erro ao carregar atividade recente"
+    },
+    "metrics": {
+      "users": "Usuarios",
+      "courses": "Workshops",
+      "communities": "Comunidades",
+      "prompts": "Prompts",
+      "aiApps": "Apps de IA"
+    },
+    "statsCards": {
+      "totalUsers": "Usuarios totais",
+      "activeCourses": "Workshops ativos",
+      "communities": "Comunidades",
+      "aiApps": "Apps de IA",
+      "prompts": "Prompts",
+      "news": "Noticias"
+    },
+    "monthlyGrowth": {
+      "title": "Crescimento mensal",
+      "period": "Ultimos {{period}} meses",
+      "monthAxis": "Mes",
+      "countAxis": "Quantidade"
+    },
+    "contentDistribution": {
+      "title": "Distribuicao de conteudo",
+      "byCategory": "Por categoria"
+    },
+    "recentActivity": {
+      "title": "Atividade recente",
+      "empty": "Nenhuma atividade recente",
+      "periods": {
+        "24h": "Ultimas 24 horas",
+        "7d": "Ultimos 7 dias",
+        "30d": "Ultimos 30 dias"
+      }
+    }
+  },
+  "liaAnalyticsPage": {
+    "title": "SofLIA Analytics",
+    "description": "Monitore uso, custos e desempenho do assistente de IA.",
+    "refresh": "Atualizar",
+    "exportCsv": "Exportar CSV",
+    "chartArea": "Area",
+    "chartBars": "Barras",
+    "lastUpdated": "Ultima atualizacao: {{time}}",
+    "costInfoTitle": "Informacao sobre custos",
+    "costInfoDescription": "Os custos sao calculados com as tarifas do provedor selecionado por milhao de tokens. A projecao mensal usa a media diaria do periodo escolhido.",
+    "periods": {
+      "day": "Hoje",
+      "week": "Ultima semana",
+      "month": "Ultimo mes",
+      "year": "Ultimo ano"
+    }
+  },
+  "moderationAi": {
+    "kicker": "Moderacao IA",
+    "title": "Moderacao com IA",
+    "description": "Revise conteudo detectado por inteligencia artificial e tome acoes consistentes em uma visao operacional.",
+    "refresh": "Atualizar",
+    "loading": "Carregando painel de moderacao...",
+    "tabs": {
+      "pending": "Pendentes de revisao",
+      "stats": "Estatisticas"
+    },
+    "emptyTitle": "Nao ha conteudo pendente de revisao",
+    "emptyDescription": "Todo o conteudo detectado foi revisado ou nao ha novo conteudo para avaliar.",
+    "contentType": {
+      "post": "Post",
+      "comment": "Comentario"
+    },
+    "warningCount": "{{count}} aviso(s) anterior(es)",
+    "confidenceLabel": "Confianca IA",
+    "categories": "Categorias",
+    "noCategories": "Sem categorias",
+    "analysis": "Analise:",
+    "approve": "Aprovar falso positivo",
+    "reject": "Rejeitar e avisar",
+    "statsTitle": "Estatisticas dos ultimos 30 dias",
+    "statsDescription": "Volume, deteccao e desempenho operacional do sistema.",
+    "stats": {
+      "totalAnalyzed": "Total analisados",
+      "totalFlagged": "Detectados",
+      "pending": "Pendentes",
+      "avgConfidence": "Confianca media"
+    },
+    "systemPerformance": "Desempenho do sistema",
+    "avgProcessingTime": "Tempo medio de analise",
+    "detectionRate": "Taxa de deteccao",
+    "unavailable": "N/A"
+  },
+  "viewAppModal": {
+    "title": "Detalhes da app",
+    "close": "Fechar",
+    "category": "Categoria: {{category}}",
+    "noCategory": "Sem categoria",
+    "created": "Criada: {{date}}",
+    "updated": "Atualizada: {{date}}",
+    "active": "Ativa",
+    "inactive": "Inativa",
+    "featured": "Destacada",
+    "verified": "Verificada",
+    "description": "Descricao",
+    "longDescription": "Descricao detalhada",
+    "links": "Links",
+    "website": "Site oficial",
+    "logo": "Logo",
+    "features": "Principais caracteristicas",
+    "useCases": "Casos de uso",
+    "platforms": "Disponibilidade nas plataformas",
+    "stats": "Estatisticas",
+    "tags": "Tags",
+    "pricing": {
+      "free": "Gratuito",
+      "freemium": "Freemium",
+      "paid": "Pago",
+      "subscription": "Assinatura"
+    },
+    "platform": {
+      "api": "API",
+      "mobile": "Movel",
+      "desktop": "Desktop",
+      "extension": "Extensao"
+    },
+    "stat": {
+      "views": "Visualizacoes",
+      "likes": "Likes",
+      "rating": "Rating",
+      "reviews": "Avaliacoes"
+    }
+  },
+  "liaAnalyticsWidgets": {
+    "stats": {
+      "todayCost": "Custo hoje",
+      "totalCost": "Custo total",
+      "monthlyProjection": "Projecao mensal: {{value}}",
+      "tokens": "Tokens consumidos",
+      "todayValue": "{{value}} hoje",
+      "conversations": "Conversas",
+      "messages": "{{value}} mensagens",
+      "avgTime": "Tempo medio",
+      "response": "de resposta",
+      "activeUsersToday": "Usuarios ativos hoje",
+      "vsYesterday": "vs ontem",
+      "messagesPerConversation": "Msgs/conversa",
+      "interactionAverage": "media de interacao",
+      "costPerMessage": "Custo/mensagem",
+      "messageEfficiency": "eficiencia por mensagem"
+    },
+    "cost": {
+      "title": "Custos por periodo",
+      "summary": "Total: {{total}} / Media diaria: {{average}}",
+      "usdCost": "Custo USD",
+      "cost": "Custo",
+      "tokens": "Tokens",
+      "messages": "Mensagens"
+    },
+    "token": {
+      "title": "Uso de tokens por modelo",
+      "total": "Total: {{value}} tokens",
+      "tokens": "Tokens",
+      "cost": "Custo",
+      "calls": "Chamadas",
+      "percentage": "Porcentagem",
+      "legendMeta": "{{percentage}}% / {{cost}}",
+      "empty": "Nenhum dado de uso de tokens"
+    },
+    "context": {
+      "title": "Distribuicao por contexto",
+      "summary": "{{conversations}} conversas / {{cost}} total",
+      "conversations": "Conversas",
+      "conversationShort": "{{count}} conv.",
+      "cost": "Custo",
+      "tokens": "Tokens",
+      "percentage": "Porcentagem",
+      "empty": "Nenhum dado de distribuicao",
+      "labels": {
+        "course": "Cursos",
+        "general": "Geral",
+        "workshop": "Workshops",
+        "prompts": "Prompts",
+        "community": "Comunidades",
+        "news": "Noticias",
+        "activity": "Atividade"
+      }
+    },
+    "topUsers": {
+      "title": "Top usuarios da SofLIA",
+      "unknownUser": "Usuario desconhecido",
+      "noEmail": "Sem email",
+      "tokenValue": "{{value}} tokens",
+      "empty": "Nenhum dado de usuarios",
+      "sort": {
+        "cost": "Por custo",
+        "tokens": "Por tokens",
+        "messages": "Por mensagens",
+        "conversations": "Por conversas"
+      }
+    },
+    "topQuestions": {
+      "title": "Temas frequentes",
+      "analyzed": "{{count}} perguntas analisadas",
+      "topCategory": "Top: {{category}}",
+      "empty": "Nao ha dados suficientes",
+      "avgResponse": "{{value}}ms media",
+      "times": "vezes",
+      "generalCategory": "geral",
+      "insight": "Insight: perguntas sobre {{category}} representam a maioria das consultas. Considere melhorar o conteudo nessa area.",
+      "sentiment": {
+        "positive": "Positivo",
+        "neutral": "Neutro",
+        "negative": "Negativo"
+      }
+    },
+    "activity": {
+      "title": "Desempenho de atividades",
+      "empty": "Nenhum dado de atividades disponivel",
+      "total": "{{count}} atividades no total",
+      "completionRate": "Taxa de conclusao",
+      "abandonRate": "Taxa de abandono",
+      "avgTime": "Tempo medio",
+      "avgRedirections": "Redirecionamentos medios",
+      "statusDistribution": "Distribuicao de estados",
+      "seconds": "{{value}}s",
+      "minutesSeconds": "{{minutes}}m {{seconds}}s",
+      "hoursMinutes": "{{hours}}h {{minutes}}m",
+      "status": {
+        "completed": "Concluidas",
+        "in_progress": "Em progresso",
+        "started": "Iniciadas",
+        "abandoned": "Abandonadas"
+      }
+    },
+    "course": {
+      "title": "Desempenho por curso",
+      "description": "Analise consumo e engagement da SofLIA em cada curso.",
+      "loadError": "Erro ao carregar dados de cursos",
+      "showModuleBreakdown": "Ver detalhamento por modulo",
+      "hideDetails": "Ocultar detalhes",
+      "topModules": "Top modulos por custo",
+      "conversationShort": "{{count}} conv.",
+      "empty": "Nenhum dado de cursos para este periodo",
+      "sort": {
+        "cost": "Custo",
+        "conversations": "Conversas",
+        "users": "Usuarios"
+      },
+      "table": {
+        "course": "Curso",
+        "totalCost": "Custo total",
+        "conversations": "Conversas",
+        "messages": "Mensagens",
+        "uniqueUsers": "Usuarios unicos",
+        "tokens": "Tokens"
+      }
+    },
+    "heatmap": {
+      "title": "Mapa de atividade",
+      "messagesInPeriod": "{{count}} mensagens no periodo",
+      "peakHour": "Horario de pico",
+      "messageShort": "{{count}} msgs",
+      "cellLabel": "{{day}} as {{hour}}h: {{count}} mensagens",
+      "cellTime": "{{day}} as {{hour}}h",
+      "messages": "{{count}} mensagens",
+      "avgTime": "Tempo med.",
+      "clickHint": "Clique para ver detalhes",
+      "legendHint": "A intensidade indica maior volume de mensagens.",
+      "less": "Menos",
+      "more": "Mais",
+      "days": {
+        "sun": "Dom",
+        "mon": "Seg",
+        "tue": "Ter",
+        "wed": "Qua",
+        "thu": "Qui",
+        "fri": "Sex",
+        "sat": "Sab"
+      }
+    },
+    "heatmapDetail": {
+      "fallbackTitle": "Detalhe de atividade",
+      "title": "{{day}} as {{hour}}",
+      "description": "Detalhe operacional de mensagens, usuarios, modelos e perguntas da SofLIA.",
+      "close": "Fechar",
+      "periodValue": "Dados do periodo: {{period}}",
+      "allPeriods": "Todo o historico",
+      "tabs": {
+        "overview": "Resumo",
+        "users": "Usuarios",
+        "questions": "Perguntas"
+      },
+      "stats": {
+        "messages": "Mensagens",
+        "users": "Usuarios",
+        "avgResponse": "Resp. media",
+        "cost": "Custo"
+      },
+      "contextDistribution": "Distribuicao por contexto",
+      "contextValue": "{{context}}: {{count}} ({{percentage}}%)",
+      "modelsUsed": "Modelos utilizados",
+      "modelValue": "{{model}}: {{count}} respostas",
+      "activityDates": "Datas com atividade",
+      "tokenSummary": "{{tokens}} tokens usados em {{conversations}} conversas",
+      "tokenAverage": "Media: {{value}} tokens/conversa",
+      "emptyUsers": "Nenhum dado de usuarios",
+      "emptyQuestions": "Nenhuma pergunta registrada",
+      "rankLabel": "#{{rank}}",
+      "messageShort": "{{count}} msgs",
+      "conversationShort": "{{count}} conv.",
+      "tokenShort": "{{count}} tokens",
+      "responseIn": "Resposta em {{value}}ms",
+      "dataUnavailable": "Nao foi possivel carregar os dados"
+    },
+    "conversations": {
+      "title": "Conversas recentes",
+      "total": "{{total}} conversas no total",
+      "filter": "Filtrar",
+      "refresh": "Atualizar",
+      "allContexts": "Todos",
+      "fallbackUser": "Usuario",
+      "emptyCell": "Sem dado",
+      "empty": "Nenhuma conversa neste periodo",
+      "pageOf": "Pagina {{page}} de {{totalPages}}",
+      "previous": "Anterior",
+      "next": "Proximo",
+      "seconds": "{{value}}s",
+      "minutesSeconds": "{{minutes}}m {{seconds}}s",
+      "hoursMinutes": "{{hours}}h {{minutes}}m",
+      "table": {
+        "user": "Usuario",
+        "context": "Contexto",
+        "messages": "Mensagens",
+        "tokens": "Tokens",
+        "cost": "Custo",
+        "duration": "Duracao",
+        "date": "Data"
+      }
+    }
+  },
+  "userStatsPage": {
+    "title": "Estatisticas de Usuarios",
+    "description": "Metricas de aprendizagem, engagement e detalhes de usuarios B2B.",
+    "empty": "Nenhum dado disponivel",
+    "errors": {
+      "overview": "Erro ao carregar dados de resumo",
+      "learning": "Erro ao carregar dados de aprendizagem",
+      "engagement": "Erro ao carregar dados de engagement"
+    },
+    "tabs": {
+      "overview": "Resumo",
+      "learning": "Aprendizagem",
+      "engagement": "Engagement",
+      "users": "Detalhe usuarios"
+    },
+    "overview": {
+      "activeUsers30d": "Usuarios ativos (30d)",
+      "completionRate": "Taxa de conclusao",
+      "studyHoursMonth": "Horas de estudo (mes)",
+      "certificatesMonth": "Certificados (mes)",
+      "usersByOrganization": "Usuarios por organizacao",
+      "dailyActivity": "Atividade diaria (30d)",
+      "progressDistribution": "Distribuicao de progresso",
+      "roleDistribution": "Funcoes nas organizacoes"
+    },
+    "learning": {
+      "avgTimePerLesson": "Tempo medio/aula",
+      "minutesValue": "{{value}} min",
+      "quizPassRate": "Taxa de aprovacao em quiz",
+      "avgSessionsPerWeek": "Sessoes med./usuario/sem",
+      "topCoursesByTime": "Top 10 cursos por tempo de estudo",
+      "sessionsPlannedVsCompleted": "Sessoes: planejadas vs concluidas",
+      "timeByContentType": "Distribuicao de tempo por conteudo",
+      "streakDistribution": "Distribuicao de sequencias",
+      "planned": "Planejadas",
+      "completed": "Concluidas"
+    },
+    "engagement": {
+      "activationRate": "Taxa de ativacao",
+      "weeklyReturn": "Retorno semanal",
+      "avgSatisfaction": "Satisfacao media",
+      "inactiveUsers30d": "Sem atividade (30d)",
+      "newVsRecurring": "Novos vs recorrentes (semanal)",
+      "new": "Novos",
+      "recurring": "Recorrentes",
+      "ratingDistribution": "Distribuicao de avaliacoes",
+      "ratingLabel": "{{count}} estrela{{plural}}",
+      "engagementByOrg": "Engagement por organizacao",
+      "usersByCountry": "Usuarios por pais"
+    },
+    "userDetail": {
+      "searchPlaceholder": "Buscar por nome ou email...",
+      "allStatuses": "Todos os status",
+      "activeStatus": "Ativos (30d)",
+      "inactiveStatus": "Inativos (30d)",
+      "never": "Nunca",
+      "emptyCell": "Sem dado",
+      "noUsers": "Nenhum usuario encontrado",
+      "showing": "Mostrando {{from}}-{{to}} de {{total}}",
+      "pageOf": "Pagina {{page}} de {{totalPages}}",
+      "previous": "Anterior",
+      "next": "Proximo",
+      "table": {
+        "user": "Usuario",
+        "organization": "Organizacao",
+        "role": "Funcao",
+        "courses": "Cursos",
+        "progress": "Progresso",
+        "hours": "Horas",
+        "certificates": "Certificados",
+        "lastLogin": "Ultimo login"
+      }
+    },
+    "progressModal": {
+      "title": "Progresso por curso",
+      "courseCount": "{{count}} cursos inscritos",
+      "close": "Fechar",
+      "dateUnavailable": "N/A",
+      "emptyCourses": "Este usuario nao tem cursos inscritos",
+      "stats": {
+        "coursesEnrolled": "Cursos inscritos",
+        "avgProgress": "Progresso medio",
+        "studyHours": "Horas de estudo",
+        "certificates": "Certificados",
+        "lastLogin": "Ultimo login"
+      },
+      "status": {
+        "active": "Em andamento",
+        "completed": "Concluido",
+        "paused": "Pausado",
+        "cancelled": "Cancelado"
+      },
+      "level": {
+        "beginner": "Iniciante",
+        "intermediate": "Intermediario",
+        "advanced": "Avancado"
+      },
+      "course": {
+        "enrolled": "Inscrito: {{date}}",
+        "completed": "Concluido: {{date}}",
+        "studyHours": "{{hours}}h de estudo",
+        "lessons": "{{completed}}/{{total}} aulas",
+        "certificate": "Certificado ({{date}})",
+        "emptyLessons": "Sem dados de aulas disponiveis"
+      },
+      "lesson": {
+        "quizPassed": "OK",
+        "quizFailed": "Fail",
+        "quizPending": "Pend.",
+        "minutes": "{{minutes}}m"
+      }
+    }
   },
   "learningPathsPage": {
     "badge": "Rotas de aprendizagem",

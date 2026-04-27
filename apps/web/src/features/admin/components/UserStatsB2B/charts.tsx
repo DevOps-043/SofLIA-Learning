@@ -1,9 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { SOFLIA_ADMIN_CHART_COLORS } from '../../constants/admin-color-tokens'
+import { Inbox } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
-const COLORS = SOFLIA_ADMIN_CHART_COLORS
+import { useAdminTheme } from '../../hooks/useAdminTheme'
 
 type ChartDatum = Record<string, string | number | null | undefined>
 
@@ -23,15 +24,12 @@ interface BarChartProps {
 }
 
 export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartProps) {
-  const validData = data.filter(item => item && item[dataKey] != null)
-  const maxValue = validData.length > 0 ? Math.max(...validData.map(item => getChartNumber(item[dataKey]))) : 1
+  const theme = useAdminTheme()
+  const validData = data.filter((item) => item && item[dataKey] != null)
+  const maxValue = validData.length > 0 ? Math.max(...validData.map((item) => getChartNumber(item[dataKey]))) : 1
 
   if (validData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-48 text-gray-400">
-        <p>No hay datos para mostrar</p>
-      </div>
-    )
+    return <EmptyState />
   }
 
   return (
@@ -39,34 +37,32 @@ export function BarChartComponent({ data, dataKey, nameKey, color }: BarChartPro
       {validData.slice(0, 10).map((item, index) => {
         const dataValue = getChartNumber(item[dataKey])
         const labelValue = getChartLabel(item[nameKey])
-        const percentage = maxValue > 0 ? ((dataValue / maxValue) * 100) : 0
+        const percentage = maxValue > 0 ? (dataValue / maxValue) * 100 : 0
         const displayName = labelValue.length > 30 ? `${labelValue.substring(0, 30)}...` : labelValue
+        const resolvedColor = color || theme.chartColors[index % theme.chartColors.length]
 
         return (
           <div
             key={index}
-            className="group flex items-center gap-4 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-white/5 transition-all duration-300 cursor-pointer"
+            className="group flex items-center gap-4 rounded-xl p-2 transition-all duration-200"
+            style={{ backgroundColor: 'transparent' }}
           >
-            <div className="w-32 text-right flex-shrink-0">
-              <span className="text-sm font-medium text-gray-600 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+            <div className="w-32 flex-shrink-0 text-right">
+              <span className="text-sm font-semibold transition-colors" style={{ color: theme.textMuted }}>
                 {displayName}
               </span>
             </div>
-            <div className="flex-1 bg-gray-100 dark:bg-white/10 rounded-full h-6 overflow-hidden relative">
+            <div className="relative h-6 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: theme.surfaceSubtle }}>
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percentage}%` }}
-                transition={{ delay: index * 0.05, duration: 1 }}
-                className="h-full rounded-full relative overflow-hidden group-hover:brightness-125 transition-all duration-300"
-                style={{
-                  background: color
-                    ? color
-                    : `linear-gradient(to right, ${COLORS[index % COLORS.length]}, ${COLORS[(index + 1) % COLORS.length]})`
-                }}
+                transition={{ delay: index * 0.05, duration: 0.8 }}
+                className="h-full rounded-full transition-opacity duration-200 group-hover:opacity-85"
+                style={{ backgroundColor: resolvedColor }}
               />
             </div>
             <div className="w-16 text-left">
-              <span className="text-sm font-bold text-gray-700 dark:text-white/80 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+              <span className="text-sm font-bold" style={{ color: theme.text }}>
                 {Number.isFinite(dataValue) && !Number.isInteger(dataValue)
                   ? dataValue.toFixed(1)
                   : dataValue}
@@ -86,15 +82,12 @@ interface PieChartProps {
 }
 
 export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
-  const validData = data.filter(item => item && item[dataKey] != null && getChartNumber(item[dataKey]) > 0)
+  const theme = useAdminTheme()
+  const validData = data.filter((item) => item && item[dataKey] != null && getChartNumber(item[dataKey]) > 0)
   const total = validData.reduce((sum, item) => sum + getChartNumber(item[dataKey]), 0)
 
   if (total === 0 || validData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-48 text-gray-400">
-        <p>No hay datos para mostrar</p>
-      </div>
-    )
+    return <EmptyState />
   }
 
   let currentAngle = 0
@@ -103,14 +96,15 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
   const centerY = 100
 
   return (
-    <div className="flex items-center justify-center gap-6">
+    <div className="flex flex-col items-center justify-center gap-6 xl:flex-row">
       <div className="flex-shrink-0">
-        <svg width="200" height="200" viewBox="0 0 200 200" className="transform -rotate-90">
-          <circle cx={centerX} cy={centerY} r={radius} fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
+        <svg width="200" height="200" viewBox="0 0 200 200" className="-rotate-90 transform">
+          <circle cx={centerX} cy={centerY} r={radius} fill={theme.surfaceSubtle} stroke={theme.border} strokeWidth="1" />
           {validData.map((item, index) => {
             const itemValue = getChartNumber(item[dataKey])
             const percentage = (itemValue / total) * 100
             const angle = (percentage / 100) * 360
+            const fillColor = theme.chartColors[index % theme.chartColors.length]
 
             if (percentage >= 99.9) {
               return (
@@ -119,12 +113,12 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
                   cx={centerX}
                   cy={centerY}
                   r={radius}
-                  fill={COLORS[index % COLORS.length]}
-                  className="hover:opacity-80 transition-opacity cursor-pointer"
+                  fill={fillColor}
+                  className="cursor-pointer transition-opacity hover:opacity-80"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.1, duration: 0.8 }}
-                  stroke="white"
+                  stroke={theme.surface}
                   strokeWidth="2"
                 />
               )
@@ -144,12 +138,12 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
               <motion.path
                 key={index}
                 d={pathData}
-                fill={COLORS[index % COLORS.length]}
-                className="hover:opacity-80 transition-opacity cursor-pointer"
+                fill={fillColor}
+                className="cursor-pointer transition-opacity hover:opacity-80"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
                 transition={{ delay: index * 0.1, duration: 0.8 }}
-                stroke="white"
+                stroke={theme.surface}
                 strokeWidth="2"
               />
             )
@@ -157,16 +151,26 @@ export function PieChartComponent({ data, dataKey, nameKey }: PieChartProps) {
         </svg>
       </div>
 
-      <div className="flex flex-col justify-center gap-3 flex-shrink-0">
+      <div className="flex min-w-0 flex-col justify-center gap-3">
         {validData.map((item, index) => {
           const itemValue = getChartNumber(item[dataKey])
           const percentage = (itemValue / total) * 100
+
           return (
-            <div key={index} className="flex items-center gap-3 text-sm">
-              <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
-              <span className="text-gray-600 dark:text-gray-300 min-w-0 flex-1">{getChartLabel(item[nameKey])}</span>
-              <span className="text-gray-900 dark:text-white font-semibold">{itemValue}</span>
-              <span className="text-gray-500 dark:text-gray-400 text-xs">({percentage.toFixed(1)}%)</span>
+            <div key={index} className="flex min-w-0 items-center gap-3 text-sm">
+              <div
+                className="h-4 w-4 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: theme.chartColors[index % theme.chartColors.length] }}
+              />
+              <span className="min-w-0 flex-1 truncate" style={{ color: theme.textMuted }}>
+                {getChartLabel(item[nameKey])}
+              </span>
+              <span className="font-semibold" style={{ color: theme.text }}>
+                {itemValue}
+              </span>
+              <span className="text-xs" style={{ color: theme.textSubtle }}>
+                ({percentage.toFixed(1)}%)
+              </span>
             </div>
           )
         })}
@@ -182,35 +186,35 @@ interface GroupedBarChartProps {
 }
 
 export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChartProps) {
-  const maxValue = Math.max(...data.flatMap(item => keys.map(key => getChartNumber(item[key.key]))), 1)
+  const theme = useAdminTheme()
+  const maxValue = Math.max(...data.flatMap((item) => keys.map((key) => getChartNumber(item[key.key]))), 1)
 
   if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-48 text-gray-400">
-        <p>No hay datos para mostrar</p>
-      </div>
-    )
+    return <EmptyState />
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4 justify-center mb-2">
-        {keys.map(key => (
-          <div key={key.key} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-            <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: key.color }} />
+      <div className="mb-2 flex justify-center gap-4">
+        {keys.map((key) => (
+          <div key={key.key} className="flex items-center gap-2 text-xs" style={{ color: theme.textMuted }}>
+            <div className="h-3 w-3 rounded-sm" style={{ backgroundColor: key.color }} />
             {key.label}
           </div>
         ))}
       </div>
       {data.slice(0, 8).map((item, index) => (
         <div key={index} className="space-y-1">
-          <span className="text-xs text-gray-500 dark:text-gray-400">{getChartLabel(item[nameKey])}</span>
-          {keys.map(key => {
+          <span className="text-xs" style={{ color: theme.textMuted }}>
+            {getChartLabel(item[nameKey])}
+          </span>
+          {keys.map((key) => {
             const value = getChartNumber(item[key.key])
             const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0
+
             return (
               <div key={key.key} className="flex items-center gap-2">
-                <div className="flex-1 bg-gray-100 dark:bg-white/10 rounded-full h-4 overflow-hidden">
+                <div className="h-4 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: theme.surfaceSubtle }}>
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${percentage}%` }}
@@ -219,7 +223,9 @@ export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChar
                     style={{ backgroundColor: key.color }}
                   />
                 </div>
-                <span className="text-xs text-gray-900 dark:text-white w-8 text-right">{value}</span>
+                <span className="w-8 text-right text-xs" style={{ color: theme.text }}>
+                  {value}
+                </span>
               </div>
             )
           })}
@@ -230,12 +236,13 @@ export function GroupedBarChartComponent({ data, keys, nameKey }: GroupedBarChar
 }
 
 export function EmptyState({ message }: { message?: string }) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   return (
-    <div className="flex flex-col items-center justify-center h-48 text-gray-400">
-      <svg className="w-12 h-12 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-      </svg>
-      <p className="text-sm">{message || 'No hay datos disponibles'}</p>
+    <div className="flex h-48 flex-col items-center justify-center text-center" style={{ color: theme.textMuted }}>
+      <Inbox className="mb-3 h-12 w-12 opacity-50" />
+      <p className="text-sm">{message || t('userStatsPage.empty')}</p>
     </div>
   )
 }

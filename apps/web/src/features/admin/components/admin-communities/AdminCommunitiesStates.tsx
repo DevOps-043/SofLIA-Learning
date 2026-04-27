@@ -2,28 +2,26 @@
 
 import { motion } from 'framer-motion'
 import { Users, Zap } from 'lucide-react'
-import { adminCommunitiesColors } from './shared'
+import { useTranslation } from 'react-i18next'
+
+import { AdminButton, AdminPageShell, AdminSurface } from '../ui'
+import { useAdminTheme } from '../../hooks/useAdminTheme'
 
 export function AdminCommunitiesLoadingState() {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   return (
-    <div className="min-h-screen p-6 lg:p-8" style={{ background: adminCommunitiesColors.bgPrimary }}>
-      <div className="max-w-7xl mx-auto">
-        <div className="animate-pulse space-y-8">
-          <div className="h-32 rounded-3xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, index) => (
-              <div key={index} className="h-36 rounded-2xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-            ))}
-          </div>
-          <div className="h-16 rounded-2xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, index) => (
-              <div key={index} className="h-80 rounded-3xl" style={{ background: adminCommunitiesColors.bgSecondary }} />
-            ))}
+    <AdminPageShell maxWidth="content">
+      <div className="space-y-7">
+        <div className="flex min-h-[240px] items-center justify-center">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-2 border-transparent" style={{ borderBottomColor: theme.action }} />
+            <p className="text-sm" style={{ color: theme.textMuted }}>{t('communities.page.loading')}</p>
           </div>
         </div>
       </div>
-    </div>
+    </AdminPageShell>
   )
 }
 
@@ -33,30 +31,24 @@ interface AdminCommunitiesErrorStateProps {
 }
 
 export function AdminCommunitiesErrorState({ error, onRetry }: AdminCommunitiesErrorStateProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   return (
-    <div className="min-h-screen p-6 lg:p-8 flex items-center justify-center" style={{ background: adminCommunitiesColors.bgPrimary }}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center p-8 rounded-3xl max-w-md"
-        style={{ background: adminCommunitiesColors.bgSecondary }}
-      >
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: `${adminCommunitiesColors.error}20` }}>
-          <Zap className="w-8 h-8" style={{ color: adminCommunitiesColors.error }} />
-        </div>
-        <h3 className="text-xl font-bold text-white mb-2">Error al cargar</h3>
-        <p className="text-gray-400 mb-6">{error}</p>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onRetry}
-          className="px-6 py-3 rounded-xl font-semibold text-white"
-          style={{ background: `linear-gradient(135deg, ${adminCommunitiesColors.accent} 0%, ${adminCommunitiesColors.primary} 100%)` }}
-        >
-          Reintentar
-        </motion.button>
-      </motion.div>
-    </div>
+    <AdminPageShell maxWidth="content">
+      <div className="flex min-h-[360px] items-center justify-center">
+        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }}>
+          <AdminSurface className="max-w-md p-8 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl" style={{ backgroundColor: theme.dangerSurface, color: theme.danger }}>
+              <Zap className="h-7 w-7" />
+            </div>
+            <h3 className="mb-2 text-lg font-bold" style={{ color: theme.text }}>{t('communities.page.errorTitle')}</h3>
+            <p className="mb-6 text-sm" style={{ color: theme.textMuted }}>{error}</p>
+            <AdminButton onClick={onRetry}>{t('actions.retry', { ns: 'common' })}</AdminButton>
+          </AdminSurface>
+        </motion.div>
+      </div>
+    </AdminPageShell>
   )
 }
 
@@ -65,22 +57,19 @@ interface AdminCommunitiesEmptyStateProps {
 }
 
 export function AdminCommunitiesEmptyState({ onCreate }: AdminCommunitiesEmptyStateProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-      <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: `${adminCommunitiesColors.accent}10` }}>
-        <Users className="w-12 h-12" style={{ color: adminCommunitiesColors.accent }} />
-      </div>
-      <h3 className="text-xl font-semibold text-white mb-2">No se encontraron comunidades</h3>
-      <p className="text-gray-400 mb-6">Intenta ajustar los filtros o crear una nueva comunidad</p>
-      <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={onCreate}
-        className="px-6 py-3 rounded-xl font-semibold text-white"
-        style={{ background: `linear-gradient(135deg, ${adminCommunitiesColors.accent} 0%, ${adminCommunitiesColors.primary} 100%)` }}
-      >
-        Crear Comunidad
-      </motion.button>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <AdminSurface className="border-dashed p-10 text-center">
+        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ backgroundColor: theme.actionSurface, color: theme.action }}>
+          <Users className="h-8 w-8" />
+        </div>
+        <h3 className="mb-2 text-lg font-bold" style={{ color: theme.text }}>{t('communities.page.emptyTitle')}</h3>
+        <p className="mb-6 text-sm" style={{ color: theme.textMuted }}>{t('communities.page.emptyDescription')}</p>
+        <AdminButton onClick={onCreate}>{t('communities.page.create')}</AdminButton>
+      </AdminSurface>
     </motion.div>
   )
 }

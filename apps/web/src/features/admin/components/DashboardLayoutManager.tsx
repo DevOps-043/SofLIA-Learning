@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { Settings, Save, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useAdminTheme } from '../hooks/useAdminTheme'
+import { AdminButton, AdminSurface } from './ui'
 interface GridLayoutItem {
   h: number
   i: string
@@ -91,6 +93,7 @@ export function DashboardLayoutManager({
 }: DashboardLayoutManagerProps) {
   const { t } = useTranslation('admin')
   const { t: tc } = useTranslation('common')
+  const theme = useAdminTheme()
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentLayout, setCurrentLayout] = useState<GridLayoutItem[]>([])
@@ -206,48 +209,46 @@ export function DashboardLayoutManager({
     <div className="relative">
       {/* Confirmación inline de reset */}
       {pendingReset && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-center justify-between gap-3">
-          <p className="text-sm text-red-700 dark:text-red-400">{t('dashboard.confirmResetLayout')}</p>
+        <AdminSurface className="mb-4 flex items-center justify-between gap-3 p-3" style={{ backgroundColor: theme.dangerSurface }}>
+          <p className="text-sm" style={{ color: theme.danger }}>{t('dashboard.confirmResetLayout')}</p>
           <div className="flex gap-2 flex-shrink-0">
-            <button onClick={() => setPendingReset(false)} className="px-3 py-1.5 text-sm bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded hover:bg-red-50 transition-colors">{tc('actions.cancel')}</button>
-            <button onClick={handleConfirmReset} className="px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors">{tc('actions.confirm')}</button>
+            <AdminButton onClick={() => setPendingReset(false)} size="sm" variant="secondary">{tc('actions.cancel')}</AdminButton>
+            <AdminButton onClick={handleConfirmReset} size="sm" variant="danger">{tc('actions.confirm')}</AdminButton>
           </div>
-        </div>
+        </AdminSurface>
       )}
 
       {/* Barra de herramientas */}
       <div className="flex justify-end gap-2 mb-4">
         {!isEditMode ? (
-          <button
+          <AdminButton
             onClick={() => setIsEditMode(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            icon={Settings}
           >
-            <Settings className="w-4 h-4" />
             {t('dashboard.customizeLayout')}
-          </button>
+          </AdminButton>
         ) : (
           <>
-            <button
+            <AdminButton
               onClick={handleSave}
               disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              icon={Save}
             >
-              <Save className="w-4 h-4" />
               {isSaving ? tc('actions.saving') : tc('actions.save')}
-            </button>
-            <button
+            </AdminButton>
+            <AdminButton
               onClick={() => setIsEditMode(false)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              variant="secondary"
             >
               {tc('actions.cancel')}
-            </button>
-            <button
+            </AdminButton>
+            <AdminButton
               onClick={handleReset}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              icon={RefreshCw}
+              variant="danger"
             >
-              <RefreshCw className="w-4 h-4" />
               {t('dashboard.restoreLayout')}
-            </button>
+            </AdminButton>
           </>
         )}
       </div>
@@ -281,7 +282,10 @@ export function DashboardLayoutManager({
               return (
                 <div key={widget.id} className="relative">
                   {isEditMode && (
-                    <div className="drag-handle absolute top-2 right-2 cursor-move z-10 p-2 bg-blue-600 text-white rounded shadow-lg hover:bg-blue-700 transition-colors">
+                    <div
+                      className="drag-handle absolute top-2 right-2 z-10 cursor-move rounded-lg p-2 shadow-lg transition"
+                      style={{ backgroundColor: theme.action, color: theme.onAction }}
+                    >
                       <Settings className="w-4 h-4" />
                     </div>
                   )}
@@ -315,7 +319,7 @@ export function DashboardLayoutManager({
               visibility: hidden;
             }
             .react-grid-item.react-grid-placeholder {
-              background: rgb(59, 130, 246);
+              background: var(--color-primary);
               opacity: 0.2;
               transition-duration: 100ms;
               z-index: 2;
@@ -341,8 +345,8 @@ export function DashboardLayoutManager({
               bottom: 3px;
               width: 5px;
               height: 5px;
-              border-right: 2px solid rgba(0, 0, 0, 0.4);
-              border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+              border-right: 2px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+              border-bottom: 2px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
             }
           `}} />
         </div>
@@ -367,17 +371,17 @@ export function DashboardLayoutManager({
           })}
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          No hay widgets para mostrar
+        <div className="py-8 text-center text-sm" style={{ color: theme.textMuted }}>
+          {t('dashboard.noWidgets')}
         </div>
       )}
 
       {isEditMode && (
-        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <p className="text-sm text-blue-800 dark:text-blue-200">
-            💡 Modo edición activado: Arrastra los widgets desde el ícono de configuración para reorganizarlos. También puedes redimensionarlos desde las esquinas.
+        <AdminSurface className="mt-4 p-4" style={{ backgroundColor: theme.actionSurface }}>
+          <p className="text-sm" style={{ color: theme.action }}>
+            {t('dashboard.editModeHint')}
           </p>
-        </div>
+        </AdminSurface>
       )}
     </div>
   )

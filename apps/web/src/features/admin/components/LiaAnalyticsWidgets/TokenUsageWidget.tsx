@@ -1,135 +1,127 @@
-'use client';
+'use client'
 
-import { useMemo } from 'react';
+import { useMemo } from 'react'
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
-import { BoltIcon } from '@heroicons/react/24/outline';
+} from 'recharts'
+import { BoltIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../../hooks/useAdminTheme'
+import { AdminSurface } from '../ui'
 
 interface ModelUsage {
-  model: string;
-  tokens: number;
-  cost: number;
-  count: number;
-  percentage: number;
+  model: string
+  tokens: number
+  cost: number
+  count: number
+  percentage: number
 }
 
 interface TokenUsageWidgetProps {
-  modelUsage: ModelUsage[];
-  totalTokens: number;
-  isLoading?: boolean;
+  modelUsage: ModelUsage[]
+  totalTokens: number
+  isLoading?: boolean
 }
 
 type TokenChartDataPoint = ModelUsage & {
-  color: string;
-  displayName: string;
-};
-
-interface TokenTooltipProps {
-  active?: boolean;
-  payload?: Array<{
-    payload: TokenChartDataPoint;
-  }>;
+  color: string
+  displayName: string
 }
 
-const MODEL_COLORS: Record<string, string> = {
-  'gpt-4o-mini': '#10b981',
-  'gpt-4o': '#6366f1',
-  'gpt-4-turbo': '#f59e0b',
-  'gpt-3.5-turbo': '#3b82f6',
-  default: '#8b5cf6',
-};
+interface TokenTooltipProps {
+  active?: boolean
+  payload?: Array<{
+    payload: TokenChartDataPoint
+  }>
+}
 
 export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUsageWidgetProps) {
+  const { t } = useTranslation('admin')
+  const theme = useAdminTheme()
   const chartData = useMemo(() => {
-    return modelUsage.map((item) => ({
+    return modelUsage.map((item, index) => ({
       ...item,
       displayName: item.model.replace('gpt-', 'GPT-'),
-      color: MODEL_COLORS[item.model] || MODEL_COLORS.default,
-    }));
-  }, [modelUsage]);
+      color: theme.chartColors[index % theme.chartColors.length],
+    }))
+  }, [modelUsage, theme.chartColors])
 
   const formatTokens = (value: number) => {
-    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-    return value.toString();
-  };
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`
+    }
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`
+    }
+    return value.toString()
+  }
 
   const CustomTooltip = ({ active, payload }: TokenTooltipProps) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-gray-900 dark:bg-gray-800 border border-gray-700 rounded-lg p-3 shadow-xl">
-          <p className="text-white font-medium mb-2">{data.displayName}</p>
-          <div className="space-y-1 text-sm">
-            <p className="text-emerald-400">
-              <span className="text-gray-400">Tokens:</span>{' '}
-              <span className="font-semibold">{data.tokens.toLocaleString()}</span>
-            </p>
-            <p className="text-blue-400">
-              <span className="text-gray-400">Costo:</span>{' '}
-              <span className="font-semibold">${data.cost.toFixed(4)}</span>
-            </p>
-            <p className="text-violet-400">
-              <span className="text-gray-400">Llamadas:</span>{' '}
-              <span className="font-semibold">{data.count}</span>
-            </p>
-            <p className="text-amber-400">
-              <span className="text-gray-400">Porcentaje:</span>{' '}
-              <span className="font-semibold">{data.percentage}%</span>
-            </p>
-          </div>
-        </div>
-      );
+    if (!active || !payload?.length) {
+      return null
     }
-    return null;
-  };
+
+    const data = payload[0].payload
+
+    return (
+      <div className="rounded-xl border p-3 shadow-xl" style={{ backgroundColor: theme.surface, borderColor: theme.border }}>
+        <p className="mb-2 font-semibold" style={{ color: theme.text }}>
+          {data.displayName}
+        </p>
+        <div className="space-y-1 text-sm" style={{ color: theme.textMuted }}>
+          <p>{t('liaAnalyticsWidgets.token.tokens')}: <span className="font-semibold" style={{ color: theme.text }}>{data.tokens.toLocaleString()}</span></p>
+          <p>{t('liaAnalyticsWidgets.token.cost')}: <span className="font-semibold" style={{ color: theme.text }}>${data.cost.toFixed(4)}</span></p>
+          <p>{t('liaAnalyticsWidgets.token.calls')}: <span className="font-semibold" style={{ color: theme.text }}>{data.count}</span></p>
+          <p>{t('liaAnalyticsWidgets.token.percentage')}: <span className="font-semibold" style={{ color: theme.text }}>{data.percentage}%</span></p>
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <AdminSurface className="p-6">
         <div className="animate-pulse">
-          <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4"></div>
-          <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="mb-4 h-6 w-1/3 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
+          <div className="h-48 rounded" style={{ backgroundColor: theme.surfaceSubtle }} />
         </div>
-      </div>
-    );
+      </AdminSurface>
+    )
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <BoltIcon className="w-5 h-5 text-amber-500" />
-            Uso de Tokens por Modelo
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Total: <span className="font-semibold text-amber-500">{formatTokens(totalTokens)}</span> tokens
-          </p>
-        </div>
+    <AdminSurface className="p-6">
+      <div className="mb-6">
+        <h3 className="flex items-center gap-2 text-lg font-bold" style={{ color: theme.text }}>
+          <BoltIcon className="h-5 w-5" style={{ color: theme.action }} />
+          {t('liaAnalyticsWidgets.token.title')}
+        </h3>
+        <p className="mt-1 text-sm" style={{ color: theme.textMuted }}>
+          {t('liaAnalyticsWidgets.token.total', { value: formatTokens(totalTokens) })}
+        </p>
       </div>
 
       {chartData.length > 0 ? (
         <>
-          <div className="h-48 mb-4">
+          <div className="mb-4 h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 layout="vertical"
                 margin={{ top: 5, right: 30, left: 60, bottom: 5 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke={theme.divider} opacity={0.8} horizontal={false} />
                 <XAxis
                   type="number"
-                  stroke="#9ca3af"
+                  stroke={theme.textMuted}
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -138,7 +130,7 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
                 <YAxis
                   type="category"
                   dataKey="displayName"
-                  stroke="#9ca3af"
+                  stroke={theme.textMuted}
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
@@ -154,23 +146,23 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
             </ResponsiveContainer>
           </div>
 
-          {/* Leyenda con detalles */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {chartData.map((item) => (
               <div
                 key={item.model}
-                className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-700/50"
+                className="flex items-center gap-2 rounded-xl p-3"
+                style={{ backgroundColor: theme.surfaceSubtle }}
               >
-                <div
-                  className="w-3 h-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: item.color }}
-                ></div>
+                <div className="h-3 w-3 flex-shrink-0 rounded-full" style={{ backgroundColor: item.color }} />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="truncate text-sm font-semibold" style={{ color: theme.text }}>
                     {item.displayName}
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {item.percentage}% • ${item.cost.toFixed(4)}
+                  <p className="text-xs" style={{ color: theme.textMuted }}>
+                    {t('liaAnalyticsWidgets.token.legendMeta', {
+                      percentage: item.percentage,
+                      cost: `$${item.cost.toFixed(4)}`,
+                    })}
                   </p>
                 </div>
               </div>
@@ -178,10 +170,10 @@ export function TokenUsageWidget({ modelUsage, totalTokens, isLoading }: TokenUs
           </div>
         </>
       ) : (
-        <div className="h-48 flex items-center justify-center text-gray-500 dark:text-gray-400">
-          No hay datos de uso de tokens
+        <div className="flex h-48 items-center justify-center text-sm" style={{ color: theme.textMuted }}>
+          {t('liaAnalyticsWidgets.token.empty')}
         </div>
       )}
-    </div>
-  );
+    </AdminSurface>
+  )
 }

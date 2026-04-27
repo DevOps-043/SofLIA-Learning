@@ -67,6 +67,11 @@
 }
 
 :root {
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  --font-montserrat: 'Montserrat', var(--font-inter);
+
   /* Nueva Paleta SOFLIA - Colores Principales */
   --color-primary: #0A2540;
   /* Azul Profundo - Tecnología + confianza */
@@ -236,8 +241,7 @@ body {
   height: 100%;
   color: var(--color-contrast);
   background: var(--color-bg-dark);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.3s ease, color 0.3s ease;

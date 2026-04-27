@@ -11,11 +11,6 @@ import type {
   AdminDashboardThemeColors,
 } from './types'
 
-const DEFAULT_LIGHT_BACKGROUND = '#F8FAFC'
-const DEFAULT_LIGHT_CARD = '#FFFFFF'
-const DEFAULT_DARK_BACKGROUND = '#0F1419'
-const DEFAULT_DARK_CARD = '#1E2329'
-
 export function buildAdminDashboardThemeColors(
   isLightTheme: boolean,
   panelStyles?: AdminDashboardPanelStyles | null
@@ -23,20 +18,20 @@ export function buildAdminDashboardThemeColors(
   return {
     background: isLightTheme
       ? panelStyles?.background_value &&
-        panelStyles.background_value !== DEFAULT_DARK_BACKGROUND
+        panelStyles.background_value !== 'var(--color-bg-dark)'
         ? panelStyles.background_value
-        : DEFAULT_LIGHT_BACKGROUND
-      : DEFAULT_DARK_BACKGROUND,
-    borderColor: isLightTheme ? '#E2E8F0' : '#6C757D',
+        : 'var(--color-gray-800)'
+      : 'var(--color-bg-dark)',
+    borderColor: isLightTheme ? 'var(--color-gray-200)' : 'var(--color-gray-500)',
     cardBackground: isLightTheme
       ? panelStyles?.card_background &&
-        panelStyles.card_background !== DEFAULT_DARK_CARD
+        panelStyles.card_background !== 'var(--color-gray-800)'
         ? panelStyles.card_background
-        : DEFAULT_LIGHT_CARD
-      : DEFAULT_DARK_CARD,
-    inputBg: isLightTheme ? '#F1F5F9' : DEFAULT_DARK_CARD,
-    textPrimary: isLightTheme ? '#1E293B' : '#FFFFFF',
-    textSecondary: isLightTheme ? '#64748B' : '#6C757D',
+        : 'var(--color-bg-light)'
+      : 'var(--color-gray-800)',
+    inputBg: isLightTheme ? 'var(--color-gray-700)' : 'var(--color-gray-950)',
+    textPrimary: isLightTheme ? 'var(--color-gray-100)' : 'var(--color-gray-50)',
+    textSecondary: isLightTheme ? 'var(--color-gray-600)' : 'var(--color-gray-400)',
   }
 }
 
@@ -86,33 +81,33 @@ export function buildAdminDashboardStatsData(
   return [
     {
       change: stats.userGrowth,
-      gradient: 'bg-gradient-to-br from-[#0A2540] to-[#0A2540]/80',
       href: '/admin/users',
       iconKey: 'users',
+      tone: 'primary',
       title: 'Usuarios Totales',
       value: stats.totalUsers,
     },
     {
       change: stats.courseGrowth,
-      gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
       href: '/admin/workshops',
       iconKey: 'courses',
+      tone: 'primary',
       title: 'Cursos Activos',
       value: stats.activeCourses,
     },
     {
       change: stats.organizationGrowth || 0,
-      gradient: 'bg-gradient-to-br from-[#00D4B3] to-[#00D4B3]/80',
       href: '/admin/companies',
       iconKey: 'organizations',
+      tone: 'primary',
       title: 'Empresas Activas',
       value: stats.totalOrganizations || 0,
     },
     {
       change: stats.engagementGrowth,
-      gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
+      tone: 'primary',
       title: 'Engagement',
       value: `${stats.engagementRate}%`,
     },
@@ -122,38 +117,38 @@ export function buildAdminDashboardStatsData(
 export function getAdminDashboardQuickActions(): AdminDashboardQuickActionItem[] {
   return [
     {
-      color: 'bg-[#10B981]',
       description: 'Anade un nuevo taller a la plataforma',
       href: '/admin/workshops/new',
       iconKey: 'courses',
+      tone: 'primary',
       title: 'Crear Nuevo Curso',
     },
     {
-      color: 'bg-[#0A2540]',
       description: 'Administra permisos y roles',
       href: '/admin/users',
       iconKey: 'users',
+      tone: 'primary',
       title: 'Gestionar Usuarios',
     },
     {
-      color: 'bg-[#00D4B3]',
       description: 'Administra organizaciones B2B',
       href: '/admin/companies',
       iconKey: 'organizations',
+      tone: 'primary',
       title: 'Gestionar Empresas',
     },
     {
-      color: 'bg-[#8B5CF6]',
       description: 'Metricas avanzadas de la IA',
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
+      tone: 'primary',
       title: 'Ver Analytics',
     },
     {
-      color: 'bg-[#F59E0B]',
       description: 'Reportes y metricas del sistema',
       href: '/admin/reportes',
       iconKey: 'documents',
+      tone: 'primary',
       title: 'Ver Reportes',
     },
   ]

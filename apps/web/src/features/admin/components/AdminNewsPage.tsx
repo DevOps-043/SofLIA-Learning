@@ -2,39 +2,36 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { ClockIcon, DocumentTextIcon, EyeIcon, PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
-import {
-  PlusIcon, 
-  MagnifyingGlassIcon, 
-  FunnelIcon,
-  EyeIcon,
-  PencilIcon,
-  TrashIcon,
-  DocumentTextIcon,
-  ClockIcon,
-  ArchiveBoxIcon,
-  CheckCircleIcon,
-  XCircleIcon
-} from '@heroicons/react/24/outline'
+
+import { useAdminTheme } from '../hooks'
 import { useAdminNews } from '../hooks/useAdminNews'
-import { AdminNews } from '../services/adminNews.service'
+import type { AdminNews } from '../services/adminNews.service'
+import {
+  AdminButton,
+  AdminIconButton,
+  AdminInput,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminSelect,
+  AdminStatusBadge,
+  AdminSurface,
+  AdminToolbar,
+} from './ui'
 
-// Lazy loading de modales pesados - Solo se cargan cuando el usuario los abre
-// Impacto: ~150-200 KB de reducción en bundle inicial
-const AddNewsModal = dynamic(() => import('./AddNewsModal').then(mod => ({ default: mod.AddNewsModal })), {
-  ssr: false
+const AddNewsModal = dynamic(() => import('./AddNewsModal').then((mod) => ({ default: mod.AddNewsModal })), {
+  ssr: false,
 })
-
-const EditNewsModal = dynamic(() => import('./EditNewsModal').then(mod => ({ default: mod.EditNewsModal })), {
-  ssr: false
+const EditNewsModal = dynamic(() => import('./EditNewsModal').then((mod) => ({ default: mod.EditNewsModal })), {
+  ssr: false,
 })
-
-const DeleteNewsModal = dynamic(() => import('./DeleteNewsModal').then(mod => ({ default: mod.DeleteNewsModal })), {
-  ssr: false
+const DeleteNewsModal = dynamic(() => import('./DeleteNewsModal').then((mod) => ({ default: mod.DeleteNewsModal })), {
+  ssr: false,
 })
-
-const ViewNewsModal = dynamic(() => import('./ViewNewsModal').then(mod => ({ default: mod.ViewNewsModal })), {
-  ssr: false
+const ViewNewsModal = dynamic(() => import('./ViewNewsModal').then((mod) => ({ default: mod.ViewNewsModal })), {
+  ssr: false,
 })
 
 type NewsStatusFilter = 'all' | 'draft' | 'published' | 'archived'
@@ -43,10 +40,24 @@ function isNewsStatusFilter(value: string): value is NewsStatusFilter {
   return value === 'all' || value === 'draft' || value === 'published' || value === 'archived'
 }
 
+function getStatusTone(status: string) {
+  if (status === 'published') return 'primary' as const
+  if (status === 'draft') return 'warning' as const
+  if (status === 'archived') return 'neutral' as const
+  return 'neutral' as const
+}
+
+function getMetric(metrics: unknown, key: 'views' | 'comments') {
+  if (!metrics || typeof metrics !== 'object') return 0
+  const value = (metrics as Record<string, unknown>)[key]
+  return typeof value === 'number' ? value : 0
+}
+
 export function AdminNewsPage() {
   const { t } = useTranslation('admin')
-  const { news, stats, isLoading, error, createNews, updateNews, deleteNews, toggleNewsStatus } = useAdminNews()
-  
+  const theme = useAdminTheme()
+  const { news, stats, isLoading, error, createNews, updateNews, deleteNews } = useAdminNews()
+
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<NewsStatusFilter>('all')
   const [selectedNews, setSelectedNews] = useState<AdminNews | null>(null)
@@ -55,336 +66,185 @@ export function AdminNewsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
 
-  // Filtrar noticias
-  const filteredNews = news.filter(newsItem => {
-    const matchesSearch = newsItem.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         newsItem.intro?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         newsItem.subtitle?.toLowerCase().includes(searchTerm.toLowerCase())
-    
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const filteredNews = news.filter((newsItem) => {
+    const matchesSearch =
+      !normalizedSearch ||
+      newsItem.title.toLowerCase().includes(normalizedSearch) ||
+      newsItem.intro?.toLowerCase().includes(normalizedSearch) ||
+      newsItem.subtitle?.toLowerCase().includes(normalizedSearch)
     const matchesStatus = statusFilter === 'all' || newsItem.status === statusFilter
-    
+
     return matchesSearch && matchesStatus
   })
 
   const handleSaveNewNews = async (newsData: Partial<AdminNews>) => {
-    try {
-      await createNews(newsData)
-      setShowAddModal(false)
-    } catch (error) {
-    }
+    await createNews(newsData)
+    setShowAddModal(false)
   }
 
   const handleSaveEditNews = async (newsData: Partial<AdminNews>) => {
     if (!selectedNews) return
-    
-    try {
-      await updateNews(selectedNews.id, newsData)
-      setShowEditModal(false)
-      setSelectedNews(null)
-    } catch (error) {
-    }
+
+    await updateNews(selectedNews.id, newsData)
+    setShowEditModal(false)
+    setSelectedNews(null)
   }
 
   const handleDeleteNews = async () => {
     if (!selectedNews) return
-    
-    try {
-      await deleteNews(selectedNews.id)
-      setShowDeleteModal(false)
-      setSelectedNews(null)
-    } catch (error) {
-    }
-  }
 
-  const handleToggleStatus = async (newsItem: AdminNews, newStatus: 'draft' | 'published' | 'archived') => {
-    try {
-      await toggleNewsStatus(newsItem.id, newStatus)
-    } catch (error) {
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'published':
-        return <CheckCircleIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
-      case 'draft':
-        return <ClockIcon className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-      case 'archived':
-        return <ArchiveBoxIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-      default:
-        return <DocumentTextIcon className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-      case 'draft':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-      case 'archived':
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-    }
+    await deleteNews(selectedNews.id)
+    setShowDeleteModal(false)
+    setSelectedNews(null)
   }
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Noticias</h1>
-          </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6 animate-pulse">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-12 w-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-                </div>
-                <div className="ml-4 flex-1">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                </div>
-              </div>
-            </div>
-          ))}
+      <AdminPageShell maxWidth="wide">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: theme.action }} />
         </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-        </div>
-      </div>
+      </AdminPageShell>
     )
   }
 
   if (error) {
     return (
-      <div className="p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Noticias</h1>
-          </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="text-center">
-            <p className="text-red-600 dark:text-red-400 mb-2">Error al cargar noticias</p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              Reintentar
-            </button>
-          </div>
-        </div>
-        </div>
-      </div>
+      <AdminPageShell maxWidth="wide">
+        <AdminSurface className="p-6 text-center">
+          <p className="text-sm font-medium" style={{ color: theme.danger }}>
+            {error}
+          </p>
+        </AdminSurface>
+      </AdminPageShell>
     )
   }
 
   return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestión de Noticias</h1>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+    <AdminPageShell maxWidth="wide">
+      <AdminSectionHeader
+        size="page"
+        title={t('news.page.title')}
+        description={t('news.page.description')}
+        actions={<AdminButton onClick={() => setShowAddModal(true)} icon={PlusIcon} size="lg">{t('news.page.add')}</AdminButton>}
+      />
+
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <AdminMetricCard icon={DocumentTextIcon} label={t('news.page.stats.total')} tone="primary" value={stats.totalNews} />
+        <AdminMetricCard icon={DocumentTextIcon} label={t('news.page.stats.published')} tone="primary" value={stats.publishedNews} />
+        <AdminMetricCard icon={ClockIcon} label={t('news.page.stats.drafts')} tone="warning" value={stats.draftNews} />
+        <AdminMetricCard icon={EyeIcon} label={t('news.page.stats.views')} tone="neutral" value={stats.totalViews.toLocaleString()} />
+      </div>
+
+      <AdminToolbar>
+        <div className="relative flex-1">
+          <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2" style={{ color: theme.textMuted }} />
+          <AdminInput
+            className="pl-10"
+            placeholder={t('news.page.searchPlaceholder')}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </div>
+        <AdminSelect
+          className="w-full lg:w-56"
+          value={statusFilter}
+          onChange={(event) => {
+            const nextStatus = event.target.value
+            if (isNewsStatusFilter(nextStatus)) {
+              setStatusFilter(nextStatus)
+            }
+          }}
         >
-          <PlusIcon className="h-5 w-5" />
-          Nueva Noticia
-        </button>
-      </div>
+          <option value="all">{t('news.page.filters.all')}</option>
+          <option value="published">{t('news.page.filters.published')}</option>
+          <option value="draft">{t('news.page.filters.draft')}</option>
+          <option value="archived">{t('news.page.filters.archived')}</option>
+        </AdminSelect>
+      </AdminToolbar>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-lg bg-blue-100 dark:bg-blue-900/20">
-              <DocumentTextIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Noticias</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalNews}</p>
-            </div>
-          </div>
+      <AdminSurface className="p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold" style={{ color: theme.text }}>
+            {t('news.page.listTitle', { count: filteredNews.length })}
+          </h2>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-lg bg-green-100 dark:bg-green-900/20">
-              <CheckCircleIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Publicadas</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.publishedNews}</p>
-            </div>
+        {filteredNews.length === 0 ? (
+          <div className="py-10 text-center">
+            <DocumentTextIcon className="mx-auto h-12 w-12" style={{ color: theme.textMuted }} />
+            <p className="mt-4 text-sm" style={{ color: theme.textMuted }}>
+              {t('news.page.empty')}
+            </p>
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
-              <ClockIcon className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-            </div>
-            <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Borradores</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.draftNews}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0 p-3 rounded-lg bg-purple-100 dark:bg-purple-900/20">
-              <EyeIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div className="ml-4 flex-1">
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Vistas</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalViews.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filtros y búsqueda */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400" />
-              <input
-                type="text"
-                placeholder={t('news.page.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                const nextStatus = e.target.value
-                if (isNewsStatusFilter(nextStatus)) {
-                  setStatusFilter(nextStatus)
-                }
-              }}
-              className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">Todos los estados</option>
-              <option value="published">Publicadas</option>
-              <option value="draft">Borradores</option>
-              <option value="archived">Archivadas</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Lista de noticias */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Noticias ({filteredNews.length})
-          </h3>
-          
-          {filteredNews.length === 0 ? (
-            <div className="text-center py-8">
-              <DocumentTextIcon className="h-12 w-12 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-600 dark:text-gray-400">No se encontraron noticias</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredNews.map((newsItem) => (
-                <div
-                  key={newsItem.id}
-                  className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{newsItem.title}</h4>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${getStatusColor(newsItem.status)}`}>
-                          {getStatusIcon(newsItem.status)}
-                          <span className="capitalize">{newsItem.status}</span>
-                        </span>
-                      </div>
-                      
-                      {newsItem.intro && (
-                        <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">{newsItem.intro}</p>
-                      )}
-                      
-                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                        <span>{newsItem.language}</span>
-                        <span>{newsItem.metrics?.views || 0} vistas</span>
-                        <span>{newsItem.metrics?.comments || 0} comentarios</span>
-                        <span>{new Date(newsItem.created_at).toLocaleDateString()}</span>
-                      </div>
+        ) : (
+          <div className="space-y-3">
+            {filteredNews.map((newsItem) => (
+              <div
+                key={newsItem.id}
+                className="rounded-2xl border p-4"
+                style={{ borderColor: theme.border, backgroundColor: theme.surfaceSubtle }}
+              >
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <h3 className="min-w-0 truncate text-lg font-bold" style={{ color: theme.text }}>
+                        {newsItem.title}
+                      </h3>
+                      <AdminStatusBadge tone={getStatusTone(newsItem.status)}>
+                        {t(`news.page.status.${newsItem.status}`, { defaultValue: newsItem.status })}
+                      </AdminStatusBadge>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedNews(newsItem)
-                          setShowViewModal(true)
-                        }}
-                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors"
-                        title={t('news.page.tooltipView')}
-                      >
-                        <EyeIcon className="h-4 w-4" />
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setSelectedNews(newsItem)
-                          setShowEditModal(true)
-                        }}
-                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                        title={t('news.page.tooltipEdit')}
-                      >
-                        <PencilIcon className="h-4 w-4" />
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setSelectedNews(newsItem)
-                          setShowDeleteModal(true)
-                        }}
-                        className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title={t('news.page.tooltipDelete')}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                    {newsItem.intro ? (
+                      <p className="line-clamp-2 text-sm leading-6" style={{ color: theme.textMuted }}>
+                        {newsItem.intro}
+                      </p>
+                    ) : null}
+                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" style={{ color: theme.textMuted }}>
+                      <span>{newsItem.language}</span>
+                      <span>{t('news.page.views', { count: getMetric(newsItem.metrics, 'views') })}</span>
+                      <span>{t('news.page.comments', { count: getMetric(newsItem.metrics, 'comments') })}</span>
+                      <span>{new Date(newsItem.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>
+                  <div className="flex shrink-0 items-center gap-2 lg:justify-end">
+                    <AdminIconButton
+                      icon={EyeIcon}
+                      label={t('news.page.tooltipView')}
+                      onClick={() => {
+                        setSelectedNews(newsItem)
+                        setShowViewModal(true)
+                      }}
+                      tone="neutral"
+                    />
+                    <AdminIconButton
+                      icon={PencilIcon}
+                      label={t('news.page.tooltipEdit')}
+                      onClick={() => {
+                        setSelectedNews(newsItem)
+                        setShowEditModal(true)
+                      }}
+                    />
+                    <AdminIconButton
+                      icon={TrashIcon}
+                      label={t('news.page.tooltipDelete')}
+                      onClick={() => {
+                        setSelectedNews(newsItem)
+                        setShowDeleteModal(true)
+                      }}
+                      tone="danger"
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </AdminSurface>
 
-      {/* Modales */}
-      {showAddModal && (
-        <AddNewsModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          onSave={handleSaveNewNews}
-        />
-      )}
-
-      {showEditModal && selectedNews && (
+      {showAddModal ? <AddNewsModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} onSave={handleSaveNewNews} /> : null}
+      {showEditModal && selectedNews ? (
         <EditNewsModal
           isOpen={showEditModal}
           onClose={() => {
@@ -394,9 +254,8 @@ export function AdminNewsPage() {
           news={selectedNews}
           onSave={handleSaveEditNews}
         />
-      )}
-
-      {showDeleteModal && selectedNews && (
+      ) : null}
+      {showDeleteModal && selectedNews ? (
         <DeleteNewsModal
           isOpen={showDeleteModal}
           onClose={() => {
@@ -406,9 +265,8 @@ export function AdminNewsPage() {
           news={selectedNews}
           onConfirm={handleDeleteNews}
         />
-      )}
-
-      {showViewModal && selectedNews && (
+      ) : null}
+      {showViewModal && selectedNews ? (
         <ViewNewsModal
           isOpen={showViewModal}
           onClose={() => {
@@ -417,8 +275,7 @@ export function AdminNewsPage() {
           }}
           news={selectedNews}
         />
-      )}
-      </div>
-    </div>
+      ) : null}
+    </AdminPageShell>
   )
 }

@@ -2,454 +2,316 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
+import { Calendar, Clock, Edit, Eye, Heart, Pause, Play, Search, Share2, Star, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+import { useAdminTheme } from '../hooks'
 import { useAdminReels } from '../hooks/useAdminReels'
+import type { AdminReel, CreateReelData, UpdateReelData } from '../services/adminReels.service'
 import {
-  AdminReel,
-  CreateReelData,
-  UpdateReelData
-} from '../services/adminReels.service'
+  AdminButton,
+  AdminIconButton,
+  AdminInput,
+  AdminMetricCard,
+  AdminPageShell,
+  AdminSectionHeader,
+  AdminSelect,
+  AdminStatusBadge,
+  AdminTableContainer,
+  AdminToolbar,
+} from './ui'
 
-// Lazy loading de modales de Reels
-const AddReelModal = dynamic(() => import('./AddReelModal').then(mod => ({ default: mod.AddReelModal })), {
-  ssr: false
+const AddReelModal = dynamic(() => import('./AddReelModal').then((mod) => ({ default: mod.AddReelModal })), {
+  ssr: false,
+})
+const EditReelModal = dynamic(() => import('./EditReelModal').then((mod) => ({ default: mod.EditReelModal })), {
+  ssr: false,
+})
+const DeleteReelModal = dynamic(() => import('./DeleteReelModal').then((mod) => ({ default: mod.DeleteReelModal })), {
+  ssr: false,
+})
+const ViewReelModal = dynamic(() => import('./ViewReelModal').then((mod) => ({ default: mod.ViewReelModal })), {
+  ssr: false,
 })
 
-const EditReelModal = dynamic(() => import('./EditReelModal').then(mod => ({ default: mod.EditReelModal })), {
-  ssr: false
-})
-
-const DeleteReelModal = dynamic(() => import('./DeleteReelModal').then(mod => ({ default: mod.DeleteReelModal })), {
-  ssr: false
-})
-
-const ViewReelModal = dynamic(() => import('./ViewReelModal').then(mod => ({ default: mod.ViewReelModal })), {
-  ssr: false
-})
-
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  Eye, 
-  Heart, 
-  Share2, 
-  MessageCircle, 
-  Star, 
-  Play, 
-  Pause,
-  Edit,
-  Trash2,
-  ExternalLink,
-  Calendar,
-  Clock,
-  Globe
-} from 'lucide-react'
-
-const isStatusFilter = (value: string): value is 'all' | 'active' | 'inactive' => (
+const isStatusFilter = (value: string): value is 'all' | 'active' | 'inactive' =>
   value === 'all' || value === 'active' || value === 'inactive'
-)
+
+function formatDuration(seconds: number) {
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+function formatDate(dateString: string) {
+  return new Intl.DateTimeFormat('es-ES', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(dateString))
+}
 
 export function AdminReelsPage() {
   const { t } = useTranslation('admin')
-  const {
-    reels,
-    stats,
-    loading,
-    error,
-    createReel,
-    updateReel,
-    deleteReel,
-    toggleReelStatus,
-    toggleReelFeatured
-  } = useAdminReels()
+  const theme = useAdminTheme()
+  const { reels, stats, loading, error, createReel, updateReel, deleteReel, toggleReelStatus, toggleReelFeatured } = useAdminReels()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
-  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
   const [selectedReel, setSelectedReel] = useState<AdminReel | null>(null)
 
-  const filteredReels = reels.filter(reel => {
-    const matchesSearch = reel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reel.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         reel.category.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && reel.is_active) ||
-                         (statusFilter === 'inactive' && !reel.is_active)
-    
+  const normalizedSearch = searchTerm.trim().toLowerCase()
+  const filteredReels = reels.filter((reel) => {
+    const matchesSearch =
+      !normalizedSearch ||
+      reel.title.toLowerCase().includes(normalizedSearch) ||
+      reel.description.toLowerCase().includes(normalizedSearch) ||
+      reel.category.toLowerCase().includes(normalizedSearch)
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === 'active' && reel.is_active) ||
+      (statusFilter === 'inactive' && !reel.is_active)
     const matchesCategory = categoryFilter === 'all' || reel.category === categoryFilter
-    
+
     return matchesSearch && matchesStatus && matchesCategory
   })
 
-  const categories = Array.from(new Set(reels.map(reel => reel.category)))
+  const categories = Array.from(new Set(reels.map((reel) => reel.category))).filter(Boolean)
 
   const handleAddReel = async (data: CreateReelData) => {
-    try {
-      await createReel(data)
-      setShowAddModal(false)
-    } catch (error) {
-    }
+    await createReel(data)
+    setShowAddModal(false)
   }
 
   const handleEditReel = async (data: UpdateReelData) => {
     if (!selectedReel) return
-    try {
-      await updateReel(selectedReel.id, data)
-      setShowEditModal(false)
-      setSelectedReel(null)
-    } catch (error) {
-    }
+
+    await updateReel(selectedReel.id, data)
+    setShowEditModal(false)
+    setSelectedReel(null)
   }
 
   const handleDeleteReel = async () => {
     if (!selectedReel) return
-    try {
-      await deleteReel(selectedReel.id)
-      setShowDeleteModal(false)
-      setSelectedReel(null)
-    } catch (error) {
-    }
-  }
 
-  const handleToggleStatus = async (reel: AdminReel) => {
-    try {
-      await toggleReelStatus(reel.id)
-    } catch (error) {
-    }
-  }
-
-  const handleToggleFeatured = async (reel: AdminReel) => {
-    try {
-      await toggleReelFeatured(reel.id)
-    } catch (error) {
-    }
-  }
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
+    await deleteReel(selectedReel.id)
+    setShowDeleteModal(false)
+    setSelectedReel(null)
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-500"></div>
-      </div>
+      <AdminPageShell maxWidth="wide">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent" style={{ color: theme.action }} />
+        </div>
+      </AdminPageShell>
     )
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg p-4">
-        <p className="text-red-600 dark:text-red-400">Error: {error}</p>
-      </div>
+      <AdminPageShell maxWidth="wide">
+        <div className="py-12 text-center text-sm font-medium" style={{ color: theme.danger }}>
+          {error}
+        </div>
+      </AdminPageShell>
     )
   }
 
   return (
-    <div className="p-6 w-full">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Administrar Reels</h1>
-          <p className="text-gray-600 dark:text-gray-400">Gestiona todos los reels de la plataforma</p>
-        </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Agregar Reel
-        </button>
-      </div>
+    <AdminPageShell maxWidth="wide">
+      <AdminSectionHeader
+        size="page"
+        title={t('reels.page.title')}
+        description={t('reels.page.description')}
+        actions={<AdminButton onClick={() => setShowAddModal(true)} icon={Play} size="lg">{t('reels.page.add')}</AdminButton>}
+      />
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Total Reels</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalReels}</p>
-              </div>
-              <Play className="w-8 h-8 text-blue-600 dark:text-blue-500" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Activos</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.activeReels}</p>
-              </div>
-              <Eye className="w-8 h-8 text-green-600 dark:text-green-500" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Total Vistas</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalViews.toLocaleString()}</p>
-              </div>
-              <Eye className="w-8 h-8 text-purple-600 dark:text-purple-500" />
-            </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Total Likes</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalLikes.toLocaleString()}</p>
-              </div>
-              <Heart className="w-8 h-8 text-red-600 dark:text-red-500" />
-            </div>
-          </div>
+      {stats ? (
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <AdminMetricCard icon={Play} label={t('reels.page.stats.total')} tone="primary" value={stats.totalReels} />
+          <AdminMetricCard icon={Eye} label={t('reels.page.stats.active')} tone="primary" value={stats.activeReels} />
+          <AdminMetricCard icon={Eye} label={t('reels.page.stats.views')} tone="neutral" value={stats.totalViews.toLocaleString()} />
+          <AdminMetricCard icon={Heart} label={t('reels.page.stats.likes')} tone="info" value={stats.totalLikes.toLocaleString()} />
         </div>
-      )}
+      ) : null}
 
-      {/* Filters */}
-      <div className="bg-white dark:bg-gray-700 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-600">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder={t('reels.page.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          
-          <select
+      <AdminToolbar>
+        <div className="relative flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2" style={{ color: theme.textMuted }} />
+          <AdminInput
+            className="pl-10"
+            placeholder={t('reels.page.searchPlaceholder')}
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </div>
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:w-auto">
+          <AdminSelect
+            className="w-full lg:w-52"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(isStatusFilter(e.target.value) ? e.target.value : 'all')}
-            className="px-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(event) => setStatusFilter(isStatusFilter(event.target.value) ? event.target.value : 'all')}
           >
-            <option value="all">Todos los estados</option>
-            <option value="active">Activos</option>
-            <option value="inactive">Inactivos</option>
-          </select>
-          
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="all">Todas las categorías</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
+            <option value="all">{t('reels.page.filters.all')}</option>
+            <option value="active">{t('reels.page.filters.active')}</option>
+            <option value="inactive">{t('reels.page.filters.inactive')}</option>
+          </AdminSelect>
+          <AdminSelect className="w-full lg:w-56" value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value)}>
+            <option value="all">{t('reels.page.allCategories')}</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
-          </select>
+          </AdminSelect>
         </div>
-      </div>
+      </AdminToolbar>
 
-      {/* Reels Table */}
-      <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-600">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Reel
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Categoría
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Duración
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Estadísticas
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Fecha
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                  Acciones
-                </th>
+      <AdminTableContainer>
+        <div className="overflow-auto">
+          <table className="min-w-[1100px] w-full text-left">
+            <thead>
+              <tr style={{ backgroundColor: theme.surfaceSubtle }}>
+                {[
+                  t('reels.page.table.reel'),
+                  t('reels.page.table.category'),
+                  t('reels.page.table.duration'),
+                  t('reels.page.table.stats'),
+                  t('reels.page.table.status'),
+                  t('reels.page.table.date'),
+                  t('reels.page.table.actions'),
+                ].map((heading, index) => (
+                  <th
+                    key={heading}
+                    className={`border-b px-4 py-3 text-xs font-bold uppercase tracking-wider ${index === 6 ? 'text-right' : 'text-left'}`}
+                    style={{ borderColor: theme.divider, color: theme.textMuted }}
+                  >
+                    {heading}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
-              {filteredReels.map((reel) => (
-                <tr key={reel.id} className="hover:bg-gray-50 dark:hover:bg-gray-600/50">
-                  <td className="px-4 py-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <img
-                          src={reel.thumbnail_url}
-                          alt={reel.title}
-                          className="w-16 h-16 rounded-lg object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
-                          <Play className="w-4 h-4 text-white" />
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {reel.title}
-                        </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                          {reel.description}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td className="px-4 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400">
-                      {reel.category}
-                    </span>
-                  </td>
-                  
-                  <td className="px-4 py-4">
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
-                      <Clock className="w-4 h-4 mr-1" />
-                      {formatDuration(reel.duration_seconds)}
-                    </div>
-                  </td>
-                  
-                  <td className="px-4 py-4">
-                    <div className="flex space-x-4 text-sm text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        {reel.view_count.toLocaleString()}
-                      </div>
-                      <div className="flex items-center">
-                        <Heart className="w-4 h-4 mr-1" />
-                        {reel.like_count.toLocaleString()}
-                      </div>
-                      <div className="flex items-center">
-                        <Share2 className="w-4 h-4 mr-1" />
-                        {reel.share_count.toLocaleString()}
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td className="px-4 py-4">
-                    <div className="flex flex-col space-y-1">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        reel.is_active 
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' 
-                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
-                      }`}>
-                        {reel.is_active ? t('reels.page.statusActive') : t('reels.page.statusInactive')}
-                      </span>
-                      {reel.is_featured && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
-                          <Star className="w-3 h-3 mr-1" />
-                          Destacado
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  
-                  <td className="px-4 py-4">
-                    <div className="text-sm text-gray-600 dark:text-gray-300">
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(reel.created_at)}
-                      </div>
-                    </div>
-                  </td>
-                  
-                  <td className="px-4 py-4">
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => {
-                          setSelectedReel(reel)
-                          setShowViewModal(true)
-                        }}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                        title={t('reels.page.tooltipView')}
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setSelectedReel(reel)
-                          setShowEditModal(true)
-                        }}
-                        className="text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 transition-colors"
-                        title={t('reels.page.tooltipEdit')}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      
-                      <button
-                        onClick={() => handleToggleStatus(reel)}
-                        className={`transition-colors ${
-                          reel.is_active 
-                            ? 'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300' 
-                            : 'text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300'
-                        }`}
-                        title={reel.is_active ? t('reels.page.tooltipDeactivate') : t('reels.page.tooltipActivate')}
-                      >
-                        {reel.is_active ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                      </button>
-                      
-                      <button
-                        onClick={() => handleToggleFeatured(reel)}
-                        className={`transition-colors ${
-                          reel.is_featured 
-                            ? 'text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300' 
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                        }`}
-                        title={reel.is_featured ? t('reels.page.tooltipUnfeature') : t('reels.page.tooltipFeature')}
-                      >
-                        <Star className="w-4 h-4" />
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setSelectedReel(reel)
-                          setShowDeleteModal(true)
-                        }}
-                        className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
-                        title={t('reels.page.tooltipDelete')}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+            <tbody>
+              {filteredReels.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-sm" style={{ color: theme.textMuted }}>
+                    {t('reels.page.empty')}
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredReels.map((reel) => (
+                  <tr key={reel.id} style={{ borderBottom: `1px solid ${theme.divider}` }}>
+                    <td className="px-4 py-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl" style={{ backgroundColor: theme.surfaceSubtle }}>
+                          {reel.thumbnail_url ? <img src={reel.thumbnail_url} alt={reel.title} className="h-full w-full object-cover" /> : null}
+                          <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: theme.overlay }}>
+                            <Play className="h-4 w-4" style={{ color: theme.inverseText }} />
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold" style={{ color: theme.text }}>
+                            {reel.title}
+                          </p>
+                          <p className="line-clamp-1 text-xs" style={{ color: theme.textMuted }}>
+                            {reel.description}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <AdminStatusBadge tone="primary">{reel.category}</AdminStatusBadge>
+                    </td>
+                    <td className="px-4 py-4 text-sm" style={{ color: theme.textMuted }}>
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {formatDuration(reel.duration_seconds)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm" style={{ color: theme.textMuted }}>
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" />{reel.view_count.toLocaleString()}</span>
+                        <span className="inline-flex items-center gap-1"><Heart className="h-4 w-4" />{reel.like_count.toLocaleString()}</span>
+                        <span className="inline-flex items-center gap-1"><Share2 className="h-4 w-4" />{reel.share_count.toLocaleString()}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex flex-col items-start gap-1">
+                        <AdminStatusBadge tone={reel.is_active ? 'primary' : 'neutral'}>
+                          {reel.is_active ? t('reels.page.statusActive') : t('reels.page.statusInactive')}
+                        </AdminStatusBadge>
+                        {reel.is_featured ? (
+                          <AdminStatusBadge tone="warning">
+                            <Star className="h-3.5 w-3.5" />
+                            {t('reels.page.statusFeatured')}
+                          </AdminStatusBadge>
+                        ) : null}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-sm" style={{ color: theme.textMuted }}>
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {formatDate(reel.created_at)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <AdminIconButton
+                          icon={Eye}
+                          label={t('reels.page.tooltipView')}
+                          onClick={() => {
+                            setSelectedReel(reel)
+                            setShowViewModal(true)
+                          }}
+                          tone="neutral"
+                        />
+                        <AdminIconButton
+                          icon={Edit}
+                          label={t('reels.page.tooltipEdit')}
+                          onClick={() => {
+                            setSelectedReel(reel)
+                            setShowEditModal(true)
+                          }}
+                        />
+                        <AdminIconButton
+                          icon={reel.is_active ? Pause : Play}
+                          label={reel.is_active ? t('reels.page.tooltipDeactivate') : t('reels.page.tooltipActivate')}
+                          onClick={() => toggleReelStatus(reel.id)}
+                          tone={reel.is_active ? 'danger' : 'primary'}
+                        />
+                        <AdminIconButton
+                          icon={Star}
+                          label={reel.is_featured ? t('reels.page.tooltipUnfeature') : t('reels.page.tooltipFeature')}
+                          onClick={() => toggleReelFeatured(reel.id)}
+                          tone="warning"
+                        />
+                        <AdminIconButton
+                          icon={Trash2}
+                          label={t('reels.page.tooltipDelete')}
+                          onClick={() => {
+                            setSelectedReel(reel)
+                            setShowDeleteModal(true)
+                          }}
+                          tone="danger"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
-      </div>
+      </AdminTableContainer>
 
-      {/* Modals */}
-      {showAddModal && (
-        <AddReelModal
-          onClose={() => setShowAddModal(false)}
-          onSave={handleAddReel}
-        />
-      )}
-
-      {showEditModal && selectedReel && (
+      {showAddModal ? <AddReelModal onClose={() => setShowAddModal(false)} onSave={handleAddReel} /> : null}
+      {showEditModal && selectedReel ? (
         <EditReelModal
           reel={selectedReel}
           onClose={() => {
@@ -458,9 +320,8 @@ export function AdminReelsPage() {
           }}
           onSave={handleEditReel}
         />
-      )}
-
-      {showDeleteModal && selectedReel && (
+      ) : null}
+      {showDeleteModal && selectedReel ? (
         <DeleteReelModal
           reel={selectedReel}
           onClose={() => {
@@ -469,9 +330,8 @@ export function AdminReelsPage() {
           }}
           onConfirm={handleDeleteReel}
         />
-      )}
-
-      {showViewModal && selectedReel && (
+      ) : null}
+      {showViewModal && selectedReel ? (
         <ViewReelModal
           reel={selectedReel}
           onClose={() => {
@@ -479,7 +339,7 @@ export function AdminReelsPage() {
             setSelectedReel(null)
           }}
         />
-      )}
-    </div>
+      ) : null}
+    </AdminPageShell>
   )
 }
