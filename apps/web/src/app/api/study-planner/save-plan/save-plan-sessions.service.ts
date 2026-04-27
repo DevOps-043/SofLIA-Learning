@@ -5,6 +5,7 @@ import type {
   SavePlanSessionInsertRow,
 } from './save-plan.types'
 import type { StudySession } from '../../../../features/study-planner/types/user-context.types'
+import { resolveStudySessionTitle } from '../study-session-title.utils'
 
 export function buildSessionsToInsert(params: {
   sessions: StudySession[]
@@ -82,7 +83,7 @@ export function buildSessionsToInsert(params: {
       organization_id: params.organizationId,
       plan_id: params.planId,
       user_id: params.userId,
-      title: session.title.substring(0, 500),
+      title: resolveStudySessionTitle(session).substring(0, 500),
       description: session.description ? session.description.substring(0, 2000) : null,
       course_id: session.courseId || null,
       lesson_id: session.lessonId || null,

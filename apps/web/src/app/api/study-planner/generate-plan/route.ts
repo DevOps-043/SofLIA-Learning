@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
           preferences as Preferences,
           deadlineDate,
           maxSessionMinutes,
+          Boolean((preferences as Preferences).allowSunday),
         );
         return NextResponse.json({ ...result, validAlternatives });
       }

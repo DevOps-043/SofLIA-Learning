@@ -87,7 +87,7 @@ export async function fetchStudyPlannerCalendarEvents({
 }> {
   try {
     const eventsResponse = await fetch(
-      `/api/study-planner/calendar/events?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`,
+      `/api/study-planner/calendar/events?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}&includeStudySessions=true`,
     );
 
     if (eventsResponse.ok) {

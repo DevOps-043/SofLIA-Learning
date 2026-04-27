@@ -1,12 +1,26 @@
 import type { Lesson, Preferences, ValidAlternative } from './generate-plan.types';
 import { generateDeterministicPlan } from './generate-plan-engine';
 
-const ALL_DAYS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+const WEEKDAYS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes'];
+const SATURDAY = 'sábado';
+const SUNDAY = 'domingo';
+const ALL_DAYS_WITHOUT_SUNDAY = [...WEEKDAYS, SATURDAY];
+const ALL_DAYS_WITH_SUNDAY = [...ALL_DAYS_WITHOUT_SUNDAY, SUNDAY];
 const ALL_TIMES = ['mañana', 'tarde', 'noche'];
 
 const MONTH_MAP: Record<string, number> = {
-  enero: 0, febrero: 1, marzo: 2, abril: 3, mayo: 4, junio: 5,
-  julio: 6, agosto: 7, septiembre: 8, octubre: 9, noviembre: 10, diciembre: 11,
+  enero: 0,
+  febrero: 1,
+  marzo: 2,
+  abril: 3,
+  mayo: 4,
+  junio: 5,
+  julio: 6,
+  agosto: 7,
+  septiembre: 8,
+  octubre: 9,
+  noviembre: 10,
+  diciembre: 11,
 };
 
 function testConfiguration(
@@ -17,7 +31,7 @@ function testConfiguration(
   sessionDuration: number,
   deadline: Date,
 ): { valid: boolean; endDate: Date | null } {
-  const testPrefs: Preferences = { days, times, startDate };
+  const testPrefs: Preferences = { days, times, startDate, allowSunday: days.includes(SUNDAY) };
   const result = generateDeterministicPlan(lessons, testPrefs, undefined, sessionDuration);
 
   if (typeof result === 'string') {
@@ -32,6 +46,7 @@ function testConfiguration(
       return { valid: endDate <= deadline, endDate };
     }
   }
+
   return { valid: false, endDate: null };
 }
 
@@ -57,106 +72,197 @@ function addAlternative(
   });
 }
 
+function addAlternativeIfValid(params: {
+  alternatives: ValidAlternative[];
+  id: string;
+  description: string;
+  lessons: Lesson[];
+  days: string[];
+  times: string[];
+  startDate: string | undefined;
+  sessionDuration: number;
+  deadline: Date;
+}): boolean {
+  const result = testConfiguration(
+    params.lessons,
+    params.days,
+    params.times,
+    params.startDate,
+    params.sessionDuration,
+    params.deadline,
+  );
+
+  if (!result.valid || !result.endDate) {
+    return false;
+  }
+
+  addAlternative(
+    params.alternatives,
+    params.id,
+    params.description,
+    params.days,
+    params.times,
+    params.sessionDuration,
+    result.endDate,
+    params.deadline,
+  );
+
+  return true;
+}
+
 export function calculateValidAlternatives(
   lessons: Lesson[],
   currentPrefs: Preferences,
   deadlineDate: string,
   maxSessionMinutes: number,
+  allowSunday = Boolean(currentPrefs.allowSunday),
 ): ValidAlternative[] {
   const alternatives: ValidAlternative[] = [];
   const deadline = new Date(deadlineDate);
   deadline.setHours(0, 0, 0, 0);
 
-  const currentDays = currentPrefs.days.map((d) => d.toLowerCase());
-  const currentTimes = currentPrefs.times.map((t) => t.toLowerCase());
-  const missingDays = ALL_DAYS.filter((d) => !currentDays.includes(d));
-  const missingTimes = ALL_TIMES.filter((t) => !currentTimes.includes(t));
+  const allDays = allowSunday ? ALL_DAYS_WITH_SUNDAY : ALL_DAYS_WITHOUT_SUNDAY;
+  const currentDays = currentPrefs.days
+    .map((day) => day.toLowerCase())
+    .filter((day) => day !== SUNDAY || allowSunday);
+  const currentTimes = currentPrefs.times.map((time) => time.toLowerCase());
+  const missingDays = allDays.filter((day) => !currentDays.includes(day));
+  const missingTimes = ALL_TIMES.filter((time) => !currentTimes.includes(time));
   const startDate = currentPrefs.startDate;
 
-  // Option 1: Add weekend days
-  for (const day of ['sábado', 'domingo']) {
+  for (const day of allowSunday ? [SATURDAY, SUNDAY] : [SATURDAY]) {
     if (!currentDays.includes(day)) {
-      const newDays = [...currentDays, day];
-      const result = testConfiguration(lessons, newDays, currentTimes, startDate, maxSessionMinutes, deadline);
-      if (result.valid && result.endDate) {
-        addAlternative(alternatives, `add_${day}`, `Agregar ${day} a tus días de estudio`, newDays, currentTimes, maxSessionMinutes, result.endDate, deadline);
-      }
+      addAlternativeIfValid({
+        alternatives,
+        id: `add_${day}`,
+        description: `Agregar ${day} a tus días de estudio`,
+        lessons,
+        days: [...currentDays, day],
+        times: currentTimes,
+        startDate,
+        sessionDuration: maxSessionMinutes,
+        deadline,
+      });
     }
   }
 
-  // Add both weekend days
-  const weekendMissing = ['sábado', 'domingo'].filter((d) => !currentDays.includes(d));
-  if (weekendMissing.length === 2) {
-    const newDays = [...currentDays, 'sábado', 'domingo'];
-    const result = testConfiguration(lessons, newDays, currentTimes, startDate, maxSessionMinutes, deadline);
-    if (result.valid && result.endDate) {
-      addAlternative(alternatives, 'add_weekend', 'Agregar sábado y domingo a tus días de estudio', newDays, currentTimes, maxSessionMinutes, result.endDate, deadline);
+  if (allowSunday) {
+    const weekendMissing = [SATURDAY, SUNDAY].filter((day) => !currentDays.includes(day));
+    if (weekendMissing.length === 2) {
+      addAlternativeIfValid({
+        alternatives,
+        id: 'add_weekend',
+        description: 'Agregar sábado y domingo a tus días de estudio',
+        lessons,
+        days: [...currentDays, SATURDAY, SUNDAY],
+        times: currentTimes,
+        startDate,
+        sessionDuration: maxSessionMinutes,
+        deadline,
+      });
     }
   }
 
-  // Option 2: Add weekdays
-  const weekdaysMissing = missingDays.filter((d) => !['sábado', 'domingo'].includes(d));
-  for (let i = 1; i <= Math.min(weekdaysMissing.length, 3); i++) {
-    const added = weekdaysMissing.slice(0, i);
+  const weekdaysMissing = missingDays.filter((day) => ![SATURDAY, SUNDAY].includes(day));
+  for (let index = 1; index <= Math.min(weekdaysMissing.length, 3); index += 1) {
+    const added = weekdaysMissing.slice(0, index);
     const newDays = [...currentDays, ...added];
-    const result = testConfiguration(lessons, newDays, currentTimes, startDate, maxSessionMinutes, deadline);
-    if (result.valid && result.endDate) {
-      const alreadyExists = alternatives.some(
-        (a) => JSON.stringify(a.days.sort()) === JSON.stringify([...newDays].sort()),
-      );
-      if (!alreadyExists) {
-        addAlternative(alternatives, `add_weekdays_${i}`, `Agregar ${added.join(' y ')} a tus días de estudio`, newDays, currentTimes, maxSessionMinutes, result.endDate, deadline);
-        break;
-      }
-    }
-  }
+    const alreadyExists = alternatives.some(
+      (alternative) => JSON.stringify([...alternative.days].sort()) === JSON.stringify([...newDays].sort()),
+    );
 
-  // Option 3: Add time periods
-  if (currentTimes.length < 3) {
-    for (const additionalTime of missingTimes) {
-      const newTimes = [...currentTimes, additionalTime];
-      const result = testConfiguration(lessons, currentDays, newTimes, startDate, maxSessionMinutes, deadline);
-      if (result.valid && result.endDate) {
-        addAlternative(alternatives, `add_time_${additionalTime}`, `Agregar sesiones en la ${additionalTime} además de la ${currentTimes.join(' y ')}`, currentDays, newTimes, maxSessionMinutes, result.endDate, deadline);
-        break;
-      }
-    }
-  }
-
-  // Option 4: Increase session duration
-  for (let extra = 15; extra <= 60; extra += 15) {
-    const newDuration = maxSessionMinutes + extra;
-    const result = testConfiguration(lessons, currentDays, currentTimes, startDate, newDuration, deadline);
-    if (result.valid && result.endDate) {
-      addAlternative(alternatives, `increase_duration_${extra}`, `Aumentar cada sesión a ${newDuration} minutos (+${extra} min)`, currentDays, currentTimes, newDuration, result.endDate, deadline);
+    if (!alreadyExists && addAlternativeIfValid({
+      alternatives,
+      id: `add_weekdays_${index}`,
+      description: `Agregar ${added.join(' y ')} a tus días de estudio`,
+      lessons,
+      days: newDays,
+      times: currentTimes,
+      startDate,
+      sessionDuration: maxSessionMinutes,
+      deadline,
+    })) {
       break;
     }
   }
 
-  // Option 5: Combo days + duration (fallback)
-  if (alternatives.length === 0) {
-    const allDaysPossible = [...new Set([...currentDays, ...missingDays.slice(0, 2)])];
-    for (let extra = 15; extra <= 90; extra += 15) {
-      const newDuration = maxSessionMinutes + extra;
-      const result = testConfiguration(lessons, allDaysPossible, currentTimes, startDate, newDuration, deadline);
-      if (result.valid && result.endDate) {
-        const addedDays = missingDays.slice(0, 2).filter((d) => !currentDays.includes(d));
-        addAlternative(alternatives, 'combo_days_duration', `Agregar ${addedDays.join(' y ')} + sesiones de ${newDuration} min`, allDaysPossible, currentTimes, newDuration, result.endDate, deadline);
+  if (currentTimes.length < 3) {
+    for (const additionalTime of missingTimes) {
+      if (addAlternativeIfValid({
+        alternatives,
+        id: `add_time_${additionalTime}`,
+        description: `Agregar sesiones en la ${additionalTime} además de la ${currentTimes.join(' y ')}`,
+        lessons,
+        days: currentDays,
+        times: [...currentTimes, additionalTime],
+        startDate,
+        sessionDuration: maxSessionMinutes,
+        deadline,
+      })) {
         break;
       }
     }
   }
 
-  // Option 6: Intensive plan (fallback)
-  if (alternatives.length < 3) {
-    const intensiveTimes =
-      currentTimes.length < 2 ? [...currentTimes, missingTimes[0] || 'tarde'] : currentTimes;
-    const result = testConfiguration(lessons, ALL_DAYS, intensiveTimes, startDate, maxSessionMinutes + 30, deadline);
-    if (result.valid && result.endDate) {
-      addAlternative(alternatives, 'intensive', `Plan intensivo: estudiar todos los días con sesiones de ${maxSessionMinutes + 30} min`, ALL_DAYS, intensiveTimes, maxSessionMinutes + 30, result.endDate, deadline);
+  for (let extra = 15; extra <= 60; extra += 15) {
+    const newDuration = maxSessionMinutes + extra;
+    if (addAlternativeIfValid({
+      alternatives,
+      id: `increase_duration_${extra}`,
+      description: `Aumentar cada sesión a ${newDuration} minutos (+${extra} min)`,
+      lessons,
+      days: currentDays,
+      times: currentTimes,
+      startDate,
+      sessionDuration: newDuration,
+      deadline,
+    })) {
+      break;
     }
   }
 
-  alternatives.sort((a, b) => b.daysBeforeDeadline - a.daysBeforeDeadline);
+  if (alternatives.length === 0) {
+    const allDaysPossible = [...new Set([...currentDays, ...missingDays.slice(0, 2)])];
+    const addedDays = missingDays.slice(0, 2).filter((day) => !currentDays.includes(day));
+
+    for (let extra = 15; extra <= 90; extra += 15) {
+      const newDuration = maxSessionMinutes + extra;
+      if (addAlternativeIfValid({
+        alternatives,
+        id: 'combo_days_duration',
+        description: `Agregar ${addedDays.join(' y ')} + sesiones de ${newDuration} min`,
+        lessons,
+        days: allDaysPossible,
+        times: currentTimes,
+        startDate,
+        sessionDuration: newDuration,
+        deadline,
+      })) {
+        break;
+      }
+    }
+  }
+
+  if (alternatives.length < 3) {
+    const intensiveTimes =
+      currentTimes.length < 2 ? [...currentTimes, missingTimes[0] || 'tarde'] : currentTimes;
+    const description = allowSunday
+      ? `Plan intensivo: estudiar todos los días con sesiones de ${maxSessionMinutes + 30} min`
+      : `Plan intensivo: estudiar lunes a sábado con sesiones de ${maxSessionMinutes + 30} min`;
+
+    addAlternativeIfValid({
+      alternatives,
+      id: 'intensive',
+      description,
+      lessons,
+      days: allDays,
+      times: intensiveTimes,
+      startDate,
+      sessionDuration: maxSessionMinutes + 30,
+      deadline,
+    });
+  }
+
+  alternatives.sort((left, right) => right.daysBeforeDeadline - left.daysBeforeDeadline);
   return alternatives.slice(0, 4);
 }

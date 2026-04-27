@@ -24,11 +24,22 @@ export async function getCalendarEventsForUser(
   const selectedCalendarIds = await CalendarDbService.getSelectedCalendarIds(userId);
 
   if (integration.provider === 'google') {
+    const secondaryCalendarId = await CalendarDbService.getSecondaryCalendarId(userId);
+    const calendarIds =
+      selectedCalendarIds && selectedCalendarIds.length > 0
+        ? [
+            ...selectedCalendarIds,
+            ...(secondaryCalendarId && !selectedCalendarIds.includes(secondaryCalendarId)
+              ? [secondaryCalendarId]
+              : []),
+          ]
+        : undefined;
+
     return CalendarGoogleService.getGoogleCalendarEvents(
       accessToken,
       startDate,
       endDate,
-      selectedCalendarIds || undefined,
+      calendarIds,
     );
   }
 

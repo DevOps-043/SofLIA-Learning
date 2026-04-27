@@ -171,12 +171,6 @@ export const API_ENDPOINTS = {
     VOTES: '/community/questions/:id/votes',
     SEARCH: '/community/search',
   },
-  CHAT_LIA: {
-    SESSIONS: '/chat-lia/sessions',
-    MESSAGES: '/chat-lia/sessions/:id/messages',
-    SEND_MESSAGE: '/chat-lia/sessions/:id/messages',
-    SUGGESTIONS: '/chat-lia/suggestions',
-  },
   EVALUATIONS: {
     LIST: '/evaluations',
     DETAIL: '/evaluations/:id',

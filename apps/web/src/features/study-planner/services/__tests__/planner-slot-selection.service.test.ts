@@ -123,6 +123,38 @@ describe('selectStudyPlannerFinalSlots — empty input', () => {
   })
 })
 
+describe('selectStudyPlannerFinalSlots - sunday eligibility', () => {
+  it('excludes free sundays without work blocks', () => {
+    const sundaySlot = makeFreeSlot(ld(2025, 6, 8, 9, 0), ld(2025, 6, 8, 11, 0))
+    const sunday = makeDay(2025, 6, 8, [sundaySlot], { dayName: 'Domingo' })
+
+    const result = selectStudyPlannerFinalSlots(makeInput([sunday]))
+
+    expect(result.finalSlots).toHaveLength(0)
+  })
+
+  it('allows sundays with detected work blocks', () => {
+    const sundaySlot = makeFreeSlot(ld(2025, 6, 8, 9, 0), ld(2025, 6, 8, 11, 0))
+    const sunday = makeDay(2025, 6, 8, [sundaySlot], {
+      dayName: 'Domingo',
+      hasWorkBlock: true,
+    })
+
+    const result = selectStudyPlannerFinalSlots(makeInput([sunday]))
+
+    expect(result.finalSlots.length).toBeGreaterThan(0)
+  })
+
+  it('keeps non-sunday free days eligible', () => {
+    const mondaySlot = makeFreeSlot(ld(2025, 6, 9, 9, 0), ld(2025, 6, 9, 11, 0))
+    const monday = makeDay(2025, 6, 9, [mondaySlot], { dayName: 'Lunes' })
+
+    const result = selectStudyPlannerFinalSlots(makeInput([monday]))
+
+    expect(result.finalSlots.length).toBeGreaterThan(0)
+  })
+})
+
 // ─── Past slots filtered out ──────────────────────────────────────────────────
 
 describe('selectStudyPlannerFinalSlots — past slots filtered', () => {
@@ -239,4 +271,3 @@ describe('selectStudyPlannerFinalSlots — per-day slot cap', () => {
 })
 
 // ─── targetWindow date cutoff ─────────────────────────────────────────────────
-

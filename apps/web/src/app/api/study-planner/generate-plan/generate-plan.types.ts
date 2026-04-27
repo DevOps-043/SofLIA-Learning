@@ -18,6 +18,7 @@ export interface Preferences {
   /** Real end times from calendar work blocks keyed by YYYY-MM-DD. Sessions will not exceed this. */
   calendarEndTimesByDay?: Record<string, string>;
   availabilityMap?: Record<string, { freeSlots?: Array<{ startHour: number; startMinute: number; endHour: number; endMinute: number }> }>;
+  allowSunday?: boolean;
 }
 
 export interface StudyBlock {

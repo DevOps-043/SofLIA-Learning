@@ -265,5 +265,45 @@ describe('validateSchedulePlacementRules', () => {
 
     expect(result.valid).toBe(true);
   });
-});
 
+  it('rejects sunday placement without a work block or explicit sunday consent', () => {
+    const target = makePlacementSlot('2026-04-12', '10:00', '11:00');
+    const result = validateSchedulePlacementRules({
+      savedCalendarData: {
+        '2026-04-12': {
+          busySlots: [],
+          events: [],
+        },
+      } as any,
+      savedLessonDistribution: [target],
+      targetSlot: target,
+      userMessage: 'usa el tiempo libre',
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.message).toContain('domingo');
+  });
+
+  it('allows sunday placement inside a sunday work block', () => {
+    const target = makePlacementSlot('2026-04-12', '10:00', '11:00');
+    const result = validateSchedulePlacementRules({
+      savedCalendarData: {
+        '2026-04-12': {
+          busySlots: [],
+          events: [
+            {
+              title: 'Trabajo',
+              start: '2026-04-12T09:00:00',
+              end: '2026-04-12T17:00:00',
+            },
+          ],
+        },
+      } as any,
+      savedLessonDistribution: [target],
+      targetSlot: target,
+      userMessage: 'mueve la sesion',
+    });
+
+    expect(result.valid).toBe(true);
+  });
+});

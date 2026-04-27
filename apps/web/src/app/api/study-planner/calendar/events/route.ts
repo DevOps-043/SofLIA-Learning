@@ -5,6 +5,7 @@ import {
   getActiveStudySessionEventIds,
   getLatestCalendarIntegration,
   getOrphanedCalendarEventIds,
+  getStudySessionCalendarEvents,
 } from './calendar-events.db'
 import { refreshCalendarAccessToken } from './calendar-events-oauth.service'
 import {
@@ -26,13 +27,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
     }
 
+    const includeStudySessions =
+      request.nextUrl.searchParams.get('includeStudySessions') === 'true'
     const { startDate, endDate } = parseCalendarDateRange(request.url)
     const supabase = createCalendarAdminClient()
     const integration = await getLatestCalendarIntegration(supabase, user.id)
 
     if (!integration) {
+      const databaseStudySessionEvents = includeStudySessions
+        ? await getStudySessionCalendarEvents(
+            supabase,
+            user.id,
+            startDate,
+            endDate,
+          )
+        : []
+
       return NextResponse.json({
-        events: [],
+        events: databaseStudySessionEvents,
         message: 'No hay calendario conectado',
       })
     }
@@ -108,7 +120,22 @@ export async function GET(request: NextRequest) {
       integration.provider,
       activeEventIds,
     )
-    const finalEvents = filterOrphanedCalendarEvents(events, orphanedEventIds)
+    const nonOrphanedExternalEvents = filterOrphanedCalendarEvents(events, orphanedEventIds)
+    const databaseStudySessionEvents = includeStudySessions
+      ? await getStudySessionCalendarEvents(
+          supabase,
+          user.id,
+          startDate,
+          endDate,
+        )
+      : []
+    const finalEvents = [
+      ...nonOrphanedExternalEvents,
+      ...databaseStudySessionEvents,
+    ].sort(
+      (left, right) =>
+        new Date(left.start).getTime() - new Date(right.start).getTime(),
+    )
 
     return NextResponse.json({
       events: finalEvents,

@@ -1,0 +1,1 @@
+export { ChatSuggestionsChips } from './ChatSuggestionsChips'

@@ -150,6 +150,26 @@ describe('generateDeterministicPlan', () => {
 
     expect(typeof result).toBe('string')
   })
+
+  it('does not use sunday unless sunday is explicitly allowed', () => {
+    const result = generateDeterministicPlan(
+      makeLessons(2),
+      makePrefs({ days: ['domingo'] }),
+    )
+
+    expect(typeof result).toBe('string')
+    expect(result as string).not.toContain('Domingo')
+  })
+
+  it('uses sunday when sunday is explicitly allowed', () => {
+    const result = generateDeterministicPlan(
+      makeLessons(2),
+      makePrefs({ days: ['domingo'], allowSunday: true }),
+    )
+
+    expect(typeof result).toBe('string')
+    expect(result as string).toContain('Domingo')
+  })
 })
 
 describe('calculateValidAlternatives', () => {
@@ -205,6 +225,30 @@ describe('calculateValidAlternatives', () => {
       expect(alt).toHaveProperty('estimatedEndDate')
       expect(alt).toHaveProperty('daysBeforeDeadline')
     }
+  })
+
+  it('does not suggest sunday alternatives by default', () => {
+    const result = calculateValidAlternatives(
+      makeLessons(30),
+      makePrefs({ days: ['lunes'] }),
+      '2026-12-31',
+      30,
+    )
+
+    expect(result.every((alternative) => !alternative.days.includes('domingo'))).toBe(true)
+    expect(result.every((alternative) => !alternative.description.toLowerCase().includes('domingo'))).toBe(true)
+  })
+
+  it('can include sunday alternatives when sunday is allowed', () => {
+    const result = calculateValidAlternatives(
+      makeLessons(30),
+      makePrefs({ days: ['lunes'], allowSunday: true }),
+      '2026-12-31',
+      30,
+      true,
+    )
+
+    expect(result.some((alternative) => alternative.days.includes('domingo'))).toBe(true)
   })
 
   it('returns empty array when no alternatives can meet deadline', () => {

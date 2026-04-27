@@ -1,5 +1,6 @@
 import type { StudyPlannerCalendarDayAnalysis, StudyPlannerCalendarFreeSlotWithDay } from '../types/planner-schedule.types';
 import type { StudyApproach } from '../types/planner-ui.types';
+import { canUseSunday } from './sunday-eligibility.service';
 
 export const USER_COUNTRY = 'MX';
 export const MIN_SLOT_DURATION = 25;
@@ -69,6 +70,10 @@ export function buildCandidateSlots(
 
   daysAnalysis.forEach((day) => {
     if (day.requiresRestAfter) {
+      return;
+    }
+
+    if (!canUseSunday({ date: day.date, events: day.events, hasWorkBlock: day.hasWorkBlock })) {
       return;
     }
 

@@ -1,4 +1,5 @@
 import { logger } from '../../../../../../lib/utils/logger'
+import { resolveStudySessionTitle } from '../../../study-session-title.utils'
 import type { ActionResult } from '../types'
 import {
   createAdminClient,
@@ -68,7 +69,7 @@ export async function executeResyncCalendarSessions(
     const eventId = await createGoogleCalendarEvent(
       accessToken,
       {
-        title: session.title,
+        title: resolveStudySessionTitle(session),
         description: session.description || '',
         start_time: session.start_time,
         end_time: session.end_time,
