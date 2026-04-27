@@ -189,6 +189,35 @@ interface ActivityCompletionRecord {
   lesson_activities: Relation<LessonActivityRelationRecord>
 }
 
+interface ActivitySubmissionRecord {
+  submission_id: string
+  user_id: string
+  organization_id: string | null
+  course_id: string
+  lesson_id: string
+  activity_id: string
+  enrollment_id: string
+  status: string | null
+  response_text?: string | null
+  response_payload?: unknown
+  evidence_payload?: unknown
+  submitted_at: string | null
+  last_validated_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  courses: Relation<CourseRelationRecord>
+  lesson_activities: Relation<LessonActivityRelationRecord>
+}
+
+interface ActivityEvaluationRecord {
+  evaluation_id: string
+  submission_id: string
+  result_status: string | null
+  feedback_payload?: unknown
+  model_name?: string | null
+  created_at: string | null
+}
+
 interface LessonNoteRecord {
   note_id: string
   user_id: string
@@ -281,6 +310,8 @@ interface AnalyticsQueryData {
   enrollments: EnrollmentRecord[]
   lessonProgress: LessonProgressRecord[]
   activityCompletions: ActivityCompletionRecord[]
+  activitySubmissions: ActivitySubmissionRecord[]
+  activityEvaluations: ActivityEvaluationRecord[]
   lessonNotes: LessonNoteRecord[]
   liaConversations: LiaConversationRecord[]
   liaMessages: LiaMessageRecord[]
@@ -388,6 +419,7 @@ export function buildReportsAnalyticsDataset(
   applyEnrollments(context, queryData.enrollments)
   applyLessonProgress(context, queryData.lessonProgress)
   applyActivityCompletions(context, queryData.activityCompletions)
+  applyActivitySubmissions(context, queryData.activitySubmissions, queryData.activityEvaluations)
   applyLessonNotes(context, queryData.lessonNotes)
   applyLiaConversations(context, queryData.liaConversations, queryData.liaMessages)
   applyQuizSubmissions(context, queryData.quizSubmissions)
@@ -400,13 +432,22 @@ export function buildReportsAnalyticsDataset(
   const assignedCourses = userDetails.reduce((sum, user) => sum + user.coursesAssigned, 0)
   const completedCourses = userDetails.reduce((sum, user) => sum + user.coursesCompleted, 0)
   const overdueAssignments = userDetails.reduce((sum, user) => sum + user.overdueAssignments, 0)
-  const activityTotal = queryData.activityCompletions.filter((record) =>
-    shouldIncludeEngagementRecord(context, record.user_id, getCourseIdFromActivity(record), [
+  const legacyActivityTotal = queryData.activityCompletions.filter((record) =>
+    shouldIncludeEngagementRecord(context, record.user_id, getCourseIdFromActivityCompletion(record), [
       record.started_at,
       record.completed_at,
       record.updated_at,
     ]),
   ).length
+  const submissionActivityTotal = queryData.activitySubmissions.filter((record) =>
+    shouldIncludeEngagementRecord(context, record.user_id, record.course_id, [
+      record.submitted_at,
+      record.last_validated_at,
+      record.created_at,
+      record.updated_at,
+    ]),
+  ).length
+  const activityTotal = legacyActivityTotal + submissionActivityTotal
   const activityCompleted = userDetails.reduce((sum, user) => sum + user.activitiesCompleted, 0)
   const plannerPlanned = userDetails.reduce((sum, user) => sum + user.plannedSessions, 0)
   const plannerCompleted = userDetails.reduce((sum, user) => sum + user.completedSessions, 0)
@@ -416,10 +457,25 @@ export function buildReportsAnalyticsDataset(
   const demographics = buildDemographics(context.dimensions)
   const learning = buildLearning(context, userDetails)
   const soflia = buildSoflia(context, queryData.liaConversations, queryData.liaMessages)
-  const activities = buildActivities(context, queryData.activityCompletions, queryData.quizSubmissions)
+  const activities = buildActivities(
+    context,
+    queryData.activityCompletions,
+    queryData.activitySubmissions,
+    queryData.activityEvaluations,
+    queryData.quizSubmissions,
+  )
   const notes = buildNotes(context, queryData.lessonNotes, totalUsers)
   const planner = buildPlanner(context, queryData.studySessions)
-  const quality = buildQuality(context, queryData.activityCompletions, queryData.liaConversations, queryData.liaMessages, queryData.quizSubmissions, queryData.lessonNotes)
+  const quality = buildQuality(
+    context,
+    queryData.activityCompletions,
+    queryData.activitySubmissions,
+    queryData.activityEvaluations,
+    queryData.liaConversations,
+    queryData.liaMessages,
+    queryData.quizSubmissions,
+    queryData.lessonNotes,
+  )
   const segments = buildSegments(userDetails)
   const rankings = buildRankings(userDetails)
   const dataQuality = buildDataQuality(context.dimensions)
@@ -514,6 +570,7 @@ async function fetchReportsAnalyticsQueryData(
     enrollments,
     lessonProgress,
     activityCompletions,
+    activitySubmissions,
     lessonNotes,
     liaConversations,
     quizSubmissions,
@@ -645,6 +702,48 @@ async function fetchReportsAnalyticsQueryData(
         .in('user_id', chunk)
         .range(from, to),
     ),
+    fetchUserScopedRows<ActivitySubmissionRecord>('activity submissions', organizationUserIds, (chunk, from, to) =>
+      supabase
+        .from('user_activity_submissions')
+        .select(`
+          submission_id,
+          user_id,
+          organization_id,
+          course_id,
+          lesson_id,
+          activity_id,
+          enrollment_id,
+          status,
+          response_text,
+          response_payload,
+          evidence_payload,
+          submitted_at,
+          last_validated_at,
+          created_at,
+          updated_at,
+          courses (
+            id,
+            title
+          ),
+          lesson_activities (
+            activity_id,
+            activity_title,
+            activity_type,
+            lesson_id,
+            course_lessons (
+              lesson_id,
+              module_id,
+              course_modules (
+                module_id,
+                course_id
+              )
+            )
+          )
+        `)
+        .eq('organization_id', organizationId)
+        .in('user_id', chunk)
+        .range(from, to),
+    ),
     fetchUserScopedRows<LessonNoteRecord>('lesson notes', organizationUserIds, (chunk, from, to) =>
       supabase
         .from('user_lesson_notes')
@@ -748,7 +847,10 @@ async function fetchReportsAnalyticsQueryData(
     ),
   ])
 
-  const liaMessages = await fetchLiaMessages(supabase, liaConversations)
+  const [liaMessages, activityEvaluations] = await Promise.all([
+    fetchLiaMessages(supabase, liaConversations),
+    fetchActivityEvaluations(supabase, activitySubmissions),
+  ])
 
   return {
     organizationUsers,
@@ -759,6 +861,8 @@ async function fetchReportsAnalyticsQueryData(
     enrollments,
     lessonProgress,
     activityCompletions,
+    activitySubmissions,
+    activityEvaluations,
     lessonNotes,
     liaConversations,
     liaMessages,
@@ -836,6 +940,38 @@ async function fetchLiaMessages(
           tokens_used
         `)
           .in('conversation_id', chunk)
+          .range(from, to),
+      ),
+    ),
+  )
+
+  return chunkResults.flat()
+}
+
+async function fetchActivityEvaluations(
+  supabase: ReportsAnalyticsSupabaseClient,
+  submissions: ActivitySubmissionRecord[],
+): Promise<ActivityEvaluationRecord[]> {
+  const submissionIds = Array.from(
+    new Set(submissions.map((submission) => submission.submission_id).filter(Boolean)),
+  )
+
+  if (submissionIds.length === 0) return []
+
+  const chunkResults = await Promise.all(
+    chunkArray(submissionIds, 400).map((chunk) =>
+      fetchPagedRows<ActivityEvaluationRecord>('activity evaluations', (from, to) =>
+        supabase
+          .from('user_activity_evaluations')
+          .select(`
+            evaluation_id,
+            submission_id,
+            result_status,
+            feedback_payload,
+            model_name,
+            created_at
+          `)
+          .in('submission_id', chunk)
           .range(from, to),
       ),
     ),
@@ -1105,7 +1241,7 @@ function applyLessonProgress(context: BuildContext, records: LessonProgressRecor
 
 function applyActivityCompletions(context: BuildContext, records: ActivityCompletionRecord[]): void {
   records.forEach((record) => {
-    const courseId = getCourseIdFromActivity(record)
+    const courseId = getCourseIdFromActivityCompletion(record)
     if (
       !shouldIncludeEngagementRecord(context, record.user_id, courseId, [
         record.started_at,
@@ -1152,6 +1288,68 @@ function applyActivityCompletions(context: BuildContext, records: ActivityComple
         attempts: record.attempts_to_complete,
         userNeededHelp: record.user_needed_help,
         redirects: record.lia_had_to_redirect,
+      },
+    })
+  })
+}
+
+function applyActivitySubmissions(
+  context: BuildContext,
+  records: ActivitySubmissionRecord[],
+  evaluations: ActivityEvaluationRecord[],
+): void {
+  const latestEvaluationBySubmission = buildLatestActivityEvaluationBySubmission(evaluations)
+
+  records.forEach((record) => {
+    if (
+      !shouldIncludeEngagementRecord(context, record.user_id, record.course_id, [
+        record.submitted_at,
+        record.last_validated_at,
+        record.created_at,
+        record.updated_at,
+      ])
+    ) {
+      return
+    }
+
+    const user = context.users.get(record.user_id)
+    if (!user) return
+
+    const activity = unwrapRelation(record.lesson_activities)
+    const course = ensureCourse(context, record.course_id, unwrapRelation(record.courses)?.title)
+    const latestEvaluation = latestEvaluationBySubmission.get(record.submission_id) || null
+    const completed = isCompletedActivitySubmission(record, latestEvaluation)
+    const needsHelp = latestEvaluation?.result_status === 'revise' || record.status === 'needs_revision'
+    const qualityScore = getActivitySubmissionQualityScore(record, latestEvaluation)
+
+    user.detail.activityAttempts += 1
+    user.activityQualityScores.push(qualityScore)
+    course.activityTotal += 1
+    course.activeLearners.add(record.user_id)
+
+    if (completed) {
+      user.detail.activitiesCompleted += 1
+      course.activityCompleted += 1
+    }
+
+    pushLastActivity(user, record.submitted_at, record.last_validated_at, record.created_at, record.updated_at)
+    pushAiSample(context, {
+      source: 'activity_response',
+      userId: record.user_id,
+      courseId: record.course_id,
+      courseTitle: course.courseTitle,
+      text: stringifySampleContent([
+        record.response_text,
+        record.response_payload,
+        record.evidence_payload,
+        latestEvaluation?.feedback_payload,
+      ].filter(Boolean)),
+      signals: {
+        qualityScore,
+        status: record.status,
+        evaluation: latestEvaluation?.result_status || null,
+        userNeededHelp: needsHelp,
+        activityType: activity?.activity_type || null,
       },
     })
   })
@@ -1517,9 +1715,12 @@ function buildSoflia(
 function buildActivities(
   context: BuildContext,
   activities: ActivityCompletionRecord[],
+  submissions: ActivitySubmissionRecord[],
+  evaluations: ActivityEvaluationRecord[],
   quizzes: QuizSubmissionRecord[],
 ): ReportsAnalyticsActivities {
   const typeCounts = new Map<string, number>()
+  const latestEvaluationBySubmission = buildLatestActivityEvaluationBySubmission(evaluations)
   const quizScores: number[] = []
   let totalActivities = 0
   let completedActivities = 0
@@ -1532,7 +1733,7 @@ function buildActivities(
   let quizAttempts = 0
 
   activities.forEach((activity) => {
-    const courseId = getCourseIdFromActivity(activity)
+    const courseId = getCourseIdFromActivityCompletion(activity)
     if (
       !shouldIncludeEngagementRecord(context, activity.user_id, courseId, [
         activity.started_at,
@@ -1554,6 +1755,30 @@ function buildActivities(
     redirects += Number(activity.lia_had_to_redirect) || 0
 
     const activityType = unwrapRelation(activity.lesson_activities)?.activity_type
+    incrementMap(typeCounts, normalizeDimension(activityType))
+  })
+
+  submissions.forEach((submission) => {
+    if (
+      !shouldIncludeEngagementRecord(context, submission.user_id, submission.course_id, [
+        submission.submitted_at,
+        submission.last_validated_at,
+        submission.created_at,
+        submission.updated_at,
+      ])
+    ) {
+      return
+    }
+
+    const latestEvaluation = latestEvaluationBySubmission.get(submission.submission_id) || null
+    totalActivities += 1
+    totalAttempts += 1
+    if (isCompletedActivitySubmission(submission, latestEvaluation)) completedActivities += 1
+    if (latestEvaluation?.result_status === 'revise' || submission.status === 'needs_revision') {
+      usersNeedingHelp.add(submission.user_id)
+    }
+
+    const activityType = unwrapRelation(submission.lesson_activities)?.activity_type
     incrementMap(typeCounts, normalizeDimension(activityType))
   })
 
@@ -1583,6 +1808,9 @@ function buildActivities(
     averageTimeMinutes: calculateAverage(timedActivities > 0 ? [totalSeconds / timedActivities / 60] : []),
     usersNeedingHelp: usersNeedingHelp.size,
     redirects,
+    totalEvaluations: quizAttempts,
+    completedEvaluations: quizPassed,
+    evaluationCompletionRate: calculatePercentage(quizPassed, quizAttempts),
     quizAttempts,
     quizPassRate: calculatePercentage(quizPassed, quizAttempts),
     quizAverageScore: calculateAverage(quizScores),
@@ -1674,20 +1902,39 @@ function buildPlanner(context: BuildContext, sessions: StudySessionRecord[]): Re
 function buildQuality(
   context: BuildContext,
   activities: ActivityCompletionRecord[],
+  submissions: ActivitySubmissionRecord[],
+  evaluations: ActivityEvaluationRecord[],
   conversations: LiaConversationRecord[],
   messages: LiaMessageRecord[],
   quizzes: QuizSubmissionRecord[],
   notes: LessonNoteRecord[],
 ): ReportsAnalyticsQuality {
   const includedActivities = activities.filter((activity) =>
-    shouldIncludeEngagementRecord(context, activity.user_id, getCourseIdFromActivity(activity), [
+    shouldIncludeEngagementRecord(context, activity.user_id, getCourseIdFromActivityCompletion(activity), [
       activity.started_at,
       activity.completed_at,
       activity.updated_at,
     ]),
   )
   const completedActivities = includedActivities.filter((activity) => isCompletedStatus(activity.status)).length
-  const usersNeedingHelp = includedActivities.filter((activity) => activity.user_needed_help).length
+  const latestEvaluationBySubmission = buildLatestActivityEvaluationBySubmission(evaluations)
+  const includedSubmissions = submissions.filter((submission) =>
+    shouldIncludeEngagementRecord(context, submission.user_id, submission.course_id, [
+      submission.submitted_at,
+      submission.last_validated_at,
+      submission.created_at,
+      submission.updated_at,
+    ]),
+  )
+  const completedSubmissions = includedSubmissions.filter((submission) =>
+    isCompletedActivitySubmission(submission, latestEvaluationBySubmission.get(submission.submission_id) || null),
+  ).length
+  const usersNeedingHelp =
+    includedActivities.filter((activity) => activity.user_needed_help).length +
+    includedSubmissions.filter((submission) => {
+      const evaluation = latestEvaluationBySubmission.get(submission.submission_id)
+      return submission.status === 'needs_revision' || evaluation?.result_status === 'revise'
+    }).length
   const redirects = includedActivities.reduce((sum, activity) => sum + (Number(activity.lia_had_to_redirect) || 0), 0)
 
   const includedQuizzes = quizzes.filter((quiz) => {
@@ -1732,9 +1979,13 @@ function buildQuality(
   const notesWithContent = includedNotes.filter((note) => Boolean(note.note_content)).length
 
   const quizScore = calculateAverage(quizScores)
-  const activityCompletionRate = calculatePercentage(completedActivities, includedActivities.length)
-  const helpRate = calculatePercentage(usersNeedingHelp, includedActivities.length)
-  const redirectRate = calculatePercentage(redirects, includedActivities.length)
+  const totalActivityEvidence = includedActivities.length + includedSubmissions.length
+  const activityCompletionRate = calculatePercentage(
+    completedActivities + completedSubmissions,
+    totalActivityEvidence,
+  )
+  const helpRate = calculatePercentage(usersNeedingHelp, totalActivityEvidence)
+  const redirectRate = calculatePercentage(redirects, totalActivityEvidence)
   const offTopicRate = calculatePercentage(offTopicMessages, userMessages.length)
   const questionRate = calculatePercentage(questionMessages, userMessages.length)
   const averageSentiment = sentimentScores.length > 0 ? Math.round(calculateAverage(sentimentScores) * 100) / 100 : 0
@@ -1758,7 +2009,7 @@ function buildQuality(
     questionRate,
     averageResponseTimeSeconds: calculateAverage(responseTimes.map((value) => value / 1000)),
     averageSentiment,
-    evidenceCount: includedActivities.length + includedQuizzes.length + userMessages.length + includedNotes.length,
+    evidenceCount: totalActivityEvidence + includedQuizzes.length + userMessages.length + includedNotes.length,
     radar: buildBreakdown(
       new Map([
         ['quiz', Math.round(quizScore)],
@@ -2090,13 +2341,52 @@ function isCompletedStatus(status: string | null | undefined): boolean {
   return normalized === 'completed' || normalized === 'complete' || normalized === 'finished'
 }
 
+function isCompletedActivitySubmission(
+  submission: ActivitySubmissionRecord,
+  latestEvaluation: ActivityEvaluationRecord | null,
+): boolean {
+  const status = submission.status?.toLowerCase()
+  return status === 'validated' || latestEvaluation?.result_status === 'pass'
+}
+
+function getActivitySubmissionQualityScore(
+  submission: ActivitySubmissionRecord,
+  latestEvaluation: ActivityEvaluationRecord | null,
+): number {
+  if (latestEvaluation?.result_status === 'pass') return 100
+  if (latestEvaluation?.result_status === 'revise') return 55
+  if (latestEvaluation?.result_status === 'error') return 30
+  if (submission.status === 'validated') return 90
+  if (submission.status === 'submitted') return 70
+  if (submission.status === 'needs_revision') return 50
+  return 25
+}
+
+function buildLatestActivityEvaluationBySubmission(
+  evaluations: ActivityEvaluationRecord[],
+): Map<string, ActivityEvaluationRecord> {
+  return evaluations
+    .filter((evaluation) => Boolean(evaluation.submission_id))
+    .sort((a, b) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0
+      return bTime - aTime
+    })
+    .reduce((map, evaluation) => {
+      if (!map.has(evaluation.submission_id)) {
+        map.set(evaluation.submission_id, evaluation)
+      }
+      return map
+    }, new Map<string, ActivityEvaluationRecord>())
+}
+
 function isOverdueAssignment(assignment: AssignmentRecord): boolean {
   if (!assignment.due_date) return false
   if (isCompletedStatus(assignment.status) || assignment.completed_at) return false
   return new Date(assignment.due_date) < new Date()
 }
 
-function getCourseIdFromActivity(record: ActivityCompletionRecord): string {
+function getCourseIdFromActivityCompletion(record: ActivityCompletionRecord): string {
   const activity = unwrapRelation(record.lesson_activities)
   return getCourseIdFromLesson(activity?.course_lessons)
 }

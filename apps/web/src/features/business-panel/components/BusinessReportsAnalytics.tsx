@@ -7,6 +7,7 @@ import {
   Brain,
   CalendarCheck2,
   Download,
+  FileSpreadsheet,
   FileText,
   Loader2,
   RefreshCcw,
@@ -19,7 +20,8 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
-import { useCallback, useMemo, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import {
   Area,
@@ -42,6 +44,7 @@ import businessEs from '../../../../public/locales/es/business.json'
 import businessPt from '../../../../public/locales/pt/business.json'
 import { useBusinessReportsAnalytics } from '../hooks/useBusinessReportsAnalytics'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import { PremiumDatePicker } from './PremiumDatePicker'
 import type {
   ReportsAnalyticsBreakdownItem,
   ReportsAnalyticsAiInsights,
@@ -148,12 +151,12 @@ export function BusinessReportsAnalytics() {
               {t('reportsAnalytics.description')}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap">
             <button
               type="button"
               onClick={() => generateInsights(locale)}
               disabled={!data || isGeneratingInsights}
-              className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               style={{
                 borderColor: theme.inverseBorderColor,
                 backgroundColor: theme.inverseSurface,
@@ -165,10 +168,24 @@ export function BusinessReportsAnalytics() {
             </button>
             <button
               type="button"
+              onClick={() => exportAnalytics('xlsx', locale)}
+              disabled={!data || Boolean(isExporting)}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              style={{ backgroundColor: theme.onActionColor, color: theme.actionColor }}
+            >
+              {isExporting === 'xlsx' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+              {t('reportsAnalytics.actions.exportExcel')}
+            </button>
+            <button
+              type="button"
               onClick={() => exportAnalytics('csv_zip', locale)}
               disabled={!data || Boolean(isExporting)}
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
-              style={{ backgroundColor: theme.onActionColor, color: theme.actionColor }}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+              style={{
+                borderColor: theme.inverseBorderColor,
+                backgroundColor: theme.inverseSurface,
+                color: theme.inverseTextColor,
+              }}
             >
               {isExporting === 'csv_zip' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
               {t('reportsAnalytics.actions.exportCsv')}
@@ -177,7 +194,7 @@ export function BusinessReportsAnalytics() {
               type="button"
               onClick={() => exportAnalytics('pdf', locale)}
               disabled={!data || Boolean(isExporting)}
-              className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
               style={{
                 borderColor: theme.inverseBorderColor,
                 backgroundColor: theme.inverseSurface,
@@ -290,9 +307,10 @@ export function BusinessReportsAnalytics() {
               theme={theme}
               rows={[
                 [t('reportsAnalytics.metrics.totalActivities'), data.activities.totalActivities],
-                [t('reportsAnalytics.metrics.activityCompletionRate'), `${data.activities.completionRate}%`],
+                [t('reportsAnalytics.metrics.completedActivities'), data.activities.completedActivities],
+                [t('reportsAnalytics.metrics.totalEvaluations'), data.activities.totalEvaluations],
                 [t('reportsAnalytics.metrics.quizAverageScore'), `${data.activities.quizAverageScore}%`],
-                [t('reportsAnalytics.metrics.usersNeedingHelp'), data.activities.usersNeedingHelp],
+                [t('reportsAnalytics.metrics.activityCompletionRate'), `${data.activities.completionRate}%`],
               ]}
             />
             <SummaryCard
@@ -355,40 +373,48 @@ function FiltersBar({
   )
 
   return (
-    <section className="rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <FilterField label={t('reportsAnalytics.filters.from')} theme={theme}>
-          <input value={filters.from} onChange={(event) => onFilterChange('from', event.target.value)} type="date" className="w-full bg-transparent text-sm outline-none" style={{ color: theme.textColor }} />
-        </FilterField>
-        <FilterField label={t('reportsAnalytics.filters.to')} theme={theme}>
-          <input value={filters.to} onChange={(event) => onFilterChange('to', event.target.value)} type="date" className="w-full bg-transparent text-sm outline-none" style={{ color: theme.textColor }} />
-        </FilterField>
-        <SelectFilter value={filters.courseId} label={t('reportsAnalytics.filters.course')} theme={theme} onChange={(value) => onFilterChange('courseId', value)} options={data?.filterOptions.courses || []} allLabel={t('reportsAnalytics.filters.allCourses')} />
-        <SelectFilter value={filters.jobTitle} label={t('reportsAnalytics.filters.jobTitle')} theme={theme} onChange={(value) => onFilterChange('jobTitle', value)} options={data?.filterOptions.jobTitles || []} allLabel={t('reportsAnalytics.filters.allJobTitles')} />
-        <SelectFilter value={filters.gender} label={t('reportsAnalytics.filters.gender')} theme={theme} onChange={(value) => onFilterChange('gender', value)} options={(data?.filterOptions.genders || []).map((item) => ({ ...item, label: translateKey(t, 'gender', item.value) }))} allLabel={t('reportsAnalytics.filters.allGenders')} />
-        <SelectFilter value={filters.ageBand} label={t('reportsAnalytics.filters.ageBand')} theme={theme} onChange={(value) => onFilterChange('ageBand', value)} options={(data?.filterOptions.ageBands || []).map((item) => ({ ...item, label: translateKey(t, 'ageBands', item.value) }))} allLabel={t('reportsAnalytics.filters.allAgeBands')} />
-        <SelectFilter value={filters.role} label={t('reportsAnalytics.filters.role')} theme={theme} onChange={(value) => onFilterChange('role', value)} options={(data?.filterOptions.roles || []).map((item) => ({ ...item, label: translateKey(t, 'roles', item.value) }))} allLabel={t('reportsAnalytics.filters.allRoles')} />
-        <SelectFilter value={filters.status} label={t('reportsAnalytics.filters.status')} theme={theme} onChange={(value) => onFilterChange('status', value)} options={(data?.filterOptions.statuses || []).map((item) => ({ ...item, label: translateKey(t, 'statuses', item.value) }))} allLabel={t('reportsAnalytics.filters.allStatuses')} />
-        <SelectFilter value={filters.regionId} label={t('reportsAnalytics.filters.region')} theme={theme} onChange={(value) => onFilterChange('regionId', value)} options={data?.filterOptions.regions || []} allLabel={t('reportsAnalytics.filters.allRegions')} />
-        <SelectFilter value={filters.zoneId} label={t('reportsAnalytics.filters.zone')} theme={theme} onChange={(value) => onFilterChange('zoneId', value)} options={zones} allLabel={t('reportsAnalytics.filters.allZones')} />
-        <SelectFilter value={filters.teamId} label={t('reportsAnalytics.filters.team')} theme={theme} onChange={(value) => onFilterChange('teamId', value)} options={teams} allLabel={t('reportsAnalytics.filters.allTeams')} />
+    <section className="rounded-xl border p-5 sm:p-6" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: theme.mutedTextColor }}>
+            {t('reportsAnalytics.filters.from')}
+          </span>
+          <PremiumDatePicker value={filters.from} onChange={(value) => onFilterChange('from', value)} placeholder="Fecha inicio..." />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: theme.mutedTextColor }}>
+            {t('reportsAnalytics.filters.to')}
+          </span>
+          <PremiumDatePicker value={filters.to} onChange={(value) => onFilterChange('to', value)} placeholder="Fecha fin..." />
+        </div>
+        <PremiumSelectFilter value={filters.courseId} label={t('reportsAnalytics.filters.course')} theme={theme} onChange={(value) => onFilterChange('courseId', value)} options={data?.filterOptions.courses || []} allLabel={t('reportsAnalytics.filters.allCourses')} />
+        <PremiumSelectFilter value={filters.jobTitle} label={t('reportsAnalytics.filters.jobTitle')} theme={theme} onChange={(value) => onFilterChange('jobTitle', value)} options={data?.filterOptions.jobTitles || []} allLabel={t('reportsAnalytics.filters.allJobTitles')} />
+        <PremiumSelectFilter value={filters.gender} label={t('reportsAnalytics.filters.gender')} theme={theme} onChange={(value) => onFilterChange('gender', value)} options={(data?.filterOptions.genders || []).map((item) => ({ ...item, label: translateKey(t, 'gender', item.value) }))} allLabel={t('reportsAnalytics.filters.allGenders')} />
+        <PremiumSelectFilter value={filters.ageBand} label={t('reportsAnalytics.filters.ageBand')} theme={theme} onChange={(value) => onFilterChange('ageBand', value)} options={(data?.filterOptions.ageBands || []).map((item) => ({ ...item, label: translateKey(t, 'ageBands', item.value) }))} allLabel={t('reportsAnalytics.filters.allAgeBands')} />
+        <PremiumSelectFilter value={filters.role} label={t('reportsAnalytics.filters.role')} theme={theme} onChange={(value) => onFilterChange('role', value)} options={(data?.filterOptions.roles || []).map((item) => ({ ...item, label: translateKey(t, 'roles', item.value) }))} allLabel={t('reportsAnalytics.filters.allRoles')} />
+        <PremiumSelectFilter value={filters.status} label={t('reportsAnalytics.filters.status')} theme={theme} onChange={(value) => onFilterChange('status', value)} options={(data?.filterOptions.statuses || []).map((item) => ({ ...item, label: translateKey(t, 'statuses', item.value) }))} allLabel={t('reportsAnalytics.filters.allStatuses')} />
+        <PremiumSelectFilter value={filters.regionId} label={t('reportsAnalytics.filters.region')} theme={theme} onChange={(value) => onFilterChange('regionId', value)} options={data?.filterOptions.regions || []} allLabel={t('reportsAnalytics.filters.allRegions')} />
+        <PremiumSelectFilter value={filters.zoneId} label={t('reportsAnalytics.filters.zone')} theme={theme} onChange={(value) => onFilterChange('zoneId', value)} options={zones} allLabel={t('reportsAnalytics.filters.allZones')} />
+        <PremiumSelectFilter value={filters.teamId} label={t('reportsAnalytics.filters.team')} theme={theme} onChange={(value) => onFilterChange('teamId', value)} options={teams} allLabel={t('reportsAnalytics.filters.allTeams')} />
       </div>
-      <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <GranularityControl
-          value={filters.granularity}
-          theme={theme}
-          t={t}
-          onChange={(value) => onFilterChange('granularity', value)}
-        />
-        <div className="flex flex-wrap gap-3">
-          <button type="button" onClick={onRefresh} disabled={isLoading} className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}>
-            <RefreshCcw className={isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
-            {t('reportsAnalytics.actions.refresh')}
-          </button>
-          <button type="button" onClick={onReset} className="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-semibold" style={{ borderColor: theme.borderColor, color: theme.textColor }}>
-            <RotateCcw className="h-4 w-4" />
-            {t('reportsAnalytics.actions.reset')}
-          </button>
+      <div className="mt-5 border-t pt-5" style={{ borderColor: theme.dividerColor }}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <GranularityControl
+            value={filters.granularity}
+            theme={theme}
+            t={t}
+            onChange={(value) => onFilterChange('granularity', value)}
+          />
+          <div className="flex flex-wrap gap-3">
+            <button type="button" onClick={onRefresh} disabled={isLoading} className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}>
+              <RefreshCcw className={isLoading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+              {t('reportsAnalytics.actions.refresh')}
+            </button>
+            <button type="button" onClick={onReset} className="inline-flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold" style={{ borderColor: theme.borderColor, color: theme.textColor }}>
+              <RotateCcw className="h-4 w-4" />
+              {t('reportsAnalytics.actions.reset')}
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -413,7 +439,7 @@ function GranularityControl({
       <span className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: theme.mutedTextColor }}>
         {t('reportsAnalytics.filters.granularity')}
       </span>
-      <div className="inline-flex w-fit rounded-lg border p-1" style={{ borderColor: theme.borderColor, backgroundColor: theme.inputBg }}>
+      <div className="inline-flex w-fit rounded-xl border-2 p-1" style={{ borderColor: theme.borderColor, backgroundColor: theme.inputBg }}>
         {options.map((option) => {
           const isSelected = value === option
           return (
@@ -421,7 +447,7 @@ function GranularityControl({
               key={option}
               type="button"
               onClick={() => onChange(option)}
-              className="rounded-md px-3 py-1.5 text-sm font-semibold transition"
+              className="rounded-lg px-4 py-2 text-sm font-semibold transition"
               style={{
                 backgroundColor: isSelected ? theme.actionColor : 'transparent',
                 color: isSelected ? theme.onActionColor : theme.subtextColor,
@@ -436,18 +462,7 @@ function GranularityControl({
   )
 }
 
-function FilterField({ label, theme, children }: { label: string; theme: ThemeTokens; children: ReactNode }) {
-  return (
-    <label className="block rounded-lg border px-3 py-2" style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}>
-      <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: theme.mutedTextColor }}>
-        {label}
-      </span>
-      {children}
-    </label>
-  )
-}
-
-function SelectFilter({
+function PremiumSelectFilter({
   value,
   label,
   options,
@@ -462,17 +477,101 @@ function SelectFilter({
   theme: ThemeTokens
   onChange: (value: string) => void
 }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const hasSelection = value !== ''
+  const selectedLabel = hasSelection
+    ? options.find((o) => o.value === value)?.label ?? allLabel
+    : allLabel
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [isOpen])
+
   return (
-    <FilterField label={label} theme={theme}>
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="w-full bg-transparent text-sm outline-none" style={{ color: theme.textColor }}>
-        <option value="">{allLabel}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </FilterField>
+    <div ref={ref} className="relative flex flex-col gap-1.5">
+      <span className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: theme.mutedTextColor }}>
+        {label}
+      </span>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between gap-2 rounded-xl border-2 px-4 py-3 text-left transition-all duration-200"
+        style={{
+          backgroundColor: theme.inputBg,
+          borderColor: hasSelection ? theme.actionColor : theme.borderColor,
+          color: theme.textColor,
+        }}
+      >
+        <span className="truncate text-sm leading-none">{selectedLabel}</span>
+        <motion.svg
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="h-4 w-4 shrink-0 opacity-50"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </motion.svg>
+      </button>
+
+      <AnimatePresence>
+        {isOpen ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-56 overflow-y-auto rounded-xl border shadow-2xl"
+            style={{
+              backgroundColor: theme.cardBg,
+              borderColor: theme.dividerColor,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => { onChange(''); setIsOpen(false) }}
+              className="w-full px-4 py-2.5 text-left text-sm transition-colors"
+              style={{
+                backgroundColor: !hasSelection ? `${theme.actionColor}25` : 'transparent',
+                color: !hasSelection ? theme.actionColor : theme.subtextColor,
+              }}
+            >
+              {allLabel}
+            </button>
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => { onChange(option.value); setIsOpen(false) }}
+                className="w-full px-4 py-2.5 text-left text-sm transition-colors"
+                style={{
+                  backgroundColor: value === option.value ? `${theme.actionColor}25` : 'transparent',
+                  color: value === option.value ? theme.actionColor : theme.subtextColor,
+                }}
+                onMouseEnter={(e) => {
+                  if (value !== option.value) e.currentTarget.style.backgroundColor = theme.hoverBg
+                }}
+                onMouseLeave={(e) => {
+                  if (value !== option.value) e.currentTarget.style.backgroundColor = 'transparent'
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -535,19 +634,20 @@ function BreakdownCard({
       {chartData.length === 0 ? (
         <EmptyChart theme={theme} />
       ) : variant === 'horizontalBar' ? (
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height="100%">
           <RechartsBarChart
             data={chartData.slice(0, 8)}
             layout="vertical"
-            margin={{ left: 16, right: 16, top: 8, bottom: 8 }}
+            margin={{ left: 4, right: 16, top: 8, bottom: 8 }}
           >
             <CartesianGrid stroke={theme.dividerColor} horizontal={false} />
             <XAxis type="number" tick={{ fill: theme.subtextColor, fontSize: 11 }} allowDecimals={false} />
             <YAxis
               type="category"
               dataKey="label"
-              width={112}
+              width={104}
               tick={{ fill: theme.subtextColor, fontSize: 11 }}
+              tickFormatter={(value) => truncateLabel(String(value), 16)}
               interval={0}
             />
             <Tooltip contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }} />
@@ -559,7 +659,7 @@ function BreakdownCard({
           </RechartsBarChart>
         </ResponsiveContainer>
       ) : variant === 'radial' ? (
-        <div className="grid h-full min-h-0 gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 md:grid-cols-[minmax(0,1fr)_180px] md:grid-rows-1">
           <ResponsiveContainer width="100%" height="100%">
             <RadialBarChart innerRadius="26%" outerRadius="94%" barSize={12} data={chartData}>
               <RadialBar dataKey="value" cornerRadius={8} background={{ fill: theme.hoverBg }} />
@@ -569,7 +669,7 @@ function BreakdownCard({
           <BreakdownLegend data={chartData} theme={theme} />
         </div>
       ) : (
-        <div className="grid h-full min-h-0 gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
+        <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] gap-4 md:grid-cols-[minmax(0,1fr)_180px] md:grid-rows-1">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Tooltip contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }} />
@@ -595,7 +695,7 @@ function BreakdownLegend({
   theme: ThemeTokens
 }) {
   return (
-    <div className="min-h-0 space-y-2 overflow-y-auto pr-1">
+    <div className="max-h-28 min-h-0 space-y-2 overflow-y-auto pr-1 md:max-h-none">
       {data.slice(0, 8).map((item) => (
         <div key={item.key} className="flex items-center justify-between gap-3 text-xs">
           <div className="flex min-w-0 items-center gap-2">
@@ -626,25 +726,30 @@ function TrendCard({
 }) {
   return (
     <ChartShell title={title} subtitle={subtitle} theme={theme}>
-      <ResponsiveContainer width="100%" height={280}>
-        <AreaChart data={data} margin={{ left: -20, right: 8, top: 8, bottom: 12 }}>
-          <CartesianGrid stroke={theme.dividerColor} vertical={false} />
-          <XAxis dataKey="label" tick={{ fill: theme.subtextColor, fontSize: 11 }} />
-          <YAxis tick={{ fill: theme.subtextColor, fontSize: 11 }} />
-          <Tooltip
-            contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }}
-            formatter={(value) => [value, valueLabel]}
-          />
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke={theme.actionColor}
-            strokeWidth={3}
-            fill={theme.actionSurface}
-            dot={{ r: 3, fill: theme.actionColor }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+      {data.length > 0 ? (
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ left: -4, right: 12, top: 10, bottom: 20 }}>
+            <CartesianGrid stroke={theme.dividerColor} vertical={false} />
+            <XAxis dataKey="label" tick={{ fill: theme.subtextColor, fontSize: 11 }} minTickGap={12} />
+            <YAxis tick={{ fill: theme.subtextColor, fontSize: 11 }} width={36} allowDecimals={false} />
+            <Tooltip
+              contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }}
+              formatter={(value) => [value, valueLabel]}
+            />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={theme.actionColor}
+              strokeWidth={3}
+              fill={theme.actionSurface}
+              dot={{ r: 3, fill: theme.actionColor }}
+              activeDot={{ r: 5 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      ) : (
+        <EmptyChart theme={theme} />
+      )}
     </ChartShell>
   )
 }
@@ -886,13 +991,13 @@ function SegmentComparisonPanel({ data, theme, t }: { data: ReportsAnalyticsResp
         <h2 className="text-lg font-semibold" style={{ color: theme.textColor }}>{t('reportsAnalytics.sections.segmentComparison')}</h2>
         <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>{t('reportsAnalytics.sections.segmentComparisonSubtitle')}</p>
       </div>
-      <div className="mt-4 h-64">
+      <div className="mt-4 h-80 min-h-[280px] overflow-hidden">
         {chartRows.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <RechartsBarChart data={chartRows} layout="vertical" margin={{ top: 8, right: 12, bottom: 8, left: 24 }}>
+            <RechartsBarChart data={chartRows} layout="vertical" margin={{ top: 8, right: 12, bottom: 16, left: 4 }}>
               <CartesianGrid stroke={theme.dividerColor} horizontal={false} />
               <XAxis type="number" domain={[0, 100]} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
-              <YAxis type="category" dataKey="shortLabel" width={112} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
+              <YAxis type="category" dataKey="shortLabel" width={104} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
               <Tooltip
                 contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }}
                 formatter={(value, name) => [
@@ -1075,10 +1180,10 @@ function UserRankCard({
 
 function ChartShell({ title, subtitle, theme, children }: { title: string; subtitle: string; theme: ThemeTokens; children: ReactNode }) {
   return (
-    <section className="rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
-      <h2 className="text-lg font-semibold" style={{ color: theme.textColor }}>{title}</h2>
-      <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>{subtitle}</p>
-      <div className="mt-4 h-[280px] min-w-0">{children}</div>
+    <section className="min-w-0 overflow-hidden rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
+      <h2 className="text-base font-semibold leading-6 sm:text-lg" style={{ color: theme.textColor }}>{title}</h2>
+      <p className="mt-1 text-sm leading-5" style={{ color: theme.subtextColor }}>{subtitle}</p>
+      <div className="mt-4 h-[320px] min-h-[280px] w-full min-w-0 overflow-hidden sm:h-[300px]">{children}</div>
     </section>
   )
 }
@@ -1094,9 +1199,9 @@ function SummaryCard({ title, icon: Icon, rows, theme }: { title: string; icon: 
       </div>
       <div className="space-y-3">
         {rows.map(([label, value]) => (
-          <div key={label} className="flex items-center justify-between gap-4 border-b pb-2 last:border-b-0 last:pb-0" style={{ borderColor: theme.dividerColor }}>
-            <span className="text-sm" style={{ color: theme.subtextColor }}>{label}</span>
-            <span className="text-sm font-semibold" style={{ color: theme.textColor }}>{value}</span>
+          <div key={label} className="flex items-start justify-between gap-4 border-b pb-2 last:border-b-0 last:pb-0" style={{ borderColor: theme.dividerColor }}>
+            <span className="min-w-0 text-sm leading-5" style={{ color: theme.subtextColor }}>{label}</span>
+            <span className="shrink-0 text-right text-sm font-semibold leading-5" style={{ color: theme.textColor }}>{value}</span>
           </div>
         ))}
       </div>

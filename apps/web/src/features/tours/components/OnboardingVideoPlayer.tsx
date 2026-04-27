@@ -8,6 +8,8 @@ import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 interface OnboardingVideoPlayerProps {
   videos: string[];
   onComplete: () => void;
+  /** Cuando false, oculta el botón "Saltar Intro" para forzar ver el video completo. Default: true */
+  isSkippable?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -38,7 +40,7 @@ function injectPrefetchLink(url: string): () => void {
   };
 }
 
-export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPlayerProps) {
+export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }: OnboardingVideoPlayerProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -324,13 +326,15 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
                     </button>
                   </div>
                 </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); skipVideo(); }}
-                  className="flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all backdrop-blur-md"
-                >
-                  <span className="text-[10px] sm:text-sm whitespace-nowrap">Saltar Intro</span>
-                  <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
-                </button>
+                {isSkippable && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); skipVideo(); }}
+                    className="flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all backdrop-blur-md"
+                  >
+                    <span className="text-[10px] sm:text-sm whitespace-nowrap">Saltar Intro</span>
+                    <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </button>
+                )}
               </div>
 
               {/* Bottom controls */}

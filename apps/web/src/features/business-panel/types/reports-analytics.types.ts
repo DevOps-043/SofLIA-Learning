@@ -1,4 +1,4 @@
-export type ReportsAnalyticsExportFormat = 'csv_zip' | 'pdf'
+export type ReportsAnalyticsExportFormat = 'csv_zip' | 'xlsx' | 'pdf'
 export type ReportsAnalyticsLocale = 'es' | 'en' | 'pt'
 export type ReportsAnalyticsTimeGranularity = 'day' | 'month' | 'year'
 
@@ -110,6 +110,9 @@ export interface ReportsAnalyticsActivities {
   averageTimeMinutes: number
   usersNeedingHelp: number
   redirects: number
+  totalEvaluations: number
+  completedEvaluations: number
+  evaluationCompletionRate: number
   quizAttempts: number
   quizPassRate: number
   quizAverageScore: number

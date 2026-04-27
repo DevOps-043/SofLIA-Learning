@@ -1116,7 +1116,25 @@
       "revokeSuccess": "Atribuicao revogada com sucesso",
       "revokeError": "Nao foi possivel revogar a atribuicao"
     },
-    "unnamedUser": "Usuario sem nome"
+    "unnamedUser": "Usuario sem nome",
+    "introVideos": {
+      "manageVideos": "Gerenciar vídeos",
+      "modalTitle": "Vídeos introdutórios",
+      "lpVideoTitle": "Vídeo do percurso de aprendizagem",
+      "coursesSectionTitle": "Vídeos por curso",
+      "upload": "Enviar vídeo",
+      "uploading": "Enviando...",
+      "delete": "Excluir vídeo",
+      "deleting": "Excluindo...",
+      "noVideo": "Nenhum vídeo configurado. Clique para enviar.",
+      "uploadSuccess": "Vídeo salvo com sucesso",
+      "deleteSuccess": "Vídeo excluído",
+      "errorUpload": "Erro ao enviar o vídeo. Tente novamente.",
+      "errorDelete": "Erro ao excluir o vídeo. Tente novamente.",
+      "errorLoad": "Erro ao carregar os vídeos existentes.",
+      "errorFileTooLarge": "O arquivo excede o limite de 500 MB",
+      "unnamedCourse": "Curso sem título"
+    }
   },
   "assignLearningPath": {
     "title": "Atribuir rota de aprendizagem",
@@ -1172,6 +1190,7 @@
     "description": "Analise demografia, progresso de aprendizagem, atividade no SofLIA, uso de notas, respostas de atividades e cumprimento do planejamento em um só painel.",
     "actions": {
       "exportCsv": "Baixar CSV",
+      "exportExcel": "Baixar Excel",
       "exportPdf": "Baixar PDF",
       "exportInsightsPdf": "Exportar análise PDF",
       "generateInsights": "Analisar com IA",
@@ -1261,6 +1280,9 @@
       "averageMessagesPerConversation": "Mensagens por conversa",
       "sofliaCompletionRate": "Conversas concluídas",
       "totalActivities": "Atividades",
+      "completedActivities": "Atividades concluídas",
+      "totalEvaluations": "Avaliações respondidas",
+      "evaluationCompletionRate": "Aprovação de avaliações",
       "activityCompletionRate": "Atividades concluídas",
       "quizAverageScore": "Média das avaliações",
       "usersNeedingHelp": "Usuários com ajuda",

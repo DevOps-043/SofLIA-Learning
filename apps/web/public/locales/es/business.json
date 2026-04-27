@@ -1116,7 +1116,25 @@
       "revokeSuccess": "Asignacion revocada correctamente",
       "revokeError": "No se pudo revocar la asignacion"
     },
-    "unnamedUser": "Usuario sin nombre"
+    "unnamedUser": "Usuario sin nombre",
+    "introVideos": {
+      "manageVideos": "Gestionar videos",
+      "modalTitle": "Videos introductorios",
+      "lpVideoTitle": "Video del learning path",
+      "coursesSectionTitle": "Videos por curso",
+      "upload": "Subir video",
+      "uploading": "Subiendo...",
+      "delete": "Eliminar video",
+      "deleting": "Eliminando...",
+      "noVideo": "Sin video configurado. Haz clic para subir.",
+      "uploadSuccess": "Video guardado correctamente",
+      "deleteSuccess": "Video eliminado",
+      "errorUpload": "Error al subir el video. Intenta de nuevo.",
+      "errorDelete": "Error al eliminar el video. Intenta de nuevo.",
+      "errorLoad": "Error al cargar los videos existentes.",
+      "errorFileTooLarge": "El archivo excede el límite de 500 MB",
+      "unnamedCourse": "Curso sin título"
+    }
   },
   "assignLearningPath": {
     "title": "Asignar ruta de aprendizaje",
@@ -1172,6 +1190,7 @@
     "description": "Analiza demografía, progreso de aprendizaje, actividad en SofLIA, uso de notas, respuestas de actividades y cumplimiento de planificación en un solo panel.",
     "actions": {
       "exportCsv": "Descargar CSV",
+      "exportExcel": "Descargar Excel",
       "exportPdf": "Descargar PDF",
       "exportInsightsPdf": "Exportar análisis PDF",
       "generateInsights": "Analizar con IA",
@@ -1261,6 +1280,9 @@
       "averageMessagesPerConversation": "Mensajes por conversación",
       "sofliaCompletionRate": "Conversaciones completadas",
       "totalActivities": "Actividades",
+      "completedActivities": "Actividades completadas",
+      "totalEvaluations": "Evaluaciones respondidas",
+      "evaluationCompletionRate": "Aprobación de evaluaciones",
       "activityCompletionRate": "Actividades completadas",
       "quizAverageScore": "Promedio de evaluaciones",
       "usersNeedingHelp": "Usuarios con ayuda",

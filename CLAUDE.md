@@ -99,10 +99,10 @@ features/[feature-name]/
 - `admin/` - Admin panel for platform and company management (includes learning path management)
 - `ai-directory/` - AI applications and prompts catalog
 - `auth/` - Authentication, SSO (Google/Microsoft) and registration
-- `business-panel/` - Business admin panel (org admin) + business user dashboard
+- `business-panel/` - Business admin panel (org admin) + business user dashboard + analytics + reports
 - `certificates/` - Certificate generation and PDF export (snapshots + backfill support)
 - `communities/` - Community management, posts, and interactions
-- `courses/` - Course management and learning content
+- `courses/` - Course management and learning content (including intro videos hook)
 - `instructor/` - Instructor-specific features and content
 - `landing/` - Landing page components (header, footer, sections)
 - `learning-paths/` - Ordered course groupings with org/user assignments and access resolution
@@ -110,14 +110,14 @@ features/[feature-name]/
 - `news/` - News articles and reading statistics
 - `notifications/` - User notification system
 - `onboarding/` - User onboarding flows
-- `profile/` - User profile management
+- `profile/` - User profile management (includes user demographics fields)
 - `purchases/` - Purchase history and management
 - `reels/` - Short-form video content (Reels)
 - `scorm/` - SCORM 1.2/2004 e-learning content integration
 - `skills/` - Skills catalog and tracking
 - `study-planner/` - AI-powered study planning and scheduling (Gemini 2.5 + Google Calendar)
 - `subscriptions/` - Subscription and payment management
-- `tours/` - Guided onboarding tours
+- `tours/` - Guided onboarding tours (Joyride + OnboardingVideoPlayer with `isSkippable` prop)
 - `video-tracking/` - Video progress and lesson tracking
 
 ### Dependency Rules
@@ -317,14 +317,16 @@ const { language, changeLanguage } = useLanguage(); // 'es' | 'en' | 'pt'
 
 ## Database Schema (Supabase)
 
-Migrations in `supabase/migrations/` (50+). Full types in `lib/supabase/types.ts`.
+Migrations in `supabase/migrations/` (52+). Full types in `lib/supabase/types.ts`.
 
 **Key tables by domain:**
-- **Users & Orgs**: `usuarios`, `organizations`, `organization_users`, `organization_invitations`
+- **Users & Orgs**: `usuarios`, `organizations`, `organization_users`, `organization_invitations`, `user_demographics`
 - **Hierarchy (optional)**: `organization_regions`, `organization_zones`, `organization_teams`, `hierarchy_chats`, `hierarchy_chat_messages`
-- **Courses**: `cursos`, `modulos`, `lecciones`, `actividades`, `user_lesson_progress`, `lesson_tracking`
+- **Courses**: `cursos`, `modulos`, `lecciones`, `actividades`, `user_lesson_progress`, `lesson_tracking`, `user_course_enrollments`
 - **Study Planner**: `study_plans`, `study_sessions`, `study_preferences`, `calendar_integrations`, `organization_planner_config`, `organization_holidays`
-- **Learning Paths**: `learning_paths`, `learning_path_items`, `organization_learning_path_assignments` (ordered course groupings with org assignments)
+- **Learning Paths**: `learning_paths`, `learning_path_items`, `organization_learning_path_assignments` (+ `intro_video_url`), `organization_course_intro_videos`, `user_learning_path_progress`, `user_learning_path_assignments`
+- **Intro Videos Storage**: bucket `intro-videos` (500 MB, public, video/mp4 + webm/ogg/quicktime)
+- **Analytics**: `business_user_analytics_insight_cache` (server-side insight cache for business-user analytics)
 - **SofLIA**: `lia_conversations`, `lia_messages`, `lia_personalization`
 - **Certs & Skills**: `certificates`, `skills`, `user_skills`
 - **Community**: `comunidades`, `comunidad_posts`, `comunidad_comentarios`, `news`, `reels`, `workshops`
@@ -407,6 +409,10 @@ USER_JWT_SECRET=
 - `apps/web/src/app/downloads/page.tsx` - Downloads page (latest release, changelog, requirements)
 - `netlify/functions/` - Serverless cron jobs (lesson inactivity tracking)
 - `supabase/migrations/` - Database migration history
+- `features/business-panel/services/reports-analytics/reports-analytics.server.service.ts` - Org analytics queries
+- `features/business-panel/services/business-user-analytics/business-user-analytics.server.service.ts` - User analytics queries
+- `features/courses/hooks/useCourseIntroVideos.ts` - Intro video state machine for course learn page
+- `lib/upload/validation.ts` - Storage bucket whitelist + file validation (buckets: `avatars`, `content-images`, `documents`, `community-images`, `intro-videos`)
 
 ## Common Tasks
 
@@ -431,10 +437,61 @@ USER_JWT_SECRET=
 Ordered course groupings that can be assigned to organizations or individual users:
 - Feature: `features/learning-paths/` (access resolution, server services)
 - Admin management: `features/admin/components/AdminLearningPathsPage.tsx`, `LearningPathManagementPage.tsx`
-- API routes: `app/api/admin/learning-paths/` (CRUD + item reorder), `app/api/business/learning-paths/`
+- Business panel page: `app/[orgSlug]/business-panel/learning-paths/page.tsx` → `features/business-panel/components/BusinessLearningPathsPage.tsx`
+- API routes: `app/api/admin/learning-paths/` (CRUD + item reorder), `app/api/[orgSlug]/business/learning-paths/`
 - Access resolution: `features/learning-paths/services/learning-path-access.server.ts`
 - Hook: `features/admin/hooks/useAdminLearningPaths.ts`
-- DB tables: `learning_paths`, `learning_path_items`, `organization_learning_path_assignments`
+- DB tables: `learning_paths`, `learning_path_items`, `organization_learning_path_assignments`, `user_learning_path_progress`, `user_learning_path_assignments`
+
+## Intro Videos (Courses & Learning Paths)
+
+Each organization can upload a custom intro video per learning path and per course. Videos are shown to users before the Joyride tour when they open a course.
+
+**Business flow:**
+1. Business admin opens `[orgSlug]/business-panel/learning-paths` → clicks "Gestionar videos" → `BusinessLearningPathVideosModal`
+2. Uploads LP intro video and/or per-course intro videos (stored in bucket `intro-videos`)
+3. API: `PUT /api/[orgSlug]/business/intro-videos/learning-path/[lpId]` and `/course/[courseId]`
+
+**User flow:**
+1. User opens `/courses/[slug]/learn` → `useCourseIntroVideos` fetches `GET /api/courses/[slug]/intro-videos`
+2. If user is on **position-1 course of their oldest assigned LP** → shows LP intro + course intro (2 videos)
+3. For any other course → shows only the course intro video (1 video)
+4. Video is **mandatory on first visit** (`isSkippable={false}` on `OnboardingVideoPlayer`)
+5. After watching: `POST /api/courses/[slug]/intro-videos/watched` marks `course_intro_watched_at` / `lp_intro_watched_at` in DB
+6. Subsequent visits: videos do NOT auto-play again
+7. **Restart button** on the learn page replays intro video(s) first (skippable), then launches the Joyride tour
+
+**Key files:**
+- `features/courses/hooks/useCourseIntroVideos.ts` — fetch, state, `restartWithIntroVideos(afterFn)`
+- `features/business-panel/components/BusinessLearningPathVideosModal.tsx` — upload/preview/delete modal
+- `features/business-panel/hooks/useBusinessLearningPathVideos.ts` — upload logic (bucket `intro-videos`)
+- `features/tours/components/OnboardingVideoPlayer.tsx` — accepts `isSkippable?: boolean` prop
+- `features/tours/hooks/useCourseLearnJoyride.ts` — accepts `restartWithIntroVideos` option
+- `app/courses/[slug]/learn/CourseLearnPageShell.tsx` — renders the player; blocks tour while video is showing
+- DB: `organization_learning_path_assignments.intro_video_url`, `organization_course_intro_videos`, `user_course_enrollments.course_intro_watched_at`, `user_learning_path_progress.lp_intro_watched_at`
+
+## Business User Analytics
+
+Personal analytics dashboard for organization employees (`BusinessUser` role):
+- Page: `app/[orgSlug]/business-user/analytics/` → `BusinessUserAnalyticsPageClient.tsx`
+- Service: `features/business-panel/services/business-user-analytics/business-user-analytics.server.service.ts`
+- Insights: `features/business-panel/services/business-user-analytics/business-user-analytics.insights.service.ts`
+- API routes: `GET /api/[orgSlug]/business-user/analytics/` (metrics), `GET /api/[orgSlug]/business-user/analytics/insights/` (AI insights)
+- DB: `business_user_analytics_insight_cache` — caches computed AI insights server-side (avoids recomputing on every load)
+- Types: `features/business-panel/types/business-user-analytics.types.ts`
+
+## Reports & Analytics (Business Panel)
+
+Full org-level analytics for the business admin (`Business` role):
+- Component: `features/business-panel/components/BusinessReportsAnalytics.tsx`
+- Hook: `features/business-panel/hooks/useBusinessReportsAnalytics.ts`
+- Services:
+  - `reports-analytics.server.service.ts` — main data queries (course completions, enrollments, activity submissions, user progress)
+  - `reports-analytics.export.service.ts` — Excel/CSV export generation
+  - `reports-analytics.insights.service.ts` — AI-generated insights
+  - `reports-analytics.helpers.ts` — shared formatting and aggregation utilities
+- API routes: `GET /api/[orgSlug]/business/reports-analytics/` (data), `GET /api/[orgSlug]/business/reports-analytics/insights/` (AI insights)
+- Types: `features/business-panel/types/reports-analytics.types.ts`
 
 ## SofLIA (AI Assistant)
 

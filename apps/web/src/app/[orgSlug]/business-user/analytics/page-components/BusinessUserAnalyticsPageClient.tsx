@@ -138,10 +138,12 @@ export function BusinessUserAnalyticsPageClient() {
       .sort((a, b) => b.progress - a.progress)
       .slice(0, 8)
       .map((course) => ({
-        name: course.courseTitle,
+        name: truncateCourseTitle(course.courseTitle),
+        fullName: course.courseTitle,
         progress: course.progress,
       }))
   }, [analytics?.learning.courses])
+  const courseChartHeight = Math.max(320, courseChartData.length * 54 + 80)
 
   const engagementTrendData = useMemo(() => {
     if (!analytics) return []
@@ -273,16 +275,39 @@ export function BusinessUserAnalyticsPageClient() {
                 title={t('analytics.sections.courseProgress')}
                 subtitle={t('analytics.sections.courseProgressSubtitle')}
               >
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={courseChartData} layout="vertical" margin={{ left: 16, right: 16 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis type="number" domain={[0, 100]} tickFormatter={(value) => `${value}%`} />
-                      <YAxis dataKey="name" type="category" width={110} tick={{ fontSize: 12 }} />
-                      <Tooltip formatter={(value) => formatPercent(Number(value))} />
-                      <Bar dataKey="progress" fill="var(--color-accent)" radius={[0, 6, 6, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                <div className="overflow-x-auto pb-2">
+                  <div className="min-w-[640px]" style={{ height: courseChartHeight }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={courseChartData}
+                        layout="vertical"
+                        margin={{ top: 8, right: 24, bottom: 8, left: 8 }}
+                        barCategoryGap={18}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis
+                          type="number"
+                          domain={[0, 100]}
+                          tickFormatter={(value) => `${value}%`}
+                          tickMargin={8}
+                        />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          width={190}
+                          interval={0}
+                          tick={<CourseAxisTick />}
+                        />
+                        <Tooltip
+                          formatter={(value) => formatPercent(Number(value))}
+                          labelFormatter={(label, payload) =>
+                            String(payload?.[0]?.payload?.fullName || label)
+                          }
+                        />
+                        <Bar dataKey="progress" fill="var(--color-accent)" radius={[0, 6, 6, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </Panel>
 
@@ -547,7 +572,9 @@ function CourseList({
       {courses.map((course) => (
         <div key={course.courseId}>
           <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="min-w-0 truncate font-medium">{course.courseTitle}</span>
+            <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium">
+              {course.courseTitle}
+            </span>
             <span className="shrink-0 text-gray-500 dark:text-gray-400">
               {formatPercent(course.progress)}
             </span>
@@ -564,6 +591,37 @@ function CourseList({
         </div>
       ))}
     </div>
+  )
+}
+
+function CourseAxisTick({
+  x = 0,
+  y = 0,
+  payload,
+}: {
+  x?: number
+  y?: number
+  payload?: {
+    value?: string
+    payload?: {
+      fullName?: string
+    }
+  }
+}) {
+  const label = payload?.value || ''
+  const fullName = payload?.payload?.fullName || label
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{fullName}</title>
+      <text
+        dy={4}
+        textAnchor="end"
+        className="fill-gray-600 text-xs dark:fill-gray-300"
+      >
+        {label}
+      </text>
+    </g>
   )
 }
 
@@ -719,4 +777,9 @@ function formatPercent(value: number): string {
 
 function formatNumber(value: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value)
+}
+
+function truncateCourseTitle(value: string, maxLength = 46): string {
+  if (value.length <= maxLength) return value
+  return `${value.slice(0, maxLength - 3).trimEnd()}...`
 }

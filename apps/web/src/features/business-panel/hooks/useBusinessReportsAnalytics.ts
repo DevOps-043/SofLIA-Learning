@@ -274,7 +274,7 @@ function getFilenameFromResponse(response: Response): string | null {
 }
 
 function getFallbackFilename(format: ReportsAnalyticsExportFormat): string {
-  const extension = format === 'pdf' ? 'pdf' : 'zip'
+  const extension = format === 'pdf' ? 'pdf' : format === 'xlsx' ? 'xlsx' : 'zip'
   return `soflia-analytics.${extension}`
 }
 

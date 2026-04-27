@@ -24,7 +24,9 @@ import {
   VideoContent,
 } from '../../../../features/courses/components/learn'
 import type { LearnPageLogicResult } from '../../../../features/courses/hooks/useLearnPageLogic'
+import { useCourseIntroVideos } from '../../../../features/courses/hooks/useCourseIntroVideos'
 import { useCourseLearnJoyride } from '../../../../features/tours/hooks/useCourseLearnJoyride'
+import { OnboardingVideoPlayer } from '../../../../features/tours/components/OnboardingVideoPlayer'
 import { useMobilePerformanceMode } from '../../../../lib/utils/mobile-performance'
 import { useVideoPlayerOptional } from './VideoPlayerContext'
 
@@ -157,11 +159,24 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   } = logic
 
   const courseTitle = course?.title || course?.course_title || ''
+
+  const {
+    introVideos,
+    showVideoIntro,
+    isForceShow,
+    isLoadingIntro,
+    handleVideoIntroComplete,
+    restartWithIntroVideos,
+  } = useCourseIntroVideos({
+    courseSlug: slug,
+    enabled: ready && Boolean(course),
+  })
+
   const courseTour = useCourseLearnJoyride({
     courseSlug: slug,
     courseTitle,
     lessonTitle: currentLesson?.lesson_title,
-    enabled: ready && Boolean(course),
+    enabled: ready && Boolean(course) && !showVideoIntro && !isLoadingIntro,
     isMobile,
     closeLia,
     openLeftPanel,
@@ -172,6 +187,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
       ? () => videoPlayerContext.setShouldAutoPlay(false)
       : undefined,
     mobilePerformanceMode: disableHeavyEffects,
+    restartWithIntroVideos,
   })
 
   const handleValidationClose = () => {
@@ -650,6 +666,14 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
 
             {mounted ? <Joyride {...courseTour.joyrideProps} /> : null}
           </div>
+
+          {showVideoIntro && introVideos.length > 0 && (
+            <OnboardingVideoPlayer
+              videos={introVideos}
+              onComplete={handleVideoIntroComplete}
+              isSkippable={isForceShow}
+            />
+          )}
         </CourseAccessGuard>
       </WorkshopLearningProvider>
   )

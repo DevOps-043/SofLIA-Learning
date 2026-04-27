@@ -163,6 +163,7 @@ export async function POST(
     }
 
     const enrollmentId = enrollment.enrollment_id
+    const resolvedOrganizationId = enrollment.organization_id || organizationId
     const {
       answers,
       quizData,
@@ -284,6 +285,7 @@ export async function POST(
             percentage_score: percentageScore,
             is_passed: isPassed,
             completed_at: now,
+            organization_id: resolvedOrganizationId,
             updated_at: now,
           })
           .eq('submission_id', existingSubmission.submission_id)
@@ -311,6 +313,7 @@ export async function POST(
           enrollment_id: enrollmentId,
           material_id: materialId || null,
           activity_id: activityId || null,
+          organization_id: resolvedOrganizationId,
           user_answers: answers,
           score: correctAnswers,
           total_points: calculatedTotalPoints,
@@ -372,6 +375,7 @@ export async function POST(
             quiz_progress_percentage: bestProgressScore,
             quiz_completed: true,
             quiz_passed: bestPassed,
+            organization_id: resolvedOrganizationId,
             updated_at: now,
           })
           .eq('progress_id', existingProgress.progress_id)
@@ -390,6 +394,7 @@ export async function POST(
             user_id: currentUser.id,
             lesson_id: lessonId,
             enrollment_id: enrollmentId,
+            organization_id: resolvedOrganizationId,
             quiz_progress_percentage: bestProgressScore,
             quiz_completed: true,
             quiz_passed: bestPassed,

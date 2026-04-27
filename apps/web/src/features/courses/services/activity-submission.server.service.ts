@@ -761,6 +761,7 @@ export async function recalculateLessonActivityProgress(
     last_activity_submission_at: summary.lastActivitySubmissionAt,
     last_accessed_at: now,
     lesson_id: context.lessonId,
+    organization_id: context.organizationId,
     required_activities_completed: summary.requiredActivitiesCompleted,
     required_activities_total: summary.requiredActivitiesTotal,
     started_at: now,

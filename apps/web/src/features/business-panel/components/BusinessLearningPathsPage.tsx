@@ -1,10 +1,13 @@
 'use client'
 
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  Film,
   Layers,
   Route,
   Search,
@@ -13,6 +16,7 @@ import {
 } from 'lucide-react'
 
 import { BusinessAssignLearningPathModal } from './BusinessAssignLearningPathModal'
+import { BusinessLearningPathVideosModal } from './BusinessLearningPathVideosModal'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
 import type { BusinessUser } from '../services/businessUsers.service'
 
@@ -23,8 +27,15 @@ function getUserDisplayName(user: BusinessUser | null | undefined) {
 }
 
 export function BusinessLearningPathsPage() {
+  const { t } = useTranslation('business')
   const logic = useBusinessLearningPathsPageLogic()
   const theme = logic.theme
+  const [videosLearningPathId, setVideosLearningPathId] = useState<string | null>(null)
+
+  const selectedLearningPathForVideos = useMemo(
+    () => logic.learningPaths.find((p) => p.id === videosLearningPathId) ?? null,
+    [logic.learningPaths, videosLearningPathId],
+  )
 
   const assignmentCards = logic.assignments
     .slice()
@@ -263,21 +274,32 @@ export function BusinessLearningPathsPage() {
 
                     {/* Footer */}
                     <div
-                      className="mt-5 flex items-center justify-between gap-3 border-t pt-4"
+                      className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t pt-4"
                       style={{ borderColor: theme.borderColor }}
                     >
                       <p className="text-xs" style={{ color: theme.subtextColor }}>
                         {assignedCount} {assignedCount === 1 ? 'usuario asignado' : 'usuarios asignados'}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => logic.setSelectedLearningPathId(path.id)}
-                        className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition hover:opacity-90"
-                        style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
-                      >
-                        Asignar usuarios
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setVideosLearningPathId(path.id)}
+                          className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition hover:opacity-80"
+                          style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
+                        >
+                          <Film className="h-3.5 w-3.5" />
+                          {t('learningPathsPage.introVideos.manageVideos')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => logic.setSelectedLearningPathId(path.id)}
+                          className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition hover:opacity-90"
+                          style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
+                        >
+                          Asignar usuarios
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </motion.article>
@@ -381,6 +403,13 @@ export function BusinessLearningPathsPage() {
         isLoadingUsers={logic.loadingUsers}
         existingAssignments={logic.selectedPathAssignments}
         onAssigned={logic.handleAssignmentCreated}
+      />
+
+      <BusinessLearningPathVideosModal
+        isOpen={Boolean(videosLearningPathId)}
+        onClose={() => setVideosLearningPathId(null)}
+        orgSlug={logic.orgSlug}
+        learningPath={selectedLearningPathForVideos}
       />
     </motion.div>
   )

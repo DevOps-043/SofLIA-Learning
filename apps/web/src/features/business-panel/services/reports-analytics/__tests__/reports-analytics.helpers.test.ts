@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
+import JSZip from 'jszip'
 import {
   buildReportsAnalyticsDataset,
 } from '../reports-analytics.server.service'
+import {
+  generateReportsAnalyticsWorkbook,
+  generateReportsAnalyticsZip,
+} from '../reports-analytics.export.service'
 import {
   calculateAge,
   buildConnectionCalendar,
@@ -89,7 +94,7 @@ describe('reports analytics helpers', () => {
     expect(strongScore).toBeGreaterThan(riskyScore)
   })
 
-  it('builds aggregate analytics and keeps user detail separate for exports', () => {
+  it('builds aggregate analytics and keeps user detail separate for exports', async () => {
     const filters = {
       from: '2026-01-01T00:00:00.000Z',
       to: '2026-04-30T23:59:59.999Z',
@@ -207,6 +212,37 @@ describe('reports analytics helpers', () => {
           lesson_activities: null,
         },
       ],
+      activitySubmissions: [
+        {
+          submission_id: 'submission-1',
+          user_id: 'user-1',
+          organization_id: 'org-1',
+          course_id: 'course-1',
+          lesson_id: 'lesson-1',
+          activity_id: 'activity-2',
+          enrollment_id: 'enrollment-1',
+          status: 'validated',
+          response_text: 'Use IA para preparar un plan de seguimiento comercial.',
+          response_payload: null,
+          evidence_payload: null,
+          submitted_at: '2026-02-18T00:00:00.000Z',
+          last_validated_at: '2026-02-18T00:05:00.000Z',
+          created_at: '2026-02-18T00:00:00.000Z',
+          updated_at: '2026-02-18T00:05:00.000Z',
+          courses: { id: 'course-1', title: 'IA para ventas' },
+          lesson_activities: null,
+        },
+      ],
+      activityEvaluations: [
+        {
+          evaluation_id: 'evaluation-1',
+          submission_id: 'submission-1',
+          result_status: 'pass',
+          feedback_payload: { summary: 'Buen trabajo' },
+          model_name: 'test-model',
+          created_at: '2026-02-18T00:05:00.000Z',
+        },
+      ],
       lessonNotes: [],
       liaConversations: [
         {
@@ -256,6 +292,8 @@ describe('reports analytics helpers', () => {
     expect(result.dataQuality.usersMissingDemographics).toBe(1)
     expect(result.soflia.totalConversations).toBe(1)
     expect(result.soflia.totalMessages).toBe(4)
+    expect(result.activities.totalActivities).toBe(2)
+    expect(result.activities.completedActivities).toBe(2)
     expect(result.loginHeatmap.some((cell) => cell.dayKey === 'mon' && cell.hour === 15 && cell.value === 1)).toBe(true)
     expect(result.connectionCalendar.some((cell) => cell.date === '2026-04-27' && cell.value === 1)).toBe(true)
     expect(result.rankings.regions[0]).toEqual(expect.objectContaining({ name: 'Norte' }))
@@ -268,5 +306,17 @@ describe('reports analytics helpers', () => {
         teamName: 'Ventas Norte',
       }),
     )
+
+    const zipBytes = await generateReportsAnalyticsZip(result, 'es')
+    const zip = await JSZip.loadAsync(zipBytes)
+    const activitiesCsv = await zip.file('actividades_evaluaciones.csv')?.async('string')
+    const learningCsv = await zip.file('tendencia_aprendizaje.csv')?.async('string')
+
+    expect(activitiesCsv).toContain('Evaluaciones respondidas')
+    expect(activitiesCsv).not.toContain('metric')
+    expect(learningCsv).toContain('Vista')
+
+    const workbookBytes = await generateReportsAnalyticsWorkbook(result, 'es')
+    expect(workbookBytes.length).toBeGreaterThan(1000)
   })
 })

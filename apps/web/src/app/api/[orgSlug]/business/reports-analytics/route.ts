@@ -9,6 +9,7 @@ import {
 import {
   buildReportsAnalyticsFilename,
   generateReportsAnalyticsPdf,
+  generateReportsAnalyticsWorkbook,
   generateReportsAnalyticsZip,
 } from '@/features/business-panel/services/reports-analytics/reports-analytics.export.service'
 import type {
@@ -38,7 +39,7 @@ const analyticsQuerySchema = z.object({
 })
 
 const analyticsExportSchema = analyticsQuerySchema.extend({
-  format: z.enum(['csv_zip', 'pdf']),
+  format: z.enum(['csv_zip', 'xlsx', 'pdf']),
   locale: z.enum(['es', 'en', 'pt']).optional(),
 })
 
@@ -93,7 +94,16 @@ export async function POST(
       return buildFileResponse(file, buildReportsAnalyticsFilename('pdf', dataset), 'application/pdf')
     }
 
-    const file = await generateReportsAnalyticsZip(dataset)
+    if (parsed.format === 'xlsx') {
+      const file = await generateReportsAnalyticsWorkbook(dataset, locale)
+      return buildFileResponse(
+        file,
+        buildReportsAnalyticsFilename('xlsx', dataset),
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+    }
+
+    const file = await generateReportsAnalyticsZip(dataset, locale)
     return buildFileResponse(file, buildReportsAnalyticsFilename('zip', dataset), 'application/zip')
   } catch (error) {
     if (error instanceof z.ZodError) {

@@ -1116,7 +1116,25 @@
       "revokeSuccess": "Assignment revoked successfully",
       "revokeError": "Could not revoke the assignment"
     },
-    "unnamedUser": "Unnamed user"
+    "unnamedUser": "Unnamed user",
+    "introVideos": {
+      "manageVideos": "Manage videos",
+      "modalTitle": "Intro videos",
+      "lpVideoTitle": "Learning path video",
+      "coursesSectionTitle": "Videos per course",
+      "upload": "Upload video",
+      "uploading": "Uploading...",
+      "delete": "Delete video",
+      "deleting": "Deleting...",
+      "noVideo": "No video configured. Click to upload.",
+      "uploadSuccess": "Video saved successfully",
+      "deleteSuccess": "Video deleted",
+      "errorUpload": "Error uploading the video. Please try again.",
+      "errorDelete": "Error deleting the video. Please try again.",
+      "errorLoad": "Error loading existing videos.",
+      "errorFileTooLarge": "File exceeds the 500 MB limit",
+      "unnamedCourse": "Untitled course"
+    }
   },
   "assignLearningPath": {
     "title": "Assign learning path",
@@ -1172,6 +1190,7 @@
     "description": "Analyze demographics, learning progress, SofLIA activity, notes usage, activity responses, and planning adherence in one panel.",
     "actions": {
       "exportCsv": "Download CSV",
+      "exportExcel": "Download Excel",
       "exportPdf": "Download PDF",
       "exportInsightsPdf": "Export analysis PDF",
       "generateInsights": "Analyze with AI",
@@ -1261,6 +1280,9 @@
       "averageMessagesPerConversation": "Messages per conversation",
       "sofliaCompletionRate": "Completed conversations",
       "totalActivities": "Activities",
+      "completedActivities": "Completed activities",
+      "totalEvaluations": "Answered assessments",
+      "evaluationCompletionRate": "Assessment pass rate",
       "activityCompletionRate": "Completed activities",
       "quizAverageScore": "Assessment average",
       "usersNeedingHelp": "Users needing help",

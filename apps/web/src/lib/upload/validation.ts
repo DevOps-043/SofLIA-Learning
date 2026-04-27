@@ -20,7 +20,7 @@ export const UPLOAD_CONFIG = {
     documents: ['pdf', 'txt'],
     all: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'txt']
   },
-  bucketWhitelist: ['avatars', 'content-images', 'documents', 'community-images']
+  bucketWhitelist: ['avatars', 'content-images', 'documents', 'community-images', 'intro-videos']
 };
 
 export interface ValidationResult {
