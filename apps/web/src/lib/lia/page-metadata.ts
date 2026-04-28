@@ -55,6 +55,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     contentSections: ['Grid de talleres/cursos disponibles', 'Sidebar con estadísticas', 'Actividad reciente', 'Filtros de categorías'],
     specialNotes: 'IMPORTANTE: El Dashboard (/dashboard) es donde se encuentra el CATÁLOGO COMPLETO de todos los cursos y talleres disponibles. Cuando el usuario pregunte sobre "ver todos los cursos" o "cursos disponibles", debe dirigirse al Dashboard, NO a /courses (que no existe como página de catálogo). La ruta /courses/[slug] es solo para ver el detalle de un curso específico.'
   },
+  /* TEMPORALMENTE OCULTO - Planificador no disponible actualmente
   '/study-planner': {
     path: '/study-planner',
     title: 'Planificador de Estudios',
@@ -65,6 +66,7 @@ export const PAGE_METADATA: Record<string, PageMetadata> = {
     relatedPages: ['/dashboard', '/courses/[slug]/learn'],
     features: ['Generación de planes con IA', 'Integración con Google Calendar', 'Recordatorios']
   },
+  */
 
   '/news': {
     path: '/news',
@@ -413,11 +415,13 @@ export function getAvailableLinksForSofLIA(userRole: UserRole | null = null): st
     }
   });
 
+  /* TEMPORALMENTE OCULTO - Planificador no disponible actualmente
   // Nota especial para el Planificador de Estudios
   linksText += `\n\n📅 NOTA SOBRE EL PLANIFICADOR DE ESTUDIOS:\n`;
   linksText += `Cuando el usuario pregunte por "Planificador", "Plan de estudios" o "Organizar mis estudios":\n`;
   linksText += `- Usa SIEMPRE el enlace: [Planificador de Estudios](/study-planner)\n`;
   linksText += `- IMPORTANTE: Esta ruta es GLOBAL y NO lleva el prefijo /{orgSlug}/ aunque el usuario sea de una empresa.\n`;
+  */
   
   /* TEMPORALMENTE OCULTO - Directorio IA no disponible actualmente
   // Agregar nota especial sobre Directorio IA

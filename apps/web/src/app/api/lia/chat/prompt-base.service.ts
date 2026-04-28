@@ -81,7 +81,6 @@ export const LIA_SYSTEM_PROMPT =
   '- Incorrecto: Panel de Administración (sin enlace)\n\n' +
   '## Rutas Principales de SofLIA\n' +
   '- [Certificados](/profile?tab=certificates) - Diplomas obtenidos\n' +
-  '- [Planificador](/study-planner) - Agenda inteligente de estudio\n' +
   '- [Perfil](/profile) - Configuración y datos personales\n\n' +
   '## RUTAS PROHIBIDAS (NO EXISTEN)\n' +
   '- NUNCA uses /my-courses - Esta ruta NO existe\n' +

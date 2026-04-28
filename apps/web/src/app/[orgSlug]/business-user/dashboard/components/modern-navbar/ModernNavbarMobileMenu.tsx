@@ -37,6 +37,7 @@ interface ModernNavbarMobileMenuProps {
   theme: Theme;
   user: ModernNavbarUser | null;
   disableHeavyEffects?: boolean;
+  showOrganizations: boolean;
 }
 
 export function ModernNavbarMobileMenu({
@@ -60,6 +61,7 @@ export function ModernNavbarMobileMenu({
   theme,
   user,
   disableHeavyEffects = false,
+  showOrganizations,
 }: ModernNavbarMobileMenuProps) {
   return (
     <AnimatePresence>
@@ -127,64 +129,33 @@ export function ModernNavbarMobileMenu({
               </motion.button>
             )}
 
-            {hasStudyPlan !== null && (
+
+
+            {showOrganizations && (
               <motion.button
                 onClick={() => {
-                  router.push(
-                    buildStudyPlannerEntryPath({
-                      hasStudyPlan,
-                      organizationSlug: organization?.slug,
-                    }),
-                  );
+                  router.push('/auth/select-organization');
                   onClose();
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
                 whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
                 style={{
-                  backgroundColor: `${colors.accent}10`,
+                  backgroundColor: `${colors.primary}10`,
                   border: `1px solid ${colors.border}`,
                 }}
               >
                 <div
                   className="p-2 rounded-xl text-white flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${colors.accent}, ${colors.primary})` }}
+                  style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}
                 >
-                  {hasStudyPlan ? <CalendarDays className="h-4 w-4" /> : <CalendarPlus className="h-4 w-4" />}
+                  <Building2 className="h-4 w-4" />
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <span className="font-medium block text-sm" style={{ color: colors.text }}>
-                    {hasStudyPlan ? t('header.myPlanner') : t('header.createStudyPlan')}
-                  </span>
-                  <span className="text-xs opacity-70" style={{ color: colors.text }}>
-                    {hasStudyPlan ? t('header.viewSchedule') : t('header.organizeLearning')}
-                  </span>
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>Mis organizaciones</span>
+                  <span className="text-xs opacity-70" style={{ color: colors.text }}>Cambiar de organización</span>
                 </div>
               </motion.button>
             )}
-
-            <motion.button
-              onClick={() => {
-                router.push('/auth/select-organization');
-                onClose();
-              }}
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
-              whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
-              style={{
-                backgroundColor: `${colors.primary}10`,
-                border: `1px solid ${colors.border}`,
-              }}
-            >
-              <div
-                className="p-2 rounded-xl text-white flex-shrink-0"
-                style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}
-              >
-                <Building2 className="h-4 w-4" />
-              </div>
-              <div className="text-left flex-1 min-w-0">
-                <span className="font-medium block text-sm" style={{ color: colors.text }}>Mis organizaciones</span>
-                <span className="text-xs opacity-70" style={{ color: colors.text }}>Cambiar de organización</span>
-              </div>
-            </motion.button>
 
             <motion.button
               onClick={() => {

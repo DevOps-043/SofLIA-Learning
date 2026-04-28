@@ -14,6 +14,7 @@ import { hexToRgb } from '../utils/styles'
 import { useLanguage } from '../../../core/providers/I18nProvider'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '../../../core/stores/themeStore'
+import { useOrganization } from '../../../core/hooks/useOrganization'
 import { useBusinessPanelTourOptional } from '../contexts/BusinessPanelTourContext'
 
 interface BusinessPanelHeaderProps {
@@ -41,6 +42,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { language, setLanguage } = useLanguage()
   const { t } = useTranslation(['business', 'common'])
   const { theme, resolvedTheme, setTheme } = useThemeStore()
+  const { canSwitch } = useOrganization()
   const panelTheme = useBusinessPanelTheme()
   const tourContext = useBusinessPanelTourOptional()
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -341,18 +343,20 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                         <span>{t('business:header.userPanel')}</span>
                       </motion.button>
 
-                      <motion.button
-                        onClick={() => {
-                          router.push('/auth/select-organization')
-                          setUserDropdownOpen(false)
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
-                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
-                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
-                      >
-                        <Building2 className="h-4 w-4 opacity-70" />
-                        <span>{t('business:header.myOrganizations', { defaultValue: 'Mis organizaciones' })}</span>
-                      </motion.button>
+                      {canSwitch && (
+                        <motion.button
+                          onClick={() => {
+                            router.push('/auth/select-organization')
+                            setUserDropdownOpen(false)
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                          style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.8)') }}
+                          whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                        >
+                          <Building2 className="h-4 w-4 opacity-70" />
+                          <span>{t('business:header.myOrganizations', { defaultValue: 'Mis organizaciones' })}</span>
+                        </motion.button>
+                      )}
 
                       <motion.button
                         onClick={() => {

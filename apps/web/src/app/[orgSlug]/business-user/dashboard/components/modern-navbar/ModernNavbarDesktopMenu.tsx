@@ -42,6 +42,7 @@ interface ModernNavbarDesktopMenuProps {
   theme: Theme;
   user: ModernNavbarUser | null;
   userDropdownOpen: boolean;
+  showOrganizations: boolean;
 }
 
 export function ModernNavbarDesktopMenu({
@@ -67,6 +68,7 @@ export function ModernNavbarDesktopMenu({
   theme,
   user,
   userDropdownOpen,
+  showOrganizations,
 }: ModernNavbarDesktopMenuProps) {
   const hoverBackground = colors.isLightMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
 
@@ -161,38 +163,22 @@ export function ModernNavbarDesktopMenu({
                   </motion.button>
                 )}
 
-                {hasStudyPlan !== null && (
+
+
+                {showOrganizations && (
                   <motion.button
                     onClick={() => {
-                      router.push(
-                        buildStudyPlannerEntryPath({
-                          hasStudyPlan,
-                          organizationSlug: organization?.slug,
-                        }),
-                      );
+                      router.push('/auth/select-organization');
                       onClose();
                     }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
                     style={{ color: colors.text }}
                     whileHover={{ x: 2, backgroundColor: hoverBackground }}
                   >
-                    {hasStudyPlan ? <CalendarDays className="h-4 w-4 opacity-70" /> : <CalendarPlus className="h-4 w-4 opacity-70" />}
-                    <span className="block">{hasStudyPlan ? t('header.myPlanner') : t('header.createStudyPlan')}</span>
+                    <Building2 className="h-4 w-4 opacity-70" />
+                    <span>Mis organizaciones</span>
                   </motion.button>
                 )}
-
-                <motion.button
-                  onClick={() => {
-                    router.push('/auth/select-organization');
-                    onClose();
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
-                  style={{ color: colors.text }}
-                  whileHover={{ x: 2, backgroundColor: hoverBackground }}
-                >
-                  <Building2 className="h-4 w-4 opacity-70" />
-                  <span>Mis organizaciones</span>
-                </motion.button>
 
                 <motion.button
                   onClick={() => {

@@ -238,18 +238,23 @@ function CourseLiaPanelContent({
   // Detectar si estamos usando un tema personalizado (generalmente oscuro en esta empresa)
   const isCustomTheme = !!customColors?.panelBg;
 
+  const computedTextPrimary = forceDarkText ? '#1E293B' : (customColors?.textPrimary || (isLightTheme ? '#1E293B' : '#e5e7eb'));
+  const computedTextSecondary = forceDarkText ? '#64748B' : (customColors?.textSecondary || (isLightTheme ? '#64748B' : '#6b7280'));
+  const computedInputBg = forceDarkText ? '#F1F5F9' : (isCustomTheme ? (isLightTheme ? '#F1F5F9' : 'rgba(0,0,0,0.3)') : (isLightTheme ? '#F1F5F9' : 'rgba(255,255,255,0.05)'));
+  const computedBorderColor = forceDarkText ? '#E2E8F0' : (customColors?.borderColor || (isLightTheme ? '#E2E8F0' : '#1e2a35'));
+  const computedMessageBubbleAssistant = forceDarkText ? '#F1F5F9' : (isCustomTheme ? 'rgba(255,255,255,0.1)' : (isLightTheme ? '#F1F5F9' : '#1e2a35'));
+  const computedInputBorder = forceDarkText ? '#CBD5E1' : (customColors?.borderColor ? 'transparent' : (isLightTheme ? '#CBD5E1' : '#374151'));
+
   const themeColors = {
     panelBg: customColors?.panelBg || (isLightTheme ? '#FFFFFF' : '#0a0f14'),
     headerBg: customColors?.panelBg || (isLightTheme ? '#F8FAFC' : '#0a0f14'),
-    borderColor: customColors?.borderColor || (isLightTheme ? '#E2E8F0' : '#1e2a35'),
-    // Si es custom theme, forzar burbuja asistente oscura/transparente
-    messageBubbleAssistant: isCustomTheme ? 'rgba(255,255,255,0.1)' : (isLightTheme ? '#F1F5F9' : '#1e2a35'),
+    borderColor: computedBorderColor,
+    messageBubbleAssistant: computedMessageBubbleAssistant,
     messageBubbleUser: '#0A2540',
-    textPrimary: customColors?.textPrimary || (isLightTheme ? '#1E293B' : '#e5e7eb'),
-    textSecondary: customColors?.textSecondary || (isLightTheme ? '#64748B' : '#6b7280'),
-    // Si es custom theme, forzar input oscuro
-    inputBg: isCustomTheme ? (isLightTheme ? '#F1F5F9' : 'rgba(0,0,0,0.3)') : (isLightTheme ? '#F1F5F9' : 'rgba(255,255,255,0.05)'),
-    inputBorder: customColors?.borderColor ? 'transparent' : (isLightTheme ? '#CBD5E1' : '#374151'),
+    textPrimary: computedTextPrimary,
+    textSecondary: computedTextSecondary,
+    inputBg: computedInputBg,
+    inputBorder: computedInputBorder,
     accentColor: customColors?.accentColor || '#00D4B3',
     primaryAction: customColors?.accentColor || '#0A2540',
   };
@@ -611,7 +616,7 @@ function CourseLiaPanelContent({
             {messages.map((message) => (
               <div key={message.id} style={{ display: 'flex', flexDirection: 'column', alignItems: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: message.role === 'user' ? '#0A2540' : themeColors.messageBubbleAssistant }}>
-                  <p className={message.role === 'user' ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap' }}>
+                  <p className={message.role === 'user' ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: message.role === 'user' ? '#ffffff' : themeColors.textPrimary }}>
                     {message.role === 'assistant' ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode) : message.content}
                   </p>
                   {message.attachments?.length ? (
@@ -705,7 +710,7 @@ function CourseLiaPanelContent({
           <ChatSuggestionsChips
             suggestions={lessonSuggestions}
             isLoading={isLoadingSuggestions}
-            isLightTheme={isLightTheme}
+            isLightTheme={isLightTheme || forceDarkText}
             theme={{
               accentColor: themeColors.accentColor,
               borderColor: themeColors.borderColor,

@@ -143,8 +143,7 @@ export function buildBusinessUserIntroVideos(supabaseUrl: string | undefined): s
   }
 
   return [
-    `${supabaseUrl}/storage/v1/object/public/assets/TourB2B.mp4`,
-    `${supabaseUrl}/storage/v1/object/public/assets/TourB2C.mp4`,
+    `${supabaseUrl}/storage/v1/object/public/assets/Teaser%20-%20SofLIA%20Nexus.mp4`,
   ]
 }
 

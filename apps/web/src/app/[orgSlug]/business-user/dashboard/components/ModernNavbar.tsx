@@ -13,6 +13,7 @@ import { ModernNavbarDesktopMenu } from './modern-navbar/ModernNavbarDesktopMenu
 import { ModernNavbarMobileMenu } from './modern-navbar/ModernNavbarMobileMenu';
 import type { ModernNavbarProps } from './modern-navbar/types';
 import { useModernNavbar } from './modern-navbar/useModernNavbar';
+import { useOrganization } from '../../../../../core/hooks/useOrganization';
 
 export function ModernNavbar({
   organization,
@@ -27,6 +28,7 @@ export function ModernNavbar({
   disableHeavyEffects = false,
 }: ModernNavbarProps) {
   const canAccessAdminPanel = orgRole === 'owner' || orgRole === 'admin' || orgRole === 'superadmin';
+  const { canSwitch } = useOrganization();
   const router = useRouter();
   const { language, setLanguage } = useLanguage();
   const { t } = useTranslation('business');
@@ -90,6 +92,7 @@ export function ModernNavbar({
                   theme={theme}
                   user={user}
                   userDropdownOpen={userDropdownOpen}
+                  showOrganizations={canSwitch}
                 />
               </div>
 
@@ -142,6 +145,7 @@ export function ModernNavbar({
             theme={theme}
             user={user}
             disableHeavyEffects={disableHeavyEffects}
+            showOrganizations={canSwitch}
           />,
           document.body
         )}

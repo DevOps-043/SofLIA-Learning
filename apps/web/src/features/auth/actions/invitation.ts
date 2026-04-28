@@ -22,11 +22,8 @@ import {
   type ValidateResult,
 } from './invitation/index'
 import {
-  inviteUserSchema,
   validateInvitationSchema,
 } from './invitation/schemas'
-
-export { inviteUserSchema }
 
 export type {
   ConsumeResult,

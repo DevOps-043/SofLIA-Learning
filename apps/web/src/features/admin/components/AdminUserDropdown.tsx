@@ -19,6 +19,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useThemeStore, Theme } from '@/core/stores/themeStore'
+import { useOrganization } from '@/core/hooks/useOrganization'
 
 interface AdminUserDropdownProps {
   user: {
@@ -43,6 +44,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
   const router = useRouter()
   const { logout } = useAuth()
   const { t, i18n } = useTranslation()
+  const { canSwitch } = useOrganization()
   const { theme, setTheme, initializeTheme } = useThemeStore()
   const themeMenuRef = useRef<HTMLDivElement>(null)
 
@@ -235,38 +237,25 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                   )}
                 </Menu.Item>
 
-                <Menu.Item>
-                  {({ active }) => (
-                    <Link href="/auth/select-organization">
-                      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                        active 
-                          ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
-                          : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
-                      }`}>
-                        <GlobeAltIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                        <span className="text-sm font-medium">Mis organizaciones</span>
-                      </div>
-                    </Link>
-                  )}
-                </Menu.Item>
+                {canSwitch && (
+                  <Menu.Item>
+                    {({ active }) => (
+                      <Link href="/auth/select-organization">
+                        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                          active 
+                            ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
+                            : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
+                        }`}>
+                          <GlobeAltIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
+                          <span className="text-sm font-medium">Mis organizaciones</span>
+                        </div>
+                      </Link>
+                    )}
+                  </Menu.Item>
+                )}
               </>
             )}
 
-            {/* Crear Plan de Estudio */}
-            <Menu.Item>
-              {({ active }) => (
-                <Link href="/study-planner/create">
-                  <div id="tour-dropdown-create-plan" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                    active 
-                      ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
-                      : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
-                  }`}>
-                    <AcademicCapIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                    <span className="text-sm font-medium">Crear Plan de Estudio</span>
-                  </div>
-                </Link>
-              )}
-            </Menu.Item>
 
             {/* Editar Perfil */}
             <Menu.Item>
