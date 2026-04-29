@@ -10,6 +10,7 @@ import {
   getPreviousOrderedLesson,
   getNextOrderedLesson,
   canCompleteOrderedLesson,
+  shouldBlockLessonVideoAdvance,
 } from '../lessonNavigation.utils'
 import type { LearnModule } from '../../components/learn/types'
 
@@ -144,6 +145,45 @@ describe('isLessonVideoCompleted', () => {
         video_provider_id: 'video.mp4',
       }),
     ).toBe(true)
+  })
+})
+
+describe('shouldBlockLessonVideoAdvance', () => {
+  it('blocks video navigation below the completion threshold', () => {
+    expect(
+      shouldBlockLessonVideoAdvance({
+        ...makeLesson('l1', 0),
+        progress_percentage: 94,
+        video_provider: 'direct',
+        video_provider_id: 'video.mp4',
+      }),
+    ).toBe(true)
+  })
+
+  it('allows video navigation at the completion threshold', () => {
+    expect(
+      shouldBlockLessonVideoAdvance({
+        ...makeLesson('l1', 0),
+        progress_percentage: 95,
+        video_provider: 'direct',
+        video_provider_id: 'video.mp4',
+      }),
+    ).toBe(false)
+  })
+
+  it('allows video navigation when the lesson is completed', () => {
+    expect(
+      shouldBlockLessonVideoAdvance({
+        ...makeLesson('l1', 0, true),
+        progress_percentage: 10,
+        video_provider: 'direct',
+        video_provider_id: 'video.mp4',
+      }),
+    ).toBe(false)
+  })
+
+  it('does not block lessons without video', () => {
+    expect(shouldBlockLessonVideoAdvance(makeLesson('l1', 0))).toBe(false)
   })
 })
 

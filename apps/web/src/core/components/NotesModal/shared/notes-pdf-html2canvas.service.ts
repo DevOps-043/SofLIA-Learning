@@ -3,6 +3,40 @@ import html2canvas from 'html2canvas';
 import type { NoteDraft } from '../types';
 import { buildNotePdfFileName, escapeNoteLinkHtml } from './notes-modal.utils';
 
+interface CanvasPageSlice {
+  height: number;
+  y: number;
+}
+
+export function getCanvasPageSlices({
+  canvasHeight,
+  canvasWidth,
+  pdfContentHeight,
+  pdfContentWidth,
+}: {
+  canvasHeight: number;
+  canvasWidth: number;
+  pdfContentHeight: number;
+  pdfContentWidth: number;
+}): CanvasPageSlice[] {
+  const pixelsPerPdfUnit = canvasWidth / pdfContentWidth;
+  const pageHeightInPixels = Math.floor(pdfContentHeight * pixelsPerPdfUnit);
+  const slices: CanvasPageSlice[] = [];
+
+  if (pageHeightInPixels <= 0) {
+    return [{ height: canvasHeight, y: 0 }];
+  }
+
+  for (let y = 0; y < canvasHeight; y += pageHeightInPixels) {
+    slices.push({
+      height: Math.min(pageHeightInPixels, canvasHeight - y),
+      y,
+    });
+  }
+
+  return slices;
+}
+
 export async function exportNotePdfWithCanvas({
   content,
   tags,
@@ -63,17 +97,62 @@ export async function exportNotePdfWithCanvas({
       scale: 2,
       useCORS: true,
     });
-    const imageData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({
       format: 'a4',
       orientation: 'portrait',
       unit: 'mm',
     });
-    const imageProps = pdf.getImageProperties(imageData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imageProps.height * pdfWidth) / imageProps.width;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 12;
+    const pdfContentWidth = pageWidth - margin * 2;
+    const pdfContentHeight = pageHeight - margin * 2;
+    const slices = getCanvasPageSlices({
+      canvasHeight: canvas.height,
+      canvasWidth: canvas.width,
+      pdfContentHeight,
+      pdfContentWidth,
+    });
 
-    pdf.addImage(imageData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    slices.forEach((slice, index) => {
+      if (index > 0) {
+        pdf.addPage();
+      }
+
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = slice.height;
+      const pageContext = pageCanvas.getContext('2d');
+
+      if (!pageContext) {
+        throw new Error('No se pudo preparar la pagina del PDF');
+      }
+
+      pageContext.drawImage(
+        canvas,
+        0,
+        slice.y,
+        canvas.width,
+        slice.height,
+        0,
+        0,
+        canvas.width,
+        slice.height
+      );
+
+      const pageImageData = pageCanvas.toDataURL('image/png');
+      const sliceHeightInPdfUnits =
+        (slice.height * pdfContentWidth) / canvas.width;
+
+      pdf.addImage(
+        pageImageData,
+        'PNG',
+        margin,
+        margin,
+        pdfContentWidth,
+        sliceHeightInPdfUnits
+      );
+    });
     pdf.save(buildNotePdfFileName(title));
   } finally {
     document.body.removeChild(element);

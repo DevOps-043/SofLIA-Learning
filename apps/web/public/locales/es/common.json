@@ -155,7 +155,8 @@
     "adminPanel": "Panel de Administración",
     "instructorPanel": "Panel de Instructor",
     "viewTour": "Ver Tour",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "myCourses": "Mis cursos"
   },
   "lia": {
     "tips": [
@@ -935,5 +936,17 @@
     "hideReplies_other": "Ocultar {{count}} respuestas",
     "viewReplies_one": "Ver {{count}} respuesta",
     "viewReplies_other": "Ver {{count}} respuestas"
+  },
+  "profileDropdown": {
+    "userFallback": "Usuario",
+    "usernameFallback": "usuario",
+    "organizations": "Mis organizaciones",
+    "viewAllOrganizations": "Ver todas",
+    "theme": "Tema",
+    "orgRoles": {
+      "owner": "Propietario",
+      "admin": "Admin",
+      "member": "Miembro"
+    }
   }
 }

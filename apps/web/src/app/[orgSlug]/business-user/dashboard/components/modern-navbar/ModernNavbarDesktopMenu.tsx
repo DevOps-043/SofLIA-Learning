@@ -176,7 +176,7 @@ export function ModernNavbarDesktopMenu({
                     whileHover={{ x: 2, backgroundColor: hoverBackground }}
                   >
                     <Building2 className="h-4 w-4 opacity-70" />
-                    <span>Mis organizaciones</span>
+                    <span>{t('common:profileDropdown.organizations')}</span>
                   </motion.button>
                 )}
 
@@ -190,7 +190,7 @@ export function ModernNavbarDesktopMenu({
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
                   <User className="h-4 w-4 opacity-70" />
-                  <span>{t('header.editProfile')}</span>
+                  <span>{t('business:header.editProfile')}</span>
                 </motion.button>
 
 
@@ -206,7 +206,7 @@ export function ModernNavbarDesktopMenu({
                     whileHover={{ x: 2, backgroundColor: hoverBackground }}
                   >
                     <Globe className="h-4 w-4 opacity-70" />
-                    <span className="flex-1 text-left">{t('header.language')}</span>
+                    <span className="flex-1 text-left">{t('business:header.language')}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs opacity-70">{language.toUpperCase()}</span>
                       <ChevronRight
@@ -260,10 +260,10 @@ export function ModernNavbarDesktopMenu({
                     whileHover={{ x: 2, backgroundColor: hoverBackground }}
                   >
                     {resolvedTheme === 'dark' ? <Moon className="h-4 w-4 opacity-70" /> : <Sun className="h-4 w-4 opacity-70" />}
-                    <span className="flex-1 text-left">Tema</span>
+                    <span className="flex-1 text-left">{t('common:profileDropdown.theme')}</span>
                     <div className="flex items-center gap-1">
                       <span className="text-xs opacity-70">
-                        {theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Sistema'}
+                        {theme === 'light' ? t('common:menu.theme.light') : theme === 'dark' ? t('common:menu.theme.dark') : t('common:menu.theme.system')}
                       </span>
                       <ChevronRight
                         className={`h-3.5 w-3.5 opacity-70 transition-transform ${activeSubmenu === 'theme' ? 'rotate-90' : ''}`}
@@ -299,7 +299,7 @@ export function ModernNavbarDesktopMenu({
                               }}
                             >
                               <ThemeIcon className="h-3.5 w-3.5" />
-                              <span>{option.label}</span>
+                              <span>{t(`common:menu.theme.${option.value}`)}</span>
                               {theme === option.value && <Check className="h-3 w-3 ml-auto" />}
                             </button>
                           );
@@ -320,7 +320,7 @@ export function ModernNavbarDesktopMenu({
                   whileHover={{ x: 2 }}
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>{t('header.logout')}</span>
+                  <span>{t('business:header.logout')}</span>
                 </motion.button>
               </div>
             </motion.div>

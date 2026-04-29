@@ -53,6 +53,12 @@ export function isLessonVideoCompleted(lesson?: LearnLesson | null): boolean {
   );
 }
 
+export function shouldBlockLessonVideoAdvance(
+  lesson?: LearnLesson | null
+): boolean {
+  return hasLessonVideo(lesson) && !isLessonVideoCompleted(lesson);
+}
+
 export function getOrderedLessons(
   modules: LearnModule[]
 ): LearnOrderedLesson[] {

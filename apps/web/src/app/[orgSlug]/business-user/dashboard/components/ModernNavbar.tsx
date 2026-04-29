@@ -31,7 +31,7 @@ export function ModernNavbar({
   const { canSwitch } = useOrganization();
   const router = useRouter();
   const { language, setLanguage } = useLanguage();
-  const { t } = useTranslation('business');
+  const { t } = useTranslation(['business', 'common']);
   const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore();
   const {
     activeSubmenu,

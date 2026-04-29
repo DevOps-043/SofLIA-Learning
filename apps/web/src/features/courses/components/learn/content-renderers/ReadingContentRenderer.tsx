@@ -1,19 +1,79 @@
 "use client";
 
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { normalizeContentForRenderer } from "@/lib/course-content";
 
+const READING_FONT_SIZES = [
+  {
+    className: "text-sm",
+    labelKey: "reading.fontSizeSmall",
+    proseClassName: "prose-sm",
+  },
+  {
+    className: "text-base",
+    labelKey: "reading.fontSizeDefault",
+    proseClassName: "prose-base",
+  },
+  {
+    className: "text-lg",
+    labelKey: "reading.fontSizeLarge",
+    proseClassName: "prose-lg",
+  },
+] as const;
+
 export function ReadingContentRenderer({ content }: { content: unknown }) {
+  const { t } = useTranslation("learn");
+  const [fontSizeIndex, setFontSizeIndex] = useState(1);
   const readingContent = normalizeContentForRenderer(content);
+  const fontSize = READING_FONT_SIZES[fontSizeIndex];
 
   if (!readingContent.trim()) {
     return null;
   }
 
+  const fontSizeControls = (
+    <div className="mb-4 flex items-center justify-end gap-2">
+      <span className="text-xs font-medium text-gray-600 dark:text-white/60">
+        {t("reading.fontSize")}
+      </span>
+      <button
+        type="button"
+        onClick={() => setFontSizeIndex((currentIndex) => Math.max(0, currentIndex - 1))}
+        disabled={fontSizeIndex === 0}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-[#0A2540]/30 hover:text-[#0A2540] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-[#00D4B3]"
+        aria-label={t("reading.decreaseFontSize")}
+        title={t("reading.decreaseFontSize")}
+      >
+        A-
+      </button>
+      <span className="min-w-20 text-center text-xs text-gray-600 dark:text-white/60">
+        {t(fontSize.labelKey)}
+      </span>
+      <button
+        type="button"
+        onClick={() =>
+          setFontSizeIndex((currentIndex) =>
+            Math.min(READING_FONT_SIZES.length - 1, currentIndex + 1)
+          )
+        }
+        disabled={fontSizeIndex === READING_FONT_SIZES.length - 1}
+        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-semibold text-gray-700 transition-colors hover:border-[#0A2540]/30 hover:text-[#0A2540] disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 dark:hover:text-[#00D4B3]"
+        aria-label={t("reading.increaseFontSize")}
+        title={t("reading.increaseFontSize")}
+      >
+        A+
+      </button>
+    </div>
+  );
+
   if (/<[a-z][\s\S]*>/i.test(readingContent)) {
     return (
       <div className="py-2">
+        {fontSizeControls}
         <article
-          className="prose prose-slate dark:prose-invert max-w-none text-[#0A2540] dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3"
+          className={`prose prose-slate ${fontSize.proseClassName} dark:prose-invert max-w-none text-gray-900 dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3`}
           style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           dangerouslySetInnerHTML={{ __html: readingContent }}
         />
@@ -32,7 +92,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       elements.push(
         <p
           key={`paragraph-${elements.length}`}
-          className="text-gray-700 dark:text-white/80 text-sm leading-[1.8] mb-4"
+          className={`text-gray-800 dark:text-white/80 ${fontSize.className} leading-[1.8] mb-4`}
         >
           {currentParagraph.join(" ")}
         </p>
@@ -59,7 +119,9 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
               {mainSectionMatch[1]}
             </h2>
             {mainSectionMatch[2] && (
-              <p className="text-gray-500 dark:text-white/60 text-sm">{mainSectionMatch[2]}</p>
+              <p className={`text-gray-600 dark:text-white/60 ${fontSize.className}`}>
+                {mainSectionMatch[2]}
+              </p>
             )}
             <div className="w-12 h-0.5 bg-gray-200 dark:bg-white/10 mt-3" />
           </div>
@@ -72,11 +134,13 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         flushParagraph();
         elements.push(
           <div key={`step-${index}`} className="mt-6 mb-3 flex items-start gap-3">
-            <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 rounded text-[10px] font-medium text-gray-500 dark:text-white/60 uppercase tracking-wider flex-shrink-0">
+            <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 rounded text-[10px] font-medium text-gray-600 dark:text-white/60 uppercase tracking-wider flex-shrink-0">
               {stepMatch[1]}
             </span>
             {stepMatch[2] && (
-              <span className="text-gray-900 dark:text-white font-medium text-sm">{stepMatch[2]}</span>
+              <span className={`text-gray-900 dark:text-white font-medium ${fontSize.className}`}>
+                {stepMatch[2]}
+              </span>
             )}
           </div>
         );
@@ -88,8 +152,12 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         flushParagraph();
         elements.push(
           <div key={`numbered-${index}`} className="mt-5 mb-3 flex items-baseline gap-3">
-            <span className="text-gray-400 dark:text-white/30 text-xs font-medium">{numberedMatch[1]}.</span>
-            <h3 className="text-gray-900 dark:text-white font-medium text-sm">{numberedMatch[2]}</h3>
+            <span className="text-gray-500 dark:text-white/40 text-xs font-medium">
+              {numberedMatch[1]}.
+            </span>
+            <h3 className={`text-gray-900 dark:text-white font-medium ${fontSize.className}`}>
+              {numberedMatch[2]}
+            </h3>
           </div>
         );
         return;
@@ -100,7 +168,9 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         flushParagraph();
         elements.push(
           <div key={`ref-${index}`} className="mt-2 mb-3 pl-3 border-l-2 border-gray-200 dark:border-white/10">
-            <p className="text-gray-400 dark:text-white/40 text-xs italic">{trimmedLine}</p>
+            <p className="text-gray-600 dark:text-white/50 text-xs italic">
+              {trimmedLine}
+            </p>
           </div>
         );
         return;
@@ -109,7 +179,10 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       if (trimmedLine.endsWith(":") && trimmedLine.length < 80 && trimmedLine.length > 5) {
         flushParagraph();
         elements.push(
-          <h4 key={`heading-${index}`} className="text-gray-800 dark:text-white/90 font-medium text-sm mt-5 mb-2">
+          <h4
+            key={`heading-${index}`}
+            className={`text-gray-900 dark:text-white/90 font-medium ${fontSize.className} mt-5 mb-2`}
+          >
             {trimmedLine}
           </h4>
         );
@@ -121,8 +194,10 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
         flushParagraph();
         elements.push(
           <div key={`list-${index}`} className="flex items-start gap-2 mb-2 pl-2">
-            <span className="text-gray-300 dark:text-white/30 mt-1.5">•</span>
-            <span className="text-gray-600 dark:text-white/70 text-sm leading-relaxed">{listMatch[1]}</span>
+            <span className="text-gray-500 dark:text-white/40 mt-1.5">•</span>
+            <span className={`text-gray-800 dark:text-white/70 ${fontSize.className} leading-relaxed`}>
+              {listMatch[1]}
+            </span>
           </div>
         );
         return;
@@ -137,6 +212,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
 
   return (
     <div className="py-2">
+      {fontSizeControls}
       <article className="max-w-none">{renderContent()}</article>
     </div>
   );

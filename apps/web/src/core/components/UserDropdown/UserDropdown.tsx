@@ -87,10 +87,10 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
     if (userProfile?.first_name && userProfile?.last_name) {
       return `${userProfile.first_name} ${userProfile.last_name}`
     }
-    return userProfile?.display_name || user?.display_name || userProfile?.first_name || 'Usuario'
+    return userProfile?.display_name || user?.display_name || userProfile?.first_name || t('profileDropdown.userFallback')
   }
 
-  const getUsername = () => userProfile?.username || user?.username || 'usuario'
+  const getUsername = () => userProfile?.username || user?.username || t('profileDropdown.usernameFallback')
 
   const getInitials = () => {
     const name = getDisplayName()
@@ -100,15 +100,15 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
   }
 
   const languageOptions = [
-    { value: 'es' as const, label: 'Español', flag: '🇪🇸' },
-    { value: 'en' as const, label: 'English', flag: '🇺🇸' },
-    { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
+    { value: 'es' as const, label: t('languages.es'), flag: '🇪🇸' },
+    { value: 'en' as const, label: t('languages.en'), flag: '🇺🇸' },
+    { value: 'pt' as const, label: t('languages.pt'), flag: '🇧🇷' },
   ]
 
   const themeOptions = [
-    { value: 'light' as Theme, label: 'Claro', icon: Sun },
-    { value: 'dark' as Theme, label: 'Oscuro', icon: Moon },
-    { value: 'system' as Theme, label: 'Sistema', icon: Monitor },
+    { value: 'light' as Theme, label: t('menu.theme.light'), icon: Sun },
+    { value: 'dark' as Theme, label: t('menu.theme.dark'), icon: Moon },
+    { value: 'system' as Theme, label: t('menu.theme.system'), icon: Monitor },
   ]
 
   const getCurrentThemeIcon = () => {
@@ -122,9 +122,9 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
 
   const getOrgRoleLabel = (role: string) => {
     switch (role) {
-      case 'owner': return 'Propietario'
-      case 'admin': return 'Admin'
-      default: return 'Miembro'
+      case 'owner': return t('profileDropdown.orgRoles.owner')
+      case 'admin': return t('profileDropdown.orgRoles.admin')
+      default: return t('profileDropdown.orgRoles.member')
     }
   }
 
@@ -211,7 +211,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                   <div className="w-8 h-8 rounded-lg bg-[#2A3038] flex items-center justify-center group-hover:bg-[#00D4B3]/20 transition-colors">
                     <Pencil className="w-4 h-4 text-[#8B95A5] group-hover:text-[#00D4B3] transition-colors" />
                   </div>
-                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">Perfil</span>
+                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">{t('menu.profile')}</span>
                 </motion.button>
 
                 <motion.button
@@ -223,7 +223,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                   <div className="w-8 h-8 rounded-lg bg-[#2A3038] flex items-center justify-center group-hover:bg-[#00D4B3]/20 transition-colors">
                     <Settings className="w-4 h-4 text-[#8B95A5] group-hover:text-[#00D4B3] transition-colors" />
                   </div>
-                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">Ajustes</span>
+                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">{t('menu.account')}</span>
                 </motion.button>
 
                 <motion.button
@@ -235,7 +235,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                   <div className="relative w-8 h-8 rounded-lg bg-[#2A3038] flex items-center justify-center group-hover:bg-[#00D4B3]/20 transition-colors">
                     <Bell className="w-4 h-4 text-[#8B95A5] group-hover:text-[#00D4B3] transition-colors" />
                   </div>
-                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">Alertas</span>
+                  <span className="text-[10px] text-[#8B95A5] group-hover:text-white transition-colors">{t('menu.notifications')}</span>
                 </motion.button>
 
               </div>
@@ -243,9 +243,9 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
               {/* Menu Items */}
               <div className="py-1">
                 {/* Learning Section */}
-                <MenuItem icon={BookOpen} label="Mis Cursos" onClick={() => handleNavigation('/dashboard')} />
-                <MenuItem icon={BarChart3} label="Estadísticas" onClick={() => handleNavigation('/statistics')} />
-                <MenuItem icon={Award} label="Certificados" onClick={() => handleNavigation('/certificates')} />
+                <MenuItem icon={BookOpen} label={t('menu.myCourses')} onClick={() => handleNavigation('/dashboard')} />
+                <MenuItem icon={BarChart3} label={t('menu.stats')} onClick={() => handleNavigation('/statistics')} />
+                <MenuItem icon={Award} label={t('menu.certificates')} onClick={() => handleNavigation('/certificates')} />
                 
                 {/* Mis Organizaciones - solo B2B */}
                 {isB2B && organizations.length > 0 && (
@@ -254,7 +254,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                     <div className="relative">
                       <MenuItem
                         icon={Building2}
-                        label="Mis Organizaciones"
+                        label={t('profileDropdown.organizations')}
                         rightElement={
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-[#8B95A5]">{organizations.length}</span>
@@ -329,7 +329,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                                 onClick={() => { handleNavigation('/auth/select-organization') }}
                                 className="w-full flex items-center justify-center gap-1 px-2 py-1.5 mt-1 rounded-lg text-[10px] text-[#8B95A5] hover:text-[#00D4B3] transition-colors border-t border-[#2A3038] pt-2"
                               >
-                                Ver todas
+                                {t('profileDropdown.viewAllOrganizations')}
                                 <ExternalLink className="w-2.5 h-2.5" />
                               </button>
                             </div>
@@ -346,11 +346,11 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                 <div className="relative">
                   <MenuItem
                     icon={getCurrentThemeIcon()}
-                    label="Tema" 
+                    label={t('profileDropdown.theme')} 
                     rightElement={
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-[#8B95A5]">
-                          {theme === 'light' ? 'Claro' : theme === 'dark' ? 'Oscuro' : 'Auto'}
+                          {themeOptions.find((option) => option.value === theme)?.label || t('menu.theme.system')}
                         </span>
                         <ChevronRight className={`w-3.5 h-3.5 text-[#8B95A5] transition-transform ${activeSubmenu === 'theme' ? 'rotate-90' : ''}`} />
                       </div>
@@ -392,7 +392,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                 <div className="relative">
                   <MenuItem 
                     icon={Globe} 
-                    label="Idioma" 
+                    label={t('language')} 
                     rightElement={
                       <div className="flex items-center gap-1">
                         <span className="text-sm">{getCurrentLanguageFlag()}</span>
@@ -441,7 +441,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                     {isAdmin && (
                       <MenuItem 
                         icon={Shield} 
-                        label="Panel Admin" 
+                        label={t('menu.adminPanel')} 
                         onClick={() => handleNavigation('/admin/dashboard')} 
                         highlight 
                       />
@@ -449,7 +449,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                     {isInstructor && (
                       <MenuItem 
                         icon={GraduationCap} 
-                        label="Panel Instructor" 
+                        label={t('menu.instructorPanel')} 
                         onClick={() => handleNavigation('/instructor/dashboard')} 
                         highlight 
                       />
@@ -467,7 +467,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
                   whileTap={{ scale: 0.99 }}
                 >
                   <LogOut className="w-4 h-4" />
-                  <span className="text-sm font-medium">Cerrar Sesión</span>
+                  <span className="text-sm font-medium">{t('menu.logout')}</span>
                 </motion.button>
               </div>
             </motion.div>

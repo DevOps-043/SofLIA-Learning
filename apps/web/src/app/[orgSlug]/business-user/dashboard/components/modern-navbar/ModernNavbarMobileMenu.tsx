@@ -123,8 +123,8 @@ export function ModernNavbarMobileMenu({
                   <LayoutDashboard className="h-4 w-4" />
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('header.adminPanel')}</span>
-                  <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('header.manageOrganization')}</span>
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('business:header.adminPanel')}</span>
+                  <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('business:header.manageOrganization')}</span>
                 </div>
               </motion.button>
             )}
@@ -151,8 +151,8 @@ export function ModernNavbarMobileMenu({
                   <Building2 className="h-4 w-4" />
                 </div>
                 <div className="text-left flex-1 min-w-0">
-                  <span className="font-medium block text-sm" style={{ color: colors.text }}>Mis organizaciones</span>
-                  <span className="text-xs opacity-70" style={{ color: colors.text }}>Cambiar de organización</span>
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('common:profileDropdown.organizations')}</span>
+                  <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('common:profileDropdown.viewAllOrganizations')}</span>
                 </div>
               </motion.button>
             )}
@@ -173,8 +173,8 @@ export function ModernNavbarMobileMenu({
                 <User className="h-4 w-4" style={{ color: colors.accent }} />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('header.editProfile')}</span>
-                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('header.updateInfo')}</span>
+                <span className="font-medium block text-sm" style={{ color: colors.text }}>{t('business:header.editProfile')}</span>
+                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('business:header.updateInfo')}</span>
               </div>
             </motion.button>
 
@@ -184,7 +184,7 @@ export function ModernNavbarMobileMenu({
               <div className="flex items-center gap-2 mb-2 px-1">
                 <Globe className="w-3.5 h-3.5 opacity-70" style={{ color: colors.text }} />
                 <span className="text-xs font-medium opacity-70" style={{ color: colors.text }}>
-                  {t('header.language')}
+                  {t('business:header.language')}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -215,7 +215,7 @@ export function ModernNavbarMobileMenu({
                   <Sun className="w-3.5 h-3.5 opacity-70" style={{ color: colors.text }} />
                 )}
                 <span className="text-xs font-medium opacity-70" style={{ color: colors.text }}>
-                  Tema
+                  {t('common:profileDropdown.theme')}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2">
@@ -235,7 +235,7 @@ export function ModernNavbarMobileMenu({
                       whileTap={disableHeavyEffects ? undefined : { scale: 0.95 }}
                     >
                       <ThemeIcon className="w-3 h-3" />
-                      {option.label}
+                      {t(`common:menu.theme.${option.value}`)}
                     </motion.button>
                   );
                 })}
@@ -258,8 +258,8 @@ export function ModernNavbarMobileMenu({
                 <LogOut className="h-4 w-4 text-red-400" />
               </div>
               <div className="text-left flex-1 min-w-0">
-                <span className="text-red-400 font-medium block text-sm">{t('header.logout')}</span>
-                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('header.exitAccount')}</span>
+                <span className="text-red-400 font-medium block text-sm">{t('business:header.logout')}</span>
+                <span className="text-xs opacity-70" style={{ color: colors.text }}>{t('business:header.exitAccount')}</span>
               </div>
             </motion.button>
           </div>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
+import { useTranslation } from "react-i18next";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -14,7 +15,7 @@ import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTar
 import { useVideoPlayerOptional } from "../../../../app/courses/[slug]/learn/VideoPlayerContext";
 import {
   hasIncompleteActivities,
-  isLessonVideoCompleted,
+  shouldBlockLessonVideoAdvance,
 } from "../../hooks/lessonNavigation.utils";
 import { LessonSupplementaryContent } from "./LessonSupplementaryContent";
 import type {
@@ -23,17 +24,23 @@ import type {
   LearnTab,
 } from "./types";
 
+function VideoPlayerLoading() {
+  const { t } = useTranslation("learn");
+
+  return (
+    <div className="flex items-center justify-center aspect-video bg-[#0F1419] dark:bg-[#0F1419] rounded-xl text-white">
+      {t("loading.video")}
+    </div>
+  );
+}
+
 const VideoPlayer = dynamic(
   () =>
     import("../../../../core/components/VideoPlayer").then((mod) => ({
       default: mod.VideoPlayer,
     })),
   {
-    loading: () => (
-      <div className="flex items-center justify-center aspect-video bg-[#0F1419] dark:bg-[#0F1419] rounded-xl">
-        Cargando video...
-      </div>
-    ),
+    loading: () => <VideoPlayerLoading />,
     ssr: false,
   }
 );
@@ -130,6 +137,7 @@ export function VideoContent({
   transcriptContent,
   suppressVideoPlayback = false,
 }: VideoContentProps) {
+  const { t } = useTranslation("learn");
   const videoPlayerContext = useVideoPlayerOptional();
   const setShouldAutoPlay = videoPlayerContext?.setShouldAutoPlay;
   const pauseAllVideos = videoPlayerContext?.pauseAllVideos;
@@ -218,7 +226,7 @@ export function VideoContent({
           let resumeCheckpoint = cachedTime;
           let resumePlaybackRate = 1;
 
-          if (resumeCheckpoint <= 0 && !isLessonVideoCompleted(lesson)) {
+          if (resumeCheckpoint <= 0 && shouldBlockLessonVideoAdvance(lesson)) {
             const resumeData = await fetchVideoResumeData(lesson.lesson_id);
 
             if (isDisposed) {
@@ -408,6 +416,11 @@ export function VideoContent({
   };
 
   const handleAdvanceAction = () => {
+    if (shouldBlockLessonVideoAdvance(lesson)) {
+      onCannotComplete();
+      return;
+    }
+
     const pendingExists = hasIncompleteActivities(activities);
 
     if (hasActivities && pendingExists) {
@@ -443,6 +456,9 @@ export function VideoContent({
               onPrimaryAction={
                 isLastLesson ? handleCompletionAction : handleAdvanceAction
               }
+              previousLabel={t("navigation.previous")}
+              nextLabel={t("navigation.next")}
+              finishLabel={t("navigation.completeCourse")}
             />
           </div>
         ) : (
@@ -453,7 +469,7 @@ export function VideoContent({
                 <Play className="w-10 h-10 text-white ml-1" />
               </div>
               <p className="text-gray-700 dark:text-white/70">
-                Video no disponible
+                {t("video.unavailable")}
               </p>
             </div>
             <VideoNavigationOverlay
@@ -464,6 +480,9 @@ export function VideoContent({
               onPrimaryAction={
                 isLastLesson ? handleCompletionAction : handleAdvanceAction
               }
+              previousLabel={t("navigation.previous")}
+              nextLabel={t("navigation.next")}
+              finishLabel={t("navigation.completeCourse")}
             />
           </div>
         )}
@@ -509,16 +528,22 @@ type VideoNavigationOverlayProps = {
   hasPreviousVideo: boolean;
   hasNextVideo: boolean;
   isLastLesson: boolean;
+  finishLabel: string;
+  nextLabel: string;
   onNavigatePrevious: () => void;
   onPrimaryAction: () => void | Promise<void>;
+  previousLabel: string;
 };
 
 function VideoNavigationOverlay({
   hasPreviousVideo,
   hasNextVideo,
   isLastLesson,
+  finishLabel,
+  nextLabel,
   onNavigatePrevious,
   onPrimaryAction,
+  previousLabel,
 }: VideoNavigationOverlayProps) {
   return (
     <div className="absolute inset-0 flex items-center justify-between pointer-events-none px-2 sm:px-4">
@@ -529,7 +554,7 @@ function VideoNavigationOverlay({
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-all duration-300 group-hover:mr-2" />
           <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
-            Anterior
+            {previousLabel}
           </span>
         </button>
       )}
@@ -544,7 +569,7 @@ function VideoNavigationOverlay({
           }`}
         >
           <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden order-1">
-            {isLastLesson ? "Terminar" : "Siguiente"}
+            {isLastLesson ? finishLabel : nextLabel}
           </span>
           {isLastLesson ? (
             <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-all duration-300 group-hover:ml-2 order-2" />

@@ -141,7 +141,7 @@ export function LessonSupplementaryContent({
   const summaryBadge = isSummaryLoading
     ? t("loading.summary")
     : summaryContent?.trim()
-      ? `${summaryContent.split(/\s+/).length} palabras`
+      ? `${summaryContent.split(/\s+/).length} ${t("summary.words")}`
       : t("summary.notAvailable");
 
   const toggleSection = (sectionId: SupplementarySectionId) => {
@@ -156,7 +156,7 @@ export function LessonSupplementaryContent({
       <SupplementarySection
         id="lesson-transcript-panel"
         title={t("tabs.transcript")}
-        description="Consulta el texto completo del video y guarda fragmentos en tus notas."
+        description={t("transcript.sectionDescription")}
         icon={ScrollText}
         badge={transcriptBadge}
         isOpen={openSections.transcript}
@@ -175,7 +175,7 @@ export function LessonSupplementaryContent({
       <SupplementarySection
         id="lesson-summary-panel"
         title={t("tabs.summary")}
-        description="Repasa los puntos clave de la lección antes de continuar."
+        description={t("summary.sectionDescription")}
         icon={Sparkles}
         badge={summaryBadge}
         isOpen={openSections.summary}
@@ -183,8 +183,11 @@ export function LessonSupplementaryContent({
       >
         <SummaryContent
           lesson={lesson}
+          slug={slug}
           summaryContent={summaryContent}
           isLoading={isSummaryLoading}
+          onNoteCreated={onNoteCreated}
+          onStatsUpdate={onStatsUpdate}
         />
       </SupplementarySection>
     </div>

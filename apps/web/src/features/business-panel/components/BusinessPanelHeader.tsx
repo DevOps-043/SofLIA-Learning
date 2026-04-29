@@ -326,7 +326,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                         >
                           <ShieldCheck className="h-4 w-4 opacity-70" />
-                          <span>Panel Superadmin</span>
+                          <span>{t('common:menu.adminPanel')}</span>
                         </motion.button>
                       )}
 
@@ -354,7 +354,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                         >
                           <Building2 className="h-4 w-4 opacity-70" />
-                          <span>{t('business:header.myOrganizations', { defaultValue: 'Mis organizaciones' })}</span>
+                          <span>{t('common:profileDropdown.organizations')}</span>
                         </motion.button>
                       )}
 

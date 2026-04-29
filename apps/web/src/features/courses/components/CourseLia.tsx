@@ -3,10 +3,13 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Square, Trash2, Copy, StickyNote, Check, Paperclip } from 'lucide-react';
+import { X, Send, Square, Trash2, Copy, StickyNote, Check, Paperclip, Mic, MicOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 import { SHARED_TOUR_TARGET_IDS } from '../../../core/constants/tourTargets';
+import { useBrowserSpeechRecognition } from '../../../core/hooks/useBrowserSpeechRecognition';
+import { useLanguage } from '../../../core/providers/I18nProvider';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useLiaCourse } from '../context/LiaCourseContext';
 import { useLiaCourseChat } from '../../../core/hooks/useLiaCourseChat';
@@ -19,6 +22,7 @@ import { buildLiaImageAttachment } from '../../../core/reporting/report-problem.
 import { copyTextToClipboard } from '../../../lib/clipboard';
 import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
+import { normalizeLiaLinkUrl, type NormalizedLiaLink } from './CourseLia/lia-link.utils';
 import type { LessonSuggestionsActivityFocus } from '../../../app/api/lia/lesson-suggestions/lesson-suggestions.types';
 
 // Tipos necesarios
@@ -48,7 +52,7 @@ const COURSE_LIA_BUTTON_SIZE_PX = 60;
 const NAVBAR_HEIGHT = 58; // Ajuste final milimétrico para cubrir totalmente el borde
 const MOBILE_BOTTOM_NAV_HEIGHT = 104; // Altura de la barra de navegación inferior móvil (70px base + safe-area)
 
-function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, isDarkMode: boolean = true): React.ReactNode {
+function parseMarkdownContent(text: string, onLinkClick: (link: NormalizedLiaLink) => void, isDarkMode: boolean = true): React.ReactNode {
   let keyIndex = 0;
   let processedText = text.replace(/^\*\s+/gm, '- ');
   const lines = processedText.split('\n');
@@ -58,7 +62,7 @@ function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, 
 
   const processInlineFormatting = (line: string): React.ReactNode[] => {
     const elements: React.ReactNode[] = [];
-    const inlineRegex = /(\[([^\]]+)\]\(([^)]+)\))|(\*\*([^*]+)\*\*)|(\*([^*\n]+)\*)/g;
+    const inlineRegex = /(\[([^\]]+)\]\(([^)]+)\))|((?:https?:\/\/|www\.)[^\s)]+|\/[A-Za-z0-9][^\s)]*)|(\*\*([^*]+)\*\*)|(\*([^*\n]+)\*)/g;
     let lastIndex = 0;
     let match;
 
@@ -67,23 +71,30 @@ function parseMarkdownContent(text: string, onLinkClick: (url: string) => void, 
         elements.push(line.slice(lastIndex, match.index));
       }
 
-      if (match[1]) { // Link
-        const linkText = match[2];
-        const linkUrl = match[3];
-        elements.push(
-          <a
-            key={`link-${keyIndex++}`}
-            href={linkUrl}
-            onClick={(e) => { e.preventDefault(); onLinkClick(linkUrl); }}
-            style={{ color: linkColor, textDecoration: 'underline', cursor: 'pointer', fontWeight: 500 }}
-          >
-            {linkText}
-          </a>
-        );
-      } else if (match[4]) { // Bold
-        elements.push(<strong key={`bold-${keyIndex++}`} style={{ fontWeight: 600 }}>{match[5]}</strong>);
-      } else if (match[6]) { // Italic
-        elements.push(<em key={`italic-${keyIndex++}`} style={{ fontStyle: 'italic' }}>{match[7]}</em>);
+      if (match[1] || match[4]) { // Link
+        const linkText = match[2] || match[4];
+        const linkUrl = match[3] || match[4];
+        const normalizedLink = normalizeLiaLinkUrl(linkUrl);
+
+        if (normalizedLink) {
+          elements.push(
+            <a
+              key={`link-${keyIndex++}`}
+              href={normalizedLink.url}
+              onClick={(e) => { e.preventDefault(); onLinkClick(normalizedLink); }}
+              rel={normalizedLink.kind === 'external' ? 'noopener noreferrer' : undefined}
+              style={{ color: linkColor, textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}
+            >
+              {linkText}
+            </a>
+          );
+        } else {
+          elements.push(linkText);
+        }
+      } else if (match[5]) { // Bold
+        elements.push(<strong key={`bold-${keyIndex++}`} style={{ fontWeight: 600 }}>{match[6]}</strong>);
+      } else if (match[7]) { // Italic
+        elements.push(<em key={`italic-${keyIndex++}`} style={{ fontStyle: 'italic' }}>{match[8]}</em>);
       }
       lastIndex = match.index + match[0].length;
     }
@@ -179,6 +190,8 @@ function CourseLiaPanelContent({
   lessonContext,
   onSaveNote,
 }: CourseLiaProps) {
+  const { t } = useTranslation('learn');
+  const { language } = useLanguage();
   const {
     isOpen,
     closeLia,
@@ -238,6 +251,17 @@ function CourseLiaPanelContent({
   // Detectar si estamos usando un tema personalizado (generalmente oscuro en esta empresa)
   const isCustomTheme = !!customColors?.panelBg;
 
+  const [inputValue, setInputValue] = useState('');
+  const [selectedAttachment, setSelectedAttachment] = useState<LiaImageAttachment | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [forceDarkText, setForceDarkText] = useState(false);
+
   const computedTextPrimary = forceDarkText ? '#1E293B' : (customColors?.textPrimary || (isLightTheme ? '#1E293B' : '#e5e7eb'));
   const computedTextSecondary = forceDarkText ? '#64748B' : (customColors?.textSecondary || (isLightTheme ? '#64748B' : '#6b7280'));
   const computedInputBg = forceDarkText ? '#F1F5F9' : (isCustomTheme ? (isLightTheme ? '#F1F5F9' : 'rgba(0,0,0,0.3)') : (isLightTheme ? '#F1F5F9' : 'rgba(255,255,255,0.05)'));
@@ -263,6 +287,28 @@ function CourseLiaPanelContent({
 
   const liaChat = useLiaCourseChat(initialMessage);
   const { messages, isLoading, sendMessage, stop, clearHistory } = liaChat;
+  const speechRecognitionLang = language === 'en' ? 'en-US' : language === 'pt' ? 'pt-BR' : 'es-ES';
+  const {
+    isListening,
+    toggleListening,
+    voiceError,
+    setVoiceError,
+  } = useBrowserSpeechRecognition({
+    disabled: isLoading,
+    lang: speechRecognitionLang,
+    messages: {
+      notAllowed: t('lia.voice.permissionError'),
+      notSupported: t('lia.voice.notSupported'),
+      startError: t('lia.voice.startError'),
+    },
+    onTranscript: (transcript) => {
+      setInputValue((currentValue) => {
+        const trimmedCurrent = currentValue.trim();
+        return trimmedCurrent ? `${trimmedCurrent} ${transcript}` : transcript;
+      });
+      inputRef.current?.focus();
+    },
+  });
 
   const suggestionActivityFocus = useMemo<
     LessonSuggestionsActivityFocus | undefined
@@ -321,16 +367,6 @@ function CourseLiaPanelContent({
     return () => setCourseContext(null);
   }, [resolvedLessonContext, setCourseContext]);
   
-  const [inputValue, setInputValue] = useState('');
-  const [selectedAttachment, setSelectedAttachment] = useState<LiaImageAttachment | null>(null);
-  const [attachmentError, setAttachmentError] = useState<string | null>(null);
-  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const attachmentInputRef = useRef<HTMLInputElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [forceDarkText, setForceDarkText] = useState(false);
 
   useEffect(() => {
     const checkContrast = () => {
@@ -352,12 +388,12 @@ function CourseLiaPanelContent({
     return () => clearTimeout(timer);
   }, [themeColors.panelBg, isLightTheme]);
 
-  const handleLinkClick = useCallback((url: string) => {
-    if (url.startsWith('/')) {
+  const handleLinkClick = useCallback((link: NormalizedLiaLink) => {
+    if (link.kind === 'internal') {
       // closeLia(); // Opcional: cerrar al navegar
-      router.push(url);
-    } else if (url.startsWith('http')) {
-      window.open(url, '_blank', 'noopener,noreferrer');
+      router.push(link.url);
+    } else {
+      window.open(link.url, '_blank', 'noopener,noreferrer');
     }
   }, [router]);
 
@@ -379,7 +415,7 @@ function CourseLiaPanelContent({
         clearTimeout(copyFeedbackTimeoutRef.current);
       }
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -456,13 +492,13 @@ function CourseLiaPanelContent({
     }
 
     if (!file.type.startsWith('image/')) {
-      setAttachmentError('Solo puedes adjuntar imágenes.');
+      setAttachmentError(t('lia.attachments.imageOnly'));
       event.target.value = '';
       return;
     }
 
     if (file.size > REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES) {
-      setAttachmentError('La imagen es demasiado grande. Máximo 10MB.');
+      setAttachmentError(t('lia.attachments.tooLarge'));
       event.target.value = '';
       return;
     }
@@ -475,7 +511,7 @@ function CourseLiaPanelContent({
       setAttachmentError(
         error instanceof Error
           ? error.message
-          : 'No se pudo procesar la imagen seleccionada.'
+          : t('lia.attachments.processError')
       );
     } finally {
       event.target.value = '';
@@ -520,6 +556,14 @@ function CourseLiaPanelContent({
 
     void handleSendMessage();
   }, [handleSendMessage, isLoading, stop]);
+
+  const handleVoiceAction = useCallback(() => {
+    if (isLoading) {
+      return;
+    }
+
+    void toggleListening();
+  }, [isLoading, toggleListening]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -756,22 +800,57 @@ function CourseLiaPanelContent({
                 {attachmentError}
               </div>
             ) : null}
+            {voiceError ? (
+              <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '12px', backgroundColor: 'rgba(245,158,11,0.12)', color: isLightTheme ? '#92400E' : '#FCD34D', fontSize: '12px', border: '1px solid rgba(245,158,11,0.24)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                <span>{voiceError}</span>
+                <button
+                  type="button"
+                  onClick={() => setVoiceError(null)}
+                  style={{ border: 'none', background: 'transparent', color: 'inherit', cursor: 'pointer', fontSize: '14px', lineHeight: 1 }}
+                  aria-label={t('actions.close', { ns: 'common' })}
+                >
+                  ×
+                </button>
+              </div>
+            ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '12px', backgroundColor: themeColors.inputBg, borderRadius: '24px', padding: isMobile ? '8px 3%' : '10px 16px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
                <button
                  type="button"
                  onClick={handleAttachmentButtonClick}
-                 title="Adjuntar imagen"
+                 title={t('lia.attachments.attachImage')}
                  style={{ width: '36px', height: '36px', borderRadius: '999px', border: 'none', backgroundColor: selectedAttachment ? 'rgba(0,212,179,0.12)' : 'transparent', color: selectedAttachment ? themeColors.accentColor : themeColors.textSecondary, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                >
                  <Paperclip style={{ width: '16px', height: '16px' }} />
                </button>
+               <motion.button
+                 type="button"
+                 onClick={handleVoiceAction}
+                 disabled={isLoading}
+                 whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                 title={isListening ? t('lia.voice.stopDictation') : t('lia.voice.startDictation')}
+                 aria-label={isListening ? t('lia.voice.stopDictation') : t('lia.voice.startDictation')}
+                 style={{ width: '36px', height: '36px', borderRadius: '999px', border: 'none', backgroundColor: isListening ? 'rgba(16,185,129,0.16)' : 'transparent', color: isListening ? '#10B981' : themeColors.textSecondary, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: isLoading ? 0.5 : 1 }}
+               >
+                 <AnimatePresence mode="wait">
+                   {isListening ? (
+                     <motion.span key="mic-off" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
+                       <MicOff style={{ width: '16px', height: '16px' }} />
+                     </motion.span>
+                   ) : (
+                     <motion.span key="mic" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
+                       <Mic style={{ width: '16px', height: '16px' }} />
+                     </motion.span>
+                   )}
+                 </AnimatePresence>
+               </motion.button>
                <input
                  ref={inputRef}
                  type="text"
                  value={inputValue}
                  onChange={(e) => setInputValue(e.target.value)}
                  onKeyDown={handleKeyDown}
-                 placeholder={'Pregunta sobre la lección...'}
+                 placeholder={t('lia.coursePlaceholder')}
                  style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px' }}
                  id="lia-course-chat-input"
                  className="lia-input-reset lia-chat-input"
@@ -779,8 +858,8 @@ function CourseLiaPanelContent({
                <button 
                  onClick={handlePrimaryAction}
                  disabled={!canSendMessage}
-                 title={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
-                 aria-label={isLoading ? 'Detener generacion de SofLIA' : 'Enviar mensaje'}
+                 title={isLoading ? t('lia.stopGeneration') : t('lia.send')}
+                 aria-label={isLoading ? t('lia.stopGeneration') : t('lia.send')}
                  style={{ 
                    minWidth: isLoading ? (isMobile ? 'auto' : '112px') : '44px', 
                    maxWidth: isLoading && isMobile ? '30%' : undefined,
@@ -804,7 +883,7 @@ function CourseLiaPanelContent({
                    <>
                      <Square style={{ width: '15px', height: '15px', color: '#FFFFFF', fill: '#FFFFFF' }} />
                      <span style={{ color: '#FFFFFF', fontSize: isMobile ? '12px' : '13px', fontWeight: 600, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                       Detener
+                       {t('lia.stop')}
                      </span>
                    </>
                  ) : (

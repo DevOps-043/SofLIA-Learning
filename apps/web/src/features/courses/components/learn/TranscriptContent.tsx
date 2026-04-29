@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Clock, Copy, FileDown, Info, Save, ScrollText } from "lucide-react";
+import { Clock, Info, Save, ScrollText } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { useTranslation } from "react-i18next";
 
@@ -32,7 +32,6 @@ export function TranscriptContent({
 }: TranscriptContentProps) {
   const { t } = useTranslation("learn");
   const [isSaving, setIsSaving] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -43,40 +42,6 @@ export function TranscriptContent({
     ? Math.ceil(transcriptContent.split(/\s+/).length / 200)
     : 0;
 
-  const handleDownloadTranscript = () => {
-    if (!transcriptContent || !lesson) {
-      return;
-    }
-
-    const blob = new Blob([transcriptContent], {
-      type: "text/plain;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `transcripcion-${lesson.lesson_title
-      .replace(/[^a-z0-9]/gi, "-")
-      .toLowerCase()}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleCopyToClipboard = async () => {
-    if (!transcriptContent) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(transcriptContent);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch {
-      console.warn("Error al copiar al portapapeles");
-    }
-  };
-
   const handleSaveToNotes = async () => {
     if (!transcriptContent || !lesson) {
       return;
@@ -86,9 +51,9 @@ export function TranscriptContent({
 
     try {
       const notePayload = {
-        note_title: `Transcripción: ${lesson.lesson_title}`,
+        note_title: `${t("transcript.noteTitle")}: ${lesson.lesson_title}`,
         note_content: transcriptContent,
-        note_tags: ["transcripción", "automática"],
+        note_tags: [t("transcript.noteTags.transcript"), t("transcript.noteTags.automatic")],
         source_type: "manual",
       };
 
@@ -111,12 +76,12 @@ export function TranscriptContent({
           const responseText = await response.text();
           errorData = responseText
             ? (JSON.parse(responseText) as { error?: string; message?: string })
-            : { error: "Respuesta vacía del servidor" };
+            : { error: t("transcript.emptyServerResponse") };
         } catch {
-          errorData = { error: "Error al procesar respuesta del servidor" };
+          errorData = { error: t("transcript.serverResponseError") };
         }
 
-        setSaveError(errorData.error || "Error al guardar la transcripción en notas");
+        setSaveError(errorData.error || t("transcript.saveNoteError"));
         return;
       }
 
@@ -131,7 +96,7 @@ export function TranscriptContent({
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message : "Error al guardar la transcripción en notas");
+      setSaveError(error instanceof Error ? error.message : t("transcript.saveNoteError"));
     } finally {
       setIsSaving(false);
     }
@@ -210,34 +175,12 @@ export function TranscriptContent({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={handleCopyToClipboard}
-              className="flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-[#44556B] transition-colors hover:border-[#D7DEE6] hover:bg-white hover:text-[#0A2540] dark:text-white/60 dark:hover:border-white/10 dark:hover:bg-white/[0.04] dark:hover:text-[#00D4B3]"
-            >
-              {isCopied ? (
-                <Check className="h-3.5 w-3.5 text-[#0A2540] dark:text-[#00D4B3]" />
-              ) : (
-                <Copy className="h-3.5 w-3.5" />
-              )}
-              {isCopied ? t("transcript.copied") : t("transcript.copy")}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleDownloadTranscript}
-              className="flex items-center gap-2 rounded-lg border border-transparent px-3 py-1.5 text-xs font-medium text-[#44556B] transition-colors hover:border-[#D7DEE6] hover:bg-white hover:text-[#0A2540] dark:text-white/60 dark:hover:border-white/10 dark:hover:bg-white/[0.04] dark:hover:text-[#00D4B3]"
-            >
-              <FileDown className="h-3.5 w-3.5" />
-              {t("transcript.download")}
-            </button>
-
-            <button
-              type="button"
               onClick={handleSaveToNotes}
               disabled={isSaving}
               className="flex items-center gap-2 rounded-lg border border-[#0A2540]/15 bg-[#0A2540]/8 px-4 py-1.5 text-xs font-medium text-[#0A2540] transition-colors hover:bg-[#0A2540]/12 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#00D4B3]/20 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3] dark:hover:bg-[#00D4B3]/15"
             >
               <Save className={`h-3.5 w-3.5 ${isSaving ? "animate-spin" : ""}`} />
-              {isSaving ? t("transcript.savingToNotes") : t("transcript.saveToNotes")}
+              {isSaving ? t("transcript.savingToNotes") : t("transcript.generateNote")}
             </button>
           </div>
           {saveError && (

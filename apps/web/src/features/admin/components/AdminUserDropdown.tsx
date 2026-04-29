@@ -231,7 +231,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                           : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                       }`}>
                         <ShieldCheckIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                        <span className="text-sm font-medium">Panel de Administración</span>
+                        <span className="text-sm font-medium">{t('menu.adminPanel')}</span>
                       </div>
                     </Link>
                   )}
@@ -247,7 +247,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                             : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                         }`}>
                           <GlobeAltIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                          <span className="text-sm font-medium">Mis organizaciones</span>
+                          <span className="text-sm font-medium">{t('profileDropdown.organizations')}</span>
                         </div>
                       </Link>
                     )}
@@ -267,7 +267,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                       : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
                   }`}>
                     <UserIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                    <span className="text-sm font-medium">Editar perfil</span>
+                    <span className="text-sm font-medium">{t('menu.profile')}</span>
                   </div>
                 </Link>
               )}
@@ -293,7 +293,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                       <div className={`w-5 h-5 flex items-center justify-center ${active || isLangMenuOpen ? 'text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-gray-400'}`}>
                         <GlobeAltIcon className="w-5 h-5" />
                       </div>
-                      <span className="text-sm font-medium">Idioma / Language</span>
+                      <span className="text-sm font-medium">{t('language')} / Language</span>
                     </div>
                     <ChevronRightIcon className={`w-4 h-4 text-[#6C757D] dark:text-gray-400 transition-transform duration-200 ${isLangMenuOpen ? 'rotate-90' : ''}`} />
                   </button>
@@ -354,7 +354,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                       <div className={`w-5 h-5 flex items-center justify-center ${active || isThemeMenuOpen ? 'text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-gray-400'}`}>
                         {getThemeIcon()}
                       </div>
-                      <span className="text-sm font-medium">Tema</span>
+                      <span className="text-sm font-medium">{t('profileDropdown.theme')}</span>
                     </div>
                     <ChevronRightIcon className={`w-4 h-4 text-[#6C757D] dark:text-gray-400 transition-transform duration-200 ${isThemeMenuOpen ? 'rotate-90' : ''}`} />
                   </button>
@@ -369,9 +369,9 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                         className="overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D12]/30 rounded-xl mt-1 border border-[#E9ECEF] dark:border-[#334155]"
                       >
                         {[
-                          { value: 'light', label: 'Claro', icon: Sun },
-                          { value: 'dark', label: 'Oscuro', icon: Moon },
-                          { value: 'system', label: 'Sistema', icon: Monitor },
+                          { value: 'light', label: t('menu.theme.light'), icon: Sun },
+                          { value: 'dark', label: t('menu.theme.dark'), icon: Moon },
+                          { value: 'system', label: t('menu.theme.system'), icon: Monitor },
                         ].map((option) => (
                           <button
                             key={option.value}
@@ -410,7 +410,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 >
                   <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-red-500 group-hover:scale-110 transition-transform" />
                   <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                    Cerrar Sesión
+                    {t('menu.logout')}
                   </span>
                 </button>
               )}
