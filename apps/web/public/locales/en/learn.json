@@ -68,8 +68,10 @@
   "navigation": {
     "previous": "Previous",
     "next": "Next",
+    "nextVideo": "Next video",
     "backToCourses": "Back to My Courses",
-    "completeCourse": "Complete Course"
+    "completeCourse": "Complete Course",
+    "finishCourse": "Finish course"
   },
   "learningPath": {
     "badge": "Learning path",
@@ -164,8 +166,32 @@
     "completionRequirement": "To advance to the next lesson, it is necessary to complete all required activities and pass the corresponding quizzes. We recommend reviewing each activity and material carefully to ensure a complete understanding of the content.",
     "expandCollapse": "Expand activities and materials",
     "expand": "Expand",
-    "collapse": "Collapse"
+    "collapse": "Collapse",
+    "materials": "Materials",
+    "updatingProgress": "Updating quiz progress...",
+    "notAvailable": "Activities not available",
+    "notAvailableMessage": "This lesson does not have available activities yet. Activities will be added soon.",
+    "aiChat": "AI Chat",
+    "attempted": "Attempted",
+    "needsRevision": "Needs revision",
+    "aiChatActivity": "SofLIA Activity",
+    "aiChatDescription": "Start a guided conversation to complete this activity",
+    "continue": "Continue",
+    "start": "Start",
+    "promptsAndExercises": "Prompts and exercises",
+    "quizError": "Error: Quiz does not have the expected structure",
+    "aiCompletionError": "Could not complete the activity with SofLIA.",
+    "tips": {
+      "manual": "Activities are added manually",
+      "contactInstructor": "Contact the instructor if you need help"
+    },
+    "feedback": {
+      "useful": "Useful?",
+      "yes": "Yes",
+      "no": "No"
+    }
   },
+
   "video": {
     "title": "Lesson",
     "description": "Description",
@@ -204,7 +230,21 @@
       "cancel": "Cancel",
       "confirm": "Reset conversation"
     },
-    "understand": "Understood"
+    "understand": "Understood",
+    "incompleteVideo": {
+      "title": "Finish the video to continue",
+      "message": "Please finish watching the video before continuing with the activities or changing lessons."
+    },
+    "activityRequired": {
+      "title": "Activity required",
+      "messageQuiz": "You must complete and pass all required quizzes ({{passed}}/{{total}} completed)",
+      "messageFallback": "You must complete and pass all required quizzes to continue.",
+      "messageActivities": "You must complete all required activities to continue."
+    },
+    "cannotCompleteLesson": {
+      "title": "Cannot complete",
+      "message": "The lesson cannot be completed at this time."
+    }
   },
   "transcript": {
     "title": "Video Transcript",

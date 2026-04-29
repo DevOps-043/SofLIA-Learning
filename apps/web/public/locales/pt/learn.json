@@ -68,8 +68,10 @@
   "navigation": {
     "previous": "Anterior",
     "next": "Próximo",
+    "nextVideo": "Próximo vídeo",
     "backToCourses": "Voltar aos Meus Cursos",
-    "completeCourse": "Concluir Curso"
+    "completeCourse": "Concluir Curso",
+    "finishCourse": "Finalizar curso"
   },
   "learningPath": {
     "badge": "Rota de aprendizagem",
@@ -164,7 +166,30 @@
     "completionRequirement": "Para avançar para a próxima lição, é necessário completar todas as atividades obrigatórias e passar nos quizzes correspondentes. Recomendamos revisar cada atividade e material com atenção para garantir uma compreensão completa do conteúdo.",
     "expandCollapse": "Expandir atividades e materiais",
     "expand": "Expandir",
-    "collapse": "Recolher"
+    "collapse": "Recolher",
+    "materials": "Materiais",
+    "updatingProgress": "Atualizando progresso do quiz...",
+    "notAvailable": "Atividades não disponíveis",
+    "notAvailableMessage": "Esta lição ainda não possui atividades disponíveis. As atividades serão adicionadas em breve.",
+    "aiChat": "Chat de IA",
+    "attempted": "Tentativa",
+    "needsRevision": "Requer revisão",
+    "aiChatActivity": "Atividade com SofLIA",
+    "aiChatDescription": "Inicie uma conversa guiada para concluir esta atividade",
+    "continue": "Continuar",
+    "start": "Começar",
+    "promptsAndExercises": "Prompts e exercícios",
+    "quizError": "Erro: O quiz não possui a estrutura esperada",
+    "aiCompletionError": "Não foi possível concluir a atividade com SofLIA.",
+    "tips": {
+      "manual": "As atividades são adicionadas manualmente",
+      "contactInstructor": "Entre em contato com o instrutor se precisar de ajuda"
+    },
+    "feedback": {
+      "useful": "Útil?",
+      "yes": "Sim",
+      "no": "Não"
+    }
   },
   "video": {
     "title": "Lição",
@@ -204,7 +229,21 @@
       "cancel": "Cancelar",
       "confirm": "Reiniciar conversa"
     },
-    "understand": "Entendido"
+    "understand": "Entendido",
+    "incompleteVideo": {
+      "title": "Termine o vídeo para continuar",
+      "message": "Por favor, termine de assistir ao vídeo antes de continuar com as atividades ou mudar de lição."
+    },
+    "activityRequired": {
+      "title": "Atividade necessária",
+      "messageQuiz": "Você deve concluir e ser aprovado em todos os quizzes obrigatórios ({{passed}}/{{total}} concluídos)",
+      "messageFallback": "Você deve concluir e ser aprovado em todos os quizzes obrigatórios para continuar.",
+      "messageActivities": "Você deve concluir todas as atividades obrigatórias para continuar."
+    },
+    "cannotCompleteLesson": {
+      "title": "Não é possível concluir",
+      "message": "Não é possível concluir a lição no momento."
+    }
   },
   "transcript": {
     "title": "Transcrição do Vídeo",

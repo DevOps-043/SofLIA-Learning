@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 
 import type {
   LearnActivityMap,
@@ -90,6 +91,7 @@ export function useLessonNavigation({
   trackUserAction,
   videoPlayerContext,
 }: UseLessonNavigationParams) {
+  const { t } = useTranslation("learn");
   const pendingValidationRef = useRef<AbortController | null>(null);
 
   const cancelPendingValidation = useCallback(() => {
@@ -126,15 +128,14 @@ export function useLessonNavigation({
 
     saveCurrentLessonVideoProgress(currentLesson.lesson_id);
     openValidationModal({
-      title: "Finaliza el video para continuar",
-      message:
-        "Por favor, finaliza el video antes de continuar con las actividades o cambiar de lección.",
+      title: t("modals.incompleteVideo.title"),
+      message: t("modals.incompleteVideo.message"),
       type: "video",
       lessonId: currentLesson.lesson_id,
       redirectTab: "video",
     });
     scrollToTop();
-  }, [currentLesson, openValidationModal, saveCurrentLessonVideoProgress]);
+  }, [currentLesson, openValidationModal, saveCurrentLessonVideoProgress, t]);
 
   const openLesson = useCallback(
     (lesson: LearnLesson, options: OpenLessonOptions = {}) => {

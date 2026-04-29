@@ -639,11 +639,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               lessonContent={currentLesson?.lesson_description}
               lessonContext={currentLessonContext}
               customColors={{
-                panelBg: colors.bgSecondary,
-                borderColor: 'rgba(255,255,255,0.1)',
                 accentColor: colors.accent,
-                textPrimary: '#FFFFFF',
-                textSecondary: 'rgba(255,255,255,0.6)',
               }}
               onSaveNote={handleSaveLiaNote}
             />

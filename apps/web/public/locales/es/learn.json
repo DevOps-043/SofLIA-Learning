@@ -68,8 +68,10 @@
   "navigation": {
     "previous": "Anterior",
     "next": "Siguiente",
+    "nextVideo": "Siguiente video",
     "backToCourses": "Volver a Mis Cursos",
-    "completeCourse": "Completar Curso"
+    "completeCourse": "Completar Curso",
+    "finishCourse": "Finalizar curso"
   },
   "learningPath": {
     "badge": "Ruta de aprendizaje",
@@ -164,8 +166,32 @@
     "completionRequirement": "Para avanzar a la siguiente lección, es necesario completar todas las actividades requeridas y aprobar los quizzes correspondientes. Te recomendamos revisar cada actividad y material con atención para asegurar una comprensión completa del contenido.",
     "expandCollapse": "Expandir actividades y materiales",
     "expand": "Expandir",
-    "collapse": "Colapsar"
+    "collapse": "Colapsar",
+    "materials": "Materiales",
+    "updatingProgress": "Actualizando progreso del quiz...",
+    "notAvailable": "Actividades no disponibles",
+    "notAvailableMessage": "Esta lección aún no tiene actividades disponibles. Las actividades se agregarán próximamente.",
+    "aiChat": "Chat IA",
+    "attempted": "Intentado",
+    "needsRevision": "Requiere revisión",
+    "aiChatActivity": "Actividad con SofLIA",
+    "aiChatDescription": "Inicia una conversación guiada para completar esta actividad",
+    "continue": "Continuar",
+    "start": "Comenzar",
+    "promptsAndExercises": "Prompts y ejercicios",
+    "quizError": "Error: El quiz no tiene la estructura esperada",
+    "aiCompletionError": "No fue posible completar la actividad con SofLIA.",
+    "tips": {
+      "manual": "Las actividades se agregan manualmente",
+      "contactInstructor": "Contacta al instructor si necesitas ayuda"
+    },
+    "feedback": {
+      "useful": "¿Útil?",
+      "yes": "Sí",
+      "no": "No"
+    }
   },
+
   "video": {
     "title": "Lección",
     "description": "Descripción",
@@ -204,7 +230,21 @@
       "confirm": "Reiniciar conversación"
     },
     "close": "Cerrar",
-    "understand": "Entendido"
+    "understand": "Entendido",
+    "incompleteVideo": {
+      "title": "Finaliza el video para continuar",
+      "message": "Por favor, finaliza el video antes de continuar con las actividades o cambiar de lección."
+    },
+    "activityRequired": {
+      "title": "Hace falta realizar actividad",
+      "messageQuiz": "Debes completar y aprobar todos los quizzes obligatorios ({{passed}}/{{total}} completados)",
+      "messageFallback": "Debes completar y aprobar todos los quizzes obligatorios para continuar.",
+      "messageActivities": "Debes completar todas las actividades obligatorias para continuar."
+    },
+    "cannotCompleteLesson": {
+      "title": "No se puede completar",
+      "message": "No se puede completar la lección en este momento."
+    }
   },
   "transcript": {
     "title": "Transcripción del Video",

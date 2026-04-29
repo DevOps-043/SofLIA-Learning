@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import type {
   LearnLesson,
   LearnModule,
@@ -129,7 +130,8 @@ function parseLessonProgressApiResponse(value: unknown): LessonProgressApiRespon
 }
 
 function buildCompletionDetailsText(
-  details?: Partial<LessonCompletionDetails>
+  details: Partial<LessonCompletionDetails> | undefined,
+  t: (key: string, options?: any) => string
 ): string | undefined {
   if (
     typeof details?.passed !== "number" ||
@@ -138,7 +140,11 @@ function buildCompletionDetailsText(
     return undefined;
   }
 
-  return `Completados: ${details.passed} de ${details.totalRequired}`;
+  return t("activities.completedCount", {
+    passed: details.passed,
+    total: details.totalRequired,
+    defaultValue: `Completados: ${details.passed} de ${details.totalRequired}`
+  });
 }
 
 export function useLessonCompletion({
@@ -150,6 +156,7 @@ export function useLessonCompletion({
   setCourseProgress,
   canCompleteLesson,
 }: UseLessonCompletionParams) {
+  const { t } = useTranslation("learn");
   const organizationId = useCurrentOrganizationId();
   const [validationModal, setValidationModal] = useState<ValidationModalState>({
     isOpen: false,
@@ -207,11 +214,14 @@ export function useLessonCompletion({
 
       return {
         canComplete: false,
-        error: "Hace falta realizar actividad",
+        error: t("modals.activityRequired.title"),
         details: {
           totalRequired: data.totalRequiredQuizzes ?? 0,
           passed: data.passedQuizzes ?? 0,
-          message: `Debes completar y aprobar todos los quizzes obligatorios (${data.passedQuizzes ?? 0}/${data.totalRequiredQuizzes ?? 0} completados)`,
+          message: t("modals.activityRequired.messageQuiz", {
+            passed: data.passedQuizzes ?? 0,
+            total: data.totalRequiredQuizzes ?? 0
+          }),
         },
       };
     } catch (error: unknown) {
@@ -313,12 +323,12 @@ export function useLessonCompletion({
         }
 
         openValidationModal({
-          title: "Hace falta realizar actividad",
+          title: t("modals.activityRequired.title"),
           message:
             quizStatus.details?.message ||
             quizStatus.error ||
-            "Debes completar y aprobar todos los quizzes obligatorios para continuar.",
-          details: buildCompletionDetailsText(quizStatus.details),
+            t("modals.activityRequired.messageFallback"),
+          details: buildCompletionDetailsText(quizStatus.details, t),
           type: "activity",
           lessonId: lessonId,
           redirectTab: "activities",
@@ -391,12 +401,12 @@ export function useLessonCompletion({
           }
 
           openValidationModal({
-            title: "Hace falta realizar actividad",
+            title: t("modals.activityRequired.title"),
             message:
               responseData.details?.message ||
               responseData.error ||
-              "Debes completar todas las actividades obligatorias para continuar.",
-            details: buildCompletionDetailsText(responseData.details),
+              t("modals.activityRequired.messageActivities"),
+            details: buildCompletionDetailsText(responseData.details, t),
             type: "activity",
             lessonId: lessonId,
             redirectTab: "activities",
@@ -406,11 +416,11 @@ export function useLessonCompletion({
 
         if (responseData.code || responseData.error) {
           openValidationModal({
-            title: "No se puede completar",
+            title: t("modals.cannotCompleteLesson.title"),
             message:
               responseData.details?.message ||
               responseData.error ||
-              "No se puede completar la lección en este momento.",
+              t("modals.cannotCompleteLesson.message"),
             type: "activity",
             lessonId: lessonId,
             redirectTab: "activities",

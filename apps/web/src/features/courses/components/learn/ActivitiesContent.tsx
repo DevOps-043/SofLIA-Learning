@@ -126,7 +126,7 @@ export function ActivitiesContent({
             className="text-2xl font-bold text-[#0A2540] dark:text-white mb-2"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
           >
-            Actividades
+            {t("activities.title")}
           </h2>
           <p
             className="text-[#6C757D] dark:text-white/80 text-sm"
@@ -158,7 +158,7 @@ export function ActivitiesContent({
             className="text-2xl font-bold text-[#0A2540] dark:text-white mb-2"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
           >
-            Actividades
+            {t("activities.title")}
           </h2>
           <p
             className="text-[#6C757D] dark:text-white/80 text-sm"
@@ -176,21 +176,20 @@ export function ActivitiesContent({
             className="text-[#0A2540] dark:text-white text-lg font-semibold mb-2"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 600 }}
           >
-            Actividades no disponibles
+            {t("activities.notAvailable")}
           </h3>
           <p
             className="text-[#6C757D] dark:text-white/80 mb-4"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
-            Esta lección aún no tiene actividades disponibles. Las actividades
-            se agregarán próximamente.
+            {t("activities.notAvailableMessage")}
           </p>
           <div
             className="text-sm text-[#6C757D] dark:text-white/60"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 400 }}
           >
-            <p>• Las actividades se agregan manualmente</p>
-            <p>• Contacta al instructor si necesitas ayuda</p>
+            <p>• {t("activities.tips.manual")}</p>
+            <p>• {t("activities.tips.contactInstructor")}</p>
           </div>
         </div>
       </div>
@@ -203,7 +202,7 @@ export function ActivitiesContent({
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Actividades
+              {t("activities.title")}
             </h2>
             <p className="text-sm text-gray-500 dark:text-white/40 mt-1">
               {lesson.lesson_title}
@@ -211,7 +210,7 @@ export function ActivitiesContent({
           </div>
           {isRefreshing && (
             <span className="text-xs font-medium text-gray-500 dark:text-white/50">
-              Actualizando progreso del quiz...
+              {t("activities.updatingProgress")}
             </span>
           )}
         </div>
@@ -224,7 +223,7 @@ export function ActivitiesContent({
               <Activity className="w-3.5 h-3.5 text-gray-500 dark:text-white/50" />
             </div>
             <span className="text-sm font-medium text-gray-700 dark:text-white/70">
-              Actividades
+              {t("activities.title")}
             </span>
             <span className="text-xs text-gray-500 dark:text-white/30">
               {activities.length}
@@ -257,7 +256,7 @@ export function ActivitiesContent({
               <BookOpen className="w-3.5 h-3.5 text-gray-500 dark:text-white/50" />
             </div>
             <span className="text-sm font-medium text-gray-700 dark:text-white/70">
-              Materiales
+              {t("activities.materials")}
             </span>
             <span className="text-xs text-gray-500 dark:text-white/30">
               {materials.length}
@@ -294,7 +293,7 @@ export function ActivitiesContent({
       <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-4 border-t border-gray-200 dark:border-white/5">
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-500 dark:text-white/40">
-            ¿Útil?
+            {t("activities.feedback.useful")}
           </span>
           <div className="flex items-center gap-1">
             <button
@@ -313,7 +312,7 @@ export function ActivitiesContent({
                   lessonFeedback === "like" ? "fill-current" : ""
                 }`}
               />
-              Sí
+              {t("activities.feedback.yes")}
             </button>
             <button
               onClick={() => {
@@ -331,7 +330,7 @@ export function ActivitiesContent({
                   lessonFeedback === "dislike" ? "fill-current" : ""
                 }`}
               />
-              No
+              {t("activities.feedback.no")}
             </button>
           </div>
         </div>
@@ -341,7 +340,7 @@ export function ActivitiesContent({
             onClick={onNavigateNext}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] transition-colors"
           >
-            Siguiente video
+            {t("navigation.nextVideo")}
             <ChevronRight className="w-4 h-4" />
           </button>
         )}
@@ -350,7 +349,7 @@ export function ActivitiesContent({
             onClick={onCompleteCourse}
             className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-[#0A2540] hover:bg-[#0d2f4d] dark:bg-[#00D4B3] dark:hover:bg-[#00b89a] text-white dark:text-[#0A1724] transition-colors"
           >
-            Finalizar curso
+            {t("navigation.finishCourse")}
             <CheckCircle2 className="w-4 h-4" />
           </button>
         )}

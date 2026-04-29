@@ -13,6 +13,7 @@ import {
   MessageCircle,
   Sparkles,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { FormattedContentRenderer, PromptsRenderer } from "../ContentRenderers";
 import { QuizRenderer } from "../QuizRenderer";
@@ -65,7 +66,7 @@ function QuizFallback({
   );
 }
 
-function CompletionBadge({ activity }: { activity: LearnActivity }) {
+function CompletionBadge({ activity, t }: { activity: LearnActivity, t: any }) {
   if (activity.activity_type === "quiz") {
     return null;
   }
@@ -73,7 +74,7 @@ function CompletionBadge({ activity }: { activity: LearnActivity }) {
   if (activity.is_completed || activity.latest_submission_summary?.completionSatisfied) {
     return (
       <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-        <Check className="h-2.5 w-2.5" /> Completado
+        <Check className="h-2.5 w-2.5" /> {t("activities.completed")}
       </span>
     );
   }
@@ -81,7 +82,7 @@ function CompletionBadge({ activity }: { activity: LearnActivity }) {
   if (activity.latest_submission_summary?.status === "needs_revision") {
     return (
       <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-        Requiere revision
+        {t("activities.needsRevision")}
       </span>
     );
   }
@@ -100,6 +101,7 @@ export function ActivityCard({
   quizStatus,
   slug,
 }: ActivityCardProps) {
+  const { t } = useTranslation("learn");
   const isAiChat = activity.activity_type === "ai_chat";
   const isQuiz = activity.activity_type === "quiz";
   const isInteractive = Boolean(activity.activity_config);
@@ -143,7 +145,7 @@ export function ActivityCard({
         throw new Error(
           typeof payload.error === "string"
             ? payload.error
-            : "No fue posible completar la actividad con SofLIA."
+            : t("activities.aiCompletionError")
         );
       }
 
@@ -153,7 +155,7 @@ export function ActivityCard({
       setAiCompletionError(
         error instanceof Error
           ? error.message
-          : "No fue posible completar la actividad con SofLIA."
+          : t("activities.aiCompletionError")
       );
     } finally {
       setAiCompletionSaving(false);
@@ -194,25 +196,26 @@ export function ActivityCard({
             </span>
             {activity.is_required && (
               <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                Requerida
+                {t("activities.required")}
               </span>
             )}
             <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium capitalize text-gray-500 dark:bg-white/5 dark:text-white/40">
-              {isAiChat ? "Chat IA" : activity.activity_type}
+              {isAiChat ? t("activities.aiChat") : activity.activity_type}
             </span>
             {activity.is_required && quizInfo?.isPassed && (
               <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-                <Check className="h-2.5 w-2.5" /> Completado
+                <Check className="h-2.5 w-2.5" /> {t("activities.completed")}
               </span>
             )}
             {activity.is_required &&
               quizInfo?.isCompleted &&
               !quizInfo.isPassed && (
                 <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                  Intentado {quizInfo.percentage}%
+                  {t("activities.attempted")} {quizInfo.percentage}%
                 </span>
               )}
             <CompletionBadge
+              t={t}
               activity={
                 aiActivityCompleted ? { ...activity, is_completed: true } : activity
               }
@@ -243,7 +246,7 @@ export function ActivityCard({
                 if (!quizPayload) {
                   return (
                     <QuizFallback
-                      message="Error: El quiz no tiene la estructura esperada"
+                      message={t("activities.quizError")}
                       rawContent={activity.activity_content}
                     />
                   );
@@ -273,10 +276,10 @@ export function ActivityCard({
                     <MessageCircle className="h-5 w-5 text-gray-500 dark:text-white/50" />
                   </div>
                   <h4 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
-                    Actividad con LIA
+                    {t("activities.aiChatActivity")}
                   </h4>
                   <p className="mb-4 text-xs text-gray-500 dark:text-white/40">
-                    Inicia una conversación guiada para completar esta actividad
+                    {t("activities.aiChatDescription")}
                   </p>
                   <button
                     disabled={aiCompletionSaving}
@@ -292,7 +295,7 @@ export function ActivityCard({
                     ) : (
                       <Sparkles className="h-4 w-4" />
                     )}
-                    {aiActivityCompleted ? "Continuar" : "Comenzar"}
+                    {aiActivityCompleted ? t("activities.continue") : t("activities.start")}
                     <ChevronRight className="h-4 w-4 opacity-50" />
                   </button>
                   {aiCompletionError && (
@@ -324,7 +327,7 @@ export function ActivityCard({
                 <div className="mb-3 flex items-center gap-2">
                   <HelpCircle className="h-3.5 w-3.5 text-gray-400 dark:text-white/40" />
                   <span className="text-xs font-medium text-gray-500 dark:text-white/50">
-                    Prompts y ejercicios
+                    {t("activities.promptsAndExercises")}
                   </span>
                 </div>
                 <PromptsRenderer
