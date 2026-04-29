@@ -937,6 +937,14 @@
     "viewReplies_one": "Ver {{count}} respuesta",
     "viewReplies_other": "Ver {{count}} respuestas"
   },
+  "notes": {
+    "pdf": {
+      "generatedBy": "Generado por SofLIA",
+      "page": "Página",
+      "tags": "Etiquetas:",
+      "untitled": "Nota sin título"
+    }
+  },
   "profileDropdown": {
     "userFallback": "Usuario",
     "usernameFallback": "usuario",

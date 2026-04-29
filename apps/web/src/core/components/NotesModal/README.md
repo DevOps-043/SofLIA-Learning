@@ -1,157 +1,66 @@
-# NotesModal - Componente de Notas
+# NotesModal
 
-Este directorio contiene dos versiones del componente de notas:
+Este directorio contiene el modal de notas y el flujo oficial de exportacion a PDF.
 
-## 📁 Archivos
+## Archivos principales
 
-- **`NotesModal.tsx`** - Versión con exportación nativa (sin dependencias externas)
-- **`NotesModalWithLibraries.tsx`** - Versión con librerías jsPDF y html2canvas
-- **`index.ts`** - Exporta la versión por defecto
+- `NotesModal.tsx` - Version principal del modal de notas.
+- `NotesModalWithLibraries.tsx` - Alias compatible para rutas que ya cargan este componente.
+- `shared/notes-pdf-pdfmake.service.ts` - Exportador cliente con `pdfmake`.
+- `shared/notes-pdf-definition.service.ts` - Builder declarativo del documento PDF.
+- `shared/notes-pdf-content-parser.service.ts` - Parser allowlist de HTML de notas a bloques semanticos.
 
-## 🚀 Uso
+## Uso
 
-### Versión Nativa (Recomendada)
 ```tsx
 import { NotesModal } from '@/core/components/NotesModal';
 
-// Usar directamente - no requiere instalación adicional
 <NotesModal
   isOpen={isOpen}
   onClose={() => setIsOpen(false)}
   onSave={handleSave}
   initialNote={editingNote}
   isEditing={!!editingNote}
-/>
+/>;
 ```
 
-### Versión con Librerías
-```tsx
-import { NotesModalWithLibraries } from '@/core/components/NotesModal/NotesModalWithLibraries';
+`NotesModalWithLibraries` mantiene la misma API para compatibilidad con flujos existentes.
 
-// Requiere instalar las librerías primero
-<NotesModalWithLibraries
-  isOpen={isOpen}
-  onClose={() => setIsOpen(false)}
-  onSave={handleSave}
-  initialNote={editingNote}
-  isEditing={!!editingNote}
-/>
-```
+## Motor PDF
 
-## 📦 Instalación de Librerías
-
-Para usar la versión con librerías, ejecuta:
+La exportacion oficial de notas usa `pdfmake`, no `jsPDF` ni `html2canvas`. El objetivo es evitar calculos manuales de coordenadas y delegar wrapping, paginacion, listas, margenes y footers a un motor declarativo.
 
 ```bash
-# Desde el directorio apps/web
-node install-pdf-libraries.js
+npm install pdfmake@0.2.23 @types/pdfmake@0.2.12 --workspace=apps/web
 ```
 
-O manualmente:
+## Caracteristicas
+
+- Editor de texto enriquecido: negrita, cursiva, subrayado, encabezados, listas y enlaces.
+- Etiquetas de notas.
+- Exportacion PDF con titulo, fecha, tags, contenido, enlaces y footer con pagina actual/total.
+- Parser allowlist: no renderiza HTML crudo, scripts, styles ni atributos desconocidos.
+- Pruebas enfocadas para transcripts largos, timestamps, listas, links y sanitizacion basica.
+
+## Solucion de problemas
+
+### Error "Cannot find module 'pdfmake'"
 
 ```bash
-npm install jspdf@latest html2canvas@latest
-npm install --save-dev @types/jspdf
+npm list pdfmake @types/pdfmake --workspace=apps/web
+npm install pdfmake@0.2.23 @types/pdfmake@0.2.12 --workspace=apps/web
 ```
 
-## ✨ Características
+Despues de instalar, reinicia el servidor de desarrollo.
 
-### Ambas versiones incluyen:
-- ✅ Editor de texto enriquecido (negrita, cursiva, subrayado)
-- ✅ Encabezados H1, H2, H3
-- ✅ Listas ordenadas y no ordenadas
-- ✅ Alineación de texto
-- ✅ Enlaces
-- ✅ Deshacer/Rehacer
-- ✅ Etiquetas
-- ✅ Atajos de teclado (Ctrl+S, Ctrl+Z, Ctrl+Y, etc.)
+### Problemas de formato en PDF
 
-### Versión Nativa:
-- ✅ **Sin dependencias externas**
-- ✅ **Compatible con todos los navegadores**
-- ✅ **Más rápida** (no carga librerías pesadas)
-- ✅ **Exportación a PDF** usando `window.print()`
-- ✅ **Funciona offline**
+- Revisa `notes-pdf-content-parser.service.ts` para la conversion HTML -> bloques semanticos.
+- Revisa `notes-pdf-definition.service.ts` para estilos, margenes y footer.
+- Agrega una prueba de regresion antes de ajustar el layout.
 
-### Versión con Librerías:
-- ✅ **PDF de alta calidad** con jsPDF
-- ✅ **Renderizado preciso** con html2canvas
-- ✅ **Control total del formato**
-- ✅ **Múltiples páginas automáticas**
-- ✅ **Descarga directa del archivo**
+## Notas de mantenimiento
 
-## 🔧 Configuración
-
-### Next.js Config
-El archivo `next.config.ts` ya está configurado para soportar las librerías:
-
-```typescript
-webpack: (config, { isServer }) => {
-  // ... otras configuraciones
-  
-  // Configuración para librerías que solo funcionan en el cliente
-  if (!isServer) {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      path: false,
-      os: false,
-    };
-  }
-  
-  return config;
-}
-```
-
-## 🐛 Solución de Problemas
-
-### Error "Cannot find module 'jspdf'"
-1. Verifica que las librerías estén instaladas:
-   ```bash
-   npm list jspdf html2canvas
-   ```
-
-2. Si no están instaladas, ejecuta:
-   ```bash
-   node install-pdf-libraries.js
-   ```
-
-3. Reinicia el servidor de desarrollo:
-   ```bash
-   npm run dev
-   ```
-
-### Error de importación dinámica
-- Asegúrate de que el componente esté marcado con `'use client'`
-- Verifica que estés usando la versión correcta del componente
-
-### Problemas con la exportación nativa
-- Verifica que los pop-ups estén habilitados en el navegador
-- Algunos navegadores pueden bloquear la ventana de impresión
-
-## 📝 Notas de Desarrollo
-
-- La versión nativa es la **recomendada** para la mayoría de casos de uso
-- La versión con librerías es mejor si necesitas control total sobre el formato del PDF
-- Ambas versiones mantienen la misma API, por lo que es fácil cambiar entre ellas
-- El componente está optimizado para Next.js 14+ con App Router
-
-## 🔄 Migración
-
-Para cambiar de la versión nativa a la versión con librerías:
-
-1. Instala las librerías:
-   ```bash
-   node install-pdf-libraries.js
-   ```
-
-2. Cambia la importación:
-   ```tsx
-   // Antes
-   import { NotesModal } from '@/core/components/NotesModal';
-   
-   // Después
-   import { NotesModalWithLibraries as NotesModal } from '@/core/components/NotesModal/NotesModalWithLibraries';
-   ```
-
-3. Actualiza el archivo `index.ts` si quieres cambiar la versión por defecto.
+- `pdfmake` es el motor recomendado para PDF de notas.
+- `jsPDF` y `html2canvas` quedan como legacy mientras existan otros usos internos.
+- Los consumidores del modal no requieren migracion: el boton PDF usa `exportNotePdfWithPdfMake` internamente.

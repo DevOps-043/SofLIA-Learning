@@ -30,8 +30,8 @@ import { useVideoPlayerOptional } from './VideoPlayerContext'
 
 const NotesModal = dynamic(
   () =>
-    import('../../../../core/components/NotesModal').then((mod) => ({
-      default: mod.NotesModalWithLibraries,
+    import('../../../../core/components/NotesModal/NotesModalPdfMake').then((mod) => ({
+      default: mod.NotesModalPdfMake,
     })),
   {
     loading: () => (
