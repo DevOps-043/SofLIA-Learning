@@ -5,16 +5,46 @@ import { useTranslation } from 'react-i18next'
 
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
 
-async function uploadVideoFile(file: File, folder: string): Promise<string> {
+const MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024 // 500 MB
+const ALLOWED_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'] as const
+type AllowedMime = (typeof ALLOWED_MIME_TYPES)[number]
+
+/**
+ * Upload de video usando el endpoint /api/upload existente (service role, sin
+ * límites de CORS). Para archivos grandes en producción se usaría un signed URL
+ * directo, pero en la arquitectura actual el proxy server-side es suficiente y
+ * más confiable al evitar los problemas de CORS/timeout con signed URLs.
+ */
+async function uploadVideoDirect(
+  file: File,
+  orgSlug: string,
+  folder: string,
+): Promise<string> {
+  if (file.size > MAX_VIDEO_SIZE_BYTES) {
+    throw new Error(`El archivo excede el límite de 500 MB`)
+  }
+  if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMime)) {
+    throw new Error(`Tipo de archivo no permitido: ${file.type}`)
+  }
+
   const formData = new FormData()
   formData.append('file', file)
   formData.append('bucket', 'intro-videos')
-  formData.append('folder', folder)
+  formData.append('folder', `org/${orgSlug}/${folder}`)
 
-  const response = await fetch('/api/upload', { method: 'POST', body: formData })
-  const result = await response.json()
-  if (!result.success || !result.url) throw new Error('Error al subir el video')
-  return result.url as string
+  const uploadResponse = await fetch('/api/upload', {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  })
+
+  const uploadData = await uploadResponse.json() as { success: boolean; url?: string; error?: string }
+
+  if (!uploadData.success || !uploadData.url) {
+    throw new Error(uploadData.error ?? 'Error al subir el video')
+  }
+
+  return uploadData.url
 }
 
 export interface LpVideoState {
@@ -42,7 +72,6 @@ export function useBusinessLearningPathVideos(
   })
   const fetchedRef = useRef(false)
 
-  // Cargar URLs existentes cuando el modal se abre
   useEffect(() => {
     if (!isOpen || !learningPath || !orgSlug) return
     fetchedRef.current = false
@@ -64,10 +93,9 @@ export function useBusinessLearningPathVideos(
         fetch(
           `/api/${orgSlug}/business/intro-videos/course/${item.course_id}`,
           { credentials: 'include' },
-        ).then((r) => r.json() as Promise<{ success: boolean; introVideoUrl: string | null }>).then((data) => ({
-          courseId: item.course_id,
-          url: data.success ? data.introVideoUrl : null,
-        })),
+        )
+          .then((r) => r.json() as Promise<{ success: boolean; introVideoUrl: string | null }>)
+          .then((data) => ({ courseId: item.course_id, url: data.success ? data.introVideoUrl : null })),
       )
 
       const [lpResponse, ...courseResults] = await Promise.all([lpFetch, ...courseFetches])
@@ -89,10 +117,6 @@ export function useBusinessLearningPathVideos(
     }
   }, [learningPath, orgSlug, t])
 
-  const setKey = useCallback((key: string, value: Partial<LpVideoState>) => {
-    setState((prev) => ({ ...prev, ...value }))
-  }, [])
-
   const setUploading = useCallback((key: string, val: boolean) => {
     setState((prev) => ({ ...prev, uploading: { ...prev.uploading, [key]: val } }))
   }, [])
@@ -112,20 +136,28 @@ export function useBusinessLearningPathVideos(
       setUploading(key, true)
       setState((prev) => ({ ...prev, error: null, success: null }))
       try {
-        const url = await uploadVideoFile(file, `org/${orgSlug}/lp`)
-        await fetch(`/api/${orgSlug}/business/intro-videos/learning-path/${learningPath.id}`, {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ videoUrl: url }),
-        })
+        const publicUrl = await uploadVideoDirect(file, orgSlug, 'lp')
+
+        const saveRes = await fetch(
+          `/api/${orgSlug}/business/intro-videos/learning-path/${learningPath.id}`,
+          {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoUrl: publicUrl }),
+          },
+        )
+        const saveData = await saveRes.json() as { success: boolean; error?: string }
+        if (!saveData.success) throw new Error(saveData.error ?? 'Error al guardar')
+
         setState((prev) => ({
           ...prev,
-          lpVideoUrl: url,
+          lpVideoUrl: publicUrl,
           success: t('learningPathsPage.introVideos.uploadSuccess'),
         }))
-      } catch {
-        setState((prev) => ({ ...prev, error: t('learningPathsPage.introVideos.errorUpload') }))
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : t('learningPathsPage.introVideos.errorUpload')
+        setState((prev) => ({ ...prev, error: msg }))
       } finally {
         setUploading(key, false)
       }
@@ -161,20 +193,28 @@ export function useBusinessLearningPathVideos(
       setUploading(key, true)
       setState((prev) => ({ ...prev, error: null, success: null }))
       try {
-        const url = await uploadVideoFile(file, `org/${orgSlug}/courses`)
-        await fetch(`/api/${orgSlug}/business/intro-videos/course/${courseId}`, {
-          method: 'PUT',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ videoUrl: url }),
-        })
+        const publicUrl = await uploadVideoDirect(file, orgSlug, 'courses')
+
+        const saveRes = await fetch(
+          `/api/${orgSlug}/business/intro-videos/course/${courseId}`,
+          {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ videoUrl: publicUrl }),
+          },
+        )
+        const saveData = await saveRes.json() as { success: boolean; error?: string }
+        if (!saveData.success) throw new Error(saveData.error ?? 'Error al guardar')
+
         setState((prev) => ({
           ...prev,
-          courseVideos: { ...prev.courseVideos, [courseId]: url },
+          courseVideos: { ...prev.courseVideos, [courseId]: publicUrl },
           success: t('learningPathsPage.introVideos.uploadSuccess'),
         }))
-      } catch {
-        setState((prev) => ({ ...prev, error: t('learningPathsPage.introVideos.errorUpload') }))
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : t('learningPathsPage.introVideos.errorUpload')
+        setState((prev) => ({ ...prev, error: msg }))
       } finally {
         setUploading(key, false)
       }

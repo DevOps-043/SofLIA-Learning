@@ -193,6 +193,9 @@ export function BusinessUserDashboardShell({
           styles={userDashboardStyles}
           onRestartTour={restartTour}
           disableHeavyEffects={disableHeavyEffects}
+          onCertificatesClick={stats.certificates > 0 ? handleCertificatesClick : undefined}
+          onAnalyticsClick={handleAnalyticsClick}
+          certificatesCount={stats.certificates}
         />
       </Suspense>
 
@@ -325,9 +328,10 @@ export function BusinessUserDashboardShell({
             </motion.div>
           </div>
 
+          {/* Stats section moved to user dropdown menu */}
           <div
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statsSection}
-            className="scroll-mt-32 relative"
+            className="scroll-mt-32 relative hidden"
           >
             <section className="mb-6 md:mb-10">
               <motion.div
@@ -483,6 +487,7 @@ export function BusinessUserDashboardShell({
               <LearningPathView
                 learningPaths={learningPaths}
                 orgColors={orgColors}
+                orgSlug={orgSlug ?? ''}
                 onOpenCourse={handleLearningPathCourseClick}
                 t={t}
               />

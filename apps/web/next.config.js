@@ -22,6 +22,13 @@ const nextConfig = {
   transpilePackages: ['@aprende-y-aplica/shared', '@aprende-y-aplica/ui'],
 
   // Configuración experimental para permitir directorios externos
+  // Aumentar el límite del body parser para permitir uploads de video hasta 500 MB
+  serverExternalPackages: [],
+  // Para routes handlers que reciben multipart/form-data con videos grandes
+  // Next.js App Router usa la Web Streams API y no tiene límite fijo por defecto,
+  // pero en algunos contextos el servidor Node puede limitar el payload.
+  // El límite real lo gestiona el route handler directamente con formData().
+
   experimental: {
     externalDir: true,
     // Optimizar importaciones de paquetes como lucide-react

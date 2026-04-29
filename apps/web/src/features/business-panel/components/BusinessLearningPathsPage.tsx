@@ -7,8 +7,10 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ChevronRight,
   Film,
   Layers,
+  Lock,
   Route,
   Search,
   Trash2,
@@ -37,22 +39,21 @@ export function BusinessLearningPathsPage() {
     [logic.learningPaths, videosLearningPathId],
   )
 
+  const { primaryColor, onPrimaryColor, accentColor, textColor, mutedTextColor, borderColor, inputBg, panelBg, successColor, dangerColor } = theme
+
   const assignmentCards = logic.assignments
     .slice()
     .sort((a, b) => new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime())
 
   if (logic.isLoading) {
     return (
-      <div className="min-h-screen p-6 lg:p-8 space-y-6">
-        <div className="h-32 animate-pulse rounded-[1.5rem]" style={{ backgroundColor: theme.cardBg }} />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 animate-pulse rounded-[1.25rem]" style={{ backgroundColor: theme.cardBg }} />
-          ))}
-        </div>
+      <div className="min-h-screen p-6 lg:p-8 space-y-5">
+        {[80, 60, 200].map((h, i) => (
+          <div key={i} className="animate-pulse rounded-[2rem]" style={{ height: h, backgroundColor: inputBg }} />
+        ))}
         <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-72 animate-pulse rounded-[1.5rem]" style={{ backgroundColor: theme.cardBg }} />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="animate-pulse rounded-[2rem]" style={{ height: 280, backgroundColor: inputBg }} />
           ))}
         </div>
       </div>
@@ -62,7 +63,7 @@ export function BusinessLearningPathsPage() {
   const stats = [
     { icon: Route, label: 'Rutas activas', value: logic.learningPaths.length },
     { icon: BookOpen, label: 'Talleres', value: logic.totalWorkshops },
-    { icon: Users, label: 'Usuarios con rutas', value: logic.totalAssignedUsers },
+    { icon: Users, label: 'Con ruta asignada', value: logic.totalAssignedUsers },
     { icon: CheckCircle2, label: 'Asignaciones activas', value: logic.assignments.length },
   ]
 
@@ -70,35 +71,38 @@ export function BusinessLearningPathsPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen p-6 lg:p-8 space-y-6"
+      className="min-h-screen p-5 lg:p-8 space-y-6"
+      style={{ backgroundColor: panelBg }}
     >
-      {/* ── Hero card ── */}
-      <motion.section
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-[1.75rem] border p-8"
-        style={{ background: theme.heroBackground, borderColor: theme.heroBorderColor }}
+      {/* ── Hero ── */}
+      <div
+        className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10"
+        style={{ borderColor, backgroundColor: inputBg }}
       >
         <div
-          className="pointer-events-none absolute inset-y-0 right-0 w-72 opacity-40 blur-3xl"
-          style={{ backgroundColor: `${theme.accentColor}40` }}
+          className="pointer-events-none absolute inset-y-0 right-0 w-64 opacity-20 blur-3xl"
+          style={{ background: `radial-gradient(circle, ${accentColor}, transparent)` }}
         />
-        <div className="relative z-10">
-          <div
-            className="mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em]"
-            style={{ borderColor: theme.inverseBorderColor, color: theme.inverseSubtextColor }}
-          >
-            <Route className="h-3.5 w-3.5" />
-            Gestión de rutas
+        <div className="relative z-10 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: mutedTextColor }}>
+              Gestión de rutas
+            </p>
+            <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-2" style={{ color: textColor }}>
+              Rutas de aprendizaje
+            </h1>
+            <p className="text-sm max-w-md" style={{ color: mutedTextColor }}>
+              Asigna a tus usuarios las rutas creadas por la plataforma directamente desde el panel de empresa.
+            </p>
           </div>
-          <h1 className="text-3xl font-black lg:text-4xl" style={{ color: theme.inverseTextColor }}>
-            Rutas de aprendizaje
-          </h1>
-          <p className="mt-2 max-w-xl text-sm lg:text-base" style={{ color: theme.inverseSubtextColor }}>
-            Asigna a tus usuarios las rutas creadas por la plataforma directamente desde el panel de empresa.
-          </p>
+          <div
+            className="hidden lg:flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.4rem] shadow-xl"
+            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
+          >
+            <Route className="h-7 w-7" style={{ color: onPrimaryColor }} strokeWidth={2.5} />
+          </div>
         </div>
-      </motion.section>
+      </div>
 
       {/* ── Stats ── */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -107,77 +111,77 @@ export function BusinessLearningPathsPage() {
           return (
             <motion.div
               key={stat.label}
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.04 }}
-              className="flex items-center gap-4 rounded-2xl border p-4"
-              style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+              className="flex items-center gap-4 rounded-[1.5rem] border p-5"
+              style={{ backgroundColor: inputBg, borderColor }}
             >
               <div
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl"
+                style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${accentColor}20)`, color: primaryColor }}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" strokeWidth={2.5} />
               </div>
               <div>
-                <p className="text-xs font-medium" style={{ color: theme.subtextColor }}>{stat.label}</p>
-                <p className="text-2xl font-black leading-none mt-0.5" style={{ color: theme.textColor }}>{stat.value}</p>
+                <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: mutedTextColor }}>{stat.label}</p>
+                <p className="text-2xl font-black leading-none mt-1" style={{ color: textColor }}>{stat.value}</p>
               </div>
             </motion.div>
           )
         })}
       </div>
 
-      {/* ── Feedback / Error ── */}
+      {/* ── Feedback ── */}
       {logic.feedback && (
         <div
-          className="flex items-center justify-between gap-4 rounded-2xl border px-5 py-3"
+          className="flex items-center justify-between gap-4 rounded-[1.5rem] border px-6 py-3.5 text-sm font-semibold"
           style={{
-            backgroundColor: logic.feedback.type === 'success' ? `${theme.successColor}12` : `${theme.dangerColor}12`,
-            borderColor: logic.feedback.type === 'success' ? `${theme.successColor}28` : `${theme.dangerColor}28`,
-            color: logic.feedback.type === 'success' ? theme.successColor : theme.dangerColor,
+            backgroundColor: logic.feedback.type === 'success' ? `${successColor}12` : `${dangerColor}12`,
+            borderColor: logic.feedback.type === 'success' ? `${successColor}28` : `${dangerColor}28`,
+            color: logic.feedback.type === 'success' ? successColor : dangerColor,
           }}
         >
-          <p className="text-sm font-semibold">{logic.feedback.message}</p>
-          <button type="button" onClick={() => logic.setFeedback(null)} className="text-xs font-black uppercase tracking-widest">OK</button>
+          <p>{logic.feedback.message}</p>
+          <button type="button" onClick={() => logic.setFeedback(null)} className="text-[9px] font-black uppercase tracking-widest">OK</button>
         </div>
       )}
       {logic.error && (
         <div
-          className="rounded-2xl border px-5 py-3 text-sm font-medium"
-          style={{ backgroundColor: `${theme.dangerColor}12`, borderColor: `${theme.dangerColor}28`, color: theme.dangerColor }}
+          className="rounded-[1.5rem] border px-6 py-3.5 text-sm font-medium"
+          style={{ backgroundColor: `${dangerColor}12`, borderColor: `${dangerColor}28`, color: dangerColor }}
         >
           {logic.error}
         </div>
       )}
 
-      {/* ── Buscador ── */}
+      {/* ── Search ── */}
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: theme.subtextColor }} />
+        <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-40" style={{ color: textColor }} />
         <input
           value={logic.searchTerm}
           onChange={(e) => logic.setSearchTerm(e.target.value)}
           placeholder="Buscar por ruta, descripción o taller..."
-          className="w-full rounded-2xl border py-3 pl-11 pr-4 text-sm outline-none"
-          style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }}
+          className="w-full rounded-[1.5rem] border py-4 pl-12 pr-5 text-sm focus:outline-none transition-all"
+          style={{ backgroundColor: inputBg, borderColor, color: textColor }}
         />
       </div>
 
-      {/* ── Rutas ── */}
+      {/* ── LP Cards ── */}
       <section>
         {logic.filteredLearningPaths.length === 0 ? (
           <div
-            className="rounded-2xl border border-dashed px-6 py-14 text-center"
-            style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+            className="rounded-[2rem] border border-dashed px-8 py-16 text-center"
+            style={{ backgroundColor: inputBg, borderColor }}
           >
             <div
-              className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.4rem] shadow-xl"
+              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}
             >
-              <Route className="h-7 w-7" />
+              <Route className="h-8 w-8" style={{ color: onPrimaryColor }} strokeWidth={2.5} />
             </div>
-            <h2 className="text-lg font-black" style={{ color: theme.textColor }}>No hay rutas disponibles</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm" style={{ color: theme.subtextColor }}>
+            <h2 className="text-lg font-black" style={{ color: textColor }}>No hay rutas disponibles</h2>
+            <p className="mt-2 text-sm max-w-sm mx-auto" style={{ color: mutedTextColor }}>
               Cuando el equipo administrador cree rutas activas, aparecerán aquí.
             </p>
           </div>
@@ -185,121 +189,103 @@ export function BusinessLearningPathsPage() {
           <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
             {logic.filteredLearningPaths.map((path, index) => {
               const assignedCount = logic.assignmentsByPathId.get(path.id)?.length ?? 0
-
               return (
                 <motion.article
                   key={path.id}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.04 }}
-                  className="flex flex-col overflow-hidden rounded-2xl border"
-                  style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+                  className="flex flex-col overflow-hidden rounded-[2rem] border"
+                  style={{ backgroundColor: inputBg, borderColor }}
                 >
-                  {/* Accent bar */}
-                  <div
-                    className="h-1 w-full"
-                    style={{ background: `linear-gradient(90deg, ${theme.brandColor}, ${theme.accentColor})` }}
-                  />
-
-                  <div className="flex flex-1 flex-col p-5">
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div
-                          className="mb-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
-                          style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-                        >
-                          <Layers className="h-3 w-3" />
-                          Ruta secuencial
-                        </div>
-                        <h2 className="text-base font-black leading-snug" style={{ color: theme.textColor }}>
-                          {path.title}
-                        </h2>
-                        {path.description && (
-                          <p className="mt-1.5 text-xs line-clamp-2" style={{ color: theme.subtextColor }}>
-                            {path.description}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Mini stats */}
-                    <div className="mt-4 grid grid-cols-2 gap-2">
+                  {/* Card header */}
+                  <div className="p-6 pb-4 border-b" style={{ borderColor }}>
+                    <div className="flex items-start justify-between gap-3 mb-3">
                       <div
-                        className="rounded-xl border p-3"
-                        style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl"
+                        style={{ background: `linear-gradient(135deg, ${primaryColor}20, ${accentColor}20)`, color: primaryColor }}
                       >
-                        <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: theme.subtextColor }}>Talleres</p>
-                        <p className="mt-1 text-xl font-black" style={{ color: theme.textColor }}>{path.item_count}</p>
+                        <Layers className="h-5 w-5" strokeWidth={2.5} />
                       </div>
                       <div
-                        className="rounded-xl border p-3"
-                        style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
+                        className="px-2.5 py-1 rounded-xl border text-[9px] font-black uppercase tracking-wider"
+                        style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}
                       >
-                        <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: theme.subtextColor }}>Asignados</p>
-                        <p className="mt-1 text-xl font-black" style={{ color: theme.textColor }}>{assignedCount}</p>
+                        {path.item_count} {path.item_count === 1 ? 'taller' : 'talleres'}
                       </div>
                     </div>
-
-                    {/* Course preview */}
-                    {path.items.length > 0 && (
-                      <div className="mt-4 space-y-1.5">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: theme.subtextColor }}>
-                          Vista previa
-                        </p>
-                        {path.items.slice(0, 3).map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-2.5 rounded-xl border px-3 py-2"
-                            style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
-                          >
-                            <span
-                              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-black"
-                              style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-                            >
-                              {item.position}
-                            </span>
-                            <p className="truncate text-xs font-medium" style={{ color: theme.textColor }}>
-                              {item.course?.title ?? 'Taller sin título'}
-                            </p>
-                          </div>
-                        ))}
-                        {path.items.length > 3 && (
-                          <p className="pl-1 text-[11px]" style={{ color: theme.subtextColor }}>
-                            +{path.items.length - 3} más
-                          </p>
-                        )}
-                      </div>
+                    <h2 className="text-base font-black leading-snug mb-1" style={{ color: textColor }}>
+                      {path.title}
+                    </h2>
+                    {path.description && (
+                      <p className="text-xs line-clamp-2" style={{ color: mutedTextColor }}>{path.description}</p>
                     )}
+                  </div>
 
-                    {/* Footer */}
-                    <div
-                      className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t pt-4"
-                      style={{ borderColor: theme.borderColor }}
-                    >
-                      <p className="text-xs" style={{ color: theme.subtextColor }}>
-                        {assignedCount} {assignedCount === 1 ? 'usuario asignado' : 'usuarios asignados'}
+                  {/* Course preview */}
+                  {path.items.length > 0 && (
+                    <div className="px-6 py-4 space-y-2 border-b flex-1" style={{ borderColor }}>
+                      <p className="text-[9px] font-black uppercase tracking-widest mb-3" style={{ color: mutedTextColor }}>
+                        Contenido
                       </p>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setVideosLearningPathId(path.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-bold transition hover:opacity-80"
-                          style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
+                      {path.items.slice(0, 3).map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-2.5 rounded-2xl border px-4 py-2.5"
+                          style={{ backgroundColor: panelBg, borderColor }}
                         >
-                          <Film className="h-3.5 w-3.5" />
-                          {t('learningPathsPage.introVideos.manageVideos')}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => logic.setSelectedLearningPathId(path.id)}
-                          className="inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition hover:opacity-90"
-                          style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
-                        >
-                          Asignar usuarios
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
+                          <span
+                            className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg text-[9px] font-black"
+                            style={{ backgroundColor: `${primaryColor}20`, color: primaryColor }}
+                          >
+                            {item.position}
+                          </span>
+                          <p className="truncate text-xs font-medium" style={{ color: textColor }}>
+                            {item.course?.title ?? 'Taller sin título'}
+                          </p>
+                          {item.position === 1
+                            ? null
+                            : <Lock className="ml-auto h-3 w-3 shrink-0 opacity-30" style={{ color: textColor }} />
+                          }
+                        </div>
+                      ))}
+                      {path.items.length > 3 && (
+                        <p className="pl-2 text-xs" style={{ color: mutedTextColor }}>
+                          +{path.items.length - 3} más
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Card footer */}
+                  <div className="p-5 flex flex-col gap-2.5">
+                    <p className="text-xs" style={{ color: mutedTextColor }}>
+                      {assignedCount} {assignedCount === 1 ? 'usuario asignado' : 'usuarios asignados'}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {/* Gestionar videos */}
+                      <button
+                        type="button"
+                        onClick={() => setVideosLearningPathId(path.id)}
+                        className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all hover:opacity-80"
+                        style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}
+                      >
+                        <Film className="h-3.5 w-3.5" />
+                        {t('learningPathsPage.introVideos.manageVideos')}
+                      </button>
+                      {/* Asignar usuarios */}
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => logic.setSelectedLearningPathId(path.id)}
+                        className="flex flex-1 items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest shadow-lg transition-all"
+                        style={{ backgroundColor: primaryColor, color: onPrimaryColor }}
+                      >
+                        <Users className="h-3.5 w-3.5" />
+                        Asignar
+                        <ChevronRight className="h-3.5 w-3.5" strokeWidth={3} />
+                      </motion.button>
                     </div>
                   </div>
                 </motion.article>
@@ -309,84 +295,79 @@ export function BusinessLearningPathsPage() {
         )}
       </section>
 
-      {/* ── Asignaciones activas ── */}
+      {/* ── Active assignments ── */}
       <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-black" style={{ color: theme.textColor }}>Asignaciones activas</h2>
-          <p className="mt-0.5 text-sm" style={{ color: theme.subtextColor }}>
+        <div className="mb-5">
+          <h2 className="text-lg font-black" style={{ color: textColor }}>Asignaciones activas</h2>
+          <p className="mt-0.5 text-sm" style={{ color: mutedTextColor }}>
             Revisa qué usuarios tienen cada ruta y revoca accesos cuando sea necesario.
           </p>
         </div>
 
         {assignmentCards.length === 0 ? (
           <div
-            className="rounded-2xl border border-dashed px-6 py-12 text-center"
-            style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+            className="rounded-[2rem] border border-dashed px-8 py-12 text-center"
+            style={{ backgroundColor: inputBg, borderColor }}
           >
-            <Users className="mx-auto mb-3 h-8 w-8" style={{ color: theme.subtextColor }} />
-            <p className="font-bold" style={{ color: theme.textColor }}>Sin asignaciones todavía</p>
-            <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>
+            <Users className="mx-auto mb-3 h-8 w-8 opacity-30" style={{ color: textColor }} />
+            <p className="font-black" style={{ color: textColor }}>Sin asignaciones todavía</p>
+            <p className="mt-1 text-sm" style={{ color: mutedTextColor }}>
               Asigna una ruta a tus usuarios desde las tarjetas de arriba.
             </p>
           </div>
         ) : (
-          <div
-            className="overflow-hidden rounded-2xl border"
-            style={{ borderColor: theme.borderColor }}
-          >
+          <div className="overflow-hidden rounded-[2rem] border" style={{ borderColor }}>
             {/* Table header */}
             <div
-              className="hidden grid-cols-[1fr_1fr_120px_auto] items-center gap-4 border-b px-5 py-3 md:grid"
-              style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
+              className="hidden grid-cols-[1fr_1fr_130px_auto] items-center gap-4 border-b px-6 py-3.5 md:grid"
+              style={{ backgroundColor: panelBg, borderColor }}
             >
               {['Usuario', 'Ruta', 'Asignado', ''].map((h) => (
-                <p key={h} className="text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: theme.subtextColor }}>
-                  {h}
-                </p>
+                <p key={h} className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: mutedTextColor }}>{h}</p>
               ))}
             </div>
 
             {/* Rows */}
-            <div className="divide-y" style={{ backgroundColor: theme.cardBg }}>
-              {assignmentCards.map((assignment) => (
+            <div style={{ backgroundColor: inputBg }}>
+              {assignmentCards.map((assignment, i) => (
                 <div
                   key={assignment.id}
-                  className="flex flex-col gap-3 p-4 md:grid md:grid-cols-[1fr_1fr_120px_auto] md:items-center md:gap-4 md:px-5 md:py-3.5"
-                  style={{ borderColor: theme.borderColor }}
+                  className="flex flex-col gap-3 p-4 md:grid md:grid-cols-[1fr_1fr_130px_auto] md:items-center md:gap-4 md:px-6 md:py-4"
+                  style={{ borderTop: `1px solid ${i === 0 ? 'transparent' : borderColor}` }}
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ color: theme.textColor }}>
+                    <p className="text-sm font-semibold truncate" style={{ color: textColor }}>
                       {getUserDisplayName(assignment.user) || 'Usuario sin nombre'}
                     </p>
-                    <p className="text-xs truncate" style={{ color: theme.subtextColor }}>
-                      {assignment.user?.email}
-                    </p>
+                    <p className="text-xs truncate" style={{ color: mutedTextColor }}>{assignment.user?.email}</p>
                   </div>
 
-                  <p className="text-sm truncate" style={{ color: theme.textColor }}>
+                  <p className="text-sm truncate font-medium" style={{ color: textColor }}>
                     {assignment.learning_path?.title ?? assignment.learning_path_id}
                   </p>
 
-                  <p className="text-sm tabular-nums" style={{ color: theme.subtextColor }}>
+                  <p className="text-xs tabular-nums" style={{ color: mutedTextColor }}>
                     {new Date(assignment.assigned_at).toLocaleDateString('es-MX', {
                       day: 'numeric', month: 'short', year: 'numeric',
                     })}
                   </p>
 
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => void logic.handleRevokeAssignment(assignment.id)}
                     disabled={logic.revokingAssignmentId === assignment.id}
-                    className="inline-flex items-center gap-1.5 self-start rounded-xl border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50 md:self-auto"
+                    className="inline-flex items-center gap-2 self-start rounded-xl border px-4 py-2 text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-40 md:self-auto"
                     style={{
-                      backgroundColor: `${theme.dangerColor}0d`,
-                      borderColor: `${theme.dangerColor}25`,
-                      color: theme.dangerColor,
+                      backgroundColor: `${dangerColor}0d`,
+                      borderColor: `${dangerColor}25`,
+                      color: dangerColor,
                     }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    {logic.revokingAssignmentId === assignment.id ? 'Revocando...' : 'Revocar'}
-                  </button>
+                    {logic.revokingAssignmentId === assignment.id ? 'Revocando…' : 'Revocar'}
+                  </motion.button>
                 </div>
               ))}
             </div>
@@ -394,6 +375,7 @@ export function BusinessLearningPathsPage() {
         )}
       </section>
 
+      {/* ── Modals ── */}
       <BusinessAssignLearningPathModal
         isOpen={Boolean(logic.selectedLearningPath)}
         onClose={() => logic.setSelectedLearningPathId(null)}

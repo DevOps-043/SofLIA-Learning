@@ -6,6 +6,7 @@ import type { IntroVideosResponse } from '@/app/api/courses/[slug]/intro-videos/
 
 interface UseCourseIntroVideosOptions {
   courseSlug: string
+  organizationId?: string | null
   enabled?: boolean
 }
 
@@ -18,96 +19,122 @@ interface UseCourseIntroVideosResult {
   restartWithIntroVideos: (afterFn: () => void) => void
 }
 
+function prefetchVideos(urls: string[]) {
+  if (typeof document === 'undefined') return
+  for (const url of urls) {
+    if (!url) continue
+    const selector = `link[rel="prefetch"][href="${url}"]`
+    if (document.head.querySelector(selector)) continue
+    const link = document.createElement('link')
+    link.rel = 'prefetch'
+    link.setAttribute('as', 'fetch')
+    link.href = url
+    link.crossOrigin = 'anonymous'
+    document.head.appendChild(link)
+  }
+}
+
+function buildIntroVideosUrl(slug: string, organizationId?: string | null) {
+  const query = new URLSearchParams()
+  if (organizationId) query.set('orgId', organizationId)
+
+  const queryString = query.toString()
+  return `/api/courses/${encodeURIComponent(slug)}/intro-videos${queryString ? `?${queryString}` : ''}`
+}
+
+async function fetchIntroVideosForSlug(
+  slug: string,
+  organizationId?: string | null,
+): Promise<string[]> {
+  try {
+    const res = await fetch(buildIntroVideosUrl(slug, organizationId), {
+      credentials: 'include',
+    })
+    if (!res.ok) return []
+    const data = (await res.json()) as IntroVideosResponse & { success: boolean }
+    if (!data.success) return []
+    return data.allVideos ?? []
+  } catch {
+    return []
+  }
+}
+
 export function useCourseIntroVideos({
   courseSlug,
+  organizationId,
   enabled = true,
 }: UseCourseIntroVideosOptions): UseCourseIntroVideosResult {
   const [introVideos, setIntroVideos] = useState<string[]>([])
   const [showVideoIntro, setShowVideoIntro] = useState(false)
   const [isForceShow, setIsForceShow] = useState(false)
+  // Empieza true para bloquear el tour hasta que el fetch complete
   const [isLoadingIntro, setIsLoadingIntro] = useState(true)
 
-  // Metadata del fetch para usarla en markWatched
-  const watchedPayloadRef = useRef<{ watchedLp: boolean; watchedCourse: boolean; learningPathId: string | null }>({
-    watchedLp: false,
-    watchedCourse: false,
-    learningPathId: null,
-  })
-  // Indica si hay videos de LP o curso configurados (para el restart)
-  const hasAnyVideoRef = useRef(false)
-  // Callback a disparar tras completar el player en modo re-visita voluntaria
+  const watchedPayloadRef = useRef<{ watchedCourse: boolean }>({ watchedCourse: false })
+  const allVideosRef = useRef<string[]>([])
   const afterVideoRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
-    if (!enabled || !courseSlug) {
-      setIsLoadingIntro(false)
-      return
-    }
+    if (!enabled || !courseSlug) return
 
     let cancelled = false
 
-    const fetchIntroVideos = async () => {
+    const fetchCourseVideo = async () => {
       try {
-        const response = await fetch(`/api/courses/${courseSlug}/intro-videos`, {
+        const res = await fetch(buildIntroVideosUrl(courseSlug, organizationId), {
           credentials: 'include',
         })
-        if (!response.ok || cancelled) return
+        if (!res.ok || cancelled) return
 
-        const data = (await response.json()) as IntroVideosResponse & { success: boolean }
+        const data = (await res.json()) as IntroVideosResponse & { success: boolean }
         if (!data.success || cancelled) return
 
-        hasAnyVideoRef.current = data.hasLpVideo || data.hasCourseVideo
+        allVideosRef.current = data.allVideos ?? []
         watchedPayloadRef.current = {
-          watchedLp: !data.lpIntroWatched && data.hasLpVideo,
           watchedCourse: !data.courseIntroWatched && data.hasCourseVideo,
-          learningPathId: data.learningPathId,
         }
+
+        // Prefetch en background
+        prefetchVideos(data.allVideos ?? [])
 
         setIntroVideos(data.videos)
         setShowVideoIntro(data.videos.length > 0)
       } catch {
-        // Si falla el fetch de intro videos, simplemente no los mostramos
+        // Si falla el fetch, no bloquear el tour
       } finally {
         if (!cancelled) setIsLoadingIntro(false)
       }
     }
 
-    void fetchIntroVideos()
+    void fetchCourseVideo()
     return () => { cancelled = true }
-  }, [courseSlug, enabled])
+  }, [courseSlug, enabled, organizationId])
 
-  const markWatched = useCallback(
-    async (opts: { watchedCourse: boolean; watchedLp: boolean; learningPathId: string | null }) => {
-      if (!opts.watchedCourse && !opts.watchedLp) return
-      try {
-        await fetch(`/api/courses/${courseSlug}/intro-videos/watched`, {
-          method: 'POST',
-          credentials: 'include',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            watchedCourse: opts.watchedCourse,
-            watchedLp: opts.watchedLp,
-            learningPathId: opts.learningPathId,
-          }),
-        })
-      } catch {
-        // fire-and-forget — no bloquear la UI por un error de tracking
-      }
-    },
-    [courseSlug],
-  )
+  const markWatched = useCallback(async () => {
+    if (!watchedPayloadRef.current.watchedCourse) return
+    try {
+      await fetch(`/api/courses/${encodeURIComponent(courseSlug)}/intro-videos/watched`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          watchedCourse: true,
+          organizationId: organizationId || undefined,
+        }),
+      })
+    } catch {
+      // fire-and-forget
+    }
+  }, [courseSlug, organizationId])
 
   const handleVideoIntroComplete = useCallback(() => {
+    const wasFirstTime = !isForceShow
     setShowVideoIntro(false)
-
-    if (!isForceShow) {
-      // Primera vez — marcar como visto en DB
-      void markWatched(watchedPayloadRef.current)
-    }
-
     setIsForceShow(false)
+    setIntroVideos([])
 
-    // Disparar callback de re-visita si existe (ej. launch del tour)
+    if (wasFirstTime) void markWatched()
+
     const after = afterVideoRef.current
     afterVideoRef.current = null
     after?.()
@@ -115,17 +142,24 @@ export function useCourseIntroVideos({
 
   const restartWithIntroVideos = useCallback(
     (afterFn: () => void) => {
-      // Si no hay videos configurados para este curso, lanzar el callback directamente
-      if (!hasAnyVideoRef.current && !introVideos.length) {
-        afterFn()
-        return
-      }
-
-      afterVideoRef.current = afterFn
-      setIsForceShow(true)
-      setShowVideoIntro(true)
+      // Siempre hacemos un fetch fresco al reiniciar el tour para garantizar
+      // que mostramos los videos más recientes (el caché puede estar desactualizado
+      // o vacío si la primera carga falló silenciosamente).
+      fetchIntroVideosForSlug(courseSlug, organizationId).then((videos) => {
+        if (videos.length > 0) {
+          allVideosRef.current = videos
+          prefetchVideos(videos)
+          afterVideoRef.current = afterFn
+          setIntroVideos(videos)
+          setIsForceShow(true)
+          setShowVideoIntro(true)
+        } else {
+          // No hay videos configurados → lanzar el tour directamente
+          afterFn()
+        }
+      })
     },
-    [introVideos.length],
+    [courseSlug, organizationId],
   )
 
   return {

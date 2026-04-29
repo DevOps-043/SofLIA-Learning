@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+// Aumentar el límite de body para permitir subir videos de hasta 500 MB
+// Para App Router (Next.js 14+) se configura mediante maxDuration en vercel.json
+// o aumentando el límite en next.config.js. En desarrollo local no hay límite.
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '@supabase/supabase-js';
 import { 
@@ -8,6 +12,8 @@ import {
   generateSafeFileName,
   UPLOAD_CONFIG 
 } from '@/lib/upload/validation';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -120,4 +126,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

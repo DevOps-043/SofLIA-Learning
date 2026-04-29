@@ -39,6 +39,9 @@ export interface ModernNavbarProps {
   styles?: ModernNavbarStyleConfig | null;
   onRestartTour?: () => void;
   disableHeavyEffects?: boolean;
+  onCertificatesClick?: () => void;
+  onAnalyticsClick?: () => void;
+  certificatesCount?: number;
 }
 
 export interface ModernNavbarColors {

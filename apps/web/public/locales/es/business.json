@@ -1133,7 +1133,8 @@
       "errorDelete": "Error al eliminar el video. Intenta de nuevo.",
       "errorLoad": "Error al cargar los videos existentes.",
       "errorFileTooLarge": "El archivo excede el límite de 500 MB",
-      "unnamedCourse": "Curso sin título"
+      "unnamedCourse": "Curso sin título",
+      "close": "Cerrar"
     }
   },
   "assignLearningPath": {

@@ -1,8 +1,20 @@
 'use client'
 
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Film, Layers, Loader2, Play, Trash2, Upload, Video, X } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronRight,
+  Film,
+  Layers,
+  Loader2,
+  Play,
+  Trash2,
+  Upload,
+  Video,
+  X,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -10,7 +22,6 @@ import { useBusinessLearningPathVideos } from '../hooks/useBusinessLearningPathV
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
 
 const VIDEO_MIME_TYPES = 'video/mp4,video/webm,video/ogg,video/quicktime'
-const MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024
 
 interface BusinessLearningPathVideosModalProps {
   isOpen: boolean
@@ -27,126 +38,94 @@ interface VideoSlotProps {
   onUpload: (file: File) => void
   onDelete: () => void
   theme: ReturnType<typeof useBusinessPanelTheme>
-  t: (key: string) => string
+  t: ReturnType<typeof useTranslation<'business'>>['t']
 }
 
-function VideoSlot({
-  title,
-  videoUrl,
-  isUploading,
-  isDeleting,
-  onUpload,
-  onDelete,
-  theme,
-  t,
-}: VideoSlotProps) {
+function VideoSlot({ title, videoUrl, isUploading, isDeleting, onUpload, onDelete, theme, t }: VideoSlotProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > MAX_VIDEO_SIZE_BYTES) {
-      alert(t('learningPathsPage.introVideos.errorFileTooLarge'))
-      return
-    }
-    onUpload(file)
-    e.target.value = ''
-  }
 
   return (
     <div
-      className="rounded-2xl border p-4 space-y-3"
-      style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
+      className="rounded-[1.8rem] border overflow-hidden"
+      style={{ borderColor: theme.borderColor, backgroundColor: theme.inputBg }}
     >
-      <div className="flex items-center gap-2">
-        <div
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
-          style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-        >
-          <Video className="h-3.5 w-3.5" />
+      {/* Slot header */}
+      <div className="flex items-center justify-between gap-3 px-5 py-3.5 border-b" style={{ borderColor: theme.borderColor }}>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Video className="h-4 w-4 shrink-0 opacity-50" style={{ color: theme.textColor }} />
+          <span className="text-sm font-semibold truncate" style={{ color: theme.textColor }}>{title}</span>
         </div>
-        <p className="text-sm font-semibold truncate" style={{ color: theme.textColor }}>
-          {title}
-        </p>
+        {videoUrl && !isUploading && !isDeleting && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <CheckCircle2 className="h-3.5 w-3.5" style={{ color: theme.successColor }} />
+            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: theme.successColor }}>
+              Activo
+            </span>
+          </div>
+        )}
       </div>
 
-      {videoUrl ? (
-        <div className="space-y-2">
-          <video
-            src={videoUrl}
-            controls
-            preload="metadata"
-            className="w-full rounded-xl overflow-hidden"
-            style={{ maxHeight: 180, backgroundColor: '#000' }}
-          />
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={isUploading}
-              className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50"
-              style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
-            >
-              {isUploading ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Upload className="h-3.5 w-3.5" />
-              )}
-              {isUploading ? t('learningPathsPage.introVideos.uploading') : t('learningPathsPage.introVideos.upload')}
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              disabled={isDeleting}
-              className="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-50"
-              style={{
-                backgroundColor: `${theme.dangerColor}0d`,
-                borderColor: `${theme.dangerColor}25`,
-                color: theme.dangerColor,
-              }}
-            >
-              {isDeleting ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Trash2 className="h-3.5 w-3.5" />
-              )}
-              {isDeleting ? t('learningPathsPage.introVideos.deleting') : t('learningPathsPage.introVideos.delete')}
-            </button>
+      {/* Slot body */}
+      <div className="p-4">
+        {videoUrl ? (
+          <div className="space-y-3">
+            <video
+              src={videoUrl}
+              controls
+              preload="metadata"
+              className="w-full rounded-2xl block"
+              style={{ maxHeight: 160, backgroundColor: '#000' }}
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={isUploading || isDeleting}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-40"
+                style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor, color: theme.mutedTextColor }}
+              >
+                {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                {isUploading ? t('learningPathsPage.introVideos.uploading') : t('learningPathsPage.introVideos.upload')}
+              </button>
+              <button
+                type="button"
+                onClick={onDelete}
+                disabled={isUploading || isDeleting}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-40"
+                style={{
+                  backgroundColor: `${theme.dangerColor}0f`,
+                  borderColor: `${theme.dangerColor}25`,
+                  color: theme.dangerColor,
+                }}
+              >
+                {isDeleting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                {isDeleting ? t('learningPathsPage.introVideos.deleting') : t('learningPathsPage.introVideos.delete')}
+              </button>
+            </div>
           </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => inputRef.current?.click()}
-          disabled={isUploading}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-6 transition disabled:opacity-50"
-          style={{ borderColor: theme.borderColor }}
-        >
-          {isUploading ? (
-            <Loader2 className="h-6 w-6 animate-spin" style={{ color: theme.actionColor }} />
-          ) : (
-            <Upload className="h-6 w-6" style={{ color: theme.actionColor }} />
-          )}
-          <p className="text-xs font-medium" style={{ color: theme.subtextColor }}>
-            {isUploading ? t('learningPathsPage.introVideos.uploading') : t('learningPathsPage.introVideos.noVideo')}
-          </p>
-          {!isUploading && (
-            <span
-              className="rounded-lg px-3 py-1 text-xs font-bold"
-              style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-            >
-              {t('learningPathsPage.introVideos.upload')}
+        ) : (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={isUploading}
+            className="flex w-full flex-col items-center justify-center gap-2.5 rounded-2xl border-2 border-dashed py-7 transition-all disabled:opacity-50 hover:opacity-80"
+            style={{ borderColor: theme.borderColor }}
+          >
+            {isUploading
+              ? <Loader2 className="h-6 w-6 animate-spin" style={{ color: theme.actionColor }} />
+              : <Upload className="h-6 w-6" style={{ color: theme.actionColor }} />
+            }
+            <span className="text-xs font-medium" style={{ color: theme.mutedTextColor }}>
+              {isUploading
+                ? t('learningPathsPage.introVideos.uploading')
+                : t('learningPathsPage.introVideos.noVideo')}
             </span>
-          )}
-        </button>
-      )}
+          </button>
+        )}
+      </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept={VIDEO_MIME_TYPES}
-        className="hidden"
-        onChange={handleFileChange}
+      <input ref={inputRef} type="file" accept={VIDEO_MIME_TYPES} className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) { onUpload(f); e.target.value = '' } }}
       />
     </div>
   )
@@ -162,169 +141,201 @@ export function BusinessLearningPathVideosModal({
   const theme = useBusinessPanelTheme()
 
   const {
-    lpVideoUrl,
-    courseVideos,
-    uploading,
-    deleting,
-    error,
-    success,
-    handleUploadLpVideo,
-    handleDeleteLpVideo,
-    handleUploadCourseVideo,
-    handleDeleteCourseVideo,
-    clearFeedback,
+    lpVideoUrl, courseVideos, uploading, deleting, error, success,
+    handleUploadLpVideo, handleDeleteLpVideo,
+    handleUploadCourseVideo, handleDeleteCourseVideo, clearFeedback,
   } = useBusinessLearningPathVideos(orgSlug, learningPath, isOpen)
 
   if (!isOpen || !learningPath) return null
 
   const sortedItems = [...learningPath.items].sort((a, b) => a.position - b.position)
+  const primaryColor = theme.primaryColor
+  const onPrimaryColor = theme.onPrimaryColor
+  const textColor = theme.textColor
+  const mutedText = theme.mutedTextColor
+  const borderColor = theme.borderColor
+  const inputBg = theme.inputBg
+  const surfaceColor = theme.panelBg
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ backgroundColor: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }}
-        onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+      <div
+        className="fixed inset-0 flex items-center justify-center p-0 sm:p-4 isolate"
+        style={{ zIndex: 99999 }}
       >
+        {/* Click-away capture */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 8 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-transparent"
+        />
+
+        {/* Modal */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 8 }}
-          className="relative w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col rounded-3xl border shadow-2xl"
-          style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="relative w-full max-w-3xl h-full sm:h-[85vh] sm:max-h-[750px] flex flex-col bg-transparent overflow-hidden shadow-2xl sm:rounded-[2.5rem]"
+          onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div
-            className="flex items-center justify-between gap-3 px-6 py-4 border-b"
-            style={{ borderColor: theme.borderColor }}
+            className="flex flex-col h-full overflow-hidden border"
+            style={{ backgroundColor: surfaceColor, borderColor }}
           >
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-              >
-                <Film className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest" style={{ color: theme.subtextColor }}>
-                  {t('learningPathsPage.introVideos.modalTitle')}
-                </p>
-                <h2 className="text-base font-black leading-tight line-clamp-1" style={{ color: theme.textColor }}>
-                  {learningPath.title}
-                </h2>
+            {/* ── Header ── */}
+            <div className="relative shrink-0 pt-6 pb-4 px-6 lg:px-10 border-b" style={{ borderColor }}>
+              <div className="flex items-center gap-5">
+                <div
+                  className="w-14 h-14 rounded-[1.4rem] flex items-center justify-center shadow-xl border-4 shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${primaryColor}, ${theme.accentColor})`, borderColor }}
+                >
+                  <Film className="w-6 h-6" style={{ color: onPrimaryColor }} strokeWidth={2.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-widest mb-0.5" style={{ color: mutedText }}>
+                    {t('learningPathsPage.introVideos.modalTitle')}
+                  </p>
+                  <h2 className="text-xl font-black tracking-tight line-clamp-1" style={{ color: textColor }}>
+                    {learningPath.title}
+                  </h2>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="p-3 rounded-2xl border transition-all shrink-0"
+                  style={{ backgroundColor: inputBg, borderColor, color: mutedText }}
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition"
-              style={{ backgroundColor: theme.inputBg, color: theme.subtextColor }}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
 
-          {/* Feedback */}
-          <AnimatePresence>
-            {(error || success) && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div
-                  className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm font-medium"
-                  style={{
-                    backgroundColor: error ? `${theme.dangerColor}12` : `${theme.successColor}12`,
-                    color: error ? theme.dangerColor : theme.successColor,
-                  }}
+            {/* ── Error / Success banner ── */}
+            <AnimatePresence>
+              {(error || success) && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden shrink-0"
                 >
-                  <span>{error ?? success}</span>
-                  <button type="button" onClick={clearFeedback} className="text-xs font-black uppercase tracking-widest">✕</button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <div
+                    className="flex items-center justify-between gap-3 px-8 py-3 text-[10px] font-black uppercase tracking-widest border-b"
+                    style={{
+                      backgroundColor: error ? `${theme.dangerColor}10` : `${theme.successColor}10`,
+                      borderColor: error ? `${theme.dangerColor}20` : `${theme.successColor}20`,
+                    }}
+                  >
+                    <span className="flex items-center gap-2" style={{ color: error ? theme.dangerColor : theme.successColor }}>
+                      {error
+                        ? <AlertCircle className="h-4 w-4 shrink-0" />
+                        : <CheckCircle2 className="h-4 w-4 shrink-0" />}
+                      {error ?? success}
+                    </span>
+                    <button type="button" onClick={clearFeedback} style={{ color: error ? theme.dangerColor : theme.successColor }}>
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-            {/* LP intro video */}
-            <section>
-              <div className="flex items-center gap-2 mb-3">
-                <Layers className="h-4 w-4 shrink-0" style={{ color: theme.actionColor }} />
-                <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: theme.textColor }}>
-                  {t('learningPathsPage.introVideos.lpVideoTitle')}
-                </h3>
-              </div>
-              <VideoSlot
-                title={learningPath.title}
-                videoUrl={lpVideoUrl}
-                isUploading={Boolean(uploading[`lp:${learningPath.id}`])}
-                isDeleting={Boolean(deleting[`lp:${learningPath.id}`])}
-                onUpload={handleUploadLpVideo}
-                onDelete={handleDeleteLpVideo}
-                theme={theme}
-                t={t}
-              />
-            </section>
-
-            {/* Course intro videos */}
-            {sortedItems.length > 0 && (
-              <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <Play className="h-4 w-4 shrink-0" style={{ color: theme.actionColor }} />
-                  <h3 className="text-sm font-black uppercase tracking-wider" style={{ color: theme.textColor }}>
-                    {t('learningPathsPage.introVideos.coursesSectionTitle')}
-                  </h3>
-                </div>
-                <div className="space-y-3">
-                  {sortedItems.map((item) => (
-                    <div key={item.id} className="flex gap-3 items-start">
-                      <span
-                        className="mt-4 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-black"
-                        style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-                      >
-                        {item.position}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <VideoSlot
-                          title={item.course?.title ?? t('learningPathsPage.introVideos.unnamedCourse')}
-                          videoUrl={courseVideos[item.course_id] ?? null}
-                          isUploading={Boolean(uploading[`course:${item.course_id}`])}
-                          isDeleting={Boolean(deleting[`course:${item.course_id}`])}
-                          onUpload={(file) => void handleUploadCourseVideo(item.course_id, file)}
-                          onDelete={() => void handleDeleteCourseVideo(item.course_id)}
-                          theme={theme}
-                          t={t}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div
-            className="px-6 py-4 border-t flex justify-end"
-            style={{ borderColor: theme.borderColor }}
-          >
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-2xl px-5 py-2 text-sm font-bold transition"
-              style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
+            {/* ── Body ── */}
+            <div
+              className="flex-1 overflow-y-auto pt-6 pb-10 px-6 lg:px-10 space-y-8"
+              style={{ scrollbarWidth: 'thin', scrollbarColor: `${borderColor} transparent` }}
             >
-              {t('actions.close')}
-            </button>
+              {/* LP video section */}
+              <div className="space-y-4">
+                <label className="text-[10px] font-black uppercase tracking-widest px-1 flex items-center gap-2" style={{ color: mutedText }}>
+                  <Layers className="h-3.5 w-3.5" />
+                  {t('learningPathsPage.introVideos.lpVideoTitle')}
+                </label>
+                <VideoSlot
+                  title={learningPath.title}
+                  videoUrl={lpVideoUrl}
+                  isUploading={Boolean(uploading[`lp:${learningPath.id}`])}
+                  isDeleting={Boolean(deleting[`lp:${learningPath.id}`])}
+                  onUpload={(file) => void handleUploadLpVideo(file)}
+                  onDelete={() => void handleDeleteLpVideo()}
+                  theme={theme}
+                  t={t}
+                />
+              </div>
+
+              {/* Course videos section */}
+              {sortedItems.length > 0 && (
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest px-1 flex items-center gap-2" style={{ color: mutedText }}>
+                    <Play className="h-3.5 w-3.5" />
+                    {t('learningPathsPage.introVideos.coursesSectionTitle')}
+                  </label>
+                  <div className="space-y-4">
+                    {sortedItems.map((item) => (
+                      <div key={item.id} className="flex items-start gap-3">
+                        <div
+                          className="mt-5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-[10px] font-black"
+                          style={{ backgroundColor: inputBg, borderColor, color: mutedText, border: `1px solid ${borderColor}` }}
+                        >
+                          {item.position}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <VideoSlot
+                            title={item.course?.title ?? t('learningPathsPage.introVideos.unnamedCourse')}
+                            videoUrl={courseVideos[item.course_id] ?? null}
+                            isUploading={Boolean(uploading[`course:${item.course_id}`])}
+                            isDeleting={Boolean(deleting[`course:${item.course_id}`])}
+                            onUpload={(file) => void handleUploadCourseVideo(item.course_id, file)}
+                            onDelete={() => void handleDeleteCourseVideo(item.course_id)}
+                            theme={theme}
+                            t={t}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ── Footer ── */}
+            <div
+              className="shrink-0 p-5 px-8 flex items-center justify-between gap-4 border-t"
+              style={{ backgroundColor: surfaceColor, borderColor }}
+            >
+              <div className="hidden sm:flex items-center gap-2 opacity-30 select-none">
+                <Film className="w-5 h-5" style={{ color: textColor }} />
+                <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: textColor }}>
+                  Videos Introductorios
+                </span>
+              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="flex-1 sm:flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all"
+                  style={{ color: mutedText, backgroundColor: inputBg, borderColor }}
+                >
+                  {t('learningPathsPage.introVideos.close')}
+                </button>
+                <motion.button
+                  type="button"
+                  onClick={onClose}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex-[2] sm:flex-none px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3"
+                  style={{ backgroundColor: primaryColor, color: onPrimaryColor }}
+                >
+                  <span>Listo</span>
+                  <ChevronRight className="w-4 h-4" strokeWidth={3} />
+                </motion.button>
+              </div>
+            </div>
           </div>
         </motion.div>
-      </motion.div>
+      </div>
     </AnimatePresence>
   )
 }

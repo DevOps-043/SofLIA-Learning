@@ -1,5 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  Award,
+  BarChart2,
   Building2,
   CalendarDays,
   CalendarPlus,
@@ -18,6 +20,7 @@ import type { ModernNavbarColors, ModernNavbarOrganization, ModernNavbarUser } f
 
 interface ModernNavbarMobileMenuProps {
   canAccessAdminPanel: boolean;
+  certificatesCount?: number;
   colors: ModernNavbarColors;
   getDisplayName: () => string;
   getInitials: () => string;
@@ -28,6 +31,8 @@ interface ModernNavbarMobileMenuProps {
   onLogout: () => void;
   onProfileClick: () => void;
   onRestartTour?: () => void;
+  onCertificatesClick?: () => void;
+  onAnalyticsClick?: () => void;
   organization: ModernNavbarOrganization | null;
   resolvedTheme: string | null | undefined;
   router: { push: (href: string) => void };
@@ -41,6 +46,7 @@ interface ModernNavbarMobileMenuProps {
 
 export function ModernNavbarMobileMenu({
   canAccessAdminPanel,
+  certificatesCount = 0,
   colors,
   getDisplayName,
   getInitials,
@@ -51,6 +57,8 @@ export function ModernNavbarMobileMenu({
   onLogout,
   onProfileClick,
   onRestartTour,
+  onCertificatesClick,
+  onAnalyticsClick,
   organization,
   resolvedTheme,
   router,
@@ -185,6 +193,43 @@ export function ModernNavbarMobileMenu({
                 <span className="text-xs opacity-70" style={{ color: colors.text }}>Cambiar de organización</span>
               </div>
             </motion.button>
+
+            {/* ── Certificados ── */}
+            {onCertificatesClick && (
+              <motion.button
+                onClick={() => { onCertificatesClick(); onClose(); }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
+                whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
+                style={{ backgroundColor: `${colors.primary}10`, border: `1px solid ${colors.border}` }}
+              >
+                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `${colors.accent}20` }}>
+                  <Award className="h-4 w-4" style={{ color: colors.accent }} />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>Certificados</span>
+                  {certificatesCount > 0 && (
+                    <span className="text-xs" style={{ color: colors.accent }}>{certificatesCount} obtenido{certificatesCount !== 1 ? 's' : ''}</span>
+                  )}
+                </div>
+              </motion.button>
+            )}
+
+            {/* ── Mis estadísticas ── */}
+            {onAnalyticsClick && (
+              <motion.button
+                onClick={() => { onAnalyticsClick(); onClose(); }}
+                className="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-colors"
+                whileTap={disableHeavyEffects ? undefined : { scale: 0.98 }}
+                style={{ backgroundColor: `${colors.primary}10`, border: `1px solid ${colors.border}` }}
+              >
+                <div className="p-2 rounded-xl flex-shrink-0" style={{ backgroundColor: `${colors.accent}20` }}>
+                  <BarChart2 className="h-4 w-4" style={{ color: colors.accent }} />
+                </div>
+                <div className="text-left flex-1 min-w-0">
+                  <span className="font-medium block text-sm" style={{ color: colors.text }}>Mis estadísticas</span>
+                </div>
+              </motion.button>
+            )}
 
             <motion.button
               onClick={() => {

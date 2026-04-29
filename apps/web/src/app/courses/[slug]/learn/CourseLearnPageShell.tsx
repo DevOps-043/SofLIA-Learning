@@ -169,6 +169,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     restartWithIntroVideos,
   } = useCourseIntroVideos({
     courseSlug: slug,
+    organizationId: course?.organization_id ?? null,
     enabled: ready && Boolean(course),
   })
 
@@ -341,6 +342,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   }
 
   return (
+    <>
     <WorkshopLearningProvider
       workshopId={course.id || course.course_id || slug}
       activityId={currentLesson?.lesson_id || 'no-lesson'}
@@ -667,14 +669,17 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
             {mounted ? <Joyride {...courseTour.joyrideProps} /> : null}
           </div>
 
-          {showVideoIntro && introVideos.length > 0 && (
-            <OnboardingVideoPlayer
-              videos={introVideos}
-              onComplete={handleVideoIntroComplete}
-              isSkippable={isForceShow}
-            />
-          )}
         </CourseAccessGuard>
       </WorkshopLearningProvider>
+
+      {/* Video introductorio — fuera de guards/providers para renderizado garantizado */}
+      {showVideoIntro && introVideos.length > 0 && (
+        <OnboardingVideoPlayer
+          videos={introVideos}
+          onComplete={handleVideoIntroComplete}
+          isSkippable={isForceShow}
+        />
+      )}
+    </>
   )
 }
