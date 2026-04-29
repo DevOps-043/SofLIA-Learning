@@ -21,7 +21,7 @@ import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { useBusinessLearningPathVideos } from '../hooks/useBusinessLearningPathVideos'
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
 
-const VIDEO_MIME_TYPES = 'video/mp4,video/webm,video/ogg,video/quicktime'
+const VIDEO_MIME_TYPES = 'video/mp4,video/webm'
 
 interface BusinessLearningPathVideosModalProps {
   isOpen: boolean

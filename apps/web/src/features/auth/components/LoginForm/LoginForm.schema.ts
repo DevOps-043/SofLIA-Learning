@@ -1,13 +1,14 @@
 import { z } from 'zod';
+import { TFunction } from 'i18next';
 
-export const loginSchema = z.object({
+export const getLoginSchema = (t: TFunction) => z.object({
   emailOrUsername: z
     .string()
-    .min(1, 'El correo o usuario es requerido')
-    .regex(/^\S+$/, 'No se permiten espacios'),
+    .min(1, t('auth.login.validation.emailOrUsernameRequired'))
+    .regex(/^\S+$/, t('auth.login.validation.noSpaces')),
   password: z
     .string()
-    .min(1, 'La contraseña es requerida')
-    .regex(/^\S+$/, 'No se permiten espacios'),
+    .min(1, t('auth.login.validation.passwordRequired'))
+    .regex(/^\S+$/, t('auth.login.validation.noSpaces')),
   rememberMe: z.boolean().default(false),
 });

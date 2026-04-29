@@ -33,8 +33,12 @@ describe('business-user-joyride-steps', () => {
       `#${BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.userDropdownTrigger}`,
     );
     expect(steps[4].placement).toBe('bottom-end');
-    expect(steps[5].target).toBe(`#${SHARED_TOUR_TARGET_IDS.liaTrigger}`);
-    expect(steps[5].placement).toBe('top-end');
+    expect(steps[5].target).toBe(
+      `#${BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}`,
+    );
+    expect(steps[5].placement).toBe('left');
+    expect(steps[6].target).toBe(`#${SHARED_TOUR_TARGET_IDS.liaTrigger}`);
+    expect(steps[6].placement).toBe('top-end');
   });
 
   it('builds mobile-safe targets and placements', () => {
@@ -47,7 +51,11 @@ describe('business-user-joyride-steps', () => {
       `#${BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.mobileMenuTrigger}`,
     );
     expect(steps[4].placement).toBe('bottom');
-    expect(steps[5].target).toBe(`#${SHARED_TOUR_TARGET_IDS.liaTrigger}`);
+    expect(steps[5].target).toBe(
+      `#${BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}`,
+    );
     expect(steps[5].placement).toBe('top');
+    expect(steps[6].target).toBe(`#${SHARED_TOUR_TARGET_IDS.liaTrigger}`);
+    expect(steps[6].placement).toBe('top');
   });
 });

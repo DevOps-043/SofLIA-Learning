@@ -39,6 +39,7 @@ describe('useCourseIntroVideos', () => {
     vi.unstubAllGlobals()
     vi.clearAllMocks()
     document.head.innerHTML = ''
+    window.localStorage.clear()
   })
 
   it('replays configured intro videos before launching the course tour', async () => {
@@ -96,19 +97,18 @@ describe('useCourseIntroVideos', () => {
     expect(launchTour).toHaveBeenCalledTimes(1)
   })
 
-  it('marks first-time course intro playback with the current organization', async () => {
+  it('shows configured intro videos once per browser even when server progress is already watched', async () => {
     fetchMock
       .mockResolvedValueOnce(
         mockJsonResponse(
           introVideosResponse({
-            videos: ['https://cdn.test/course-intro.mp4'],
+            videos: [],
             allVideos: ['https://cdn.test/course-intro.mp4'],
             hasCourseVideo: true,
-            courseIntroWatched: false,
+            courseIntroWatched: true,
           }),
         ),
       )
-      .mockResolvedValueOnce(mockJsonResponse({ success: true }))
 
     const { result } = renderHook(() =>
       useCourseIntroVideos({
@@ -118,24 +118,48 @@ describe('useCourseIntroVideos', () => {
     )
 
     await waitFor(() => expect(result.current.showVideoIntro).toBe(true))
+    expect(result.current.introVideos).toEqual(['https://cdn.test/course-intro.mp4'])
 
     act(() => {
       result.current.handleVideoIntroComplete()
     })
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(
+      window.localStorage.getItem(
+        `soflia:intro-video-watched:v1:${ORG_ID}:curso-demo:https://cdn.test/course-intro.mp4`,
+      ),
+    ).toBe('true')
+  })
 
-    expect(fetchMock).toHaveBeenNthCalledWith(
-      2,
-      '/api/courses/curso-demo/intro-videos/watched',
-      expect.objectContaining({
-        method: 'POST',
-        credentials: 'include',
-        body: JSON.stringify({
-          watchedCourse: true,
-          organizationId: ORG_ID,
+  it('skips intro videos already watched in the current browser', async () => {
+    window.localStorage.setItem(
+      `soflia:intro-video-watched:v1:${ORG_ID}:curso-demo:https://cdn.test/course-intro.mp4`,
+      'true',
+    )
+
+    fetchMock.mockResolvedValueOnce(
+      mockJsonResponse(
+        introVideosResponse({
+          videos: ['https://cdn.test/course-intro.mp4'],
+          allVideos: ['https://cdn.test/course-intro.mp4'],
+          hasCourseVideo: true,
+          courseIntroWatched: false,
         }),
+      ),
+    )
+
+    const { result } = renderHook(() =>
+      useCourseIntroVideos({
+        courseSlug: 'curso-demo',
+        organizationId: ORG_ID,
       }),
     )
+
+    await waitFor(() => expect(result.current.isLoadingIntro).toBe(false))
+
+    expect(result.current.showVideoIntro).toBe(false)
+    expect(result.current.introVideos).toEqual([])
+    expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })

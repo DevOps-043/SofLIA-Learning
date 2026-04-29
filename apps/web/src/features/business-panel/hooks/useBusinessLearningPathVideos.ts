@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
 
 const MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024 // 500 MB
-const ALLOWED_MIME_TYPES = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'] as const
+const ALLOWED_MIME_TYPES = ['video/mp4', 'video/webm'] as const
 type AllowedMime = (typeof ALLOWED_MIME_TYPES)[number]
 
 /**

@@ -55,6 +55,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevVideosRef = useRef<string[]>([]);
+  const lastProgressRenderRef = useRef(0);
   const playbackPolicy = useMediaPlaybackPolicy('tour');
 
   // Respect OS-level "reduce motion" preference — skip overlay fade animation
@@ -84,10 +85,11 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   // <video> element so only ONE hardware decoder is ever active at a time.
   // Prefetch del video siguiente (ya existía)
   useEffect(() => {
+    if (!playbackPolicy.shouldPrefetchVideo) return;
     const nextUrl = videos[currentVideoIndex + 1];
     if (!nextUrl) return;
     return injectPrefetchLink(nextUrl);
-  }, [currentVideoIndex, videos]);
+  }, [currentVideoIndex, playbackPolicy.shouldPrefetchVideo, videos]);
 
   // ── Reload player when video list changes ─────────────────────────────────
   useEffect(() => {
@@ -166,6 +168,11 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const handleTimeUpdate = useCallback(() => {
     const el = videoRef.current;
     if (!el || !el.duration || isNaN(el.duration)) return;
+
+    const now = performance.now();
+    if (now - lastProgressRenderRef.current < 250) return;
+    lastProgressRenderRef.current = now;
+
     setCurrentTime(el.currentTime);
     setProgress((el.currentTime / el.duration) * 100);
   }, []);
@@ -258,7 +265,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-md"
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95"
       >
         <div 
           className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group"
@@ -276,7 +283,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
           <video
             ref={videoRef}
             src={videos[currentVideoIndex]}
-            preload="auto"
+            preload={playbackPolicy.nativeVideoPreload}
             playsInline
             muted={isMuted}
             className={`w-full h-full object-contain ${hasError ? 'hidden' : 'block'}`}

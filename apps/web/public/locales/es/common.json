@@ -54,6 +54,154 @@
     "logoAlt": "Logo de SofLIA Learning",
     "clickCounter": "Contador: {{current}}/{{total}}"
   },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión para continuar tu aprendizaje",
+      "emailOrUsernameLabel": "Correo o Usuario",
+      "emailOrUsernamePlaceholder": "tu@correo.com o usuario123",
+      "rememberMe": "Recordarme",
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "signingIn": "Iniciando sesión...",
+      "signIn": "Iniciar sesión",
+      "noAccount": "¿No tienes una cuenta?",
+      "registerHere": "Regístrate aquí",
+      "errors": {
+        "unexpected": "Error inesperado al iniciar sesión",
+        "connection": "Error de conexión. Verifica tu conexión a internet e intenta nuevamente.",
+        "timeout": "La solicitud tardó demasiado. Por favor, intenta nuevamente."
+      },
+      "validation": {
+        "emailOrUsernameRequired": "El correo o usuario es requerido",
+        "passwordRequired": "La contraseña es requerida",
+        "noSpaces": "No se permiten espacios"
+      }
+    },
+    "register": {
+      "title": "Crear cuenta",
+      "subtitle": "Únete y comienza tu aprendizaje",
+      "success": "Cuenta creada exitosamente",
+      "error": "Error inesperado al crear la cuenta",
+      "firstNameLabel": "Nombre",
+      "firstNamePlaceholder": "Juan",
+      "lastNameLabel": "Apellido",
+      "lastNamePlaceholder": "Pérez",
+      "usernameLabel": "Usuario",
+      "usernamePlaceholder": "juanperez",
+      "emailLabel": "Correo",
+      "emailPlaceholder": "tu@email.com",
+      "confirmEmailLabel": "Confirmar Correo",
+      "phoneLabel": "Teléfono",
+      "countryPlaceholder": "País",
+      "phonePlaceholder": "1234567890",
+      "passwordLabel": "Contraseña",
+      "confirmPasswordLabel": "Confirmar Contraseña",
+      "acceptTerms": "Acepto los <0>términos y condiciones</0> y la <1>política de privacidad</1>",
+      "creating": "Creando cuenta...",
+      "create": "Crear cuenta",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "loginHere": "Inicia sesión aquí",
+      "validation": {
+        "firstNameMin": "El nombre debe tener al menos 2 caracteres",
+        "firstNameMax": "El nombre no puede exceder 50 caracteres",
+        "lastNameMin": "El apellido debe tener al menos 2 caracteres",
+        "lastNameMax": "El apellido no puede exceder 50 caracteres",
+        "onlyLetters": "Solo se permiten letras",
+        "usernameMin": "El usuario debe tener al menos 3 caracteres",
+        "usernameMax": "El usuario no puede exceder 20 caracteres",
+        "onlyAlphanumericUnderscore": "Solo letras, números y guión bajo",
+        "countryRequired": "Selecciona un país",
+        "phoneMin": "El número debe tener al menos 8 dígitos",
+        "phoneMax": "El número no puede exceder 15 dígitos",
+        "onlyNumbers": "Solo se permiten números",
+        "invalidEmail": "Ingresa un correo válido",
+        "passwordMin": "La contraseña debe tener al menos 8 caracteres",
+        "passwordUppercase": "Debe contener al menos una mayúscula",
+        "passwordLowercase": "Debe contener al menos una minúscula",
+        "passwordNumber": "Debe contener al menos un número",
+        "passwordSpecial": "Debe contener al menos un carácter especial",
+        "roleMax": "El cargo no puede exceder 100 caracteres",
+        "acceptTermsRequired": "Debes aceptar los términos y condiciones",
+        "emailsDoNotMatch": "Los correos no coinciden",
+        "passwordsDoNotMatch": "Las contraseñas no coinciden"
+      }
+    },
+    "forgotPassword": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@correo.com",
+      "sending": "Enviando enlace...",
+      "sendLink": "Enviar enlace de recuperación",
+      "backToLogin": "Volver al inicio de sesión",
+      "success": "Si el correo está registrado, recibirás un enlace de recuperación.",
+      "error": "Error de conexión. Inténtalo más tarde.",
+      "validation": {
+        "invalidEmail": "Ingresa un correo electrónico válido"
+      }
+    },
+    "resetPassword": {
+      "title": "Nueva Contraseña",
+      "subtitle": "Crea una contraseña segura para proteger tu cuenta.",
+      "newPasswordLabel": "Nueva contraseña",
+      "newPasswordPlaceholder": "Mínimo 8 caracteres",
+      "confirmPasswordLabel": "Confirmar contraseña",
+      "confirmPasswordPlaceholder": "Repite tu contraseña",
+      "updating": "Actualizando...",
+      "update": "Actualizar Contraseña",
+      "backToLogin": "Volver al inicio de sesión",
+      "success": "Contraseña actualizada correctamente",
+      "error": "Error de conexión. Inténtalo más tarde.",
+      "verifying": "Verificando enlace...",
+      "invalidTokenTitle": "Enlace Inválido",
+      "requestNewLink": "Solicitar nuevo enlace",
+      "strength": "Fortaleza",
+      "strengthLabels": {
+        "weak": "Débil",
+        "medium": "Media",
+        "good": "Buena",
+        "strong": "Fuerte"
+      },
+      "requirements": {
+        "minChars": "8+ caracteres",
+        "uppercase": "Mayúscula",
+        "lowercase": "Minúscula",
+        "number": "Un número"
+      },
+      "validation": {
+        "passwordMin": "La contraseña debe tener al menos 8 caracteres",
+        "passwordUppercase": "Debe contener al menos una mayúscula",
+        "passwordLowercase": "Debe contener al menos una minúscula",
+        "passwordNumber": "Debe contener al menos un número",
+        "passwordsDoNotMatch": "Las contraseñas no coinciden"
+      }
+    },
+    "social": {
+      "divider": "O continuar con",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "login": "Iniciar sesión"
+    },
+    "questionnaireModal": {
+      "title": "Cuestionario Requerido",
+      "description": "Para acceder a las comunidades, necesitas completar primero el cuestionario de perfil profesional.",
+      "oauthDescription": "Este es un requisito obligatorio para usuarios registrados con Google.",
+      "mandatoryNotice": "El cuestionario es obligatorio y no puede ser postergado.",
+      "nowNot": "Ahora no",
+      "continue": "Continuar",
+      "close": "Cerrar"
+    },
+    "org": {
+      "welcomeBack": "Bienvenido de vuelta",
+      "signInToContinue": "Ingresa a tu cuenta para continuar",
+      "emailOrUsernamePlaceholder": "tu@email.com o usuario",
+      "signingIn": "Ingresando...",
+      "joinOrg": "Únete a la organización",
+      "registeredAs": "Serás registrado como:",
+      "viaInviteLink": "(vía enlace de invitación)",
+      "emailAssociatedInvite": "Este email está asociado a tu invitación",
+      "unexpectedError": "Error inesperado al iniciar sesión"
+    }
+  },
   "aiChat": {
     "placeholder": "Escribe tu pregunta...",
     "online": "En línea",

@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { useMotionSafe } from '../../lib/utils/motion';
 
@@ -21,6 +22,7 @@ const AuthTabs = dynamic(
 );
 
 function AuthPageContent() {
+  const { t } = useTranslation('common');
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const isLogin = !tabParam || tabParam === 'login';
@@ -119,7 +121,7 @@ function AuthPageContent() {
               >
                 <Image
                   src="/logo.png"
-                  alt="SOFLIA Logo"
+                  alt={t('navbar.logoAlt')}
                   fill
                   className="object-contain"
                   priority

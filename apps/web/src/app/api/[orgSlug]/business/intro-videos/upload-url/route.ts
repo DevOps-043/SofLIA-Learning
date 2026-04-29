@@ -10,11 +10,11 @@ interface RouteParams {
 }
 
 const BUCKET = 'intro-videos'
-const ALLOWED_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov']
+const ALLOWED_EXTENSIONS = ['mp4', 'webm']
 
 const BodySchema = z.object({
   fileName: z.string().min(1),
-  contentType: z.enum(['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime']),
+  contentType: z.enum(['video/mp4', 'video/webm']),
   folder: z.string().max(120).optional(),
 })
 

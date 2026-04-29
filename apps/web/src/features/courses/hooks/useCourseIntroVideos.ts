@@ -19,6 +19,8 @@ interface UseCourseIntroVideosResult {
   restartWithIntroVideos: (afterFn: () => void) => void
 }
 
+const INTRO_VIDEO_STORAGE_PREFIX = 'soflia:intro-video-watched:v1'
+
 function prefetchVideos(urls: string[]) {
   if (typeof document === 'undefined') return
   for (const url of urls) {
@@ -40,6 +42,67 @@ function buildIntroVideosUrl(slug: string, organizationId?: string | null) {
 
   const queryString = query.toString()
   return `/api/courses/${encodeURIComponent(slug)}/intro-videos${queryString ? `?${queryString}` : ''}`
+}
+
+function buildIntroVideoStorageKey(params: {
+  courseSlug: string
+  organizationId?: string | null
+  videoUrl: string
+}) {
+  const organizationScope = params.organizationId ?? 'no-org'
+  return `${INTRO_VIDEO_STORAGE_PREFIX}:${organizationScope}:${params.courseSlug}:${params.videoUrl}`
+}
+
+function hasWatchedIntroVideo(params: {
+  courseSlug: string
+  organizationId?: string | null
+  videoUrl: string
+}) {
+  if (typeof window === 'undefined') return false
+
+  try {
+    return window.localStorage.getItem(buildIntroVideoStorageKey(params)) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function markIntroVideosWatched(params: {
+  courseSlug: string
+  organizationId?: string | null
+  videoUrls: string[]
+}) {
+  if (typeof window === 'undefined') return
+
+  try {
+    for (const videoUrl of params.videoUrls) {
+      window.localStorage.setItem(
+        buildIntroVideoStorageKey({
+          courseSlug: params.courseSlug,
+          organizationId: params.organizationId,
+          videoUrl,
+        }),
+        'true',
+      )
+    }
+  } catch {
+    // Si el storage no estÃ¡ disponible, la sesiÃ³n actual sigue funcionando.
+  }
+}
+
+function filterUnwatchedIntroVideos(params: {
+  courseSlug: string
+  organizationId?: string | null
+  videoUrls: string[]
+}) {
+  return params.videoUrls.filter(
+    (videoUrl) =>
+      !hasWatchedIntroVideo({
+        courseSlug: params.courseSlug,
+        organizationId: params.organizationId,
+        videoUrl,
+      }),
+  )
 }
 
 async function fetchIntroVideosForSlug(
@@ -70,8 +133,8 @@ export function useCourseIntroVideos({
   // Empieza true para bloquear el tour hasta que el fetch complete
   const [isLoadingIntro, setIsLoadingIntro] = useState(true)
 
-  const watchedPayloadRef = useRef<{ watchedCourse: boolean }>({ watchedCourse: false })
   const allVideosRef = useRef<string[]>([])
+  const pendingFirstPlaybackVideosRef = useRef<string[]>([])
   const afterVideoRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
@@ -90,15 +153,18 @@ export function useCourseIntroVideos({
         if (!data.success || cancelled) return
 
         allVideosRef.current = data.allVideos ?? []
-        watchedPayloadRef.current = {
-          watchedCourse: !data.courseIntroWatched && data.hasCourseVideo,
-        }
+        const videosPendingOnThisDevice = filterUnwatchedIntroVideos({
+          courseSlug,
+          organizationId,
+          videoUrls: data.allVideos ?? [],
+        })
+        pendingFirstPlaybackVideosRef.current = videosPendingOnThisDevice
 
         // Prefetch en background
         prefetchVideos(data.allVideos ?? [])
 
-        setIntroVideos(data.videos)
-        setShowVideoIntro(data.videos.length > 0)
+        setIntroVideos(videosPendingOnThisDevice)
+        setShowVideoIntro(videosPendingOnThisDevice.length > 0)
       } catch {
         // Si falla el fetch, no bloquear el tour
       } finally {
@@ -110,35 +176,26 @@ export function useCourseIntroVideos({
     return () => { cancelled = true }
   }, [courseSlug, enabled, organizationId])
 
-  const markWatched = useCallback(async () => {
-    if (!watchedPayloadRef.current.watchedCourse) return
-    try {
-      await fetch(`/api/courses/${encodeURIComponent(courseSlug)}/intro-videos/watched`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          watchedCourse: true,
-          organizationId: organizationId || undefined,
-        }),
-      })
-    } catch {
-      // fire-and-forget
-    }
-  }, [courseSlug, organizationId])
-
   const handleVideoIntroComplete = useCallback(() => {
     const wasFirstTime = !isForceShow
+    const watchedVideos = pendingFirstPlaybackVideosRef.current
     setShowVideoIntro(false)
     setIsForceShow(false)
     setIntroVideos([])
 
-    if (wasFirstTime) void markWatched()
+    if (wasFirstTime && watchedVideos.length > 0) {
+      markIntroVideosWatched({
+        courseSlug,
+        organizationId,
+        videoUrls: watchedVideos,
+      })
+      pendingFirstPlaybackVideosRef.current = []
+    }
 
     const after = afterVideoRef.current
     afterVideoRef.current = null
     after?.()
-  }, [isForceShow, markWatched])
+  }, [courseSlug, isForceShow, organizationId])
 
   const restartWithIntroVideos = useCallback(
     (afterFn: () => void) => {
@@ -150,6 +207,7 @@ export function useCourseIntroVideos({
           allVideosRef.current = videos
           prefetchVideos(videos)
           afterVideoRef.current = afterFn
+          pendingFirstPlaybackVideosRef.current = []
           setIntroVideos(videos)
           setIsForceShow(true)
           setShowVideoIntro(true)

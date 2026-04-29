@@ -35,7 +35,7 @@ export function OrganizationRegisterIdentityFields({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5, ease: 'easeOut' }}
         >
-          Crear cuenta
+          {t('auth.register.title')}
         </motion.h2>
         <motion.p
           className="text-base font-normal opacity-70"
@@ -44,7 +44,7 @@ export function OrganizationRegisterIdentityFields({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Unete a la organizacion
+          {t('auth.org.joinOrg')}
         </motion.p>
       </motion.div>
 
@@ -67,9 +67,9 @@ export function OrganizationRegisterIdentityFields({
         >
           <OrganizationRegisterField
             id="firstName"
-            label="Nombre"
+            label={t('auth.register.firstNameLabel')}
             type="text"
-            placeholder="Juan"
+            placeholder={t('auth.register.firstNamePlaceholder')}
             registration={register('firstName')}
             palette={palette}
             error={errors.firstName?.message}
@@ -83,9 +83,9 @@ export function OrganizationRegisterIdentityFields({
         >
           <OrganizationRegisterField
             id="lastName"
-            label="Apellido"
+            label={t('auth.register.lastNameLabel')}
             type="text"
-            placeholder="Perez"
+            placeholder={t('auth.register.lastNamePlaceholder')}
             registration={register('lastName')}
             palette={palette}
             error={errors.lastName?.message}
@@ -101,9 +101,9 @@ export function OrganizationRegisterIdentityFields({
       >
         <OrganizationRegisterField
           id="username"
-          label="Usuario"
+          label={t('auth.register.usernameLabel')}
           type="text"
-          placeholder="juanperez"
+          placeholder={t('auth.register.usernamePlaceholder')}
           registration={register('username')}
           palette={palette}
           error={errors.username?.message}
@@ -175,10 +175,10 @@ export function OrganizationRegisterIdentityFields({
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              Seras registrado como: <strong>{invitedRoleLabel}</strong>
+              {t('auth.org.registeredAs')} <strong>{invitedRoleLabel}</strong>
               {bulkInviteToken ? (
                 <span className="ml-1 text-xs opacity-70">
-                  (via enlace de invitacion)
+                  {t('auth.org.viaInviteLink')}
                 </span>
               ) : null}
             </p>
@@ -194,9 +194,9 @@ export function OrganizationRegisterIdentityFields({
         >
           <OrganizationRegisterField
             id="email"
-            label="Correo Electronico"
+            label={t('auth.register.emailLabel')}
             type="email"
-            placeholder="tu@email.com"
+            placeholder={t('auth.register.emailPlaceholder')}
             registration={register('email')}
             palette={{
               ...palette,
@@ -216,7 +216,7 @@ export function OrganizationRegisterIdentityFields({
               }
             }}
             helperText={
-              invitedEmail ? 'Este email esta asociado a tu invitacion' : undefined
+              invitedEmail ? t('auth.org.emailAssociatedInvite') : undefined
             }
             rightAdornment={
               invitedEmail ? (
@@ -236,9 +236,9 @@ export function OrganizationRegisterIdentityFields({
           >
             <OrganizationRegisterField
               id="confirmEmail"
-              label="Confirmar Correo"
+              label={t('auth.register.confirmEmailLabel')}
               type="email"
-              placeholder="tu@email.com"
+              placeholder={t('auth.register.emailPlaceholder')}
               registration={register('confirmEmail')}
               palette={palette}
               error={errors.confirmEmail?.message}

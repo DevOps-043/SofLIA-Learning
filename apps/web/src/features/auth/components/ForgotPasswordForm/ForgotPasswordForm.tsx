@@ -4,19 +4,23 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { requestPasswordResetAction } from '../../actions/reset-password';
-import { forgotPasswordSchema, type ForgotPasswordFormData } from './ForgotPasswordForm.schema';
+import { getForgotPasswordSchema, type ForgotPasswordFormData } from './ForgotPasswordForm.schema';
 import { Mail, CheckCircle, XCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { TextInput } from '../TextInput';
 import Link from 'next/link';
 
 export function ForgotPasswordForm() {
+  const { t } = useTranslation('common');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [result, setResult] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+
+  const forgotPasswordSchema = React.useMemo(() => getForgotPasswordSchema(t), [t]);
 
   const {
     register,
@@ -41,13 +45,13 @@ export function ForgotPasswordForm() {
       } else {
         setResult({
           type: 'success',
-          message: response.message || 'Si el correo está registrado, recibirás un enlace de recuperación.',
+          message: response.message || t('auth.forgotPassword.success'),
         });
       }
     } catch (error) {
       setResult({
         type: 'error',
-        message: 'Error de conexión. Inténtalo más tarde.',
+        message: t('auth.forgotPassword.error'),
       });
     } finally {
       setIsLoading(false);
@@ -105,10 +109,10 @@ export function ForgotPasswordForm() {
             </motion.div>
           </div>
           <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white mb-3">
-            ¿Olvidaste tu contraseña?
+            {t('auth.forgotPassword.title')}
           </h1>
           <p className="text-sm sm:text-base text-[#6C757D] dark:text-white/60">
-            Ingresa tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.
+            {t('auth.forgotPassword.subtitle')}
           </p>
         </motion.div>
 
@@ -117,8 +121,8 @@ export function ForgotPasswordForm() {
           <TextInput
             id="email"
             type="email"
-            label="Correo electrónico"
-            placeholder="tu@correo.com"
+            label={t('auth.forgotPassword.emailLabel')}
+            placeholder={t('auth.forgotPassword.emailPlaceholder')}
             icon={Mail}
             error={errors.email?.message}
             focusedField={focusedField}
@@ -158,10 +162,10 @@ export function ForgotPasswordForm() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Enviando enlace...</span>
+                <span>{t('auth.forgotPassword.sending')}</span>
               </>
             ) : (
-              <span>Enviar enlace de recuperación</span>
+              <span>{t('auth.forgotPassword.sendLink')}</span>
             )}
           </motion.button>
 
@@ -171,7 +175,7 @@ export function ForgotPasswordForm() {
               className="inline-flex items-center gap-2 text-sm font-medium text-[#6C757D] hover:text-[#00D4B3] dark:text-white/60 dark:hover:text-[#00D4B3] transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span>Volver al inicio de sesión</span>
+              <span>{t('auth.forgotPassword.backToLogin')}</span>
             </Link>
           </div>
         </form>

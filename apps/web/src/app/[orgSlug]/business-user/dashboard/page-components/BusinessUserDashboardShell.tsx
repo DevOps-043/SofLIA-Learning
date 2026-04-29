@@ -455,7 +455,11 @@ export function BusinessUserDashboardShell({
               </div>
 
               {assignedCourses.length > 0 && (
-                <div className="flex items-center p-1 rounded-lg border shrink-0" style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}>
+                <div
+                  id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}
+                  className="flex items-center p-1 rounded-lg border shrink-0"
+                  style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}
+                >
                   <button
                     onClick={() => setCourseView('grid')}
                     className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
