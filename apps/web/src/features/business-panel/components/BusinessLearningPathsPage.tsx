@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { formatDate } from '@/utils/date-formatter'
 import { motion } from 'framer-motion'
 import {
   ArrowRight,
@@ -29,7 +30,7 @@ function getUserDisplayName(user: BusinessUser | null | undefined) {
 }
 
 export function BusinessLearningPathsPage() {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const logic = useBusinessLearningPathsPageLogic()
   const theme = logic.theme
   const [videosLearningPathId, setVideosLearningPathId] = useState<string | null>(null)
@@ -347,7 +348,7 @@ export function BusinessLearningPathsPage() {
                   </p>
 
                   <p className="text-xs tabular-nums" style={{ color: mutedTextColor }}>
-                    {new Date(assignment.assigned_at).toLocaleDateString('es-MX', {
+                    {formatDate(assignment.assigned_at, i18n.language, {
                       day: 'numeric', month: 'short', year: 'numeric',
                     })}
                   </p>

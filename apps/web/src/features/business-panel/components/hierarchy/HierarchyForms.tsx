@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2, MapPin } from 'lucide-react';
 import type { Region, Zone, Team, ManagerInfo } from '../../types/hierarchy.types';
 import { formatFullAddress, getManagerDisplayName } from '../../types/hierarchy.types';
+import { formatDate } from '@/utils/date-formatter';
 
 export async function geocodeAddress(data: { address?: string, city?: string, state?: string, country?: string, postal_code?: string }, orgSlug: string): Promise<{ lat: string; lon: string } | null> {
   const parts = [data.address, data.city, data.state, data.postal_code, data.country].filter(p => p && typeof p === 'string' && p.trim().length > 0);
@@ -216,7 +217,7 @@ interface DetailsPanelProps {
 }
 
 export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPanelProps) {
-  const { t } = useTranslation('business');
+  const { t, i18n } = useTranslation('business');
 
   if (!isOpen || !data) return null;
 
@@ -393,13 +394,13 @@ export function DetailsPanel({ isOpen, onClose, type, data, onEdit }: DetailsPan
               <div className="flex justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400">{t('hierarchy.created')}</span>
                 <span className="text-neutral-900 dark:text-white">
-                  {new Date(data.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {formatDate(data.created_at, i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-neutral-500 dark:text-neutral-400">{t('hierarchy.updated')}</span>
                 <span className="text-neutral-900 dark:text-white">
-                  {new Date(data.updated_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  {formatDate(data.updated_at, i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
             </div>

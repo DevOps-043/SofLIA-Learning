@@ -44,6 +44,7 @@ export function BusinessPanelDashboard() {
     quickActions,
     getGreeting,
     getUserName,
+    formatDate,
     getBackgroundStyles,
   } = useBusinessPanelDashboardLogic()
 
@@ -91,7 +92,7 @@ export function BusinessPanelDashboard() {
             <div className="flex items-center gap-1.5 md:gap-2 text-white/60 text-[10px] md:text-sm">
               <ClockIcon className="h-3 w-3 md:h-4 md:w-4" />
               <span style={{ color: '#FFFFFF' }} className="opacity-90">
-                {currentTime.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {formatDate(currentTime)}
               </span>
             </div>
           </motion.div>
