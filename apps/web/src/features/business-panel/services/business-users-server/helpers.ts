@@ -16,6 +16,12 @@ import type {
   UserInsertRow,
   UserUpdateRow,
 } from './types'
+import {
+  UserDemographicsSchema,
+  calculateAgeFromDateOfBirth,
+  normalizeDateOfBirthForStorage,
+  normalizeGenderForStorage,
+} from '../../../../lib/schemas/user-demographics.schema'
 
 export const BUSINESS_USER_SELECT = `
   organization_id,
@@ -37,6 +43,8 @@ export const BUSINESS_USER_SELECT = `
     bio,
     location,
     phone,
+    date_of_birth,
+    gender,
     last_login_at,
     created_at,
     updated_at
@@ -102,6 +110,9 @@ export function mapOrganizationUserRecord(
     bio: profile.bio,
     location: profile.location,
     phone: profile.phone,
+    date_of_birth: profile.date_of_birth,
+    gender: profile.gender,
+    age: calculateAgeFromDateOfBirth(profile.date_of_birth),
     points: 0,
     last_login_at: profile.last_login_at,
     created_at: profile.created_at,
@@ -160,6 +171,21 @@ function assertNonEmptyValue(value: string | undefined, message: string): string
   return value.trim()
 }
 
+function assertValidBusinessUserDemographics(
+  userData: Pick<CreateBusinessUserRequest, 'date_of_birth' | 'gender'>,
+) {
+  const result = UserDemographicsSchema.safeParse({
+    date_of_birth: userData.date_of_birth,
+    gender: userData.gender,
+  })
+
+  if (!result.success) {
+    throw new Error(
+      result.error.errors[0]?.message || 'Datos demograficos invalidos',
+    )
+  }
+}
+
 export function validateCreateBusinessUserRequest(
   userData: CreateBusinessUserRequest,
 ) {
@@ -173,6 +199,7 @@ export function validateCreateBusinessUserRequest(
   }
 
   assertNonEmptyValue(userData.job_title, 'El cargo/puesto es obligatorio')
+  assertValidBusinessUserDemographics(userData)
 }
 
 export function buildUserInsertData(
@@ -185,6 +212,8 @@ export function buildUserInsertData(
     first_name: userData.first_name ?? null,
     last_name: userData.last_name ?? null,
     display_name: userData.display_name ?? null,
+    date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
+    gender: normalizeGenderForStorage(userData.gender),
     cargo_rol: 'Business',
     password_hash: passwordHash,
   }
@@ -227,6 +256,20 @@ export function buildUserUpdateData(
   if (userData.bio !== undefined) updateData.bio = userData.bio
   if (userData.location !== undefined) updateData.location = userData.location
   if (userData.phone !== undefined) updateData.phone = userData.phone
+  if (
+    userData.date_of_birth !== undefined ||
+    userData.gender !== undefined
+  ) {
+    assertValidBusinessUserDemographics(userData)
+  }
+  if (userData.date_of_birth !== undefined) {
+    updateData.date_of_birth = normalizeDateOfBirthForStorage(
+      userData.date_of_birth,
+    )
+  }
+  if (userData.gender !== undefined) {
+    updateData.gender = normalizeGenderForStorage(userData.gender)
+  }
 
   return updateData
 }

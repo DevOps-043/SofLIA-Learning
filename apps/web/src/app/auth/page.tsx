@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import Image from 'next/image';
 import { useMotionSafe } from '../../lib/utils/motion';
 
@@ -21,13 +22,14 @@ const AuthTabs = dynamic(
 );
 
 function AuthPageContent() {
+  const { t } = useTranslation('common');
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const isLogin = !tabParam || tabParam === 'login';
   const { disableHeavy } = useMotionSafe();
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-0 relative overflow-hidden bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
+    <div className="min-h-screen flex items-center justify-center p-0 relative overflow-x-hidden bg-gradient-to-br from-white via-[#F8F9FA] to-white dark:from-[#0F1419] dark:via-[#0A0D12] dark:to-[#0F1419]">
       {/* Fondo animado con formas geométricas */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Círculos animados de fondo */}
@@ -77,8 +79,8 @@ function AuthPageContent() {
       </div>
 
       {/* Contenido principal */}
-      <div className="relative z-10 w-full min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto">
-        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="relative z-10 w-full min-h-screen flex items-start lg:items-center justify-center p-4 sm:p-6 lg:p-12 overflow-y-auto">
+        <div className="w-full max-w-7xl grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start lg:items-center">
           {/* Formulario — primero en DOM → arriba en móvil, derecha en desktop */}
           <div className="w-full max-w-md mx-auto lg:max-w-lg lg:order-2">
             <Suspense fallback={
@@ -119,7 +121,7 @@ function AuthPageContent() {
               >
                 <Image
                   src="/logo.png"
-                  alt="SOFLIA Logo"
+                  alt={t('navbar.logoAlt')}
                   fill
                   className="object-contain"
                   priority

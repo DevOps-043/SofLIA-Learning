@@ -7,7 +7,9 @@ import {
   ADMIN_USER_SELECT_FIELDS,
   buildAdminUserInsertPayload,
   buildAdminUserUpdatePayload,
+  mapAdminUserWithAge,
   mapAdminUserCreateError,
+  omitDemographicsFromAudit,
 } from './helpers'
 import type {
   AdminUser,
@@ -45,13 +47,17 @@ export async function updateAdminUser(
     action: 'UPDATE',
     table_name: 'users',
     record_id: userId,
-    old_values: (oldData as unknown as Record<string, unknown>) || undefined,
-    new_values: userData as unknown as Record<string, unknown>,
+    old_values: omitDemographicsFromAudit(
+      oldData as unknown as Record<string, unknown>,
+    ),
+    new_values: omitDemographicsFromAudit(
+      userData as unknown as Record<string, unknown>,
+    ),
     ip_address: requestInfo?.ip,
     user_agent: requestInfo?.userAgent,
   })
 
-  return data as AdminUser
+  return mapAdminUserWithAge(data as AdminUser)
 }
 
 export async function updateAdminUserRole(userId: string, newRole: string) {
@@ -94,12 +100,14 @@ export async function createAdminUser(
       table_name: 'users',
       record_id: data.id,
       old_values: undefined,
-      new_values: userData as unknown as Record<string, unknown>,
+      new_values: omitDemographicsFromAudit(
+        userData as unknown as Record<string, unknown>,
+      ),
       ip_address: requestInfo?.ip,
       user_agent: requestInfo?.userAgent,
     })
 
-    return data as AdminUser
+    return mapAdminUserWithAge(data as AdminUser)
   } catch (error) {
     const mappedError = mapAdminUserCreateError(error)
     if (mappedError) {

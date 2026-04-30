@@ -12,6 +12,23 @@
     "label": "Language: {{language}}",
     "active": "Active"
   },
+  "demographics": {
+    "sectionTitle": "Demographic data",
+    "dateOfBirth": "Date of birth",
+    "age": "Age",
+    "notSpecified": "Not specified",
+    "gender": {
+      "label": "Gender",
+      "placeholder": "Select gender",
+      "options": {
+        "female": "Woman",
+        "male": "Man",
+        "non_binary": "Non-binary",
+        "other": "Other",
+        "prefer_not_to_say": "Prefer not to say"
+      }
+    }
+  },
   "media": {
     "tapToPlay": "Tap to play",
     "videoPreview": "Video preview"
@@ -36,6 +53,154 @@
     "register": "Sign up",
     "logoAlt": "SofLIA Learning logo",
     "clickCounter": "Counter: {{current}}/{{total}}"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue your learning",
+      "emailOrUsernameLabel": "Email or Username",
+      "emailOrUsernamePlaceholder": "you@email.com or username123",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "signingIn": "Signing in...",
+      "signIn": "Sign in",
+      "noAccount": "Don't have an account?",
+      "registerHere": "Register here",
+      "errors": {
+        "unexpected": "Unexpected error while signing in",
+        "connection": "Connection error. Please check your internet connection and try again.",
+        "timeout": "The request took too long. Please try again."
+      },
+      "validation": {
+        "emailOrUsernameRequired": "Email or username is required",
+        "passwordRequired": "Password is required",
+        "noSpaces": "Spaces are not allowed"
+      }
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Join and start your learning",
+      "success": "Account created successfully",
+      "error": "Unexpected error while creating account",
+      "firstNameLabel": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastNameLabel": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "johndoe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@email.com",
+      "confirmEmailLabel": "Confirm Email",
+      "phoneLabel": "Phone Number",
+      "countryPlaceholder": "Country",
+      "phonePlaceholder": "1234567890",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "acceptTerms": "I accept the <0>terms and conditions</0> and the <1>privacy policy</1>",
+      "creating": "Creating account...",
+      "create": "Create account",
+      "hasAccount": "Already have an account?",
+      "loginHere": "Sign in here",
+      "validation": {
+        "firstNameMin": "First name must be at least 2 characters",
+        "firstNameMax": "First name cannot exceed 50 characters",
+        "lastNameMin": "Last name must be at least 2 characters",
+        "lastNameMax": "Last name cannot exceed 50 characters",
+        "onlyLetters": "Only letters are allowed",
+        "usernameMin": "Username must be at least 3 characters",
+        "usernameMax": "Username cannot exceed 20 characters",
+        "onlyAlphanumericUnderscore": "Only letters, numbers, and underscores are allowed",
+        "countryRequired": "Select a country",
+        "phoneMin": "Phone number must be at least 8 digits",
+        "phoneMax": "Phone number cannot exceed 15 digits",
+        "onlyNumbers": "Only numbers are allowed",
+        "invalidEmail": "Enter a valid email",
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordUppercase": "Must contain at least one uppercase letter",
+        "passwordLowercase": "Must contain at least one lowercase letter",
+        "passwordNumber": "Must contain at least one number",
+        "passwordSpecial": "Must contain at least one special character",
+        "roleMax": "Job title cannot exceed 100 characters",
+        "acceptTermsRequired": "You must accept the terms and conditions",
+        "emailsDoNotMatch": "Emails do not match",
+        "passwordsDoNotMatch": "Passwords do not match"
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email address and we will send you a link to reset your password.",
+      "emailLabel": "Email address",
+      "emailPlaceholder": "you@email.com",
+      "sending": "Sending link...",
+      "sendLink": "Send recovery link",
+      "backToLogin": "Back to sign in",
+      "success": "If the email is registered, you will receive a recovery link.",
+      "error": "Connection error. Try again later.",
+      "validation": {
+        "invalidEmail": "Enter a valid email address"
+      }
+    },
+    "resetPassword": {
+      "title": "New Password",
+      "subtitle": "Create a secure password to protect your account.",
+      "newPasswordLabel": "New password",
+      "newPasswordPlaceholder": "Minimum 8 characters",
+      "confirmPasswordLabel": "Confirm password",
+      "confirmPasswordPlaceholder": "Repeat your password",
+      "updating": "Updating...",
+      "update": "Update Password",
+      "backToLogin": "Back to sign in",
+      "success": "Password updated successfully",
+      "error": "Connection error. Try again later.",
+      "verifying": "Verifying link...",
+      "invalidTokenTitle": "Invalid Link",
+      "requestNewLink": "Request new link",
+      "strength": "Strength",
+      "strengthLabels": {
+        "weak": "Weak",
+        "medium": "Medium",
+        "good": "Good",
+        "strong": "Strong"
+      },
+      "requirements": {
+        "minChars": "8+ characters",
+        "uppercase": "Uppercase",
+        "lowercase": "Lowercase",
+        "number": "A number"
+      },
+      "validation": {
+        "passwordMin": "Password must be at least 8 characters",
+        "passwordUppercase": "Must contain at least one uppercase letter",
+        "passwordLowercase": "Must contain at least one lowercase letter",
+        "passwordNumber": "Must contain at least one number",
+        "passwordsDoNotMatch": "Passwords do not match"
+      }
+    },
+    "social": {
+      "divider": "Or continue with",
+      "hasAccount": "Already have an account?",
+      "login": "Sign in"
+    },
+    "questionnaireModal": {
+      "title": "Questionnaire Required",
+      "description": "To access communities, you first need to complete the professional profile questionnaire.",
+      "oauthDescription": "This is a mandatory requirement for users registered with Google.",
+      "mandatoryNotice": "The questionnaire is mandatory and cannot be postponed.",
+      "nowNot": "Not now",
+      "continue": "Continue",
+      "close": "Close"
+    },
+    "org": {
+      "welcomeBack": "Welcome back",
+      "signInToContinue": "Sign in to your account to continue",
+      "emailOrUsernamePlaceholder": "you@email.com or username",
+      "signingIn": "Signing in...",
+      "joinOrg": "Join the organization",
+      "registeredAs": "You will be registered as:",
+      "viaInviteLink": "(via invitation link)",
+      "emailAssociatedInvite": "This email is associated with your invitation",
+      "unexpectedError": "Unexpected error when signing in"
+    }
   },
   "aiChat": {
     "placeholder": "Type your question...",
@@ -951,6 +1116,8 @@
     "organizations": "My organizations",
     "viewAllOrganizations": "View all",
     "theme": "Theme",
+    "certificatesObtained_one": "{{count}} earned",
+    "certificatesObtained_other": "{{count}} earned",
     "orgRoles": {
       "owner": "Owner",
       "admin": "Admin",

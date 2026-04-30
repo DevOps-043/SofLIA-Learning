@@ -1,3 +1,5 @@
+import type { UserGender } from '../../../lib/schemas/user-demographics.schema'
+
 export interface UserProfile {
   id: string
   username: string
@@ -16,6 +18,8 @@ export interface UserProfile {
   github_url: string
   website_url: string
   country_code: string
+  date_of_birth: string | null
+  gender: UserGender | null
   points: number
   created_at: string
   last_login_at: string
@@ -39,6 +43,8 @@ export interface UpdateProfileRequest {
   github_url?: string
   website_url?: string
   country_code?: string
+  date_of_birth?: string | null
+  gender?: UserGender | null
 }
 
 export interface UserSubscription {

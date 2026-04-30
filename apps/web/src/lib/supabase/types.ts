@@ -3454,12 +3454,97 @@ export type Database = {
           },
         ]
       }
+      organization_lp_intro_videos: {
+        Row: {
+          id: string
+          organization_id: string
+          learning_path_id: string
+          intro_video_url: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          learning_path_id: string
+          intro_video_url: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          learning_path_id?: string
+          intro_video_url?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_lp_intro_videos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_lp_intro_videos_learning_path_id_fkey"
+            columns: ["learning_path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_course_intro_videos: {
+        Row: {
+          id: string
+          organization_id: string
+          course_id: string
+          intro_video_url: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id: string
+          course_id: string
+          intro_video_url: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          course_id?: string
+          intro_video_url?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_course_intro_videos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_course_intro_videos_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_learning_path_assignments: {
         Row: {
           assigned_at: string
           assigned_by: string | null
           created_at: string
           id: string
+          intro_video_url: string | null
           learning_path_id: string
           organization_id: string
           status: string
@@ -3470,6 +3555,7 @@ export type Database = {
           assigned_by?: string | null
           created_at?: string
           id?: string
+          intro_video_url?: string | null
           learning_path_id: string
           organization_id: string
           status?: string
@@ -3480,6 +3566,7 @@ export type Database = {
           assigned_by?: string | null
           created_at?: string
           id?: string
+          intro_video_url?: string | null
           learning_path_id?: string
           organization_id?: string
           status?: string
@@ -6106,6 +6193,7 @@ export type Database = {
           id: string
           last_unlocked_at: string | null
           learning_path_id: string
+          lp_intro_watched_at: string | null
           next_course_id: string | null
           organization_id: string | null
           progress_percentage: number
@@ -6122,6 +6210,7 @@ export type Database = {
           id?: string
           last_unlocked_at?: string | null
           learning_path_id: string
+          lp_intro_watched_at?: string | null
           next_course_id?: string | null
           organization_id?: string | null
           progress_percentage?: number
@@ -6138,6 +6227,7 @@ export type Database = {
           id?: string
           last_unlocked_at?: string | null
           learning_path_id?: string
+          lp_intro_watched_at?: string | null
           next_course_id?: string | null
           organization_id?: string | null
           progress_percentage?: number
@@ -6188,6 +6278,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           course_id: string
+          course_intro_watched_at: string | null
           created_at: string | null
           enrolled_at: string | null
           enrollment_id: string
@@ -6202,6 +6293,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           course_id: string
+          course_intro_watched_at?: string | null
           created_at?: string | null
           enrolled_at?: string | null
           enrollment_id?: string
@@ -6216,6 +6308,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           course_id?: string
+          course_intro_watched_at?: string | null
           created_at?: string | null
           enrolled_at?: string | null
           enrollment_id?: string
@@ -7601,11 +7694,13 @@ export type Database = {
           cargo_rol: string | null
           country_code: string | null
           created_at: string
+          date_of_birth: string | null
           display_name: string | null
           email: string | null
           email_verified: boolean
           email_verified_at: string | null
           first_name: string | null
+          gender: string | null
           id: string
           is_banned: boolean
           last_login_at: string | null
@@ -7634,11 +7729,13 @@ export type Database = {
           cargo_rol?: string | null
           country_code?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           email?: string | null
           email_verified?: boolean
           email_verified_at?: string | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           is_banned?: boolean
           last_login_at?: string | null
@@ -7667,11 +7764,13 @@ export type Database = {
           cargo_rol?: string | null
           country_code?: string | null
           created_at?: string
+          date_of_birth?: string | null
           display_name?: string | null
           email?: string | null
           email_verified?: boolean
           email_verified_at?: string | null
           first_name?: string | null
+          gender?: string | null
           id?: string
           is_banned?: boolean
           last_login_at?: string | null

@@ -17,6 +17,15 @@ type JoyrideTooltipData = {
   tooltipWidth?: 'compact';
 };
 
+type JoyrideTooltipElementProps = TooltipRenderProps['tooltipProps'] & {
+  className?: string;
+  style?: React.CSSProperties;
+};
+
+type JoyrideButtonElementProps = TooltipRenderProps['closeProps'] & {
+  className?: string;
+};
+
 function joinClassNames(...classNames: Array<string | undefined>): string {
   return classNames.filter(Boolean).join(' ')
 }
@@ -108,17 +117,21 @@ export function JoyrideTooltip({
 }: TooltipRenderProps): React.JSX.Element {
   const fixedLeftDock = shouldUseFixedLeftDock(step.data);
   const compactViewport = isSmallViewport();
+  const resolvedTooltipProps = tooltipProps as JoyrideTooltipElementProps;
+  const resolvedBackProps = backProps as JoyrideButtonElementProps;
+  const resolvedCloseProps = closeProps as JoyrideButtonElementProps;
+  const resolvedPrimaryProps = primaryProps as JoyrideButtonElementProps;
   const tooltipContent = (
     <div
-      {...tooltipProps}
+      {...resolvedTooltipProps}
       className={joinClassNames(
-        tooltipProps.className,
+        resolvedTooltipProps.className,
         'relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[10003]',
         compactViewport ? 'rounded-[20px] max-h-[80vh]' : 'rounded-2xl max-h-[85vh]',
         resolveTooltipWidthClass(step.data, compactViewport)
       )}
       style={{
-        ...(tooltipProps.style ?? {}),
+        ...(resolvedTooltipProps.style ?? {}),
         ...(fixedLeftDock ? resolveFixedLeftTooltipStyle(step) : {}),
         boxShadow: compactViewport
           ? '0 14px 34px -16px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.05)'
@@ -159,10 +172,10 @@ export function JoyrideTooltip({
         </div>
 
         <button
-          {...closeProps}
+          {...resolvedCloseProps}
           type="button"
           className={joinClassNames(
-            closeProps.className,
+            resolvedCloseProps.className,
             'p-2 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors shrink-0 text-gray-400 dark:text-gray-500 cursor-pointer'
           )}
         >
@@ -198,10 +211,10 @@ export function JoyrideTooltip({
         <div className="flex items-center gap-2">
           {index > 0 && (
             <button
-              {...backProps}
+              {...resolvedBackProps}
               type="button"
               className={joinClassNames(
-                backProps.className,
+                resolvedBackProps.className,
                 'flex items-center justify-center rounded-lg font-medium transition-all hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white cursor-pointer',
                 compactViewport ? 'px-2.5 py-2 text-[13px]' : 'px-3 py-2 text-sm',
               )}
@@ -213,10 +226,10 @@ export function JoyrideTooltip({
 
           {continuous && (
             <button
-              {...primaryProps}
+              {...resolvedPrimaryProps}
               type="button"
               className={joinClassNames(
-                primaryProps.className,
+                resolvedPrimaryProps.className,
                 'flex items-center justify-center rounded-lg font-bold transition-all hover:brightness-110 bg-[#0A2540] text-white cursor-pointer',
                 compactViewport
                   ? 'px-3 py-2 text-[13px] shadow-md shadow-[#0A2540]/25'

@@ -1,3 +1,5 @@
+import type { UserGender } from '../../../lib/schemas/user-demographics.schema'
+
 export interface LoginFormData {
   emailOrUsername: string;
   password: string;
@@ -10,6 +12,8 @@ export interface RegisterFormData {
   username: string;
   countryCode: string;
   phoneNumber: string;
+  dateOfBirth?: string | null;
+  gender?: UserGender | null;
   email: string;
   confirmEmail: string;
   password: string;

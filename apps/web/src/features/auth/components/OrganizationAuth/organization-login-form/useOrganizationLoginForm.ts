@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useSearchParams } from 'next/navigation'
-import { loginSchema } from '../../LoginForm/LoginForm.schema'
+import { useTranslation } from 'react-i18next'
+import React from 'react'
+import { getLoginSchema } from '../../LoginForm/LoginForm.schema'
 import { loginAction } from '../../../actions/login'
 import {
   clearSavedCredentials,
@@ -58,6 +60,7 @@ export function useOrganizationLoginForm({
   organizationId,
   organizationSlug,
 }: UseOrganizationLoginFormParams) {
+  const { t } = useTranslation('common')
   const searchParams = useSearchParams()
   const invitationToken = searchParams?.get('invitation_token')
   const bulkInviteToken = searchParams?.get('bulk_token')
@@ -69,6 +72,7 @@ export function useOrganizationLoginForm({
   const [isPending, setIsPending] = useState(false)
   const [focusedField, setFocusedField] = useState<string | null>(null)
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const loginSchema = React.useMemo(() => getLoginSchema(t), [t])
   const redirectUrlRef = useRef<string | null>(null)
   const submitInFlightRef = useRef(false)
 
@@ -257,7 +261,7 @@ export function useOrganizationLoginForm({
         throw submissionError
       }
 
-      setError('Error inesperado al iniciar sesión')
+      setError(t('auth.org.unexpectedError'))
       finishPending()
       return
     }

@@ -1,15 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import type { CSSProperties } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 import { LiaFloatingButton } from '../../../core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '../../../core/components/LiaSidePanel'
+import { LiaPanelContext } from '@/core/contexts/LiaPanelContext'
 import { useResponsiveLiaLayout } from '@/core/hooks/useResponsiveLiaLayout'
 import { useThemeStore } from '../../../core/stores/themeStore'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
+import { generateCSSVariables, getBackgroundStyle } from '../../business-panel/utils/styles'
 import { AdminHeader } from './AdminHeader'
 import { AdminSidebar } from './AdminSidebar'
 
@@ -21,35 +24,42 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
   const { t } = useTranslation('admin')
+  const { resolvedTheme } = useThemeStore()
+  const { styles, effectiveStyles, loading: stylesLoading } = useOrganizationStylesContext()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('dashboard')
   const [isRedirecting, setIsRedirecting] = useState(false)
-
-  const { resolvedTheme } = useThemeStore()
-  const isLightTheme = resolvedTheme === 'light'
-
-  const { styles: orgStyles } = useOrganizationStylesContext()
-  const panelStyles = orgStyles?.panel
-
-  const themeColors = {
-    background: isLightTheme ? '#F8FAFC' : '#0F1419',
-    cardBackground: isLightTheme
-      ? (panelStyles?.card_background || '#FFFFFF')
-      : '#0F1419',
-  }
-
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('admin-sidebar-collapsed') === 'true'
     }
     return false
   })
+  const [sidebarPinned, setSidebarPinned] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('admin-sidebar-pinned') === 'true'
+    }
+    return false
+  })
 
+  const panelStyles = useMemo(
+    () => effectiveStyles?.panel || styles?.panel,
+    [effectiveStyles, styles],
+  )
+  const backgroundStyle = useMemo(() => getBackgroundStyle(panelStyles), [panelStyles])
+  const cssVariables = useMemo(() => generateCSSVariables(panelStyles), [panelStyles])
+  const isLightTheme = resolvedTheme === 'light'
+  const fallbackBackground = isLightTheme ? 'var(--color-gray-50)' : 'var(--color-bg-dark)'
+  const isLoading = typeof authLoading === 'boolean' ? authLoading : true
+
+  const liaPanel = useContext(LiaPanelContext) ?? null
+  const isLiaPanelOpen = liaPanel?.isOpen ?? false
   const { contentOffsetPx } = useResponsiveLiaLayout({
     reservedWidthPx: sidebarCollapsed ? 64 : 256,
   })
 
-  const isLoading = typeof authLoading === 'boolean' ? authLoading : true
+  const prevLiaPanelOpen = useRef(isLiaPanelOpen)
+  const prevSidebarOpen = useRef(sidebarOpen)
 
   useEffect(() => {
     if (isRedirecting || typeof window === 'undefined') return
@@ -91,18 +101,68 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     }
   }, [sidebarCollapsed])
 
-  if (isLoading) {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin-sidebar-pinned', sidebarPinned.toString())
+    }
+  }, [sidebarPinned])
+
+  useEffect(() => {
+    if (liaPanel && !prevLiaPanelOpen.current && isLiaPanelOpen && sidebarOpen) {
+      setSidebarOpen(false)
+    }
+
+    prevLiaPanelOpen.current = isLiaPanelOpen
+  }, [isLiaPanelOpen, liaPanel, sidebarOpen])
+
+  useEffect(() => {
+    if (liaPanel && !prevSidebarOpen.current && sidebarOpen && isLiaPanelOpen) {
+      liaPanel.closePanel()
+    }
+
+    prevSidebarOpen.current = sidebarOpen
+  }, [isLiaPanelOpen, liaPanel, sidebarOpen])
+
+  const handleMenuClick = useCallback(() => {
+    setSidebarOpen(true)
+  }, [])
+
+  const handleSidebarClose = useCallback(() => {
+    setSidebarOpen(false)
+  }, [])
+
+  const handleToggleCollapse = useCallback(() => {
+    setSidebarCollapsed((previous) => !previous)
+  }, [])
+
+  const handleTogglePin = useCallback(() => {
+    setSidebarPinned((previous) => !previous)
+  }, [])
+
+  const handleSectionChange = useCallback((section: string) => {
+    setActiveSection(section)
+  }, [])
+
+  const handleSidebarHoverExpand = useCallback(() => {
+    if (liaPanel && isLiaPanelOpen) {
+      liaPanel.closePanel()
+    }
+  }, [isLiaPanelOpen, liaPanel])
+
+  if (isLoading || stylesLoading) {
     return (
       <div
         className="flex min-h-screen items-center justify-center transition-colors duration-300"
-        style={{ backgroundColor: themeColors.background }}
+        style={{ backgroundColor: fallbackBackground }}
       >
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
-            <div className="h-16 w-16 rounded-full border-4 border-[#E9ECEF] dark:border-[#6C757D]/30" />
-            <div className="absolute left-0 top-0 h-16 w-16 animate-spin rounded-full border-4 border-t-[#0A2540] dark:border-t-[#00D4B3]" />
+            <div className="h-16 w-16 rounded-full border-4 border-gray-200 dark:border-white/10" />
+            <div className="absolute left-0 top-0 h-16 w-16 animate-spin rounded-full border-4 border-transparent border-t-[var(--color-accent)]" />
           </div>
-          <p className="text-sm text-[#6C757D] dark:text-gray-400">Cargando...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {t('layout.loading')}
+          </p>
         </div>
       </div>
     )
@@ -116,44 +176,51 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <div
-      className="min-h-screen max-w-full overflow-x-clip transition-colors duration-300"
-      style={{ backgroundColor: themeColors.background }}
+      key={styles?.selectedTheme || 'admin-default-theme'}
+      className="admin-panel-layout fixed inset-0 z-0 flex h-screen max-w-full flex-col overflow-hidden transition-all duration-300"
+      style={{
+        backgroundColor: fallbackBackground,
+        ...backgroundStyle,
+        ...cssVariables,
+      } as CSSProperties}
     >
-      <AdminSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        activeSection={activeSection}
-        onSectionChange={setActiveSection}
+      <AdminHeader
+        onMenuClick={handleMenuClick}
+        title={t('layout.panelTitle')}
         isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onToggleCollapse={handleToggleCollapse}
       />
-
-      <div
-        className={`min-h-screen max-w-full overflow-x-clip transition-all duration-300 ease-in-out ${
-          sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
-        }`}
-        style={{ backgroundColor: themeColors.background }}
-      >
-        <AdminHeader
-          onMenuClick={() => setSidebarOpen(true)}
-          title={t('layout.panelTitle')}
-          isCollapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-        />
-
-        <main
-          className="min-h-screen max-w-full overflow-x-clip pt-20 transition-all duration-300 ease-in-out"
-          style={{
-            backgroundColor: themeColors.background,
-            paddingRight: contentOffsetPx > 0 ? `${contentOffsetPx}px` : undefined,
-          }}
-        >
-          {children}
-        </main>
-      </div>
 
       <LiaSidePanel />
       <LiaFloatingButton />
+
+      <div className="flex min-w-0 flex-1 overflow-hidden">
+        <AdminSidebar
+          isOpen={sidebarOpen}
+          onClose={handleSidebarClose}
+          activeSection={activeSection}
+          onSectionChange={handleSectionChange}
+          isCollapsed={sidebarCollapsed}
+          onToggleCollapse={handleToggleCollapse}
+          isPinned={sidebarPinned}
+          onTogglePin={handleTogglePin}
+          onHoverExpand={handleSidebarHoverExpand}
+        />
+
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+          <main
+            id="main-scroll-container"
+            className="admin-panel-content flex-1 overflow-x-clip overflow-y-auto p-4 transition-all duration-300 sm:p-6 lg:p-8 xl:p-12"
+            style={{
+              paddingRight: contentOffsetPx > 0 ? `${contentOffsetPx}px` : undefined,
+            }}
+          >
+            <div className="mx-auto w-full min-w-0 max-w-[1920px]">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
     </div>
   )
 }

@@ -171,7 +171,8 @@
     }
   },
   "layout": {
-    "panelTitle": "Painel de Administração"
+    "panelTitle": "Painel de Administração",
+    "loading": "Carregando..."
   },
   "pendingCourseDetail": {
     "backToPending": "Voltar aos pendentes",
@@ -313,7 +314,18 @@
   "dashboard": {
     "confirmResetLayout": "Tem certeza de que deseja restaurar o layout padrão?",
     "customizeLayout": "Personalizar Layout",
-    "restoreLayout": "Restaurar"
+    "restoreLayout": "Restaurar",
+    "heroEyebrow": "Painel de Controle",
+    "heroSubtitle": "Gerencie sua plataforma de aprendizagem com IA e supervisione o sistema.",
+    "statsTitle": "Estatisticas Gerais",
+    "statsSubtitle": "Metricas principais da plataforma",
+    "statsError": "Erro ao carregar estatisticas: {{error}}",
+    "quickActionsTitle": "Acessos Rapidos",
+    "quickActionsSubtitle": "Acessos diretos",
+    "activityTitle": "Atividade Recente",
+    "activitySubtitle": "Ultimas acoes na plataforma",
+    "activityEmpty": "Nao ha atividade recente",
+    "activityBy": "por"
   },
   "learningPathsPage": {
     "badge": "Rotas de aprendizagem",

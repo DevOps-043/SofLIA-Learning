@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import { Link2, Pause, Play, Trash2 } from 'lucide-react'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BulkInviteLink } from '@/features/business-panel/services/businessUsers.service'
+import { useTranslation } from 'react-i18next'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface InviteLinkRowProps {
   link: BulkInviteLink
@@ -13,6 +15,7 @@ interface InviteLinkRowProps {
 }
 
 function InviteLinkRow({ link, index, onToggleStatus, onDelete }: InviteLinkRowProps) {
+  const { t, i18n } = useTranslation('business')
   const { primaryColor, cardBg, textColor, isDark } = useBusinessPanelTheme()
   const remainingSlots = link.max_uses - link.current_uses
 
@@ -31,18 +34,18 @@ function InviteLinkRow({ link, index, onToggleStatus, onDelete }: InviteLinkRowP
       <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
         <div className="col-span-1 min-w-0">
           <div className="font-semibold text-sm truncate" style={{ color: textColor }}>
-            {link.name || `Link ${link.token.substring(0, 6)}`}
+            {link.name || `${t('users.card.link')} ${link.token.substring(0, 6)}`}
           </div>
           <div className="text-[10px] opacity-40 uppercase font-bold tracking-wider">{link.role}</div>
         </div>
 
         <div className="flex items-center gap-4">
           <div className="text-center">
-            <p className="text-[10px] opacity-40 uppercase mb-0.5">Usos</p>
+            <p className="text-[10px] opacity-40 uppercase mb-0.5">{t('users.card.uses')}</p>
             <p className="text-sm font-bold" style={{ color: textColor }}>{link.current_uses}/{link.max_uses}</p>
           </div>
           <div className="text-center">
-            <p className="text-[10px] opacity-40 uppercase mb-0.5">Libres</p>
+            <p className="text-[10px] opacity-40 uppercase mb-0.5">{t('users.card.remaining')}</p>
             <p className="text-sm font-bold" style={{ color: remainingSlots > 0 ? primaryColor : '#EF4444' }}>
               {remainingSlots}
             </p>
@@ -50,7 +53,7 @@ function InviteLinkRow({ link, index, onToggleStatus, onDelete }: InviteLinkRowP
         </div>
 
         <div className="hidden lg:block text-[10px] opacity-40">
-          Expira: {new Date(link.expires_at).toLocaleDateString()}
+          {t('users.card.expires')}: {formatDate(link.expires_at, i18n.language)}
         </div>
 
         <div className="flex items-center justify-end gap-2">
@@ -59,7 +62,7 @@ function InviteLinkRow({ link, index, onToggleStatus, onDelete }: InviteLinkRowP
             link.status === 'paused' ? 'bg-amber-500/10 text-amber-500' :
             'bg-red-500/10 text-red-500'
           }`}>
-            {link.status}
+            {link.status === 'active' ? t('users.card.active') : link.status === 'paused' ? t('users.card.paused') : t('users.card.expired')}
           </span>
         </div>
       </div>

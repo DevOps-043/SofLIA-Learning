@@ -1,4 +1,4 @@
-import { Award, BookOpen, CheckCircle2, Clock } from 'lucide-react'
+import { Award, BarChart3, BookOpen, CheckCircle2, Clock } from 'lucide-react'
 import type {
   BusinessUserCertificateSummary,
   BusinessUserDashboardColors,
@@ -115,24 +115,35 @@ export function buildBusinessUserDashboardStats(
       value: stats.total_assigned,
       icon: BookOpen,
       color: 'from-blue-500 to-cyan-500',
+      kind: 'courses',
     },
     {
       label: t('dashboard.stats.inProgress', 'En Progreso'),
       value: stats.in_progress,
       icon: Clock,
       color: 'from-purple-500 to-pink-500',
+      kind: 'inProgress',
     },
     {
       label: t('dashboard.stats.completed', 'Completados'),
       value: stats.completed,
       icon: CheckCircle2,
       color: 'from-green-500 to-emerald-500',
+      kind: 'completed',
     },
     {
       label: t('dashboard.stats.certificates', 'Certificados'),
       value: stats.certificates,
       icon: Award,
       color: 'from-orange-500 to-red-500',
+      kind: 'certificates',
+    },
+    {
+      label: t('dashboard.stats.myAnalytics', 'Mis estadisticas'),
+      value: t('dashboard.stats.viewAnalytics', 'Ver'),
+      icon: BarChart3,
+      color: 'from-cyan-500 to-teal-500',
+      kind: 'analytics',
     },
   ]
 }

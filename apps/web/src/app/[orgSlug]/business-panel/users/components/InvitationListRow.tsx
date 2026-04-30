@@ -5,6 +5,7 @@ import { Mail, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessInvitation } from '@/features/business-panel/services/businessUsers.service'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface InvitationListRowProps {
   invitation: BusinessInvitation
@@ -14,7 +15,7 @@ interface InvitationListRowProps {
 }
 
 function InvitationListRow({ invitation, index, onResend, onRevoke }: InvitationListRowProps) {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const { accentColor, cardBg, textColor } = useBusinessPanelTheme()
 
   return (
@@ -38,7 +39,7 @@ function InvitationListRow({ invitation, index, onResend, onRevoke }: Invitation
         </div>
 
         <div className="hidden lg:block text-xs opacity-60">
-          Enviada: {new Date(invitation.created_at).toLocaleDateString()}
+          {t('users.card.sent')}: {formatDate(invitation.created_at, i18n.language)}
         </div>
 
         <div className="flex items-center gap-2">
@@ -46,7 +47,7 @@ function InvitationListRow({ invitation, index, onResend, onRevoke }: Invitation
             {t('users.status.pending', 'Pendiente')}
           </span>
           <span className="text-[10px] opacity-40 whitespace-nowrap">
-            Expira: {new Date(invitation.expires_at).toLocaleDateString()}
+            {t('users.card.expires')}: {formatDate(invitation.expires_at, i18n.language)}
           </span>
         </div>
       </div>
@@ -55,14 +56,14 @@ function InvitationListRow({ invitation, index, onResend, onRevoke }: Invitation
         <button
           onClick={onResend}
           className="p-2 rounded-lg bg-white/5 hover:bg-amber-500/20 text-amber-500 transition-colors"
-          title="Reenviar"
+          title={t('users.card.resendInvite')}
         >
           <Mail className="w-4 h-4" />
         </button>
         <button
           onClick={onRevoke}
           className="p-2 rounded-lg bg-white/5 hover:bg-red-500/20 text-red-500 transition-colors"
-          title="Revocar"
+          title={t('users.card.revoke')}
         >
           <XCircle className="w-4 h-4" />
         </button>

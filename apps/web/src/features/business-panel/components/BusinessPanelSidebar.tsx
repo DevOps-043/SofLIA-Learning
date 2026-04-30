@@ -11,7 +11,6 @@ import {
   BookOpen,
   Route,
   BarChart3,
-  FileText,
   Settings,
   X,
   ChevronLeft,
@@ -71,8 +70,7 @@ export function BusinessPanelSidebar({
     { name: t('sidebar.courses'), href: `/${orgSlug}/business-panel/courses`, icon: BookOpen },
     { name: t('sidebar.learningPaths', 'Rutas'), href: `/${orgSlug}/business-panel/learning-paths`, icon: Route },
     { name: t('sidebar.hierarchy', 'Estructura'), href: `/${orgSlug}/business-panel/hierarchy`, icon: Network },
-    { name: t('sidebar.reports'), href: `/${orgSlug}/business-panel/reports`, icon: FileText },
-    { name: t('sidebar.analytics'), href: `/${orgSlug}/business-panel/analytics`, icon: BarChart3 },
+    { name: t('sidebar.reports'), href: `/${orgSlug}/business-panel/reports`, icon: BarChart3 },
     { name: t('sidebar.reviews', 'Revisiones'), href: `/${orgSlug}/business-panel/reviews`, icon: ClipboardCheck },
     { name: t('sidebar.settings'), href: `/${orgSlug}/business-panel/settings`, icon: Settings }
   ], [orgSlug, t])

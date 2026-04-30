@@ -6,6 +6,10 @@ import { X, User, Mail, Shield, Lock, UserPlus, Camera, Sparkles, Briefcase, Che
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import {
+  USER_GENDER_VALUES,
+  type UserGender,
+} from '../../../lib/schemas/user-demographics.schema'
 
 interface BusinessAddUserModalProps {
   isOpen: boolean
@@ -17,6 +21,8 @@ interface BusinessAddUserModalProps {
     first_name?: string
     last_name?: string
     display_name?: string
+    date_of_birth?: string | null
+    gender?: UserGender | null
     job_title: string
     org_role?: 'owner' | 'admin' | 'member'
     profile_picture_url?: string
@@ -25,6 +31,7 @@ interface BusinessAddUserModalProps {
 
 export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUserModalProps) {
   const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const theme = useBusinessPanelTheme()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -44,6 +51,8 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
     first_name: '',
     last_name: '',
     display_name: '',
+    date_of_birth: '',
+    gender: '' as UserGender | '',
     job_title: '',
     org_role: 'member' as 'owner' | 'admin' | 'member',
     profile_picture_url: ''
@@ -70,6 +79,8 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
         first_name: '',
         last_name: '',
         display_name: '',
+        date_of_birth: '',
+        gender: '',
         job_title: '',
         org_role: 'member',
         profile_picture_url: ''
@@ -110,7 +121,12 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
           profilePictureUrl = imageUrl
         }
       }
-      await onSave({ ...formData, profile_picture_url: profilePictureUrl || undefined })
+      await onSave({
+        ...formData,
+        date_of_birth: formData.date_of_birth || null,
+        gender: formData.gender || null,
+        profile_picture_url: profilePictureUrl || undefined,
+      })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error.')
@@ -126,6 +142,7 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
     admin: { label: t('users.roles.admin'), desc: t('users.modals.add.roleDesc.admin') },
     owner: { label: t('users.roles.owner'), desc: t('users.modals.add.roleDesc.owner') }
   }
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
 
   return (
     <AnimatePresence>
@@ -173,6 +190,17 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
                            <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Apellido" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
                         </div>
                         <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="username" value={formData.username} onChange={handleChange} required placeholder="Nombre de usuario" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} type="date" max={maxDateOfBirth} aria-label={tc('demographics.dateOfBirth')} style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
+                           <select className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="gender" value={formData.gender} onChange={handleChange} aria-label={tc('demographics.gender.label')} style={{ backgroundColor: inputBg, borderColor, color: textColor }}>
+                              <option value="">{tc('demographics.gender.placeholder')}</option>
+                              {USER_GENDER_VALUES.map((gender) => (
+                                <option key={gender} value={gender}>
+                                  {tc(`demographics.gender.options.${gender}`)}
+                                </option>
+                              ))}
+                           </select>
+                        </div>
                      </div>
                      <div className="space-y-6">
                         <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Credenciales y Cargo</label>

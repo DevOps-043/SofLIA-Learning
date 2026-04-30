@@ -1,18 +1,13 @@
-'use client'
+import { redirect } from 'next/navigation'
 
-import { motion } from 'framer-motion'
-import { BusinessAnalytics } from '@/features/business-panel/components/BusinessAnalytics'
+interface BusinessPanelAnalyticsPageProps {
+  params: {
+    orgSlug: string
+  }
+}
 
-export default function BusinessPanelAnalyticsPage() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="w-full"
-    >
-
-      
-      <BusinessAnalytics />
-    </motion.div>
-  )
+export default function BusinessPanelAnalyticsPage({
+  params,
+}: BusinessPanelAnalyticsPageProps) {
+  redirect(`/${params.orgSlug}/business-panel/reports`)
 }

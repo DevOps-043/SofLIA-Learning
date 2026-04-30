@@ -2,12 +2,14 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, SkipForward, ChevronLeft, ChevronRight, Wifi } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, SkipForward, Wifi } from 'lucide-react';
 import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 
 interface OnboardingVideoPlayerProps {
   videos: string[];
   onComplete: () => void;
+  /** Cuando false, oculta el botón "Saltar Intro" para forzar ver el video completo. Default: true */
+  isSkippable?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -38,7 +40,7 @@ function injectPrefetchLink(url: string): () => void {
   };
 }
 
-export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPlayerProps) {
+export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }: OnboardingVideoPlayerProps) {
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -47,9 +49,13 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
   const [isBuffering, setIsBuffering] = useState(false);
   const [isSlowConnection, setIsSlowConnection] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [progress, setProgress] = useState(0);    // 0–100
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const prevVideosRef = useRef<string[]>([]);
+  const lastProgressRenderRef = useRef(0);
   const playbackPolicy = useMediaPlaybackPolicy('tour');
 
   // Respect OS-level "reduce motion" preference — skip overlay fade animation
@@ -77,9 +83,11 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
   // ── HTTP-level prefetch for the next video ────────────────────────────────
   // Uses <link rel="prefetch"> (HTTP cache, no decoder) instead of a hidden
   // <video> element so only ONE hardware decoder is ever active at a time.
+  // Prefetch del video siguiente (ya existía)
   useEffect(() => {
+    if (!playbackPolicy.shouldPrefetchVideo) return;
     const nextUrl = videos[currentVideoIndex + 1];
-    if (!nextUrl || !playbackPolicy.shouldPrefetchVideo) return;
+    if (!nextUrl) return;
     return injectPrefetchLink(nextUrl);
   }, [currentVideoIndex, playbackPolicy.shouldPrefetchVideo, videos]);
 
@@ -144,12 +152,57 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
 
   // ── Buffering event handlers ───────────────────────────────────────────────
   const handleWaiting  = useCallback(() => setIsBuffering(true), []);
-  const handleCanPlay  = useCallback(() => setIsBuffering(false), []);
+  const handleCanPlay  = useCallback(() => {
+    setIsBuffering(false);
+    // Auto-play en primer video cuando el buffer está listo
+    if (!isPlaying && currentVideoIndex === 0 && videoRef.current && !hasError) {
+      videoRef.current.play()
+        .then(() => { setIsPlaying(true); setShowControls(false); })
+        .catch(() => {}); // silencio — algunos browsers requieren interacción
+    }
+  }, [isPlaying, currentVideoIndex, hasError]);
   const handlePlaying  = useCallback(() => { setIsBuffering(false); setIsPlaying(true); }, []);
   const handleStalled  = useCallback(() => setIsBuffering(true), []);
 
+  // ── Progress / time ───────────────────────────────────────────────────────
+  const handleTimeUpdate = useCallback(() => {
+    const el = videoRef.current;
+    if (!el || !el.duration || isNaN(el.duration)) return;
+
+    const now = performance.now();
+    if (now - lastProgressRenderRef.current < 250) return;
+    lastProgressRenderRef.current = now;
+
+    setCurrentTime(el.currentTime);
+    setProgress((el.currentTime / el.duration) * 100);
+  }, []);
+
+  const handleLoadedMetadata = useCallback(() => {
+    const el = videoRef.current;
+    if (el && !isNaN(el.duration)) setDuration(el.duration);
+  }, []);
+
+  const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const el = videoRef.current;
+    if (!el || !el.duration) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    el.currentTime = pct * el.duration;
+    setProgress(pct * 100);
+    setCurrentTime(pct * el.duration);
+  }, []);
+
+  const fmt = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  };
+
   // ── Playback handlers ──────────────────────────────────────────────────────
   const handleVideoEnd = useCallback(() => {
+    setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
     if (currentVideoIndex < videos.length - 1) {
       setCurrentVideoIndex((prev) => prev + 1);
     } else {
@@ -212,7 +265,7 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 backdrop-blur-md"
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95"
       >
         <div 
           className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group"
@@ -239,6 +292,8 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
             onStalled={handleStalled}
             onCanPlay={handleCanPlay}
             onPlaying={handlePlaying}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
             onError={() => {
               setHasError(true);
               setIsBuffering(false);
@@ -288,65 +343,104 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
             </div>
           )}
 
-          {/* Controls overlay */}
+          {/* ── Controls overlay ── */}
           {!hasError && (
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30 transition-opacity duration-300 pointer-events-none flex flex-col justify-between p-2 sm:p-4 md:p-6 pb-2 md:pb-6 ${
+              className={`absolute inset-0 flex flex-col justify-between transition-opacity duration-300 pointer-events-none ${
                 (showControls || !isPlaying || isBuffering) ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              {/* Top bar */}
-              <div className="flex justify-between items-center w-full pointer-events-auto gap-1 sm:gap-2">
-                <div className="flex items-center gap-1 sm:gap-3">
-                  <div className="text-white/80 text-[10px] sm:text-sm font-medium bg-black/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full backdrop-blur-md whitespace-nowrap">
-                    Video {currentVideoIndex + 1} de {videos.length}
+              {/* Top bar — gradient from top */}
+              <div
+                className="flex items-center justify-between gap-2 px-4 pt-4 pb-10 pointer-events-auto"
+                style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}
+              >
+                {/* Video counter (only when multiple videos) */}
+                {videos.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    {videos.map((_, i) => (
+                      <div
+                        key={i}
+                        className="h-1 rounded-full transition-all duration-300"
+                        style={{
+                          width: i === currentVideoIndex ? 20 : 6,
+                          backgroundColor: i === currentVideoIndex ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)',
+                        }}
+                      />
+                    ))}
+                    <span className="text-[11px] text-white/60 ml-1">
+                      {currentVideoIndex + 1} / {videos.length}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleBack(); }}
-                      disabled={currentVideoIndex === 0}
-                      className={`p-1 sm:p-1.5 rounded-full backdrop-blur-md transition-all flex items-center justify-center ${
-                        currentVideoIndex === 0
-                          ? 'text-white/20 bg-black/20 cursor-not-allowed'
-                          : 'text-white/80 bg-black/40 hover:bg-white/20 hover:text-white'
-                      }`}
-                    >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                      className="flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white bg-black/40 hover:bg-white/20 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all backdrop-blur-md"
-                    >
-                      <span className="text-[10px] sm:text-sm font-medium whitespace-nowrap">
-                        {currentVideoIndex < videos.length - 1 ? 'Siguiente' : 'Iniciar Tour'}
-                      </span>
-                      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                    </button>
-                  </div>
-                </div>
-                <button
-                  onClick={(e) => { e.stopPropagation(); skipVideo(); }}
-                  className="flex items-center gap-1 sm:gap-2 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2 sm:px-4 py-1 sm:py-2 rounded-full transition-all backdrop-blur-md"
-                >
-                  <span className="text-[10px] sm:text-sm whitespace-nowrap">Saltar Intro</span>
-                  <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
-                </button>
+                )}
+
+                {/* Saltar Intro */}
+                {isSkippable && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); skipVideo(); }}
+                    className="ml-auto flex items-center gap-1.5 text-white/75 hover:text-white bg-black/30 hover:bg-black/50 px-3 py-1.5 rounded-full transition-all text-xs font-semibold backdrop-blur-sm border border-white/10"
+                  >
+                    <span>Saltar Intro</span>
+                    <SkipForward className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
-              {/* Bottom controls */}
-              <div className="flex items-center justify-center gap-4 sm:gap-6 w-full pointer-events-auto pb-1 sm:pb-4">
-                <button
-                  onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                  className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
+              {/* Bottom bar — gradient from bottom */}
+              <div
+                className="px-4 pb-4 pt-10 pointer-events-auto"
+                style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%)' }}
+              >
+                {/* ── Progress bar (interactive) ── */}
+                <div
+                  className="w-full h-1 rounded-full cursor-pointer mb-3 group/progress"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+                  onClick={(e) => { e.stopPropagation(); handleSeek(e); }}
                 >
-                  {isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6 ml-0.5 sm:ml-1" />}
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                  className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-all backdrop-blur-md"
-                >
-                  {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
-                </button>
+                  <div
+                    className="h-full rounded-full relative transition-all duration-150 group-hover/progress:scale-y-150"
+                    style={{
+                      width: `${progress}%`,
+                      background: 'linear-gradient(90deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7))',
+                      transformOrigin: 'bottom',
+                    }}
+                  >
+                    {/* Thumb indicator */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white shadow-lg opacity-0 group-hover/progress:opacity-100 transition-opacity" />
+                  </div>
+                </div>
+
+                {/* Controls row */}
+                <div className="flex items-center gap-3">
+                  {/* Play / Pause */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                    className="w-9 h-9 flex items-center justify-center rounded-full text-white transition-all hover:bg-white/15 active:scale-95"
+                  >
+                    {isPlaying
+                      ? <Pause className="w-5 h-5" />
+                      : <Play className="w-5 h-5 ml-0.5" />
+                    }
+                  </button>
+
+                  {/* Mute */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                    className="w-8 h-8 flex items-center justify-center rounded-full text-white transition-all hover:bg-white/15 active:scale-95"
+                  >
+                    {isMuted
+                      ? <VolumeX className="w-4 h-4" />
+                      : <Volume2 className="w-4 h-4" />
+                    }
+                  </button>
+
+                  {/* Time */}
+                  {duration > 0 && (
+                    <span className="text-[11px] text-white/60 tabular-nums select-none ml-0.5">
+                      {fmt(currentTime)} / {fmt(duration)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -354,8 +448,8 @@ export function OnboardingVideoPlayer({ videos, onComplete }: OnboardingVideoPla
           {/* Large centered play button when paused */}
           {!isPlaying && !hasError && !isBuffering && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-20 h-20 flex items-center justify-center bg-black/50 rounded-full text-white backdrop-blur-md">
-                <Play className="w-10 h-10 ml-2" />
+              <div className="w-16 h-16 flex items-center justify-center bg-black/40 rounded-full text-white backdrop-blur-sm border border-white/10">
+                <Play className="w-7 h-7 ml-0.5" />
               </div>
             </div>
           )}

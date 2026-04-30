@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { CheckCircle, Mail, Shield, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { USER_GENDER_VALUES } from '../../../../../lib/schemas/user-demographics.schema'
 import { OrganizationRegisterField } from './OrganizationRegisterField'
 import type { OrganizationRegisterIdentityFieldsProps } from './types'
 
@@ -15,6 +17,9 @@ export function OrganizationRegisterIdentityFields({
   bulkInviteToken,
   success,
 }: OrganizationRegisterIdentityFieldsProps) {
+  const { t } = useTranslation('common')
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
+
   return (
     <>
       <motion.div
@@ -30,7 +35,7 @@ export function OrganizationRegisterIdentityFields({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5, ease: 'easeOut' }}
         >
-          Crear cuenta
+          {t('auth.register.title')}
         </motion.h2>
         <motion.p
           className="text-base font-normal opacity-70"
@@ -39,7 +44,7 @@ export function OrganizationRegisterIdentityFields({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          Unete a la organizacion
+          {t('auth.org.joinOrg')}
         </motion.p>
       </motion.div>
 
@@ -62,9 +67,9 @@ export function OrganizationRegisterIdentityFields({
         >
           <OrganizationRegisterField
             id="firstName"
-            label="Nombre"
+            label={t('auth.register.firstNameLabel')}
             type="text"
-            placeholder="Juan"
+            placeholder={t('auth.register.firstNamePlaceholder')}
             registration={register('firstName')}
             palette={palette}
             error={errors.firstName?.message}
@@ -78,9 +83,9 @@ export function OrganizationRegisterIdentityFields({
         >
           <OrganizationRegisterField
             id="lastName"
-            label="Apellido"
+            label={t('auth.register.lastNameLabel')}
             type="text"
-            placeholder="Perez"
+            placeholder={t('auth.register.lastNamePlaceholder')}
             registration={register('lastName')}
             palette={palette}
             error={errors.lastName?.message}
@@ -96,14 +101,69 @@ export function OrganizationRegisterIdentityFields({
       >
         <OrganizationRegisterField
           id="username"
-          label="Usuario"
+          label={t('auth.register.usernameLabel')}
           type="text"
-          placeholder="juanperez"
+          placeholder={t('auth.register.usernamePlaceholder')}
           registration={register('username')}
           palette={palette}
           error={errors.username?.message}
         />
       </motion.div>
+
+      <div className="space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: palette.textColor }}>
+          {t('demographics.sectionTitle')}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35, duration: 0.5 }}
+          >
+            <OrganizationRegisterField
+              id="dateOfBirth"
+              label={t('demographics.dateOfBirth')}
+              type="date"
+              placeholder=""
+              registration={register('dateOfBirth')}
+              palette={palette}
+              error={errors.dateOfBirth?.message}
+              max={maxDateOfBirth}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="space-y-1.5"
+          >
+            <label
+              htmlFor="gender"
+              className="block text-xs font-medium uppercase tracking-wider mb-1.5"
+              style={{ color: palette.textColor }}
+            >
+              {t('demographics.gender.label')}
+            </label>
+            <div className="relative rounded-xl border overflow-hidden" style={{ backgroundColor: palette.inputBgColor, borderColor: palette.borderColor }}>
+              <select
+                id="gender"
+                className="w-full bg-transparent px-4 py-3 text-sm outline-none"
+                style={{ color: palette.textColor }}
+                {...register('gender')}
+              >
+                <option value="">{t('demographics.gender.placeholder')}</option>
+                {USER_GENDER_VALUES.map((gender) => (
+                  <option key={gender} value={gender}>
+                    {t(`demographics.gender.options.${gender}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.gender ? <p className="auth-error">{errors.gender.message}</p> : null}
+          </motion.div>
+        </div>
+      </div>
 
       {invitedRole && invitedRoleLabel ? (
         <motion.div
@@ -115,10 +175,10 @@ export function OrganizationRegisterIdentityFields({
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              Seras registrado como: <strong>{invitedRoleLabel}</strong>
+              {t('auth.org.registeredAs')} <strong>{invitedRoleLabel}</strong>
               {bulkInviteToken ? (
                 <span className="ml-1 text-xs opacity-70">
-                  (via enlace de invitacion)
+                  {t('auth.org.viaInviteLink')}
                 </span>
               ) : null}
             </p>
@@ -134,9 +194,9 @@ export function OrganizationRegisterIdentityFields({
         >
           <OrganizationRegisterField
             id="email"
-            label="Correo Electronico"
+            label={t('auth.register.emailLabel')}
             type="email"
-            placeholder="tu@email.com"
+            placeholder={t('auth.register.emailPlaceholder')}
             registration={register('email')}
             palette={{
               ...palette,
@@ -156,7 +216,7 @@ export function OrganizationRegisterIdentityFields({
               }
             }}
             helperText={
-              invitedEmail ? 'Este email esta asociado a tu invitacion' : undefined
+              invitedEmail ? t('auth.org.emailAssociatedInvite') : undefined
             }
             rightAdornment={
               invitedEmail ? (
@@ -176,9 +236,9 @@ export function OrganizationRegisterIdentityFields({
           >
             <OrganizationRegisterField
               id="confirmEmail"
-              label="Confirmar Correo"
+              label={t('auth.register.confirmEmailLabel')}
               type="email"
-              placeholder="tu@email.com"
+              placeholder={t('auth.register.emailPlaceholder')}
               registration={register('confirmEmail')}
               palette={palette}
               error={errors.confirmEmail?.message}

@@ -7,6 +7,7 @@ vi.mock('../admin-users/client', () => ({
 }))
 vi.mock('../admin-users/helpers', () => ({
   ADMIN_USER_LIST_SELECT_FIELDS: 'id,email,first_name,last_name',
+  mapAdminUserWithAge: vi.fn((user) => ({ ...user, age: null })),
   normalizeUsersPagination: vi.fn((opts) => ({
     page: opts.page ?? 1,
     limit: opts.limit ?? 20,

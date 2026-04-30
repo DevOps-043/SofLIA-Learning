@@ -1,51 +1,54 @@
 import { z } from 'zod';
+import { TFunction } from 'i18next';
 
-export const registerSchema = z
+export const getRegisterSchema = (t: TFunction) => z
   .object({
     firstName: z
       .string()
-      .min(2, 'El nombre debe tener al menos 2 caracteres')
-      .max(50, 'El nombre no puede exceder 50 caracteres')
-      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo se permiten letras'),
+      .min(2, t('auth.register.validation.firstNameMin'))
+      .max(50, t('auth.register.validation.firstNameMax'))
+      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, t('auth.register.validation.onlyLetters')),
     lastName: z
       .string()
-      .min(2, 'El apellido debe tener al menos 2 caracteres')
-      .max(50, 'El apellido no puede exceder 50 caracteres')
-      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, 'Solo se permiten letras'),
+      .min(2, t('auth.register.validation.lastNameMin'))
+      .max(50, t('auth.register.validation.lastNameMax'))
+      .regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/, t('auth.register.validation.onlyLetters')),
     username: z
       .string()
-      .min(3, 'El usuario debe tener al menos 3 caracteres')
-      .max(20, 'El usuario no puede exceder 20 caracteres')
-      .regex(/^[a-zA-Z0-9_]+$/, 'Solo letras, números y guión bajo'),
-    countryCode: z.string().min(1, 'Selecciona un país'),
+      .min(3, t('auth.register.validation.usernameMin'))
+      .max(20, t('auth.register.validation.usernameMax'))
+      .regex(/^[a-zA-Z0-9_]+$/, t('auth.register.validation.onlyAlphanumericUnderscore')),
+    countryCode: z.string().min(1, t('auth.register.validation.countryRequired')),
     phoneNumber: z
       .string()
-      .min(8, 'El número debe tener al menos 8 dígitos')
-      .max(15, 'El número no puede exceder 15 dígitos')
-      .regex(/^[0-9]+$/, 'Solo se permiten números'),
-    email: z.string().email('Ingresa un correo válido'),
-    confirmEmail: z.string().email('Ingresa un correo válido'),
+      .min(8, t('auth.register.validation.phoneMin'))
+      .max(15, t('auth.register.validation.phoneMax'))
+      .regex(/^[0-9]+$/, t('auth.register.validation.onlyNumbers')),
+    dateOfBirth: z.string().optional(),
+    gender: z.string().nullable().optional(),
+    email: z.string().email(t('auth.register.validation.invalidEmail')),
+    confirmEmail: z.string().email(t('auth.register.validation.invalidEmail')),
     password: z
       .string()
-      .min(8, 'La contraseña debe tener al menos 8 caracteres')
-      .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
-      .regex(/[a-z]/, 'Debe contener al menos una minúscula')
-      .regex(/[0-9]/, 'Debe contener al menos un número')
-      .regex(/[^a-zA-Z0-9]/, 'Debe contener al menos un carácter especial'),
+      .min(8, t('auth.register.validation.passwordMin'))
+      .regex(/[A-Z]/, t('auth.register.validation.passwordUppercase'))
+      .regex(/[a-z]/, t('auth.register.validation.passwordLowercase'))
+      .regex(/[0-9]/, t('auth.register.validation.passwordNumber'))
+      .regex(/[^a-zA-Z0-9]/, t('auth.register.validation.passwordSpecial')),
     confirmPassword: z.string(),
     cargo_titulo: z
       .string()
-      .max(100, 'El cargo no puede exceder 100 caracteres')
+      .max(100, t('auth.register.validation.roleMax'))
       .optional(),
     acceptTerms: z.boolean().refine((val) => val === true, {
-      message: 'Debes aceptar los términos y condiciones',
+      message: t('auth.register.validation.acceptTermsRequired'),
     }),
   })
   .refine((data) => data.email === data.confirmEmail, {
-    message: 'Los correos no coinciden',
+    message: t('auth.register.validation.emailsDoNotMatch'),
     path: ['confirmEmail'],
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Las contraseñas no coinciden',
+    message: t('auth.register.validation.passwordsDoNotMatch'),
     path: ['confirmPassword'],
   });

@@ -29,6 +29,7 @@ export interface OrganizationRegisterFieldProps {
   onPaste?: ClipboardEventHandler<HTMLInputElement>
   rightAdornment?: JSX.Element | null
   helperText?: string
+  max?: string
 }
 
 export interface OrganizationRegisterIdentityFieldsProps {

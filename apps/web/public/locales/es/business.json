@@ -5,8 +5,7 @@
     "courses": "Cursos",
     "learningPaths": "Rutas",
     "teams": "Equipos",
-    "reports": "Reportes",
-    "analytics": "Analytics",
+    "reports": "Reportes y Analytics",
     "settings": "Configuración",
     "pinned": "Panel Fijado",
     "unpinned": "Panel Desfijado",
@@ -45,6 +44,8 @@
       "completed": "Completados",
       "avgProgress": "Progreso Promedio",
       "certificates": "Certificados",
+      "myAnalytics": "Mis estadísticas",
+      "viewAnalytics": "Ver",
       "engagement": "Engagement"
     },
     "greetings": {
@@ -64,8 +65,8 @@
         "desc": "Asigna talleres a usuarios"
       },
       "viewReports": {
-        "title": "Ver Reportes",
-        "desc": "Analytics y métricas"
+        "title": "Ver reportes y analytics",
+        "desc": "Abrir el nuevo panel unificado"
       },
       "settings": {
         "title": "Configuración",
@@ -114,6 +115,134 @@
     "restoreLayout": "Restablecer",
     "addWidget": "Agregar widget:"
   },
+  "analytics": {
+    "eyebrow": "Panel personal",
+    "title": "Mis estadísticas",
+    "subtitle": "Consulta tu avance, hábitos de estudio, adopción de SofLIA, calidad de actividades y conexión a la plataforma.",
+    "loading": "Cargando estadísticas...",
+    "ranges": {
+      "30d": "30 días",
+      "90d": "90 días",
+      "180d": "180 días",
+      "365d": "1 año"
+    },
+    "actions": {
+      "back": "Volver al dashboard",
+      "refresh": "Actualizar",
+      "retry": "Reintentar",
+      "generateFeedback": "Generar feedback IA",
+      "generatingFeedback": "Generando feedback..."
+    },
+    "errors": {
+      "title": "No se pudieron cargar tus estadísticas",
+      "load": "Error al obtener estadísticas",
+      "insights": "Error al generar feedback IA"
+    },
+    "metrics": {
+      "averageProgress": "Progreso promedio",
+      "assignedDetail": "{{completed}} de {{total}} cursos completados",
+      "aiAdoption": "Adopción de IA",
+      "aiDetail": "{{conversations}} conversaciones y {{messages}} mensajes",
+      "planning": "Planificación",
+      "planningDetail": "{{completed}} de {{planned}} sesiones completadas",
+      "quality": "Calidad global",
+      "evidenceDetail": "{{count}} señales analizadas"
+    },
+    "sections": {
+      "courseProgress": "Avance por curso",
+      "courseProgressSubtitle": "Comparación de tus cursos con mayor progreso.",
+      "learningSnapshot": "Resumen de aprendizaje",
+      "learningSnapshotSubtitle": "Indicadores operativos de tu avance.",
+      "aiAdoption": "Adopción de SofLIA",
+      "aiAdoptionSubtitle": "Uso, preguntas y señales de calidad conversacional.",
+      "quality": "Calidad de respuestas",
+      "qualitySubtitle": "Radar de cursos, actividades, SofLIA, notas y quizzes.",
+      "planning": "Planificación",
+      "notes": "Notas",
+      "activities": "Actividades",
+      "quizzes": "Quizzes y exámenes",
+      "feedback": "Feedback personalizado",
+      "feedbackSubtitle": "Genera una lectura IA y reutiliza el resultado durante 24 horas si los datos no cambian.",
+      "heatmap": "Mapa de actividad",
+      "heatmapSubtitle": "{{count}} interacciones registradas en el periodo"
+    },
+    "learning": {
+      "lessonsCompleted": "Lecciones completadas",
+      "timeSpent": "Tiempo de estudio",
+      "certificates": "Certificados"
+    },
+    "ai": {
+      "questions": "Mensajes con pregunta",
+      "questionQuality": "Calidad de preguntas",
+      "offTopic": "Fuera de tema",
+      "responseTime": "Respuesta media"
+    },
+    "chart": {
+      "messages": "Mensajes",
+      "lessons": "Lecciones"
+    },
+    "quality": {
+      "radar": {
+        "courses": "Cursos",
+        "activities": "Actividades",
+        "soflia": "SofLIA",
+        "notes": "Notas",
+        "quizzes": "Quizzes"
+      }
+    },
+    "planning": {
+      "completed": "Completadas",
+      "missed": "Perdidas",
+      "rescheduled": "Reprogramadas",
+      "actualMinutes": "Minutos reales"
+    },
+    "notes": {
+      "total": "Notas totales",
+      "adoption": "Adopción",
+      "manual": "Manuales",
+      "averageLength": "Longitud media"
+    },
+    "activities": {
+      "submissions": "Entregas",
+      "passRate": "Aprobación",
+      "quality": "Calidad",
+      "feedback": "Feedback SofLIA"
+    },
+    "quizzes": {
+      "attempts": "Intentos",
+      "passRate": "Aprobación",
+      "average": "Promedio",
+      "latest": "Último resultado"
+    },
+    "feedback": {
+      "empty": "Genera feedback cuando quieras una lectura personalizada de tu avance.",
+      "cached": "Resultado en caché",
+      "generated": "Resultado generado",
+      "strengths": "Fortalezas",
+      "opportunities": "Oportunidades",
+      "recommendations": "Recomendaciones"
+    },
+    "heatmap": {
+      "weekdays": {
+        "mon": "Lun",
+        "wed": "Mié",
+        "fri": "Vie"
+      },
+      "cellTitle": "{{date}}: {{count}} interacciones",
+      "less": "Menos",
+      "more": "Más",
+      "levelLabel": "Nivel {{level}}"
+    },
+    "values": {
+      "minutes": "{{value}} min",
+      "seconds": "{{value}} s"
+    },
+    "status": {
+      "completed": "Completado",
+      "in_progress": "En progreso",
+      "assigned": "Asignado"
+    }
+  },
   "users": {
     "title": "Usuarios",
     "subtitle": "Administra y gestiona los miembros de tu organización.",
@@ -140,7 +269,26 @@
       "createLink": "Crear Enlace"
     },
     "placeholders": {
-      "search": "Buscar por nombre, email o username..."
+      "search": "Buscar por nombre, email o username...",
+      "searchRequests": "Buscar solicitudes...",
+      "searchLinks": "Buscar enlaces...",
+      "searchInvitations": "Buscar invitaciones..."
+    },
+    "tabs": {
+      "invitations": "Individuales",
+      "links": "Enlaces"
+    },
+    "filters": {
+      "advanced": "Más filtros",
+      "allRegions": "Todas las regiones",
+      "allZones": "Todas las zonas",
+      "allTeams": "Todos los equipos",
+      "clear": "Limpiar filtros",
+      "results": "resultados"
+    },
+    "view": {
+      "cards": "Vista tarjetas",
+      "list": "Vista lista"
     },
     "roles": {
       "all": "Todos los roles",
@@ -174,7 +322,28 @@
       "noAccess": "Sin accesos",
       "resend": "Reenviar",
       "suspend": "Suspender",
-      "activate": "Activar"
+      "activate": "Activar",
+      "organizationRole": "Rol Organización",
+      "lastTime": "Última vez",
+      "manage": "Gestionar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewStats": "Ver estadísticas",
+      "resendInvite": "Reenviar Invitación",
+      "expires": "Expira",
+      "sent": "Enviada",
+      "revoke": "Revocar",
+      "uses": "Usos",
+      "remaining": "Libres",
+      "paused": "Pausado",
+      "expired": "Expirado",
+      "link": "Enlace",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "noEmail": "Sin correo",
+      "noMessage": "Sin mensaje",
+      "pending": "Pendiente",
+      "user": "Usuario"
     },
     "modals": {
       "add": {
@@ -236,6 +405,8 @@
           "email": "Correo electrónico",
           "password": "Mínimo 6 caracteres",
           "role": "member, admin u owner",
+          "dateOfBirth": "YYYY-MM-DD, opcional",
+          "gender": "female, male, non_binary, other o prefer_not_to_say",
           "required": "Requerido"
         }
       },
@@ -568,114 +739,6 @@
     "title": "Configuración",
     "subtitle": "Gestiona las configuraciones de tu organización"
   },
-  "analytics": {
-    "title": "Analytics",
-    "headerTitle": "Analytics y Rendimiento",
-    "subtitle": "Analíticas detalladas de comportamiento y rendimiento",
-    "headerSubtitle": "Resumen de métricas clave del equipo de trabajo. Monitorea el progreso y rendimiento.",
-    "center": "Centro de Analytics",
-    "loading": "Cargando analíticas...",
-    "noData": "No hay datos disponibles",
-    "retry": "Reintentar",
-    "tabs": {
-      "overview": "Visión General",
-      "users": "Lista de Usuarios",
-      "engagement": "Engagement & Comportamiento",
-      "teams": "Equipos"
-    },
-    "kpis": {
-      "totalUsers": "Total Usuarios",
-      "assignedCourses": "Cursos Asignados",
-      "completed": "Completados",
-      "avgProgress": "Progreso Promedio",
-      "totalTime": "Tiempo Total",
-      "certificates": "Certificados",
-      "activeUsers": "Usuarios Activos",
-      "retentionRate": "Tasa Retención"
-    },
-    "usersTable": {
-      "title": "Detalle de Usuarios",
-      "subtitle": "Rendimiento individual por empleado",
-      "columns": {
-        "user": "Usuario",
-        "role": "Rol",
-        "progress": "Progreso General",
-        "courses": "Cursos",
-        "time": "Tiempo",
-        "lastActivity": "Última Actividad"
-      },
-      "noUsers": "No se encontraron usuarios.",
-      "never": "Nunca",
-      "noName": "Sin nombre",
-      "student": "Estudiante",
-      "userDefault": "Usuario"
-    },
-    "teams": {
-      "totalTeams": "Total Equipos",
-      "bestProgress": "Mejor Progreso",
-      "totalMembers": "Total Miembros",
-      "totalLiaChats": "Total SofLIA Chats",
-      "progressComparison": "Comparativa de Progreso por Equipo",
-      "members": "miembros",
-      "noTeams": "No hay equipos registrados",
-      "noDescription": "Sin descripción",
-      "progress": "Progreso",
-      "time": "Tiempo",
-      "coursesCompleted": "Cursos Completados",
-      "totalChats": "Total Chats SofLIA",
-      "totalSofLIAChats": "Total Chats SofLIA"
-    },
-    "userDetail": {
-      "streak": "Racha",
-      "adherence": "Adherencia",
-      "totalTime": "Tiempo Total",
-      "tabs": {
-        "activity": "Actividad y Hábitos",
-        "planner": "Planificador de Estudio",
-        "courses": "Progreso de Cursos"
-      },
-      "history": "Historial de Actividad",
-      "last6Months": "(Últimos 6 meses)",
-      "less": "Menos",
-      "more": "Más",
-      "days": "días"
-    },
-    "engagement": {
-      "title": "Engagement de Usuarios",
-      "subtitle": "Análisis detallado de comportamiento y retención (Datos basados en actividad reciente)",
-      "stickiness": {
-        "title": "Stickiness Ratio (DAU/MAU)",
-        "dau": "Usuarios Diarios (DAU)",
-        "mau": "Usuarios Mensuales (MAU)",
-        "ratio": "Ratio de Retención",
-        "noData": "No hay suficientes datos de actividad reciente"
-      },
-      "frequency": {
-        "title": "Frecuencia de Sesiones (Mensual)",
-        "users": "Usuarios",
-        "noData": "No hay datos de frecuencia disponibles"
-      },
-      "streaks": {
-        "title": "Rachas de Aprendizaje",
-        "inARow": "seguidos",
-        "users": "usuarios"
-      },
-      "heatmap": {
-        "title": "Mapa de Calor (Día x Hora)",
-        "day": "Día",
-        "hour": "Hora",
-        "activity": "Actividad",
-        "noData": "No hay datos suficientes de actividad para el mapa de calor"
-      },
-      "duration": {
-        "title": "Duración Promedio de Sesiones por Rol",
-        "median": "Mediana (min)",
-        "max": "Máximo (min)",
-        "noData": "No hay datos de duración de sesiones",
-        "note": "* Muestra la mediana y el máximo de minutos por lección completada o sesión activa"
-      }
-    }
-  },
   "progress": {
     "title": "Progreso del Equipo",
     "subtitle": "Visualiza y analiza el avance de aprendizaje"
@@ -943,147 +1006,6 @@
       "cancel": "Cancelar"
     }
   },
-  "reports": {
-    "title": "Reportes y Análisis",
-    "subtitle": "Centro de Reportes",
-    "description": "Genera reportes detallados de usuarios, actividad y certificados. Exporta los datos en formato Excel para un análisis más profundo.",
-    "liaAnalysis": {
-      "title": "Análisis Predictivo SofLIA",
-      "subtitle": "Reporte ejecutivo generado con Inteligencia Artificial",
-      "generatedBy": "Generado por SOFLIA AI Engine",
-      "pdfHeader": "Reporte SofLIA",
-      "pdfSubheader": "Análisis Predictivo & Inteligencia Artificial",
-      "organization": "Organización:",
-      "generatedByLabel": "Generado por:",
-      "systemName": "Sistema SOFLIA",
-      "issueDate": "Fecha de Emisión:",
-      "confidential": "Confidencial - Uso exclusivo de"
-    },
-    "types": {
-      "liaAnalysis": {
-        "label": "Análisis SofLIA",
-        "description": "Análisis predictivo con IA"
-      },
-      "users": {
-        "label": "Usuarios",
-        "description": "Información detallada de usuarios"
-      },
-      "activity": {
-        "label": "Actividad",
-        "description": "Seguimiento de actividad reciente"
-      },
-      "certificates": {
-        "label": "Certificados",
-        "description": "Certificados emitidos"
-      }
-    },
-    "actions": {
-      "filters": "Filtros",
-      "update": "Actualizar",
-      "generating": "Generando...",
-      "downloadPdf": "Descargar PDF",
-      "exportExcel": "Exportar Excel",
-      "applyFilters": "Aplicar Filtros",
-      "clear": "Limpiar"
-    },
-    "filters": {
-      "title": "Filtros de Fecha y Estado",
-      "startDate": "Fecha Inicio",
-      "endDate": "Fecha Fin",
-      "role": "Rol",
-      "selectRole": "Seleccionar rol...",
-      "status": "Estado",
-      "selectStatus": "Seleccionar estado..."
-    },
-    "status": {
-      "all": "Todos",
-      "owner": "Owner",
-      "admin": "Admin",
-      "member": "Miembro",
-      "active": "Activo",
-      "invited": "Invitado",
-      "suspended": "Suspendido",
-      "completed": "Completado",
-      "inactive": "Inactivo",
-      "actives": "Activos",
-      "invitedPlural": "Invitados",
-      "suspendedPlural": "Suspendidos",
-      "completedPlural": "Completados",
-      "inactives": "Inactivos"
-    },
-    "export": {
-      "noData": "No hay datos para exportar.",
-      "error": "Error al exportar el reporte."
-    },
-    "messages": {
-      "loading": "Generando reporte...",
-      "unavailable": "Tipo de reporte no disponible",
-      "unspecified": "Sin especificar",
-      "value": "Valor"
-    },
-    "usersReport": {
-      "columns": {
-        "username": "Username",
-        "email": "Email",
-        "name": "Nombre",
-        "role": "Cargo",
-        "status": "Estado",
-        "joinedAt": "Ingreso"
-      },
-      "stats": {
-        "totalUsers": "Total Usuarios",
-        "activeUsers": "Usuarios Activos",
-        "differentRoles": "Cargos Diferentes"
-      },
-      "charts": {
-        "roleDistribution": "Distribución por Rol",
-        "statusDistribution": "Distribución por Estado"
-      }
-    },
-    "activityReport": {
-      "columns": {
-        "user": "Usuario",
-        "course": "Curso",
-        "status": "Estado",
-        "enrolledAt": "Inscripción",
-        "lastAccess": "Último Acceso"
-      },
-      "stats": {
-        "totalActivities": "Total Actividades",
-        "users": "Usuarios",
-        "actives": "Activos",
-        "completed": "Completados"
-      },
-      "charts": {
-        "status": "Estado de Actividades"
-      }
-    },
-    "certificatesReport": {
-      "courseFallback": "Curso",
-      "columns": {
-        "user": "Usuario",
-        "course": "Curso",
-        "category": "Categoría",
-        "issuedAt": "Fecha Emisión",
-        "view": "Ver"
-      },
-      "stats": {
-        "totalCertificates": "Total Certificados",
-        "certifiedUsers": "Usuarios Certificados",
-        "averagePerUser": "Promedio por Usuario"
-      },
-      "charts": {
-        "byCourse": "Certificados por Curso"
-      }
-    },
-    "liaMetrics": {
-      "totalUsers": "Total Usuarios",
-      "activeCourses": "Cursos Activos",
-      "certificates": "Certificados",
-      "recentActivity": "Actividad Reciente",
-      "last6Months": "Interacciones últimos 6 meses"
-    }
-  },
   "hierarchy": {
     "errorCreateStructure": "Error al crear estructura",
     "errorEnable": "Error al activar jerarquía",
@@ -1234,7 +1156,26 @@
       "revokeSuccess": "Asignacion revocada correctamente",
       "revokeError": "No se pudo revocar la asignacion"
     },
-    "unnamedUser": "Usuario sin nombre"
+    "unnamedUser": "Usuario sin nombre",
+    "introVideos": {
+      "manageVideos": "Gestionar videos",
+      "modalTitle": "Videos introductorios",
+      "lpVideoTitle": "Video del learning path",
+      "coursesSectionTitle": "Videos por curso",
+      "upload": "Subir video",
+      "uploading": "Subiendo...",
+      "delete": "Eliminar video",
+      "deleting": "Eliminando...",
+      "noVideo": "Sin video configurado. Haz clic para subir.",
+      "uploadSuccess": "Video guardado correctamente",
+      "deleteSuccess": "Video eliminado",
+      "errorUpload": "Error al subir el video. Intenta de nuevo.",
+      "errorDelete": "Error al eliminar el video. Intenta de nuevo.",
+      "errorLoad": "Error al cargar los videos existentes.",
+      "errorFileTooLarge": "El archivo excede el límite de 500 MB",
+      "unnamedCourse": "Curso sin título",
+      "close": "Cerrar"
+    }
   },
   "assignLearningPath": {
     "title": "Asignar ruta de aprendizaje",
@@ -1283,5 +1224,214 @@
   },
   "chat": {
     "confirmDeleteMessage": "¿Eliminar este mensaje?"
+  },
+  "reportsAnalytics": {
+    "eyebrow": "Centro de inteligencia RRHH",
+    "title": "Reportes y Analytics",
+    "description": "Analiza demografía, progreso de aprendizaje, actividad en SofLIA, uso de notas, respuestas de actividades y cumplimiento de planificación en un solo panel.",
+    "actions": {
+      "exportCsv": "Descargar CSV",
+      "exportExcel": "Descargar Excel",
+      "exportPdf": "Descargar PDF",
+      "exportInsightsPdf": "Exportar análisis PDF",
+      "generateInsights": "Analizar con IA",
+      "refresh": "Actualizar",
+      "reset": "Restablecer"
+    },
+    "filters": {
+      "from": "Desde",
+      "to": "Hasta",
+      "course": "Curso",
+      "jobTitle": "Puesto",
+      "gender": "Género",
+      "ageBand": "Edad",
+      "role": "Rol",
+      "status": "Estado",
+      "region": "Región",
+      "zone": "Zona",
+      "team": "Área/Equipo",
+      "granularity": "Agrupar por",
+      "allCourses": "Todos los cursos",
+      "allJobTitles": "Todos los puestos",
+      "allGenders": "Todos los géneros",
+      "allAgeBands": "Todas las edades",
+      "allRoles": "Todos los roles",
+      "allStatuses": "Todos los estados",
+      "allRegions": "Todas las regiones",
+      "allZones": "Todas las zonas",
+      "allTeams": "Todas las áreas/equipos"
+    },
+    "granularity": {
+      "day": "Día",
+      "month": "Mes",
+      "year": "Año"
+    },
+    "states": {
+      "loadingTitle": "Calculando analytics",
+      "loadingDescription": "Procesando aprendizaje, SofLIA, notas, actividades y planificación.",
+      "errorTitle": "No se pudo cargar Analytics",
+      "errorDescription": "Intenta actualizar o ajustar los filtros.",
+      "emptyChart": "Sin datos para este periodo"
+    },
+    "overview": {
+      "activeLearners": "Usuarios activos",
+      "averageProgress": "Progreso promedio",
+      "completionRate": "Finalización",
+      "qualityScore": "Calidad",
+      "sofliaAdoptionRate": "Adopción SofLIA",
+      "plannerAdherenceRate": "Planificación",
+      "overdueAssignments": "Vencidos"
+    },
+    "sections": {
+      "demographics": "Edad de usuarios",
+      "demographicsSubtitle": "Distribución por rangos de edad para análisis de RRHH.",
+      "gender": "Género",
+      "genderSubtitle": "Distribución demográfica declarada por los usuarios.",
+      "progress": "Progreso de aprendizaje",
+      "progressSubtitle": "Usuarios agrupados por avance promedio.",
+      "learningTrend": "Finalizaciones en el tiempo",
+      "learningTrendSubtitle": "Cursos terminados por los usuarios, agrupados por día, mes o año.",
+      "jobTitles": "Puestos y cargos",
+      "jobTitlesSubtitle": "Distribución de usuarios por puesto reportado por RRHH.",
+      "sofliaTrend": "Uso de SofLIA",
+      "sofliaTrendSubtitle": "Conversaciones iniciadas durante el periodo.",
+      "soflia": "Interacción con SofLIA",
+      "activities": "Actividades y evaluaciones",
+      "notesPlanner": "Notas y planificación",
+      "aiInsights": "Análisis SofLIA",
+      "aiInsightsSubtitle": "Reporte profundo con métricas filtradas, calidad de respuestas, adopción, riesgos y acciones recomendadas.",
+      "loginHeatmap": "Mapa de calor de conexión",
+      "loginHeatmapSubtitle": "Última conexión registrada por día; mide la señal más reciente disponible por usuario.",
+      "responseQuality": "Calidad de respuestas",
+      "segmentComparison": "Comparativa por segmentos",
+      "segmentComparisonSubtitle": "Edad, género, puesto y rol cruzados con avance, adopción y calidad.",
+      "hierarchyLeaderboard": "Cuadro de honor por jerarquía",
+      "hierarchyLeaderboardSubtitle": "Mejores regiones, zonas y áreas/equipos por progreso, IA, notas y calidad.",
+      "userLeaderboard": "Mejores usuarios",
+      "userLeaderboardSubtitle": "Ranking general de usuarios dentro de los filtros actuales.",
+      "courseRisk": "Cursos con mayor riesgo operativo",
+      "courseRiskSubtitle": "Ordenados por vencimientos y señales de avance.",
+      "dataQuality": "Calidad de datos",
+      "missingFields": "Campos demográficos faltantes",
+      "missingFieldsSubtitle": "Datos que RRHH debe completar para mejorar la lectura estadística."
+    },
+    "metrics": {
+      "totalConversations": "Conversaciones",
+      "totalMessages": "Mensajes",
+      "averageMessagesPerConversation": "Mensajes por conversación",
+      "sofliaCompletionRate": "Conversaciones completadas",
+      "totalActivities": "Actividades",
+      "completedActivities": "Actividades completadas",
+      "totalEvaluations": "Evaluaciones respondidas",
+      "evaluationCompletionRate": "Aprobación de evaluaciones",
+      "activityCompletionRate": "Actividades completadas",
+      "quizAverageScore": "Promedio de evaluaciones",
+      "usersNeedingHelp": "Usuarios con ayuda",
+      "totalNotes": "Notas creadas",
+      "notesAdoptionRate": "Adopción de notas",
+      "plannedSessions": "Sesiones planificadas",
+      "plannerAdherenceRate": "Cumplimiento",
+      "demographicsCompletionRate": "Demografía completa",
+      "usersWithCompleteDemographics": "Usuarios completos",
+      "usersMissingDemographics": "Usuarios incompletos",
+      "qualityScore": "Score de calidad",
+      "quizScore": "Calidad de evaluaciones",
+      "activityScore": "Calidad de actividades",
+      "sofliaScore": "Calidad en SofLIA",
+      "offTopicRate": "Fuera de tema",
+      "helpRate": "Ayuda requerida"
+    },
+    "chart": {
+      "completedCourses": "Cursos finalizados",
+      "conversations": "Conversaciones",
+      "missingUsers": "usuarios pendientes",
+      "less": "Menos",
+      "more": "Más",
+      "lastConnections": "últimas conexiones"
+    },
+    "table": {
+      "course": "Curso",
+      "assigned": "Asignados",
+      "active": "Activos",
+      "completed": "Completados",
+      "progress": "Progreso",
+      "completion": "Finalización",
+      "overdue": "Vencidos",
+      "soflia": "SofLIA",
+      "segment": "Segmento",
+      "users": "Usuarios",
+      "days": "Días",
+      "notes": "Notas",
+      "quality": "Calidad",
+      "rank": "#",
+      "type": "Tipo",
+      "name": "Nombre",
+      "score": "Score",
+      "user": "Usuario",
+      "team": "Área"
+    },
+    "hierarchy": {
+      "region": "Región",
+      "zone": "Zona",
+      "team": "Área/Equipo"
+    },
+    "weekdays": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "ai": {
+      "empty": "Genera un análisis IA para interpretar los datos filtrados.",
+      "model": "Modelo",
+      "risks": "Riesgos",
+      "recommendations": "Recomendaciones"
+    },
+    "gender": {
+      "female": "Mujer",
+      "male": "Hombre",
+      "non_binary": "No binario",
+      "other": "Otro",
+      "prefer_not_to_say": "Prefiero no decirlo",
+      "unspecified": "No especificado"
+    },
+    "ageBands": {
+      "under_18": "Menor de 18",
+      "18_24": "18-24",
+      "25_34": "25-34",
+      "35_44": "35-44",
+      "45_54": "45-54",
+      "55_plus": "55+",
+      "unspecified": "No especificado"
+    },
+    "progressBands": {
+      "not_started": "Sin iniciar",
+      "low": "1-25%",
+      "medium": "26-50%",
+      "high": "51-75%",
+      "almost_done": "76-99%",
+      "completed": "100%"
+    },
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "member": "Miembro",
+      "unspecified": "No especificado"
+    },
+    "statuses": {
+      "active": "Activo",
+      "invited": "Invitado",
+      "suspended": "Suspendido",
+      "removed": "Eliminado",
+      "unspecified": "No especificado"
+    },
+    "missingFields": {
+      "date_of_birth": "Fecha de nacimiento",
+      "gender": "Género",
+      "job_title": "Puesto"
+    }
   }
 }

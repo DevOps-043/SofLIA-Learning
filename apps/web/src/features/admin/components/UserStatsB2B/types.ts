@@ -40,6 +40,9 @@ export interface UserDetail {
   email: string
   displayName: string | null
   profilePictureUrl: string | null
+  dateOfBirth: string | null
+  gender: string | null
+  age: number | null
   organization: string | null
   orgRole: string | null
   coursesEnrolled: number

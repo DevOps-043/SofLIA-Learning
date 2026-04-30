@@ -17,7 +17,14 @@ import {
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
-import type { BusinessUser } from '../../services/businessUsers.service'
+import type {
+  BusinessUser,
+  UpdateBusinessUserRequest,
+} from '../../services/businessUsers.service'
+import {
+  USER_GENDER_VALUES,
+  type UserGender,
+} from '../../../../lib/schemas/user-demographics.schema'
 
 interface UserFormData {
   id: string
@@ -29,6 +36,8 @@ interface UserFormData {
   phone: string
   location: string
   bio: string
+  date_of_birth: string
+  gender: UserGender | ''
   job_title: string
   org_role: 'owner' | 'admin' | 'member'
   org_status: 'active' | 'invited' | 'suspended' | 'removed'
@@ -39,7 +48,7 @@ interface BusinessEditUserModalProps {
   isOpen: boolean
   onClose: () => void
   user: BusinessUser | null
-  onSave: (id: string, data: Partial<UserFormData>) => Promise<void>
+  onSave: (id: string, data: UpdateBusinessUserRequest) => Promise<void>
 }
 
 export function BusinessEditUserModal({
@@ -49,6 +58,7 @@ export function BusinessEditUserModal({
   onSave,
 }: BusinessEditUserModalProps) {
   const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const theme = useBusinessPanelTheme()
 
   const [formData, setFormData] = useState<Partial<UserFormData>>({})
@@ -68,6 +78,8 @@ export function BusinessEditUserModal({
       phone: user.phone || '',
       location: user.location || '',
       bio: user.bio || '',
+      date_of_birth: user.date_of_birth || '',
+      gender: user.gender || '',
       job_title: user.job_title || '',
       org_role: user.org_role || 'member',
       org_status: user.org_status || 'active',
@@ -84,6 +96,7 @@ export function BusinessEditUserModal({
   const inputBg = theme.inputBg
   const surfaceColor = theme.panelBg
   const onPrimaryColor = theme.onPrimaryColor
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -100,7 +113,11 @@ export function BusinessEditUserModal({
     setError(null)
 
     try {
-      await onSave(user.id, formData)
+      await onSave(user.id, {
+        ...formData,
+        date_of_birth: formData.date_of_birth || null,
+        gender: formData.gender || null,
+      })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error.')
@@ -267,6 +284,33 @@ export function BusinessEditUserModal({
                       placeholder="Pequeña biografía..."
                       style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                     />
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <input
+                        className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium"
+                        name="date_of_birth"
+                        value={formData.date_of_birth || ''}
+                        onChange={handleChange}
+                        type="date"
+                        max={maxDateOfBirth}
+                        aria-label={tc('demographics.dateOfBirth')}
+                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                      />
+                      <select
+                        className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium"
+                        name="gender"
+                        value={formData.gender || ''}
+                        onChange={handleChange}
+                        aria-label={tc('demographics.gender.label')}
+                        style={{ backgroundColor: inputBg, borderColor, color: textColor }}
+                      >
+                        <option value="">{tc('demographics.gender.placeholder')}</option>
+                        {USER_GENDER_VALUES.map((gender) => (
+                          <option key={gender} value={gender}>
+                            {tc(`demographics.gender.options.${gender}`)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                   <div className="space-y-6">
                     <label

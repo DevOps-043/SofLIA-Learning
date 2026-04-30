@@ -7,7 +7,7 @@ import type { StyleConfig } from '../../../../../features/business-panel/context
 
 interface ModernStatsCardProps {
   label: string
-  value: number
+  value: number | string
   icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>
   color: string
   index: number

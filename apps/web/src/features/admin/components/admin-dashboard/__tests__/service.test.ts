@@ -21,11 +21,17 @@ describe('admin-dashboard service', () => {
         card_background: '#FFFFFF',
       })
     ).toEqual({
+      accent: '#00D4B3',
       background: '#FAFAFA',
       borderColor: '#E2E8F0',
       cardBackground: '#FFFFFF',
       inputBg: '#F1F5F9',
-      textPrimary: '#1E293B',
+      inverseSubtext: 'rgba(255,255,255,0.72)',
+      inverseText: '#FFFFFF',
+      isLightMode: true,
+      primary: '#0A2540',
+      secondary: '#3B82F6',
+      textPrimary: '#0F172A',
       textSecondary: '#64748B',
     })
   })

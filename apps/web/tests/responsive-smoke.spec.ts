@@ -10,7 +10,7 @@ const viewports = [
   { name: 'desktop-1536', width: 1536, height: 864 },
 ] as const
 
-type TableMode = 'report' | 'analytics-users' | 'generic' | null
+type TableMode = 'generic' | null
 
 const scenarios: Array<{
   id: string
@@ -44,18 +44,18 @@ const scenarios: Array<{
   {
     id: 'business-dashboard',
     path: '/responsive-smoke/business-dashboard',
-    tableMode: 'report',
+    tableMode: 'generic',
   },
   {
-    id: 'business-reports',
-    path: '/responsive-smoke/business-reports',
-    tableMode: 'report',
+    id: 'business-unified-panel',
+    path: '/responsive-smoke/business-unified-panel',
+    tableMode: 'generic',
   },
   {
     id: 'business-users-modal',
     path: '/responsive-smoke/business-users-modal',
     modalTestId: 'business-add-user-modal-panel',
-    tableMode: 'analytics-users',
+    tableMode: 'generic',
   },
   {
     id: 'instructor-course-management',
@@ -113,32 +113,6 @@ for (const viewport of viewports) {
         const modalBox = await modal.boundingBox()
         expect(modalBox?.width ?? 0).toBeLessThanOrEqual(viewport.width + 1)
         expect(modalBox?.height ?? 0).toBeLessThanOrEqual(viewport.height + 1)
-      }
-
-      if (scenario.tableMode === 'report') {
-        const desktop = page.getByTestId('report-table-desktop')
-        const mobile = page.getByTestId('report-table-mobile')
-
-        if (viewport.width < 768) {
-          await expect(mobile).toBeVisible()
-          await expect(desktop).not.toBeVisible()
-        } else {
-          await expect(desktop).toBeVisible()
-          await expect(mobile).not.toBeVisible()
-        }
-      }
-
-      if (scenario.tableMode === 'analytics-users') {
-        const desktop = page.getByTestId('business-analytics-users-desktop')
-        const mobile = page.getByTestId('business-analytics-users-mobile')
-
-        if (viewport.width < 768) {
-          await expect(mobile).toBeVisible()
-          await expect(desktop).not.toBeVisible()
-        } else {
-          await expect(desktop).toBeVisible()
-          await expect(mobile).not.toBeVisible()
-        }
       }
 
       if (scenario.tableMode === 'generic') {

@@ -171,7 +171,8 @@
     }
   },
   "layout": {
-    "panelTitle": "Administration Panel"
+    "panelTitle": "Administration Panel",
+    "loading": "Loading..."
   },
   "pendingCourseDetail": {
     "backToPending": "Back to pending",
@@ -313,7 +314,18 @@
   "dashboard": {
     "confirmResetLayout": "Are you sure you want to reset the default layout?",
     "customizeLayout": "Customize Layout",
-    "restoreLayout": "Restore"
+    "restoreLayout": "Restore",
+    "heroEyebrow": "Control Panel",
+    "heroSubtitle": "Manage your AI learning platform and supervise the system.",
+    "statsTitle": "General Statistics",
+    "statsSubtitle": "Key platform metrics",
+    "statsError": "Error loading statistics: {{error}}",
+    "quickActionsTitle": "Quick Access",
+    "quickActionsSubtitle": "Direct access",
+    "activityTitle": "Recent Activity",
+    "activitySubtitle": "Latest platform actions",
+    "activityEmpty": "No recent activity",
+    "activityBy": "by"
   },
   "learningPathsPage": {
     "badge": "Learning paths",

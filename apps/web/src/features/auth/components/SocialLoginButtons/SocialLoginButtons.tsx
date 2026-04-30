@@ -2,6 +2,7 @@
 
 import type { ComponentProps, JSX } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { GoogleLoginButton } from '../GoogleLoginButton/GoogleLoginButton';
 import { MicrosoftLoginButton } from '../MicrosoftLoginButton/MicrosoftLoginButton';
@@ -29,6 +30,7 @@ export function SocialLoginButtons({
   bulkInviteToken,
   showLoginLink = false
 }: SocialLoginButtonsProps) {
+  const { t } = useTranslation('common');
   const hasAnyProvider = googleEnabled || microsoftEnabled;
 
   return (
@@ -41,7 +43,7 @@ export function SocialLoginButtons({
           </div>
           <div className="relative flex justify-center">
             <span className="px-4 text-xs font-medium text-gray-500 dark:text-white/60 bg-white dark:bg-transparent">
-              O continuar con
+              {t('auth.social.divider')}
             </span>
           </div>
         </div>
@@ -91,7 +93,7 @@ export function SocialLoginButtons({
           transition={{ delay: 0.2, duration: 0.5 }}
         >
           <p className="text-sm text-gray-600 dark:text-white/70">
-            ¿Ya tienes cuenta?{' '}
+            {t('auth.social.hasAccount')}{' '}
             <SafeLink
               href={`/auth/${organizationSlug}${
                 invitationToken 
@@ -102,7 +104,7 @@ export function SocialLoginButtons({
               }`}
               className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             >
-              Iniciar sesión
+              {t('auth.social.login')}
             </SafeLink>
           </p>
         </motion.div>

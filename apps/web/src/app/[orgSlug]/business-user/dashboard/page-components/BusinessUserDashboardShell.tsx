@@ -68,6 +68,7 @@ interface BusinessUserDashboardShellProps {
   handleProfileClick: () => void
   handleLogout: () => void
   handleCertificatesClick: () => void
+  handleAnalyticsClick: () => void
   handleCourseClick: (course: AssignedCourse, action?: 'start' | 'continue' | 'certificate') => void
   handleLearningPathCourseClick: (slug: string | null | undefined) => void
   showVideoIntro: boolean
@@ -99,6 +100,7 @@ export function BusinessUserDashboardShell({
   handleProfileClick,
   handleLogout,
   handleCertificatesClick,
+  handleAnalyticsClick,
   handleCourseClick,
   handleLearningPathCourseClick,
   showVideoIntro,
@@ -191,6 +193,9 @@ export function BusinessUserDashboardShell({
           styles={userDashboardStyles}
           onRestartTour={restartTour}
           disableHeavyEffects={disableHeavyEffects}
+          onCertificatesClick={stats.certificates > 0 ? handleCertificatesClick : undefined}
+          onAnalyticsClick={handleAnalyticsClick}
+          certificatesCount={stats.certificates}
         />
       </Suspense>
 
@@ -323,9 +328,10 @@ export function BusinessUserDashboardShell({
             </motion.div>
           </div>
 
+          {/* Stats section moved to user dropdown menu */}
           <div
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statsSection}
-            className="scroll-mt-32 relative"
+            className="scroll-mt-32 relative hidden"
           >
             <section className="mb-6 md:mb-10">
               <motion.div
@@ -364,7 +370,7 @@ export function BusinessUserDashboardShell({
               </motion.div>
 
               <div className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 lg:gap-6">
                 <Suspense
                   fallback={
                     <>
@@ -382,7 +388,8 @@ export function BusinessUserDashboardShell({
                   }
                 >
                   {myStats.map((stat, index) => {
-                    const isCertificates = stat.label === 'Certificados'
+                    const isCertificates = stat.kind === 'certificates'
+                    const isAnalytics = stat.kind === 'analytics'
                     return (
                       <ModernStatsCard
                         key={stat.label}
@@ -391,8 +398,14 @@ export function BusinessUserDashboardShell({
                         icon={stat.icon}
                         color={stat.color}
                         index={index}
-                        onClick={isCertificates && stats.certificates > 0 ? handleCertificatesClick : undefined}
-                        isClickable={isCertificates && stats.certificates > 0}
+                        onClick={
+                          isCertificates && stats.certificates > 0
+                            ? handleCertificatesClick
+                            : isAnalytics
+                              ? handleAnalyticsClick
+                              : undefined
+                        }
+                        isClickable={(isCertificates && stats.certificates > 0) || isAnalytics}
                         styles={userDashboardStyles}
                         disableHeavyEffects={disableHeavyEffects}
                         id={
@@ -400,6 +413,8 @@ export function BusinessUserDashboardShell({
                             ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCourses
                             : index === 3
                               ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statCertificates
+                              : isAnalytics
+                                ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.statAnalytics
                               : undefined
                         }
                       />
@@ -440,7 +455,11 @@ export function BusinessUserDashboardShell({
               </div>
 
               {assignedCourses.length > 0 && (
-                <div className="flex items-center p-1 rounded-lg border shrink-0" style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}>
+                <div
+                  id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}
+                  className="flex items-center p-1 rounded-lg border shrink-0"
+                  style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}
+                >
                   <button
                     onClick={() => setCourseView('grid')}
                     className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
@@ -472,6 +491,7 @@ export function BusinessUserDashboardShell({
               <LearningPathView
                 learningPaths={learningPaths}
                 orgColors={orgColors}
+                orgSlug={orgSlug ?? ''}
                 onOpenCourse={handleLearningPathCourseClick}
                 t={t}
               />

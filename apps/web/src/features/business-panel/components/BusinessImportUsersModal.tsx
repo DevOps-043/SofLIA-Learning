@@ -483,6 +483,8 @@ export function BusinessImportUsersModal({ isOpen, onClose, onImportComplete }: 
                             { field: 'password', desc: t('users.modals.import.format.password'), required: true },
                             { field: 'job_title', desc: 'Cargo/Puesto', required: true },
                             { field: 'org_role', desc: t('users.modals.import.format.role'), required: false },
+                            { field: 'date_of_birth', desc: t('users.modals.import.format.dateOfBirth'), required: false },
+                            { field: 'gender', desc: t('users.modals.import.format.gender'), required: false },
                           ].map((item) => (
                             <div key={item.field} className="flex items-center justify-between text-sm">
                               <div className="flex items-center gap-2">

@@ -36,6 +36,8 @@ type UseCourseLearnJoyrideOptions = {
   pauseVideoPlayback?: () => void;
   clearPendingAutoPlay?: () => void;
   mobilePerformanceMode?: boolean;
+  /** Si se proporciona, el botón de restart del tour mostrará primero el intro video antes de lanzar el Joyride */
+  restartWithIntroVideos?: (afterFn: () => void) => void;
 };
 
 function waitForLayoutSync(): Promise<void> {
@@ -81,6 +83,7 @@ export function useCourseLearnJoyride({
   pauseVideoPlayback,
   clearPendingAutoPlay,
   mobilePerformanceMode = false,
+  restartWithIntroVideos,
 }: UseCourseLearnJoyrideOptions) {
   const { t } = useTranslation('learn');
   const translate = useMemo<CourseLearnJoyrideTranslator>(
@@ -184,8 +187,12 @@ export function useCourseLearnJoyride({
   }, [enabled, isLoading, launchTour, mobilePerformanceMode, shouldShowTour]);
 
   const restartTour = useCallback(() => {
-    void launchTour();
-  }, [launchTour]);
+    if (restartWithIntroVideos) {
+      restartWithIntroVideos(() => void launchTour());
+    } else {
+      void launchTour();
+    }
+  }, [launchTour, restartWithIntroVideos]);
 
   useEffect(() => {
     if (!enabled) {

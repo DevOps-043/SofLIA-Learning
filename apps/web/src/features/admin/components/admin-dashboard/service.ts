@@ -15,19 +15,30 @@ const DEFAULT_LIGHT_BACKGROUND = '#F8FAFC'
 const DEFAULT_LIGHT_CARD = '#FFFFFF'
 const DEFAULT_DARK_BACKGROUND = '#0F1419'
 const DEFAULT_DARK_CARD = '#1E2329'
+const DEFAULT_PRIMARY = '#0A2540'
+const DEFAULT_ACCENT = '#00D4B3'
+const DEFAULT_SECONDARY = '#3B82F6'
+const DEFAULT_SUCCESS = '#10B981'
+const DEFAULT_WARNING = '#F59E0B'
+const DEFAULT_PURPLE = '#8B5CF6'
 
 export function buildAdminDashboardThemeColors(
   isLightTheme: boolean,
   panelStyles?: AdminDashboardPanelStyles | null
 ): AdminDashboardThemeColors {
+  const primary = panelStyles?.primary_button_color || DEFAULT_PRIMARY
+  const accent = panelStyles?.accent_color || DEFAULT_ACCENT
+  const secondary = panelStyles?.secondary_button_color || DEFAULT_SECONDARY
+
   return {
+    accent,
     background: isLightTheme
       ? panelStyles?.background_value &&
         panelStyles.background_value !== DEFAULT_DARK_BACKGROUND
         ? panelStyles.background_value
         : DEFAULT_LIGHT_BACKGROUND
       : DEFAULT_DARK_BACKGROUND,
-    borderColor: isLightTheme ? '#E2E8F0' : '#6C757D',
+    borderColor: isLightTheme ? '#E2E8F0' : 'rgba(255,255,255,0.06)',
     cardBackground: isLightTheme
       ? panelStyles?.card_background &&
         panelStyles.card_background !== DEFAULT_DARK_CARD
@@ -35,8 +46,13 @@ export function buildAdminDashboardThemeColors(
         : DEFAULT_LIGHT_CARD
       : DEFAULT_DARK_CARD,
     inputBg: isLightTheme ? '#F1F5F9' : DEFAULT_DARK_CARD,
-    textPrimary: isLightTheme ? '#1E293B' : '#FFFFFF',
-    textSecondary: isLightTheme ? '#64748B' : '#6C757D',
+    inverseSubtext: 'rgba(255,255,255,0.72)',
+    inverseText: '#FFFFFF',
+    isLightMode: isLightTheme,
+    primary,
+    secondary,
+    textPrimary: isLightTheme ? '#0F172A' : '#FFFFFF',
+    textSecondary: isLightTheme ? '#64748B' : '#858E9B',
   }
 }
 
@@ -86,33 +102,33 @@ export function buildAdminDashboardStatsData(
   return [
     {
       change: stats.userGrowth,
-      gradient: 'bg-gradient-to-br from-[#0A2540] to-[#0A2540]/80',
       href: '/admin/users',
       iconKey: 'users',
+      iconColor: DEFAULT_PRIMARY,
       title: 'Usuarios Totales',
       value: stats.totalUsers,
     },
     {
       change: stats.courseGrowth,
-      gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
       href: '/admin/workshops',
       iconKey: 'courses',
+      iconColor: DEFAULT_SUCCESS,
       title: 'Cursos Activos',
       value: stats.activeCourses,
     },
     {
       change: stats.organizationGrowth || 0,
-      gradient: 'bg-gradient-to-br from-[#00D4B3] to-[#00D4B3]/80',
       href: '/admin/companies',
       iconKey: 'organizations',
+      iconColor: DEFAULT_ACCENT,
       title: 'Empresas Activas',
       value: stats.totalOrganizations || 0,
     },
     {
       change: stats.engagementGrowth,
-      gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
+      iconColor: DEFAULT_PURPLE,
       title: 'Engagement',
       value: `${stats.engagementRate}%`,
     },
@@ -122,35 +138,35 @@ export function buildAdminDashboardStatsData(
 export function getAdminDashboardQuickActions(): AdminDashboardQuickActionItem[] {
   return [
     {
-      color: 'bg-[#10B981]',
+      color: DEFAULT_SUCCESS,
       description: 'Anade un nuevo taller a la plataforma',
       href: '/admin/workshops/new',
       iconKey: 'courses',
       title: 'Crear Nuevo Curso',
     },
     {
-      color: 'bg-[#0A2540]',
+      color: DEFAULT_PRIMARY,
       description: 'Administra permisos y roles',
       href: '/admin/users',
       iconKey: 'users',
       title: 'Gestionar Usuarios',
     },
     {
-      color: 'bg-[#00D4B3]',
+      color: DEFAULT_ACCENT,
       description: 'Administra organizaciones B2B',
       href: '/admin/companies',
       iconKey: 'organizations',
       title: 'Gestionar Empresas',
     },
     {
-      color: 'bg-[#8B5CF6]',
+      color: DEFAULT_PURPLE,
       description: 'Metricas avanzadas de la IA',
       href: '/admin/lia-analytics',
       iconKey: 'engagement',
       title: 'Ver Analytics',
     },
     {
-      color: 'bg-[#F59E0B]',
+      color: DEFAULT_WARNING,
       description: 'Reportes y metricas del sistema',
       href: '/admin/reportes',
       iconKey: 'documents',

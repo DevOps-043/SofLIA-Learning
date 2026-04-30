@@ -1,6 +1,8 @@
 'use client'
 
 import { useDeferredValue, useMemo, useState, type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { formatDate } from '@/utils/date-formatter'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -65,6 +67,7 @@ export function BusinessPendingCoursesPage({
   const panelTheme = useBusinessPanelTheme()
   const { courses, isLoading, error, approveCourse, rejectCourse, deleteCourse } =
     useAdminPendingCourses()
+  const { i18n } = useTranslation()
 
   const [searchTerm, setSearchTerm] = useState('')
   const deferredSearchTerm = useDeferredValue(searchTerm)
@@ -345,7 +348,7 @@ export function BusinessPendingCoursesPage({
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <InfoPill label="Fecha" value={new Date(course.created_at).toLocaleDateString('es-MX')} />
+                  <InfoPill label="Fecha" value={formatDate(course.created_at, i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })} />
                   <InfoPill label="Nivel" value={course.level || 'N/A'} />
                 </div>
 

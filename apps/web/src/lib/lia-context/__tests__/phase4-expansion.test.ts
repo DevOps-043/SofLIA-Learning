@@ -64,7 +64,6 @@ console.log('\n📋 Tests de páginas Business Panel:\n');
 
 const businessPages = [
   '/acme/business-panel/dashboard',
-  '/acme/business-panel/analytics',
   '/acme/business-panel/progress',
   '/acme/business-panel/reports',
   '/acme/business-panel/settings',
@@ -103,7 +102,9 @@ test('Las páginas tienen componentes definidos', () => {
 
 test('Las páginas tienen APIs definidas', () => {
   for (const [route, metadata] of Object.entries(PAGE_METADATA)) {
-    if (!metadata.apis || metadata.apis.length === 0) {
+    const isStaticBusinessReportsSurface = route === '/[orgSlug]/business-panel/reports';
+
+    if (!isStaticBusinessReportsSurface && (!metadata.apis || metadata.apis.length === 0)) {
       console.log(`   → ${route} no tiene APIs`);
       return false;
     }
@@ -256,8 +257,6 @@ console.log(`  - Entradas: ${cacheStats.entries}`);
 console.log(`  - Hits: ${cacheStats.hits}`);
 console.log(`  - Misses: ${cacheStats.misses}`);
 console.log(`  - Hit Rate: ${cacheStats.hitRate}%\n`);
-
-
 
 
 

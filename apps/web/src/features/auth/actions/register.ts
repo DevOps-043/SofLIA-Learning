@@ -12,6 +12,11 @@ import {
 import { createInvitationRepository } from './invitation/repository'
 import { finalizeBulkInviteRegistration } from './invitation/invitation-redemption.service'
 import { validateBulkInviteRegistration } from './invitation/invitation-validation.service'
+import {
+  RegisterDemographicsSchema,
+  normalizeDateOfBirthForStorage,
+  normalizeGenderForStorage,
+} from '../../../lib/schemas/user-demographics.schema'
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -29,6 +34,8 @@ const registerSchema = z.object({
   confirmPassword: z.string().min(1, 'Confirma la contraseña'),
   countryCode: z.string().min(1, 'Selecciona un país'),
   phoneNumber: z.string().min(1, 'El teléfono es requerido'),
+  dateOfBirth: RegisterDemographicsSchema.shape.dateOfBirth,
+  gender: RegisterDemographicsSchema.shape.gender,
   cargo_titulo: z.string().max(100, 'El cargo no puede exceder 100 caracteres').optional(),
   acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Debes aceptar los términos y condiciones',
@@ -201,6 +208,8 @@ export async function registerAction(formData: FormData) {
         display_name: `${parsed.firstName} ${parsed.lastName}`.trim(), // Generar display_name
         country_code: parsed.countryCode,
         phone: parsed.phoneNumber, // Campo phone para el número de teléfono (varchar en DB)
+        date_of_birth: normalizeDateOfBirthForStorage(parsed.dateOfBirth),
+        gender: normalizeGenderForStorage(parsed.gender),
         cargo_rol: cargoRol, // Rol basado en la invitación (ya no incluye 'Business User')
         // NOTA: type_rol fue eliminado - ahora el cargo/posición va en organization_users.job_title
         email_verified: false, // Se verificará después con email manual

@@ -53,6 +53,7 @@ export default function BusinessUserDashboardPage() {
         handleProfileClick={logic.handleProfileClick}
         handleLogout={logic.handleLogout}
         handleCertificatesClick={logic.handleCertificatesClick}
+        handleAnalyticsClick={logic.handleAnalyticsClick}
         handleCourseClick={logic.handleCourseClick}
         handleLearningPathCourseClick={logic.handleLearningPathCourseClick}
         showVideoIntro={logic.showVideoIntro}

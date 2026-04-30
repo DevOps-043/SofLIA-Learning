@@ -19,6 +19,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface UserListRowProps {
   user: BusinessUser
@@ -30,7 +31,7 @@ interface UserListRowProps {
 }
 
 function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserListRowProps) {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
 
   const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
@@ -138,7 +139,7 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
         {/* Last Access */}
         <div className="hidden sm:block text-xs opacity-50 text-right">
           {user.last_login_at
-            ? new Date(user.last_login_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+            ? formatDate(user.last_login_at, i18n.language, { day: '2-digit', month: 'short' })
             : '—'}
         </div>
       </div>
@@ -149,7 +150,7 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
           <button
             onClick={(e) => { e.stopPropagation(); onResend() }}
             className={`p-1.5 rounded-lg transition-colors border border-amber-500/20 ${theme.isDark ? 'bg-amber-500/10 hover:bg-amber-500/20' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
-            title="Reenviar Invitación"
+            title={t('users.card.resendInvite')}
           >
             <Mail className="w-4 h-4 text-amber-500" />
           </button>
@@ -161,28 +162,28 @@ function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserL
             window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }))
           }}
           className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-emerald-500/20' : 'hover:bg-blue-500/10'}`}
-          title="Gestionar"
+          title={t('users.card.manage')}
         >
           <ChevronRight className={`w-4 h-4 ${theme.isDark ? 'text-emerald-400' : 'text-blue-400'}`} />
         </button>
         <button
           onClick={onStats}
           className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-emerald-500/20' : 'hover:bg-blue-500/10'}`}
-          title="Ver estadísticas"
+          title={t('users.card.viewStats')}
         >
           <BarChart3 className={`w-4 h-4 ${theme.isDark ? 'text-emerald-400' : 'text-blue-400'}`} />
         </button>
         <button
           onClick={onEdit}
           className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
-          title="Editar"
+          title={t('users.card.edit')}
         >
           <Edit className="w-4 h-4 opacity-70" style={{ color: theme.textColor }} />
         </button>
         <button
           onClick={onDelete}
           className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-red-500/20' : 'hover:bg-red-500/10'}`}
-          title="Eliminar"
+          title={t('users.card.delete')}
         >
           <Trash className="w-4 h-4 text-red-400" />
         </button>

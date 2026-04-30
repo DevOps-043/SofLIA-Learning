@@ -85,9 +85,10 @@ export interface BusinessUserDashboardColors {
 
 export interface BusinessUserDashboardStatItem {
   label: string
-  value: number
+  value: number | string
   icon: LucideIcon
   color: string
+  kind: 'courses' | 'inProgress' | 'completed' | 'certificates' | 'analytics'
 }
 
 export interface BusinessUserCertificateSummary {

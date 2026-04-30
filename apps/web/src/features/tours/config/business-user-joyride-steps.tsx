@@ -5,6 +5,7 @@ import {
   BarChart3,
   BookOpen,
   Bot,
+  Route,
   Sparkles,
   User,
 } from 'lucide-react';
@@ -79,6 +80,17 @@ export function buildBusinessUserJoyrideSteps({
       disableBeacon: true,
       data: {
         icon: <User className="h-5 w-5 text-[#00D4B3]" />,
+      },
+    },
+    {
+      target: getBusinessUserDashboardTourTargetSelector('courseViewSwitcher'),
+      title: 'Vistas de tus cursos',
+      content:
+        'Cambia entre cuadricula, lista y learning paths. En learning paths puedes ver tus rutas de aprendizaje, el orden recomendado de los cursos, bloqueos y progreso de cada ruta.',
+      placement: isMobile ? 'top' : 'left',
+      disableBeacon: true,
+      data: {
+        icon: <Route className="h-5 w-5 text-[#00D4B3]" />,
       },
     },
     {

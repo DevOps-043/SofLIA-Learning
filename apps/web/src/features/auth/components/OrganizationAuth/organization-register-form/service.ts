@@ -15,6 +15,8 @@ export function createOrganizationRegisterDefaultValues(
     username: '',
     countryCode: 'MX',
     phoneNumber: '',
+    dateOfBirth: '',
+    gender: null,
     email: invitedEmail || '',
     confirmEmail: invitedEmail || '',
     password: '',
@@ -35,6 +37,11 @@ export function buildOrganizationRegisterActionFormData(params: {
   Object.entries(params.data).forEach(([key, value]) => {
     if (typeof value === 'boolean') {
       formData.append(key, value ? 'true' : 'false')
+      return
+    }
+
+    if (value === null || value === undefined) {
+      formData.append(key, '')
       return
     }
 

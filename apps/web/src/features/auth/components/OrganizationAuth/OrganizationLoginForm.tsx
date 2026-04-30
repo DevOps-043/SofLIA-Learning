@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, AlertCircle, Eye, EyeOff, Lock, Check } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { SocialLoginButtons } from '../SocialLoginButtons/SocialLoginButtons'
 import { useOrganizationAuthStyles } from './useOrganizationAuthStyles'
 import {
@@ -23,6 +24,7 @@ export function OrganizationLoginForm({
   googleLoginEnabled,
   microsoftLoginEnabled,
 }: OrganizationLoginFormProps) {
+  const { t } = useTranslation('common')
   const router = useRouter()
   const { palette } = useOrganizationAuthStyles(organizationSlug)
   const {
@@ -63,13 +65,13 @@ export function OrganizationLoginForm({
             className="text-2xl font-semibold tracking-tight"
             style={{ color: palette.textColor }}
           >
-            Bienvenido de vuelta
+            {t('auth.org.welcomeBack')}
           </h2>
           <p
             className="text-sm opacity-70 font-normal"
             style={{ color: palette.textColor }}
           >
-            Ingresa a tu cuenta para continuar
+            {t('auth.org.signInToContinue')}
           </p>
         </motion.div>
 
@@ -143,7 +145,7 @@ export function OrganizationLoginForm({
               opacity: focusedField === 'emailOrUsername' ? 1 : 0.7,
             }}
           >
-            Correo o Usuario
+            {t('auth.login.emailOrUsernameLabel')}
           </label>
           <div className="relative group">
             <motion.div
@@ -191,7 +193,7 @@ export function OrganizationLoginForm({
                 <input
                   id="emailOrUsername"
                   type="text"
-                  placeholder="tu@email.com o usuario"
+                  placeholder={t('auth.org.emailOrUsernamePlaceholder')}
                   autoComplete="username"
                   autoCapitalize="none"
                   autoCorrect="off"
@@ -224,7 +226,7 @@ export function OrganizationLoginForm({
               opacity: focusedField === 'password' ? 1 : 0.7,
             }}
           >
-            Contraseña
+            {t('auth.login.passwordLabel')}
           </label>
           <div className="relative group">
             <motion.div
@@ -350,7 +352,7 @@ export function OrganizationLoginForm({
                 opacity: rememberMe ? 1 : 0.7,
               }}
             >
-              Recordarme
+              {t('auth.login.rememberMe')}
             </span>
           </motion.label>
 
@@ -360,7 +362,7 @@ export function OrganizationLoginForm({
             className="text-xs font-medium transition-colors hover:opacity-80"
             style={{ color: palette.primaryColor }}
           >
-            ¿Olvidaste tu contraseña?
+            {t('auth.login.forgotPassword')}
           </button>
         </motion.div>
 
@@ -393,10 +395,10 @@ export function OrganizationLoginForm({
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                   />
-                  <span className="text-xs">Ingresando...</span>
+                  <span className="text-xs">{t('auth.org.signingIn')}</span>
                 </>
               ) : (
-                <span>Ingresar</span>
+                <span>{t('auth.login.signIn')}</span>
               )}
             </span>
           </motion.button>

@@ -19,6 +19,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface UserCardProps {
   user: BusinessUser
@@ -32,7 +33,7 @@ interface UserCardProps {
 }
 
 function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend, onActivate }: UserCardProps) {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const [showOptions, setShowOptions] = useState(false)
 
@@ -143,7 +144,9 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
         {/* Meta Row */}
         <div className="flex flex-col gap-2 mb-4">
           <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-white/5">
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">Rol Organizo</span>
+            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">
+              {t('users.card.organizationRole')}
+            </span>
             <span
               className="text-[10px] font-bold px-2 py-0.5 rounded-lg"
               style={{ backgroundColor: roleConfig.bg, color: roleConfig.text }}
@@ -153,11 +156,13 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
           </div>
 
           <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-white/5">
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">Última vez</span>
+            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">
+              {t('users.card.lastTime')}
+            </span>
             <div className="flex items-center gap-1 text-[10px] font-bold" style={{ color: theme.textColor }}>
               <Calendar className="w-3 h-3 opacity-40" />
               {user.last_login_at
-                ? new Date(user.last_login_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+                ? formatDate(user.last_login_at, i18n.language, { day: '2-digit', month: 'short' })
                 : t('users.card.noAccess')}
             </div>
           </div>
@@ -172,7 +177,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
               style={{ color: theme.textColor }}
             >
               <Edit className="w-4 h-4 opacity-70" />
-              {t('users.buttons.edit', 'Editar')}
+              {t('users.card.edit')}
             </button>
 
             {user.org_status === 'active' && onSuspend ? (
@@ -181,7 +186,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
                 className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase tracking-wider border border-red-500/20 text-red-400"
               >
                 <Lock className="w-4 h-4" />
-                {t('users.buttons.suspend', 'Suspender')}
+                {t('users.card.suspend')}
               </button>
             ) : user.org_status === 'suspended' && onActivate ? (
               <button
@@ -189,7 +194,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
                 className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 transition-all font-bold text-[10px] uppercase tracking-wider border border-emerald-500/20 text-emerald-400"
               >
                 <Unlock className="w-4 h-4" />
-                {t('users.buttons.activate', 'Activar')}
+                {t('users.card.activate')}
               </button>
             ) : (
               <button
@@ -197,7 +202,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
                 className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase tracking-wider border border-red-500/20 text-red-500"
               >
                 <Trash className="w-4 h-4" />
-                {t('users.buttons.delete', 'Eliminar')}
+                {t('users.card.delete')}
               </button>
             )}
           </div>
@@ -212,7 +217,7 @@ function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend,
             }}
           >
             <Activity className="w-4 h-4 group-hover/managed:animate-pulse" />
-            <span>{t('users.card.manage', 'Gestionar')}</span>
+            <span>{t('users.card.manage')}</span>
           </button>
         </div>
       </div>

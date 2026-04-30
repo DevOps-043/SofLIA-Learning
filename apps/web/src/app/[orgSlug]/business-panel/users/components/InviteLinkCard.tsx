@@ -19,10 +19,10 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
 
   const getLinkStatusConfig = (status: string) => {
     switch (status) {
-      case 'active':  return { label: 'Activo',   color: theme.statusColors.active,    bg: 'rgba(0,212,179,0.1)' }
-      case 'paused':  return { label: 'Pausado',  color: theme.statusColors.invited,   bg: 'rgba(245,158,11,0.1)' }
-      case 'expired': return { label: 'Expirado', color: theme.statusColors.suspended, bg: 'rgba(239,68,68,0.1)' }
-      default:        return { label: status,     color: theme.subtextColor,           bg: 'rgba(0,0,0,0.05)' }
+      case 'active':  return { label: t('users.card.active'),  color: theme.statusColors.active,    bg: 'rgba(0,212,179,0.1)' }
+      case 'paused':  return { label: t('users.card.paused'),  color: theme.statusColors.invited,   bg: 'rgba(245,158,11,0.1)' }
+      case 'expired': return { label: t('users.card.expired'), color: theme.statusColors.suspended, bg: 'rgba(239,68,68,0.1)' }
+      default:        return { label: status,                  color: theme.subtextColor,           bg: 'rgba(0,0,0,0.05)' }
     }
   }
 
@@ -67,7 +67,7 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
       <div className="flex-1 flex flex-col p-4 pt-0">
         <div className="text-center mb-4">
           <h4 className="font-bold text-base tracking-tight truncate mb-0.5" style={{ color: theme.textColor }}>
-            {link.name || `Enlace ${link.token.substring(0, 6)}`}
+            {link.name || `${t('users.card.link')} ${link.token.substring(0, 6)}`}
           </h4>
           <div
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider"
@@ -80,7 +80,7 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
         {/* Usage */}
         <div className="mb-4">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">Uso</span>
+            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">{t('users.card.uses')}</span>
             <span className="text-[10px] font-bold" style={{ color: theme.textColor }}>
               {link.current_uses} / {link.max_uses}
             </span>
@@ -95,7 +95,9 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[9px] font-bold opacity-40 lowercase">{usagePercent.toFixed(0)}%</span>
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">Rol: {link.role}</span>
+            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">
+              {t('users.modals.delete.fields.role')}: {link.role}
+            </span>
           </div>
         </div>
 
@@ -114,7 +116,7 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
             }}
           >
             {link.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {t(link.status === 'active' ? 'inviteLinks.pause' : 'inviteLinks.resume', 'Status')}
+            {link.status === 'active' ? t('users.card.suspend') : t('users.card.activate')}
           </button>
 
           <button
@@ -123,7 +125,7 @@ function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCar
             style={{ color: theme.dangerColor }}
           >
             <Trash2 className="w-3.5 h-3.5" />
-            {t('common.delete', 'Borrar')}
+            {t('users.card.delete')}
           </button>
         </div>
       </div>

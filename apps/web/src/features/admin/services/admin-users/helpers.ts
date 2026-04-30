@@ -3,6 +3,11 @@ import type {
   AdminUserCreateInput,
   GetUsersOptions,
 } from './types'
+import {
+  calculateAgeFromDateOfBirth,
+  normalizeDateOfBirthForStorage,
+  normalizeGenderForStorage,
+} from '../../../../lib/schemas/user-demographics.schema'
 
 export const ADMIN_USER_SELECT_FIELDS = `
   id,
@@ -20,6 +25,8 @@ export const ADMIN_USER_SELECT_FIELDS = `
   location,
   profile_picture_url,
   country_code,
+  date_of_birth,
+  gender,
   created_at,
   updated_at,
   last_login_at
@@ -64,6 +71,8 @@ export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {
     location: emptyToNull(userData.location),
     profile_picture_url: emptyToNull(userData.profile_picture_url),
     country_code: emptyToNull(userData.country_code),
+    date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
+    gender: normalizeGenderForStorage(userData.gender),
     updated_at: new Date().toISOString(),
   }
 }
@@ -88,10 +97,34 @@ export function buildAdminUserInsertPayload(
     location: userData.location || null,
     profile_picture_url: userData.profile_picture_url || null,
     country_code: userData.country_code || null,
+    date_of_birth: normalizeDateOfBirthForStorage(userData.date_of_birth),
+    gender: normalizeGenderForStorage(userData.gender),
     email_verified: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }
+}
+
+export function mapAdminUserWithAge(user: AdminUser): AdminUser {
+  return {
+    ...user,
+    age: calculateAgeFromDateOfBirth(user.date_of_birth),
+  }
+}
+
+export function omitDemographicsFromAudit(
+  values: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | undefined {
+  if (!values) {
+    return undefined
+  }
+
+  const sanitizedValues = { ...values }
+  delete sanitizedValues.date_of_birth
+  delete sanitizedValues.gender
+  delete sanitizedValues.age
+
+  return sanitizedValues
 }
 
 export function mapAdminUserCreateError(error: unknown): string | null {

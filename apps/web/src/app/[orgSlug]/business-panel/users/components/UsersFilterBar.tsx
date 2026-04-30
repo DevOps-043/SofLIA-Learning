@@ -128,16 +128,16 @@ export function UsersFilterBar({
 
   const isUsersTab = activeTab === 'users'
   const tabs: Array<{ key: UserManagementTab; label: string; count: number }> = [
-    { key: 'users', label: t('users.title', 'Usuarios'), count: users.length },
+    { key: 'users', label: t('users.title'), count: users.length },
     {
       key: 'invitations',
-      label: t('users.tabs.invitations', 'Individuales'),
+      label: t('users.tabs.invitations'),
       count: invitations.length,
     },
-    { key: 'links', label: t('users.tabs.links', 'Enlaces'), count: inviteLinks.length },
+    { key: 'links', label: t('users.tabs.links'), count: inviteLinks.length },
     {
       key: 'requests',
-      label: t('sidebar.joinRequests', 'Solicitudes'),
+      label: t('sidebar.joinRequests'),
       count: joinRequests.length,
     },
   ]
@@ -204,10 +204,10 @@ export function UsersFilterBar({
             activeTab === 'users'
               ? t('users.placeholders.search')
               : activeTab === 'requests'
-                ? t('users.placeholders.searchRequests', 'Buscar solicitudes...')
+                ? t('users.placeholders.searchRequests')
                 : activeTab === 'links'
-                  ? t('users.placeholders.searchLinks', 'Buscar enlaces...')
-                  : t('users.placeholders.searchInvitations', 'Buscar invitaciones...')
+                  ? t('users.placeholders.searchLinks')
+                  : t('users.placeholders.searchInvitations')
           }
           className="flex-1"
         />
@@ -394,7 +394,7 @@ export function UsersFilterBar({
             >
               <Filter className="w-4 h-4" />
               <span className="text-sm hidden sm:inline">
-                {t('users.filters.advanced', 'Más filtros')}
+                {t('users.filters.advanced')}
               </span>
               {activeFiltersCount > 0 && (
                 <span
@@ -416,7 +416,7 @@ export function UsersFilterBar({
             onClick={() => setViewMode('cards')}
             className="p-3.5 transition-all"
             style={{ backgroundColor: viewMode === 'cards' ? `${primaryColor}30` : 'transparent' }}
-            title={t('users.view.cards', 'Vista tarjetas')}
+            title={t('users.view.cards')}
           >
             <LayoutGrid
               className="w-5 h-5"
@@ -431,7 +431,7 @@ export function UsersFilterBar({
             onClick={() => setViewMode('list')}
             className="p-3.5 transition-all"
             style={{ backgroundColor: viewMode === 'list' ? `${primaryColor}30` : 'transparent' }}
-            title={t('users.view.list', 'Vista lista')}
+            title={t('users.view.list')}
           >
             <List
               className="w-5 h-5"
@@ -472,7 +472,7 @@ export function UsersFilterBar({
                     <MapPin className="w-4 h-4 opacity-60 flex-shrink-0" />
                     <span className="truncate">
                       {filterRegion === 'all'
-                        ? t('users.filters.allRegions', 'Todas las regiones')
+                        ? t('users.filters.allRegions')
                         : filterRegion}
                     </span>
                   </div>
@@ -498,7 +498,7 @@ export function UsersFilterBar({
                           color: textColor,
                         }}
                       >
-                        {t('users.filters.allRegions', 'Todas las regiones')}
+                        {t('users.filters.allRegions')}
                       </button>
                       {uniqueRegions.map((region) => (
                         <button
@@ -542,7 +542,7 @@ export function UsersFilterBar({
                     <Building2 className="w-4 h-4 opacity-60 flex-shrink-0" />
                     <span className="truncate">
                       {filterZone === 'all'
-                        ? t('users.filters.allZones', 'Todas las zonas')
+                        ? t('users.filters.allZones')
                         : filterZone}
                     </span>
                   </div>
@@ -568,7 +568,7 @@ export function UsersFilterBar({
                           color: textColor,
                         }}
                       >
-                        {t('users.filters.allZones', 'Todas las zonas')}
+                        {t('users.filters.allZones')}
                       </button>
                       {uniqueZones.map((zone) => (
                         <button
@@ -612,7 +612,7 @@ export function UsersFilterBar({
                     <Network className="w-4 h-4 opacity-60 flex-shrink-0" />
                     <span className="truncate">
                       {filterTeam === 'all'
-                        ? t('users.filters.allTeams', 'Todos los equipos')
+                        ? t('users.filters.allTeams')
                         : filterTeam}
                     </span>
                   </div>
@@ -638,7 +638,7 @@ export function UsersFilterBar({
                           color: textColor,
                         }}
                       >
-                        {t('users.filters.allTeams', 'Todos los equipos')}
+                        {t('users.filters.allTeams')}
                       </button>
                       {uniqueTeams.map((team) => (
                         <button
@@ -669,12 +669,12 @@ export function UsersFilterBar({
                 className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-colors"
               >
                 <X className="w-4 h-4" />
-                {t('users.filters.clear', 'Limpiar filtros')}
+                {t('users.filters.clear')}
               </button>
             )}
 
             <div className="ml-auto text-sm opacity-60">
-              {resultsCount} {t('users.filters.results', 'resultados')}
+              {resultsCount} {t('users.filters.results')}
             </div>
           </motion.div>
         )}

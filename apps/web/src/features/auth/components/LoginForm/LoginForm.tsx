@@ -5,8 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Loader2, LogIn } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { LoginFormData } from '../../types/auth.types';
-import { loginSchema } from './LoginForm.schema';
+import { getLoginSchema } from './LoginForm.schema';
 import { loginAction } from '../../actions/login';
 import { getSavedCredentials, saveCredentials, clearSavedCredentials } from '../../../../lib/auth/remember-me';
 import { ToastNotification } from '../../../../core/components/ToastNotification';
@@ -41,11 +42,14 @@ function isSuccessfulLoginResult(
 }
 
 export function LoginForm() {
+  const { t } = useTranslation('common');
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const submitInFlightRef = useRef(false);
   const { setActiveTab } = useAuthTab();
+
+  const loginSchema = React.useMemo(() => getLoginSchema(t), [t]);
 
   const {
     register,
@@ -147,16 +151,16 @@ export function LoginForm() {
       console.error('❌ Error inesperado en login:', error);
 
       // Proporcionar mensaje de error más específico
-      let errorMessage = 'Error inesperado al iniciar sesión';
+      let errorMessage = t('auth.login.errors.unexpected');
 
       if (error instanceof Error) {
         // Errores de red/conexión
         if (error.message.includes('ERR_SSL_PROTOCOL_ERROR') ||
           error.message.includes('Failed to fetch') ||
           error.message.includes('NetworkError')) {
-          errorMessage = 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.';
+          errorMessage = t('auth.login.errors.connection');
         } else if (error.message.includes('timeout') || error.message.includes('Timeout')) {
-          errorMessage = 'La solicitud tardó demasiado. Por favor, intenta nuevamente.';
+          errorMessage = t('auth.login.errors.timeout');
         } else {
           errorMessage = error.message || errorMessage;
         }
@@ -185,10 +189,10 @@ export function LoginForm() {
             className="text-center mb-8"
           >
             <h1 className="text-3xl sm:text-4xl font-bold text-[#0A2540] dark:text-white mb-2">
-              Bienvenido de nuevo
+              {t('auth.login.title')}
             </h1>
             <p className="text-sm sm:text-base text-[#6C757D] dark:text-white/60">
-              Inicia sesión para continuar tu aprendizaje
+              {t('auth.login.subtitle')}
             </p>
           </motion.div>
 
@@ -202,8 +206,8 @@ export function LoginForm() {
             >
               <TextInput
                 id="emailOrUsername"
-                label="Correo o Usuario"
-                placeholder="tu@correo.com o usuario123"
+                label={t('auth.login.emailOrUsernameLabel')}
+                placeholder={t('auth.login.emailOrUsernamePlaceholder')}
                 icon={Mail}
                 autoComplete="username"
                 autoCapitalize="none"
@@ -280,7 +284,7 @@ export function LoginForm() {
                   </AnimatePresence>
                 </motion.div>
                 <span className="ml-2.5 text-sm font-medium text-[#0A2540] dark:text-white/80 group-hover:text-[#00D4B3] transition-colors">
-                  Recordarme
+                  {t('auth.login.rememberMe')}
                 </span>
               </label>
 
@@ -289,7 +293,7 @@ export function LoginForm() {
                 href="/auth/forgot-password"
                 className="text-sm font-medium text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
               >
-                ¿Olvidaste tu contraseña?
+                {t('auth.login.forgotPassword')}
               </Link>
             </motion.div>
 
@@ -308,12 +312,12 @@ export function LoginForm() {
               {isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Iniciando sesión...</span>
+                  <span>{t('auth.login.signingIn')}</span>
                 </>
               ) : (
                 <>
                   <LogIn className="w-5 h-5" />
-                  <span>Iniciar sesión</span>
+                  <span>{t('auth.login.signIn')}</span>
                 </>
               )}
             </motion.button>
@@ -337,13 +341,13 @@ export function LoginForm() {
             className="mt-6 text-center"
           >
             <p className="text-sm text-[#6C757D] dark:text-white/60">
-              ¿No tienes una cuenta?{' '}
+              {t('auth.login.noAccount')}{' '}
               <button
                 type="button"
                 onClick={() => setActiveTab('register')}
                 className="font-semibold text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
               >
-                Regístrate aquí
+                {t('auth.login.registerHere')}
               </button>
             </p>
           </motion.div>

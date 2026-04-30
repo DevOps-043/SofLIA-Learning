@@ -18,6 +18,8 @@ import {
   X,
   Upload
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { formatDate } from '@/utils/date-formatter'
 import { Button } from '@aprende-y-aplica/ui'
 import Image from 'next/image'
 import { ImageUpload } from '../../admin/components/ImageUpload'
@@ -302,6 +304,8 @@ function CertificatePreview({ template }: { template: CertificateTemplate }) {
     show_code: true
   }
 
+  const { i18n } = useTranslation()
+
   return (
     <div className="bg-carbon-900 rounded-lg p-6 border border-carbon-700">
       <h3 className="text-lg font-semibold text-white mb-4">Vista Previa del Certificado</h3>
@@ -371,7 +375,7 @@ function CertificatePreview({ template }: { template: CertificateTemplate }) {
             {elements.show_date && (
               <div>
                 <p className="text-sm" style={{ color: colors.text }}>
-                  Fecha: {new Date().toLocaleDateString('es-ES')}
+                  Fecha: {formatDate(new Date(), i18n.language)}
                 </p>
               </div>
             )}

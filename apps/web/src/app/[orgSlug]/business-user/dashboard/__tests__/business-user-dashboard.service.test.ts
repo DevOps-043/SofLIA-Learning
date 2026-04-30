@@ -48,8 +48,9 @@ describe('business-user-dashboard.service', () => {
     )
 
     expect(greeting).toBe('dashboard.greetings.morning')
-    expect(stats).toHaveLength(4)
+    expect(stats).toHaveLength(5)
     expect(stats[0]?.value).toBe(4)
+    expect(stats[4]?.kind).toBe('analytics')
   })
 
   it('formats dates, videos and certificate routes safely', () => {

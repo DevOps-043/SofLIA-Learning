@@ -9,7 +9,7 @@ import { useOrganizationStyles } from '../../business-panel/hooks/useOrganizatio
 import { ChangePasswordSchema, type ChangePasswordInput } from '../../../lib/schemas/user.schema'
 import { useProfile } from './useProfile'
 import { ProfileService } from '../services/profile.service'
-import { formatProfileDate, resolveProfileColors } from '../services/profile.shared'
+import { createProfileUpdateRequest, formatProfileDate, resolveProfileColors } from '../services/profile.shared'
 import type { ProfileTabId, UpdateProfileRequest } from '../types/profile.types'
 
 export function useProfilePageLogic() {
@@ -59,7 +59,7 @@ export function useProfilePageLogic() {
 
   useEffect(() => {
     if (profile) {
-      setFormData(profile)
+      setFormData(createProfileUpdateRequest(profile))
     }
   }, [profile])
 

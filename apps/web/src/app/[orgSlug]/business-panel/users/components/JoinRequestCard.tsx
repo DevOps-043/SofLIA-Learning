@@ -12,8 +12,10 @@ import {
   UserPlus,
   X,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import type { JoinRequest } from '@/features/business-panel/services/joinRequests.service'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface JoinRequestCardProps {
   request: JoinRequest
@@ -30,13 +32,14 @@ export function JoinRequestCard({
   onApprove,
   onReject,
 }: JoinRequestCardProps) {
+  const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const displayName = request.users
     ? [request.users.first_name, request.users.last_name]
         .filter(Boolean)
         .join(' ')
         .trim() || request.users.username
-    : 'Usuario'
+    : t('users.card.user')
   const initials = (
     request.users?.first_name?.[0] ||
     request.users?.email?.[0] ||
@@ -103,14 +106,14 @@ export function JoinRequestCard({
             }}
           >
             <UserPlus className="w-2.5 h-2.5" />
-            Pendiente
+            {t('users.card.pending')}
           </div>
         </div>
 
         <div className="space-y-2 mb-4">
           <InfoRow
             icon={<Mail className="w-3.5 h-3.5" />}
-            value={request.users?.email || 'Sin correo'}
+            value={request.users?.email || t('users.card.noEmail')}
           />
           {request.job_title && (
             <InfoRow
@@ -127,7 +130,7 @@ export function JoinRequestCard({
           )}
           <InfoRow
             icon={<Clock3 className="w-3.5 h-3.5" />}
-            value={new Date(request.created_at).toLocaleDateString('es-ES', {
+            value={formatDate(request.created_at, i18n.language, {
               day: '2-digit',
               month: 'short',
               year: 'numeric',
@@ -152,7 +155,7 @@ export function JoinRequestCard({
             ) : (
               <Check className="w-4 h-4" />
             )}
-            Aprobar
+            {t('users.card.approve')}
           </button>
           <button
             onClick={onReject}
@@ -165,7 +168,7 @@ export function JoinRequestCard({
             }}
           >
             <X className="w-4 h-4" />
-            Rechazar
+            {t('users.card.reject')}
           </button>
         </div>
       </div>

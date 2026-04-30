@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   buildAdminUserInsertPayload,
   buildAdminUserUpdatePayload,
+  mapAdminUserWithAge,
   mapAdminUserCreateError,
   normalizeUsersPagination,
+  omitDemographicsFromAudit,
 } from '../admin-users/helpers'
 
 describe('admin-users.helpers', () => {
@@ -25,6 +27,8 @@ describe('admin-users.helpers', () => {
         email: 'ada@example.com',
         password: 'secret123',
         cargo_rol: 'Administrador',
+        date_of_birth: '1990-05-10',
+        gender: 'female',
       },
       'hashed-password',
     )
@@ -37,6 +41,8 @@ describe('admin-users.helpers', () => {
       cargo_rol: 'Administrador',
       first_name: null,
       type_rol: null,
+      date_of_birth: '1990-05-10',
+      gender: 'female',
       email_verified: false,
     })
   })
@@ -51,6 +57,36 @@ describe('admin-users.helpers', () => {
     expect(payload.email_verified).toBe(true)
     expect(typeof payload.email_verified_at).toBe('string')
     expect(typeof payload.updated_at).toBe('string')
+  })
+
+  it('calculates age and keeps demographics out of audit payloads', () => {
+    expect(
+      mapAdminUserWithAge({
+        id: 'user-1',
+        username: 'ada',
+        email: 'ada@example.com',
+        first_name: null,
+        last_name: null,
+        display_name: null,
+        cargo_rol: 'Usuario',
+        email_verified: false,
+        profile_picture_url: null,
+        date_of_birth: '2000-04-25',
+        gender: 'female',
+        created_at: null,
+        updated_at: null,
+        last_login_at: null,
+      }).age,
+    ).toEqual(expect.any(Number))
+
+    expect(
+      omitDemographicsFromAudit({
+        email: 'ada@example.com',
+        date_of_birth: '2000-04-25',
+        gender: 'female',
+        age: 26,
+      }),
+    ).toEqual({ email: 'ada@example.com' })
   })
 
   it('maps postgres duplicate errors to friendly messages', () => {

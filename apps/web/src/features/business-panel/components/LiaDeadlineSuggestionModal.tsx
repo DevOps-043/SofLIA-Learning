@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { formatDuration } from '@/lib/course-deadline-calculator'
+import { formatDate } from '@/utils/date-formatter'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { PremiumDatePicker } from './PremiumDatePicker'
 
@@ -48,7 +49,7 @@ export function LiaDeadlineSuggestionModal({
   orgSlug,
   onSelectDeadline,
 }: LiaDeadlineSuggestionModalProps) {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const [step, setStep] = useState<Step>('suggestions')
   const [suggestions, setSuggestions] = useState<ApproachSuggestion[]>([])
@@ -319,7 +320,7 @@ export function LiaDeadlineSuggestionModal({
                                 <div className="flex items-center gap-2">
                                   <Calendar className="h-4 w-4" style={{ color: theme.mutedTextColor }} />
                                   <span className="text-sm" style={{ color: theme.subtextColor }}>
-                                    {deadlineDate.toLocaleDateString('es-ES', {
+                                    {formatDate(deadlineDate, i18n.language, {
                                       day: 'numeric',
                                       month: 'long',
                                       year: 'numeric',
@@ -400,7 +401,7 @@ export function LiaDeadlineSuggestionModal({
                         {t('liaSuggestion.details.startDate')}
                       </p>
                       <p className="text-sm font-medium" style={{ color: theme.textColor }}>
-                        {new Date(`${startDate}T00:00:00`).toLocaleDateString('es-ES', {
+                        {formatDate(`${startDate}T00:00:00`, i18n.language, {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric',
@@ -412,7 +413,7 @@ export function LiaDeadlineSuggestionModal({
                         {t('liaSuggestion.details.dueDate')}
                       </p>
                       <p className="text-sm font-medium" style={{ color: theme.textColor }}>
-                        {new Date(selectedSuggestion.deadline_date).toLocaleDateString('es-ES', {
+                        {formatDate(selectedSuggestion.deadline_date, i18n.language, {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric',

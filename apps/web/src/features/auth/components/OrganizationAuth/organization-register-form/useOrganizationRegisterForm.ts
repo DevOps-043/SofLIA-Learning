@@ -4,7 +4,9 @@ import { useEffect, useState, useTransition } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { registerSchema } from '../../RegisterForm/RegisterForm.schema'
+import { useTranslation } from 'react-i18next'
+import React from 'react'
+import { getRegisterSchema } from '../../RegisterForm/RegisterForm.schema'
 import { registerAction } from '../../../actions/register'
 import { useOrganizationAuthStyles } from '../useOrganizationAuthStyles'
 import type { RegisterFormData } from '../../../types/auth.types'
@@ -32,6 +34,7 @@ export function useOrganizationRegisterForm({
   | 'invitedRole'
   | 'bulkInviteToken'
 >) {
+  const { t } = useTranslation('common')
   const router = useRouter()
   const { palette } = useOrganizationAuthStyles(organizationSlug)
   const [showLegalModal, setShowLegalModal] = useState(false)
@@ -40,6 +43,7 @@ export function useOrganizationRegisterForm({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const registerSchema = React.useMemo(() => getRegisterSchema(t), [t])
 
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -97,10 +101,10 @@ export function useOrganizationRegisterForm({
         }
 
         if (result?.success) {
-          setSuccess(result.message || 'Cuenta creada exitosamente')
+          setSuccess(result.message || t('auth.register.success'))
         }
       } catch {
-        setError('Error inesperado al crear la cuenta')
+        setError(t('auth.org.unexpectedError'))
       }
     })
   }

@@ -5,13 +5,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { resetPasswordAction, validateResetTokenAction } from '../../actions/reset-password';
-import { resetPasswordSchema, type ResetPasswordFormData } from './ResetPasswordForm.schema';
+import { getResetPasswordSchema, type ResetPasswordFormData } from './ResetPasswordForm.schema';
 import { Loader2, Lock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { PasswordInput } from '../PasswordInput';
 import Link from 'next/link';
 
 export function ResetPasswordForm() {
+  const { t } = useTranslation('common');
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -25,6 +27,8 @@ export function ResetPasswordForm() {
     type: 'success' | 'error';
     message: string;
   } | null>(null);
+
+  const resetPasswordSchema = React.useMemo(() => getResetPasswordSchema(t), [t]);
 
   const {
     register,
@@ -51,7 +55,7 @@ export function ResetPasswordForm() {
       if (result.valid) {
         setTokenValid(true);
       } else {
-        setTokenError(result.error || 'Token inválido');
+        setTokenError(result.error || t('auth.resetPassword.validation.invalidToken'));
       }
 
       setIsValidatingToken(false);
@@ -70,7 +74,7 @@ export function ResetPasswordForm() {
     if (/[a-z]/.test(newPassword)) strength++;
     if (/[0-9]/.test(newPassword)) strength++;
 
-    const labels = ['', 'Débil', 'Media', 'Buena', 'Fuerte'];
+    const labels = ['', t('auth.resetPassword.strengthLabels.weak'), t('auth.resetPassword.strengthLabels.medium'), t('auth.resetPassword.strengthLabels.good'), t('auth.resetPassword.strengthLabels.strong')];
     const colors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-[#00D4B3]'];
 
     return {
@@ -98,7 +102,7 @@ export function ResetPasswordForm() {
       } else {
         setResult({
           type: 'success',
-          message: response.message || 'Contraseña actualizada correctamente',
+          message: response.message || t('auth.resetPassword.success'),
         });
 
         // Redirigir al login después de 2 segundos
@@ -109,7 +113,7 @@ export function ResetPasswordForm() {
     } catch (error) {
       setResult({
         type: 'error',
-        message: 'Error de conexión. Inténtalo más tarde.',
+        message: t('auth.resetPassword.error'),
       });
     } finally {
       setIsLoading(false);
@@ -123,7 +127,7 @@ export function ResetPasswordForm() {
     return (
       <div className="w-full max-w-md mx-auto p-12 text-center">
         <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-[#00D4B3]" />
-        <p className="text-[#6C757D] dark:text-white/60 font-medium">Verificando enlace...</p>
+        <p className="text-[#6C757D] dark:text-white/60 font-medium">{t('auth.resetPassword.verifying')}</p>
       </div>
     );
   }
@@ -142,13 +146,13 @@ export function ResetPasswordForm() {
               <XCircle className="w-8 h-8" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-[#0A2540] dark:text-white mb-3">Enlace Inválido</h1>
+          <h1 className="text-2xl font-bold text-[#0A2540] dark:text-white mb-3">{t('auth.resetPassword.invalidTokenTitle')}</h1>
           <p className="text-[#6C757D] dark:text-white/60 mb-8">{tokenError}</p>
           <button
             onClick={() => router.push('/auth/forgot-password')}
             className="w-full px-6 py-3.5 rounded-xl bg-[#0A2540] hover:bg-[#0d2f4d] text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            Solicitar nuevo enlace
+            {t('auth.resetPassword.requestNewLink')}
           </button>
         </div>
       </motion.div>
@@ -206,9 +210,9 @@ export function ResetPasswordForm() {
               <Lock className="w-8 h-8" />
             </motion.div>
           </div>
-          <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white mb-3">Nueva Contraseña</h1>
+          <h1 className="text-3xl font-bold text-[#0A2540] dark:text-white mb-3">{t('auth.resetPassword.title')}</h1>
           <p className="text-sm sm:text-base text-[#6C757D] dark:text-white/60">
-            Crea una contraseña segura para proteger tu cuenta.
+            {t('auth.resetPassword.subtitle')}
           </p>
         </motion.div>
 
@@ -217,11 +221,11 @@ export function ResetPasswordForm() {
           {/* Nueva Contraseña */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-[#0A2540] dark:text-white/90">
-              Nueva contraseña
+              {t('auth.resetPassword.newPasswordLabel')}
             </label>
             <PasswordInput
               id="newPassword"
-              placeholder="Mínimo 8 caracteres"
+              placeholder={t('auth.resetPassword.newPasswordPlaceholder')}
               error={errors.newPassword?.message}
               focusedField={focusedField}
               onFocus={() => setFocusedField('newPassword')}
@@ -250,7 +254,7 @@ export function ResetPasswordForm() {
                     ))}
                   </div>
                   <p className="text-xs font-medium text-[#6C757D] dark:text-white/60">
-                    Fortaleza: <span className={passwordStrength.strength > 2 ? 'text-[#00D4B3]' : ''}>{passwordStrength.label}</span>
+                    {t('auth.resetPassword.strength')}: <span className={passwordStrength.strength > 2 ? 'text-[#00D4B3]' : ''}>{passwordStrength.label}</span>
                   </p>
                 </motion.div>
               )}
@@ -259,10 +263,10 @@ export function ResetPasswordForm() {
             {/* Requisitos */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 pt-2">
               {[
-                { label: '8+ caracteres', test: newPassword.length >= 8 },
-                { label: 'Mayúscula', test: /[A-Z]/.test(newPassword) },
-                { label: 'Minúscula', test: /[a-z]/.test(newPassword) },
-                { label: 'Un número', test: /[0-9]/.test(newPassword) },
+                { label: t('auth.resetPassword.requirements.minChars'), test: newPassword.length >= 8 },
+                { label: t('auth.resetPassword.requirements.uppercase'), test: /[A-Z]/.test(newPassword) },
+                { label: t('auth.resetPassword.requirements.lowercase'), test: /[a-z]/.test(newPassword) },
+                { label: t('auth.resetPassword.requirements.number'), test: /[0-9]/.test(newPassword) },
               ].map((req, i) => (
                 <div key={i} className={`flex items-center gap-2 text-xs font-medium transition-colors ${req.test ? 'text-[#00D4B3]' : 'text-[#6C757D] dark:text-white/40'}`}>
                   <CheckCircle className={`w-3 h-3 ${req.test ? 'opacity-100' : 'opacity-30'}`} />
@@ -275,11 +279,11 @@ export function ResetPasswordForm() {
           {/* Confirmar Contraseña */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-[#0A2540] dark:text-white/90">
-              Confirmar contraseña
+              {t('auth.resetPassword.confirmPasswordLabel')}
             </label>
             <PasswordInput
               id="confirmPassword"
-              placeholder="Repite tu contraseña"
+              placeholder={t('auth.resetPassword.confirmPasswordPlaceholder')}
               error={errors.confirmPassword?.message}
               focusedField={focusedField}
               onFocus={() => setFocusedField('confirmPassword')}
@@ -321,10 +325,10 @@ export function ResetPasswordForm() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Actualizando...</span>
+                <span>{t('auth.resetPassword.updating')}</span>
               </>
             ) : (
-              <span>Actualizar Contraseña</span>
+              <span>{t('auth.resetPassword.update')}</span>
             )}
           </motion.button>
           
@@ -334,7 +338,7 @@ export function ResetPasswordForm() {
               className="inline-flex items-center gap-2 text-sm font-medium text-[#6C757D] hover:text-[#00D4B3] dark:text-white/60 dark:hover:text-[#00D4B3] transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              <span>Volver al inicio de sesión</span>
+              <span>{t('auth.resetPassword.backToLogin')}</span>
             </Link>
           </div>
         </form>

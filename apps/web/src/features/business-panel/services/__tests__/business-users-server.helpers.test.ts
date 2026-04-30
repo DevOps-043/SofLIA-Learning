@@ -40,6 +40,8 @@ describe('business-users-server.helpers', () => {
         bio: null,
         location: null,
         phone: null,
+        date_of_birth: '1990-05-10',
+        gender: 'female',
         points: null,
         last_login_at: null,
         created_at: '2026-03-01T00:00:00.000Z',
@@ -54,6 +56,9 @@ describe('business-users-server.helpers', () => {
         cargo_rol: 'Business',
         job_title: 'Ventas',
         points: 0,
+        date_of_birth: '1990-05-10',
+        gender: 'female',
+        age: expect.any(Number),
         org_role: 'admin',
         org_status: 'active',
       }),
@@ -104,6 +109,8 @@ describe('business-users-server.helpers', () => {
       first_name: 'Ada',
       last_name: 'Lovelace',
       display_name: 'Ada',
+      date_of_birth: null,
+      gender: null,
       cargo_rol: 'Business',
       password_hash: 'hash',
     })
@@ -138,11 +145,15 @@ describe('business-users-server.helpers', () => {
         display_name: 'Ada',
         email: 'ada@example.com',
         location: 'CDMX',
+        date_of_birth: '1990-05-10',
+        gender: 'female',
       }),
     ).toEqual({
       display_name: 'Ada',
       email: 'ada@example.com',
       location: 'CDMX',
+      date_of_birth: '1990-05-10',
+      gender: 'female',
     })
 
     expect(
@@ -205,5 +216,15 @@ describe('business-users-server.helpers', () => {
         job_title: '   ',
       }),
     ).toThrow('cargo/puesto')
+
+    expect(() =>
+      validateCreateBusinessUserRequest({
+        username: 'ada',
+        email: 'ada@example.com',
+        password: 'secret123',
+        job_title: 'Ventas',
+        date_of_birth: '2999-01-01',
+      }),
+    ).toThrow('fecha de nacimiento')
   })
 })

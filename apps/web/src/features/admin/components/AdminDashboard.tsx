@@ -24,11 +24,12 @@ export function AdminDashboard() {
 
   return (
     <div
-      className="min-h-screen p-6 transition-colors duration-300 lg:p-8"
+      className="min-h-screen p-3 transition-colors duration-300 md:p-6 lg:p-8"
       style={{ backgroundColor: themeColors.background }}
     >
       <AdminDashboardHero
         greeting={greeting}
+        themeColors={themeColors}
         todayLabel={todayLabel}
         userName={userName}
       />

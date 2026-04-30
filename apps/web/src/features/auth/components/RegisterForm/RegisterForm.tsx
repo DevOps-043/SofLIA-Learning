@@ -5,11 +5,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, Phone, Loader2, UserPlus } from 'lucide-react';
+import { Calendar, User, Mail, Phone, Loader2, UserPlus } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useTranslation, Trans } from 'react-i18next';
 import { RegisterFormData } from '../../types/auth.types';
-import { registerSchema } from './RegisterForm.schema';
+import { getRegisterSchema } from './RegisterForm.schema';
 import { registerAction } from '../../actions/register';
+import { USER_GENDER_VALUES, type UserGender } from '../../../../lib/schemas/user-demographics.schema';
 import { ToastNotification } from '../../../../core/components/ToastNotification';
 import { TextInput } from '../TextInput';
 import { PasswordInput } from '../PasswordInput';
@@ -24,6 +26,7 @@ const LegalDocumentsModal = dynamic(() => import('../LegalDocumentsModal').then(
 
 export function RegisterForm() {
   const router = useRouter();
+  const { t } = useTranslation('common');
   const [showLegalModal, setShowLegalModal] = useState(false);
   const [selectedCountryCode, setSelectedCountryCode] = useState('MX');
   const [dialCode, setDialCode] = useState('+52');
@@ -31,6 +34,8 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const { setActiveTab } = useAuthTab();
+
+  const registerSchema = React.useMemo(() => getRegisterSchema(t), [t]);
 
   const {
     register,
@@ -46,6 +51,8 @@ export function RegisterForm() {
       username: '',
       countryCode: 'MX',
       phoneNumber: '',
+      dateOfBirth: '',
+      gender: null,
       email: '',
       confirmEmail: '',
       password: '',
@@ -55,11 +62,17 @@ export function RegisterForm() {
   });
 
   const acceptTerms = watch('acceptTerms');
+  const selectedGender = watch('gender');
+  const maxDateOfBirth = new Date().toISOString().slice(0, 10);
 
   const countryOptions: SelectOption[] = COUNTRIES.map(country => ({
     value: country.code,
     label: `${country.flag} ${country.dialCode} ${country.name}`,
     flag: country.flag,
+  }));
+  const genderOptions: SelectOption[] = USER_GENDER_VALUES.map(gender => ({
+    value: gender,
+    label: t(`demographics.gender.options.${gender}`),
   }));
 
   const handleCountryChange = (countryCode: string | number) => {
@@ -81,6 +94,8 @@ export function RegisterForm() {
       Object.entries(data).forEach(([key, value]) => {
         if (typeof value === 'boolean') {
           formData.append(key, value ? 'true' : 'false');
+        } else if (value === null || value === undefined) {
+          formData.append(key, '');
         } else {
           formData.append(key, String(value));
         }
@@ -92,10 +107,10 @@ export function RegisterForm() {
         if (result?.error) {
           setError(result.error);
         } else if (result?.success) {
-          setSuccess(result.message || 'Cuenta creada exitosamente');
+          setSuccess(result.message || t('auth.register.success'));
         }
       } catch (error) {
-        setError('Error inesperado al crear la cuenta');
+        setError(t('auth.register.error'));
       }
     });
   };
@@ -125,10 +140,10 @@ export function RegisterForm() {
             className="text-center mb-5"
           >
             <h1 className="text-2xl sm:text-3xl font-bold text-[#0A2540] dark:text-white mb-1">
-              Crear cuenta
+              {t('auth.register.title')}
             </h1>
             <p className="text-xs sm:text-sm text-[#6C757D] dark:text-white/60">
-              Únete y comienza tu aprendizaje
+              {t('auth.register.subtitle')}
             </p>
           </motion.div>
 
@@ -154,8 +169,8 @@ export function RegisterForm() {
               >
                 <TextInput
                   id="firstName"
-                  label="Nombre"
-                  placeholder="Juan"
+                  label={t('auth.register.firstNameLabel')}
+                  placeholder={t('auth.register.firstNamePlaceholder')}
                   icon={User}
                   error={errors.firstName?.message}
                   {...register('firstName')}
@@ -169,8 +184,8 @@ export function RegisterForm() {
               >
                 <TextInput
                   id="lastName"
-                  label="Apellido"
-                  placeholder="Pérez"
+                  label={t('auth.register.lastNameLabel')}
+                  placeholder={t('auth.register.lastNamePlaceholder')}
                   icon={User}
                   error={errors.lastName?.message}
                   {...register('lastName')}
@@ -185,8 +200,8 @@ export function RegisterForm() {
             >
               <TextInput
                 id="username"
-                label="Usuario"
-                placeholder="juanperez"
+                label={t('auth.register.usernameLabel')}
+                placeholder={t('auth.register.usernamePlaceholder')}
                 icon={User}
                   error={errors.username?.message}
                   {...register('username')}
@@ -201,8 +216,8 @@ export function RegisterForm() {
               >
                 <TextInput
                   id="email"
-                  label="Correo"
-                  placeholder="tu@email.com"
+                  label={t('auth.register.emailLabel')}
+                  placeholder={t('auth.register.emailPlaceholder')}
                   icon={Mail}
                   error={errors.email?.message}
                   type="email"
@@ -218,8 +233,8 @@ export function RegisterForm() {
               >
                 <TextInput
                   id="confirmEmail"
-                  label="Confirmar"
-                  placeholder="tu@email.com"
+                  label={t('auth.register.confirmEmailLabel')}
+                  placeholder={t('auth.register.emailPlaceholder')}
                   icon={Mail}
                   error={errors.confirmEmail?.message}
                   type="email"
@@ -235,7 +250,7 @@ export function RegisterForm() {
               transition={{ delay: 0.45, duration: 0.4 }}
             >
               <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90">
-                Teléfono
+                {t('auth.register.phoneLabel')}
               </label>
               <div className="flex gap-2">
                 <div className="w-36 flex-shrink-0">
@@ -243,7 +258,7 @@ export function RegisterForm() {
                     value={selectedCountryCode}
                     onChange={handleCountryChange}
                     options={countryOptions}
-                    placeholder="País"
+                    placeholder={t('auth.register.countryPlaceholder')}
                     error={errors.countryCode?.message}
                   />
                 </div>
@@ -260,6 +275,44 @@ export function RegisterForm() {
               </div>
             </motion.div>
 
+            <div className="space-y-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-[#6C757D] dark:text-white/60">
+                {t('demographics.sectionTitle')}
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.48, duration: 0.4 }}
+                >
+                  <TextInput
+                    id="dateOfBirth"
+                    label={t('demographics.dateOfBirth')}
+                    icon={Calendar}
+                    error={errors.dateOfBirth?.message}
+                    type="date"
+                    max={maxDateOfBirth}
+                    {...register('dateOfBirth')}
+                  />
+                </motion.div>
+
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5, duration: 0.4 }}
+                >
+                  <SelectField
+                    value={selectedGender || ''}
+                    onChange={(value) => setValue('gender', value ? value as UserGender : null, { shouldValidate: true })}
+                    options={genderOptions}
+                    placeholder={t('demographics.gender.placeholder')}
+                    label={t('demographics.gender.label')}
+                    error={errors.gender?.message}
+                  />
+                </motion.div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -267,7 +320,7 @@ export function RegisterForm() {
                 transition={{ delay: 0.5, duration: 0.4 }}
               >
                 <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90">
-                  Contraseña
+                  {t('auth.register.passwordLabel')}
                 </label>
                 <PasswordInput
                   id="password"
@@ -283,7 +336,7 @@ export function RegisterForm() {
                 transition={{ delay: 0.55, duration: 0.4 }}
               >
                 <label className="block text-sm font-medium mb-2 text-[#0A2540] dark:text-white/90">
-                  Confirmar
+                  {t('auth.register.confirmPasswordLabel')}
                 </label>
                 <PasswordInput
                   id="confirmPassword"
@@ -339,22 +392,24 @@ export function RegisterForm() {
                   </AnimatePresence>
                 </motion.div>
                 <span className="text-xs sm:text-sm text-[#0A2540] dark:text-white/80 leading-relaxed">
-                  Acepto los{' '}
-                  <button
-                    type="button"
-                    onClick={() => setShowLegalModal(true)}
-                    className="text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 font-medium transition-colors"
-                  >
-                    términos y condiciones
-                  </button>
-                  {' '}y la{' '}
-                  <button
-                    type="button"
-                    onClick={() => setShowLegalModal(true)}
-                    className="text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 font-medium transition-colors"
-                  >
-                    política de privacidad
-                  </button>
+                  <Trans
+                    i18nKey="auth.register.acceptTerms"
+                    t={t}
+                    components={[
+                      <button
+                        key="terms"
+                        type="button"
+                        onClick={() => setShowLegalModal(true)}
+                        className="text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 font-medium transition-colors"
+                      />,
+                      <button
+                        key="privacy"
+                        type="button"
+                        onClick={() => setShowLegalModal(true)}
+                        className="text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 font-medium transition-colors"
+                      />
+                    ]}
+                  />
                 </span>
               </label>
             </motion.div>
@@ -381,12 +436,12 @@ export function RegisterForm() {
               {isPending ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Creando cuenta...</span>
+                  <span>{t('auth.register.creating')}</span>
                 </>
               ) : (
                 <>
                   <UserPlus className="w-5 h-5" />
-                  <span>Crear cuenta</span>
+                  <span>{t('auth.register.create')}</span>
                 </>
               )}
             </motion.button>
@@ -408,13 +463,13 @@ export function RegisterForm() {
             className="mt-5 text-center"
           >
             <p className="text-xs sm:text-sm text-[#6C757D] dark:text-white/60">
-              ¿Ya tienes cuenta?{' '}
+              {t('auth.register.hasAccount')}{' '}
               <button
                 type="button"
                 onClick={() => setActiveTab('login')}
                 className="font-semibold text-[#00D4B3] hover:text-[#00D4B3]/80 dark:text-[#00D4B3] dark:hover:text-[#00D4B3]/70 transition-colors"
               >
-                Inicia sesión aquí
+                {t('auth.register.loginHere')}
               </button>
             </p>
           </motion.div>

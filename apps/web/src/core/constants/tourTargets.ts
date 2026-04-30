@@ -7,6 +7,8 @@ export const BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS = {
   statsSection: 'tour-stats-section',
   statCourses: 'tour-stat-courses',
   statCertificates: 'tour-stat-certificates',
+  statAnalytics: 'tour-stat-analytics',
+  courseViewSwitcher: 'tour-course-view-switcher',
   userDropdownTrigger: 'tour-user-dropdown-trigger',
   mobileMenuTrigger: 'tour-mobile-menu-trigger',
 } as const;

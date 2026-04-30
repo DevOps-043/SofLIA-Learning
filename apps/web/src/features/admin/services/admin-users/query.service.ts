@@ -1,6 +1,7 @@
 import { createAdminClient } from './client'
 import {
   ADMIN_USER_LIST_SELECT_FIELDS,
+  mapAdminUserWithAge,
   normalizeUsersPagination,
 } from './helpers'
 import type { GetUsersOptions, GetUsersResult, UserStats } from './types'
@@ -33,7 +34,7 @@ export async function getAdminUsers(
   const totalPages = Math.ceil(total / limit)
 
   return {
-    users: (data || []) as GetUsersResult['users'],
+    users: ((data || []) as GetUsersResult['users']).map(mapAdminUserWithAge),
     total,
     page,
     totalPages,

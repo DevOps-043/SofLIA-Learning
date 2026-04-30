@@ -12,6 +12,23 @@
     "label": "Idioma: {{language}}",
     "active": "Ativo"
   },
+  "demographics": {
+    "sectionTitle": "Dados demograficos",
+    "dateOfBirth": "Data de nascimento",
+    "age": "Idade",
+    "notSpecified": "Nao especificado",
+    "gender": {
+      "label": "Genero",
+      "placeholder": "Selecione o genero",
+      "options": {
+        "female": "Mulher",
+        "male": "Homem",
+        "non_binary": "Nao binario",
+        "other": "Outro",
+        "prefer_not_to_say": "Prefiro nao dizer"
+      }
+    }
+  },
   "media": {
     "tapToPlay": "Toque para reproduzir",
     "videoPreview": "Previa do video"
@@ -36,6 +53,154 @@
     "register": "Criar conta",
     "logoAlt": "Logo da SofLIA Learning",
     "clickCounter": "Contador: {{current}}/{{total}}"
+  },
+  "auth": {
+    "login": {
+      "title": "Bem-vindo de volta",
+      "subtitle": "Faça login para continuar seu aprendizado",
+      "emailOrUsernameLabel": "E-mail ou Usuário",
+      "emailOrUsernamePlaceholder": "voce@email.com ou usuario123",
+      "rememberMe": "Lembrar-me",
+      "forgotPassword": "Esqueceu sua senha?",
+      "signingIn": "Entrando...",
+      "signIn": "Entrar",
+      "noAccount": "Não tem uma conta?",
+      "registerHere": "Registre-se aqui",
+      "errors": {
+        "unexpected": "Erro inesperado ao fazer login",
+        "connection": "Erro de conexão. Verifique sua conexão com a internet e tente novamente.",
+        "timeout": "A solicitação demorou muito. Por favor, tente novamente."
+      },
+      "validation": {
+        "emailOrUsernameRequired": "E-mail ou usuário é obrigatório",
+        "passwordRequired": "A senha é obrigatória",
+        "noSpaces": "Espaços não son permitidos"
+      }
+    },
+    "register": {
+      "title": "Criar conta",
+      "subtitle": "Junte-se e comece seu aprendizado",
+      "success": "Conta criada com sucesso",
+      "error": "Erro inesperado ao criar a conta",
+      "firstNameLabel": "Nome",
+      "firstNamePlaceholder": "João",
+      "lastNameLabel": "Sobrenome",
+      "lastNamePlaceholder": "Silva",
+      "usernameLabel": "Usuário",
+      "usernamePlaceholder": "joaosilva",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "voce@email.com",
+      "confirmEmailLabel": "Confirmar E-mail",
+      "phoneLabel": "Telefone",
+      "countryPlaceholder": "País",
+      "phonePlaceholder": "1234567890",
+      "passwordLabel": "Senha",
+      "confirmPasswordLabel": "Confirmar Senha",
+      "acceptTerms": "Aceito os <0>termos e condições</0> e a <1>política de privacidade</1>",
+      "creating": "Criando conta...",
+      "create": "Criar conta",
+      "hasAccount": "Já tem uma conta?",
+      "loginHere": "Faça login aqui",
+      "validation": {
+        "firstNameMin": "O nome deve ter pelo menos 2 caracteres",
+        "firstNameMax": "O nome não pode exceder 50 caracteres",
+        "lastNameMin": "O sobrenome deve ter pelo menos 2 caracteres",
+        "lastNameMax": "O sobrenome não pode exceder 50 caracteres",
+        "onlyLetters": "Apenas letras são permitidas",
+        "usernameMin": "O usuário deve ter pelo menos 3 caracteres",
+        "usernameMax": "O usuário não pode exceder 20 caracteres",
+        "onlyAlphanumericUnderscore": "Apenas letras, números e sublinhado são permitidos",
+        "countryRequired": "Selecione um país",
+        "phoneMin": "O número de telefone deve ter pelo menos 8 dígitos",
+        "phoneMax": "O número de telefone não pode exceder 15 dígitos",
+        "onlyNumbers": "Apenas números são permitidos",
+        "invalidEmail": "Insira un e-mail válido",
+        "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+        "passwordUppercase": "Deve conter pelo menos uma letra maiúscula",
+        "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
+        "passwordNumber": "Deve conter pelo menos um número",
+        "passwordSpecial": "Deve conter pelo menos um caractere especial",
+        "roleMax": "O cargo não pode exceder 100 caracteres",
+        "acceptTermsRequired": "Você deve aceitar os termos e condições",
+        "emailsDoNotMatch": "Os e-mails não coincidem",
+        "passwordsDoNotMatch": "As senhas não coincidem"
+      }
+    },
+    "forgotPassword": {
+      "title": "Esqueceu sua senha?",
+      "subtitle": "Digite seu endereço de e-mail e enviaremos um link para redefinir sua senha.",
+      "emailLabel": "Endereço de e-mail",
+      "emailPlaceholder": "voce@email.com",
+      "sending": "Enviando link...",
+      "sendLink": "Enviar link de recuperação",
+      "backToLogin": "Voltar para o login",
+      "success": "Se o e-mail estiver registrado, você receberá um link de recuperação.",
+      "error": "Erro de conexão. Tente novamente mais tarde.",
+      "validation": {
+        "invalidEmail": "Insira um endereço de e-mail válido"
+      }
+    },
+    "resetPassword": {
+      "title": "Nova Senha",
+      "subtitle": "Crie uma senha segura para proteger sua conta.",
+      "newPasswordLabel": "Nova senha",
+      "newPasswordPlaceholder": "Mínimo 8 caracteres",
+      "confirmPasswordLabel": "Confirmar senha",
+      "confirmPasswordPlaceholder": "Repita sua senha",
+      "updating": "Atualizando...",
+      "update": "Atualizar Senha",
+      "backToLogin": "Voltar para o login",
+      "success": "Senha atualizada com sucesso",
+      "error": "Erro de conexão. Tente novamente mais tarde.",
+      "verifying": "Verificando link...",
+      "invalidTokenTitle": "Link Inválido",
+      "requestNewLink": "Solicitar novo link",
+      "strength": "Força",
+      "strengthLabels": {
+        "weak": "Fraca",
+        "medium": "Média",
+        "good": "Boa",
+        "strong": "Forte"
+      },
+      "requirements": {
+        "minChars": "8+ caracteres",
+        "uppercase": "Maiúscula",
+        "lowercase": "Minúscula",
+        "number": "Um número"
+      },
+      "validation": {
+        "passwordMin": "A senha deve ter pelo menos 8 caracteres",
+        "passwordUppercase": "Deve conter pelo menos uma letra maiúscula",
+        "passwordLowercase": "Deve conter pelo menos uma letra minúscula",
+        "passwordNumber": "Deve conter pelo menos um número",
+        "passwordsDoNotMatch": "As senhas não coincidem"
+      }
+    },
+    "social": {
+      "divider": "Ou continuar com",
+      "hasAccount": "Já tem uma conta?",
+      "login": "Entrar"
+    },
+    "questionnaireModal": {
+      "title": "Questionário Obrigatório",
+      "description": "Para acessar as comunidades, você precisa primeiro completar o questionário de perfil profissional.",
+      "oauthDescription": "Este é um requisito obrigatório para usuários registrados no Google.",
+      "mandatoryNotice": "O questionário é obrigatório e não pode ser adiado.",
+      "nowNot": "Agora não",
+      "continue": "Continuar",
+      "close": "Fechar"
+    },
+    "org": {
+      "welcomeBack": "Bem-vindo de volta",
+      "signInToContinue": "Entre na sua conta para continuar",
+      "emailOrUsernamePlaceholder": "voce@email.com ou usuario",
+      "signingIn": "Entrando...",
+      "joinOrg": "Junte-se à organização",
+      "registeredAs": "Você será registrado como:",
+      "viaInviteLink": "(via link de convite)",
+      "emailAssociatedInvite": "Este e-mail está associado ao seu convite",
+      "unexpectedError": "Erro inesperado ao entrar"
+    }
   },
   "aiChat": {
     "placeholder": "Digite sua pergunta...",
@@ -951,6 +1116,8 @@
     "organizations": "Minhas organizacoes",
     "viewAllOrganizations": "Ver todas",
     "theme": "Tema",
+    "certificatesObtained_one": "{{count}} obtido",
+    "certificatesObtained_other": "{{count}} obtidos",
     "orgRoles": {
       "owner": "Proprietario",
       "admin": "Admin",

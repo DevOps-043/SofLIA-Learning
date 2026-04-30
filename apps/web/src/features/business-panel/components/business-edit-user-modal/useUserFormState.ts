@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import type { BusinessUser } from '../../services/businessUsers.service'
+import type { UserGender } from '../../../../lib/schemas/user-demographics.schema'
 
 export interface UserFormData {
   first_name: string
@@ -16,6 +17,8 @@ export interface UserFormData {
   bio: string
   location: string
   phone: string
+  date_of_birth: string
+  gender: UserGender | ''
 }
 
 export function useUserFormState(
@@ -38,6 +41,8 @@ export function useUserFormState(
     bio: '',
     location: '',
     phone: '',
+    date_of_birth: '',
+    gender: '',
   })
   const [isLoading, setIsLoading] = useState(false)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
@@ -59,12 +64,16 @@ export function useUserFormState(
         bio: user.bio || '',
         location: user.location || '',
         phone: user.phone || '',
+        date_of_birth: user.date_of_birth || '',
+        gender: user.gender || '',
       })
       setPreviewImage(user.profile_picture_url || null)
     }
   }, [user])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
