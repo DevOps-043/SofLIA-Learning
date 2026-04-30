@@ -1,336 +1,910 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { AnimatePresence, motion } from 'framer-motion'
-import { CheckCircle2, ChevronDown, ChevronRight, ChevronUp, Lock, Play } from 'lucide-react'
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { Award, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Lock, Play, Sparkles } from 'lucide-react'
 
-import { OnboardingVideoPlayer } from '@/features/tours/components/OnboardingVideoPlayer'
-import type { AssignedLearningPath, BusinessUserDashboardColors } from '../types'
+import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
+import type {
+  AssignedCourse,
+  AssignedLearningPath,
+  AssignedLearningPathItem,
+  BusinessUserDashboardColors,
+} from '../types'
 
-/** Inyecta <link rel="prefetch"> para descargar el video en background antes de reproducirlo */
-function prefetchVideo(url: string | null) {
-  if (!url || typeof document === 'undefined') return
-  const selector = `link[rel="prefetch"][href="${url}"]`
-  if (document.head.querySelector(selector)) return
-  const link = document.createElement('link')
-  link.rel = 'prefetch'
-  link.setAttribute('as', 'fetch')
-  link.href = url
-  link.crossOrigin = 'anonymous'
-  document.head.appendChild(link)
+interface LearningPathViewProps {
+  learningPaths: AssignedLearningPath[]
+  assignedCourses: AssignedCourse[]
+  orgColors: BusinessUserDashboardColors
+  orgSlug: string
+  onOpenCourse: (slug: string | null | undefined) => void
+  onCourseClick: (course: AssignedCourse) => void
+  onCertificateClick?: (course: AssignedCourse) => void
+  disableHeavyEffects?: boolean
+  t: (key: string, defaultValue?: string) => string
 }
 
-// ─── per-LP state ────────────────────────────────────────────────────────────
+interface LearningPathCourseTileProps {
+  course: AssignedCourse
+  item: AssignedLearningPathItem
+  learningPathTitle: string
+  orgColors: BusinessUserDashboardColors
+  onOpen: () => void
+  onCertificateClick?: () => void
+  onPreview: (anchor: HTMLElement, content: InfoHoverCardContent) => void
+  onPreviewEnd: () => void
+  t: LearningPathViewProps['t']
+  disableHeavyEffects: boolean
+}
 
-interface LpIntroState {
+interface IntroVideoState {
   introVideoUrl: string | null
   watched: boolean
   loading: boolean
   showPlayer: boolean
 }
 
-const INITIAL_INTRO: LpIntroState = {
-  introVideoUrl: null,
-  watched: false,
-  loading: true,
-  showPlayer: false,
+interface IntroVideoResponse {
+  success?: boolean
+  introVideoUrl?: string | null
+  watched?: boolean
 }
 
-// ─── LP card ─────────────────────────────────────────────────────────────────
-
-interface LearningPathCardProps {
-  path: AssignedLearningPath
-  index: number
-  orgSlug: string
-  orgColors: BusinessUserDashboardColors
-  onOpenCourse: (slug: string | null | undefined) => void
+interface InfoHoverCardContent {
+  key: string
+  kind: 'course' | 'learning_path'
+  targetId: string
+  title: string
+  meta: string
+  description: string
+  points: string[]
+  progress?: number
+  status?: string
+  loading?: boolean
+  source?: 'gemini' | 'fallback'
+  model?: string
 }
 
-function LearningPathCard({
-  path,
-  index,
-  orgSlug,
+interface InfoHoverCardState extends InfoHoverCardContent {
+  rect: DOMRect
+}
+
+interface GeminiPreviewResponse {
+  success?: boolean
+  description?: string
+  points?: string[]
+  source?: 'gemini' | 'fallback'
+  model?: string
+}
+
+function formatTranslation(
+  t: LearningPathViewProps['t'],
+  key: string,
+  defaultValue: string,
+  replacements: Record<string, string | number>,
+) {
+  let text = t(key, defaultValue)
+  for (const [name, value] of Object.entries(replacements)) {
+    text = text.split(`{{${name}}}`).join(String(value))
+  }
+  return text
+}
+
+function getItemCourseStatus(item: AssignedLearningPathItem): AssignedCourse['status'] {
+  if (item.isCompleted || item.progress >= 100) return 'Completado'
+  if (item.progress > 0) return 'En progreso'
+  return 'Asignado'
+}
+
+function clampProgress(progress: number) {
+  if (!Number.isFinite(progress)) return 0
+  return Math.max(0, Math.min(100, progress))
+}
+
+function buildCourseFromPathItem(
+  item: AssignedLearningPathItem,
+  learningPath: AssignedLearningPath,
+  t: LearningPathViewProps['t'],
+): AssignedCourse {
+  return {
+    id: `${learningPath.id}-${item.courseId}`,
+    course_id: item.courseId,
+    title: item.title || t('dashboard.learningPaths.courseFallback', 'Curso sin titulo'),
+    instructor: learningPath.title,
+    progress: clampProgress(item.progress),
+    status: getItemCourseStatus(item),
+    thumbnail: item.thumbnail || '/images/course-placeholder.png',
+    slug: item.slug ?? '',
+    assigned_at: '',
+    has_certificate: item.hasCertificate,
+  }
+}
+
+function getIntroFallback(isLoading: boolean): IntroVideoState {
+  return {
+    introVideoUrl: null,
+    watched: false,
+    loading: isLoading,
+    showPlayer: false,
+  }
+}
+
+function buildCoursePreviewContent(
+  course: AssignedCourse,
+  item: AssignedLearningPathItem,
+  learningPathTitle: string,
+  t: LearningPathViewProps['t'],
+): InfoHoverCardContent {
+  const progress = clampProgress(course.progress)
+  const status = !item.isUnlocked
+    ? t('dashboard.learningPaths.status.locked', 'Bloqueado')
+    : progress >= 100
+      ? t('dashboard.learningPaths.status.completed', 'Completado')
+      : course.status
+
+  return {
+    key: `course:${course.course_id}`,
+    kind: 'course',
+    targetId: course.course_id,
+    title: course.title,
+    meta: formatTranslation(
+      t,
+      'dashboard.learningPaths.coursePreviewMeta',
+      'Curso {{position}} de la ruta {{pathTitle}}',
+      { position: item.position, pathTitle: learningPathTitle },
+    ),
+    description: t('dashboard.learningPaths.previewLoading', 'Gemini esta analizando la descripcion real y el contexto de aprendizaje.'),
+    points: [],
+    progress,
+    status,
+    loading: true,
+  }
+}
+
+function buildLearningPathPreviewContent(
+  learningPath: AssignedLearningPath,
+  t: LearningPathViewProps['t'],
+): InfoHoverCardContent {
+  return {
+    key: `learning_path:${learningPath.id}`,
+    kind: 'learning_path',
+    targetId: learningPath.id,
+    title: learningPath.title,
+    meta: formatTranslation(
+      t,
+      'dashboard.learningPaths.pathPreviewMeta',
+      '{{count}} cursos en secuencia',
+      { count: learningPath.totalItemsCount },
+    ),
+    description: t('dashboard.learningPaths.previewLoading', 'Gemini esta analizando la descripcion real y el contexto de aprendizaje.'),
+    points: [],
+    progress: clampProgress(learningPath.progressPercentage),
+    status: formatTranslation(
+      t,
+      'dashboard.learningPaths.pathPreviewStatus',
+      '{{completed}} de {{total}} completados',
+      {
+        completed: learningPath.completedItemsCount,
+        total: learningPath.totalItemsCount,
+      },
+    ),
+    loading: true,
+  }
+}
+
+function getHoverCardPosition(rect: DOMRect) {
+  const width = 380
+  const gap = 12
+  const viewportWidth = typeof window === 'undefined' ? 1280 : window.innerWidth
+  const viewportHeight = typeof window === 'undefined' ? 720 : window.innerHeight
+  const maxHeight = Math.min(520, viewportHeight - gap * 2)
+  const fitsRight = rect.right + gap + width <= viewportWidth - gap
+  const fitsLeft = rect.left - gap - width >= gap
+  const left = fitsRight
+    ? rect.right + gap
+    : fitsLeft
+      ? rect.left - gap - width
+      : Math.max(gap, Math.min(rect.left, viewportWidth - width - gap))
+  const top = Math.max(gap, Math.min(rect.top - 110, viewportHeight - maxHeight - gap))
+
+  return {
+    left,
+    top,
+    width,
+    maxHeight,
+    arrowSide: fitsRight ? 'left' : fitsLeft ? 'right' : 'none',
+  }
+}
+
+function InfoHoverCard({
+  card,
   orgColors,
-  onOpenCourse,
-}: LearningPathCardProps) {
-  const [expanded, setExpanded] = useState(true)
-  const [intro, setIntro] = useState<LpIntroState>(INITIAL_INTRO)
-  const fetchedRef = useRef(false)
-  const autoPlayedRef = useRef(false)
-
-  // ── Fetch intro video state once on mount ─────────────────────────────────
-  useEffect(() => {
-    if (fetchedRef.current || !orgSlug || !path.id) return
-    fetchedRef.current = true
-
-    fetch(`/api/${orgSlug}/business-user/lp/${path.id}/intro-video`, {
-      credentials: 'include',
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { success: boolean; introVideoUrl: string | null; watched: boolean } | null) => {
-        if (!data?.success) {
-          setIntro((prev) => ({ ...prev, loading: false }))
-          return
-        }
-        // Prefetch en background — descarga el video antes de que el usuario lo abra
-        prefetchVideo(data.introVideoUrl)
-        setIntro((prev) => ({
-          ...prev,
-          introVideoUrl: data.introVideoUrl,
-          watched: data.watched,
-          loading: false,
-        }))
-      })
-      .catch(() => setIntro((prev) => ({ ...prev, loading: false })))
-  }, [orgSlug, path.id])
-
-  // ── Auto-play on first view (once fetch is done, not yet watched) ─────────
-  useEffect(() => {
-    if (
-      intro.loading ||
-      !intro.introVideoUrl ||
-      intro.watched ||
-      autoPlayedRef.current
-    ) return
-    autoPlayedRef.current = true
-    setIntro((prev) => ({ ...prev, showPlayer: true }))
-  }, [intro.loading, intro.introVideoUrl, intro.watched])
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const isReplayRef = useRef(false)
-
-  const handleVideoComplete = useCallback(() => {
-    const wasReplay = isReplayRef.current
-    isReplayRef.current = false
-    setIntro((prev) => ({ ...prev, showPlayer: false, watched: true }))
-    // Solo marcar como visto en DB si era la primera vez (no replay)
-    if (!wasReplay) {
-      fetch(`/api/${orgSlug}/business-user/lp/${path.id}/intro-video`, {
-        method: 'POST',
-        credentials: 'include',
-      }).catch(() => {})
-    }
-  }, [orgSlug, path.id])
-
-  const handleReplay = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    isReplayRef.current = true
-    setIntro((prev) => ({ ...prev, showPlayer: true }))
-  }, [])
-
-  const toggleExpanded = useCallback(() => setExpanded((v) => !v), [])
-
-  const hasVideo = Boolean(intro.introVideoUrl)
+  onMouseEnter,
+  onMouseLeave,
+  t,
+}: {
+  card: InfoHoverCardState
+  orgColors: BusinessUserDashboardColors
+  onMouseEnter: () => void
+  onMouseLeave: () => void
+  t: LearningPathViewProps['t']
+}) {
+  const position = getHoverCardPosition(card.rect)
+  const badgeLabel = card.loading
+    ? t('dashboard.learningPaths.previewLoadingBadge', 'Analizando')
+    : card.source === 'gemini'
+      ? t('dashboard.learningPaths.geminiPreviewBadge', 'Analisis Gemini')
+      : t('dashboard.learningPaths.previewBadge', 'Resumen')
 
   return (
-    <>
-      {/* Full-screen intro video player */}
-      {intro.showPlayer && intro.introVideoUrl && (
-        <OnboardingVideoPlayer
-          videos={[intro.introVideoUrl]}
-          onComplete={handleVideoComplete}
-          isSkippable={intro.watched}
-        />
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: index * 0.07 }}
-        className="overflow-hidden rounded-2xl"
-        style={{ backgroundColor: orgColors.cardBg, border: `1px solid ${orgColors.border}` }}
-      >
-        {/* ── Header (always visible) ── */}
-        <div
-          className="px-5 py-4"
+    <div
+      className="fixed z-[80] rounded-lg border p-5 shadow-2xl"
+      style={{
+        left: position.left,
+        top: position.top,
+        width: position.width,
+        maxHeight: position.maxHeight,
+        overflowY: 'auto',
+        backgroundColor: orgColors.cardBg,
+        borderColor: orgColors.border,
+        color: orgColors.text,
+      }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      role="tooltip"
+      aria-label={card.title}
+    >
+      {position.arrowSide !== 'none' ? (
+        <span
+          className={`absolute top-12 h-4 w-4 rotate-45 border ${
+            position.arrowSide === 'left' ? '-left-2 border-r-0 border-t-0' : '-right-2 border-b-0 border-l-0'
+          }`}
           style={{
-            borderBottom: expanded ? `1px solid ${orgColors.border}` : undefined,
-            background: `linear-gradient(135deg, ${orgColors.primary}10, ${orgColors.accent}06)`,
+            backgroundColor: orgColors.cardBg,
+            borderColor: orgColors.border,
           }}
-        >
-          <div className="flex items-start justify-between gap-4">
-            {/* Left: title + meta */}
-            <div className="flex-1 min-w-0">
-              <span
-                className="inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full mb-1"
-                style={{ backgroundColor: `${orgColors.primary}18`, color: orgColors.primary }}
-              >
-                Ruta de aprendizaje
-              </span>
-              <h3 className="text-base font-bold leading-snug" style={{ color: orgColors.text }}>
-                {path.title}
-              </h3>
-              <p className="text-xs mt-0.5" style={{ color: orgColors.textSecondary }}>
-                {path.completedItemsCount} de {path.totalItemsCount} cursos completados
-              </p>
-            </div>
+        />
+      ) : null}
 
-            {/* Right: progress + actions */}
-            <div className="shrink-0 flex flex-col items-end gap-2">
-              {/* Progress */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold tabular-nums" style={{ color: orgColors.accent }}>
-                  {path.progressPercentage}%
-                </span>
-                <div
-                  className="h-1.5 w-24 rounded-full overflow-hidden"
-                  style={{ backgroundColor: orgColors.isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.1)' }}
-                >
-                  <div
-                    className="h-full rounded-full transition-all duration-700"
-                    style={{
-                      width: `${path.progressPercentage}%`,
-                      background: `linear-gradient(90deg, ${orgColors.primary}, ${orgColors.accent})`,
-                    }}
-                  />
-                </div>
-              </div>
+      <div className="mb-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold" style={{ backgroundColor: `${orgColors.iconColor}18`, color: orgColors.iconColor }}>
+        {card.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+        {badgeLabel}
+      </div>
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-2">
-                {/* Ver intro button — visible siempre que haya video configurado */}
-                {hasVideo && !intro.loading && (
-                  <button
-                    type="button"
-                    onClick={handleReplay}
-                    className="flex items-center gap-1.5 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider transition-all hover:opacity-80 active:scale-95"
-                    style={{
-                      backgroundColor: `${orgColors.primary}14`,
-                      color: orgColors.primary,
-                      border: `1px solid ${orgColors.primary}28`,
-                    }}
-                  >
-                    <Play className="h-3 w-3 fill-current" />
-                    Ver intro
-                  </button>
-                )}
+      <h3 className="text-lg font-bold leading-snug" style={{ color: orgColors.text }}>
+        {card.title}
+      </h3>
+      <p className="mt-1 text-xs font-semibold" style={{ color: orgColors.textSecondary }}>
+        {card.meta}
+      </p>
 
-                {/* Collapse toggle */}
-                <button
-                  type="button"
-                  onClick={toggleExpanded}
-                  className="flex h-7 w-7 items-center justify-center rounded-full transition-all hover:opacity-70 active:scale-95"
-                  style={{
-                    backgroundColor: orgColors.isLightMode ? '#F1F5F9' : 'rgba(255,255,255,0.08)',
-                    color: orgColors.textSecondary,
-                  }}
-                >
-                  {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-          </div>
+      <div className="mt-3 flex items-center gap-3">
+        {typeof card.progress === 'number' ? (
+          <span className="text-sm font-bold tabular-nums" style={{ color: orgColors.iconColor }}>
+            {Math.round(card.progress)}%
+          </span>
+        ) : null}
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: `${orgColors.textMuted}24` }}>
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${card.progress ?? 0}%`,
+              backgroundColor: orgColors.iconColor,
+            }}
+          />
         </div>
+      </div>
+      {card.status ? (
+        <p className="mt-2 text-xs font-semibold" style={{ color: orgColors.textSecondary }}>
+          {card.status}
+        </p>
+      ) : null}
 
-        {/* ── Collapsible course list ── */}
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.div
-              key="courses"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.22, ease: 'easeInOut' }}
-              style={{ overflow: 'hidden' }}
-            >
-              {path.items.map((item, itemIndex) => {
-                const isLocked = !item.isUnlocked
-                const isCompleted = item.isCompleted
+      <p className="mt-4 text-sm leading-relaxed" style={{ color: orgColors.textSecondary }}>
+        {card.description}
+      </p>
 
-                return (
-                  <div
-                    key={item.courseId}
-                    className={`flex items-center gap-3 px-4 py-3.5 transition-opacity duration-150 ${
-                      isLocked ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-75'
-                    }`}
-                    style={{
-                      opacity: isLocked ? 0.4 : 1,
-                      borderBottom:
-                        itemIndex < path.items.length - 1
-                          ? `1px solid ${orgColors.border}50`
-                          : undefined,
-                    }}
-                    onClick={() => { if (!isLocked) onOpenCourse(item.slug) }}
-                  >
-                    <div
-                      className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-                      style={
-                        isCompleted
-                          ? { backgroundColor: `${orgColors.accent}20`, color: orgColors.accent }
-                          : isLocked
-                            ? { backgroundColor: orgColors.isLightMode ? '#F1F5F9' : 'rgba(255,255,255,0.06)', color: orgColors.textMuted }
-                            : { backgroundColor: `${orgColors.primary}18`, color: orgColors.primary }
-                      }
-                    >
-                      {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : isLocked ? <Lock className="w-3.5 h-3.5" /> : item.position}
-                    </div>
-
-                    <div
-                      className="relative shrink-0 overflow-hidden rounded-xl"
-                      style={{ width: 52, height: 52, backgroundColor: orgColors.isLightMode ? '#F1F5F9' : '#0F172A' }}
-                    >
-                      <Image src={item.thumbnail || '/images/course-placeholder.png'} alt={item.title} fill className="object-cover" sizes="52px" />
-                      {isLocked && <div className="absolute inset-0 bg-black/40" />}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold line-clamp-1" style={{ color: isLocked ? orgColors.textSecondary : orgColors.text }}>
-                        {item.title}
-                      </p>
-                      {isLocked ? (
-                        <p className="text-[10px] mt-0.5" style={{ color: orgColors.textMuted }}>
-                          Completa el curso anterior para desbloquear
-                        </p>
-                      ) : (
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <div className="h-1 rounded-full overflow-hidden" style={{ width: 80, backgroundColor: orgColors.isLightMode ? '#E2E8F0' : 'rgba(255,255,255,0.1)' }}>
-                            <div className="h-full rounded-full" style={{ width: `${item.progress}%`, background: `linear-gradient(90deg, ${orgColors.primary}, ${orgColors.accent})` }} />
-                          </div>
-                          <span className="text-[10px] tabular-nums" style={{ color: orgColors.textSecondary }}>{item.progress}%</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="shrink-0">
-                      {isCompleted ? <CheckCircle2 className="w-4 h-4" style={{ color: orgColors.accent }} /> : isLocked ? <Lock className="w-4 h-4" style={{ color: orgColors.textMuted }} /> : <ChevronRight className="w-4 h-4" style={{ color: orgColors.textSecondary }} />}
-                    </div>
-                  </div>
-                )
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    </>
+      {card.loading ? (
+        <div className="mt-4 space-y-2">
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="h-4 rounded-full" style={{ backgroundColor: `${orgColors.textMuted}20` }} />
+          ))}
+        </div>
+      ) : (
+        <ul className="mt-4 space-y-2">
+          {card.points.map((point) => (
+            <li key={point} className="flex gap-2 text-sm leading-snug" style={{ color: orgColors.text }}>
+              <Check className="mt-0.5 h-4 w-4 shrink-0" style={{ color: orgColors.iconColor }} />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   )
 }
 
-// ─── Public export ───────────────────────────────────────────────────────────
+function LearningPathCourseTile({
+  course,
+  item,
+  learningPathTitle,
+  orgColors,
+  onOpen,
+  onCertificateClick,
+  onPreview,
+  onPreviewEnd,
+  t,
+  disableHeavyEffects,
+}: LearningPathCourseTileProps) {
+  const progress = clampProgress(course.progress)
+  const isLocked = !item.isUnlocked
+  const isCompleted = item.isCompleted || progress >= 100
+  const canOpen = !isLocked && Boolean(course.slug || item.slug)
+  const statusLabel = isLocked
+    ? t('dashboard.learningPaths.lockedHint', 'Completa el curso anterior')
+    : isCompleted
+      ? t('dashboard.learningPaths.status.completed', 'Completado')
+      : course.status
 
-interface LearningPathViewProps {
-  learningPaths: AssignedLearningPath[]
-  orgColors: BusinessUserDashboardColors
-  orgSlug: string
-  onOpenCourse: (slug: string | null | undefined) => void
-  t: (key: string, defaultValue?: string) => string
-}
-
-export function LearningPathView({ learningPaths, orgColors, orgSlug, onOpenCourse }: LearningPathViewProps) {
-  if (learningPaths.length === 0) return null
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (!canOpen || (event.key !== 'Enter' && event.key !== ' ')) return
+    event.preventDefault()
+    onOpen()
+  }
 
   return (
-    <div className="flex flex-col gap-5">
-      {learningPaths.map((path, index) => (
-        <LearningPathCard
-          key={path.id}
-          path={path}
-          index={index}
-          orgSlug={orgSlug}
-          orgColors={orgColors}
-          onOpenCourse={onOpenCourse}
+    <article
+      role={canOpen ? 'button' : undefined}
+      tabIndex={canOpen ? 0 : -1}
+      onClick={canOpen ? onOpen : undefined}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={(event) => {
+        onPreview(event.currentTarget, buildCoursePreviewContent(course, item, learningPathTitle, t))
+      }}
+      onMouseLeave={onPreviewEnd}
+      onFocus={(event) => {
+        onPreview(event.currentTarget, buildCoursePreviewContent(course, item, learningPathTitle, t))
+      }}
+      onBlur={onPreviewEnd}
+      className={`group flex-none snap-start outline-none ${
+        canOpen ? 'cursor-pointer' : 'cursor-not-allowed'
+      }`}
+      aria-disabled={!canOpen}
+      style={{
+        opacity: isLocked ? 0.56 : 1,
+        width: 'clamp(260px, calc((100% - 96px) / 5), 340px)',
+      }}
+    >
+      <div
+        className="relative aspect-video overflow-hidden rounded-md border"
+        style={{
+          backgroundColor: `${orgColors.textMuted}14`,
+          borderColor: orgColors.border,
+        }}
+      >
+        <Image
+          src={course.thumbnail || '/images/course-placeholder.png'}
+          alt={course.title}
+          fill
+          className={`object-cover ${isLocked ? 'grayscale' : ''} ${
+            disableHeavyEffects ? '' : 'transition-transform duration-300 group-hover:scale-[1.03]'
+          }`}
+          sizes="(max-width: 768px) 320px, 410px"
         />
-      ))}
+
+        {isLocked ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/45">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-gray-700">
+              <Lock className="h-5 w-5" />
+            </span>
+          </div>
+        ) : null}
+
+        <span
+          className="absolute left-2 top-2 inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-bold shadow-sm"
+          style={{
+            backgroundColor: orgColors.cardBg,
+            color: orgColors.text,
+          }}
+        >
+          {item.position}
+        </span>
+
+        {isCompleted ? (
+          <span
+            className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full shadow-sm"
+            style={{
+              backgroundColor: orgColors.cardBg,
+              color: orgColors.iconColor,
+            }}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+          </span>
+        ) : null}
+      </div>
+
+      <h4
+        className="mt-3 line-clamp-3 min-h-[60px] text-[15px] font-bold leading-tight transition-colors group-hover:underline md:text-base"
+        style={{ color: isLocked ? orgColors.textSecondary : orgColors.text }}
+      >
+        {course.title}
+      </h4>
+
+      <p className="mt-1 truncate text-xs" style={{ color: orgColors.textSecondary }}>
+        {course.instructor || learningPathTitle}
+      </p>
+
+      <div className="mt-2 flex items-center gap-2">
+        <span className="text-xs font-bold tabular-nums" style={{ color: orgColors.iconColor }}>
+          {Math.round(progress)}%
+        </span>
+        <div
+          className="h-1.5 flex-1 overflow-hidden rounded-full"
+          style={{ backgroundColor: `${orgColors.textMuted}24` }}
+        >
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${progress}%`, backgroundColor: orgColors.iconColor }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-2 flex min-h-6 items-center justify-between gap-2">
+        <p className="truncate text-xs font-medium" style={{ color: isLocked ? orgColors.textMuted : orgColors.textSecondary }}>
+          {statusLabel}
+        </p>
+        {course.has_certificate && isCompleted && onCertificateClick ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation()
+              onCertificateClick()
+            }}
+            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition hover:scale-105"
+            style={{
+              backgroundColor: `${orgColors.iconColor}18`,
+              color: orgColors.iconColor,
+            }}
+            aria-label={t('dashboard.learningPaths.viewCertificate', 'Ver certificado')}
+          >
+            <Award className="h-3.5 w-3.5" />
+          </button>
+        ) : null}
+      </div>
+    </article>
+  )
+}
+
+export function LearningPathView({
+  learningPaths,
+  assignedCourses,
+  orgColors,
+  orgSlug,
+  onOpenCourse,
+  onCourseClick,
+  onCertificateClick,
+  disableHeavyEffects = false,
+  t,
+}: LearningPathViewProps) {
+  const [introByPath, setIntroByPath] = useState<Record<string, IntroVideoState>>({})
+  const [hoverCard, setHoverCard] = useState<InfoHoverCardState | null>(null)
+  const scrollerRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const hoverHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const previewCacheRef = useRef(new Map<string, Pick<InfoHoverCardContent, 'description' | 'points' | 'source' | 'model'>>())
+  const previewRequestRef = useRef(new Set<string>())
+
+  const assignedCoursesById = useMemo(() => {
+    const map = new Map<string, AssignedCourse>()
+    for (const course of assignedCourses) {
+      map.set(course.course_id, course)
+    }
+    return map
+  }, [assignedCourses])
+
+  const learningPathIdKey = useMemo(
+    () => learningPaths.map((path) => path.id).join('|'),
+    [learningPaths],
+  )
+
+  const clearHoverHideTimeout = useCallback(() => {
+    if (!hoverHideTimeoutRef.current) return
+    clearTimeout(hoverHideTimeoutRef.current)
+    hoverHideTimeoutRef.current = null
+  }, [])
+
+  const requestPreviewAnalysis = useCallback(
+    async (content: InfoHoverCardContent) => {
+      const cached = previewCacheRef.current.get(content.key)
+      if (cached) {
+        setHoverCard((current) =>
+          current?.key === content.key
+            ? {
+                ...current,
+                ...cached,
+                loading: false,
+              }
+            : current,
+        )
+        return
+      }
+
+      if (!orgSlug || previewRequestRef.current.has(content.key)) return
+      previewRequestRef.current.add(content.key)
+
+      try {
+        const locale =
+          typeof document !== 'undefined'
+            ? document.documentElement.lang || navigator.language
+            : undefined
+        const response = await fetch(`/api/${encodeURIComponent(orgSlug)}/business-user/learning-preview`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            kind: content.kind,
+            targetId: content.targetId,
+            locale,
+          }),
+        })
+        const data = (await response.json()) as GeminiPreviewResponse
+
+        if (!response.ok || !data.success || !data.description || !Array.isArray(data.points)) {
+          throw new Error('Invalid preview response')
+        }
+
+        const analysis = {
+          description: data.description,
+          points: data.points.slice(0, 3),
+          source: data.source,
+          model: data.model,
+        }
+
+        previewCacheRef.current.set(content.key, analysis)
+        setHoverCard((current) =>
+          current?.key === content.key
+            ? {
+                ...current,
+                ...analysis,
+                loading: false,
+              }
+            : current,
+        )
+      } catch {
+        setHoverCard((current) =>
+          current?.key === content.key
+            ? {
+                ...current,
+                description: t(
+                  'dashboard.learningPaths.previewUnavailable',
+                  'No se pudo generar el analisis con Gemini en este momento.',
+                ),
+                points: [],
+                loading: false,
+                source: 'fallback',
+              }
+            : current,
+        )
+      } finally {
+        previewRequestRef.current.delete(content.key)
+      }
+    },
+    [orgSlug, t],
+  )
+
+  const showPreview = useCallback(
+    (anchor: HTMLElement, content: InfoHoverCardContent) => {
+      clearHoverHideTimeout()
+      const cached = previewCacheRef.current.get(content.key)
+      setHoverCard({
+        ...content,
+        ...(cached ? { ...cached, loading: false } : null),
+        rect: anchor.getBoundingClientRect(),
+      })
+
+      if (!cached) {
+        void requestPreviewAnalysis(content)
+      }
+    },
+    [clearHoverHideTimeout, requestPreviewAnalysis],
+  )
+
+  const scheduleHidePreview = useCallback(() => {
+    clearHoverHideTimeout()
+    hoverHideTimeoutRef.current = setTimeout(() => {
+      setHoverCard(null)
+      hoverHideTimeoutRef.current = null
+    }, 120)
+  }, [clearHoverHideTimeout])
+
+  useEffect(() => clearHoverHideTimeout, [clearHoverHideTimeout])
+
+  useEffect(() => {
+    if (!orgSlug || !learningPathIdKey) {
+      setIntroByPath({})
+      return
+    }
+
+    const pathIds = learningPathIdKey.split('|').filter(Boolean)
+    let cancelled = false
+
+    setIntroByPath((current) => {
+      const next: Record<string, IntroVideoState> = {}
+
+      for (const pathId of pathIds) {
+        next[pathId] = {
+          ...(current[pathId] ?? getIntroFallback(true)),
+          loading: true,
+          showPlayer: false,
+        }
+      }
+
+      return next
+    })
+
+    async function loadIntroVideos() {
+      const entries = await Promise.all(
+        pathIds.map(async (pathId): Promise<[string, IntroVideoState]> => {
+          try {
+            const response = await fetch(
+              `/api/${encodeURIComponent(orgSlug)}/business-user/lp/${encodeURIComponent(pathId)}/intro-video`,
+              { cache: 'no-store' },
+            )
+            const data = (await response.json()) as IntroVideoResponse
+
+            if (!response.ok || data.success === false) {
+              return [pathId, getIntroFallback(false)]
+            }
+
+            return [
+              pathId,
+              {
+                introVideoUrl: data.introVideoUrl ?? null,
+                watched: Boolean(data.watched),
+                loading: false,
+                showPlayer: false,
+              },
+            ]
+          } catch {
+            return [pathId, getIntroFallback(false)]
+          }
+        }),
+      )
+
+      if (cancelled) return
+
+      setIntroByPath((current) => ({
+        ...current,
+        ...Object.fromEntries(entries),
+      }))
+    }
+
+    void loadIntroVideos()
+
+    return () => {
+      cancelled = true
+    }
+  }, [orgSlug, learningPathIdKey])
+
+  const scrollPath = useCallback((pathId: string, direction: 'left' | 'right') => {
+    const scroller = scrollerRefs.current[pathId]
+    if (!scroller) return
+
+    scroller.scrollBy({
+      left: direction === 'right' ? 860 : -860,
+      behavior: 'smooth',
+    })
+  }, [])
+
+  const openTour = useCallback((pathId: string) => {
+    setIntroByPath((current) => {
+      const intro = current[pathId]
+      if (!intro?.introVideoUrl) return current
+
+      return {
+        ...current,
+        [pathId]: {
+          ...intro,
+          showPlayer: true,
+        },
+      }
+    })
+  }, [])
+
+  const completeTour = useCallback(
+    (pathId: string) => {
+      const shouldMarkWatched = Boolean(introByPath[pathId]?.introVideoUrl && !introByPath[pathId]?.watched)
+
+      setIntroByPath((current) => {
+        const intro = current[pathId]
+        if (!intro) return current
+
+        return {
+          ...current,
+          [pathId]: {
+            ...intro,
+            watched: true,
+            showPlayer: false,
+          },
+        }
+      })
+
+      if (!shouldMarkWatched || !orgSlug) return
+
+      void fetch(
+        `/api/${encodeURIComponent(orgSlug)}/business-user/lp/${encodeURIComponent(pathId)}/intro-video`,
+        { method: 'POST' },
+      )
+    },
+    [introByPath, orgSlug],
+  )
+
+  if (learningPaths.length === 0) {
+    return null
+  }
+
+  return (
+    <div className="space-y-12">
+      {learningPaths.map((learningPath, pathIndex) => {
+        const intro = introByPath[learningPath.id] ?? getIntroFallback(Boolean(orgSlug))
+        const hasTour = Boolean(intro.introVideoUrl)
+        const isTourDisabled = intro.loading || !hasTour
+        const completedSummary = `${learningPath.completedItemsCount} ${t('dashboard.learningPaths.of', 'de')} ${learningPath.totalItemsCount} ${t('dashboard.learningPaths.completedCoursesSuffix', 'cursos completados')}`
+
+        return (
+          <motion.section
+            key={learningPath.id}
+            initial={disableHeavyEffects ? false : { opacity: 0, y: 12 }}
+            animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+            transition={disableHeavyEffects ? undefined : { delay: pathIndex * 0.05 }}
+          >
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h2
+                  className="inline-block max-w-full cursor-help truncate text-2xl font-bold leading-tight outline-none"
+                  style={{ color: orgColors.text }}
+                  tabIndex={0}
+                  onMouseEnter={(event) => {
+                    showPreview(event.currentTarget, buildLearningPathPreviewContent(learningPath, t))
+                  }}
+                  onMouseLeave={scheduleHidePreview}
+                  onFocus={(event) => {
+                    showPreview(event.currentTarget, buildLearningPathPreviewContent(learningPath, t))
+                  }}
+                  onBlur={scheduleHidePreview}
+                >
+                  {learningPath.title}
+                </h2>
+                <p className="mt-1 text-sm" style={{ color: orgColors.textSecondary }}>
+                  {completedSummary}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                disabled={isTourDisabled}
+                onClick={() => openTour(learningPath.id)}
+                className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-55"
+                style={{
+                  backgroundColor: isTourDisabled ? `${orgColors.textMuted}12` : orgColors.cardBg,
+                  borderColor: isTourDisabled ? orgColors.border : orgColors.iconColor,
+                  color: isTourDisabled ? orgColors.textMuted : orgColors.text,
+                }}
+                aria-label={
+                  hasTour
+                    ? t('dashboard.learningPaths.viewTour', 'Ver tour')
+                    : t('dashboard.learningPaths.tourUnavailable', 'Tour no disponible')
+                }
+              >
+                {intro.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                {intro.loading
+                  ? t('dashboard.learningPaths.tourLoading', 'Cargando tour')
+                  : t('dashboard.learningPaths.viewTour', 'Ver tour')}
+              </button>
+            </div>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => scrollPath(learningPath.id, 'left')}
+                className="absolute left-0 top-[90px] z-10 hidden h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border shadow-lg transition hover:scale-105 md:flex xl:top-[116px]"
+                style={{
+                  backgroundColor: orgColors.cardBg,
+                  borderColor: orgColors.border,
+                  color: orgColors.text,
+                }}
+                aria-label={t('dashboard.learningPaths.previousCourses', 'Cursos anteriores')}
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+
+              <div
+                ref={(node) => {
+                  scrollerRefs.current[learningPath.id] = node
+                }}
+                className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {learningPath.items.length > 0 ? (
+                  learningPath.items.map((item) => {
+                    const assignedCourse = assignedCoursesById.get(item.courseId)
+                    const course = assignedCourse ?? buildCourseFromPathItem(item, learningPath, t)
+                    const openCourse = () => {
+                      if (assignedCourse) {
+                        onCourseClick(course)
+                        return
+                      }
+
+                      onOpenCourse(item.slug)
+                    }
+
+                    return (
+                      <LearningPathCourseTile
+                        key={`${learningPath.id}-${item.courseId}-${item.position}`}
+                        course={course}
+                        item={item}
+                        learningPathTitle={learningPath.title}
+                        orgColors={orgColors}
+                        onOpen={openCourse}
+                        onCertificateClick={
+                          course.progress === 100 && course.has_certificate && onCertificateClick
+                            ? () => onCertificateClick(course)
+                            : undefined
+                        }
+                        onPreview={showPreview}
+                        onPreviewEnd={scheduleHidePreview}
+                        t={t}
+                        disableHeavyEffects={disableHeavyEffects}
+                      />
+                    )
+                  })
+                ) : (
+                  <div
+                    className="w-full rounded-md border px-4 py-5 text-sm"
+                    style={{
+                      backgroundColor: orgColors.cardBg,
+                      borderColor: orgColors.border,
+                      color: orgColors.textSecondary,
+                    }}
+                  >
+                    {t('dashboard.learningPaths.emptyPath', 'Esta ruta aun no tiene cursos asignados.')}
+                  </div>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => scrollPath(learningPath.id, 'right')}
+                className="absolute right-0 top-[90px] z-10 hidden h-12 w-12 translate-x-1/2 items-center justify-center rounded-full border shadow-lg transition hover:scale-105 md:flex xl:top-[116px]"
+                style={{
+                  backgroundColor: orgColors.cardBg,
+                  borderColor: orgColors.border,
+                  color: orgColors.text,
+                }}
+                aria-label={t('dashboard.learningPaths.nextCourses', 'Mas cursos')}
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            </div>
+
+            {intro.showPlayer && intro.introVideoUrl ? (
+              <OnboardingVideoPlayer
+                videos={[intro.introVideoUrl]}
+                onComplete={() => completeTour(learningPath.id)}
+              />
+            ) : null}
+          </motion.section>
+        )
+      })}
+
+      {hoverCard ? (
+        <InfoHoverCard
+          card={hoverCard}
+          orgColors={orgColors}
+          onMouseEnter={clearHoverHideTimeout}
+          onMouseLeave={scheduleHidePreview}
+          t={t}
+        />
+      ) : null}
     </div>
   )
 }

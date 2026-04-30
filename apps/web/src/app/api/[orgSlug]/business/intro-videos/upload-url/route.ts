@@ -11,10 +11,12 @@ interface RouteParams {
 
 const BUCKET = 'intro-videos'
 const ALLOWED_EXTENSIONS = ['mp4', 'webm']
+const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024
 
 const BodySchema = z.object({
   fileName: z.string().min(1),
   contentType: z.enum(['video/mp4', 'video/webm']),
+  fileSize: z.number().int().positive().optional(),
   folder: z.string().max(120).optional(),
 })
 
@@ -43,12 +45,16 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: parsed.error.issues[0]?.message ?? 'Datos inválidos' }, { status: 400 })
     }
 
-    const { fileName, contentType, folder } = parsed.data
+    const { fileName, contentType, fileSize, folder } = parsed.data
 
     // Validar extensión del archivo
     const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       return NextResponse.json({ success: false, error: `Extensión no permitida: .${ext}` }, { status: 400 })
+    }
+
+    if (fileSize && fileSize > MAX_VIDEO_SIZE_BYTES) {
+      return NextResponse.json({ success: false, error: 'El video introductorio es demasiado grande. Máximo 100MB' }, { status: 400 })
     }
 
     // Generar path único: org/{orgSlug}/{folder?}/{timestamp}-{random}.{ext}

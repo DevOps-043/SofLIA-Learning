@@ -163,7 +163,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   const {
     introVideos,
     showVideoIntro,
-    isForceShow,
     isLoadingIntro,
     handleVideoIntroComplete,
     restartWithIntroVideos,
@@ -673,7 +672,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
         <OnboardingVideoPlayer
           videos={introVideos}
           onComplete={handleVideoIntroComplete}
-          isSkippable={isForceShow}
         />
       )}
     </>

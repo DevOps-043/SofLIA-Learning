@@ -5,12 +5,11 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import { BookOpen, Clock, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, Route, ChevronDown, ChevronUp } from 'lucide-react'
+import { BookOpen, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, ChevronDown, ChevronUp } from 'lucide-react'
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
-import { formatBusinessUserDashboardDate } from '../services/business-user-dashboard.service'
 import type {
   AssignedCourse,
   AssignedLearningPath,
@@ -55,8 +54,6 @@ interface BusinessUserDashboardShellProps {
   backgroundStyle: CSSProperties
   cssVariables: CSSProperties
   orgColors: BusinessUserDashboardColors
-  currentTime: Date
-  language: string
   greeting: string
   displayName: string
   initials: string
@@ -87,8 +84,6 @@ export function BusinessUserDashboardShell({
   backgroundStyle,
   cssVariables,
   orgColors,
-  currentTime,
-  language,
   greeting,
   displayName,
   initials,
@@ -109,7 +104,7 @@ export function BusinessUserDashboardShell({
   t,
   disableHeavyEffects,
 }: BusinessUserDashboardShellProps) {
-  const [courseView, setCourseView] = useState<'grid' | 'list' | 'path'>(
+  const [courseView, setCourseView] = useState<'grid' | 'list'>(
     disableHeavyEffects ? 'list' : 'grid'
   )
   const [visibleCourseCount, setVisibleCourseCount] = useState(
@@ -134,7 +129,7 @@ export function BusinessUserDashboardShell({
   }, [learningPaths])
 
   const displayedCourses = useMemo(() => {
-    if (!disableHeavyEffects || courseView === 'path') {
+    if (!disableHeavyEffects) {
       return assignedCourses
     }
 
@@ -147,9 +142,11 @@ export function BusinessUserDashboardShell({
       return
     }
 
-    setCourseView((currentView) => (currentView === 'path' ? currentView : 'list'))
+    setCourseView('list')
     setVisibleCourseCount(6)
   }, [assignedCourses.length, disableHeavyEffects])
+
+  const showLearningPathCarousel = learningPaths.length > 0 && courseView === 'grid'
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') {
@@ -212,13 +209,13 @@ export function BusinessUserDashboardShell({
 
           <div
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.heroSection}
-            className="scroll-mt-28 mb-6 md:mb-10"
+            className="scroll-mt-28 mb-5 md:mb-8"
           >
             <motion.div
               initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
               animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
               transition={disableHeavyEffects ? undefined : { duration: 0.6 }}
-              className="relative overflow-hidden rounded-2xl md:rounded-3xl p-4 md:p-8 group"
+              className="relative overflow-hidden rounded-xl md:rounded-2xl px-4 pt-4 pb-7 md:px-6 md:pt-5 md:pb-8 lg:px-8 lg:pt-6 lg:pb-10 group"
             >
               <div
                 className="absolute inset-0 z-0 overflow-hidden"
@@ -281,7 +278,7 @@ export function BusinessUserDashboardShell({
 
               <div className="relative z-10">
                 <motion.h1
-                  className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 leading-tight"
+                  className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1.5 md:mb-2 leading-tight"
                   style={{ color: '#FFFFFF' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
@@ -291,7 +288,7 @@ export function BusinessUserDashboardShell({
                 </motion.h1>
 
                 <motion.p
-                  className="text-xs md:text-lg max-w-xl mb-4 md:mb-6 line-clamp-2 md:line-clamp-none"
+                  className="text-xs md:text-sm lg:text-base max-w-xl line-clamp-2 md:line-clamp-none"
                   style={{ color: 'rgba(255,255,255,0.8)' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
@@ -299,23 +296,11 @@ export function BusinessUserDashboardShell({
                 >
                   {t('dashboard.subtitle')}
                 </motion.p>
-
-                <motion.div
-                  className="flex flex-wrap items-center gap-4 md:gap-6"
-                  initial={disableHeavyEffects ? false : { opacity: 0 }}
-                  animate={disableHeavyEffects ? undefined : { opacity: 1 }}
-                  transition={disableHeavyEffects ? undefined : { delay: 0.5 }}
-                >
-                  <div className="flex items-center gap-1.5 md:gap-2 text-[10px] md:text-sm" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                    <Clock className="w-3 h-3 md:w-4 md:h-4" />
-                    {formatBusinessUserDashboardDate(currentTime, language)}
-                  </div>
-                </motion.div>
               </div>
 
               {!disableHeavyEffects ? (
                 <div
-                  className="absolute inset-0 rounded-3xl pointer-events-none"
+                  className="absolute inset-0 rounded-xl md:rounded-2xl pointer-events-none"
                   style={{
                     background: `linear-gradient(135deg, ${orgColors.primary}50, transparent, ${orgColors.primary}30)`,
                     padding: '1px',
@@ -454,7 +439,7 @@ export function BusinessUserDashboardShell({
                 </div>
               </div>
 
-              {assignedCourses.length > 0 && (
+              {(assignedCourses.length > 0 || learningPaths.length > 0) && (
                 <div
                   id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewSwitcher}
                   className="flex items-center p-1 rounded-lg border shrink-0"
@@ -472,27 +457,22 @@ export function BusinessUserDashboardShell({
                     className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'list' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                     title="Vista lista"
                   >
-                    <List className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'list' ? orgColors.iconColor : orgColors.textSecondary }} />
+                      <List className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'list' ? orgColors.iconColor : orgColors.textSecondary }} />
                   </button>
-                  {learningPaths.length > 0 && (
-                    <button
-                      onClick={() => setCourseView('path')}
-                      className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'path' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
-                      title="Vista por rutas de aprendizaje"
-                    >
-                      <Route className="w-5 h-5 sm:w-4 sm:h-4" style={{ color: courseView === 'path' ? orgColors.iconColor : orgColors.textSecondary }} />
-                    </button>
-                  )}
                 </div>
               )}
             </motion.div>
 
-            {courseView === 'path' ? (
+            {showLearningPathCarousel ? (
               <LearningPathView
                 learningPaths={learningPaths}
+                assignedCourses={assignedCourses}
                 orgColors={orgColors}
                 orgSlug={orgSlug ?? ''}
                 onOpenCourse={handleLearningPathCourseClick}
+                onCourseClick={handleCourseClick}
+                onCertificateClick={(course) => handleCourseClick(course, 'certificate')}
+                disableHeavyEffects={disableHeavyEffects}
                 t={t}
               />
             ) : assignedCourses.length === 0 ? (
@@ -590,7 +570,7 @@ export function BusinessUserDashboardShell({
                             : undefined
                         }
                         styles={userDashboardStyles}
-                        viewMode={courseView === 'path' ? 'grid' : courseView}
+                        viewMode={courseView}
                         learningPathTitle={pathInfo?.pathTitle}
                         learningPathPosition={pathInfo?.position}
                         isLockedInPath={pathInfo ? !pathInfo.isUnlocked : false}
@@ -601,7 +581,7 @@ export function BusinessUserDashboardShell({
                 </Suspense>
               </div>
             )}
-            {disableHeavyEffects && courseView !== 'path' && displayedCourses.length < assignedCourses.length ? (
+            {disableHeavyEffects && !showLearningPathCarousel && displayedCourses.length < assignedCourses.length ? (
               <div className="mt-5 flex justify-center">
                 <button
                   type="button"

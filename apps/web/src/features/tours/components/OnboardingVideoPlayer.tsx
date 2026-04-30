@@ -3,41 +3,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, SkipForward, Wifi } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useMediaPlaybackPolicy } from '@/core/hooks/useMediaPlaybackPolicy';
 
 interface OnboardingVideoPlayerProps {
   videos: string[];
   onComplete: () => void;
-  /** Cuando false, oculta el botón "Saltar Intro" para forzar ver el video completo. Default: true */
+  /** Cuando false, oculta el boton de saltar. Default: true */
   isSkippable?: boolean;
-}
-
-// ---------------------------------------------------------------------------
-// HTTP-level prefetch — primes the browser cache without activating a video
-// decoder. Inserting <link rel="prefetch"> tells the browser to download the
-// resource at idle priority using only the HTTP stack; no codec or hardware
-// video decoder is allocated.
-//
-// Previous approach: a hidden <video preload="auto"> element
-// Problem: that allocated a SECOND hardware video decoder simultaneously with
-// the main player → doubled power draw → device overheating on mobile.
-// ---------------------------------------------------------------------------
-function injectPrefetchLink(url: string): () => void {
-  if (typeof document === 'undefined') return () => {};
-
-  const selector = `link[rel="prefetch"][href="${url}"]`;
-  if (document.head.querySelector(selector)) return () => {};
-
-  const link = document.createElement('link');
-  link.rel = 'prefetch';
-  link.setAttribute('as', 'fetch');
-  link.href = url;
-  link.crossOrigin = 'anonymous';
-  document.head.appendChild(link);
-
-  return () => {
-    if (document.head.contains(link)) document.head.removeChild(link);
-  };
 }
 
 export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }: OnboardingVideoPlayerProps) {
@@ -45,7 +18,6 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [videoError, setVideoError] = useState<string | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
   const [isSlowConnection, setIsSlowConnection] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -57,6 +29,10 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const prevVideosRef = useRef<string[]>([]);
   const lastProgressRenderRef = useRef(0);
   const playbackPolicy = useMediaPlaybackPolicy('tour');
+  const { t } = useTranslation('common');
+  const skipIntroLabel = t('onboarding.buttons.skipIntro');
+  const retryLabel = t('actions.retry');
+  const skipToContentLabel = t('media.introPlayer.skipToContent');
 
   // Respect OS-level "reduce motion" preference — skip overlay fade animation
   const shouldReduceMotion = useReducedMotion();
@@ -80,17 +56,6 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
     return () => connection.removeEventListener?.('change', evaluate);
   }, []);
 
-  // ── HTTP-level prefetch for the next video ────────────────────────────────
-  // Uses <link rel="prefetch"> (HTTP cache, no decoder) instead of a hidden
-  // <video> element so only ONE hardware decoder is ever active at a time.
-  // Prefetch del video siguiente (ya existía)
-  useEffect(() => {
-    if (!playbackPolicy.shouldPrefetchVideo) return;
-    const nextUrl = videos[currentVideoIndex + 1];
-    if (!nextUrl) return;
-    return injectPrefetchLink(nextUrl);
-  }, [currentVideoIndex, playbackPolicy.shouldPrefetchVideo, videos]);
-
   // ── Reload player when video list changes ─────────────────────────────────
   useEffect(() => {
     const videosChanged =
@@ -98,9 +63,11 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
 
     if (videosChanged) {
       setHasError(false);
-      setVideoError(null);
       setIsPlaying(false);
       setIsBuffering(false);
+      setProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
       prevVideosRef.current = videos;
       videoRef.current?.load();
     }
@@ -155,12 +122,12 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const handleCanPlay  = useCallback(() => {
     setIsBuffering(false);
     // Auto-play en primer video cuando el buffer está listo
-    if (!isPlaying && currentVideoIndex === 0 && videoRef.current && !hasError) {
+    if (playbackPolicy.allowAutoplay && !isPlaying && currentVideoIndex === 0 && videoRef.current && !hasError) {
       videoRef.current.play()
         .then(() => { setIsPlaying(true); setShowControls(false); })
         .catch(() => {}); // silencio — algunos browsers requieren interacción
     }
-  }, [isPlaying, currentVideoIndex, hasError]);
+  }, [playbackPolicy.allowAutoplay, isPlaying, currentVideoIndex, hasError]);
   const handlePlaying  = useCallback(() => { setIsBuffering(false); setIsPlaying(true); }, []);
   const handleStalled  = useCallback(() => setIsBuffering(true), []);
 
@@ -180,6 +147,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
   const handleLoadedMetadata = useCallback(() => {
     const el = videoRef.current;
     if (el && !isNaN(el.duration)) setDuration(el.duration);
+    setIsBuffering(false);
   }, []);
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -276,9 +244,8 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
         >
 
           {/*
-            ONE video element with preload="auto".
-            The next video is prefetched via <link rel="prefetch"> (HTTP-only,
-            no decoder), NOT via a second <video> element.
+            ONE video element. Native preload is capped by the shared media
+            policy so large intro files do not monopolize the connection.
           */}
           <video
             ref={videoRef}
@@ -288,6 +255,8 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
             muted={isMuted}
             className={`w-full h-full object-contain ${hasError ? 'hidden' : 'block'}`}
             onEnded={handleVideoEnd}
+            onLoadStart={() => setIsBuffering(true)}
+            onLoadedData={() => setIsBuffering(false)}
             onWaiting={handleWaiting}
             onStalled={handleStalled}
             onCanPlay={handleCanPlay}
@@ -297,13 +266,22 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
             onError={() => {
               setHasError(true);
               setIsBuffering(false);
-              setVideoError(
-                `No se pudo cargar el video: ${videos[currentVideoIndex]}. ` +
-                'Verifica que el archivo exista en el bucket "assets".'
-              );
             }}
             onClick={togglePlay}
           />
+
+          {isSkippable && !hasError && (
+            <button
+              type="button"
+              aria-label={skipIntroLabel}
+              title={skipIntroLabel}
+              onClick={(e) => { e.stopPropagation(); skipVideo(); }}
+              className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-black/75 active:scale-95"
+            >
+              <span>{skipIntroLabel}</span>
+              <SkipForward className="h-3.5 w-3.5" />
+            </button>
+          )}
 
           {/* Error state */}
           {hasError && (
@@ -311,20 +289,20 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
               <div className="bg-red-500/20 p-4 rounded-full mb-4">
                 <VolumeX className="w-12 h-12 text-red-400" />
               </div>
-              <h3 className="text-xl font-bold mb-2">Error de Carga</h3>
-              <p className="text-white/60 mb-6 max-w-md">{videoError}</p>
+              <h3 className="text-xl font-bold mb-2">{t('media.introPlayer.loadErrorTitle')}</h3>
+              <p className="text-white/60 mb-6 max-w-md">{t('media.introPlayer.loadErrorDescription')}</p>
               <div className="flex gap-4 pointer-events-auto">
                 <button
                   onClick={(e) => { e.stopPropagation(); handleRetry(); }}
                   className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-full transition-all border border-white/20"
                 >
-                  Reintentar
+                  {retryLabel}
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); onComplete(); }}
                   className="px-6 py-2 bg-white text-black font-bold rounded-full transition-all hover:bg-gray-200"
                 >
-                  Saltar al Tour
+                  {skipToContentLabel}
                 </button>
               </div>
             </div>
@@ -337,7 +315,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
               {isSlowConnection && (
                 <div className="mt-4 flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full">
                   <Wifi className="w-4 h-4 text-yellow-400" />
-                  <span className="text-white/80 text-sm">Conexión lenta — cargando…</span>
+                  <span className="text-white/80 text-sm">{t('media.introPlayer.slowConnection')}</span>
                 </div>
               )}
             </div>
@@ -374,16 +352,6 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
                   </div>
                 )}
 
-                {/* Saltar Intro */}
-                {isSkippable && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); skipVideo(); }}
-                    className="ml-auto flex items-center gap-1.5 text-white/75 hover:text-white bg-black/30 hover:bg-black/50 px-3 py-1.5 rounded-full transition-all text-xs font-semibold backdrop-blur-sm border border-white/10"
-                  >
-                    <span>Saltar Intro</span>
-                    <SkipForward className="w-3.5 h-3.5" />
-                  </button>
-                )}
               </div>
 
               {/* Bottom bar — gradient from bottom */}

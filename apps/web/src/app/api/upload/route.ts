@@ -15,6 +15,9 @@ import {
 
 export const runtime = 'nodejs';
 
+const INTRO_VIDEO_MAX_SIZE_BYTES = 100 * 1024 * 1024;
+const INTRO_VIDEO_ALLOWED_TYPES = ['video/mp4', 'video/webm'];
+
 export async function POST(request: NextRequest) {
   try {
     // Cliente con service role key para bypass de RLS (dentro de la función para evitar error en build)
@@ -41,8 +44,22 @@ export async function POST(request: NextRequest) {
     const isVideo = file.type.startsWith('video/');
     const isImage = file.type.startsWith('image/');
     
-    // Validaciones específicas para el bucket "courses" (solo imágenes, 8MB)
-    if (bucket === 'courses') {
+    // Validaciones especificas para el bucket "intro-videos" (videos cortos, 100MB)
+    if (bucket === 'intro-videos') {
+      if (!INTRO_VIDEO_ALLOWED_TYPES.includes(file.type)) {
+        return NextResponse.json(
+          { error: 'El bucket "intro-videos" solo acepta videos MP4 o WebM' },
+          { status: 400 }
+        );
+      }
+
+      if (file.size > INTRO_VIDEO_MAX_SIZE_BYTES) {
+        return NextResponse.json(
+          { error: 'El video introductorio es demasiado grande. Máximo 100MB' },
+          { status: 400 }
+        );
+      }
+    } else if (bucket === 'courses') {
       const allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
       if (!allowedImageTypes.includes(file.type)) {
         return NextResponse.json(
@@ -114,7 +131,11 @@ export async function POST(request: NextRequest) {
       validation: {
         sanitized: sanitizedFolder !== folder,
         bucket: bucket,
-        maxSizeAllowed: bucket === 'courses' ? '8MB' : (isVideo ? '500MB' : '10MB')
+        maxSizeAllowed: bucket === 'intro-videos'
+          ? '100MB'
+          : bucket === 'courses'
+            ? '8MB'
+            : (isVideo ? '500MB' : '10MB')
       }
     });
 

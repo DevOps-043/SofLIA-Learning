@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { BusinessLearningPath } from '../services/businessLearningPaths.service'
 
-const MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024 // 500 MB
+const MAX_VIDEO_SIZE_BYTES = 100 * 1024 * 1024 // 100 MB
 const ALLOWED_MIME_TYPES = ['video/mp4', 'video/webm'] as const
 type AllowedMime = (typeof ALLOWED_MIME_TYPES)[number]
 
@@ -21,7 +21,7 @@ async function uploadVideoDirect(
   folder: string,
 ): Promise<string> {
   if (file.size > MAX_VIDEO_SIZE_BYTES) {
-    throw new Error(`El archivo excede el límite de 500 MB`)
+    throw new Error(`El archivo excede el límite de 100 MB`)
   }
   if (!ALLOWED_MIME_TYPES.includes(file.type as AllowedMime)) {
     throw new Error(`Tipo de archivo no permitido: ${file.type}`)

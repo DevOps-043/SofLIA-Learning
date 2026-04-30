@@ -20,20 +20,12 @@ interface UseCourseIntroVideosResult {
 }
 
 const INTRO_VIDEO_STORAGE_PREFIX = 'soflia:intro-video-watched:v1'
+const INTRO_VIDEO_RESTART_TIMEOUT_MS = 1800
 
-function prefetchVideos(urls: string[]) {
-  if (typeof document === 'undefined') return
-  for (const url of urls) {
-    if (!url) continue
-    const selector = `link[rel="prefetch"][href="${url}"]`
-    if (document.head.querySelector(selector)) continue
-    const link = document.createElement('link')
-    link.rel = 'prefetch'
-    link.setAttribute('as', 'fetch')
-    link.href = url
-    link.crossOrigin = 'anonymous'
-    document.head.appendChild(link)
-  }
+interface IntroVideosWatchedPayload {
+  watchedCourse: boolean
+  watchedLp: boolean
+  learningPathId?: string
 }
 
 function buildIntroVideosUrl(slug: string, organizationId?: string | null) {
@@ -105,6 +97,31 @@ function filterUnwatchedIntroVideos(params: {
   )
 }
 
+async function markIntroVideosWatchedOnServer(params: {
+  courseSlug: string
+  organizationId?: string | null
+  payload: IntroVideosWatchedPayload
+}) {
+  const { payload } = params
+  if (!payload.watchedCourse && !payload.watchedLp) return
+
+  try {
+    await fetch(`/api/courses/${encodeURIComponent(params.courseSlug)}/intro-videos/watched`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        watchedCourse: payload.watchedCourse,
+        watchedLp: payload.watchedLp,
+        learningPathId: payload.learningPathId,
+        organizationId: params.organizationId || undefined,
+      }),
+    })
+  } catch {
+    // Fire-and-forget: local progress should not be blocked by analytics/progress sync.
+  }
+}
+
 async function fetchIntroVideosForSlug(
   slug: string,
   organizationId?: string | null,
@@ -116,10 +133,16 @@ async function fetchIntroVideosForSlug(
     if (!res.ok) return []
     const data = (await res.json()) as IntroVideosResponse & { success: boolean }
     if (!data.success) return []
-    return data.allVideos ?? []
+    return data.courseVideos ?? data.videos ?? []
   } catch {
     return []
   }
+}
+
+function resolveWithoutIntroVideosAfterTimeout(): Promise<string[]> {
+  return new Promise((resolve) => {
+    window.setTimeout(() => resolve([]), INTRO_VIDEO_RESTART_TIMEOUT_MS)
+  })
 }
 
 export function useCourseIntroVideos({
@@ -135,6 +158,11 @@ export function useCourseIntroVideos({
 
   const allVideosRef = useRef<string[]>([])
   const pendingFirstPlaybackVideosRef = useRef<string[]>([])
+  const restartRequestIdRef = useRef(0)
+  const watchedPayloadRef = useRef<IntroVideosWatchedPayload>({
+    watchedCourse: false,
+    watchedLp: false,
+  })
   const afterVideoRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
@@ -152,19 +180,31 @@ export function useCourseIntroVideos({
         const data = (await res.json()) as IntroVideosResponse & { success: boolean }
         if (!data.success || cancelled) return
 
-        allVideosRef.current = data.allVideos ?? []
+        const courseVideoUrls = data.courseVideos ?? data.videos ?? []
+
+        allVideosRef.current = courseVideoUrls
+        watchedPayloadRef.current = {
+          watchedCourse: data.hasCourseVideo && !data.courseIntroWatched,
+          watchedLp: false,
+        }
+
         const videosPendingOnThisDevice = filterUnwatchedIntroVideos({
           courseSlug,
           organizationId,
-          videoUrls: data.allVideos ?? [],
+          videoUrls: courseVideoUrls,
         })
         pendingFirstPlaybackVideosRef.current = videosPendingOnThisDevice
 
-        // Prefetch en background
-        prefetchVideos(data.allVideos ?? [])
-
         setIntroVideos(videosPendingOnThisDevice)
         setShowVideoIntro(videosPendingOnThisDevice.length > 0)
+
+        if (videosPendingOnThisDevice.length === 0) {
+          void markIntroVideosWatchedOnServer({
+            courseSlug,
+            organizationId,
+            payload: watchedPayloadRef.current,
+          })
+        }
       } catch {
         // Si falla el fetch, no bloquear el tour
       } finally {
@@ -179,6 +219,7 @@ export function useCourseIntroVideos({
   const handleVideoIntroComplete = useCallback(() => {
     const wasFirstTime = !isForceShow
     const watchedVideos = pendingFirstPlaybackVideosRef.current
+    const watchedPayload = watchedPayloadRef.current
     setShowVideoIntro(false)
     setIsForceShow(false)
     setIntroVideos([])
@@ -192,6 +233,18 @@ export function useCourseIntroVideos({
       pendingFirstPlaybackVideosRef.current = []
     }
 
+    if (wasFirstTime) {
+      void markIntroVideosWatchedOnServer({
+        courseSlug,
+        organizationId,
+        payload: watchedPayload,
+      })
+      watchedPayloadRef.current = {
+        watchedCourse: false,
+        watchedLp: false,
+      }
+    }
+
     const after = afterVideoRef.current
     afterVideoRef.current = null
     after?.()
@@ -199,13 +252,30 @@ export function useCourseIntroVideos({
 
   const restartWithIntroVideos = useCallback(
     (afterFn: () => void) => {
-      // Siempre hacemos un fetch fresco al reiniciar el tour para garantizar
-      // que mostramos los videos más recientes (el caché puede estar desactualizado
-      // o vacío si la primera carga falló silenciosamente).
-      fetchIntroVideosForSlug(courseSlug, organizationId).then((videos) => {
+      const cachedCourseVideos = allVideosRef.current
+
+      if (cachedCourseVideos.length > 0) {
+        afterVideoRef.current = afterFn
+        pendingFirstPlaybackVideosRef.current = []
+        setIntroVideos(cachedCourseVideos)
+        setIsForceShow(true)
+        setShowVideoIntro(true)
+        return
+      }
+
+      // Si la carga inicial fallo o aun no termino, hacemos un fetch acotado
+      // para no bloquear indefinidamente el inicio manual del tour.
+      const requestId = restartRequestIdRef.current + 1
+      restartRequestIdRef.current = requestId
+
+      Promise.race([
+        fetchIntroVideosForSlug(courseSlug, organizationId),
+        resolveWithoutIntroVideosAfterTimeout(),
+      ]).then((videos) => {
+        if (restartRequestIdRef.current !== requestId) return
+
         if (videos.length > 0) {
           allVideosRef.current = videos
-          prefetchVideos(videos)
           afterVideoRef.current = afterFn
           pendingFirstPlaybackVideosRef.current = []
           setIntroVideos(videos)
