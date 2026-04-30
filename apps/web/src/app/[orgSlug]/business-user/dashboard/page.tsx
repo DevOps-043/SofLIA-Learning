@@ -40,8 +40,6 @@ export default function BusinessUserDashboardPage() {
         backgroundStyle={logic.backgroundStyle}
         cssVariables={logic.cssVariables}
         orgColors={logic.orgColors}
-        currentTime={logic.currentTime}
-        language={logic.i18n.language}
         greeting={logic.greeting}
         displayName={logic.displayName}
         initials={logic.initials}

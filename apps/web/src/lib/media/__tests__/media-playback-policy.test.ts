@@ -69,6 +69,22 @@ describe('media-playback-policy', () => {
     expect(slowConnectionPolicy.shouldPrefetchVideo).toBe(false);
   });
 
+  it('keeps desktop tour videos on metadata preload without speculative prefetch', () => {
+    const policy = resolveMediaPlaybackPolicy(
+      {
+        effectiveType: '4g',
+        saveData: false,
+        userAgent: DESKTOP_CHROME_UA,
+        viewportWidth: 1440,
+      },
+      'tour'
+    );
+
+    expect(policy.allowAutoplay).toBe(true);
+    expect(policy.nativeVideoPreload).toBe('metadata');
+    expect(policy.shouldPrefetchVideo).toBe(false);
+  });
+
   it('uses embed facades for attachments even on unconstrained desktop', () => {
     const policy = resolveMediaPlaybackPolicy(
       {

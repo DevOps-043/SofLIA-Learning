@@ -31,7 +31,13 @@
   },
   "media": {
     "tapToPlay": "Toca para reproducir",
-    "videoPreview": "Vista previa del video"
+    "videoPreview": "Vista previa del video",
+    "introPlayer": {
+      "loadErrorTitle": "No se pudo cargar el video",
+      "loadErrorDescription": "Verifica que el archivo exista y que sea un MP4 o WebM optimizado para web.",
+      "skipToContent": "Continuar sin video",
+      "slowConnection": "Conexión lenta - cargando..."
+    }
   },
   "dashboardNav": {
     "workshops": "Talleres",

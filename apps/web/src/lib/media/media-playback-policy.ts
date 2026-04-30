@@ -100,16 +100,12 @@ export function resolveMediaPlaybackPolicy(
     isMobile,
     isMobileViewport,
     isWebKitLike,
-    nativeVideoPreload: shouldConserve
-      ? 'none'
-      : context === 'tour'
-        ? 'auto'
-        : 'metadata',
+    nativeVideoPreload: shouldConserve ? 'none' : 'metadata',
     pauseWhenHidden: true,
     pauseWhenOutsideViewport: shouldConserve || context !== 'lesson',
     prefersReducedMotion,
     requiresUserGesture,
-    shouldPrefetchVideo: context === 'tour' && !shouldConserve,
+    shouldPrefetchVideo: false,
     shouldUseEmbedFacade: shouldConserve || context === 'attachment',
   };
 }

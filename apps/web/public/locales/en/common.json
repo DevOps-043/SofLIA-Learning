@@ -31,7 +31,13 @@
   },
   "media": {
     "tapToPlay": "Tap to play",
-    "videoPreview": "Video preview"
+    "videoPreview": "Video preview",
+    "introPlayer": {
+      "loadErrorTitle": "Could not load the video",
+      "loadErrorDescription": "Check that the file exists and is an MP4 or WebM optimized for the web.",
+      "skipToContent": "Continue without video",
+      "slowConnection": "Slow connection - loading..."
+    }
   },
   "dashboardNav": {
     "workshops": "Workshops",

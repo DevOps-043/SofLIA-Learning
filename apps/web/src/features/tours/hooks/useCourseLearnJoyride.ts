@@ -167,7 +167,7 @@ export function useCourseLearnJoyride({
 
     setRun(false);
     setStepIndex(COURSE_LEARN_JOYRIDE_STEP_INDEXES.welcome);
-    await startTour();
+    void startTour();
 
     window.setTimeout(() => {
       setRun(true);

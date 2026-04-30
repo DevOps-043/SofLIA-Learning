@@ -10,6 +10,7 @@ interface RouteParams {
 
 export interface IntroVideosResponse {
   videos: string[]
+  courseVideos: string[]
   allVideos: string[]
   hasLpVideo: boolean
   hasCourseVideo: boolean
@@ -28,20 +29,10 @@ interface EnrollmentRow {
   organization_id: string | null
 }
 
-interface LpVideoRow {
-  intro_video_url: string | null
-  learning_path_id: string | null
-}
-
-interface LearningPathItemRow {
-  learning_path_id: string
-  course_id: string
-  position: number
-}
-
 const EMPTY: IntroVideosResponse & { success: true } = {
   success: true,
   videos: [],
+  courseVideos: [],
   allVideos: [],
   hasLpVideo: false,
   hasCourseVideo: false,
@@ -108,115 +99,6 @@ async function resolveAllowedOrganizationIds(params: {
   }
 }
 
-async function resolveLearningPathIntroVideo(params: {
-  supabase: ReturnType<typeof getServiceClient>
-  userId: string
-  courseId: string
-  organizationIds: string[]
-}) {
-  const { supabase, userId, courseId, organizationIds } = params
-
-  const [
-    lpVideosNewResult,
-    lpVideosLegacyResult,
-    orgAssignmentsResult,
-    userAssignmentsResult,
-  ] = await Promise.all([
-    supabase
-      .from('organization_lp_intro_videos')
-      .select('learning_path_id, intro_video_url')
-      .in('organization_id', organizationIds),
-    supabase
-      .from('organization_learning_path_assignments')
-      .select('learning_path_id, intro_video_url')
-      .in('organization_id', organizationIds)
-      .eq('status', 'active')
-      .not('intro_video_url', 'is', null),
-    supabase
-      .from('organization_learning_path_assignments')
-      .select('learning_path_id')
-      .in('organization_id', organizationIds)
-      .eq('status', 'active'),
-    supabase
-      .from('user_learning_path_assignments')
-      .select('learning_path_id')
-      .eq('user_id', userId)
-      .eq('status', 'assigned')
-      .in('organization_id', organizationIds),
-  ])
-
-  if (lpVideosNewResult.error) {
-    logger.error('GET intro-videos LP video table error:', lpVideosNewResult.error)
-  }
-  if (lpVideosLegacyResult.error) {
-    logger.error('GET intro-videos LP legacy video error:', lpVideosLegacyResult.error)
-  }
-
-  const assignedLpIds = unique([
-    ...((orgAssignmentsResult.data ?? []).map((row) => row.learning_path_id)),
-    ...((userAssignmentsResult.data ?? []).map((row) => row.learning_path_id)),
-  ])
-
-  if (assignedLpIds.length === 0) {
-    return { learningPathId: null, lpVideoUrl: null, lpIntroWatched: true }
-  }
-
-  const lpVideosMap = new Map<string, string>()
-  const addLpVideo = (row: LpVideoRow) => {
-    if (row.learning_path_id && row.intro_video_url && assignedLpIds.includes(row.learning_path_id)) {
-      lpVideosMap.set(row.learning_path_id, row.intro_video_url)
-    }
-  }
-
-  for (const row of (lpVideosNewResult.data ?? []) as LpVideoRow[]) addLpVideo(row)
-  for (const row of (lpVideosLegacyResult.data ?? []) as LpVideoRow[]) {
-    if (row.learning_path_id && !lpVideosMap.has(row.learning_path_id)) addLpVideo(row)
-  }
-
-  const lpIdsWithVideo = [...lpVideosMap.keys()]
-  if (lpIdsWithVideo.length === 0) {
-    return { learningPathId: null, lpVideoUrl: null, lpIntroWatched: true }
-  }
-
-  const { data: pathItems, error: itemsError } = await supabase
-    .from('learning_path_items')
-    .select('learning_path_id, course_id, position')
-    .in('learning_path_id', lpIdsWithVideo)
-    .order('position', { ascending: true })
-
-  if (itemsError) {
-    logger.error('GET intro-videos LP items error:', itemsError)
-    return { learningPathId: null, lpVideoUrl: null, lpIntroWatched: true }
-  }
-
-  const firstItemByPath = new Map<string, LearningPathItemRow>()
-  for (const item of (pathItems ?? []) as LearningPathItemRow[]) {
-    if (!firstItemByPath.has(item.learning_path_id)) {
-      firstItemByPath.set(item.learning_path_id, item)
-    }
-  }
-
-  const firstMatchingLpId =
-    lpIdsWithVideo.find((lpId) => firstItemByPath.get(lpId)?.course_id === courseId) ?? null
-
-  if (!firstMatchingLpId) {
-    return { learningPathId: null, lpVideoUrl: null, lpIntroWatched: true }
-  }
-
-  const { data: lpProgress } = await supabase
-    .from('user_learning_path_progress')
-    .select('lp_intro_watched_at')
-    .eq('user_id', userId)
-    .eq('learning_path_id', firstMatchingLpId)
-    .maybeSingle()
-
-  return {
-    learningPathId: firstMatchingLpId,
-    lpVideoUrl: lpVideosMap.get(firstMatchingLpId) ?? null,
-    lpIntroWatched: Boolean(lpProgress?.lp_intro_watched_at),
-  }
-}
-
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { slug } = await params
@@ -248,7 +130,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const organizationIds = organizationResolution.orgIds
     if (organizationIds.length === 0) return NextResponse.json(EMPTY)
 
-    const [courseVideosResult, enrollmentsResult, lpIntro] = await Promise.all([
+    const [courseVideosResult, enrollmentsResult] = await Promise.all([
       supabase
         .from('organization_course_intro_videos')
         .select('intro_video_url, organization_id')
@@ -260,12 +142,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         .eq('user_id', auth.userId)
         .eq('course_id', course.id)
         .in('organization_id', organizationIds),
-      resolveLearningPathIntroVideo({
-        supabase,
-        userId: auth.userId,
-        courseId: course.id,
-        organizationIds,
-      }),
     ])
 
     if (courseVideosResult.error) {
@@ -292,18 +168,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const courseVideoUrl = courseVideo?.intro_video_url ?? null
     const courseIntroWatched = Boolean(enrollment?.course_intro_watched_at)
 
+    const courseVideosForPanel = courseVideoUrl ? [courseVideoUrl] : []
     const videos = courseVideoUrl && !courseIntroWatched ? [courseVideoUrl] : []
-    const allVideos = unique([lpIntro.lpVideoUrl, courseVideoUrl])
 
     return NextResponse.json<IntroVideosResponse & { success: true }>({
       success: true,
       videos,
-      allVideos,
-      hasLpVideo: Boolean(lpIntro.lpVideoUrl),
+      courseVideos: courseVideosForPanel,
+      allVideos: courseVideosForPanel,
+      hasLpVideo: false,
       hasCourseVideo: Boolean(courseVideoUrl),
-      lpIntroWatched: lpIntro.lpIntroWatched,
+      lpIntroWatched: true,
       courseIntroWatched,
-      learningPathId: lpIntro.learningPathId,
+      learningPathId: null,
     })
   } catch (error) {
     logger.error('GET intro-videos (course) error:', error)
