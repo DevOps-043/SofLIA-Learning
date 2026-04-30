@@ -269,7 +269,26 @@
       "createLink": "Crear Enlace"
     },
     "placeholders": {
-      "search": "Buscar por nombre, email o username..."
+      "search": "Buscar por nombre, email o username...",
+      "searchRequests": "Buscar solicitudes...",
+      "searchLinks": "Buscar enlaces...",
+      "searchInvitations": "Buscar invitaciones..."
+    },
+    "tabs": {
+      "invitations": "Individuales",
+      "links": "Enlaces"
+    },
+    "filters": {
+      "advanced": "Más filtros",
+      "allRegions": "Todas las regiones",
+      "allZones": "Todas las zonas",
+      "allTeams": "Todos los equipos",
+      "clear": "Limpiar filtros",
+      "results": "resultados"
+    },
+    "view": {
+      "cards": "Vista tarjetas",
+      "list": "Vista lista"
     },
     "roles": {
       "all": "Todos los roles",
@@ -303,7 +322,28 @@
       "noAccess": "Sin accesos",
       "resend": "Reenviar",
       "suspend": "Suspender",
-      "activate": "Activar"
+      "activate": "Activar",
+      "organizationRole": "Rol Organización",
+      "lastTime": "Última vez",
+      "manage": "Gestionar",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "viewStats": "Ver estadísticas",
+      "resendInvite": "Reenviar Invitación",
+      "expires": "Expira",
+      "sent": "Enviada",
+      "revoke": "Revocar",
+      "uses": "Usos",
+      "remaining": "Libres",
+      "paused": "Pausado",
+      "expired": "Expirado",
+      "link": "Enlace",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "noEmail": "Sin correo",
+      "noMessage": "Sin mensaje",
+      "pending": "Pendiente",
+      "user": "Usuario"
     },
     "modals": {
       "add": {

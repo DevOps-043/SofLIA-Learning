@@ -17,6 +17,7 @@ import {
   AcademicCapIcon,
   LinkIcon,
 } from '@heroicons/react/24/outline'
+import { formatDate, formatTimeAgo } from '@/utils/date-formatter'
 
 type DashboardChange = number | string | null | undefined
 
@@ -100,7 +101,7 @@ export function useBusinessPanelDashboardLogic() {
   const [isLoading, setIsLoading] = useState(true)
   const [activitiesLoading, setActivitiesLoading] = useState(true)
   const [currentTime, setCurrentTime] = useState(new Date())
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
   const isDark = resolvedTheme === 'dark'
@@ -134,21 +135,7 @@ export function useBusinessPanelDashboardLogic() {
   }
 
   const formatTimestamp = (dateString: string): string => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffMs = now.getTime() - date.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    const diffHours = Math.floor(diffMins / 60)
-    const diffDays = Math.floor(diffHours / 24)
-    if (diffMins < 1) return t('dashboard.recentActivity.time.justNow', { defaultValue: 'Hace un momento' })
-    if (diffMins < 60) return t('dashboard.recentActivity.time.minutesAgo', { time: diffMins })
-    if (diffHours < 24) return t('dashboard.recentActivity.time.hoursAgo', { time: diffHours })
-    if (diffDays === 1) return t('dashboard.recentActivity.time.daysAgo', { time: 1 })
-    if (diffDays < 7) return t('dashboard.recentActivity.time.daysAgo', { time: diffDays })
-    return date.toLocaleDateString(t('dashboard.recentActivity.time.locale', { defaultValue: 'es-ES' }), {
-      day: 'numeric',
-      month: 'short',
-    })
+    return formatTimeAgo(dateString, i18n.language, t)
   }
 
   useEffect(() => {
@@ -347,6 +334,8 @@ export function useBusinessPanelDashboardLogic() {
     getGreeting,
     getUserName,
     formatTimestamp,
+    formatDate: (date: Date) => formatDate(date, i18n.language),
     getBackgroundStyles,
+    language: i18n.language,
   }
 }

@@ -11,8 +11,10 @@ import {
   UserPlus,
   X,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import type { JoinRequest } from '@/features/business-panel/services/joinRequests.service'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface JoinRequestListRowProps {
   request: JoinRequest
@@ -29,13 +31,14 @@ export function JoinRequestListRow({
   onApprove,
   onReject,
 }: JoinRequestListRowProps) {
+  const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const displayName = request.users
     ? [request.users.first_name, request.users.last_name]
         .filter(Boolean)
         .join(' ')
         .trim() || request.users.username
-    : 'Usuario'
+    : t('users.card.user')
 
   return (
     <motion.div
@@ -66,7 +69,7 @@ export function JoinRequestListRow({
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs" style={{ color: theme.subtextColor }}>
             <span className="inline-flex items-center gap-1 truncate">
               <Mail className="w-3 h-3" />
-              {request.users?.email || 'Sin correo'}
+              {request.users?.email || t('users.card.noEmail')}
             </span>
             {request.job_title && (
               <span className="inline-flex items-center gap-1 truncate">
@@ -84,7 +87,7 @@ export function JoinRequestListRow({
               "{request.message}"
             </span>
           ) : (
-            'Sin mensaje'
+            t('users.card.noMessage')
           )}
         </div>
 
@@ -97,13 +100,13 @@ export function JoinRequestListRow({
               color: theme.actionColor,
             }}
           >
-            Pendiente
+            {t('users.card.pending')}
           </span>
         </div>
 
         <div className="hidden sm:flex items-center justify-end gap-1 text-xs" style={{ color: theme.subtextColor }}>
           <Clock3 className="w-3 h-3" />
-          {new Date(request.created_at).toLocaleDateString('es-ES', {
+          {formatDate(request.created_at, i18n.language, {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -120,7 +123,7 @@ export function JoinRequestListRow({
             backgroundColor: theme.actionSurface,
             color: theme.actionColor,
           }}
-          title="Aprobar"
+          title={t('users.card.approve')}
         >
           {isReviewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
         </button>
@@ -132,7 +135,7 @@ export function JoinRequestListRow({
             backgroundColor: `${theme.dangerColor}10`,
             color: theme.dangerColor,
           }}
-          title="Rechazar"
+          title={t('users.card.reject')}
         >
           <X className="w-4 h-4" />
         </button>

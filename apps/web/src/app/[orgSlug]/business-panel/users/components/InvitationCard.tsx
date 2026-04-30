@@ -5,6 +5,7 @@ import { Mail, XCircle, Activity, RefreshCw } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessInvitation } from '@/features/business-panel/services/businessUsers.service'
+import { formatDate } from '@/shared/utils/date-formatter'
 
 interface InvitationCardProps {
   invitation: BusinessInvitation
@@ -14,7 +15,7 @@ interface InvitationCardProps {
 }
 
 function InvitationCard({ invitation, index, onResend, onRevoke }: InvitationCardProps) {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
 
   return (
@@ -68,15 +69,19 @@ function InvitationCard({ invitation, index, onResend, onRevoke }: InvitationCar
 
         <div className="flex flex-col gap-1.5 mb-4">
           <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5">
-            <span className="text-[9px] font-black uppercase tracking-widest opacity-40">Rol</span>
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
+              {t('users.modals.delete.fields.role')}
+            </span>
             <span className="text-[9px] font-bold uppercase" style={{ color: theme.accentColor }}>
               {invitation.role}
             </span>
           </div>
           <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5">
-            <span className="text-[9px] font-black uppercase tracking-widest opacity-40">Expira</span>
+            <span className="text-[9px] font-black uppercase tracking-widest opacity-40">
+              {t('users.card.expires')}
+            </span>
             <span className="text-[9px] font-bold" style={{ color: theme.subtextColor }}>
-              {new Date(invitation.expires_at).toLocaleDateString()}
+              {formatDate(invitation.expires_at, i18n.language)}
             </span>
           </div>
         </div>
@@ -92,7 +97,7 @@ function InvitationCard({ invitation, index, onResend, onRevoke }: InvitationCar
             }}
           >
             <RefreshCw className="w-3.5 h-3.5" />
-            {t('common.resend', 'Reenviar')}
+            {t('users.card.resendInvite')}
           </button>
           <button
             onClick={onRevoke}
@@ -100,7 +105,7 @@ function InvitationCard({ invitation, index, onResend, onRevoke }: InvitationCar
             style={{ color: theme.dangerColor }}
           >
             <XCircle className="w-3 h-3" />
-            {t('common.revoke', 'Revocar')}
+            {t('users.card.revoke')}
           </button>
         </div>
       </div>
