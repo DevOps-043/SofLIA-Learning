@@ -10,6 +10,28 @@ import type { LearnLesson } from "@/features/courses/components/learn/types";
 
 const transcriptMarkdownComponents = createLessonMarkdownComponents();
 
+function parseTranscriptSegments(text: string) {
+  if (!text) return [];
+  // Detects timestamps like [00:00], (1:23:45) at the start of lines
+  const regex = /(?:^|\n)\s*[\[\(](\d{1,2}:\d{2}(?::\d{2})?)[\]\)]\s*/;
+  const parts = text.split(regex);
+  const blocks: { time: string | null; content: string }[] = [];
+  
+  if (parts[0] && parts[0].trim()) {
+    blocks.push({ time: null, content: parts[0].trim() });
+  }
+  
+  for (let i = 1; i < parts.length; i += 2) {
+    const time = parts[i];
+    const content = parts[i + 1]?.trim() || "";
+    if (time || content) {
+      blocks.push({ time, content });
+    }
+  }
+  
+  return blocks;
+}
+
 type TranscriptContentProps = {
   isLoading: boolean;
   lesson: LearnLesson | null;
@@ -161,10 +183,29 @@ export function TranscriptContent({
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-[#E9ECEF] bg-white shadow-sm dark:border-white/10 dark:bg-[#0F1419]/50">
-        <div className="prose prose-slate max-w-none p-6 dark:prose-invert">
-          <ReactMarkdown components={transcriptMarkdownComponents}>
-            {transcriptContent || ""}
-          </ReactMarkdown>
+        <div className="p-6">
+          <div className="divide-y divide-gray-100 dark:divide-white/5">
+            {parseTranscriptSegments(transcriptContent || "").map((block, idx) => (
+              <div key={idx} className="flex flex-col sm:flex-row gap-3 sm:gap-6 py-5 first:pt-0 last:pb-0">
+                {/* Time column */}
+                <div className="sm:w-28 shrink-0">
+                  {block.time && (
+                    <div className="inline-flex items-center gap-1.5 rounded-lg border border-[#0A2540]/10 bg-[#0A2540]/5 px-2.5 py-1 text-sm font-medium text-[#0A2540] dark:border-[#00D4B3]/20 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3]">
+                      <Clock className="h-3.5 w-3.5 opacity-70" />
+                      <span>{block.time}</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Content column */}
+                <div className="flex-1 min-w-0 prose prose-slate max-w-none dark:prose-invert prose-p:leading-relaxed prose-p:text-gray-700 dark:prose-p:text-white/80">
+                  <ReactMarkdown components={transcriptMarkdownComponents}>
+                    {block.content}
+                  </ReactMarkdown>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E9ECEF] bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
