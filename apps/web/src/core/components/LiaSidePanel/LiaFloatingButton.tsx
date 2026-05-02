@@ -96,7 +96,7 @@ function LiaFloatingButtonContent() {
               )}
 
               <img
-                src="/lia-avatar.png"
+                src="/lia-avatar.webp"
                 alt="SofLIA"
                 style={{
                   width: '100%',

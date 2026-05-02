@@ -26,6 +26,8 @@ import {
   type DetectionThresholds 
 } from '../lib/rrweb/difficulty-pattern-detector';
 
+const MIN_CHECK_INTERVAL_MS = 45000;
+
 export interface UseDifficultyDetectionOptions {
   /** ID del taller actual (opcional, para contexto) */
   workshopId?: string;
@@ -35,6 +37,9 @@ export interface UseDifficultyDetectionOptions {
   
   /** Si está habilitada la detección (default: true) */
   enabled?: boolean;
+
+  /** Suspende el análisis aunque el hook siga montado */
+  suppressAnalysis?: boolean;
   
   /** Intervalo de chequeo en ms (default: 30000 = 30s) */
   checkInterval?: number;
@@ -79,6 +84,7 @@ export function useDifficultyDetection(
     workshopId,
     activityId,
     enabled = true,
+    suppressAnalysis = false,
     checkInterval = 30000, // 30 segundos
     thresholds,
     onDifficultyDetected,
@@ -93,14 +99,21 @@ export function useDifficultyDetection(
   const detectorRef = useRef<DifficultyPatternDetector | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastInterventionTimeRef = useRef<number>(0);
+  const safeCheckInterval = Math.max(checkInterval, MIN_CHECK_INTERVAL_MS);
+  const analysisEnabled = enabled && !suppressAnalysis;
 
   // Inicializar detector
   useEffect(() => {
-    if (enabled && evaluateRecordingGate().allowed) {
+    if (
+      analysisEnabled &&
+      evaluateRecordingGate().allowed &&
+      (typeof document === 'undefined' || !document.hidden)
+    ) {
       detectorRef.current = new DifficultyPatternDetector(thresholds);
       setIsActive(true);
 
     } else {
+      detectorRef.current = null;
       setIsActive(false);
     }
 
@@ -109,11 +122,12 @@ export function useDifficultyDetection(
         clearInterval(intervalRef.current);
       }
     };
-  }, [enabled, thresholds, workshopId, activityId, checkInterval]);
+  }, [analysisEnabled, thresholds, workshopId, activityId, safeCheckInterval]);
 
   // Función de análisis
   const analyzeSession = useCallback(() => {
-    if (!enabled || !detectorRef.current) return;
+    if (!analysisEnabled || !detectorRef.current) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
 
     try {
       const recordingDecision = evaluateRecordingGate();
@@ -153,22 +167,23 @@ export function useDifficultyDetection(
     } catch (error) {
       console.error('❌ Error al analizar sesión:', error);
     }
-  }, [enabled, onDifficultyDetected]);
+  }, [analysisEnabled, onDifficultyDetected]);
 
   // Iniciar análisis periódico
   useEffect(() => {
-    if (!enabled) return;
+    if (!analysisEnabled) return;
     if (!evaluateRecordingGate().allowed) return;
+    if (typeof document !== 'undefined' && document.hidden) return;
 
     // Análisis inicial después de 30 segundos
     const initialTimeout = setTimeout(() => {
       analyzeSession();
-    }, checkInterval);
+    }, safeCheckInterval);
 
     // Análisis periódico
     intervalRef.current = setInterval(() => {
       analyzeSession();
-    }, checkInterval);
+    }, safeCheckInterval);
 
     return () => {
       clearTimeout(initialTimeout);
@@ -176,7 +191,7 @@ export function useDifficultyDetection(
         clearInterval(intervalRef.current);
       }
     };
-  }, [enabled, checkInterval, analyzeSession]);
+  }, [analysisEnabled, safeCheckInterval, analyzeSession]);
 
   // Función para aceptar ayuda
   const acceptHelp = useCallback(() => {

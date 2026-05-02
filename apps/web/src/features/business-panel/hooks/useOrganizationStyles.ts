@@ -3,6 +3,7 @@ import { useParams } from 'next/navigation';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useOrganizationStore } from '../../../core/stores/organizationStore';
 import { getThemeStylesForMode } from '../config/preset-themes';
+import { useOptionalOrganizationStylesContext } from '../contexts/OrganizationStylesContext';
 
 export interface OrganizationStyles {
   panel: StyleConfig | null;
@@ -40,6 +41,8 @@ const getErrorMessage = (error: unknown, fallback: string): string => (
  * de la organización actual del store.
  */
 export function useOrganizationStyles() {
+  const contextStyles = useOptionalOrganizationStylesContext();
+  const shouldUseContextStyles = contextStyles !== null;
   const params = useParams();
   const urlOrgSlug = params?.orgSlug as string | undefined;
   
@@ -105,6 +108,10 @@ export function useOrganizationStyles() {
   }, [styles, resolvedTheme]);
 
   const fetchStyles = useCallback(async () => {
+    if (shouldUseContextStyles) {
+      return;
+    }
+
     if (!orgSlug) {
       setLoading(false);
       return;
@@ -132,7 +139,7 @@ export function useOrganizationStyles() {
     } finally {
       setLoading(false);
     }
-  }, [orgSlug]);
+  }, [orgSlug, shouldUseContextStyles]);
 
   useEffect(() => {
     fetchStyles();
@@ -143,6 +150,10 @@ export function useOrganizationStyles() {
     userDashboard?: StyleConfig,
     login?: StyleConfig
   ): Promise<boolean> => {
+    if (contextStyles) {
+      return contextStyles.updateStyles(panel, userDashboard, login);
+    }
+
     if (!orgSlug) {
       setError('No se pudo determinar la organización');
       return false;
@@ -176,9 +187,13 @@ export function useOrganizationStyles() {
       setError(getErrorMessage(err, 'Error al actualizar estilos'));
       return false;
     }
-  }, [orgSlug]);
+  }, [contextStyles, orgSlug]);
 
   const applyTheme = useCallback(async (themeId: string): Promise<boolean> => {
+    if (contextStyles) {
+      return contextStyles.applyTheme(themeId);
+    }
+
     if (!orgSlug) {
       setError('No se pudo determinar la organización');
       return false;
@@ -207,7 +222,19 @@ export function useOrganizationStyles() {
       setError(getErrorMessage(err, 'Error al aplicar tema'));
       return false;
     }
-  }, [orgSlug]);
+  }, [contextStyles, orgSlug]);
+
+  if (contextStyles) {
+    return {
+      styles: contextStyles.styles,
+      effectiveStyles: contextStyles.effectiveStyles,
+      loading: contextStyles.loading,
+      error: contextStyles.error,
+      updateStyles,
+      applyTheme,
+      refetch: contextStyles.refetch,
+    };
+  }
 
   return {
     styles,

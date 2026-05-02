@@ -46,11 +46,11 @@ export function StudyPlannerApproachButtons({
               transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 15 }}
               className="relative hidden h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/30 shadow-lg shadow-[#0A2540]/20 dark:border-[#00D4B3]/40 dark:shadow-[#00D4B3]/20 sm:block sm:h-10 sm:w-10"
             >
-              <Image src="/lia-avatar.png" alt="LIA" fill sizes="40px" className="object-cover" />
+              <Image src="/lia-avatar.webp" alt="LIA" fill sizes="40px" className="object-cover" />
             </motion.div>
 
             <div className="relative mt-1 h-6 w-6 flex-shrink-0 self-start overflow-hidden rounded-full border border-[#0A2540]/30 dark:border-[#00D4B3]/40 sm:hidden">
-              <Image src="/lia-avatar.png" alt="LIA" fill sizes="24px" className="object-cover" />
+              <Image src="/lia-avatar.webp" alt="LIA" fill sizes="24px" className="object-cover" />
             </div>
 
             <motion.div

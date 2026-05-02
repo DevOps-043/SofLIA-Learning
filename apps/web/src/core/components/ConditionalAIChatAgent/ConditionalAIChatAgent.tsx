@@ -49,7 +49,7 @@ export function ConditionalAIChatAgent() {
   return (
     <EmbeddedLiaPanel
       assistantName="LIA"
-      assistantAvatar="/lia-avatar.png"
+      assistantAvatar="/lia-avatar.webp"
       organizationColors={organizationColors}
     />
   );

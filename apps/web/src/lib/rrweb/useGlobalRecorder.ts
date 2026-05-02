@@ -14,7 +14,7 @@
 import { useEffect, useRef } from 'react';
 import { evaluateRecordingGate } from './recording-gate';
 
-const RESTART_INTERVAL_MS = 180000;
+const RECOVERY_CHECK_INTERVAL_MS = 300000;
 
 // Flags globales para evitar inicializaciones duplicadas entre remounts.
 let isInitialized = false;
@@ -65,7 +65,7 @@ export function useGlobalRecorder() {
         const isActive = typeof sessionRecorder.isActive === 'function' && sessionRecorder.isActive();
         if (!isActive) {
           try {
-            await sessionRecorder.startRecording(RESTART_INTERVAL_MS);
+            await sessionRecorder.startRecording();
           } catch {
             // Silenciar errores de grabación ya activa
           }
@@ -91,23 +91,12 @@ export function useGlobalRecorder() {
               if (!recorder || typeof recorder.isActive !== 'function') return;
 
               if (!recorder.isActive()) {
-                await recorder.startRecording(RESTART_INTERVAL_MS);
-                return;
-              }
-
-              if (typeof recorder.stop === 'function') {
-                recorder.stop();
-              }
-
-              await new Promise((resolve) => setTimeout(resolve, 300));
-
-              if (mountedRef.current) {
-                await recorder.startRecording(RESTART_INTERVAL_MS);
+                await recorder.startRecording();
               }
             } catch {
               // Silenciar errores de grabación
             }
-          }, RESTART_INTERVAL_MS);
+          }, RECOVERY_CHECK_INTERVAL_MS);
         }
       } catch (error) {
         console.error('[GlobalRecorder] Error inicializando recorder:', error);

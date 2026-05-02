@@ -26,28 +26,34 @@ export function appendRecordedEvent(params: {
   events: eventWithTime[]
   initialSnapshot: eventWithTime | null
 } {
-  const events = [...params.events, params.event]
+  const events = params.events
+  events.push(params.event)
+
   const initialSnapshot =
     params.initialSnapshot || (params.event.type === 2 ? params.event : null)
+
+  if (params.maxEvents <= 0) {
+    events.length = 0
+    return { events, initialSnapshot }
+  }
 
   if (events.length <= params.maxEvents) {
     return { events, initialSnapshot }
   }
 
   const snapshot = initialSnapshot || events.find((item) => item.type === 2) || null
-  const recentEvents = events.slice(-params.maxEvents + 1)
+  const recentEventCount = snapshot ? params.maxEvents - 1 : params.maxEvents
+  const recentEvents = recentEventCount > 0 ? events.slice(-recentEventCount) : []
+
+  events.length = 0
 
   if (snapshot && !recentEvents.some((item) => item.type === 2)) {
-    return {
-      events: [snapshot, ...recentEvents],
-      initialSnapshot: snapshot,
-    }
+    events.push(snapshot)
   }
 
-  return {
-    events: recentEvents,
-    initialSnapshot,
-  }
+  events.push(...recentEvents)
+
+  return { events, initialSnapshot: snapshot || initialSnapshot }
 }
 
 export function buildRecordingSession(
@@ -108,6 +114,7 @@ export function createServerSessionRecorderMock(): SessionRecorderInstance {
     exportSessionCompressed: async () => '',
     getSessionSize: () => 0,
     getSessionSizeFormatted: () => '0 B',
+    getBufferedEventCount: () => 0,
     getEnrichedMetadata: () =>
       ({
         viewport: { width: 0, height: 0 },

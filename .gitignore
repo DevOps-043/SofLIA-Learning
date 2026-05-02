@@ -98,6 +98,7 @@ Thumbs.db
 # Logs
 logs
 *.log
+load-test-results/
 
 # SQL
 *.sql

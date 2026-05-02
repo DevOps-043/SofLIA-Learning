@@ -345,9 +345,9 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     <WorkshopLearningProvider
       workshopId={course.id || course.course_id || slug}
       activityId={currentLesson?.lesson_id || 'no-lesson'}
-      enabled={!!course && !!currentLesson && !isMobile}
+      enabled={!!course && !!currentLesson && !isMobile && activeTab !== 'video'}
       suppressDisplay={activeTab === 'video'}
-      checkInterval={15000}
+      checkInterval={60000}
       assistantPosition="bottom-right"
       assistantCompact={false}
       onHelpAccepted={handleWorkshopHelpAccepted}

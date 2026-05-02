@@ -69,7 +69,7 @@ export function PanelDashboardHero({
   eyebrow,
   greeting,
   imageAlt = 'Dashboard Background',
-  imageSrc = '/images/dashboard-header.png',
+  imageSrc = '/images/dashboard-header.webp',
   subtitle,
   theme,
   todayLabel,

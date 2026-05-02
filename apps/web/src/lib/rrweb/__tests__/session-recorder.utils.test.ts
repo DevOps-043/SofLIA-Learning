@@ -24,6 +24,22 @@ describe('session recorder utils', () => {
     expect(result.events).toHaveLength(2)
   })
 
+  it('appends in place without cloning the event buffer on each event', () => {
+    const snapshot = { type: 2, timestamp: 1 } as any
+    const events = [snapshot]
+    const click = { type: 3, timestamp: 2 } as any
+
+    const result = appendRecordedEvent({
+      events,
+      event: click,
+      maxEvents: 10,
+      initialSnapshot: snapshot,
+    })
+
+    expect(result.events).toBe(events)
+    expect(events).toEqual([snapshot, click])
+  })
+
   it('builds recording session and falls back to initial snapshot', () => {
     const initialSnapshot = { type: 2, timestamp: 10 } as any
     const session = buildRecordingSession([{ type: 3, timestamp: 20 } as any], initialSnapshot)

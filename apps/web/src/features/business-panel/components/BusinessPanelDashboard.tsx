@@ -62,7 +62,7 @@ export function BusinessPanelDashboard() {
           <div className="absolute inset-0 mix-blend-multiply opacity-80 z-10" style={{ backgroundColor: themeColors.primary }} />
           <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.primary}99, transparent)` }} />
           <Image
-            src="/images/dashboard-header.png"
+            src="/images/dashboard-header.webp"
             alt="Business Dashboard Background"
             fill
             priority

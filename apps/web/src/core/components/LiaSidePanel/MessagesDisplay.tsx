@@ -86,7 +86,7 @@ export function MessagesDisplay({
                 }}
               />
               <img
-                src="/lia-avatar.png"
+                src="/lia-avatar.webp"
                 alt="SofLIA"
                 style={{
                   width: '80px',

@@ -6,6 +6,7 @@ import type { SofLIAPersonalizationSettings } from '../../../types/soflia-person
 import { getElevenLabsVoiceSettings, getWebSpeechVoiceSettings } from '../../../utils/tts-voice-settings';
 import { isTTSAbortError, playAudioBlob, requestTTSAudio, speakWithWebSpeech } from '../../../services/tts';
 import { cleanTextForLiaTTS, getLiaSpeechLanguage } from '../services/lia-side-panel-voice.service';
+import { useDevicePerformanceMode } from '../../../../lib/utils/mobile-performance';
 
 interface UseLiaSidePanelVoiceOptions {
   messages: SofLIAMessage[];
@@ -29,6 +30,7 @@ export function useLiaSidePanelVoice({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const ttsAbortRef = useRef<AbortController | null>(null);
   const lastReadMessageIdRef = useRef<string | null>(null);
+  const performanceMode = useDevicePerformanceMode();
 
   const stopAllAudio = useCallback(() => {
     try {
@@ -59,7 +61,7 @@ export function useLiaSidePanelVoice({
 
   const speakText = useCallback(
     async (text: string) => {
-      if (!isVoiceEnabled || typeof window === 'undefined') {
+      if (!isVoiceEnabled || performanceMode.disableAutoplayAudio || typeof window === 'undefined') {
         return;
       }
 
@@ -121,11 +123,16 @@ export function useLiaSidePanelVoice({
         setIsSpeaking(false);
       }
     },
-    [isVoiceEnabled, language, settings, stopAllAudio]
+    [isVoiceEnabled, language, performanceMode.disableAutoplayAudio, settings, stopAllAudio]
   );
 
   useEffect(() => {
-    if (!isVoiceEnabled || messages.length === 0 || isLoading) {
+    if (
+      !isVoiceEnabled ||
+      performanceMode.disableAutoplayAudio ||
+      messages.length === 0 ||
+      isLoading
+    ) {
       return;
     }
 
@@ -146,7 +153,7 @@ export function useLiaSidePanelVoice({
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [messages, isVoiceEnabled, isLoading, speakText]);
+  }, [messages, isVoiceEnabled, isLoading, performanceMode.disableAutoplayAudio, speakText]);
 
   useEffect(() => {
     if (!isOpen) {

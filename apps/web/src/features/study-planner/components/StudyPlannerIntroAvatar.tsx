@@ -27,7 +27,7 @@ export function StudyPlannerIntroAvatar({
         }}
       >
         <div className="relative h-full w-full overflow-hidden rounded-full bg-white/10 backdrop-blur-sm">
-          <Image src="/lia-avatar.png" alt="SofLIA" fill sizes="256px" className="object-cover" priority />
+          <Image src="/lia-avatar.webp" alt="SofLIA" fill sizes="256px" className="object-cover" priority />
         </div>
       </motion.div>
 

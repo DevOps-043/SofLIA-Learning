@@ -209,7 +209,7 @@ function LiaSidePanelContent() {
                   >
                     <motion.img
                       layoutId="lia-avatar-header"
-                      src="/lia-avatar.png"
+                      src="/lia-avatar.webp"
                       alt="SofLIA Expanded"
                       style={{
                         width: 'min(80vw, 400px)',

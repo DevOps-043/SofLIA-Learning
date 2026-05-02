@@ -54,7 +54,7 @@ export function PanelHeader({
         <div style={{ position: 'relative' }}>
           <motion.img
             layoutId="lia-avatar-header"
-            src="/lia-avatar.png"
+            src="/lia-avatar.webp"
             alt="SofLIA"
             onClick={() => setIsAvatarExpanded(true)}
             whileHover={{ scale: 1.05 }}

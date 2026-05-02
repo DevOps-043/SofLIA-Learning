@@ -87,7 +87,8 @@ export function WorkshopLearningProvider({
   } = useDifficultyDetection({
     workshopId,
     activityId,
-    enabled,
+    enabled: enabled && !suppressDisplay,
+    suppressAnalysis: suppressDisplay,
     checkInterval,
     onDifficultyDetected: (detectedAnalysis) => {
 

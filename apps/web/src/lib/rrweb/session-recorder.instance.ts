@@ -23,8 +23,8 @@ export class SessionRecorder {
   private stopRecording: (() => void) | null = null
   private isRecording = false
   private isPausedState = false
-  private maxEvents = 20000
-  private maxDuration = 60000
+  private maxEvents = 5000
+  private maxDuration = 0
   private initialSnapshot: eventWithTime | null = null
   private rrwebAvailable = false
   private sessionStartTime: number | null = null
@@ -87,6 +87,10 @@ export class SessionRecorder {
   }
 
   private scheduleMaxDurationStop(): void {
+    if (this.maxDuration <= 0) {
+      return
+    }
+
     if (this.maxDurationTimeoutId) {
       clearTimeout(this.maxDurationTimeoutId)
     }
@@ -116,9 +120,7 @@ export class SessionRecorder {
       return
     }
 
-    if (maxDuration) {
-      this.maxDuration = maxDuration
-    }
+    this.maxDuration = maxDuration ?? 0
 
     setupMutationRecordErrorHandler()
 
@@ -263,6 +265,10 @@ export class SessionRecorder {
 
   getSessionSizeFormatted(session: RecordingSession): string {
     return getSessionSizeFormatted(session)
+  }
+
+  getBufferedEventCount(): number {
+    return this.events.length
   }
 
   async exportSessionCompressed(session: RecordingSession): Promise<string> {

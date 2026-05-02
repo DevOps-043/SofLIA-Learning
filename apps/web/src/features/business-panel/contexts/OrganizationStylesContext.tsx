@@ -46,7 +46,17 @@ interface OrganizationStylesContextType {
 
 const OrganizationStylesContext = createContext<OrganizationStylesContextType | undefined>(undefined);
 
-export function OrganizationStylesProvider({ children, orgSlug }: { children: ReactNode, orgSlug?: string }) {
+export function OrganizationStylesProvider(props: { children: ReactNode, orgSlug?: string }) {
+  const parentContext = useContext(OrganizationStylesContext);
+
+  if (parentContext && !props.orgSlug) {
+    return <>{props.children}</>;
+  }
+
+  return <OrganizationStylesProviderInner {...props} />;
+}
+
+function OrganizationStylesProviderInner({ children, orgSlug }: { children: ReactNode, orgSlug?: string }) {
   const { user } = useAuth();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [styles, setStyles] = useState<OrganizationStyles | null>(null);
@@ -251,7 +261,7 @@ export function OrganizationStylesProvider({ children, orgSlug }: { children: Re
     } finally {
       setLoading(false);
     }
-  }, [user?.organization_id, user?.cargo_rol]);
+  }, [orgSlug, user?.organization_id, user?.cargo_rol]);
 
   useEffect(() => {
     fetchStyles();
@@ -380,4 +390,8 @@ export function useOrganizationStylesContext() {
     throw new Error('useOrganizationStylesContext must be used within OrganizationStylesProvider');
   }
   return context;
+}
+
+export function useOptionalOrganizationStylesContext() {
+  return useContext(OrganizationStylesContext) ?? null;
 }

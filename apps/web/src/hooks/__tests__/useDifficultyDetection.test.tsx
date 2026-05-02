@@ -32,6 +32,10 @@ describe('useDifficultyDetection recording gate', () => {
       allowed: true,
       reason: 'allowed',
     });
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: false,
+    });
   });
 
   afterEach(() => {
@@ -63,6 +67,37 @@ describe('useDifficultyDetection recording gate', () => {
 
     vi.advanceTimersByTime(3000);
 
+    expect(mockedSessionRecorder.captureSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('does not start when analysis is suppressed by the caller', () => {
+    const { result } = renderHook(() =>
+      useDifficultyDetection({
+        enabled: true,
+        suppressAnalysis: true,
+        checkInterval: 1000,
+      })
+    );
+
+    vi.advanceTimersByTime(60000);
+
+    expect(result.current.isActive).toBe(false);
+    expect(mockedSessionRecorder.captureSnapshot).not.toHaveBeenCalled();
+  });
+
+  it('does not start or capture snapshots while the tab is hidden', () => {
+    Object.defineProperty(document, 'hidden', {
+      configurable: true,
+      value: true,
+    });
+
+    const { result } = renderHook(() =>
+      useDifficultyDetection({ enabled: true, checkInterval: 1000 })
+    );
+
+    vi.advanceTimersByTime(60000);
+
+    expect(result.current.isActive).toBe(false);
     expect(mockedSessionRecorder.captureSnapshot).not.toHaveBeenCalled();
   });
 });

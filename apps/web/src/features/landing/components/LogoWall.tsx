@@ -72,7 +72,7 @@ export function LogoWall({ className = '' }: LogoWallProps) {
               {/* Avatar Image */}
               <div className="relative w-64 h-64 lg:w-80 lg:h-80 rounded-full overflow-hidden border-4 border-white/20 dark:border-white/10 shadow-2xl">
                 <Image
-                  src="/lia-avatar.png"
+                  src="/lia-avatar.webp"
                   alt="LIA - Asistente de Inteligencia Artificial"
                   fill
                   className="object-cover object-top"

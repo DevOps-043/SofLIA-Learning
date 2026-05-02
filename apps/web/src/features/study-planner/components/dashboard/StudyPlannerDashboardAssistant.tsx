@@ -68,7 +68,7 @@ export function StudyPlannerDashboardAssistant({
               <div className="flex items-center gap-3">
                 <div className="relative">
                   <img
-                    src="/lia-avatar.png"
+                    src="/lia-avatar.webp"
                     alt="SofLIA"
                     width={40}
                     height={40}
@@ -121,7 +121,7 @@ export function StudyPlannerDashboardAssistant({
                   >
                     <div className="absolute top-1/2 left-1/2 h-[120px] w-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#00D4B3] opacity-20 blur-[40px] z-0" />
                     <img
-                      src="/lia-avatar.png"
+                      src="/lia-avatar.webp"
                       alt="SofLIA"
                       width={80}
                       height={80}
@@ -160,7 +160,7 @@ export function StudyPlannerDashboardAssistant({
                 <div className="flex justify-start">
                   <div className="mr-2 flex-shrink-0">
                     <img
-                      src="/lia-avatar.png"
+                      src="/lia-avatar.webp"
                       alt="SofLIA"
                       width={32}
                       height={32}

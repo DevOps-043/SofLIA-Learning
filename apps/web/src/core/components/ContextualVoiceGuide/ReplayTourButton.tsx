@@ -58,7 +58,7 @@ export function ReplayTourButton({
         <div className="w-6 h-6 rounded-full bg-[#00D4B3] p-0.5 animate-pulse-slow">
           <div className="w-full h-full rounded-full bg-[#0A2540] flex items-center justify-center overflow-hidden">
             <Image
-              src="/lia-avatar.png"
+              src="/lia-avatar.webp"
               alt="LIA"
               width={24}
               height={24}

@@ -35,15 +35,15 @@ export function buildSessionRecorderRecordOptions(params: {
         throw error
       }
     },
-    checkoutEveryNms: params.isDev ? 10000 : 15000,
-    checkoutEveryNth: params.isDev ? 200 : 300,
+    checkoutEveryNms: params.isDev ? 15000 : 30000,
+    checkoutEveryNth: params.isDev ? 300 : 600,
     recordCanvas: false,
     recordCrossOriginIframes: false,
     collectFonts: false,
     inlineStylesheet: false,
     sampling: {
-      mousemove: true,
-      mousemoveCallback: params.isDev ? 200 : 500,
+      mousemove: params.isDev,
+      mousemoveCallback: params.isDev ? 250 : 1000,
       mouseInteraction: {
         MouseUp: params.isDev,
         MouseDown: params.isDev,
@@ -55,8 +55,8 @@ export function buildSessionRecorderRecordOptions(params: {
         TouchStart: false,
         TouchEnd: false,
       },
-      scroll: params.isDev ? 150 : 300,
-      media: params.isDev ? 500 : 800,
+      scroll: params.isDev ? 250 : 750,
+      media: params.isDev ? 1000 : 2000,
       input: params.isDev ? true : 'last',
     },
     ignoreClass: 'rr-ignore',

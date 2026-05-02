@@ -194,7 +194,7 @@ function AnimatedChat() {
               {!isUser && (
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#00D4B3]/50 flex-shrink-0">
                   <Image
-                    src="/lia-avatar.png"
+                    src="/lia-avatar.webp"
                     alt="LIA"
                     fill
                     className="object-cover object-top"
@@ -241,7 +241,7 @@ function AnimatedChat() {
           >
             <div className="relative w-8 h-8 rounded-full overflow-hidden border border-[#00D4B3]/50 flex-shrink-0">
               <Image
-                src="/lia-avatar.png"
+                src="/lia-avatar.webp"
                 alt="SofLIA"
                 fill
                 className="object-cover object-top"
@@ -388,7 +388,7 @@ export function IntegrationsSection({ className = '' }: IntegrationsSectionProps
               <div className="relative flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
                 <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-[#00D4B3]/50">
                   <Image
-                    src="/lia-avatar.png"
+                    src="/lia-avatar.webp"
                     alt="LIA"
                     fill
                     className="object-cover object-top"

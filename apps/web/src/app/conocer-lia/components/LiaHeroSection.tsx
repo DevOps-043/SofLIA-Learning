@@ -76,7 +76,7 @@ export function LiaHeroSection({ heroRef, heroInView }: LiaHeroSectionProps) {
               transition={{ duration: 0.3 }}
             >
               <Image
-                src="/lia-avatar.png"
+                src="/lia-avatar.webp"
                 alt="SofLIA - Asistente Inteligente"
                 width={320}
                 height={320}

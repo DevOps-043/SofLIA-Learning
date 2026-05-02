@@ -103,7 +103,7 @@ export function BusinessSettings() {
       >
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/teams-header.png"
+            src="/images/teams-header.webp"
             alt="Header de configuración"
             fill
             className="object-cover"

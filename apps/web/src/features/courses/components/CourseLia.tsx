@@ -166,7 +166,7 @@ function CourseLiaFloatingButton() {
               aria-label="Abrir asistente SofLIA"
             >
               <img
-                src="/lia-avatar.png"
+                src="/lia-avatar.webp"
                 alt="SofLIA"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -633,7 +633,7 @@ function CourseLiaPanelContent({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: `1px solid ${themeColors.borderColor}`, backgroundColor: themeColors.headerBg }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ position: 'relative' }}>
-                <img src="/lia-avatar.png" alt="SofLIA" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${themeColors.accentColor}` }} />
+                <img src="/lia-avatar.webp" alt="SofLIA" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${themeColors.accentColor}` }} />
                 <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '14px', height: '14px', backgroundColor: '#22c55e', borderRadius: '50%', border: `2px solid ${themeColors.panelBg}` }} />
               </div>
               <div>
@@ -734,7 +734,7 @@ function CourseLiaPanelContent({
                      border: `2px solid ${themeColors.accentColor}`
                   }}
                  >
-                   <img src="/lia-avatar.png" alt="Escribiendo..." style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                   <img src="/lia-avatar.webp" alt="Escribiendo..." style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                  </div>
                  <button 
                    onClick={() => stop()}

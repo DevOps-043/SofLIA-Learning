@@ -82,7 +82,7 @@ export function ContextualVoiceGuide(props: ContextualVoiceGuideProps) {
                     {/* Foto de LIA */}
                     <div className="relative w-full h-full rounded-full overflow-hidden bg-white/10 backdrop-blur-sm">
                       <Image
-                        src="/lia-avatar.png"
+                        src="/lia-avatar.webp"
                         alt="LIA"
                         fill
                         sizes="256px"

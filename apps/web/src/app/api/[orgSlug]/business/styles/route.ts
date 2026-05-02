@@ -7,6 +7,14 @@ interface RouteContext {
   params: Promise<{ orgSlug: string }>
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+function getBusinessAuthScope(orgSlugOrId: string) {
+  return UUID_PATTERN.test(orgSlugOrId)
+    ? { organizationId: orgSlugOrId }
+    : { organizationSlug: orgSlugOrId }
+}
+
 /**
  * GET /api/[orgSlug]/business/styles
  * Obtiene los estilos de la organización especificada
@@ -25,7 +33,7 @@ export async function GET(
       }, { status: 400 })
     }
 
-    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    const auth = await requireBusiness(getBusinessAuthScope(orgSlug))
     if (auth instanceof NextResponse) return auth
 
     const supabase = await createClient()
@@ -103,7 +111,7 @@ export async function PUT(
       }, { status: 400 })
     }
 
-    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    const auth = await requireBusiness(getBusinessAuthScope(orgSlug))
     if (auth instanceof NextResponse) return auth
 
     if (!auth.isOrgAdmin) {
@@ -223,7 +231,7 @@ export async function POST(
       }, { status: 400 })
     }
 
-    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    const auth = await requireBusiness(getBusinessAuthScope(orgSlug))
     if (auth instanceof NextResponse) return auth
 
     if (!auth.isOrgAdmin) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducedMotion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useDevicePerformanceMode } from './mobile-performance'
 
 /**
  * Returns whether heavy/infinite animations should be disabled.
@@ -13,18 +13,8 @@ import { useEffect, useState } from 'react'
  */
 export function useMotionSafe() {
   const prefersReduced = useReducedMotion()
-  const [isMobile, setIsMobile] = useState(false)
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)')
-    setIsMobile(mq.matches)
-
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-
-  const disableHeavy = Boolean(prefersReduced) || isMobile
+  const performanceMode = useDevicePerformanceMode()
+  const disableHeavy = Boolean(prefersReduced) || performanceMode.disableHeavyEffects
 
   return {
     /** true on mobile or prefers-reduced-motion → skip infinite/heavy animations */

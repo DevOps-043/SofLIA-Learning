@@ -45,13 +45,13 @@ export function StudyPlannerConversationMessages({
                 transition={{ delay: index * 0.05 + 0.1, type: 'spring', stiffness: 200, damping: 15 }}
                 className="relative hidden h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/30 shadow-lg shadow-[#0A2540]/20 dark:border-[#00D4B3]/40 dark:shadow-[#00D4B3]/20 sm:block sm:h-10 sm:w-10"
               >
-                <Image src="/lia-avatar.png" alt="LIA" fill sizes="40px" className="object-cover" />
+                <Image src="/lia-avatar.webp" alt="LIA" fill sizes="40px" className="object-cover" />
               </motion.div>
             )}
 
             {message.role === 'assistant' && (
               <div className="relative mt-1 h-6 w-6 flex-shrink-0 self-start overflow-hidden rounded-full border border-[#0A2540]/30 dark:border-[#00D4B3]/40 sm:hidden">
-                <Image src="/lia-avatar.png" alt="LIA" fill sizes="24px" className="object-cover" />
+                <Image src="/lia-avatar.webp" alt="LIA" fill sizes="24px" className="object-cover" />
               </div>
             )}
 
@@ -114,7 +114,7 @@ export function StudyPlannerConversationMessages({
         >
           <div className="flex items-end gap-2 sm:gap-2.5">
             <div className="relative h-8 w-8 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#0A2540]/30 shadow-lg dark:border-[#00D4B3]/40 sm:h-10 sm:w-10">
-              <Image src="/lia-avatar.png" alt="LIA" fill sizes="40px" className="object-cover" />
+              <Image src="/lia-avatar.webp" alt="LIA" fill sizes="40px" className="object-cover" />
             </div>
             <motion.div
               className="relative overflow-hidden rounded-[20px] rounded-bl-[6px] border border-[#E9ECEF] bg-[#FFFFFF] px-4 py-3 shadow-sm dark:border-[#6C757D]/30 dark:bg-[#1E2329] sm:px-5 sm:py-3.5"

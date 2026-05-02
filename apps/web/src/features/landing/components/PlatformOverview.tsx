@@ -162,7 +162,7 @@ export function PlatformOverview() {
               <div className="aspect-[4/3] bg-gradient-to-br from-[#0A2540] to-[#1E3A5F] relative">
                 {/* Try to load actual dashboard image, fallback to gradient */}
                 <Image
-                  src="/images/dashboard-header.png"
+                  src="/images/dashboard-header.webp"
                   alt="SofLIA Dashboard"
                   fill
                   className="object-cover object-top"

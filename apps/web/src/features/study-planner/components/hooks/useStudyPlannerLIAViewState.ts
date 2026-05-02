@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useDevicePerformanceMode } from '@/lib/utils/mobile-performance'
 
 interface StudyPlannerPanelStyles {
   primary_button_color?: string | null
@@ -12,11 +13,16 @@ interface StudyPlannerPanelStyles {
 }
 
 export function useStudyPlannerLIAViewState(styles?: { panel?: StudyPlannerPanelStyles } | null) {
+  const performanceMode = useDevicePerformanceMode()
   const [isVisible, setIsVisible] = useState(false)
   const [currentStep, setCurrentStep] = useState(0)
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true)
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false)
   const [hasUserInteracted, setHasUserInteracted] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    setIsAudioEnabled((current) => current || !performanceMode.disableAutoplayAudio)
+  }, [performanceMode.disableAutoplayAudio])
 
   useEffect(() => {
     if (!styles?.panel || typeof document === 'undefined') {

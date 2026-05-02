@@ -1,21 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { OnboardingModal } from './onboarding-agent/OnboardingModal';
 import { getNextOnboardingStepIndex, getPreviousOnboardingStepIndex } from './onboarding-agent/navigation';
 import { useOnboardingAudio } from './onboarding-agent/useOnboardingAudio';
 import { useOnboardingSteps } from './onboarding-agent/useOnboardingSteps';
 import { useOnboardingVisibility } from './onboarding-agent/useOnboardingVisibility';
+import { useDevicePerformanceMode } from '@/lib/utils/mobile-performance';
 
 export function OnboardingAgent() {
   const steps = useOnboardingSteps();
-  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const performanceMode = useDevicePerformanceMode();
+  const hasUserChangedAudioRef = useRef(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { currentStep, isVisible, markAsSeen, setCurrentStep, setIsVisible } = useOnboardingVisibility(pathname);
   const { isSpeaking, speakText, stopAllAudio } = useOnboardingAudio(isAudioEnabled);
+
+  useEffect(() => {
+    if (hasUserChangedAudioRef.current) {
+      return;
+    }
+
+    setIsAudioEnabled(!performanceMode.disableAutoplayAudio);
+  }, [performanceMode.disableAutoplayAudio]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -31,7 +42,12 @@ export function OnboardingAgent() {
   }, []);
 
   useEffect(() => {
-    if (!isVisible || currentStep !== 0 || !isAudioEnabled) {
+    if (
+      !isVisible ||
+      currentStep !== 0 ||
+      !isAudioEnabled ||
+      performanceMode.disableAutoplayAudio
+    ) {
       return;
     }
 
@@ -42,7 +58,7 @@ export function OnboardingAgent() {
     return () => {
       window.clearTimeout(timer);
     };
-  }, [currentStep, isAudioEnabled, isVisible, speakText, steps]);
+  }, [currentStep, isAudioEnabled, isVisible, performanceMode.disableAutoplayAudio, speakText, steps]);
 
   const handleSkip = () => {
     stopAllAudio();
@@ -95,6 +111,7 @@ export function OnboardingAgent() {
   };
 
   const toggleAudio = () => {
+    hasUserChangedAudioRef.current = true;
     const nextAudioState = !isAudioEnabled;
     setIsAudioEnabled(nextAudioState);
 

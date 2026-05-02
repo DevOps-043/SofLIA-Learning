@@ -22,7 +22,7 @@ import type {
 
 export function useEmbeddedLiaPanel({
   assistantName = 'SofLIA',
-  assistantAvatar = '/lia-avatar.png',
+  assistantAvatar = '/lia-avatar.webp',
   initialMessage = null,
   organizationColors,
 }: EmbeddedLiaPanelProps) {

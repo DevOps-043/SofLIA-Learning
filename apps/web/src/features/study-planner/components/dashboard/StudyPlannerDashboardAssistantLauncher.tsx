@@ -29,7 +29,7 @@ export function StudyPlannerDashboardAssistantLauncher({
     >
       <div className="relative h-full w-full">
         <img
-          src="/lia-avatar.png"
+          src="/lia-avatar.webp"
           alt="SofLIA"
           className="absolute inset-0 h-full w-full object-cover transition-transform group-hover:scale-110"
           width={64}

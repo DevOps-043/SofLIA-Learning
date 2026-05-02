@@ -63,8 +63,8 @@ export function SWRProvider({ children }: SWRProviderProps) {
         errorRetryInterval: 5000,       // 5 segundos entre reintentos
         
         // Deduplicación y throttling
-        dedupingInterval: 2000,         // Deduplica requests en 2 segundos
-        focusThrottleInterval: 5000,    // Throttle revalidación al enfocar (5s)
+        dedupingInterval: 5000,         // Deduplica requests en 5 segundos
+        focusThrottleInterval: 30000,   // Throttle revalidación al enfocar (30s)
         
         // Timeouts
         loadingTimeout: 3000,           // Mostrar loading después de 3s
@@ -76,12 +76,6 @@ export function SWRProvider({ children }: SWRProviderProps) {
         
         // Suspense (opcional, para usar con React Suspense)
         suspense: false,
-        
-        // Comparación de datos
-        compare: (a, b) => {
-          // Comparación personalizada para evitar re-renders innecesarios
-          return JSON.stringify(a) === JSON.stringify(b);
-        },
         
         // Callbacks globales (útil para debugging)
         onSuccess: (data, key) => {

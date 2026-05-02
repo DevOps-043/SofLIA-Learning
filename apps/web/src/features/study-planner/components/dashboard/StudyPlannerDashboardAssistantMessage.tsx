@@ -72,7 +72,7 @@ export function StudyPlannerDashboardAssistantMessage({
       {!isUser && (
         <div className="mr-2 flex-shrink-0">
           <img
-            src="/lia-avatar.png"
+            src="/lia-avatar.webp"
             alt="SofLIA"
             width={32}
             height={32}

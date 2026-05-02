@@ -20,7 +20,7 @@ import { ClearConfirmModal } from './ClearConfirmModal';
 
 export function AIChatAgent({
   assistantName = 'SofLIA',
-  assistantAvatar = '/lia-avatar.png',
+  assistantAvatar = '/lia-avatar.webp',
   initialMessage,
   promptPlaceholder,
   context = 'general',

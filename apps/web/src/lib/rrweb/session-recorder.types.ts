@@ -44,6 +44,7 @@ export interface SessionRecorderInstance {
   exportSessionCompressed(session: RecordingSession): Promise<string>
   getSessionSize(session: RecordingSession): number
   getSessionSizeFormatted(session: RecordingSession): string
+  getBufferedEventCount(): number
   getEnrichedMetadata(session?: RecordingSession | null): EnrichedMetadata
   getSessionStartTime(): number | null
 }

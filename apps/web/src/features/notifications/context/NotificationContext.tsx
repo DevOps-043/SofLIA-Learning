@@ -1,9 +1,10 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useCallback, useContext, useState, useEffect, ReactNode } from 'react'
 import useSWR from 'swr'
 import { Notification } from '../services/notification.service'
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { useDevicePerformanceMode } from '@/lib/utils/mobile-performance'
 
 /**
  * Interfaz para el contexto de notificaciones
@@ -66,6 +67,7 @@ export function NotificationProvider({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const { user, loading: authLoading, isAuthenticated } = useAuth()
+  const performanceMode = useDevicePerformanceMode()
 
   // Marcar como montado después del primer render
   useEffect(() => {
@@ -74,6 +76,10 @@ export function NotificationProvider({
 
   // Solo hacer llamadas si el usuario está autenticado
   const shouldFetch = isMounted && !authLoading && isAuthenticated && !!user
+  const effectivePollingInterval = performanceMode.reducePolling
+    ? Math.max(pollingInterval, 180000)
+    : pollingInterval
+  const shouldFetchNotificationList = shouldFetch && isDropdownOpen
 
   // Obtener notificaciones no leídas
   const {
@@ -82,13 +88,13 @@ export function NotificationProvider({
     mutate: mutateNotifications,
     isLoading: isLoadingNotifications
   } = useSWR<{ success: boolean; data: { notifications: Notification[]; total: number } }>(
-    shouldFetch ? '/api/notifications?status=unread&limit=10&orderBy=created_at&orderDirection=desc' : null,
+    shouldFetchNotificationList ? '/api/notifications?status=unread&limit=10&orderBy=created_at&orderDirection=desc' : null,
     {
-      refreshInterval: shouldFetch ? pollingInterval : 0, // Desactivar polling si no está autenticado
-      revalidateOnFocus: shouldFetch,  // Solo revalidar si está autenticado
-      revalidateOnReconnect: shouldFetch,
+      refreshInterval: shouldFetchNotificationList ? effectivePollingInterval : 0,
+      revalidateOnFocus: shouldFetchNotificationList && !performanceMode.reducePolling,
+      revalidateOnReconnect: shouldFetchNotificationList,
       dedupingInterval: 5000,  // ✅ De 2s a 5s para evitar requests duplicados
-      revalidateIfStale: shouldFetch,  // Solo revalidar si está autenticado
+      revalidateIfStale: shouldFetchNotificationList,
       onError: (error) => {
         // Ignorar errores 401 (no autenticado) - es esperado cuando no hay sesión
         if (error instanceof Error && error.message.includes('401')) {
@@ -106,8 +112,8 @@ export function NotificationProvider({
   } = useSWR<{ success: boolean; data: { total: number; critical: number; high: number } }>(
     shouldFetch ? '/api/notifications/unread-count' : null,
     {
-      refreshInterval: shouldFetch ? pollingInterval : 0, // Desactivar polling si no está autenticado
-      revalidateOnFocus: shouldFetch,  // Solo revalidar si está autenticado
+      refreshInterval: shouldFetch ? effectivePollingInterval : 0,
+      revalidateOnFocus: shouldFetch && !performanceMode.reducePolling,
       revalidateOnReconnect: shouldFetch,
       dedupingInterval: 5000,  // ✅ De 2s a 5s
       revalidateIfStale: shouldFetch,  // Solo revalidar si está autenticado
@@ -135,6 +141,16 @@ export function NotificationProvider({
   const criticalCount = countData?.data?.critical || 0
   const highCount = countData?.data?.high || 0
 
+  const revalidateNotificationState = useCallback(async () => {
+    const operations: Promise<unknown>[] = [mutateCount()]
+
+    if (isDropdownOpen) {
+      operations.push(mutateNotifications())
+    }
+
+    await Promise.all(operations)
+  }, [isDropdownOpen, mutateCount, mutateNotifications])
+
   // Marcar notificación como leída
   const markAsRead = async (notificationId: string) => {
     try {
@@ -147,11 +163,7 @@ export function NotificationProvider({
         throw new Error('Error al marcar notificación como leída')
       }
 
-      // Revalidar datos
-      await Promise.all([
-        mutateNotifications(),
-        mutateCount()
-      ])
+      await revalidateNotificationState()
     } catch (error) {
       throw error
     }
@@ -169,11 +181,7 @@ export function NotificationProvider({
         throw new Error('Error al marcar todas como leídas')
       }
 
-      // Revalidar datos
-      await Promise.all([
-        mutateNotifications(),
-        mutateCount()
-      ])
+      await revalidateNotificationState()
     } catch (error) {
       throw error
     }
@@ -191,11 +199,7 @@ export function NotificationProvider({
         throw new Error('Error al archivar notificación')
       }
 
-      // Revalidar datos
-      await Promise.all([
-        mutateNotifications(),
-        mutateCount()
-      ])
+      await revalidateNotificationState()
     } catch (error) {
       throw error
     }
@@ -213,11 +217,7 @@ export function NotificationProvider({
         throw new Error('Error al eliminar notificación')
       }
 
-      // Revalidar datos
-      await Promise.all([
-        mutateNotifications(),
-        mutateCount()
-      ])
+      await revalidateNotificationState()
     } catch (error) {
       throw error
     }
@@ -225,28 +225,24 @@ export function NotificationProvider({
 
   // Refrescar notificaciones manualmente
   const refreshNotifications = async () => {
-    await Promise.all([
-      mutateNotifications(),
-      mutateCount()
-    ])
+    await revalidateNotificationState()
   }
 
   // Forzar revalidación inicial al montar solo si está autenticado
   useEffect(() => {
     if (shouldFetch) {
       // Revalidar inmediatamente al montar para asegurar datos frescos
-      mutateNotifications()
       mutateCount()
+      if (isDropdownOpen) {
+        mutateNotifications()
+      }
     }
-  }, [shouldFetch, mutateNotifications, mutateCount])
+  }, [isDropdownOpen, shouldFetch, mutateNotifications, mutateCount])
 
   // Escuchar evento personalizado para refrescar notificaciones
   useEffect(() => {
     const handleRefresh = async () => {
-      await Promise.all([
-        mutateNotifications(),
-        mutateCount()
-      ])
+      await revalidateNotificationState()
     }
 
     window.addEventListener('refresh-notifications', handleRefresh)
@@ -254,13 +250,13 @@ export function NotificationProvider({
     return () => {
       window.removeEventListener('refresh-notifications', handleRefresh)
     }
-  }, [mutateNotifications, mutateCount])
+  }, [revalidateNotificationState])
 
   // Determinar si hay error
   const error = notificationsError || countError || null
 
   // Determinar si está cargando
-  const isLoading = isLoadingNotifications
+  const isLoading = isDropdownOpen && isLoadingNotifications
 
   const value: NotificationContextType = {
     notifications,
@@ -299,4 +295,3 @@ export function useNotifications() {
   
   return context
 }
-

@@ -10,9 +10,13 @@
  * en esos escenarios y habilita un opt-out manual para QA/soporte.
  */
 
+import {
+  getBrowserDevicePerformanceEnvironment,
+  resolveDevicePerformancePolicy,
+} from '../utils/device-performance-policy';
+
 const DISABLE_STORAGE_KEY = 'soflia.disableSessionRecorder';
 const FORCE_ENABLE_STORAGE_KEY = 'soflia.forceSessionRecorder';
-const MOBILE_MAX_WIDTH_PX = 768;
 const SLOW_EFFECTIVE_TYPES = new Set(['slow-2g', '2g', '3g']);
 
 export type RecordingGateReason =
@@ -21,7 +25,11 @@ export type RecordingGateReason =
   | 'disabled-by-flag'
   | 'save-data'
   | 'slow-connection'
+  | 'apple-platform'
+  | 'webkit'
   | 'mobile-viewport'
+  | 'low-hardware'
+  | 'low-memory'
   | 'reduced-motion'
   | 'allowed';
 
@@ -94,8 +102,28 @@ export function evaluateRecordingGate(): RecordingGateDecision {
     return { allowed: false, reason: 'slow-connection' };
   }
 
-  if (safeMatchMedia(`(max-width: ${MOBILE_MAX_WIDTH_PX}px)`)) {
+  const performancePolicy = resolveDevicePerformancePolicy(
+    getBrowserDevicePerformanceEnvironment(),
+  );
+
+  if (performancePolicy.isApplePlatform) {
+    return { allowed: false, reason: 'apple-platform' };
+  }
+
+  if (performancePolicy.isWebKitLike) {
+    return { allowed: false, reason: 'webkit' };
+  }
+
+  if (performancePolicy.isMobileViewport || performancePolicy.isMobile) {
     return { allowed: false, reason: 'mobile-viewport' };
+  }
+
+  if (performancePolicy.isLowHardwareConcurrency) {
+    return { allowed: false, reason: 'low-hardware' };
+  }
+
+  if (performancePolicy.isLowDeviceMemory) {
+    return { allowed: false, reason: 'low-memory' };
   }
 
   if (safeMatchMedia('(prefers-reduced-motion: reduce)')) {

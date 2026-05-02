@@ -224,7 +224,7 @@ export function BusinessUserDashboardShell({
                 }}
               >
                 <Image
-                  src="/images/teams-header.png"
+                  src="/images/teams-header.webp"
                   alt="Learning Panel Background"
                   fill
                   className={`object-cover ${disableHeavyEffects ? 'opacity-35' : 'opacity-50'}`}
