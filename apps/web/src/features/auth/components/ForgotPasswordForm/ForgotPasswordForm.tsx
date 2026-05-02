@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,7 +20,7 @@ export function ForgotPasswordForm() {
     message: string;
   } | null>(null);
 
-  const forgotPasswordSchema = React.useMemo(() => getForgotPasswordSchema(t), [t]);
+  const forgotPasswordSchema = useMemo(() => getForgotPasswordSchema(t), [t]);
 
   const {
     register,

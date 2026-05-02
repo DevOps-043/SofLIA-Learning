@@ -45,8 +45,14 @@ interface OrganizationRelation {
   slug?: string | null;
 }
 
+interface ExistingOrganizationMembershipRow {
+  id: string;
+  role?: string | null;
+}
+
 interface ResolveOAuthInvitationContextInput {
   email: string;
+  existingUserId?: string;
   orgContext: OAuthOrganizationContext;
   providerLabel: string;
   supabase: SupabaseServerClient;
@@ -317,6 +323,22 @@ async function findPendingInvitationForGlobalLogin(
   };
 }
 
+async function findExistingActiveMembership(
+  supabase: SupabaseServerClient,
+  organizationId: string,
+  userId: string
+): Promise<ExistingOrganizationMembershipRow | null> {
+  const { data } = await supabase
+    .from('organization_users')
+    .select('id, role')
+    .eq('organization_id', organizationId)
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  return (data as ExistingOrganizationMembershipRow | null) || null;
+}
+
 async function consumeInvitation(
   supabase: SupabaseServerClient,
   tokenOrEmail: string,
@@ -341,6 +363,7 @@ async function consumeInvitation(
 
 export async function resolveOAuthInvitationContext({
   email,
+  existingUserId,
   orgContext,
   providerLabel,
   supabase,
@@ -352,6 +375,23 @@ export async function resolveOAuthInvitationContext({
     return {
       value: await findPendingInvitationForGlobalLogin(supabase, email),
     };
+  }
+
+  if (existingUserId) {
+    const existingMembership = await findExistingActiveMembership(
+      supabase,
+      orgContext.orgId,
+      existingUserId
+    );
+
+    if (existingMembership) {
+      return {
+        value: {
+          invitedRole: existingMembership.role || 'member',
+          orgContext,
+        },
+      };
+    }
   }
 
   if (orgContext.bulkToken) {

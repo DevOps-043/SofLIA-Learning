@@ -44,6 +44,8 @@ export async function GET() {
       .select('organization_id, role, organizations!inner(id, name, slug, is_active, subscription_status)')
       .eq('user_id', auth.userId)
       .eq('role', 'owner')
+      .order('joined_at', { ascending: true })
+      .limit(1)
       .maybeSingle()
 
     if (ownershipData) {
@@ -76,6 +78,8 @@ export async function GET() {
       .eq('user_id', auth.userId)
       .eq('status', 'active')
       .eq('organizations.is_active', true)
+      .order('joined_at', { ascending: true })
+      .limit(1)
       .maybeSingle()
 
     if (membershipData) {
@@ -98,6 +102,8 @@ export async function GET() {
       .select('organization_id, status, organizations!inner(id, name, slug)')
       .eq('user_id', auth.userId)
       .eq('status', 'suspended')
+      .order('joined_at', { ascending: true })
+      .limit(1)
       .maybeSingle()
 
     if (suspendedMembership) {

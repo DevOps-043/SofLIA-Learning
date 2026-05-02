@@ -66,22 +66,33 @@ export async function resolveOAuthDashboardDestination(
     return '/instructor/dashboard';
   }
 
-  if (!isBusinessCargoRole(normalizedRole)) {
+  const { data: memberships } = await supabase
+    .from('organization_users')
+    .select('role, organizations!inner(slug, is_active)')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .eq('organizations.is_active', true)
+    .order('joined_at', { ascending: true });
+
+  const organizationMemberships = (memberships || []) as OrganizationMembershipRow[];
+
+  if (organizationMemberships.length === 0) {
     return '/dashboard';
   }
 
-  const { data: membership } = await supabase
-    .from('organization_users')
-    .select('role, organizations!inner(slug)')
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .maybeSingle();
+  if (!isBusinessCargoRole(normalizedRole)) {
+    await supabase
+      .from('users')
+      .update({ cargo_rol: 'Business' })
+      .eq('id', userId);
+  }
 
-  const organizationMembership = membership as OrganizationMembershipRow | null;
+  if (organizationMemberships.length > 1) {
+    return '/auth/select-organization';
+  }
 
-  const organizationSlug = extractOrganizationSlug(
-    organizationMembership?.organizations
-  );
+  const organizationMembership = organizationMemberships[0];
+  const organizationSlug = extractOrganizationSlug(organizationMembership?.organizations);
 
   if (!organizationSlug) {
     return '/dashboard';

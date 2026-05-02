@@ -11,14 +11,17 @@ interface StubSupabaseResponseMap {
   users?: unknown;
 }
 
-function createSupabaseStub(responses: StubSupabaseResponseMap) {
+function createSupabaseStub(
+  responses: StubSupabaseResponseMap,
+  updates: unknown[] = []
+) {
   return {
     from(tableName: string) {
       return {
         eq() {
           return this;
         },
-        maybeSingle: async () => ({
+        order: async () => ({
           data:
             tableName === 'organization_users'
               ? responses.organization_users
@@ -30,6 +33,10 @@ function createSupabaseStub(responses: StubSupabaseResponseMap) {
         single: async () => ({
           data: tableName === 'users' ? responses.users : undefined,
         }),
+        update(payload: unknown) {
+          updates.push({ payload, tableName });
+          return this;
+        },
       };
     },
   } as never;
@@ -81,10 +88,12 @@ describe('oauth-redirect.service', () => {
     await expect(
       resolveOAuthDashboardDestination(
         createSupabaseStub({
-          organization_users: {
-            organizations: { slug: 'acme' },
-            role: 'owner',
-          },
+          organization_users: [
+            {
+              organizations: { slug: 'acme' },
+              role: 'owner',
+            },
+          ],
           users: { cargo_rol: 'Business' },
         }),
         'user-1'
@@ -92,11 +101,61 @@ describe('oauth-redirect.service', () => {
     ).resolves.toBe('/acme/business-panel/dashboard');
   });
 
+  it('sends business users with multiple active organizations to the selector', async () => {
+    await expect(
+      resolveOAuthDashboardDestination(
+        createSupabaseStub({
+          organization_users: [
+            {
+              organizations: { slug: 'acme' },
+              role: 'owner',
+            },
+            {
+              organizations: { slug: 'globex' },
+              role: 'member',
+            },
+          ],
+          users: { cargo_rol: 'Business' },
+        }),
+        'user-1'
+      )
+    ).resolves.toBe('/auth/select-organization');
+  });
+
+  it('treats active organization membership as source of truth for legacy Usuario roles', async () => {
+    const updates: unknown[] = [];
+
+    await expect(
+      resolveOAuthDashboardDestination(
+        createSupabaseStub(
+          {
+            organization_users: [
+              {
+                organizations: { slug: 'acme' },
+                role: 'member',
+              },
+            ],
+            users: { cargo_rol: 'Usuario' },
+          },
+          updates
+        ),
+        'user-1'
+      )
+    ).resolves.toBe('/acme/business-user/dashboard');
+
+    expect(updates).toEqual([
+      {
+        payload: { cargo_rol: 'Business' },
+        tableName: 'users',
+      },
+    ]);
+  });
+
   it('falls back to /dashboard when no active organization is available', async () => {
     await expect(
       resolveOAuthDashboardDestination(
         createSupabaseStub({
-          organization_users: null,
+          organization_users: [],
           users: { cargo_rol: 'Business User' },
         }),
         'user-1'

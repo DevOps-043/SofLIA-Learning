@@ -8,6 +8,11 @@ import {
 } from '../types/oauth.types';
 
 type OAuthAccountRow = Database['public']['Tables']['oauth_accounts']['Row'];
+type OAuthSupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
+interface OAuthMembershipUserRow {
+  user_id: string;
+}
 
 function mapOAuthAccount(row: OAuthAccountRow): OAuthAccount {
   return {
@@ -134,23 +139,75 @@ export class OAuthService {
   /**
    * Verifica si un email ya está registrado
    */
-  static async findUserByEmail(email: string): Promise<OAuthUserRecord | null> {
+  static async findUserByEmail(
+    email: string,
+    preferredOrganizationId?: string
+  ): Promise<OAuthUserRecord | null> {
     const supabase = await createClient();
+    const normalizedEmail = email.trim();
 
     const { data, error } = await supabase
       .from('users')
       .select('id, email, username, first_name, last_name, email_verified, cargo_rol')
-      .eq('email', email)
-      .single();
+      .ilike('email', normalizedEmail)
+      .limit(10);
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // No encontrado
-      }
       throw new Error(`Error buscando usuario: ${error.message}`);
     }
 
-    return data as OAuthUserRecord;
+    const users = (data || []) as OAuthUserRecord[];
+
+    if (users.length === 0) {
+      return null;
+    }
+
+    if (users.length === 1) {
+      return users[0];
+    }
+
+    const userIds = users.map((user) => user.id);
+    const membershipUserId = await this.findActiveMembershipUserId(
+      supabase,
+      userIds,
+      preferredOrganizationId
+    );
+
+    if (membershipUserId) {
+      const membershipUser = users.find((user) => user.id === membershipUserId);
+      if (membershipUser) {
+        return membershipUser;
+      }
+    }
+
+    const exactEmailUser = users.find(
+      (user) => user.email?.trim().toLowerCase() === normalizedEmail.toLowerCase()
+    );
+
+    return exactEmailUser || users[0];
+  }
+
+  private static async findActiveMembershipUserId(
+    supabase: OAuthSupabaseClient,
+    userIds: string[],
+    preferredOrganizationId?: string
+  ): Promise<string | null> {
+    let query = supabase
+      .from('organization_users')
+      .select('user_id')
+      .in('user_id', userIds)
+      .eq('status', 'active')
+      .order('joined_at', { ascending: true })
+      .limit(1);
+
+    if (preferredOrganizationId) {
+      query = query.eq('organization_id', preferredOrganizationId);
+    }
+
+    const { data } = await query;
+    const membership = data?.[0] as OAuthMembershipUserRow | undefined;
+
+    return membership?.user_id || null;
   }
 
   /**

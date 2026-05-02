@@ -76,9 +76,14 @@ export async function processOAuthCallback<TProviderTokens>({
 
     const supabase = await createClient();
     const initialOrgContext = parseOAuthOrganizationContext(orgContextCookie);
+    const existingUser = await OAuthService.findUserByEmail(
+      normalizedProfile.email,
+      initialOrgContext.orgId
+    );
 
     const invitationContextResult = await resolveOAuthInvitationContext({
       email: normalizedProfile.email,
+      existingUserId: existingUser?.id,
       orgContext: initialOrgContext,
       providerLabel: provider.providerLabel,
       supabase,
@@ -97,8 +102,6 @@ export async function processOAuthCallback<TProviderTokens>({
 
     let userId: string;
     let isNewUser = false;
-
-    const existingUser = await OAuthService.findUserByEmail(normalizedProfile.email);
 
     if (existingUser) {
       userId = existingUser.id;

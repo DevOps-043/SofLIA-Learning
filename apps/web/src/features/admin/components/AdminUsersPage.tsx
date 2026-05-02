@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
+import type { Variants } from 'framer-motion'
 import { 
   UsersIcon, 
   PlusIcon, 
@@ -21,7 +22,7 @@ import { CheckCircleIcon as CheckCircleIconSolid } from '@heroicons/react/24/sol
 import { useTranslation } from 'react-i18next'
 import { useAdminUsers } from '../hooks/useAdminUsers'
 import type { NewAdminUserData } from './AddUserModal'
-import { AdminUser } from '../services/adminUsers.service'
+import type { AdminUser } from '../services/adminUsers.service'
 import { useThemeStore } from '@/core/stores/themeStore'
 
 const EditUserModal = dynamic(() => import('./EditUserModal').then(mod => ({ default: mod.EditUserModal })), {
@@ -34,7 +35,7 @@ const AddUserModal = dynamic(() => import('./AddUserModal').then(mod => ({ defau
   ssr: false
 })
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -44,7 +45,7 @@ const containerVariants = {
   }
 }
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { 
     opacity: 1, 
@@ -54,6 +55,49 @@ const itemVariants = {
       ease: [0.25, 0.46, 0.45, 0.94]
     }
   }
+}
+
+const getAdminUserDisplayName = (user: AdminUser) =>
+  user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
+
+const getAdminUserEmail = (user: AdminUser) => user.email ?? ''
+
+const getAdminUserRole = (user: AdminUser) => user.cargo_rol || 'Usuario'
+
+const parseErrorResponse = async (response: Response): Promise<Record<string, unknown>> => {
+  const data: unknown = await response.json().catch(() => ({}))
+  return data && typeof data === 'object' ? data as Record<string, unknown> : {}
+}
+
+const getStringValue = (source: Record<string, unknown>, key: string) => {
+  const value = source[key]
+  return typeof value === 'string' ? value : undefined
+}
+
+const formatValidationErrors = (errors: unknown) => {
+  if (!Array.isArray(errors)) {
+    return null
+  }
+
+  const messages = errors
+    .map((error) => {
+      if (!error || typeof error !== 'object') {
+        return null
+      }
+
+      const validationError = error as Record<string, unknown>
+      const field = getStringValue(validationError, 'field')
+      const message = getStringValue(validationError, 'message')
+
+      if (!message) {
+        return null
+      }
+
+      return field ? `${field}: ${message}` : message
+    })
+    .filter((message): message is string => Boolean(message))
+
+  return messages.length > 0 ? messages.join(', ') : null
 }
 
 export function AdminUsersPage() {
@@ -74,12 +118,14 @@ export function AdminUsersPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const filteredUsers = users.filter(user => {
-    const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-    const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.username.toLowerCase().includes(searchTerm.toLowerCase())
+    const searchQuery = searchTerm.toLowerCase()
+    const displayName = getAdminUserDisplayName(user)
+    const email = getAdminUserEmail(user)
+    const matchesSearch = displayName.toLowerCase().includes(searchQuery) ||
+                         email.toLowerCase().includes(searchQuery) ||
+                         user.username.toLowerCase().includes(searchQuery)
     
-    const matchesRole = filterRole === 'all' || user.cargo_rol === filterRole
+    const matchesRole = filterRole === 'all' || getAdminUserRole(user) === filterRole
     
     return matchesSearch && matchesRole
   })
@@ -139,11 +185,18 @@ export function AdminUsersPage() {
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = await parseErrorResponse(response)
       if (errorData?.message === 'Datos inválidos' && errorData?.errors) {
-        throw new Error(errorData.errors.map((e: any) => `${e.field}: ${e.message}`).join(', '))
+        const validationMessage = formatValidationErrors(errorData.errors)
+        if (validationMessage) {
+          throw new Error(validationMessage)
+        }
       }
-      throw new Error(errorData?.error || errorData?.message || 'Error al actualizar usuario')
+      throw new Error(
+        getStringValue(errorData, 'error') ||
+        getStringValue(errorData, 'message') ||
+        'Error al actualizar usuario'
+      )
     }
 
     refetch()
@@ -158,8 +211,8 @@ export function AdminUsersPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || 'Error al eliminar usuario')
+        const errorData = await parseErrorResponse(response)
+        throw new Error(getStringValue(errorData, 'error') || 'Error al eliminar usuario')
       }
 
       await refetch()
@@ -195,11 +248,18 @@ export function AdminUsersPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
+        const errorData = await parseErrorResponse(response)
         if (errorData?.message === 'Datos inválidos' && errorData?.errors) {
-          throw new Error(errorData.errors.map((e: any) => `${e.field}: ${e.message}`).join(', '))
+          const validationMessage = formatValidationErrors(errorData.errors)
+          if (validationMessage) {
+            throw new Error(validationMessage)
+          }
         }
-        throw new Error(errorData?.error || errorData?.message || 'Error al crear usuario')
+        throw new Error(
+          getStringValue(errorData, 'error') ||
+          getStringValue(errorData, 'message') ||
+          'Error al crear usuario'
+        )
       }
 
       refetch()
@@ -509,8 +569,10 @@ export function AdminUsersPage() {
                     <tbody className="bg-white dark:bg-[#1E2329] divide-y divide-[#E9ECEF] dark:divide-[#6C757D]/30">
                       <AnimatePresence>
                         {filteredUsers.map((user, index) => {
-                          const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-                          const roleBadge = getRoleBadge(user.cargo_rol)
+                          const displayName = getAdminUserDisplayName(user)
+                          const email = getAdminUserEmail(user)
+                          const role = getAdminUserRole(user)
+                          const roleBadge = getRoleBadge(role)
                           const RoleIcon = roleBadge.icon
                           
                           return (
@@ -552,8 +614,8 @@ export function AdminUsersPage() {
                                 </div>
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap">
-                                <div className="text-sm text-[#0A2540] dark:text-white truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[250px]" title={user.email}>
-                                  {user.email}
+                                <div className="text-sm text-[#0A2540] dark:text-white truncate max-w-[150px] sm:max-w-[200px] lg:max-w-[250px]" title={email || undefined}>
+                                  {email}
                                 </div>
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap">
@@ -562,7 +624,7 @@ export function AdminUsersPage() {
                                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border ${roleBadge.bg} ${roleBadge.text} ${roleBadge.border}`}
                                 >
                                   <RoleIcon className="h-3.5 w-3.5" />
-                                  {user.cargo_rol}
+                                  {role}
                                 </motion.span>
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap">
