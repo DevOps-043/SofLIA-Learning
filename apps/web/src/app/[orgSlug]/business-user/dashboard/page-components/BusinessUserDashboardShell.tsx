@@ -446,6 +446,7 @@ export function BusinessUserDashboardShell({
                   style={{ backgroundColor: `${orgColors.cardBg}80`, borderColor: orgColors.border }}
                 >
                   <button
+                    id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.courseViewGridButton}
                     onClick={() => setCourseView('grid')}
                     className={`p-2.5 sm:p-1.5 rounded-md transition-colors ${courseView === 'grid' ? 'shadow-sm bg-white/20 dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
                     title="Vista cuadrícula"

@@ -12,6 +12,7 @@ import {
   Sun,
   User,
 } from 'lucide-react';
+import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../../core/constants/tourTargets';
 import type { Theme } from '../../../../../../core/stores/themeStore';
 import { LANGUAGE_OPTIONS, THEME_OPTIONS } from './constants';
 import { ModernNavbarAvatar } from './ModernNavbarAvatar';
@@ -75,6 +76,7 @@ export function ModernNavbarMobileMenu({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.mobileMenuPanel}
           initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
           animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
           exit={disableHeavyEffects ? undefined : { opacity: 0, y: -20 }}

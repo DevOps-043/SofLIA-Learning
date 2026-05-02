@@ -9,8 +9,13 @@ export const BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS = {
   statCertificates: 'tour-stat-certificates',
   statAnalytics: 'tour-stat-analytics',
   courseViewSwitcher: 'tour-course-view-switcher',
+  courseViewGridButton: 'tour-course-view-grid-button',
+  learningPathSection: 'tour-learning-path-section',
+  learningPathIntroVideo: 'tour-learning-path-intro-video',
   userDropdownTrigger: 'tour-user-dropdown-trigger',
+  userDropdownMenu: 'tour-user-dropdown-menu',
   mobileMenuTrigger: 'tour-mobile-menu-trigger',
+  mobileMenuPanel: 'tour-mobile-menu-panel',
 } as const;
 
 export const COURSE_LEARN_TOUR_TARGET_IDS = {

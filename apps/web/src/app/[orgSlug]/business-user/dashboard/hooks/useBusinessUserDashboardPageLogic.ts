@@ -119,6 +119,8 @@ export function useBusinessUserDashboardPageLogic() {
   const { joyrideProps, shouldShowTour, startTour: restartTour, showVideoIntro, handleVideoComplete } =
     useBusinessUserJoyride({
       enabled: orgRole !== null && orgRole !== 'superadmin',
+      hasCourseControls: assignedCourses.length > 0 || learningPaths.length > 0,
+      hasLearningPaths: learningPaths.length > 0,
       mobilePerformanceMode: disableHeavyEffects,
     })
 

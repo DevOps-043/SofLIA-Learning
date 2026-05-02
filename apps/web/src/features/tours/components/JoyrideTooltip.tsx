@@ -128,7 +128,7 @@ export function JoyrideTooltip({
       {...resolvedTooltipProps}
       className={joinClassNames(
         resolvedTooltipProps.className,
-        'relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[10003]',
+        'relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[100003]',
         compactViewport ? 'rounded-[20px] max-h-[80vh]' : 'rounded-2xl max-h-[85vh]',
         resolveTooltipWidthClass(step.data, compactViewport)
       )}

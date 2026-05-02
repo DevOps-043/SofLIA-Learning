@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ACTIONS, CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
-import { useTranslation } from 'react-i18next';
+import {
+  getBusinessUserDashboardTourTargetSelector,
+} from '../../../core/constants/tourTargets';
 import { useTourRestart } from '../../../core/contexts/TourRestartContext';
 import * as businessUserJoyrideConfig from '../config/business-user-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
@@ -10,56 +12,116 @@ import { useTourProgress } from './useTourProgress';
 
 interface UseBusinessUserJoyrideOptions {
   enabled?: boolean;
+  hasCourseControls?: boolean;
+  hasLearningPaths?: boolean;
   mobilePerformanceMode?: boolean;
 }
 
-function targetExists(step: Step): boolean {
+function queryTourTarget(selector: string): HTMLElement | null {
   if (typeof document === 'undefined') {
-    return true;
+    return null;
   }
 
-  if (typeof step.target !== 'string') {
-    return true;
-  }
-
-  return document.querySelector(step.target) instanceof HTMLElement;
+  const element = document.querySelector(selector);
+  return element instanceof HTMLElement ? element : null;
 }
 
-function targetIsVisible(step: Step): boolean {
-  if (typeof document === 'undefined' || typeof step.target !== 'string') {
-    return true;
-  }
+function clickTourTarget(selector: string): boolean {
+  const element = queryTourTarget(selector);
 
-  const element = document.querySelector(step.target);
-  if (!(element instanceof HTMLElement)) {
+  if (!element) {
     return false;
   }
 
-  if (element.closest('[hidden], [aria-hidden="true"], .hidden')) {
-    return false;
+  element.click();
+  return true;
+}
+
+function getStepBehavior(step: Step | undefined): string | null {
+  const data = step?.data;
+
+  if (typeof data !== 'object' || data === null || !('behavior' in data)) {
+    return null;
   }
 
-  const style = window.getComputedStyle(element);
-  if (
-    style.display === 'none' ||
-    style.visibility === 'hidden' ||
-    Number(style.opacity) === 0
-  ) {
-    return false;
+  const behavior = (data as { behavior?: unknown }).behavior;
+  return typeof behavior === 'string' ? behavior : null;
+}
+
+function ensureUserMenuOpen(isMobile: boolean): number {
+  const panelSelector = getBusinessUserDashboardTourTargetSelector(
+    isMobile ? 'mobileMenuPanel' : 'userDropdownMenu',
+  );
+
+  if (queryTourTarget(panelSelector)) {
+    return 0;
   }
 
-  const rect = element.getBoundingClientRect();
-  return rect.width > 0 && rect.height > 0;
+  const triggerSelector = getBusinessUserDashboardTourTargetSelector(
+    isMobile ? 'mobileMenuTrigger' : 'userDropdownTrigger',
+  );
+
+  return clickTourTarget(triggerSelector) ? 180 : 0;
+}
+
+function closeUserMenuIfOpen(): number {
+  const desktopPanelSelector = getBusinessUserDashboardTourTargetSelector('userDropdownMenu');
+  const mobilePanelSelector = getBusinessUserDashboardTourTargetSelector('mobileMenuPanel');
+
+  if (queryTourTarget(desktopPanelSelector)) {
+    clickTourTarget(getBusinessUserDashboardTourTargetSelector('userDropdownTrigger'));
+    return 140;
+  }
+
+  if (queryTourTarget(mobilePanelSelector)) {
+    clickTourTarget(getBusinessUserDashboardTourTargetSelector('mobileMenuTrigger'));
+    return 140;
+  }
+
+  return 0;
+}
+
+function ensureLearningPathsVisible(): number {
+  if (queryTourTarget(getBusinessUserDashboardTourTargetSelector('learningPathSection'))) {
+    return 0;
+  }
+
+  return clickTourTarget(
+    getBusinessUserDashboardTourTargetSelector('courseViewGridButton'),
+  )
+    ? 180
+    : 0;
+}
+
+function prepareBusinessUserStep(step: Step | undefined, isMobile: boolean): number {
+  const behavior = getStepBehavior(step);
+
+  if (behavior === businessUserJoyrideConfig.BUSINESS_USER_TOUR_STEP_BEHAVIOR.openUserMenu) {
+    return ensureUserMenuOpen(isMobile);
+  }
+
+  const closeMenuDelay = closeUserMenuIfOpen();
+
+  if (behavior === businessUserJoyrideConfig.BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths) {
+    return Math.max(closeMenuDelay, ensureLearningPathsVisible());
+  }
+
+  return closeMenuDelay;
 }
 
 function resolveBusinessUserJoyrideSteps(
   isMobile: boolean,
-  t: (key: string) => string,
+  hasCourseControls: boolean,
+  hasLearningPaths: boolean,
 ): Step[] {
   if (
     typeof businessUserJoyrideConfig.buildBusinessUserJoyrideSteps === 'function'
   ) {
-    return businessUserJoyrideConfig.buildBusinessUserJoyrideSteps({ isMobile, t });
+    return businessUserJoyrideConfig.buildBusinessUserJoyrideSteps({
+      hasCourseControls,
+      hasLearningPaths,
+      isMobile,
+    });
   }
 
   if (Array.isArray(businessUserJoyrideConfig.businessUserJoyrideSteps)) {
@@ -72,7 +134,12 @@ function resolveBusinessUserJoyrideSteps(
 export function useBusinessUserJoyride(
   options: UseBusinessUserJoyrideOptions = {},
 ) {
-  const { enabled = true } = options;
+  const {
+    enabled = true,
+    hasCourseControls = true,
+    hasLearningPaths = true,
+    mobilePerformanceMode = false,
+  } = options;
   const { setRestart } = useTourRestart();
   const { t } = useTranslation('common');
   const { t: tBusiness } = useTranslation('business');
@@ -107,18 +174,27 @@ export function useBusinessUserJoyride(
   }, []);
 
   const steps = useMemo(() => {
-    return resolveBusinessUserJoyrideSteps(isMobile, tBusiness);
-  }, [isMobile, tBusiness]);
+    return resolveBusinessUserJoyrideSteps(
+      isMobile,
+      hasCourseControls,
+      hasLearningPaths,
+    );
+  }, [hasCourseControls, hasLearningPaths, isMobile]);
 
-  const getRunnableSteps = useCallback(() => {
-    const visibleSteps = steps.filter(targetIsVisible);
+  const moveToStep = useCallback(
+    (nextIndex: number) => {
+      const nextStep = steps[nextIndex];
+      const delay = prepareBusinessUserStep(nextStep, isMobile);
 
-    if (visibleSteps.length > 0) {
-      return visibleSteps;
-    }
+      if (delay > 0) {
+        window.setTimeout(() => setStepIndex(nextIndex), delay);
+        return;
+      }
 
-    return steps.filter(targetExists);
-  }, [steps]);
+      setStepIndex(nextIndex);
+    },
+    [isMobile, steps],
+  );
 
   useEffect(() => {
     if (
@@ -163,9 +239,10 @@ export function useBusinessUserJoyride(
       startTour().catch((err) =>
         console.error('[useBusinessUserJoyride] DB start failed', err),
       );
+      prepareBusinessUserStep(steps[0], isMobile);
       setRun(true);
     }, 300);
-  }, [completeTour, getRunnableSteps, startTour]);
+  }, [completeTour, isMobile, startTour, steps]);
 
   const handleJoyrideCallback = useCallback(
     (data: CallBackProps) => {
@@ -175,6 +252,7 @@ export function useBusinessUserJoyride(
         console.log('[useBusinessUserJoyride] Tour finished');
         setRun(false);
         setIsTourFinishedInSession(true);
+        closeUserMenuIfOpen();
         completeTour().catch((err) =>
           console.error('[useBusinessUserJoyride] Complete failed', err),
         );
@@ -185,6 +263,7 @@ export function useBusinessUserJoyride(
         console.log('[useBusinessUserJoyride] Tour skipped');
         setRun(false);
         setIsTourFinishedInSession(true);
+        closeUserMenuIfOpen();
         skipTour().catch((err) =>
           console.error('[useBusinessUserJoyride] Skip failed', err),
         );
@@ -195,6 +274,7 @@ export function useBusinessUserJoyride(
         console.log('[useBusinessUserJoyride] Tour closed');
         setRun(false);
         setIsTourFinishedInSession(true);
+        closeUserMenuIfOpen();
         skipTour().catch((err) =>
           console.error('[useBusinessUserJoyride] Close failed', err),
         );
@@ -203,7 +283,7 @@ export function useBusinessUserJoyride(
 
       if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
         if (action === ACTIONS.PREV) {
-          setStepIndex(Math.max(0, index - 1));
+          moveToStep(Math.max(0, index - 1));
           return;
         }
 
@@ -212,25 +292,28 @@ export function useBusinessUserJoyride(
           console.log('[useBusinessUserJoyride] Last step reached, finishing tour');
           setRun(false);
           setIsTourFinishedInSession(true);
+          closeUserMenuIfOpen();
           completeTour().catch((err) =>
             console.error('[useBusinessUserJoyride] Complete failed (last step)', err),
           );
           return;
         }
 
-        setStepIndex(index + 1);
+        moveToStep(index + 1);
       }
     },
-    [activeSteps.length, completeTour, skipTour],
+    [completeTour, moveToStep, skipTour, steps.length],
   );
 
   const resetTour = useCallback(() => {
     setRun(false);
     setStepIndex(0);
+    closeUserMenuIfOpen();
   }, []);
 
   const manualStartTour = useCallback(() => {
     console.log('[useBusinessUserJoyride] Manually restarting tour');
+    closeUserMenuIfOpen();
     setStepIndex(0);
     setRun(false);
     setIsTourFinishedInSession(false);
@@ -263,7 +346,7 @@ export function useBusinessUserJoyride(
       tooltipComponent: JoyrideTooltip,
       styles: {
         options: {
-          zIndex: 10000,
+          zIndex: 100000,
           arrowColor: '#1E2329',
         },
         spotlight: {
