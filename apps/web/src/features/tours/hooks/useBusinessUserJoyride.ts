@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ACTIONS, CallBackProps, EVENTS, STATUS, type Step } from 'react-joyride';
 import {
   getBusinessUserDashboardTourTargetSelector,
@@ -46,6 +47,45 @@ function getStepBehavior(step: Step | undefined): string | null {
 
   const behavior = (data as { behavior?: unknown }).behavior;
   return typeof behavior === 'string' ? behavior : null;
+}
+
+function targetExists(step: Step): boolean {
+  if (typeof document === 'undefined') {
+    return true;
+  }
+
+  if (typeof step.target !== 'string') {
+    return true;
+  }
+
+  return document.querySelector(step.target) instanceof HTMLElement;
+}
+
+function targetIsVisible(step: Step): boolean {
+  if (typeof document === 'undefined' || typeof step.target !== 'string') {
+    return true;
+  }
+
+  const element = document.querySelector(step.target);
+  if (!(element instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (element.closest('[hidden], [aria-hidden="true"], .hidden')) {
+    return false;
+  }
+
+  const style = window.getComputedStyle(element);
+  if (
+    style.display === 'none' ||
+    style.visibility === 'hidden' ||
+    Number(style.opacity) === 0
+  ) {
+    return false;
+  }
+
+  const rect = element.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
 }
 
 function ensureUserMenuOpen(isMobile: boolean): number {
@@ -142,7 +182,6 @@ export function useBusinessUserJoyride(
   } = options;
   const { setRestart } = useTourRestart();
   const { t } = useTranslation('common');
-  const { t: tBusiness } = useTranslation('business');
 
   const {
     shouldShowTour,
@@ -180,6 +219,16 @@ export function useBusinessUserJoyride(
       hasLearningPaths,
     );
   }, [hasCourseControls, hasLearningPaths, isMobile]);
+
+  const getRunnableSteps = useCallback(() => {
+    const visibleSteps = steps.filter(targetIsVisible);
+
+    if (visibleSteps.length > 0) {
+      return visibleSteps;
+    }
+
+    return steps.filter(targetExists);
+  }, [steps]);
 
   const moveToStep = useCallback(
     (nextIndex: number) => {
@@ -242,7 +291,7 @@ export function useBusinessUserJoyride(
       prepareBusinessUserStep(steps[0], isMobile);
       setRun(true);
     }, 300);
-  }, [completeTour, isMobile, startTour, steps]);
+  }, [completeTour, getRunnableSteps, isMobile, startTour, steps]);
 
   const handleJoyrideCallback = useCallback(
     (data: CallBackProps) => {
