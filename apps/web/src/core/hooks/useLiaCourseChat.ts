@@ -6,7 +6,7 @@ import type { CourseLessonContext, SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { prepareLiaBugContext } from '../reporting/lia-chat-reporting';
-import type { LiaImageAttachment } from '../reporting/report-problem.contract';
+
 
 interface LiaCourseChatUserProfile {
   nombre?: string;
@@ -31,8 +31,7 @@ export interface UseLiaCourseChatReturn {
     message: string,
     courseContext?: CourseLessonContext,
     workshopContext?: CourseLessonContext,
-    isSystemMessage?: boolean,
-    attachments?: LiaImageAttachment[]
+    isSystemMessage?: boolean
   ) => Promise<void>;
   stop: () => void;
   clearHistory: () => void;
@@ -121,20 +120,9 @@ function buildCurrentActivityContext(activeContext: CourseLessonContext | undefi
 }
 
 function normalizeCourseMessage(
-  message: string,
-  attachments: LiaImageAttachment[]
+  message: string
 ): string {
-  const trimmedMessage = message.trim();
-
-  if (trimmedMessage) {
-    return trimmedMessage;
-  }
-
-  if (attachments.length > 0) {
-    return 'Quiero reportar un problema y adjunto una imagen como evidencia visual.';
-  }
-
-  return '';
+  return message.trim();
 }
 
 export function useLiaCourseChat(
@@ -169,10 +157,9 @@ export function useLiaCourseChat(
       message: string,
       courseContext?: CourseLessonContext,
       workshopContext?: CourseLessonContext,
-      isSystemMessage: boolean = false,
-      attachments: LiaImageAttachment[] = []
+      isSystemMessage: boolean = false
     ) => {
-      const normalizedMessage = normalizeCourseMessage(message, attachments);
+      const normalizedMessage = normalizeCourseMessage(message);
 
       if (!normalizedMessage || isLoading) {
         return;
@@ -184,7 +171,6 @@ export function useLiaCourseChat(
           role: 'user',
           content: normalizedMessage,
           timestamp: new Date(),
-          attachments,
         };
 
         setMessages((prev) => [...prev, userMessage]);
@@ -213,7 +199,7 @@ export function useLiaCourseChat(
           sessionSnapshot,
           enrichedMetadata,
           recordingStatus,
-        } = await prepareLiaBugContext(normalizedMessage, attachments.length > 0);
+        } = await prepareLiaBugContext(normalizedMessage, false);
 
         if (!conversationIdRef.current) {
           conversationIdRef.current = crypto.randomUUID();
@@ -230,15 +216,10 @@ export function useLiaCourseChat(
               ...messages.map((entry) => ({
                 role: entry.role,
                 content: entry.content,
-                attachments:
-                  entry.role === 'user' && entry.attachments?.length
-                    ? entry.attachments
-                    : undefined,
               })),
               {
                 role: 'user',
                 content: normalizedMessage,
-                attachments: attachments.length > 0 ? attachments : undefined,
               },
             ],
             context: {

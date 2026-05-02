@@ -14,7 +14,6 @@ import {
   buildBusinessUserDashboardStats,
   buildBusinessUserIntroVideos,
   getBusinessUserCertificateRoute,
-  getBusinessUserDashboardGreeting,
   getBusinessUserDisplayName,
   getBusinessUserInitials,
 } from '../services/business-user-dashboard.service'
@@ -95,7 +94,6 @@ export function useBusinessUserDashboardPageLogic() {
   const [error, setError] = useState<string | null>(null)
   const [organization, setOrganization] = useState<Organization | null>(null)
   const [orgRole, setOrgRole] = useState<OrgRole>(null)
-  const [currentTime, setCurrentTime] = useState(new Date())
   const [stats, setStats] = useState<DashboardStats>({
     total_assigned: 0,
     in_progress: 0,
@@ -133,16 +131,7 @@ export function useBusinessUserDashboardPageLogic() {
     setIsMounted(true)
   }, [])
 
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000)
-    return () => clearInterval(timer)
-  }, [])
-
   const myStats = useMemo(() => buildBusinessUserDashboardStats(stats, translate), [stats, translate])
-  const greeting = useMemo(
-    () => getBusinessUserDashboardGreeting(currentTime, translate),
-    [currentTime, translate]
-  )
   const displayName = useMemo(() => getBusinessUserDisplayName(user), [user])
   const initials = useMemo(() => getBusinessUserInitials(user), [user])
 
@@ -331,7 +320,6 @@ export function useBusinessUserDashboardPageLogic() {
     error,
     organization,
     orgRole,
-    currentTime,
     stats,
     assignedCourses,
     learningPaths,
@@ -349,7 +337,6 @@ export function useBusinessUserDashboardPageLogic() {
     handleVideoComplete,
     introVideos,
     myStats,
-    greeting,
     displayName,
     initials,
     loadDashboardData,

@@ -25,16 +25,16 @@ export interface StatCardProps {
 }
 
 export function StatCard({ title, value, delay, href, id, theme, gradientStyle, icon: Icon = ChartBarIcon }: StatCardProps) {
-  const primaryColor = theme?.cardBg || '#0A2540'
-  const accentColor = gradientStyle?.background ? String(gradientStyle.background).split(',')[1]?.trim() || '#00D4B3' : '#00D4B3'
-  const actualAccentColor = accentColor.length === 7 || accentColor.length === 9 || accentColor.startsWith('#') ? accentColor : '#00D4B3'
-  const textColor = theme?.text || '#FFFFFF'
+  const primaryColor = theme?.cardBg || 'var(--color-primary)'
+  const accentColor = gradientStyle?.background ? String(gradientStyle.background).split(',')[1]?.trim() || 'var(--color-accent)' : 'var(--color-accent)'
+  const actualAccentColor = accentColor.length === 7 || accentColor.length === 9 || accentColor.startsWith('#') ? accentColor : 'var(--color-accent)'
+  const textColor = theme?.text || 'var(--color-bg-light)'
   
-  const isLightMode = primaryColor.toLowerCase() === '#ffffff' || 
-    primaryColor.toLowerCase() === '#f8fafc' || 
+  const isLightMode = primaryColor.toLowerCase() === 'var(--color-bg-light)' ||
+    primaryColor.toLowerCase() === 'var(--color-gray-50)' ||
     primaryColor.startsWith('rgb(255')
   
-  const iconColor = isLightMode ? '#0A2540' : actualAccentColor
+  const iconColor = isLightMode ? 'var(--color-primary)' : actualAccentColor
 
   const CardContent = (
     <motion.div
@@ -45,10 +45,10 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
       className="group relative overflow-hidden rounded-[16px] p-4 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-start min-h-[90px]"
       id={id}
       style={{
-        backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(15, 20, 25, 0.6)',
+        backgroundColor: isLightMode ? 'var(--color-bg-light)' : 'rgb(15 20 25 / 60%)',
         backdropFilter: 'blur(20px)',
-        border: `1px solid ${isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)'}`,
-        boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.05)' : '0 10px 30px -10px rgba(0,0,0,0.4)',
+        border: `1px solid ${isLightMode ? 'var(--color-gray-200)' : 'rgb(255 255 255 / 4%)'}`,
+        boxShadow: isLightMode ? '0 4px 20px -10px rgb(0 0 0 / 5%)' : '0 10px 30px -10px rgb(0 0 0 / 40%)',
       }}
     >
       <div className="relative z-10 flex items-center gap-4 w-full">
@@ -67,7 +67,7 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
         <div className="flex flex-col justify-center overflow-hidden">
           <p 
             className="text-[10px] uppercase tracking-widest font-bold mb-1 truncate w-full" 
-            style={{ color: isLightMode ? '#64748B' : '#858E9B', opacity: 0.9 }}
+            style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-gray-400)', opacity: 0.9 }}
           >
             {title}
           </p>

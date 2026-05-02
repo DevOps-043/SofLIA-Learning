@@ -74,10 +74,10 @@ export async function appendPersonalizationPrompt(
   userId: string
 ): Promise<string> {
   try {
-    const { LiaPersonalizationService } = await import('@/core/services/lia-personalization.service');
-    const personalizationSettings = await LiaPersonalizationService.getSettings(userId);
+    const { SofLIAPersonalizationService } = await import('@/core/services/lia-personalization.service');
+    const personalizationSettings = await SofLIAPersonalizationService.getSettings(userId);
     if (personalizationSettings) {
-      const personalizationPrompt = LiaPersonalizationService.buildPersonalizationPrompt(personalizationSettings);
+      const personalizationPrompt = SofLIAPersonalizationService.buildPersonalizationPrompt(personalizationSettings);
       return basePrompt + personalizationPrompt;
     }
   } catch (error) {

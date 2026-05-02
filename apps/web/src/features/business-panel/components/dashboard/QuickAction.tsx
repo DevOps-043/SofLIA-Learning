@@ -19,8 +19,8 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
   const { effectiveStyles } = useOrganizationStylesContext()
   
   const panelStyles = effectiveStyles?.panel
-  const textColor = isLightMode ? (panelStyles?.text_color || '#0F172A') : (panelStyles?.text_color || '#FFFFFF')
-  const iconColor = color || '#00D4B3'
+  const textColor = isLightMode ? (panelStyles?.text_color || 'var(--color-gray-900)') : (panelStyles?.text_color || 'var(--color-bg-light)')
+  const iconColor = color || 'var(--color-accent)'
 
   return (
     <motion.div
@@ -34,9 +34,9 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
         <div 
           className="group relative overflow-hidden rounded-[16px] p-4 transition-all duration-300 flex items-center gap-4 cursor-pointer shadow-sm hover:shadow-md"
           style={{
-            backgroundColor: isLightMode ? '#FFFFFF' : 'rgba(15, 20, 25, 0.6)',
+            backgroundColor: isLightMode ? 'var(--color-bg-light)' : 'rgb(15 20 25 / 60%)',
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${isLightMode ? '#E2E8F0' : 'rgba(255, 255, 255, 0.04)'}`,
+            border: `1px solid ${isLightMode ? 'var(--color-gray-200)' : 'rgb(255 255 255 / 4%)'}`,
           }}
         >
           {/* Icon Container - matching StatCard style */}
@@ -59,7 +59,7 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
             </h4>
             <p 
               className="text-[11px] mt-0.5 truncate opacity-70" 
-              style={{ color: isLightMode ? '#64748B' : '#858E9B' }}
+              style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-gray-400)' }}
             >
               {description}
             </p>
@@ -85,4 +85,3 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
     </motion.div>
   )
 }
-

@@ -35,3 +35,21 @@ export interface WorkshopStats {
   averageDuration: number
   totalInstructors: number
 }
+
+export interface AdminWorkshopListFilters {
+  page: number
+  limit: number
+  search?: string
+  category?: string
+  status?: 'active' | 'inactive'
+}
+
+export interface AdminWorkshopListResult {
+  workshops: AdminWorkshop[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}

@@ -12,11 +12,6 @@ import { useLanguage } from '../../../providers/I18nProvider';
 import { useThemeStore } from '../../../../core/stores/themeStore';
 import { useAuth } from '../../../../features/auth/hooks/useAuth';
 import { useOrganizationStylesContext } from '../../../../features/business-panel/contexts/OrganizationStylesContext';
-import {
-  REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES,
-  type LiaImageAttachment,
-} from '../../../../core/reporting/report-problem.contract';
-import { buildLiaImageAttachment } from '../../../../core/reporting/report-problem.client';
 import type { LiaConversationItem, LiaConversationToDelete, LiaQuickAction } from '../types';
 import {
   deleteLiaConversation,
@@ -54,12 +49,8 @@ export function useLiaSidePanelLogic() {
   const { language } = useLanguage();
 
   const [inputValue, setInputValue] = useState('');
-  const [selectedAttachment, setSelectedAttachment] =
-    useState<LiaImageAttachment | null>(null);
-  const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const { isSpeaking } = useLiaSidePanelVoice({
@@ -202,18 +193,7 @@ export function useLiaSidePanelLogic() {
     return () => clearTimeout(timer);
   }, [isOpen]);
 
-  useEffect(() => {
-    if (isOpen) {
-      return;
-    }
 
-    setSelectedAttachment(null);
-    setAttachmentError(null);
-
-    if (attachmentInputRef.current) {
-      attachmentInputRef.current.value = '';
-    }
-  }, [isOpen]);
 
   const handleNextPage = () => {
     if (hasMore) {
@@ -339,79 +319,22 @@ export function useLiaSidePanelLogic() {
   );
 
   const handleSendMessage = useCallback(async () => {
-    if ((!inputValue.trim() && !selectedAttachment) || isLoading) {
+    if (!inputValue.trim() || isLoading) {
       return;
     }
 
     const message = inputValue.trim();
-    const attachmentToSend = selectedAttachment;
     setInputValue('');
-    setSelectedAttachment(null);
-    setAttachmentError(null);
-
-    if (attachmentInputRef.current) {
-      attachmentInputRef.current.value = '';
-    }
 
     await sendMessage(
       message,
       false,
       pageContext ?? undefined,
-      attachmentToSend ? [attachmentToSend] : []
+      []
     );
-  }, [inputValue, isLoading, pageContext, selectedAttachment, sendMessage]);
+  }, [inputValue, isLoading, pageContext, sendMessage]);
 
-  const handleAttachmentSelect = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
 
-      if (!file) {
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        setAttachmentError(
-          'Solo puedes adjuntar imágenes para compartir evidencia visual.'
-        );
-        event.target.value = '';
-        return;
-      }
-
-      if (file.size > REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES) {
-        setAttachmentError('La imagen es demasiado grande. Máximo 10MB.');
-        event.target.value = '';
-        return;
-      }
-
-      try {
-        const attachment = await buildLiaImageAttachment(file);
-        setSelectedAttachment(attachment);
-        setAttachmentError(null);
-      } catch (error) {
-        setAttachmentError(
-          error instanceof Error
-            ? error.message
-            : 'No se pudo procesar la imagen seleccionada.'
-        );
-      } finally {
-        event.target.value = '';
-      }
-    },
-    []
-  );
-
-  const handleRemoveAttachment = useCallback(() => {
-    setSelectedAttachment(null);
-    setAttachmentError(null);
-
-    if (attachmentInputRef.current) {
-      attachmentInputRef.current.value = '';
-    }
-  }, []);
-
-  const handleAttachmentButtonClick = useCallback(() => {
-    attachmentInputRef.current?.click();
-  }, []);
 
   const quickActions: LiaQuickAction[] = [
     {
@@ -475,10 +398,7 @@ export function useLiaSidePanelLogic() {
     currentConversationId,
     inputValue,
     setInputValue,
-    selectedAttachment,
-    attachmentError,
     inputRef,
-    attachmentInputRef,
     messagesEndRef,
     chatContainerRef,
     handleChatScroll,
@@ -500,9 +420,7 @@ export function useLiaSidePanelLogic() {
     setDictationError,
     toggleDictation,
     stopDictation,
-    handleAttachmentSelect,
-    handleRemoveAttachment,
-    handleAttachmentButtonClick,
+
     isOptionsMenuOpen,
     setIsOptionsMenuOpen,
     optionsMenuRef,

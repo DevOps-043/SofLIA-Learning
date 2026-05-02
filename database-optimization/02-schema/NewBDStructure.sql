@@ -682,7 +682,7 @@ CREATE TABLE public.lesson_tracking (
 );
 CREATE TABLE public.lia_activity_completions (
   completion_id uuid NOT NULL DEFAULT uuid_generate_v4(),
-  conversation_id uuid NOT NULL,
+  conversation_id uuid,
   user_id uuid NOT NULL,
   activity_id uuid NOT NULL,
   status character varying NOT NULL,

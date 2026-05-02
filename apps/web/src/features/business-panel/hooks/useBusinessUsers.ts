@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
 import {
@@ -7,35 +7,75 @@ import {
   BusinessUserStats,
   BusinessInvitation,
   BulkInviteLink,
+  BusinessUsersPaginationMeta,
+  BusinessUsersResourceTotals,
   CreateBusinessUserRequest,
   UpdateBusinessUserRequest,
 } from '../services/businessUsers.service'
 
 type OrganizationStoreState = ReturnType<typeof useOrganizationStore.getState>
+type BusinessUsersResource = 'users' | 'invitations' | 'links'
 
-export function useBusinessUsers(orgSlugProp?: string) {
+interface UseBusinessUsersOptions {
+  activeResource?: BusinessUsersResource
+  searchTerm?: string
+  filterRole?: string
+  filterStatus?: string
+  pageSize?: number
+}
+
+const DEFAULT_PAGE_SIZE = 24
+
+const EMPTY_STATS: BusinessUserStats = {
+  total: 0,
+  active: 0,
+  invited: 0,
+  suspended: 0,
+  admins: 0,
+  members: 0,
+}
+
+const EMPTY_PAGINATION: BusinessUsersPaginationMeta = {
+  page: 1,
+  pageSize: DEFAULT_PAGE_SIZE,
+  total: 0,
+  totalPages: 0,
+  hasNextPage: false,
+}
+
+export function useBusinessUsers(
+  orgSlugProp?: string,
+  options: UseBusinessUsersOptions = {},
+) {
   const params = useParams()
   const urlOrgSlug = params?.orgSlug as string | undefined
   const currentOrgSlug = useOrganizationStore((state: OrganizationStoreState) => state.currentOrganization?.slug)
   const orgSlug = orgSlugProp || urlOrgSlug || currentOrgSlug || ''
-  
+  const activeResource = options.activeResource || 'users'
+  const pageSize = options.pageSize || DEFAULT_PAGE_SIZE
+  const searchTerm = options.searchTerm?.trim() || ''
+  const filterRole = options.filterRole || 'all'
+  const filterStatus = options.filterStatus || 'all'
+
   const [users, setUsers] = useState<BusinessUser[]>([])
   const [invitations, setInvitations] = useState<BusinessInvitation[]>([])
   const [inviteLinks, setInviteLinks] = useState<BulkInviteLink[]>([])
-  const [stats, setStats] = useState<BusinessUserStats>({
-    total: 0,
-    active: 0,
-    invited: 0,
-    suspended: 0,
-    admins: 0,
-    members: 0
+  const [stats, setStats] = useState<BusinessUserStats>(EMPTY_STATS)
+  const [paginationByResource, setPaginationByResource] = useState<Record<BusinessUsersResource, BusinessUsersPaginationMeta>>({
+    users: EMPTY_PAGINATION,
+    invitations: EMPTY_PAGINATION,
+    links: EMPTY_PAGINATION,
+  })
+  const [resourceTotals, setResourceTotals] = useState<BusinessUsersResourceTotals>({
+    users: 0,
+    invitations: 0,
+    inviteLinks: 0,
   })
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orgData, setOrgData] = useState<{ id: string, name: string, logo_url?: string } | null>(null)
   const getOrgBySlug = useOrganizationStore((state: OrganizationStoreState) => state.getOrganizationBySlug)
 
-  // Sincronizar datos de la organización desde el store basándose en el slug
   useEffect(() => {
     if (orgSlug) {
       const org = getOrgBySlug(orgSlug)
@@ -43,249 +83,170 @@ export function useBusinessUsers(orgSlugProp?: string) {
         setOrgData({
           id: org.id,
           name: org.name,
-          logo_url: org.logoUrl || undefined
+          logo_url: org.logoUrl || undefined,
         })
       }
     }
   }, [orgSlug, getOrgBySlug])
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      
-      const response = await fetch(`/api/${orgSlug}/business/users`, {
-        credentials: 'include'
-      })
-      const data = await response.json()
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Error al cargar usuarios')
-      }
-      
-      setUsers(data.users || [])
-      setInvitations(data.invitations || [])
-      setInviteLinks(data.inviteLinks || [])
-      setStats(data.stats || {
-        total: 0, active: 0, invited: 0, suspended: 0, admins: 0, members: 0
+  const buildResourceUrl = useCallback(
+    (resource: BusinessUsersResource, page: number) => {
+      const query = new URLSearchParams({
+        resource,
+        page: String(page),
+        pageSize: String(pageSize),
       })
 
-      // Sincronizar datos de la organización directamente desde la API
-      if (data.organization) {
-        setOrgData({
-          id: data.organization.id,
-          name: data.organization.name,
-          logo_url: data.organization.logo_url || undefined
+      if (searchTerm) query.set('search', searchTerm)
+      if (resource === 'users' && filterRole !== 'all') query.set('role', filterRole)
+      if (resource === 'users' && filterStatus !== 'all') query.set('status', filterStatus)
+
+      return `/api/${orgSlug}/business/users?${query.toString()}`
+    },
+    [filterRole, filterStatus, orgSlug, pageSize, searchTerm],
+  )
+
+  const fetchResource = useCallback(
+    async (resource: BusinessUsersResource = activeResource, page = 1) => {
+      if (!orgSlug) return
+
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const response = await fetch(buildResourceUrl(resource, page), {
+          credentials: 'include',
         })
-      } else {
-        // Fallback al store si la API no devuelve org
-        const org = getOrgBySlug(orgSlug)
-        if (org) {
-          setOrgData({
-            id: org.id,
-            name: org.name,
-            logo_url: org.logoUrl || undefined
-          })
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || 'Error al cargar usuarios')
         }
+
+        if (resource === 'users') setUsers(data.users || [])
+        if (resource === 'invitations') setInvitations(data.invitations || [])
+        if (resource === 'links') setInviteLinks(data.inviteLinks || [])
+
+        setStats(data.stats || EMPTY_STATS)
+        setResourceTotals(data.totals || {
+          users: data.stats?.total || 0,
+          invitations: data.invitations?.length || 0,
+          inviteLinks: data.inviteLinks?.length || 0,
+        })
+
+        if (data.pagination) {
+          setPaginationByResource((prev) => ({
+            ...prev,
+            [resource]: data.pagination,
+          }))
+        }
+
+        if (data.organization) {
+          setOrgData({
+            id: data.organization.id,
+            name: data.organization.name,
+            logo_url: data.organization.logo_url || undefined,
+          })
+        } else {
+          const org = getOrgBySlug(orgSlug)
+          if (org) {
+            setOrgData({
+              id: org.id,
+              name: org.name,
+              logo_url: org.logoUrl || undefined,
+            })
+          }
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error al cargar datos')
+      } finally {
+        setIsLoading(false)
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar datos')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [orgSlug, getOrgBySlug])
+    },
+    [activeResource, buildResourceUrl, getOrgBySlug, orgSlug],
+  )
 
   useEffect(() => {
-    fetchUsers()
-  }, [fetchUsers])
+    void fetchResource(activeResource, 1)
+  }, [activeResource, fetchResource, filterRole, filterStatus, pageSize, searchTerm])
+
+  const syncOrgData = useCallback(() => {
+    const currentPage = paginationByResource[activeResource]?.page || 1
+    void fetchResource(activeResource, currentPage)
+  }, [activeResource, fetchResource, paginationByResource])
+
+  const setResourcePage = useCallback(
+    (resource: BusinessUsersResource, page: number) => {
+      void fetchResource(resource, page)
+    },
+    [fetchResource],
+  )
 
   const createUser = async (userData: CreateBusinessUserRequest) => {
-    try {
-      const newUser = await BusinessUsersService.createUser(orgSlug, userData)
+    const newUser = await BusinessUsersService.createUser(orgSlug, userData)
 
-      // Actualizar orgData si no lo teníamos
-      if (!orgData && newUser.organization_id) {
-        setOrgData({ id: newUser.organization_id, name: '' })
-      }
-
-      // Actualización optimista: agregar usuario y actualizar stats localmente
-      setUsers(prev => [...prev, newUser])
-      setStats(prev => {
-        const statusKey = newUser.org_status && newUser.org_status !== 'removed' ? newUser.org_status as 'active' | 'invited' | 'suspended' : null;
-        const roleKey = newUser.org_role === 'owner' || newUser.org_role === 'admin' ? 'admins' : 'members';
-        return {
-          ...prev,
-          total: prev.total + 1,
-          ...(statusKey ? { [statusKey]: prev[statusKey] + 1 } : {}),
-          [roleKey]: prev[roleKey] + 1
-        }
-      })
-
-      return newUser
-    } catch (err) {
-      throw err
+    if (!orgData && newUser.organization_id) {
+      setOrgData({ id: newUser.organization_id, name: '' })
     }
+
+    await fetchResource('users', 1)
+    return newUser
   }
 
   const updateUser = async (
     userId: string,
     userData: UpdateBusinessUserRequest,
   ) => {
-    try {
-      const updatedUser = await BusinessUsersService.updateUser(orgSlug, userId, userData)
-
-      // Actualización optimista: solo actualizar el usuario modificado
-      setUsers(prev => prev.map(user => user.id === userId ? updatedUser : user))
-
-      // Si cambió el status u role, actualizar stats localmente
-      if (userData.org_status || userData.org_role) {
-        const oldUser = users.find(u => u.id === userId)
-        if (oldUser) {
-          setStats(prev => {
-            const newStats = { ...prev }
-
-            // Actualizar contadores de status
-            if (userData.org_status && oldUser.org_status !== userData.org_status) {
-              const oldStatus = oldUser.org_status as 'active' | 'invited' | 'suspended' | 'removed' | undefined;
-              const newStatus = userData.org_status as 'active' | 'invited' | 'suspended' | 'removed' | undefined;
-              
-              if (oldStatus && oldStatus !== 'removed') {
-                newStats[oldStatus] = Math.max(0, newStats[oldStatus] - 1)
-              }
-              if (newStatus && newStatus !== 'removed') {
-                newStats[newStatus] = newStats[newStatus] + 1
-              }
-            }
-
-            // Actualizar contadores de role
-            if (userData.org_role && oldUser.org_role !== userData.org_role) {
-              const oldIsAdmin = oldUser.org_role === 'owner' || oldUser.org_role === 'admin'
-              const newIsAdmin = userData.org_role === 'owner' || userData.org_role === 'admin'
-
-              if (oldIsAdmin !== newIsAdmin) {
-                newStats.admins = oldIsAdmin ? newStats.admins - 1 : newStats.admins + 1
-                newStats.members = oldIsAdmin ? newStats.members + 1 : newStats.members - 1
-              }
-            }
-
-            return newStats
-          })
-        }
-      }
-
-      return updatedUser
-    } catch (err) {
-      throw err
-    }
+    const updatedUser = await BusinessUsersService.updateUser(orgSlug, userId, userData)
+    setUsers(prev => prev.map(user => user.id === userId ? updatedUser : user))
+    return updatedUser
   }
 
   const deleteUser = async (userId: string) => {
-    try {
-      const userToDelete = users.find(u => u.id === userId)
-
-      await BusinessUsersService.deleteUser(orgSlug, userId)
-
-      // Actualización optimista: eliminar usuario y actualizar stats
-      setUsers(prev => prev.filter(user => user.id !== userId))
-
-      if (userToDelete) {
-        setStats(prev => {
-          const statusKey = userToDelete.org_status && userToDelete.org_status !== 'removed' ? userToDelete.org_status as 'active' | 'invited' | 'suspended' : null;
-          const roleKey = userToDelete.org_role === 'owner' || userToDelete.org_role === 'admin' ? 'admins' : 'members';
-          return {
-            ...prev,
-            total: Math.max(0, prev.total - 1),
-            ...(statusKey ? { [statusKey]: Math.max(0, prev[statusKey] - 1) } : {}),
-            [roleKey]: Math.max(0, prev[roleKey] - 1)
-          }
-        })
-      }
-
-      // Refetch forzarndo actualización real desde DB
-      await fetchUsers()
-    } catch (err) {
-      throw err
-    }
+    await BusinessUsersService.deleteUser(orgSlug, userId)
+    const currentPage = paginationByResource.users?.page || 1
+    await fetchResource('users', currentPage)
   }
 
   const resendInvitation = async (userId: string) => {
-    try {
-      await BusinessUsersService.resendInvitation(orgSlug, userId)
-    } catch (err) {
-      throw err
-    }
+    await BusinessUsersService.resendInvitation(orgSlug, userId)
   }
 
   const suspendUser = async (userId: string) => {
-    try {
-      const oldUser = users.find(u => u.id === userId)
-
-      await BusinessUsersService.suspendUser(orgSlug, userId)
-
-      // Actualización optimista
-      setUsers(prev => prev.map(user =>
-        user.id === userId
-          ? { ...user, org_status: 'suspended' as const }
-          : user
-      ))
-
-      // Actualizar stats si el usuario estaba activo
-      if (oldUser?.org_status === 'active') {
-        setStats(prev => ({
-          ...prev,
-          active: Math.max(0, prev.active - 1),
-          suspended: prev.suspended + 1
-        }))
-      }
-    } catch (err) {
-      throw err
-    }
+    await BusinessUsersService.suspendUser(orgSlug, userId)
+    setUsers(prev => prev.map(user =>
+      user.id === userId
+        ? { ...user, org_status: 'suspended' as const }
+        : user
+    ))
+    await fetchResource('users', paginationByResource.users?.page || 1)
   }
 
   const activateUser = async (userId: string) => {
-    try {
-      const oldUser = users.find(u => u.id === userId)
-
-      await BusinessUsersService.activateUser(orgSlug, userId)
-
-      // Actualización optimista
-      setUsers(prev => prev.map(user =>
-        user.id === userId
-          ? { ...user, org_status: 'active' as const }
-          : user
-      ))
-
-      // Actualizar stats si el usuario estaba suspendido
-      if (oldUser?.org_status === 'suspended') {
-        setStats(prev => ({
-          ...prev,
-          active: prev.active + 1,
-          suspended: Math.max(0, prev.suspended - 1)
-        }))
-      }
-    } catch (err) {
-      throw err
-    }
+    await BusinessUsersService.activateUser(orgSlug, userId)
+    setUsers(prev => prev.map(user =>
+      user.id === userId
+        ? { ...user, org_status: 'active' as const }
+        : user
+    ))
+    await fetchResource('users', paginationByResource.users?.page || 1)
   }
 
   const updateInviteLinkStatus = async (linkId: string, action: 'pause' | 'resume') => {
-    try {
-      const updatedLink = await BusinessUsersService.updateInviteLinkStatus(orgSlug, linkId, action)
-      setInviteLinks(prev => prev.map(link => link.id === linkId ? updatedLink : link))
-      return updatedLink
-    } catch (err) {
-      throw err
-    }
+    const updatedLink = await BusinessUsersService.updateInviteLinkStatus(orgSlug, linkId, action)
+    setInviteLinks(prev => prev.map(link => link.id === linkId ? updatedLink : link))
+    return updatedLink
   }
 
   const deleteInviteLink = async (linkId: string) => {
-    try {
-      await BusinessUsersService.deleteInviteLink(orgSlug, linkId)
-      setInviteLinks(prev => prev.filter(link => link.id !== linkId))
-    } catch (err) {
-      throw err
-    }
+    await BusinessUsersService.deleteInviteLink(orgSlug, linkId)
+    await fetchResource('links', paginationByResource.links?.page || 1)
   }
+
+  const activePagination = useMemo(
+    () => paginationByResource[activeResource] || EMPTY_PAGINATION,
+    [activeResource, paginationByResource],
+  )
 
   return {
     users,
@@ -295,7 +256,11 @@ export function useBusinessUsers(orgSlugProp?: string) {
     orgData,
     isLoading,
     error,
-    syncOrgData: fetchUsers,
+    paginationByResource,
+    activePagination,
+    resourceTotals,
+    syncOrgData,
+    setResourcePage,
     createUser,
     updateUser,
     deleteUser,
@@ -303,6 +268,6 @@ export function useBusinessUsers(orgSlugProp?: string) {
     suspendUser,
     activateUser,
     updateInviteLinkStatus,
-    deleteInviteLink
+    deleteInviteLink,
   }
 }

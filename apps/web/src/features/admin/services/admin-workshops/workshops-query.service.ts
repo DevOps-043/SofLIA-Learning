@@ -1,7 +1,225 @@
 import { createClient } from '../../../../lib/supabase/server'
-import type { AdminWorkshop, WorkshopStats } from './workshops-transform.service'
+import type {
+  AdminWorkshop,
+  AdminWorkshopListFilters,
+  AdminWorkshopListResult,
+  WorkshopStats,
+} from './workshops-transform.service'
+
+interface CourseWorkshopRow extends AdminWorkshop {
+  instructor_id: string | null
+}
+
+interface InstructorLookupRow {
+  id: string
+  display_name: string | null
+  first_name: string | null
+  last_name: string | null
+  profile_picture_url: string | null
+}
+
+function normalizeSearchTerm(search?: string) {
+  return search?.trim().replace(/[%_,()]/g, '') || ''
+}
+
+function getPaginationBounds(page: number, limit: number) {
+  const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1
+  const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.floor(limit), 1), 48) : 24
+  const from = (safePage - 1) * safeLimit
+  const to = from + safeLimit - 1
+
+  return { safePage, safeLimit, from, to }
+}
+
+function getInstructorDisplayName(instructor: InstructorLookupRow) {
+  return instructor.display_name ||
+    `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
+    'Instructor no asignado'
+}
+
+function enrichWorkshops(input: {
+  courses: CourseWorkshopRow[]
+  instructors: InstructorLookupRow[]
+  modules: Array<{ course_id: string; module_duration_minutes: number | null }>
+  enrollments: Array<{ course_id: string }>
+}): AdminWorkshop[] {
+  const instructorsMap = new Map<string, { name: string; picture: string | null }>(
+    input.instructors.map((instructor) => [
+      instructor.id,
+      {
+        name: getInstructorDisplayName(instructor),
+        picture: instructor.profile_picture_url,
+      },
+    ]),
+  )
+
+  const durationMap = new Map<string, number>()
+  for (const module of input.modules) {
+    const current = durationMap.get(module.course_id) || 0
+    durationMap.set(module.course_id, current + (module.module_duration_minutes || 0))
+  }
+
+  const enrollmentsMap = new Map<string, number>()
+  for (const enrollment of input.enrollments) {
+    const current = enrollmentsMap.get(enrollment.course_id) || 0
+    enrollmentsMap.set(enrollment.course_id, current + 1)
+  }
+
+  return input.courses.map((workshop): AdminWorkshop => {
+    const instructor = workshop.instructor_id ? instructorsMap.get(workshop.instructor_id) : null
+    const calculatedDuration = durationMap.get(workshop.id) || 0
+
+    return {
+      ...workshop,
+      instructor_id: workshop.instructor_id || '',
+      duration_total_minutes: calculatedDuration > 0 ? calculatedDuration : (workshop.duration_total_minutes || 0),
+      student_count: enrollmentsMap.get(workshop.id) || 0,
+      instructor_name: instructor?.name || 'Instructor no asignado',
+      instructor_profile_picture_url: instructor?.picture || null,
+    }
+  })
+}
 
 export class AdminWorkshopsQueryService {
+  static async getWorkshopsPage(filters: AdminWorkshopListFilters): Promise<AdminWorkshopListResult> {
+    const supabase = await createClient()
+    const { safePage, safeLimit, from, to } = getPaginationBounds(filters.page, filters.limit)
+    const searchTerm = normalizeSearchTerm(filters.search)
+    const category = filters.category?.trim()
+
+    let instructorIds: string[] = []
+    if (searchTerm) {
+      const { data: matchingInstructors, error: instructorSearchError } = await supabase
+        .from('users')
+        .select('id')
+        .or(`display_name.ilike.%${searchTerm}%,first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`)
+        .limit(50)
+
+      if (instructorSearchError) {
+        throw instructorSearchError
+      }
+
+      instructorIds = (matchingInstructors || []).map((instructor) => instructor.id)
+    }
+
+    let query = supabase
+      .from('courses')
+      .select(`
+        id,
+        title,
+        description,
+        category,
+        level,
+        duration_total_minutes,
+        instructor_id,
+        is_active,
+        thumbnail_url,
+        slug,
+        price,
+        average_rating,
+        student_count,
+        review_count,
+        learning_objectives,
+        approval_status,
+        approved_by,
+        approved_at,
+        rejection_reason,
+        created_at,
+        updated_at
+      `, { count: 'exact' })
+      .or('approval_status.eq.approved,approval_status.is.null')
+
+    if (searchTerm) {
+      const searchFilters = [
+        `title.ilike.%${searchTerm}%`,
+        `description.ilike.%${searchTerm}%`,
+        `category.ilike.%${searchTerm}%`,
+      ]
+
+      if (instructorIds.length > 0) {
+        searchFilters.push(`instructor_id.in.(${instructorIds.join(',')})`)
+      }
+
+      query = query.or(searchFilters.join(','))
+    }
+
+    if (category && category !== 'all') {
+      query = query.ilike('category', category)
+    }
+
+    if (filters.status === 'active') {
+      query = query.eq('is_active', true)
+    }
+
+    if (filters.status === 'inactive') {
+      query = query.eq('is_active', false)
+    }
+
+    const { data: courses, error, count } = await query
+      .order('created_at', { ascending: false })
+      .range(from, to)
+      .returns<CourseWorkshopRow[]>()
+
+    if (error) {
+      throw error
+    }
+
+    if (!courses || courses.length === 0) {
+      return {
+        workshops: [],
+        pagination: {
+          page: safePage,
+          limit: safeLimit,
+          total: count || 0,
+          totalPages: Math.ceil((count || 0) / safeLimit),
+        },
+      }
+    }
+
+    const courseIds = courses.map((course) => course.id)
+    const pageInstructorIds = [...new Set(courses.map((course) => course.instructor_id).filter(Boolean))]
+
+    const [instructorsResult, modulesResult, assignmentsResult] = await Promise.all([
+      pageInstructorIds.length > 0
+        ? supabase
+            .from('users')
+            .select('id, display_name, first_name, last_name, profile_picture_url')
+            .in('id', pageInstructorIds)
+            .returns<InstructorLookupRow[]>()
+        : Promise.resolve({ data: [] as InstructorLookupRow[], error: null }),
+      supabase
+        .from('course_modules')
+        .select('course_id, module_duration_minutes')
+        .in('course_id', courseIds)
+        .returns<Array<{ course_id: string; module_duration_minutes: number | null }>>(),
+      supabase
+        .from('user_course_enrollments')
+        .select('course_id')
+        .in('course_id', courseIds)
+        .eq('enrollment_status', 'active')
+        .returns<Array<{ course_id: string }>>(),
+    ])
+
+    if (instructorsResult.error) throw instructorsResult.error
+    if (modulesResult.error) throw modulesResult.error
+    if (assignmentsResult.error) throw assignmentsResult.error
+
+    return {
+      workshops: enrichWorkshops({
+        courses,
+        instructors: instructorsResult.data || [],
+        modules: modulesResult.data || [],
+        enrollments: assignmentsResult.data || [],
+      }),
+      pagination: {
+        page: safePage,
+        limit: safeLimit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / safeLimit),
+      },
+    }
+  }
+
   /**
    * 🚀 OPTIMIZADO: Eliminado problema N+1
    * Antes: 2N queries adicionales (instructor + módulos por cada curso)

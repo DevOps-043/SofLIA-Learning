@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
@@ -14,6 +14,7 @@ import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboa
 import { StatCard } from './dashboard/StatCard'
 import { QuickAction } from './dashboard/QuickAction'
 import { ActivityItem } from './dashboard/ActivityItem'
+import { useMinuteTicker } from '@/hooks/useMinuteTicker'
 
 function renderMetricValue(metric: unknown): string | number {
   if (metric && typeof metric === 'object' && 'value' in metric) {
@@ -26,13 +27,7 @@ function renderMetricValue(metric: unknown): string | number {
 
 export function BusinessPanelDashboard() {
   const { t } = useTranslation('business')
-  const [currentTime, setCurrentTime] = useState(new Date())
   const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
-
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 60_000)
-    return () => clearInterval(interval)
-  }, [])
 
   const {
     stats,
@@ -62,11 +57,10 @@ export function BusinessPanelDashboard() {
           <div className="absolute inset-0 mix-blend-multiply opacity-80 z-10" style={{ backgroundColor: themeColors.primary }} />
           <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, ${themeColors.primary}, ${themeColors.primary}99, transparent)` }} />
           <Image
-            src="/images/dashboard-header.png"
+            src="/images/dashboard-header.webp"
             alt="Business Dashboard Background"
             fill
             priority
-            unoptimized
             className="object-cover opacity-70 group-hover:scale-105 transition-transform duration-700"
             sizes="(max-width: 768px) 100vw, 100vw"
           />
@@ -75,24 +69,24 @@ export function BusinessPanelDashboard() {
         <div className="relative z-10">
           <div className="flex items-center gap-2 md:gap-3 mb-1 md:mb-2">
             <SparklesIcon className="h-4 w-4 md:h-6 md:w-6" style={{ color: themeColors.accent }} />
-            <span className="text-[10px] md:text-sm font-medium tracking-wide uppercase" style={{ color: '#FFFFFF' }}>
+            <span className="text-[10px] md:text-sm font-medium tracking-wide uppercase" style={{ color: 'var(--color-bg-light)' }}>
               {t('dashboard.title')}
             </span>
           </div>
 
-          <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: '#FFFFFF' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-            {getGreeting()}, {getUserName()}
+          <motion.h1 className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: 'var(--color-bg-light)' }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+            <DashboardGreeting getGreeting={getGreeting} userName={getUserName()} />
           </motion.h1>
 
-          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: '#FFFFFF', opacity: 0.7 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: 'var(--color-bg-light)', opacity: 0.7 }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
             {t('dashboard.subtitle')}
           </motion.p>
 
           <motion.div className="flex items-center gap-2 md:gap-6 mt-3 md:mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
             <div className="flex items-center gap-1.5 md:gap-2 text-white/60 text-[10px] md:text-sm">
               <ClockIcon className="h-3 w-3 md:h-4 md:w-4" />
-              <span style={{ color: '#FFFFFF' }} className="opacity-90">
-                {formatDate(currentTime)}
+              <span style={{ color: 'var(--color-bg-light)' }} className="opacity-90">
+                <DashboardDateText formatDate={formatDate} />
               </span>
             </div>
           </motion.div>
@@ -222,4 +216,30 @@ export function BusinessPanelDashboard() {
       </div>
     </div>
   )
+}
+
+function DashboardGreeting({
+  getGreeting,
+  userName,
+}: {
+  getGreeting: (date?: Date) => string
+  userName: string
+}) {
+  const currentTime = useMinuteTicker()
+
+  return (
+    <>
+      {getGreeting(currentTime)}, {userName}
+    </>
+  )
+}
+
+function DashboardDateText({
+  formatDate,
+}: {
+  formatDate: (date: Date) => string
+}) {
+  const currentTime = useMinuteTicker()
+
+  return <>{formatDate(currentTime)}</>
 }

@@ -5,7 +5,7 @@ import { AdminLoadingSpinner } from '@/features/admin/components/AdminLoadingSpi
 // Lazy loading de la página de gestión de talleres
 // Reduce bundle inicial ~100-150 KB
 const AdminWorkshopsPage = dynamic(
-  () => import('@/features/admin/components').then(mod => ({ default: mod.AdminWorkshopsPage })),
+  () => import('@/features/admin/components/AdminWorkshopsPage').then(mod => ({ default: mod.AdminWorkshopsPage })),
   {
     loading: () => <AdminLoadingSpinner />
   }

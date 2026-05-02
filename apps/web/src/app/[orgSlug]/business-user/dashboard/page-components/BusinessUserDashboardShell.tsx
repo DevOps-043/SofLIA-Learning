@@ -10,6 +10,8 @@ import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/con
 import { TeamRequiredBanner } from '../../../../../features/business-panel/components/hierarchy/TeamRequiredBanner'
 import type { StyleConfig } from '../../../../../features/business-panel/hooks/useOrganizationStyles'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
+import { useMinuteTicker } from '../../../../../shared/hooks/useMinuteTicker'
+import { getBusinessUserDashboardGreeting } from '../services/business-user-dashboard.service'
 import type {
   AssignedCourse,
   AssignedLearningPath,
@@ -54,7 +56,6 @@ interface BusinessUserDashboardShellProps {
   backgroundStyle: CSSProperties
   cssVariables: CSSProperties
   orgColors: BusinessUserDashboardColors
-  greeting: string
   displayName: string
   initials: string
   myStats: BusinessUserDashboardStatItem[]
@@ -84,7 +85,6 @@ export function BusinessUserDashboardShell({
   backgroundStyle,
   cssVariables,
   orgColors,
-  greeting,
   displayName,
   initials,
   myStats,
@@ -220,11 +220,11 @@ export function BusinessUserDashboardShell({
               <div
                 className="absolute inset-0 z-0 overflow-hidden"
                 style={{
-                  backgroundColor: orgColors.primary !== '#FFFFFF' ? orgColors.primary : '#0A2540',
+                  backgroundColor: orgColors.primary !== 'var(--color-bg-light)' ? orgColors.primary : 'var(--color-primary)',
                 }}
               >
                 <Image
-                  src="/images/teams-header.png"
+                  src="/images/teams-header.webp"
                   alt="Learning Panel Background"
                   fill
                   className={`object-cover ${disableHeavyEffects ? 'opacity-35' : 'opacity-50'}`}
@@ -237,8 +237,8 @@ export function BusinessUserDashboardShell({
                       className="absolute inset-0 opacity-[0.1]"
                       style={{
                         backgroundImage: `
-                          linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                          linear-gradient(rgb(255 255 255 / 10%) 1px, transparent 1px),
+                          linear-gradient(90deg, rgb(255 255 255 / 10%) 1px, transparent 1px)
                         `,
                         backgroundSize: '50px 50px',
                       }}
@@ -279,17 +279,17 @@ export function BusinessUserDashboardShell({
               <div className="relative z-10">
                 <motion.h1
                   className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1.5 md:mb-2 leading-tight"
-                  style={{ color: '#FFFFFF' }}
+                  style={{ color: 'var(--color-bg-light)' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
                   transition={disableHeavyEffects ? undefined : { delay: 0.3 }}
                 >
-                  {greeting}, <span className="text-white">{user?.first_name || 'Usuario'}</span>
+                  <BusinessUserGreeting firstName={user?.first_name} t={t} />
                 </motion.h1>
 
                 <motion.p
                   className="text-xs md:text-sm lg:text-base max-w-xl line-clamp-2 md:line-clamp-none"
-                  style={{ color: 'rgba(255,255,255,0.8)' }}
+                  style={{ color: 'rgb(255 255 255 / 80%)' }}
                   initial={disableHeavyEffects ? false : { opacity: 0, y: 20 }}
                   animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
                   transition={disableHeavyEffects ? undefined : { delay: 0.4 }}
@@ -605,5 +605,22 @@ export function BusinessUserDashboardShell({
         <OnboardingVideoPlayer videos={introVideos} onComplete={handleVideoComplete} />
       )}
     </div>
+  )
+}
+
+function BusinessUserGreeting({
+  firstName,
+  t,
+}: {
+  firstName?: string
+  t: (key: string, defaultValue?: string) => string
+}) {
+  const currentTime = useMinuteTicker()
+
+  return (
+    <>
+      {getBusinessUserDashboardGreeting(currentTime, t)},{' '}
+      <span className="text-white">{firstName || 'Usuario'}</span>
+    </>
   )
 }

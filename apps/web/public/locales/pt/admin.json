@@ -123,6 +123,11 @@
     "deleteModal": {
       "title": "Excluir Oficina",
       "confirmText": "Tem certeza que deseja excluir esta oficina?"
+    },
+    "pagination": {
+      "total": "{{count}} oficinas encontradas",
+      "previous": "Anterior",
+      "next": "Próximo"
     }
   },
   "generic": {

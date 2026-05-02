@@ -111,12 +111,6 @@
     "coursePlaceholder": "Pregunta sobre la leccion...",
     "stopGeneration": "Detener generacion de SofLIA",
     "stop": "Detener",
-    "attachments": {
-      "attachImage": "Adjuntar imagen",
-      "imageOnly": "Solo puedes adjuntar imagenes.",
-      "tooLarge": "La imagen es demasiado grande. Maximo 10MB.",
-      "processError": "No se pudo procesar la imagen seleccionada."
-    },
     "voice": {
       "startDictation": "Iniciar dictado",
       "stopDictation": "Detener dictado",

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import type { AdminWorkshop } from '../../services/adminWorkshops.service'
 import { AdminWorkshopCard } from './AdminWorkshopCard'
+import { useMotionSafe } from '@/lib/utils/motion'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -27,11 +28,13 @@ export function AdminWorkshopsGrid({
   onEdit,
   onDelete,
 }: AdminWorkshopsGridProps) {
+  const { disableHeavy } = useMotionSafe()
+
   return (
     <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+      variants={disableHeavy ? undefined : containerVariants}
+      initial={disableHeavy ? false : 'hidden'}
+      animate={disableHeavy ? undefined : 'visible'}
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
     >
       {workshops.map((workshop, index) => (

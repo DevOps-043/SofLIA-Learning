@@ -2,6 +2,7 @@ import 'server-only'
 
 import type {
   BusinessUser,
+  BusinessUsersPaginationMeta,
   BusinessUserStats,
   CreateBusinessUserRequest,
   UpdateBusinessUserRequest,
@@ -12,6 +13,7 @@ import {
   deleteOrganizationUser,
   getOrganizationStats,
   getOrganizationUsers,
+  getOrganizationUsersPage,
   resendInvitation,
   suspendUser,
   updateOrganizationUser,
@@ -22,6 +24,19 @@ export class BusinessUsersServerService {
     organizationId: string,
   ): Promise<BusinessUser[]> {
     return getOrganizationUsers(organizationId)
+  }
+
+  static async getOrganizationUsersPage(
+    organizationId: string,
+    filters: {
+      page: number
+      pageSize: number
+      search?: string
+      role?: string
+      status?: string
+    },
+  ): Promise<{ users: BusinessUser[]; pagination: BusinessUsersPaginationMeta }> {
+    return getOrganizationUsersPage(organizationId, filters)
   }
 
   static async getOrganizationStats(

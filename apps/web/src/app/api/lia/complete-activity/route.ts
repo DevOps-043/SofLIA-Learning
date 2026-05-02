@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/admin';
 import { SessionService } from '../../../../features/auth/services/session.service';
 
 type CompletionStatus = 'completed';
@@ -64,16 +64,27 @@ export async function POST(request: NextRequest) {
       timeSpentSeconds 
     }: CompleteActivityRequest = await request.json();
 
-    const supabase = await createClient();
+    // Cliente con service-role: la auth del proyecto es legacy session (no Supabase Auth),
+    // por lo que el cliente anon no expone auth.uid() y RLS bloquea las escrituras.
+    // La identidad ya fue validada arriba con SessionService; siempre escribimos con user.id
+    // y filtramos por user_id en lecturas/updates para preservar ownership.
+    const supabase = createAdminClient();
 
-    // Si hay completionId, actualizar el registro existente
+    // Si hay completionId, actualizar el registro existente (solo si pertenece al usuario)
     if (completionId) {
-      // Obtener la actividad para calcular tiempo
-      const { data: activity } = await supabase
+      const { data: activity, error: fetchError } = await supabase
         .from('lia_activity_completions')
         .select('started_at, total_steps')
         .eq('completion_id', completionId)
+        .eq('user_id', user.id)
         .single<ActivityCompletionRecord>();
+
+      if (fetchError || !activity) {
+        return NextResponse.json(
+          { error: 'Actividad no encontrada' },
+          { status: 404 }
+        );
+      }
 
       let timeToComplete = timeSpentSeconds;
       if (!timeToComplete && activity?.started_at) {
@@ -94,7 +105,8 @@ export async function POST(request: NextRequest) {
       const { error } = await supabase
         .from('lia_activity_completions')
         .update(updateData)
-        .eq('completion_id', completionId);
+        .eq('completion_id', completionId)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error completing activity:', error);

@@ -100,7 +100,6 @@ export function useBusinessPanelDashboardLogic() {
   const [activities, setActivities] = useState<DashboardActivity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activitiesLoading, setActivitiesLoading] = useState(true)
-  const [currentTime, setCurrentTime] = useState(new Date())
   const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -109,18 +108,18 @@ export function useBusinessPanelDashboardLogic() {
   const panelStyles = effectiveStyles?.panel
 
   const themeColors = useMemo(() => ({
-    primary: panelStyles?.primary_button_color || (isDark ? '#8B5CF6' : '#6366F1'),
-    secondary: panelStyles?.secondary_button_color || '#3B82F6',
-    accent: panelStyles?.accent_color || '#00D4B3',
-    text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
-    cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
-    borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
-    background: panelStyles?.background_value || (isDark ? '#0F172A' : '#F8FAFC'),
+    primary: panelStyles?.primary_button_color || 'var(--color-primary)',
+    secondary: panelStyles?.secondary_button_color || 'var(--color-info)',
+    accent: panelStyles?.accent_color || 'var(--color-accent)',
+    text: isDark ? (panelStyles?.text_color || 'var(--color-bg-light)') : 'var(--color-gray-900)',
+    cardBg: isDark ? (panelStyles?.card_background || 'var(--color-gray-800)') : 'var(--color-bg-light)',
+    borderColor: isDark ? (panelStyles?.border_color || 'rgb(255 255 255 / 10%)') : 'rgb(0 0 0 / 10%)',
+    background: panelStyles?.background_value || (isDark ? 'var(--color-gray-900)' : 'var(--color-gray-50)'),
     backgroundType: panelStyles?.background_type || 'color',
   }), [panelStyles, isDark])
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours()
+  const getGreeting = (date: Date = new Date()) => {
+    const hour = date.getHours()
     if (hour < 12) return t('dashboard.greetings.morning')
     if (hour < 18) return t('dashboard.greetings.afternoon')
     return t('dashboard.greetings.evening')
@@ -186,11 +185,6 @@ export function useBusinessPanelDashboardLogic() {
     fetchActivities()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 60000)
-    return () => clearInterval(interval)
-  }, [])
-
   const statsData = useMemo(() => stats ? [
     {
       title: t('dashboard.stats.activeUsers'),
@@ -227,8 +221,8 @@ export function useBusinessPanelDashboardLogic() {
       value: getStatValue(stats.inProgress, `${stats.averageProgress || 0}%`),
       change: getStatChange(stats.inProgress, stats.progressChange),
       backgroundImage: '/images/dashboard-cards/progress-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#F59E0B] to-[#F59E0B]/80',
-      gradientStyle: { background: 'linear-gradient(to bottom right, #F59E0B, #F59E0Bcc)' },
+      gradient: 'bg-gradient-to-br from-warning to-warning/80',
+      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-warning), color-mix(in srgb, var(--color-warning) 80%, transparent))' },
       icon: ClockIcon,
     },
     {
@@ -236,8 +230,8 @@ export function useBusinessPanelDashboardLogic() {
       value: getStatValue(stats.certificates, 0),
       change: getStatChange(stats.certificates, stats.certificateGrowth),
       backgroundImage: '/images/dashboard-cards/certificates-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6]/80',
-      gradientStyle: { background: 'linear-gradient(to bottom right, #8B5CF6, #8B5CF6cc)' },
+      gradient: 'bg-gradient-to-br from-primary to-primary/80',
+      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' },
       id: 'tour-stat-certificates',
       icon: AcademicCapIcon,
     },
@@ -246,8 +240,8 @@ export function useBusinessPanelDashboardLogic() {
       value: getStatValue(stats.engagement, `${stats.engagementRate || 0}%`),
       change: getStatChange(stats.engagement, stats.engagementGrowth),
       backgroundImage: '/images/dashboard-cards/engagement-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#EC4899] to-[#EC4899]/80',
-      gradientStyle: { background: 'linear-gradient(to bottom right, #EC4899, #EC4899cc)' },
+      gradient: 'bg-gradient-to-br from-accent to-accent/80',
+      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-accent), color-mix(in srgb, var(--color-accent) 80%, transparent))' },
       icon: ChartBarIcon,
     },
     {
@@ -255,8 +249,8 @@ export function useBusinessPanelDashboardLogic() {
       value: getStatValue(stats.invitedUsers),
       change: getStatChange(stats.invitedUsers),
       backgroundImage: '/images/dashboard-cards/users-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#6366F1] to-[#6366F1]/80',
-      gradientStyle: { background: 'linear-gradient(to bottom right, #6366F1, #6366F1cc)' },
+      gradient: 'bg-gradient-to-br from-primary to-primary/80',
+      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, transparent))' },
       href: `/${orgSlug}/business-panel/users?tab=invitations`,
       icon: UsersIcon,
     },
@@ -268,8 +262,8 @@ export function useBusinessPanelDashboardLogic() {
           : 0,
       change: 0,
       backgroundImage: '/images/dashboard-cards/courses-card-bg.png',
-      gradient: 'bg-gradient-to-br from-[#10B981] to-[#10B981]/80',
-      gradientStyle: { background: 'linear-gradient(to bottom right, #10B981, #10B981cc)' },
+      gradient: 'bg-gradient-to-br from-success to-success/80',
+      gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-success), color-mix(in srgb, var(--color-success) 80%, transparent))' },
       href: `/${orgSlug}/business-panel/users?tab=links`,
       icon: LinkIcon,
     },
@@ -302,7 +296,7 @@ export function useBusinessPanelDashboardLogic() {
       description: t('dashboard.quickActions.settings.desc'),
       icon: Cog6ToothIcon,
       href: `/${orgSlug}/business-panel/settings`,
-      color: '#8B5CF6',
+      color: themeColors.primary,
     },
   ], [themeColors, t, orgSlug])
 

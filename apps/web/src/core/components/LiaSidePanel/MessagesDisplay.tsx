@@ -146,31 +146,7 @@ export function MessagesDisplay({
                   wordBreak: 'break-word',
                 }}
               >
-                {message.role === 'user' && message.attachments?.length ? (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px',
-                      marginBottom: message.content ? '10px' : 0,
-                    }}
-                  >
-                    {message.attachments.map((attachment) => (
-                      <img
-                        key={`${message.id}-${attachment.fileName}`}
-                        src={attachment.dataUrl}
-                        alt={attachment.fileName}
-                        style={{
-                          width: '100%',
-                          maxWidth: '240px',
-                          borderRadius: '12px',
-                          objectFit: 'cover',
-                          border: '1px solid rgba(255,255,255,0.18)',
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
+
                 <p
                   style={{
                     fontSize: '14px',

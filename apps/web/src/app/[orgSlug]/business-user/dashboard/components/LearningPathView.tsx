@@ -78,6 +78,9 @@ interface GeminiPreviewResponse {
   model?: string
 }
 
+const INITIAL_VISIBLE_PATH_ITEMS = 6
+const PATH_ITEMS_INCREMENT = 6
+
 function formatTranslation(
   t: LearningPathViewProps['t'],
   key: string,
@@ -489,6 +492,7 @@ export function LearningPathView({
 }: LearningPathViewProps) {
   const [introByPath, setIntroByPath] = useState<Record<string, IntroVideoState>>({})
   const [hoverCard, setHoverCard] = useState<InfoHoverCardState | null>(null)
+  const [visibleItemsByPath, setVisibleItemsByPath] = useState<Record<string, number>>({})
   const scrollerRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const hoverHideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const previewCacheRef = useRef(new Map<string, Pick<InfoHoverCardContent, 'description' | 'points' | 'source' | 'model'>>())
@@ -620,6 +624,21 @@ export function LearningPathView({
   useEffect(() => clearHoverHideTimeout, [clearHoverHideTimeout])
 
   useEffect(() => {
+    setVisibleItemsByPath((current) => {
+      const next: Record<string, number> = {}
+
+      for (const learningPath of learningPaths) {
+        next[learningPath.id] = Math.min(
+          current[learningPath.id] ?? INITIAL_VISIBLE_PATH_ITEMS,
+          learningPath.items.length,
+        )
+      }
+
+      return next
+    })
+  }, [learningPaths])
+
+  useEffect(() => {
     if (!orgSlug || !learningPathIdKey) {
       setIntroByPath({})
       return
@@ -711,6 +730,16 @@ export function LearningPathView({
     })
   }, [])
 
+  const showMorePathItems = useCallback((pathId: string, totalItems: number) => {
+    setVisibleItemsByPath((current) => ({
+      ...current,
+      [pathId]: Math.min(
+        (current[pathId] ?? INITIAL_VISIBLE_PATH_ITEMS) + PATH_ITEMS_INCREMENT,
+        totalItems,
+      ),
+    }))
+  }, [])
+
   const completeTour = useCallback(
     (pathId: string) => {
       const shouldMarkWatched = Boolean(introByPath[pathId]?.introVideoUrl && !introByPath[pathId]?.watched)
@@ -750,6 +779,9 @@ export function LearningPathView({
         const hasTour = Boolean(intro.introVideoUrl)
         const isTourDisabled = intro.loading || !hasTour
         const completedSummary = `${learningPath.completedItemsCount} ${t('dashboard.learningPaths.of', 'de')} ${learningPath.totalItemsCount} ${t('dashboard.learningPaths.completedCoursesSuffix', 'cursos completados')}`
+        const visibleItemCount = visibleItemsByPath[learningPath.id] ?? Math.min(INITIAL_VISIBLE_PATH_ITEMS, learningPath.items.length)
+        const visibleItems = learningPath.items.slice(0, visibleItemCount)
+        const hasHiddenItems = visibleItemCount < learningPath.items.length
 
         return (
           <motion.section
@@ -824,8 +856,8 @@ export function LearningPathView({
                 }}
                 className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
-                {learningPath.items.length > 0 ? (
-                  learningPath.items.map((item) => {
+                {visibleItems.length > 0 ? (
+                  visibleItems.map((item) => {
                     const assignedCourse = assignedCoursesById.get(item.courseId)
                     const course = assignedCourse ?? buildCourseFromPathItem(item, learningPath, t)
                     const openCourse = () => {
@@ -885,6 +917,23 @@ export function LearningPathView({
                 <ChevronRight className="h-6 w-6" />
               </button>
             </div>
+
+            {hasHiddenItems ? (
+              <div className="mt-3 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => showMorePathItems(learningPath.id, learningPath.items.length)}
+                  className="rounded-md border px-4 py-2 text-sm font-semibold transition-colors"
+                  style={{
+                    backgroundColor: orgColors.cardBg,
+                    borderColor: orgColors.border,
+                    color: orgColors.text,
+                  }}
+                >
+                  {t('dashboard.learningPaths.showMoreCourses', 'Ver mas cursos')}
+                </button>
+              </div>
+            ) : null}
 
             {intro.showPlayer && intro.introVideoUrl ? (
               <OnboardingVideoPlayer

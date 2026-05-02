@@ -1,9 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Send, Mic, MicOff, Loader2, Paperclip, X } from 'lucide-react';
+import { Send, Mic, MicOff, Loader2 } from 'lucide-react';
 import { LiaThemeColors } from './types';
-import type { LiaImageAttachment } from '../../reporting/report-problem.contract';
 
 interface InputAreaProps {
   t: (key: string) => string;
@@ -11,10 +10,7 @@ interface InputAreaProps {
   isLightTheme: boolean;
   inputValue: string;
   setInputValue: (v: string) => void;
-  selectedAttachment: LiaImageAttachment | null;
-  attachmentError: string | null;
   inputRef: React.RefObject<HTMLInputElement>;
-  attachmentInputRef: React.RefObject<HTMLInputElement>;
   isDictating: boolean;
   isDictationEnabled: boolean;
   isProcessingDictation: boolean;
@@ -22,9 +18,6 @@ interface InputAreaProps {
   finalTranscript: string;
   stopDictation: () => void;
   toggleDictation: () => void;
-  handleAttachmentSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleRemoveAttachment: () => void;
-  handleAttachmentButtonClick: () => void;
   handleSendMessage: () => void;
   isLoading: boolean;
 }
@@ -35,10 +28,7 @@ export function InputArea({
   isLightTheme,
   inputValue,
   setInputValue,
-  selectedAttachment,
-  attachmentError,
   inputRef,
-  attachmentInputRef,
   isDictating,
   isDictationEnabled,
   isProcessingDictation,
@@ -46,9 +36,6 @@ export function InputArea({
   finalTranscript,
   stopDictation,
   toggleDictation,
-  handleAttachmentSelect,
-  handleRemoveAttachment,
-  handleAttachmentButtonClick,
   handleSendMessage,
   isLoading,
 }: InputAreaProps) {
@@ -62,7 +49,7 @@ export function InputArea({
       : '');
 
   const canSendMessage =
-    Boolean(inputValue.trim() || selectedAttachment) && !isLoading;
+    Boolean(inputValue.trim()) && !isLoading;
 
   return (
     <div
@@ -71,100 +58,6 @@ export function InputArea({
         borderTop: `1px solid ${themeColors.borderColor}`,
       }}
     >
-      <input
-        ref={attachmentInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleAttachmentSelect}
-        style={{ display: 'none' }}
-      />
-
-      {selectedAttachment ? (
-        <div
-          style={{
-            marginBottom: '12px',
-            padding: '10px 12px',
-            borderRadius: '16px',
-            border: `1px solid ${themeColors.borderColor}`,
-            backgroundColor: themeColors.inputBg,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-          }}
-        >
-          <img
-            src={selectedAttachment.dataUrl}
-            alt={selectedAttachment.fileName}
-            style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '12px',
-              objectFit: 'cover',
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p
-              style={{
-                margin: 0,
-                color: themeColors.textPrimary,
-                fontSize: '13px',
-                fontWeight: 600,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {selectedAttachment.fileName}
-            </p>
-            <p
-              style={{
-                margin: '4px 0 0',
-                color: themeColors.textSecondary,
-                fontSize: '11px',
-              }}
-            >
-              Evidencia visual lista para enviar
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleRemoveAttachment}
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '50%',
-              border: 'none',
-              backgroundColor: 'transparent',
-              color: themeColors.textSecondary,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <X style={{ width: '16px', height: '16px' }} />
-          </button>
-        </div>
-      ) : null}
-
-      {attachmentError ? (
-        <div
-          style={{
-            marginBottom: '12px',
-            padding: '8px 12px',
-            borderRadius: '12px',
-            backgroundColor: 'rgba(239, 68, 68, 0.12)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            color: '#EF4444',
-            fontSize: '12px',
-          }}
-        >
-          {attachmentError}
-        </div>
-      ) : null}
-
       <div
         style={{
           display: 'flex',
@@ -198,8 +91,6 @@ export function InputArea({
             placeholder={
               isDictating
                 ? 'Escuchando...'
-                : selectedAttachment
-                ? 'Describe la imagen o el problema...'
                 : t('lia.chat.inputPlaceholder')
             }
             style={{
@@ -228,39 +119,6 @@ export function InputArea({
             </div>
           )}
         </div>
-
-        <button
-          type="button"
-          onClick={handleAttachmentButtonClick}
-          title="Adjuntar imagen"
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            backgroundColor: selectedAttachment
-              ? `${themeColors.accentColor}20`
-              : 'transparent',
-            border: `1px solid ${
-              selectedAttachment ? themeColors.accentColor : themeColors.inputBorder
-            }`,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-            flexShrink: 0,
-          }}
-        >
-          <Paperclip
-            style={{
-              width: '16px',
-              height: '16px',
-              color: selectedAttachment
-                ? themeColors.accentColor
-                : themeColors.textSecondary,
-            }}
-          />
-        </button>
 
         {isDictationEnabled && (
           <button

@@ -123,6 +123,11 @@
     "deleteModal": {
       "title": "Eliminar Taller",
       "confirmText": "¿Estás seguro de que deseas eliminar este taller?"
+    },
+    "pagination": {
+      "total": "{{count}} talleres encontrados",
+      "previous": "Anterior",
+      "next": "Siguiente"
     }
   },
   "generic": {
