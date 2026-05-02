@@ -1,10 +1,11 @@
 import React from 'react';
 import type { Step } from 'react-joyride';
 import {
-  Award,
-  BarChart3,
   BookOpen,
   Bot,
+  Film,
+  ListFilter,
+  Menu,
   Route,
   Sparkles,
   User,
@@ -17,14 +18,25 @@ import {
 
 export const DASHBOARD_TOUR_ID = 'business-dashboard';
 
+export const BUSINESS_USER_TOUR_STEP_BEHAVIOR = {
+  openUserMenu: 'open-user-menu',
+  showLearningPaths: 'show-learning-paths',
+} as const;
+
 type BuildBusinessUserJoyrideStepsOptions = {
   isMobile: boolean;
+  hasCourseControls?: boolean;
+  hasLearningPaths?: boolean;
 };
 
+const tourIconClassName = 'h-5 w-5 text-[var(--color-accent)]';
+
 export function buildBusinessUserJoyrideSteps({
+  hasCourseControls = true,
+  hasLearningPaths = true,
   isMobile,
 }: BuildBusinessUserJoyrideStepsOptions): Step[] {
-  return [
+  const steps: Step[] = [
     {
       target: getBusinessUserDashboardTourTargetSelector('heroSection'),
       title: 'Bienvenido a tu espacio de aprendizaje',
@@ -33,66 +45,94 @@ export function buildBusinessUserJoyrideSteps({
       placement: 'center',
       disableBeacon: true,
       data: {
-        icon: <Sparkles className="h-5 w-5 text-[#00D4B3]" />,
-      },
-    },
-    {
-      target: getBusinessUserDashboardTourTargetSelector('statsSection'),
-      title: 'Estadisticas generales',
-      content:
-        'Aqui tienes una vista rapida de tu actividad. Revisa cursos asignados, progreso y certificados.',
-      placement: isMobile ? 'top' : 'bottom',
-      disableBeacon: true,
-      data: {
-        icon: <BarChart3 className="h-5 w-5 text-[#00D4B3]" />,
-      },
-    },
-    {
-      target: getBusinessUserDashboardTourTargetSelector('statCourses'),
-      title: 'Tus cursos',
-      content:
-        'Consulta los cursos asignados y su estado actual para mantener el seguimiento de tu formacion.',
-      placement: isMobile ? 'bottom' : 'top',
-      disableBeacon: true,
-      data: {
-        icon: <BookOpen className="h-5 w-5 text-[#00D4B3]" />,
-      },
-    },
-    {
-      target: getBusinessUserDashboardTourTargetSelector('statCertificates'),
-      title: 'Tus certificados',
-      content:
-        'Visualiza los certificados obtenidos y el avance que ya has completado.',
-      placement: isMobile ? 'bottom' : 'top',
-      disableBeacon: true,
-      data: {
-        icon: <Award className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <Sparkles className={tourIconClassName} />,
       },
     },
     {
       target: getBusinessUserDashboardTourTargetSelector(
         isMobile ? 'mobileMenuTrigger' : 'userDropdownTrigger',
       ),
-      title: 'Menu de usuario',
+      title: 'Acceso a tu menu',
       content:
-        'Desde este menu accedes a herramientas clave como perfil, idioma y accesos personales.',
+        'Abre tu menu personal desde aqui. Es el acceso rapido a perfil, certificados, estadisticas, idioma, tema y cierre de sesion.',
       placement: isMobile ? 'bottom' : 'bottom-end',
       disableBeacon: true,
       data: {
-        icon: <User className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <User className={tourIconClassName} />,
       },
     },
     {
-      target: getBusinessUserDashboardTourTargetSelector('courseViewSwitcher'),
-      title: 'Vistas de tus cursos',
+      target: getBusinessUserDashboardTourTargetSelector(
+        isMobile ? 'mobileMenuPanel' : 'userDropdownMenu',
+      ),
+      title: 'Menu desplegable del usuario',
       content:
-        'Cambia entre cuadricula, lista y learning paths. En learning paths puedes ver tus rutas de aprendizaje, el orden recomendado de los cursos, bloqueos y progreso de cada ruta.',
+        'Dentro del menu encuentras tus accesos personales: editar perfil, entrar al planificador, revisar certificados o estadisticas, cambiar idioma y ajustar el tema.',
+      placement: isMobile ? 'bottom' : 'left',
+      disableBeacon: true,
+      data: {
+        behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.openUserMenu,
+        icon: <Menu className={tourIconClassName} />,
+      },
+    },
+  ];
+
+  if (hasCourseControls) {
+    steps.push({
+      target: getBusinessUserDashboardTourTargetSelector('courseViewSwitcher'),
+      title: 'Filtros y vistas de cursos',
+      content:
+        'Usa estos controles para cambiar entre la vista de cuadricula y lista. Si tienes learning paths asignados, la vista de cuadricula muestra tus rutas de aprendizaje.',
       placement: isMobile ? 'top' : 'left',
       disableBeacon: true,
       data: {
-        icon: <Route className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <ListFilter className={tourIconClassName} />,
       },
-    },
+    });
+  }
+
+  if (hasLearningPaths) {
+    steps.push(
+      {
+        target: getBusinessUserDashboardTourTargetSelector('learningPathSection'),
+        title: 'Tus learning paths',
+        content:
+          'Las rutas ordenan tus cursos por secuencia recomendada. Aqui puedes ver tu avance, que curso sigue y cuales estan bloqueados hasta completar pasos anteriores.',
+        placement: isMobile ? 'top' : 'top',
+        disableBeacon: true,
+        data: {
+          behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths,
+          icon: <Route className={tourIconClassName} />,
+        },
+      },
+      {
+        target: getBusinessUserDashboardTourTargetSelector('learningPathIntroVideo'),
+        title: 'Video introductorio de la ruta',
+        content:
+          'Este boton abre el video introductorio del learning path cuando tu organizacion lo configura. Asi puedes entender el objetivo de la ruta antes de avanzar.',
+        placement: isMobile ? 'top' : 'left',
+        disableBeacon: true,
+        data: {
+          behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths,
+          icon: <Film className={tourIconClassName} />,
+        },
+      },
+      {
+        target: getBusinessUserDashboardTourTargetSelector('learningPathSection'),
+        title: 'Cursos dentro del learning path',
+        content:
+          'Cada tarjeta muestra el curso, su posicion en la ruta y su estado. Avanza en orden para desbloquear los siguientes cursos y conservar un progreso claro.',
+        placement: isMobile ? 'top' : 'bottom',
+        disableBeacon: true,
+        data: {
+          behavior: BUSINESS_USER_TOUR_STEP_BEHAVIOR.showLearningPaths,
+          icon: <BookOpen className={tourIconClassName} />,
+        },
+      },
+    );
+  }
+
+  steps.push(
     {
       target: `#${SHARED_TOUR_TARGET_IDS.liaTrigger}`,
       title: 'Tu asistente SofLIA',
@@ -103,10 +143,12 @@ export function buildBusinessUserJoyrideSteps({
       disableScrolling: true,
       spotlightPadding: isMobile ? 0 : 20,
       data: {
-        icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <Bot className={tourIconClassName} />,
       },
     },
-  ];
+  );
+
+  return steps;
 }
 
 export const businessUserJoyrideSteps = buildBusinessUserJoyrideSteps({

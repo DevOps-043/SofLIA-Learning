@@ -5,6 +5,7 @@ import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState }
 import { motion } from 'framer-motion'
 import { Award, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Lock, Play, Sparkles } from 'lucide-react'
 
+import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
 import type {
   AssignedCourse,
@@ -754,6 +755,7 @@ export function LearningPathView({
         return (
           <motion.section
             key={learningPath.id}
+            id={pathIndex === 0 ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathSection : undefined}
             initial={disableHeavyEffects ? false : { opacity: 0, y: 12 }}
             animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
             transition={disableHeavyEffects ? undefined : { delay: pathIndex * 0.05 }}
@@ -782,6 +784,7 @@ export function LearningPathView({
 
               <button
                 type="button"
+                id={pathIndex === 0 ? BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.learningPathIntroVideo : undefined}
                 disabled={isTourDisabled}
                 onClick={() => openTour(learningPath.id)}
                 className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-55"
@@ -792,14 +795,14 @@ export function LearningPathView({
                 }}
                 aria-label={
                   hasTour
-                    ? t('dashboard.learningPaths.viewTour', 'Ver tour')
-                    : t('dashboard.learningPaths.tourUnavailable', 'Tour no disponible')
+                    ? t('dashboard.learningPaths.viewTour', 'Video introductorio')
+                    : t('dashboard.learningPaths.tourUnavailable', 'Video no disponible')
                 }
               >
                 {intro.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
                 {intro.loading
-                  ? t('dashboard.learningPaths.tourLoading', 'Cargando tour')
-                  : t('dashboard.learningPaths.viewTour', 'Ver tour')}
+                  ? t('dashboard.learningPaths.tourLoading', 'Cargando video')
+                  : t('dashboard.learningPaths.viewTour', 'Video introductorio')}
               </button>
             </div>
 
