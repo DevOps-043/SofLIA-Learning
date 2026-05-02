@@ -4,6 +4,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import type { TooltipRenderProps } from 'react-joyride';
 import { X, ChevronRight, ChevronLeft, CheckCircle, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const FIXED_LEFT_TOOLTIP_DOCK = 'fixed-left';
 const FIXED_LEFT_TOOLTIP_OFFSET = 24;
@@ -115,6 +116,7 @@ export function JoyrideTooltip({
   tooltipProps,
   size,
 }: TooltipRenderProps): React.JSX.Element {
+  const { t } = useTranslation('common');
   const fixedLeftDock = shouldUseFixedLeftDock(step.data);
   const compactViewport = isSmallViewport();
   const resolvedTooltipProps = tooltipProps as JoyrideTooltipElementProps;
@@ -220,7 +222,7 @@ export function JoyrideTooltip({
               )}
             >
               <ChevronLeft size={16} />
-              <span className="ml-1">Anterior</span>
+              <span className="ml-1">{t('actions.back')}</span>
             </button>
           )}
 
@@ -239,11 +241,11 @@ export function JoyrideTooltip({
               {isLastStep ? (
                 <>
                   <CheckCircle size={16} className="mr-1.5" />
-                  Finalizar
+                  {t('actions.finish')}
                 </>
               ) : (
                 <>
-                  Siguiente
+                  {t('actions.next')}
                   <ChevronRight size={16} className="ml-1" />
                 </>
               )}

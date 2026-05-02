@@ -233,10 +233,10 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
         initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
-        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95"
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 p-3 sm:p-6"
       >
         <div 
-          className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group"
+          className="relative w-full max-w-5xl max-h-[calc(100dvh-1.5rem)] sm:max-h-[calc(100dvh-3rem)] aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-black shadow-2xl border border-white/10 group"
           onMouseMove={handleInteraction}
           onTouchStart={handleInteraction}
           onClick={handleInteraction}
@@ -276,7 +276,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
               aria-label={skipIntroLabel}
               title={skipIntroLabel}
               onClick={(e) => { e.stopPropagation(); skipVideo(); }}
-              className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-3 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-black/75 active:scale-95"
+              className="absolute right-2 top-2 z-20 flex items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-black/75 active:scale-95 sm:right-4 sm:top-4 sm:px-3 sm:text-xs"
             >
               <span>{skipIntroLabel}</span>
               <SkipForward className="h-3.5 w-3.5" />
@@ -311,7 +311,7 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
           {/* Buffering spinner */}
           {isBuffering && !hasError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <div className="w-16 h-16 rounded-full border-4 border-white/20 border-t-white animate-spin" />
+              <div className="h-12 w-12 rounded-full border-4 border-white/20 border-t-white animate-spin sm:h-16 sm:w-16" />
               {isSlowConnection && (
                 <div className="mt-4 flex items-center gap-2 bg-black/60 px-4 py-2 rounded-full">
                   <Wifi className="w-4 h-4 text-yellow-400" />
@@ -416,8 +416,8 @@ export function OnboardingVideoPlayer({ videos, onComplete, isSkippable = true }
           {/* Large centered play button when paused */}
           {!isPlaying && !hasError && !isBuffering && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-16 h-16 flex items-center justify-center bg-black/40 rounded-full text-white backdrop-blur-sm border border-white/10">
-                <Play className="w-7 h-7 ml-0.5" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm sm:h-16 sm:w-16">
+                <Play className="ml-0.5 h-6 w-6 sm:h-7 sm:w-7" />
               </div>
             </div>
           )}

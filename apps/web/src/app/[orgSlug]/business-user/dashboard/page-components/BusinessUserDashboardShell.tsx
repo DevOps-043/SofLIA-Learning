@@ -601,7 +601,7 @@ export function BusinessUserDashboardShell({
         </div>
       </main>
 
-      {showVideoIntro && introVideos.length > 0 && !disableHeavyEffects && (
+      {showVideoIntro && introVideos.length > 0 && (
         <OnboardingVideoPlayer videos={introVideos} onComplete={handleVideoComplete} />
       )}
     </div>

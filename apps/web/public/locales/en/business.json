@@ -31,6 +31,38 @@
     "myTeam": "My Team",
     "viewTeammates": "View teammates"
   },
+  "dashboardTour": {
+    "steps": {
+      "welcome": {
+        "title": "Welcome to your learning space",
+        "content": "This is your personal development hub. From here you can review progress, continue workshops, and move toward your goals."
+      },
+      "stats": {
+        "title": "General statistics",
+        "content": "Here you have a quick view of your activity. Review assigned workshops, progress, and certificates."
+      },
+      "courses": {
+        "title": "Your workshops",
+        "content": "Check your assigned workshops and their current status to keep track of your learning."
+      },
+      "certificates": {
+        "title": "Your certificates",
+        "content": "View the certificates you have earned and the progress you have already completed."
+      },
+      "userMenu": {
+        "title": "User menu",
+        "content": "From this menu you can access key tools such as your profile, language, and personal shortcuts."
+      },
+      "courseViews": {
+        "title": "Workshop views",
+        "content": "Switch between grid, list, and learning paths. In learning paths you can see your learning routes, recommended workshop order, locks, and route progress."
+      },
+      "soflia": {
+        "title": "Your SofLIA assistant",
+        "content": "SofLIA is here to answer questions, give you context, and support you throughout your learning."
+      }
+    }
+  },
   "dashboard": {
     "title": "Business Panel",
     "subtitle": "Manage your team's learning and oversee their progress.",

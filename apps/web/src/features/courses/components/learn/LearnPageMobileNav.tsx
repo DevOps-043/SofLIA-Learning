@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { BookOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTargets";
 import { LiaMobileButton } from "./LiaMobileButton";
 
@@ -26,6 +27,8 @@ export function LearnPageMobileNav({
   onNavigateNext,
   disableHeavyEffects = false,
 }: LearnPageMobileNavProps) {
+  const { t } = useTranslation("learn");
+
   if (!isVisible) return null;
 
   return (
@@ -49,7 +52,7 @@ export function LearnPageMobileNav({
           }`}
         >
           <BookOpen className="w-5 h-5" />
-          <span className="text-xs font-medium">Material</span>
+          <span className="text-xs font-medium">{t("mobileNav.material")}</span>
         </button>
 
         {hasPreviousLesson && (
@@ -58,7 +61,7 @@ export function LearnPageMobileNav({
             className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-[#6C757D] dark:text-white/60 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 transition-all"
           >
             <ChevronLeft className="w-5 h-5" />
-            <span className="text-xs font-medium">Anterior</span>
+            <span className="text-xs font-medium">{t("navigation.previous")}</span>
           </button>
         )}
 
@@ -68,7 +71,7 @@ export function LearnPageMobileNav({
             className="flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-[#6C757D] dark:text-white/60 hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30 transition-all"
           >
             <ChevronRight className="w-5 h-5" />
-            <span className="text-xs font-medium">Siguiente</span>
+            <span className="text-xs font-medium">{t("navigation.next")}</span>
           </button>
         )}
 

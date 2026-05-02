@@ -19,17 +19,18 @@ export const DASHBOARD_TOUR_ID = 'business-dashboard';
 
 type BuildBusinessUserJoyrideStepsOptions = {
   isMobile: boolean;
+  t?: (key: string) => string;
 };
 
 export function buildBusinessUserJoyrideSteps({
   isMobile,
+  t = (key) => key,
 }: BuildBusinessUserJoyrideStepsOptions): Step[] {
   return [
     {
       target: getBusinessUserDashboardTourTargetSelector('heroSection'),
-      title: 'Bienvenido a tu espacio de aprendizaje',
-      content:
-        'Este es tu centro personal de desarrollo. Desde aqui puedes revisar progreso, continuar cursos y avanzar en tus metas.',
+      title: t('dashboardTour.steps.welcome.title'),
+      content: t('dashboardTour.steps.welcome.content'),
       placement: 'center',
       disableBeacon: true,
       data: {
@@ -38,9 +39,8 @@ export function buildBusinessUserJoyrideSteps({
     },
     {
       target: getBusinessUserDashboardTourTargetSelector('statsSection'),
-      title: 'Estadisticas generales',
-      content:
-        'Aqui tienes una vista rapida de tu actividad. Revisa cursos asignados, progreso y certificados.',
+      title: t('dashboardTour.steps.stats.title'),
+      content: t('dashboardTour.steps.stats.content'),
       placement: isMobile ? 'top' : 'bottom',
       disableBeacon: true,
       data: {
@@ -49,9 +49,8 @@ export function buildBusinessUserJoyrideSteps({
     },
     {
       target: getBusinessUserDashboardTourTargetSelector('statCourses'),
-      title: 'Tus cursos',
-      content:
-        'Consulta los cursos asignados y su estado actual para mantener el seguimiento de tu formacion.',
+      title: t('dashboardTour.steps.courses.title'),
+      content: t('dashboardTour.steps.courses.content'),
       placement: isMobile ? 'bottom' : 'top',
       disableBeacon: true,
       data: {
@@ -60,9 +59,8 @@ export function buildBusinessUserJoyrideSteps({
     },
     {
       target: getBusinessUserDashboardTourTargetSelector('statCertificates'),
-      title: 'Tus certificados',
-      content:
-        'Visualiza los certificados obtenidos y el avance que ya has completado.',
+      title: t('dashboardTour.steps.certificates.title'),
+      content: t('dashboardTour.steps.certificates.content'),
       placement: isMobile ? 'bottom' : 'top',
       disableBeacon: true,
       data: {
@@ -73,9 +71,8 @@ export function buildBusinessUserJoyrideSteps({
       target: getBusinessUserDashboardTourTargetSelector(
         isMobile ? 'mobileMenuTrigger' : 'userDropdownTrigger',
       ),
-      title: 'Menu de usuario',
-      content:
-        'Desde este menu accedes a herramientas clave como perfil, idioma y accesos personales.',
+      title: t('dashboardTour.steps.userMenu.title'),
+      content: t('dashboardTour.steps.userMenu.content'),
       placement: isMobile ? 'bottom' : 'bottom-end',
       disableBeacon: true,
       data: {
@@ -84,9 +81,8 @@ export function buildBusinessUserJoyrideSteps({
     },
     {
       target: getBusinessUserDashboardTourTargetSelector('courseViewSwitcher'),
-      title: 'Vistas de tus cursos',
-      content:
-        'Cambia entre cuadricula, lista y learning paths. En learning paths puedes ver tus rutas de aprendizaje, el orden recomendado de los cursos, bloqueos y progreso de cada ruta.',
+      title: t('dashboardTour.steps.courseViews.title'),
+      content: t('dashboardTour.steps.courseViews.content'),
       placement: isMobile ? 'top' : 'left',
       disableBeacon: true,
       data: {
@@ -95,9 +91,8 @@ export function buildBusinessUserJoyrideSteps({
     },
     {
       target: `#${SHARED_TOUR_TARGET_IDS.liaTrigger}`,
-      title: 'Tu asistente SofLIA',
-      content:
-        'SofLIA esta aqui para resolver dudas, darte contexto y acompanarte durante tu aprendizaje.',
+      title: t('dashboardTour.steps.soflia.title'),
+      content: t('dashboardTour.steps.soflia.content'),
       placement: isMobile ? 'top' : 'top-end',
       disableBeacon: true,
       disableScrolling: true,

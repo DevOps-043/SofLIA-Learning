@@ -31,6 +31,38 @@
     "myTeam": "Mi Equipo",
     "viewTeammates": "Ver compañeros"
   },
+  "dashboardTour": {
+    "steps": {
+      "welcome": {
+        "title": "Bienvenido a tu espacio de aprendizaje",
+        "content": "Este es tu centro personal de desarrollo. Desde aqui puedes revisar progreso, continuar cursos y avanzar en tus metas."
+      },
+      "stats": {
+        "title": "Estadisticas generales",
+        "content": "Aqui tienes una vista rapida de tu actividad. Revisa cursos asignados, progreso y certificados."
+      },
+      "courses": {
+        "title": "Tus cursos",
+        "content": "Consulta los cursos asignados y su estado actual para mantener el seguimiento de tu formacion."
+      },
+      "certificates": {
+        "title": "Tus certificados",
+        "content": "Visualiza los certificados obtenidos y el avance que ya has completado."
+      },
+      "userMenu": {
+        "title": "Menu de usuario",
+        "content": "Desde este menu accedes a herramientas clave como perfil, idioma y accesos personales."
+      },
+      "courseViews": {
+        "title": "Vistas de tus cursos",
+        "content": "Cambia entre cuadricula, lista y learning paths. En learning paths puedes ver tus rutas de aprendizaje, el orden recomendado de los cursos, bloqueos y progreso de cada ruta."
+      },
+      "soflia": {
+        "title": "Tu asistente SofLIA",
+        "content": "SofLIA esta aqui para resolver dudas, darte contexto y acompanarte durante tu aprendizaje."
+      }
+    }
+  },
   "dashboard": {
     "title": "Panel Empresarial",
     "subtitle": "Gestiona el aprendizaje de tu equipo y supervisa su progreso.",
