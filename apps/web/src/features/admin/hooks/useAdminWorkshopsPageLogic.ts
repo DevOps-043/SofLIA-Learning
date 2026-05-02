@@ -77,6 +77,9 @@ export function useAdminWorkshopsPageLogic() {
       await updateAdminWorkshop(editingWorkshop.id, data)
       await refetch()
       closeEditModal()
+    } catch (error) {
+      console.error('Error updating workshop:', error)
+      // En el futuro, implementar sistema de feedback local como en CourseManagement
     } finally {
       setIsUpdating(false)
     }
@@ -87,9 +90,14 @@ export function useAdminWorkshopsPageLogic() {
       return
     }
 
-    await deleteAdminWorkshop(workshopToDelete.id)
-    await refetch()
-    closeDeleteModal()
+    try {
+      await deleteAdminWorkshop(workshopToDelete.id)
+      await refetch()
+      closeDeleteModal()
+    } catch (error) {
+      console.error('Error deleting workshop:', error)
+      // En el futuro, implementar sistema de feedback local como en CourseManagement
+    }
   }
 
   return {

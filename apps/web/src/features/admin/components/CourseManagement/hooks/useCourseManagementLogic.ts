@@ -151,11 +151,27 @@ export function useCourseManagementLogic(courseId: string) {
 
   // ── CRUD handlers ──────────────────────────────────────────────────────────
   const handleCreateModule = async (data: Record<string, unknown>) => {
-    await createModule(courseId, data)
+    try {
+      await createModule(courseId, data)
+      showFeedbackMessage('success', 'Módulo creado correctamente')
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error ? error.message : 'Error al crear el módulo',
+      )
+    }
   }
 
   const handleEditModule = async (moduleId: string, data: Record<string, unknown>) => {
-    await updateModule(moduleId, data)
+    try {
+      await updateModule(moduleId, data)
+      showFeedbackMessage('success', 'Módulo actualizado correctamente')
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error ? error.message : 'Error al actualizar el módulo',
+      )
+    }
   }
 
   const handleCreateLesson = async (data: Record<string, unknown>) => {
@@ -173,11 +189,27 @@ export function useCourseManagementLogic(courseId: string) {
   }
 
   const handleDeleteModule = async (moduleId: string) => {
-    await deleteModule(moduleId)
+    try {
+      await deleteModule(moduleId)
+      showFeedbackMessage('success', 'Módulo eliminado correctamente')
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error ? error.message : 'Error al eliminar el módulo',
+      )
+    }
   }
 
   const handleDeleteLesson = async (lessonId: string) => {
-    await deleteLesson(lessonId)
+    try {
+      await deleteLesson(lessonId)
+      showFeedbackMessage('success', 'Lección eliminada correctamente')
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error ? error.message : 'Error al eliminar la lección',
+      )
+    }
   }
 
   const handleMoveLessonToModule = async (moduleId: string) => {

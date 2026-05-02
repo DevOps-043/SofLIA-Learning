@@ -208,42 +208,27 @@ export class AdminModulesService {
         throw lessonsError
       }
 
-      // Eliminar todas las lecciones asociadas (y sus materiales/actividades en cascada si están configurados)
+      // Eliminar todas las lecciones asociadas de forma recursiva (limpia materiales, actividades, tracking, etc.)
       if (lessons && lessons.length > 0) {
-        const lessonIds = lessons.map((lesson: { lesson_id: string }) => lesson.lesson_id)
+        // Importación dinámica para evitar dependencias circulares si las hubiera
+        const { deleteLesson } = await import(
+          './admin-lessons/mutation.service'
+        )
 
-        // Eliminar materiales de todas las lecciones
-        for (const lessonId of lessonIds) {
-          const { error: materialsError } = await supabase
-            .from('lesson_materials')
-            .delete()
-            .eq('lesson_id', lessonId)
-
-          if (materialsError) {
-            // Continuar aunque falle, no es crítico
-          }
-
-          // Eliminar actividades de todas las lecciones
-          const { error: activitiesError } = await supabase
-            .from('lesson_activities')
-            .delete()
-            .eq('lesson_id', lessonId)
-
-          if (activitiesError) {
-            // Continuar aunque falle, no es crítico
-          }
-        }
-
-        // Eliminar todas las lecciones del módulo
-        const { error: deleteLessonsError } = await supabase
-          .from('course_lessons')
-          .delete()
-          .eq('module_id', moduleId)
-
-        if (deleteLessonsError) {
-          throw deleteLessonsError
+        for (const lesson of lessons) {
+          await deleteLesson(lesson.lesson_id)
         }
       }
+
+      // Limpiar otras dependencias del módulo
+      await Promise.all([
+        supabase.from('lia_conversations').delete().eq('module_id', moduleId),
+        supabase
+          .from('content_translations')
+          .delete()
+          .eq('entity_type', 'module')
+          .eq('entity_id', moduleId),
+      ])
 
       // Finalmente eliminar el módulo
       const { error } = await supabase

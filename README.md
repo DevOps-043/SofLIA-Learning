@@ -33,7 +33,7 @@
 - 📦 **22 módulos principales** de funcionalidades
 - 🧩 **900+ componentes** React
 - 🔌 **350+ endpoints** API
-- 🗄️ **55+ migraciones** de base de datos
+- 🗄️ **60+ migraciones** de base de datos
 - 🌍 **3 idiomas** soportados
 - 📝 **180,000+ líneas** de código
 - 📖 **78 documentos** técnicos
@@ -794,10 +794,10 @@ SofLIA-Learning/
 │   │       │   ├── lia/              # Componentes de SofLIA (personalización)
 │   │       │   ├── news/             # Artículos y noticias
 │   │       │   ├── notifications/    # Sistema de notificaciones
-│   │       │   ├── onboarding/       # 🆕 Flujo de incorporación organizacional
+│   │       │   ├── onboarding/       # Flujo de incorporación organizacional
 │   │       │   ├── profile/          # Perfil de usuario
 │   │       │   ├── reels/            # Contenido de video corto
-│   │       │   ├── responsive-smoke/ # 🆕 Pruebas de UI responsive
+│   │       │   ├── responsive-smoke/ # Pruebas de UI responsive y regresión visual
 │   │       │   ├── scorm/            # Integración SCORM para e-learning
 │   │       │   ├── skills/           # Gestión de habilidades
 │   │       │   ├── study-planner/    # Planificador de estudios con IA
@@ -829,7 +829,7 @@ SofLIA-Learning/
 ├── netlify/
 │   └── functions/                    # Funciones serverless (cron jobs)
 │
-├── supabase/                         # Migraciones y configuración (55+)
+├── supabase/                         # Migraciones y configuración (60+)
 │
 └── docs/                             # Documentación del proyecto (78 documentos)
 ```
@@ -1356,6 +1356,9 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 - ✅ Delete cascades para contenido de cursos
 - ✅ Snapshots y backfill de certificados
 - ✅ Learning paths completo
+- ✅ Transcripciones con timestamps y guardado en notas
+- ✅ Caché de insights de analytics para usuarios business
+- ✅ Videos de introducción por curso y learning path
 
 ---
 
@@ -1504,7 +1507,7 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 - **Total de Features**: 22 módulos principales
 - **Componentes React**: 900+ componentes
 - **Endpoints API**: 350+ rutas
-- **Migraciones de BD**: 55+ migraciones
+- **Migraciones de BD**: 60+ migraciones
 - **Documentos Técnicos**: 78 documentos en `/docs`
 - **Idiomas Soportados**: 3 (Español, Inglés, Portugués)
 - **Líneas de Código**: ~180,000+ líneas (estimado)
@@ -1565,8 +1568,9 @@ El proyecto incluye **78 documentos técnicos** en el directorio `docs/`:
 
 - Cursos estructurados con módulos y lecciones
 - Videos con tracking automático de progreso
+- Transcripciones estructuradas con timestamps
 - Actividades interactivas y quizzes
-- Notas personales por lección
+- Notas personales por lección (con generación desde transcripción)
 - Certificados verificables con blockchain
 
 #### 🤖 Inteligencia Artificial

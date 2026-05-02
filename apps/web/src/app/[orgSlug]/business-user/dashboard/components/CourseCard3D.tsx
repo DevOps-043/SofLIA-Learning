@@ -2,8 +2,10 @@
 
 import Image from 'next/image'
 import { Award, Play, BookOpen, CheckCircle2, Lock } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
+import { formatShortDate, formatDate } from '../../../../../shared/utils/date-formatter'
 import type { StyleConfig } from '../../../../../features/business-panel/contexts/OrganizationStylesContext'
 
 interface AssignedCourse {
@@ -50,6 +52,7 @@ export function CourseCard3D({
   isLockedInPath = false,
   disableHeavyEffects = false,
 }: CourseCard3DProps) {
+  const { t, i18n } = useTranslation('business')
   const { resolvedTheme } = useThemeStore()
   const isSystemLight = resolvedTheme === 'light'
 
@@ -74,6 +77,14 @@ export function CourseCard3D({
 
   // Calcular RGB para opacidad
   const cardBgRgb = hexToRgb(cardBackground)
+
+  const statusKeyMap: Record<string, string> = {
+    'Asignado': 'dashboard.courses.status.assigned',
+    'En progreso': 'dashboard.courses.status.inProgress',
+    'Completado': 'dashboard.courses.status.completed'
+  }
+
+  const translatedStatus = t(statusKeyMap[course.status] || course.status, course.status)
 
   const getStatusColor = () => {
     switch (course.status) {
@@ -152,7 +163,7 @@ export function CourseCard3D({
           style={{ background: `linear-gradient(135deg, ${primaryColor}cc, ${accentColor}cc)` }}
         >
           {getStatusIcon()}
-          <span>{course.status}</span>
+          <span>{translatedStatus}</span>
         </div>
 
         {/* Progress column */}
@@ -171,7 +182,7 @@ export function CourseCard3D({
           </div>
           {course.due_date && (
             <span className="text-[9px] mt-0.5" style={{ color: isLightMode ? '#94A3B8' : '#6B7280' }}>
-              {new Date(course.due_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
+              {formatDate(course.due_date, i18n.language, { day: 'numeric', month: 'short' })}
             </span>
           )}
         </div>
@@ -223,7 +234,7 @@ export function CourseCard3D({
         ) : (
           <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase text-white bg-black/40 border border-white/20 ${disableHeavyEffects ? '' : 'backdrop-blur-md'}`}>
             {getStatusIcon()}
-            {course.status}
+            {translatedStatus}
           </div>
         )}
 
@@ -259,7 +270,7 @@ export function CourseCard3D({
         <div className="mt-auto pt-3">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: isLightMode ? '#94A3B8' : '#858E9B' }}>
-              Progreso
+              {t('dashboard.courses.progress', 'Progreso')}
             </span>
             <span className="text-[10px] font-bold" style={{ color: accentColor }}>
               {course.progress}%
@@ -274,7 +285,7 @@ export function CourseCard3D({
           <div className="h-[14px] mt-2">
             {course.due_date && (
               <p className="text-[9px] font-medium" style={{ color: isLightMode ? '#94A3B8' : '#858E9B' }}>
-                Vence: {new Date(course.due_date).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })}
+                {t('dashboard.courses.dueDatePrefix', 'Vence:')} {formatShortDate(course.due_date, i18n.language)}
               </p>
             )}
           </div>

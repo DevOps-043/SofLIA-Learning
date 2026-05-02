@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Database: Supabase (PostgreSQL)
 - Authentication: Supabase Auth (+ SSO Google/Microsoft via OAuth)
 - State Management: Zustand 5.0.2
-- UI Components: Radix UI, Headless UI, custom components with Framer Motion 12.23.24
+- UI Components: Radix UI, Headless UI, custom components with Framer Motion 12.23.26
 - Data Visualization: Nivo charts (v0.99.0), Recharts 3.x, Tremor
 - AI Integration: OpenAI GPT-4o-mini (SofLIA assistant), Google Gemini 2.5 (Study Planner dashboard chat)
 - Internationalization: next-i18next, react-i18next (Spanish, English, Portuguese)
@@ -44,7 +44,7 @@ SofLIA-Learning/
 │   └── functions/       # Serverless cron jobs (lesson inactivity)
 ├── supabase/
 │   ├── config.toml      # Supabase configuration
-│   └── migrations/      # Database migrations (40+)
+│   └── migrations/      # Database migrations (60+)
 └── docs/                # Documentation
 ```
 
@@ -113,6 +113,7 @@ features/[feature-name]/
 - `profile/` - User profile management (includes user demographics fields)
 - `purchases/` - Purchase history and management
 - `reels/` - Short-form video content (Reels)
+- `responsive-smoke/` - Automated UI responsiveness and visual regression testing
 - `scorm/` - SCORM 1.2/2004 e-learning content integration
 - `skills/` - Skills catalog and tracking
 - `study-planner/` - AI-powered study planning and scheduling (Gemini 2.5 + Google Calendar)
@@ -317,7 +318,7 @@ const { language, changeLanguage } = useLanguage(); // 'es' | 'en' | 'pt'
 
 ## Database Schema (Supabase)
 
-Migrations in `supabase/migrations/` (52+). Full types in `lib/supabase/types.ts`.
+Migrations in `supabase/migrations/` (60+). Full types in `lib/supabase/types.ts`.
 
 **Key tables by domain:**
 - **Users & Orgs**: `usuarios`, `organizations`, `organization_users`, `organization_invitations`, `user_demographics`

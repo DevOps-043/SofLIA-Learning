@@ -141,7 +141,16 @@
       }
     },
     "restoreLayout": "Restore",
-    "addWidget": "Add widget:"
+    "addWidget": "Add widget:",
+    "courses": {
+      "progress": "Progress",
+      "status": {
+        "assigned": "Assigned",
+        "inProgress": "In progress",
+        "completed": "Completed"
+      },
+      "dueDatePrefix": "Due date:"
+    }
   },
   "analytics": {
     "eyebrow": "Personal panel",

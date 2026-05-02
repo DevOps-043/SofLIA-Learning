@@ -141,7 +141,16 @@
       }
     },
     "restoreLayout": "Restaurar",
-    "addWidget": "Adicionar widget:"
+    "addWidget": "Adicionar widget:",
+    "courses": {
+      "progress": "Progresso",
+      "status": {
+        "assigned": "Atribuído",
+        "inProgress": "Em progresso",
+        "completed": "Concluído"
+      },
+      "dueDatePrefix": "Vence:"
+    }
   },
   "analytics": {
     "eyebrow": "Painel pessoal",
