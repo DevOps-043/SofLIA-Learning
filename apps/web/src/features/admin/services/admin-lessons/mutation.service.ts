@@ -150,21 +150,89 @@ export async function updateLesson(
 
 export async function deleteLesson(lessonId: string): Promise<void> {
   const supabase = await createClient()
+
+  // 1. Obtener info de la lección antes de borrar para actualizar duraciones después
   const { data: lesson } = await supabase
     .from('course_lessons')
     .select('module_id')
     .eq('lesson_id', lessonId)
     .single()
 
-  const { error } = await supabase
-    .from('course_lessons')
-    .delete()
+  // 2. Limpiar dependencias (en el orden correcto para evitar conflictos de FK)
+  // Nota: Idealmente esto debería estar en la BD con ON DELETE CASCADE,
+  // pero lo manejamos aquí programáticamente para asegurar que la eliminación funcione.
+
+  // Actividades (tienen sus propias dependencias como lia_activity_completions)
+  const { data: activities } = await supabase
+    .from('lesson_activities')
+    .select('activity_id')
     .eq('lesson_id', lessonId)
 
+  if (activities && activities.length > 0) {
+    const activityIds = activities.map((a) => a.activity_id)
+    await supabase
+      .from('lia_activity_completions')
+      .delete()
+      .in('activity_id', activityIds)
+    await supabase
+      .from('lia_common_questions')
+      .delete()
+      .in('activity_id', activityIds)
+    await supabase.from('lesson_activities').delete().in('activity_id', activityIds)
+  }
+
+  // Conversaciones de LIA (tienen mensajes)
+  const { data: convs } = await supabase
+    .from('lia_conversations')
+    .select('conversation_id')
+    .eq('lesson_id', lessonId)
+
+  if (convs && convs.length > 0) {
+    const convIds = convs.map((c) => c.conversation_id)
+    await supabase.from('lia_messages').delete().in('conversation_id', convIds)
+    await supabase
+      .from('lia_activity_completions')
+      .delete()
+      .in('conversation_id', convIds)
+    await supabase.from('lia_conversations').delete().in('conversation_id', convIds)
+  }
+
+  // Resto de dependencias directas de la lección
+  await Promise.all([
+    supabase.from('lesson_materials').delete().eq('lesson_id', lessonId),
+    supabase.from('lesson_checkpoints').delete().eq('lesson_id', lessonId),
+    supabase.from('lesson_feedback').delete().eq('lesson_id', lessonId),
+    supabase.from('lesson_tracking').delete().eq('lesson_id', lessonId),
+    supabase.from('lesson_time_estimates').delete().eq('lesson_id', lessonId),
+    supabase.from('lesson_chat_suggestions').delete().eq('lesson_id', lessonId),
+    supabase.from('lia_common_questions').delete().eq('lesson_id', lessonId),
+    supabase.from('study_sessions').delete().eq('lesson_id', lessonId),
+    supabase.from('user_activity_log').delete().eq('lesson_id', lessonId),
+    supabase.from('user_activity_submissions').delete().eq('lesson_id', lessonId),
+    supabase.from('user_lesson_notes').delete().eq('lesson_id', lessonId),
+    supabase.from('user_lesson_progress').delete().eq('lesson_id', lessonId),
+    supabase.from('user_quiz_submissions').delete().eq('lesson_id', lessonId),
+    // Limpiar traducciones (polimórficas)
+    supabase
+      .from('content_translations')
+      .delete()
+      .eq('entity_type', 'lesson')
+      .eq('entity_id', lessonId),
+  ])
+
+  // 3. Finalmente borrar la lección de las tablas de lecciones (Español, Inglés, Portugués)
+  const results = await Promise.all([
+    supabase.from('course_lessons').delete().eq('lesson_id', lessonId),
+    supabase.from('course_lessons_en').delete().eq('lesson_id', lessonId),
+    supabase.from('course_lessons_pt').delete().eq('lesson_id', lessonId),
+  ])
+
+  const error = results.find((r) => r.error)?.error
   if (error) {
     throw error
   }
 
+  // 4. Actualizar duración del módulo padre
   const moduleId = (lesson as { module_id?: string | null } | null)?.module_id
   if (moduleId) {
     await updateModuleDuration(moduleId)

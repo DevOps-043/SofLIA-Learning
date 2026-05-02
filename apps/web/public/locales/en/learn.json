@@ -73,6 +73,9 @@
     "completeCourse": "Complete Course",
     "finishCourse": "Finish course"
   },
+  "mobileNav": {
+    "material": "Material"
+  },
   "learningPath": {
     "badge": "Learning path",
     "blockedTitle": "This workshop is locked by sequence",

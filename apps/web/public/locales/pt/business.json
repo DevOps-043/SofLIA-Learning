@@ -31,6 +31,38 @@
     "myTeam": "Minha Equipe",
     "viewTeammates": "Ver colegas"
   },
+  "dashboardTour": {
+    "steps": {
+      "welcome": {
+        "title": "Bem-vindo ao seu espaço de aprendizagem",
+        "content": "Este e seu centro pessoal de desenvolvimento. A partir daqui voce pode revisar o progresso, continuar workshops e avancar em suas metas."
+      },
+      "stats": {
+        "title": "Estatisticas gerais",
+        "content": "Aqui voce tem uma visao rapida da sua atividade. Revise workshops atribuidos, progresso e certificados."
+      },
+      "courses": {
+        "title": "Seus workshops",
+        "content": "Consulte os workshops atribuidos e o status atual para acompanhar sua aprendizagem."
+      },
+      "certificates": {
+        "title": "Seus certificados",
+        "content": "Veja os certificados obtidos e o progresso que voce ja concluiu."
+      },
+      "userMenu": {
+        "title": "Menu do usuario",
+        "content": "Neste menu voce acessa ferramentas importantes como perfil, idioma e atalhos pessoais."
+      },
+      "courseViews": {
+        "title": "Visualizacoes dos workshops",
+        "content": "Alterne entre grade, lista e rotas de aprendizagem. Nas rotas de aprendizagem voce pode ver seus percursos, a ordem recomendada dos workshops, bloqueios e progresso de cada rota."
+      },
+      "soflia": {
+        "title": "Sua assistente SofLIA",
+        "content": "A SofLIA esta aqui para responder duvidas, dar contexto e acompanhar voce durante sua aprendizagem."
+      }
+    }
+  },
   "dashboard": {
     "title": "Painel Empresarial",
     "subtitle": "Gerencie o aprendizado da sua equipe e supervisione seu progresso.",
@@ -141,7 +173,16 @@
       }
     },
     "restoreLayout": "Restaurar",
-    "addWidget": "Adicionar widget:"
+    "addWidget": "Adicionar widget:",
+    "courses": {
+      "progress": "Progresso",
+      "status": {
+        "assigned": "Atribuído",
+        "inProgress": "Em progresso",
+        "completed": "Concluído"
+      },
+      "dueDatePrefix": "Vence:"
+    }
   },
   "analytics": {
     "eyebrow": "Painel pessoal",

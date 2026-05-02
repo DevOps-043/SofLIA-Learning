@@ -73,6 +73,9 @@
     "completeCourse": "Completar Curso",
     "finishCourse": "Finalizar curso"
   },
+  "mobileNav": {
+    "material": "Material"
+  },
   "learningPath": {
     "badge": "Ruta de aprendizaje",
     "blockedTitle": "Este taller está bloqueado por secuencia",

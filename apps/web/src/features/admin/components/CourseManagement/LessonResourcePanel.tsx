@@ -30,17 +30,33 @@ export function LessonResourcePanel({ lessonId, materials, activities }: LessonR
   const handleConfirmDeleteMaterial = async () => {
     if (!pendingDeleteMaterial) return
     const id = pendingDeleteMaterial
-    setPendingDeleteMaterial(null)
-    await deleteMaterial(id)
-    await fetchMaterials(lessonId)
+    try {
+      setPendingDeleteMaterial(null)
+      await deleteMaterial(id)
+      showFeedbackMessage('success', 'Material eliminado correctamente')
+      await fetchMaterials(lessonId)
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error ? error.message : 'Error al eliminar el material',
+      )
+    }
   }
 
   const handleConfirmDeleteActivity = async () => {
     if (!pendingDeleteActivity) return
     const id = pendingDeleteActivity
-    setPendingDeleteActivity(null)
-    await deleteActivity(id)
-    await fetchActivities(lessonId)
+    try {
+      setPendingDeleteActivity(null)
+      await deleteActivity(id)
+      showFeedbackMessage('success', 'Actividad eliminada correctamente')
+      await fetchActivities(lessonId)
+    } catch (error) {
+      showFeedbackMessage(
+        'error',
+        error instanceof Error ? error.message : 'Error al eliminar la actividad',
+      )
+    }
   }
 
   return (

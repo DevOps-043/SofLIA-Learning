@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import {
   AlignCenter,
   AlignLeft,
@@ -137,6 +138,7 @@ export function NotesModalLayout({
   variant,
 }: NotesModalLayoutProps) {
   const classes = notesModalVariantClasses[variant];
+  const { t } = useTranslation('common');
 
   return (
     <AnimatePresence>
@@ -166,7 +168,7 @@ export function NotesModalLayout({
                 </div>
                 <div>
                   <h2 className={classes.headerTitle}>
-                    {isEditing ? 'Editar Nota' : 'Estudio > Notas'}
+                    {isEditing ? t('notes.modal.editTitle') : t('notes.modal.createTitle')}
                   </h2>
                 </div>
               </div>
@@ -189,7 +191,7 @@ export function NotesModalLayout({
                     className={`${classes.toolbarButton} ${classes.toolbarButtonDisabled}`}
                     disabled={!editor.canUndo}
                     onClick={editor.undo}
-                    title="Deshacer (Ctrl+Z)"
+                    title={t('notes.modal.toolbar.undo')}
                   >
                     <Undo className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
@@ -197,7 +199,7 @@ export function NotesModalLayout({
                     className={`${classes.toolbarButton} ${classes.toolbarButtonDisabled}`}
                     disabled={!editor.canRedo}
                     onClick={editor.redo}
-                    title="Rehacer (Ctrl+Y)"
+                    title={t('notes.modal.toolbar.redo')}
                   >
                     <Redo className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
@@ -209,7 +211,7 @@ export function NotesModalLayout({
                       className={classes.toolbarDropdown}
                       onChange={(event) => editor.applyHeading(event.target.value)}
                     >
-                      <option value="Normal">Normal</option>
+                      <option value="Normal">{t('notes.modal.toolbar.normal')}</option>
                       <option value="H1">H1</option>
                       <option value="H2">H2</option>
                       <option value="H3">H3</option>
@@ -219,40 +221,40 @@ export function NotesModalLayout({
                     )}
                   </div>
                   <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('bold')} title="Negrita">
+                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('bold')} title={t('notes.modal.toolbar.bold')}>
                     <Bold className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('italic')} title="Cursiva">
+                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('italic')} title={t('notes.modal.toolbar.italic')}>
                     <Italic className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('underline')} title="Subrayado">
+                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('underline')} title={t('notes.modal.toolbar.underline')}>
                     <Underline className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
                   <button
                     className={classes.toolbarButton}
                     onClick={editor.applyLink}
                     onMouseDown={(event) => event.preventDefault()}
-                    title="Enlace"
+                    title={t('notes.modal.toolbar.link')}
                   >
                     <Link className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
                 </div>
                 <div className={classes.toolbarSeparator} />
                 <div className={classes.toolbarGroup}>
-                  <button className={classes.toolbarButton} onClick={() => editor.applyList('ul')} title="Lista">
+                  <button className={classes.toolbarButton} onClick={() => editor.applyList('ul')} title={t('notes.modal.toolbar.bulletList')}>
                     <List className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.applyList('ol')} title="Lista numerada">
+                  <button className={classes.toolbarButton} onClick={() => editor.applyList('ol')} title={t('notes.modal.toolbar.numberedList')}>
                     <ListOrdered className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
                   <div className="w-px h-4 bg-gray-300 dark:bg-white/10 mx-1 self-center" />
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyLeft')} title="Alinear izquierda">
+                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyLeft')} title={t('notes.modal.toolbar.alignLeft')}>
                     <AlignLeft className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyCenter')} title="Centrar">
+                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyCenter')} title={t('notes.modal.toolbar.alignCenter')}>
                     <AlignCenter className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
-                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyRight')} title="Alinear derecha">
+                  <button className={classes.toolbarButton} onClick={() => editor.execCommand('justifyRight')} title={t('notes.modal.toolbar.alignRight')}>
                     <AlignRight className="w-4 h-4 text-gray-600 dark:text-white/70" />
                   </button>
                 </div>
@@ -260,7 +262,7 @@ export function NotesModalLayout({
                 
                 {/* Botones PDF y Eliminar movidos a la barra de formato */}
                 <div className="flex items-center gap-2 ml-auto shrink-0 justify-end">
-                  <button className={classes.exportButton || classes.toolbarButton} onClick={onExportPdf} title="Exportar como PDF">
+                  <button className={classes.exportButton || classes.toolbarButton} onClick={onExportPdf} title={t('notes.modal.toolbar.exportPdf')}>
                     <FileDown className="w-4 h-4 text-gray-600 dark:text-white/70" />
                     <span className="hidden md:inline md:text-xs">PDF</span>
                   </button>
@@ -268,7 +270,7 @@ export function NotesModalLayout({
                     <button 
                       className={`${classes.toolbarButton} text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/10`} 
                       onClick={onDelete} 
-                      title="Eliminar Nota"
+                      title={t('notes.modal.deleteTitle')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -282,7 +284,7 @@ export function NotesModalLayout({
                 <input
                   className={classes.input}
                   onChange={(event) => editor.setTitle(event.target.value)}
-                  placeholder="Titulo de la nota..."
+                  placeholder={t('notes.modal.titlePlaceholder')}
                   type="text"
                   value={editor.title}
                 />
@@ -291,7 +293,7 @@ export function NotesModalLayout({
                 <div
                   className="notes-editor w-full flex-1 text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/20 focus:outline-none resize-none overflow-y-auto"
                   contentEditable
-                  data-placeholder="Comienza a escribir tu nota aqui..."
+                  data-placeholder={t('notes.modal.contentPlaceholder')}
                   onClick={editor.handleEditorClick}
                   onInput={editor.updateContent}
                   ref={editor.editorRef}
@@ -309,12 +311,12 @@ export function NotesModalLayout({
                         editor.addTag();
                       }
                     }}
-                    placeholder="Agregar etiqueta..."
+                    placeholder={t('notes.modal.tagPlaceholder')}
                     type="text"
                     value={editor.tagInput}
                   />
                   <button className={classes.addTagButton} onClick={editor.addTag}>
-                    Agregar
+                    {t('notes.modal.addTag')}
                   </button>
                 </div>
                 {editor.tags.length > 0 && (

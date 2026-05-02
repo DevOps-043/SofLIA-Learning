@@ -141,6 +141,8 @@ export function useBusinessUserJoyride(
     mobilePerformanceMode = false,
   } = options;
   const { setRestart } = useTourRestart();
+  const { t } = useTranslation('common');
+  const { t: tBusiness } = useTranslation('business');
 
   const {
     shouldShowTour,
@@ -153,6 +155,7 @@ export function useBusinessUserJoyride(
   const [run, setRun] = useState(false);
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [activeSteps, setActiveSteps] = useState<Step[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isTourFinishedInSession, setIsTourFinishedInSession] = useState(false);
@@ -196,7 +199,6 @@ export function useBusinessUserJoyride(
   useEffect(() => {
     if (
       !enabled ||
-      mobilePerformanceMode ||
       isLoading ||
       !shouldShowTour ||
       isTourFinishedInSession ||
@@ -212,7 +214,7 @@ export function useBusinessUserJoyride(
     }, 2000);
 
     return () => window.clearTimeout(timer);
-  }, [enabled, isLoading, shouldShowTour, isTourFinishedInSession, run, showVideoIntro, mobilePerformanceMode]);
+  }, [enabled, isLoading, shouldShowTour, isTourFinishedInSession, run, showVideoIntro]);
 
   const handleVideoComplete = useCallback(() => {
     console.log('[useBusinessUserJoyride] Video complete, preparing to start tour');
@@ -222,7 +224,10 @@ export function useBusinessUserJoyride(
     // We use a small timeout to let the DOM settle after the video modal closes
     // This ensures elements like the SofLIA button are correctly positioned for Joyride
     setTimeout(() => {
-      if (steps.length === 0) {
+      const runnableSteps = getRunnableSteps();
+      setActiveSteps(runnableSteps);
+
+      if (runnableSteps.length === 0) {
         console.warn('[useBusinessUserJoyride] No steps found, completing tour');
         completeTour().catch((err) =>
           console.error('[useBusinessUserJoyride] No steps available:', err),
@@ -230,7 +235,7 @@ export function useBusinessUserJoyride(
         return;
       }
 
-      console.log('[useBusinessUserJoyride] Starting Joyride with', steps.length, 'steps');
+      console.log('[useBusinessUserJoyride] Starting Joyride with', runnableSteps.length, 'steps');
       startTour().catch((err) =>
         console.error('[useBusinessUserJoyride] DB start failed', err),
       );
@@ -283,7 +288,7 @@ export function useBusinessUserJoyride(
         }
 
         // If we're on the last step and moving forward, finish the tour
-        if (index >= steps.length - 1) {
+        if (index >= activeSteps.length - 1) {
           console.log('[useBusinessUserJoyride] Last step reached, finishing tour');
           setRun(false);
           setIsTourFinishedInSession(true);
@@ -312,26 +317,18 @@ export function useBusinessUserJoyride(
     setStepIndex(0);
     setRun(false);
     setIsTourFinishedInSession(false);
-    if (mobilePerformanceMode) {
-      setShowVideoIntro(false);
-      startTour().catch((err) =>
-        console.error('[useBusinessUserJoyride] Manual mobile start failed', err),
-      );
-      setRun(true);
-      return;
-    }
 
     setShowVideoIntro(true);
-  }, [mobilePerformanceMode, startTour]);
+  }, []);
 
   useEffect(() => {
-    setRestart(manualStartTour, 'Reiniciar tutorial');
+    setRestart(manualStartTour, t('tour.restart'));
     return () => setRestart(null);
-  }, [manualStartTour, setRestart]);
+  }, [manualStartTour, setRestart, t]);
 
   return {
     joyrideProps: {
-      steps,
+      steps: activeSteps.length > 0 ? activeSteps : steps.filter(targetExists),
       run,
       stepIndex,
       callback: handleJoyrideCallback,
@@ -372,11 +369,11 @@ export function useBusinessUserJoyride(
         },
       },
       locale: {
-        back: 'Anterior',
-        close: 'Cerrar',
-        last: 'Finalizar',
-        next: 'Siguiente',
-        skip: 'Saltar',
+        back: t('actions.back'),
+        close: t('actions.close'),
+        last: t('actions.finish'),
+        next: t('actions.next'),
+        skip: t('actions.skip'),
       },
     },
     shouldShowTour,

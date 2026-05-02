@@ -32,7 +32,7 @@ export function NotesModalWithLibraries(props: NotesModalProps) {
         }
       );
     } catch (err) {
-      setPdfError(err instanceof Error ? err.message : 'Error al exportar PDF');
+      setPdfError(err instanceof Error ? err.message : t('notes.modal.exportPdfError'));
     }
   };
 

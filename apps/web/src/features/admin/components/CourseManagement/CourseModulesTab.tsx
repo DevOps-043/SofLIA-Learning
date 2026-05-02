@@ -12,7 +12,7 @@ export function CourseModulesTab() {
     state: {
       showFeedbackMessage,
       recalculatingDurations,
-      setRecalculatingDurations,
+      handleRecalculateDurations,
       fetchModules,
       orderedModules,
       handleModulesReorder,
@@ -47,35 +47,7 @@ export function CourseModulesTab() {
 
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end lg:w-auto">
           <motion.button
-            onClick={async () => {
-              try {
-                setRecalculatingDurations(true)
-                const res = await fetch('/api/admin/recalculate-durations', {
-                  method: 'POST',
-                })
-                const data = await res.json()
-
-                if (data.success) {
-                  showFeedbackMessage(
-                    'success',
-                    data.message || 'Duraciones recalculadas correctamente',
-                  )
-                  await fetchModules(courseId)
-                } else {
-                  showFeedbackMessage(
-                    'error',
-                    data.error || 'Error al recalcular duraciones',
-                  )
-                }
-              } catch {
-                showFeedbackMessage(
-                  'error',
-                  'Error de conexion al recalcular duraciones',
-                )
-              } finally {
-                setRecalculatingDurations(false)
-              }
-            }}
+            onClick={handleRecalculateDurations}
             disabled={recalculatingDurations}
             whileHover={{
               scale: recalculatingDurations ? 1 : 1.05,

@@ -961,7 +961,10 @@
     "viewDetails": "Ver detalles",
     "savedSuccessfully": "Guardado exitosamente",
     "preview": "Vista previa",
-    "customize": "Personalizar"
+    "customize": "Personalizar",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "skip": "Saltar"
   },
   "certificates": {
     "loading": "Cargando certificados...",
@@ -1108,7 +1111,35 @@
     "viewReplies_one": "Ver {{count}} respuesta",
     "viewReplies_other": "Ver {{count}} respuestas"
   },
+  "tour": {
+    "restart": "Reiniciar tutorial"
+  },
   "notes": {
+    "modal": {
+      "createTitle": "Estudio > Notas",
+      "editTitle": "Editar nota",
+      "deleteTitle": "Eliminar nota",
+      "exportPdfError": "Error al exportar PDF",
+      "titlePlaceholder": "Titulo de la nota...",
+      "contentPlaceholder": "Comienza a escribir tu nota aqui...",
+      "tagPlaceholder": "Agregar etiqueta...",
+      "addTag": "Agregar",
+      "toolbar": {
+        "undo": "Deshacer (Ctrl+Z)",
+        "redo": "Rehacer (Ctrl+Y)",
+        "normal": "Normal",
+        "bold": "Negrita",
+        "italic": "Cursiva",
+        "underline": "Subrayado",
+        "link": "Enlace",
+        "bulletList": "Lista",
+        "numberedList": "Lista numerada",
+        "alignLeft": "Alinear izquierda",
+        "alignCenter": "Centrar",
+        "alignRight": "Alinear derecha",
+        "exportPdf": "Exportar como PDF"
+      }
+    },
     "pdf": {
       "generatedBy": "Generado por SofLIA",
       "page": "Página",

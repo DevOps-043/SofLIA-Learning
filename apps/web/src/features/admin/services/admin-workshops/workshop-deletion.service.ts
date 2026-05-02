@@ -196,6 +196,20 @@ export async function deleteWorkshopHierarchy(
     lessonIds,
     { label: 'la bitacora de actividad de lecciones del taller' },
   )
+  await deleteOptionalByIn(
+    supabase,
+    'user_activity_submissions',
+    'lesson_id',
+    lessonIds,
+    { label: 'las entregas de actividades de lecciones del taller' },
+  )
+  await deleteOptionalByIn(
+    supabase,
+    'lesson_chat_suggestions',
+    'lesson_id',
+    lessonIds,
+    { label: 'las sugerencias de chat de lecciones del taller' },
+  )
   await deleteByIn(
     supabase,
     'lesson_materials',
@@ -212,6 +226,12 @@ export async function deleteWorkshopHierarchy(
   )
   await deleteByIn(supabase, 'course_lessons', 'lesson_id', lessonIds, {
     label: 'las lecciones del taller',
+  })
+  await deleteOptionalByIn(supabase, 'course_lessons_en', 'lesson_id', lessonIds, {
+    label: 'las lecciones del taller (en)',
+  })
+  await deleteOptionalByIn(supabase, 'course_lessons_pt', 'lesson_id', lessonIds, {
+    label: 'las lecciones del taller (pt)',
   })
 
   await deleteOptionalByIn(supabase, 'lia_conversations', 'module_id', moduleIds, {

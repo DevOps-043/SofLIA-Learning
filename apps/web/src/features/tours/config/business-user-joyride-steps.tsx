@@ -35,13 +35,13 @@ export function buildBusinessUserJoyrideSteps({
   hasCourseControls = true,
   hasLearningPaths = true,
   isMobile,
+  t = (key) => key,
 }: BuildBusinessUserJoyrideStepsOptions): Step[] {
   const steps: Step[] = [
     {
       target: getBusinessUserDashboardTourTargetSelector('heroSection'),
-      title: 'Bienvenido a tu espacio de aprendizaje',
-      content:
-        'Este es tu centro personal de desarrollo. Desde aqui puedes revisar progreso, continuar cursos y avanzar en tus metas.',
+      title: t('dashboardTour.steps.welcome.title'),
+      content: t('dashboardTour.steps.welcome.content'),
       placement: 'center',
       disableBeacon: true,
       data: {
@@ -135,9 +135,8 @@ export function buildBusinessUserJoyrideSteps({
   steps.push(
     {
       target: `#${SHARED_TOUR_TARGET_IDS.liaTrigger}`,
-      title: 'Tu asistente SofLIA',
-      content:
-        'SofLIA esta aqui para resolver dudas, darte contexto y acompanarte durante tu aprendizaje.',
+      title: t('dashboardTour.steps.soflia.title'),
+      content: t('dashboardTour.steps.soflia.content'),
       placement: isMobile ? 'top' : 'top-end',
       disableBeacon: true,
       disableScrolling: true,
