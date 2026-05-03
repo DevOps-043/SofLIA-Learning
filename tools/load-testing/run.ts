@@ -18,6 +18,7 @@ interface Counters {
   failed: number;
   status5xx: number;
   status429: number;
+  edge403Html: number;
   timeouts: number;
 }
 
@@ -82,6 +83,10 @@ function observeAbort(profileName: string, counters: Counters) {
   if (counters.total < 100) return undefined;
 
   const errorRate = counters.failed / counters.total;
+  if (counters.edge403Html >= 100) {
+    return `Netlify Edge returned ${counters.edge403Html} HTML 403 responses from the load runner`;
+  }
+
   if (profileName === 'load' || profileName === 'smoke') {
     if (counters.total >= 1000 && errorRate > 0.01) {
       return `nominal error rate exceeded 1% (${(errorRate * 100).toFixed(2)}%)`;
@@ -113,6 +118,13 @@ async function runRequest(
   if (!result.ok) counters.failed += 1;
   if (result.status >= 500) counters.status5xx += 1;
   if (result.status === 429) counters.status429 += 1;
+  if (
+    result.status === 403 &&
+    typeof result.error === 'string' &&
+    result.error.toLowerCase().includes('<!doctype html>')
+  ) {
+    counters.edge403Html += 1;
+  }
   if (result.status === 0 || result.error?.toLowerCase().includes('abort')) {
     counters.timeouts += 1;
   }
@@ -401,6 +413,7 @@ async function main() {
     failed: 0,
     status5xx: 0,
     status429: 0,
+    edge403Html: 0,
     timeouts: 0,
   };
   const completedLessonUsers = new Set<string>();
@@ -450,7 +463,7 @@ async function main() {
     const currentTarget = getCurrentTarget();
     const errorRate = counters.total > 0 ? (counters.failed / counters.total) * 100 : 0;
     console.log(
-      `[${elapsedSec}s] target=${currentTarget} total=${counters.total} failed=${counters.failed} errorRate=${errorRate.toFixed(2)}% 5xx=${counters.status5xx} 429=${counters.status429}`
+      `[${elapsedSec}s] target=${currentTarget} total=${counters.total} failed=${counters.failed} errorRate=${errorRate.toFixed(2)}% 5xx=${counters.status5xx} 429=${counters.status429} edge403=${counters.edge403Html}`
     );
 
     if (elapsedSec > 60 && elapsedSec % 60 === 0) {

@@ -52,6 +52,7 @@ export async function timedFetch(options: RequestOptions): Promise<RequestMetric
   let bytes = 0;
   let errorMessage: string | undefined;
   let responseText: string | undefined;
+  let traceId: string | undefined;
 
   try {
     const response = await fetch(url, {
@@ -67,6 +68,11 @@ export async function timedFetch(options: RequestOptions): Promise<RequestMetric
     });
 
     status = response.status;
+    traceId =
+      response.headers.get('x-nf-request-id') ||
+      response.headers.get('x-request-id') ||
+      response.headers.get('cf-ray') ||
+      undefined;
     const text = await response.text();
     bytes = Buffer.byteLength(text);
     if (options.captureResponseText) {
@@ -97,6 +103,7 @@ export async function timedFetch(options: RequestOptions): Promise<RequestMetric
     bytes,
     startedAt,
     endedAt: new Date(ended).toISOString(),
+    traceId,
     userIndex: options.user?.index,
     error: errorMessage,
     responseText,

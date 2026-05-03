@@ -80,6 +80,7 @@ export interface RequestMetric {
   bytes: number;
   startedAt: string;
   endedAt: string;
+  traceId?: string;
   userIndex?: number;
   error?: string;
   responseText?: string;
