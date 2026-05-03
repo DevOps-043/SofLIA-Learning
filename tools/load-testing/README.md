@@ -7,6 +7,7 @@ Versioned QA harness for staging load and stress validation. It seeds isolated Q
 Set these against an isolated staging deployment:
 
 ```bash
+cp .env.load-test.example .env.load-test
 LOAD_BASE_URL=https://your-staging-or-deploy-preview.example
 LOAD_CONFIRM_STAGING=true
 LOAD_RUN_ID=launch-week-qa-001
@@ -31,6 +32,7 @@ The runner refuses known production hosts unless `ALLOW_PRODUCTION_LOAD_TEST=tru
 
 ```bash
 npm run load:seed
+npm run load:check
 npm run load:smoke
 npm run load:700
 npm run load:stress

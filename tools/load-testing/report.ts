@@ -15,6 +15,7 @@ interface MutableStats {
   ok: number;
   failed: number;
   status4xx: number;
+  status401: number;
   status5xx: number;
   status429: number;
   timeouts: number;
@@ -41,6 +42,7 @@ function toEndpointStats(stats: MutableStats): EndpointStats {
     ok: stats.ok,
     failed: stats.failed,
     status4xx: stats.status4xx,
+    status401: stats.status401,
     status5xx: stats.status5xx,
     status429: stats.status429,
     timeouts: stats.timeouts,
@@ -93,6 +95,7 @@ async function readMetrics(filePath: string) {
       ok: 0,
       failed: 0,
       status4xx: 0,
+      status401: 0,
       status5xx: 0,
       status429: 0,
       timeouts: 0,
@@ -104,6 +107,7 @@ async function readMetrics(filePath: string) {
     if (metric.ok) existing.ok += 1;
     else existing.failed += 1;
     if (metric.status >= 400 && metric.status < 500) existing.status4xx += 1;
+    if (metric.status === 401) existing.status401 += 1;
     if (metric.status >= 500) existing.status5xx += 1;
     if (metric.status === 429) existing.status429 += 1;
     if (metric.status === 0 || metric.error?.toLowerCase().includes('abort')) existing.timeouts += 1;
@@ -138,14 +142,25 @@ function buildRecommendations(endpoints: EndpointStats[], summary: RunSummary | 
     (acc, item) => {
       acc.count += item.count;
       acc.failed += item.failed;
+      acc.status401 += item.status401;
       acc.status5xx += item.status5xx;
       acc.status429 += item.status429;
       acc.timeouts += item.timeouts;
       return acc;
     },
-    { count: 0, failed: 0, status5xx: 0, status429: 0, timeouts: 0 },
+    { count: 0, failed: 0, status401: 0, status5xx: 0, status429: 0, timeouts: 0 },
   );
   const errorRate = totals.count > 0 ? totals.failed / totals.count : 0;
+
+  const auth401 = endpoints.filter((endpoint) =>
+    endpoint.status401 > 0 &&
+    (endpoint.flow === 'auth-core' || endpoint.flow === 'study-planner')
+  );
+  if (auth401.length > 0) {
+    recommendations.push(
+      `BLOCKER de configuracion: se observaron ${totals.status401} respuestas 401 en endpoints autenticados. Verificar que Netlify use el mismo proyecto Supabase que LOAD_TEST_SUPABASE_URL, redeployar y repetir load:seed antes de medir performance.`
+    );
+  }
 
   if (totals.status5xx > 0) {
     recommendations.push(`BLOCKER: se observaron ${totals.status5xx} respuestas 5xx. Revisar logs de Netlify Functions y Supabase por endpoint antes del lanzamiento.`);
@@ -200,12 +215,13 @@ export async function generateReport(resultDir: string) {
       acc.ok += item.ok;
       acc.failed += item.failed;
       acc.status4xx += item.status4xx;
+      acc.status401 += item.status401;
       acc.status5xx += item.status5xx;
       acc.status429 += item.status429;
       acc.timeouts += item.timeouts;
       return acc;
     },
-    { count: 0, ok: 0, failed: 0, status4xx: 0, status5xx: 0, status429: 0, timeouts: 0 },
+    { count: 0, ok: 0, failed: 0, status4xx: 0, status401: 0, status5xx: 0, status429: 0, timeouts: 0 },
   );
   const durationMs =
     summary ? new Date(summary.endedAt).getTime() - new Date(summary.startedAt).getTime() : 0;
@@ -245,6 +261,7 @@ export async function generateReport(resultDir: string) {
     `- Requests: ${totals.count}`,
     `- Error rate: ${totals.count > 0 ? ((totals.failed / totals.count) * 100).toFixed(2) : '0.00'}%`,
     `- RPS: ${round(rps)}`,
+    `- 401: ${totals.status401}`,
     `- 5xx: ${totals.status5xx}`,
     `- 429: ${totals.status429}`,
     `- Timeouts: ${totals.timeouts}`,
@@ -261,11 +278,11 @@ export async function generateReport(resultDir: string) {
     '## Failing Endpoints',
     failing.length === 0
       ? 'No failing endpoints recorded.'
-      : '| Flow | Endpoint | Count | Failed | 4xx | 5xx | 429 | Timeouts |',
+      : '| Flow | Endpoint | Count | Failed | 4xx | 401 | 5xx | 429 | Timeouts |',
     failing.length === 0
       ? ''
-      : '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |',
-    ...failing.map((item) => `| ${item.flow} | ${item.method} ${item.url} | ${item.count} | ${item.failed} | ${item.status4xx} | ${item.status5xx} | ${item.status429} | ${item.timeouts} |`),
+      : '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+    ...failing.map((item) => `| ${item.flow} | ${item.method} ${item.url} | ${item.count} | ${item.failed} | ${item.status4xx} | ${item.status401} | ${item.status5xx} | ${item.status429} | ${item.timeouts} |`),
     '',
     '## Snapshot Warnings',
     snapshots.flatMap((snapshot) => snapshot.warnings).length === 0

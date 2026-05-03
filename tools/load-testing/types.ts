@@ -116,6 +116,7 @@ export interface EndpointStats {
   ok: number;
   failed: number;
   status4xx: number;
+  status401: number;
   status5xx: number;
   status429: number;
   timeouts: number;

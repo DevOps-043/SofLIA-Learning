@@ -73,6 +73,7 @@ yarn-error.log*
 
 # Local env files
 .env
+.env.load-test
 .env.local
 .env.development.local
 .env.test.local

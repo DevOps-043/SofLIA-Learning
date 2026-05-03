@@ -21,6 +21,10 @@
     "load:smoke": "tsx tools/load-testing/run.ts smoke",
     "load:700": "tsx tools/load-testing/run.ts load",
     "load:stress": "tsx tools/load-testing/run.ts stress",
+    "load:spike": "tsx tools/load-testing/run.ts spike",
+    "load:soak": "tsx tools/load-testing/run.ts soak",
+    "load:metrics": "tsx tools/load-testing/collect-metrics.ts",
+    "load:check": "tsx tools/load-testing/check.ts",
     "load:report": "tsx tools/load-testing/report.ts",
     "load:cleanup": "tsx tools/load-testing/cleanup.ts"
   },

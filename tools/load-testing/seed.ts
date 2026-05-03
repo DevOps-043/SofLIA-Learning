@@ -12,6 +12,9 @@ function stableUuid(input: string) {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+const LOAD_TEST_SUBSCRIPTION_PLAN = 'enterprise';
+const QA_PLACEHOLDER_PASSWORD_HASH = '$2b$10$C6UzMDM.H6dfI/f/IKcEeO4Yz6s16cNu1kiBVGh6/tT3YABiGvQFO';
+
 function chunk<T>(values: T[], size: number) {
   const chunks: T[][] = [];
   for (let index = 0; index < values.length; index += size) {
@@ -73,7 +76,7 @@ async function main() {
       description: 'Isolated organization for SofLIA load and stress tests.',
       is_active: true,
       max_users: Math.max(config.seedUsers, 700),
-      subscription_plan: 'pro',
+      subscription_plan: LOAD_TEST_SUBSCRIPTION_PLAN,
       subscription_status: 'active',
       updated_at: nowIso,
     },
@@ -84,6 +87,7 @@ async function main() {
       id: instructorId,
       username: `${prefix}_instructor`,
       email: `${prefix}_instructor@load-test.invalid`,
+      password_hash: QA_PLACEHOLDER_PASSWORD_HASH,
       first_name: 'QA',
       last_name: 'Instructor',
       display_name: `QA Load Instructor ${config.runId}`,
@@ -175,10 +179,11 @@ async function main() {
     id: user.userId,
     username: user.username,
     email: user.email,
+    password_hash: QA_PLACEHOLDER_PASSWORD_HASH,
     first_name: 'QA',
     last_name: `Load ${user.index}`,
     display_name: `QA Load User ${user.index}`,
-    cargo_rol: 'Business User',
+    cargo_rol: 'Business',
     type_rol: 'BusinessUser',
     email_verified: true,
     is_banned: false,
@@ -232,8 +237,8 @@ async function main() {
     preferred_days: [1, 2, 3, 4, 5],
     goal_hours_per_week: 3,
     course_ids: [courseId],
-    generation_mode: 'load_test',
-    user_type: 'business_user',
+    generation_mode: 'ai_generated',
+    user_type: 'b2b',
     updated_at: nowIso,
   })), 'id', warnings);
 
@@ -255,7 +260,7 @@ async function main() {
       duration_minutes: 30,
       status: 'planned',
       is_ai_generated: true,
-      session_type: 'lesson',
+      session_type: 'short',
       updated_at: nowIso,
     };
   }), 'id', warnings);
@@ -269,7 +274,7 @@ async function main() {
     lesson_id: lessonId,
     status: 'in_progress',
     started_at: nowIso,
-    start_trigger: 'load_test_seed',
+    start_trigger: 'page_load',
     video_started_at: nowIso,
     last_activity_at: nowIso,
     t_lesson_minutes: 30,
