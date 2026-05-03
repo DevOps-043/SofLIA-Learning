@@ -80,7 +80,180 @@ interface LearningStatsEnrollmentRow {
   course_id: string;
 }
 
+interface EnrolledCourseRow {
+  enrollment_id: string;
+  enrollment_status: string | null;
+  overall_progress_percentage: number | null;
+  last_accessed_at: string | null;
+  started_at: string | null;
+  enrolled_at: string | null;
+  course_id: string;
+  courses: PurchasedCourseDetailsRow;
+}
+
+interface EnrolledCourseStatsRow {
+  enrollment_id: string;
+  enrollment_status: string | null;
+  overall_progress_percentage: number | null;
+  course_id: string;
+  courses: LearningStatsCourseRow;
+}
+
+function isMissingCoursePurchasesError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const record = error as { code?: unknown; message?: unknown; details?: unknown };
+  const text = [record.code, record.message, record.details]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ')
+    .toLowerCase();
+
+  return (
+    text.includes('course_purchases') &&
+    (
+      text.includes('schema cache') ||
+      text.includes('could not find') ||
+      text.includes('does not exist') ||
+      text.includes('42p01') ||
+      text.includes('pgrst205')
+    )
+  );
+}
+
 export class PurchasedCoursesService {
+  private static getInstructorName(instructor: PurchasedCourseInstructorRow | null): string {
+    if (!instructor) return 'Instructor';
+
+    return (
+      `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
+      instructor.username ||
+      'Instructor'
+    );
+  }
+
+  private static async getUserEnrolledCourses(userId: string): Promise<PurchasedCourse[]> {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('user_course_enrollments')
+      .select(`
+        enrollment_id,
+        enrollment_status,
+        overall_progress_percentage,
+        last_accessed_at,
+        started_at,
+        enrolled_at,
+        course_id,
+        courses!inner (
+          id,
+          title,
+          description,
+          thumbnail_url,
+          slug,
+          category,
+          duration_total_minutes,
+          level,
+          instructor_id,
+          instructor:users!instructor_id (
+            id,
+            first_name,
+            last_name,
+            username
+          )
+        )
+      `)
+      .returns<EnrolledCourseRow[]>()
+      .eq('user_id', userId)
+      .neq('enrollment_status', 'cancelled')
+      .order('enrolled_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data || []).map((enrollment) => {
+      const course = enrollment.courses;
+      const enrolledAt = enrollment.enrolled_at || new Date().toISOString();
+
+      return {
+        purchase_id: enrollment.enrollment_id,
+        course_id: course.id,
+        course_title: course.title,
+        course_description: course.description || '',
+        course_thumbnail: course.thumbnail_url || '',
+        course_slug: course.slug,
+        course_category: course.category,
+        instructor_name: this.getInstructorName(course.instructor),
+        access_status: 'active',
+        purchased_at: enrolledAt,
+        access_granted_at: enrolledAt,
+        expires_at: undefined,
+        enrollment_id: enrollment.enrollment_id,
+        enrollment_status: enrollment.enrollment_status || 'active',
+        progress_percentage: enrollment.overall_progress_percentage || 0,
+        last_accessed_at: enrollment.last_accessed_at || enrolledAt,
+        started_at: enrollment.started_at || enrolledAt,
+        course_duration_minutes: course.duration_total_minutes || 0,
+        estimated_duration: course.duration_total_minutes || 0,
+        difficulty: course.level || 'beginner',
+      };
+    });
+  }
+
+  private static async getUserLearningStatsFromEnrollments(userId: string) {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('user_course_enrollments')
+      .select(`
+        enrollment_id,
+        enrollment_status,
+        overall_progress_percentage,
+        course_id,
+        courses!inner (
+          id,
+          duration_total_minutes
+        )
+      `)
+      .returns<EnrolledCourseStatsRow[]>()
+      .eq('user_id', userId)
+      .neq('enrollment_status', 'cancelled');
+
+    if (error) {
+      throw error;
+    }
+
+    let completed_courses = 0;
+    let in_progress_courses = 0;
+    let total_progress = 0;
+    let total_time = 0;
+    let enrollments_with_progress = 0;
+
+    (data || []).forEach((enrollment) => {
+      const progress = Number(enrollment.overall_progress_percentage) || 0;
+      const status = enrollment.enrollment_status;
+
+      total_time += enrollment.courses?.duration_total_minutes || 0;
+      enrollments_with_progress++;
+
+      if (status === 'completed' || progress >= 100) {
+        completed_courses++;
+      } else if (progress > 0 && progress < 100 && status !== 'paused') {
+        in_progress_courses++;
+      }
+
+      total_progress += progress;
+    });
+
+    return {
+      total_courses: data?.length || 0,
+      completed_courses,
+      in_progress_courses,
+      total_time_minutes: total_time,
+      average_progress: enrollments_with_progress > 0 ? total_progress / enrollments_with_progress : 0,
+    };
+  }
+
   /**
    * Obtiene todos los cursos comprados por el usuario
    */
@@ -130,6 +303,10 @@ export class PurchasedCoursesService {
         .order('purchased_at', { ascending: false });
 
       if (error) {
+        if (isMissingCoursePurchasesError(error)) {
+          return this.getUserEnrolledCourses(userId);
+        }
+
         throw error;
       }
 
@@ -139,10 +316,7 @@ export class PurchasedCoursesService {
         const enrollment = purchase.user_course_enrollments?.[0] || {};
 
         // ✅ Instructor info ya viene del nested JOIN
-        const instructor = course.instructor;
-        const instructorName = instructor
-          ? `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() || instructor.username || 'Instructor'
-          : 'Instructor';
+        const instructorName = this.getInstructorName(course.instructor);
 
         return {
           purchase_id: purchase.purchase_id,
@@ -191,6 +365,23 @@ export class PurchasedCoursesService {
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (isMissingCoursePurchasesError(error)) {
+          const { data: enrollment, error: enrollmentError } = await supabase
+            .from('user_course_enrollments')
+            .select('enrollment_id')
+            .eq('user_id', userId)
+            .eq('course_id', courseId)
+            .neq('enrollment_status', 'cancelled')
+            .limit(1)
+            .maybeSingle();
+
+          if (enrollmentError && enrollmentError.code !== 'PGRST116') {
+            return false;
+          }
+
+          return !!enrollment;
+        }
+
         return false;
       }
 
@@ -230,6 +421,10 @@ export class PurchasedCoursesService {
         .eq('access_status', 'active');
 
       if (purchasesError) {
+        if (isMissingCoursePurchasesError(purchasesError)) {
+          return this.getUserLearningStatsFromEnrollments(userId);
+        }
+
         throw purchasesError;
       }
 

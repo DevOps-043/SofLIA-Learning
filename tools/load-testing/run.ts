@@ -54,6 +54,22 @@ function shouldCallAi(aiRatio: number) {
   return aiRatio > 0 && Math.random() < aiRatio;
 }
 
+function plannerDateRangePath() {
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(today.getDate() - 1);
+
+  const end = new Date(today);
+  end.setDate(today.getDate() + 14);
+
+  const params = new URLSearchParams({
+    startDate: start.toISOString().slice(0, 10),
+    endDate: end.toISOString().slice(0, 10),
+  });
+
+  return `/api/study-planner/sessions?${params.toString()}`;
+}
+
 function observeAbort(profileName: string, counters: Counters) {
   if (counters.total < 100) return undefined;
 
@@ -103,9 +119,10 @@ async function authenticatedFlow(context: FlowContext) {
 
 async function studyPlannerFlow(context: FlowContext) {
   await context.get('study-planner', 'dashboard-plan', '/api/study-planner/dashboard/plan');
-  await context.get('study-planner', 'sessions', '/api/study-planner/sessions');
+  await context.get('study-planner', 'sessions', plannerDateRangePath());
 
   if (!context.user.lessonId) return;
+  if (context.completedLessonUsers.has(context.user.userId)) return;
 
   const start = await context.post('study-planner', 'lesson-tracking-start', '/api/study-planner/lesson-tracking/start', {
     lessonId: context.user.lessonId,
@@ -135,10 +152,13 @@ async function studyPlannerFlow(context: FlowContext) {
   });
 
   if (Math.random() < 0.1) {
-    await context.post('study-planner', 'lesson-tracking-complete', '/api/study-planner/lesson-tracking/complete', {
+    const complete = await context.post('study-planner', 'lesson-tracking-complete', '/api/study-planner/lesson-tracking/complete', {
       lessonId: context.user.lessonId,
       endTrigger: 'manual',
     });
+    if (complete.ok) {
+      context.completedLessonUsers.add(context.user.userId);
+    }
   }
 }
 
@@ -209,6 +229,7 @@ class FlowContext {
     readonly requestTimeoutMs: number,
     readonly metricWriter: JsonlWriter<RequestMetric>,
     readonly counters: Counters,
+    readonly completedLessonUsers: Set<string>,
   ) {
     this.seededTrackingId = this.user.trackingId || '';
   }
@@ -267,6 +288,7 @@ async function virtualUserLoop(params: {
   thinkTimeMs: number;
   metricWriter: JsonlWriter<RequestMetric>;
   counters: Counters;
+  completedLessonUsers: Set<string>;
 }) {
   const user = userForIndex(params.users, params.virtualUserIndex);
 
@@ -285,6 +307,7 @@ async function virtualUserLoop(params: {
       params.requestTimeoutMs,
       params.metricWriter,
       params.counters,
+      params.completedLessonUsers,
     );
 
     await publicFlow(context);
@@ -336,6 +359,7 @@ async function main() {
     status429: 0,
     timeouts: 0,
   };
+  const completedLessonUsers = new Set<string>();
   const startedAt = new Date().toISOString();
   const startTime = Date.now();
   const endTime = startTime + totalDurationSec(profile) * 1000;
@@ -367,6 +391,7 @@ async function main() {
       thinkTimeMs: config.thinkTimeMs,
       metricWriter,
       counters,
+      completedLessonUsers,
     }),
   );
 
