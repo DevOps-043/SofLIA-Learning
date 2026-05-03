@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import { getConfig, qaPrefix, qaSlug, requireSupabaseConfig } from './config';
 import { ensureResultDir, manifestPath, writeJson } from './files';
-import { createAdminSupabase } from './supabase';
+import { createAdminSupabase, safeDeleteIn } from './supabase';
 import type { QaUser, SeedManifest } from './types';
 
 function stableUuid(input: string) {
@@ -46,6 +46,47 @@ async function upsertRows(
       return;
     }
   }
+}
+
+function isMissingRelationError(message: string) {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('schema cache') ||
+    normalized.includes('could not find') ||
+    normalized.includes('does not exist') ||
+    normalized.includes('pgrst205') ||
+    normalized.includes('42p01')
+  );
+}
+
+async function upsertOptionalRows(
+  tableName: string,
+  rows: Array<Record<string, unknown>>,
+  onConflict: string,
+  notices: string[],
+) {
+  try {
+    await upsertRows(tableName, rows, onConflict, notices, false);
+  } catch (error) {
+    throw error;
+  }
+
+  const lastNotice = notices[notices.length - 1];
+  if (lastNotice?.startsWith(`Upsert failed for ${tableName}:`) && isMissingRelationError(lastNotice)) {
+    notices[notices.length - 1] = `Optional table ${tableName} not present; using current enrollment model only.`;
+  }
+}
+
+async function resetMutableQaRows(users: QaUser[], warnings: string[]) {
+  const config = getConfig();
+  const supabase = createAdminSupabase(config);
+  const userIds = users.map((user) => user.userId);
+
+  await safeDeleteIn(supabase, 'lesson_tracking', 'user_id', userIds, warnings);
+  await safeDeleteIn(supabase, 'study_sessions', 'user_id', userIds, warnings);
+  await safeDeleteIn(supabase, 'study_plans', 'user_id', userIds, warnings);
+  await safeDeleteIn(supabase, 'user_course_enrollments', 'user_id', userIds, warnings);
+  await safeDeleteIn(supabase, 'user_session', 'user_id', userIds, warnings);
 }
 
 async function main() {
@@ -175,6 +216,8 @@ async function main() {
     };
   });
 
+  await resetMutableQaRows(users, warnings);
+
   await upsertRows('users', users.map((user) => ({
     id: user.userId,
     username: user.username,
@@ -284,7 +327,8 @@ async function main() {
     updated_at: nowIso,
   })), 'id', warnings);
 
-  await upsertRows('course_purchases', users.map((user) => ({
+  const optionalSeedNotices: string[] = [];
+  await upsertOptionalRows('course_purchases', users.map((user) => ({
     purchase_id: stableUuid(`${prefix}:purchase:${user.index}`),
     user_id: user.userId,
     course_id: courseId,
@@ -293,7 +337,7 @@ async function main() {
     purchased_at: nowIso,
     access_granted_at: nowIso,
     expires_at: null,
-  })), 'purchase_id', warnings, false);
+  })), 'purchase_id', optionalSeedNotices);
 
   const manifest: SeedManifest = {
     runId: config.runId,
@@ -316,6 +360,10 @@ async function main() {
   if (warnings.length > 0) {
     console.warn('Seed warnings:');
     warnings.forEach((warning) => console.warn(`- ${warning}`));
+  }
+  if (optionalSeedNotices.length > 0) {
+    console.warn('Seed notes:');
+    optionalSeedNotices.forEach((notice) => console.warn(`- ${notice}`));
   }
 }
 

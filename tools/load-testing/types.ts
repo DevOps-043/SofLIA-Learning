@@ -18,6 +18,7 @@ export interface LoadTestConfig {
   productionHosts: string[];
   requestTimeoutMs: number;
   thinkTimeMs: number;
+  allowUserReuse: boolean;
 }
 
 export interface LoadStage {

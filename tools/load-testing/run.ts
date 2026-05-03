@@ -75,8 +75,20 @@ function observeAbort(profileName: string, counters: Counters) {
 
   const errorRate = counters.failed / counters.total;
   if (profileName === 'load' || profileName === 'smoke') {
-    if (errorRate > 0.1) return `error rate exceeded 10% (${(errorRate * 100).toFixed(2)}%)`;
+    if (counters.total >= 1000 && errorRate > 0.01) {
+      return `nominal error rate exceeded 1% (${(errorRate * 100).toFixed(2)}%)`;
+    }
+    if (errorRate > 0.05) return `nominal error rate exceeded 5% (${(errorRate * 100).toFixed(2)}%)`;
     if (counters.status5xx > 25) return `more than 25 server errors observed (${counters.status5xx})`;
+  }
+
+  if (profileName === 'stress' || profileName === 'spike') {
+    if (counters.status5xx > 250) return `stress server error ceiling exceeded (${counters.status5xx} 5xx)`;
+    if (counters.timeouts > 5000) return `stress timeout ceiling exceeded (${counters.timeouts} timeouts)`;
+    if (counters.status429 > 50000) return `stress rate-limit ceiling exceeded (${counters.status429} 429)`;
+    if (counters.total >= 10000 && errorRate > 0.25) {
+      return `stress error rate exceeded 25% (${(errorRate * 100).toFixed(2)}%)`;
+    }
   }
 
   return undefined;
@@ -137,13 +149,20 @@ async function studyPlannerFlow(context: FlowContext) {
   }, true);
 
   let trackingId: string | undefined;
+  let alreadyCompleted = false;
   try {
     const body = start.responseText
-      ? (JSON.parse(start.responseText) as { trackingId?: string })
+      ? (JSON.parse(start.responseText) as { alreadyCompleted?: boolean; trackingId?: string })
       : undefined;
     trackingId = body?.trackingId;
+    alreadyCompleted = body?.alreadyCompleted === true;
   } catch {
     trackingId = undefined;
+  }
+
+  if (alreadyCompleted) {
+    context.completedLessonUsers.add(context.user.userId);
+    return;
   }
 
   await context.post('study-planner', 'lesson-tracking-event', '/api/study-planner/lesson-tracking/event', {
@@ -340,9 +359,15 @@ async function main() {
   await fs.writeFile(snapshotsFile, '', 'utf8');
 
   if (manifest.users.length < profile.maxVus) {
-    console.warn(
-      `User pool has ${manifest.users.length} users but profile needs ${profile.maxVus}. Users will be reused; seed more users with LOAD_SEED_USERS=${profile.maxVus} for stricter rate-limit realism.`
-    );
+    const message =
+      `User pool has ${manifest.users.length} users but profile needs ${profile.maxVus}. ` +
+      `Run load:seed with LOAD_SEED_USERS=${profile.maxVus}, or set LOAD_ALLOW_USER_REUSE=true only for an explicit synthetic saturation test.`;
+
+    if (!config.allowUserReuse) {
+      throw new Error(message);
+    }
+
+    console.warn(`${message} Users will be reused.`);
   }
 
   await validateTargetUsesSeededSessions({

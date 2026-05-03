@@ -174,6 +174,9 @@ function buildRecommendations(endpoints: EndpointStats[], summary: RunSummary | 
   if (loadLike && totals.status429 > 0) {
     recommendations.push(`Se observaron ${totals.status429} respuestas 429 en carga nominal. Validar que el pool QA usa usuarios/IPs unicos y ajustar rate limits si bloquea trafico legitimo.`);
   }
+  if (!loadLike && totals.status429 > 0) {
+    recommendations.push(`Stress encontro ${totals.status429} respuestas 429. Si aparecen tambien en paginas publicas, es probable que el borde/CDN este limitando trafico desde una sola IP de prueba; validar con runners distribuidos o ventana/allowlist de Netlify antes de concluir capacidad real de usuarios.`);
+  }
 
   if (totals.timeouts > 0) {
     recommendations.push(`Se observaron ${totals.timeouts} timeouts/abortos. Revisar cold starts, consultas lentas y maxDuration de endpoints dinamicos.`);

@@ -44,6 +44,18 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
+function isUniqueTrackingError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+
+  const record = error as { code?: unknown; message?: unknown };
+  const text = [record.code, record.message]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ')
+    .toLowerCase();
+
+  return text.includes('23505') || text.includes('lesson_tracking_unique');
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Verificar autenticación
@@ -76,10 +88,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .eq('user_id', user.id)
       .eq('lesson_id', lessonId)
       .eq('session_id', sessionId || null)
-      .eq('status', 'in_progress')
-      .single();
+      .maybeSingle();
 
     if (existingTracking) {
+      if (existingTracking.status !== 'in_progress') {
+        return NextResponse.json({
+          success: true,
+          message: 'Tracking ya estaba cerrado; inicio ignorado de forma idempotente',
+          trackingId: existingTracking.id,
+          isNew: false,
+          alreadyCompleted: existingTracking.status === 'completed'
+        });
+      }
+
       // Ya hay un tracking activo, solo actualizar last_activity_at
       await supabase
         .from('lesson_tracking')
@@ -132,6 +153,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .single();
 
     if (error) {
+      if (isUniqueTrackingError(error)) {
+        const { data: concurrentTracking } = await supabase
+          .from('lesson_tracking')
+          .select('id, status, video_checkpoint_seconds, video_playback_rate')
+          .eq('user_id', user.id)
+          .eq('lesson_id', lessonId)
+          .eq('session_id', sessionId || null)
+          .maybeSingle();
+
+        if (concurrentTracking) {
+          return NextResponse.json({
+            success: true,
+            message: 'Tracking existente reutilizado tras condicion de carrera',
+            trackingId: concurrentTracking.id,
+            isNew: false,
+            alreadyCompleted: concurrentTracking.status === 'completed',
+            initialCheckpoint: concurrentTracking.video_checkpoint_seconds || 0,
+            initialPlaybackRate: concurrentTracking.video_playback_rate || 1
+          });
+        }
+      }
+
       console.error('Error creando lesson tracking:', error);
       return NextResponse.json({
         error: `Error al crear tracking: ${error.message}`,

@@ -80,9 +80,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (tracking.status !== 'in_progress') {
       return NextResponse.json({ 
-        error: 'Tracking ya está completado',
-        success: false
-      }, { status: 400 });
+        message: 'Tracking ya esta cerrado; evento ignorado de forma idempotente',
+        success: true,
+        ignored: true
+      });
     }
 
     // Preparar actualización según el tipo de evento

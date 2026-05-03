@@ -107,6 +107,7 @@ export function getConfig(): LoadTestConfig {
       .filter(Boolean),
     requestTimeoutMs: readNumber('LOAD_REQUEST_TIMEOUT_MS', 65000),
     thinkTimeMs: readNumber('LOAD_THINK_TIME_MS', 750),
+    allowUserReuse: readBoolean('LOAD_ALLOW_USER_REUSE'),
   };
 }
 

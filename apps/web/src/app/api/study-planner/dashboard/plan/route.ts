@@ -12,7 +12,6 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
-import { getUserStudyPlanByIdOrLatest } from '@/features/study-planner/services/study-planner-plans.server.service';
 
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
@@ -66,6 +65,48 @@ interface DashboardPlanResponse {
   error?: string;
 }
 
+type DashboardStudyPlanRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  timezone: string;
+  preferred_days: number[];
+};
+
+async function getDashboardStudyPlan(
+  supabase: ReturnType<typeof createSharedAdminClient>,
+  params: { requestedPlanId?: string; userId: string },
+): Promise<DashboardStudyPlanRow | null> {
+  let query = supabase
+    .from('study_plans')
+    .select(`
+      id,
+      name,
+      description,
+      start_date,
+      end_date,
+      timezone,
+      preferred_days
+    `)
+    .eq('user_id', params.userId)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (params.requestedPlanId) {
+    query = query.eq('id', params.requestedPlanId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data || null) as DashboardStudyPlanRow | null;
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse<DashboardPlanResponse>> {
   try {
     // Verificar autenticación
@@ -79,48 +120,25 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
       );
     }
 
-    logger.info(`Dashboard plan API: Buscando plan para usuario ${user.id}`);
+    logger.debug('Dashboard plan API: buscando plan', { userId: user.id });
 
     // Usar cliente admin para bypass de RLS (la autenticación ya se verificó con SessionService)
     const supabase = createSharedAdminClient();
     const requestedPlanId = request.nextUrl.searchParams.get('planId') || undefined;
-    const selectedPlan = await getUserStudyPlanByIdOrLatest({
-      planId: requestedPlanId,
+    const plan = await getDashboardStudyPlan(supabase, {
+      requestedPlanId,
       userId: user.id,
     });
 
-    if (!selectedPlan) {
+    if (!plan) {
       return NextResponse.json(
-        { success: false, error: 'No hay plan de estudios activo' },
+        { success: false, error: requestedPlanId ? 'Plan no encontrado' : 'No hay plan de estudios activo' },
         { status: 404 }
       );
     }
 
     // Obtener plan más reciente del usuario
     // Nota: La tabla study_plans no tiene columna 'status', se usa el más reciente
-    const { data: plan, error: planError } = await supabase
-      .from('study_plans')
-      .select(`
-        id,
-        name,
-        description,
-        start_date,
-        end_date,
-        timezone,
-        preferred_days
-      `)
-      .eq('user_id', user.id)
-      .eq('id', selectedPlan.id)
-      .single();
-
-    logger.info(`Dashboard plan API: Resultado query - plan: ${plan?.id || 'null'}, error: ${planError?.code || 'none'}`);
-    if (planError || !plan) {
-      return NextResponse.json(
-        { success: false, error: 'Plan no encontrado' },
-        { status: 404 }
-      );
-    }
-
     // Obtener sesiones del plan y calendario en paralelo
     const now = new Date();
     const [
@@ -150,7 +168,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
         .select('provider, updated_at')
         .eq('user_id', user.id)
         .limit(1)
-        .single(),
+        .maybeSingle(),
     ]);
 
     if (sessionsError) {
