@@ -14,6 +14,9 @@ LOAD_RUN_ID=launch-week-qa-001
 LOAD_TARGET_VUS=700
 LOAD_SEED_USERS=700
 LOAD_AI_RATIO=0.05
+LOAD_THINK_TIME_MS=1500
+LOAD_THINK_TIME_JITTER_MS=1500
+LOAD_PUBLIC_FLOW_MODE=once
 LOAD_TEST_SUPABASE_URL=https://PROJECT.supabase.co
 LOAD_TEST_SUPABASE_SERVICE_ROLE_KEY=...
 ```
@@ -52,4 +55,6 @@ Results are written under `load-test-results/<LOAD_RUN_ID>/`:
 
 - For stress profile accuracy, seed at least the max VU count: `LOAD_SEED_USERS=1100 npm run load:seed`.
 - `LOAD_AI_RATIO` controls how many VU iterations call `/api/lia/chat`. Keep it low for broad platform load and raise it for a dedicated IA ceiling test.
+- `LOAD_PUBLIC_FLOW_MODE=once` visits public pages once per VU, which better represents users who land, authenticate, then work inside the app. Use `always` only for an explicit CDN/public-page saturation test.
+- `LOAD_THINK_TIME_MS` plus `LOAD_THINK_TIME_JITTER_MS` prevents synchronized request bursts from a single runner.
 - Supabase connection snapshots require a project RPC named by `LOAD_DB_METRICS_RPC`; without it, the report records a warning and still completes.

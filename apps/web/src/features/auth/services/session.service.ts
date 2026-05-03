@@ -6,7 +6,7 @@ import { createClient } from '../../../lib/supabase/server';
 import {
   buildLegacySessionRecord,
   cacheLegacySessionUser,
-  findActiveLegacySession,
+  findActiveLegacySessionUser,
   getCachedLegacySessionUser,
   revokeLegacySession,
 } from './session-legacy.service';
@@ -88,6 +88,7 @@ export class SessionService {
 
       const accessToken = cookieStore.get('access_token')?.value;
       let userId: string | null = null;
+      let resolvedUser: SessionUserRecord | null = null;
 
       if (accessToken) {
         logger.debug('Usando sistema de refresh tokens');
@@ -141,17 +142,16 @@ export class SessionService {
           return cachedUser;
         }
 
-        const session = await findActiveLegacySession(sessionToken);
-        if (!session) {
+        resolvedUser = await findActiveLegacySessionUser(sessionToken);
+        if (!resolvedUser) {
           return null;
         }
 
         logger.auth('Sesion legacy valida encontrada', {
-          userId: session.user_id,
-          expiresAt: session.expires_at,
+          userId: resolvedUser.id,
         });
 
-        userId = session.user_id;
+        userId = resolvedUser.id;
       }
 
       if (!userId) {
@@ -159,30 +159,34 @@ export class SessionService {
         return null;
       }
 
-      logger.debug('Buscando usuario con ID', { userId });
-      const supabase = await createClient();
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select(
-          'id, username, email, first_name, last_name, display_name, cargo_rol, profile_picture_url, is_banned, signature_url, signature_name'
-        )
-        .eq('id', userId)
-        .single();
+      if (!resolvedUser) {
+        logger.debug('Buscando usuario con ID', { userId });
+        const supabase = await createClient();
+        const { data: user, error: userError } = await supabase
+          .from('users')
+          .select(
+            'id, username, email, first_name, last_name, display_name, cargo_rol, profile_picture_url, is_banned, signature_url, signature_name'
+          )
+          .eq('id', userId)
+          .single();
 
-      if (userError) {
-        logger.error('Error obteniendo usuario de la DB:', {
-          userId,
-          error: userError,
-        });
-        return null;
+        if (userError) {
+          logger.error('Error obteniendo usuario de la DB:', {
+            userId,
+            error: userError,
+          });
+          return null;
+        }
+
+        if (!user) {
+          logger.warn('Usuario no encontrado en la DB', { userId });
+          return null;
+        }
+
+        resolvedUser = user as SessionUserRecord;
       }
 
-      if (!user) {
-        logger.warn('Usuario no encontrado en la DB', { userId });
-        return null;
-      }
-
-      const sessionUser = user as SessionUserRecord;
+      const sessionUser = resolvedUser;
 
       if (sessionUser.is_banned) {
         logger.auth('Usuario baneado intentando acceder', {

@@ -17,6 +17,13 @@ interface BuildLegacySessionRecordParams {
   userId: string;
 }
 
+interface LegacySessionUserLookupRow {
+  expires_at: string;
+  revoked: boolean;
+  user: SessionUserRecord | SessionUserRecord[] | null;
+  user_id: string;
+}
+
 function getLegacySessionCacheKey(sessionToken: string): string {
   return `user-by-session:${sessionToken}`;
 }
@@ -84,6 +91,51 @@ export async function findActiveLegacySession(
   }
 
   return data as LegacySessionLookupRow;
+}
+
+export async function findActiveLegacySessionUser(
+  sessionToken: string
+): Promise<SessionUserRecord | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('user_session')
+    .select(`
+      user_id,
+      expires_at,
+      revoked,
+      user:users!user_session_user_id_fkey (
+        id,
+        username,
+        email,
+        first_name,
+        last_name,
+        display_name,
+        cargo_rol,
+        profile_picture_url,
+        is_banned,
+        signature_url,
+        signature_name
+      )
+    `)
+    .eq('jwt_id', sessionToken)
+    .eq('revoked', false)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
+
+  if (error) {
+    logger.warn('Error buscando sesion legacy con usuario:', {
+      code: error.code,
+      message: error.message,
+      hint: error.hint,
+    });
+    return null;
+  }
+
+  const row = data as unknown as LegacySessionUserLookupRow | null;
+  const user = Array.isArray(row?.user) ? row?.user[0] : row?.user;
+
+  return user ?? null;
 }
 
 export async function revokeLegacySession(

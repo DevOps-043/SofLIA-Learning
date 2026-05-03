@@ -26,6 +26,9 @@ function main() {
   console.log(`- LOAD_TARGET_VUS: ${config.targetVus}`);
   console.log(`- LOAD_SEED_USERS: ${config.seedUsers}`);
   console.log(`- LOAD_AI_RATIO: ${config.aiRatio}`);
+  console.log(`- LOAD_THINK_TIME_MS: ${config.thinkTimeMs}`);
+  console.log(`- LOAD_THINK_TIME_JITTER_MS: ${config.thinkTimeJitterMs}`);
+  console.log(`- LOAD_PUBLIC_FLOW_MODE: ${config.publicFlowMode}`);
   console.log(`- LOAD_TEST_ORG_SLUG: ${config.orgSlug}`);
   console.log(`- LOAD_TEST_SUPABASE_URL: ${config.supabaseUrl || 'missing'}`);
   console.log(`- LOAD_TEST_SUPABASE_SERVICE_ROLE_KEY: ${mask(config.supabaseServiceRoleKey)}`);

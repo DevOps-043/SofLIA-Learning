@@ -18,6 +18,8 @@ export interface LoadTestConfig {
   productionHosts: string[];
   requestTimeoutMs: number;
   thinkTimeMs: number;
+  thinkTimeJitterMs: number;
+  publicFlowMode: 'once' | 'always';
   allowUserReuse: boolean;
 }
 
@@ -120,6 +122,7 @@ export interface EndpointStats {
   status401: number;
   status5xx: number;
   status429: number;
+  edge403Html: number;
   timeouts: number;
   bytes: number;
   minMs: number;

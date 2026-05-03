@@ -35,7 +35,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       planId,
     })
 
-    return NextResponse.json(response)
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'private, max-age=15, stale-while-revalidate=30',
+      },
+    })
   } catch (error) {
     if (error instanceof StudyPlannerSessionsRequestError) {
       return NextResponse.json(

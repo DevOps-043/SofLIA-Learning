@@ -18,9 +18,18 @@ interface MutableStats {
   status401: number;
   status5xx: number;
   status429: number;
+  edge403Html: number;
   timeouts: number;
   bytes: number;
   durations: number[];
+}
+
+function isEdge403Html(metric: RequestMetric) {
+  return (
+    metric.status === 403 &&
+    typeof metric.error === 'string' &&
+    metric.error.toLowerCase().includes('<!doctype html>')
+  );
 }
 
 function percentile(values: number[], p: number) {
@@ -45,6 +54,7 @@ function toEndpointStats(stats: MutableStats): EndpointStats {
     status401: stats.status401,
     status5xx: stats.status5xx,
     status429: stats.status429,
+    edge403Html: stats.edge403Html,
     timeouts: stats.timeouts,
     bytes: stats.bytes,
     minMs: sorted[0] || 0,
@@ -98,6 +108,7 @@ async function readMetrics(filePath: string) {
       status401: 0,
       status5xx: 0,
       status429: 0,
+      edge403Html: 0,
       timeouts: 0,
       bytes: 0,
       durations: [],
@@ -110,6 +121,7 @@ async function readMetrics(filePath: string) {
     if (metric.status === 401) existing.status401 += 1;
     if (metric.status >= 500) existing.status5xx += 1;
     if (metric.status === 429) existing.status429 += 1;
+    if (isEdge403Html(metric)) existing.edge403Html += 1;
     if (metric.status === 0 || metric.error?.toLowerCase().includes('abort')) existing.timeouts += 1;
     existing.bytes += metric.bytes;
     existing.durations.push(metric.durationMs);
@@ -145,10 +157,11 @@ function buildRecommendations(endpoints: EndpointStats[], summary: RunSummary | 
       acc.status401 += item.status401;
       acc.status5xx += item.status5xx;
       acc.status429 += item.status429;
+      acc.edge403Html += item.edge403Html;
       acc.timeouts += item.timeouts;
       return acc;
     },
-    { count: 0, failed: 0, status401: 0, status5xx: 0, status429: 0, timeouts: 0 },
+    { count: 0, failed: 0, status401: 0, status5xx: 0, status429: 0, edge403Html: 0, timeouts: 0 },
   );
   const errorRate = totals.count > 0 ? totals.failed / totals.count : 0;
 
@@ -164,6 +177,10 @@ function buildRecommendations(endpoints: EndpointStats[], summary: RunSummary | 
 
   if (totals.status5xx > 0) {
     recommendations.push(`BLOCKER: se observaron ${totals.status5xx} respuestas 5xx. Revisar logs de Netlify Functions y Supabase por endpoint antes del lanzamiento.`);
+  }
+
+  if (totals.edge403Html > 0) {
+    recommendations.push(`BLOCKER de plataforma: ${totals.edge403Html} respuestas 403 llegaron como HTML de Netlify Edge/CDN, no como error JSON de la app. Validar allowlist/limites de Netlify o repetir con runners distribuidos antes de certificar 700 usuarios desde una sola IP.`);
   }
 
   if (errorRate > 0.01) {
@@ -221,10 +238,11 @@ export async function generateReport(resultDir: string) {
       acc.status401 += item.status401;
       acc.status5xx += item.status5xx;
       acc.status429 += item.status429;
+      acc.edge403Html += item.edge403Html;
       acc.timeouts += item.timeouts;
       return acc;
     },
-    { count: 0, ok: 0, failed: 0, status4xx: 0, status401: 0, status5xx: 0, status429: 0, timeouts: 0 },
+    { count: 0, ok: 0, failed: 0, status4xx: 0, status401: 0, status5xx: 0, status429: 0, edge403Html: 0, timeouts: 0 },
   );
   const durationMs =
     summary ? new Date(summary.endedAt).getTime() - new Date(summary.startedAt).getTime() : 0;
@@ -267,6 +285,7 @@ export async function generateReport(resultDir: string) {
     `- 401: ${totals.status401}`,
     `- 5xx: ${totals.status5xx}`,
     `- 429: ${totals.status429}`,
+    `- Netlify Edge 403 HTML: ${totals.edge403Html}`,
     `- Timeouts: ${totals.timeouts}`,
     summary?.aborted ? `- Aborted: yes (${summary.abortReason || 'no reason recorded'})` : '- Aborted: no',
     '',
@@ -281,11 +300,11 @@ export async function generateReport(resultDir: string) {
     '## Failing Endpoints',
     failing.length === 0
       ? 'No failing endpoints recorded.'
-      : '| Flow | Endpoint | Count | Failed | 4xx | 401 | 5xx | 429 | Timeouts |',
+      : '| Flow | Endpoint | Count | Failed | 4xx | 401 | 5xx | 429 | Edge 403 | Timeouts |',
     failing.length === 0
       ? ''
-      : '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
-    ...failing.map((item) => `| ${item.flow} | ${item.method} ${item.url} | ${item.count} | ${item.failed} | ${item.status4xx} | ${item.status401} | ${item.status5xx} | ${item.status429} | ${item.timeouts} |`),
+      : '| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
+    ...failing.map((item) => `| ${item.flow} | ${item.method} ${item.url} | ${item.count} | ${item.failed} | ${item.status4xx} | ${item.status401} | ${item.status5xx} | ${item.status429} | ${item.edge403Html} | ${item.timeouts} |`),
     '',
     '## Snapshot Warnings',
     snapshots.flatMap((snapshot) => snapshot.warnings).length === 0

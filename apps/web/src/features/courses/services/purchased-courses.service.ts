@@ -99,6 +99,17 @@ interface EnrolledCourseStatsRow {
   courses: LearningStatsCourseRow;
 }
 
+const OPTIONAL_TABLE_RECHECK_MS = 5 * 60 * 1000;
+let coursePurchasesUnavailableUntil = 0;
+
+function shouldSkipCoursePurchasesTable(): boolean {
+  return Date.now() < coursePurchasesUnavailableUntil;
+}
+
+function markCoursePurchasesUnavailable(): void {
+  coursePurchasesUnavailableUntil = Date.now() + OPTIONAL_TABLE_RECHECK_MS;
+}
+
 function isMissingCoursePurchasesError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
 
@@ -254,11 +265,34 @@ export class PurchasedCoursesService {
     };
   }
 
+  private static async isCourseEnrolled(userId: string, courseId: string): Promise<boolean> {
+    const supabase = await createClient();
+
+    const { data: enrollment, error } = await supabase
+      .from('user_course_enrollments')
+      .select('enrollment_id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .neq('enrollment_status', 'cancelled')
+      .limit(1)
+      .maybeSingle();
+
+    if (error && error.code !== 'PGRST116') {
+      return false;
+    }
+
+    return !!enrollment;
+  }
+
   /**
    * Obtiene todos los cursos comprados por el usuario
    */
   static async getUserPurchasedCourses(userId: string): Promise<PurchasedCourse[]> {
     try {
+      if (shouldSkipCoursePurchasesTable()) {
+        return this.getUserEnrolledCourses(userId);
+      }
+
       const supabase = await createClient();
 
       // ✅ OPTIMIZACIÓN: Nested JOIN para incluir instructor en la misma query
@@ -304,6 +338,7 @@ export class PurchasedCoursesService {
 
       if (error) {
         if (isMissingCoursePurchasesError(error)) {
+          markCoursePurchasesUnavailable();
           return this.getUserEnrolledCourses(userId);
         }
 
@@ -353,6 +388,10 @@ export class PurchasedCoursesService {
    */
   static async isCoursePurchased(userId: string, courseId: string): Promise<boolean> {
     try {
+      if (shouldSkipCoursePurchasesTable()) {
+        return this.isCourseEnrolled(userId, courseId);
+      }
+
       const supabase = await createClient();
       
       const { data, error } = await supabase
@@ -366,20 +405,8 @@ export class PurchasedCoursesService {
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         if (isMissingCoursePurchasesError(error)) {
-          const { data: enrollment, error: enrollmentError } = await supabase
-            .from('user_course_enrollments')
-            .select('enrollment_id')
-            .eq('user_id', userId)
-            .eq('course_id', courseId)
-            .neq('enrollment_status', 'cancelled')
-            .limit(1)
-            .maybeSingle();
-
-          if (enrollmentError && enrollmentError.code !== 'PGRST116') {
-            return false;
-          }
-
-          return !!enrollment;
+          markCoursePurchasesUnavailable();
+          return this.isCourseEnrolled(userId, courseId);
         }
 
         return false;
@@ -402,6 +429,10 @@ export class PurchasedCoursesService {
     average_progress: number;
   }> {
     try {
+      if (shouldSkipCoursePurchasesTable()) {
+        return this.getUserLearningStatsFromEnrollments(userId);
+      }
+
       const supabase = await createClient();
       
       // Obtener todos los cursos comprados
@@ -422,6 +453,7 @@ export class PurchasedCoursesService {
 
       if (purchasesError) {
         if (isMissingCoursePurchasesError(purchasesError)) {
+          markCoursePurchasesUnavailable();
           return this.getUserLearningStatsFromEnrollments(userId);
         }
 

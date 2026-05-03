@@ -54,6 +54,14 @@ function shouldCallAi(aiRatio: number) {
   return aiRatio > 0 && Math.random() < aiRatio;
 }
 
+function randomInt(maxExclusive: number) {
+  return Math.floor(Math.random() * Math.max(0, maxExclusive));
+}
+
+function thinkDelay(baseMs: number, jitterMs: number) {
+  return baseMs + randomInt(jitterMs + 1);
+}
+
 function plannerDateRangePath() {
   const today = new Date();
   const start = new Date(today);
@@ -305,9 +313,12 @@ async function virtualUserLoop(params: {
   aiRatio: number;
   requestTimeoutMs: number;
   thinkTimeMs: number;
+  thinkTimeJitterMs: number;
+  publicFlowMode: 'once' | 'always';
   metricWriter: JsonlWriter<RequestMetric>;
   counters: Counters;
   completedLessonUsers: Set<string>;
+  publicFlowCompletedUsers: Set<string>;
 }) {
   const user = userForIndex(params.users, params.virtualUserIndex);
 
@@ -329,18 +340,26 @@ async function virtualUserLoop(params: {
       params.completedLessonUsers,
     );
 
-    await publicFlow(context);
-    await sleep(params.thinkTimeMs);
+    const shouldRunPublicFlow =
+      params.publicFlowMode === 'always' ||
+      !params.publicFlowCompletedUsers.has(user.userId);
+
+    if (shouldRunPublicFlow) {
+      await publicFlow(context);
+      params.publicFlowCompletedUsers.add(user.userId);
+      await sleep(thinkDelay(params.thinkTimeMs, params.thinkTimeJitterMs));
+    }
+
     await authenticatedFlow(context);
-    await sleep(params.thinkTimeMs);
+    await sleep(thinkDelay(params.thinkTimeMs, params.thinkTimeJitterMs));
     await studyPlannerFlow(context);
 
     if (shouldCallAi(params.aiRatio)) {
-      await sleep(params.thinkTimeMs);
+      await sleep(thinkDelay(params.thinkTimeMs, params.thinkTimeJitterMs));
       await aiFlow(context);
     }
 
-    await sleep(params.thinkTimeMs);
+    await sleep(thinkDelay(params.thinkTimeMs, params.thinkTimeJitterMs));
   }
 }
 
@@ -395,9 +414,11 @@ async function main() {
 
   const getCurrentTarget = () => targetAt(profile, (Date.now() - startTime) / 1000);
   const stopSignal = () => aborted;
+  const publicFlowCompletedUsers = new Set<string>();
 
   console.log(`Running ${profile.name} profile against ${config.baseUrl}`);
   console.log(`Run id: ${config.runId}. Results: ${config.resultDir}`);
+  console.log(`Public flow mode: ${config.publicFlowMode}. Think time: ${config.thinkTimeMs}ms + jitter ${config.thinkTimeJitterMs}ms.`);
 
   const workers = Array.from({ length: profile.maxVus }, (_, index) =>
     virtualUserLoop({
@@ -414,9 +435,12 @@ async function main() {
       aiRatio: config.aiRatio,
       requestTimeoutMs: config.requestTimeoutMs,
       thinkTimeMs: config.thinkTimeMs,
+      thinkTimeJitterMs: config.thinkTimeJitterMs,
+      publicFlowMode: config.publicFlowMode,
       metricWriter,
       counters,
       completedLessonUsers,
+      publicFlowCompletedUsers,
     }),
   );
 

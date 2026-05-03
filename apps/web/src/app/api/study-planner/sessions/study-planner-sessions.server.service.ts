@@ -5,17 +5,33 @@ import { refreshCalendarAccessToken } from '@/app/api/study-planner/calendar/eve
 import { syncDeletedStudySessions } from '@/app/api/study-planner/calendar/events/calendar-events-sync.service'
 import { needsCalendarTokenRefresh } from '@/app/api/study-planner/calendar/events/calendar-events.utils'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { cacheGet, cacheSet } from '@/lib/cache/ttlCache'
 import {
   getLatestStudyPlanId,
   getStudySessionsForRange,
 } from './study-planner-sessions.db'
 import type { StudyPlannerSessionsResponse } from './study-planner-sessions.types'
 
+const SESSIONS_RESPONSE_CACHE_TTL_MS = 15_000
+
 interface BuildStudyPlannerSessionsParams {
   userId: string
   startDate: Date
   endDate: Date
   planId?: string
+}
+
+function sessionsResponseCacheKey(
+  params: BuildStudyPlannerSessionsParams,
+  activePlanId: string | undefined,
+) {
+  return [
+    'api:study-planner:sessions',
+    params.userId,
+    params.startDate.toISOString(),
+    params.endDate.toISOString(),
+    activePlanId || params.planId || 'all',
+  ].join(':')
 }
 
 export async function syncStudyPlannerSessionsCalendarState(
@@ -75,6 +91,12 @@ export async function buildStudyPlannerSessionsResponse(
     }
   }
 
+  const cacheKey = sessionsResponseCacheKey(params, activePlanId)
+  const cached = cacheGet<StudyPlannerSessionsResponse>(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   await syncStudyPlannerSessionsCalendarState({
     ...params,
     supabase,
@@ -85,11 +107,15 @@ export async function buildStudyPlannerSessionsResponse(
     planId: activePlanId,
   })
 
-  return {
+  const response = {
     sessions,
     startDate: params.startDate.toISOString(),
     endDate: params.endDate.toISOString(),
     totalSessions: sessions.length,
     hasActivePlan: isAllPlans || Boolean(activePlanId),
   }
+
+  cacheSet(cacheKey, response, SESSIONS_RESPONSE_CACHE_TTL_MS)
+
+  return response
 }

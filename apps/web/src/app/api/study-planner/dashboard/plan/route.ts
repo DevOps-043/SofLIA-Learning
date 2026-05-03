@@ -12,6 +12,9 @@ import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../../lib/supabase/types';
 import { logger } from '../../../../../lib/utils/logger';
 import { createAdminClient as createSharedAdminClient } from '@/lib/supabase/admin';
+import { cacheGet, cacheSet } from '@/lib/cache/ttlCache';
+
+const DASHBOARD_PLAN_CACHE_TTL_MS = 15_000;
 
 /**
  * Crea un cliente de Supabase con Service Role Key para bypass de RLS
@@ -107,6 +110,10 @@ async function getDashboardStudyPlan(
   return (data || null) as DashboardStudyPlanRow | null;
 }
 
+function dashboardPlanCacheKey(userId: string, requestedPlanId?: string) {
+  return `api:study-planner:dashboard-plan:${userId}:${requestedPlanId || 'latest'}`;
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse<DashboardPlanResponse>> {
   try {
     // Verificar autenticación
@@ -125,6 +132,17 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
     // Usar cliente admin para bypass de RLS (la autenticación ya se verificó con SessionService)
     const supabase = createSharedAdminClient();
     const requestedPlanId = request.nextUrl.searchParams.get('planId') || undefined;
+    const cacheKey = dashboardPlanCacheKey(user.id, requestedPlanId);
+    const cached = cacheGet<DashboardPlanResponse>(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: {
+          'Cache-Control': 'private, max-age=15, stale-while-revalidate=30',
+        },
+      });
+    }
+
     const plan = await getDashboardStudyPlan(supabase, {
       requestedPlanId,
       userId: user.id,
@@ -137,8 +155,6 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
       );
     }
 
-    // Obtener plan más reciente del usuario
-    // Nota: La tabla study_plans no tiene columna 'status', se usa el más reciente
     // Obtener sesiones del plan y calendario en paralelo
     const now = new Date();
     const [
@@ -211,7 +227,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
       isAiGenerated: session.is_ai_generated ?? false,
     }));
 
-    return NextResponse.json({
+    const response: DashboardPlanResponse = {
       success: true,
       data: {
         id: plan.id,
@@ -228,6 +244,14 @@ export async function GET(request: NextRequest): Promise<NextResponse<DashboardP
         calendarConnected: !!calendarIntegration,
         calendarProvider: calendarIntegration?.provider,
         lastCalendarSync: calendarIntegration?.updated_at,
+      },
+    };
+
+    cacheSet(cacheKey, response, DASHBOARD_PLAN_CACHE_TTL_MS);
+
+    return NextResponse.json(response, {
+      headers: {
+        'Cache-Control': 'private, max-age=15, stale-while-revalidate=30',
       },
     });
 

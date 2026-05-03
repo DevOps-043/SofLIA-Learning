@@ -62,6 +62,13 @@ function readBoolean(name: string, fallback = false): boolean {
   return ['1', 'true', 'yes', 'y'].includes(raw.toLowerCase());
 }
 
+function readPublicFlowMode(): LoadTestConfig['publicFlowMode'] {
+  const raw = readEnv('LOAD_PUBLIC_FLOW_MODE') || 'once';
+  if (raw === 'once' || raw === 'always') return raw;
+
+  throw new Error('LOAD_PUBLIC_FLOW_MODE must be "once" or "always".');
+}
+
 function defaultRunId() {
   return new Date().toISOString().replace(/[-:]/g, '').replace(/\..+$/, 'Z');
 }
@@ -106,7 +113,9 @@ export function getConfig(): LoadTestConfig {
       .map((host) => host.trim().toLowerCase())
       .filter(Boolean),
     requestTimeoutMs: readNumber('LOAD_REQUEST_TIMEOUT_MS', 65000),
-    thinkTimeMs: readNumber('LOAD_THINK_TIME_MS', 750),
+    thinkTimeMs: readNumber('LOAD_THINK_TIME_MS', 1500),
+    thinkTimeJitterMs: readNumber('LOAD_THINK_TIME_JITTER_MS', 1500),
+    publicFlowMode: readPublicFlowMode(),
     allowUserReuse: readBoolean('LOAD_ALLOW_USER_REUSE'),
   };
 }
