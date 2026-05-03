@@ -35,31 +35,35 @@
     "steps": {
       "welcome": {
         "title": "Bienvenido a tu espacio de aprendizaje",
-        "content": "Este es tu centro personal de desarrollo. Desde aqui puedes revisar progreso, continuar cursos y avanzar en tus metas."
+        "content": "Este es tu centro personal de desarrollo. Desde aquí puedes revisar progreso, continuar cursos y avanzar en tus metas."
       },
-      "stats": {
-        "title": "Estadisticas generales",
-        "content": "Aqui tienes una vista rapida de tu actividad. Revisa cursos asignados, progreso y certificados."
+      "userMenuTrigger": {
+        "title": "Acceso a tu menú",
+        "content": "Abre tu menú personal desde aquí. Es el acceso rápido a perfil, certificados, estadísticas, idioma, tema y cierre de sesión."
       },
-      "courses": {
-        "title": "Tus cursos",
-        "content": "Consulta los cursos asignados y su estado actual para mantener el seguimiento de tu formacion."
+      "userMenuPanel": {
+        "title": "Menú desplegable del usuario",
+        "content": "Dentro del menú encuentras tus accesos personales. Puedes cambiar el idioma de la plataforma o el tema visual en cualquier momento."
       },
-      "certificates": {
-        "title": "Tus certificados",
-        "content": "Visualiza los certificados obtenidos y el avance que ya has completado."
+      "courseFilters": {
+        "title": "Filtros y vistas de cursos",
+        "content": "Usa estos controles para cambiar entre vista de cuadrícula, lista o rutas de aprendizaje para organizar mejor tu estudio."
       },
-      "userMenu": {
-        "title": "Menu de usuario",
-        "content": "Desde este menu accedes a herramientas clave como perfil, idioma y accesos personales."
+      "learningPaths": {
+        "title": "Tus learning paths",
+        "content": "Las rutas ordenan tus cursos en una secuencia lógica. Podrás ver cursos bloqueados, en progreso y completados dentro de cada ruta."
       },
-      "courseViews": {
-        "title": "Vistas de tus cursos",
-        "content": "Cambia entre cuadricula, lista y learning paths. En learning paths puedes ver tus rutas de aprendizaje, el orden recomendado de los cursos, bloqueos y progreso de cada ruta."
+      "learningPathVideo": {
+        "title": "Video introductorio de la ruta",
+        "content": "Este botón abre el video introductorio de la ruta para que entiendas el objetivo global de lo que vas a aprender."
+      },
+      "learningPathCourses": {
+        "title": "Cursos dentro del learning path",
+        "content": "Cada tarjeta muestra el curso, su posición en la ruta y si está disponible para comenzar o bloqueado por el curso anterior."
       },
       "soflia": {
         "title": "Tu asistente SofLIA",
-        "content": "SofLIA esta aqui para resolver dudas, darte contexto y acompanarte durante tu aprendizaje."
+        "content": "SofLIA está aquí para resolver dudas, darte contexto y acompañarte durante tu aprendizaje."
       }
     }
   },

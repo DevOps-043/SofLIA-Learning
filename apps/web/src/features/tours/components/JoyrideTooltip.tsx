@@ -128,13 +128,15 @@ export function JoyrideTooltip({
       {...resolvedTooltipProps}
       className={joinClassNames(
         resolvedTooltipProps.className,
-        'relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[100003]',
+        'joyride-tooltip-container relative flex flex-col overflow-hidden border-0 bg-white dark:bg-[#1E2329] text-gray-900 dark:text-white z-[1000001] pointer-events-auto',
         compactViewport ? 'rounded-[20px] max-h-[80vh]' : 'rounded-2xl max-h-[85vh]',
         resolveTooltipWidthClass(step.data, compactViewport)
       )}
       style={{
         ...(resolvedTooltipProps.style ?? {}),
         ...(fixedLeftDock ? resolveFixedLeftTooltipStyle(step) : {}),
+        zIndex: 1000001,
+        pointerEvents: 'auto',
         boxShadow: compactViewport
           ? '0 14px 34px -16px rgba(0,0,0,0.28), 0 0 0 1px rgba(0,0,0,0.05)'
           : '0 20px 50px -10px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)',

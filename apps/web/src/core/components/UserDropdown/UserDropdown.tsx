@@ -100,7 +100,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
   }
 
   const languageOptions = [
-    { value: 'es' as const, label: t('languages.es'), flag: '🇪🇸' },
+    { value: 'es' as const, label: t('languages.es'), flag: '🇲🇽' },
     { value: 'en' as const, label: t('languages.en'), flag: '🇺🇸' },
     { value: 'pt' as const, label: t('languages.pt'), flag: '🇧🇷' },
   ]

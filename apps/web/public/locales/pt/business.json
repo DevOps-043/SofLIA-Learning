@@ -1,4 +1,4 @@
-{
+﻿{
   "sidebar": {
     "dashboard": "Dashboard",
     "users": "Usuários",
@@ -35,31 +35,36 @@
     "steps": {
       "welcome": {
         "title": "Bem-vindo ao seu espaço de aprendizagem",
-        "content": "Este e seu centro pessoal de desenvolvimento. A partir daqui voce pode revisar o progresso, continuar workshops e avancar em suas metas."
+        "content": "Este é o seu centro pessoal de desenvolvimento. A partir daqui você pode revisar o progresso, continuar cursos e avançar em suas metas."
       },
-      "stats": {
-        "title": "Estatisticas gerais",
-        "content": "Aqui voce tem uma visao rapida da sua atividade. Revise workshops atribuidos, progresso e certificados."
+
+      "userMenuTrigger": {
+        "title": "Acesso ao seu menu",
+        "content": "Abra seu menu pessoal aqui. É o acesso rápido ao perfil, certificados, estatísticas, idioma, tema e encerramento de sessão."
       },
-      "courses": {
-        "title": "Seus workshops",
-        "content": "Consulte os workshops atribuidos e o status atual para acompanhar sua aprendizagem."
+      "userMenuPanel": {
+        "title": "Menu suspenso do usuário",
+        "content": "Dentro do menu você encontrará seus atalhos pessoais. Você pode alterar o idioma da plataforma ou o tema visual a qualquer momento."
       },
-      "certificates": {
-        "title": "Seus certificados",
-        "content": "Veja os certificados obtidos e o progresso que voce ja concluiu."
+      "courseFilters": {
+        "title": "Filtros e vistas de cursos",
+        "content": "Use estes controles para alternar entre as vistas de grade, lista ou trilhas de aprendizagem para organizar melhor seu estudo."
       },
-      "userMenu": {
-        "title": "Menu do usuario",
-        "content": "Neste menu voce acessa ferramentas importantes como perfil, idioma e atalhos pessoais."
+      "learningPaths": {
+        "title": "Suas trilhas de aprendizagem",
+        "content": "As trilhas organizam seus cursos em uma sequência lógica. Você poderá ver cursos bloqueados, em progresso e concluídos dentro de cada trilha."
       },
-      "courseViews": {
-        "title": "Visualizacoes dos workshops",
-        "content": "Alterne entre grade, lista e rotas de aprendizagem. Nas rotas de aprendizagem voce pode ver seus percursos, a ordem recomendada dos workshops, bloqueios e progresso de cada rota."
+      "learningPathVideo": {
+        "title": "Vídeo introdutório da trilha",
+        "content": "Este botão abre o vídeo introdutório da trilha para que você entenda o objetivo global do que vai aprender."
+      },
+      "learningPathCourses": {
+        "title": "Cursos dentro da trilha de aprendizagem",
+        "content": "Cada cartão mostra o curso, sua posição na trilha e se está disponível para começar ou bloqueado pelo curso anterior."
       },
       "soflia": {
         "title": "Sua assistente SofLIA",
-        "content": "A SofLIA esta aqui para responder duvidas, dar contexto e acompanhar voce durante sua aprendizagem."
+        "content": "A SofLIA está aqui para tirar dúvidas, dar contexto e acompanhá-lo durante sua aprendizagem."
       }
     }
   },

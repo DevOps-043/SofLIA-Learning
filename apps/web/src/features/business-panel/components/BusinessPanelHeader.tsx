@@ -48,13 +48,13 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const languageOptions = [
-    { value: 'es' as const, label: 'Español', flag: '🇪🇸' },
+    { value: 'es' as const, label: 'Español', flag: '🇲🇽' },
     { value: 'en' as const, label: 'English', flag: '🇺🇸' },
     { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
   ]
 
   const languageOptionsDisplay = [
-    { value: 'es' as const, label: 'Español', flag: '🇪🇸' },
+    { value: 'es' as const, label: 'Español', flag: '🇲🇽' },
     { value: 'en' as const, label: 'English', flag: '🇺🇸' },
     { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
   ]

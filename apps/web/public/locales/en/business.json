@@ -35,27 +35,31 @@
     "steps": {
       "welcome": {
         "title": "Welcome to your learning space",
-        "content": "This is your personal development hub. From here you can review progress, continue workshops, and move toward your goals."
+        "content": "This is your personal development hub. From here you can review progress, continue courses, and move toward your goals."
       },
-      "stats": {
-        "title": "General statistics",
-        "content": "Here you have a quick view of your activity. Review assigned workshops, progress, and certificates."
+      "userMenuTrigger": {
+        "title": "Access to your menu",
+        "content": "Open your personal menu from here. It's the quick access to profile, certificates, statistics, language, theme, and logout."
       },
-      "courses": {
-        "title": "Your workshops",
-        "content": "Check your assigned workshops and their current status to keep track of your learning."
+      "userMenuPanel": {
+        "title": "User dropdown menu",
+        "content": "Inside the menu you'll find your personal shortcuts. You can change the platform language or visual theme at any time."
       },
-      "certificates": {
-        "title": "Your certificates",
-        "content": "View the certificates you have earned and the progress you have already completed."
+      "courseFilters": {
+        "title": "Course filters and views",
+        "content": "Use these controls to switch between grid, list, or learning path views to better organize your study."
       },
-      "userMenu": {
-        "title": "User menu",
-        "content": "From this menu you can access key tools such as your profile, language, and personal shortcuts."
+      "learningPaths": {
+        "title": "Your learning paths",
+        "content": "Paths organize your courses in a logical sequence. You'll be able to see locked, in-progress, and completed courses within each path."
       },
-      "courseViews": {
-        "title": "Workshop views",
-        "content": "Switch between grid, list, and learning paths. In learning paths you can see your learning routes, recommended workshop order, locks, and route progress."
+      "learningPathVideo": {
+        "title": "Path introductory video",
+        "content": "This button opens the introductory video for the path so you understand the global objective of what you are going to learn."
+      },
+      "learningPathCourses": {
+        "title": "Courses within the learning path",
+        "content": "Each card shows the course, its position in the path, and if it's available to start or locked by the previous course."
       },
       "soflia": {
         "title": "Your SofLIA assistant",

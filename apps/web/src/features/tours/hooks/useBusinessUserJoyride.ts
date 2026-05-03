@@ -34,7 +34,13 @@ function clickTourTarget(selector: string): boolean {
     return false;
   }
 
+  // Programmatic click
   element.click();
+  
+  // Trigger synthetic events to ensure React listeners catch it
+  element.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, view: window }));
+  element.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window }));
+  
   return true;
 }
 
@@ -109,13 +115,18 @@ function closeUserMenuIfOpen(): number {
   const mobilePanelSelector = getBusinessUserDashboardTourTargetSelector('mobileMenuPanel');
 
   if (queryTourTarget(desktopPanelSelector)) {
-    clickTourTarget(getBusinessUserDashboardTourTargetSelector('userDropdownTrigger'));
-    return 140;
+    const backdrop = queryTourTarget('#tour-user-dropdown-backdrop');
+    if (backdrop) {
+      backdrop.click();
+    } else {
+      clickTourTarget(getBusinessUserDashboardTourTargetSelector('userDropdownTrigger'));
+    }
+    return 200;
   }
 
   if (queryTourTarget(mobilePanelSelector)) {
     clickTourTarget(getBusinessUserDashboardTourTargetSelector('mobileMenuTrigger'));
-    return 140;
+    return 200;
   }
 
   return 0;
@@ -153,6 +164,7 @@ function resolveBusinessUserJoyrideSteps(
   isMobile: boolean,
   hasCourseControls: boolean,
   hasLearningPaths: boolean,
+  t: businessUserJoyrideConfig.BusinessUserJoyrideTranslator,
 ): Step[] {
   if (
     typeof businessUserJoyrideConfig.buildBusinessUserJoyrideSteps === 'function'
@@ -161,6 +173,7 @@ function resolveBusinessUserJoyrideSteps(
       hasCourseControls,
       hasLearningPaths,
       isMobile,
+      t,
     });
   }
 
@@ -182,6 +195,7 @@ export function useBusinessUserJoyride(
   } = options;
   const { setRestart } = useTourRestart();
   const { t } = useTranslation('common');
+  const { t: tBusiness } = useTranslation('business');
 
   const {
     shouldShowTour,
@@ -194,7 +208,6 @@ export function useBusinessUserJoyride(
   const [run, setRun] = useState(false);
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const [activeSteps, setActiveSteps] = useState<Step[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [isTourFinishedInSession, setIsTourFinishedInSession] = useState(false);
@@ -217,17 +230,15 @@ export function useBusinessUserJoyride(
       isMobile,
       hasCourseControls,
       hasLearningPaths,
+      tBusiness,
     );
-  }, [hasCourseControls, hasLearningPaths, isMobile]);
+  }, [hasCourseControls, hasLearningPaths, isMobile, tBusiness]);
 
-  const getRunnableSteps = useCallback(() => {
-    const visibleSteps = steps.filter(targetIsVisible);
-
-    if (visibleSteps.length > 0) {
-      return visibleSteps;
-    }
-
-    return steps.filter(targetExists);
+  const runnableSteps = useMemo(() => {
+    // We provide all steps to Joyride.
+    // If a target doesn't exist yet (e.g. menu not open), Joyride emits TARGET_NOT_FOUND
+    // and our callback handles opening the menu or moving to the next step.
+    return steps;
   }, [steps]);
 
   const moveToStep = useCallback(
@@ -271,19 +282,7 @@ export function useBusinessUserJoyride(
     setStepIndex(0);
     
     // We use a small timeout to let the DOM settle after the video modal closes
-    // This ensures elements like the SofLIA button are correctly positioned for Joyride
     setTimeout(() => {
-      const runnableSteps = getRunnableSteps();
-      setActiveSteps(runnableSteps);
-
-      if (runnableSteps.length === 0) {
-        console.warn('[useBusinessUserJoyride] No steps found, completing tour');
-        completeTour().catch((err) =>
-          console.error('[useBusinessUserJoyride] No steps available:', err),
-        );
-        return;
-      }
-
       console.log('[useBusinessUserJoyride] Starting Joyride with', runnableSteps.length, 'steps');
       startTour().catch((err) =>
         console.error('[useBusinessUserJoyride] DB start failed', err),
@@ -291,7 +290,7 @@ export function useBusinessUserJoyride(
       prepareBusinessUserStep(steps[0], isMobile);
       setRun(true);
     }, 300);
-  }, [completeTour, getRunnableSteps, isMobile, startTour, steps]);
+  }, [isMobile, runnableSteps.length, startTour, steps]);
 
   const handleJoyrideCallback = useCallback(
     (data: CallBackProps) => {
@@ -337,7 +336,7 @@ export function useBusinessUserJoyride(
         }
 
         // If we're on the last step and moving forward, finish the tour
-        if (index >= activeSteps.length - 1) {
+        if (index >= runnableSteps.length - 1) {
           console.log('[useBusinessUserJoyride] Last step reached, finishing tour');
           setRun(false);
           setIsTourFinishedInSession(true);
@@ -377,7 +376,7 @@ export function useBusinessUserJoyride(
 
   return {
     joyrideProps: {
-      steps: activeSteps.length > 0 ? activeSteps : steps.filter(targetExists),
+      steps: runnableSteps,
       run,
       stepIndex,
       callback: handleJoyrideCallback,
@@ -395,11 +394,12 @@ export function useBusinessUserJoyride(
       tooltipComponent: JoyrideTooltip,
       styles: {
         options: {
-          zIndex: 100000,
+          zIndex: 999999,
           arrowColor: '#1E2329',
         },
         spotlight: {
           borderRadius: 16,
+          zIndex: 1000000,
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -411,6 +411,7 @@ export function useBusinessUserJoyride(
         offset: isMobile ? 10 : 15,
         styles: {
           floater: {
+            zIndex: 1000001,
             filter: isMobile
               ? 'none'
               : 'drop-shadow(0 4px 20px rgba(0, 0, 0, 0.3))',

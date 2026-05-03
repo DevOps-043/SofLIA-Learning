@@ -37,7 +37,7 @@ export function LanguageSelector({ className = '' }: LanguageSelectorProps) {
   }, [setLanguage])
 
   const languageOptions: { value: SupportedLanguage; label: string; flag: string }[] = [
-    { value: 'es', label: t('languages.es'), flag: '🇪🇸' },
+    { value: 'es', label: t('languages.es'), flag: '🇲🇽' },
     { value: 'en', label: t('languages.en'), flag: '🇺🇸' },
     { value: 'pt', label: t('languages.pt'), flag: '🇧🇷' },
   ]
