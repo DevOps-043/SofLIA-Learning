@@ -4,7 +4,7 @@ import { cacheHeaders } from '../../../../lib/utils/cache-headers';
 import { logger } from '@/lib/utils/logger';
 import { createClient } from '@/lib/supabase/server';
 import { MemoryCache } from '@/lib/cache/memory-cache';
-import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit'
+import { applyAuthReadRateLimit } from '@/lib/auth/auth-rate-limit'
 
 // ⚡ OPTIMIZACIÓN: Cache de organizaciones (5MB, 5min TTL)
 interface CachedOrganizationData {
@@ -25,7 +25,7 @@ const orgCache = new MemoryCache<CachedOrganizationData>(5, 5 * 60 * 1000);
 export async function GET(request: Request) {
   try {
     const user = await SessionService.getCurrentUser();
-    const rateLimitResponse = applyAuthRateLimit(request, user?.id ?? null)
+    const rateLimitResponse = applyAuthReadRateLimit(request, user?.id ?? null)
 
     if (rateLimitResponse) {
       return rateLimitResponse

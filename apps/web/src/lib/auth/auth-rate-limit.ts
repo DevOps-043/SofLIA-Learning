@@ -11,3 +11,11 @@ export function applyAuthRateLimit(request: Request, userId?: string | null) {
     userId ?? getClientIP(request)
   )
 }
+
+export function applyAuthReadRateLimit(request: Request, userId?: string | null) {
+  return rateLimitMiddleware(
+    request,
+    RateLimitTier.API_READ,
+    userId ?? getClientIP(request)
+  )
+}
