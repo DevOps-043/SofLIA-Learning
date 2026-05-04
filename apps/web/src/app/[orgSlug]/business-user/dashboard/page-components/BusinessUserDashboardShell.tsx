@@ -104,9 +104,7 @@ export function BusinessUserDashboardShell({
   t,
   disableHeavyEffects,
 }: BusinessUserDashboardShellProps) {
-  const [courseView, setCourseView] = useState<'grid' | 'list'>(
-    disableHeavyEffects ? 'list' : 'grid'
-  )
+  const [courseView, setCourseView] = useState<'grid' | 'list'>('grid')
   const [visibleCourseCount, setVisibleCourseCount] = useState(
     disableHeavyEffects ? 6 : assignedCourses.length
   )
@@ -142,7 +140,6 @@ export function BusinessUserDashboardShell({
       return
     }
 
-    setCourseView('list')
     setVisibleCourseCount(6)
   }, [assignedCourses.length, disableHeavyEffects])
 

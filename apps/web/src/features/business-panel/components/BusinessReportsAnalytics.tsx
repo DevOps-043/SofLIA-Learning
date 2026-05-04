@@ -326,10 +326,8 @@ export function BusinessReportsAnalytics() {
             />
           </div>
 
-          <div className="grid gap-5 xl:grid-cols-[1fr_1.2fr]">
-            <QualityScorePanel data={data} theme={theme} t={t} />
-            <SegmentComparisonPanel data={data} theme={theme} t={t} />
-          </div>
+          <QualityScorePanel data={data} theme={theme} t={t} />
+          <SegmentComparisonPanel data={data} theme={theme} t={t} />
 
           <LeaderboardPanel data={data} theme={theme} t={t} />
           <CourseRiskTable courses={data.courses} theme={theme} t={t} />
