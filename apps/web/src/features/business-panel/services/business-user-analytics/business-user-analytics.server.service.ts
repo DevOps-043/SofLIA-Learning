@@ -406,7 +406,7 @@ export async function fetchBusinessUserAnalyticsDataset({
     activities,
     quizzes,
     quality,
-    contributionCalendar: buildConnectionCalendar(contributionDates, period),
+    contributionCalendar: buildConnectionCalendar(contributionDates, buildBusinessUserAnalyticsPeriod('365d')),
     aiSamples: buildAiSamples(data, courseTitleById, enrollmentCourseById, evaluationsBySubmission),
   }
 
@@ -426,7 +426,7 @@ async function fetchQueryData(
     fetchAssignments(supabase, userId, organizationId),
     fetchEnrollments(supabase, userId),
     fetchCertificates(supabase, userId),
-    fetchUserSessions(supabase, userId, period),
+    fetchUserSessions(supabase, userId, buildBusinessUserAnalyticsPeriod('365d')),
   ])
   const assignedCourseIds = new Set(assignments.map((assignment) => assignment.course_id))
   const enrollments = allEnrollments.filter((enrollment) =>
@@ -939,15 +939,23 @@ function buildActivities(
   const validated = data.activitySubmissions.filter((submission) => submission.status === 'validated').length
   const needsRevision = data.activitySubmissions.filter((submission) => submission.status === 'needs_revision').length
   const submitted = data.activitySubmissions.filter((submission) => submission.status !== 'draft').length
-  const evaluationScores = data.activitySubmissions
-    .map((submission) => evaluationsBySubmission.get(submission.submission_id))
-    .filter((evaluation): evaluation is ActivityEvaluationRecord => Boolean(evaluation))
-    .map((evaluation) => scoreEvaluationStatus(evaluation.result_status))
+  const submittedActivities = data.activitySubmissions.filter((submission) => submission.status !== 'draft')
+  const evaluationScores = submittedActivities.map((submission) => {
+    const evaluation = evaluationsBySubmission.get(submission.submission_id)
+    if (evaluation) return scoreEvaluationStatus(evaluation.result_status)
+    if (submission.status === 'validated') return 100
+    if (submission.status === 'needs_revision') return 55
+    return 100
+  })
   const statusCounts = new Map<string, number>()
   data.activitySubmissions.forEach((submission) => incrementMap(statusCounts, submission.status || 'draft'))
   completedSofliaActivities.forEach((completion) => incrementMap(statusCounts, completion.status || 'completed'))
-  const directPasses = Array.from(evaluationsBySubmission.values()).filter((evaluation) => evaluation.result_status === 'pass').length
-  const totalEvaluatedOrCompleted = evaluationsBySubmission.size + completedSofliaActivities.length
+  const directPasses = submittedActivities.filter((submission) => {
+    const evaluation = evaluationsBySubmission.get(submission.submission_id)
+    if (evaluation) return evaluation.result_status === 'pass'
+    return submission.status === 'validated' || submission.status === 'completed'
+  }).length
+  const totalEvaluatedOrCompleted = submittedActivities.length + completedSofliaActivities.length
   const qualityScores = [
     ...evaluationScores,
     ...completedSofliaActivities.map(() => 100),

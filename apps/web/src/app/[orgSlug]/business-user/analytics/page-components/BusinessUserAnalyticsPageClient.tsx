@@ -102,8 +102,9 @@ export function BusinessUserAnalyticsPageClient() {
       })
       const data = (await response.json()) as AnalyticsApiResponse
 
-      if (!response.ok || data.success !== true) {
-        throw new Error(data.error || t('analytics.errors.load'))
+      if (!response.ok || ('success' in data && data.success === false)) {
+        const errorMessage = 'error' in data ? (data as { error?: string }).error : null
+        throw new Error(errorMessage || t('analytics.errors.load'))
       }
 
       setAnalytics(data)
@@ -136,8 +137,9 @@ export function BusinessUserAnalyticsPageClient() {
       })
       const data = (await response.json()) as InsightsApiResponse
 
-      if (!response.ok || data.success !== true) {
-        throw new Error(data.error || t('analytics.errors.insights'))
+      if (!response.ok || ('success' in data && data.success === false)) {
+        const errorMessage = 'error' in data ? (data as { error?: string }).error : null
+        throw new Error(errorMessage || t('analytics.errors.insights'))
       }
 
       setInsights(data.insights)
@@ -318,6 +320,8 @@ export function BusinessUserAnalyticsPageClient() {
                           domain={[0, 100]}
                           tickFormatter={(value) => `${value}%`}
                           tickMargin={8}
+                          tick={{ fill: 'currentColor', fontSize: 12 }}
+                          className="text-gray-600 dark:text-gray-300"
                         />
                         <YAxis
                           dataKey="name"
@@ -385,8 +389,8 @@ export function BusinessUserAnalyticsPageClient() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={engagementTrendData}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                      <YAxis allowDecimals={false} />
+                      <XAxis dataKey="label" tick={{ fill: 'currentColor', fontSize: 12 }} className="text-gray-600 dark:text-gray-300" />
+                      <YAxis allowDecimals={false} tick={{ fill: 'currentColor', fontSize: 12 }} className="text-gray-600 dark:text-gray-300" />
                       <Tooltip />
                       <Line type="monotone" dataKey="messages" name={t('analytics.chart.messages')} stroke="var(--color-accent)" strokeWidth={2} dot={false} />
                       <Line type="monotone" dataKey="lessons" name={t('analytics.chart.lessons')} stroke="var(--color-primary)" strokeWidth={2} dot={false} />
@@ -405,7 +409,7 @@ export function BusinessUserAnalyticsPageClient() {
                   <ResponsiveContainer width="100%" height="100%">
                     <RadarChart data={radarData}>
                       <PolarGrid />
-                      <PolarAngleAxis dataKey="label" tick={{ fontSize: 12 }} />
+                      <PolarAngleAxis dataKey="label" tick={<RadarAngleTick />} />
                       <Radar
                         dataKey="value"
                         stroke="var(--color-accent)"
@@ -653,11 +657,37 @@ function CourseAxisTick({
       <text
         dy={4}
         textAnchor="end"
-        className="fill-gray-600 text-xs dark:fill-gray-300"
+        fill="currentColor"
+        className="text-xs text-gray-600 dark:text-gray-300"
       >
         {label}
       </text>
     </g>
+  )
+}
+
+function RadarAngleTick({
+  x = 0,
+  y = 0,
+  payload,
+  textAnchor,
+}: {
+  x?: number
+  y?: number
+  payload?: { value?: string }
+  textAnchor?: 'middle' | 'start' | 'end' | 'inherit'
+}) {
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={textAnchor || 'middle'}
+      fill="currentColor"
+      className="text-xs text-gray-600 dark:text-gray-300"
+      dy={4}
+    >
+      {payload?.value || ''}
+    </text>
   )
 }
 

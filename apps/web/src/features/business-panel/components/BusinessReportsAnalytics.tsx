@@ -984,37 +984,39 @@ function SegmentComparisonPanel({ data, theme, t }: { data: ReportsAnalyticsResp
   }))
 
   return (
-    <section className="rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
+    <section className="rounded-lg border overflow-hidden" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
       <div className="border-b p-4" style={{ borderColor: theme.borderColor }}>
         <h2 className="text-lg font-semibold" style={{ color: theme.textColor }}>{t('reportsAnalytics.sections.segmentComparison')}</h2>
         <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>{t('reportsAnalytics.sections.segmentComparisonSubtitle')}</p>
       </div>
-      <div className="mt-4 h-80 min-h-[280px] overflow-hidden">
-        {chartRows.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <RechartsBarChart data={chartRows} layout="vertical" margin={{ top: 8, right: 12, bottom: 16, left: 4 }}>
-              <CartesianGrid stroke={theme.dividerColor} horizontal={false} />
-              <XAxis type="number" domain={[0, 100]} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
-              <YAxis type="category" dataKey="shortLabel" width={104} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }}
-                formatter={(value, name) => [
-                  `${value}%`,
-                  name === 'averageProgress' ? t('reportsAnalytics.table.progress') : t('reportsAnalytics.table.quality'),
-                ]}
-              />
-              <Bar dataKey="averageProgress" radius={[0, 6, 6, 0]} fill={theme.actionColor} />
-              <Bar dataKey="qualityScore" radius={[0, 6, 6, 0]} fill={theme.successColor} />
-            </RechartsBarChart>
-          </ResponsiveContainer>
-        ) : (
-          <EmptyChart theme={theme} />
-        )}
-      </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {rows.map((row) => (
-          <SegmentInsightCard key={`${row.segmentType}-${row.key}`} row={row} theme={theme} t={t} />
-        ))}
+      <div className="grid gap-6 p-4 lg:grid-cols-2">
+        <div className="h-[420px] min-h-[320px] overflow-hidden">
+          {chartRows.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <RechartsBarChart data={chartRows} layout="vertical" margin={{ top: 8, right: 12, bottom: 16, left: 4 }}>
+                <CartesianGrid stroke={theme.dividerColor} horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
+                <YAxis type="category" dataKey="shortLabel" width={104} tick={{ fill: theme.subtextColor, fontSize: 11 }} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor, color: theme.textColor }}
+                  formatter={(value, name) => [
+                    `${value}%`,
+                    name === 'averageProgress' ? t('reportsAnalytics.table.progress') : t('reportsAnalytics.table.quality'),
+                  ]}
+                />
+                <Bar dataKey="averageProgress" radius={[0, 6, 6, 0]} fill={theme.actionColor} />
+                <Bar dataKey="qualityScore" radius={[0, 6, 6, 0]} fill={theme.successColor} />
+              </RechartsBarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChart theme={theme} />
+          )}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 content-start">
+          {rows.map((row) => (
+            <SegmentInsightCard key={`${row.segmentType}-${row.key}`} row={row} theme={theme} t={t} />
+          ))}
+        </div>
       </div>
     </section>
   )

@@ -19,7 +19,7 @@ export function QuickAction({ title, description, icon: Icon, href, color, delay
   const { effectiveStyles } = useOrganizationStylesContext()
   
   const panelStyles = effectiveStyles?.panel
-  const textColor = isLightMode ? (panelStyles?.text_color || 'var(--color-gray-900)') : (panelStyles?.text_color || 'var(--color-bg-light)')
+  const textColor = isLightMode ? (panelStyles?.text_color || '#0F172A') : (panelStyles?.text_color || '#FFFFFF')
   const iconColor = color || 'var(--color-accent)'
 
   return (

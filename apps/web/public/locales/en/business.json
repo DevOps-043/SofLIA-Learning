@@ -236,7 +236,7 @@
       "refresh": "Refresh",
       "retry": "Retry",
       "restartTour": "Replay tutorial",
-      "generateFeedback": "Generate AI feedback",
+      "generateFeedback": "Generate AI Report",
       "generatingFeedback": "Generating feedback..."
     },
     "errors": {
@@ -247,7 +247,7 @@
     "metrics": {
       "averageProgress": "Average progress",
       "assignedDetail": "{{completed}} of {{total}} courses completed",
-      "aiAdoption": "AI adoption",
+      "aiAdoption": "SofLIA Adoption",
       "aiDetail": "{{conversations}} conversations and {{messages}} messages",
       "planning": "Planning",
       "planningDetail": "{{completed}} of {{planned}} sessions completed",
@@ -260,7 +260,7 @@
       "learningSnapshot": "Learning snapshot",
       "learningSnapshotSubtitle": "Operational indicators for your progress.",
       "aiAdoption": "SofLIA adoption",
-      "aiAdoptionSubtitle": "Usage, questions, and conversational quality signals.",
+      "aiAdoptionSubtitle": "Measures how much you use SofLIA: conversations, messages, question quality, and relevance to your assigned courses.",
       "quality": "Response quality",
       "qualitySubtitle": "Radar for courses, activities, SofLIA, notes, and quizzes.",
       "planning": "Planning",
@@ -268,7 +268,7 @@
       "activities": "Activities",
       "quizzes": "Quizzes and exams",
       "feedback": "Personalized feedback",
-      "feedbackSubtitle": "Generate an AI read and reuse the result for 24 hours if the data does not change.",
+      "feedbackSubtitle": "Generate an AI Report and reuse the result for 24 hours if the data does not change.",
       "heatmap": "Activity map",
       "heatmapSubtitle": "{{count}} interactions recorded in the period"
     },

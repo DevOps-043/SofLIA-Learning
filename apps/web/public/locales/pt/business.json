@@ -1,4 +1,4 @@
-﻿{
+{
   "sidebar": {
     "dashboard": "Dashboard",
     "users": "Usuários",
@@ -237,7 +237,7 @@
       "refresh": "Atualizar",
       "retry": "Tentar novamente",
       "restartTour": "Repetir tutorial",
-      "generateFeedback": "Gerar feedback IA",
+      "generateFeedback": "Gerar Relatório com IA",
       "generatingFeedback": "Gerando feedback..."
     },
     "errors": {
@@ -248,7 +248,7 @@
     "metrics": {
       "averageProgress": "Progresso médio",
       "assignedDetail": "{{completed}} de {{total}} cursos concluídos",
-      "aiAdoption": "Adoção de IA",
+      "aiAdoption": "Adoção do SofLIA",
       "aiDetail": "{{conversations}} conversas e {{messages}} mensagens",
       "planning": "Planejamento",
       "planningDetail": "{{completed}} de {{planned}} sessões concluídas",
@@ -261,7 +261,7 @@
       "learningSnapshot": "Resumo de aprendizagem",
       "learningSnapshotSubtitle": "Indicadores operacionais do seu progresso.",
       "aiAdoption": "Adoção do SofLIA",
-      "aiAdoptionSubtitle": "Uso, perguntas e sinais de qualidade conversacional.",
+      "aiAdoptionSubtitle": "Mede o quanto você usa o SofLIA: conversas, mensagens, qualidade das perguntas e relevância em relação aos seus cursos atribuídos.",
       "quality": "Qualidade das respostas",
       "qualitySubtitle": "Radar de cursos, atividades, SofLIA, notas e quizzes.",
       "planning": "Planejamento",
@@ -269,7 +269,7 @@
       "activities": "Atividades",
       "quizzes": "Quizzes e provas",
       "feedback": "Feedback personalizado",
-      "feedbackSubtitle": "Gere uma leitura IA e reutilize o resultado por 24 horas se os dados não mudarem.",
+      "feedbackSubtitle": "Gere um Relatório com IA e reutilize o resultado por 24 horas se os dados não mudarem.",
       "heatmap": "Mapa de atividade",
       "heatmapSubtitle": "{{count}} interações registradas no período"
     },
