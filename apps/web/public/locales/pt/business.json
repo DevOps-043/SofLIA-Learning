@@ -197,6 +197,8 @@
         "coursePreviewPointOne": "Entenda os conceitos centrais antes de avançar.",
         "coursePreviewPointTwo": "Aplique o aprendizado em exercícios e atividades da rota.",
         "coursePreviewPointThree": "Conecte este curso com os próximos passos do learning path.",
+        "standaloneTitle": "Cursos independentes",
+        "standaloneSummary": "{{completed}} de {{total}} concluídos",
         "pathPreviewMeta": "{{count}} cursos em sequência",
         "pathAiDescription": "Resumo IA: esta rota organiza os cursos para que você avance em uma sequência clara, começando por {{firstCourse}} e conectando cada tema ao próximo.",
         "pathPreviewPointOne": "Progresso recomendado para evitar lacunas de contexto.",
@@ -214,6 +216,7 @@
     "courses": {
       "progress": "Progresso",
       "status": {
+        "notStarted": "Não iniciado",
         "assigned": "Atribuído",
         "inProgress": "Em progresso",
         "completed": "Concluído"

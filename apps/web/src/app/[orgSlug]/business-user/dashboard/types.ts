@@ -14,7 +14,7 @@ export interface AssignedCourse {
   title: string
   instructor: string
   progress: number
-  status: 'Asignado' | 'En progreso' | 'Completado'
+  status: 'No iniciado' | 'Asignado' | 'En progreso' | 'Completado'
   thumbnail: string
   slug: string
   assigned_at: string

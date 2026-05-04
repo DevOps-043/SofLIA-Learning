@@ -196,6 +196,8 @@
         "coursePreviewPointOne": "Comprende los conceptos centrales antes de avanzar.",
         "coursePreviewPointTwo": "Aplica lo aprendido en ejercicios y actividades de la ruta.",
         "coursePreviewPointThree": "Conecta este curso con los siguientes pasos del learning path.",
+        "standaloneTitle": "Cursos independientes",
+        "standaloneSummary": "{{completed}} de {{total}} cursos completados",
         "pathPreviewMeta": "{{count}} cursos en secuencia",
         "pathAiDescription": "Resumen IA: esta ruta organiza los cursos para que avances con una secuencia clara, comenzando por {{firstCourse}} y conectando cada tema con el siguiente.",
         "pathPreviewPointOne": "Avance recomendado para evitar saltos de contexto.",
@@ -213,6 +215,7 @@
     "courses": {
       "progress": "Progreso",
       "status": {
+        "notStarted": "No iniciado",
         "assigned": "Asignado",
         "inProgress": "En progreso",
         "completed": "Completado"

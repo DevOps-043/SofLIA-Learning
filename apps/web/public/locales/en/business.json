@@ -196,6 +196,8 @@
         "coursePreviewPointOne": "Understand the core concepts before moving forward.",
         "coursePreviewPointTwo": "Apply what you learn through exercises and path activities.",
         "coursePreviewPointThree": "Connect this course with the next steps in the learning path.",
+        "standaloneTitle": "Independent courses",
+        "standaloneSummary": "{{completed}} of {{total}} completed",
         "pathPreviewMeta": "{{count}} courses in sequence",
         "pathAiDescription": "AI summary: this path organizes the courses so you can advance through a clear sequence, starting with {{firstCourse}} and connecting each topic with the next.",
         "pathPreviewPointOne": "Recommended progression to avoid context gaps.",
@@ -213,6 +215,7 @@
     "courses": {
       "progress": "Progress",
       "status": {
+        "notStarted": "Not started",
         "assigned": "Assigned",
         "inProgress": "In progress",
         "completed": "Completed"
