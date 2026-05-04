@@ -84,9 +84,18 @@ interface LessonProgressRecord {
 
 interface CourseLessonRecord {
   lesson_id: string
+  duration_seconds: number | null
+  total_duration_minutes: number | null
   course_modules: Relation<{
     course_id: string | null
   }>
+}
+
+interface LessonActivityRecord {
+  activity_id: string
+  lesson_id: string
+  is_required: boolean | null
+  estimated_time_minutes: number | null
 }
 
 interface ActivitySubmissionRecord {
@@ -243,6 +252,7 @@ interface QueryData {
   assignments: AssignmentRecord[]
   enrollments: EnrollmentRecord[]
   courseLessons: CourseLessonRecord[]
+  lessonActivities: LessonActivityRecord[]
   lessonProgress: LessonProgressRecord[]
   activitySubmissions: ActivitySubmissionRecord[]
   activityCompletions: ActivityCompletionRecord[]
@@ -304,8 +314,10 @@ export async function fetchBusinessUserAnalyticsDataset({
   const activeDateKeys = uniqueDateKeys(contributionDates)
   const lessonProgressByCourse = groupLessonProgressByCourse(data.lessonProgress, enrollmentCourseById)
   const lessonTrackingByCourse = groupLessonTrackingByCourse(data.lessonTracking, data.courseLessons)
+  const courseLessonsByCourse = groupCourseLessonsByCourse(data.courseLessons)
   const courseLessonCountByCourse = buildCourseLessonCountByCourse(data.courseLessons)
   const evaluationsBySubmission = buildLatestEvaluationBySubmission(data.activityEvaluations)
+  const completedCourseIds = buildCompletedCourseIds(data.assignments, data.enrollments)
 
   const courseRows = data.assignments.map((assignment) => {
     const enrollment = data.enrollments.find((item) => item.course_id === assignment.course_id)
@@ -314,6 +326,7 @@ export async function fetchBusinessUserAnalyticsDataset({
     )
     const courseLessonProgress = lessonProgressByCourse.get(assignment.course_id) || []
     const courseLessonTracking = lessonTrackingByCourse.get(assignment.course_id) || []
+    const courseLessons = courseLessonsByCourse.get(assignment.course_id) || []
     const status = resolveCourseStatus(assignment.status, enrollment?.enrollment_status, progress)
     const completedLessonsFromProgress = courseLessonProgress.filter((item) => item.is_completed || item.lesson_status === 'completed').length
     const publishedLessonCount = courseLessonCountByCourse.get(assignment.course_id) || completedLessonsFromProgress
@@ -336,7 +349,13 @@ export async function fetchBusinessUserAnalyticsDataset({
         status === 'completed' && publishedLessonCount > completedLessonsFromProgress
           ? publishedLessonCount
           : completedLessonsFromProgress,
-      timeSpentMinutes: calculateStudyMinutes(courseLessonProgress, courseLessonTracking),
+      timeSpentMinutes: calculateStudyMinutes(
+        courseLessonProgress,
+        courseLessonTracking,
+        courseLessons,
+        data.lessonActivities,
+        status === 'completed' || progress >= 100,
+      ),
       hasCertificate: certificateCourseIds.has(assignment.course_id),
     }
   })
@@ -349,7 +368,7 @@ export async function fetchBusinessUserAnalyticsDataset({
   const aiAdoption = buildAiAdoption(data, period)
   const planning = buildPlanning(data, period)
   const notes = buildNotes(data, period, lessonsCompleted)
-  const activities = buildActivities(data, period, evaluationsBySubmission)
+  const activities = buildActivities(data, period, evaluationsBySubmission, completedCourseIds)
   const quizzes = buildQuizzes(data, period)
   const quality = buildQuality({
     averageCourseProgress: calculateAverage(courseRows.map((course) => course.progress)),
@@ -441,6 +460,7 @@ async function fetchQueryData(
   ])
   const courseLessons = await fetchCourseLessons(supabase, Array.from(courseIds))
   const scope = buildAnalyticsScope(assignments, enrollments, courseLessons)
+  const lessonActivities = await fetchLessonActivities(supabase, Array.from(scope.lessonIds))
   const certificates = allCertificates.filter((certificate) =>
     certificate.organization_id === organizationId || scope.courseIds.has(certificate.course_id),
   )
@@ -480,6 +500,7 @@ async function fetchQueryData(
     assignments,
     enrollments,
     courseLessons,
+    lessonActivities,
     lessonProgress,
     activitySubmissions,
     activityCompletions,
@@ -552,6 +573,8 @@ async function fetchCourseLessons(
       .from('course_lessons')
       .select(`
         lesson_id,
+        duration_seconds,
+        total_duration_minutes,
         course_modules!inner (
           course_id
         )
@@ -562,6 +585,28 @@ async function fetchCourseLessons(
       .returns<CourseLessonRecord[]>()
 
     logQueryError('business user course lessons', error)
+    rows.push(...(data || []))
+  }
+
+  return rows
+}
+
+async function fetchLessonActivities(
+  supabase: BusinessUserAnalyticsSupabaseClient,
+  lessonIds: string[],
+) {
+  if (lessonIds.length === 0) return []
+
+  const rows: LessonActivityRecord[] = []
+  for (const chunk of chunkArray(lessonIds, 200)) {
+    const { data, error } = await supabase
+      .from('lesson_activities')
+      .select('activity_id, lesson_id, is_required, estimated_time_minutes')
+      .in('lesson_id', chunk)
+      .limit(PAGE_LIMIT)
+      .returns<LessonActivityRecord[]>()
+
+    logQueryError('business user lesson activities', error)
     rows.push(...(data || []))
   }
 
@@ -930,6 +975,7 @@ function buildActivities(
   data: QueryData,
   period: BusinessUserAnalyticsPeriod,
   evaluationsBySubmission: Map<string, ActivityEvaluationRecord>,
+  completedCourseIds: Set<string>,
 ) {
   const completedActivityIdsFromSubmissions = new Set(
     data.activitySubmissions
@@ -942,6 +988,9 @@ function buildActivities(
   )
   const activityProgressFallback = buildActivityProgressFallback(
     data.lessonProgress,
+    data.lessonActivities,
+    data.courseLessons,
+    completedCourseIds,
     submittedActivities.length === 0 && completedSofliaActivities.length === 0,
   )
   const validated = data.activitySubmissions.filter((submission) => submission.status === 'validated').length
@@ -1009,6 +1058,9 @@ function buildActivities(
 
 function buildActivityProgressFallback(
   lessonProgress: LessonProgressRecord[],
+  lessonActivities: LessonActivityRecord[],
+  courseLessons: CourseLessonRecord[],
+  completedCourseIds: Set<string>,
   shouldUseFallback: boolean,
 ): {
   completed: number
@@ -1025,37 +1077,68 @@ function buildActivityProgressFallback(
     }
   }
 
-  const rows = lessonProgress.filter(hasLessonActivityProgressSignal)
+  const activitiesByLesson = groupLessonActivitiesByLesson(lessonActivities)
+  const rows = lessonProgress.filter((progress) =>
+    hasLessonActivityProgressSignal(progress) ||
+    (isLessonCompleted(progress) && getRelevantActivityCount(activitiesByLesson.get(progress.lesson_id) || []) > 0),
+  )
+  const processedLessonIds = new Set<string>()
   let completed = 0
   let total = 0
   const scores: number[] = []
   const dates: string[] = []
 
   rows.forEach((progress) => {
+    processedLessonIds.add(progress.lesson_id)
+    const lessonActivitiesForProgress = activitiesByLesson.get(progress.lesson_id) || []
+    const inferredActivityTotal = getRelevantActivityCount(lessonActivitiesForProgress)
     const requiredTotal = getNonNegativeNumber(progress.required_activities_total)
     const requiredCompleted = Math.min(
       getNonNegativeNumber(progress.required_activities_completed),
       requiredTotal > 0 ? requiredTotal : Number.POSITIVE_INFINITY,
     )
     const progressScore = normalizeLessonActivityProgress(progress)
+    const canInferFromCompletedLesson =
+      requiredTotal === 0 &&
+      progressScore === 0 &&
+      inferredActivityTotal > 0 &&
+      isLessonCompleted(progress)
 
-    if (requiredTotal > 0) {
+    if (canInferFromCompletedLesson) {
+      total += inferredActivityTotal
+      completed += inferredActivityTotal
+      scores.push(100)
+    } else if (requiredTotal > 0) {
       total += requiredTotal
       completed += requiredCompleted
+      scores.push(progressScore)
     } else {
       total += 1
       if (progressScore >= 100 || requiredCompleted > 0) {
         completed += 1
       }
+      scores.push(progressScore)
     }
 
-    scores.push(progressScore)
     const activityDate =
       progress.last_activity_submission_at ||
       progress.updated_at ||
       progress.completed_at ||
       progress.last_accessed_at
     if (activityDate) dates.push(activityDate)
+  })
+
+  courseLessons.forEach((lesson) => {
+    if (processedLessonIds.has(lesson.lesson_id)) return
+    const courseId = getCourseIdFromLesson(lesson)
+    if (!courseId || !completedCourseIds.has(courseId)) return
+
+    const inferredActivityTotal = getRelevantActivityCount(activitiesByLesson.get(lesson.lesson_id) || [])
+    if (inferredActivityTotal === 0) return
+
+    total += inferredActivityTotal
+    completed += inferredActivityTotal
+    scores.push(100)
   })
 
   return {
@@ -1066,6 +1149,22 @@ function buildActivityProgressFallback(
   }
 }
 
+function groupLessonActivitiesByLesson(
+  lessonActivities: LessonActivityRecord[],
+): Map<string, LessonActivityRecord[]> {
+  const map = new Map<string, LessonActivityRecord[]>()
+  lessonActivities.forEach((activity) => {
+    map.set(activity.lesson_id, [...(map.get(activity.lesson_id) || []), activity])
+  })
+  return map
+}
+
+function getRelevantActivityCount(lessonActivities: LessonActivityRecord[]): number {
+  if (lessonActivities.length === 0) return 0
+  const requiredCount = lessonActivities.filter((activity) => activity.is_required !== false).length
+  return requiredCount > 0 ? requiredCount : lessonActivities.length
+}
+
 function hasLessonActivityProgressSignal(progress: LessonProgressRecord): boolean {
   return (
     getNonNegativeNumber(progress.required_activities_total) > 0 ||
@@ -1073,6 +1172,10 @@ function hasLessonActivityProgressSignal(progress: LessonProgressRecord): boolea
     normalizeLessonActivityProgress(progress) > 0 ||
     Boolean(progress.last_activity_submission_at)
   )
+}
+
+function isLessonCompleted(progress: LessonProgressRecord): boolean {
+  return Boolean(progress.is_completed || progress.lesson_status === 'completed')
 }
 
 function normalizeLessonActivityProgress(progress: LessonProgressRecord): number {
@@ -1329,6 +1432,34 @@ function buildCourseLessonCountByCourse(courseLessons: CourseLessonRecord[]): Ma
   return counts
 }
 
+function buildCompletedCourseIds(
+  assignments: AssignmentRecord[],
+  enrollments: EnrollmentRecord[],
+): Set<string> {
+  const completedCourseIds = new Set<string>()
+
+  assignments.forEach((assignment) => {
+    const enrollment = enrollments.find((item) => item.course_id === assignment.course_id)
+    const progress = clampPercentage(
+      Number(enrollment?.overall_progress_percentage ?? assignment.completion_percentage ?? 0),
+    )
+    const status = resolveCourseStatus(assignment.status, enrollment?.enrollment_status, progress)
+    if (status === 'completed' || progress >= 100) {
+      completedCourseIds.add(assignment.course_id)
+    }
+  })
+
+  enrollments.forEach((enrollment) => {
+    const progress = clampPercentage(Number(enrollment.overall_progress_percentage ?? 0))
+    const status = resolveCourseStatus(null, enrollment.enrollment_status, progress)
+    if (status === 'completed' || progress >= 100) {
+      completedCourseIds.add(enrollment.course_id)
+    }
+  })
+
+  return completedCourseIds
+}
+
 function groupLessonProgressByCourse(
   lessonProgress: LessonProgressRecord[],
   enrollmentCourseById: Map<string, string>,
@@ -1364,16 +1495,37 @@ function groupLessonTrackingByCourse(
   return map
 }
 
+function groupCourseLessonsByCourse(
+  courseLessons: CourseLessonRecord[],
+): Map<string, CourseLessonRecord[]> {
+  const map = new Map<string, CourseLessonRecord[]>()
+
+  courseLessons.forEach((lesson) => {
+    const courseId = getCourseIdFromLesson(lesson)
+    if (!courseId) return
+    map.set(courseId, [...(map.get(courseId) || []), lesson])
+  })
+
+  return map
+}
+
 function calculateStudyMinutes(
   lessonProgress: LessonProgressRecord[],
   lessonTracking: LessonTrackingRecord[],
+  courseLessons: CourseLessonRecord[],
+  lessonActivities: LessonActivityRecord[],
+  isCourseCompleted: boolean,
 ): number {
   const progressMinutesByLesson = new Map<string, number>()
+  const completedLessonIds = new Set<string>()
   lessonProgress.forEach((progress) => {
     progressMinutesByLesson.set(
       progress.lesson_id,
       (progressMinutesByLesson.get(progress.lesson_id) || 0) + (Number(progress.time_spent_minutes) || 0),
     )
+    if (progress.is_completed || progress.lesson_status === 'completed') {
+      completedLessonIds.add(progress.lesson_id)
+    }
   })
 
   const trackingMinutesByLesson = new Map<string, number>()
@@ -1382,20 +1534,78 @@ function calculateStudyMinutes(
       tracking.lesson_id,
       (trackingMinutesByLesson.get(tracking.lesson_id) || 0) + getLessonTrackingMinutes(tracking),
     )
+    if (isCompletedStatus(tracking.status) || tracking.completed_at) {
+      completedLessonIds.add(tracking.lesson_id)
+    }
   })
+
+  const estimatedMinutesByLesson = buildEstimatedLessonMinutesMap(courseLessons, lessonActivities)
+  if (isCourseCompleted && completedLessonIds.size === 0) {
+    courseLessons.forEach((lesson) => completedLessonIds.add(lesson.lesson_id))
+  }
 
   const lessonIds = new Set([
     ...progressMinutesByLesson.keys(),
     ...trackingMinutesByLesson.keys(),
+    ...completedLessonIds,
   ])
   let total = 0
   lessonIds.forEach((lessonId) => {
     const progressMinutes = progressMinutesByLesson.get(lessonId) || 0
     const trackingMinutes = trackingMinutesByLesson.get(lessonId) || 0
-    total += progressMinutes > 0 ? progressMinutes : trackingMinutes
+    const actualMinutes = progressMinutes > 0 ? progressMinutes : trackingMinutes
+    if (actualMinutes > 0) {
+      total += actualMinutes
+      return
+    }
+
+    if (completedLessonIds.has(lessonId)) {
+      total += estimatedMinutesByLesson.get(lessonId) || 0
+    }
   })
 
   return roundNumber(total)
+}
+
+function buildEstimatedLessonMinutesMap(
+  courseLessons: CourseLessonRecord[],
+  lessonActivities: LessonActivityRecord[],
+): Map<string, number> {
+  const activityMinutesByLesson = buildEstimatedActivityMinutesByLesson(lessonActivities)
+
+  return new Map(
+    courseLessons.map((lesson) => [
+      lesson.lesson_id,
+      getEstimatedLessonMinutes(lesson, activityMinutesByLesson.get(lesson.lesson_id) || 0),
+    ]),
+  )
+}
+
+function getEstimatedLessonMinutes(lesson: CourseLessonRecord, activityMinutes: number): number {
+  const totalMinutes = Number(lesson.total_duration_minutes)
+  if (Number.isFinite(totalMinutes) && totalMinutes > 0) {
+    return totalMinutes
+  }
+
+  const durationSeconds = Number(lesson.duration_seconds)
+  if (Number.isFinite(durationSeconds) && durationSeconds > 0) {
+    return Math.round(((durationSeconds / 60) + activityMinutes) * 10) / 10
+  }
+
+  return activityMinutes
+}
+
+function buildEstimatedActivityMinutesByLesson(
+  lessonActivities: LessonActivityRecord[],
+): Map<string, number> {
+  const map = new Map<string, number>()
+  lessonActivities.forEach((activity) => {
+    map.set(
+      activity.lesson_id,
+      (map.get(activity.lesson_id) || 0) + getNonNegativeNumber(activity.estimated_time_minutes),
+    )
+  })
+  return map
 }
 
 function buildCourseTitleMap(assignments: AssignmentRecord[]): Map<string, string> {
