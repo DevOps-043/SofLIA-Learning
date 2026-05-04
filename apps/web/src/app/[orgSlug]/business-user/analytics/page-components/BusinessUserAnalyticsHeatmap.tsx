@@ -55,7 +55,7 @@ export function BusinessUserAnalyticsHeatmap({
           </div>
 
           <div
-            className="grid grid-flow-col grid-rows-7 gap-1"
+            className="grid flex-1 grid-rows-7 gap-1"
             style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}
           >
             {sortedCells.map((cell) => (
@@ -69,6 +69,10 @@ export function BusinessUserAnalyticsHeatmap({
                   date: formatDate(cell.date, locale),
                   count: cell.value,
                 })}
+                style={{
+                  gridColumnStart: cell.weekIndex + 1,
+                  gridRowStart: cell.dayIndex + 1,
+                }}
               />
             ))}
           </div>

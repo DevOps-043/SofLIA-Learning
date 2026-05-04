@@ -91,7 +91,7 @@
       },
       "feedback": {
         "title": "Feedback personalizado",
-        "content": "Genera una lectura con IA para identificar fortalezas, oportunidades y siguientes pasos."
+        "content": "Genera un informe con IA para identificar fortalezas, oportunidades y siguientes pasos."
       },
       "heatmap": {
         "title": "Mapa de actividad",
@@ -237,18 +237,18 @@
       "retry": "Reintentar",
       "restartTour": "Repetir tutorial",
       "generateFeedback": "Genera un Informe con IA",
-      "generatingFeedback": "Generando feedback..."
+      "generatingFeedback": "Generando informe..."
     },
     "errors": {
       "title": "No se pudieron cargar tus estadísticas",
       "load": "Error al obtener estadísticas",
-      "insights": "Error al generar feedback IA"
+      "insights": "Error al generar informe IA"
     },
     "metrics": {
       "averageProgress": "Progreso promedio",
       "assignedDetail": "{{completed}} de {{total}} cursos completados",
       "aiAdoption": "Adopción de SofLIA",
-      "aiDetail": "{{conversations}} conversaciones y {{messages}} mensajes",
+      "aiDetail": "Uso activo: {{conversations}} conversaciones y {{messages}} mensajes en el periodo",
       "planning": "Planificación",
       "planningDetail": "{{completed}} de {{planned}} sesiones completadas",
       "quality": "Calidad global",
@@ -260,7 +260,7 @@
       "learningSnapshot": "Resumen de aprendizaje",
       "learningSnapshotSubtitle": "Indicadores operativos de tu avance.",
       "aiAdoption": "Adopción de SofLIA",
-      "aiAdoptionSubtitle": "Mide qué tanto usas SofLIA: conversaciones, mensajes, calidad de preguntas y relevancia respecto a tus cursos asignados.",
+      "aiAdoptionSubtitle": "Mide uso activo de SofLIA: conversaciones iniciadas, volumen de mensajes, preguntas útiles y señales fuera de tema.",
       "quality": "Calidad de respuestas",
       "qualitySubtitle": "Radar de cursos, actividades, SofLIA, notas y quizzes.",
       "planning": "Planificación",
@@ -294,6 +294,13 @@
         "soflia": "SofLIA",
         "notes": "Notas",
         "quizzes": "Quizzes"
+      },
+      "radarDescriptions": {
+        "courses": "Avance promedio en cursos asignados y lecciones completadas.",
+        "activities": "Entregas, progreso de actividades requeridas y calidad de validaciones.",
+        "soflia": "Calidad de preguntas, relevancia del uso y señales fuera de tema en SofLIA.",
+        "notes": "Cobertura, contenido y adopción de notas durante el aprendizaje.",
+        "quizzes": "Promedio, aprobación y resultados recientes en quizzes y exámenes."
       }
     },
     "planning": {
@@ -321,7 +328,7 @@
       "latest": "Último resultado"
     },
     "feedback": {
-      "empty": "Genera feedback cuando quieras una lectura personalizada de tu avance.",
+      "empty": "Genera un informe cuando quieras una lectura personalizada de tu avance.",
       "cached": "Resultado en caché",
       "generated": "Resultado generado",
       "strengths": "Fortalezas",

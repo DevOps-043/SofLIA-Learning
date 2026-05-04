@@ -73,10 +73,13 @@ interface LessonProgressRecord {
   time_spent_minutes: number | null
   completed_at: string | null
   started_at: string | null
+  last_activity_submission_at: string | null
   last_accessed_at: string | null
   updated_at: string | null
   activity_progress_percentage: number | null
   quiz_progress_percentage: number | null
+  required_activities_completed: number | null
+  required_activities_total: number | null
 }
 
 interface CourseLessonRecord {
@@ -574,7 +577,7 @@ async function fetchLessonProgress(
 
   const { data, error } = await supabase
     .from('user_lesson_progress')
-    .select('progress_id, enrollment_id, lesson_id, organization_id, lesson_status, is_completed, time_spent_minutes, completed_at, started_at, last_accessed_at, updated_at, activity_progress_percentage, quiz_progress_percentage')
+    .select('progress_id, enrollment_id, lesson_id, organization_id, lesson_status, is_completed, time_spent_minutes, completed_at, started_at, last_activity_submission_at, last_accessed_at, updated_at, activity_progress_percentage, quiz_progress_percentage, required_activities_completed, required_activities_total')
     .eq('user_id', userId)
     .in('enrollment_id', Array.from(scope.enrollmentIds))
     .limit(PAGE_LIMIT)
@@ -933,13 +936,17 @@ function buildActivities(
       .filter((submission) => submission.status !== 'draft')
       .map((submission) => submission.activity_id),
   )
+  const submittedActivities = data.activitySubmissions.filter((submission) => submission.status !== 'draft')
   const completedSofliaActivities = data.activityCompletions.filter((completion) =>
     isActivityCompletionSatisfied(completion) && !completedActivityIdsFromSubmissions.has(completion.activity_id),
+  )
+  const activityProgressFallback = buildActivityProgressFallback(
+    data.lessonProgress,
+    submittedActivities.length === 0 && completedSofliaActivities.length === 0,
   )
   const validated = data.activitySubmissions.filter((submission) => submission.status === 'validated').length
   const needsRevision = data.activitySubmissions.filter((submission) => submission.status === 'needs_revision').length
   const submitted = data.activitySubmissions.filter((submission) => submission.status !== 'draft').length
-  const submittedActivities = data.activitySubmissions.filter((submission) => submission.status !== 'draft')
   const evaluationScores = submittedActivities.map((submission) => {
     const evaluation = evaluationsBySubmission.get(submission.submission_id)
     if (evaluation) return scoreEvaluationStatus(evaluation.result_status)
@@ -950,36 +957,151 @@ function buildActivities(
   const statusCounts = new Map<string, number>()
   data.activitySubmissions.forEach((submission) => incrementMap(statusCounts, submission.status || 'draft'))
   completedSofliaActivities.forEach((completion) => incrementMap(statusCounts, completion.status || 'completed'))
+  if (activityProgressFallback.completed > 0) {
+    incrementMap(statusCounts, 'completed', activityProgressFallback.completed)
+  }
+  if (activityProgressFallback.total > activityProgressFallback.completed) {
+    incrementMap(statusCounts, 'in_progress', activityProgressFallback.total - activityProgressFallback.completed)
+  }
   const directPasses = submittedActivities.filter((submission) => {
     const evaluation = evaluationsBySubmission.get(submission.submission_id)
     if (evaluation) return evaluation.result_status === 'pass'
     return submission.status === 'validated' || submission.status === 'completed'
   }).length
-  const totalEvaluatedOrCompleted = submittedActivities.length + completedSofliaActivities.length
+  const totalEvaluatedOrCompleted =
+    submittedActivities.length +
+    completedSofliaActivities.length +
+    activityProgressFallback.total
   const qualityScores = [
     ...evaluationScores,
     ...completedSofliaActivities.map(() => 100),
+    ...activityProgressFallback.scores,
   ]
-  const totalActivitySignals = data.activitySubmissions.length + completedSofliaActivities.length
+  const totalActivitySignals =
+    data.activitySubmissions.length +
+    completedSofliaActivities.length +
+    activityProgressFallback.total
+  const completedActivitySignals =
+    submitted +
+    completedSofliaActivities.length +
+    activityProgressFallback.completed
 
   return {
-    totalSubmissions: totalActivitySignals,
-    submitted: submitted + completedSofliaActivities.length,
-    validated: validated + completedSofliaActivities.length,
+    totalSubmissions: completedActivitySignals,
+    submitted: completedActivitySignals,
+    validated: validated + completedSofliaActivities.length + activityProgressFallback.completed,
     needsRevision,
     passRate: calculatePercentage(
-      directPasses + completedSofliaActivities.length,
+      directPasses + completedSofliaActivities.length + activityProgressFallback.completed,
       totalEvaluatedOrCompleted,
     ),
     averageQualityScore: calculateAverage(qualityScores),
     averageResponseLength: calculateAverage(data.activitySubmissions.map((submission) => extractSubmissionText(submission).length)),
     withSofliaFeedback: evaluationsBySubmission.size + completedSofliaActivities.length,
-    statusBreakdown: buildBreakdown(statusCounts, totalActivitySignals),
+    statusBreakdown: buildBreakdown(statusCounts, totalActivitySignals || completedActivitySignals),
     submissionsTrend: buildTrend([
       ...data.activitySubmissions.map((submission) => submission.submitted_at || submission.updated_at),
       ...completedSofliaActivities.map((completion) => completion.completed_at || completion.updated_at || completion.started_at),
+      ...activityProgressFallback.dates,
     ].filter((value): value is string => Boolean(value)), period),
   }
+}
+
+function buildActivityProgressFallback(
+  lessonProgress: LessonProgressRecord[],
+  shouldUseFallback: boolean,
+): {
+  completed: number
+  dates: string[]
+  scores: number[]
+  total: number
+} {
+  if (!shouldUseFallback) {
+    return {
+      completed: 0,
+      dates: [],
+      scores: [],
+      total: 0,
+    }
+  }
+
+  const rows = lessonProgress.filter(hasLessonActivityProgressSignal)
+  let completed = 0
+  let total = 0
+  const scores: number[] = []
+  const dates: string[] = []
+
+  rows.forEach((progress) => {
+    const requiredTotal = getNonNegativeNumber(progress.required_activities_total)
+    const requiredCompleted = Math.min(
+      getNonNegativeNumber(progress.required_activities_completed),
+      requiredTotal > 0 ? requiredTotal : Number.POSITIVE_INFINITY,
+    )
+    const progressScore = normalizeLessonActivityProgress(progress)
+
+    if (requiredTotal > 0) {
+      total += requiredTotal
+      completed += requiredCompleted
+    } else {
+      total += 1
+      if (progressScore >= 100 || requiredCompleted > 0) {
+        completed += 1
+      }
+    }
+
+    scores.push(progressScore)
+    const activityDate =
+      progress.last_activity_submission_at ||
+      progress.updated_at ||
+      progress.completed_at ||
+      progress.last_accessed_at
+    if (activityDate) dates.push(activityDate)
+  })
+
+  return {
+    completed,
+    dates,
+    scores,
+    total,
+  }
+}
+
+function hasLessonActivityProgressSignal(progress: LessonProgressRecord): boolean {
+  return (
+    getNonNegativeNumber(progress.required_activities_total) > 0 ||
+    getNonNegativeNumber(progress.required_activities_completed) > 0 ||
+    normalizeLessonActivityProgress(progress) > 0 ||
+    Boolean(progress.last_activity_submission_at)
+  )
+}
+
+function normalizeLessonActivityProgress(progress: LessonProgressRecord): number {
+  if (progress.activity_progress_percentage === null || progress.activity_progress_percentage === undefined) {
+    const requiredTotal = getNonNegativeNumber(progress.required_activities_total)
+    if (requiredTotal > 0) {
+      return calculatePercentage(
+        getNonNegativeNumber(progress.required_activities_completed),
+        requiredTotal,
+      )
+    }
+
+    return 0
+  }
+
+  const explicitProgress = Number(progress.activity_progress_percentage)
+  if (Number.isFinite(explicitProgress)) {
+    return clampPercentage(explicitProgress)
+  }
+
+  const requiredTotal = getNonNegativeNumber(progress.required_activities_total)
+  if (requiredTotal > 0) {
+    return calculatePercentage(
+      getNonNegativeNumber(progress.required_activities_completed),
+      requiredTotal,
+    )
+  }
+
+  return 0
 }
 
 function buildQuizzes(data: QueryData, period: BusinessUserAnalyticsPeriod) {
@@ -1107,6 +1229,7 @@ function collectContributionDates(data: QueryData, period: BusinessUserAnalytics
     ...data.userSessions.map((session) => session.issued_at),
     ...data.lessonProgress.flatMap((progress) => [
       progress.started_at,
+      progress.last_activity_submission_at,
       progress.last_accessed_at,
       progress.completed_at,
       progress.updated_at,
@@ -1568,6 +1691,12 @@ function roundNumber(value: number, decimals = 1): number {
 
 function sumNumbers(values: number[]): number {
   return values.reduce((sum, value) => sum + (Number.isFinite(value) ? value : 0), 0)
+}
+
+function getNonNegativeNumber(value: unknown): number {
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue) || numberValue < 0) return 0
+  return numberValue
 }
 
 function stringOrNull(value: unknown): string | null {

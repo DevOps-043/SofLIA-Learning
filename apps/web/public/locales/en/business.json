@@ -91,7 +91,7 @@
       },
       "feedback": {
         "title": "Personalized feedback",
-        "content": "Generate an AI read to identify strengths, opportunities, and next steps."
+        "content": "Generate an AI report to identify strengths, opportunities, and next steps."
       },
       "heatmap": {
         "title": "Activity map",
@@ -237,18 +237,18 @@
       "retry": "Retry",
       "restartTour": "Replay tutorial",
       "generateFeedback": "Generate AI Report",
-      "generatingFeedback": "Generating feedback..."
+      "generatingFeedback": "Generating report..."
     },
     "errors": {
       "title": "Your statistics could not be loaded",
       "load": "Error loading statistics",
-      "insights": "Error generating AI feedback"
+      "insights": "Error generating AI report"
     },
     "metrics": {
       "averageProgress": "Average progress",
       "assignedDetail": "{{completed}} of {{total}} courses completed",
       "aiAdoption": "SofLIA Adoption",
-      "aiDetail": "{{conversations}} conversations and {{messages}} messages",
+      "aiDetail": "Active use: {{conversations}} conversations and {{messages}} messages in the period",
       "planning": "Planning",
       "planningDetail": "{{completed}} of {{planned}} sessions completed",
       "quality": "Overall quality",
@@ -260,7 +260,7 @@
       "learningSnapshot": "Learning snapshot",
       "learningSnapshotSubtitle": "Operational indicators for your progress.",
       "aiAdoption": "SofLIA adoption",
-      "aiAdoptionSubtitle": "Measures how much you use SofLIA: conversations, messages, question quality, and relevance to your assigned courses.",
+      "aiAdoptionSubtitle": "Measures active SofLIA use: conversations started, message volume, useful questions, and off-topic signals.",
       "quality": "Response quality",
       "qualitySubtitle": "Radar for courses, activities, SofLIA, notes, and quizzes.",
       "planning": "Planning",
@@ -294,6 +294,13 @@
         "soflia": "SofLIA",
         "notes": "Notes",
         "quizzes": "Quizzes"
+      },
+      "radarDescriptions": {
+        "courses": "Average progress in assigned courses and completed lessons.",
+        "activities": "Submissions, required activity progress, and validation quality.",
+        "soflia": "Question quality, usage relevance, and off-topic signals in SofLIA.",
+        "notes": "Coverage, content, and adoption of notes during learning.",
+        "quizzes": "Average score, pass rate, and recent quiz and exam results."
       }
     },
     "planning": {
@@ -321,7 +328,7 @@
       "latest": "Latest result"
     },
     "feedback": {
-      "empty": "Generate feedback whenever you want a personalized read of your progress.",
+      "empty": "Generate a report whenever you want a personalized read of your progress.",
       "cached": "Cached result",
       "generated": "Generated result",
       "strengths": "Strengths",
