@@ -98,6 +98,14 @@ function buildTagsSection(tags: string[], labels: NotePdfLabels): Content[] {
     return [];
   }
 
+  const tagPills: Content[] = tags.map((tag) => ({
+    background: '#D8FBF5',
+    color: SOFLIA_PRIMARY,
+    fontSize: 9,
+    margin: [0, 0, 6, 0] as [number, number, number, number],
+    text: `  ${tag}  `,
+  }));
+
   return [
     {
       color: SOFLIA_MUTED,
@@ -106,20 +114,9 @@ function buildTagsSection(tags: string[], labels: NotePdfLabels): Content[] {
       text: labels.tags,
     },
     {
-      color: SOFLIA_PRIMARY,
-      fillColor: '#D8FBF5',
-      layout: 'noBorders',
+      columnGap: 0,
+      columns: tagPills,
       margin: [0, 0, 0, 18],
-      table: {
-        body: tags.map((tag) => [
-          {
-            border: [false, false, false, false],
-            margin: [8, 4, 8, 4],
-            text: tag,
-          },
-        ]),
-        widths: ['auto'],
-      },
     },
   ];
 }

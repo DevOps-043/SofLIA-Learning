@@ -46,7 +46,7 @@ const notesModalVariantClasses: Record<NotesModalVariant, Record<string, string>
     container:
       'bg-white dark:bg-[#0F1419] rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 w-full max-w-3xl overflow-hidden',
     editorArea:
-      'flex-1 bg-white dark:bg-[#0F1419] border-none rounded-none p-4 min-h-0 overflow-hidden flex flex-col',
+      'flex-1 bg-white dark:bg-[#0F1419] border-none rounded-none p-4 min-h-0 overflow-y-auto flex flex-col',
     exportButton:
       'hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm font-medium transition-colors border border-gray-200 dark:border-white/10',
     footer:
@@ -92,7 +92,7 @@ const notesModalVariantClasses: Record<NotesModalVariant, Record<string, string>
     container:
       'bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-white/10 w-full max-w-3xl overflow-hidden flex flex-col',
     editorArea:
-      'flex-1 bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700/80 rounded-xl p-4 min-h-0 overflow-hidden flex flex-col',
+      'flex-1 bg-white dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700/80 rounded-xl p-4 min-h-0 overflow-y-auto flex flex-col',
     exportButton:
       'hidden md:flex items-center gap-2 px-5 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-white rounded-xl text-sm font-medium transition-colors border border-gray-200 dark:border-white/10',
     header:
@@ -291,7 +291,7 @@ export function NotesModalLayout({
               </div>
               <div className={classes.editorArea}>
                 <div
-                  className="notes-editor w-full flex-1 text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/20 focus:outline-none resize-none overflow-y-auto"
+                  className="notes-editor w-full flex-1 text-gray-900 dark:text-white/90 placeholder-gray-400 dark:placeholder-white/20 focus:outline-none resize-none break-words"
                   contentEditable
                   data-placeholder={t('notes.modal.contentPlaceholder')}
                   onClick={editor.handleEditorClick}

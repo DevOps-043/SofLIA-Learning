@@ -32,7 +32,9 @@ interface InlineStyleState {
 }
 
 function normalizeTextSegment(value: string): string {
-  return value.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').trim();
+  // Collapse tabs, newlines, and spaces into a single space.
+  // DO NOT use .trim() here, as it removes spaces between inline elements (e.g., text and bold nodes).
+  return value.replace(/\u00a0/g, ' ').replace(/[ \t\r\n]+/g, ' ');
 }
 
 export function splitReadableNoteText(value: string): string[] {
@@ -45,7 +47,7 @@ export function splitReadableNoteText(value: string): string[] {
   return normalizedValue
     .split(/\n{2,}/)
     .map(normalizeTextSegment)
-    .filter(Boolean);
+    .filter((text) => text.length > 0);
 }
 
 function appendInlineSegments(
@@ -102,11 +104,10 @@ function collectInlineSegments(
 
   let nextStyle = inheritedStyle;
 
-  if (tagName === 'strong' || tagName === 'b') {
-    nextStyle = { ...nextStyle, bold: true };
-  } else if (tagName === 'em' || tagName === 'i') {
-    nextStyle = { ...nextStyle, italics: true };
-  } else if (tagName === 'u') {
+  // Bold and italic are intentionally NOT applied here.
+  // The <strong>/<em> tags are stripped upstream in parseNoteHtmlToPdfBlocks
+  // to prevent pdfmake from splitting text runs and eating inter-word spaces.
+  if (tagName === 'u') {
     nextStyle = { ...nextStyle, decoration: 'underline' };
   } else if (tagName === 'a') {
     const normalizedUrl = normalizeNoteLinkUrl(element.getAttribute('href') || '');
@@ -120,6 +121,29 @@ function collectInlineSegments(
   );
 }
 
+function mergeRuns(runs: NotePdfInlineRun[]): NotePdfInlineRun[] {
+  if (runs.length <= 1) return runs;
+  const merged: NotePdfInlineRun[] = [];
+  let current = runs[0];
+
+  for (let i = 1; i < runs.length; i++) {
+    const next = runs[i];
+    if (
+      current.bold === next.bold &&
+      current.italics === next.italics &&
+      current.link === next.link &&
+      current.decoration === next.decoration
+    ) {
+      current = { ...current, text: current.text + next.text };
+    } else {
+      merged.push(current);
+      current = next;
+    }
+  }
+  merged.push(current);
+  return merged;
+}
+
 function collectTextRuns(element: Element): NotePdfInlineRun[][] {
   return Array.from(element.childNodes)
     .reduce<NotePdfInlineRun[][]>(
@@ -127,8 +151,8 @@ function collectTextRuns(element: Element): NotePdfInlineRun[][] {
         appendInlineSegments(segments, collectInlineSegments(childNode)),
       [[]]
     )
-    .map((runs) => runs.filter((run) => run.text.trim()))
-    .filter((runs) => runs.length > 0);
+    .map((runs) => mergeRuns(runs.filter((run) => run.text.length > 0)))
+    .filter((runs) => runs.some((run) => run.text.trim().length > 0));
 }
 
 function pushParagraphBlocks(
@@ -190,9 +214,21 @@ function parseElementToBlocks(
   }
 }
 
+/**
+ * Strips bold / italic wrapper tags so the DOMParser only sees plain text
+ * inside block-level elements.  This prevents pdfmake from creating
+ * separate text-run objects per inline tag, which historically caused it
+ * to swallow the whitespace between runs.
+ */
+function stripInlineStyleTags(html: string): string {
+  return html
+    .replace(/<\/?(strong|b|em|i)\s*>/gi, '');
+}
+
 export function parseNoteHtmlToPdfBlocks(html: string): NotePdfContentBlock[] {
   const parser = new DOMParser();
-  const documentNode = parser.parseFromString(html, 'text/html');
+  const sanitizedHtml = stripInlineStyleTags(html);
+  const documentNode = parser.parseFromString(sanitizedHtml, 'text/html');
   const blocks: NotePdfContentBlock[] = [];
 
   Array.from(documentNode.body.children).forEach((element) => {

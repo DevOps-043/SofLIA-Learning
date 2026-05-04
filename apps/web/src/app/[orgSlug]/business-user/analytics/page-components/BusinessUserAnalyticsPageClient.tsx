@@ -12,7 +12,7 @@ import {
   CalendarCheck,
   FileText,
   Loader2,
-  Map,
+  Map as MapIcon,
   MessageSquare,
   NotebookPen,
   RefreshCw,
@@ -242,7 +242,7 @@ export function BusinessUserAnalyticsPageClient() {
               aria-label={t('analytics.actions.restartTour')}
               title={t('analytics.actions.restartTour')}
             >
-              <Map className="h-4 w-4" />
+              <MapIcon className="h-4 w-4" />
             </button>
           </div>
         </header>

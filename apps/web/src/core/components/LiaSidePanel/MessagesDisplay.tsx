@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { parseMarkdownContent } from './utils/parseMarkdown';
 import { LiaThemeColors, LiaQuickAction, LiaMessage } from './types';
+import { LiaQuickActionsChips } from './LiaQuickActionsChips';
 
 interface MessagesDisplayProps {
   messages: LiaMessage[];
@@ -222,46 +223,13 @@ export function MessagesDisplay({
       </div>
 
       {/* Quick Actions */}
-      {messages.length <= 1 && !isLoading && (
-        <div style={{ padding: '0 20px 12px' }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <button
-                  key={action.id}
-                  onClick={() => handleQuickAction(action)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '8px 12px',
-                    borderRadius: '12px',
-                    backgroundColor: themeColors.inputBg,
-                    border: `1px solid ${themeColors.borderColor}`,
-                    color: themeColors.textPrimary,
-                    fontSize: '12px',
-                    fontWeight: 500,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isLightTheme ? '#E2E8F0' : '#2d3a47';
-                    e.currentTarget.style.borderColor = themeColors.accentColor;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = themeColors.inputBg;
-                    e.currentTarget.style.borderColor = themeColors.borderColor;
-                  }}
-                >
-                  <Icon style={{ width: '14px', height: '14px' }} color={themeColors.accentColor} />
-                  {action.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <LiaQuickActionsChips
+        quickActions={quickActions}
+        isLoading={false}
+        isLightTheme={isLightTheme}
+        themeColors={themeColors}
+        onActionClick={handleQuickAction}
+      />
     </>
   );
 }

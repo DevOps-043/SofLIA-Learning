@@ -97,6 +97,7 @@ export function useLiaSidePanelLogic() {
   const [currentPage, setCurrentPage] = useState(0);
   const [totalConversations, setTotalConversations] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [usedQuickActionIds, setUsedQuickActionIds] = useState<Set<string>>(new Set());
 
   const limit = 20;
   const tips = (t('lia.tips', { returnObjects: true }) as string[]) || [];
@@ -363,8 +364,11 @@ export function useLiaSidePanelLogic() {
     },
   ];
 
+  const visibleQuickActions = quickActions.filter(action => !usedQuickActionIds.has(action.id));
+
   const handleQuickAction = useCallback(
     async (action: LiaQuickAction) => {
+      setUsedQuickActionIds((prev) => new Set(prev).add(action.id));
       await sendMessage(action.prompt);
     },
     [sendMessage]
@@ -406,7 +410,7 @@ export function useLiaSidePanelLogic() {
     handleQuickAction,
     handleKeyDown,
     handleLinkClick,
-    quickActions,
+    quickActions: visibleQuickActions,
     currentTip,
     tips,
     isSpeaking,

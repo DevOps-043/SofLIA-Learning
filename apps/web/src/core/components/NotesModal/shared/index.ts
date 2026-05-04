@@ -4,5 +4,6 @@ export * from './notes-pdf-definition.service';
 export * from './notes-pdf-html2canvas.service';
 export * from './notes-pdf-jspdf.service';
 export * from './notes-pdf-pdfmake.service';
+export * from './notes-markdown-to-html.service';
 export * from './NotesModalLayout';
 export * from './useNotesEditorState';

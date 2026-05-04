@@ -17,6 +17,7 @@ import type { CourseLessonContext, SofLIAMessage } from '../../../core/types/lia
 import type { LiaImageAttachment } from '../../../core/reporting/report-problem.contract';
 
 import { copyTextToClipboard } from '../../../lib/clipboard';
+import { convertNoteMarkdownToHtml } from '../../../core/components/NotesModal/shared/notes-markdown-to-html.service';
 import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
 import { normalizeLiaLinkUrl, type NormalizedLiaLink } from './CourseLia/lia-link.utils';
@@ -641,12 +642,7 @@ function CourseLiaPanelContent({
                       {onSaveNote && (
                         <button 
                           onClick={() => {
-                            // Parsear markdown básico a HTML para el WYSIWYG de Notas
-                            const htmlContent = message.content
-                              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                              .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                              .replace(/\n/g, '<br/>');
-                            
+                            const htmlContent = convertNoteMarkdownToHtml(message.content);
                             onSaveNote(htmlContent);
                           }}
                           title="Guardar como nota"
