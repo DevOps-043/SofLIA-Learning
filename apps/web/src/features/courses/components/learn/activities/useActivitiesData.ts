@@ -336,6 +336,30 @@ export function useActivitiesData({
     });
   }, []);
 
+  const expandActivity = useCallback((activityId: string) => {
+    setCollapsedActivities((currentCollapsedActivities) => {
+      if (!currentCollapsedActivities.has(activityId)) {
+        return currentCollapsedActivities;
+      }
+
+      const nextCollapsedActivities = new Set(currentCollapsedActivities);
+      nextCollapsedActivities.delete(activityId);
+      return nextCollapsedActivities;
+    });
+  }, []);
+
+  const focusActivityOnly = useCallback(
+    (activityId: string, activityIds: string[]) => {
+      setCollapsedActivities(
+        new Set(activityIds.filter((itemId) => itemId !== activityId))
+      );
+      setCollapsedMaterials(
+        new Set(materials.map((material) => material.material_id))
+      );
+    },
+    [materials]
+  );
+
   const toggleMaterialCollapse = useCallback((materialId: string) => {
     setCollapsedMaterials((currentCollapsedMaterials) => {
       const nextCollapsedMaterials = new Set(currentCollapsedMaterials);
@@ -349,6 +373,18 @@ export function useActivitiesData({
       return nextCollapsedMaterials;
     });
   }, []);
+
+  const focusMaterialOnly = useCallback(
+    (materialId: string, materialIds: string[]) => {
+      setCollapsedMaterials(
+        new Set(materialIds.filter((itemId) => itemId !== materialId))
+      );
+      setCollapsedActivities(
+        new Set(activities.map((activity) => activity.activity_id))
+      );
+    },
+    [activities]
+  );
 
   const refreshLessonContent = useCallback(async () => {
     await loadLessonContent({ preserveVisibleContent: true });
@@ -406,6 +442,9 @@ export function useActivitiesData({
     materials,
     quizStatus,
     refreshLessonContent,
+    expandActivity,
+    focusActivityOnly,
+    focusMaterialOnly,
     toggleActivityCollapse,
     toggleMaterialCollapse,
   };

@@ -59,7 +59,10 @@ export function MaterialCard({
     : undefined;
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors shadow-sm dark:shadow-none">
+    <div
+      data-material-card-id={material.material_id}
+      className="scroll-mt-6 rounded-lg border border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors shadow-sm dark:shadow-none"
+    >
       <button
         onClick={(event) => {
           event.stopPropagation();

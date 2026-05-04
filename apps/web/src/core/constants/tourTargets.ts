@@ -29,11 +29,49 @@ export const COURSE_LEARN_TOUR_TARGET_IDS = {
   liaMobileTrigger: 'course-learn-lia-mobile-trigger',
 } as const;
 
+export const PROFILE_TOUR_TARGET_IDS = {
+  hero: 'profile-tour-hero',
+  avatar: 'profile-tour-avatar',
+  summary: 'profile-tour-summary',
+  stats: 'profile-tour-stats',
+  tabs: 'profile-tour-tabs',
+  personalForm: 'profile-tour-personal-form',
+  securitySection: 'profile-tour-security-section',
+} as const;
+
+export const BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS = {
+  header: 'business-user-analytics-tour-header',
+  rangeControls: 'business-user-analytics-tour-range-controls',
+  metrics: 'business-user-analytics-tour-metrics',
+  courseProgress: 'business-user-analytics-tour-course-progress',
+  aiAdoption: 'business-user-analytics-tour-ai-adoption',
+  feedback: 'business-user-analytics-tour-feedback',
+  heatmap: 'business-user-analytics-tour-heatmap',
+} as const;
+
+export const SELECT_ORGANIZATION_TOUR_TARGET_IDS = {
+  header: 'select-organization-tour-header',
+  counter: 'select-organization-tour-counter',
+  grid: 'select-organization-tour-grid',
+  card: 'select-organization-tour-card',
+  role: 'select-organization-tour-role',
+  action: 'select-organization-tour-action',
+} as const;
+
 export type CourseLearnTourTargetKey =
   keyof typeof COURSE_LEARN_TOUR_TARGET_IDS;
 
 export type BusinessUserDashboardTourTargetKey =
   keyof typeof BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS;
+
+export type ProfileTourTargetKey =
+  keyof typeof PROFILE_TOUR_TARGET_IDS;
+
+export type BusinessUserAnalyticsTourTargetKey =
+  keyof typeof BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS;
+
+export type SelectOrganizationTourTargetKey =
+  keyof typeof SELECT_ORGANIZATION_TOUR_TARGET_IDS;
 
 export function getBusinessUserDashboardTourTargetSelector(
   target: BusinessUserDashboardTourTargetKey,
@@ -45,4 +83,22 @@ export function getCourseLearnTourTargetSelector(
   target: CourseLearnTourTargetKey,
 ): string {
   return `#${COURSE_LEARN_TOUR_TARGET_IDS[target]}`;
+}
+
+export function getProfileTourTargetSelector(
+  target: ProfileTourTargetKey,
+): string {
+  return `#${PROFILE_TOUR_TARGET_IDS[target]}`;
+}
+
+export function getBusinessUserAnalyticsTourTargetSelector(
+  target: BusinessUserAnalyticsTourTargetKey,
+): string {
+  return `#${BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS[target]}`;
+}
+
+export function getSelectOrganizationTourTargetSelector(
+  target: SelectOrganizationTourTargetKey,
+): string {
+  return `#${SELECT_ORGANIZATION_TOUR_TARGET_IDS[target]}`;
 }

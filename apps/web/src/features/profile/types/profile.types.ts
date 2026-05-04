@@ -13,10 +13,6 @@ export interface UserProfile {
   cargo_rol: string
   type_rol: string
   profile_picture_url: string
-  curriculum_url: string
-  linkedin_url: string
-  github_url: string
-  website_url: string
   country_code: string
   date_of_birth: string | null
   gender: UserGender | null
@@ -38,10 +34,6 @@ export interface UpdateProfileRequest {
   cargo_rol?: string
   type_rol?: string
   profile_picture_url?: string
-  curriculum_url?: string
-  linkedin_url?: string
-  github_url?: string
-  website_url?: string
   country_code?: string
   date_of_birth?: string | null
   gender?: UserGender | null
@@ -93,7 +85,6 @@ export interface UseProfileReturn {
   saving: boolean
   updateProfile: (updates: UpdateProfileRequest) => Promise<void>
   uploadProfilePicture: (file: File) => Promise<string>
-  uploadCurriculum: (file: File) => Promise<string>
   changePassword: (currentPassword: string, newPassword: string) => Promise<void>
   refetch: () => Promise<void>
 }

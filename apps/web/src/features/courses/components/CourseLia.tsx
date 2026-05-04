@@ -13,7 +13,9 @@ import { useLanguage } from '../../../core/providers/I18nProvider';
 import { useThemeStore } from '../../../core/stores/themeStore';
 import { useLiaCourse } from '../context/LiaCourseContext';
 import { useLiaCourseChat } from '../../../core/hooks/useLiaCourseChat';
-import type { CourseLessonContext } from '../../../core/types/lia.types';
+import type { CourseLessonContext, SofLIAMessage } from '../../../core/types/lia.types';
+import type { LiaImageAttachment } from '../../../core/reporting/report-problem.contract';
+
 import { copyTextToClipboard } from '../../../lib/clipboard';
 import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
@@ -601,7 +603,7 @@ function CourseLiaPanelContent({
                   </p>
                   {message.attachments?.length ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                      {message.attachments.map((attachment, attachmentIndex) => (
+                      {message.attachments.map((attachment: LiaImageAttachment, attachmentIndex: number) => (
                         <img
                           key={`${message.id}-attachment-${attachmentIndex}`}
                           src={attachment.dataUrl}

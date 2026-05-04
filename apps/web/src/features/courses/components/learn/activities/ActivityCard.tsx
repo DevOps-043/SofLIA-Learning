@@ -163,7 +163,10 @@ export function ActivityCard({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:bg-gray-50 dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none dark:hover:bg-white/[0.04]">
+    <div
+      data-activity-card-id={activity.activity_id}
+      className="scroll-mt-6 rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:bg-gray-50 dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none dark:hover:bg-white/[0.04]"
+    >
       <button
         onClick={(event) => {
           event.stopPropagation();

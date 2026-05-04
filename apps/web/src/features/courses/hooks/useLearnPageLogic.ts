@@ -87,6 +87,8 @@ export function useLearnPageLogic() {
     [],
   )
   const [isPromptsCollapsed, setIsPromptsCollapsed] = useState(false)
+  const [focusedActivityId, setFocusedActivityId] = useState<string | null>(null)
+  const [focusedMaterialId, setFocusedMaterialId] = useState<string | null>(null)
   const [pendingVideoTransitionLessonId, setPendingVideoTransitionLessonId] =
     useState<string | null>(null)
 
@@ -278,6 +280,20 @@ export function useLearnPageLogic() {
     setCurrentActivityPrompts(prompts)
   }, [])
 
+  const handleSidebarContentFocus = useCallback(
+    (contentId: string, contentType: 'activity' | 'material' = 'activity') => {
+      if (contentType === 'material') {
+        setFocusedMaterialId(contentId)
+        setFocusedActivityId(null)
+        return
+      }
+
+      setFocusedActivityId(contentId)
+      setFocusedMaterialId(null)
+    },
+    [],
+  )
+
   const handleVideoCompleted = useCallback(
     (lessonId: string) => {
       setModules((prevModules) =>
@@ -431,6 +447,7 @@ export function useLearnPageLogic() {
   const {
     getPreviousLesson,
     getNextLesson,
+    handleActivityShortcut,
     handleLessonChange,
     navigateToPreviousLesson,
     navigateToNextLesson,
@@ -446,6 +463,7 @@ export function useLearnPageLogic() {
     markLessonAsCompleted,
     loadLessonActivitiesAndMaterials,
     openValidationModal,
+    onActivityFocus: handleSidebarContentFocus,
     trackUserAction,
     videoPlayerContext,
   })
@@ -765,6 +783,7 @@ export function useLearnPageLogic() {
     updateNotesStatsOptimized,
     getPreviousLesson,
     getNextLesson,
+    handleActivityShortcut,
     handleLessonChange,
     navigateToPreviousLesson,
     navigateToNextLesson,
@@ -792,6 +811,10 @@ export function useLearnPageLogic() {
     isPromptsCollapsed,
     setIsPromptsCollapsed,
     handlePromptsChange,
+    focusedActivityId,
+    setFocusedActivityId,
+    focusedMaterialId,
+    setFocusedMaterialId,
     trackUserAction,
     analyzeUserBehavior,
     userBehaviorLog,

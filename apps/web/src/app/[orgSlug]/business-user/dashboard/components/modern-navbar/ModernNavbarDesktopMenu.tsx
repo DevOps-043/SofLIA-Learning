@@ -100,6 +100,7 @@ export function ModernNavbarDesktopMenu({
         <>
           {/* Backdrop — fixed, por encima de TODOS los elementos flotantes */}
           <motion.div
+            id="tour-user-dropdown-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

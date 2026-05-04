@@ -22,10 +22,6 @@ const UpdateProfileSchema = z.object({
   country_code: z.string().max(10).optional().nullable(),
   date_of_birth: DateOfBirthSchema.optional(),
   gender: UserGenderSchema.optional(),
-  curriculum_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
-  linkedin_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
-  github_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
-  website_url: z.union([z.string().url().max(500), z.literal('')]).optional().nullable(),
 }).strict()
 
 export async function GET(_request: NextRequest) {

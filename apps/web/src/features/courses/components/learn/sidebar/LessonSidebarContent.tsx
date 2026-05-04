@@ -25,6 +25,8 @@ type LessonSidebarContentProps = {
   activities: LearnActivitySummary[];
   materials: LearnMaterialSummary[];
   quizStatus: LessonQuizStatus | null | undefined;
+  onSelectActivity: (activityId: string) => void | Promise<void>;
+  onSelectMaterial: (materialId: string) => void | Promise<void>;
 };
 
 function QuizStatusBadge({
@@ -93,6 +95,8 @@ export function LessonSidebarContent({
   activities,
   materials,
   quizStatus,
+  onSelectActivity,
+  onSelectMaterial,
 }: LessonSidebarContentProps) {
   const { t } = useTranslation("learn");
   const hasContent = activities.length > 0 || materials.length > 0;
@@ -119,9 +123,13 @@ export function LessonSidebarContent({
                     : null;
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={activity.activity_id}
-                      className="group relative rounded-2xl p-3 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/5"
+                      onClick={() => {
+                        void onSelectActivity(activity.activity_id);
+                      }}
+                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-[#00D4B3]"
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-[#0F1419] dark:group-hover:border-white/20">
@@ -152,7 +160,7 @@ export function LessonSidebarContent({
                       </div>
 
                       {isQuiz && <QuizStatusBadge quizInfo={quizInfo} />}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -168,9 +176,13 @@ export function LessonSidebarContent({
                     : null;
 
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={material.material_id}
-                      className="group relative rounded-2xl p-3 transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/5"
+                      onClick={() => {
+                        void onSelectMaterial(material.material_id);
+                      }}
+                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-[#00D4B3]"
                     >
                       <div className="flex items-start gap-4">
                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-[#0F1419] dark:group-hover:border-white/20">
@@ -201,7 +213,7 @@ export function LessonSidebarContent({
                       </div>
 
                       {isQuiz && <QuizStatusBadge quizInfo={quizInfo} />}
-                    </div>
+                    </button>
                   );
                 })}
               </div>

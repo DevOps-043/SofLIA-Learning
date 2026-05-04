@@ -1116,6 +1116,79 @@
   "tour": {
     "restart": "Restart tutorial"
   },
+  "selectOrganization": {
+    "loading": "Loading organizations...",
+    "redirecting": "Redirecting...",
+    "title": "Select your organization",
+    "subtitlePrefix": "We found",
+    "subtitleSuffix": "workspaces associated with your account.",
+    "footer": "You can switch organizations at any time from the control panel.",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Administrator",
+      "member": "Member"
+    }
+  },
+  "profileTour": {
+    "steps": {
+      "hero": {
+        "title": "Your SofLIA profile",
+        "content": "This area brings together your identity, progress, and main account options."
+      },
+      "avatar": {
+        "title": "Profile photo",
+        "content": "Update your image here so other users can recognize you more easily."
+      },
+      "summary": {
+        "title": "Main information",
+        "content": "Review your name, role, and general account status before editing your data."
+      },
+      "stats": {
+        "title": "Progress snapshot",
+        "content": "These metrics show quick learning signals, such as completed lessons and certificates."
+      },
+      "tabs": {
+        "title": "Profile sections",
+        "content": "Switch between personal information and security to keep your account up to date."
+      },
+      "personalForm": {
+        "title": "Personal data",
+        "content": "Complete your contact details, location, role, and bio to improve your experience."
+      },
+      "security": {
+        "title": "Account security",
+        "content": "In the security tab you can review your email and update your password whenever needed."
+      }
+    }
+  },
+  "selectOrganizationTour": {
+    "steps": {
+      "header": {
+        "title": "Choose your workspace",
+        "content": "This screen appears when your account belongs to more than one organization."
+      },
+      "counter": {
+        "title": "Available organizations",
+        "content": "This number confirms how many workspaces you can open with your account."
+      },
+      "card": {
+        "title": "Organization card",
+        "content": "Each card represents an available organization with its image, name, and context."
+      },
+      "role": {
+        "title": "Your role",
+        "content": "The role indicates whether you will enter as an administrator, owner, or member."
+      },
+      "action": {
+        "title": "Enter the panel",
+        "content": "Select a card to load that organization and continue to the matching panel."
+      },
+      "slug": {
+        "title": "Organization identifier",
+        "content": "The slug helps identify the route for the workspace you are entering."
+      }
+    }
+  },
   "notes": {
     "modal": {
       "createTitle": "Study > Notes",

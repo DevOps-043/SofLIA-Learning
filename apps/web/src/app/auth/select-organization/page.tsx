@@ -1,12 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronRight, Loader2, Shield, Users } from 'lucide-react';
+import Joyride from 'react-joyride';
+import { useTranslation } from 'react-i18next';
+import { TourRestartButton } from '@/core/components/tours/TourRestartButton';
 import { useOrganization } from '@/core/hooks/useOrganization';
+import { SELECT_ORGANIZATION_TOUR_TARGET_IDS } from '@/core/constants/tourTargets';
 import type { Organization } from '@/core/stores/organizationStore';
 import { useThemeStore } from '@/core/stores/themeStore';
+import { useJoyrideMinitour } from '@/features/tours/hooks/useJoyrideMinitour';
+import {
+  SELECT_ORGANIZATION_MINITOUR_ID,
+  buildSelectOrganizationMinitourSteps,
+} from '@/features/tours/config/select-organization-minitour-steps';
 
 /**
  * Organization Selection Page
@@ -17,6 +26,7 @@ import { useThemeStore } from '@/core/stores/themeStore';
 export default function SelectOrganizationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation('common');
   const { organizations: userOrganizations = [], isLoading, setCurrentOrganization } = useOrganization();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
@@ -31,6 +41,16 @@ export default function SelectOrganizationPage() {
 
   // Get redirect URL from query params (where to go after selection)
   const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const tourSteps = useMemo(
+    () => buildSelectOrganizationMinitourSteps((key) => String(t(key))),
+    [t],
+  );
+  const organizationTour = useJoyrideMinitour({
+    enabled: !isLoading && userOrganizations.length > 1,
+    label: String(t('tour.restart')),
+    steps: tourSteps,
+    tourId: SELECT_ORGANIZATION_MINITOUR_ID,
+  });
 
   const ui = {
     pageBg: isDark ? '#050B14' : '#F4F8FC',
@@ -103,11 +123,11 @@ export default function SelectOrganizationPage() {
   const getRoleLabel = (role: string) => {
     switch (role) {
       case 'owner':
-        return 'Propietario';
+        return t('selectOrganization.roles.owner');
       case 'admin':
-        return 'Administrador';
+        return t('selectOrganization.roles.admin');
       case 'member':
-        return 'Miembro';
+        return t('selectOrganization.roles.member');
       default:
         return role;
     }
@@ -166,7 +186,7 @@ export default function SelectOrganizationPage() {
         <div className="flex flex-col items-center gap-4 relative z-10">
           <Loader2 className="w-10 h-10 animate-spin" style={{ color: ui.loader }} />
           <p className="font-medium tracking-wide text-sm" style={{ color: ui.subtitle }}>
-            {isLoading ? 'Cargando organizaciones...' : 'Redirigiendo...'}
+            {isLoading ? t('selectOrganization.loading') : t('selectOrganization.redirecting')}
           </p>
         </div>
       </div>
@@ -204,6 +224,7 @@ export default function SelectOrganizationPage() {
         className="w-full max-w-4xl relative z-10"
       >
         <div
+          id={SELECT_ORGANIZATION_TOUR_TARGET_IDS.header}
           className="text-center mb-10 rounded-[32px] border backdrop-blur-xl px-6 py-8 md:px-10 md:py-10"
           style={{
             backgroundColor: ui.headerSurface,
@@ -218,7 +239,7 @@ export default function SelectOrganizationPage() {
             className="text-3xl md:text-4xl font-bold mb-3 tracking-tight"
             style={{ color: ui.heading }}
           >
-            Selecciona tu Organización
+            {t('selectOrganization.title')}
           </motion.h1>
 
           <motion.p
@@ -228,17 +249,22 @@ export default function SelectOrganizationPage() {
             className="text-lg max-w-md mx-auto"
             style={{ color: ui.subtitle }}
           >
-            Hemos encontrado <span className="font-semibold" style={{ color: ui.counter }}>{userOrganizations.length}</span> espacios de trabajo asociados a tu cuenta.
+            {t('selectOrganization.subtitlePrefix')}{' '}
+            <span id={SELECT_ORGANIZATION_TOUR_TARGET_IDS.counter} className="font-semibold" style={{ color: ui.counter }}>
+              {userOrganizations.length}
+            </span>{' '}
+            {t('selectOrganization.subtitleSuffix')}
           </motion.p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
+        <div id={SELECT_ORGANIZATION_TOUR_TARGET_IDS.grid} className="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
           {userOrganizations.map((org, index) => {
             const roleStyle = getRoleStyles(org.role);
             const isSelected = selectedOrg === org.id;
 
             return (
               <motion.button
+                id={index === 0 ? SELECT_ORGANIZATION_TOUR_TARGET_IDS.card : undefined}
                 key={org.id}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -287,6 +313,7 @@ export default function SelectOrganizationPage() {
                   </div>
 
                   <div
+                    id={index === 0 ? SELECT_ORGANIZATION_TOUR_TARGET_IDS.action : undefined}
                     className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 mt-1"
                     style={{
                       backgroundColor: isSelected ? ui.actionBg : ui.actionIdleBg,
@@ -309,6 +336,7 @@ export default function SelectOrganizationPage() {
 
                   <div className="flex items-center gap-2 mt-2">
                     <span
+                      id={index === 0 ? SELECT_ORGANIZATION_TOUR_TARGET_IDS.role : undefined}
                       className={`
                         inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] uppercase tracking-wider font-bold border transition-colors
                         ${roleStyle.bg} ${roleStyle.text} ${roleStyle.border}
@@ -336,7 +364,7 @@ export default function SelectOrganizationPage() {
           className="text-center mt-12"
         >
           <p className="text-sm" style={{ color: ui.subtitle }}>
-            Puedes cambiar de organización en cualquier momento desde el panel de control.
+            {t('selectOrganization.footer')}
           </p>
           <div className="mt-8 flex justify-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: `${ui.dot}33` }} />
@@ -345,6 +373,8 @@ export default function SelectOrganizationPage() {
           </div>
         </motion.div>
       </motion.div>
+      <TourRestartButton anchor={{ bottom: 24, right: 24, size: 56 }} />
+      {organizationTour.isMounted ? <Joyride {...organizationTour.joyrideProps} /> : null}
     </div>
   );
 }

@@ -25,6 +25,14 @@ type ModuleAccordionProps = {
   lessonsQuizStatus: LearnLessonQuizStatusMap;
   onToggleModule: (moduleId: string) => void;
   onToggleLesson: (lessonId: string) => void | Promise<void>;
+  onSelectActivity: (target: {
+    activityId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
+  onSelectMaterial: (target: {
+    materialId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
   onSelectLesson: (lesson: LearnLesson) => void | Promise<void>;
 };
 
@@ -39,6 +47,8 @@ export function ModuleAccordion({
   lessonsQuizStatus,
   onToggleModule,
   onToggleLesson,
+  onSelectActivity,
+  onSelectMaterial,
   onSelectLesson,
 }: ModuleAccordionProps) {
   const { t } = useTranslation("learn");
@@ -120,6 +130,8 @@ export function ModuleAccordion({
                       activities={activities}
                       materials={materials}
                       quizStatus={lessonsQuizStatus[lesson.lesson_id]}
+                      onSelectActivity={onSelectActivity}
+                      onSelectMaterial={onSelectMaterial}
                       onSelectLesson={onSelectLesson}
                       onToggleExpanded={onToggleLesson}
                       expandLabel={t("activities.expandCollapse")}

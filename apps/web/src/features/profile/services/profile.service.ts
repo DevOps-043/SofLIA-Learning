@@ -1,5 +1,4 @@
 import {
-  PROFILE_CURRICULUM_ALLOWED_TYPES,
   PROFILE_IMAGE_ALLOWED_TYPES,
   PROFILE_UPLOAD_MAX_SIZE_BYTES,
   normalizeUserStats,
@@ -87,23 +86,6 @@ export class ProfileService {
     await ensureOk(response, 'Error al subir imagen')
     const payload = await response.json()
     return payload.imageUrl
-  }
-
-  static async uploadCurriculum(file: File): Promise<string> {
-    validateUpload(file, PROFILE_CURRICULUM_ALLOWED_TYPES, 'Tipo de archivo no válido. Solo se permiten PDF y documentos Word.')
-
-    const formData = new FormData()
-    formData.append('file', file)
-
-    const response = await fetch('/api/profile/upload-curriculum', {
-      method: 'POST',
-      credentials: 'include',
-      body: formData
-    })
-
-    await ensureOk(response, 'Error al subir curriculum')
-    const payload = await response.json()
-    return payload.cvUrl
   }
 
   static async changePassword(_userId: string, currentPassword: string, newPassword: string): Promise<void> {

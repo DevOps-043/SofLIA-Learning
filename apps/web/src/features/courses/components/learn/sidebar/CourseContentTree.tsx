@@ -26,6 +26,14 @@ type CourseContentTreeProps = {
   onToggleCollapsed: () => void;
   onToggleModule: (moduleId: string) => void;
   onToggleLesson: (lessonId: string) => void | Promise<void>;
+  onSelectActivity: (target: {
+    activityId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
+  onSelectMaterial: (target: {
+    materialId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
   onSelectLesson: (lesson: LearnLesson) => void | Promise<void>;
   onClosePanel?: () => void;
 };
@@ -42,6 +50,8 @@ export function CourseContentTree({
   onToggleCollapsed,
   onToggleModule,
   onToggleLesson,
+  onSelectActivity,
+  onSelectMaterial,
   onSelectLesson,
   onClosePanel,
 }: CourseContentTreeProps) {
@@ -118,6 +128,8 @@ export function CourseContentTree({
                 lessonsQuizStatus={lessonsQuizStatus}
                 onToggleModule={onToggleModule}
                 onToggleLesson={onToggleLesson}
+                onSelectActivity={onSelectActivity}
+                onSelectMaterial={onSelectMaterial}
                 onSelectLesson={onSelectLesson}
               />
             ))}

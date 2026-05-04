@@ -45,6 +45,12 @@ type OpenLessonOptions = {
   trackOpen?: boolean;
 };
 
+type ActivityShortcutTarget = {
+  activityId: string;
+  contentType?: "activity" | "material";
+  lesson: LearnLesson;
+};
+
 type UseLessonNavigationParams = {
   orderedLessons: LearnOrderedLesson[];
   modules: Array<{
@@ -65,6 +71,10 @@ type UseLessonNavigationParams = {
     forceRefresh?: boolean
   ) => Promise<void>;
   openValidationModal: OpenValidationModal;
+  onActivityFocus?: (
+    contentId: string,
+    contentType?: "activity" | "material"
+  ) => void;
   trackUserAction: TrackUserAction;
   videoPlayerContext?: PauseAllVideosContext;
 };
@@ -88,6 +98,7 @@ export function useLessonNavigation({
   markLessonAsCompleted,
   loadLessonActivitiesAndMaterials,
   openValidationModal,
+  onActivityFocus,
   trackUserAction,
   videoPlayerContext,
 }: UseLessonNavigationParams) {
@@ -327,6 +338,174 @@ export function useLessonNavigation({
     }
   }, [cancelPendingValidation, getPreviousLesson, openLesson]);
 
+  const handleActivityShortcut = useCallback(
+    async ({
+      activityId,
+      contentType = "activity",
+      lesson,
+    }: ActivityShortcutTarget) => {
+      cancelPendingValidation();
+
+      if (!currentLesson) {
+        openLesson(lesson, { tab: "activities" });
+        onActivityFocus?.(activityId, contentType);
+        trackUserAction("sidebar_activity_shortcut_opened", {
+          activityId,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+        });
+        return;
+      }
+
+      const isCurrentLesson = currentLesson.lesson_id === lesson.lesson_id;
+
+      if (isCurrentLesson) {
+        if (!isLessonVideoCompleted(currentLesson)) {
+          trackUserAction("attempted_activity_shortcut_before_video_completed", {
+            activityId,
+            lessonId: currentLesson.lesson_id,
+            lessonTitle: currentLesson.lesson_title,
+          });
+          showIncompleteVideoModal();
+          return;
+        }
+
+        setActiveTab("activities");
+        onActivityFocus?.(activityId, contentType);
+        scrollToTop();
+        trackUserAction("sidebar_activity_shortcut_opened", {
+          activityId,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+        });
+        return;
+      }
+
+      const currentIndex = findOrderedLessonIndex(
+        orderedLessons,
+        currentLesson.lesson_id
+      );
+      const selectedIndex = findOrderedLessonIndex(
+        orderedLessons,
+        lesson.lesson_id
+      );
+
+      if (selectedIndex === -1) {
+        return;
+      }
+
+      if (selectedIndex <= currentIndex) {
+        openLesson(lesson, { tab: "activities" });
+        onActivityFocus?.(activityId, contentType);
+        trackUserAction("sidebar_activity_shortcut_opened", {
+          activityId,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+        });
+        return;
+      }
+
+      if (!isLessonVideoCompleted(currentLesson)) {
+        trackUserAction("attempted_activity_shortcut_before_video_completed", {
+          activityId,
+          currentLessonId: currentLesson.lesson_id,
+          currentLessonTitle: currentLesson.lesson_title,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+        });
+        showIncompleteVideoModal();
+        return;
+      }
+
+      const pendingRequired = getPendingRequiredActivities(
+        lessonsActivities[currentLesson.lesson_id]
+      );
+
+      if (pendingRequired.length > 0) {
+        trackUserAction("attempted_activity_shortcut_without_completion", {
+          activityId,
+          currentLessonId: currentLesson.lesson_id,
+          currentLessonTitle: currentLesson.lesson_title,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+          pendingActivities: pendingRequired.map(
+            (activity) => activity.activity_title
+          ),
+          pendingCount: pendingRequired.length,
+        });
+        saveCurrentLessonVideoProgress(currentLesson.lesson_id);
+        setActiveTab("activities");
+        scrollToTop();
+        return;
+      }
+
+      const previousLesson = currentLesson;
+
+      openLesson(lesson, { tab: "activities" });
+      onActivityFocus?.(activityId, contentType);
+
+      const abortController = new AbortController();
+      pendingValidationRef.current = abortController;
+
+      try {
+        const canComplete = await markLessonAsCompleted(
+          previousLesson.lesson_id,
+          abortController.signal
+        );
+
+        if (pendingValidationRef.current !== abortController) {
+          return;
+        }
+
+        pendingValidationRef.current = null;
+
+        if (!canComplete) {
+          openLesson(previousLesson, { trackOpen: false });
+          trackUserAction("attempted_locked_activity_shortcut", {
+            activityId,
+            targetLessonId: lesson.lesson_id,
+            targetLessonTitle: lesson.lesson_title,
+            reason: "previous_lesson_not_completed",
+          });
+          return;
+        }
+
+        trackUserAction("sidebar_activity_shortcut_opened", {
+          activityId,
+          targetLessonId: lesson.lesson_id,
+          targetLessonTitle: lesson.lesson_title,
+        });
+      } catch (error: unknown) {
+        if (pendingValidationRef.current === abortController) {
+          pendingValidationRef.current = null;
+        }
+
+        if (
+          (error as { name?: string })?.name !== "AbortError" &&
+          process.env.NODE_ENV === "development"
+        ) {
+          console.warn(
+            "Error en validacion de acceso a actividad (ignorado):",
+            error
+          );
+        }
+      }
+    },
+    [
+      cancelPendingValidation,
+      currentLesson,
+      lessonsActivities,
+      markLessonAsCompleted,
+      onActivityFocus,
+      openLesson,
+      orderedLessons,
+      saveCurrentLessonVideoProgress,
+      setActiveTab,
+      showIncompleteVideoModal,
+      trackUserAction,
+    ]
+  );
+
   const navigateToNextLesson = useCallback(async () => {
     cancelPendingValidation();
 
@@ -430,6 +609,7 @@ export function useLessonNavigation({
   return {
     getPreviousLesson,
     getNextLesson,
+    handleActivityShortcut,
     handleLessonChange,
     navigateToPreviousLesson,
     navigateToNextLesson,
