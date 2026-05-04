@@ -230,7 +230,7 @@ export function useBusinessReportsAnalytics() {
 function getDefaultFilters(): BusinessReportsAnalyticsClientFilters {
   const to = new Date()
   const from = new Date(to)
-  from.setDate(from.getDate() - 90)
+  from.setDate(from.getDate() - 365)
 
   return {
     from: toDateInputValue(from),

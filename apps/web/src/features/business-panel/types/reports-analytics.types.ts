@@ -1,6 +1,15 @@
 export type ReportsAnalyticsExportFormat = 'csv_zip' | 'xlsx' | 'pdf'
 export type ReportsAnalyticsLocale = 'es' | 'en' | 'pt'
 export type ReportsAnalyticsTimeGranularity = 'day' | 'month' | 'year'
+export type ReportsAnalyticsReportSectionId =
+  | 'executive'
+  | 'dashboard'
+  | 'trends'
+  | 'courses'
+  | 'users'
+  | 'segments'
+  | 'quality'
+  | 'rawData'
 
 export interface ReportsAnalyticsFilters {
   from: string
@@ -382,4 +391,32 @@ export interface ReportsAnalyticsAiInsights {
 export interface ReportsAnalyticsInsightsResponse {
   success: true
   insights: ReportsAnalyticsAiInsights
+}
+
+export interface ReportsAnalyticsReportSection {
+  id: ReportsAnalyticsReportSectionId
+  title: string
+  purpose: string
+  priority: number
+}
+
+export interface ReportsAnalyticsExportArtifactPlan {
+  id: ReportsAnalyticsReportSectionId
+  title: string
+  description: string
+  includeInCsv: boolean
+  includeInWorkbook: boolean
+}
+
+export interface ReportsAnalyticsReportBlueprint {
+  generatedAt: string
+  model: string
+  source: 'gemini' | 'fallback'
+  summary: string
+  sections: ReportsAnalyticsReportSection[]
+  featuredMetrics: ReportsAnalyticsAiInsightMetric[]
+  findings: ReportsAnalyticsAiInsightSection[]
+  risks: string[]
+  recommendations: string[]
+  artifactPlan: ReportsAnalyticsExportArtifactPlan[]
 }

@@ -1,14 +1,21 @@
 import JSZip from 'jszip'
+import type { Cell, Row, Workbook, Worksheet } from 'exceljs'
 import type {
   ReportsAnalyticsBreakdownItem,
   ReportsAnalyticsDataset,
   ReportsAnalyticsLocale,
+  ReportsAnalyticsReportBlueprint,
   ReportsAnalyticsTrendPoint,
 } from '../../types/reports-analytics.types'
 import { buildCsv } from './reports-analytics.helpers'
 
 type ExportRow = Record<string, unknown>
 type ExportColumn = { key: string; header: string }
+type ExcelTableColumn = ExportColumn & {
+  width?: number
+  numberFormat?: string
+  kind?: 'text' | 'integer' | 'decimal' | 'percent' | 'date'
+}
 
 interface ExportCopy {
   title: string
@@ -23,6 +30,11 @@ interface ExportCopy {
   activities: string
   quality: string
   dataQuality: string
+  risks: string
+  recommendations: string
+  rawData: string
+  missingField: string
+  connections: string
   value: string
   detail: string
   metric: string
@@ -48,6 +60,11 @@ const EXPORT_COPY: Record<ReportsAnalyticsLocale, ExportCopy> = {
     activities: 'Actividades y evaluaciones',
     quality: 'Calidad',
     dataQuality: 'Calidad de datos',
+    risks: 'Riesgos',
+    recommendations: 'Recomendaciones',
+    rawData: 'Datos crudos',
+    missingField: 'Campo faltante',
+    connections: 'Conexiones',
     value: 'Valor',
     detail: 'Detalle',
     metric: 'Indicador',
@@ -213,6 +230,11 @@ const EXPORT_COPY: Record<ReportsAnalyticsLocale, ExportCopy> = {
     activities: 'Activities and assessments',
     quality: 'Quality',
     dataQuality: 'Data quality',
+    risks: 'Risks',
+    recommendations: 'Recommendations',
+    rawData: 'Raw data',
+    missingField: 'Missing field',
+    connections: 'Connections',
     value: 'Value',
     detail: 'Detail',
     metric: 'Metric',
@@ -291,6 +313,11 @@ const EXPORT_COPY: Record<ReportsAnalyticsLocale, ExportCopy> = {
     activities: 'Atividades e avaliacoes',
     quality: 'Qualidade',
     dataQuality: 'Qualidade dos dados',
+    risks: 'Riscos',
+    recommendations: 'Recomendacoes',
+    rawData: 'Dados brutos',
+    missingField: 'Campo faltante',
+    connections: 'Conexoes',
     value: 'Valor',
     detail: 'Detalhe',
     metric: 'Indicador',
@@ -333,14 +360,30 @@ const PDF_COLORS = {
   warning: [245, 158, 11] as const,
 }
 
+const EXCEL_COLORS = {
+  primary: 'FF0A2540',
+  accent: 'FF00D4B3',
+  accentSoft: 'FFD9FBF5',
+  surface: 'FFF8FAFC',
+  border: 'FFDCE2EB',
+  text: 'FF111827',
+  muted: 'FF526070',
+  success: 'FF10B981',
+  warning: 'FFF59E0B',
+  danger: 'FFEF4444',
+  white: 'FFFFFFFF',
+}
+
 export async function generateReportsAnalyticsZip(
   dataset: ReportsAnalyticsDataset,
   locale: ReportsAnalyticsLocale = 'es',
+  blueprint?: ReportsAnalyticsReportBlueprint,
 ): Promise<Uint8Array> {
   const copy = getExportCopy(locale)
   const zip = new JSZip()
+  const reportBlueprint = resolveExportBlueprint(dataset, locale, blueprint)
 
-  zip.file(`${copy.files.executive}.csv`, buildExecutiveSummaryCsv(dataset, copy, locale))
+  zip.file(`${copy.files.executive}.csv`, buildExecutiveSummaryCsv(dataset, copy, locale, reportBlueprint))
   zip.file(`${copy.files.users}.csv`, buildUsersDetailCsv(dataset, copy))
   zip.file(`${copy.files.demographics}.csv`, buildBreakdownCsv([
     ...withCategory('Genero', dataset.demographics.gender, copy, 'gender'),
@@ -380,35 +423,40 @@ export async function generateReportsAnalyticsZip(
 export async function generateReportsAnalyticsWorkbook(
   dataset: ReportsAnalyticsDataset,
   locale: ReportsAnalyticsLocale = 'es',
+  blueprint?: ReportsAnalyticsReportBlueprint,
 ): Promise<Uint8Array> {
-  const XLSX = await import('xlsx')
+  const ExcelJS = await import('exceljs')
   const copy = getExportCopy(locale)
-  const workbook = XLSX.utils.book_new()
+  const reportBlueprint = resolveExportBlueprint(dataset, locale, blueprint)
+  const workbook = new ExcelJS.Workbook()
 
-  appendSheet(XLSX, workbook, copy.dashboard, buildDashboardSheet(dataset, copy, locale), [
-    34,
-    18,
-    18,
-    34,
-  ])
-  appendSheet(XLSX, workbook, copy.trends, buildTrendsSheet(dataset, copy), [16, 18, 20, 20, 28])
-  appendSheet(XLSX, workbook, copy.courses, rowsToSheetRows(buildCourseProgressRows(dataset), getCourseColumns(copy)), getColumnWidths(getCourseColumns(copy)))
-  appendSheet(XLSX, workbook, copy.users, rowsToSheetRows(buildUserDetailRows(dataset), getUserColumns(copy)), getColumnWidths(getUserColumns(copy)))
-  appendSheet(XLSX, workbook, copy.segments, rowsToSheetRows(buildSegmentRows(dataset, copy), getSegmentColumns(copy)), getColumnWidths(getSegmentColumns(copy)))
-  appendSheet(XLSX, workbook, copy.activities, rowsToSheetRows(buildActivitiesRows(dataset, copy), getMetricColumns(copy)), [36, 16, 44])
-  appendSheet(XLSX, workbook, copy.quality, rowsToSheetRows(buildQualityRows(dataset, copy), getMetricColumns(copy)), [36, 16, 44])
+  workbook.creator = 'SofLIA'
+  workbook.created = new Date()
+  workbook.modified = new Date()
+  workbook.properties.date1904 = false
 
-  const output = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' }) as ArrayBuffer
-  return new Uint8Array(output)
+  buildExecutiveWorkbookSheet(workbook, dataset, copy, locale, reportBlueprint)
+  buildDashboardWorkbookSheet(workbook, dataset, copy, locale, reportBlueprint)
+  buildTrendsWorkbookSheet(workbook, dataset, copy)
+  buildCoursesWorkbookSheet(workbook, dataset, copy)
+  buildUsersWorkbookSheet(workbook, dataset, copy)
+  buildSegmentsWorkbookSheet(workbook, dataset, copy)
+  buildQualityWorkbookSheet(workbook, dataset, copy)
+  buildRawDataWorkbookSheet(workbook, dataset, copy)
+
+  const output = await workbook.xlsx.writeBuffer()
+  return output instanceof Uint8Array ? output : new Uint8Array(output)
 }
 
 export async function generateReportsAnalyticsPdf(
   dataset: ReportsAnalyticsDataset,
   locale: ReportsAnalyticsLocale,
+  blueprint?: ReportsAnalyticsReportBlueprint,
 ): Promise<Uint8Array> {
   const JsPDF = (await import('jspdf')).default
   const pdf = new JsPDF('p', 'pt', 'a4')
   const copy = getExportCopy(locale)
+  const reportBlueprint = resolveExportBlueprint(dataset, locale, blueprint)
   const page = {
     width: pdf.internal.pageSize.getWidth(),
     height: pdf.internal.pageSize.getHeight(),
@@ -444,6 +492,18 @@ export async function generateReportsAnalyticsPdf(
     pdf.setFontSize(15)
     pdf.text(title, page.margin, y)
     y += 22
+  }
+
+  const paragraph = (text: string) => {
+    pdf.setTextColor(...PDF_COLORS.muted)
+    pdf.setFont('helvetica', 'normal')
+    pdf.setFontSize(10)
+    pdf.splitTextToSize(text, page.width - page.margin * 2).forEach((line: string) => {
+      ensureSpace(15)
+      pdf.text(line, page.margin, y)
+      y += 14
+    })
+    y += 8
   }
 
   const metricGrid = (items: Array<{ label: string; value: string | number; detail?: string }>) => {
@@ -529,6 +589,7 @@ export async function generateReportsAnalyticsPdf(
 
   addHeader(true)
   section(copy.summary)
+  paragraph(reportBlueprint.summary)
   metricGrid([
     { label: copy.metrics.totalUsers, value: dataset.overview.totalUsers, detail: `${copy.metrics.activeLearners}: ${dataset.overview.activeLearners}` },
     { label: copy.metrics.averageProgress, value: `${dataset.overview.averageProgress}%`, detail: `${copy.metrics.completionRate}: ${dataset.overview.completionRate}%` },
@@ -597,10 +658,26 @@ export function buildReportsAnalyticsFilename(
   return `soflia-analytics-${from}-${to}.${extension}`
 }
 
-function buildExecutiveSummaryCsv(dataset: ReportsAnalyticsDataset, copy: ExportCopy, locale: ReportsAnalyticsLocale): string {
+function buildExecutiveSummaryCsv(
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+  locale: ReportsAnalyticsLocale,
+  blueprint: ReportsAnalyticsReportBlueprint,
+): string {
   return toCsv([
     { metric: copy.generatedAt, value: new Date(dataset.generatedAt).toLocaleString(locale), detail: '' },
     { metric: copy.period, value: `${formatDate(dataset.period.from, locale)} - ${formatDate(dataset.period.to, locale)}`, detail: '' },
+    { metric: copy.summary, value: blueprint.summary, detail: blueprint.source },
+    ...blueprint.featuredMetrics.map((metric) => ({
+      metric: metric.label,
+      value: metric.value,
+      detail: metric.detail,
+    })),
+    ...blueprint.recommendations.slice(0, 5).map((recommendation, index) => ({
+      metric: `Recomendacion ${index + 1}`,
+      value: recommendation,
+      detail: '',
+    })),
     ...buildExecutiveMetricRows(dataset, copy),
   ], getMetricColumns(copy))
 }
@@ -825,7 +902,6 @@ function buildTrendCsv(
       metric,
       value: row.value,
       secondary: row.secondaryValue ?? '',
-      chart: buildTextBar(row.value, getTrendMax(rows)),
     })),
     [
       { key: 'period', header: copy.columns.period },
@@ -833,52 +909,197 @@ function buildTrendCsv(
       { key: 'metric', header: copy.metric },
       { key: 'value', header: copy.columns.value },
       { key: 'secondary', header: copy.columns.secondary },
-      { key: 'chart', header: copy.chart },
     ],
   )
 }
 
-function buildDashboardSheet(dataset: ReportsAnalyticsDataset, copy: ExportCopy, locale: ReportsAnalyticsLocale): unknown[][] {
-  return [
-    [copy.title],
-    [copy.generatedAt, new Date(dataset.generatedAt).toLocaleString(locale)],
-    [copy.period, `${formatDate(dataset.period.from, locale)} - ${formatDate(dataset.period.to, locale)}`],
-    [],
-    [copy.metric, copy.value, copy.detail, copy.chart],
-    ...buildExecutiveMetricRows(dataset, copy).map((row) => [
-      row.metric,
-      row.value,
-      row.detail,
-      typeof row.rawValue === 'number' ? buildTextBar(row.rawValue, 100) : '',
-    ]),
-    [],
-    [copy.courses],
-    [copy.columns.course, copy.columns.progress, copy.columns.overdue, copy.chart],
-    ...dataset.courses.slice(0, 8).map((course) => [
-      course.courseTitle,
-      course.averageProgress,
-      course.overdueAssignments,
-      buildTextBar(course.averageProgress, 100),
-    ]),
-  ]
+function buildExecutiveWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+  locale: ReportsAnalyticsLocale,
+  blueprint: ReportsAnalyticsReportBlueprint,
+): void {
+  const sheet = addStyledWorksheet(workbook, 'Resumen SofLIA')
+  setColumns(sheet, [24, 18, 36, 18, 24, 18, 26, 18])
+  addTitleBlock(sheet, copy.title, [
+    `${copy.generatedAt}: ${new Date(dataset.generatedAt).toLocaleString(locale)}`,
+    `${copy.period}: ${formatDate(dataset.period.from, locale)} - ${formatDate(dataset.period.to, locale)}`,
+    `SofLIA: ${blueprint.source} (${blueprint.model})`,
+  ], 8)
+
+  sheet.mergeCells('A6:H8')
+  const summaryCell = sheet.getCell('A6')
+  summaryCell.value = blueprint.summary
+  summaryCell.alignment = { vertical: 'middle', wrapText: true }
+  summaryCell.font = { size: 12, color: { argb: EXCEL_COLORS.text } }
+  summaryCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: EXCEL_COLORS.accentSoft } }
+  applyBorder(summaryCell)
+
+  addExcelTable(sheet, 'FeaturedMetricsTable', 10, 1, [
+    { key: 'metric', header: copy.metric, width: 28, kind: 'text' },
+    { key: 'value', header: copy.value, width: 18, kind: 'text' },
+    { key: 'detail', header: copy.detail, width: 48, kind: 'text' },
+  ], [
+    ...blueprint.featuredMetrics.map((metric) => ({
+      metric: metric.label,
+      value: metric.value,
+      detail: metric.detail,
+    })),
+    ...buildExecutiveMetricRows(dataset, copy),
+  ])
+
+  let nextRow = 10 + blueprint.featuredMetrics.length + buildExecutiveMetricRows(dataset, copy).length + 4
+  nextRow = addSectionList(sheet, nextRow, copy.summary, blueprint.findings.flatMap((section) => [
+    section.title,
+    ...section.points.map((point) => `- ${point}`),
+  ]))
+  nextRow = addSectionList(sheet, nextRow + 1, 'Riesgos', blueprint.risks)
+  addSectionList(sheet, nextRow + 1, 'Recomendaciones', blueprint.recommendations)
 }
 
-function buildTrendsSheet(dataset: ReportsAnalyticsDataset, copy: ExportCopy): unknown[][] {
-  const learningMax = getTrendMax(dataset.learning.completionsTrend)
-  const sofliaMax = getTrendMax(dataset.soflia.conversationsTrend)
-  return [
-    [copy.columns.period, copy.metrics.completionRate, copy.chart, copy.metrics.totalConversations, copy.chart],
-    ...dataset.learning.completionsTrend.map((point, index) => {
-      const sofliaPoint = dataset.soflia.conversationsTrend[index]
-      return [
-        point.label,
-        point.value,
-        buildTextBar(point.value, learningMax),
-        sofliaPoint?.value || 0,
-        buildTextBar(sofliaPoint?.value || 0, sofliaMax),
-      ]
-    }),
+function buildDashboardWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+  locale: ReportsAnalyticsLocale,
+  blueprint: ReportsAnalyticsReportBlueprint,
+): void {
+  const sheet = addStyledWorksheet(workbook, copy.dashboard)
+  setColumns(sheet, [22, 16, 22, 16, 22, 16, 22, 16])
+  addTitleBlock(sheet, copy.dashboard, [
+    `${copy.period}: ${formatDate(dataset.period.from, locale)} - ${formatDate(dataset.period.to, locale)}`,
+    blueprint.summary,
+  ], 8)
+
+  const cards = [
+    { label: copy.metrics.totalUsers, value: dataset.overview.totalUsers, detail: `${copy.metrics.activeLearners}: ${dataset.overview.activeLearners}` },
+    { label: copy.metrics.averageProgress, value: `${dataset.overview.averageProgress}%`, detail: `${copy.metrics.completionRate}: ${dataset.overview.completionRate}%` },
+    { label: copy.metrics.sofliaAdoptionRate, value: `${dataset.overview.sofliaAdoptionRate}%`, detail: `${dataset.soflia.totalConversations} conversaciones` },
+    { label: copy.metrics.qualityScore, value: `${dataset.overview.qualityScore}%`, detail: `${dataset.quality.evidenceCount} evidencias` },
   ]
+  cards.forEach((card, index) => {
+    const startCol = index % 2 === 0 ? 1 : 5
+    const startRow = index < 2 ? 6 : 10
+    addMetricCard(sheet, startRow, startCol, card.label, card.value, card.detail)
+  })
+
+  addExcelTable(sheet, 'DashboardMetricsTable', 15, 1, [
+    { key: 'metric', header: copy.metric, width: 32, kind: 'text' },
+    { key: 'value', header: copy.value, width: 18, kind: 'text' },
+    { key: 'detail', header: copy.detail, width: 48, kind: 'text' },
+  ], buildExecutiveMetricRows(dataset, copy))
+
+  addExcelTable(sheet, 'DashboardCourseRiskTable', 15, 5, [
+    { key: 'course', header: copy.columns.course, width: 38, kind: 'text' },
+    { key: 'progress', header: copy.columns.progress, width: 16, kind: 'percent' },
+    { key: 'overdue', header: copy.columns.overdue, width: 12, kind: 'integer' },
+  ], dataset.courses
+    .slice()
+    .sort((a, b) => b.overdueAssignments - a.overdueAssignments || a.averageProgress - b.averageProgress)
+    .slice(0, 10)
+    .map((course) => ({
+      course: course.courseTitle,
+      progress: course.averageProgress,
+      overdue: course.overdueAssignments,
+    })))
+}
+
+function buildTrendsWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+): void {
+  const sheet = addStyledWorksheet(workbook, copy.trends)
+  setColumns(sheet, [18, 22, 22, 22, 22, 22])
+  addTitleBlock(sheet, copy.trends, [copy.metrics.completionRate, copy.metrics.totalConversations], 6)
+  addExcelTable(sheet, 'TrendsTable', 6, 1, [
+    { key: 'period', header: copy.columns.period, width: 18, kind: 'text' },
+    { key: 'completionRate', header: copy.metrics.completionRate, width: 20, kind: 'integer' },
+    { key: 'sofliaConversations', header: copy.metrics.totalConversations, width: 22, kind: 'integer' },
+    { key: 'granularity', header: copy.columns.granularity, width: 18, kind: 'text' },
+  ], dataset.learning.completionsTrend.map((point, index) => ({
+    period: point.label,
+    completionRate: point.value,
+    sofliaConversations: dataset.soflia.conversationsTrend[index]?.value || 0,
+    granularity: dataset.filters.granularity,
+  })))
+}
+
+function buildCoursesWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+): void {
+  const sheet = addStyledWorksheet(workbook, copy.courses)
+  addTitleBlock(sheet, copy.courses, [copy.columns.progress, copy.columns.overdue], 11)
+  addExcelTable(sheet, 'CoursesTable', 6, 1, getWorkbookCourseColumns(copy), buildCourseProgressRows(dataset))
+}
+
+function buildUsersWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+): void {
+  const sheet = addStyledWorksheet(workbook, copy.users)
+  addTitleBlock(sheet, copy.users, [copy.columns.email, copy.columns.progress], 12)
+  addExcelTable(sheet, 'UsersTable', 6, 1, getWorkbookUserColumns(copy), buildUserDetailRows(dataset))
+}
+
+function buildSegmentsWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+): void {
+  const sheet = addStyledWorksheet(workbook, copy.segments)
+  addTitleBlock(sheet, copy.segments, [copy.columns.segmentType, copy.columns.quality], 10)
+  addExcelTable(sheet, 'SegmentsTable', 6, 1, getWorkbookSegmentColumns(copy), buildSegmentRows(dataset, copy))
+}
+
+function buildQualityWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+): void {
+  const sheet = addStyledWorksheet(workbook, copy.quality)
+  setColumns(sheet, [34, 18, 44, 24, 18, 18])
+  addTitleBlock(sheet, copy.quality, [copy.metrics.qualityScore], 6)
+  const nextRow = addExcelTable(sheet, 'QualityMetricsTable', 6, 1, [
+    { key: 'metric', header: copy.metric, width: 34, kind: 'text' },
+    { key: 'value', header: copy.value, width: 18, kind: 'text' },
+    { key: 'detail', header: copy.detail, width: 44, kind: 'text' },
+  ], buildQualityRows(dataset, copy))
+  addExcelTable(sheet, 'DataQualityTable', nextRow + 2, 1, [
+    { key: 'category', header: copy.columns.category, width: 32, kind: 'text' },
+    { key: 'label', header: copy.columns.label, width: 36, kind: 'text' },
+    { key: 'value', header: copy.columns.value, width: 16, kind: 'integer' },
+    { key: 'percentage', header: copy.columns.percentage, width: 18, kind: 'percent' },
+  ], withCategory('Campo faltante', dataset.dataQuality.missingFields, copy))
+}
+
+function buildRawDataWorkbookSheet(
+  workbook: Workbook,
+  dataset: ReportsAnalyticsDataset,
+  copy: ExportCopy,
+): void {
+  const sheet = addStyledWorksheet(workbook, 'Datos crudos')
+  setColumns(sheet, [28, 22, 22, 22, 22, 22, 22, 22])
+  addTitleBlock(sheet, 'Datos crudos', [copy.dataQuality], 8)
+  let nextRow = addExcelTable(sheet, 'RawOverviewTable', 6, 1, [
+    { key: 'metric', header: copy.metric, width: 34, kind: 'text' },
+    { key: 'value', header: copy.value, width: 18, kind: 'text' },
+    { key: 'detail', header: copy.detail, width: 44, kind: 'text' },
+  ], buildExecutiveMetricRows(dataset, copy))
+  nextRow = addExcelTable(sheet, 'RawActivitiesTable', nextRow + 2, 1, getMetricColumns(copy), buildActivitiesRows(dataset, copy))
+  addExcelTable(sheet, 'RawAiSamplesTable', nextRow + 2, 1, [
+    { key: 'source', header: copy.columns.source, width: 24, kind: 'text' },
+    { key: 'course', header: copy.columns.course, width: 36, kind: 'text' },
+    { key: 'text', header: copy.columns.text, width: 72, kind: 'text' },
+  ], dataset.aiSamples.slice(0, 30).map((sample) => ({
+    source: translateDimension(copy, 'source', sample.source),
+    course: sample.courseTitle || '',
+    text: sample.text,
+  })))
 }
 
 function buildExecutiveMetricRows(dataset: ReportsAnalyticsDataset, copy: ExportCopy): ExportRow[] {
@@ -942,7 +1163,6 @@ function buildCourseProgressRows(dataset: ReportsAnalyticsDataset): ExportRow[] 
     sofliaConversations: course.sofliaConversations,
     activities: course.activityCompletionRate,
     score: course.quizAverageScore,
-    chart: buildTextBar(course.averageProgress, 100),
   }))
 }
 
@@ -1042,8 +1262,7 @@ function getCourseColumns(copy: ExportCopy): ExportColumn[] {
     'sofliaConversations',
     'activities',
     'score',
-    'chart',
-  ].map((key) => ({ key, header: copy.columns[key] || copy.chart || key }))
+  ].map((key) => ({ key, header: copy.columns[key] || key }))
 }
 
 function getSegmentColumns(copy: ExportCopy): ExportColumn[] {
@@ -1061,27 +1280,250 @@ function getSegmentColumns(copy: ExportCopy): ExportColumn[] {
   ]
 }
 
-function rowsToSheetRows(rows: ExportRow[], columns: ExportColumn[]): unknown[][] {
-  return [
-    columns.map((column) => column.header),
-    ...rows.map((row) => columns.map((column) => row[column.key] ?? '')),
-  ]
+function getWorkbookCourseColumns(copy: ExportCopy): ExcelTableColumn[] {
+  return getCourseColumns(copy).map((column) => ({
+    ...column,
+    width: {
+      course: 46,
+      assigned: 16,
+      active: 16,
+      completed: 18,
+      progress: 18,
+      overdue: 14,
+      notesCount: 14,
+      sofliaConversations: 20,
+      activities: 22,
+      score: 20,
+    }[column.key] || 18,
+    kind: ['progress', 'activities', 'score'].includes(column.key) ? 'percent' : 'integer',
+  }))
 }
 
-function appendSheet(
-  XLSX: typeof import('xlsx'),
-  workbook: import('xlsx').WorkBook,
-  name: string,
-  rows: unknown[][],
-  widths: number[],
+function getWorkbookUserColumns(copy: ExportCopy): ExcelTableColumn[] {
+  return getUserColumns(copy).map((column) => ({
+    ...column,
+    width: {
+      user: 28,
+      email: 34,
+      jobTitle: 26,
+      region: 22,
+      zone: 22,
+      team: 24,
+      lastConnection: 22,
+      lastActivity: 22,
+    }[column.key] || 16,
+    kind: ['progress', 'score', 'quality', 'plannerRate'].includes(column.key)
+      ? 'percent'
+      : ['lastConnection', 'lastActivity'].includes(column.key)
+        ? 'date'
+        : ['user', 'email', 'status', 'role', 'jobTitle', 'gender', 'ageBand', 'region', 'zone', 'team'].includes(column.key)
+          ? 'text'
+          : 'integer',
+  }))
+}
+
+function getWorkbookSegmentColumns(copy: ExportCopy): ExcelTableColumn[] {
+  return getSegmentColumns(copy).map((column) => ({
+    ...column,
+    width: {
+      segmentType: 22,
+      label: 32,
+      users: 14,
+    }[column.key] || 18,
+    kind: ['averageProgress', 'completionRate', 'sofliaAdoptionRate', 'notesAdoptionRate', 'quizAverageScore', 'qualityScore'].includes(column.key)
+      ? 'percent'
+      : column.key === 'users'
+        ? 'integer'
+        : 'text',
+  }))
+}
+
+function addStyledWorksheet(workbook: Workbook, name: string): Worksheet {
+  const sheet = workbook.addWorksheet(sanitizeSheetName(name))
+  sheet.properties.defaultRowHeight = 20
+  sheet.views = [{ state: 'frozen', ySplit: 5 }]
+  sheet.pageSetup = {
+    orientation: 'landscape',
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+  }
+  sheet.eachRow((row) => {
+    row.alignment = { vertical: 'middle' }
+  })
+  return sheet
+}
+
+function setColumns(sheet: Worksheet, widths: number[]): void {
+  sheet.columns = widths.map((width) => ({ width }))
+}
+
+function addTitleBlock(sheet: Worksheet, title: string, lines: string[], columnSpan: number): void {
+  const endColumn = getColumnLetter(columnSpan)
+  sheet.mergeCells(`A1:${endColumn}1`)
+  sheet.getCell('A1').value = title
+  sheet.getCell('A1').font = { bold: true, size: 18, color: { argb: EXCEL_COLORS.white } }
+  sheet.getCell('A1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: EXCEL_COLORS.primary } }
+  sheet.getCell('A1').alignment = { vertical: 'middle' }
+  sheet.getRow(1).height = 30
+
+  lines.slice(0, 3).forEach((line, index) => {
+    const rowNumber = index + 2
+    sheet.mergeCells(`A${rowNumber}:${endColumn}${rowNumber}`)
+    const cell = sheet.getCell(rowNumber, 1)
+    cell.value = line
+    cell.font = { color: { argb: EXCEL_COLORS.muted }, size: 10 }
+    cell.alignment = { wrapText: true }
+  })
+}
+
+function addMetricCard(
+  sheet: Worksheet,
+  row: number,
+  column: number,
+  label: string,
+  value: string | number,
+  detail: string,
 ): void {
-  const worksheet = XLSX.utils.aoa_to_sheet(rows)
-  worksheet['!cols'] = widths.map((width) => ({ wch: width }))
-  XLSX.utils.book_append_sheet(workbook, worksheet, sanitizeSheetName(name))
+  const endColumn = column + 2
+  sheet.mergeCells(row, column, row, endColumn)
+  sheet.mergeCells(row + 1, column, row + 1, endColumn)
+  sheet.mergeCells(row + 2, column, row + 2, endColumn)
+  const labelCell = sheet.getCell(row, column)
+  const valueCell = sheet.getCell(row + 1, column)
+  const detailCell = sheet.getCell(row + 2, column)
+  labelCell.value = label
+  valueCell.value = value
+  detailCell.value = detail
+  labelCell.font = { bold: true, color: { argb: EXCEL_COLORS.muted }, size: 9 }
+  valueCell.font = { bold: true, color: { argb: EXCEL_COLORS.primary }, size: 18 }
+  detailCell.font = { color: { argb: EXCEL_COLORS.muted }, size: 9 }
+  for (let rowIndex = row; rowIndex <= row + 2; rowIndex += 1) {
+    for (let colIndex = column; colIndex <= endColumn; colIndex += 1) {
+      const cell = sheet.getCell(rowIndex, colIndex)
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: EXCEL_COLORS.surface } }
+      applyBorder(cell)
+    }
+  }
 }
 
-function getColumnWidths(columns: ExportColumn[]): number[] {
-  return columns.map((column) => Math.min(Math.max(column.header.length + 4, 14), 34))
+function addExcelTable(
+  sheet: Worksheet,
+  tableName: string,
+  startRow: number,
+  startColumn: number,
+  columns: ExcelTableColumn[],
+  rows: ExportRow[],
+): number {
+  const safeRows = rows.length > 0 ? rows : [Object.fromEntries(columns.map((column) => [column.key, '']))]
+  const tableRows = safeRows.map((row) => columns.map((column) => coerceExcelValue(row[column.key], column)))
+  const ref = `${getColumnLetter(startColumn)}${startRow}`
+  sheet.addTable({
+    name: sanitizeTableName(tableName),
+    ref,
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: 'TableStyleMedium2',
+      showRowStripes: true,
+    },
+    columns: columns.map((column) => ({ name: column.header, filterButton: true })),
+    rows: tableRows,
+  })
+
+  columns.forEach((column, index) => {
+    const worksheetColumn = sheet.getColumn(startColumn + index)
+    worksheetColumn.width = column.width || Math.min(Math.max(column.header.length + 4, 14), 42)
+    for (let rowNumber = startRow + 1; rowNumber <= startRow + tableRows.length; rowNumber += 1) {
+      const cell = sheet.getCell(rowNumber, startColumn + index)
+      applyCellFormat(cell, column)
+    }
+    if (column.kind === 'percent' && tableRows.length > 0) {
+      const col = getColumnLetter(startColumn + index)
+      sheet.addConditionalFormatting({
+        ref: `${col}${startRow + 1}:${col}${startRow + tableRows.length}`,
+        rules: [
+          {
+            type: 'dataBar',
+            priority: 1,
+            showValue: true,
+            cfvo: [
+              { type: 'num', value: 0 },
+              { type: 'num', value: 100 },
+            ],
+          },
+        ],
+      })
+    }
+  })
+
+  styleTableHeader(sheet.getRow(startRow), startColumn, columns.length)
+  sheet.autoFilter = {
+    from: { row: startRow, column: startColumn },
+    to: { row: startRow, column: startColumn + columns.length - 1 },
+  }
+  return startRow + tableRows.length + 1
+}
+
+function addSectionList(sheet: Worksheet, startRow: number, title: string, rows: string[]): number {
+  sheet.getCell(startRow, 1).value = title
+  sheet.getCell(startRow, 1).font = { bold: true, color: { argb: EXCEL_COLORS.primary }, size: 12 }
+  rows.slice(0, 16).forEach((row, index) => {
+    const rowNumber = startRow + index + 1
+    sheet.mergeCells(`A${rowNumber}:H${rowNumber}`)
+    const cell = sheet.getCell(rowNumber, 1)
+    cell.value = row
+    cell.alignment = { wrapText: true }
+    cell.font = { color: { argb: EXCEL_COLORS.text } }
+  })
+  return startRow + rows.slice(0, 16).length + 1
+}
+
+function coerceExcelValue(value: unknown, column: ExcelTableColumn): string | number | Date {
+  if (value === null || value === undefined) return ''
+  if (column.kind === 'date') {
+    const date = new Date(String(value))
+    return Number.isNaN(date.getTime()) ? '' : date
+  }
+  if (column.kind === 'integer' || column.kind === 'decimal' || column.kind === 'percent') {
+    if (typeof value === 'number') return value
+    const parsed = Number.parseFloat(String(value).replace('%', ''))
+    return Number.isFinite(parsed) ? parsed : String(value)
+  }
+  return typeof value === 'string' || typeof value === 'number' ? value : JSON.stringify(value)
+}
+
+function applyCellFormat(cell: Cell, column: ExcelTableColumn): void {
+  cell.alignment = { vertical: 'middle', wrapText: column.kind === 'text' }
+  applyBorder(cell)
+  if (column.numberFormat) {
+    cell.numFmt = column.numberFormat
+    return
+  }
+  if (column.kind === 'integer') cell.numFmt = '#,##0'
+  if (column.kind === 'decimal') cell.numFmt = '#,##0.0'
+  if (column.kind === 'percent') cell.numFmt = '0.0"%"'
+  if (column.kind === 'date') cell.numFmt = 'yyyy-mm-dd hh:mm'
+}
+
+function styleTableHeader(row: Row, startColumn: number, columnCount: number): void {
+  row.height = 24
+  for (let index = 0; index < columnCount; index += 1) {
+    const cell = row.getCell(startColumn + index)
+    cell.font = { bold: true, color: { argb: EXCEL_COLORS.white } }
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: EXCEL_COLORS.primary } }
+    cell.alignment = { vertical: 'middle', wrapText: true }
+    applyBorder(cell)
+  }
+}
+
+function applyBorder(cell: Cell): void {
+  cell.border = {
+    top: { style: 'thin', color: { argb: EXCEL_COLORS.border } },
+    left: { style: 'thin', color: { argb: EXCEL_COLORS.border } },
+    bottom: { style: 'thin', color: { argb: EXCEL_COLORS.border } },
+    right: { style: 'thin', color: { argb: EXCEL_COLORS.border } },
+  }
 }
 
 function toCsv(rows: ExportRow[], columns: ExportColumn[]): string {
@@ -1157,23 +1599,62 @@ function translateWeekday(dayKey: string): string {
   return days[dayKey] || dayKey
 }
 
-function getTrendMax(rows: ReportsAnalyticsTrendPoint[]): number {
-  return Math.max(1, ...rows.map((row) => Number(row.value) || 0))
-}
-
-function buildTextBar(value: number, maxValue: number): string {
-  if (!Number.isFinite(value) || value <= 0 || maxValue <= 0) return ''
-  const units = Math.max(1, Math.round((value / maxValue) * 20))
-  return '#'.repeat(Math.min(units, 20))
-}
-
 function clampRatio(value: number): number {
   if (!Number.isFinite(value)) return 0
   return Math.max(0, Math.min(1, value / 100))
 }
 
+function resolveExportBlueprint(
+  dataset: ReportsAnalyticsDataset,
+  locale: ReportsAnalyticsLocale,
+  blueprint?: ReportsAnalyticsReportBlueprint,
+): ReportsAnalyticsReportBlueprint {
+  if (blueprint) return blueprint
+  return {
+    generatedAt: new Date().toISOString(),
+    model: 'deterministic:fallback',
+    source: 'fallback',
+    summary: `${getExportCopy(locale).summary}: ${getExportCopy(locale).metrics.averageProgress} ${dataset.overview.averageProgress}%`,
+    sections: [
+      { id: 'executive', title: 'Resumen SofLIA', purpose: 'Resumen ejecutivo', priority: 1 },
+      { id: 'dashboard', title: getExportCopy(locale).dashboard, purpose: 'Indicadores clave', priority: 2 },
+      { id: 'trends', title: getExportCopy(locale).trends, purpose: 'Tendencias', priority: 3 },
+      { id: 'courses', title: getExportCopy(locale).courses, purpose: 'Cursos', priority: 4 },
+      { id: 'users', title: getExportCopy(locale).users, purpose: 'Usuarios', priority: 5 },
+      { id: 'segments', title: getExportCopy(locale).segments, purpose: 'Segmentos', priority: 6 },
+      { id: 'quality', title: getExportCopy(locale).quality, purpose: 'Calidad', priority: 7 },
+      { id: 'rawData', title: 'Datos crudos', purpose: 'Datos base', priority: 8 },
+    ],
+    featuredMetrics: buildExecutiveMetricRows(dataset, getExportCopy(locale)).slice(0, 4).map((row) => ({
+      label: String(row.metric || ''),
+      value: String(row.value || ''),
+      detail: String(row.detail || ''),
+    })),
+    findings: [],
+    risks: [],
+    recommendations: [],
+    artifactPlan: [],
+  }
+}
+
 function sanitizeSheetName(name: string): string {
   return name.replace(/[\][:*?/\\]/g, ' ').slice(0, 31) || 'Reporte'
+}
+
+function sanitizeTableName(name: string): string {
+  const sanitized = name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^(\d)/, '_$1')
+  return sanitized.slice(0, 240) || 'ReportTable'
+}
+
+function getColumnLetter(index: number): string {
+  let current = index
+  let letters = ''
+  while (current > 0) {
+    const remainder = (current - 1) % 26
+    letters = String.fromCharCode(65 + remainder) + letters
+    current = Math.floor((current - remainder) / 26)
+  }
+  return letters
 }
 
 function formatDate(value: string, locale: ReportsAnalyticsLocale): string {
