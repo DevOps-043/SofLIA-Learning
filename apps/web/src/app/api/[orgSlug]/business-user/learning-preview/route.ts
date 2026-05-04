@@ -54,8 +54,6 @@ type PreviewResponsePayload = GeminiPreviewResult & {
 
 const PREVIEW_CACHE_TTL_MS = 1000 * 60 * 60 * 6
 const GEMINI_PREVIEW_TIMEOUT_MS = 3500
-const MAX_PREVIEW_CACHE_ENTRIES = 500
-const previewCache = new Map<string, { expiresAt: number; payload: PreviewResponsePayload }>()
 
 function getGeminiApiKey() {
   return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null
@@ -151,50 +149,7 @@ function buildFallbackPreview(input: {
   }
 }
 
-function getPreviewCacheKey(input: {
-  userId: string
-  organizationId: string
-  kind: 'course' | 'learning_path'
-  targetId: string
-  locale?: string
-}) {
-  return [
-    input.organizationId,
-    input.userId,
-    input.kind,
-    input.targetId,
-    input.locale || 'es',
-  ].join(':')
-}
-
-function getCachedPreview(cacheKey: string): PreviewResponsePayload | null {
-  const cached = previewCache.get(cacheKey)
-  if (!cached) return null
-
-  if (cached.expiresAt <= Date.now()) {
-    previewCache.delete(cacheKey)
-    return null
-  }
-
-  return {
-    ...cached.payload,
-    source: 'cache',
-  }
-}
-
-function setCachedPreview(cacheKey: string, payload: PreviewResponsePayload) {
-  if (previewCache.size >= MAX_PREVIEW_CACHE_ENTRIES) {
-    const oldestKey = previewCache.keys().next().value
-    if (oldestKey) {
-      previewCache.delete(oldestKey)
-    }
-  }
-
-  previewCache.set(cacheKey, {
-    payload,
-    expiresAt: Date.now() + PREVIEW_CACHE_TTL_MS,
-  })
-}
+// Cache storage is now handled directly via Supabase in getPreviewResult
 
 async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
   let timeoutId: ReturnType<typeof setTimeout> | null = null
@@ -288,7 +243,8 @@ async function generatePreviewWithGemini(input: {
 }
 
 async function getPreviewResult(input: {
-  cacheKey: string
+  organizationId: string
+  targetId: string
   kind: 'course' | 'learning_path'
   title: string
   description?: string | null
@@ -296,9 +252,40 @@ async function getPreviewResult(input: {
   courseTitles?: string[]
   locale?: string
 }): Promise<PreviewResponsePayload> {
-  const cached = getCachedPreview(input.cacheKey)
-  if (cached) {
-    return cached
+  const supabase = createAdminClient()
+  const currentLocale = input.locale || 'es'
+
+  try {
+    const { data: cached } = await supabase
+      .from('learning_preview_cache')
+      .select('payload, expires_at')
+      .eq('organization_id', input.organizationId)
+      .eq('kind', input.kind)
+      .eq('target_id', input.targetId)
+      .eq('locale', currentLocale)
+      .maybeSingle()
+
+    if (cached) {
+      if (new Date(cached.expires_at).getTime() > Date.now()) {
+        const payload = cached.payload as Record<string, any>
+        return {
+          description: payload.description || '',
+          points: Array.isArray(payload.points) ? payload.points : [],
+          source: 'cache',
+          model: payload.model_name || 'cache',
+        }
+      } else {
+        await supabase
+          .from('learning_preview_cache')
+          .delete()
+          .eq('organization_id', input.organizationId)
+          .eq('kind', input.kind)
+          .eq('target_id', input.targetId)
+          .eq('locale', currentLocale)
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to read learning preview from cache table', error)
   }
 
   const fallback = {
@@ -313,7 +300,22 @@ async function getPreviewResult(input: {
   )
   const result = generated || fallback
 
-  setCachedPreview(input.cacheKey, result)
+  try {
+    await supabase
+      .from('learning_preview_cache')
+      .upsert({
+        organization_id: input.organizationId,
+        kind: input.kind,
+        target_id: input.targetId,
+        locale: currentLocale,
+        model_name: result.model,
+        payload: result,
+        expires_at: new Date(Date.now() + PREVIEW_CACHE_TTL_MS).toISOString(),
+      }, { onConflict: 'organization_id,kind,target_id,locale' })
+  } catch (error) {
+    logger.error('Failed to write learning preview to cache table', error)
+  }
+
   return result
 }
 
@@ -368,13 +370,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
         : { data: [] as PathCoursePreviewRow[] }
 
       const result = await getPreviewResult({
-        cacheKey: getPreviewCacheKey({
-          userId: auth.userId,
-          organizationId: auth.organizationId,
-          kind: body.kind,
-          targetId: body.targetId,
-          locale: body.locale,
-        }),
+        organizationId: auth.organizationId,
+        targetId: body.targetId,
         kind: 'learning_path',
         title: pathData?.title || assignedPath.title,
         description: pathData?.description || assignedPath.description,
@@ -425,13 +422,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const result = await getPreviewResult({
-      cacheKey: getPreviewCacheKey({
-        userId: auth.userId,
-        organizationId: auth.organizationId,
-        kind: body.kind,
-        targetId: body.targetId,
-        locale: body.locale,
-      }),
+      organizationId: auth.organizationId,
+      targetId: body.targetId,
       kind: 'course',
       title: course.title || pathItem?.title || 'Curso',
       description: course.description,

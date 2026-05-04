@@ -14,10 +14,6 @@ import type {
 type UserRow = Database['public']['Tables']['users']['Row']
 type UserProfileExtraFields = {
   phone_number?: string | null
-  curriculum_url?: string | null
-  linkedin_url?: string | null
-  github_url?: string | null
-  website_url?: string | null
   points?: number | null
 }
 type UserProfileRow = Partial<UserRow> & UserProfileExtraFields & Pick<UserRow, 'id' | 'created_at'>
@@ -37,11 +33,6 @@ type SubscriptionRecord = {
 }
 
 export const PROFILE_IMAGE_ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'] as const
-export const PROFILE_CURRICULUM_ALLOWED_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-] as const
 export const PROFILE_UPLOAD_MAX_SIZE_BYTES = 10 * 1024 * 1024
 
 export const DEFAULT_PROFILE_COLORS: ProfileColorPalette = {
@@ -74,10 +65,6 @@ export function mapUserProfileRow(data: UserProfileRow): UserProfile {
     cargo_rol: data.cargo_rol || '',
     type_rol: data.type_rol || '',
     profile_picture_url: data.profile_picture_url || '',
-    curriculum_url: data.curriculum_url || '',
-    linkedin_url: data.linkedin_url || '',
-    github_url: data.github_url || '',
-    website_url: data.website_url || '',
     country_code: data.country_code || '',
     date_of_birth: data.date_of_birth || null,
     gender: normalizeGenderForStorage(data.gender),
@@ -123,12 +110,10 @@ export function pickAllowedProfileUpdates(updates: UpdateProfileRequest): Partia
     'phone',
     'bio',
     'location',
+    'cargo_rol',
+    'type_rol',
     'profile_picture_url',
     'country_code',
-    'curriculum_url',
-    'linkedin_url',
-    'github_url',
-    'website_url',
     'date_of_birth',
     'gender',
   ]
@@ -159,10 +144,6 @@ export function createProfileUpdateRequest(profile: UserProfile): UpdateProfileR
     cargo_rol: profile.cargo_rol,
     type_rol: profile.type_rol,
     profile_picture_url: profile.profile_picture_url,
-    curriculum_url: profile.curriculum_url,
-    linkedin_url: profile.linkedin_url,
-    github_url: profile.github_url,
-    website_url: profile.website_url,
     country_code: profile.country_code,
     date_of_birth: profile.date_of_birth,
     gender: profile.gender,

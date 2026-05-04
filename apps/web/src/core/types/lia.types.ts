@@ -1,4 +1,6 @@
 import type { NanoBananaSchema, NanoBananaDomain, OutputFormat } from '../../lib/nanobana/templates';
+import type { LiaImageAttachment } from '../reporting/report-problem.contract';
+
 
 
 // Tipos compartidos para SofLIA
@@ -161,4 +163,6 @@ export interface SofLIAMessage {
   timestamp: Date;
   // 🎨 Datos de NanoBanana generado (opcional)
   generatedNanoBanana?: GeneratedNanoBananaData;
+  // 📎 Adjuntos (evidencia visual, etc.)
+  attachments?: LiaImageAttachment[];
 }

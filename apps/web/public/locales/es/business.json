@@ -67,6 +67,38 @@
       }
     }
   },
+  "analyticsTour": {
+    "steps": {
+      "header": {
+        "title": "Tus estadísticas de aprendizaje",
+        "content": "Este panel resume tu avance, hábitos y señales de adopción dentro de SofLIA."
+      },
+      "ranges": {
+        "title": "Rango de análisis",
+        "content": "Cambia el periodo para comparar tu actividad reciente con ventanas más amplias."
+      },
+      "metrics": {
+        "title": "Métricas principales",
+        "content": "Estas tarjetas condensan progreso, uso de IA, planificación y calidad global."
+      },
+      "courseProgress": {
+        "title": "Avance por curso",
+        "content": "Este gráfico te ayuda a detectar qué cursos llevan mejor ritmo y cuáles necesitan atención."
+      },
+      "aiAdoption": {
+        "title": "Adopción de SofLIA",
+        "content": "Aquí puedes revisar cómo estás usando la asistencia de SofLIA durante tu aprendizaje."
+      },
+      "feedback": {
+        "title": "Feedback personalizado",
+        "content": "Genera una lectura con IA para identificar fortalezas, oportunidades y siguientes pasos."
+      },
+      "heatmap": {
+        "title": "Mapa de actividad",
+        "content": "El mapa muestra tus patrones de interacción para reconocer constancia y periodos de baja actividad."
+      }
+    }
+  },
   "dashboard": {
     "title": "Panel Empresarial",
     "subtitle": "Gestiona el aprendizaje de tu equipo y supervisa su progreso.",
@@ -203,6 +235,7 @@
       "back": "Volver al dashboard",
       "refresh": "Actualizar",
       "retry": "Reintentar",
+      "restartTour": "Repetir tutorial",
       "generateFeedback": "Generar feedback IA",
       "generatingFeedback": "Generando feedback..."
     },

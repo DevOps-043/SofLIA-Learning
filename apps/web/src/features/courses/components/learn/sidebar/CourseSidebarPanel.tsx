@@ -40,6 +40,14 @@ type CourseSidebarPanelProps = {
   onToggleNotesCollapsed: () => void;
   onToggleLessonExpand: (lessonId: string) => void | Promise<void>;
   onToggleModuleExpand: (moduleId: string) => void;
+  onSelectActivity: (target: {
+    activityId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
+  onSelectMaterial: (target: {
+    materialId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
   onSelectLesson: (lesson: LearnLesson) => void | Promise<void>;
   onCreateNote: () => void;
   onEditNote: (note: LearnSavedNote) => void;
@@ -70,6 +78,8 @@ export function CourseSidebarPanel({
   onToggleNotesCollapsed,
   onToggleLessonExpand,
   onToggleModuleExpand,
+  onSelectActivity,
+  onSelectMaterial,
   onSelectLesson,
   onCreateNote,
   onEditNote,
@@ -201,6 +211,8 @@ export function CourseSidebarPanel({
                   onToggleCollapsed={onToggleMaterialCollapsed}
                   onToggleModule={onToggleModuleExpand}
                   onToggleLesson={onToggleLessonExpand}
+                  onSelectActivity={onSelectActivity}
+                  onSelectMaterial={onSelectMaterial}
                   onSelectLesson={onSelectLesson}
                   onClosePanel={onClose}
                 />

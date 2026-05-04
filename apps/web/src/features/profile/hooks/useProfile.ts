@@ -83,25 +83,6 @@ export function useProfile(): UseProfileReturn {
     }
   }, [user?.id])
 
-  const uploadCurriculum = useCallback(async (file: File) => {
-    if (!user?.id) {
-      throw new Error('Usuario no autenticado')
-    }
-
-    try {
-      setSaving(true)
-      setError(null)
-      const cvUrl = await ProfileService.uploadCurriculum(file)
-      setProfile(prev => (prev ? { ...prev, curriculum_url: cvUrl } : null))
-      return cvUrl
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-      throw err
-    } finally {
-      setSaving(false)
-    }
-  }, [user?.id])
-
   const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
     if (!user?.id) {
       throw new Error('Usuario no autenticado')
@@ -131,7 +112,6 @@ export function useProfile(): UseProfileReturn {
     saving,
     updateProfile,
     uploadProfilePicture,
-    uploadCurriculum,
     changePassword,
     refetch: fetchProfile
   }

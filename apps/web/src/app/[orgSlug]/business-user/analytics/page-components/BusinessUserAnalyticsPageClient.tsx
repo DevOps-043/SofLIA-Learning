@@ -12,6 +12,7 @@ import {
   CalendarCheck,
   FileText,
   Loader2,
+  Map,
   MessageSquare,
   NotebookPen,
   RefreshCw,
@@ -33,8 +34,15 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import Joyride from 'react-joyride'
 import { useTranslation } from 'react-i18next'
+import { BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS } from '@/core/constants/tourTargets'
 import { cn } from '@/shared/utils/cn'
+import { useJoyrideMinitour } from '@/features/tours/hooks/useJoyrideMinitour'
+import {
+  BUSINESS_USER_ANALYTICS_MINITOUR_ID,
+  buildBusinessUserAnalyticsMinitourSteps,
+} from '@/features/tours/config/business-user-analytics-minitour-steps'
 import type {
   BusinessUserAnalyticsInsights,
   BusinessUserAnalyticsInsightsResponse,
@@ -69,6 +77,16 @@ export function BusinessUserAnalyticsPageClient() {
     (key: string, values?: Record<string, unknown>) => String(t(key, values)),
     [t],
   )
+  const tourSteps = useMemo(
+    () => buildBusinessUserAnalyticsMinitourSteps((key) => String(t(key))),
+    [t],
+  )
+  const analyticsTour = useJoyrideMinitour({
+    enabled: loadState === 'ready' && Boolean(analytics),
+    label: String(t('analytics.actions.restartTour')),
+    steps: tourSteps,
+    tourId: BUSINESS_USER_ANALYTICS_MINITOUR_ID,
+  })
 
   const loadAnalytics = useCallback(async () => {
     if (!orgSlug) return
@@ -170,7 +188,7 @@ export function BusinessUserAnalyticsPageClient() {
   return (
     <main className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
-        <header className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
+        <header id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.header} className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
             <button
               type="button"
@@ -193,7 +211,7 @@ export function BusinessUserAnalyticsPageClient() {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.rangeControls} className="flex flex-wrap items-center gap-2">
             {RANGE_OPTIONS.map((option) => (
               <button
                 key={option}
@@ -217,6 +235,15 @@ export function BusinessUserAnalyticsPageClient() {
               <RefreshCw className="h-4 w-4" />
               {t('analytics.actions.refresh')}
             </button>
+            <button
+              type="button"
+              onClick={analyticsTour.restartTour}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              aria-label={t('analytics.actions.restartTour')}
+              title={t('analytics.actions.restartTour')}
+            >
+              <Map className="h-4 w-4" />
+            </button>
           </div>
         </header>
 
@@ -231,7 +258,7 @@ export function BusinessUserAnalyticsPageClient() {
           />
         ) : analytics ? (
           <>
-            <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <section id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.metrics} className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
                 icon={BookOpen}
                 label={t('analytics.metrics.averageProgress')}
@@ -270,11 +297,12 @@ export function BusinessUserAnalyticsPageClient() {
             </section>
 
             <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.4fr)_minmax(360px,0.8fr)]">
-              <Panel
-                icon={BarChart3}
-                title={t('analytics.sections.courseProgress')}
-                subtitle={t('analytics.sections.courseProgressSubtitle')}
-              >
+              <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.courseProgress}>
+                <Panel
+                  icon={BarChart3}
+                  title={t('analytics.sections.courseProgress')}
+                  subtitle={t('analytics.sections.courseProgressSubtitle')}
+                >
                 <div className="overflow-x-auto pb-2">
                   <div className="min-w-[640px]" style={{ height: courseChartHeight }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -309,7 +337,8 @@ export function BusinessUserAnalyticsPageClient() {
                     </ResponsiveContainer>
                   </div>
                 </div>
-              </Panel>
+                </Panel>
+              </div>
 
               <Panel
                 icon={Target}
@@ -340,11 +369,12 @@ export function BusinessUserAnalyticsPageClient() {
             </section>
 
             <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-              <Panel
-                icon={MessageSquare}
-                title={t('analytics.sections.aiAdoption')}
-                subtitle={t('analytics.sections.aiAdoptionSubtitle')}
-              >
+              <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.aiAdoption}>
+                <Panel
+                  icon={MessageSquare}
+                  title={t('analytics.sections.aiAdoption')}
+                  subtitle={t('analytics.sections.aiAdoptionSubtitle')}
+                >
                 <div className="grid grid-cols-2 gap-3">
                   <SmallStat label={t('analytics.ai.questions')} value={formatPercent(analytics.aiAdoption.questionRate)} />
                   <SmallStat label={t('analytics.ai.questionQuality')} value={formatPercent(analytics.aiAdoption.questionQualityScore)} />
@@ -363,7 +393,8 @@ export function BusinessUserAnalyticsPageClient() {
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
-              </Panel>
+                </Panel>
+              </div>
 
               <Panel
                 icon={Sparkles}
@@ -431,57 +462,62 @@ export function BusinessUserAnalyticsPageClient() {
               </Panel>
             </section>
 
-            <Panel
-              icon={Sparkles}
-              title={t('analytics.sections.feedback')}
-              subtitle={t('analytics.sections.feedbackSubtitle')}
-              action={
-                <button
-                  type="button"
-                  onClick={() => void generateInsights()}
-                  disabled={insightState === 'loading'}
-                  className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90"
-                >
-                  {insightState === 'loading' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {insightState === 'loading'
-                    ? t('analytics.actions.generatingFeedback')
-                    : t('analytics.actions.generateFeedback')}
-                </button>
-              }
-            >
-              {insightState === 'error' ? (
-                <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
-                  {insightError || t('analytics.errors.insights')}
-                </div>
-              ) : insights ? (
-                <InsightsContent insights={insights} t={translate} />
-              ) : (
-                <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-white/10 dark:bg-gray-800/60 dark:text-gray-300">
-                  {t('analytics.feedback.empty')}
-                </div>
-              )}
-            </Panel>
+            <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.feedback}>
+              <Panel
+                icon={Sparkles}
+                title={t('analytics.sections.feedback')}
+                subtitle={t('analytics.sections.feedbackSubtitle')}
+                action={
+                  <button
+                    type="button"
+                    onClick={() => void generateInsights()}
+                    disabled={insightState === 'loading'}
+                    className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-accent dark:text-gray-900 dark:hover:bg-accent/90"
+                  >
+                    {insightState === 'loading' ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    {insightState === 'loading'
+                      ? t('analytics.actions.generatingFeedback')
+                      : t('analytics.actions.generateFeedback')}
+                  </button>
+                }
+              >
+                {insightState === 'error' ? (
+                  <div className="rounded-lg border border-error/30 bg-error/10 p-4 text-sm text-error">
+                    {insightError || t('analytics.errors.insights')}
+                  </div>
+                ) : insights ? (
+                  <InsightsContent insights={insights} t={translate} />
+                ) : (
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 dark:border-white/10 dark:bg-gray-800/60 dark:text-gray-300">
+                    {t('analytics.feedback.empty')}
+                  </div>
+                )}
+              </Panel>
+            </div>
 
-            <Panel
-              icon={CalendarCheck}
-              title={t('analytics.sections.heatmap')}
-              subtitle={t('analytics.sections.heatmapSubtitle', {
-                count: analytics.contributionCalendar.reduce((sum, cell) => sum + cell.value, 0),
-              })}
-            >
-              <BusinessUserAnalyticsHeatmap
-                cells={analytics.contributionCalendar}
-                locale={locale}
-                t={translate}
-              />
-            </Panel>
+            <div id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.heatmap}>
+              <Panel
+                icon={CalendarCheck}
+                title={t('analytics.sections.heatmap')}
+                subtitle={t('analytics.sections.heatmapSubtitle', {
+                  count: analytics.contributionCalendar.reduce((sum, cell) => sum + cell.value, 0),
+                })}
+              >
+                <BusinessUserAnalyticsHeatmap
+                  cells={analytics.contributionCalendar}
+                  locale={locale}
+                  t={translate}
+                />
+              </Panel>
+            </div>
           </>
         ) : null}
       </div>
+      {analyticsTour.isMounted ? <Joyride {...analyticsTour.joyrideProps} /> : null}
     </main>
   )
 }

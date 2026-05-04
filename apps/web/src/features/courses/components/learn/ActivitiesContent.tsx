@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   Activity,
   BookOpen,
@@ -37,7 +37,18 @@ type ActivitiesContentProps = {
   slug: string;
   userRole?: string;
   generateRoleBasedPrompts?: GenerateRoleBasedPrompts;
+  focusedActivityId?: string | null;
+  focusedMaterialId?: string | null;
+  onActivityFocused?: () => void;
 };
+
+function getCssEscapedIdentifier(value: string) {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") {
+    return CSS.escape(value);
+  }
+
+  return value.replace(/["\\]/g, "\\$&");
+}
 
 export function ActivitiesContent({
   hasNextLesson,
@@ -50,6 +61,9 @@ export function ActivitiesContent({
   slug,
   userRole,
   generateRoleBasedPrompts,
+  focusedActivityId,
+  focusedMaterialId,
+  onActivityFocused,
 }: ActivitiesContentProps) {
   const { t } = useTranslation("learn");
   const { setActivity, openLia, isOpen: isLiaOpen, liaChat, courseContext } =
@@ -87,6 +101,8 @@ export function ActivitiesContent({
     materials,
     quizStatus,
     refreshLessonContent,
+    focusActivityOnly,
+    focusMaterialOnly,
     toggleActivityCollapse,
     toggleMaterialCollapse,
   } = useActivitiesData({
@@ -98,6 +114,66 @@ export function ActivitiesContent({
     generateRoleBasedPrompts,
     onLessonContentRefresh,
   });
+
+  useEffect(() => {
+    if ((!focusedActivityId && !focusedMaterialId) || loading) {
+      return;
+    }
+
+    const target = focusedActivityId
+      ? { id: focusedActivityId, type: "activity" as const }
+      : focusedMaterialId
+        ? { id: focusedMaterialId, type: "material" as const }
+        : null;
+
+    if (!target) {
+      return;
+    }
+
+    const activityIds = activities.map((activity) => activity.activity_id);
+    const materialIds = materials.map((material) => material.material_id);
+    const hasTargetActivity =
+      target.type === "activity" && activityIds.includes(target.id);
+    const hasTargetMaterial =
+      target.type === "material" && materialIds.includes(target.id);
+
+    if (!hasTargetActivity && !hasTargetMaterial) {
+      return;
+    }
+
+    if (hasTargetActivity) {
+      focusActivityOnly(target.id, activityIds);
+    } else {
+      focusMaterialOnly(target.id, materialIds);
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      const attributeName =
+        target.type === "activity"
+          ? "data-activity-card-id"
+          : "data-material-card-id";
+      const targetElement = document.querySelector(
+        `[${attributeName}="${getCssEscapedIdentifier(target.id)}"]`
+      );
+
+      targetElement?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+      onActivityFocused?.();
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [
+    activities,
+    focusActivityOnly,
+    focusMaterialOnly,
+    focusedActivityId,
+    focusedMaterialId,
+    loading,
+    materials,
+    onActivityFocused,
+  ]);
 
   const handleStartAiChat = useCallback(
     (activity: LearnActivity) => {

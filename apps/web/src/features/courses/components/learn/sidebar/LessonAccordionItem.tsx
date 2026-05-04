@@ -20,6 +20,14 @@ type LessonAccordionItemProps = {
   activities: LearnActivitySummary[];
   materials: LearnMaterialSummary[];
   quizStatus: LessonQuizStatus | null | undefined;
+  onSelectActivity: (target: {
+    activityId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
+  onSelectMaterial: (target: {
+    materialId: string;
+    lesson: LearnLesson;
+  }) => void | Promise<void>;
   onSelectLesson: (lesson: LearnLesson) => void | Promise<void>;
   onToggleExpanded: (lessonId: string) => void | Promise<void>;
   expandLabel: string;
@@ -34,6 +42,8 @@ export function LessonAccordionItem({
   activities,
   materials,
   quizStatus,
+  onSelectActivity,
+  onSelectMaterial,
   onSelectLesson,
   onToggleExpanded,
   expandLabel,
@@ -118,6 +128,12 @@ export function LessonAccordionItem({
         activities={activities}
         materials={materials}
         quizStatus={quizStatus}
+        onSelectActivity={(activityId) => {
+          void onSelectActivity({ activityId, lesson });
+        }}
+        onSelectMaterial={(materialId) => {
+          void onSelectMaterial({ materialId, lesson });
+        }}
       />
     </div>
   );

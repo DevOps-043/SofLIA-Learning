@@ -1116,6 +1116,79 @@
   "tour": {
     "restart": "Reiniciar tutorial"
   },
+  "selectOrganization": {
+    "loading": "Carregando organizações...",
+    "redirecting": "Redirecionando...",
+    "title": "Selecione sua organização",
+    "subtitlePrefix": "Encontramos",
+    "subtitleSuffix": "espaços de trabalho associados à sua conta.",
+    "footer": "Você pode trocar de organização a qualquer momento pelo painel de controle.",
+    "roles": {
+      "owner": "Proprietário",
+      "admin": "Administrador",
+      "member": "Membro"
+    }
+  },
+  "profileTour": {
+    "steps": {
+      "hero": {
+        "title": "Seu perfil no SofLIA",
+        "content": "Este espaço reúne sua identidade, progresso e principais opções da conta."
+      },
+      "avatar": {
+        "title": "Foto de perfil",
+        "content": "Atualize sua imagem aqui para que outros usuários reconheçam você com mais facilidade."
+      },
+      "summary": {
+        "title": "Informações principais",
+        "content": "Revise seu nome, função e status geral da conta antes de editar seus dados."
+      },
+      "stats": {
+        "title": "Resumo do progresso",
+        "content": "Estas métricas mostram sinais rápidos de aprendizagem, como aulas concluídas e certificados."
+      },
+      "tabs": {
+        "title": "Seções do perfil",
+        "content": "Alterne entre informações pessoais e segurança para manter sua conta atualizada."
+      },
+      "personalForm": {
+        "title": "Dados pessoais",
+        "content": "Complete seus dados de contato, localização, função e biografia para melhorar sua experiência."
+      },
+      "security": {
+        "title": "Segurança da conta",
+        "content": "Na aba de segurança você pode revisar seu e-mail e atualizar sua senha quando precisar."
+      }
+    }
+  },
+  "selectOrganizationTour": {
+    "steps": {
+      "header": {
+        "title": "Escolha seu espaço de trabalho",
+        "content": "Esta tela aparece quando sua conta pertence a mais de uma organização."
+      },
+      "counter": {
+        "title": "Organizações disponíveis",
+        "content": "Este número confirma quantos espaços de trabalho você pode abrir com sua conta."
+      },
+      "card": {
+        "title": "Cartão da organização",
+        "content": "Cada cartão representa uma organização disponível com sua imagem, nome e contexto."
+      },
+      "role": {
+        "title": "Seu papel",
+        "content": "O papel indica se você entrará como administrador, proprietário ou membro."
+      },
+      "action": {
+        "title": "Entrar no painel",
+        "content": "Selecione um cartão para carregar essa organização e continuar para o painel correspondente."
+      },
+      "slug": {
+        "title": "Identificador da organização",
+        "content": "O slug ajuda a reconhecer a rota do espaço em que você está entrando."
+      }
+    }
+  },
   "notes": {
     "modal": {
       "createTitle": "Estudo > Notas",

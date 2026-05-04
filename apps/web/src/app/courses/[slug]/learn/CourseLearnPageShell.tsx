@@ -136,6 +136,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     updateNotesStatsOptimized,
     getPreviousLesson,
     getNextLesson,
+    handleActivityShortcut,
     handleLessonChange,
     navigateToPreviousLesson,
     navigateToNextLesson,
@@ -156,6 +157,10 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     validationModal,
     setValidationModal,
     handlePromptsChange,
+    focusedActivityId,
+    setFocusedActivityId,
+    focusedMaterialId,
+    setFocusedMaterialId,
   } = logic
 
   const courseTitle = course?.title || course?.course_title || ''
@@ -410,6 +415,14 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                 onToggleNotesCollapsed={toggleNotesCollapsed}
                 onToggleLessonExpand={toggleLessonExpand}
                 onToggleModuleExpand={toggleModuleExpand}
+                onSelectActivity={handleActivityShortcut}
+                onSelectMaterial={({ materialId, lesson }) =>
+                  handleActivityShortcut({
+                    activityId: materialId,
+                    contentType: 'material',
+                    lesson,
+                  })
+                }
                 onSelectLesson={handleLessonChange}
                 onCreateNote={openNewNoteModal}
                 onEditNote={openEditNoteModal}
@@ -564,6 +577,12 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
                               onLessonContentRefresh={
                                 loadLessonActivitiesAndMaterials
                               }
+                              focusedActivityId={focusedActivityId}
+                              focusedMaterialId={focusedMaterialId}
+                              onActivityFocused={() => {
+                                setFocusedActivityId(null)
+                                setFocusedMaterialId(null)
+                              }}
                             />
                           )}
                           {activeTab === 'questions' && (

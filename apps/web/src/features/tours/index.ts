@@ -6,4 +6,5 @@ export { useStudyPlannerJoyride } from './hooks/useStudyPlannerJoyride';
 export { useBusinessUserJoyride } from './hooks/useBusinessUserJoyride';
 export { useBusinessPanelJoyride } from './hooks/useBusinessPanelJoyride';
 export { useCourseLearnJoyride } from './hooks/useCourseLearnJoyride';
+export { useJoyrideMinitour } from './hooks/useJoyrideMinitour';
 export { JoyrideTooltip } from './components/JoyrideTooltip';

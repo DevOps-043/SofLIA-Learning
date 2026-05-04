@@ -3,6 +3,8 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { CourseLessonContext, SofLIAMessage } from '../types/lia.types';
+import type { LiaImageAttachment } from '../reporting/report-problem.contract';
+
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { prepareLiaBugContext } from '../reporting/lia-chat-reporting';
@@ -20,6 +22,7 @@ interface LiaChatResponsePayload {
   generatedNanoBanana?: SofLIAMessage['generatedNanoBanana'];
   message?: {
     content?: string;
+    attachments?: LiaImageAttachment[];
   };
 }
 
@@ -270,6 +273,7 @@ export function useLiaCourseChat(
             content: responseText,
             timestamp: new Date(),
             generatedNanoBanana: data.generatedNanoBanana,
+            attachments: data.message?.attachments,
           };
 
           setMessages((prev) => [...prev, assistantMessage]);
@@ -331,6 +335,7 @@ export function useLiaCourseChat(
           role: 'user' | 'assistant';
           content: string;
           timestamp: string;
+          attachments?: LiaImageAttachment[];
         }>;
       };
 
@@ -340,6 +345,7 @@ export function useLiaCourseChat(
           role: msg.role,
           content: msg.content,
           timestamp: new Date(msg.timestamp),
+          attachments: msg.attachments,
         })
       );
 

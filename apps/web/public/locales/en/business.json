@@ -67,6 +67,38 @@
       }
     }
   },
+  "analyticsTour": {
+    "steps": {
+      "header": {
+        "title": "Your learning statistics",
+        "content": "This panel summarizes your progress, habits, and adoption signals across SofLIA."
+      },
+      "ranges": {
+        "title": "Analysis range",
+        "content": "Change the period to compare recent activity against wider time windows."
+      },
+      "metrics": {
+        "title": "Main metrics",
+        "content": "These cards condense progress, AI usage, planning, and overall quality."
+      },
+      "courseProgress": {
+        "title": "Progress by course",
+        "content": "This chart helps you see which courses are moving well and which need attention."
+      },
+      "aiAdoption": {
+        "title": "SofLIA adoption",
+        "content": "Here you can review how you are using SofLIA assistance during your learning."
+      },
+      "feedback": {
+        "title": "Personalized feedback",
+        "content": "Generate an AI read to identify strengths, opportunities, and next steps."
+      },
+      "heatmap": {
+        "title": "Activity map",
+        "content": "The map shows your interaction patterns so you can spot consistency and quieter periods."
+      }
+    }
+  },
   "dashboard": {
     "title": "Business Panel",
     "subtitle": "Manage your team's learning and oversee their progress.",
@@ -203,6 +235,7 @@
       "back": "Back to dashboard",
       "refresh": "Refresh",
       "retry": "Retry",
+      "restartTour": "Replay tutorial",
       "generateFeedback": "Generate AI feedback",
       "generatingFeedback": "Generating feedback..."
     },

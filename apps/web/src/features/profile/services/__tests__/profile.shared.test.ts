@@ -18,14 +18,14 @@ describe('profile.shared', () => {
         first_name: 'Ada',
         email: 'ada@example.com',
         bio: 'Engineer',
-        github_url: 'https://github.com/ada',
+        type_rol: 'Data Lead',
         date_of_birth: '1990-05-10',
         gender: 'female'
       })
     ).toEqual({
       first_name: 'Ada',
       bio: 'Engineer',
-      github_url: 'https://github.com/ada',
+      type_rol: 'Data Lead',
       date_of_birth: '1990-05-10',
       gender: 'female'
     })
@@ -43,10 +43,10 @@ describe('profile.shared', () => {
           first_name: 'Ada',
           last_name: 'Byron',
           bio: 'Engineer',
-          github_url: 'https://github.com/ada'
+          type_rol: 'Data Lead'
         }
       )
-    ).toEqual(['last_name', 'github_url'])
+    ).toEqual(['last_name', 'type_rol'])
   })
 
   it('forces readable light-mode colors when dashboard styles are white', () => {
