@@ -12,9 +12,12 @@ import {
   generateReportsAnalyticsWorkbook,
   generateReportsAnalyticsZip,
 } from '@/features/business-panel/services/reports-analytics/reports-analytics.export.service'
+import { generateReportsAnalyticsReportBlueprint } from '@/features/business-panel/services/reports-analytics/reports-analytics.blueprint.service'
 import type {
   ReportsAnalyticsFilters,
 } from '@/features/business-panel/types/reports-analytics.types'
+
+export const runtime = 'nodejs'
 
 const optionalFilterSchema = z
   .string()
@@ -88,14 +91,20 @@ export async function POST(
     const supabase = await createClient()
     const dataset = await fetchReportsAnalyticsDataset(supabase, auth.organizationId, filters)
     const locale = parsed.locale || 'es'
+    const blueprint = await generateReportsAnalyticsReportBlueprint({
+      dataset,
+      locale,
+      format: parsed.format,
+      requestedByUserId: auth.userId,
+    })
 
     if (parsed.format === 'pdf') {
-      const file = await generateReportsAnalyticsPdf(dataset, locale)
+      const file = await generateReportsAnalyticsPdf(dataset, locale, blueprint)
       return buildFileResponse(file, buildReportsAnalyticsFilename('pdf', dataset), 'application/pdf')
     }
 
     if (parsed.format === 'xlsx') {
-      const file = await generateReportsAnalyticsWorkbook(dataset, locale)
+      const file = await generateReportsAnalyticsWorkbook(dataset, locale, blueprint)
       return buildFileResponse(
         file,
         buildReportsAnalyticsFilename('xlsx', dataset),
@@ -103,7 +112,7 @@ export async function POST(
       )
     }
 
-    const file = await generateReportsAnalyticsZip(dataset, locale)
+    const file = await generateReportsAnalyticsZip(dataset, locale, blueprint)
     return buildFileResponse(file, buildReportsAnalyticsFilename('zip', dataset), 'application/zip')
   } catch (error) {
     if (error instanceof z.ZodError) {

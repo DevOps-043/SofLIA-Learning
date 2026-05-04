@@ -5,6 +5,11 @@ import type {
   ReportsAnalyticsDataset,
   ReportsAnalyticsLocale,
 } from '../../types/reports-analytics.types'
+import {
+  buildReportsAnalyticsAiPayload,
+  extractJsonObject,
+  resolveReportsAnalyticsGeminiModel,
+} from './reports-analytics.ai-payload.service'
 
 interface GenerateReportsAnalyticsInsightsParams {
   dataset: ReportsAnalyticsDataset
@@ -17,7 +22,7 @@ export async function generateReportsAnalyticsInsights({
   locale,
 }: GenerateReportsAnalyticsInsightsParams): Promise<ReportsAnalyticsAiInsights> {
   const apiKey = process.env.GOOGLE_API_KEY
-  const model = process.env.REPORTS_ANALYTICS_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+  const model = resolveReportsAnalyticsGeminiModel()
 
   if (!apiKey) {
     return buildFallbackInsights(dataset, locale, model)
@@ -35,7 +40,7 @@ export async function generateReportsAnalyticsInsights({
           role: 'user',
           parts: [
             {
-              text: JSON.stringify(buildInsightPayload(dataset)),
+              text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)),
             },
           ],
         },
@@ -334,54 +339,6 @@ function buildSystemPrompt(locale: ReportsAnalyticsLocale): string {
   ].join('\n')
 }
 
-function buildInsightPayload(dataset: ReportsAnalyticsDataset) {
-  return {
-    period: dataset.period,
-    filters: dataset.filters,
-    overview: dataset.overview,
-    learning: {
-      assignedCourses: dataset.learning.assignedCourses,
-      completedCourses: dataset.learning.completedCourses,
-      averageCompletionDays: dataset.learning.averageCompletionDays,
-      medianCompletionDays: dataset.learning.medianCompletionDays,
-      progressDistribution: dataset.learning.progressDistribution,
-      completionsTrend: dataset.learning.completionsTrend,
-    },
-    activities: dataset.activities,
-    quality: dataset.quality,
-    soflia: dataset.soflia,
-    notes: dataset.notes,
-    planner: dataset.planner,
-    courses: dataset.courses.slice(0, 15),
-    connectionCalendar: dataset.connectionCalendar
-      .filter((cell) => cell.value > 0)
-      .sort((a, b) => b.value - a.value || a.date.localeCompare(b.date))
-      .slice(0, 20),
-    topSegments: {
-      ageBands: dataset.segments.ageBands.slice(0, 8),
-      gender: dataset.segments.gender.slice(0, 8),
-      jobTitles: dataset.segments.jobTitles.slice(0, 8),
-      roles: dataset.segments.roles.slice(0, 8),
-    },
-    rankings: {
-      regions: dataset.rankings.regions.slice(0, 10),
-      zones: dataset.rankings.zones.slice(0, 10),
-      teams: dataset.rankings.teams.slice(0, 10),
-      users: dataset.rankings.users.slice(0, 10).map((user, index) => ({
-        anonymousUserId: `ranked_user_${index + 1}`,
-        jobTitle: user.jobTitle,
-        regionName: user.regionName,
-        zoneName: user.zoneName,
-        teamName: user.teamName,
-        rankScore: user.rankScore,
-        averageProgress: user.averageProgress,
-        qualityScore: user.qualityScore,
-      })),
-    },
-    anonymizedSamples: dataset.aiSamples.slice(0, 35),
-  }
-}
-
 function parseInsights(value: string | undefined, model: string): ReportsAnalyticsAiInsights | null {
   if (!value) return null
 
@@ -431,17 +388,6 @@ function parseInsights(value: string | undefined, model: string): ReportsAnalyti
   } catch {
     return null
   }
-}
-
-function extractJsonObject(value: string): string {
-  const trimmed = value.trim()
-  if (trimmed.startsWith('{') && trimmed.endsWith('}')) return trimmed
-  const fencedMatch = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (fencedMatch?.[1]) return fencedMatch[1].trim()
-  const firstBrace = trimmed.indexOf('{')
-  const lastBrace = trimmed.lastIndexOf('}')
-  if (firstBrace >= 0 && lastBrace > firstBrace) return trimmed.slice(firstBrace, lastBrace + 1)
-  return trimmed
 }
 
 function buildInsightSegmentRows(dataset: ReportsAnalyticsDataset, labels: Record<string, string>) {

@@ -8,6 +8,11 @@ import {
   generateReportsAnalyticsZip,
 } from '../reports-analytics.export.service'
 import {
+  buildFallbackReportsAnalyticsBlueprint,
+  parseReportsAnalyticsBlueprint,
+} from '../reports-analytics.blueprint.service'
+import { buildReportsAnalyticsAiPayload } from '../reports-analytics.ai-payload.service'
+import {
   calculateAge,
   buildConnectionCalendar,
   buildLoginHeatmap,
@@ -283,6 +288,30 @@ describe('reports analytics helpers', () => {
     }
 
     const result = buildReportsAnalyticsDataset(queryData, filters)
+    const fallbackBlueprint = buildFallbackReportsAnalyticsBlueprint(result, 'es', 'gemini-test', 'xlsx')
+    const parsedBlueprint = parseReportsAnalyticsBlueprint(
+      JSON.stringify({
+        summary: 'SofLIA encontro riesgo en cursos y oportunidad de seguimiento.',
+        sections: [
+          { id: 'executive', title: 'Resumen directivo', purpose: 'Priorizar acciones', priority: 1 },
+          { id: 'courses', title: 'Cursos', purpose: 'Revisar avance', priority: 2 },
+        ],
+        featuredMetrics: [{ label: 'Progreso', value: '50%', detail: 'Prueba' }],
+        findings: [{ title: 'Hallazgo', points: ['Punto operativo'] }],
+        risks: ['Riesgo operativo'],
+        recommendations: ['Accion recomendada'],
+        artifactPlan: [
+          { id: 'executive', title: 'Resumen directivo', description: 'Resumen', includeInCsv: true, includeInWorkbook: true },
+        ],
+      }),
+      {
+        dataset: result,
+        locale: 'es',
+        model: 'gemini-test',
+        format: 'xlsx',
+      },
+    )
+    const aiPayload = buildReportsAnalyticsAiPayload(result)
 
     expect(result.overview.totalUsers).toBe(2)
     expect(result.overview.completionRate).toBe(100)
@@ -306,17 +335,44 @@ describe('reports analytics helpers', () => {
         teamName: 'Ventas Norte',
       }),
     )
+    expect(fallbackBlueprint.source).toBe('fallback')
+    expect(fallbackBlueprint.sections.map((section) => section.id)).toEqual(
+      expect.arrayContaining(['executive', 'dashboard', 'trends', 'courses', 'users', 'segments', 'quality', 'rawData']),
+    )
+    expect(parsedBlueprint?.source).toBe('gemini')
+    expect(parsedBlueprint?.sections[0].id).toBe('executive')
+    expect(JSON.stringify(aiPayload)).not.toContain('ada@example.com')
+    expect(JSON.stringify(aiPayload)).not.toContain('Ada')
 
-    const zipBytes = await generateReportsAnalyticsZip(result, 'es')
+    const zipBytes = await generateReportsAnalyticsZip(result, 'es', fallbackBlueprint)
     const zip = await JSZip.loadAsync(zipBytes)
     const activitiesCsv = await zip.file('actividades_evaluaciones.csv')?.async('string')
     const learningCsv = await zip.file('tendencia_aprendizaje.csv')?.async('string')
+    const courseCsv = await zip.file('progreso_cursos.csv')?.async('string')
+    const executiveCsv = await zip.file('resumen_ejecutivo.csv')?.async('string')
 
     expect(activitiesCsv).toContain('Evaluaciones respondidas')
     expect(activitiesCsv).not.toContain('metric')
-    expect(learningCsv).toContain('Vista')
+    expect(learningCsv).not.toContain('Vista')
+    expect(learningCsv).not.toContain('#')
+    expect(courseCsv).not.toContain('Vista')
+    expect(courseCsv).not.toContain('#')
+    expect(executiveCsv).toContain(fallbackBlueprint.summary)
 
-    const workbookBytes = await generateReportsAnalyticsWorkbook(result, 'es')
+    const workbookBytes = await generateReportsAnalyticsWorkbook(result, 'es', fallbackBlueprint)
     expect(workbookBytes.length).toBeGreaterThan(1000)
+    const ExcelJS = await import('exceljs')
+    const workbook = new ExcelJS.Workbook()
+    await workbook.xlsx.load(Buffer.from(workbookBytes))
+    const worksheetNames = workbook.worksheets.map((worksheet) => worksheet.name)
+    expect(worksheetNames).toEqual(
+      expect.arrayContaining(['Resumen SofLIA', 'Dashboard', 'Tendencias', 'Cursos', 'Usuarios', 'Segmentos', 'Calidad', 'Datos crudos']),
+    )
+    const coursesSheet = workbook.getWorksheet('Cursos')
+    expect(coursesSheet).toBeDefined()
+    expect(() => coursesSheet?.getTable('CoursesTable')).not.toThrow()
+    expect(coursesSheet?.autoFilter).toBeTruthy()
+    expect(coursesSheet?.getColumn(1).width).toBeGreaterThan(30)
+    expect(coursesSheet?.getCell('A1').value).toBe('Cursos')
   })
 })
