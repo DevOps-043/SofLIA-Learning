@@ -964,7 +964,9 @@
     "customize": "Customize",
     "next": "Next",
     "finish": "Finish",
-    "skip": "Skip"
+    "skip": "Skip",
+    "show": "Show",
+    "hide": "Hide"
   },
   "certificates": {
     "loading": "Loading certificates...",

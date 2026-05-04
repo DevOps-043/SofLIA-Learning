@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Square, Trash2, Copy, StickyNote, Check, Paperclip, Mic, MicOff } from 'lucide-react';
+import { X, Send, Square, Trash2, Copy, StickyNote, Check, Mic, MicOff } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -14,11 +14,6 @@ import { useThemeStore } from '../../../core/stores/themeStore';
 import { useLiaCourse } from '../context/LiaCourseContext';
 import { useLiaCourseChat } from '../../../core/hooks/useLiaCourseChat';
 import type { CourseLessonContext } from '../../../core/types/lia.types';
-import type { LiaImageAttachment } from '../../../core/reporting/report-problem.contract';
-import {
-  REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES,
-} from '../../../core/reporting/report-problem.contract';
-import { buildLiaImageAttachment } from '../../../core/reporting/report-problem.client';
 import { copyTextToClipboard } from '../../../lib/clipboard';
 import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
@@ -252,12 +247,9 @@ function CourseLiaPanelContent({
   const isCustomTheme = !!customColors?.panelBg;
 
   const [inputValue, setInputValue] = useState('');
-  const [selectedAttachment, setSelectedAttachment] = useState<LiaImageAttachment | null>(null);
-  const [attachmentError, setAttachmentError] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const attachmentInputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [forceDarkText, setForceDarkText] = useState(false);
@@ -419,11 +411,7 @@ function CourseLiaPanelContent({
 
   useEffect(() => {
     if (!isOpen) {
-      setSelectedAttachment(null);
-      setAttachmentError(null);
-      if (attachmentInputRef.current) {
-        attachmentInputRef.current.value = '';
-      }
+      setCopiedMessageId(null);
     }
   }, [isOpen]);
 
@@ -482,71 +470,19 @@ function CourseLiaPanelContent({
     }
   }, [isOpen, currentActivity, resolvedLessonContext, sendMessage]);
 
-  const handleAttachmentSelect = useCallback(async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-
-    if (!file) {
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      setAttachmentError(t('lia.attachments.imageOnly'));
-      event.target.value = '';
-      return;
-    }
-
-    if (file.size > REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES) {
-      setAttachmentError(t('lia.attachments.tooLarge'));
-      event.target.value = '';
-      return;
-    }
-
-    try {
-      const attachment = await buildLiaImageAttachment(file);
-      setSelectedAttachment(attachment);
-      setAttachmentError(null);
-    } catch (error) {
-      setAttachmentError(
-        error instanceof Error
-          ? error.message
-          : t('lia.attachments.processError')
-      );
-    } finally {
-      event.target.value = '';
-    }
-  }, []);
-
-  const handleRemoveAttachment = useCallback(() => {
-    setSelectedAttachment(null);
-    setAttachmentError(null);
-    if (attachmentInputRef.current) {
-      attachmentInputRef.current.value = '';
-    }
-  }, []);
-
-  const handleAttachmentButtonClick = useCallback(() => {
-    attachmentInputRef.current?.click();
-  }, []);
-
   const handleSendMessage = useCallback(async () => {
-    if ((!inputValue.trim() && !selectedAttachment) || isLoading) return;
+    if (!inputValue.trim() || isLoading) return;
     const message = inputValue.trim();
     setInputValue('');
-    const attachmentToSend = selectedAttachment;
-    setSelectedAttachment(null);
-    setAttachmentError(null);
     
     // Construir contexto del curso
     await sendMessage(
       message,
       resolvedLessonContext,
       undefined,
-      false,
-      attachmentToSend ? [attachmentToSend] : []
+      false
     );
-  }, [inputValue, isLoading, resolvedLessonContext, selectedAttachment, sendMessage]);
+  }, [inputValue, isLoading, resolvedLessonContext, sendMessage]);
 
   const handlePrimaryAction = useCallback(() => {
     if (isLoading) {
@@ -598,7 +534,7 @@ function CourseLiaPanelContent({
   const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
   const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };
   const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
-  const canSendMessage = Boolean(isLoading || inputValue.trim() || selectedAttachment);
+  const canSendMessage = Boolean(isLoading || inputValue.trim());
 
   return (
     <AnimatePresence>
@@ -763,43 +699,12 @@ function CourseLiaPanelContent({
               textSecondary: themeColors.textSecondary,
             }}
             onSuggestionClick={handleSuggestionClick}
+            forceCollapse={currentActivity?.timestamp || false}
           />
 
           {/* Input */}
           <div style={{ padding: isMobile ? '10px 3% 12px' : '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>
-            <input
-              ref={attachmentInputRef}
-              type="file"
-              accept="image/*"
-              onChange={(event) => void handleAttachmentSelect(event)}
-              style={{ display: 'none' }}
-            />
-            {selectedAttachment ? (
-              <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '16px', backgroundColor: isLightTheme ? '#F8FAFC' : 'rgba(255,255,255,0.04)', border: `1px solid ${themeColors.borderColor}`, display: 'flex', gap: '12px', alignItems: 'center' }}>
-                <img
-                  src={selectedAttachment.dataUrl}
-                  alt={selectedAttachment.fileName}
-                  style={{ width: '56px', height: '56px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, color: themeColors.textPrimary, fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {selectedAttachment.fileName}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveAttachment}
-                  style={{ width: '30px', height: '30px', borderRadius: '999px', border: 'none', background: isLightTheme ? '#E2E8F0' : '#1F2937', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightTheme ? '#475569' : '#CBD5E1' }}
-                >
-                  <X style={{ width: '14px', height: '14px' }} />
-                </button>
-              </div>
-            ) : null}
-            {attachmentError ? (
-              <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '12px', backgroundColor: 'rgba(239,68,68,0.12)', color: isLightTheme ? '#B91C1C' : '#FCA5A5', fontSize: '12px', border: '1px solid rgba(239,68,68,0.2)' }}>
-                {attachmentError}
-              </div>
-            ) : null}
+
             {voiceError ? (
               <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '12px', backgroundColor: 'rgba(245,158,11,0.12)', color: isLightTheme ? '#92400E' : '#FCD34D', fontSize: '12px', border: '1px solid rgba(245,158,11,0.24)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
                 <span>{voiceError}</span>
@@ -814,14 +719,7 @@ function CourseLiaPanelContent({
               </div>
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '12px', backgroundColor: themeColors.inputBg, borderRadius: '24px', padding: isMobile ? '8px 3%' : '10px 16px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
-               <button
-                 type="button"
-                 onClick={handleAttachmentButtonClick}
-                 title={t('lia.attachments.attachImage')}
-                 style={{ width: '36px', height: '36px', borderRadius: '999px', border: 'none', backgroundColor: selectedAttachment ? 'rgba(0,212,179,0.12)' : 'transparent', color: selectedAttachment ? themeColors.accentColor : themeColors.textSecondary, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-               >
-                 <Paperclip style={{ width: '16px', height: '16px' }} />
-               </button>
+
                <motion.button
                  type="button"
                  onClick={handleVoiceAction}

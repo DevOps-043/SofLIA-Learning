@@ -68,6 +68,20 @@ export interface BusinessUserStats {
   bulk_link_usage?: number
 }
 
+export interface BusinessUsersPaginationMeta {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasNextPage: boolean
+}
+
+export interface BusinessUsersResourceTotals {
+  users: number
+  invitations: number
+  inviteLinks: number
+}
+
 export interface CreateBusinessUserRequest {
   username: string
   email: string

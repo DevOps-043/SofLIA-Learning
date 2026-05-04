@@ -100,7 +100,6 @@ export function useBusinessPanelDashboardLogic() {
   const [activities, setActivities] = useState<DashboardActivity[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activitiesLoading, setActivitiesLoading] = useState(true)
-  const [currentTime, setCurrentTime] = useState(new Date())
   const { t, i18n } = useTranslation('business')
   const { effectiveStyles } = useOrganizationStylesContext()
   const { resolvedTheme } = useThemeStore()
@@ -109,18 +108,18 @@ export function useBusinessPanelDashboardLogic() {
   const panelStyles = effectiveStyles?.panel
 
   const themeColors = useMemo(() => ({
-    primary: panelStyles?.primary_button_color || (isDark ? '#8B5CF6' : '#6366F1'),
-    secondary: panelStyles?.secondary_button_color || '#3B82F6',
-    accent: panelStyles?.accent_color || '#00D4B3',
-    text: isDark ? (panelStyles?.text_color || '#FFFFFF') : '#0F172A',
-    cardBg: isDark ? (panelStyles?.card_background || '#1E2329') : '#FFFFFF',
-    borderColor: isDark ? (panelStyles?.border_color || 'rgba(255,255,255,0.1)') : 'rgba(0,0,0,0.1)',
-    background: panelStyles?.background_value || (isDark ? '#0F172A' : '#F8FAFC'),
+    primary: panelStyles?.primary_button_color || 'var(--color-primary)',
+    secondary: panelStyles?.secondary_button_color || 'var(--color-info)',
+    accent: panelStyles?.accent_color || 'var(--color-accent)',
+    text: isDark ? (panelStyles?.text_color || 'var(--color-bg-light)') : 'var(--color-gray-900)',
+    cardBg: isDark ? (panelStyles?.card_background || 'var(--color-gray-800)') : 'var(--color-bg-light)',
+    borderColor: isDark ? (panelStyles?.border_color || 'rgb(255 255 255 / 10%)') : 'rgb(0 0 0 / 10%)',
+    background: panelStyles?.background_value || (isDark ? 'var(--color-gray-900)' : 'var(--color-gray-50)'),
     backgroundType: panelStyles?.background_type || 'color',
   }), [panelStyles, isDark])
 
-  const getGreeting = () => {
-    const hour = currentTime.getHours()
+  const getGreeting = (date: Date = new Date()) => {
+    const hour = date.getHours()
     if (hour < 12) return t('dashboard.greetings.morning')
     if (hour < 18) return t('dashboard.greetings.afternoon')
     return t('dashboard.greetings.evening')
@@ -185,11 +184,6 @@ export function useBusinessPanelDashboardLogic() {
     }
     fetchActivities()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentTime(new Date()), 60000)
-    return () => clearInterval(interval)
-  }, [])
 
   const statsData = useMemo(() => stats ? [
     {
@@ -302,7 +296,7 @@ export function useBusinessPanelDashboardLogic() {
       description: t('dashboard.quickActions.settings.desc'),
       icon: Cog6ToothIcon,
       href: `/${orgSlug}/business-panel/settings`,
-      color: '#8B5CF6',
+      color: themeColors.primary,
     },
   ], [themeColors, t, orgSlug])
 

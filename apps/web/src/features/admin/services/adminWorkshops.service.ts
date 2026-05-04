@@ -1,11 +1,21 @@
 // Barrel re-export — all logic lives in sub-files
-export type { AdminWorkshop, WorkshopStats } from './admin-workshops/workshops-transform.service'
+export type {
+  AdminWorkshop,
+  AdminWorkshopListFilters,
+  AdminWorkshopListResult,
+  WorkshopStats,
+} from './admin-workshops/workshops-transform.service'
 export { AdminWorkshopsQueryService } from './admin-workshops/workshops-query.service'
 export { AdminWorkshopsMutationService } from './admin-workshops/workshops-mutation.service'
 
 import { AdminWorkshopsQueryService } from './admin-workshops/workshops-query.service'
 import { AdminWorkshopsMutationService } from './admin-workshops/workshops-mutation.service'
-import type { AdminWorkshop, WorkshopStats } from './admin-workshops/workshops-transform.service'
+import type {
+  AdminWorkshop,
+  AdminWorkshopListFilters,
+  AdminWorkshopListResult,
+  WorkshopStats,
+} from './admin-workshops/workshops-transform.service'
 
 /**
  * Unified facade — preserves the original class name so all existing
@@ -14,6 +24,10 @@ import type { AdminWorkshop, WorkshopStats } from './admin-workshops/workshops-t
 export class AdminWorkshopsService {
   static getAllWorkshops(): Promise<AdminWorkshop[]> {
     return AdminWorkshopsQueryService.getAllWorkshops()
+  }
+
+  static getWorkshopsPage(filters: AdminWorkshopListFilters): Promise<AdminWorkshopListResult> {
+    return AdminWorkshopsQueryService.getWorkshopsPage(filters)
   }
 
   static getWorkshopStats(): Promise<WorkshopStats> {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useMotionSafe } from '../../../../lib/utils/motion'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
@@ -56,15 +57,21 @@ export function WorkshopThumbnail({
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      <motion.img
-        src={thumbnailUrl}
-        alt={title}
-        className="w-full h-full object-cover"
-        initial={{ scale: 1 }}
-        whileHover={{ scale: 1.15 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        onError={() => setImageError(true)}
-      />
+      <motion.div
+        className="absolute inset-0"
+        initial={disableHeavy ? false : { scale: 1 }}
+        whileHover={disableHeavy ? undefined : { scale: 1.08 }}
+        transition={disableHeavy ? undefined : { duration: 0.5, ease: 'easeOut' }}
+      >
+        <Image
+          src={thumbnailUrl}
+          alt={title}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+          className="object-cover"
+          onError={() => setImageError(true)}
+        />
+      </motion.div>
       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
       {!disableHeavy && (
         <motion.div

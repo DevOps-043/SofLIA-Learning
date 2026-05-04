@@ -4,18 +4,28 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdminWorkshops } from './useAdminWorkshops'
 import type { AdminWorkshop } from '../services/adminWorkshops.service'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 import {
   deleteAdminWorkshop,
-  filterAdminWorkshops,
   updateAdminWorkshop,
 } from '../components/admin-workshops/admin-workshops-display.service'
 
+const WORKSHOPS_PAGE_SIZE = 24
+
 export function useAdminWorkshopsPageLogic() {
   const router = useRouter()
-  const { workshops, stats, isLoading, error, refetch } = useAdminWorkshops()
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [page, setPage] = useState(1)
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300)
+  const { workshops, pagination, stats, isLoading, error, refetch } = useAdminWorkshops({
+    page,
+    limit: WORKSHOPS_PAGE_SIZE,
+    searchTerm: debouncedSearchTerm,
+    filterCategory,
+    filterStatus,
+  })
   const [editingWorkshop, setEditingWorkshop] = useState<AdminWorkshop | null>(
     null,
   )
@@ -24,15 +34,22 @@ export function useAdminWorkshopsPageLogic() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
-  const filteredWorkshops = useMemo(
-    () =>
-      filterAdminWorkshops(workshops, {
-        searchTerm,
-        category: filterCategory,
-        status: filterStatus,
-      }),
-    [filterCategory, filterStatus, searchTerm, workshops],
-  )
+  const filteredWorkshops = useMemo(() => workshops, [workshops])
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setPage(1)
+  }
+
+  const handleCategoryChange = (value: string) => {
+    setFilterCategory(value)
+    setPage(1)
+  }
+
+  const handleStatusChange = (value: string) => {
+    setFilterStatus(value)
+    setPage(1)
+  }
 
   const openAddModal = () => {
     setIsAddModalOpen(true)
@@ -103,6 +120,8 @@ export function useAdminWorkshopsPageLogic() {
   return {
     workshops,
     filteredWorkshops,
+    pagination,
+    page,
     stats,
     isLoading,
     error,
@@ -113,9 +132,10 @@ export function useAdminWorkshopsPageLogic() {
     searchTerm,
     filterCategory,
     filterStatus,
-    setSearchTerm,
-    setFilterCategory,
-    setFilterStatus,
+    setSearchTerm: handleSearchChange,
+    setFilterCategory: handleCategoryChange,
+    setFilterStatus: handleStatusChange,
+    setPage,
     openAddModal,
     closeAddModal,
     openEditModal,

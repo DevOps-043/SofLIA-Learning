@@ -78,10 +78,6 @@ export default function BusinessPanelUsersPage() {
   const theme = useBusinessPanelTheme()
   const {
     orgSlug,
-    users,
-    invitations,
-    inviteLinks,
-    joinRequests,
     joinRequestsCount,
     stats,
     orgData,
@@ -90,6 +86,9 @@ export default function BusinessPanelUsersPage() {
     isJoinRequestsLoading,
     joinRequestsError,
     refetch,
+    activePagination,
+    resourceTotals,
+    setResourcePage,
     updateUser,
     filteredUsers,
     filteredInvitations,
@@ -267,10 +266,12 @@ export default function BusinessPanelUsersPage() {
       <UsersFilterBar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        users={users}
-        invitations={invitations}
-        inviteLinks={inviteLinks}
-        joinRequests={joinRequests}
+        totalCounts={{
+          users: resourceTotals.users,
+          invitations: resourceTotals.invitations,
+          inviteLinks: resourceTotals.inviteLinks,
+          joinRequests: joinRequestsCount,
+        }}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         filterRole={filterRole}
@@ -567,6 +568,18 @@ export default function BusinessPanelUsersPage() {
         )}
       </AnimatePresence>
 
+      {activeTab !== 'requests' && activePagination.totalPages > 1 && (
+        <UsersPagination
+          page={activePagination.page}
+          totalPages={activePagination.totalPages}
+          total={activePagination.total}
+          onPageChange={(page) => {
+            const resource = activeTab === 'invitations' || activeTab === 'links' ? activeTab : 'users'
+            setResourcePage(resource, page)
+          }}
+        />
+      )}
+
       <AddUserModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -630,6 +643,66 @@ export default function BusinessPanelUsersPage() {
         message={toast.message}
         type={toast.type}
       />
+    </div>
+  )
+}
+
+function UsersPagination({
+  page,
+  totalPages,
+  total,
+  onPageChange,
+}: {
+  page: number
+  totalPages: number
+  total: number
+  onPageChange: (page: number) => void
+}) {
+  const { t } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
+  const canGoBack = page > 1
+  const canGoForward = page < totalPages
+
+  return (
+    <div
+      className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border px-4 py-3"
+      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+    >
+      <p className="text-sm" style={{ color: theme.subtextColor }}>
+        {t('users.pagination.summary', {
+          count: total,
+          page,
+          totalPages,
+          defaultValue: '{{count}} resultados - pagina {{page}} de {{totalPages}}',
+        })}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={!canGoBack}
+          onClick={() => onPageChange(page - 1)}
+          className="rounded-xl border px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          style={{
+            borderColor: theme.borderColor,
+            color: theme.textColor,
+            backgroundColor: theme.inputBg,
+          }}
+        >
+          {t('users.pagination.previous', { defaultValue: 'Anterior' })}
+        </button>
+        <button
+          type="button"
+          disabled={!canGoForward}
+          onClick={() => onPageChange(page + 1)}
+          className="rounded-xl px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          style={{
+            color: theme.onPrimaryColor,
+            backgroundColor: theme.primaryColor,
+          }}
+        >
+          {t('users.pagination.next', { defaultValue: 'Siguiente' })}
+        </button>
+      </div>
     </div>
   )
 }

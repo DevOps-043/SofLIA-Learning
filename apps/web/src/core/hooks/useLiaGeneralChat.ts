@@ -6,7 +6,7 @@ import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
 import { prepareLiaBugContext } from '../reporting/lia-chat-reporting';
-import type { LiaImageAttachment } from '../reporting/report-problem.contract';
+
 
 type LegacyAuthUser = {
   id?: string;
@@ -24,8 +24,7 @@ export interface UseLiaGeneralChatReturn {
   sendMessage: (
     message: string,
     isSystemMessage?: boolean,
-    pageContext?: Record<string, unknown>,
-    attachments?: LiaImageAttachment[]
+    pageContext?: Record<string, unknown>
   ) => Promise<void>;
   clearHistory: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
@@ -33,20 +32,9 @@ export interface UseLiaGeneralChatReturn {
 }
 
 function normalizeGeneralMessage(
-  message: string,
-  attachments: LiaImageAttachment[]
+  message: string
 ): string {
-  const trimmedMessage = message.trim();
-
-  if (trimmedMessage) {
-    return trimmedMessage;
-  }
-
-  if (attachments.length > 0) {
-    return 'Quiero compartir una imagen como evidencia visual para que me ayudes a revisar este caso.';
-  }
-
-  return '';
+  return message.trim();
 }
 
 export function useLiaGeneralChat(
@@ -79,10 +67,9 @@ export function useLiaGeneralChat(
     async (
       message: string,
       isSystemMessage: boolean = false,
-      pageContext?: Record<string, unknown>,
-      attachments: LiaImageAttachment[] = []
+      pageContext?: Record<string, unknown>
     ) => {
-      const normalizedMessage = normalizeGeneralMessage(message, attachments);
+      const normalizedMessage = normalizeGeneralMessage(message);
 
       if (!normalizedMessage || isLoading) return;
 
@@ -92,7 +79,6 @@ export function useLiaGeneralChat(
           role: 'user',
           content: normalizedMessage,
           timestamp: new Date(),
-          attachments,
         };
 
         setMessages((prev) => [...prev, userMessage]);
@@ -107,7 +93,7 @@ export function useLiaGeneralChat(
           sessionSnapshot,
           enrichedMetadata,
           recordingStatus,
-        } = await prepareLiaBugContext(normalizedMessage, attachments.length > 0);
+        } = await prepareLiaBugContext(normalizedMessage, false);
 
         if (!conversationIdRef.current) {
           conversationIdRef.current = crypto.randomUUID();
@@ -124,15 +110,10 @@ export function useLiaGeneralChat(
               ...messages.map((msg) => ({
                 role: msg.role,
                 content: msg.content,
-                attachments:
-                  msg.role === 'user' && msg.attachments?.length
-                    ? msg.attachments
-                    : undefined,
               })),
               {
                 role: 'user',
                 content: normalizedMessage,
-                attachments: attachments.length > 0 ? attachments : undefined,
               },
             ],
             context: {

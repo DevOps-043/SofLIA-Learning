@@ -5,6 +5,33 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 import { createClient } from '@/lib/supabase/server'
 
+const DEFAULT_PAGE_SIZE = 24
+const MAX_PAGE_SIZE = 100
+
+type UsersResource = 'users' | 'invitations' | 'links'
+
+function getPositiveInt(value: string | null, fallback: number, max = Number.MAX_SAFE_INTEGER) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback
+  return Math.min(Math.floor(parsed), max)
+}
+
+function getResource(value: string | null): UsersResource {
+  if (value === 'invitations' || value === 'links') return value
+  return 'users'
+}
+
+function buildPagination(page: number, pageSize: number, total: number) {
+  const totalPages = total > 0 ? Math.ceil(total / pageSize) : 0
+  return {
+    page,
+    pageSize,
+    total,
+    totalPages,
+    hasNextPage: page < totalPages,
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ orgSlug: string }> }
@@ -22,20 +49,120 @@ export async function GET(
       )
     }
 
-    const [users, stats, invitationsResult, inviteLinksResult, { data: orgInfo }] = await Promise.all([
-      BusinessUsersServerService.getOrganizationUsers(auth.organizationId),
+    const { searchParams } = request.nextUrl
+    const resource = getResource(searchParams.get('resource'))
+    const page = getPositiveInt(searchParams.get('page'), 1)
+    const pageSize = getPositiveInt(searchParams.get('pageSize'), DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+    const search = searchParams.get('search')?.trim() || undefined
+    const role = searchParams.get('role') || undefined
+    const status = searchParams.get('status') || undefined
+    const rangeFrom = (page - 1) * pageSize
+    const rangeTo = rangeFrom + pageSize - 1
+    const supabase = await createClient()
+
+    const [
+      usersPage,
+      stats,
+      usersCountResult,
+      invitationsCountResult,
+      inviteLinksCountResult,
+      { data: orgInfo },
+    ] = await Promise.all([
+      resource === 'users'
+        ? BusinessUsersServerService.getOrganizationUsersPage(auth.organizationId, {
+            page,
+            pageSize,
+            search,
+            role,
+            status,
+          })
+        : Promise.resolve({
+            users: [],
+            pagination: buildPagination(page, pageSize, 0),
+          }),
       BusinessUsersServerService.getOrganizationStats(auth.organizationId),
-      (await createClient()).from('user_invitations').select('id, email, role, status, created_at, expires_at, metadata').eq('organization_id', auth.organizationId).eq('status', 'pending'),
-      (await createClient()).from('bulk_invite_links').select('id, token, name, role, max_uses, current_uses, expires_at, created_at, created_by, status').eq('organization_id', auth.organizationId).order('created_at', { ascending: false }).limit(100),
-      (await createClient()).from('organizations').select('id, name, logo_url, brand_logo_url').eq('id', auth.organizationId).single()
+      supabase
+        .from('organization_users')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('organization_id', auth.organizationId),
+      supabase
+        .from('user_invitations')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', auth.organizationId)
+        .eq('status', 'pending'),
+      supabase
+        .from('bulk_invite_links')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', auth.organizationId),
+      supabase
+        .from('organizations')
+        .select('id, name, logo_url, brand_logo_url')
+        .eq('id', auth.organizationId)
+        .single()
     ])
+
+    let invitations: unknown[] = []
+    let inviteLinks: unknown[] = []
+    let resourcePagination = usersPage.pagination
+
+    if (resource === 'invitations') {
+      let invitationsQuery = supabase
+        .from('user_invitations')
+        .select('id, email, role, status, created_at, expires_at, metadata', { count: 'exact' })
+        .eq('organization_id', auth.organizationId)
+        .eq('status', 'pending')
+
+      if (search) {
+        const escapedSearch = search.replace(/[%_]/g, '\\$&')
+        invitationsQuery = invitationsQuery.or(
+          `email.ilike.%${escapedSearch}%,role.ilike.%${escapedSearch}%`,
+        )
+      }
+
+      const { data, error, count } = await invitationsQuery
+        .order('created_at', { ascending: false })
+        .range(rangeFrom, rangeTo)
+
+      if (error) throw error
+      invitations = data || []
+      resourcePagination = buildPagination(page, pageSize, count || 0)
+    }
+
+    if (resource === 'links') {
+      let linksQuery = supabase
+        .from('bulk_invite_links')
+        .select('id, token, name, role, max_uses, current_uses, expires_at, created_at, created_by, status', { count: 'exact' })
+        .eq('organization_id', auth.organizationId)
+
+      if (search) {
+        const escapedSearch = search.replace(/[%_]/g, '\\$&')
+        linksQuery = linksQuery.or(
+          `name.ilike.%${escapedSearch}%,role.ilike.%${escapedSearch}%,status.ilike.%${escapedSearch}%,token.ilike.%${escapedSearch}%`,
+        )
+      }
+
+      const { data, error, count } = await linksQuery
+        .order('created_at', { ascending: false })
+        .range(rangeFrom, rangeTo)
+
+      if (error) throw error
+      inviteLinks = data || []
+      resourcePagination = buildPagination(page, pageSize, count || 0)
+    }
 
     return NextResponse.json({
       success: true,
-      users: users || [],
+      resource,
+      users: usersPage.users || [],
       stats: stats || {},
-      invitations: invitationsResult.data || [],
-      inviteLinks: inviteLinksResult.data || [],
+      invitations,
+      inviteLinks,
+      pagination: resourcePagination,
+      totals: {
+        users: usersCountResult.count || 0,
+        invitations: invitationsCountResult.count || 0,
+        inviteLinks: inviteLinksCountResult.count || 0,
+      },
       organization: {
         id: auth.organizationId,
         name: orgInfo?.name || '',

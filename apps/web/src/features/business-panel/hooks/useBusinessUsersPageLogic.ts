@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useBusinessUsers } from '@/features/business-panel/hooks/useBusinessUsers'
 import { useJoinRequests } from '@/features/business-panel/hooks/useJoinRequests'
@@ -8,12 +8,24 @@ import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusine
 import { BusinessUser, CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { ToastType } from '@/core/components/ToastNotification/ToastNotification'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 
 export function useBusinessUsersPageLogic() {
   type BusinessUsersTab = 'users' | 'invitations' | 'links' | 'requests'
   const { orgSlug } = useParams<{ orgSlug: string }>()
   const searchParams = useSearchParams()
   const initialTab = searchParams.get('tab') as BusinessUsersTab | null
+  const [activeTab, setActiveTab] = useState<BusinessUsersTab>(initialTab || 'users')
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterRole, setFilterRole] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterRegion, setFilterRegion] = useState('all')
+  const [filterZone, setFilterZone] = useState('all')
+  const [filterTeam, setFilterTeam] = useState('all')
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 250)
+  const activeResource = activeTab === 'invitations' || activeTab === 'links' ? activeTab : 'users'
   const {
     users,
     invitations,
@@ -22,7 +34,11 @@ export function useBusinessUsersPageLogic() {
     orgData,
     isLoading,
     error,
+    paginationByResource,
+    activePagination,
+    resourceTotals,
     syncOrgData: refetch,
+    setResourcePage,
     createUser,
     updateUser,
     deleteUser: originalDeleteUser,
@@ -31,7 +47,12 @@ export function useBusinessUsersPageLogic() {
     activateUser: originalActivateUser,
     updateInviteLinkStatus: originalUpdateInviteLinkStatus,
     deleteInviteLink: originalDeleteInviteLink
-  } = useBusinessUsers(orgSlug)
+  } = useBusinessUsers(orgSlug, {
+    activeResource,
+    searchTerm: debouncedSearchTerm,
+    filterRole,
+    filterStatus,
+  })
   const {
     requests: joinRequests,
     count: joinRequestsCount,
@@ -61,7 +82,6 @@ export function useBusinessUsersPageLogic() {
       await createUser(userData)
       showToast('Usuario creado con éxito', 'success')
       setIsAddModalOpen(false)
-      refetch()
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Error al crear usuario', 'error')
     }
@@ -176,10 +196,6 @@ export function useBusinessUsersPageLogic() {
     }
   }
 
-  // View mode and Tabs state
-  const [activeTab, setActiveTab] = useState<BusinessUsersTab>(initialTab || 'users')
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
-
   // Effect to sync tab from URL
   useEffect(() => {
     if (initialTab && ['users', 'invitations', 'links', 'requests'].includes(initialTab)) {
@@ -201,15 +217,6 @@ export function useBusinessUsersPageLogic() {
     return () => window.removeEventListener('change-user-tab', handleTabChange)
   }, [])
 
-  // Search and filters
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterRole, setFilterRole] = useState('all')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [filterRegion, setFilterRegion] = useState('all')
-  const [filterZone, setFilterZone] = useState('all')
-  const [filterTeam, setFilterTeam] = useState('all')
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
-
   // Dropdown states
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false)
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
@@ -229,65 +236,99 @@ export function useBusinessUsersPageLogic() {
   const [isUnifiedInviteModalOpen, setIsUnifiedInviteModalOpen] = useState(false)
 
   // Extract unique values for hierarchy filters
-  const uniqueRegions = [...new Set(users.map((u) => u.region_name ?? null))]
-  const uniqueZones = [...new Set(users.map((u) => u.zone_name ?? null))]
-  const uniqueTeams = [...new Set(users.map((u) => u.team_name ?? null))]
+  const uniqueRegions = useMemo(
+    () => [...new Set(users.map((user) => user.region_name ?? null))],
+    [users],
+  )
+  const uniqueZones = useMemo(
+    () => [...new Set(users.map((user) => user.zone_name ?? null))],
+    [users],
+  )
+  const uniqueTeams = useMemo(
+    () => [...new Set(users.map((user) => user.team_name ?? null))],
+    [users],
+  )
 
   // Count active filters
-  const activeFiltersCount = [filterRole, filterStatus, filterRegion, filterZone, filterTeam].filter(f => f !== 'all').length
-
-  const filteredUsers = users.filter(user => {
-    const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-    const matchesSearch = displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = filterRole === 'all' || user.org_role === filterRole
-    const matchesStatus = filterStatus === 'all' || user.org_status === filterStatus
-    const matchesRegion = filterRegion === 'all' || user.region_name === filterRegion
-    const matchesZone = filterZone === 'all' || user.zone_name === filterZone
-    const matchesTeam = filterTeam === 'all' || user.team_name === filterTeam
-    return matchesSearch && matchesRole && matchesStatus && matchesRegion && matchesZone && matchesTeam
-  })
-
-  const filteredInvitations = invitations.filter(inv =>
-    inv.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    inv.role.toLowerCase().includes(searchTerm.toLowerCase())
+  const activeFiltersCount = useMemo(
+    () => [filterRole, filterStatus, filterRegion, filterZone, filterTeam].filter(f => f !== 'all').length,
+    [filterRegion, filterRole, filterStatus, filterTeam, filterZone],
   )
 
-  const filteredInviteLinks = inviteLinks.filter((link) =>
-    (link.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    link.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    link.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    link.token.toLowerCase().includes(searchTerm.toLowerCase())
+  const normalizedSearchTerm = useMemo(
+    () => debouncedSearchTerm.trim().toLowerCase(),
+    [debouncedSearchTerm],
   )
 
-  const filteredJoinRequests = joinRequests.filter((request) => {
-    const displayName = request.users
-      ? [request.users.first_name, request.users.last_name]
-          .filter(Boolean)
-          .join(' ')
-          .trim() || request.users.username
-      : 'usuario'
+  const filteredUsers = useMemo(
+    () => users.filter(user => {
+      const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
+      const matchesSearch = normalizedSearchTerm.length === 0 ||
+        displayName.toLowerCase().includes(normalizedSearchTerm) ||
+        user.email.toLowerCase().includes(normalizedSearchTerm) ||
+        user.username.toLowerCase().includes(normalizedSearchTerm)
+      const matchesRole = filterRole === 'all' || user.org_role === filterRole
+      const matchesStatus = filterStatus === 'all' || user.org_status === filterStatus
+      const matchesRegion = filterRegion === 'all' || user.region_name === filterRegion
+      const matchesZone = filterZone === 'all' || user.zone_name === filterZone
+      const matchesTeam = filterTeam === 'all' || user.team_name === filterTeam
+      return matchesSearch && matchesRole && matchesStatus && matchesRegion && matchesZone && matchesTeam
+    }),
+    [filterRegion, filterRole, filterStatus, filterTeam, filterZone, normalizedSearchTerm, users],
+  )
 
-    const query = searchTerm.toLowerCase()
+  const filteredInvitations = useMemo(
+    () => invitations.filter(inv =>
+      normalizedSearchTerm.length === 0 ||
+      inv.email.toLowerCase().includes(normalizedSearchTerm) ||
+      inv.role.toLowerCase().includes(normalizedSearchTerm)
+    ),
+    [invitations, normalizedSearchTerm],
+  )
 
-    return (
-      displayName.toLowerCase().includes(query) ||
-      request.users?.email.toLowerCase().includes(query) ||
-      request.job_title?.toLowerCase().includes(query) ||
-      request.message?.toLowerCase().includes(query)
-    )
-  })
+  const filteredInviteLinks = useMemo(
+    () => inviteLinks.filter((link) =>
+      normalizedSearchTerm.length === 0 ||
+      (link.name || '').toLowerCase().includes(normalizedSearchTerm) ||
+      link.role.toLowerCase().includes(normalizedSearchTerm) ||
+      link.status.toLowerCase().includes(normalizedSearchTerm) ||
+      link.token.toLowerCase().includes(normalizedSearchTerm)
+    ),
+    [inviteLinks, normalizedSearchTerm],
+  )
+
+  const filteredJoinRequests = useMemo(
+    () => joinRequests.filter((request) => {
+      if (normalizedSearchTerm.length === 0) {
+        return true
+      }
+
+      const displayName = request.users
+        ? [request.users.first_name, request.users.last_name]
+            .filter(Boolean)
+            .join(' ')
+            .trim() || request.users.username
+        : 'usuario'
+
+      return (
+        displayName.toLowerCase().includes(normalizedSearchTerm) ||
+        request.users?.email.toLowerCase().includes(normalizedSearchTerm) ||
+        request.job_title?.toLowerCase().includes(normalizedSearchTerm) ||
+        request.message?.toLowerCase().includes(normalizedSearchTerm)
+      )
+    }),
+    [joinRequests, normalizedSearchTerm],
+  )
 
   // Clear all filters helper
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setFilterRole('all')
     setFilterStatus('all')
     setFilterRegion('all')
     setFilterZone('all')
     setFilterTeam('all')
     setSearchTerm('')
-  }
+  }, [])
 
   // Theme tokens — centralized via useBusinessPanelTheme
   const theme = useBusinessPanelTheme()
@@ -318,6 +359,10 @@ export function useBusinessUsersPageLogic() {
     isJoinRequestsLoading,
     joinRequestsError,
     refetch,
+    paginationByResource,
+    activePagination,
+    resourceTotals,
+    setResourcePage,
     currentUser,
     updateUser,
 

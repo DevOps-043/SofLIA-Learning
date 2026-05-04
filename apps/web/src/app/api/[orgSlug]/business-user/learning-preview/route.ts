@@ -47,6 +47,16 @@ interface GeminiPreviewResult {
   points: string[]
 }
 
+type PreviewResponsePayload = GeminiPreviewResult & {
+  source: 'gemini' | 'fallback' | 'cache'
+  model: string
+}
+
+const PREVIEW_CACHE_TTL_MS = 1000 * 60 * 60 * 6
+const GEMINI_PREVIEW_TIMEOUT_MS = 3500
+const MAX_PREVIEW_CACHE_ENTRIES = 500
+const previewCache = new Map<string, { expiresAt: number; payload: PreviewResponsePayload }>()
+
 function getGeminiApiKey() {
   return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null
 }
@@ -141,6 +151,66 @@ function buildFallbackPreview(input: {
   }
 }
 
+function getPreviewCacheKey(input: {
+  userId: string
+  organizationId: string
+  kind: 'course' | 'learning_path'
+  targetId: string
+  locale?: string
+}) {
+  return [
+    input.organizationId,
+    input.userId,
+    input.kind,
+    input.targetId,
+    input.locale || 'es',
+  ].join(':')
+}
+
+function getCachedPreview(cacheKey: string): PreviewResponsePayload | null {
+  const cached = previewCache.get(cacheKey)
+  if (!cached) return null
+
+  if (cached.expiresAt <= Date.now()) {
+    previewCache.delete(cacheKey)
+    return null
+  }
+
+  return {
+    ...cached.payload,
+    source: 'cache',
+  }
+}
+
+function setCachedPreview(cacheKey: string, payload: PreviewResponsePayload) {
+  if (previewCache.size >= MAX_PREVIEW_CACHE_ENTRIES) {
+    const oldestKey = previewCache.keys().next().value
+    if (oldestKey) {
+      previewCache.delete(oldestKey)
+    }
+  }
+
+  previewCache.set(cacheKey, {
+    payload,
+    expiresAt: Date.now() + PREVIEW_CACHE_TTL_MS,
+  })
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T | null> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+  const timeout = new Promise<null>((resolve) => {
+    timeoutId = setTimeout(() => resolve(null), timeoutMs)
+  })
+
+  const result = await Promise.race([promise, timeout])
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+  }
+
+  return result
+}
+
 async function generatePreviewWithGemini(input: {
   kind: 'course' | 'learning_path'
   title: string
@@ -217,6 +287,36 @@ async function generatePreviewWithGemini(input: {
   }
 }
 
+async function getPreviewResult(input: {
+  cacheKey: string
+  kind: 'course' | 'learning_path'
+  title: string
+  description?: string | null
+  metadata: Record<string, unknown>
+  courseTitles?: string[]
+  locale?: string
+}): Promise<PreviewResponsePayload> {
+  const cached = getCachedPreview(input.cacheKey)
+  if (cached) {
+    return cached
+  }
+
+  const fallback = {
+    ...buildFallbackPreview(input),
+    source: 'fallback' as const,
+    model: `${process.env.LEARNING_PREVIEW_GEMINI_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash'}:timeout-fallback`,
+  }
+
+  const generated = await withTimeout(
+    generatePreviewWithGemini(input),
+    GEMINI_PREVIEW_TIMEOUT_MS,
+  )
+  const result = generated || fallback
+
+  setCachedPreview(input.cacheKey, result)
+  return result
+}
+
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { orgSlug } = await context.params
@@ -224,6 +324,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (!orgSlug || !body.kind || !body.targetId) {
       return NextResponse.json({ success: false, error: 'Solicitud invalida' }, { status: 400 })
+    }
+
+    if (body.kind !== 'course' && body.kind !== 'learning_path') {
+      return NextResponse.json({ success: false, error: 'Tipo de preview invalido' }, { status: 400 })
     }
 
     const auth = await requireBusinessUser({ organizationSlug: orgSlug })
@@ -263,7 +367,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
             .returns<PathCoursePreviewRow[]>()
         : { data: [] as PathCoursePreviewRow[] }
 
-      const result = await generatePreviewWithGemini({
+      const result = await getPreviewResult({
+        cacheKey: getPreviewCacheKey({
+          userId: auth.userId,
+          organizationId: auth.organizationId,
+          kind: body.kind,
+          targetId: body.targetId,
+          locale: body.locale,
+        }),
         kind: 'learning_path',
         title: pathData?.title || assignedPath.title,
         description: pathData?.description || assignedPath.description,
@@ -313,7 +424,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ success: false, error: 'Curso no encontrado' }, { status: 404 })
     }
 
-    const result = await generatePreviewWithGemini({
+    const result = await getPreviewResult({
+      cacheKey: getPreviewCacheKey({
+        userId: auth.userId,
+        organizationId: auth.organizationId,
+        kind: body.kind,
+        targetId: body.targetId,
+        locale: body.locale,
+      }),
       kind: 'course',
       title: course.title || pathItem?.title || 'Curso',
       description: course.description,

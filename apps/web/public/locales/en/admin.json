@@ -123,6 +123,11 @@
     "deleteModal": {
       "title": "Delete Workshop",
       "confirmText": "Are you sure you want to delete this workshop?"
+    },
+    "pagination": {
+      "total": "{{count}} workshops found",
+      "previous": "Previous",
+      "next": "Next"
     }
   },
   "generic": {

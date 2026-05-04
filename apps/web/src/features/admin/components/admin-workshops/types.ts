@@ -15,6 +15,13 @@ export interface WorkshopBadgeTone {
 export interface AdminWorkshopsPageLogic {
   workshops: AdminWorkshop[]
   filteredWorkshops: AdminWorkshop[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+  page: number
   stats: WorkshopStats | null
   isLoading: boolean
   error: string | null
@@ -28,6 +35,7 @@ export interface AdminWorkshopsPageLogic {
   setSearchTerm: (value: string) => void
   setFilterCategory: (value: string) => void
   setFilterStatus: (value: string) => void
+  setPage: (page: number) => void
   openAddModal: () => void
   closeAddModal: () => void
   openEditModal: (workshop: AdminWorkshop) => void

@@ -111,12 +111,6 @@
     "coursePlaceholder": "Pergunte sobre a licao...",
     "stopGeneration": "Parar geracao da SofLIA",
     "stop": "Parar",
-    "attachments": {
-      "attachImage": "Anexar imagem",
-      "imageOnly": "Voce so pode anexar imagens.",
-      "tooLarge": "A imagem e grande demais. Maximo 10MB.",
-      "processError": "Nao foi possivel processar a imagem selecionada."
-    },
     "voice": {
       "startDictation": "Iniciar ditado",
       "stopDictation": "Parar ditado",

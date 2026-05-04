@@ -16,12 +16,11 @@ function LiaSidePanelContent() {
     t, user, isOpen, closePanel,
     isDarkMode, isLightTheme, themeColors,
     messages, isLoading, clearHistory, currentConversationId,
-    inputValue, setInputValue, selectedAttachment, attachmentError, inputRef, attachmentInputRef, messagesEndRef, chatContainerRef,
+    inputValue, setInputValue, inputRef, messagesEndRef, chatContainerRef,
     handleChatScroll, handleSendMessage, handleQuickAction, handleKeyDown, handleLinkClick, quickActions,
     currentTip, tips,
     isSpeaking, isVoiceEnabled,
     isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, dictationError, setDictationError, toggleDictation, stopDictation,
-    handleAttachmentSelect, handleRemoveAttachment, handleAttachmentButtonClick,
     isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
     isPersonalizationOpen, setIsPersonalizationOpen,
     isAvatarExpanded, setIsAvatarExpanded,
@@ -96,10 +95,7 @@ function LiaSidePanelContent() {
               isLightTheme={isLightTheme}
               inputValue={inputValue}
               setInputValue={setInputValue}
-              selectedAttachment={selectedAttachment}
-              attachmentError={attachmentError}
               inputRef={inputRef}
-              attachmentInputRef={attachmentInputRef}
               isDictating={isDictating}
               isDictationEnabled={isDictationEnabled}
               isProcessingDictation={isProcessingDictation}
@@ -107,9 +103,6 @@ function LiaSidePanelContent() {
               finalTranscript={finalTranscript}
               stopDictation={stopDictation}
               toggleDictation={toggleDictation}
-              handleAttachmentSelect={handleAttachmentSelect}
-              handleRemoveAttachment={handleRemoveAttachment}
-              handleAttachmentButtonClick={handleAttachmentButtonClick}
               handleSendMessage={handleSendMessage}
               isLoading={isLoading}
             />

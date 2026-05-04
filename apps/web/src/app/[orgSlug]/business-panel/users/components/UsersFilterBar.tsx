@@ -12,12 +12,7 @@ import {
   X,
 } from 'lucide-react'
 import type { TFunction } from 'i18next'
-import type {
-  BulkInviteLink,
-  BusinessInvitation,
-  BusinessUser,
-} from '@/features/business-panel/services/businessUsers.service'
-import type { JoinRequest } from '@/features/business-panel/services/joinRequests.service'
+import type { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { BusinessPanelSearchInput } from '@/features/business-panel/components/shared/BusinessPanelSearchInput'
 
@@ -27,10 +22,12 @@ type UserManagementViewMode = 'cards' | 'list'
 interface UsersFilterBarProps {
   activeTab: UserManagementTab
   setActiveTab: Dispatch<SetStateAction<UserManagementTab>>
-  users: BusinessUser[]
-  invitations: BusinessInvitation[]
-  inviteLinks: BulkInviteLink[]
-  joinRequests: JoinRequest[]
+  totalCounts: {
+    users: number
+    invitations: number
+    inviteLinks: number
+    joinRequests: number
+  }
   searchTerm: string
   setSearchTerm: (v: string) => void
   filterRole: string
@@ -72,10 +69,7 @@ interface UsersFilterBarProps {
 export function UsersFilterBar({
   activeTab,
   setActiveTab,
-  users,
-  invitations,
-  inviteLinks,
-  joinRequests,
+  totalCounts,
   searchTerm,
   setSearchTerm,
   filterRole,
@@ -128,17 +122,17 @@ export function UsersFilterBar({
 
   const isUsersTab = activeTab === 'users'
   const tabs: Array<{ key: UserManagementTab; label: string; count: number }> = [
-    { key: 'users', label: t('users.title'), count: users.length },
+    { key: 'users', label: t('users.title'), count: totalCounts.users },
     {
       key: 'invitations',
       label: t('users.tabs.invitations'),
-      count: invitations.length,
+      count: totalCounts.invitations,
     },
-    { key: 'links', label: t('users.tabs.links'), count: inviteLinks.length },
+    { key: 'links', label: t('users.tabs.links'), count: totalCounts.inviteLinks },
     {
       key: 'requests',
       label: t('sidebar.joinRequests'),
-      count: joinRequests.length,
+      count: totalCounts.joinRequests,
     },
   ]
   const resultsCount =

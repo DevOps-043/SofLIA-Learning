@@ -1,6 +1,7 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
+import dynamic from 'next/dynamic'
 import {
   XMarkIcon,
   BookOpenIcon,
@@ -13,7 +14,6 @@ import {
   LinkIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
-import { ImageUploadCourse } from '../../../instructor/components/ImageUploadCourse'
 import { useAddWorkshopFormState } from './useAddWorkshopFormState'
 
 interface AddWorkshopModalProps {
@@ -23,6 +23,16 @@ interface AddWorkshopModalProps {
 }
 
 type TabType = 'basic' | 'details' | 'media'
+
+const AddWorkshopMediaTab = dynamic(
+  () => import('./AddWorkshopMediaTab').then((module) => ({ default: module.AddWorkshopMediaTab })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-40 animate-pulse rounded-xl border border-gray-200 bg-gray-100/70 dark:border-gray-700/30 dark:bg-gray-900" />
+    ),
+  },
+)
 
 const tabs: { id: TabType; label: string; icon: typeof BookOpenIcon }[] = [
   { id: 'basic', label: 'Básica', icon: BookOpenIcon },
@@ -64,11 +74,11 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
-                <div className="relative bg-gradient-to-r from-[#0A2540] to-[#0A2540]/90 dark:from-[#0A2540] dark:to-[#0A2540]/80 px-6 py-4 border-b border-[#0A2540]/20">
+                <div className="relative border-b border-primary/20 bg-gradient-to-r from-primary to-primary/90 px-6 py-4 dark:to-primary/80">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#00D4B3]/20 flex items-center justify-center">
-                        <PlusIcon className="h-5 w-5 text-[#00D4B3]" />
+                      <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+                        <PlusIcon className="h-5 w-5 text-accent" />
                       </div>
                       <div>
                         <h3 className="text-lg font-bold text-white">Crear Nuevo Taller</h3>
@@ -99,8 +109,8 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                         whileTap={{ scale: 0.98 }}
                         className={`relative flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                           isActive
-                            ? 'text-[#00D4B3] bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20'
-                            : 'text-gray-500 dark:text-white/60 hover:text-[#0A2540] dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800'
+                            ? 'text-accent bg-accent/10 dark:bg-accent/20'
+                            : 'text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-800'
                         }`}
                       >
                         <Icon className="h-4 w-4" />
@@ -108,7 +118,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                         {isActive && (
                           <motion.div
                             layoutId="activeTab"
-                            className="absolute inset-0 rounded-xl bg-[#00D4B3]/10 dark:bg-[#00D4B3]/20 -z-10"
+                            className="absolute inset-0 rounded-xl bg-accent/10 dark:bg-accent/20 -z-10"
                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                           />
                         )}
@@ -146,13 +156,13 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                               Título del Taller *
                             </label>
                             <div className="relative">
-                              <BookOpenIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                              <BookOpenIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-accent transition-colors" />
                               <input
                                 type="text"
                                 name="title"
                                 value={formData.title}
                                 onChange={handleChange}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
                                 placeholder="Ej: Introducción a la Inteligencia Artificial"
                                 required
                               />
@@ -171,7 +181,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                               value={formData.description}
                               onChange={handleChange}
                               rows={4}
-                              className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 resize-none"
+                              className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200 resize-none"
                               placeholder="Describe el contenido y objetivos del taller..."
                               required
                             />
@@ -186,12 +196,12 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 Instructor *
                               </label>
                               <div className="relative">
-                                <UserCircleIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors pointer-events-none" />
+                                <UserCircleIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-accent transition-colors pointer-events-none" />
                                 <select
                                   name="instructor_id"
                                   value={formData.instructor_id}
                                   onChange={handleChange}
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
+                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200 appearance-none cursor-pointer"
                                   required
                                 >
                                   <option value="">Seleccionar instructor</option>
@@ -212,14 +222,14 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 Duración (minutos) *
                               </label>
                               <div className="relative">
-                                <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                                <ClockIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-accent transition-colors" />
                                 <input
                                   type="number"
                                   name="duration_total_minutes"
                                   value={formData.duration_total_minutes}
                                   onChange={handleChange}
                                   min="1"
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
                                   required
                                 />
                               </div>
@@ -250,7 +260,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 name="category"
                                 value={formData.category}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
                               >
                                 <option value="ia">Inteligencia Artificial</option>
                                 <option value="tecnologia">Tecnología</option>
@@ -268,7 +278,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 name="level"
                                 value={formData.level}
                                 onChange={handleChange}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                className="w-full px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
                               >
                                 <option value="beginner">Principiante</option>
                                 <option value="intermediate">Intermedio</option>
@@ -283,7 +293,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 Precio
                               </label>
                               <div className="relative">
-                                <CurrencyDollarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-[#00D4B3] transition-colors" />
+                                <CurrencyDollarIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-white/60 group-focus-within:text-accent transition-colors" />
                                 <input
                                   type="number"
                                   name="price"
@@ -291,7 +301,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                   onChange={handleChange}
                                   min="0"
                                   step="0.01"
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
                                   placeholder="0.00"
                                 />
                               </div>
@@ -308,7 +318,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                   name="slug"
                                   value={formData.slug}
                                   onChange={handleChange}
-                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-[#0A2540] dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-[#00D4B3]/40 focus:border-transparent transition-all duration-200"
+                                  className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700/30 rounded-xl text-primary dark:text-white placeholder-gray-500 dark:placeholder-white/60 focus:ring-2 focus:ring-accent/40 focus:border-transparent transition-all duration-200"
                                   placeholder="introduccion-ia"
                                   required
                                 />
@@ -334,8 +344,8 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 />
                                 <motion.div
                                   animate={{
-                                    backgroundColor: formData.is_active ? '#00D4B3' : '#E9ECEF',
-                                    borderColor: formData.is_active ? '#00D4B3' : '#E9ECEF'
+                                    backgroundColor: formData.is_active ? 'var(--color-accent)' : 'var(--color-gray-200)',
+                                    borderColor: formData.is_active ? 'var(--color-accent)' : 'var(--color-gray-200)'
                                   }}
                                   className="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors duration-200"
                                 >
@@ -351,7 +361,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                                 </motion.div>
                               </div>
                               <div>
-                                <span className="text-sm font-medium text-[#0A2540] dark:text-white">
+                                <span className="text-sm font-medium text-primary dark:text-white">
                                   Taller activo
                                 </span>
                                 <p className="text-xs text-gray-500 dark:text-white/60 mt-0.5">
@@ -373,16 +383,11 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                           transition={{ duration: 0.2 }}
                           className="space-y-4"
                         >
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-500 dark:text-white/70 mb-1.5 uppercase tracking-wide">
-                              Imagen del Taller
-                            </label>
-                            <ImageUploadCourse
-                              value={formData.thumbnail_url}
-                              onChange={(url) => setFormData(prev => ({ ...prev, thumbnail_url: url }))}
-                              disabled={isLoading}
-                            />
-                          </div>
+                          <AddWorkshopMediaTab
+                            thumbnailUrl={formData.thumbnail_url}
+                            onThumbnailChange={(url) => setFormData(prev => ({ ...prev, thumbnail_url: url }))}
+                            disabled={isLoading}
+                          />
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -395,7 +400,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                       onClick={onClose}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-6 py-2.5 text-gray-500 dark:text-white/70 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-[#0A2540]/30 rounded-xl text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-700/30"
+                      className="px-6 py-2.5 text-gray-500 dark:text-white/70 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-primary/30 rounded-xl text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-700/30"
                       disabled={isLoading}
                     >
                       Cancelar
@@ -404,7 +409,7 @@ export function AddWorkshopModal({ isOpen, onClose, onSave }: AddWorkshopModalPr
                       type="submit"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      className="px-6 py-2.5 bg-[#0A2540] hover:bg-[#0d2f4d] text-white rounded-xl text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#0A2540]/20 flex items-center gap-2"
+                      className="px-6 py-2.5 bg-primary hover:bg-primary/90 text-white rounded-xl text-sm font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary/20 flex items-center gap-2"
                       disabled={isLoading}
                     >
                       {isLoading ? (
