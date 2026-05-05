@@ -70,7 +70,8 @@ export function TeamMembersModal({
       setError(null)
       setSuccess(null)
     }
-  }, [isOpen, refetchUsers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen])
 
   // Get current member IDs (using user_id from UserWithHierarchy)
   const currentMemberIds = new Set(currentMembers.map(m => m.user_id || m.user?.id))

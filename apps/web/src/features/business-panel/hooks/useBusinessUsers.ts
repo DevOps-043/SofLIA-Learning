@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
 import {
@@ -170,10 +170,15 @@ export function useBusinessUsers(
     void fetchResource(activeResource, 1)
   }, [activeResource, fetchResource, filterRole, filterStatus, pageSize, searchTerm])
 
+  const paginationRef = useRef(paginationByResource)
+  useEffect(() => {
+    paginationRef.current = paginationByResource
+  }, [paginationByResource])
+
   const syncOrgData = useCallback(() => {
-    const currentPage = paginationByResource[activeResource]?.page || 1
+    const currentPage = paginationRef.current[activeResource]?.page || 1
     void fetchResource(activeResource, currentPage)
-  }, [activeResource, fetchResource, paginationByResource])
+  }, [activeResource, fetchResource])
 
   const setResourcePage = useCallback(
     (resource: BusinessUsersResource, page: number) => {

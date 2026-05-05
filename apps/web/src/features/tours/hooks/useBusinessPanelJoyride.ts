@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import Joyride, { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
-import { businessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
+import { getBusinessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
 import { useTourRestart } from '@/core/contexts/TourRestartContext';
+import { useTranslation } from 'react-i18next';
 
 interface UseBusinessPanelJoyrideOptions {
   enabled?: boolean;
@@ -13,6 +14,7 @@ interface UseBusinessPanelJoyrideOptions {
 
 export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions = {}) {
   const { enabled = true } = options;
+  const { t } = useTranslation('business');
   
   const { shouldShowTour, isLoading, startTour, completeTour, skipTour } = useTourProgress(BUSINESS_PANEL_TOUR_ID);
   const [run, setRun] = useState(false);
@@ -96,7 +98,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
   return {
     // Joyride props to spread
     joyrideProps: {
-      steps: businessPanelJoyrideSteps,
+      steps: getBusinessPanelJoyrideSteps(t),
       run,
       stepIndex,
       callback: handleJoyrideCallback,

@@ -6,21 +6,33 @@ import { useParams } from 'next/navigation';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
 import { Network, Settings, LayoutGrid } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import Joyride from 'react-joyride';
+import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour';
+import { getAdminHierarchySteps, ADMIN_HIERARCHY_TOUR_ID } from '@/features/tours/config/business-panel/admin-hierarchy-steps';
 
 export default function BusinessPanelHierarchyPage() {
   const [activeTab, setActiveTab] = useState<'settings' | 'tree'>('tree');
+  const { t } = useTranslation('business');
+  
+  const { joyrideProps } = useFeatureTour({
+    tourId: ADMIN_HIERARCHY_TOUR_ID,
+    steps: getAdminHierarchySteps(t),
+  })
   
   // Design tokens aligned with the premium system
   const accentColor = '#10B981'; // Primary Aqua/Green
 
   return (
+    <>
+    <Joyride {...joyrideProps} />
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="w-full space-y-8"
     >
       {/* Premium Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
+      <div id="tour-hierarchy-header" className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-1">
              <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/5 border border-white/10 shadow-xl">
@@ -37,7 +49,7 @@ export default function BusinessPanelHierarchyPage() {
         </div>
 
         {/* Premium Tab Bar */}
-        <div className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
+        <div id="tour-hierarchy-tabs" className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
           {[
             { id: 'tree', label: 'VISTA DE ÁRBOL', icon: LayoutGrid },
             { id: 'settings', label: 'CONFIGURACIÓN', icon: Settings },
@@ -63,7 +75,7 @@ export default function BusinessPanelHierarchyPage() {
       </div>
 
       {/* Main Content Panel */}
-      <div className="px-4 pb-20">
+      <div id="tour-hierarchy-content" className="px-4 pb-20">
         <motion.div
            key={activeTab}
            initial={{ opacity: 0, y: 20 }}
@@ -82,5 +94,6 @@ export default function BusinessPanelHierarchyPage() {
         </motion.div>
       </div>
     </motion.div>
+    </>
   );
 }

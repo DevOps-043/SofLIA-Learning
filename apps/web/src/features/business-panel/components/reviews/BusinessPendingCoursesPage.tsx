@@ -22,6 +22,9 @@ import { ConfirmationModal } from '@/features/admin/components/ConfirmationModal
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import { BusinessPanelSearchInput } from '../shared/BusinessPanelSearchInput'
 import { BusinessPanelStatCard } from '../shared/BusinessPanelStatCard'
+import Joyride from 'react-joyride'
+import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
+import { getAdminReviewsSteps, ADMIN_REVIEWS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reviews-steps'
 
 interface BusinessPendingCoursesPageProps {
   basePath: string
@@ -67,7 +70,13 @@ export function BusinessPendingCoursesPage({
   const panelTheme = useBusinessPanelTheme()
   const { courses, isLoading, error, approveCourse, rejectCourse, deleteCourse } =
     useAdminPendingCourses()
-  const { i18n } = useTranslation()
+  const { i18n, t: tBusiness } = useTranslation('business')
+
+  const { joyrideProps } = useFeatureTour({
+    tourId: ADMIN_REVIEWS_TOUR_ID,
+    steps: getAdminReviewsSteps(tBusiness),
+    enabled: !isLoading,
+  })
 
   const [searchTerm, setSearchTerm] = useState('')
   const deferredSearchTerm = useDeferredValue(searchTerm)
@@ -150,8 +159,10 @@ export function BusinessPendingCoursesPage({
   }
 
   return (
+    <>
+    <Joyride {...joyrideProps} />
     <div className="space-y-8">
-      <div className="space-y-2">
+      <div id="tour-reviews-header" className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight" style={{ color: panelTheme.textColor }}>
           Revisiones Pendientes
         </h1>
@@ -160,7 +171,7 @@ export function BusinessPendingCoursesPage({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div id="tour-reviews-stats" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <BusinessPanelStatCard
           icon={<Clock3 className="w-5 h-5" />}
           title="Pendientes"
@@ -187,7 +198,7 @@ export function BusinessPendingCoursesPage({
         />
       </div>
 
-      <div className="space-y-5">
+      <div id="tour-reviews-filters" className="space-y-5">
         <div
           className="inline-flex p-1 rounded-[18px] border gap-1"
           style={{
@@ -272,6 +283,7 @@ export function BusinessPendingCoursesPage({
         </div>
       ) : (
         <motion.div
+          id="tour-reviews-grid"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
@@ -433,6 +445,7 @@ export function BusinessPendingCoursesPage({
         type="danger"
       />
     </div>
+    </>
   )
 }
 

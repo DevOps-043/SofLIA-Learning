@@ -21,6 +21,9 @@ import {
 import { BusinessAssignLearningPathModal } from './BusinessAssignLearningPathModal'
 import { BusinessLearningPathVideosModal } from './BusinessLearningPathVideosModal'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
+import Joyride from 'react-joyride'
+import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
+import { getAdminPathsSteps, ADMIN_PATHS_TOUR_ID } from '@/features/tours/config/business-panel/admin-paths-steps'
 import type { BusinessUser } from '../services/businessUsers.service'
 
 function getUserDisplayName(user: BusinessUser | null | undefined) {
@@ -34,6 +37,12 @@ export function BusinessLearningPathsPage() {
   const logic = useBusinessLearningPathsPageLogic()
   const theme = logic.theme
   const [videosLearningPathId, setVideosLearningPathId] = useState<string | null>(null)
+
+  const { joyrideProps } = useFeatureTour({
+    tourId: ADMIN_PATHS_TOUR_ID,
+    steps: getAdminPathsSteps(t),
+    enabled: !logic.isLoading,
+  })
 
   const selectedLearningPathForVideos = useMemo(
     () => logic.learningPaths.find((p) => p.id === videosLearningPathId) ?? null,
@@ -69,6 +78,8 @@ export function BusinessLearningPathsPage() {
   ]
 
   return (
+    <>
+    <Joyride {...joyrideProps} />
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -77,6 +88,7 @@ export function BusinessLearningPathsPage() {
     >
       {/* ── Hero ── */}
       <div
+        id="tour-paths-hero"
         className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10"
         style={{ borderColor, backgroundColor: inputBg }}
       >
@@ -106,7 +118,7 @@ export function BusinessLearningPathsPage() {
       </div>
 
       {/* ── Stats ── */}
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div id="tour-paths-stats" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat, i) => {
           const Icon = stat.icon
           return (
@@ -157,7 +169,7 @@ export function BusinessLearningPathsPage() {
       )}
 
       {/* ── Search ── */}
-      <div className="relative">
+      <div id="tour-paths-search" className="relative">
         <Search className="pointer-events-none absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 opacity-40" style={{ color: textColor }} />
         <input
           value={logic.searchTerm}
@@ -169,7 +181,7 @@ export function BusinessLearningPathsPage() {
       </div>
 
       {/* ── LP Cards ── */}
-      <section>
+      <section id="tour-paths-cards">
         {logic.filteredLearningPaths.length === 0 ? (
           <div
             className="rounded-[2rem] border border-dashed px-8 py-16 text-center"
@@ -297,7 +309,7 @@ export function BusinessLearningPathsPage() {
       </section>
 
       {/* ── Active assignments ── */}
-      <section>
+      <section id="tour-paths-assignments">
         <div className="mb-5">
           <h2 className="text-lg font-black" style={{ color: textColor }}>Asignaciones activas</h2>
           <p className="mt-0.5 text-sm" style={{ color: mutedTextColor }}>
@@ -395,5 +407,6 @@ export function BusinessLearningPathsPage() {
         learningPath={selectedLearningPathForVideos}
       />
     </motion.div>
+    </>
   )
 }

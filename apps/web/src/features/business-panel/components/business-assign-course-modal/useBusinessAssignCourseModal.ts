@@ -49,7 +49,8 @@ export function useBusinessAssignCourseModal({
     if (isOpen) {
       refetchUsers()
     }
-  }, [isOpen, refetchUsers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen])
 
   useEffect(() => {
     if (!isOpen || !courseId) {

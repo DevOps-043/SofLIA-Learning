@@ -84,6 +84,12 @@ export function useNotesEditorState({
 
     if (editorRef.current) {
       editorRef.current.innerHTML = nextContent;
+
+      if (initialNote) {
+        requestAnimationFrame(() => {
+          moveCursorToEnd();
+        });
+      }
     }
   }, [initialNote, isOpen]);
 
@@ -169,6 +175,30 @@ export function useNotesEditorState({
       return;
     }
 
+    selection.removeAllRanges();
+    selection.addRange(range);
+  };
+
+  const moveCursorToEnd = () => {
+    if (
+      !editorRef.current ||
+      typeof window === 'undefined' ||
+      !window.getSelection
+    ) {
+      return;
+    }
+
+    const editor = editorRef.current;
+    editor.focus();
+
+    const selection = window.getSelection();
+    if (!selection) {
+      return;
+    }
+
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    range.collapse(false);
     selection.removeAllRanges();
     selection.addRange(range);
   };
