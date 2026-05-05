@@ -216,8 +216,31 @@ export async function POST(
         .insert(enrollmentsToCreate)
 
       if (enrollError) {
-        logger.warn('Error creating enrollments:', enrollError)
-        // No fallamos, solo lo registramos
+        // Compensating transaction: revert created assignments to avoid
+        // leaving users assigned to a course without an active enrollment,
+        // which would break their access to the content.
+        const assignmentIds = createdAssignments.map(a => a.id)
+        const { error: rollbackError } = await supabase
+          .from('organization_course_assignments')
+          .delete()
+          .in('id', assignmentIds)
+
+        if (rollbackError) {
+          logger.error('Critical: enrollment creation failed AND assignment rollback failed:', {
+            enrollError,
+            rollbackError,
+            courseId,
+            organizationId,
+            assignmentIds,
+          })
+        } else {
+          logger.error('Enrollment creation failed, assignments rolled back:', enrollError)
+        }
+
+        return NextResponse.json({
+          success: false,
+          error: 'Error al crear las inscripciones al curso. La operación fue revertida.'
+        }, { status: 500 })
       }
     }
 

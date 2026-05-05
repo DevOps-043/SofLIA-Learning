@@ -10,6 +10,7 @@ import {
   fromZodError,
   isJsonSyntaxError,
 } from '@/core/errors/app-error'
+import { getCorrelationId } from '@/core/middleware/correlation-id.middleware'
 import { logger } from '@/core/logging/logger'
 
 function normalizeError(error: unknown): AppError {
@@ -50,6 +51,8 @@ export const errorHandler = (
   const exposeMessage =
     normalizedError.statusCode < 500 || process.env.NODE_ENV !== 'production'
 
+  const correlationId = getCorrelationId()
+
   logger.error('Unhandled API error', error, {
     method: req.method,
     path: req.originalUrl,
@@ -64,6 +67,7 @@ export const errorHandler = (
         : 'Error interno del servidor',
       code: normalizedError.code,
       statusCode: normalizedError.statusCode,
+      ...(correlationId ? { correlationId } : {}),
       ...(normalizedError.details ? { details: normalizedError.details } : {}),
       ...(process.env.NODE_ENV !== 'production' && normalizedError.stack
         ? { stack: normalizedError.stack }

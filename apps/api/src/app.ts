@@ -3,9 +3,11 @@ import cookieParser from 'cookie-parser'
 import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import { createClient } from '@supabase/supabase-js'
 
 import { config } from '@/config/env'
 import { logger } from '@/core/logging/logger'
+import { correlationIdMiddleware } from '@/core/middleware/correlation-id.middleware'
 import {
   errorHandler,
   notFoundHandler,
@@ -32,6 +34,9 @@ export function createApp() {
   app.disable('x-powered-by')
   app.set('trust proxy', 1)
 
+  // Correlation ID must be first — all subsequent middleware and route handlers
+  // can read the ID via getCorrelationId() from the async context.
+  app.use(correlationIdMiddleware)
   app.use(helmet())
   app.use(compression())
   app.use(apiRateLimiter)
@@ -45,13 +50,49 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true, limit: '1mb' }))
   app.use(cookieParser())
 
-  app.get('/health', (_req, res) => {
-    res.status(200).json({
-      status: 'ok',
+  app.get('/health', async (_req, res) => {
+    const checks: Record<string, 'ok' | 'degraded' | 'down'> = {}
+
+    // Supabase readiness probe — lightweight query with 3s timeout
+    try {
+      const supabase = createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY)
+      const probePromise = supabase.from('usuarios').select('count', { count: 'exact', head: true })
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('timeout')), 3000),
+      )
+      const { error } = await Promise.race([probePromise, timeoutPromise])
+      checks.database = error ? 'degraded' : 'ok'
+    } catch {
+      checks.database = 'down'
+    }
+
+    // OpenAI reachability — only check if key is configured
+    if (config.OPENAI_API_KEY && !config.OPENAI_API_KEY.startsWith('dev-')) {
+      try {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 3000)
+        const response = await fetch('https://api.openai.com/v1/models', {
+          method: 'HEAD',
+          headers: { Authorization: `Bearer ${config.OPENAI_API_KEY}` },
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+        checks.openai = response.ok || response.status === 401 ? 'ok' : 'degraded'
+      } catch {
+        checks.openai = 'degraded'
+      }
+    }
+
+    const isHealthy = Object.values(checks).every((s) => s !== 'down')
+    const statusCode = isHealthy ? 200 : 503
+
+    res.status(statusCode).json({
+      status: isHealthy ? 'ok' : 'degraded',
       message: 'API Chat-Bot-LIA is running',
       timestamp: new Date().toISOString(),
       environment: config.NODE_ENV,
       version: process.env.npm_package_version || '1.0.0',
+      checks,
     })
   })
 

@@ -34,6 +34,10 @@ import { useLessonSidebarState } from './useLessonSidebarState'
 import { useNotesManagement } from './useNotesManagement'
 import { useUserBehaviorLog } from './useUserBehaviorLog'
 import { useLiaCourse } from '../context/LiaCourseContext'
+import {
+  CONTENT_BOTTOM_PADDING_MOBILE_PX_PX,
+  MOBILE_BOTTOM_NAV_HEIGHT_PX,
+} from '../../../shared/constants/layouts'
 import type {
   LearnCourseData,
   LearnLesson,
@@ -48,8 +52,6 @@ type Lesson = LearnLesson
 type Module = LearnModule
 type CourseData = LearnCourseData
 
-const MOBILE_BOTTOM_NAV_HEIGHT_PX = 104
-const CONTENT_BOTTOM_PADDING_MOBILE = 32
 
 export function useLearnPageLogic() {
   const params = useParams()
@@ -180,8 +182,8 @@ export function useLearnPageLogic() {
 
   const isMobileBottomNavVisible = isMobile && !isLeftPanelOpen
   const mobileContentPaddingBottom = isMobileBottomNavVisible
-    ? `calc(${MOBILE_BOTTOM_NAV_HEIGHT_PX}px + env(safe-area-inset-bottom, 0px) + ${CONTENT_BOTTOM_PADDING_MOBILE}px)`
-    : `calc(env(safe-area-inset-bottom, 0px) + ${CONTENT_BOTTOM_PADDING_MOBILE}px)`
+    ? `calc(${MOBILE_BOTTOM_NAV_HEIGHT_PX}px + env(safe-area-inset-bottom, 0px) + ${CONTENT_BOTTOM_PADDING_MOBILE_PX}px)`
+    : `calc(env(safe-area-inset-bottom, 0px) + ${CONTENT_BOTTOM_PADDING_MOBILE_PX}px)`
 
   const calculateLiaMaxHeight = useMemo(() => {
     if (isMobile) {

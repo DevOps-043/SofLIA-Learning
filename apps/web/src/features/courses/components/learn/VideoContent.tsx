@@ -28,7 +28,7 @@ function VideoPlayerLoading() {
   const { t } = useTranslation("learn");
 
   return (
-    <div className="flex items-center justify-center aspect-video bg-[#0F1419] dark:bg-[#0F1419] rounded-xl text-white">
+    <div className="flex items-center justify-center aspect-video bg-gray-900 rounded-xl text-white">
       {t("loading.video")}
     </div>
   );
@@ -438,7 +438,7 @@ export function VideoContent({
         className="relative w-full"
       >
         {hasVideo ? (
-          <div className="aspect-video rounded-xl overflow-hidden border border-[#E9ECEF] dark:border-[#6C757D]/30 relative bg-[#0F1419] dark:bg-[#0F1419]">
+          <div className="aspect-video rounded-xl overflow-hidden border border-gray-200 dark:border-gray-500/30 relative bg-gray-900">
             <VideoPlayer
               videoProvider={lesson.video_provider!}
               videoProviderId={lesson.video_provider_id!}
@@ -462,10 +462,10 @@ export function VideoContent({
             />
           </div>
         ) : (
-          <div className="aspect-video bg-gradient-to-br from-[#0A2540]/20 to-[#00D4B3]/20 rounded-xl flex items-center justify-center border border-[#E9ECEF] dark:border-[#6C757D]/30 relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0A2540]/10 via-[#00D4B3]/10 to-[#00D4B3]/10 animate-pulse" />
+          <div className="aspect-video bg-gradient-to-br from-[color:var(--color-primary)]/20 to-[color:var(--color-accent)]/20 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-500/30 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-[color:var(--color-primary)]/10 via-[color:var(--color-accent)]/10 to-[color:var(--color-accent)]/10 animate-pulse" />
             <div className="text-center relative z-10">
-              <div className="w-20 h-20 bg-[#0A2540] rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-[#0d2f4d] transition-all transform group-hover:scale-110">
+              <div className="w-20 h-20 bg-[color:var(--color-primary)] rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:opacity-90 transition-all transform group-hover:scale-110">
                 <Play className="w-10 h-10 text-white ml-1" />
               </div>
               <p className="text-gray-700 dark:text-white/70">
@@ -489,12 +489,12 @@ export function VideoContent({
       </div>
 
       <div
-        className="bg-white dark:bg-[#1E2329] rounded-xl border border-[#E9ECEF] dark:border-[#6C757D]/30 p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-500/30 p-6"
       >
         <div className="space-y-4">
           <div>
             <h2
-              className="text-2xl font-bold text-[#0A2540] dark:text-white"
+              className="text-2xl font-bold text-[color:var(--color-primary)] dark:text-white"
               style={{ fontFamily: "Inter, sans-serif", fontWeight: 700 }}
             >
               {lesson.lesson_title}
@@ -550,7 +550,7 @@ function VideoNavigationOverlay({
       {hasPreviousVideo && (
         <button
           onClick={onNavigatePrevious}
-          className="pointer-events-auto h-10 sm:h-12 rounded-full bg-[#0A2540]/50 hover:bg-[#0A2540]/70 text-white flex items-center justify-center hover:justify-start overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm border border-[#0A2540]/30 group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3"
+          className="pointer-events-auto h-10 sm:h-12 rounded-full bg-[color:var(--color-primary)]/50 hover:bg-[color:var(--color-primary)]/70 text-white flex items-center justify-center hover:justify-start overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm border border-[color:var(--color-primary)]/30 group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3"
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-all duration-300 group-hover:mr-2" />
           <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
@@ -564,8 +564,8 @@ function VideoNavigationOverlay({
           onClick={onPrimaryAction}
           className={`pointer-events-auto h-10 sm:h-12 rounded-full text-white flex items-center justify-center hover:justify-end overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3 ${
             isLastLesson
-              ? "bg-[#0A2540]/55 hover:bg-[#0A2540]/75 border border-[#0A2540]/35 dark:bg-[#00D4B3]/35 dark:hover:bg-[#00D4B3]/55 dark:border-[#00D4B3]/30"
-              : "bg-[#0A2540]/50 hover:bg-[#0A2540]/70 border border-[#0A2540]/30"
+              ? "bg-[color:var(--color-primary)]/55 hover:bg-[color:var(--color-primary)]/75 border border-[color:var(--color-primary)]/35 dark:bg-[color:var(--color-accent)]/35 dark:hover:bg-[color:var(--color-accent)]/55 dark:border-[color:var(--color-accent)]/30"
+              : "bg-[color:var(--color-primary)]/50 hover:bg-[color:var(--color-primary)]/70 border border-[color:var(--color-primary)]/30"
           }`}
         >
           <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden order-1">

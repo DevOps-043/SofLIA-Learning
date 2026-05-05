@@ -1,3 +1,5 @@
+import { getRequestContext } from '@/core/middleware/correlation-id.middleware'
+
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 
 interface LogContext {
@@ -13,7 +15,12 @@ class Logger {
     context?: LogContext,
   ) {
     const timestamp = new Date().toISOString()
-    const contextText = context ? ` | ${JSON.stringify(context)}` : ''
+    const reqCtx = getRequestContext()
+    const correlationEntry = reqCtx
+      ? { correlationId: reqCtx.correlationId, requestId: reqCtx.requestId }
+      : {}
+    const merged = { ...correlationEntry, ...context }
+    const contextText = Object.keys(merged).length > 0 ? ` | ${JSON.stringify(merged)}` : ''
     return `[${timestamp}] [${level}] ${message}${contextText}`
   }
 

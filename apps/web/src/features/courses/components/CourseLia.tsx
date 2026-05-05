@@ -8,6 +8,13 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
 import { SHARED_TOUR_TARGET_IDS } from '../../../core/constants/tourTargets';
+import {
+  CONTENT_BOTTOM_PADDING_MOBILE_PX,
+  LIA_BUTTON_EDGE_OFFSET_PX,
+  LIA_BUTTON_SIZE_PX,
+  MOBILE_BOTTOM_NAV_HEIGHT_PX_PX,
+  NAVBAR_HEIGHT_PX_PX,
+} from '../../../shared/constants/layouts';
 import { useBrowserSpeechRecognition } from '../../../core/hooks/useBrowserSpeechRecognition';
 import { useLanguage } from '../../../core/providers/I18nProvider';
 import { useThemeStore } from '../../../core/stores/themeStore';
@@ -19,8 +26,9 @@ import type { LiaImageAttachment } from '../../../core/reporting/report-problem.
 import { copyTextToClipboard } from '../../../lib/clipboard';
 import { convertNoteMarkdownToHtml } from '../../../core/components/NotesModal/shared/notes-markdown-to-html.service';
 import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
+import { parseCourseLiaMarkdown } from './CourseLia/markdown-parser';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
-import { normalizeLiaLinkUrl, type NormalizedLiaLink } from './CourseLia/lia-link.utils';
+import type { NormalizedLiaLink } from './CourseLia/lia-link.utils';
 import type { LessonSuggestionsActivityFocus } from '../../../app/api/lia/lesson-suggestions/lesson-suggestions.types';
 
 // Tipos necesarios
@@ -44,75 +52,7 @@ interface CourseLiaProps {
 
 
 const PANEL_WIDTH = 420;
-const COURSE_LIA_BUTTON_BOTTOM_PX = 24;
-const COURSE_LIA_BUTTON_RIGHT_PX = 24;
-const COURSE_LIA_BUTTON_SIZE_PX = 60;
-const NAVBAR_HEIGHT = 58; // Ajuste final milimétrico para cubrir totalmente el borde
-const MOBILE_BOTTOM_NAV_HEIGHT = 104; // Altura de la barra de navegación inferior móvil (70px base + safe-area)
 
-function parseMarkdownContent(text: string, onLinkClick: (link: NormalizedLiaLink) => void, isDarkMode: boolean = true): React.ReactNode {
-  let keyIndex = 0;
-  let processedText = text.replace(/^\*\s+/gm, '- ');
-  const lines = processedText.split('\n');
-  
-  // Color del enlace basado en el tema
-  const linkColor = isDarkMode ? '#00D4B3' : '#0A2540';
-
-  const processInlineFormatting = (line: string): React.ReactNode[] => {
-    const elements: React.ReactNode[] = [];
-    const inlineRegex = /(\[([^\]]+)\]\(([^)]+)\))|((?:https?:\/\/|www\.)[^\s)]+|\/[A-Za-z0-9][^\s)]*)|(\*\*([^*]+)\*\*)|(\*([^*\n]+)\*)/g;
-    let lastIndex = 0;
-    let match;
-
-    while ((match = inlineRegex.exec(line)) !== null) {
-      if (match.index > lastIndex) {
-        elements.push(line.slice(lastIndex, match.index));
-      }
-
-      if (match[1] || match[4]) { // Link
-        const linkText = match[2] || match[4];
-        const linkUrl = match[3] || match[4];
-        const normalizedLink = normalizeLiaLinkUrl(linkUrl);
-
-        if (normalizedLink) {
-          elements.push(
-            <a
-              key={`link-${keyIndex++}`}
-              href={normalizedLink.url}
-              onClick={(e) => { e.preventDefault(); onLinkClick(normalizedLink); }}
-              rel={normalizedLink.kind === 'external' ? 'noopener noreferrer' : undefined}
-              style={{ color: linkColor, textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}
-            >
-              {linkText}
-            </a>
-          );
-        } else {
-          elements.push(linkText);
-        }
-      } else if (match[5]) { // Bold
-        elements.push(<strong key={`bold-${keyIndex++}`} style={{ fontWeight: 600 }}>{match[6]}</strong>);
-      } else if (match[7]) { // Italic
-        elements.push(<em key={`italic-${keyIndex++}`} style={{ fontStyle: 'italic' }}>{match[8]}</em>);
-      }
-      lastIndex = match.index + match[0].length;
-    }
-
-    if (lastIndex < line.length) {
-      elements.push(line.slice(lastIndex));
-    }
-    return elements.length > 0 ? elements : [line];
-  };
-
-  const result: React.ReactNode[] = [];
-  lines.forEach((line, index) => {
-    result.push(...processInlineFormatting(line));
-    if (index < lines.length - 1) {
-      result.push(<br key={`br-${keyIndex++}`} />);
-    }
-  });
-
-  return <>{result}</>;
-}
 
 // Botón Flotante - Solo visible en tablets/desktop (md:), en móviles se integra en la barra inferior
 function CourseLiaFloatingButton() {
@@ -130,10 +70,10 @@ function CourseLiaFloatingButton() {
             className="hidden md:block"
             style={{
               position: 'fixed',
-              bottom: `${COURSE_LIA_BUTTON_BOTTOM_PX}px`,
-              right: `${COURSE_LIA_BUTTON_RIGHT_PX}px`,
-              width: `${COURSE_LIA_BUTTON_SIZE_PX}px`,
-              height: `${COURSE_LIA_BUTTON_SIZE_PX}px`,
+              bottom: `${LIA_BUTTON_EDGE_OFFSET_PX}px`,
+              right: `${LIA_BUTTON_EDGE_OFFSET_PX}px`,
+              width: `${LIA_BUTTON_SIZE_PX}px`,
+              height: `${LIA_BUTTON_SIZE_PX}px`,
               zIndex: 9998,
               background: 'rgba(0,0,0,0.01)',
               borderRadius: '50%',
@@ -151,7 +91,7 @@ function CourseLiaFloatingButton() {
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                background: '#1E2329',
+                background: 'var(--color-gray-800)',
                 boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
                 border: '2px solid rgba(255,255,255,0.1)',
                 cursor: 'pointer',
@@ -269,13 +209,13 @@ function CourseLiaPanelContent({
     headerBg: customColors?.panelBg || (isLightTheme ? '#F8FAFC' : '#0a0f14'),
     borderColor: computedBorderColor,
     messageBubbleAssistant: computedMessageBubbleAssistant,
-    messageBubbleUser: '#0A2540',
+    messageBubbleUser: 'var(--color-primary)',
     textPrimary: computedTextPrimary,
     textSecondary: computedTextSecondary,
     inputBg: computedInputBg,
     inputBorder: computedInputBorder,
-    accentColor: customColors?.accentColor || '#00D4B3',
-    primaryAction: customColors?.accentColor || '#0A2540',
+    accentColor: customColors?.accentColor || 'var(--color-accent)',
+    primaryAction: customColors?.accentColor || 'var(--color-primary)',
   };
 
   const initialMessage = null;
@@ -532,8 +472,8 @@ function CourseLiaPanelContent({
   // Calcular dimensiones responsive
   const panelWidth = isMobile ? '100%' : `${PANEL_WIDTH}px`;
   const panelHeight = isMobile 
-    ? `calc(100vh - ${NAVBAR_HEIGHT}px - ${MOBILE_BOTTOM_NAV_HEIGHT}px)` 
-    : `calc(100vh - ${NAVBAR_HEIGHT}px)`;
+    ? `calc(100vh - ${NAVBAR_HEIGHT_PX}px - ${MOBILE_BOTTOM_NAV_HEIGHT_PX}px)` 
+    : `calc(100vh - ${NAVBAR_HEIGHT_PX}px)`;
   const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
   const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };
   const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
@@ -550,7 +490,7 @@ function CourseLiaPanelContent({
           transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           style={{
             position: 'fixed',
-            top: `${NAVBAR_HEIGHT}px`,
+            top: `${NAVBAR_HEIGHT_PX}px`,
             right: 0,
             width: panelWidth,
             height: panelHeight,
@@ -600,7 +540,7 @@ function CourseLiaPanelContent({
               <div key={message.id} style={{ display: 'flex', flexDirection: 'column', alignItems: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: message.role === 'user' ? '#0A2540' : themeColors.messageBubbleAssistant }}>
                   <p className={message.role === 'user' ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: message.role === 'user' ? '#ffffff' : themeColors.textPrimary }}>
-                    {message.role === 'assistant' ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode) : message.content}
+                    {message.role === 'assistant' ? parseCourseLiaMarkdown(message.content, handleLinkClick, isDarkMode) : message.content}
                   </p>
                   {message.attachments?.length ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>

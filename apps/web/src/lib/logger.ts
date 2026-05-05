@@ -83,8 +83,8 @@ class Logger {
    */
   debug(message: string, context?: LogContext): void {
     if (!this.isDevelopment) return;
-    
     const sanitizedContext = context ? this.sanitize(context) : undefined;
+    console.debug(this.formatMessage('DEBUG', message, sanitizedContext as LogContext));
   }
 
   /**
@@ -100,6 +100,7 @@ class Logger {
    */
   warn(message: string, context?: LogContext): void {
     const sanitizedContext = context ? this.sanitize(context) : undefined;
+    console.warn(this.formatMessage('WARN', message, sanitizedContext as LogContext));
   }
 
   /**

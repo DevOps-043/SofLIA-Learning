@@ -119,5 +119,4 @@ export function useLiaCourse() {
   return context;
 }
 
-// Ancho del panel de LIA
-export const LIA_PANEL_WIDTH = 420;
+export { LIA_PANEL_WIDTH } from '@/core/hooks/useResponsiveLiaLayout';

@@ -9,6 +9,29 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['src/lib/lia-context/__tests__/**'],
+    coverage: {
+      provider: 'v8',
+      include: [
+        'src/features/**/services/**',
+        'src/features/**/hooks/**',
+        'src/lib/**',
+        'src/core/services/**',
+      ],
+      exclude: [
+        'src/**/__tests__/**',
+        'src/**/*.test.{ts,tsx}',
+        'src/**/types.ts',
+        'src/**/index.ts',
+        'src/lib/supabase/types.ts',
+      ],
+      thresholds: {
+        statements: 60,
+        branches: 50,
+        functions: 60,
+        lines: 60,
+      },
+      reportOnFailure: true,
+    },
   },
   resolve: {
     alias: {
