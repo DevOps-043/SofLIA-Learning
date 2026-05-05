@@ -74,7 +74,7 @@ export default function CertificateVerifyPage() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         backgroundColor: theme.panelBg,
         color: theme.textColor,
@@ -129,7 +129,9 @@ export default function CertificateVerifyPage() {
           </div>
         ) : validation ? (
           <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-            <aside>
+            {/* On mobile: certificate viewport first (order-1), info aside second (order-2) */}
+            {/* On desktop xl: aside left (order-1), certificate right (order-2) */}
+            <aside className="min-w-0 order-2 xl:order-1">
               <section
                 className="rounded-[28px] border p-5"
                 style={{
@@ -224,17 +226,17 @@ export default function CertificateVerifyPage() {
                     <dd>{validation.lastOperation ?? t('certificates.noData')}</dd>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <dt className="font-semibold" style={{ color: theme.textColor }}>
+                    <dt className="font-semibold shrink-0" style={{ color: theme.textColor }}>
                       {t('certificates.labelIssuer')}
                     </dt>
-                    <dd className="truncate text-right">{validation.certificate.issuerName}</dd>
+                    <dd className="min-w-0 truncate text-right">{validation.certificate.issuerName}</dd>
                   </div>
                 </dl>
               </section>
             </aside>
 
             <section
-              className="rounded-[28px] border p-5"
+              className="min-w-0 order-1 xl:order-2 rounded-[28px] border p-5"
               style={{
                 backgroundColor: theme.cardBg,
                 borderColor: theme.borderColor,

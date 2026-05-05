@@ -37,6 +37,7 @@ export function useBusinessCourseDetailPageLogic() {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [activeTab, setActiveTab] = useState<BusinessCourseDetailTabId>('info')
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false)
+  const [assignmentRefreshKey, setAssignmentRefreshKey] = useState(0)
   const [isPurchasing, setIsPurchasing] = useState(false)
   const [purchaseSuccess, setPurchaseSuccess] = useState(false)
   const [purchaseError, setPurchaseError] = useState<string | null>(null)
@@ -95,6 +96,11 @@ export function useBusinessCourseDetailPageLogic() {
     }
   }
 
+  const handleAssignmentComplete = async () => {
+    setAssignmentRefreshKey((currentKey) => currentKey + 1)
+    await loadCourse()
+  }
+
   const levelStyles = useMemo(
     () => getBusinessCourseLevelStyles(course?.level || null, primaryColor, accentColor),
     [accentColor, course?.level, primaryColor]
@@ -116,6 +122,7 @@ export function useBusinessCourseDetailPageLogic() {
     isPurchasing,
     purchaseSuccess,
     purchaseError,
+    assignmentRefreshKey,
     isDark,
     primaryColor,
     onPrimaryColor,
@@ -130,6 +137,7 @@ export function useBusinessCourseDetailPageLogic() {
     levelStyles,
     toggleModule,
     handlePurchase,
+    handleAssignmentComplete,
     retryLoad: loadCourse,
     formatDuration: formatBusinessCourseDuration,
     formatDurationSeconds: formatBusinessCourseDurationSeconds,

@@ -155,7 +155,11 @@ export default function BusinessCourseDetailPage() {
 
                   {logic.activeTab === 'analytics' ? (
                     <motion.div key="analytics-tab" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                      <CourseAnalyticsTab courseId={logic.course.id} orgSlug={logic.orgSlug} />
+                      <CourseAnalyticsTab
+                        courseId={logic.course.id}
+                        orgSlug={logic.orgSlug}
+                        refreshKey={logic.assignmentRefreshKey}
+                      />
                     </motion.div>
                   ) : null}
                 </AnimatePresence>
@@ -194,7 +198,9 @@ export default function BusinessCourseDetailPage() {
         courseId={logic.course.id}
         courseTitle={logic.course.title}
         orgSlug={logic.orgSlug}
-        onAssignComplete={() => {}}
+        onAssignComplete={() => {
+          void logic.handleAssignmentComplete()
+        }}
       />
     </motion.div>
   )

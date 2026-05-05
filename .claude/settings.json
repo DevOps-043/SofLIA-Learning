@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\" -Directory)",
+      "Bash(Select-Object Name)"
+    ]
+  }
+}

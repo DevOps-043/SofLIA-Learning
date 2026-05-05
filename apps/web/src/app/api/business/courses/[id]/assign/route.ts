@@ -140,6 +140,7 @@ export async function POST(
     const { data: existingAssignments } = await supabase
       .from('organization_course_assignments')
       .select('user_id')
+      .eq('organization_id', organizationId)
       .eq('course_id', courseId)
       .in('user_id', user_ids)
       .in('status', ['assigned', 'in_progress'])
@@ -154,13 +155,15 @@ export async function POST(
       }, { status: 400 })
     }
 
+    const now = new Date().toISOString()
+
     // Crear asignaciones para los usuarios que no tienen el curso
     const assignments = newUserIds.map(userId => ({
       organization_id: organizationId,
       user_id: userId,
       course_id: courseId,
       assigned_by: currentUser.id,
-      assigned_at: new Date().toISOString(),
+      assigned_at: now,
       due_date: due_date || null,
       start_date: start_date || null,
       approach: approach || null,
@@ -182,29 +185,30 @@ export async function POST(
       }, { status: 500 })
     }
 
-    // Crear enrollments para usuarios que no tengan uno
-    const enrollmentsToCreate = []
-    for (const userId of newUserIds) {
-      // Verificar si ya existe enrollment
-      const { data: existingEnrollment } = await supabase
-        .from('user_course_enrollments')
-        .select('enrollment_id')
-        .eq('user_id', userId)
-        .eq('course_id', courseId)
-        .single()
+    // Crear enrollments faltantes en bloque. Antes se hacia una consulta por usuario,
+    // lo que hacia lenta la asignacion masiva y retrasaba la aparicion en dashboards.
+    const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
+      .from('user_course_enrollments')
+      .select('user_id')
+      .eq('course_id', courseId)
+      .in('user_id', newUserIds)
 
-      if (!existingEnrollment) {
-        enrollmentsToCreate.push({
-          user_id: userId,
-          course_id: courseId,
-          enrollment_status: 'active',
-          overall_progress_percentage: 0,
-          enrolled_at: new Date().toISOString(),
-          started_at: new Date().toISOString(),
-          last_accessed_at: new Date().toISOString()
-        })
-      }
+    if (existingEnrollmentsError) {
+      logger.warn('Error checking existing enrollments:', existingEnrollmentsError)
     }
+
+    const usersWithEnrollment = new Set((existingEnrollments || []).map((enrollment: { user_id: string }) => enrollment.user_id))
+    const enrollmentsToCreate = newUserIds
+      .filter(userId => !usersWithEnrollment.has(userId))
+      .map(userId => ({
+        user_id: userId,
+        course_id: courseId,
+        enrollment_status: 'active',
+        overall_progress_percentage: 0,
+        enrolled_at: now,
+        started_at: now,
+        last_accessed_at: now
+      }))
 
     if (enrollmentsToCreate.length > 0) {
       const { error: enrollError } = await supabase
@@ -230,6 +234,10 @@ export async function POST(
           user_id: a.user_id
         }))
       }
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      }
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/courses/[id]/assign:', error)
@@ -239,4 +247,3 @@ export async function POST(
     }, { status: 500 })
   }
 }
-

@@ -30,7 +30,7 @@ export async function GET(
 
     return NextResponse.json(publicDataset satisfies BusinessUserAnalyticsResponse, {
       headers: {
-        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+        'Cache-Control': 'no-store, max-age=0',
       },
     })
   } catch (error) {

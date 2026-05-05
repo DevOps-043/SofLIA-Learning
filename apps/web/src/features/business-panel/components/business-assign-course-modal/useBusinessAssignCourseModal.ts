@@ -64,6 +64,7 @@ export function useBusinessAssignCourseModal({
           `/api/${orgSlug}/business/courses/${courseId}/assigned-users`,
           {
             credentials: 'include',
+            cache: 'no-store',
           },
         )
 
@@ -176,6 +177,7 @@ export function useBusinessAssignCourseModal({
         const deleteResponse = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
           method: 'DELETE',
           credentials: 'include',
+          cache: 'no-store',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_ids: Array.from(pendingRemovalIds) }),
         })
@@ -190,6 +192,7 @@ export function useBusinessAssignCourseModal({
         const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/assign`, {
           method: 'POST',
           credentials: 'include',
+          cache: 'no-store',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(
             buildBusinessAssignCoursePayload({ selectedUserIds, dueDate }),

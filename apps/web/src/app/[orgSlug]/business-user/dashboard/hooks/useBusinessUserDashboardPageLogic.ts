@@ -151,9 +151,11 @@ export function useBusinessUserDashboardPageLogic() {
       const [organizationResponse, dashboardResponse] = await Promise.all([
         fetch(`/api/${orgSlug}/organization`, {
           credentials: 'include',
+          cache: 'no-store',
         }),
         fetch(`/api/${orgSlug}/business-user/dashboard`, {
           credentials: 'include',
+          cache: 'no-store',
         }),
       ])
 

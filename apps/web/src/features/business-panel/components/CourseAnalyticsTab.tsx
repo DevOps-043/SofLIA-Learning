@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { ResponsiveBar } from '@nivo/bar'
 import { ResponsivePie } from '@nivo/pie'
@@ -21,6 +21,7 @@ import { BusinessPanelStatCard } from './shared/BusinessPanelStatCard'
 interface CourseAnalyticsTabProps {
   courseId: string
   orgSlug: string
+  refreshKey?: number
 }
 
 interface CourseAnalyticsStats {
@@ -69,7 +70,7 @@ interface CourseAnalyticsResponse {
   dropoff_analysis: DropoffAnalysis
 }
 
-export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProps) {
+export function CourseAnalyticsTab({ courseId, orgSlug, refreshKey = 0 }: CourseAnalyticsTabProps) {
   const [analyticsData, setAnalyticsData] = useState<CourseAnalyticsResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -134,17 +135,14 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
     borderColor: panelTheme.borderColor,
   }
 
-  useEffect(() => {
-    fetchAnalytics()
-  }, [courseId])
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
       
       const response = await fetch(`/api/${orgSlug}/business/courses/${courseId}/analytics`, {
-        credentials: 'include'
+        credentials: 'include',
+        cache: 'no-store',
       })
       
       const data = await response.json() as CourseAnalyticsResponse
@@ -159,7 +157,11 @@ export function CourseAnalyticsTab({ courseId, orgSlug }: CourseAnalyticsTabProp
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [courseId, orgSlug])
+
+  useEffect(() => {
+    void fetchAnalytics()
+  }, [fetchAnalytics, refreshKey])
 
   if (isLoading) {
     return (

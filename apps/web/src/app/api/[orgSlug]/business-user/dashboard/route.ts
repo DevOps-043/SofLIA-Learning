@@ -403,7 +403,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       learningPaths
     }, {
       headers: {
-        'Cache-Control': 'private, max-age=30, stale-while-revalidate=60'
+        'Cache-Control': 'no-store, max-age=0'
       }
     })
   } catch (error) {

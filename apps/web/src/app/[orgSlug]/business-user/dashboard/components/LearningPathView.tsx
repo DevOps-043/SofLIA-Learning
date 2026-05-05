@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Award, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Lock, Play, Sparkles } from 'lucide-react'
+import { Award, Check, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Lock, Play, Sparkles, X } from 'lucide-react'
 
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
 import { OnboardingVideoPlayer } from '../../../../../features/tours/components/OnboardingVideoPlayer'
@@ -241,10 +241,20 @@ function buildStandalonePathItem(course: AssignedCourse, index: number): Assigne
 }
 
 function getHoverCardPosition(rect: DOMRect) {
-  const width = 380
-  const gap = 12
   const viewportWidth = typeof window === 'undefined' ? 1280 : window.innerWidth
   const viewportHeight = typeof window === 'undefined' ? 720 : window.innerHeight
+  const gap = 12
+
+  // On narrow screens (mobile), show as centered bottom card
+  if (viewportWidth < 768) {
+    const width = Math.min(380, viewportWidth - 32)
+    const maxHeight = Math.min(460, viewportHeight * 0.72)
+    const left = (viewportWidth - width) / 2
+    const top = Math.max(gap, viewportHeight - maxHeight - 80)
+    return { left, top, width, maxHeight, arrowSide: 'none' as const }
+  }
+
+  const width = 380
   const maxHeight = Math.min(520, viewportHeight - gap * 2)
   const fitsRight = rect.right + gap + width <= viewportWidth - gap
   const fitsLeft = rect.left - gap - width >= gap
@@ -261,7 +271,7 @@ function getHoverCardPosition(rect: DOMRect) {
     width,
     maxHeight,
     arrowSide: fitsRight ? 'left' : fitsLeft ? 'right' : 'none',
-  }
+  } as const
 }
 
 function InfoHoverCard({
@@ -269,12 +279,14 @@ function InfoHoverCard({
   orgColors,
   onMouseEnter,
   onMouseLeave,
+  onClose,
   t,
 }: {
   card: InfoHoverCardState
   orgColors: BusinessUserDashboardColors
   onMouseEnter: () => void
   onMouseLeave: () => void
+  onClose: () => void
   t: LearningPathViewProps['t']
 }) {
   const position = getHoverCardPosition(card.rect)
@@ -302,6 +314,16 @@ function InfoHoverCard({
       role="tooltip"
       aria-label={card.title}
     >
+      {/* Close button — visible only on mobile where there's no hover to dismiss */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full md:hidden"
+        style={{ backgroundColor: `${orgColors.textMuted}20`, color: orgColors.text }}
+        aria-label="Cerrar"
+      >
+        <X className="h-4 w-4" />
+      </button>
       {position.arrowSide !== 'none' ? (
         <span
           className={`absolute top-12 h-4 w-4 rotate-45 border ${
@@ -396,6 +418,66 @@ function LearningPathCourseTile({
       ? t('dashboard.learningPaths.status.completed', 'Completado')
       : translateCourseStatus(displayStatus, t)
 
+  // Long-press detection for mobile: short tap → navigate, hold → show AI summary
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isLongPressActiveRef = useRef(false)
+  const isTouchActiveRef = useRef(false)
+
+  function cancelLongPress() {
+    if (longPressTimerRef.current !== null) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  function handleTouchStart(event: React.TouchEvent<HTMLElement>) {
+    if (!canOpen) return
+    isTouchActiveRef.current = true
+    isLongPressActiveRef.current = false
+    const target = event.currentTarget
+    longPressTimerRef.current = setTimeout(() => {
+      isLongPressActiveRef.current = true
+      longPressTimerRef.current = null
+      onPreview(target, buildCoursePreviewContent(course, item, learningPathTitle, t))
+    }, 500)
+  }
+
+  function handleTouchMove() {
+    cancelLongPress()
+  }
+
+  function handleTouchEnd() {
+    cancelLongPress()
+    // Keep touch flag active long enough to suppress the synthetic mouseenter
+    setTimeout(() => {
+      isTouchActiveRef.current = false
+    }, 600)
+  }
+
+  function handleClick() {
+    if (!canOpen) return
+    if (isLongPressActiveRef.current) {
+      isLongPressActiveRef.current = false
+      return
+    }
+    onOpen()
+  }
+
+  function handleMouseEnter(event: React.MouseEvent<HTMLElement>) {
+    if (isTouchActiveRef.current) return
+    onPreview(event.currentTarget, buildCoursePreviewContent(course, item, learningPathTitle, t))
+  }
+
+  function handleMouseLeave() {
+    if (isTouchActiveRef.current) return
+    onPreviewEnd()
+  }
+
+  function handleFocus(event: React.FocusEvent<HTMLElement>) {
+    if (isTouchActiveRef.current) return
+    onPreview(event.currentTarget, buildCoursePreviewContent(course, item, learningPathTitle, t))
+  }
+
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!canOpen || (event.key !== 'Enter' && event.key !== ' ')) return
     event.preventDefault()
@@ -406,16 +488,15 @@ function LearningPathCourseTile({
     <article
       role={canOpen ? 'button' : undefined}
       tabIndex={canOpen ? 0 : -1}
-      onClick={canOpen ? onOpen : undefined}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
-      onMouseEnter={(event) => {
-        onPreview(event.currentTarget, buildCoursePreviewContent(course, item, learningPathTitle, t))
-      }}
-      onMouseLeave={onPreviewEnd}
-      onFocus={(event) => {
-        onPreview(event.currentTarget, buildCoursePreviewContent(course, item, learningPathTitle, t))
-      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
       onBlur={onPreviewEnd}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       className={`group flex-none snap-start outline-none ${
         canOpen ? 'cursor-pointer' : 'cursor-not-allowed'
       }`}
@@ -1138,13 +1219,22 @@ export function LearningPathView({
       ) : null}
 
       {hoverCard ? (
-        <InfoHoverCard
-          card={hoverCard}
-          orgColors={orgColors}
-          onMouseEnter={clearHoverHideTimeout}
-          onMouseLeave={scheduleHidePreview}
-          t={t}
-        />
+        <>
+          {/* Backdrop for mobile: tap anywhere to dismiss the AI summary */}
+          <div
+            className="fixed inset-0 z-[79] md:hidden"
+            onClick={() => setHoverCard(null)}
+            aria-hidden="true"
+          />
+          <InfoHoverCard
+            card={hoverCard}
+            orgColors={orgColors}
+            onMouseEnter={clearHoverHideTimeout}
+            onMouseLeave={scheduleHidePreview}
+            onClose={() => setHoverCard(null)}
+            t={t}
+          />
+        </>
       ) : null}
     </div>
   )

@@ -190,6 +190,10 @@ export async function GET(
       success: true,
       user_ids: userIds,
       assigned_users: assignedUsers
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      }
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business/courses/[id]/assigned-users:', error)

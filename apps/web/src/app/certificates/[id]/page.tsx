@@ -220,7 +220,7 @@ export default function CertificateDetailPage() {
 
   return (
     <div
-      className="min-h-screen"
+      className="min-h-screen overflow-x-hidden"
       style={{
         backgroundColor: theme.panelBg,
         color: theme.textColor,
@@ -242,7 +242,7 @@ export default function CertificateDetailPage() {
 
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_332px]">
           <section
-            className="rounded-[28px] border p-5 md:p-6"
+            className="min-w-0 rounded-[28px] border p-5 md:p-6"
             style={{
               backgroundColor: theme.cardBg,
               borderColor: theme.borderColor,
@@ -262,7 +262,7 @@ export default function CertificateDetailPage() {
             </div>
           </section>
 
-          <aside>
+          <aside className="min-w-0">
             <section
               className="rounded-[28px] border p-5"
               style={{

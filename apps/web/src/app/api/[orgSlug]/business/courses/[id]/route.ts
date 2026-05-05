@@ -44,6 +44,10 @@ export async function GET(
     return NextResponse.json({
       success: true,
       course
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      }
     })
   } catch (error) {
     logger.error('Error in business course detail route', { error, route: '/api/[orgSlug]/business/courses/[id]' })

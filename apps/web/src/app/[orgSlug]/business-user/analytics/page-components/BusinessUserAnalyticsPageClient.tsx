@@ -111,6 +111,7 @@ export function BusinessUserAnalyticsPageClient() {
 
       const response = await fetch(`/api/${orgSlug}/business-user/analytics?range=${range}`, {
         credentials: 'include',
+        cache: 'no-store',
       })
       const data = (await response.json()) as AnalyticsApiResponse
 

@@ -264,6 +264,10 @@ export async function GET(
         dropoff_points: sortedDropoffPoints,
         average_dropoff_percentage: averageDropoffPercentage
       }
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      }
     })
   } catch (error) {
     logger.error('💥 Error in /api/[orgSlug]/business/courses/[id]/analytics:', error)

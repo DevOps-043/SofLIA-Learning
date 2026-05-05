@@ -62,7 +62,8 @@ export function useBusinessCourses() {
 
       // Usar la API org-scoped
       const response = await fetch(`/api/${orgSlug}/business/courses`, {
-        credentials: 'include'
+        credentials: 'include',
+        cache: 'no-store',
       })
 
       if (!response.ok) {
