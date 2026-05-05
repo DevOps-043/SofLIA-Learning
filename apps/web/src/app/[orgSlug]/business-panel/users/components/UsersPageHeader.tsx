@@ -28,6 +28,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
 
   return (
     <motion.div
+      id="tour-users-hero"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
@@ -99,13 +100,14 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
             </motion.p>
           </div>
 
-          <div id="tour-users-actions" className="flex items-center gap-3">
+          <div id="tour-users-actions" className="flex flex-wrap items-center justify-start gap-3 lg:justify-end">
             {[
-              { icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, delay: 0.4 },
-              { icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, delay: 0.45 },
-              { icon: Mail, label: t('users.buttons.invite', 'Invitar'), onClick: onInviteClick, delay: 0.45 },
-            ].map(({ icon: Icon, label, onClick, delay }) => (
+              { id: 'tour-users-template-button', icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, delay: 0.4 },
+              { id: 'tour-users-import-button', icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, delay: 0.45 },
+              { id: 'tour-users-invite-button', icon: Mail, label: t('users.buttons.invite', 'Invitar'), onClick: onInviteClick, delay: 0.45 },
+            ].map(({ id, icon: Icon, label, onClick, delay }) => (
               <motion.button
+                id={id}
                 key={label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -149,4 +151,3 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
   </motion.div>
   )
 }
-

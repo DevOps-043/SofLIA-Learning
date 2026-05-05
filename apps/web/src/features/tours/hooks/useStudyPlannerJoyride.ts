@@ -8,24 +8,36 @@ import { useTourRestart } from '@/core/contexts/TourRestartContext';
 export const useStudyPlannerJoyride = () => {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [isFinishedInSession, setIsFinishedInSession] = useState(false);
   const tourProgress = useTourProgress('study-planner-joyride-v1');
+  const {
+    completeTour,
+    hasSeenTour,
+    isLoading,
+    skipTour,
+    startTour,
+  } = tourProgress;
   const { setRestart } = useTourRestart();
 
   // Initiate tour check on mount
   useEffect(() => {
-    const checkTourStatus = async () => {
-      if (!tourProgress.isLoading) {
+    const checkTourStatus = () => {
+      if (!isLoading) {
         // If tour hasn't been seen, start it
-        if (!tourProgress.hasSeenTour) {
+        if (!hasSeenTour && !isFinishedInSession) {
           // Small delay to ensure elements are rendered
-          setTimeout(() => {
+          const timer = setTimeout(() => {
+             startTour().catch((err) =>
+               console.error('[useStudyPlannerJoyride] DB start failed', err),
+             );
              setRun(true);
           }, 1000);
+          return () => clearTimeout(timer);
         }
       }
     };
-    checkTourStatus();
-  }, [tourProgress.isLoading, tourProgress.hasSeenTour]);
+    return checkTourStatus();
+  }, [hasSeenTour, isFinishedInSession, isLoading, startTour]);
 
   const handleJoyrideCallback = useCallback(async (data: CallBackProps) => {
     const { action, index, status, type } = data;
@@ -34,7 +46,8 @@ export const useStudyPlannerJoyride = () => {
     if (action === ACTIONS.CLOSE) {
       setRun(false);
       setStepIndex(0);
-      await tourProgress.skipTour();
+      setIsFinishedInSession(true);
+      await skipTour();
       return;
     }
 
@@ -42,35 +55,48 @@ export const useStudyPlannerJoyride = () => {
     if (action === ACTIONS.SKIP) {
       setRun(false);
       setStepIndex(0);
-      await tourProgress.skipTour();
+      setIsFinishedInSession(true);
+      await skipTour();
+      return;
+    }
+
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      setRun(false);
+      setStepIndex(0);
+      setIsFinishedInSession(true);
+
+      if (status === STATUS.FINISHED) {
+        await completeTour();
+      } else {
+        await skipTour();
+      }
       return;
     }
 
     // Controlled navigation logic
     if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      if (action === ACTIONS.NEXT) {
-        setStepIndex(index + 1);
-      } else if (action === ACTIONS.PREV) {
-        setStepIndex(index - 1);
-      }
-    }
-    // Handle tour finish or skip via status
-    else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      setRun(false);
-      setStepIndex(0);
+      const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
 
-      if (status === STATUS.FINISHED) {
-        await tourProgress.completeTour();
-      } else {
-        await tourProgress.skipTour();
+      if (nextIndex >= studyPlannerJoyrideSteps.length) {
+        setRun(false);
+        setStepIndex(0);
+        setIsFinishedInSession(true);
+        await completeTour();
+        return;
       }
+
+      setStepIndex(nextIndex);
     }
-  }, [tourProgress]);
+  }, [completeTour, skipTour]);
 
   const restartTour = useCallback(() => {
     setStepIndex(0);
+    setIsFinishedInSession(false);
+    startTour().catch((err) =>
+      console.error('[useStudyPlannerJoyride] DB restart failed', err),
+    );
     setRun(true);
-  }, []);
+  }, [startTour]);
 
   useEffect(() => {
     setRestart(restartTour, 'Reiniciar tutorial');
@@ -85,8 +111,8 @@ export const useStudyPlannerJoyride = () => {
     continuous: true,
     showProgress: true,
     showSkipButton: true,
-    disableOverlayClose: true,
-    disableCloseOnEsc: true,
+    disableOverlayClose: false,
+    disableCloseOnEsc: false,
     tooltipComponent: JoyrideTooltip,
     scrollOffset: 120,    
     styles: {

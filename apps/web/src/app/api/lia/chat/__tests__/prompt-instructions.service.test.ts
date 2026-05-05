@@ -55,6 +55,21 @@ describe('buildPageInstructionsSection', () => {
     );
   });
 
+  it('prioritizes the organization job title over nested membership roles', () => {
+    const section = buildPageInstructionsSection({
+      userJobTitle: 'Marketing',
+      currentLessonContext: {
+        lessonTitle: 'Control digital',
+        currentTab: 'questions',
+        userRole: 'admin',
+      },
+    });
+
+    expect(section).toContain('Cargo profesional real del usuario: "Marketing"');
+    expect(section).not.toContain('Cargo profesional real del usuario: "admin"');
+    expect(section).toContain('trabajo real de un "Marketing"');
+  });
+
   it('uses verified lesson duration metadata and forbids inferring it from transcripts', () => {
     const section = buildPageInstructionsSection({
       currentLessonContext: {

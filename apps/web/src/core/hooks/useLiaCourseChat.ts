@@ -36,6 +36,12 @@ export interface UseLiaCourseChatReturn {
     workshopContext?: CourseLessonContext,
     isSystemMessage?: boolean
   ) => Promise<void>;
+  editMessageAndRegenerate: (
+    messageId: string,
+    message: string,
+    courseContext?: CourseLessonContext,
+    workshopContext?: CourseLessonContext
+  ) => Promise<void>;
   stop: () => void;
   clearHistory: () => void;
   loadConversation: (conversationId: string) => Promise<void>;
@@ -128,6 +134,14 @@ function normalizeCourseMessage(
   return message.trim();
 }
 
+function createMessageId(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export function useLiaCourseChat(
   initialMessage?: string | null
 ): UseLiaCourseChatReturn {
@@ -155,28 +169,39 @@ export function useLiaCourseChat(
   const conversationIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const sendMessage = useCallback(
-    async (
-      message: string,
-      courseContext?: CourseLessonContext,
-      workshopContext?: CourseLessonContext,
-      isSystemMessage: boolean = false
-    ) => {
+  const submitMessage = useCallback(
+    async ({
+      message,
+      courseContext,
+      workshopContext,
+      isSystemMessage = false,
+      baseMessages,
+      optimisticMessages,
+    }: {
+      message: string;
+      courseContext?: CourseLessonContext;
+      workshopContext?: CourseLessonContext;
+      isSystemMessage?: boolean;
+      baseMessages?: SofLIAMessage[];
+      optimisticMessages?: SofLIAMessage[];
+    }) => {
       const normalizedMessage = normalizeCourseMessage(message);
 
       if (!normalizedMessage || isLoading) {
         return;
       }
 
+      const requestHistory = baseMessages ?? messages;
+
       if (!isSystemMessage) {
         const userMessage: SofLIAMessage = {
-          id: Date.now().toString(),
+          id: createMessageId(),
           role: 'user',
           content: normalizedMessage,
           timestamp: new Date(),
         };
 
-        setMessages((prev) => [...prev, userMessage]);
+        setMessages(optimisticMessages ?? [...requestHistory, userMessage]);
       }
 
       setIsLoading(true);
@@ -216,7 +241,7 @@ export function useLiaCourseChat(
           body: JSON.stringify({
             conversationId: conversationIdRef.current,
             messages: [
-              ...messages.map((entry) => ({
+              ...requestHistory.map((entry) => ({
                 role: entry.role,
                 content: entry.content,
               })),
@@ -268,7 +293,7 @@ export function useLiaCourseChat(
 
         if (responseText) {
           const assistantMessage: SofLIAMessage = {
-            id: (Date.now() + 1).toString(),
+            id: createMessageId(),
             role: 'assistant',
             content: responseText,
             timestamp: new Date(),
@@ -289,7 +314,7 @@ export function useLiaCourseChat(
         setError(errorMessage);
 
         const errorResponse: SofLIAMessage = {
-          id: (Date.now() + 1).toString(),
+          id: createMessageId(),
           role: 'assistant',
           content:
             'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
@@ -303,6 +328,62 @@ export function useLiaCourseChat(
       }
     },
     [currentOrganization?.id, isLoading, messages, user, userProfile, language]
+  );
+
+  const sendMessage = useCallback(
+    async (
+      message: string,
+      courseContext?: CourseLessonContext,
+      workshopContext?: CourseLessonContext,
+      isSystemMessage: boolean = false
+    ) => {
+      await submitMessage({
+        message,
+        courseContext,
+        workshopContext,
+        isSystemMessage,
+      });
+    },
+    [submitMessage]
+  );
+
+  const editMessageAndRegenerate = useCallback(
+    async (
+      messageId: string,
+      message: string,
+      courseContext?: CourseLessonContext,
+      workshopContext?: CourseLessonContext
+    ) => {
+      const normalizedMessage = normalizeCourseMessage(message);
+
+      if (!normalizedMessage || isLoading) {
+        return;
+      }
+
+      const messageIndex = messages.findIndex(
+        (entry) => entry.id === messageId && entry.role === 'user'
+      );
+
+      if (messageIndex < 0) {
+        return;
+      }
+
+      const baseMessages = messages.slice(0, messageIndex);
+      const editedUserMessage: SofLIAMessage = {
+        ...messages[messageIndex],
+        content: normalizedMessage,
+        timestamp: new Date(),
+      };
+
+      await submitMessage({
+        message: normalizedMessage,
+        courseContext,
+        workshopContext,
+        baseMessages,
+        optimisticMessages: [...baseMessages, editedUserMessage],
+      });
+    },
+    [isLoading, messages, submitMessage]
   );
 
   const stop = useCallback(() => {
@@ -421,11 +502,21 @@ export function useLiaCourseChat(
       isLoading,
       error,
       sendMessage,
+      editMessageAndRegenerate,
       stop,
       clearHistory,
       loadConversation,
       currentConversationId: conversationIdRef.current,
     }),
-    [messages, isLoading, error, sendMessage, stop, clearHistory, loadConversation]
+    [
+      messages,
+      isLoading,
+      error,
+      sendMessage,
+      editMessageAndRegenerate,
+      stop,
+      clearHistory,
+      loadConversation,
+    ]
   );
 }

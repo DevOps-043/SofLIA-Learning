@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import Joyride from 'react-joyride'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { LiaFloatingButton } from '@/core/components/LiaSidePanel/LiaFloatingButton'
 import { LiaSidePanel } from '@/core/components/LiaSidePanel'
@@ -29,12 +29,15 @@ interface BusinessPanelLayoutProps {
 function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   const { user, isLoading: authLoading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const { styles, effectiveStyles, loading: stylesLoading } =
     useOrganizationStylesContext()
   const normalizedUserRole = user?.cargo_rol?.toLowerCase().trim()
+  const isDashboardRoute = pathname?.includes('/business-panel/dashboard') ?? false
   const { joyrideProps, startTour, resetTour, run, showVideoIntro, handleVideoComplete } =
     useBusinessPanelJoyride({
       enabled:
+        isDashboardRoute &&
         normalizedUserRole !== 'superadmin' &&
         normalizedUserRole !== 'super admin',
     })

@@ -111,6 +111,9 @@
     "coursePlaceholder": "Ask about the lesson...",
     "stopGeneration": "Stop SofLIA generation",
     "stop": "Stop",
+    "editMessage": "Edit message",
+    "saveEdit": "Save change and regenerate",
+    "cancelEdit": "Cancel edit",
     "voice": {
       "startDictation": "Start dictation",
       "stopDictation": "Stop dictation",

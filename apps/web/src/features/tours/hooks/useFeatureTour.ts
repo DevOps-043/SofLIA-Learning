@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { CallBackProps, STATUS, ACTIONS, EVENTS, Step } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
@@ -119,7 +119,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
 
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const pendingStepRef = useRef<number | null>(null);
+  const [isFinishedInSession, setIsFinishedInSession] = useState(false);
 
   // Default disableBeacon to true for every step. Joyride's native beacon is
   // a red dot that requires an extra click before showing the tooltip; the
@@ -130,89 +130,115 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     [steps],
   );
 
+  const stopTour = useCallback(() => {
+    setRun(false);
+    setStepIndex(0);
+    setIsFinishedInSession(true);
+  }, []);
+
+  const finishTour = useCallback(() => {
+    stopTour();
+    dbCompleteTour().catch(err => console.error(`[useFeatureTour:${tourId}] Complete failed`, err));
+    if (onComplete) onComplete();
+  }, [dbCompleteTour, onComplete, stopTour, tourId]);
+
+  const dismissTour = useCallback(() => {
+    stopTour();
+    dbSkipTour().catch(err => console.error(`[useFeatureTour:${tourId}] Skip failed`, err));
+    if (onSkip) onSkip();
+  }, [dbSkipTour, onSkip, stopTour, tourId]);
+
+  const startAtFirstStep = useCallback(() => {
+    setIsFinishedInSession(false);
+    setStepIndex(0);
+    setRun(false);
+
+    const start = () => {
+      dbStartTour().catch(err => console.error(`[useFeatureTour:${tourId}] Start failed`, err));
+      setRun(true);
+    };
+
+    if (steps.length > 0) {
+      scrollTargetIntoView(steps[0].target as string | HTMLElement, start);
+    } else {
+      start();
+    }
+  }, [dbStartTour, steps, tourId]);
+
   // Manual start (for "Replay" buttons)
   const manualStartTour = useCallback(() => {
-    setStepIndex(0);
-    if (steps.length > 0) {
-      scrollTargetIntoView(steps[0].target as string, () => setRun(true));
-    } else {
-      setRun(true);
-    }
-  }, [steps]);
+    startAtFirstStep();
+  }, [startAtFirstStep]);
 
   // Register with global context for header replay button
   useEffect(() => {
-    if (enabled) {
-      setRestart(manualStartTour, t('adminTour.labels.replay') || 'Ver tutorial');
-      return () => setRestart(null);
+    if (!enabled) {
+      return;
     }
+
+    setRestart(manualStartTour, t('adminTour.labels.replay') || 'Ver tutorial');
+    return () => setRestart(null);
   }, [enabled, manualStartTour, setRestart, t]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setRun(false);
+      setStepIndex(0);
+    }
+  }, [enabled]);
 
   // Auto-start tour if enabled and user hasn't seen it yet
   useEffect(() => {
-    if (enabled && !isLoading && shouldShowTour) {
-      const timer = setTimeout(() => {
-        const start = () => {
-          setRun(true);
-          dbStartTour().catch(err => console.error(`[useFeatureTour:${tourId}] Start failed`, err));
-        };
-        if (steps.length > 0) {
-          scrollTargetIntoView(steps[0].target as string, start);
-        } else {
-          start();
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
+    if (!enabled || isLoading || !shouldShowTour || isFinishedInSession || run) {
+      return;
     }
-  }, [enabled, isLoading, shouldShowTour, tourId, dbStartTour, steps]);
 
-  // When pendingStepRef changes, scroll first, then update stepIndex once the
-  // smooth scroll has actually settled — prevents the spotlight from being
-  // drawn on a mid-scroll position of the target.
-  useEffect(() => {
-    if (pendingStepRef.current !== null) {
-      const nextIdx = pendingStepRef.current;
-      pendingStepRef.current = null;
+    const timer = setTimeout(startAtFirstStep, 1000);
+    return () => clearTimeout(timer);
+  }, [enabled, isFinishedInSession, isLoading, run, shouldShowTour, startAtFirstStep]);
 
-      if (nextIdx >= 0 && nextIdx < steps.length) {
-        scrollTargetIntoView(steps[nextIdx].target as string, () =>
-          setStepIndex(nextIdx),
-        );
-      }
+  // Scroll before updating the controlled index so Joyride measures the settled target.
+  const moveToStep = useCallback((nextIndex: number) => {
+    if (nextIndex < 0) {
+      setStepIndex(0);
+      dbUpdateStep(0);
+      return;
     }
-  });
+
+    if (nextIndex >= steps.length) {
+      finishTour();
+      return;
+    }
+
+    const nextStep = steps[nextIndex];
+    scrollTargetIntoView(nextStep.target as string | HTMLElement, () => {
+      setStepIndex(nextIndex);
+      dbUpdateStep(nextIndex);
+    });
+  }, [dbUpdateStep, finishTour, steps]);
 
   // Handle Joyride callbacks
   const handleJoyrideCallback = useCallback((data: CallBackProps) => {
     const { action, index, status, type } = data;
 
-    // Handle step navigation: scroll first, then advance
-    if (type === EVENTS.STEP_AFTER) {
-      const nextIndex = action === ACTIONS.PREV ? index - 1 : index + 1;
-      dbUpdateStep(nextIndex);
-
-      // Use pendingStepRef to trigger scroll-then-advance
-      pendingStepRef.current = nextIndex;
-      // Force a re-render so the effect above runs
-      setRun(prev => prev);
-    }
-
     // Handle tour completion
     if (status === STATUS.FINISHED) {
-      setRun(false);
-      dbCompleteTour().catch(err => console.error(`[useFeatureTour:${tourId}] Complete failed`, err));
-      if (onComplete) onComplete();
+      finishTour();
       return;
     }
 
     // Handle tour skip or close
     if (status === STATUS.SKIPPED || action === ACTIONS.SKIP || action === ACTIONS.CLOSE) {
-      setRun(false);
-      dbSkipTour().catch(err => console.error(`[useFeatureTour:${tourId}] Skip failed`, err));
-      if (onSkip) onSkip();
+      dismissTour();
       return;
     }
-  }, [tourId, dbCompleteTour, dbSkipTour, dbUpdateStep, onComplete, onSkip, steps]);
+
+    // Handle step navigation: scroll first, then advance
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      const nextIndex = action === ACTIONS.PREV ? index - 1 : index + 1;
+      moveToStep(nextIndex);
+    }
+  }, [dismissTour, finishTour, moveToStep]);
 
   return {
     joyrideProps: {
@@ -224,8 +250,8 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
-      disableOverlayClose: true,
-      disableCloseOnEsc: true,
+      disableOverlayClose: false,
+      disableCloseOnEsc: false,
       // We handle scrolling manually inside the custom scroll container
       disableScrolling: true,
       disableScrollParentFix: true,

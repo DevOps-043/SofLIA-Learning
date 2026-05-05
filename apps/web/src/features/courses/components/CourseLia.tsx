@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Square, Trash2, Copy, StickyNote, Check, Mic, MicOff } from 'lucide-react';
+import { X, Send, Square, Trash2, Copy, StickyNote, Check, Mic, MicOff, Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -250,9 +250,12 @@ function CourseLiaPanelContent({
   const isCustomTheme = !!customColors?.panelBg;
 
   const [inputValue, setInputValue] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState('');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const copyFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [forceDarkText, setForceDarkText] = useState(false);
@@ -281,7 +284,14 @@ function CourseLiaPanelContent({
   const initialMessage = null;
 
   const liaChat = useLiaCourseChat(initialMessage);
-  const { messages, isLoading, sendMessage, stop, clearHistory } = liaChat;
+  const {
+    messages,
+    isLoading,
+    sendMessage,
+    editMessageAndRegenerate,
+    stop,
+    clearHistory,
+  } = liaChat;
   const speechRecognitionLang = language === 'en' ? 'en-US' : language === 'pt' ? 'pt-BR' : 'es-ES';
   const {
     isListening,
@@ -304,6 +314,35 @@ function CourseLiaPanelContent({
       inputRef.current?.focus();
     },
   });
+
+  const resizeTextArea = useCallback(
+    (textarea: HTMLTextAreaElement | null, maxHeight = 128) => {
+      if (!textarea) {
+        return;
+      }
+
+      textarea.style.height = '0px';
+      const nextHeight = Math.min(Math.max(textarea.scrollHeight, 22), maxHeight);
+      textarea.style.height = `${nextHeight}px`;
+      textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+    },
+    [],
+  );
+
+  useEffect(() => {
+    resizeTextArea(inputRef.current);
+  }, [inputValue, resizeTextArea]);
+
+  useEffect(() => {
+    if (!editingMessageId) {
+      return;
+    }
+
+    setTimeout(() => {
+      resizeTextArea(editInputRef.current, 160);
+      editInputRef.current?.focus();
+    }, 0);
+  }, [editingMessageId, editingValue, resizeTextArea]);
 
   const suggestionActivityFocus = useMemo<
     LessonSuggestionsActivityFocus | undefined
@@ -415,6 +454,8 @@ function CourseLiaPanelContent({
   useEffect(() => {
     if (!isOpen) {
       setCopiedMessageId(null);
+      setEditingMessageId(null);
+      setEditingValue('');
     }
   }, [isOpen]);
 
@@ -493,21 +534,72 @@ function CourseLiaPanelContent({
       return;
     }
 
-    void handleSendMessage();
-  }, [handleSendMessage, isLoading, stop]);
-
-  const handleVoiceAction = useCallback(() => {
-    if (isLoading) {
+    if (!inputValue.trim()) {
+      void toggleListening();
       return;
     }
 
-    void toggleListening();
-  }, [isLoading, toggleListening]);
+    if (isListening) {
+      void toggleListening();
+    }
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    void handleSendMessage();
+  }, [handleSendMessage, inputValue, isListening, isLoading, stop, toggleListening]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  const handleStartEditingMessage = useCallback((message: SofLIAMessage) => {
+    if (isLoading || message.role !== 'user') {
+      return;
+    }
+
+    setEditingMessageId(message.id);
+    setEditingValue(message.content);
+  }, [isLoading]);
+
+  const handleCancelEditingMessage = useCallback(() => {
+    setEditingMessageId(null);
+    setEditingValue('');
+  }, []);
+
+  const handleSubmitEditedMessage = useCallback(async () => {
+    if (!editingMessageId || !editingValue.trim() || isLoading) {
+      return;
+    }
+
+    const messageId = editingMessageId;
+    const nextMessage = editingValue.trim();
+    setEditingMessageId(null);
+    setEditingValue('');
+
+    await editMessageAndRegenerate(
+      messageId,
+      nextMessage,
+      resolvedLessonContext,
+      undefined,
+    );
+  }, [
+    editMessageAndRegenerate,
+    editingMessageId,
+    editingValue,
+    isLoading,
+    resolvedLessonContext,
+  ]);
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void handleSubmitEditedMessage();
+    }
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancelEditingMessage();
     }
   };
 
@@ -537,7 +629,15 @@ function CourseLiaPanelContent({
   const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
   const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };
   const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
-  const canSendMessage = Boolean(isLoading || inputValue.trim());
+  const hasInputText = Boolean(inputValue.trim());
+  const primaryActionMode = isLoading ? 'stop' : hasInputText ? 'send' : 'voice';
+  const primaryActionLabel = isLoading
+    ? t('lia.stopGeneration')
+    : hasInputText
+    ? t('lia.send')
+    : isListening
+    ? t('lia.voice.stopDictation')
+    : t('lia.voice.startDictation');
 
   return (
     <AnimatePresence>
@@ -596,66 +696,119 @@ function CourseLiaPanelContent({
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {messages.map((message) => (
-              <div key={message.id} style={{ display: 'flex', flexDirection: 'column', alignItems: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: message.role === 'user' ? '#0A2540' : themeColors.messageBubbleAssistant }}>
-                  <p className={message.role === 'user' ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: message.role === 'user' ? '#ffffff' : themeColors.textPrimary }}>
-                    {message.role === 'assistant' ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode) : message.content}
-                  </p>
-                  {message.attachments?.length ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
-                      {message.attachments.map((attachment: LiaImageAttachment, attachmentIndex: number) => (
-                        <img
-                          key={`${message.id}-attachment-${attachmentIndex}`}
-                          src={attachment.dataUrl}
-                          alt={attachment.fileName}
-                          style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+            {messages.map((message) => {
+              const isEditingThisMessage =
+                editingMessageId === message.id && message.role === 'user';
+
+              return (
+                <div key={message.id} style={{ display: 'flex', flexDirection: 'column', alignItems: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                  <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: message.role === 'user' ? '#0A2540' : themeColors.messageBubbleAssistant }}>
+                    {isEditingThisMessage ? (
+                      <>
+                        <textarea
+                          ref={editInputRef}
+                          value={editingValue}
+                          onChange={(e) => setEditingValue(e.target.value)}
+                          onKeyDown={handleEditKeyDown}
+                          rows={1}
+                          className="lia-input-reset lia-chat-edit-input"
+                          style={{ width: '100%', minWidth: '220px', maxWidth: '100%', resize: 'none', background: 'transparent', border: 'none', outline: 'none', color: '#ffffff', fontSize: '14px', lineHeight: 1.5, padding: 0 }}
                         />
-                      ))}
-                    </div>
-                  ) : null}
-                  {message.role === 'assistant' && (
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end', opacity: 0.7 }}>
-                      <button 
-                        onClick={() => void handleCopyMessage(message.id, message.content)}
-                        title={copiedMessageId === message.id ? 'Texto copiado' : 'Copiar texto'}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          color: copiedMessageId === message.id
-                            ? themeColors.accentColor
-                            : isLightTheme
-                            ? '#64748B'
-                            : themeColors.textSecondary
-                        }}
-                      >
-                        {copiedMessageId === message.id ? (
-                          <Check style={{ width: '14px', height: '14px' }} />
-                        ) : (
-                          <Copy style={{ width: '14px', height: '14px' }} />
-                        )}
-                      </button>
-                      {onSaveNote && (
-                        <button 
-                          onClick={() => {
-                            const htmlContent = convertNoteMarkdownToHtml(message.content);
-                            onSaveNote(htmlContent);
-                          }}
-                          title="Guardar como nota"
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end' }}>
+                          <button
+                            type="button"
+                            onClick={() => void handleSubmitEditedMessage()}
+                            disabled={!editingValue.trim() || isLoading}
+                            title={t('lia.saveEdit')}
+                            aria-label={t('lia.saveEdit')}
+                            style={{ background: 'transparent', border: 'none', cursor: editingValue.trim() && !isLoading ? 'pointer' : 'not-allowed', padding: '4px', display: 'flex', alignItems: 'center', color: editingValue.trim() && !isLoading ? themeColors.accentColor : 'rgba(255,255,255,0.5)' }}
+                          >
+                            <Check style={{ width: '14px', height: '14px' }} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleCancelEditingMessage}
+                            title={t('lia.cancelEdit')}
+                            aria-label={t('lia.cancelEdit')}
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.75)' }}
+                          >
+                            <X style={{ width: '14px', height: '14px' }} />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <p className={message.role === 'user' ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: message.role === 'user' ? '#ffffff' : themeColors.textPrimary }}>
+                        {message.role === 'assistant' ? parseMarkdownContent(message.content, handleLinkClick, isDarkMode) : message.content}
+                      </p>
+                    )}
+                    {message.attachments?.length ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px' }}>
+                        {message.attachments.map((attachment: LiaImageAttachment, attachmentIndex: number) => (
+                          <img
+                            key={`${message.id}-attachment-${attachmentIndex}`}
+                            src={attachment.dataUrl}
+                            alt={attachment.fileName}
+                            style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                    {message.role === 'user' && !isEditingThisMessage && !isLoading ? (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end', opacity: 0.75 }}>
+                        <button
+                          type="button"
+                          onClick={() => handleStartEditingMessage(message)}
+                          title={t('lia.editMessage')}
+                          aria-label={t('lia.editMessage')}
+                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.75)' }}
                         >
-                           <StickyNote style={{ width: '14px', height: '14px' }} />
+                          <Pencil style={{ width: '14px', height: '14px' }} />
                         </button>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    ) : null}
+                    {message.role === 'assistant' && (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end', opacity: 0.7 }}>
+                        <button 
+                          onClick={() => void handleCopyMessage(message.id, message.content)}
+                          title={copiedMessageId === message.id ? 'Texto copiado' : 'Copiar texto'}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            color: copiedMessageId === message.id
+                              ? themeColors.accentColor
+                              : isLightTheme
+                              ? '#64748B'
+                              : themeColors.textSecondary
+                          }}
+                        >
+                          {copiedMessageId === message.id ? (
+                            <Check style={{ width: '14px', height: '14px' }} />
+                          ) : (
+                            <Copy style={{ width: '14px', height: '14px' }} />
+                          )}
+                        </button>
+                        {onSaveNote && (
+                          <button
+                            onClick={() => {
+                              const htmlContent = convertNoteMarkdownToHtml(message.content);
+                              onSaveNote(htmlContent);
+                            }}
+                            title="Guardar como nota"
+                            style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: isLightTheme ? '#64748B' : themeColors.textSecondary }}
+                          >
+                             <StickyNote style={{ width: '14px', height: '14px' }} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {isLoading && (
                <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '10px' }}>
                  <div 
@@ -701,7 +854,7 @@ function CourseLiaPanelContent({
           />
 
           {/* Input */}
-          <div style={{ padding: isMobile ? '10px 3% 12px' : '12px 16px 16px', borderTop: `1px solid ${themeColors.borderColor}` }}>
+          <div style={{ padding: isMobile ? '8px 3% 10px' : '10px 16px 12px', borderTop: `1px solid ${themeColors.borderColor}` }}>
 
             {voiceError ? (
               <div style={{ marginBottom: '10px', padding: '10px 12px', borderRadius: '12px', backgroundColor: 'rgba(245,158,11,0.12)', color: isLightTheme ? '#92400E' : '#FCD34D', fontSize: '12px', border: '1px solid rgba(245,158,11,0.24)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
@@ -716,83 +869,67 @@ function CourseLiaPanelContent({
                 </button>
               </div>
             ) : null}
-            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '12px', backgroundColor: themeColors.inputBg, borderRadius: '24px', padding: isMobile ? '8px 3%' : '10px 16px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-end', gap: isMobile ? '2%' : '10px', backgroundColor: themeColors.inputBg, borderRadius: '22px', padding: isMobile ? '6px 3%' : '7px 10px 7px 14px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
 
-               <motion.button
-                 type="button"
-                 onClick={handleVoiceAction}
-                 disabled={isLoading}
-                 whileHover={{ scale: isLoading ? 1 : 1.05 }}
-                 whileTap={{ scale: isLoading ? 1 : 0.95 }}
-                 title={isListening ? t('lia.voice.stopDictation') : t('lia.voice.startDictation')}
-                 aria-label={isListening ? t('lia.voice.stopDictation') : t('lia.voice.startDictation')}
-                 style={{ width: '36px', height: '36px', borderRadius: '999px', border: 'none', backgroundColor: isListening ? 'rgba(16,185,129,0.16)' : 'transparent', color: isListening ? '#10B981' : themeColors.textSecondary, cursor: isLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, opacity: isLoading ? 0.5 : 1 }}
-               >
-                 <AnimatePresence mode="wait">
-                   {isListening ? (
-                     <motion.span key="mic-off" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-                       <MicOff style={{ width: '16px', height: '16px' }} />
-                     </motion.span>
-                   ) : (
-                     <motion.span key="mic" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-                       <Mic style={{ width: '16px', height: '16px' }} />
-                     </motion.span>
-                   )}
-                 </AnimatePresence>
-               </motion.button>
-               <input
+               <textarea
                  ref={inputRef}
-                 type="text"
                  value={inputValue}
                  onChange={(e) => setInputValue(e.target.value)}
                  onKeyDown={handleKeyDown}
                  placeholder={t('lia.coursePlaceholder')}
-                 style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px' }}
+                 rows={1}
+                 style={{ flex: 1, minHeight: '22px', maxHeight: '128px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: '5px 0', overflowY: 'hidden' }}
                  id="lia-course-chat-input"
                  className="lia-input-reset lia-chat-input"
                />
-               <button 
+               <motion.button
+                 type="button"
                  onClick={handlePrimaryAction}
-                 disabled={!canSendMessage}
-                 title={isLoading ? t('lia.stopGeneration') : t('lia.send')}
-                 aria-label={isLoading ? t('lia.stopGeneration') : t('lia.send')}
-                 style={{ 
-                   minWidth: isLoading ? (isMobile ? 'auto' : '112px') : '44px', 
-                   maxWidth: isLoading && isMobile ? '30%' : undefined,
-                   height: '44px', 
-                   padding: isLoading ? (isMobile ? '0 8px' : '0 14px') : '0',
-                   borderRadius: isLoading ? '16px' : '50%', 
-                   backgroundColor: isLoading
+                 whileHover={{ scale: 1.05 }}
+                 whileTap={{ scale: 0.95 }}
+                 title={primaryActionLabel}
+                 aria-label={primaryActionLabel}
+                 style={{
+                   width: '38px',
+                   height: '38px',
+                   borderRadius: '50%',
+                   backgroundColor: primaryActionMode === 'stop'
                      ? (isLightTheme ? '#DC2626' : '#EF4444')
-                     : canSendMessage ? themeColors.primaryAction : (isLightTheme ? '#CBD5E1' : '#374151'), 
-                   border: 'none', 
-                   cursor: canSendMessage ? 'pointer' : 'not-allowed', 
-                   display: 'flex', 
-                   alignItems: 'center', 
+                     : primaryActionMode === 'send'
+                     ? themeColors.primaryAction
+                     : isListening
+                     ? 'rgba(16,185,129,0.16)'
+                     : (isLightTheme ? '#CBD5E1' : '#374151'),
+                   border: 'none',
+                   cursor: 'pointer',
+                   display: 'flex',
+                   alignItems: 'center',
                    justifyContent: 'center',
-                   gap: isLoading ? '8px' : '0',
                    flexShrink: 0,
                    transition: 'all 180ms ease'
                  }}
                >
-                 {isLoading ? (
-                   <>
-                     <Square style={{ width: '15px', height: '15px', color: '#FFFFFF', fill: '#FFFFFF' }} />
-                     <span style={{ color: '#FFFFFF', fontSize: isMobile ? '12px' : '13px', fontWeight: 600, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                       {t('lia.stop')}
-                     </span>
-                   </>
-                 ) : (
-                   <Send style={{ 
-                     width: '16px', 
-                     height: '16px', 
-                     color: canSendMessage
-                       ? (isLightTheme ? '#FFFFFF' : '#0A2540') 
-                       : (isLightTheme ? '#6B7280' : '#4B5563')
-                   }} />
-                 )}
-               </button>
-            </div>
+                 <AnimatePresence mode="wait">
+                   {primaryActionMode === 'stop' ? (
+                     <motion.span key="stop" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
+                       <Square style={{ width: '15px', height: '15px', color: '#FFFFFF', fill: '#FFFFFF' }} />
+                     </motion.span>
+                   ) : primaryActionMode === 'send' ? (
+                     <motion.span key="send" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
+                       <Send style={{ width: '16px', height: '16px', color: isLightTheme ? '#FFFFFF' : '#0A2540' }} />
+                     </motion.span>
+                   ) : isListening ? (
+                     <motion.span key="mic-off" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
+                       <MicOff style={{ width: '16px', height: '16px', color: '#10B981' }} />
+                     </motion.span>
+                   ) : (
+                     <motion.span key="mic" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
+                       <Mic style={{ width: '16px', height: '16px', color: isLightTheme ? '#6B7280' : '#9CA3AF' }} />
+                     </motion.span>
+                   )}
+                 </AnimatePresence>
+               </motion.button>
+             </div>
           </div>
           {/* CSS con máxima especificidad para garantizar visibilidad */}
           <style>{`

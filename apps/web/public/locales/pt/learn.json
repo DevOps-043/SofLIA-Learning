@@ -111,6 +111,9 @@
     "coursePlaceholder": "Pergunte sobre a licao...",
     "stopGeneration": "Parar geracao da SofLIA",
     "stop": "Parar",
+    "editMessage": "Editar mensagem",
+    "saveEdit": "Salvar alteracao e regenerar",
+    "cancelEdit": "Cancelar edicao",
     "voice": {
       "startDictation": "Iniciar ditado",
       "stopDictation": "Parar ditado",

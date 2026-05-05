@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import Joyride, { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from './useTourProgress';
 import { getBusinessPanelJoyrideSteps, BUSINESS_PANEL_TOUR_ID } from '../config/business-panel-joyride-steps';
 import { JoyrideTooltip } from '../components/JoyrideTooltip';
@@ -20,11 +20,31 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
   const [run, setRun] = useState(false);
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [isFinishedInSession, setIsFinishedInSession] = useState(false);
   const { setRestart } = useTourRestart();
+  const steps = useMemo(() => getBusinessPanelJoyrideSteps(t), [t]);
+
+  const stopTour = useCallback(() => {
+    setRun(false);
+    setStepIndex(0);
+    setShowVideoIntro(false);
+    setIsFinishedInSession(true);
+  }, []);
+
+  const finishTour = useCallback(() => {
+    stopTour();
+    completeTour().catch(err => console.error('[useBusinessPanelJoyride] Complete failed', err));
+  }, [completeTour, stopTour]);
+
+  const dismissTour = useCallback((reason: 'skip' | 'close') => {
+    stopTour();
+    const label = reason === 'close' ? 'Close' : 'Skip';
+    skipTour().catch(err => console.error(`[useBusinessPanelJoyride] ${label} failed`, err));
+  }, [skipTour, stopTour]);
 
   // Auto-start tour when conditions are met
   useEffect(() => {
-    if (!enabled || isLoading || !shouldShowTour) {
+    if (!enabled || isLoading || !shouldShowTour || isFinishedInSession) {
       return;
     }
 
@@ -34,10 +54,20 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [enabled, isLoading, shouldShowTour]);
+  }, [enabled, isFinishedInSession, isLoading, shouldShowTour]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setRun(false);
+      setStepIndex(0);
+      setShowVideoIntro(false);
+    }
+  }, [enabled]);
 
   const handleVideoComplete = useCallback(() => {
     setShowVideoIntro(false);
+    setStepIndex(0);
+    setIsFinishedInSession(false);
     startTour().catch(err => console.error('[useBusinessPanelJoyride] DB start failed', err));
     setRun(true);
   }, [startTour]);
@@ -48,57 +78,64 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
 
     // Handle tour completion
     if (status === STATUS.FINISHED) {
-      setRun(false);
-      completeTour().catch(err => console.error('[useBusinessPanelJoyride] Complete failed', err));
+      finishTour();
       return;
     }
 
     // Handle tour skip
     if (status === STATUS.SKIPPED || action === ACTIONS.SKIP) {
-      setRun(false);
-      skipTour().catch(err => console.error('[useBusinessPanelJoyride] Skip failed', err));
+      dismissTour('skip');
       return;
     }
 
     // Handle close button
     if (action === ACTIONS.CLOSE) {
-      setRun(false);
-      skipTour().catch(err => console.error('[useBusinessPanelJoyride] Close failed', err));
+      dismissTour('close');
       return;
     }
 
     // Handle step navigation
-    if (type === EVENTS.STEP_AFTER) {
-      if (action === ACTIONS.NEXT) {
-        setStepIndex(index + 1);
-      } else if (action === ACTIONS.PREV) {
-        setStepIndex(index - 1);
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
+
+      if (nextIndex >= steps.length) {
+        finishTour();
+        return;
       }
+
+      setStepIndex(nextIndex);
     }
-  }, [completeTour, skipTour]);
+  }, [dismissTour, finishTour, steps.length]);
 
   // Reset tour (for testing)
   const resetTour = useCallback(() => {
     setRun(false);
     setStepIndex(0);
+    setShowVideoIntro(false);
+    setIsFinishedInSession(false);
   }, []);
 
   // Manual start tour
   const manualStartTour = useCallback(() => {
     setStepIndex(0);
     setRun(false); // Reset joyride run state
+    setIsFinishedInSession(false);
     setShowVideoIntro(true);
   }, []);
 
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     setRestart(manualStartTour, 'Reiniciar tutorial');
     return () => setRestart(null);
-  }, [manualStartTour, setRestart]);
+  }, [enabled, manualStartTour, setRestart]);
 
   return {
     // Joyride props to spread
     joyrideProps: {
-      steps: getBusinessPanelJoyrideSteps(t),
+      steps,
       run,
       stepIndex,
       callback: handleJoyrideCallback,
@@ -106,8 +143,8 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
-      disableOverlayClose: true,
-      disableCloseOnEsc: true,
+      disableOverlayClose: false,
+      disableCloseOnEsc: false,
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120, // Reasonable offset to clear header but keep element visible

@@ -184,7 +184,7 @@ function resolveEffectiveUserJobTitle(
   context: PlatformContext,
   lessonContext?: LessonContext
 ): string | undefined {
-  return lessonContext?.userRole || context.userJobTitle;
+  return context.userJobTitle || lessonContext?.userRole;
 }
 
 function buildUniversalUserRoleSection(

@@ -18,12 +18,21 @@ export async function buildFullContext(
   platformContext: PlatformContext,
   requestContext: ChatRequest['context']
 ): Promise<PlatformContext> {
+  const resolvedUserJobTitle =
+    platformContext.userJobTitle || requestContext?.userJobTitle;
   const fullContext: PlatformContext = {
     ...platformContext,
     ...requestContext,
     userName: requestContext?.userName || platformContext.userName,
-    userJobTitle: requestContext?.userJobTitle || platformContext.userJobTitle,
+    userJobTitle: resolvedUserJobTitle,
   };
+
+  if (fullContext.currentLessonContext && resolvedUserJobTitle) {
+    fullContext.currentLessonContext = {
+      ...fullContext.currentLessonContext,
+      userRole: resolvedUserJobTitle,
+    };
+  }
 
   // Fallback: extract organizationSlug from pathname when not available from DB
   if (!fullContext.organizationSlug && fullContext.currentPage) {
