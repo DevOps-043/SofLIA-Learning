@@ -65,14 +65,14 @@ export function BusinessPanelSidebar({
   const xPosition = isMobile ? (isOpen ? 0 : '-100%') : 0
 
   const navigation = useMemo(() => [
-    { name: t('sidebar.dashboard'), href: `/${orgSlug}/business-panel/dashboard`, icon: LayoutDashboard },
-    { name: t('sidebar.users'), href: `/${orgSlug}/business-panel/users`, icon: Users },
-    { name: t('sidebar.courses'), href: `/${orgSlug}/business-panel/courses`, icon: BookOpen },
-    { name: t('sidebar.learningPaths', 'Rutas'), href: `/${orgSlug}/business-panel/learning-paths`, icon: Route },
-    { name: t('sidebar.hierarchy', 'Estructura'), href: `/${orgSlug}/business-panel/hierarchy`, icon: Network },
-    { name: t('sidebar.reports'), href: `/${orgSlug}/business-panel/reports`, icon: BarChart3 },
-    { name: t('sidebar.reviews', 'Revisiones'), href: `/${orgSlug}/business-panel/reviews`, icon: ClipboardCheck },
-    { name: t('sidebar.settings'), href: `/${orgSlug}/business-panel/settings`, icon: Settings }
+    { id: 'tour-nav-dashboard', name: t('sidebar.dashboard'), href: `/${orgSlug}/business-panel/dashboard`, icon: LayoutDashboard },
+    { id: 'tour-nav-users', name: t('sidebar.users'), href: `/${orgSlug}/business-panel/users`, icon: Users },
+    { id: 'tour-nav-courses', name: t('sidebar.courses'), href: `/${orgSlug}/business-panel/courses`, icon: BookOpen },
+    { id: 'tour-nav-learning-paths', name: t('sidebar.learningPaths', 'Rutas'), href: `/${orgSlug}/business-panel/learning-paths`, icon: Route },
+    { id: 'tour-nav-hierarchy', name: t('sidebar.hierarchy', 'Estructura'), href: `/${orgSlug}/business-panel/hierarchy`, icon: Network },
+    { id: 'tour-nav-reports', name: t('sidebar.reports'), href: `/${orgSlug}/business-panel/reports`, icon: BarChart3 },
+    { id: 'tour-nav-reviews', name: t('sidebar.reviews', 'Revisiones'), href: `/${orgSlug}/business-panel/reviews`, icon: ClipboardCheck },
+    { id: 'tour-nav-settings', name: t('sidebar.settings'), href: `/${orgSlug}/business-panel/settings`, icon: Settings }
   ], [orgSlug, t])
 
   const sidebarStyle = useMemo<CSSProperties>(() => {
@@ -231,6 +231,7 @@ export function BusinessPanelSidebar({
               return (
                 <li key={item.name}>
                   <Link
+                    id={item.id}
                     href={item.href}
                     onClick={() => {
                       if (isMobile) onClose()

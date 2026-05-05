@@ -45,6 +45,9 @@ import businessPt from '../../../../public/locales/pt/business.json'
 import { useBusinessReportsAnalytics } from '../hooks/useBusinessReportsAnalytics'
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { PremiumDatePicker } from './PremiumDatePicker'
+import Joyride from 'react-joyride'
+import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
+import { getAdminReportsSteps, ADMIN_REPORTS_TOUR_ID } from '@/features/tours/config/business-panel/admin-reports-steps'
 import type {
   ReportsAnalyticsBreakdownItem,
   ReportsAnalyticsAiInsights,
@@ -111,9 +114,18 @@ export function BusinessReportsAnalytics() {
   const locale: ReportsAnalyticsLocale = isReportsAnalyticsLocale(i18n.language) ? i18n.language : 'es'
   const t = useReportsAnalyticsText(baseT as (key: string) => string, locale)
 
+  const { joyrideProps } = useFeatureTour({
+    tourId: ADMIN_REPORTS_TOUR_ID,
+    steps: getAdminReportsSteps(baseT),
+    enabled: !isLoading,
+  })
+
   return (
+    <>
+    <Joyride {...joyrideProps} />
     <div className="w-full space-y-6">
       <section
+        id="tour-reports-hero"
         className="relative overflow-hidden rounded-lg border px-5 py-7 sm:px-8"
         style={{
           background: theme.heroBackground,
@@ -208,6 +220,7 @@ export function BusinessReportsAnalytics() {
         </div>
       </section>
 
+      <div id="tour-reports-filters">
       <FiltersBar
         data={data}
         filters={filters}
@@ -218,6 +231,7 @@ export function BusinessReportsAnalytics() {
         onRefresh={refetch}
         isLoading={isLoading}
       />
+      </div>
 
       {error ? (
         <StatePanel theme={theme} icon={AlertTriangle} title={t('reportsAnalytics.states.errorTitle')} message={t('reportsAnalytics.states.errorDescription')} />
@@ -229,7 +243,10 @@ export function BusinessReportsAnalytics() {
 
       {!isLoading && data ? (
         <>
+          <div id="tour-reports-overview">
           <OverviewGrid data={data} theme={theme} t={t} />
+          </div>
+          <div id="tour-reports-insights">
           <AiInsightsPanel
             insights={insights}
             isGenerating={isGeneratingInsights}
@@ -239,7 +256,8 @@ export function BusinessReportsAnalytics() {
             onExportPdf={() => exportInsightsPdf(locale)}
             isExportingPdf={isExportingInsightsPdf}
           />
-          <div className="grid gap-5 xl:grid-cols-2">
+          </div>
+          <div id="tour-reports-charts" className="grid gap-5 xl:grid-cols-2">
             <LoginHeatmapCard data={data} theme={theme} t={t} locale={locale} />
             <TrendCard
               title={t('reportsAnalytics.sections.learningTrend')}
@@ -335,6 +353,7 @@ export function BusinessReportsAnalytics() {
         </>
       ) : null}
     </div>
+    </>
   )
 }
 

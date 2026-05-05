@@ -15,6 +15,9 @@ import { PremiumSelect } from '@/features/business-panel/components/PremiumSelec
 import { CourseStatCard } from './CourseStatCard'
 import { CourseCard } from './CourseCard'
 import { useCoursesPageLogic } from './useCoursesPageLogic'
+import Joyride from 'react-joyride'
+import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
+import { getAdminCoursesSteps, ADMIN_COURSES_TOUR_ID } from '@/features/tours/config/business-panel/admin-courses-steps'
 
 export function CoursesPageContent() {
   const {
@@ -41,6 +44,12 @@ export function CoursesPageContent() {
     courseStats,
     handleCourseClick,
   } = useCoursesPageLogic()
+
+  const { joyrideProps } = useFeatureTour({
+    tourId: ADMIN_COURSES_TOUR_ID,
+    steps: getAdminCoursesSteps(t),
+    enabled: !isLoading,
+  })
 
   if (isLoading) {
     return (
@@ -69,6 +78,8 @@ export function CoursesPageContent() {
   }
 
   return (
+    <>
+    <Joyride {...joyrideProps} />
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -76,6 +87,7 @@ export function CoursesPageContent() {
     >
       {/* Hero Section */}
       <motion.div
+        id="tour-courses-hero"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -133,7 +145,7 @@ export function CoursesPageContent() {
       </motion.div>
 
       {/* Stats Grid - Minimalist Dashboard Pattern */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div id="tour-courses-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {courseStats.map((stat, index) => (
           <CourseStatCard key={stat.title} {...stat} delay={index} />
         ))}
@@ -158,7 +170,7 @@ export function CoursesPageContent() {
       )}
 
       {/* Filters Section - EXACT Replication of Users Page Style */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-8">
+      <div id="tour-courses-filters" className="flex flex-col lg:flex-row gap-4 mb-8">
         {/* Search Input - Matching Users Page Design */}
         <div className="flex-1 relative group">
           <Search
@@ -273,7 +285,7 @@ export function CoursesPageContent() {
           </motion.div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
+          <div id="tour-courses-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
             {filteredCourses.map((course, index) => (
               <CourseCard
                 key={course.id}
@@ -286,5 +298,6 @@ export function CoursesPageContent() {
         </>
       )}
     </motion.div>
+    </>
   )
 }

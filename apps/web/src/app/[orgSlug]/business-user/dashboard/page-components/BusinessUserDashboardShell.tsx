@@ -3,7 +3,7 @@
 import type { CSSProperties } from 'react'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { BookOpen, GraduationCap, Sparkles, TrendingUp, LayoutGrid, List, ChevronDown, ChevronUp } from 'lucide-react'
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets'
@@ -170,6 +170,14 @@ export function BusinessUserDashboardShell({
     disableHeavyEffects ? 6 : assignedCourses.length
   )
   const [isStatsOpenMobile, setIsStatsOpenMobile] = useState(false)
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({})
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [groupId]: !prev[groupId],
+    }))
+  }
 
   const coursePathMap = useMemo(() => {
     const map = new Map<string, { pathTitle: string; position: number; isUnlocked: boolean }>()
@@ -673,66 +681,101 @@ export function BusinessUserDashboardShell({
               </motion.div>
             ) : courseView === 'list' && groupedListSections.length > 0 ? (
               <div className="space-y-8">
-                {groupedListSections.map((section) => (
-                  <section key={section.id}>
-                    <div className="mb-3">
-                      <h3 className="text-lg font-bold" style={{ color: orgColors.text }}>
-                        {section.title}
-                      </h3>
-                      <p className="mt-1 text-sm" style={{ color: orgColors.textSecondary }}>
-                        {section.summary}
-                      </p>
+                <Suspense
+                  fallback={
+                    <div className="space-y-4">
+                      {assignedCourses.map((_, index) => (
+                        <div
+                          key={index}
+                          className="rounded-2xl animate-pulse h-20 w-full"
+                          style={{
+                            backgroundColor: orgColors.cardBg,
+                            border: `1px solid ${orgColors.border}`,
+                          }}
+                        />
+                      ))}
                     </div>
-                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                      <Suspense
-                        fallback={
-                          <>
-                            {section.entries.map((_, index) => (
-                              <div
-                                key={index}
-                                className="h-16 animate-pulse rounded-2xl"
-                                style={{
-                                  backgroundColor: orgColors.cardBg,
-                                  border: `1px solid ${orgColors.border}`,
-                                }}
-                              />
-                            ))}
-                          </>
-                        }
+                  }
+                >
+                  {groupedListSections.map((section) => (
+                    <div key={section.id} className="space-y-4">
+                      <button
+                        onClick={() => toggleGroup(section.id)}
+                        className="flex w-full items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none group hover:bg-white/5 transition-all duration-200"
                       >
-                        {section.entries.map((entry, index) => (
-                          <CourseCard3D
-                            key={`${section.id}-${entry.course.course_id}-${entry.position ?? index}`}
-                            course={entry.course}
-                            index={index}
-                            onClick={() => {
-                              if (entry.assigned) {
-                                handleCourseClick(entry.course)
-                                return
-                              }
+                        <div className="flex items-center gap-3 text-left">
+                          <div
+                            className="p-1.5 rounded-lg border bg-white/5 border-white/10 shrink-0"
+                            style={{ color: orgColors.accent }}
+                          >
+                            <ChevronDown
+                              className={`w-4 h-4 transition-transform duration-300 ${collapsedGroups[section.id] ? '-rotate-90' : ''}`}
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold leading-tight" style={{ color: orgColors.text }}>
+                              {section.title}
+                            </h3>
+                            <p className="text-xs mt-0.5" style={{ color: orgColors.textSecondary }}>
+                              {section.summary}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent mx-2 hidden sm:block" />
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 shrink-0"
+                          style={{ color: orgColors.textSecondary }}
+                        >
+                          {section.entries.length} {t('dashboard.learningPaths.coursesLabel', 'cursos')}
+                        </span>
+                      </button>
 
-                              handleLearningPathCourseClick(entry.course.slug)
-                            }}
-                            onCertificateClick={
-                              entry.course.progress === 100 && entry.course.has_certificate
-                                ? () => handleCourseClick(entry.course, 'certificate')
-                                : undefined
-                            }
-                            styles={userDashboardStyles}
-                            viewMode="list"
-                            learningPathTitle={entry.pathTitle}
-                            learningPathPosition={entry.position}
-                            isLockedInPath={entry.isLocked}
-                            disableHeavyEffects={disableHeavyEffects}
-                          />
-                        ))}
-                      </Suspense>
+                      <AnimatePresence initial={false}>
+                        {!collapsedGroups[section.id] && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3, ease: 'easeInOut' }}
+                            className="overflow-hidden"
+                          >
+                            <div className="grid grid-cols-1 gap-3 sm:gap-4 ml-4 md:ml-12 pb-4">
+                              {section.entries.map((entry, index) => (
+                                <CourseCard3D
+                                  key={`${section.id}-${entry.course.course_id}-${entry.position ?? index}`}
+                                  course={entry.course}
+                                  index={index}
+                                  onClick={() => {
+                                    if (entry.assigned) {
+                                      handleCourseClick(entry.course)
+                                      return
+                                    }
+
+                                    handleLearningPathCourseClick(entry.course.slug)
+                                  }}
+                                  onCertificateClick={
+                                    entry.course.progress === 100 && entry.course.has_certificate
+                                      ? () => handleCourseClick(entry.course, 'certificate')
+                                      : undefined
+                                  }
+                                  styles={userDashboardStyles}
+                                  viewMode="list"
+                                  learningPathTitle={entry.pathTitle}
+                                  learningPathPosition={entry.position}
+                                  isLockedInPath={entry.isLocked}
+                                  disableHeavyEffects={disableHeavyEffects}
+                                />
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
-                  </section>
-                ))}
+                  ))}
+                </Suspense>
               </div>
             ) : (
-              <div className={`grid ${courseView !== 'grid' ? 'grid-cols-1 gap-3 sm:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                 <Suspense
                   fallback={
                     <>
@@ -763,7 +806,7 @@ export function BusinessUserDashboardShell({
                             : undefined
                         }
                         styles={userDashboardStyles}
-                        viewMode={courseView}
+                        viewMode="grid"
                         learningPathTitle={pathInfo?.pathTitle}
                         learningPathPosition={pathInfo?.position}
                         isLockedInPath={pathInfo ? !pathInfo.isUnlocked : false}

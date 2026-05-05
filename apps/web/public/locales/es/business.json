@@ -13,6 +13,198 @@
     "collapseMenu": "Colapsar menú",
     "joinRequests": "Solicitudes"
   },
+  "adminTour": {
+    "labels": {
+      "replay": "Reiniciar tutorial",
+      "tutorial": "Tutorial"
+    },
+    "steps": {
+      "hero": {
+        "title": "Panel de Gestión Empresarial",
+        "content": "Bienvenido a tu centro de comando. Desde aquí podrás gestionar toda tu organización, supervisar el progreso de los usuarios y administrar el contenido educativo."
+      },
+      "sidebar": {
+        "title": "Navegación Principal",
+        "content": "En este menú encontrarás todas las herramientas necesarias: gestión de usuarios, creación de cursos, reportes detallados y configuración de equipos."
+      },
+      "navDashboard": {
+        "title": "Dashboard",
+        "content": "Vista general del rendimiento de la organización, métricas clave y actividad reciente de tus equipos."
+      },
+      "navUsers": {
+        "title": "Usuarios",
+        "content": "Gestiona los miembros de tu organización, administra roles, envía invitaciones y consulta perfiles individuales."
+      },
+      "navCourses": {
+        "title": "Cursos",
+        "content": "Explora la biblioteca de cursos disponibles, asigna contenidos a tus colaboradores y supervisa el avance general."
+      },
+      "navLearningPaths": {
+        "title": "Rutas de Aprendizaje",
+        "content": "Organiza cursos en secuencias lógicas para guiar el desarrollo profesional de tus equipos de manera estructurada."
+      },
+      "navHierarchy": {
+        "title": "Estructura Organizacional",
+        "content": "Define la jerarquía de tu empresa mediante regiones, zonas y equipos para una gestión granular y reportes segmentados."
+      },
+      "navReports": {
+        "title": "Reportes y Analytics",
+        "content": "Accede a datos profundos sobre el impacto del aprendizaje, exporta informes y analiza el ROI de tu capacitación."
+      },
+      "navReviews": {
+        "title": "Revisiones y Seguimiento",
+        "content": "Supervisa tareas, actividades y progresos que requieren validación o atención especial por parte de los administradores."
+      },
+      "navSettings": {
+        "title": "Configuración",
+        "content": "Personaliza la plataforma con tu branding (white-label), ajusta preferencias globales y gestiona la configuración técnica."
+      },
+      "stats": {
+        "title": "Métricas de Impacto",
+        "content": "Visualiza en tiempo real el rendimiento de tu equipo. Monitoriza usuarios activos, cursos completados y el nivel de engagement general."
+      },
+      "activity": {
+        "title": "Actividad Reciente",
+        "content": "Mantente al tanto de lo último que ocurre: finalización de cursos, certificados obtenidos e inicios de sesión."
+      },
+      "quickActions": {
+        "title": "Acciones Rápidas",
+        "content": "Accesos directos para las tareas más frecuentes como gestionar usuarios, asignar cursos y ver reportes."
+      },
+      "soflia": {
+        "title": "Asistente SofLIA",
+        "content": "Tu asistente personal inteligente disponible 24/7 para analizar datos, generar reportes narrativos y resolver dudas."
+      },
+      "finish": {
+        "title": "¡Todo Listo!",
+        "content": "Ya conoces lo básico. Explora las secciones del menú lateral para profundizar en cada área. ¡Empieza a potenciar el aprendizaje de tu equipo!"
+      },
+      "usersActions": {
+        "title": "Gestión de Usuarios",
+        "content": "Desde aquí puedes invitar nuevos usuarios, importar por lotes o descargar la plantilla de carga."
+      },
+      "usersAdd": {
+        "title": "Crear Usuario Directo",
+        "content": "Utiliza este botón para crear una cuenta de usuario manualmente sin necesidad de invitación por correo."
+      },
+      "usersStats": {
+        "title": "Métricas de Equipo",
+        "content": "Visualiza rápidamente cuántos usuarios están activos, invitados o pendientes de aprobación."
+      },
+      "usersFilters": {
+        "title": "Filtros y Búsqueda",
+        "content": "Busca usuarios específicos o filtra por rol, estado, región o equipo para una mejor organización."
+      },
+      "usersList": {
+        "title": "Listado de Usuarios",
+        "content": "Aquí puedes ver a todos los miembros. Haz clic en un usuario para ver sus estadísticas o gestionar su cuenta."
+      },
+      "coursesHero": {
+        "title": "Catálogo de Cursos",
+        "content": "Este es tu centro de gestión de cursos. Desde aquí puedes explorar, buscar y administrar todo el contenido de aprendizaje disponible para tu organización."
+      },
+      "coursesStats": {
+        "title": "Estadísticas de Cursos",
+        "content": "Consulta métricas clave como el total de cursos disponibles, las categorías activas, los niveles de dificultad y el progreso general de tu equipo."
+      },
+      "coursesFilters": {
+        "title": "Filtros y Búsqueda",
+        "content": "Utiliza la barra de búsqueda y los filtros por categoría y nivel para encontrar rápidamente los cursos que necesitas."
+      },
+      "coursesGrid": {
+        "title": "Tarjetas de Cursos",
+        "content": "Cada tarjeta muestra la información clave del curso. Haz clic en cualquier curso para ver los detalles, módulos y asignar usuarios."
+      },
+      "pathsHero": {
+        "title": "Rutas de Aprendizaje",
+        "content": "Este es tu centro de gestión de rutas. Asigna a tus usuarios secuencias de cursos ordenadas para guiar su desarrollo profesional."
+      },
+      "pathsStats": {
+        "title": "Métricas de Rutas",
+        "content": "Consulta rápidamente cuántas rutas están activas, la cantidad de talleres, usuarios asignados y el total de asignaciones vigentes."
+      },
+      "pathsSearch": {
+        "title": "Búsqueda de Rutas",
+        "content": "Busca rutas por nombre, descripción o taller para encontrar rápidamente lo que necesitas."
+      },
+      "pathsCards": {
+        "title": "Tarjetas de Rutas",
+        "content": "Cada tarjeta muestra el contenido de la ruta, sus talleres y cuántos usuarios la tienen asignada. Desde aquí puedes asignar usuarios o gestionar los videos introductorios."
+      },
+      "pathsAssignments": {
+        "title": "Asignaciones Activas",
+        "content": "Revisa qué usuarios tienen cada ruta asignada, cuándo fue asignada y revoca accesos cuando sea necesario."
+      },
+      "hierarchyHeader": {
+        "title": "Estructura Organizacional",
+        "content": "Desde aquí gestionas los niveles organizacionales de tu empresa: regiones, zonas y equipos para una administración granular."
+      },
+      "hierarchyTabs": {
+        "title": "Vistas Disponibles",
+        "content": "Alterna entre la Vista de Árbol para explorar la jerarquía visualmente y la Configuración para ajustar los niveles y nombres de tu estructura."
+      },
+      "hierarchyContent": {
+        "title": "Panel Principal",
+        "content": "Aquí se muestra el contenido de la vista seleccionada. En la vista de árbol puedes crear, editar y eliminar nodos. En configuración, ajusta la nomenclatura de cada nivel."
+      },
+      "reportsHero": {
+        "title": "Reportes y Analytics",
+        "content": "Tu centro de inteligencia de datos. Genera insights con IA, exporta reportes en Excel, CSV o PDF y analiza el ROI de tu capacitación."
+      },
+      "reportsFilters": {
+        "title": "Filtros Avanzados",
+        "content": "Segmenta los datos por fecha, curso, rol, género, región, zona o equipo. Ajusta la granularidad temporal entre día, mes o año."
+      },
+      "reportsOverview": {
+        "title": "Métricas Generales",
+        "content": "Indicadores clave de tu organización: usuarios activos, progreso promedio, tasa de completado, calidad, adopción de SofLIA y adherencia al planificador."
+      },
+      "reportsInsights": {
+        "title": "Insights con IA",
+        "content": "Genera un análisis narrativo con inteligencia artificial que identifica fortalezas, áreas de mejora y recomendaciones accionables para tu equipo."
+      },
+      "reportsCharts": {
+        "title": "Visualizaciones y Gráficos",
+        "content": "Explora tendencias de aprendizaje, demografía, distribución de progreso, uso de SofLIA y rankings de rendimiento en gráficos interactivos."
+      },
+      "reviewsHeader": {
+        "title": "Revisiones Pendientes",
+        "content": "Aquí revisas los cursos enviados desde CourseForge. Puedes aprobarlos para publicación o rechazarlos con comentarios."
+      },
+      "reviewsStats": {
+        "title": "Estado de Revisiones",
+        "content": "Consulta cuántos cursos están pendientes, rechazados, cuáles son actualizaciones y cuáles son completamente nuevos."
+      },
+      "reviewsFilters": {
+        "title": "Filtros y Pestañas",
+        "content": "Alterna entre cursos pendientes y rechazados. Usa la barra de búsqueda para filtrar por título, instructor, categoría o nivel."
+      },
+      "reviewsGrid": {
+        "title": "Tarjetas de Revisión",
+        "content": "Cada tarjeta muestra el curso, su instructor y estado. Desde aquí puedes aprobar, rechazar, ver detalles o eliminar cursos definitivamente."
+      },
+      "settingsHero": {
+        "title": "Configuración",
+        "content": "Tu panel de control central. Desde aquí gestionas toda la configuración de tu organización: datos generales, personalización visual y branding corporativo."
+      },
+      "settingsTabs": {
+        "title": "Pestañas de Configuración",
+        "content": "Navega entre las secciones disponibles. En \"Organización\" ajustas los datos generales y el login personalizado. En \"Branding\" defines los colores y estilos de tu plataforma."
+      },
+      "settingsContent": {
+        "title": "Panel de Contenido",
+        "content": "Aquí se muestra el formulario de la pestaña seleccionada. Los cambios que realices se guardan automáticamente al presionar el botón de guardar en cada sección."
+      },
+      "settingsOrgTab": {
+        "title": "Pestaña Organización",
+        "content": "Configura el nombre, logo, descripción y datos de contacto de tu organización. También puedes personalizar la pantalla de login para tus usuarios."
+      },
+      "settingsBrandingTab": {
+        "title": "Pestaña Branding",
+        "content": "Define los colores primarios y de acento para personalizar toda la experiencia visual de tu plataforma. Esta función está disponible en el plan Enterprise."
+      }
+    }
+  },
   "header": {
     "myOrganization": "Mi Organización",
     "userPanel": "Panel Usuario",
@@ -164,6 +356,7 @@
       "title": "No tienes cursos asignados aún",
       "description": "Tu organización te asignará cursos próximamente. Mientras tanto, explora lo que tenemos preparado para ti."
     },
+    "independentCourses": "Cursos independientes",
     "confirmResetLayout": "¿Estás seguro de que deseas restablecer el layout por defecto? Esto eliminará tu personalización actual.",
     "learningPaths": {
       "title": "Rutas de aprendizaje",

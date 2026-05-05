@@ -13,6 +13,198 @@
     "collapseMenu": "Collapse menu",
     "joinRequests": "Requests"
   },
+  "adminTour": {
+    "labels": {
+      "replay": "Replay tutorial",
+      "tutorial": "Tutorial"
+    },
+    "steps": {
+      "hero": {
+        "title": "Business Management Panel",
+        "content": "Welcome to your command center. From here you can manage your entire organization, monitor user progress, and administer educational content."
+      },
+      "sidebar": {
+        "title": "Main Navigation",
+        "content": "In this menu you will find all the necessary tools: user management, course creation, detailed reports, and team configuration."
+      },
+      "navDashboard": {
+        "title": "Dashboard",
+        "content": "Overview of organization performance, key metrics, and recent activity of your teams."
+      },
+      "navUsers": {
+        "title": "Users",
+        "content": "Manage your organization members, administer roles, send invitations, and view individual profiles."
+      },
+      "navCourses": {
+        "title": "Courses",
+        "content": "Explore the library of available courses, assign content to your collaborators, and monitor general progress."
+      },
+      "navLearningPaths": {
+        "title": "Learning Paths",
+        "content": "Organize courses into logical sequences to guide your teams' professional development in a structured way."
+      },
+      "navHierarchy": {
+        "title": "Organizational Structure",
+        "content": "Define your company hierarchy through regions, zones, and teams for granular management and segmented reporting."
+      },
+      "navReports": {
+        "title": "Reports and Analytics",
+        "content": "Access deep data on learning impact, export reports, and analyze your training ROI."
+      },
+      "navReviews": {
+        "title": "Reviews and Tracking",
+        "content": "Supervise tasks, activities, and progress that require validation or special attention from administrators."
+      },
+      "navSettings": {
+        "title": "Settings",
+        "content": "Customize the platform with your branding (white-label), adjust global preferences, and manage technical configuration."
+      },
+      "stats": {
+        "title": "Impact Metrics",
+        "content": "Visualize your team's performance in real-time. Monitor active users, completed courses, and general organization engagement."
+      },
+      "activity": {
+        "title": "Recent Activity",
+        "content": "Stay up to date with the latest occurrences: course completion, certificates obtained, and logins."
+      },
+      "quickActions": {
+        "title": "Quick Actions",
+        "content": "Shortcuts for the most frequent tasks such as managing users, assigning courses, and viewing reports."
+      },
+      "soflia": {
+        "title": "SofLIA Assistant",
+        "content": "Your smart personal assistant available 24/7 to analyze data, generate narrative reports, and resolve doubts."
+      },
+      "finish": {
+        "title": "All Set!",
+        "content": "You now know the basics. Explore the sidebar sections to dive deeper into each area. Start empowering your team's learning!"
+      },
+      "usersActions": {
+        "title": "User Management",
+        "content": "From here you can invite new users, batch import them, or download the upload template."
+      },
+      "usersAdd": {
+        "title": "Create Direct User",
+        "content": "Use this button to manually create a user account without needing an email invitation."
+      },
+      "usersStats": {
+        "title": "Team Metrics",
+        "content": "Quickly see how many users are active, invited, or pending approval."
+      },
+      "usersFilters": {
+        "title": "Filters and Search",
+        "content": "Search for specific users or filter by role, status, region, or team for better organization."
+      },
+      "usersList": {
+        "title": "User List",
+        "content": "Here you can see all members. Click on a user to view their stats or manage their account."
+      },
+      "coursesHero": {
+        "title": "Course Catalog",
+        "content": "This is your course management hub. From here you can explore, search, and manage all the learning content available for your organization."
+      },
+      "coursesStats": {
+        "title": "Course Statistics",
+        "content": "Check key metrics such as total available courses, active categories, difficulty levels, and your team's overall progress."
+      },
+      "coursesFilters": {
+        "title": "Filters and Search",
+        "content": "Use the search bar and category/level filters to quickly find the courses you need."
+      },
+      "coursesGrid": {
+        "title": "Course Cards",
+        "content": "Each card displays key course information. Click on any course to view details, modules, and assign users."
+      },
+      "pathsHero": {
+        "title": "Learning Paths",
+        "content": "This is your path management center. Assign your users ordered course sequences to guide their professional development."
+      },
+      "pathsStats": {
+        "title": "Path Metrics",
+        "content": "Quickly check how many paths are active, the number of workshops, assigned users, and total active assignments."
+      },
+      "pathsSearch": {
+        "title": "Path Search",
+        "content": "Search paths by name, description, or workshop to quickly find what you need."
+      },
+      "pathsCards": {
+        "title": "Path Cards",
+        "content": "Each card shows the path content, its workshops, and how many users are assigned. From here you can assign users or manage introductory videos."
+      },
+      "pathsAssignments": {
+        "title": "Active Assignments",
+        "content": "Review which users have each path assigned, when it was assigned, and revoke access when needed."
+      },
+      "hierarchyHeader": {
+        "title": "Organizational Structure",
+        "content": "From here you manage your company's organizational levels: regions, zones, and teams for granular administration."
+      },
+      "hierarchyTabs": {
+        "title": "Available Views",
+        "content": "Switch between the Tree View to visually explore the hierarchy and Settings to adjust the levels and names of your structure."
+      },
+      "hierarchyContent": {
+        "title": "Main Panel",
+        "content": "Here the content of the selected view is displayed. In tree view you can create, edit, and delete nodes. In settings, adjust the naming for each level."
+      },
+      "reportsHero": {
+        "title": "Reports and Analytics",
+        "content": "Your data intelligence center. Generate AI insights, export reports in Excel, CSV, or PDF, and analyze your training ROI."
+      },
+      "reportsFilters": {
+        "title": "Advanced Filters",
+        "content": "Segment data by date, course, role, gender, region, zone, or team. Adjust the time granularity between day, month, or year."
+      },
+      "reportsOverview": {
+        "title": "Overview Metrics",
+        "content": "Key indicators for your organization: active users, average progress, completion rate, quality, SofLIA adoption, and planner adherence."
+      },
+      "reportsInsights": {
+        "title": "AI Insights",
+        "content": "Generate a narrative analysis with artificial intelligence that identifies strengths, areas for improvement, and actionable recommendations for your team."
+      },
+      "reportsCharts": {
+        "title": "Visualizations and Charts",
+        "content": "Explore learning trends, demographics, progress distribution, SofLIA usage, and performance rankings in interactive charts."
+      },
+      "reviewsHeader": {
+        "title": "Pending Reviews",
+        "content": "Here you review courses submitted from CourseForge. You can approve them for publication or reject them with feedback."
+      },
+      "reviewsStats": {
+        "title": "Review Status",
+        "content": "Check how many courses are pending, rejected, which are updates, and which are completely new."
+      },
+      "reviewsFilters": {
+        "title": "Filters and Tabs",
+        "content": "Switch between pending and rejected courses. Use the search bar to filter by title, instructor, category, or level."
+      },
+      "reviewsGrid": {
+        "title": "Review Cards",
+        "content": "Each card shows the course, its instructor, and status. From here you can approve, reject, view details, or permanently delete courses."
+      },
+      "settingsHero": {
+        "title": "Settings",
+        "content": "Your central control panel. From here you manage all your organization's settings: general data, visual customization, and corporate branding."
+      },
+      "settingsTabs": {
+        "title": "Settings Tabs",
+        "content": "Navigate between available sections. In \"Organization\" you adjust general data and custom login. In \"Branding\" you define your platform's colors and styles."
+      },
+      "settingsContent": {
+        "title": "Content Panel",
+        "content": "Here the form for the selected tab is displayed. Changes are saved when you press the save button in each section."
+      },
+      "settingsOrgTab": {
+        "title": "Organization Tab",
+        "content": "Configure your organization's name, logo, description, and contact information. You can also customize the login screen for your users."
+      },
+      "settingsBrandingTab": {
+        "title": "Branding Tab",
+        "content": "Define primary and accent colors to customize your platform's entire visual experience. This feature is available on the Enterprise plan."
+      }
+    }
+  },
   "header": {
     "myOrganization": "My Organization",
     "userPanel": "User Panel",

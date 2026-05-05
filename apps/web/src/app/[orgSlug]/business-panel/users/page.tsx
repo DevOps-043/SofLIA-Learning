@@ -29,6 +29,9 @@ import { JoinRequestListRow } from './components/JoinRequestListRow'
 import { UserListRow } from './components/UserListRow'
 import { UsersPageHeader } from './components/UsersPageHeader'
 import { UsersFilterBar } from './components/UsersFilterBar'
+import Joyride from 'react-joyride'
+import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour'
+import { getAdminUsersSteps, ADMIN_USERS_TOUR_ID } from '@/features/tours/config/business-panel/admin-users-steps'
 
 const AddUserModal = dynamic(
   () =>
@@ -160,6 +163,12 @@ export default function BusinessPanelUsersPage() {
     reviewingId,
   } = useBusinessUsersPageLogic()
 
+  const { joyrideProps } = useFeatureTour({
+    tourId: ADMIN_USERS_TOUR_ID,
+    steps: getAdminUsersSteps(t),
+    enabled: !isLoading,
+  })
+
   if (isLoading) {
     return (
       <div className="p-6 min-h-screen animate-pulse">
@@ -192,7 +201,9 @@ export default function BusinessPanelUsersPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8" style={{ color: theme.textColor }}>
+    <>
+      <Joyride {...joyrideProps} />
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8" style={{ color: theme.textColor }}>
       <UsersPageHeader
         t={t}
         onDownloadTemplate={handleDownloadTemplate}
@@ -220,7 +231,7 @@ export default function BusinessPanelUsersPage() {
         </motion.div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      <div id="tour-users-stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         <StatCard
           title={t('users.stats.total')}
           value={stats.total}
@@ -263,54 +274,57 @@ export default function BusinessPanelUsersPage() {
         />
       </div>
 
-      <UsersFilterBar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        totalCounts={{
-          users: resourceTotals.users,
-          invitations: resourceTotals.invitations,
-          inviteLinks: resourceTotals.inviteLinks,
-          joinRequests: joinRequestsCount,
-        }}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterRole={filterRole}
-        setFilterRole={setFilterRole}
-        isRoleDropdownOpen={isRoleDropdownOpen}
-        setIsRoleDropdownOpen={setIsRoleDropdownOpen}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-        isStatusDropdownOpen={isStatusDropdownOpen}
-        setIsStatusDropdownOpen={setIsStatusDropdownOpen}
-        showAdvancedFilters={showAdvancedFilters}
-        setShowAdvancedFilters={setShowAdvancedFilters}
-        activeFiltersCount={activeFiltersCount}
-        clearAllFilters={clearAllFilters}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-        uniqueRegions={uniqueRegions}
-        filterRegion={filterRegion}
-        setFilterRegion={setFilterRegion}
-        isRegionDropdownOpen={isRegionDropdownOpen}
-        setIsRegionDropdownOpen={setIsRegionDropdownOpen}
-        uniqueZones={uniqueZones}
-        filterZone={filterZone}
-        setFilterZone={setFilterZone}
-        isZoneDropdownOpen={isZoneDropdownOpen}
-        setIsZoneDropdownOpen={setIsZoneDropdownOpen}
-        uniqueTeams={uniqueTeams}
-        filterTeam={filterTeam}
-        setFilterTeam={setFilterTeam}
-        isTeamDropdownOpen={isTeamDropdownOpen}
-        setIsTeamDropdownOpen={setIsTeamDropdownOpen}
-        filteredUsers={filteredUsers}
-        filteredInvitations={filteredInvitations}
-        filteredInviteLinks={filteredInviteLinks}
-        filteredJoinRequests={filteredJoinRequests}
-        t={t}
-      />
+      <div id="tour-users-filters">
+        <UsersFilterBar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          totalCounts={{
+            users: resourceTotals.users,
+            invitations: resourceTotals.invitations,
+            inviteLinks: resourceTotals.inviteLinks,
+            joinRequests: joinRequestsCount,
+          }}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filterRole={filterRole}
+          setFilterRole={setFilterRole}
+          isRoleDropdownOpen={isRoleDropdownOpen}
+          setIsRoleDropdownOpen={setIsRoleDropdownOpen}
+          filterStatus={filterStatus}
+          setFilterStatus={setFilterStatus}
+          isStatusDropdownOpen={isStatusDropdownOpen}
+          setIsStatusDropdownOpen={setIsStatusDropdownOpen}
+          showAdvancedFilters={showAdvancedFilters}
+          setShowAdvancedFilters={setShowAdvancedFilters}
+          activeFiltersCount={activeFiltersCount}
+          clearAllFilters={clearAllFilters}
+          viewMode={viewMode}
+          setViewMode={setViewMode}
+          uniqueRegions={uniqueRegions}
+          filterRegion={filterRegion}
+          setFilterRegion={setFilterRegion}
+          isRegionDropdownOpen={isRegionDropdownOpen}
+          setIsRegionDropdownOpen={setIsRegionDropdownOpen}
+          uniqueZones={uniqueZones}
+          filterZone={filterZone}
+          setFilterZone={setFilterZone}
+          isZoneDropdownOpen={isZoneDropdownOpen}
+          setIsZoneDropdownOpen={setIsZoneDropdownOpen}
+          uniqueTeams={uniqueTeams}
+          filterTeam={filterTeam}
+          setFilterTeam={setFilterTeam}
+          isTeamDropdownOpen={isTeamDropdownOpen}
+          setIsTeamDropdownOpen={setIsTeamDropdownOpen}
+          filteredUsers={filteredUsers}
+          filteredInvitations={filteredInvitations}
+          filteredInviteLinks={filteredInviteLinks}
+          filteredJoinRequests={filteredJoinRequests}
+          t={t}
+        />
+      </div>
 
-      <AnimatePresence mode="wait">
+      <div id="tour-users-list">
+        <AnimatePresence mode="wait">
         {activeTab === 'users' ? (
           filteredUsers.length === 0 ? (
             <EmptyState key="empty-users" onAddClick={() => setIsAddModalOpen(true)} />
@@ -567,6 +581,7 @@ export default function BusinessPanelUsersPage() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
 
       {activeTab !== 'requests' && activePagination.totalPages > 1 && (
         <UsersPagination
@@ -644,6 +659,7 @@ export default function BusinessPanelUsersPage() {
         type={toast.type}
       />
     </div>
+    </>
   )
 }
 

@@ -28,8 +28,8 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="relative overflow-hidden rounded-3xl p-8 group"
       style={{
@@ -99,7 +99,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
             </motion.p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div id="tour-users-actions" className="flex items-center gap-3">
             {[
               { icon: Download, label: t('users.buttons.template'), onClick: onDownloadTemplate, delay: 0.4 },
               { icon: Upload, label: t('users.buttons.import', 'Importar'), onClick: onImportClick, delay: 0.45 },
@@ -126,6 +126,7 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
             ))}
 
             <motion.button
+              id="tour-users-add-button"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.55 }}
@@ -143,9 +144,9 @@ export function UsersPageHeader({ t, onDownloadTemplate, onImportClick, onInvite
               <span>{t('users.buttons.add')}</span>
             </motion.button>
           </div>
-        </div>
       </div>
-    </motion.div>
+    </div>
+  </motion.div>
   )
 }
 

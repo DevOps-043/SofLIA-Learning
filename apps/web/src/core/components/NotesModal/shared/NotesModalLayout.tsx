@@ -21,6 +21,7 @@ import {
   Underline,
   Undo,
   X,
+  CornerDownLeft,
 } from 'lucide-react';
 import type { useNotesEditorState } from './useNotesEditorState';
 
@@ -301,9 +302,9 @@ export function NotesModalLayout({
                 />
               </div>
               <div className={classes.tagSection}>
-                <div className="flex items-center gap-3 mb-3">
+                <div className="relative flex items-center mb-3">
                   <input
-                    className="flex-1 bg-gray-50 dark:bg-[#1E2329] border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#00D4B3]/20"
+                    className="flex-1 bg-gray-50 dark:bg-[#1E2329] border border-gray-200 dark:border-white/10 rounded-lg pl-3 pr-10 py-2 text-gray-900 dark:text-white text-xs placeholder-gray-400 dark:placeholder-white/30 focus:outline-none focus:border-[#00D4B3]/50 focus:ring-1 focus:ring-[#00D4B3]/20 transition-all"
                     onChange={(event) => editor.setTagInput(event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === 'Enter') {
@@ -315,9 +316,13 @@ export function NotesModalLayout({
                     type="text"
                     value={editor.tagInput}
                   />
-                  <button className={classes.addTagButton} onClick={editor.addTag}>
-                    {t('notes.modal.addTag')}
-                  </button>
+                  <div className="absolute right-3 flex items-center pointer-events-none">
+                    <kbd className="hidden sm:flex h-5 items-center gap-1 rounded border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0F1419] px-1.5 font-sans text-[10px] font-medium text-gray-400 dark:text-white/30">
+                      <CornerDownLeft className="w-2.5 h-2.5" />
+                      <span>Enter</span>
+                    </kbd>
+                    <CornerDownLeft className="sm:hidden w-3.5 h-3.5 text-gray-400 dark:text-white/30" />
+                  </div>
                 </div>
                 {editor.tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
