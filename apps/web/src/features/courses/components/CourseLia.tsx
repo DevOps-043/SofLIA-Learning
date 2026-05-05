@@ -47,7 +47,7 @@ const PANEL_WIDTH = 420;
 const COURSE_LIA_BUTTON_BOTTOM_PX = 24;
 const COURSE_LIA_BUTTON_RIGHT_PX = 24;
 const COURSE_LIA_BUTTON_SIZE_PX = 60;
-const NAVBAR_HEIGHT = 58; // Ajuste final milimétrico para cubrir totalmente el borde
+const NAVBAR_HEIGHT = 50; // Ajuste final para cubrir totalmente el borde y el espacio oscuro
 const MOBILE_BOTTOM_NAV_HEIGHT = 104; // Altura de la barra de navegación inferior móvil (70px base + safe-area)
 
 function parseMarkdownContent(text: string, onLinkClick: (link: NormalizedLiaLink) => void, isDarkMode: boolean = true): React.ReactNode {
@@ -624,7 +624,7 @@ function CourseLiaPanelContent({
   // Calcular dimensiones responsive
   const panelWidth = isMobile ? '100%' : `${PANEL_WIDTH}px`;
   const panelHeight = isMobile 
-    ? `calc(100vh - ${NAVBAR_HEIGHT}px - ${MOBILE_BOTTOM_NAV_HEIGHT}px)` 
+    ? `calc(100vh - ${NAVBAR_HEIGHT}px - calc(70px + max(env(safe-area-inset-bottom), 8px)))` 
     : `calc(100vh - ${NAVBAR_HEIGHT}px)`;
   const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
   const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };

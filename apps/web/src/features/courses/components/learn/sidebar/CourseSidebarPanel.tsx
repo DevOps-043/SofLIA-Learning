@@ -146,7 +146,7 @@ export function CourseSidebarPanel({
                 style={{
                   paddingTop: isMobile
                     ? `calc(4.5rem + env(safe-area-inset-top, 0px))`
-                    : "4.5rem",
+                    : "1.5rem",
                 }}
               >
                 {learningPathState ? (

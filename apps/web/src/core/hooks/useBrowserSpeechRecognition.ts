@@ -200,10 +200,6 @@ export function useBrowserSpeechRecognition({
         // Ensure a clean start when the browser keeps stale recognition state.
       }
 
-      if (navigator.mediaDevices?.getUserMedia) {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-      }
-
       recognition.lang = langRef.current;
       recognition.start();
       setVoiceError(null);

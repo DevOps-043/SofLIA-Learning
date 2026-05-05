@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronUp, Layers, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Layers, PanelLeftClose, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -76,9 +76,9 @@ export function CourseContentTree({
               onClick={onClosePanel}
               aria-label={t("leftPanel.closePanel")}
               title={t("leftPanel.closePanel")}
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-[#0A2540] transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+              className="flex items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-[#E9ECEF]/50 dark:hover:bg-[#0A2540]/30"
             >
-              <X className="h-4 w-4" strokeWidth={2.5} />
+              <PanelLeftClose className="h-4 w-4 text-[#6C757D] dark:text-white/70" strokeWidth={2} />
             </button>
           ) : null}
 
