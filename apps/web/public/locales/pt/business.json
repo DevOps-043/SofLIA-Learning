@@ -352,6 +352,8 @@
     },
     "values": {
       "minutes": "{{value}} min",
+      "hours": "{{value}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
       "seconds": "{{value}} s"
     },
     "status": {

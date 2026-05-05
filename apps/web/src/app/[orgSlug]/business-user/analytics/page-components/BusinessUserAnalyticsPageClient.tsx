@@ -12,7 +12,6 @@ import {
   CalendarCheck,
   FileText,
   Loader2,
-  Map as MapIcon,
   MessageSquare,
   NotebookPen,
   RefreshCw,
@@ -58,7 +57,8 @@ type AnalyticsApiResponse = BusinessUserAnalyticsResponse | { success: false; er
 type InsightsApiResponse = BusinessUserAnalyticsInsightsResponse | { success: false; error?: string }
 
 const RANGE_OPTIONS: BusinessUserAnalyticsRange[] = ['30d', '90d', '180d', '365d']
-const COURSE_TITLE_MAX_LENGTH = 34
+const COURSE_TITLE_WRAP_LENGTH = 44
+const COURSE_TITLE_LINE_HEIGHT = 14
 const RADAR_KEYS = ['courses', 'activities', 'soflia', 'notes', 'quizzes'] as const
 
 type ChartTooltipPayload = {
@@ -169,13 +169,20 @@ export function BusinessUserAnalyticsPageClient() {
       .slice()
       .sort((a, b) => b.progress - a.progress)
       .slice(0, 8)
-      .map((course) => ({
-        name: truncateCourseTitle(course.courseTitle, COURSE_TITLE_MAX_LENGTH),
-        fullName: course.courseTitle,
-        progress: course.progress,
-      }))
+      .map((course) => {
+        const labelLines = wrapCourseTitle(course.courseTitle, COURSE_TITLE_WRAP_LENGTH)
+
+        return {
+          name: course.courseTitle,
+          fullName: course.courseTitle,
+          labelLines,
+          progress: course.progress,
+        }
+      })
   }, [analytics?.learning.courses])
-  const courseChartHeight = Math.max(320, courseChartData.length * 54 + 80)
+  const courseChartMaxTitleLines = Math.max(1, ...courseChartData.map((course) => course.labelLines.length))
+  const courseChartRowHeight = Math.max(68, courseChartMaxTitleLines * COURSE_TITLE_LINE_HEIGHT + 34)
+  const courseChartHeight = Math.max(360, courseChartData.length * courseChartRowHeight + 80)
 
   const engagementTrendData = useMemo(() => {
     if (!analytics) return []
@@ -200,7 +207,7 @@ export function BusinessUserAnalyticsPageClient() {
   }, [orgSlug, router])
 
   return (
-    <main className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white">
+    <main className="min-h-screen bg-[var(--color-bg-light)] text-gray-900 dark:bg-[var(--color-bg-dark)] dark:text-white">
       <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
         <header id={BUSINESS_USER_ANALYTICS_TOUR_TARGET_IDS.header} className="flex flex-col gap-4 border-b border-gray-200 pb-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-start gap-3">
@@ -248,15 +255,6 @@ export function BusinessUserAnalyticsPageClient() {
             >
               <RefreshCw className="h-4 w-4" />
               {t('analytics.actions.refresh')}
-            </button>
-            <button
-              type="button"
-              onClick={analyticsTour.restartTour}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-              aria-label={t('analytics.actions.restartTour')}
-              title={t('analytics.actions.restartTour')}
-            >
-              <MapIcon className="h-4 w-4" />
             </button>
           </div>
         </header>
@@ -317,46 +315,46 @@ export function BusinessUserAnalyticsPageClient() {
                   title={t('analytics.sections.courseProgress')}
                   subtitle={t('analytics.sections.courseProgressSubtitle')}
                 >
-                <div className="overflow-x-auto pb-2">
-                  <div className="min-w-[760px]" style={{ height: courseChartHeight }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={courseChartData}
-                        layout="vertical"
-                        margin={{ top: 8, right: 24, bottom: 8, left: 20 }}
-                        barCategoryGap={18}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis
-                          type="number"
-                          domain={[0, 100]}
-                          tickFormatter={(value) => `${value}%`}
-                          tickMargin={8}
-                          tick={{ fill: 'currentColor', fontSize: 12 }}
-                          className="text-gray-600 dark:text-gray-300"
-                        />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          width={260}
-                          interval={0}
-                          tick={<CourseAxisTick />}
-                        />
-                        <Tooltip
-                          content={
-                            <AnalyticsTooltip
-                              valueFormatter={(value) => formatPercent(Number(value))}
-                              labelFormatter={(label, payload) =>
-                                String(payload?.[0]?.payload?.fullName || label)
-                              }
-                            />
-                          }
-                        />
-                        <Bar dataKey="progress" fill="var(--color-accent)" radius={[0, 6, 6, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <div className="overflow-x-auto pb-2">
+                    <div className="min-w-[960px]" style={{ height: courseChartHeight }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={courseChartData}
+                          layout="vertical"
+                          margin={{ top: 12, right: 24, bottom: 8, left: 24 }}
+                          barCategoryGap={18}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                          <XAxis
+                            type="number"
+                            domain={[0, 100]}
+                            tickFormatter={(value) => `${value}%`}
+                            tickMargin={8}
+                            tick={{ fill: 'currentColor', fontSize: 12 }}
+                            className="text-gray-600 dark:text-gray-300"
+                          />
+                          <YAxis
+                            dataKey="name"
+                            type="category"
+                            width={400}
+                            interval={0}
+                            tick={<CourseAxisTick />}
+                          />
+                          <Tooltip
+                            content={
+                              <AnalyticsTooltip
+                                valueFormatter={(value) => formatPercent(Number(value))}
+                                labelFormatter={(label, payload) =>
+                                  String(payload?.[0]?.payload?.fullName || label)
+                                }
+                              />
+                            }
+                          />
+                          <Bar dataKey="progress" fill="var(--color-accent)" radius={[0, 6, 6, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
-                </div>
                 </Panel>
               </div>
 
@@ -372,9 +370,7 @@ export function BusinessUserAnalyticsPageClient() {
                   />
                   <SmallStat
                     label={t('analytics.learning.timeSpent')}
-                    value={t('analytics.values.minutes', {
-                      value: formatNumber(analytics.overview.timeSpentMinutes),
-                    })}
+                    value={formatStudyDuration(analytics.overview.timeSpentMinutes, translate)}
                   />
                   <SmallStat
                     label={t('analytics.learning.certificates')}
@@ -628,8 +624,8 @@ function CourseList({
     <div className="space-y-3">
       {courses.map((course) => (
         <div key={course.courseId}>
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-medium">
+          <div className="flex items-start justify-between gap-3 text-sm">
+            <span className="min-w-0 flex-1 whitespace-normal break-words font-medium leading-snug">
               {course.courseTitle}
             </span>
             <span className="shrink-0 text-gray-500 dark:text-gray-400">
@@ -662,22 +658,35 @@ function CourseAxisTick({
     value?: string
     payload?: {
       fullName?: string
+      labelLines?: string[]
     }
   }
 }) {
   const label = payload?.value || ''
   const fullName = payload?.payload?.fullName || label
+  const labelLines = payload?.payload?.labelLines?.length
+    ? payload.payload.labelLines
+    : wrapCourseTitle(fullName, COURSE_TITLE_WRAP_LENGTH)
+  const firstLineOffset = -((labelLines.length - 1) * COURSE_TITLE_LINE_HEIGHT) / 2 + 4
 
   return (
     <g transform={`translate(${x},${y})`}>
       <title>{fullName}</title>
       <text
-        dy={4}
+        x={0}
         textAnchor="end"
         fill="currentColor"
         className="text-xs text-gray-600 dark:text-gray-300"
       >
-        {label}
+        {labelLines.map((line, index) => (
+          <tspan
+            key={`${line}-${index}`}
+            x={0}
+            dy={index === 0 ? firstLineOffset : COURSE_TITLE_LINE_HEIGHT}
+          >
+            {line}
+          </tspan>
+        ))}
       </text>
     </g>
   )
@@ -940,7 +949,54 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 }).format(value)
 }
 
-function truncateCourseTitle(value: string, maxLength = 46): string {
-  if (value.length <= maxLength) return value
-  return `${value.slice(0, maxLength - 3).trimEnd()}...`
+function formatStudyDuration(
+  minutes: number,
+  t: (key: string, values?: Record<string, unknown>) => string,
+): string {
+  const totalMinutes = Math.max(0, Math.round(minutes))
+  const hours = Math.floor(totalMinutes / 60)
+  const remainingMinutes = totalMinutes % 60
+
+  if (hours === 0) {
+    return t('analytics.values.minutes', { value: formatNumber(totalMinutes) })
+  }
+
+  if (remainingMinutes === 0) {
+    return t('analytics.values.hours', { value: formatNumber(hours) })
+  }
+
+  return t('analytics.values.hoursMinutes', {
+    hours: formatNumber(hours),
+    minutes: formatNumber(remainingMinutes),
+  })
+}
+
+function wrapCourseTitle(value: string, maxLineLength = 44): string[] {
+  const normalizedValue = value.trim().replace(/\s+/g, ' ')
+  if (!normalizedValue) return ['']
+
+  const lines: string[] = []
+  let currentLine = ''
+
+  normalizedValue.split(' ').forEach((word) => {
+    if (!currentLine) {
+      currentLine = word
+      return
+    }
+
+    const nextLine = `${currentLine} ${word}`
+    if (nextLine.length <= maxLineLength) {
+      currentLine = nextLine
+      return
+    }
+
+    lines.push(currentLine)
+    currentLine = word
+  })
+
+  if (currentLine) {
+    lines.push(currentLine)
+  }
+
+  return lines
 }

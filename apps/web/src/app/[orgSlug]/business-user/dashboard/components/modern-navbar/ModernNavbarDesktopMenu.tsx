@@ -81,7 +81,8 @@ export function ModernNavbarDesktopMenu({
   userDropdownOpen,
   showOrganizations,
 }: ModernNavbarDesktopMenuProps) {
-  const hoverBackground = colors.isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)'
+  const hoverBackground = colors.isLightMode ? 'rgba(10,37,64,0.05)' : 'rgba(0,212,179,0.08)'
+  const menuItemClass = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors'
   const triggerRef = useRef<HTMLButtonElement>(null)
   const [pos, setPos] = useState<{ top: number; right: number }>({ top: 72, right: 16 })
   const [mounted, setMounted] = useState(false)
@@ -116,7 +117,7 @@ export function ModernNavbarDesktopMenu({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed w-64 rounded-xl border backdrop-blur-xl shadow-xl overflow-hidden"
+            className="fixed w-[260px] rounded-2xl border backdrop-blur-xl shadow-xl overflow-hidden"
             style={{
               zIndex: 99999,
               top: pos.top,
@@ -126,10 +127,16 @@ export function ModernNavbarDesktopMenu({
             }}
           >
             {/* User header */}
-            <div className="px-4 py-3 border-b" style={{ borderColor: colors.border }}>
+            <div
+              className="border-b p-4"
+              style={{
+                borderColor: colors.border,
+                backgroundColor: colors.isLightMode ? 'rgba(248,250,252,0.7)' : 'rgba(10,13,18,0.3)',
+              }}
+            >
               <div className="flex items-center gap-3">
                 <div
-                  className="h-10 w-10 rounded-full flex items-center justify-center ring-2"
+                  className="flex h-10 w-10 items-center justify-center rounded-full ring-2 ring-white/70 dark:ring-white/80"
                   style={{ background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})` }}
                 >
                   <ModernNavbarAvatar
@@ -151,16 +158,16 @@ export function ModernNavbarDesktopMenu({
               </div>
             </div>
 
-            <div className="py-1.5">
+            <div className="space-y-1 p-2">
               {/* Panel Administración */}
               {canAccessAdminPanel && (
                 <motion.button
                   onClick={() => { router.push(`/${organization?.slug || ''}/business-panel/dashboard`); onClose() }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  <LayoutDashboard className="h-4 w-4 opacity-70" />
+                  <LayoutDashboard className="h-5 w-5 opacity-70" />
                   <span>{t('header.adminPanel')}</span>
                 </motion.button>
               )}
@@ -172,11 +179,11 @@ export function ModernNavbarDesktopMenu({
                     router.push(buildStudyPlannerEntryPath({ hasStudyPlan, organizationSlug: organization?.slug }))
                     onClose()
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  {hasStudyPlan ? <CalendarDays className="h-4 w-4 opacity-70" /> : <CalendarPlus className="h-4 w-4 opacity-70" />}
+                  {hasStudyPlan ? <CalendarDays className="h-5 w-5 opacity-70" /> : <CalendarPlus className="h-5 w-5 opacity-70" />}
                   <span>{hasStudyPlan ? t('header.myPlanner') : t('header.createStudyPlan')}</span>
                 </motion.button>
               )}
@@ -185,11 +192,11 @@ export function ModernNavbarDesktopMenu({
               {showOrganizations && (
                 <motion.button
                   onClick={() => { router.push('/auth/select-organization'); onClose() }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  <Building2 className="h-4 w-4 opacity-70" />
+                  <Building2 className="h-5 w-5 opacity-70" />
                   <span>{t('common:profileDropdown.organizations')}</span>
                 </motion.button>
               )}
@@ -198,11 +205,11 @@ export function ModernNavbarDesktopMenu({
               {onCertificatesClick && (
                 <motion.button
                   onClick={() => { onCertificatesClick(); onClose() }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  <Award className="h-4 w-4 opacity-70" />
+                  <Award className="h-5 w-5 opacity-70" />
                   <span className="flex-1 text-left">{t('common:menu.certificates')}</span>
                   {certificatesCount > 0 && (
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
@@ -217,11 +224,11 @@ export function ModernNavbarDesktopMenu({
               {onAnalyticsClick && (
                 <motion.button
                   onClick={() => { onAnalyticsClick(); onClose() }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  <BarChart2 className="h-4 w-4 opacity-70" />
+                  <BarChart2 className="h-5 w-5 opacity-70" />
                   <span>{t('common:menu.stats')}</span>
                 </motion.button>
               )}
@@ -229,11 +236,11 @@ export function ModernNavbarDesktopMenu({
               {/* Editar perfil */}
               <motion.button
                 onClick={() => { onProfileClick(); onClose() }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                className={menuItemClass}
                 style={{ color: colors.text }}
                 whileHover={{ x: 2, backgroundColor: hoverBackground }}
               >
-                <User className="h-4 w-4 opacity-70" />
+                <User className="h-5 w-5 opacity-70" />
                 <span>{t('header.editProfile')}</span>
               </motion.button>
 
@@ -241,11 +248,11 @@ export function ModernNavbarDesktopMenu({
               <div className="relative">
                 <motion.button
                   onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'language' ? null : 'language') }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  <Globe className="h-4 w-4 opacity-70" />
+                  <Globe className="h-5 w-5 opacity-70" />
                   <span className="flex-1 text-left">{t('header.language')}</span>
                   <div className="flex items-center gap-1">
                     <span className="text-xs opacity-70">{language.toUpperCase()}</span>
@@ -275,11 +282,11 @@ export function ModernNavbarDesktopMenu({
               <div className="relative">
                 <motion.button
                   onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'theme' ? null : 'theme') }}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                  className={menuItemClass}
                   style={{ color: colors.text }}
                   whileHover={{ x: 2, backgroundColor: hoverBackground }}
                 >
-                  {resolvedTheme === 'dark' ? <Moon className="h-4 w-4 opacity-70" /> : <Sun className="h-4 w-4 opacity-70" />}
+                  {resolvedTheme === 'dark' ? <Moon className="h-5 w-5 opacity-70" /> : <Sun className="h-5 w-5 opacity-70" />}
                   <span className="flex-1 text-left">{t('common:profileDropdown.theme')}</span>
                   <div className="flex items-center gap-1">
                     <span className="text-xs opacity-70">{t(`common:menu.theme.${theme}`)}</span>
@@ -309,15 +316,15 @@ export function ModernNavbarDesktopMenu({
                 </AnimatePresence>
               </div>
 
-              <div className="my-1 border-t" style={{ borderColor: colors.border }} />
+              <div className="-mx-2 my-1 border-t" style={{ borderColor: colors.border }} />
 
               {/* Cerrar sesión */}
               <motion.button
                 onClick={() => { onLogout(); onClose() }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-400 transition-colors hover:bg-red-500/10"
                 whileHover={{ x: 2 }}
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-5 w-5" />
                 <span>{t('header.logout')}</span>
               </motion.button>
             </div>
@@ -334,12 +341,12 @@ export function ModernNavbarDesktopMenu({
         ref={triggerRef}
         id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.userDropdownTrigger}
         onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-        className="flex items-center justify-center transition-all duration-300 p-1"
+        className="flex items-center justify-center rounded-full p-1 transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
         <div
-          className="h-10 w-10 rounded-xl flex items-center justify-center relative overflow-hidden"
+          className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-full ring-2 ring-white/80 dark:ring-white/80"
           style={{
             background: `linear-gradient(135deg, ${colors.primary}, ${colors.accent})`,
             boxShadow: `0 4px 15px ${colors.primary}40`,
@@ -347,7 +354,7 @@ export function ModernNavbarDesktopMenu({
         >
           <ModernNavbarAvatar
             alt={getDisplayName()}
-            className="h-full w-full rounded-xl object-cover"
+            className="h-full w-full rounded-full object-cover"
             initials={getInitials()}
             profilePictureUrl={user?.profile_picture_url}
             size={40}

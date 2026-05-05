@@ -15,6 +15,7 @@ import { getBusinessUserDashboardGreeting } from '../services/business-user-dash
 import type {
   AssignedCourse,
   AssignedLearningPath,
+  AssignedLearningPathItem,
   BusinessUserDashboardColors,
   BusinessUserDashboardStatItem,
   Organization,
@@ -41,6 +42,66 @@ const LearningPathView = dynamic(
   () => import('../components/LearningPathView').then((m) => ({ default: m.LearningPathView })),
   { ssr: false }
 )
+
+interface CourseListSectionEntry {
+  assigned: boolean
+  course: AssignedCourse
+  isLocked: boolean
+  pathTitle?: string
+  position?: number
+}
+
+interface CourseListSection {
+  entries: CourseListSectionEntry[]
+  id: string
+  summary: string
+  title: string
+}
+
+function clampCourseProgress(progress: number) {
+  if (!Number.isFinite(progress)) return 0
+  return Math.max(0, Math.min(100, progress))
+}
+
+function getCourseStatusFromProgress(progress: number): AssignedCourse['status'] {
+  if (progress >= 100) return 'Completado'
+  if (progress > 0) return 'En progreso'
+  return 'No iniciado'
+}
+
+function formatDashboardText(
+  t: BusinessUserDashboardShellProps['t'],
+  key: string,
+  defaultValue: string,
+  replacements: Record<string, string | number>,
+) {
+  let text = t(key, defaultValue)
+  for (const [name, value] of Object.entries(replacements)) {
+    text = text.split(`{{${name}}}`).join(String(value))
+  }
+  return text
+}
+
+function buildCourseFromLearningPathItem(
+  item: AssignedLearningPathItem,
+  learningPath: AssignedLearningPath,
+  t: BusinessUserDashboardShellProps['t'],
+): AssignedCourse {
+  const progress = clampCourseProgress(item.progress)
+
+  return {
+    id: `${learningPath.id}-${item.courseId}`,
+    course_id: item.courseId,
+    title: item.title || t('dashboard.learningPaths.courseFallback', 'Curso sin titulo'),
+    instructor: learningPath.title,
+    progress,
+    status: getCourseStatusFromProgress(progress),
+    thumbnail: item.thumbnail || '/images/course-placeholder.png',
+    slug: item.slug ?? '',
+    assigned_at: '',
+    has_certificate: item.hasCertificate,
+  }
+}
 
 interface BusinessUserDashboardShellProps {
   orgSlug?: string
@@ -125,6 +186,80 @@ export function BusinessUserDashboardShell({
     }
     return map
   }, [learningPaths])
+
+  const assignedCourseMap = useMemo(() => {
+    const map = new Map<string, AssignedCourse>()
+    for (const course of assignedCourses) {
+      map.set(course.course_id, course)
+    }
+    return map
+  }, [assignedCourses])
+
+  const learningPathListSections = useMemo<CourseListSection[]>(() => {
+    return learningPaths
+      .map((learningPath) => {
+        const entries = learningPath.items.map((item) => {
+          const assignedCourse = assignedCourseMap.get(item.courseId)
+          const course = assignedCourse ?? buildCourseFromLearningPathItem(item, learningPath, t)
+
+          return {
+            assigned: Boolean(assignedCourse),
+            course,
+            isLocked: !item.isUnlocked,
+            pathTitle: learningPath.title,
+            position: item.position,
+          }
+        })
+
+        return {
+          entries,
+          id: learningPath.id,
+          summary: `${learningPath.completedItemsCount} ${t('dashboard.learningPaths.of', 'de')} ${learningPath.totalItemsCount} ${t('dashboard.learningPaths.completedCoursesSuffix', 'cursos completados')}`,
+          title: learningPath.title,
+        }
+      })
+      .filter((section) => section.entries.length > 0)
+  }, [assignedCourseMap, learningPaths, t])
+
+  const standaloneCourses = useMemo(() => {
+    const learningPathCourseIds = new Set<string>()
+
+    for (const learningPath of learningPaths) {
+      for (const item of learningPath.items) {
+        learningPathCourseIds.add(item.courseId)
+      }
+    }
+
+    return assignedCourses.filter((course) => !learningPathCourseIds.has(course.course_id))
+  }, [assignedCourses, learningPaths])
+
+  const standaloneListSection = useMemo<CourseListSection | null>(() => {
+    if (standaloneCourses.length === 0) return null
+
+    const completed = standaloneCourses.filter((course) => clampCourseProgress(course.progress) >= 100).length
+
+    return {
+      entries: standaloneCourses.map((course) => ({
+        assigned: true,
+        course,
+        isLocked: false,
+      })),
+      id: 'standalone-courses',
+      summary: formatDashboardText(
+        t,
+        'dashboard.learningPaths.standaloneSummary',
+        '{{completed}} de {{total}} cursos completados',
+        { completed, total: standaloneCourses.length },
+      ),
+      title: t('dashboard.learningPaths.standaloneTitle', 'Cursos independientes'),
+    }
+  }, [standaloneCourses, t])
+
+  const groupedListSections = useMemo(() => {
+    return standaloneListSection
+      ? [...learningPathListSections, standaloneListSection]
+      : learningPathListSections
+  }, [learningPathListSections, standaloneListSection])
 
   const displayedCourses = useMemo(() => {
     if (!disableHeavyEffects) {
@@ -473,7 +608,7 @@ export function BusinessUserDashboardShell({
                 disableHeavyEffects={disableHeavyEffects}
                 t={t}
               />
-            ) : assignedCourses.length === 0 ? (
+            ) : assignedCourses.length === 0 && learningPaths.length === 0 ? (
               <motion.div
                 initial={disableHeavyEffects ? false : { opacity: 0, scale: 0.98 }}
                 animate={disableHeavyEffects ? undefined : { opacity: 1, scale: 1 }}
@@ -536,6 +671,66 @@ export function BusinessUserDashboardShell({
                   />
                 ) : null}
               </motion.div>
+            ) : courseView === 'list' && groupedListSections.length > 0 ? (
+              <div className="space-y-8">
+                {groupedListSections.map((section) => (
+                  <section key={section.id}>
+                    <div className="mb-3">
+                      <h3 className="text-lg font-bold" style={{ color: orgColors.text }}>
+                        {section.title}
+                      </h3>
+                      <p className="mt-1 text-sm" style={{ color: orgColors.textSecondary }}>
+                        {section.summary}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                      <Suspense
+                        fallback={
+                          <>
+                            {section.entries.map((_, index) => (
+                              <div
+                                key={index}
+                                className="h-16 animate-pulse rounded-2xl"
+                                style={{
+                                  backgroundColor: orgColors.cardBg,
+                                  border: `1px solid ${orgColors.border}`,
+                                }}
+                              />
+                            ))}
+                          </>
+                        }
+                      >
+                        {section.entries.map((entry, index) => (
+                          <CourseCard3D
+                            key={`${section.id}-${entry.course.course_id}-${entry.position ?? index}`}
+                            course={entry.course}
+                            index={index}
+                            onClick={() => {
+                              if (entry.assigned) {
+                                handleCourseClick(entry.course)
+                                return
+                              }
+
+                              handleLearningPathCourseClick(entry.course.slug)
+                            }}
+                            onCertificateClick={
+                              entry.course.progress === 100 && entry.course.has_certificate
+                                ? () => handleCourseClick(entry.course, 'certificate')
+                                : undefined
+                            }
+                            styles={userDashboardStyles}
+                            viewMode="list"
+                            learningPathTitle={entry.pathTitle}
+                            learningPathPosition={entry.position}
+                            isLockedInPath={entry.isLocked}
+                            disableHeavyEffects={disableHeavyEffects}
+                          />
+                        ))}
+                      </Suspense>
+                    </div>
+                  </section>
+                ))}
+              </div>
             ) : (
               <div className={`grid ${courseView !== 'grid' ? 'grid-cols-1 gap-3 sm:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6'}`}>
                 <Suspense
@@ -579,7 +774,7 @@ export function BusinessUserDashboardShell({
                 </Suspense>
               </div>
             )}
-            {disableHeavyEffects && !showLearningPathCarousel && displayedCourses.length < assignedCourses.length ? (
+            {disableHeavyEffects && !showLearningPathCarousel && !(courseView === 'list' && groupedListSections.length > 0) && displayedCourses.length < assignedCourses.length ? (
               <div className="mt-5 flex justify-center">
                 <button
                   type="button"
