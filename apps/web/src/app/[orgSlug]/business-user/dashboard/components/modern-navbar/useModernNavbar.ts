@@ -29,6 +29,12 @@ export function useModernNavbar(
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+
+      if (target?.closest('[data-modern-navbar-dropdown="true"]')) {
+        return;
+      }
+
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setUserDropdownOpen(false);
         setActiveSubmenu(null);

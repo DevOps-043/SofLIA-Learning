@@ -535,7 +535,9 @@ export function BusinessUserAnalyticsPageClient() {
           </>
         ) : null}
       </div>
-      {analyticsTour.isMounted ? <Joyride {...analyticsTour.joyrideProps} /> : null}
+      {analyticsTour.isMounted && analyticsTour.run ? (
+        <Joyride {...analyticsTour.joyrideProps} />
+      ) : null}
     </main>
   )
 }

@@ -11,7 +11,7 @@ export const getAdminPathsSteps = (t: TFunction): Step[] => [
     content: t('adminTour.steps.pathsHero.content', 'Este es tu centro de gestión de rutas. Asigna a tus usuarios secuencias de cursos ordenadas para guiar su desarrollo profesional.'),
     disableBeacon: true,
     data: {
-      icon: <Route className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Route className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -19,7 +19,7 @@ export const getAdminPathsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.pathsStats.title', 'Métricas de Rutas'),
     content: t('adminTour.steps.pathsStats.content', 'Consulta rápidamente cuántas rutas están activas, la cantidad de talleres, usuarios asignados y el total de asignaciones vigentes.'),
     data: {
-      icon: <BarChart3 className="w-5 h-5 text-[#00D4B3]" />
+      icon: <BarChart3 className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -27,7 +27,7 @@ export const getAdminPathsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.pathsSearch.title', 'Búsqueda de Rutas'),
     content: t('adminTour.steps.pathsSearch.content', 'Busca rutas por nombre, descripción o taller para encontrar rápidamente lo que necesitas.'),
     data: {
-      icon: <Search className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Search className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -35,7 +35,7 @@ export const getAdminPathsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.pathsCards.title', 'Tarjetas de Rutas'),
     content: t('adminTour.steps.pathsCards.content', 'Cada tarjeta muestra el contenido de la ruta, sus talleres y cuántos usuarios la tienen asignada. Desde aquí puedes asignar usuarios o gestionar los videos introductorios.'),
     data: {
-      icon: <Layers className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Layers className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -43,7 +43,7 @@ export const getAdminPathsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.pathsAssignments.title', 'Asignaciones Activas'),
     content: t('adminTour.steps.pathsAssignments.content', 'Revisa qué usuarios tienen cada ruta asignada, cuándo fue asignada y revoca accesos cuando sea necesario.'),
     data: {
-      icon: <Users className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Users className="w-5 h-5 text-accent" />
     }
   }
 ];

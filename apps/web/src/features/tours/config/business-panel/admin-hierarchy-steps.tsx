@@ -11,7 +11,7 @@ export const getAdminHierarchySteps = (t: TFunction): Step[] => [
     content: t('adminTour.steps.hierarchyHeader.content', 'Desde aquí gestionas los niveles organizacionales de tu empresa: regiones, zonas y equipos para una administración granular.'),
     disableBeacon: true,
     data: {
-      icon: <Network className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Network className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -19,7 +19,7 @@ export const getAdminHierarchySteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.hierarchyTabs.title', 'Vistas Disponibles'),
     content: t('adminTour.steps.hierarchyTabs.content', 'Alterna entre la Vista de Árbol para explorar la jerarquía visualmente y la Configuración para ajustar los niveles y nombres de tu estructura.'),
     data: {
-      icon: <LayoutGrid className="w-5 h-5 text-[#00D4B3]" />
+      icon: <LayoutGrid className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -27,7 +27,7 @@ export const getAdminHierarchySteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.hierarchyContent.title', 'Panel Principal'),
     content: t('adminTour.steps.hierarchyContent.content', 'Aquí se muestra el contenido de la vista seleccionada. En la vista de árbol puedes crear, editar y eliminar nodos. En configuración, ajusta la nomenclatura de cada nivel.'),
     data: {
-      icon: <GitBranchPlus className="w-5 h-5 text-[#00D4B3]" />
+      icon: <GitBranchPlus className="w-5 h-5 text-accent" />
     }
   }
 ];

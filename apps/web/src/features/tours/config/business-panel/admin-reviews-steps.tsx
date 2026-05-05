@@ -11,7 +11,7 @@ export const getAdminReviewsSteps = (t: TFunction): Step[] => [
     content: t('adminTour.steps.reviewsHeader.content', 'Aquí revisas los cursos enviados desde CourseForge. Puedes aprobarlos para publicación o rechazarlos con comentarios.'),
     disableBeacon: true,
     data: {
-      icon: <ClipboardCheck className="w-5 h-5 text-[#00D4B3]" />
+      icon: <ClipboardCheck className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -19,7 +19,7 @@ export const getAdminReviewsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.reviewsStats.title', 'Estado de Revisiones'),
     content: t('adminTour.steps.reviewsStats.content', 'Consulta cuántos cursos están pendientes, rechazados, cuáles son actualizaciones y cuáles son completamente nuevos.'),
     data: {
-      icon: <BarChart3 className="w-5 h-5 text-[#00D4B3]" />
+      icon: <BarChart3 className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -27,7 +27,7 @@ export const getAdminReviewsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.reviewsFilters.title', 'Filtros y Pestañas'),
     content: t('adminTour.steps.reviewsFilters.content', 'Alterna entre cursos pendientes y rechazados. Usa la barra de búsqueda para filtrar por título, instructor, categoría o nivel.'),
     data: {
-      icon: <Filter className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Filter className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -35,7 +35,7 @@ export const getAdminReviewsSteps = (t: TFunction): Step[] => [
     title: t('adminTour.steps.reviewsGrid.title', 'Tarjetas de Revisión'),
     content: t('adminTour.steps.reviewsGrid.content', 'Cada tarjeta muestra el curso, su instructor y estado. Desde aquí puedes aprobar, rechazar, ver detalles o eliminar cursos definitivamente.'),
     data: {
-      icon: <LayoutGrid className="w-5 h-5 text-[#00D4B3]" />
+      icon: <LayoutGrid className="w-5 h-5 text-accent" />
     }
   }
 ];

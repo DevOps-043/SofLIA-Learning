@@ -25,7 +25,7 @@ export default function BusinessPanelHierarchyPage() {
 
   return (
     <>
-    <Joyride {...joyrideProps} />
+      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

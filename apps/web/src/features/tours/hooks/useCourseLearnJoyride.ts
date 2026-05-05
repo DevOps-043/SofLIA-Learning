@@ -279,7 +279,7 @@ export function useCourseLearnJoyride({
       disableScrolling: true,
       scrollToFirstStep: true,
       scrollOffset: isMobile ? 72 : 120,
-      spotlightClicks: false,
+      spotlightClicks: true,
       spotlightPadding: isMobile ? 12 : 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
@@ -292,6 +292,7 @@ export function useCourseLearnJoyride({
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          pointerEvents: 'none',
         },
       },
       floaterProps: {

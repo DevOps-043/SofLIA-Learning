@@ -114,7 +114,9 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
       </main>
 
       <TourRestartButton anchor={{ bottom: 24, right: 24, size: 56 }} />
-      {profileTour.isMounted ? <Joyride {...profileTour.joyrideProps} /> : null}
+      {profileTour.isMounted && profileTour.run ? (
+        <Joyride {...profileTour.joyrideProps} />
+      ) : null}
 
       <style>{`
         .hide-scrollbar::-webkit-scrollbar { display: none; }

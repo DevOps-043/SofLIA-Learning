@@ -106,7 +106,7 @@ export function buildCourseLearnJoyrideSteps({
       placement: 'center',
       disableBeacon: true,
       data: {
-        icon: <Sparkles className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <Sparkles className="h-5 w-5 text-accent" />,
       },
     },
     {
@@ -116,7 +116,7 @@ export function buildCourseLearnJoyrideSteps({
       placement: isMobile ? 'top' : 'right',
       disableBeacon: true,
       data: {
-        icon: <BookOpen className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <BookOpen className="h-5 w-5 text-accent" />,
       },
     },
     {
@@ -131,7 +131,7 @@ export function buildCourseLearnJoyrideSteps({
             hideArrow: true,
           },
       data: {
-        icon: <PlaySquare className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <PlaySquare className="h-5 w-5 text-accent" />,
         ...(isMobile
           ? {}
           : {
@@ -147,7 +147,7 @@ export function buildCourseLearnJoyrideSteps({
       placement: isMobile ? 'top' : 'bottom',
       disableBeacon: true,
       data: {
-        icon: <LayoutPanelTop className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <LayoutPanelTop className="h-5 w-5 text-accent" />,
       },
     },
     {
@@ -159,7 +159,7 @@ export function buildCourseLearnJoyrideSteps({
       disableScrolling: true,
       spotlightPadding: isMobile ? 12 : 20,
       data: {
-        icon: <Bot className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <Bot className="h-5 w-5 text-accent" />,
       },
     },
     {
@@ -169,7 +169,7 @@ export function buildCourseLearnJoyrideSteps({
       placement: isMobile ? 'bottom' : 'bottom-end',
       disableBeacon: true,
       data: {
-        icon: <Map className="h-5 w-5 text-[#00D4B3]" />,
+        icon: <Map className="h-5 w-5 text-accent" />,
       },
     },
   ];

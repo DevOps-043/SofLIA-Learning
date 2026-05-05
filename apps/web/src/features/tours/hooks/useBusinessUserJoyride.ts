@@ -389,7 +389,7 @@ export function useBusinessUserJoyride(
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: isMobile ? 88 : 120,
-      spotlightClicks: false,
+      spotlightClicks: true,
       spotlightPadding: isMobile ? 12 : 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
@@ -403,6 +403,7 @@ export function useBusinessUserJoyride(
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          pointerEvents: 'none',
         },
       },
       floaterProps: {

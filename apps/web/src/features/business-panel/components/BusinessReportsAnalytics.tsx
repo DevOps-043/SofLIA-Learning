@@ -122,7 +122,7 @@ export function BusinessReportsAnalytics() {
 
   return (
     <>
-    <Joyride {...joyrideProps} />
+      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
     <div className="w-full space-y-6">
       <section
         id="tour-reports-hero"

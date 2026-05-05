@@ -35,7 +35,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'center',
     disableBeacon: true,
     data: {
-      icon: <LayoutDashboard className="w-5 h-5 text-[#00D4B3]" />
+      icon: <LayoutDashboard className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -45,7 +45,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <Navigation className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Navigation className="w-5 h-5 text-accent" />
     }
   },
   // Individual Sidebar Items
@@ -56,7 +56,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <LayoutDashboard className="w-5 h-5 text-[#00D4B3]" />
+      icon: <LayoutDashboard className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -66,7 +66,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <Users className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Users className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -76,7 +76,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <BookOpen className="w-5 h-5 text-[#00D4B3]" />
+      icon: <BookOpen className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -86,7 +86,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <Route className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Route className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -96,7 +96,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <Network className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Network className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -106,7 +106,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <BarChart3 className="w-5 h-5 text-[#00D4B3]" />
+      icon: <BarChart3 className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -116,7 +116,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <ClipboardCheck className="w-5 h-5 text-[#00D4B3]" />
+      icon: <ClipboardCheck className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -126,7 +126,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'right',
     disableBeacon: true,
     data: {
-      icon: <Settings className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Settings className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -136,7 +136,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'bottom',
     disableBeacon: true,
     data: {
-      icon: <BarChart3 className="w-5 h-5 text-[#00D4B3]" />
+      icon: <BarChart3 className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -146,7 +146,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'bottom',
     disableBeacon: true,
     data: {
-      icon: <Activity className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Activity className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -156,7 +156,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'left-start',
     disableBeacon: true,
     data: {
-      icon: <Zap className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Zap className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -168,7 +168,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     disableScrolling: true,
     spotlightPadding: 20,
     data: {
-      icon: <Bot className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Bot className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -178,7 +178,7 @@ export const getBusinessPanelJoyrideSteps = (t: TFunction): Step[] => [
     placement: 'center',
     disableBeacon: true,
     data: {
-      icon: <Sparkles className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Sparkles className="w-5 h-5 text-accent" />
     }
   },
 ];

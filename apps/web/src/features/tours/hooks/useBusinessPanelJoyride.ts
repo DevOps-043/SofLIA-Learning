@@ -148,7 +148,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120, // Reasonable offset to clear header but keep element visible
-      spotlightClicks: false,
+      spotlightClicks: true,
       spotlightPadding: 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
@@ -161,6 +161,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          pointerEvents: 'none',
         },
       },
       floaterProps: {

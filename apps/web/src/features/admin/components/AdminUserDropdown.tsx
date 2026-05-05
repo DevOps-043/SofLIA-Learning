@@ -1,25 +1,18 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Menu, Transition } from '@headlessui/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sun, Moon, Monitor, Check } from 'lucide-react'
+import {
+  Sun, Moon, Monitor, Check, Globe, ChevronRight,
+  LogOut, Shield, User, Building2, LayoutDashboard,
+  LucideIcon
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
-import { 
-  ArrowRightOnRectangleIcon, 
-  ChevronDownIcon, 
-  ShieldCheckIcon, 
-  ChevronRightIcon,
-  AcademicCapIcon,
-  UserIcon,
-  GlobeAltIcon,
-  LanguageIcon
-} from '@heroicons/react/24/outline'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useThemeStore, Theme } from '@/core/stores/themeStore'
 import { useOrganization } from '@/core/hooks/useOrganization'
+import { useLanguage } from '@/core/providers/I18nProvider'
 
 interface AdminUserDropdownProps {
   user: {
@@ -36,79 +29,60 @@ interface AdminUserDropdownProps {
   }
 }
 
+const LANGUAGE_OPTIONS = [
+  { value: 'es' as const, label: 'Español', flag: '🇲🇽' },
+  { value: 'en' as const, label: 'English', flag: '🇺🇸' },
+  { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
+]
+
+const THEME_OPTIONS: Array<{ value: Theme; label: string; icon: typeof Sun }> = [
+  { value: 'light', label: 'Claro', icon: Sun },
+  { value: 'dark', label: 'Oscuro', icon: Moon },
+  { value: 'system', label: 'Sistema', icon: Monitor },
+]
+
 export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false)
-  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null)
   const [avatarError, setAvatarError] = useState(false)
   const handleAvatarError = useCallback(() => setAvatarError(true), [])
+  const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const { logout } = useAuth()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation(['common', 'business'])
+  const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore()
   const { canSwitch } = useOrganization()
-  const { theme, setTheme, initializeTheme } = useThemeStore()
-  const themeMenuRef = useRef<HTMLDivElement>(null)
+  const { language, setLanguage } = useLanguage()
 
   useEffect(() => {
     initializeTheme()
   }, [initializeTheme])
 
-  // Cerrar menú de tema al hacer clic fuera
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (themeMenuRef.current && !themeMenuRef.current.contains(event.target as Node)) {
-        setIsThemeMenuOpen(false)
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+        setActiveSubmenu(null)
       }
     }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-    if (isThemeMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [isThemeMenuOpen])
-
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logout()
       router.push('/auth')
     } catch (error) {
+      // silenced
     }
-  }
+  }, [logout, router])
 
-
-
-  const handleThemeChange = (newTheme: Theme) => {
-    setTheme(newTheme)
-    setIsThemeMenuOpen(false)
-  }
-
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light':
-        return <Sun className="w-4 h-4" />
-      case 'dark':
-        return <Moon className="w-4 h-4" />
-      case 'system':
-        return <Monitor className="w-4 h-4" />
-      default:
-        return <Monitor className="w-4 h-4" />
-    }
-  }
-
-  const getThemeLabel = () => {
-    switch (theme) {
-      case 'light':
-        return 'Modo Claro'
-      case 'dark':
-        return 'Modo Oscuro'
-      case 'system':
-        return 'Seguir Sistema'
-      default:
-        return 'Seguir Sistema'
-    }
-  }
+  const handleNavigation = useCallback((path: string) => {
+    router.push(path)
+    setIsOpen(false)
+    setActiveSubmenu(null)
+  }, [router])
 
   const getInitials = () => {
     const firstName = user.first_name || ''
@@ -123,303 +97,248 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
     return user.email
   }
 
-  const handleLanguageChange = (lang: string) => {
-    i18n.changeLanguage(lang)
-    setIsLangMenuOpen(false)
+  const getCurrentThemeIcon = () => {
+    if (theme === 'system') return Monitor
+    return resolvedTheme === 'dark' ? Moon : Sun
   }
 
+  const hoverBackground = resolvedTheme === 'light' ? 'rgba(10,37,64,0.05)' : 'rgba(0,212,179,0.08)'
+
   return (
-    <Menu as="div" className="relative">
-      {({ open }) => (
-        <>
-          <Menu.Button
-            id="tour-user-dropdown-trigger"
-            className="flex items-center space-x-3 p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-300 group outline-none"
-          >
-            {/* Avatar */}
-            <div className="relative">
-              {user.profile_picture_url && !avatarError ? (
-                <motion.img
-                  src={user.profile_picture_url}
-                  alt={getDisplayName()}
-                  className="w-9 h-9 rounded-full object-cover ring-2 ring-[#E9ECEF] dark:ring-[#334155] group-hover:ring-[#0A2540] dark:group-hover:ring-[#00D4B3] transition-all duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  onError={handleAvatarError}
-                />
-              ) : (
-                <motion.div
-                  className="w-9 h-9 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-[#0A2540]/20"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  {getInitials()}
-                </motion.div>
-              )}
-              {/* Status Indicator */}
-              <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-[#10B981] border-2 border-white dark:border-[#0F1419] rounded-full"></div>
-            </div>
-
-            {/* User Info - Desktop */}
-            <div className="hidden md:block text-left mr-1">
-              <p className="text-sm font-bold text-[#0A2540] dark:text-white leading-none mb-1">
-                {getDisplayName()}
-              </p>
-              <p className="text-[11px] font-medium text-[#0A2540] dark:text-[#00D4B3] uppercase tracking-wider leading-none">
-                {user.cargo_rol}
-              </p>
-            </div>
-
-            {/* Chevron */}
-            <motion.div
-              animate={{ rotate: open ? 180 : 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-            >
-              <ChevronDownIcon 
-                className="w-4 h-4 text-[#6C757D] dark:text-gray-400 group-hover:text-[#0A2540] dark:group-hover:text-white transition-colors" 
+    <div className="relative" ref={dropdownRef}>
+      {/* Trigger Button */}
+      <motion.button
+        id="tour-user-dropdown-trigger"
+        onClick={() => { setIsOpen(!isOpen); setActiveSubmenu(null) }}
+        className="flex items-center justify-center p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all duration-200"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <div className="relative">
+          <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-[#00D4B3]/30 hover:ring-[#00D4B3]/60 transition-all duration-300">
+            {user.profile_picture_url && !avatarError ? (
+              <img
+                src={user.profile_picture_url}
+                alt={getDisplayName()}
+                className="w-full h-full object-cover"
+                onError={handleAvatarError}
               />
-            </motion.div>
-          </Menu.Button>
-
-          <Transition
-            enter="transition ease-out duration-200"
-            enterFrom="transform opacity-0 scale-95 translate-y-2"
-            enterTo="transform opacity-100 scale-100 translate-y-0"
-            leave="transition ease-in duration-150"
-            leaveFrom="transform opacity-100 scale-100 translate-y-0"
-            leaveTo="transform opacity-0 scale-95 translate-y-2"
-          >
-        <Menu.Items className="absolute right-0 mt-3 w-[260px] origin-top-right bg-white dark:bg-[#1E2329] rounded-2xl shadow-xl shadow-black/10 dark:shadow-black/40 border border-[#E9ECEF] dark:border-[#334155] focus:outline-none overflow-hidden z-[120]">
-          
-          {/* Header del Dropdown */}
-          <div className="p-4 border-b border-[#E9ECEF] dark:border-[#334155] bg-[#F8FAFC]/50 dark:bg-[#0A0D12]/30">
-            <div className="flex items-center gap-3 mb-2">
-              {user.profile_picture_url && !avatarError ? (
-                <img
-                  src={user.profile_picture_url}
-                  alt={getDisplayName()}
-                  className="w-10 h-10 rounded-full object-cover ring-2 ring-[#E9ECEF] dark:ring-[#334155]"
-                  onError={handleAvatarError}
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center text-white text-xs font-bold">
-                  {getInitials()}
-                </div>
-              )}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-[#0A2540] dark:text-white truncate">
-                  {getDisplayName()}
-                </p>
-                <p className="text-xs text-[#6C757D] dark:text-gray-400 truncate font-medium">
-                  {user.email}
-                </p>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[#0A2540] to-[#00D4B3] flex items-center justify-center">
+                <span className="text-white text-xs font-semibold">{getInitials()}</span>
               </div>
-            </div>
-            <div className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-[#0A2540]/10 text-[#0A2540] uppercase tracking-wider border border-[#0A2540]/20 dark:bg-[#00D4B3]/10 dark:text-[#00D4B3] dark:border-[#00D4B3]/20">
-              {user.cargo_rol}
-            </div>
-          </div>
-
-          <div className="p-2 space-y-1">
-            {/* Panel de Administración */}
-            {user.cargo_rol?.toLowerCase() === 'administrador' && (
-              <>
-                <Menu.Item>
-                  {({ active }) => (
-                    <Link href="/admin/dashboard">
-                      <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                        active 
-                          ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
-                          : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
-                      }`}>
-                        <ShieldCheckIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                        <span className="text-sm font-medium">{t('menu.adminPanel')}</span>
-                      </div>
-                    </Link>
-                  )}
-                </Menu.Item>
-
-                {canSwitch && (
-                  <Menu.Item>
-                    {({ active }) => (
-                      <Link href="/auth/select-organization">
-                        <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                          active 
-                            ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
-                            : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
-                        }`}>
-                          <GlobeAltIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                          <span className="text-sm font-medium">{t('profileDropdown.organizations')}</span>
-                        </div>
-                      </Link>
-                    )}
-                  </Menu.Item>
-                )}
-              </>
             )}
+          </div>
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[#10B981] rounded-full border-2 border-white dark:border-[#0F1419]" />
+        </div>
+      </motion.button>
 
+      {/* Dropdown */}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => { setIsOpen(false); setActiveSubmenu(null) }}
+            />
 
-            {/* Editar Perfil */}
-            <Menu.Item>
-              {({ active }) => (
-                <Link href="/profile">
-                  <div id="tour-dropdown-edit-profile" className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                    active 
-                      ? 'bg-[#0A2540]/5 text-[#0A2540] dark:bg-[#00D4B3]/5 dark:text-[#00D4B3]'
-                      : 'text-[#0A2540] dark:text-white hover:bg-[#F8FAFC] dark:hover:bg-[#334155]/50'
-                  }`}>
-                    <UserIcon className={`w-5 h-5 ${active ? 'text-[#0A2540] dark:text-[#00D4B3]' : 'text-[#6C757D] dark:text-gray-400'}`} />
-                    <span className="text-sm font-medium">{t('menu.profile')}</span>
+            <motion.div
+              initial={{ opacity: 0, y: 8, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8, scale: 0.95 }}
+              transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+              className="absolute right-0 top-full mt-2 w-[260px] rounded-2xl border backdrop-blur-xl shadow-xl z-50 overflow-hidden bg-white dark:bg-[#1E2329] border-gray-200 dark:border-[#334155]"
+            >
+              {/* Header - User Info */}
+              <div className="p-4 border-b border-gray-200 dark:border-[#334155] bg-gray-50/70 dark:bg-[#0A0D12]/30">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-[#00D4B3]/40 flex items-center justify-center"
+                    style={{ background: `linear-gradient(135deg, #0A2540, #00D4B3)` }}
+                  >
+                    {user.profile_picture_url && !avatarError ? (
+                      <img src={user.profile_picture_url} alt={getDisplayName()} className="w-full h-full rounded-full object-cover" onError={handleAvatarError} />
+                    ) : (
+                      <span className="text-white font-semibold text-sm">{getInitials()}</span>
+                    )}
                   </div>
-                </Link>
-              )}
-            </Menu.Item>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{getDisplayName()}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                  </div>
+                </div>
+              </div>
 
-            {/* Idioma / Language */}
-            <Menu.Item>
-              {({ active }) => (
+              {/* Menu Items */}
+              <div className="py-1.5 space-y-0.5">
+                {/* Panel de Administración */}
+                {user.cargo_rol?.toLowerCase() === 'administrador' && (
+                  <DropdownMenuItem
+                    icon={Shield}
+                    label={t('common:menu.adminPanel')}
+                    onClick={() => handleNavigation('/admin/dashboard')}
+                    hoverBackground={hoverBackground}
+                  />
+                )}
+
+                {/* Panel Usuario */}
+                <DropdownMenuItem
+                  icon={LayoutDashboard}
+                  label={t('business:header.userPanel', { defaultValue: 'Panel Usuario' })}
+                  onClick={() => handleNavigation('/dashboard')}
+                  hoverBackground={hoverBackground}
+                />
+
+                {/* Mis organizaciones */}
+                {canSwitch && (
+                  <DropdownMenuItem
+                    icon={Building2}
+                    label={t('common:profileDropdown.organizations')}
+                    onClick={() => handleNavigation('/auth/select-organization')}
+                    hoverBackground={hoverBackground}
+                  />
+                )}
+
+                {/* Editar perfil */}
+                <DropdownMenuItem
+                  icon={User}
+                  label={t('common:menu.profile')}
+                  onClick={() => handleNavigation('/profile')}
+                  hoverBackground={hoverBackground}
+                />
+
+                {/* Tema - con submenu como el panel de usuario */}
                 <div className="relative">
-                  <button
-                    id="tour-dropdown-language"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsLangMenuOpen(!isLangMenuOpen);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                      active || isLangMenuOpen
-                        ? 'bg-[#F8FAFC] dark:bg-[#334155]/50 text-[#0A2540] dark:text-white'
-                        : 'text-[#0A2540] dark:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 flex items-center justify-center ${active || isLangMenuOpen ? 'text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-gray-400'}`}>
-                        <GlobeAltIcon className="w-5 h-5" />
+                  <DropdownMenuItem
+                    icon={getCurrentThemeIcon()}
+                    label={t('common:profileDropdown.theme')}
+                    rightElement={
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs opacity-70">{t(`common:menu.theme.${theme}`)}</span>
+                        <ChevronRight className={`h-3.5 w-3.5 opacity-70 transition-transform ${activeSubmenu === 'theme' ? 'rotate-90' : ''}`} />
                       </div>
-                      <span className="text-sm font-medium">{t('language')} / Language</span>
-                    </div>
-                    <ChevronRightIcon className={`w-4 h-4 text-[#6C757D] dark:text-gray-400 transition-transform duration-200 ${isLangMenuOpen ? 'rotate-90' : ''}`} />
-                  </button>
-
+                    }
+                    onClick={() => setActiveSubmenu(activeSubmenu === 'theme' ? null : 'theme')}
+                    hoverBackground={hoverBackground}
+                  />
                   <AnimatePresence>
-                    {isLangMenuOpen && (
+                    {activeSubmenu === 'theme' && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D12]/30 rounded-xl mt-1 border border-[#E9ECEF] dark:border-[#334155]"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                        style={{ backgroundColor: resolvedTheme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.2)' }}
                       >
-                        {[
-                          { value: 'es', label: 'Español' },
-                          { value: 'en', label: 'English' },
-                          { value: 'pt', label: 'Português' },
-                        ].map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleLanguageChange(option.value);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors ${
-                              i18n.language === option.value
-                                ? 'text-[#0A2540] bg-[#0A2540]/5 dark:text-[#00D4B3] dark:bg-[#00D4B3]/5'
-                                : 'text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white'
-                            }`}
-                          >
-                            <span className="uppercase">{option.value}</span>
-                            {option.label}
-                            {i18n.language === option.value && <Check className="w-3 h-3 ml-auto" />}
-                          </button>
-                        ))}
+                        {THEME_OPTIONS.map((option) => {
+                          const ThemeIcon = option.icon
+                          const isActive = theme === option.value
+                          return (
+                            <button
+                              key={option.value}
+                              onClick={() => { setTheme(option.value) }}
+                              className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
+                              style={{ color: isActive ? '#00D4B3' : (resolvedTheme === 'light' ? '#334155' : 'rgba(255,255,255,0.8)') }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBackground }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+                            >
+                              <ThemeIcon className="h-3.5 w-3.5" />
+                              <span>{t(`common:menu.theme.${option.value}`)}</span>
+                              {isActive && <Check className="h-3 w-3 ml-auto" />}
+                            </button>
+                          )
+                        })}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-              )}
-            </Menu.Item>
 
-            {/* Selector de Tema */}
-            <Menu.Item>
-              {({ active }) => (
+                {/* Idioma - con submenu como el panel de usuario */}
                 <div className="relative">
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsThemeMenuOpen(!isThemeMenuOpen);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                      active || isThemeMenuOpen
-                        ? 'bg-[#F8FAFC] dark:bg-[#334155]/50 text-[#0A2540] dark:text-white'
-                        : 'text-[#0A2540] dark:text-white'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 flex items-center justify-center ${active || isThemeMenuOpen ? 'text-[#0A2540] dark:text-white' : 'text-[#6C757D] dark:text-gray-400'}`}>
-                        {getThemeIcon()}
+                  <DropdownMenuItem
+                    icon={Globe}
+                    label={t('common:language')}
+                    rightElement={
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs opacity-70">{language.toUpperCase()}</span>
+                        <ChevronRight className={`h-3.5 w-3.5 opacity-70 transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`} />
                       </div>
-                      <span className="text-sm font-medium">{t('profileDropdown.theme')}</span>
-                    </div>
-                    <ChevronRightIcon className={`w-4 h-4 text-[#6C757D] dark:text-gray-400 transition-transform duration-200 ${isThemeMenuOpen ? 'rotate-90' : ''}`} />
-                  </button>
-
-                  {/* Submenú de Tema */}
+                    }
+                    onClick={() => setActiveSubmenu(activeSubmenu === 'language' ? null : 'language')}
+                    hoverBackground={hoverBackground}
+                  />
                   <AnimatePresence>
-                    {isThemeMenuOpen && (
+                    {activeSubmenu === 'language' && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="overflow-hidden bg-[#F8FAFC] dark:bg-[#0A0D12]/30 rounded-xl mt-1 border border-[#E9ECEF] dark:border-[#334155]"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                        style={{ backgroundColor: resolvedTheme === 'light' ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.2)' }}
                       >
-                        {[
-                          { value: 'light', label: t('menu.theme.light'), icon: Sun },
-                          { value: 'dark', label: t('menu.theme.dark'), icon: Moon },
-                          { value: 'system', label: t('menu.theme.system'), icon: Monitor },
-                        ].map((option) => (
-                          <button
-                            key={option.value}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              handleThemeChange(option.value as Theme);
-                            }}
-                            className={`w-full flex items-center gap-3 px-4 py-2 text-xs font-medium transition-colors ${
-                              theme === option.value
-                                ? 'text-[#0A2540] bg-[#0A2540]/5 dark:text-[#00D4B3] dark:bg-[#00D4B3]/5'
-                                : 'text-[#6C757D] dark:text-gray-400 hover:text-[#0A2540] dark:hover:text-white'
-                            }`}
-                          >
-                            <option.icon className="w-3.5 h-3.5" />
-                            {option.label}
-                            {theme === option.value && <Check className="w-3 h-3 ml-auto" />}
-                          </button>
-                        ))}
+                        {LANGUAGE_OPTIONS.map((opt) => {
+                          const isActive = language === opt.value
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => { setLanguage(opt.value) }}
+                              className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
+                              style={{ color: isActive ? '#00D4B3' : (resolvedTheme === 'light' ? '#334155' : 'rgba(255,255,255,0.8)') }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBackground }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent' }}
+                            >
+                              <span>{opt.flag}</span>
+                              <span>{opt.label}</span>
+                              {isActive && <Check className="h-3 w-3 ml-auto" />}
+                            </button>
+                          )
+                        })}
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </div>
-              )}
-            </Menu.Item>
-          </div>
 
-          {/* Footer - Cerrar Sesión */}
-          <div className="p-2 border-t border-[#E9ECEF] dark:border-[#334155] mt-1">
-            <Menu.Item>
-              {({ active }) => (
-                <button
+                <div className="-mx-2 my-1 border-t border-gray-200 dark:border-[#334155]" />
+
+                {/* Cerrar sesión */}
+                <motion.button
                   onClick={handleLogout}
-                  className={`flex items-center w-full px-3 py-2.5 rounded-xl transition-all duration-200 group ${
-                    active ? 'bg-red-50 dark:bg-red-900/10' : ''
-                  }`}
+                  className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-500 dark:text-red-400 transition-colors hover:bg-red-500/10"
+                  whileHover={{ x: 2 }}
                 >
-                  <ArrowRightOnRectangleIcon className="w-5 h-5 mr-3 text-red-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                    {t('menu.logout')}
-                  </span>
-                </button>
-              )}
-            </Menu.Item>
-          </div>
-        </Menu.Items>
-      </Transition>
-        </>
-      )}
-    </Menu>
+                  <LogOut className="h-5 w-5" />
+                  <span>{t('common:menu.logout')}</span>
+                </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// Reusable MenuItem component matching user panel design
+interface DropdownMenuItemProps {
+  icon: LucideIcon
+  label: string
+  onClick: () => void
+  rightElement?: React.ReactNode
+  hoverBackground: string
+}
+
+function DropdownMenuItem({ icon: Icon, label, onClick, rightElement, hoverBackground }: DropdownMenuItemProps) {
+  return (
+    <motion.button
+      onClick={onClick}
+      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors text-gray-900 dark:text-white"
+      whileHover={{ x: 2, backgroundColor: hoverBackground }}
+    >
+      <Icon className="h-5 w-5 opacity-70" />
+      <span className="flex-1 text-left">{label}</span>
+      {rightElement}
+    </motion.button>
   )
 }

@@ -146,7 +146,7 @@ export function useJoyrideMinitour({
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120,
-      spotlightClicks: false,
+      spotlightClicks: true,
       spotlightPadding: 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
@@ -160,6 +160,7 @@ export function useJoyrideMinitour({
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          pointerEvents: 'none',
         },
       },
       floaterProps: {

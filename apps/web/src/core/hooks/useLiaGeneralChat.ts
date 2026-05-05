@@ -11,6 +11,8 @@ import { prepareLiaBugContext } from '../reporting/lia-chat-reporting';
 type LegacyAuthUser = {
   id?: string;
   first_name?: string;
+  last_name?: string;
+  display_name?: string;
   cargo_rol?: string;
   job_title?: string;
   nombre?: string;
@@ -117,7 +119,9 @@ export function useLiaGeneralChat(
               },
             ],
             context: {
-              userName: legacyUser?.first_name || legacyUser?.nombre,
+              userName: legacyUser?.first_name 
+                ? `${legacyUser.first_name} ${legacyUser.last_name || ''}`.trim() 
+                : (legacyUser?.display_name || legacyUser?.nombre),
               userRole:
                 legacyUser?.job_title ||
                 legacyUser?.cargo_rol ||

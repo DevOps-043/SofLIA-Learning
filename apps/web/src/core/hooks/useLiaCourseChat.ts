@@ -14,6 +14,8 @@ interface LiaCourseChatUserProfile {
   nombre?: string;
   job_title?: string;
   first_name?: string;
+  last_name?: string;
+  display_name?: string;
 }
 
 interface LiaChatResponsePayload {
@@ -252,7 +254,9 @@ export function useLiaCourseChat(
             ],
             context: {
               userId: user?.id,
-              userName: userProfile?.first_name || userProfile?.nombre,
+              userName: userProfile?.first_name 
+                ? `${userProfile.first_name} ${userProfile.last_name || ''}`.trim() 
+                : (userProfile?.display_name || userProfile?.nombre),
               userJobTitle: userProfile?.job_title,
               organizationId: currentOrganization?.id,
               currentPage: fallbackCurrentPage,

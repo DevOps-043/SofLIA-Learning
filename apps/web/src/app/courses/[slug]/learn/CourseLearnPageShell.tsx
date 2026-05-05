@@ -680,7 +680,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
               onSaveNote={handleSaveLiaNote}
             />
 
-            {mounted ? <Joyride {...courseTour.joyrideProps} /> : null}
+            {mounted && courseTour.run ? <Joyride {...courseTour.joyrideProps} /> : null}
           </div>
 
         </CourseAccessGuard>

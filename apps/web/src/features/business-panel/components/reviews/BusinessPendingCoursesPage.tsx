@@ -160,7 +160,7 @@ export function BusinessPendingCoursesPage({
 
   return (
     <>
-    <Joyride {...joyrideProps} />
+      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
     <div className="space-y-8">
       <div id="tour-reviews-header" className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight" style={{ color: panelTheme.textColor }}>

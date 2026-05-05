@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { CallBackProps, STATUS, Step, ACTIONS, EVENTS } from 'react-joyride';
+import { CallBackProps, STATUS, ACTIONS, EVENTS } from 'react-joyride';
 import { useTourProgress } from '../../tours/hooks/useTourProgress';
 import { studyPlannerDashboardJoyrideSteps } from '../../tours/config/study-planner-dashboard-joyride-config';
 import { JoyrideTooltip } from '../../tours/components/JoyrideTooltip';
@@ -7,69 +7,78 @@ import { JoyrideTooltip } from '../../tours/components/JoyrideTooltip';
 export function useStudyPlannerDashboardTour() {
   const [run, setRun] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
-  const tourProgress = useTourProgress('study-planner-dashboard-tour');
+  const [isFinishedInSession, setIsFinishedInSession] = useState(false);
+  const {
+    completeTour,
+    hasSeenTour,
+    isLoading,
+    skipTour,
+    startTour,
+  } = useTourProgress('study-planner-dashboard-tour');
 
   // Initiate tour check on mount
   useEffect(() => {
-    const checkTourStatus = async () => {
-      if (!tourProgress.isLoading) {
-        if (!tourProgress.hasSeenTour) {
-           // Small delay to ensure elements are rendered
-           setTimeout(() => {
-              setRun(true);
-           }, 1500); // 1.5s delay for dashboard to load
-        }
-      }
-    };
-    checkTourStatus();
-  }, [tourProgress.isLoading, tourProgress.hasSeenTour]);
+    if (isLoading || hasSeenTour || isFinishedInSession || run) {
+      return;
+    }
+
+    // Small delay to ensure elements are rendered.
+    const timer = setTimeout(() => {
+      startTour().catch((err) =>
+        console.error('[useStudyPlannerDashboardTour] DB start failed', err),
+      );
+      setRun(true);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [hasSeenTour, isFinishedInSession, isLoading, run, startTour]);
+
+  const stopTour = useCallback(() => {
+    setRun(false);
+    setStepIndex(0);
+    setIsFinishedInSession(true);
+  }, []);
 
   const handleJoyrideCallback = useCallback(async (data: CallBackProps) => {
     const { action, index, status, type } = data;
 
-    // Handle close button click
-    if (action === ACTIONS.CLOSE) {
-      setRun(false);
-      setStepIndex(0);
-      await tourProgress.skipTour();
-      return;
-    }
-
-    // Handle skip button click
-    if (action === ACTIONS.SKIP) {
-      setRun(false);
-      setStepIndex(0);
-      await tourProgress.skipTour();
-      return;
-    }
-
-    // Controlled navigation
-    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
-      if (action === ACTIONS.NEXT) {
-        setStepIndex(index + 1);
-      } else if (action === ACTIONS.PREV) {
-        setStepIndex(index - 1);
-      }
-    }
-    // Handle finish/skip via status
-    else if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      setRun(false);
-      setStepIndex(0);
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      stopTour();
       if (status === STATUS.FINISHED) {
-        await tourProgress.completeTour();
+        await completeTour();
       } else {
-        await tourProgress.skipTour();
+        await skipTour();
       }
+      return;
     }
-  }, [tourProgress]);
+
+    if (action === ACTIONS.CLOSE || action === ACTIONS.SKIP) {
+      stopTour();
+      await skipTour();
+      return;
+    }
+
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.TARGET_NOT_FOUND) {
+      const nextIndex = action === ACTIONS.PREV ? Math.max(0, index - 1) : index + 1;
+
+      if (nextIndex >= studyPlannerDashboardJoyrideSteps.length) {
+        stopTour();
+        await completeTour();
+        return;
+      }
+
+      setStepIndex(nextIndex);
+    }
+  }, [completeTour, skipTour, stopTour]);
 
   const restartTour = useCallback(() => {
-    setRun(false);
     setStepIndex(0);
-    setTimeout(() => {
-      setRun(true);
-    }, 100);
-  }, []);
+    setIsFinishedInSession(false);
+    startTour().catch((err) =>
+      console.error('[useStudyPlannerDashboardTour] DB restart failed', err),
+    );
+    setRun(true);
+  }, [startTour]);
 
   const joyrideProps = {
     run,
@@ -79,14 +88,18 @@ export function useStudyPlannerDashboardTour() {
     continuous: true,
     showProgress: true,
     showSkipButton: true,
-    disableOverlayClose: true,
-    disableCloseOnEsc: true,
+    disableOverlayClose: false,
+    disableCloseOnEsc: false,
+    spotlightClicks: true,
     tooltipComponent: JoyrideTooltip,
     scrollOffset: 120,
     styles: {
       options: {
         zIndex: 10000,
-        primaryColor: '#00D4B3',
+        primaryColor: 'var(--color-accent)',
+      },
+      overlay: {
+        pointerEvents: 'none',
       },
     }
   };

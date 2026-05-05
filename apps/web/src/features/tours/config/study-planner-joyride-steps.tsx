@@ -16,7 +16,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     placement: 'bottom' as const,
     disableBeacon: true,
     data: {
-      icon: <Sparkles className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Sparkles className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -31,7 +31,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     ),
     placement: 'top' as const,
     data: {
-      icon: <MessageCircle className="w-5 h-5 text-[#00D4B3]" />
+      icon: <MessageCircle className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -46,7 +46,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     ),
     placement: 'top' as const,
     data: {
-      icon: <Mic className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Mic className="w-5 h-5 text-accent" />
     }
   },
   {
@@ -61,7 +61,7 @@ export const studyPlannerJoyrideSteps: Step[] = [
     ),
     placement: 'bottom' as const,
     data: {
-      icon: <Calendar className="w-5 h-5 text-[#00D4B3]" />
+      icon: <Calendar className="w-5 h-5 text-accent" />
     }
   }
 ];

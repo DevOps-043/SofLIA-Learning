@@ -322,7 +322,7 @@ function CourseLiaPanelContent({
       }
 
       textarea.style.height = '0px';
-      const nextHeight = Math.min(Math.max(textarea.scrollHeight, 22), maxHeight);
+      const nextHeight = Math.min(Math.max(textarea.scrollHeight, 20), maxHeight);
       textarea.style.height = `${nextHeight}px`;
       textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
     },
@@ -701,7 +701,18 @@ function CourseLiaPanelContent({
                 editingMessageId === message.id && message.role === 'user';
 
               return (
-                <div key={message.id} style={{ display: 'flex', flexDirection: 'column', alignItems: message.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                <div key={message.id} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start', gap: '6px' }}>
+                  {message.role === 'user' && !isEditingThisMessage && !isLoading ? (
+                    <button
+                      type="button"
+                      onClick={() => handleStartEditingMessage(message)}
+                      title={t('lia.editMessage')}
+                      aria-label={t('lia.editMessage')}
+                      style={{ width: '26px', height: '26px', borderRadius: '50%', background: isLightTheme ? '#F1F5F9' : 'rgba(255,255,255,0.08)', border: `1px solid ${isLightTheme ? '#CBD5E1' : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightTheme ? '#475569' : 'rgba(255,255,255,0.75)', flexShrink: 0 }}
+                    >
+                      <Pencil style={{ width: '13px', height: '13px' }} />
+                    </button>
+                  ) : null}
                   <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: message.role === 'user' ? '#0A2540' : themeColors.messageBubbleAssistant }}>
                     {isEditingThisMessage ? (
                       <>
@@ -751,19 +762,6 @@ function CourseLiaPanelContent({
                             style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', borderRadius: '12px', backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
                           />
                         ))}
-                      </div>
-                    ) : null}
-                    {message.role === 'user' && !isEditingThisMessage && !isLoading ? (
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end', opacity: 0.75 }}>
-                        <button
-                          type="button"
-                          onClick={() => handleStartEditingMessage(message)}
-                          title={t('lia.editMessage')}
-                          aria-label={t('lia.editMessage')}
-                          style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', color: 'rgba(255,255,255,0.75)' }}
-                        >
-                          <Pencil style={{ width: '14px', height: '14px' }} />
-                        </button>
                       </div>
                     ) : null}
                     {message.role === 'assistant' && (
@@ -869,7 +867,7 @@ function CourseLiaPanelContent({
                 </button>
               </div>
             ) : null}
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: isMobile ? '2%' : '10px', backgroundColor: themeColors.inputBg, borderRadius: '22px', padding: isMobile ? '6px 3%' : '7px 10px 7px 14px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '9px', backgroundColor: themeColors.inputBg, borderRadius: '20px', padding: isMobile ? '5px 3%' : '5px 9px 5px 14px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
 
                <textarea
                  ref={inputRef}
@@ -878,7 +876,7 @@ function CourseLiaPanelContent({
                  onKeyDown={handleKeyDown}
                  placeholder={t('lia.coursePlaceholder')}
                  rows={1}
-                 style={{ flex: 1, minHeight: '22px', maxHeight: '128px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: '5px 0', overflowY: 'hidden' }}
+                 style={{ flex: 1, minHeight: '20px', maxHeight: '120px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: 0, overflowY: 'hidden', display: 'block' }}
                  id="lia-course-chat-input"
                  className="lia-input-reset lia-chat-input"
                />
@@ -890,8 +888,8 @@ function CourseLiaPanelContent({
                  title={primaryActionLabel}
                  aria-label={primaryActionLabel}
                  style={{
-                   width: '38px',
-                   height: '38px',
+                   width: '34px',
+                   height: '34px',
                    borderRadius: '50%',
                    backgroundColor: primaryActionMode === 'stop'
                      ? (isLightTheme ? '#DC2626' : '#EF4444')

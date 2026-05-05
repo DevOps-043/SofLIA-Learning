@@ -113,12 +113,16 @@ export const useStudyPlannerJoyride = () => {
     showSkipButton: true,
     disableOverlayClose: false,
     disableCloseOnEsc: false,
+    spotlightClicks: true,
     tooltipComponent: JoyrideTooltip,
     scrollOffset: 120,    
     styles: {
       options: {
         zIndex: 10000,
-        primaryColor: '#00D4B3',
+        primaryColor: 'var(--color-accent)',
+      },
+      overlay: {
+        pointerEvents: 'none',
       },
     }
   };

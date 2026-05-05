@@ -178,7 +178,7 @@ export default function StudyPlannerDashboardPage() {
         onConfirm={confirmDialog.onConfirm}
       />
 
-      {isMounted && <Joyride {...joyrideProps} />}
+      {isMounted && joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
     </div>
   );
 }

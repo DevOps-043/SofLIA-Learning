@@ -374,7 +374,9 @@ export default function SelectOrganizationPage() {
         </motion.div>
       </motion.div>
       <TourRestartButton anchor={{ bottom: 24, right: 24, size: 56 }} />
-      {organizationTour.isMounted ? <Joyride {...organizationTour.joyrideProps} /> : null}
+      {organizationTour.isMounted && organizationTour.run ? (
+        <Joyride {...organizationTour.joyrideProps} />
+      ) : null}
     </div>
   );
 }

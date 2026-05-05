@@ -256,7 +256,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       disableScrolling: true,
       disableScrollParentFix: true,
       scrollToFirstStep: false,
-      spotlightClicks: false,
+      spotlightClicks: true,
       spotlightPadding: 8,
       tooltipComponent: JoyrideTooltip,
       styles: {
@@ -269,6 +269,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          pointerEvents: 'none',
         },
       },
       floaterProps: {

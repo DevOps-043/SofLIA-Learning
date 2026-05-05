@@ -112,6 +112,7 @@ export function ModernNavbarDesktopMenu({
 
           {/* Panel */}
           <motion.div
+            data-modern-navbar-dropdown="true"
             id={BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS.userDropdownMenu}
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -264,7 +265,7 @@ export function ModernNavbarDesktopMenu({
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden" style={{ backgroundColor: colors.isLightMode ? 'rgba(0,0,0,0.05)' : 'rgba(0,0,0,0.2)' }}>
                       {LANGUAGE_OPTIONS.map((option) => (
-                        <button key={option.value} onClick={() => { setLanguage(option.value); setActiveSubmenu(null) }}
+                        <button key={option.value} onClick={() => { setLanguage(option.value) }}
                           className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
                           style={{ color: language === option.value ? colors.accent : colors.text }}
                           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBackground }}
@@ -300,7 +301,7 @@ export function ModernNavbarDesktopMenu({
                       {THEME_OPTIONS.map((option) => {
                         const ThemeIcon = option.icon
                         return (
-                          <button key={option.value} onClick={() => { setTheme(option.value); setActiveSubmenu(null) }}
+                          <button key={option.value} onClick={() => { setTheme(option.value) }}
                             className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
                             style={{ color: theme === option.value ? colors.accent : colors.text }}
                             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = hoverBackground }}

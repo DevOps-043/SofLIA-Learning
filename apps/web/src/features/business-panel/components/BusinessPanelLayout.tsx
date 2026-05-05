@@ -212,7 +212,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
           />
         )}
 
-        {isMounted && <Joyride {...joyrideProps} />}
+        {isMounted && run && <Joyride {...joyrideProps} />}
 
         <div
           key={styles?.selectedTheme || 'default-theme'}

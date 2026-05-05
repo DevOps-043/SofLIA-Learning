@@ -102,7 +102,7 @@ export function BusinessSettings() {
 
   return (
     <>
-    <Joyride {...joyrideProps} />
+      {joyrideProps.run ? <Joyride {...joyrideProps} /> : null}
     <div className="min-h-screen p-6 lg:p-8 space-y-8">
       <div id="tour-settings-hero">
       <motion.div
