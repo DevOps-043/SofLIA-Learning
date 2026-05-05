@@ -283,7 +283,7 @@
       },
       "feedback": {
         "title": "Personalized feedback",
-        "content": "Generate an AI read to identify strengths, opportunities, and next steps."
+        "content": "Generate an AI report to identify strengths, opportunities, and next steps."
       },
       "heatmap": {
         "title": "Activity map",
@@ -388,6 +388,8 @@
         "coursePreviewPointOne": "Understand the core concepts before moving forward.",
         "coursePreviewPointTwo": "Apply what you learn through exercises and path activities.",
         "coursePreviewPointThree": "Connect this course with the next steps in the learning path.",
+        "standaloneTitle": "Independent courses",
+        "standaloneSummary": "{{completed}} of {{total}} completed",
         "pathPreviewMeta": "{{count}} courses in sequence",
         "pathAiDescription": "AI summary: this path organizes the courses so you can advance through a clear sequence, starting with {{firstCourse}} and connecting each topic with the next.",
         "pathPreviewPointOne": "Recommended progression to avoid context gaps.",
@@ -405,6 +407,7 @@
     "courses": {
       "progress": "Progress",
       "status": {
+        "notStarted": "Not started",
         "assigned": "Assigned",
         "inProgress": "In progress",
         "completed": "Completed"
@@ -428,19 +431,19 @@
       "refresh": "Refresh",
       "retry": "Retry",
       "restartTour": "Replay tutorial",
-      "generateFeedback": "Generate AI feedback",
-      "generatingFeedback": "Generating feedback..."
+      "generateFeedback": "Generate AI Report",
+      "generatingFeedback": "Generating report..."
     },
     "errors": {
       "title": "Your statistics could not be loaded",
       "load": "Error loading statistics",
-      "insights": "Error generating AI feedback"
+      "insights": "Error generating AI report"
     },
     "metrics": {
       "averageProgress": "Average progress",
       "assignedDetail": "{{completed}} of {{total}} courses completed",
-      "aiAdoption": "AI adoption",
-      "aiDetail": "{{conversations}} conversations and {{messages}} messages",
+      "aiAdoption": "SofLIA Adoption",
+      "aiDetail": "Active use: {{conversations}} conversations and {{messages}} messages in the period",
       "planning": "Planning",
       "planningDetail": "{{completed}} of {{planned}} sessions completed",
       "quality": "Overall quality",
@@ -452,7 +455,7 @@
       "learningSnapshot": "Learning snapshot",
       "learningSnapshotSubtitle": "Operational indicators for your progress.",
       "aiAdoption": "SofLIA adoption",
-      "aiAdoptionSubtitle": "Usage, questions, and conversational quality signals.",
+      "aiAdoptionSubtitle": "Measures active SofLIA use: conversations started, message volume, useful questions, and off-topic signals.",
       "quality": "Response quality",
       "qualitySubtitle": "Radar for courses, activities, SofLIA, notes, and quizzes.",
       "planning": "Planning",
@@ -460,7 +463,7 @@
       "activities": "Activities",
       "quizzes": "Quizzes and exams",
       "feedback": "Personalized feedback",
-      "feedbackSubtitle": "Generate an AI read and reuse the result for 24 hours if the data does not change.",
+      "feedbackSubtitle": "Generate an AI Report and reuse the result for 24 hours if the data does not change.",
       "heatmap": "Activity map",
       "heatmapSubtitle": "{{count}} interactions recorded in the period"
     },
@@ -486,6 +489,13 @@
         "soflia": "SofLIA",
         "notes": "Notes",
         "quizzes": "Quizzes"
+      },
+      "radarDescriptions": {
+        "courses": "Average progress in assigned courses and completed lessons.",
+        "activities": "Submissions, required activity progress, and validation quality.",
+        "soflia": "Question quality, usage relevance, and off-topic signals in SofLIA.",
+        "notes": "Coverage, content, and adoption of notes during learning.",
+        "quizzes": "Average score, pass rate, and recent quiz and exam results."
       }
     },
     "planning": {
@@ -513,7 +523,7 @@
       "latest": "Latest result"
     },
     "feedback": {
-      "empty": "Generate feedback whenever you want a personalized read of your progress.",
+      "empty": "Generate a report whenever you want a personalized read of your progress.",
       "cached": "Cached result",
       "generated": "Generated result",
       "strengths": "Strengths",
@@ -533,6 +543,8 @@
     },
     "values": {
       "minutes": "{{value}} min",
+      "hours": "{{value}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
       "seconds": "{{value}} s"
     },
     "status": {

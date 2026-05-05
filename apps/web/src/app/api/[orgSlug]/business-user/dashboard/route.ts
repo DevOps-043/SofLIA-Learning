@@ -18,7 +18,7 @@ interface AssignedCourse {
   title: string
   instructor: string
   progress: number
-  status: 'Asignado' | 'En progreso' | 'Completado'
+  status: 'No iniciado' | 'Asignado' | 'En progreso' | 'Completado'
   thumbnail: string
   slug: string
   assigned_at: string
@@ -316,10 +316,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
         const actualCompletedAt = enrollment?.completed_at || assignment.completed_at
         const instructorName = instructor?.name || 'Instructor'
 
-        let status: 'Asignado' | 'En progreso' | 'Completado' = 'Asignado'
+        let status: 'No iniciado' | 'Asignado' | 'En progreso' | 'Completado' = 'No iniciado'
         if (actualProgress >= 100 || assignment.status === 'completed' || enrollment?.enrollment_status === 'completed') {
           status = 'Completado'
-        } else if (actualProgress > 0 || assignment.status === 'in_progress' || enrollment?.enrollment_status === 'active') {
+        } else if (actualProgress > 0) {
           status = 'En progreso'
         }
 

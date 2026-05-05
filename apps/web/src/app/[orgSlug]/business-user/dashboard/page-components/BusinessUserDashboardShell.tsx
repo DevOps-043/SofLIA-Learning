@@ -15,6 +15,7 @@ import { getBusinessUserDashboardGreeting } from '../services/business-user-dash
 import type {
   AssignedCourse,
   AssignedLearningPath,
+  AssignedLearningPathItem,
   BusinessUserDashboardColors,
   BusinessUserDashboardStatItem,
   Organization,
@@ -41,6 +42,66 @@ const LearningPathView = dynamic(
   () => import('../components/LearningPathView').then((m) => ({ default: m.LearningPathView })),
   { ssr: false }
 )
+
+interface CourseListSectionEntry {
+  assigned: boolean
+  course: AssignedCourse
+  isLocked: boolean
+  pathTitle?: string
+  position?: number
+}
+
+interface CourseListSection {
+  entries: CourseListSectionEntry[]
+  id: string
+  summary: string
+  title: string
+}
+
+function clampCourseProgress(progress: number) {
+  if (!Number.isFinite(progress)) return 0
+  return Math.max(0, Math.min(100, progress))
+}
+
+function getCourseStatusFromProgress(progress: number): AssignedCourse['status'] {
+  if (progress >= 100) return 'Completado'
+  if (progress > 0) return 'En progreso'
+  return 'No iniciado'
+}
+
+function formatDashboardText(
+  t: BusinessUserDashboardShellProps['t'],
+  key: string,
+  defaultValue: string,
+  replacements: Record<string, string | number>,
+) {
+  let text = t(key, defaultValue)
+  for (const [name, value] of Object.entries(replacements)) {
+    text = text.split(`{{${name}}}`).join(String(value))
+  }
+  return text
+}
+
+function buildCourseFromLearningPathItem(
+  item: AssignedLearningPathItem,
+  learningPath: AssignedLearningPath,
+  t: BusinessUserDashboardShellProps['t'],
+): AssignedCourse {
+  const progress = clampCourseProgress(item.progress)
+
+  return {
+    id: `${learningPath.id}-${item.courseId}`,
+    course_id: item.courseId,
+    title: item.title || t('dashboard.learningPaths.courseFallback', 'Curso sin titulo'),
+    instructor: learningPath.title,
+    progress,
+    status: getCourseStatusFromProgress(progress),
+    thumbnail: item.thumbnail || '/images/course-placeholder.png',
+    slug: item.slug ?? '',
+    assigned_at: '',
+    has_certificate: item.hasCertificate,
+  }
+}
 
 interface BusinessUserDashboardShellProps {
   orgSlug?: string
@@ -134,41 +195,79 @@ export function BusinessUserDashboardShell({
     return map
   }, [learningPaths])
 
-  const groupedCourses = useMemo(() => {
-    const paths: Record<string, { id: string; title: string; courses: AssignedCourse[] }> = {}
-    const independent: AssignedCourse[] = []
-
+  const assignedCourseMap = useMemo(() => {
+    const map = new Map<string, AssignedCourse>()
     for (const course of assignedCourses) {
-      const pathInfo = coursePathMap.get(course.course_id)
-      if (pathInfo) {
-        if (!paths[pathInfo.pathTitle]) {
-          const path = learningPaths.find((p) => p.title === pathInfo.pathTitle)
-          paths[pathInfo.pathTitle] = {
-            id: path?.id || pathInfo.pathTitle,
-            title: pathInfo.pathTitle,
-            courses: [],
+      map.set(course.course_id, course)
+    }
+    return map
+  }, [assignedCourses])
+
+  const learningPathListSections = useMemo<CourseListSection[]>(() => {
+    return learningPaths
+      .map((learningPath) => {
+        const entries = learningPath.items.map((item) => {
+          const assignedCourse = assignedCourseMap.get(item.courseId)
+          const course = assignedCourse ?? buildCourseFromLearningPathItem(item, learningPath, t)
+
+          return {
+            assigned: Boolean(assignedCourse),
+            course,
+            isLocked: !item.isUnlocked,
+            pathTitle: learningPath.title,
+            position: item.position,
           }
+        })
+
+        return {
+          entries,
+          id: learningPath.id,
+          summary: `${learningPath.completedItemsCount} ${t('dashboard.learningPaths.of', 'de')} ${learningPath.totalItemsCount} ${t('dashboard.learningPaths.completedCoursesSuffix', 'cursos completados')}`,
+          title: learningPath.title,
         }
-        paths[pathInfo.pathTitle].courses.push(course)
-      } else {
-        independent.push(course)
+      })
+      .filter((section) => section.entries.length > 0)
+  }, [assignedCourseMap, learningPaths, t])
+
+  const standaloneCourses = useMemo(() => {
+    const learningPathCourseIds = new Set<string>()
+
+    for (const learningPath of learningPaths) {
+      for (const item of learningPath.items) {
+        learningPathCourseIds.add(item.courseId)
       }
     }
 
-    // Ordenar cursos dentro de las rutas por posición
-    for (const pathTitle in paths) {
-      paths[pathTitle].courses.sort((a, b) => {
-        const posA = coursePathMap.get(a.course_id)?.position ?? 0
-        const posB = coursePathMap.get(b.course_id)?.position ?? 0
-        return posA - posB
-      })
-    }
+    return assignedCourses.filter((course) => !learningPathCourseIds.has(course.course_id))
+  }, [assignedCourses, learningPaths])
+
+  const standaloneListSection = useMemo<CourseListSection | null>(() => {
+    if (standaloneCourses.length === 0) return null
+
+    const completed = standaloneCourses.filter((course) => clampCourseProgress(course.progress) >= 100).length
 
     return {
-      paths: Object.values(paths),
-      independent,
+      entries: standaloneCourses.map((course) => ({
+        assigned: true,
+        course,
+        isLocked: false,
+      })),
+      id: 'standalone-courses',
+      summary: formatDashboardText(
+        t,
+        'dashboard.learningPaths.standaloneSummary',
+        '{{completed}} de {{total}} cursos completados',
+        { completed, total: standaloneCourses.length },
+      ),
+      title: t('dashboard.learningPaths.standaloneTitle', 'Cursos independientes'),
     }
-  }, [assignedCourses, coursePathMap, learningPaths])
+  }, [standaloneCourses, t])
+
+  const groupedListSections = useMemo(() => {
+    return standaloneListSection
+      ? [...learningPathListSections, standaloneListSection]
+      : learningPathListSections
+  }, [learningPathListSections, standaloneListSection])
 
   const displayedCourses = useMemo(() => {
     if (!disableHeavyEffects) {
@@ -517,7 +616,7 @@ export function BusinessUserDashboardShell({
                 disableHeavyEffects={disableHeavyEffects}
                 t={t}
               />
-            ) : assignedCourses.length === 0 ? (
+            ) : assignedCourses.length === 0 && learningPaths.length === 0 ? (
               <motion.div
                 initial={disableHeavyEffects ? false : { opacity: 0, scale: 0.98 }}
                 animate={disableHeavyEffects ? undefined : { opacity: 1, scale: 1 }}
@@ -580,7 +679,7 @@ export function BusinessUserDashboardShell({
                   />
                 ) : null}
               </motion.div>
-            ) : courseView === 'list' ? (
+            ) : courseView === 'list' && groupedListSections.length > 0 ? (
               <div className="space-y-8">
                 <Suspense
                   fallback={
@@ -598,36 +697,41 @@ export function BusinessUserDashboardShell({
                     </div>
                   }
                 >
-                  {groupedCourses.paths.map((path) => (
-                    <div key={path.id} className="space-y-4">
+                  {groupedListSections.map((section) => (
+                    <div key={section.id} className="space-y-4">
                       <button
-                        onClick={() => toggleGroup(path.id)}
+                        onClick={() => toggleGroup(section.id)}
                         className="flex w-full items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none group hover:bg-white/5 transition-all duration-200"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 text-left">
                           <div
-                            className="p-1.5 rounded-lg border bg-white/5 border-white/10"
+                            className="p-1.5 rounded-lg border bg-white/5 border-white/10 shrink-0"
                             style={{ color: orgColors.accent }}
                           >
                             <ChevronDown
-                              className={`w-4 h-4 transition-transform duration-300 ${collapsedGroups[path.id] ? '-rotate-90' : ''}`}
+                              className={`w-4 h-4 transition-transform duration-300 ${collapsedGroups[section.id] ? '-rotate-90' : ''}`}
                             />
                           </div>
-                          <h3 className="text-lg font-bold" style={{ color: orgColors.text }}>
-                            {path.title}
-                          </h3>
-                          <span
-                            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10"
-                            style={{ color: orgColors.textSecondary }}
-                          >
-                            {path.courses.length} {t('dashboard.learningPaths.coursesLabel', 'cursos')}
-                          </span>
+                          <div>
+                            <h3 className="text-lg font-bold leading-tight" style={{ color: orgColors.text }}>
+                              {section.title}
+                            </h3>
+                            <p className="text-xs mt-0.5" style={{ color: orgColors.textSecondary }}>
+                              {section.summary}
+                            </p>
+                          </div>
                         </div>
-                        <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent mx-2" />
+                        <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent mx-2 hidden sm:block" />
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10 shrink-0"
+                          style={{ color: orgColors.textSecondary }}
+                        >
+                          {section.entries.length} {t('dashboard.learningPaths.coursesLabel', 'cursos')}
+                        </span>
                       </button>
 
                       <AnimatePresence initial={false}>
-                        {!collapsedGroups[path.id] && (
+                        {!collapsedGroups[section.id] && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
@@ -636,87 +740,29 @@ export function BusinessUserDashboardShell({
                             className="overflow-hidden"
                           >
                             <div className="grid grid-cols-1 gap-3 sm:gap-4 ml-4 md:ml-12 pb-4">
-                              {path.courses.map((course, index) => {
-                                const pathInfo = coursePathMap.get(course.course_id)
-                                return (
-                                  <CourseCard3D
-                                    key={course.id}
-                                    course={course}
-                                    index={index}
-                                    onClick={() => handleCourseClick(course)}
-                                    onCertificateClick={
-                                      course.progress === 100 && course.has_certificate
-                                        ? () => handleCourseClick(course, 'certificate')
-                                        : undefined
-                                    }
-                                    styles={userDashboardStyles}
-                                    viewMode="list"
-                                    learningPathTitle={pathInfo?.pathTitle}
-                                    learningPathPosition={pathInfo?.position}
-                                    isLockedInPath={pathInfo ? !pathInfo.isUnlocked : false}
-                                    disableHeavyEffects={disableHeavyEffects}
-                                  />
-                                )
-                              })}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  ))}
-
-                  {groupedCourses.independent.length > 0 && (
-                    <div className="space-y-4">
-                      <button
-                        onClick={() => toggleGroup('independent')}
-                        className="flex w-full items-center justify-between gap-3 px-3 py-2 rounded-xl outline-none group hover:bg-white/5 transition-all duration-200"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="p-1.5 rounded-lg border bg-white/5 border-white/10"
-                            style={{ color: orgColors.accent }}
-                          >
-                            <ChevronDown
-                              className={`w-4 h-4 transition-transform duration-300 ${collapsedGroups['independent'] ? '-rotate-90' : ''}`}
-                            />
-                          </div>
-                          <h3 className="text-lg font-bold" style={{ color: orgColors.text }}>
-                            {t('dashboard.independentCourses', 'Cursos independientes')}
-                          </h3>
-                          <span
-                            className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/5 border border-white/10"
-                            style={{ color: orgColors.textSecondary }}
-                          >
-                            {groupedCourses.independent.length}{' '}
-                            {t('dashboard.learningPaths.coursesLabel', 'cursos')}
-                          </span>
-                        </div>
-                        <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent mx-2" />
-                      </button>
-
-                      <AnimatePresence initial={false}>
-                        {!collapsedGroups['independent'] && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3, ease: 'easeInOut' }}
-                            className="overflow-hidden"
-                          >
-                            <div className="grid grid-cols-1 gap-3 sm:gap-4 ml-4 md:ml-12 pb-4">
-                              {groupedCourses.independent.map((course, index) => (
+                              {section.entries.map((entry, index) => (
                                 <CourseCard3D
-                                  key={course.id}
-                                  course={course}
+                                  key={`${section.id}-${entry.course.course_id}-${entry.position ?? index}`}
+                                  course={entry.course}
                                   index={index}
-                                  onClick={() => handleCourseClick(course)}
+                                  onClick={() => {
+                                    if (entry.assigned) {
+                                      handleCourseClick(entry.course)
+                                      return
+                                    }
+
+                                    handleLearningPathCourseClick(entry.course.slug)
+                                  }}
                                   onCertificateClick={
-                                    course.progress === 100 && course.has_certificate
-                                      ? () => handleCourseClick(course, 'certificate')
+                                    entry.course.progress === 100 && entry.course.has_certificate
+                                      ? () => handleCourseClick(entry.course, 'certificate')
                                       : undefined
                                   }
                                   styles={userDashboardStyles}
                                   viewMode="list"
+                                  learningPathTitle={entry.pathTitle}
+                                  learningPathPosition={entry.position}
+                                  isLockedInPath={entry.isLocked}
                                   disableHeavyEffects={disableHeavyEffects}
                                 />
                               ))}
@@ -725,7 +771,7 @@ export function BusinessUserDashboardShell({
                         )}
                       </AnimatePresence>
                     </div>
-                  )}
+                  ))}
                 </Suspense>
               </div>
             ) : (
@@ -771,7 +817,7 @@ export function BusinessUserDashboardShell({
                 </Suspense>
               </div>
             )}
-            {disableHeavyEffects && !showLearningPathCarousel && displayedCourses.length < assignedCourses.length ? (
+            {disableHeavyEffects && !showLearningPathCarousel && !(courseView === 'list' && groupedListSections.length > 0) && displayedCourses.length < assignedCourses.length ? (
               <div className="mt-5 flex justify-center">
                 <button
                   type="button"

@@ -284,7 +284,7 @@
       },
       "feedback": {
         "title": "Feedback personalizado",
-        "content": "Gere uma leitura com IA para identificar pontos fortes, oportunidades e próximos passos."
+        "content": "Gere um relatório com IA para identificar pontos fortes, oportunidades e próximos passos."
       },
       "heatmap": {
         "title": "Mapa de atividade",
@@ -390,6 +390,8 @@
         "coursePreviewPointOne": "Entenda os conceitos centrais antes de avançar.",
         "coursePreviewPointTwo": "Aplique o aprendizado em exercícios e atividades da rota.",
         "coursePreviewPointThree": "Conecte este curso com os próximos passos do learning path.",
+        "standaloneTitle": "Cursos independentes",
+        "standaloneSummary": "{{completed}} de {{total}} concluídos",
         "pathPreviewMeta": "{{count}} cursos em sequência",
         "pathAiDescription": "Resumo IA: esta rota organiza os cursos para que você avance em uma sequência clara, começando por {{firstCourse}} e conectando cada tema ao próximo.",
         "pathPreviewPointOne": "Progresso recomendado para evitar lacunas de contexto.",
@@ -407,6 +409,7 @@
     "courses": {
       "progress": "Progresso",
       "status": {
+        "notStarted": "Não iniciado",
         "assigned": "Atribuído",
         "inProgress": "Em progresso",
         "completed": "Concluído"
@@ -430,19 +433,19 @@
       "refresh": "Atualizar",
       "retry": "Tentar novamente",
       "restartTour": "Repetir tutorial",
-      "generateFeedback": "Gerar feedback IA",
-      "generatingFeedback": "Gerando feedback..."
+      "generateFeedback": "Gerar Relatório com IA",
+      "generatingFeedback": "Gerando relatório..."
     },
     "errors": {
       "title": "Não foi possível carregar suas estatísticas",
       "load": "Erro ao carregar estatísticas",
-      "insights": "Erro ao gerar feedback IA"
+      "insights": "Erro ao gerar relatório IA"
     },
     "metrics": {
       "averageProgress": "Progresso médio",
       "assignedDetail": "{{completed}} de {{total}} cursos concluídos",
-      "aiAdoption": "Adoção de IA",
-      "aiDetail": "{{conversations}} conversas e {{messages}} mensagens",
+      "aiAdoption": "Adoção do SofLIA",
+      "aiDetail": "Uso ativo: {{conversations}} conversas e {{messages}} mensagens no período",
       "planning": "Planejamento",
       "planningDetail": "{{completed}} de {{planned}} sessões concluídas",
       "quality": "Qualidade global",
@@ -454,7 +457,7 @@
       "learningSnapshot": "Resumo de aprendizagem",
       "learningSnapshotSubtitle": "Indicadores operacionais do seu progresso.",
       "aiAdoption": "Adoção do SofLIA",
-      "aiAdoptionSubtitle": "Uso, perguntas e sinais de qualidade conversacional.",
+      "aiAdoptionSubtitle": "Mede o uso ativo do SofLIA: conversas iniciadas, volume de mensagens, perguntas úteis e sinais fora de tema.",
       "quality": "Qualidade das respostas",
       "qualitySubtitle": "Radar de cursos, atividades, SofLIA, notas e quizzes.",
       "planning": "Planejamento",
@@ -462,7 +465,7 @@
       "activities": "Atividades",
       "quizzes": "Quizzes e provas",
       "feedback": "Feedback personalizado",
-      "feedbackSubtitle": "Gere uma leitura IA e reutilize o resultado por 24 horas se os dados não mudarem.",
+      "feedbackSubtitle": "Gere um Relatório com IA e reutilize o resultado por 24 horas se os dados não mudarem.",
       "heatmap": "Mapa de atividade",
       "heatmapSubtitle": "{{count}} interações registradas no período"
     },
@@ -488,6 +491,13 @@
         "soflia": "SofLIA",
         "notes": "Notas",
         "quizzes": "Quizzes"
+      },
+      "radarDescriptions": {
+        "courses": "Progresso médio nos cursos atribuídos e aulas concluídas.",
+        "activities": "Entregas, progresso das atividades obrigatórias e qualidade das validações.",
+        "soflia": "Qualidade das perguntas, relevância do uso e sinais fora de tema no SofLIA.",
+        "notes": "Cobertura, conteúdo e adoção de notas durante a aprendizagem.",
+        "quizzes": "Média, aprovação e resultados recentes em quizzes e provas."
       }
     },
     "planning": {
@@ -515,7 +525,7 @@
       "latest": "Último resultado"
     },
     "feedback": {
-      "empty": "Gere feedback quando quiser uma leitura personalizada do seu progresso.",
+      "empty": "Gere um relatório quando quiser uma leitura personalizada do seu progresso.",
       "cached": "Resultado em cache",
       "generated": "Resultado gerado",
       "strengths": "Pontos fortes",
@@ -535,6 +545,8 @@
     },
     "values": {
       "minutes": "{{value}} min",
+      "hours": "{{value}} h",
+      "hoursMinutes": "{{hours}} h {{minutes}} min",
       "seconds": "{{value}} s"
     },
     "status": {

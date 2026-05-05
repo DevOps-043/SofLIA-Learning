@@ -28,12 +28,14 @@ export function StatCard({ title, value, delay, href, id, theme, gradientStyle, 
   const primaryColor = theme?.cardBg || 'var(--color-primary)'
   const accentColor = gradientStyle?.background ? String(gradientStyle.background).split(',')[1]?.trim() || 'var(--color-accent)' : 'var(--color-accent)'
   const actualAccentColor = accentColor.length === 7 || accentColor.length === 9 || accentColor.startsWith('#') ? accentColor : 'var(--color-accent)'
-  const textColor = theme?.text || 'var(--color-bg-light)'
   
   const isLightMode = primaryColor.toLowerCase() === 'var(--color-bg-light)' ||
     primaryColor.toLowerCase() === 'var(--color-gray-50)' ||
-    primaryColor.startsWith('rgb(255')
+    primaryColor.startsWith('rgb(255') ||
+    primaryColor === '#FFFFFF' ||
+    primaryColor === '#ffffff'
   
+  const textColor = theme?.text || (isLightMode ? '#0F172A' : '#FFFFFF')
   const iconColor = isLightMode ? 'var(--color-primary)' : actualAccentColor
 
   const CardContent = (

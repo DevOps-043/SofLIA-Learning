@@ -68,7 +68,7 @@ export async function POST(
 
     logger.error('Business user analytics insights failed', error)
     return NextResponse.json(
-      { success: false, error: 'Error al generar feedback IA' },
+      { success: false, error: 'Error al generar informe IA' },
       { status: 500 },
     )
   }

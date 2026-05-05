@@ -81,6 +81,7 @@ interface GeminiPreviewResponse {
 
 const INITIAL_VISIBLE_PATH_ITEMS = 6
 const PATH_ITEMS_INCREMENT = 6
+const STANDALONE_PATH_ID = '__standalone_courses__'
 
 function formatTranslation(
   t: LearningPathViewProps['t'],
@@ -98,7 +99,30 @@ function formatTranslation(
 function getItemCourseStatus(item: AssignedLearningPathItem): AssignedCourse['status'] {
   if (item.isCompleted || item.progress >= 100) return 'Completado'
   if (item.progress > 0) return 'En progreso'
-  return 'Asignado'
+  return 'No iniciado'
+}
+
+function getCourseStatusTranslationKey(status: AssignedCourse['status']) {
+  switch (status) {
+    case 'No iniciado':
+      return 'dashboard.courses.status.notStarted'
+    case 'Asignado':
+      return 'dashboard.courses.status.assigned'
+    case 'En progreso':
+      return 'dashboard.courses.status.inProgress'
+    case 'Completado':
+      return 'dashboard.courses.status.completed'
+    default:
+      return null
+  }
+}
+
+function translateCourseStatus(
+  status: AssignedCourse['status'],
+  t: LearningPathViewProps['t'],
+) {
+  const key = getCourseStatusTranslationKey(status)
+  return key ? t(key, status) : status
 }
 
 function clampProgress(progress: number) {
@@ -141,11 +165,13 @@ function buildCoursePreviewContent(
   t: LearningPathViewProps['t'],
 ): InfoHoverCardContent {
   const progress = clampProgress(course.progress)
+  const displayStatus: AssignedCourse['status'] =
+    progress <= 0 && course.status !== 'Completado' ? 'No iniciado' : course.status
   const status = !item.isUnlocked
     ? t('dashboard.learningPaths.status.locked', 'Bloqueado')
     : progress >= 100
       ? t('dashboard.learningPaths.status.completed', 'Completado')
-      : course.status
+      : translateCourseStatus(displayStatus, t)
 
   return {
     key: `course:${course.course_id}`,
@@ -194,6 +220,23 @@ function buildLearningPathPreviewContent(
       },
     ),
     loading: true,
+  }
+}
+
+function buildStandalonePathItem(course: AssignedCourse, index: number): AssignedLearningPathItem {
+  const progress = clampProgress(course.progress)
+
+  return {
+    courseId: course.course_id,
+    title: course.title,
+    slug: course.slug || null,
+    thumbnail: course.thumbnail || null,
+    position: index + 1,
+    progress,
+    status: progress >= 100 ? 'completed' : 'available',
+    isUnlocked: true,
+    isCompleted: progress >= 100,
+    hasCertificate: Boolean(course.has_certificate),
   }
 }
 
@@ -342,6 +385,8 @@ function LearningPathCourseTile({
   disableHeavyEffects,
 }: LearningPathCourseTileProps) {
   const progress = clampProgress(course.progress)
+  const displayStatus: AssignedCourse['status'] =
+    progress <= 0 && course.status !== 'Completado' ? 'No iniciado' : course.status
   const isLocked = !item.isUnlocked
   const isCompleted = item.isCompleted || progress >= 100
   const canOpen = !isLocked && Boolean(course.slug || item.slug)
@@ -349,7 +394,7 @@ function LearningPathCourseTile({
     ? t('dashboard.learningPaths.lockedHint', 'Completa el curso anterior')
     : isCompleted
       ? t('dashboard.learningPaths.status.completed', 'Completado')
-      : course.status
+      : translateCourseStatus(displayStatus, t)
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     if (!canOpen || (event.key !== 'Enter' && event.key !== ' ')) return
@@ -507,6 +552,23 @@ export function LearningPathView({
     return map
   }, [assignedCourses])
 
+  const standaloneCourses = useMemo(() => {
+    const learningPathCourseIds = new Set<string>()
+
+    for (const learningPath of learningPaths) {
+      for (const item of learningPath.items) {
+        learningPathCourseIds.add(item.courseId)
+      }
+    }
+
+    return assignedCourses.filter((course) => !learningPathCourseIds.has(course.course_id))
+  }, [assignedCourses, learningPaths])
+
+  const standaloneItems = useMemo(
+    () => standaloneCourses.map((course, index) => buildStandalonePathItem(course, index)),
+    [standaloneCourses],
+  )
+
   const learningPathIdKey = useMemo(
     () => learningPaths.map((path) => path.id).join('|'),
     [learningPaths],
@@ -635,9 +697,16 @@ export function LearningPathView({
         )
       }
 
+      if (standaloneItems.length > 0) {
+        next[STANDALONE_PATH_ID] = Math.min(
+          current[STANDALONE_PATH_ID] ?? INITIAL_VISIBLE_PATH_ITEMS,
+          standaloneItems.length,
+        )
+      }
+
       return next
     })
-  }, [learningPaths])
+  }, [learningPaths, standaloneItems.length])
 
   useEffect(() => {
     if (!orgSlug || !learningPathIdKey) {
@@ -769,9 +838,27 @@ export function LearningPathView({
     [introByPath, orgSlug],
   )
 
-  if (learningPaths.length === 0) {
+  if (learningPaths.length === 0 && standaloneCourses.length === 0) {
     return null
   }
+
+  const standaloneTitle = t('dashboard.learningPaths.standaloneTitle', 'Cursos independientes')
+  const standaloneCompletedCount = standaloneCourses.filter((course) => clampProgress(course.progress) >= 100).length
+  const standaloneSummary = formatTranslation(
+    t,
+    'dashboard.learningPaths.standaloneSummary',
+    '{{completed}} de {{total}} cursos completados',
+    {
+      completed: standaloneCompletedCount,
+      total: standaloneCourses.length,
+    },
+  )
+  const visibleStandaloneItemCount = visibleItemsByPath[STANDALONE_PATH_ID] ?? Math.min(
+    INITIAL_VISIBLE_PATH_ITEMS,
+    standaloneItems.length,
+  )
+  const visibleStandaloneCourses = standaloneCourses.slice(0, visibleStandaloneItemCount)
+  const hasHiddenStandaloneItems = visibleStandaloneItemCount < standaloneCourses.length
 
   return (
     <div className="space-y-12">
@@ -947,6 +1034,108 @@ export function LearningPathView({
           </motion.section>
         )
       })}
+
+      {standaloneCourses.length > 0 ? (
+        <motion.section
+          key={STANDALONE_PATH_ID}
+          initial={disableHeavyEffects ? false : { opacity: 0, y: 12 }}
+          animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+          transition={disableHeavyEffects ? undefined : { delay: learningPaths.length * 0.05 }}
+        >
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <h2
+                className="inline-block max-w-full truncate text-2xl font-bold leading-tight outline-none"
+                style={{ color: orgColors.text }}
+              >
+                {standaloneTitle}
+              </h2>
+              <p className="mt-1 text-sm" style={{ color: orgColors.textSecondary }}>
+                {standaloneSummary}
+              </p>
+            </div>
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => scrollPath(STANDALONE_PATH_ID, 'left')}
+              className="absolute left-0 top-[90px] z-10 hidden h-12 w-12 -translate-x-1/2 items-center justify-center rounded-full border shadow-lg transition hover:scale-105 md:flex xl:top-[116px]"
+              style={{
+                backgroundColor: orgColors.cardBg,
+                borderColor: orgColors.border,
+                color: orgColors.text,
+              }}
+              aria-label={t('dashboard.learningPaths.previousCourses', 'Cursos anteriores')}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+
+            <div
+              ref={(node) => {
+                scrollerRefs.current[STANDALONE_PATH_ID] = node
+              }}
+              className="flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {visibleStandaloneCourses.map((course, index) => {
+                const item = standaloneItems[index]
+                if (!item) return null
+
+                return (
+                  <LearningPathCourseTile
+                    key={`${STANDALONE_PATH_ID}-${course.course_id}`}
+                    course={course}
+                    item={item}
+                    learningPathTitle={standaloneTitle}
+                    orgColors={orgColors}
+                    onOpen={() => onCourseClick(course)}
+                    onCertificateClick={
+                      course.progress === 100 && course.has_certificate && onCertificateClick
+                        ? () => onCertificateClick(course)
+                        : undefined
+                    }
+                    onPreview={showPreview}
+                    onPreviewEnd={scheduleHidePreview}
+                    t={t}
+                    disableHeavyEffects={disableHeavyEffects}
+                  />
+                )
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => scrollPath(STANDALONE_PATH_ID, 'right')}
+              className="absolute right-0 top-[90px] z-10 hidden h-12 w-12 translate-x-1/2 items-center justify-center rounded-full border shadow-lg transition hover:scale-105 md:flex xl:top-[116px]"
+              style={{
+                backgroundColor: orgColors.cardBg,
+                borderColor: orgColors.border,
+                color: orgColors.text,
+              }}
+              aria-label={t('dashboard.learningPaths.nextCourses', 'Mas cursos')}
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </div>
+
+          {hasHiddenStandaloneItems ? (
+            <div className="mt-3 flex justify-center">
+              <button
+                type="button"
+                onClick={() => showMorePathItems(STANDALONE_PATH_ID, standaloneCourses.length)}
+                className="rounded-md border px-4 py-2 text-sm font-semibold transition-colors"
+                style={{
+                  backgroundColor: orgColors.cardBg,
+                  borderColor: orgColors.border,
+                  color: orgColors.text,
+                }}
+              >
+                {t('dashboard.learningPaths.showMoreCourses', 'Ver mas cursos')}
+              </button>
+            </div>
+          ) : null}
+        </motion.section>
+      ) : null}
 
       {hoverCard ? (
         <InfoHoverCard

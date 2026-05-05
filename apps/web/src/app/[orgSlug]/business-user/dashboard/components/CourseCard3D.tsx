@@ -1,5 +1,6 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import Image from 'next/image'
 import { Award, Play, BookOpen, CheckCircle2, Lock } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -14,7 +15,7 @@ interface AssignedCourse {
   title: string
   instructor: string
   progress: number
-  status: 'Asignado' | 'En progreso' | 'Completado'
+  status: 'No iniciado' | 'Asignado' | 'En progreso' | 'Completado'
   thumbnail: string
   slug: string
   assigned_at: string
@@ -79,26 +80,41 @@ export function CourseCard3D({
   const cardBgRgb = hexToRgb(cardBackground)
 
   const statusKeyMap: Record<string, string> = {
+    'No iniciado': 'dashboard.courses.status.notStarted',
     'Asignado': 'dashboard.courses.status.assigned',
     'En progreso': 'dashboard.courses.status.inProgress',
     'Completado': 'dashboard.courses.status.completed'
   }
 
-  const translatedStatus = t(statusKeyMap[course.status] || course.status, course.status)
+  const displayStatus: AssignedCourse['status'] =
+    course.progress <= 0 && course.status !== 'Completado' ? 'No iniciado' : course.status
+  const translatedStatus = t(statusKeyMap[displayStatus] || displayStatus, displayStatus)
 
-  const getStatusColor = () => {
-    switch (course.status) {
+  const getStatusBadgeStyle = (): CSSProperties => {
+    switch (displayStatus) {
       case 'Completado':
-        return 'from-green-500 to-emerald-500'
+        return {
+          backgroundColor: 'color-mix(in srgb, var(--color-success) 16%, transparent)',
+          borderColor: 'color-mix(in srgb, var(--color-success) 42%, transparent)',
+          color: 'var(--color-success)',
+        }
       case 'En progreso':
-        return 'from-blue-500 to-cyan-500'
+        return {
+          backgroundColor: `color-mix(in srgb, ${accentColor} 16%, transparent)`,
+          borderColor: `color-mix(in srgb, ${accentColor} 42%, transparent)`,
+          color: accentColor,
+        }
       default:
-        return 'from-gray-500 to-gray-400'
+        return {
+          backgroundColor: `color-mix(in srgb, ${isLightMode ? 'var(--color-gray-500)' : 'var(--color-gray-200)'} 12%, transparent)`,
+          borderColor: `color-mix(in srgb, ${isLightMode ? 'var(--color-gray-500)' : 'var(--color-gray-200)'} 28%, transparent)`,
+          color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-gray-200)',
+        }
     }
   }
 
   const getStatusIcon = () => {
-    switch (course.status) {
+    switch (displayStatus) {
       case 'Completado':
         return <CheckCircle2 className="w-4 h-4" />
       case 'En progreso':
@@ -111,7 +127,7 @@ export function CourseCard3D({
   if (viewMode === 'list') {
     return (
       <div
-        className={`group flex flex-row items-center gap-0 overflow-hidden rounded-2xl ${disableHeavyEffects ? '' : 'transition-all duration-200'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
+        className={`group grid grid-cols-[2.5rem_4rem_minmax(0,1fr)] items-center overflow-hidden rounded-2xl md:grid-cols-[2.5rem_4rem_minmax(0,1fr)_9rem_7.5rem_2.75rem] ${disableHeavyEffects ? '' : 'transition-all duration-200'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
         style={{
           backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
           border: `1px solid ${isLightMode ? borderColor : 'rgba(255,255,255,0.07)'}`,
@@ -121,14 +137,12 @@ export function CourseCard3D({
         onClick={isLockedInPath ? undefined : onClick}
       >
         {/* Path position badge */}
-        {learningPathPosition !== undefined && (
-          <div
-            className="shrink-0 flex items-center justify-center w-10 text-xs font-bold"
-            style={{ color: isLockedInPath ? (isLightMode ? '#94A3B8' : '#6B7280') : accentColor }}
-          >
-            {isLockedInPath ? <Lock className="w-3.5 h-3.5" /> : `#${learningPathPosition}`}
-          </div>
-        )}
+        <div
+          className="flex min-h-16 items-center justify-center text-xs font-bold"
+          style={{ color: isLockedInPath ? (isLightMode ? '#94A3B8' : '#6B7280') : accentColor }}
+        >
+          {isLockedInPath ? <Lock className="w-3.5 h-3.5" /> : learningPathPosition !== undefined ? `#${learningPathPosition}` : null}
+        </div>
 
         {/* Thumbnail — small square, fixed 64×64 */}
         <div
@@ -155,19 +169,31 @@ export function CourseCard3D({
           <p className="text-[11px] mt-0.5 truncate" style={{ color: isLightMode ? '#64748B' : '#9CA3AF' }}>
             {course.instructor}
           </p>
+          <div className="mt-2 flex items-center gap-2 md:hidden">
+            <span
+              className="inline-flex h-7 min-w-[7.5rem] items-center justify-center gap-1.5 rounded-full border px-2 text-[9px] font-bold uppercase tracking-wide"
+              style={getStatusBadgeStyle()}
+            >
+              {getStatusIcon()}
+              <span>{translatedStatus}</span>
+            </span>
+            <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
+              {course.progress}%
+            </span>
+          </div>
         </div>
 
         {/* Status badge — only on md+ */}
         <div
-          className="hidden md:flex shrink-0 items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wide text-white mx-3"
-          style={{ background: `linear-gradient(135deg, ${primaryColor}cc, ${accentColor}cc)` }}
+          className="mx-3 hidden h-8 min-w-[8.25rem] items-center justify-center gap-1.5 rounded-full border px-3 text-[10px] font-bold uppercase tracking-wide md:flex"
+          style={getStatusBadgeStyle()}
         >
           {getStatusIcon()}
           <span>{translatedStatus}</span>
         </div>
 
         {/* Progress column */}
-        <div className="shrink-0 flex flex-col items-end gap-1 pr-4 py-3 min-w-[100px]">
+        <div className="hidden shrink-0 flex-col items-end gap-1 pr-4 py-3 md:flex">
           <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
             {course.progress}%
           </span>
@@ -188,15 +214,17 @@ export function CourseCard3D({
         </div>
 
         {/* Certificate icon */}
-        {course.has_certificate && course.progress === 100 && onCertificateClick && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
-            className="shrink-0 mr-3 p-2 rounded-full transition-all duration-200 hover:scale-110"
-            style={{ color: '#F59E0B', backgroundColor: isLightMode ? '#FEF3C7' : 'rgba(245,158,11,0.15)' }}
-          >
-            <Award className="w-4 h-4" />
-          </button>
-        )}
+        <div className="hidden items-center justify-center md:flex">
+          {course.has_certificate && course.progress === 100 && onCertificateClick ? (
+            <button
+              onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
+              className="p-2 rounded-full transition-all duration-200 hover:scale-110"
+              style={{ color: '#F59E0B', backgroundColor: isLightMode ? '#FEF3C7' : 'rgba(245,158,11,0.15)' }}
+            >
+              <Award className="w-4 h-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
     )
   }
