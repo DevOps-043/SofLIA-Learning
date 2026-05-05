@@ -145,6 +145,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       hideCloseButton: false,
       disableOverlayClose: false,
       disableCloseOnEsc: false,
+      disableFocus: true,
       disableScrolling: false,
       scrollToFirstStep: true,
       scrollOffset: 120, // Reasonable offset to clear header but keep element visible

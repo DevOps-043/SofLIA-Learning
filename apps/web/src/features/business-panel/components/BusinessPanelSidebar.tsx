@@ -1,7 +1,6 @@
 'use client'
 
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import { usePathname, useParams } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -230,7 +229,7 @@ export function BusinessPanelSidebar({
 
               return (
                 <li key={item.name}>
-                  <Link
+                  <a
                     id={item.id}
                     href={item.href}
                     onClick={() => {
@@ -282,7 +281,7 @@ export function BusinessPanelSidebar({
                         style={{ background: theme.primaryColor }}
                       />
                     ) : null}
-                  </Link>
+                  </a>
                 </li>
               )
             })}

@@ -20,6 +20,8 @@ const VISIBLE_PADDING_PX = 60;
 const TOP_OFFSET_PX = 100;
 const STABLE_FRAMES_REQUIRED = 3;
 const SCROLL_MAX_WAIT_MS = 800;
+const SPOTLIGHT_PADDING_PX = 8;
+const SPOTLIGHT_SYNC_MAX_ATTEMPTS = 10;
 
 /**
  * Scroll the target element into view inside #main-scroll-container and invoke
@@ -88,6 +90,35 @@ function scrollTargetIntoView(
   };
 
   requestAnimationFrame(tick);
+}
+
+function getTargetElement(target: Step['target']): HTMLElement | null {
+  if (typeof target === 'string') {
+    return document.querySelector<HTMLElement>(target);
+  }
+
+  return target instanceof HTMLElement ? target : null;
+}
+
+function syncSpotlightToTarget(target: Step['target']): boolean {
+  const el = getTargetElement(target);
+  const spotlight = document.querySelector<HTMLElement>(
+    '.react-joyride__spotlight[data-test-id="spotlight"]',
+  );
+
+  if (!el || !spotlight) {
+    return false;
+  }
+
+  const rect = el.getBoundingClientRect();
+
+  spotlight.style.position = 'fixed';
+  spotlight.style.top = `${Math.round(rect.top - SPOTLIGHT_PADDING_PX)}px`;
+  spotlight.style.left = `${Math.round(rect.left - SPOTLIGHT_PADDING_PX)}px`;
+  spotlight.style.width = `${Math.round(rect.width + SPOTLIGHT_PADDING_PX * 2)}px`;
+  spotlight.style.height = `${Math.round(rect.height + SPOTLIGHT_PADDING_PX * 2)}px`;
+
+  return true;
 }
 
 /**
@@ -197,6 +228,64 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     return () => clearTimeout(timer);
   }, [enabled, isFinishedInSession, isLoading, run, shouldShowTour, startAtFirstStep]);
 
+  useEffect(() => {
+    if (!run) {
+      return;
+    }
+
+    const currentStep = enhancedSteps[stepIndex];
+    if (!currentStep) {
+      return;
+    }
+
+    let frameId = 0;
+    let attempts = 0;
+
+    const scheduleSpotlightSync = () => {
+      cancelAnimationFrame(frameId);
+
+      frameId = requestAnimationFrame(() => {
+        frameId = requestAnimationFrame(() => {
+          attempts += 1;
+          const synced = syncSpotlightToTarget(currentStep.target);
+
+          if (!synced && attempts < SPOTLIGHT_SYNC_MAX_ATTEMPTS) {
+            scheduleSpotlightSync();
+          }
+        });
+      });
+    };
+
+    scheduleSpotlightSync();
+
+    const scrollContainer = document.getElementById(SCROLL_CONTAINER_ID);
+    window.addEventListener('resize', scheduleSpotlightSync);
+    scrollContainer?.addEventListener('scroll', scheduleSpotlightSync, { passive: true });
+
+    // Joyride treats descendants of the fixed business-panel shell as fixed
+    // targets and can use offsetTop instead of viewport coordinates. Re-sync
+    // the spotlight from the real client rect so it stays over the actual UI.
+    const targetElement = getTargetElement(currentStep.target);
+    const observer =
+      targetElement && typeof MutationObserver !== 'undefined'
+        ? new MutationObserver(scheduleSpotlightSync)
+        : null;
+    if (targetElement) {
+      observer?.observe(targetElement, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      window.removeEventListener('resize', scheduleSpotlightSync);
+      scrollContainer?.removeEventListener('scroll', scheduleSpotlightSync);
+      observer?.disconnect();
+    };
+  }, [enhancedSteps, run, stepIndex]);
+
   // Scroll before updating the controlled index so Joyride measures the settled target.
   const moveToStep = useCallback((nextIndex: number) => {
     if (nextIndex < 0) {
@@ -252,12 +341,13 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       hideCloseButton: false,
       disableOverlayClose: false,
       disableCloseOnEsc: false,
+      disableFocus: true,
       // We handle scrolling manually inside the custom scroll container
       disableScrolling: true,
-      disableScrollParentFix: true,
+      disableScrollParentFix: false,
       scrollToFirstStep: false,
       spotlightClicks: true,
-      spotlightPadding: 8,
+      spotlightPadding: SPOTLIGHT_PADDING_PX,
       tooltipComponent: JoyrideTooltip,
       styles: {
         options: {

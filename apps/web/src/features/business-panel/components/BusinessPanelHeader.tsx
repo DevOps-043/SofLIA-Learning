@@ -1,10 +1,10 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, ChevronDown, LogOut, Building2, User, LayoutDashboard, Globe, ChevronRight, Check, Sun, Moon, Monitor, Compass, ShieldCheck } from 'lucide-react'
+import { Menu, LogOut, Building2, User, LayoutDashboard, Globe, ChevronRight, Check, Sun, Moon, Monitor, ShieldCheck } from 'lucide-react'
 import { useState, useRef, useEffect, useMemo } from 'react'
 import Image from 'next/image'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useUserProfile } from '../../auth/hooks/useUserProfile'
 import { useBusinessSettings } from '../hooks/useBusinessSettings'
@@ -15,7 +15,6 @@ import { useLanguage } from '../../../core/providers/I18nProvider'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '../../../core/stores/themeStore'
 import { useOrganization } from '../../../core/hooks/useOrganization'
-import { useBusinessPanelTourOptional } from '../contexts/BusinessPanelTourContext'
 
 interface BusinessPanelHeaderProps {
   onMenuClick: () => void
@@ -34,7 +33,6 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { data: businessData } = useBusinessSettings()
   const { user, logout } = useAuth()
   const { userProfile } = useUserProfile()
-  const router = useRouter()
   const params = useParams()
   const orgSlug = params.orgSlug as string
   const [userDropdownOpen, setUserDropdownOpen] = useState(false)
@@ -44,7 +42,6 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
   const { theme, resolvedTheme, setTheme } = useThemeStore()
   const { canSwitch } = useOrganization()
   const panelTheme = useBusinessPanelTheme()
-  const tourContext = useBusinessPanelTourOptional()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   const languageOptions = [
@@ -53,11 +50,6 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
     { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
   ]
 
-  const languageOptionsDisplay = [
-    { value: 'es' as const, label: 'Español', flag: '🇲🇽' },
-    { value: 'en' as const, label: 'English', flag: '🇺🇸' },
-    { value: 'pt' as const, label: 'Português', flag: '🇧🇷' },
-  ]
   const organization = businessData?.organization
 
   // Calcular estilos del navbar
@@ -130,6 +122,12 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
       await logout()
     }
     setUserDropdownOpen(false)
+  }
+
+  const navigateTo = (href: string) => {
+    setUserDropdownOpen(false)
+    setActiveSubmenu(null)
+    window.location.assign(href)
   }
 
   useEffect(() => {
@@ -219,9 +217,10 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               whileTap={{ scale: 0.95 }}
             >
               <div
-                className="h-9 w-9 rounded-full flex items-center justify-center transition-all shadow-sm ring-2 ring-[#00D4B3]/30 hover:ring-[#00D4B3]/60"
+                className="relative h-9 w-9 overflow-hidden rounded-full flex items-center justify-center transition-all shadow-sm ring-2 ring-white/80 dark:ring-white/80"
                 style={{
-                  background: `linear-gradient(135deg, #0A2540, #00D4B3)`
+                  background: `linear-gradient(135deg, ${panelTheme.primaryColor}, ${panelTheme.accentColor})`,
+                  boxShadow: `0 4px 15px ${panelTheme.primaryColor}40`,
                 }}
               >
                 {userProfile?.profile_picture_url || user?.profile_picture_url ? (
@@ -248,12 +247,8 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[998] bg-black/20 backdrop-blur-sm"
+                    className="pointer-events-none fixed inset-0 z-[998] bg-black/20 backdrop-blur-sm"
                     style={{ top: '64px' }}
-                    onClick={() => {
-                      setUserDropdownOpen(false)
-                      setActiveSubmenu(null)
-                    }}
                   />
                   <motion.div
                     initial={{ opacity: 0, y: -8, scale: 0.95 }}
@@ -273,9 +268,10 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     >
                       <div className="flex items-center gap-3">
                         <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-[#00D4B3]/40"
+                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-white/80 dark:ring-white/80 overflow-hidden"
                           style={{
-                            background: `linear-gradient(135deg, #0A2540, #00D4B3)`
+                            background: `linear-gradient(135deg, ${panelTheme.primaryColor}, ${panelTheme.accentColor})`,
+                            boxShadow: `0 4px 15px ${panelTheme.primaryColor}40`,
                           }}
                         >
                           {userProfile?.profile_picture_url || user?.profile_picture_url ? (
@@ -316,10 +312,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     <div className="py-1.5 space-y-0.5">
                       {user?.cargo_rol?.toLowerCase() === 'administrador' && (
                         <motion.button
-                          onClick={() => {
-                            router.push('/admin/dashboard')
-                            setUserDropdownOpen(false)
-                          }}
+                          onClick={() => navigateTo('/admin/dashboard')}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                           style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
@@ -330,10 +323,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                       )}
 
                       <motion.button
-                        onClick={() => {
-                          router.push(`/${orgSlug}/business-user/dashboard`)
-                          setUserDropdownOpen(false)
-                        }}
+                        onClick={() => navigateTo(`/${orgSlug}/business-user/dashboard`)}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                         style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                         whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
@@ -344,10 +334,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
 
                       {canSwitch && (
                         <motion.button
-                          onClick={() => {
-                            router.push('/auth/select-organization')
-                            setUserDropdownOpen(false)
-                          }}
+                          onClick={() => navigateTo('/auth/select-organization')}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                           style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
@@ -358,10 +345,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                       )}
 
                       <motion.button
-                        onClick={() => {
-                          router.push('/profile')
-                          setUserDropdownOpen(false)
-                        }}
+                        onClick={() => navigateTo('/profile')}
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                         style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                         whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
@@ -373,7 +357,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                       {/* Tema - submenu expandible */}
                       <div className="relative">
                         <motion.button
-                          onClick={() => setActiveSubmenu(activeSubmenu === 'theme' ? null : 'theme')}
+                          onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'theme' ? null : 'theme') }}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                           style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
@@ -404,7 +388,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                                 return (
                                   <button
                                     key={option.value}
-                                    onClick={() => { setTheme(option.value) }}
+                                    onClick={(e) => { e.stopPropagation(); setTheme(option.value) }}
                                     className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
                                     style={{
                                       color: isActive ? panelTheme.actionColor : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
@@ -427,7 +411,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
 
                       <div className="relative">
                         <motion.button
-                          onClick={() => setActiveSubmenu(activeSubmenu === 'language' ? null : 'language')}
+                          onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'language' ? null : 'language') }}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                           style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
@@ -457,7 +441,8 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                                 return (
                                   <button
                                     key={opt.value}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                      e.stopPropagation()
                                       setLanguage(opt.value)
                                       setActiveSubmenu(null)
                                     }}

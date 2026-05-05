@@ -114,11 +114,18 @@ export function BusinessReportsAnalytics() {
   const locale: ReportsAnalyticsLocale = isReportsAnalyticsLocale(i18n.language) ? i18n.language : 'es'
   const t = useReportsAnalyticsText(baseT as (key: string) => string, locale)
 
+  const tourSteps = useMemo(() => getAdminReportsSteps(baseT), [baseT])
+
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_REPORTS_TOUR_ID,
-    steps: getAdminReportsSteps(baseT),
+    steps: tourSteps,
     enabled: !isLoading,
   })
+
+  const formatAgeBands = useCallback((item: ReportsAnalyticsBreakdownItem) => translateDimension(t, 'ageBands', item), [t])
+  const formatGender = useCallback((item: ReportsAnalyticsBreakdownItem) => translateDimension(t, 'gender', item), [t])
+  const formatProgress = useCallback((item: ReportsAnalyticsBreakdownItem) => translateDimension(t, 'progressBands', item), [t])
+  const formatJobTitles = useCallback((item: ReportsAnalyticsBreakdownItem) => item.key === 'unspecified' ? translateKey(t, 'gender', 'unspecified') : item.label, [t])
 
   return (
     <>
@@ -270,7 +277,7 @@ export function BusinessReportsAnalytics() {
               title={t('reportsAnalytics.sections.demographics')}
               subtitle={t('reportsAnalytics.sections.demographicsSubtitle')}
               data={data.demographics.ageBands}
-              labelFormatter={(item) => translateDimension(t, 'ageBands', item)}
+              labelFormatter={formatAgeBands}
               theme={theme}
               variant="horizontalBar"
             />
@@ -278,7 +285,7 @@ export function BusinessReportsAnalytics() {
               title={t('reportsAnalytics.sections.gender')}
               subtitle={t('reportsAnalytics.sections.genderSubtitle')}
               data={data.demographics.gender}
-              labelFormatter={(item) => translateDimension(t, 'gender', item)}
+              labelFormatter={formatGender}
               theme={theme}
               variant="donut"
             />
@@ -286,7 +293,7 @@ export function BusinessReportsAnalytics() {
               title={t('reportsAnalytics.sections.progress')}
               subtitle={t('reportsAnalytics.sections.progressSubtitle')}
               data={data.learning.progressDistribution}
-              labelFormatter={(item) => translateDimension(t, 'progressBands', item)}
+              labelFormatter={formatProgress}
               theme={theme}
               variant="radial"
             />
@@ -294,7 +301,7 @@ export function BusinessReportsAnalytics() {
               title={t('reportsAnalytics.sections.jobTitles')}
               subtitle={t('reportsAnalytics.sections.jobTitlesSubtitle')}
               data={data.demographics.jobTitles}
-              labelFormatter={(item) => item.key === 'unspecified' ? translateKey(t, 'gender', 'unspecified') : item.label}
+              labelFormatter={formatJobTitles}
               theme={theme}
               variant="horizontalBar"
             />
@@ -638,13 +645,15 @@ function BreakdownCard({
   theme: ThemeTokens
   variant: 'horizontalBar' | 'donut' | 'radial'
 }) {
-  const chartData = data
-    .map((item, index) => ({
-      ...item,
-      label: labelFormatter(item),
-      fill: theme.chartColors[index % theme.chartColors.length],
-    }))
-    .filter((item) => item.value > 0)
+  const chartData = useMemo(() => {
+    return data
+      .map((item, index) => ({
+        ...item,
+        label: labelFormatter(item),
+        fill: theme.chartColors[index % theme.chartColors.length],
+      }))
+      .filter((item) => item.value > 0)
+  }, [data, theme.chartColors, labelFormatter])
 
   return (
     <ChartShell title={title} subtitle={subtitle} theme={theme}>
@@ -971,36 +980,40 @@ function QualityScorePanel({ data, theme, t }: { data: ReportsAnalyticsResponse;
 }
 
 function SegmentComparisonPanel({ data, theme, t }: { data: ReportsAnalyticsResponse; theme: ThemeTokens; t: (key: string) => string }) {
-  const rows: SegmentDisplayRow[] = [
-    ...data.segments.ageBands.slice(0, 4).map((row) => ({
-      ...row,
-      label: translateKey(t, 'ageBands', row.key, row.label),
-      segmentType: 'age',
-      segmentLabel: t('reportsAnalytics.filters.ageBand'),
-    })),
-    ...data.segments.gender.slice(0, 4).map((row) => ({
-      ...row,
-      label: translateKey(t, 'gender', row.key, row.label),
-      segmentType: 'gender',
-      segmentLabel: t('reportsAnalytics.filters.gender'),
-    })),
-    ...data.segments.jobTitles.slice(0, 4).map((row) => ({
-      ...row,
-      segmentType: 'job_title',
-      segmentLabel: t('reportsAnalytics.filters.jobTitle'),
-    })),
-    ...data.segments.roles.slice(0, 4).map((row) => ({
-      ...row,
-      label: translateKey(t, 'roles', row.key, row.label),
-      segmentType: 'role',
-      segmentLabel: t('reportsAnalytics.filters.role'),
-    })),
-  ].sort((a, b) => b.users - a.users || b.qualityScore - a.qualityScore).slice(0, 8)
+  const { rows, chartRows } = useMemo(() => {
+    const computedRows: SegmentDisplayRow[] = [
+      ...data.segments.ageBands.slice(0, 4).map((row) => ({
+        ...row,
+        label: translateKey(t, 'ageBands', row.key, row.label),
+        segmentType: 'age',
+        segmentLabel: t('reportsAnalytics.filters.ageBand'),
+      })),
+      ...data.segments.gender.slice(0, 4).map((row) => ({
+        ...row,
+        label: translateKey(t, 'gender', row.key, row.label),
+        segmentType: 'gender',
+        segmentLabel: t('reportsAnalytics.filters.gender'),
+      })),
+      ...data.segments.jobTitles.slice(0, 4).map((row) => ({
+        ...row,
+        segmentType: 'job_title',
+        segmentLabel: t('reportsAnalytics.filters.jobTitle'),
+      })),
+      ...data.segments.roles.slice(0, 4).map((row) => ({
+        ...row,
+        label: translateKey(t, 'roles', row.key, row.label),
+        segmentType: 'role',
+        segmentLabel: t('reportsAnalytics.filters.role'),
+      })),
+    ].sort((a, b) => b.users - a.users || b.qualityScore - a.qualityScore).slice(0, 8)
 
-  const chartRows = rows.slice(0, 6).map((row) => ({
-    ...row,
-    shortLabel: truncateLabel(row.label, 18),
-  }))
+    const computedChartRows = computedRows.slice(0, 6).map((row) => ({
+      ...row,
+      shortLabel: truncateLabel(row.label, 18),
+    }))
+
+    return { rows: computedRows, chartRows: computedChartRows }
+  }, [data.segments, t])
 
   return (
     <section className="rounded-lg border overflow-hidden" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
