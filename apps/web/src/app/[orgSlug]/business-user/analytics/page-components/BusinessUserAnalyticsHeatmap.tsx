@@ -26,9 +26,12 @@ export function BusinessUserAnalyticsHeatmap({
   const weekCount = Math.max(1, ...sortedCells.map((cell) => cell.weekIndex + 1))
   const monthLabels = buildMonthLabels(sortedCells, locale)
 
+  // 12px cell + 4px gap = ~16px per week column; 40px day-label column
+  const minWidthPx = Math.max(200, weekCount * 16 + 40)
+
   return (
     <div className="overflow-x-auto pb-2">
-      <div className="min-w-[720px]">
+      <div style={{ minWidth: `${minWidthPx}px` }}>
         <div
           className="mb-2 ml-12 grid text-xs text-gray-500 dark:text-gray-400"
           style={{ gridTemplateColumns: `repeat(${weekCount}, minmax(0, 1fr))` }}

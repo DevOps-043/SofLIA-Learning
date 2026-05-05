@@ -428,7 +428,7 @@ export async function fetchBusinessUserAnalyticsDataset({
     activities,
     quizzes,
     quality,
-    contributionCalendar: buildConnectionCalendar(contributionDates, buildBusinessUserAnalyticsPeriod('365d')),
+    contributionCalendar: buildConnectionCalendar(contributionDates, period),
     aiSamples: buildAiSamples(data, courseTitleById, enrollmentCourseById, evaluationsBySubmission),
   }
 
@@ -448,7 +448,7 @@ async function fetchQueryData(
     fetchAssignments(supabase, userId, organizationId),
     fetchEnrollments(supabase, userId),
     fetchCertificates(supabase, userId),
-    fetchUserSessions(supabase, userId, buildBusinessUserAnalyticsPeriod('365d')),
+    fetchUserSessions(supabase, userId, period),
   ])
   const assignedCourseIds = new Set(assignments.map((assignment) => assignment.course_id))
   const enrollments = allEnrollments.filter((enrollment) =>
