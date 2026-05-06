@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { useSwipe } from '../../../hooks/useSwipe'
-import type { DifficultyAnalysis } from '../../../lib/rrweb/difficulty-pattern-detector'
 import type { CourseLessonContext } from '../../../core/types/lia.types'
 import { useCurrentOrganizationId } from '../../../core/stores/organizationStore'
 import { useVideoPlayerOptional } from '../../../app/courses/[slug]/learn/VideoPlayerContext'
@@ -22,10 +21,6 @@ import {
 } from './learn-page/learn-page.service'
 import { useLearnPageCourseData } from './learn-page/useLearnPageCourseData'
 import { useLearnPageLayout } from './learn-page/useLearnPageLayout'
-import {
-  buildWorkshopEnrichedLessonContext,
-  buildWorkshopHelpMessage,
-} from '../services/learn-workshop-assistant.service'
 import { CourseCertificateService } from '../services/course-certificate.service'
 import { useCourseCompletionFlow } from './useCourseCompletionFlow'
 import { useLessonCompletion } from './useLessonCompletion'
@@ -584,61 +579,6 @@ export function useLearnPageLogic() {
     workshopMetadata,
   ])
 
-  const handleWorkshopHelpAccepted = useCallback(
-    async (analysis: DifficultyAnalysis) => {
-      openLia()
-
-      const visibleUserMessage = buildWorkshopHelpMessage(analysis)
-      const behaviorAnalysis = analyzeUserBehavior()
-      const currentActivities = currentLesson
-        ? lessonsActivities[currentLesson.lesson_id] || []
-        : []
-      const lessonContext = getLessonContext()
-      const enrichedLessonContext = buildWorkshopEnrichedLessonContext({
-        lessonContext,
-        analysis,
-        behaviorAnalysis,
-        currentActivities,
-        activeTab,
-        currentLesson,
-        modules,
-        userJobTitle: user?.job_title || undefined,
-      })
-
-      if (
-        workshopMetadata &&
-        enrichedLessonContext?.contextType === 'workshop'
-      ) {
-        await sendLiaMessage(
-          visibleUserMessage,
-          undefined,
-          enrichedLessonContext,
-          true,
-        )
-        return
-      }
-
-      await sendLiaMessage(
-        visibleUserMessage,
-        enrichedLessonContext,
-        undefined,
-        true,
-      )
-    },
-    [
-      activeTab,
-      analyzeUserBehavior,
-      currentLesson,
-      getLessonContext,
-      lessonsActivities,
-      modules,
-      openLia,
-      sendLiaMessage,
-      user?.job_title,
-      workshopMetadata,
-    ],
-  )
-
   const tabs = useMemo(
     () => [
       { id: 'video' as const, label: t('tabs.video'), icon: 'Play' },
@@ -733,7 +673,6 @@ export function useLearnPageLogic() {
     handleSaveLiaNote,
     handleVideoCompleted,
     getLessonContext,
-    handleWorkshopHelpAccepted,
     activeTab,
     setActiveTab,
     handleTabChange,

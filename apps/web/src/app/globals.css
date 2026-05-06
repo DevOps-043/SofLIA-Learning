@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Importar estilos de rrweb-player */
-/* Comentado temporalmente - se importa directamente en SessionPlayer.tsx */
-/* @import 'rrweb-player/dist/style.css'; */
 
 /* Scrollbars personalizados y sutiles */
 @layer utilities {

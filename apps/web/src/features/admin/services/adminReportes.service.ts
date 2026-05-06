@@ -24,10 +24,6 @@ export interface AdminReporte {
   updated_at: string | null
   resuelto_at?: string | null
   metadata?: Json | ReportProblemMetadata | null
-  // 🎬 NUEVO: Campos de rrweb
-  session_recording?: string | null
-  recording_size?: string | null
-  recording_duration?: number | null
   // Información del usuario (si está disponible)
   usuario?: {
     id: string
@@ -90,10 +86,7 @@ export class AdminReportesService {
           created_at,
           updated_at,
           resuelto_at,
-          metadata,
-          session_recording,
-          recording_size,
-          recording_duration
+          metadata
         `)
         .order('created_at', { ascending: false })
 
@@ -189,10 +182,7 @@ export class AdminReportesService {
           created_at,
           updated_at,
           resuelto_at,
-          metadata,
-          session_recording,
-          recording_size,
-          recording_duration
+          metadata
         `)
         .eq('id', reporteId)
         .single()

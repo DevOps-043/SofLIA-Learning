@@ -6,7 +6,6 @@ import { ThemeProvider } from '../core/components/ThemeProvider';
 import { PrefetchManager } from '../core/components/PrefetchManager';
 import { SWRProvider } from '../core/providers/SWRProvider';
 import { NotificationProvider } from '../features/notifications/context/NotificationContext';
-import { GlobalRecorderProvider } from '../core/components/GlobalRecorderProvider';
 import { I18nProvider } from '../core/providers/I18nProvider';
 import { ShareModalProvider } from '../core/providers/ShareModalProvider';
 import { OnboardingAgent } from '../core/components/OnboardingAgent';
@@ -239,8 +238,7 @@ export default function RootLayout({
         >
           Internal diagnostics
         </a>
-        <GlobalRecorderProvider>
-          <SWRProvider>
+        <SWRProvider>
             <I18nProvider>
               <ThemeProvider>
                 <ShareModalProvider>
@@ -271,7 +269,6 @@ export default function RootLayout({
               </ThemeProvider>
             </I18nProvider>
           </SWRProvider>
-        </GlobalRecorderProvider>
       </body>
     </html>
   );

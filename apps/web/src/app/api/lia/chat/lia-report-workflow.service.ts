@@ -21,8 +21,6 @@ type ReportProblemInsert =
 export interface LiaChatProcessingBody extends ChatRequest {
   isBugReport?: boolean;
   enrichedMetadata?: Record<string, unknown>;
-  sessionSnapshot?: string;
-  recordingStatus?: string;
   conversationId?: string;
 }
 
@@ -39,10 +37,6 @@ interface BugReportDraftRuntimeContext {
   courseContext: ReportProblemCourseContext | null;
   attachments: UploadedReportAttachment[];
   attachmentUploadWarnings: string[];
-  recordingUrl: string | null;
-  recordingStatus: string | null;
-  recordingSize: string | null;
-  recordingDurationSeconds: number | null;
   screenResolution: string | null;
   browser: string | null;
   clientDiagnostics: Record<string, unknown>;
@@ -230,7 +224,6 @@ function buildScreenResolution(
 function buildLiaDiagnostics(
   body: LiaChatProcessingBody,
   originalUserMessage: string,
-  recordingUrl: string | null
 ): Record<string, unknown> {
   const metadataRecord = body.enrichedMetadata
     ? asRecord(body.enrichedMetadata)
@@ -255,10 +248,7 @@ function buildLiaDiagnostics(
       ? contextMarkers.slice(-10)
       : [],
     sessionSummary: metadataRecord?.sessionSummary,
-    recordingInfo: metadataRecord?.recordingInfo,
-    isCompressed: body.sessionSnapshot?.startsWith('gzip:') || false,
     detectedAsBug: body.isBugReport || false,
-    recordingUrl,
   };
 }
 
@@ -278,56 +268,6 @@ function mergeUploadedAttachments(
   return Array.from(deduplicated.values());
 }
 
-async function uploadSessionRecording(
-  sessionSnapshot: string,
-  userId: string
-): Promise<string | null> {
-  try {
-    const supabaseAdmin = createSupabaseAdminClient();
-    const isCompressed = sessionSnapshot.startsWith('gzip:');
-    let buffer: Buffer;
-    let extension: string;
-    let contentType: string;
-
-    if (isCompressed) {
-      const base64Data = sessionSnapshot.slice(5);
-      buffer = Buffer.from(base64Data, 'base64');
-      extension = 'json.gz';
-      contentType = 'application/gzip';
-    } else {
-      buffer = Buffer.from(sessionSnapshot, 'utf-8');
-      extension = 'json';
-      contentType = 'application/json';
-    }
-
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).slice(2, 9);
-    const fileName = `recording-${userId}-${timestamp}-${randomId}.${extension}`;
-
-    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
-      .from('reportes-screenshots')
-      .upload(fileName, buffer, {
-        contentType,
-        cacheControl: '3600',
-        upsert: false,
-      });
-
-    if (uploadError || !uploadData) {
-      console.error('Error subiendo la grabacion del reporte:', uploadError);
-      return null;
-    }
-
-    const { data: publicUrlData } = supabaseAdmin.storage
-      .from('reportes-screenshots')
-      .getPublicUrl(uploadData.path);
-
-    return publicUrlData.publicUrl;
-  } catch (error) {
-    console.error('Error procesando la grabacion del reporte:', error);
-    return null;
-  }
-}
-
 async function buildDraftRuntimeContext(
   body: LiaChatProcessingBody,
   requestContext: ChatRequest['context'],
@@ -335,12 +275,10 @@ async function buildDraftRuntimeContext(
 ): Promise<BugReportDraftRuntimeContext> {
   const lastMessage = body.messages[body.messages.length - 1];
   const metadataRecord = asRecord(body.enrichedMetadata);
-  const recordingInfoRecord = asRecord(metadataRecord?.recordingInfo);
 
   let uploadedAttachments = previousRuntimeContext?.attachments || [];
   let attachmentUploadWarnings =
     previousRuntimeContext?.attachmentUploadWarnings || [];
-  let recordingUrl = previousRuntimeContext?.recordingUrl || null;
 
   if (requestContext?.userId && lastMessage?.attachments?.length) {
     const uploadResult = await uploadReportImageAttachments(
@@ -357,17 +295,6 @@ async function buildDraftRuntimeContext(
     ];
   }
 
-  if (requestContext?.userId && body.sessionSnapshot) {
-    const uploadedRecordingUrl = await uploadSessionRecording(
-      body.sessionSnapshot,
-      requestContext.userId
-    );
-
-    if (uploadedRecordingUrl) {
-      recordingUrl = uploadedRecordingUrl;
-    }
-  }
-
   const originalUserMessage =
     previousRuntimeContext?.originalUserMessage || lastMessage?.content || '';
 
@@ -379,19 +306,6 @@ async function buildDraftRuntimeContext(
       previousRuntimeContext?.courseContext || buildCourseContext(requestContext),
     attachments: uploadedAttachments,
     attachmentUploadWarnings,
-    recordingUrl,
-    recordingStatus:
-      body.recordingStatus ||
-      previousRuntimeContext?.recordingStatus ||
-      'unknown',
-    recordingSize:
-      readString(recordingInfoRecord?.size) ||
-      previousRuntimeContext?.recordingSize ||
-      null,
-    recordingDurationSeconds:
-      metadataRecord?.sessionDuration && readNumber(metadataRecord.sessionDuration)
-        ? Math.round(Number(metadataRecord.sessionDuration) / 1000)
-        : previousRuntimeContext?.recordingDurationSeconds || null,
     screenResolution:
       buildScreenResolution(body.enrichedMetadata) ||
       previousRuntimeContext?.screenResolution ||
@@ -401,7 +315,7 @@ async function buildDraftRuntimeContext(
       previousRuntimeContext?.browser ||
       null,
     clientDiagnostics: metadataRecord
-      ? buildLiaDiagnostics(body, originalUserMessage, recordingUrl)
+      ? buildLiaDiagnostics(body, originalUserMessage)
       : previousRuntimeContext?.clientDiagnostics || {},
   };
 }
@@ -607,9 +521,6 @@ export async function submitConfirmedBugReport(params: {
     user_agent: request.headers.get('user-agent'),
     screen_resolution: runtimeContext.screenResolution,
     screenshot_url: runtimeContext.attachments[0]?.publicUrl ?? null,
-    session_recording: runtimeContext.recordingUrl,
-    recording_size: runtimeContext.recordingSize,
-    recording_duration: runtimeContext.recordingDurationSeconds,
     metadata: serializeReportProblemMetadata(
       buildReportProblemMetadata({
         source: runtimeContext.courseContext
@@ -627,9 +538,6 @@ export async function submitConfirmedBugReport(params: {
         },
         liaContext: {
           conversationId: body.conversationId || null,
-          recordingStatus: runtimeContext.recordingStatus || 'unknown',
-          hasSessionRecording: Boolean(runtimeContext.recordingUrl),
-          recordingUrl: runtimeContext.recordingUrl,
           detectedAsBug: true,
           aiGeneratedTitle: readString(draft.title),
           chatMessageContent: runtimeContext.originalUserMessage,
@@ -653,8 +561,6 @@ export async function submitConfirmedBugReport(params: {
   return {
     bugReportSaved: true,
     clientContent: buildBugConfirmationMessage({
-      recordingUrl: runtimeContext.recordingUrl,
-      recordingStatus: runtimeContext.recordingStatus,
       hasImageEvidence: runtimeContext.attachments.length > 0,
       attachmentUploadWarnings: runtimeContext.attachmentUploadWarnings,
     }),
@@ -662,34 +568,14 @@ export async function submitConfirmedBugReport(params: {
 }
 
 function buildBugConfirmationMessage({
-  recordingUrl,
-  recordingStatus,
   hasImageEvidence,
   attachmentUploadWarnings,
 }: {
-  recordingUrl: string | null;
-  recordingStatus: string | null;
   hasImageEvidence: boolean;
   attachmentUploadWarnings: string[];
 }): string {
-  if (recordingUrl && hasImageEvidence) {
-    return 'Reporte confirmado y enviado con evidencia visual y grabacion de sesion. El equipo tecnico ya tiene el detalle tecnico validado para revisarlo.';
-  }
-
-  if (recordingUrl) {
-    return 'Reporte confirmado y enviado con grabacion de sesion. El equipo tecnico ya tiene el detalle tecnico validado para revisarlo.';
-  }
-
   if (hasImageEvidence && attachmentUploadWarnings.length === 0) {
     return 'Reporte confirmado y enviado con evidencia visual adjunta. El equipo tecnico ya tiene el detalle tecnico validado para revisarlo.';
-  }
-
-  if (recordingStatus === 'unavailable') {
-    return 'Reporte confirmado y enviado. La grabacion de pantalla no estaba disponible, pero el detalle tecnico validado ya quedo registrado para el equipo.';
-  }
-
-  if (recordingStatus === 'error' || recordingStatus === 'inactive') {
-    return 'Reporte confirmado y enviado. No pudimos conservar la grabacion de pantalla, pero el detalle tecnico validado ya quedo registrado para el equipo.';
   }
 
   return 'Reporte confirmado y enviado correctamente. El equipo tecnico ya tiene el detalle tecnico validado para revisarlo.';

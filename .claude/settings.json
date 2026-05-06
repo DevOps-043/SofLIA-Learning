@@ -5,7 +5,13 @@
       "Bash(Select-Object Name)",
       "Bash(Get-ChildItem -Recurse -Directory -Name)",
       "Bash(Select-Object -First 30)",
-      "Bash(Get-ChildItem -Path \"apps/web/src/features/courses/components/learn/activities\" -Filter \"*.tsx\" -File)"
+      "Bash(Get-ChildItem -Path \"apps/web/src/features/courses/components/learn/activities\" -Filter \"*.tsx\" -File)",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\lib\\\\rrweb\")",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\components\\\\SessionPlayer\")",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\components\\\\GlobalRecorderProvider.tsx\")",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\core\\\\reporting\\\\lia-chat-reporting.ts\")",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\fysg5\\\\OneDrive\\\\Escritorio\\\\Pulse Hub\\\\SofLIA - Learning\\\\SofLIA-Learning\\\\apps\\\\web\\\\src\\\\hooks\\\\useDifficultyDetection.ts\")",
+      "PowerShell(\"done\")"
     ]
   }
 }

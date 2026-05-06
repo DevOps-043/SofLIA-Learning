@@ -144,10 +144,8 @@ export interface ChatRequest {
   messages: ChatMessage[];
   context?: PlatformContext;
   stream?: boolean;
-  sessionSnapshot?: string; // Base64 de rrweb
   enrichedMetadata?: Record<string, unknown>;
   isBugReport?: boolean;
-  recordingStatus?: string;
 }
 
 interface UserEnrollmentRow {

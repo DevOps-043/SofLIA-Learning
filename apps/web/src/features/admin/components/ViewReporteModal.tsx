@@ -2,14 +2,9 @@
 
 import { Fragment, useState, useMemo, useEffect } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { XMarkIcon, UserIcon, ComputerDesktopIcon, PhotoIcon, LinkIcon, CalendarIcon, PencilIcon, PlayIcon, VideoCameraIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, UserIcon, ComputerDesktopIcon, PhotoIcon, LinkIcon, CalendarIcon, PencilIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { AdminReporte } from '../services/adminReportes.service'
-import type { RecordingSession } from '../../../lib/rrweb/session-recorder'
 import type { ReportProblemMetadata } from '../../../core/reporting/report-problem.contract'
-
-// Importar componentes directamente (solo se cargan en el cliente)
-import { SessionPlayer, SessionInfo } from '../../../core/components/SessionPlayer/SessionPlayer'
-import { SessionRecordingLoader, RecordingInfo } from '../../../core/components/SessionPlayer/SessionRecordingLoader'
 
 interface ViewReporteModalProps {
   reporte: AdminReporte
@@ -19,7 +14,6 @@ interface ViewReporteModalProps {
 }
 
 export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewReporteModalProps) {
-  const [showPlayer, setShowPlayer] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
   const reportMetadata = useMemo<Partial<ReportProblemMetadata> | null>(() => {
     if (!reporte.metadata || typeof reporte.metadata !== 'object') {
@@ -33,40 +27,6 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
   useEffect(() => {
     setIsMounted(true)
   }, [])
-
-  // Detectar si session_recording es una URL o datos base64
-  const isRecordingUrl = useMemo(() => {
-    if (!reporte.session_recording) return false
-    return reporte.session_recording.startsWith('http://') || 
-           reporte.session_recording.startsWith('https://')
-  }, [reporte.session_recording])
-
-  // Parsear la sesión grabada (solo si NO es URL)
-  const session = useMemo<RecordingSession | null>(() => {
-    if (!reporte.session_recording || isRecordingUrl) return null
-    
-    try {
-      // Decodificar base64 manejando UTF-8 correctamente
-      const binaryString = atob(reporte.session_recording)
-      const bytes = new Uint8Array(binaryString.length)
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
-      }
-      const decoder = new TextDecoder('utf-8')
-      const jsonString = decoder.decode(bytes)
-      const parsedSession = JSON.parse(jsonString)
-      
-      // Debug: Verificar estructura de la sesión
-      
-      return parsedSession
-    } catch (error) {
-      console.error('Error al parsear sesión:', error)
-      return null
-    }
-  }, [reporte.session_recording, isRecordingUrl])
-
-  // Verificar si hay grabación disponible (URL o datos)
-  const hasRecording = Boolean(reporte.session_recording)
 
   const getEstadoColor = (estado: string | null | undefined) => {
     switch (estado) {
@@ -382,95 +342,35 @@ export function ViewReporteModal({ reporte, isOpen, onClose, onEdit }: ViewRepor
                       </section>
                     ) : null}
 
-                    {/* Evidencia Visual (Screenshot & Video) */}
-                    {(reporte.screenshot_url || hasRecording) && (
+                    {/* Evidencia Visual (Screenshot) */}
+                    {reporte.screenshot_url && (
                       <section>
                          <h3 className="text-sm font-bold text-[#0A2540] dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span className="w-1 h-4 bg-purple-500 rounded-full"></span>
                             Evidencia
                          </h3>
-                         
-                         <div className="space-y-4">
-                            {/* Screenshot */}
-                            {reporte.screenshot_url && (
-                               <div className="rounded-xl border border-[#E9ECEF] dark:border-[#334155] overflow-hidden bg-black/5 dark:bg-black/20 group">
-                                  <div className="relative">
-                                     <img 
-                                       src={reporte.screenshot_url} 
-                                       alt="Screenshot" 
-                                       className="w-full max-h-[300px] object-contain mx-auto"
-                                     />
-                                     <a 
-                                       href={reporte.screenshot_url} 
-                                       target="_blank" 
-                                       rel="noopener noreferrer"
-                                       className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-medium"
-                                     >
-                                        <div className="flex items-center gap-2 bg-[#1E2329] px-4 py-2 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
-                                           <PhotoIcon className="h-5 w-5" />
-                                           Ver imagen original
-                                        </div>
-                                     </a>
+                         <div className="rounded-xl border border-[#E9ECEF] dark:border-[#334155] overflow-hidden bg-black/5 dark:bg-black/20 group">
+                            <div className="relative">
+                               <img
+                                 src={reporte.screenshot_url}
+                                 alt="Screenshot"
+                                 className="w-full max-h-[300px] object-contain mx-auto"
+                               />
+                               <a
+                                 href={reporte.screenshot_url}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-medium"
+                               >
+                                  <div className="flex items-center gap-2 bg-[#1E2329] px-4 py-2 rounded-full shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform">
+                                     <PhotoIcon className="h-5 w-5" />
+                                     Ver imagen original
                                   </div>
-                               </div>
-                            )}
-
-                            {/* Recording */}
-                            {hasRecording && (
-                               <div className="p-1 rounded-xl bg-gradient-to-r from-[#0A2540] via-[#00D4B3] to-[#0A2540]">
-                                   <div className="bg-[#0F1419] rounded-lg p-6 text-center">
-                                      {showPlayer ? (
-                                         <div className="rounded-lg overflow-hidden border border-[#334155]">
-                                             {isRecordingUrl ? (
-                                                <SessionRecordingLoader
-                                                  key={`url-player-${reporte.id}`}
-                                                  recordingUrl={reporte.session_recording!}
-                                                  width="100%"
-                                                  height="400px"
-                                                  autoPlay={false}
-                                                  showController={true}
-                                                  skipInactive={true}
-                                                  speed={1}
-                                                />
-                                              ) : session ? (
-                                                <SessionPlayer
-                                                  key={`player-${reporte.id}-${showPlayer}`}
-                                                  session={session}
-                                                  width="100%"
-                                                  height="400px"
-                                                  autoPlay={false}
-                                                  showController={true}
-                                                  skipInactive={true}
-                                                  speed={1}
-                                                />
-                                              ) : (
-                                                <div className="p-8 text-center text-gray-500">Error cargando sesión</div>
-                                              )}
-                                         </div>
-                                      ) : (
-                                        <div className="flex flex-col items-center py-4">
-                                           <div className="w-16 h-16 rounded-full bg-[#00D4B3]/10 flex items-center justify-center mb-4 animate-pulse">
-                                              <VideoCameraIcon className="h-8 w-8 text-[#00D4B3]" />
-                                           </div>
-                                           <h3 className="text-white font-bold text-lg mb-2">Grabación de Sesión Disponible</h3>
-                                           <p className="text-gray-400 text-sm mb-6 max-w-md">
-                                              Reproduce la sesión exacta del usuario para entender el contexto del problema paso a paso.
-                                           </p>
-                                           <button 
-                                              onClick={() => setShowPlayer(true)}
-                                              className="px-6 py-2.5 bg-[#00D4B3] hover:bg-[#00bda0] text-white font-bold rounded-xl shadow-lg shadow-[#00D4B3]/20 flex items-center gap-2 transition-transform hover:scale-105"
-                                           >
-                                              <PlayIcon className="h-5 w-5" />
-                                              Reproducir Sesión
-                                           </button>
-                                        </div>
-                                      )}
-                                   </div>
-                               </div>
-                            )}
+                               </a>
+                            </div>
                          </div>
-                    </section>
-                  )}
+                      </section>
+                    )}
                     
                     {/* Admin Notes */}
                     {reporte.notas_admin && (

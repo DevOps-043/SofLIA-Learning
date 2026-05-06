@@ -5,7 +5,6 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
-import { prepareLiaBugContext } from '../reporting/lia-chat-reporting';
 
 
 type LegacyAuthUser = {
@@ -90,13 +89,6 @@ export function useLiaGeneralChat(
       setError(null);
 
       try {
-        const {
-          isBugReport,
-          sessionSnapshot,
-          enrichedMetadata,
-          recordingStatus,
-        } = await prepareLiaBugContext(normalizedMessage, false);
-
         if (!conversationIdRef.current) {
           conversationIdRef.current = crypto.randomUUID();
         }
@@ -134,10 +126,6 @@ export function useLiaGeneralChat(
                   : undefined,
               ...(pageContext || {}),
             },
-            sessionSnapshot,
-            enrichedMetadata,
-            isBugReport,
-            recordingStatus: isBugReport ? recordingStatus : undefined,
             stream: true,
           }),
         });

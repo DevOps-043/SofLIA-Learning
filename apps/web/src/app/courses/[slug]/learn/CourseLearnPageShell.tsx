@@ -5,7 +5,6 @@ import { Activity, BookOpen, Lock, MessageCircle, Play } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { AnimatePresence, motion } from 'framer-motion'
 import Joyride from 'react-joyride'
-import { WorkshopLearningProvider } from '../../../../components/WorkshopLearningProvider'
 import type { NotesModalProps } from '../../../../core/components/NotesModal'
 import { COURSE_LEARN_TOUR_TARGET_IDS } from '../../../../core/constants/tourTargets'
 import { CourseAccessGuard } from '../../../../features/courses/components/CourseAccessGuard'
@@ -90,7 +89,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
     closeLia,
     handleSaveLiaNote,
     handleVideoCompleted,
-    handleWorkshopHelpAccepted,
     selectedLang,
     activeTab,
     setActiveTab,
@@ -347,16 +345,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
 
   return (
     <>
-    <WorkshopLearningProvider
-      workshopId={course.id || course.course_id || slug}
-      activityId={currentLesson?.lesson_id || 'no-lesson'}
-      enabled={!!course && !!currentLesson && !isMobile && activeTab !== 'video'}
-      suppressDisplay={activeTab === 'video'}
-      checkInterval={60000}
-      assistantPosition="bottom-right"
-      assistantCompact={false}
-      onHelpAccepted={handleWorkshopHelpAccepted}
-    >
       <CourseAccessGuard courseSlug={slug}>
           <DeleteNoteConfirmModal
             isOpen={isDeleteNoteConfirmOpen}
@@ -684,7 +672,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
           </div>
 
         </CourseAccessGuard>
-      </WorkshopLearningProvider>
+      </>
 
       {/* Video introductorio — fuera de guards/providers para renderizado garantizado */}
       {showVideoIntro && introVideos.length > 0 && (
