@@ -11,6 +11,7 @@ import {
   useIsB2B,
   useCanSwitchOrganizations,
 } from '../stores/organizationStore';
+import { getOrganizationDashboardPath } from '../utils/organizationNavigation';
 
 /**
  * Main hook for accessing organization context throughout the application.
@@ -84,7 +85,7 @@ export function useOrganization() {
     (orgIdOrSlug: string, navigate: boolean = true) => {
       const org = storeSwitch(orgIdOrSlug);
       if (org && navigate) {
-        router.push(`/${org.slug}/dashboard`);
+        router.push(getOrganizationDashboardPath(org));
       }
       return org;
     },

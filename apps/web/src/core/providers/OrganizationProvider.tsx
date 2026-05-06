@@ -16,6 +16,7 @@ import {
   useOrganizationStore,
   Organization,
 } from '../stores/organizationStore';
+import { getOrganizationDashboardPath } from '../utils/organizationNavigation';
 
 // ============================================================================
 // Types
@@ -138,6 +139,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
     userOrganizations,
     setCurrentOrganization,
     setUserOrganizations,
+    setLoading: setStoreLoading,
     switchOrganization: storeSwitch,
     clearOrganization,
     isHydrated,
@@ -165,6 +167,12 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       errorRetryCount: 0,
     }
   );
+
+  // Sync SWR loading state into Zustand so consumers of useOrganization()
+  // see accurate isLoading before the first fetch completes.
+  useEffect(() => {
+    setStoreLoading(!mounted || isLoading);
+  }, [mounted, isLoading, setStoreLoading]);
 
   // Sync fetched organizations to store
   // Also handles empty array (user has no active orgs) to avoid stale data
@@ -232,8 +240,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
     (org: Organization) => {
       const switched = storeSwitch(org.id);
       if (switched) {
-        // Navigate to the new organization's dashboard
-        router.push(`/${org.slug}/dashboard`);
+        router.push(getOrganizationDashboardPath(org));
       }
     },
     [storeSwitch, router]

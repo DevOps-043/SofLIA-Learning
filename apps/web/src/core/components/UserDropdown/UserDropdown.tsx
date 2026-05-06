@@ -8,6 +8,7 @@ import { useAuth } from '../../../features/auth/hooks/useAuth'
 import { useUserProfile } from '../../../features/auth/hooks/useUserProfile'
 import { useThemeStore, Theme } from '../../stores/themeStore'
 import { useLanguage } from '../../providers/I18nProvider'
+import { getOrganizationUserDashboardPath } from '../../utils/organizationNavigation'
 
 // Lucide Icons
 import {
@@ -134,6 +135,14 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
     setActiveSubmenu(null)
   }, [switchOrganization])
 
+  const handleUserDashboardNavigation = useCallback(() => {
+    handleNavigation(
+      currentOrganization?.slug
+        ? getOrganizationUserDashboardPath(currentOrganization.slug)
+        : '/dashboard'
+    )
+  }, [currentOrganization?.slug, handleNavigation])
+
   return (
     <div className={`relative ${className}`} ref={dropdownRef}>
       {/* Trigger Button */}
@@ -243,7 +252,7 @@ export const UserDropdown = React.memo(function UserDropdown({ className = '' }:
               {/* Menu Items */}
               <div className="py-1">
                 {/* Learning Section */}
-                <MenuItem icon={BookOpen} label={t('menu.myCourses')} onClick={() => handleNavigation('/dashboard')} />
+                <MenuItem icon={BookOpen} label={t('menu.myCourses')} onClick={handleUserDashboardNavigation} />
                 <MenuItem icon={BarChart3} label={t('menu.stats')} onClick={() => handleNavigation('/statistics')} />
                 <MenuItem icon={Award} label={t('menu.certificates')} onClick={() => handleNavigation('/certificates')} />
                 

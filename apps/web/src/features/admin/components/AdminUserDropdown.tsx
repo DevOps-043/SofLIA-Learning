@@ -13,6 +13,7 @@ import { useAuth } from '../../auth/hooks/useAuth'
 import { useThemeStore, Theme } from '@/core/stores/themeStore'
 import { useOrganization } from '@/core/hooks/useOrganization'
 import { useLanguage } from '@/core/providers/I18nProvider'
+import { getOrganizationUserDashboardPath } from '@/core/utils/organizationNavigation'
 
 interface AdminUserDropdownProps {
   user: {
@@ -51,7 +52,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
   const { logout } = useAuth()
   const { t } = useTranslation(['common', 'business'])
   const { theme, setTheme, resolvedTheme, initializeTheme } = useThemeStore()
-  const { canSwitch } = useOrganization()
+  const { canSwitch, currentOrganization } = useOrganization()
   const { language, setLanguage } = useLanguage()
 
   useEffect(() => {
@@ -83,6 +84,15 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
     setIsOpen(false)
     setActiveSubmenu(null)
   }, [router])
+
+  const handleUserPanelNavigation = useCallback(() => {
+    if (currentOrganization?.slug) {
+      handleNavigation(getOrganizationUserDashboardPath(currentOrganization.slug))
+      return
+    }
+
+    handleNavigation('/auth/select-organization?redirect=/business-user/dashboard')
+  }, [currentOrganization?.slug, handleNavigation])
 
   const getInitials = () => {
     const firstName = user.first_name || ''
@@ -187,7 +197,7 @@ export function AdminUserDropdown({ user }: AdminUserDropdownProps) {
                 <DropdownMenuItem
                   icon={LayoutDashboard}
                   label={t('business:header.userPanel', { defaultValue: 'Panel Usuario' })}
-                  onClick={() => handleNavigation('/dashboard')}
+                  onClick={handleUserPanelNavigation}
                   hoverBackground={hoverBackground}
                 />
 

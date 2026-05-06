@@ -348,8 +348,11 @@ export async function middleware(request: NextRequest) {
     // console.log('✅ Validación de rol exitosa');
   }
   
-  // Si es una ruta de auth y hay sesión válida, redirigir al dashboard
-  if (isAuthRoute && hasSession) {
+  // Si es una ruta de auth y hay sesión válida, redirigir al dashboard.
+  // Excluir /auth/select-organization: usuarios autenticados con múltiples orgs
+  // necesitan acceder a esta página para elegir su contexto activo.
+  const isSelectOrgRoute = pathname.startsWith('/auth/select-organization');
+  if (isAuthRoute && !isSelectOrgRoute && hasSession) {
     // console.log('✅ Redirigiendo a /dashboard - usuario autenticado en ruta auth');
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }

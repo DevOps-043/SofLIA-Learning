@@ -11,6 +11,7 @@ import { useOrganization } from '@/core/hooks/useOrganization';
 import { SELECT_ORGANIZATION_TOUR_TARGET_IDS } from '@/core/constants/tourTargets';
 import type { Organization } from '@/core/stores/organizationStore';
 import { useThemeStore } from '@/core/stores/themeStore';
+import { getOrganizationDashboardPath } from '@/core/utils/organizationNavigation';
 import { useJoyrideMinitour } from '@/features/tours/hooks/useJoyrideMinitour';
 import {
   SELECT_ORGANIZATION_MINITOUR_ID,
@@ -27,7 +28,7 @@ export default function SelectOrganizationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useTranslation('common');
-  const { organizations: userOrganizations = [], isLoading, setCurrentOrganization } = useOrganization();
+  const { organizations: userOrganizations = [], isLoading, isHydrated, setCurrentOrganization } = useOrganization();
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
@@ -94,11 +95,7 @@ export default function SelectOrganizationPage() {
     let targetUrl = redirectTo;
 
     if (targetUrl === '/dashboard' || targetUrl === '/') {
-      if (['owner', 'admin'].includes(org.role)) {
-        targetUrl = `/${org.slug}/business-panel/dashboard`;
-      } else {
-        targetUrl = `/${org.slug}/business-user/dashboard`;
-      }
+      targetUrl = getOrganizationDashboardPath(org);
     } else if (targetUrl.startsWith('/') && !targetUrl.startsWith(`/${org.slug}`)) {
       targetUrl = `/${org.slug}${targetUrl}`;
     }
@@ -108,17 +105,17 @@ export default function SelectOrganizationPage() {
 
   // If user has only one org, auto-select and redirect
   useEffect(() => {
-    if (!isLoading && userOrganizations.length === 1) {
+    if (!isLoading && isHydrated && userOrganizations.length === 1) {
       handleSelectOrganization(userOrganizations[0]);
     }
-  }, [handleSelectOrganization, isLoading, userOrganizations]);
+  }, [handleSelectOrganization, isLoading, isHydrated, userOrganizations]);
 
   // If user has no orgs, redirect to regular dashboard (B2C user)
   useEffect(() => {
-    if (!isLoading && userOrganizations.length === 0) {
+    if (!isLoading && isHydrated && userOrganizations.length === 0) {
       router.replace(redirectTo);
     }
-  }, [isLoading, userOrganizations, redirectTo, router]);
+  }, [isLoading, isHydrated, userOrganizations, redirectTo, router]);
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -166,7 +163,7 @@ export default function SelectOrganizationPage() {
     }
   };
 
-  if (isLoading || userOrganizations.length <= 1) {
+  if (isLoading || !isHydrated || userOrganizations.length <= 1) {
     return (
       <div
         className="min-h-screen flex items-center justify-center relative overflow-hidden"
