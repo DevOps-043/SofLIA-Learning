@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Square, Trash2, Copy, StickyNote, Check, Mic, MicOff, Pencil } from 'lucide-react';
+import { X, Send, Square, Trash2, Copy, StickyNote, Check, Mic, Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,34 @@ import { useLessonChatSuggestions } from '../hooks/useLessonChatSuggestions';
 import { ChatSuggestionsChips } from './CourseLia/chat-suggestions';
 import { normalizeLiaLinkUrl, type NormalizedLiaLink } from './CourseLia/lia-link.utils';
 import type { LessonSuggestionsActivityFocus } from '../../../app/api/lia/lesson-suggestions/lesson-suggestions.types';
+
+const VOICE_BAR_SCALES = [0.25, 1, 0.45, 0.8, 0.3, 0.95, 0.5];
+
+function VoiceWaveformBars({ color, count = 4, size = 14 }: { color: string; count?: number; size?: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '2.5px', height: `${size}px` }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ scaleY: VOICE_BAR_SCALES }}
+          transition={{
+            duration: 1.1 + i * 0.09,
+            repeat: Infinity,
+            delay: i * 0.13,
+            ease: 'easeInOut',
+          }}
+          style={{
+            width: '3px',
+            height: '100%',
+            borderRadius: '2px',
+            backgroundColor: color,
+            transformOrigin: 'center',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 // Tipos necesarios
 interface CourseLiaProps {
@@ -869,6 +897,12 @@ function CourseLiaPanelContent({
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '9px', backgroundColor: themeColors.inputBg, borderRadius: '20px', padding: isMobile ? '5px 3%' : '5px 9px 5px 14px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
 
+               {isListening && !inputValue && (
+                 <div style={{ flexShrink: 0 }}>
+                   <VoiceWaveformBars color={themeColors.accentColor} count={5} size={18} />
+                 </div>
+               )}
+
                <textarea
                  ref={inputRef}
                  value={inputValue}
@@ -917,8 +951,8 @@ function CourseLiaPanelContent({
                        <Send style={{ width: '16px', height: '16px', color: isLightTheme ? '#FFFFFF' : '#0A2540' }} />
                      </motion.span>
                    ) : isListening ? (
-                     <motion.span key="mic-off" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>
-                       <MicOff style={{ width: '16px', height: '16px', color: '#10B981' }} />
+                     <motion.span key="listening" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }} style={{ display: 'flex' }}>
+                       <VoiceWaveformBars color="#10B981" count={4} size={14} />
                      </motion.span>
                    ) : (
                      <motion.span key="mic" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={{ duration: 0.15 }}>

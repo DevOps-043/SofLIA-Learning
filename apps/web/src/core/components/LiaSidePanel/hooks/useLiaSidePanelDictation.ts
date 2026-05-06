@@ -86,8 +86,13 @@ export function useLiaSidePanelDictation({
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const silenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dictationTextToApplyRef = useRef('');
+  const isDictatingRef = useRef(false);
+  const shouldRestartRef = useRef(false);
 
   const stopDictation = useCallback(() => {
+    isDictatingRef.current = false;
+    shouldRestartRef.current = false;
+
     setFinalTranscript((currentFinal) => {
       setInterimTranscript((currentInterim) => {
         dictationTextToApplyRef.current = `${currentFinal} ${currentInterim}`.trim();
@@ -189,7 +194,7 @@ export function useLiaSidePanelDictation({
             }
           }
           stopDictation();
-        }, 3000);
+        }, 6000);
       };
 
       recognition.onresult = (event: SpeechResultEvent) => {
@@ -220,6 +225,17 @@ export function useLiaSidePanelDictation({
       };
 
       recognition.onend = () => {
+        // Restart recognition after a pause instead of stopping completely
+        if (shouldRestartRef.current && isDictatingRef.current) {
+          shouldRestartRef.current = false;
+          try {
+            recognitionRef.current?.start();
+            return;
+          } catch {
+            // If restart fails, fall through to stopDictation
+          }
+        }
+
         if (silenceTimeoutRef.current) {
           clearTimeout(silenceTimeoutRef.current);
           silenceTimeoutRef.current = null;
@@ -230,7 +246,12 @@ export function useLiaSidePanelDictation({
       recognition.onerror = (event: SpeechErrorEvent) => {
         console.error('Error en reconocimiento de voz:', event.error);
         if (event.error === 'no-speech') {
-          stopDictation();
+          // Mark for restart so onend resumes instead of stopping
+          if (isDictatingRef.current) {
+            shouldRestartRef.current = true;
+          } else {
+            stopDictation();
+          }
           return;
         }
 
@@ -252,6 +273,7 @@ export function useLiaSidePanelDictation({
       };
 
       recognition.onstart = () => {
+        isDictatingRef.current = true;
         setIsDictating(true);
         resetSilenceTimeout();
       };

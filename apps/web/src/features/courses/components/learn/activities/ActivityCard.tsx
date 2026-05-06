@@ -12,6 +12,7 @@ import {
   Loader2,
   MessageCircle,
   Sparkles,
+  ZoomIn,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -115,6 +116,10 @@ export function ActivityCard({
   const [aiCompletionCompleted, setAiCompletionCompleted] = useState(false);
   const [aiCompletionSaving, setAiCompletionSaving] = useState(false);
   const [aiCompletionError, setAiCompletionError] = useState<string | null>(null);
+  const [contentZoom, setContentZoom] = useState(1);
+  const ZOOM_STEPS = [1, 1.15, 1.3, 1.5];
+  const canZoomIn = contentZoom < ZOOM_STEPS[ZOOM_STEPS.length - 1];
+  const canZoomOut = contentZoom > ZOOM_STEPS[0];
   const aiActivityCompleted = Boolean(activity.is_completed || aiCompletionCompleted);
 
   const markAiChatActivityCompleted = async () => {
@@ -315,10 +320,43 @@ export function ActivityCard({
                   slug={slug}
                 />
               ) : hasActivityContent ? (
-                <FormattedContentRenderer
-                  content={activity.activity_content}
-                  activityId={activity.activity_id}
-                />
+                <>
+                  <div className="mb-2 flex items-center justify-end gap-1.5">
+                    <ZoomIn className="h-3.5 w-3.5 text-gray-400 dark:text-white/30" />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const currentIndex = ZOOM_STEPS.indexOf(contentZoom);
+                        if (currentIndex > 0) setContentZoom(ZOOM_STEPS[currentIndex - 1]);
+                      }}
+                      disabled={!canZoomOut}
+                      title="Reducir tamaño de texto"
+                      className="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/40 dark:hover:bg-white/10"
+                    >
+                      A−
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const currentIndex = ZOOM_STEPS.indexOf(contentZoom);
+                        if (currentIndex < ZOOM_STEPS.length - 1) setContentZoom(ZOOM_STEPS[currentIndex + 1]);
+                      }}
+                      disabled={!canZoomIn}
+                      title="Aumentar tamaño de texto"
+                      className="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/40 dark:hover:bg-white/10"
+                    >
+                      A+
+                    </button>
+                  </div>
+                  <div style={{ zoom: contentZoom }}>
+                    <FormattedContentRenderer
+                      content={activity.activity_content}
+                      activityId={activity.activity_id}
+                    />
+                  </div>
+                </>
               ) : null}
             </div>
           )}

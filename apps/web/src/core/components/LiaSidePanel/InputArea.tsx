@@ -1,8 +1,37 @@
 'use client';
 
 import React from 'react';
-import { Send, Mic, MicOff, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Send, Mic, Loader2 } from 'lucide-react';
 import { LiaThemeColors } from './types';
+
+const BAR_VARIANTS = [0.2, 1, 0.4, 0.7, 0.3, 0.9, 0.5];
+
+function VoiceWaveform({ color, barCount = 5, height = 18 }: { color: string; barCount?: number; height?: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '3px', height: `${height}px` }}>
+      {Array.from({ length: barCount }).map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ scaleY: BAR_VARIANTS }}
+          transition={{
+            duration: 1.1 + i * 0.07,
+            repeat: Infinity,
+            delay: i * 0.13,
+            ease: 'easeInOut',
+          }}
+          style={{
+            width: '3px',
+            height: '100%',
+            borderRadius: '3px',
+            backgroundColor: color,
+            transformOrigin: 'center',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface InputAreaProps {
   t: (key: string) => string;
@@ -69,7 +98,10 @@ export function InputArea({
           border: `1px solid ${themeColors.inputBorder}`,
         }}
       >
-        <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+        <div style={{ flex: 1, minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {isDictating && !composedInputValue && (
+            <VoiceWaveform color={themeColors.accentColor} barCount={6} height={18} />
+          )}
           <input
             ref={inputRef}
             type="text"
@@ -94,30 +126,15 @@ export function InputArea({
                 : t('lia.chat.inputPlaceholder')
             }
             style={{
-              width: '100%',
+              flex: 1,
               backgroundColor: 'transparent',
               border: 'none',
               outline: 'none',
               color: themeColors.textPrimary,
               fontSize: '14px',
+              minWidth: 0,
             }}
           />
-          {isDictating && interimTranscript && (
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '-18px',
-                left: 0,
-                fontSize: '11px',
-                color: themeColors.accentColor,
-                fontStyle: 'italic',
-                pointerEvents: 'none',
-                opacity: 0.7,
-              }}
-            >
-              {interimTranscript}
-            </div>
-          )}
         </div>
 
         {isDictationEnabled && (
@@ -169,9 +186,7 @@ export function InputArea({
                 className="animate-spin"
               />
             ) : isDictating ? (
-              <MicOff
-                style={{ width: '16px', height: '16px', color: '#FFFFFF' }}
-              />
+              <VoiceWaveform color="#FFFFFF" barCount={4} height={14} />
             ) : (
               <Mic
                 style={{
