@@ -143,6 +143,7 @@ export function useBusinessPanelJoyride(options: UseBusinessPanelJoyrideOptions 
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
+      disableOverlay: true,
       disableOverlayClose: false,
       disableCloseOnEsc: false,
       disableFocus: true,

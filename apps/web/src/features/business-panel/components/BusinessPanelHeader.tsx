@@ -15,6 +15,7 @@ import { useLanguage } from '../../../core/providers/I18nProvider'
 import { useTranslation } from 'react-i18next'
 import { useThemeStore } from '../../../core/stores/themeStore'
 import { useOrganization } from '../../../core/hooks/useOrganization'
+import { NotificationBell } from '@/core/components/NotificationBell'
 
 interface BusinessPanelHeaderProps {
   onMenuClick: () => void
@@ -174,7 +175,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     alt={organization?.name || 'Organización'}
                     width={180}
                     height={48}
-                  className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
+                    className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/icono.png';
                     }}
@@ -205,279 +206,281 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
             </div>
           </div>
 
-          {/* Right: User Menu */}
-          <div className="relative shrink-0" ref={dropdownRef}>
-            <motion.button
-              onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-              className="flex items-center justify-center p-1 rounded-full transition-all duration-200"
-              style={{
-                backgroundColor: userDropdownOpen ? navbarStyle.hoverBg : 'transparent'
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <div
-                className="relative h-9 w-9 overflow-hidden rounded-full flex items-center justify-center transition-all shadow-sm ring-2 ring-white/80 dark:ring-white/80"
+          {/* Right: User Menu & Notifications */}
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <NotificationBell />
+
+            <div className="relative" ref={dropdownRef}>
+              <motion.button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="flex items-center justify-center p-1 rounded-full transition-all duration-200"
                 style={{
-                  background: `linear-gradient(135deg, ${panelTheme.primaryColor}, ${panelTheme.accentColor})`,
-                  boxShadow: `0 4px 15px ${panelTheme.primaryColor}40`,
+                  backgroundColor: userDropdownOpen ? navbarStyle.hoverBg : 'transparent'
                 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {userProfile?.profile_picture_url || user?.profile_picture_url ? (
-                  <Image
-                    src={userProfile?.profile_picture_url || user?.profile_picture_url || ''}
-                    alt={getDisplayName()}
-                    width={36}
-                    height={36}
-                    className="h-full w-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-xs font-semibold text-white">
-                    {getInitials()}
-                  </span>
-                )}
-              </div>
-            </motion.button>
+                <div
+                  className="relative h-9 w-9 overflow-hidden rounded-full flex items-center justify-center transition-all shadow-sm ring-2 ring-white/80 dark:ring-white/80"
+                  style={{
+                    background: `linear-gradient(135deg, ${panelTheme.primaryColor}, ${panelTheme.accentColor})`,
+                    boxShadow: `0 4px 15px ${panelTheme.primaryColor}40`,
+                  }}
+                >
+                  {userProfile?.profile_picture_url || user?.profile_picture_url ? (
+                    <Image
+                      src={userProfile?.profile_picture_url || user?.profile_picture_url || ''}
+                      alt={getDisplayName()}
+                      width={36}
+                      height={36}
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold text-white">
+                      {getInitials()}
+                    </span>
+                  )}
+                </div>
+              </motion.button>
 
-            {/* Dropdown */}
-            <AnimatePresence>
-              {userDropdownOpen && (
-                <>
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="pointer-events-none fixed inset-0 z-[998] bg-black/20 backdrop-blur-sm"
-                    style={{ top: '64px' }}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-56 rounded-xl border backdrop-blur-xl shadow-xl z-[1000] overflow-hidden"
-                    style={{
-                      backgroundColor: navbarStyle.backgroundColor,
-                      borderColor: navbarStyle.borderColor,
-                    }}
-                  >
-                    {/* User Info */}
-                    <div
-                      className="px-4 py-3 border-b"
-                      style={{ borderColor: navbarStyle.borderColor }}
+              {/* Dropdown */}
+              <AnimatePresence>
+                {userDropdownOpen && (
+                  <>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="pointer-events-none fixed inset-0 z-[998] bg-black/20 backdrop-blur-sm"
+                      style={{ top: '64px' }}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-56 rounded-xl border backdrop-blur-xl shadow-xl z-[1000] overflow-hidden"
+                      style={{
+                        backgroundColor: navbarStyle.backgroundColor,
+                        borderColor: navbarStyle.borderColor,
+                      }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-white/80 dark:ring-white/80 overflow-hidden"
-                          style={{
-                            background: `linear-gradient(135deg, ${panelTheme.primaryColor}, ${panelTheme.accentColor})`,
-                            boxShadow: `0 4px 15px ${panelTheme.primaryColor}40`,
-                          }}
-                        >
-                          {userProfile?.profile_picture_url || user?.profile_picture_url ? (
-                            <Image
-                              src={userProfile?.profile_picture_url || user?.profile_picture_url || ''}
-                              alt={getDisplayName()}
-                              width={40}
-                              height={40}
-                              className="h-full w-full rounded-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-sm font-semibold text-white">
-                              {getInitials()}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p
-                            className="text-sm font-semibold truncate"
-                            style={{ color: navbarStyle.color || undefined }}
+                      {/* User Info */}
+                      <div
+                        className="px-4 py-3 border-b"
+                        style={{ borderColor: navbarStyle.borderColor }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="h-10 w-10 rounded-full flex items-center justify-center ring-2 ring-white/80 dark:ring-white/80 overflow-hidden"
+                            style={{
+                              background: `linear-gradient(135deg, ${panelTheme.primaryColor}, ${panelTheme.accentColor})`,
+                              boxShadow: `0 4px 15px ${panelTheme.primaryColor}40`,
+                            }}
                           >
-                            {getDisplayName()}
-                          </p>
-                          <p
-                            className="text-xs truncate opacity-70"
-                            style={{ color: navbarStyle.color || undefined }}
-                          >
-                            {user?.cargo_rol?.toLowerCase() === 'administrador' 
-                              ? t('business:header.superadminRole', { defaultValue: 'Superadmin' })
-                              : t('business:header.administratorRole', { defaultValue: 'Administrador' })
-                            }
-                          </p>
+                            {userProfile?.profile_picture_url || user?.profile_picture_url ? (
+                              <Image
+                                src={userProfile?.profile_picture_url || user?.profile_picture_url || ''}
+                                alt={getDisplayName()}
+                                width={40}
+                                height={40}
+                                className="h-full w-full rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-sm font-semibold text-white">
+                                {getInitials()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p
+                              className="text-sm font-semibold truncate"
+                              style={{ color: navbarStyle.color || undefined }}
+                            >
+                              {getDisplayName()}
+                            </p>
+                            <p
+                              className="text-xs truncate opacity-70"
+                              style={{ color: navbarStyle.color || undefined }}
+                            >
+                              {user?.cargo_rol?.toLowerCase() === 'administrador'
+                                ? t('business:header.superadminRole', { defaultValue: 'Superadmin' })
+                                : t('business:header.administratorRole', { defaultValue: 'Administrador' })
+                              }
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Menu Items */}
-                    <div className="py-1.5 space-y-0.5">
-                      {user?.cargo_rol?.toLowerCase() === 'administrador' && (
+                      {/* Menu Items */}
+                      <div className="py-1.5 space-y-0.5">
+                        {user?.cargo_rol?.toLowerCase() === 'administrador' && (
+                          <motion.button
+                            onClick={() => navigateTo('/admin/dashboard')}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                            style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
+                            whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                          >
+                            <ShieldCheck className="h-5 w-5 opacity-70" />
+                            <span>{t('common:menu.adminPanel')}</span>
+                          </motion.button>
+                        )}
+
                         <motion.button
-                          onClick={() => navigateTo('/admin/dashboard')}
+                          onClick={() => navigateTo(`/${orgSlug}/business-user/dashboard`)}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                           style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                         >
-                          <ShieldCheck className="h-5 w-5 opacity-70" />
-                          <span>{t('common:menu.adminPanel')}</span>
+                          <LayoutDashboard className="h-5 w-5 opacity-70" />
+                          <span>{t('business:header.userPanel')}</span>
                         </motion.button>
-                      )}
 
-                      <motion.button
-                        onClick={() => navigateTo(`/${orgSlug}/business-user/dashboard`)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
-                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
-                      >
-                        <LayoutDashboard className="h-5 w-5 opacity-70" />
-                        <span>{t('business:header.userPanel')}</span>
-                      </motion.button>
+                        {canSwitch && (
+                          <motion.button
+                            onClick={() => navigateTo('/auth/select-organization')}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                            style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
+                            whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                          >
+                            <Building2 className="h-5 w-5 opacity-70" />
+                            <span>{t('common:profileDropdown.organizations')}</span>
+                          </motion.button>
+                        )}
 
-                      {canSwitch && (
                         <motion.button
-                          onClick={() => navigateTo('/auth/select-organization')}
+                          onClick={() => navigateTo('/profile')}
                           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
                           style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
                           whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
                         >
-                          <Building2 className="h-5 w-5 opacity-70" />
-                          <span>{t('common:profileDropdown.organizations')}</span>
+                          <User className="h-5 w-5 opacity-70" />
+                          <span>{t('business:header.editProfile')}</span>
                         </motion.button>
-                      )}
 
-                      <motion.button
-                        onClick={() => navigateTo('/profile')}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                        style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
-                        whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
-                      >
-                        <User className="h-5 w-5 opacity-70" />
-                        <span>{t('business:header.editProfile')}</span>
-                      </motion.button>
+                        {/* Tema - submenu expandible */}
+                        <div className="relative">
+                          <motion.button
+                            onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'theme' ? null : 'theme') }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                            style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
+                            whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                          >
+                            {resolvedTheme === 'dark' ? <Moon className="h-5 w-5 opacity-70" /> : <Sun className="h-5 w-5 opacity-70" />}
+                            <span className="flex-1 text-left">{t('common:profileDropdown.theme')}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs opacity-70">{t(`common:menu.theme.${theme}`)}</span>
+                              <ChevronRight className={`h-3.5 w-3.5 opacity-70 transition-transform ${activeSubmenu === 'theme' ? 'rotate-90' : ''}`} />
+                            </div>
+                          </motion.button>
+                          <AnimatePresence>
+                            {activeSubmenu === 'theme' && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden"
+                                style={{ backgroundColor: navbarStyle.hoverBg }}
+                              >
+                                {[
+                                  { value: 'light' as const, label: t('common:menu.theme.light'), icon: Sun },
+                                  { value: 'dark' as const, label: t('common:menu.theme.dark'), icon: Moon },
+                                  { value: 'system' as const, label: t('common:menu.theme.system'), icon: Monitor },
+                                ].map((option) => {
+                                  const ThemeIcon = option.icon
+                                  const isActive = theme === option.value
+                                  return (
+                                    <button
+                                      key={option.value}
+                                      onClick={(e) => { e.stopPropagation(); setTheme(option.value) }}
+                                      className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
+                                      style={{
+                                        color: isActive ? panelTheme.actionColor : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
+                                      }}
+                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = navbarStyle.hoverBg}
+                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                      <ThemeIcon className="h-3.5 w-3.5" />
+                                      <span>{option.label}</span>
+                                      {isActive && <Check className="h-3 w-3 ml-auto" />}
+                                    </button>
+                                  )
+                                })}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
 
-                      {/* Tema - submenu expandible */}
-                      <div className="relative">
+                        <div className="relative">
+                          <motion.button
+                            onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'language' ? null : 'language') }}
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                            style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
+                            whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                          >
+                            <Globe className="h-5 w-5 opacity-70" />
+                            <span className="flex-1 text-left">{t('common:language')}</span>
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">{languageOptions.find(l => l.value === language)?.flag}</span>
+                              <ChevronRight
+                                className={`h-3.5 w-3.5 transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`}
+                                style={{ opacity: 0.7 }}
+                              />
+                            </div>
+                          </motion.button>
+
+                          <AnimatePresence>
+                            {activeSubmenu === 'language' && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden"
+                                style={{ backgroundColor: navbarStyle.hoverBg }}
+                              >
+                                {languageOptions.map((opt) => {
+                                  const isActive = language === opt.value
+                                  return (
+                                    <button
+                                      key={opt.value}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setLanguage(opt.value)
+                                        setActiveSubmenu(null)
+                                      }}
+                                      className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
+                                      style={{
+                                        color: isActive ? panelTheme.actionColor : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
+                                      }}
+                                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = navbarStyle.hoverBg}
+                                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                      <span>{opt.flag}</span>
+                                      <span>{opt.label}</span>
+                                      {isActive && <Check className="h-3 w-3 ml-auto" />}
+                                    </button>
+                                  )
+                                })}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        <div className="my-1 border-t" style={{ borderColor: navbarStyle.borderColor }} />
                         <motion.button
-                          onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'theme' ? null : 'theme') }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                          style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
-                          whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-500 dark:text-red-400 transition-colors hover:bg-red-500/10"
+                          whileHover={{ x: 2 }}
                         >
-                          {resolvedTheme === 'dark' ? <Moon className="h-5 w-5 opacity-70" /> : <Sun className="h-5 w-5 opacity-70" />}
-                          <span className="flex-1 text-left">{t('common:profileDropdown.theme')}</span>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs opacity-70">{t(`common:menu.theme.${theme}`)}</span>
-                            <ChevronRight className={`h-3.5 w-3.5 opacity-70 transition-transform ${activeSubmenu === 'theme' ? 'rotate-90' : ''}`} />
-                          </div>
+                          <LogOut className="h-5 w-5" />
+                          <span>{t('business:header.logout')}</span>
                         </motion.button>
-                        <AnimatePresence>
-                          {activeSubmenu === 'theme' && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                              style={{ backgroundColor: navbarStyle.hoverBg }}
-                            >
-                              {[
-                                { value: 'light' as const, label: t('common:menu.theme.light'), icon: Sun },
-                                { value: 'dark' as const, label: t('common:menu.theme.dark'), icon: Moon },
-                                { value: 'system' as const, label: t('common:menu.theme.system'), icon: Monitor },
-                              ].map((option) => {
-                                const ThemeIcon = option.icon
-                                const isActive = theme === option.value
-                                return (
-                                  <button
-                                    key={option.value}
-                                    onClick={(e) => { e.stopPropagation(); setTheme(option.value) }}
-                                    className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
-                                    style={{
-                                      color: isActive ? panelTheme.actionColor : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = navbarStyle.hoverBg}
-                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                  >
-                                    <ThemeIcon className="h-3.5 w-3.5" />
-                                    <span>{option.label}</span>
-                                    {isActive && <Check className="h-3 w-3 ml-auto" />}
-                                  </button>
-                                )
-                              })}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </div>
-
-
-
-                      <div className="relative">
-                        <motion.button
-                          onClick={(e) => { e.stopPropagation(); setActiveSubmenu(activeSubmenu === 'language' ? null : 'language') }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                          style={{ color: navbarStyle.color || (resolvedTheme === 'light' ? '#1E293B' : 'rgba(255, 255, 255, 0.9)') }}
-                          whileHover={{ x: 2, backgroundColor: navbarStyle.hoverBg }}
-                        >
-                          <Globe className="h-5 w-5 opacity-70" />
-                          <span className="flex-1 text-left">{t('common:language')}</span>
-                          <div className="flex items-center gap-1">
-                          <span className="text-xs">{languageOptions.find(l => l.value === language)?.flag}</span>
-                            <ChevronRight
-                              className={`h-3.5 w-3.5 transition-transform ${activeSubmenu === 'language' ? 'rotate-90' : ''}`}
-                              style={{ opacity: 0.7 }}
-                            />
-                          </div>
-                        </motion.button>
-
-                        <AnimatePresence>
-                          {activeSubmenu === 'language' && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                              style={{ backgroundColor: navbarStyle.hoverBg }}
-                            >
-                              {languageOptions.map((opt) => {
-                                const isActive = language === opt.value
-                                return (
-                                  <button
-                                    key={opt.value}
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setLanguage(opt.value)
-                                      setActiveSubmenu(null)
-                                    }}
-                                    className="w-full flex items-center gap-3 px-10 py-2 text-xs transition-colors"
-                                    style={{
-                                      color: isActive ? panelTheme.actionColor : (navbarStyle.color || (resolvedTheme === 'light' ? '#475569' : 'rgba(255, 255, 255, 0.7)'))
-                                    }}
-                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = navbarStyle.hoverBg}
-                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                  >
-                                    <span>{opt.flag}</span>
-                                    <span>{opt.label}</span>
-                                    {isActive && <Check className="h-3 w-3 ml-auto" />}
-                                  </button>
-                                )
-                              })}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-
-                      <div className="my-1 border-t" style={{ borderColor: navbarStyle.borderColor }} />
-                      <motion.button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-red-500 dark:text-red-400 transition-colors hover:bg-red-500/10"
-                        whileHover={{ x: 2 }}
-                      >
-                        <LogOut className="h-5 w-5" />
-                        <span>{t('business:header.logout')}</span>
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
       </div>

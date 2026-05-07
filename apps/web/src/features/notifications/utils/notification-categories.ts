@@ -17,7 +17,10 @@ import {
   Sparkles,
   MessageSquare,
   UserPlus,
-  GraduationCap
+  GraduationCap,
+  Clock,
+  Calendar,
+  LayoutGrid
 } from 'lucide-react'
 import { LucideIcon } from 'lucide-react'
 
@@ -32,6 +35,8 @@ export type NotificationCategory =
   | 'reel'
   | 'prompt'
   | 'critical'
+  | 'org'
+  | 'planner'
 
 /**
  * Configuración de categoría de notificación
@@ -83,6 +88,23 @@ export const NOTIFICATION_TYPE_CATEGORY_MAP: Record<string, NotificationCategory
   // Prompts
   'prompt_created': 'prompt',
   'prompt_favorited': 'prompt',
+
+  // Organizaciones
+  'org_invitation_received': 'org',
+  'org_role_updated': 'org',
+  'org_team_assigned': 'org',
+
+  // Learning Paths (B2B)
+  'learning_path_assigned': 'course',
+  'course_deadline_approaching': 'critical',
+  'mandatory_course_reminder': 'critical',
+
+  // Jerarquía
+  'hierarchy_chat_message': 'community',
+
+  // Study Planner
+  'planner_rebalance_suggested': 'planner',
+  'study_session_overdue': 'critical',
 }
 
 /**
@@ -144,6 +166,22 @@ export const NOTIFICATION_CATEGORIES: Record<NotificationCategory, NotificationC
     borderColor: 'border-l-red-500',
     icon: AlertCircle,
     priority: 'critical'
+  },
+  org: {
+    category: 'org',
+    color: 'text-indigo-400',
+    bgColor: 'bg-indigo-500/10',
+    borderColor: 'border-l-indigo-500',
+    icon: LayoutGrid,
+    priority: 'high'
+  },
+  planner: {
+    category: 'planner',
+    color: 'text-amber-400',
+    bgColor: 'bg-amber-500/10',
+    borderColor: 'border-l-amber-500',
+    icon: Calendar,
+    priority: 'medium'
   }
 }
 
@@ -185,6 +223,23 @@ export const NOTIFICATION_TYPE_ICONS: Record<string, LucideIcon> = {
   // Prompts
   'prompt_created': Sparkles,
   'prompt_favorited': Sparkles,
+
+  // Organizaciones
+  'org_invitation_received': UserPlus,
+  'org_role_updated': Shield,
+  'org_team_assigned': Users,
+
+  // Learning Paths
+  'learning_path_assigned': GraduationCap,
+  'course_deadline_approaching': AlertTriangle,
+  'mandatory_course_reminder': AlertCircle,
+
+  // Jerarquía
+  'hierarchy_chat_message': MessageSquare,
+
+  // Study Planner
+  'planner_rebalance_suggested': Sparkles,
+  'study_session_overdue': Clock,
 }
 
 /**

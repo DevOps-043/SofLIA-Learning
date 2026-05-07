@@ -845,8 +845,9 @@
           "lastName": "User last name"
         },
         "roleDesc": {
-          "BusinessUser": "Employee access to courses and content",
-          "Business": "Full access to the administration panel"
+          "member": "Basic access to courses and content",
+          "admin": "User management and settings",
+          "owner": "Full control of the organization"
         },
         "hints": {
           "info": "An email with the activation link will be sent"
@@ -872,8 +873,9 @@
           "maxUses": "No limit"
         },
         "roleDesc": {
-          "BusinessUser": "Employee access",
-          "Business": "Administrator access"
+          "member": "Basic access to courses and content",
+          "admin": "User management and settings",
+          "owner": "Full control of the organization"
         },
         "hints": {
           "unlimited": "Leave empty for unlimited uses",

@@ -339,6 +339,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       showProgress: false,
       showSkipButton: true,
       hideCloseButton: false,
+      disableOverlay: true,
       disableOverlayClose: false,
       disableCloseOnEsc: false,
       disableFocus: true,
@@ -359,7 +360,6 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
         },
         overlay: {
           backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          pointerEvents: 'none',
         },
       },
       floaterProps: {

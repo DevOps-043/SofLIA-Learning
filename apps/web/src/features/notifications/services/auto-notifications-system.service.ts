@@ -45,8 +45,9 @@ export class SystemNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'system_password_changed',
-        title: 'Contraseña actualizada',
-        message: 'Tu contraseña ha sido actualizada exitosamente. Si no fuiste tú, contacta al soporte inmediatamente.',
+        title: 'notifications.types.system_password_changed.title',
+        message: 'notifications.types.system_password_changed.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
           timestamp: new Date().toISOString()
@@ -113,10 +114,12 @@ export class SystemNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'system_login_success',
-        title: 'Inicio de sesión exitoso',
-        message: `Se inició sesión en tu cuenta desde ${location}. Si no fuiste tú, cambia tu contraseña inmediatamente.`,
+        title: 'notifications.types.system_login_success.title',
+        message: 'notifications.types.system_login_success.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          location,
           ip,
           userAgent,
           timestamp: new Date().toISOString()
@@ -139,10 +142,12 @@ export class SystemNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'system_login_failed',
-        title: 'Intento de inicio de sesión fallido',
-        message: `Se detectó un intento de inicio de sesión fallido desde ${location}. Si fuiste tú, verifica tus credenciales.`,
+        title: 'notifications.types.system_login_failed.title',
+        message: 'notifications.types.system_login_failed.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          location,
           ip,
           userAgent,
           timestamp: new Date().toISOString()
@@ -163,8 +168,9 @@ export class SystemNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'system_email_verified',
-        title: 'Email verificado',
-        message: 'Tu dirección de correo electrónico ha sido verificada exitosamente.',
+        title: 'notifications.types.system_email_verified.title',
+        message: 'notifications.types.system_email_verified.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
           timestamp: new Date().toISOString()
@@ -185,10 +191,12 @@ export class SystemNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'system_security_alert',
-        title: 'Alerta de seguridad',
-        message,
+        title: 'notifications.types.system_security_alert.title',
+        message: 'notifications.types.system_security_alert.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          message,
           timestamp: new Date().toISOString()
         },
         priority: getNotificationPriority('system_security_alert')

@@ -11,6 +11,8 @@ export const NON_DUPLICATE_NOTIFICATION_TYPES: Record<string, number> = {
   system_login_failed: 1,
   system_password_changed: 1,
   system_email_verified: 1,
+  learning_path_assigned: 60,
+  org_invitation_received: 1440,
 }
 
 export function getDuplicateNotificationWindow(notificationType: string) {
@@ -37,7 +39,10 @@ export function buildNotificationInsertPayload(
     notification_type: params.notificationType,
     title: params.title.trim(),
     message: params.message.trim(),
-    metadata: (params.metadata || {}) as Json,
+    metadata: {
+      ...(params.metadata || {}),
+      is_localized: params.isLocalized || false,
+    } as Json,
     priority: params.priority || 'medium',
     status: 'unread' as const,
     channels_sent: [] as Json,

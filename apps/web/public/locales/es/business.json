@@ -846,8 +846,9 @@
           "lastName": "Apellido del usuario"
         },
         "roleDesc": {
-          "BusinessUser": "Acceso de empleado a cursos y contenido",
-          "Business": "Acceso completo al panel de administración"
+          "member": "Acceso básico a cursos y contenido",
+          "admin": "Gestión de usuarios y configuración",
+          "owner": "Control total de la organización"
         },
         "hints": {
           "info": "Se enviará un correo con el enlace de activación"
@@ -873,8 +874,9 @@
           "maxUses": "Sin límite"
         },
         "roleDesc": {
-          "BusinessUser": "Acceso de empleado",
-          "Business": "Acceso de administrador"
+          "member": "Acceso básico a cursos y contenido",
+          "admin": "Gestión de usuarios y configuración",
+          "owner": "Control total de la organización"
         },
         "hints": {
           "unlimited": "Dejar vacío para usos ilimitados",

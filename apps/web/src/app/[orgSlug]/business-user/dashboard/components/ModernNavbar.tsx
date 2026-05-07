@@ -14,6 +14,7 @@ import { ModernNavbarMobileMenu } from './modern-navbar/ModernNavbarMobileMenu';
 import type { ModernNavbarProps } from './modern-navbar/types';
 import { useModernNavbar } from './modern-navbar/useModernNavbar';
 import { useOrganization } from '../../../../../core/hooks/useOrganization';
+import { NotificationBell } from '@/core/components/NotificationBell';
 
 export function ModernNavbar({
   organization,
@@ -70,7 +71,9 @@ export function ModernNavbar({
           <div className="flex h-16 items-center justify-between">
             <ModernNavbarBrand colors={colors} organization={organization} t={t} />
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <NotificationBell />
+
               <div className="hidden md:block relative" ref={dropdownRef}>
                 <ModernNavbarDesktopMenu
                   activeSubmenu={activeSubmenu}
