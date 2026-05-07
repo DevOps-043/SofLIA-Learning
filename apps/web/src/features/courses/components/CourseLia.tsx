@@ -271,7 +271,9 @@ function CourseLiaPanelContent({
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   }, []);
   
   // Detectar si estamos usando un tema personalizado (generalmente oscuro en esta empresa)
@@ -651,9 +653,10 @@ function CourseLiaPanelContent({
 
   // Calcular dimensiones responsive
   const panelWidth = isMobile ? '100%' : `${PANEL_WIDTH}px`;
-  const panelHeight = isMobile 
-    ? `calc(100vh - ${NAVBAR_HEIGHT}px - calc(70px + max(env(safe-area-inset-bottom), 8px)))` 
-    : `calc(100vh - ${NAVBAR_HEIGHT}px)`;
+  const panelBottomOffset = isMobile
+    ? 'calc(70px + max(env(safe-area-inset-bottom, 0px), 8px))'
+    : 'max(env(safe-area-inset-bottom, 0px), 0px)';
+  const panelHeight = `calc(100dvh - ${NAVBAR_HEIGHT}px - ${panelBottomOffset})`;
   const animationInitial = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };
   const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { x: 0 };
   const animationExit = isMobile ? { y: '100%', opacity: 0 } : { x: PANEL_WIDTH };

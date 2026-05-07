@@ -192,7 +192,7 @@ export function useLearnPageLogic() {
       return undefined
     }
 
-    return 'calc(100vh - 3rem)'
+    return 'calc(100dvh - 3rem)'
   }, [isMobile, isMobileBottomNavVisible, visualViewportHeight])
 
   const {

@@ -672,7 +672,6 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
           </div>
 
         </CourseAccessGuard>
-      </>
 
       {/* Video introductorio — fuera de guards/providers para renderizado garantizado */}
       {showVideoIntro && introVideos.length > 0 && (

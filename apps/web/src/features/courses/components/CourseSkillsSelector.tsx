@@ -239,13 +239,13 @@ export function CourseSkillsSelector({
               className="fixed inset-0 z-50 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
             />
             <div className="fixed inset-0 z-50 overflow-y-auto">
-              <div className="flex min-h-screen items-center justify-center p-4">
+              <div className="flex min-h-dvh items-center justify-center p-4">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 20 }}
                   transition={{ duration: 0.3 }}
-                  className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-3xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[85vh] flex flex-col"
+                  className="relative bg-white dark:bg-[#1E2329] rounded-2xl shadow-2xl max-w-3xl w-full border border-[#E9ECEF] dark:border-[#6C757D]/30 max-h-[85dvh] flex flex-col"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Header */}
