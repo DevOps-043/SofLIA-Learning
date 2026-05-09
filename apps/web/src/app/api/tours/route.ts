@@ -34,6 +34,22 @@ function getAdminClient(): SupabaseClient<Database> {
 
 const VALID_ACTIONS = new Set(['start', 'step', 'complete', 'skip']);
 
+function isMissingTourProgressInfrastructureError(error: unknown) {
+  if (!error || typeof error !== 'object') return false;
+
+  const candidate = error as { code?: string; message?: string; details?: string; hint?: string };
+  const text = [candidate.message, candidate.details, candidate.hint]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return (
+    candidate.code === '42P01' ||
+    candidate.code === '42703' ||
+    text.includes('user_tour_progress')
+  );
+}
+
 // ---------------------------------------------------------------------------
 // GET /api/tours?tourId=<id>
 // Verifica si el usuario ya vio un tour específico.
@@ -65,6 +81,9 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('[GET /api/tours] DB error:', error);
+      if (isMissingTourProgressInfrastructureError(error)) {
+        return NextResponse.json({ success: true, hasSeenTour: true, tourProgress: null });
+      }
       return NextResponse.json({ error: 'Error al verificar tour' }, { status: 500 });
     }
 
@@ -118,12 +137,20 @@ export async function POST(request: NextRequest) {
     const supabase = getAdminClient();
 
     // Single read to check existence — we only SELECT id + step_reached
-    const { data: existing } = await supabase
+    const { data: existing, error: existingError } = await supabase
       .from('user_tour_progress')
       .select('id, step_reached')
       .eq('user_id', user.id)
       .eq('tour_id', tourId)
       .maybeSingle();
+
+    if (existingError) {
+      console.error('[POST /api/tours] Read DB error:', existingError);
+      if (isMissingTourProgressInfrastructureError(existingError)) {
+        return NextResponse.json({ success: true, tourProgress: null });
+      }
+      return NextResponse.json({ error: 'Error al guardar progreso' }, { status: 500 });
+    }
 
     let result;
 
@@ -174,6 +201,9 @@ export async function POST(request: NextRequest) {
 
     if (result.error) {
       console.error('[POST /api/tours] DB error:', result.error);
+      if (isMissingTourProgressInfrastructureError(result.error)) {
+        return NextResponse.json({ success: true, tourProgress: null });
+      }
       return NextResponse.json({ error: 'Error al guardar progreso' }, { status: 500 });
     }
 

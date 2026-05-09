@@ -137,6 +137,7 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
     onSkip
   } = options;
   const { t } = useTranslation('business');
+  const replayLabel = t('adminTour.labels.replay') || 'Ver tutorial';
   const { setRestart } = useTourRestart();
   
   const { 
@@ -207,9 +208,9 @@ export function useFeatureTour(options: UseFeatureTourOptions) {
       return;
     }
 
-    setRestart(manualStartTour, t('adminTour.labels.replay') || 'Ver tutorial');
+    setRestart(manualStartTour, replayLabel);
     return () => setRestart(null);
-  }, [enabled, manualStartTour, setRestart, t]);
+  }, [enabled, manualStartTour, replayLabel, setRestart]);
 
   useEffect(() => {
     if (!enabled) {

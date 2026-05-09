@@ -1,13 +1,13 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useRef, useState, ReactNode } from 'react';
 
 interface TourRestartContextType {
-  /** Función para reiniciar el tour activo en la página actual, o null si no hay tour */
+  /** Funcion para reiniciar el tour activo en la pagina actual, o null si no hay tour */
   restartFn: (() => void) | null;
-  /** Etiqueta descriptiva del tour activo (ej: "Tutorial del Dashboard") */
+  /** Etiqueta descriptiva del tour activo */
   tourLabel: string | null;
-  /** Las páginas con tour llaman a esto para registrar su función de reinicio */
+  /** Las paginas con tour llaman a esto para registrar su funcion de reinicio */
   setRestart: (fn: (() => void) | null, label?: string) => void;
 }
 
@@ -16,12 +16,19 @@ const TourRestartContext = createContext<TourRestartContextType | undefined>(und
 export function TourRestartProvider({ children }: { children: ReactNode }) {
   const [restartFn, setRestartFn] = useState<(() => void) | null>(null);
   const [tourLabel, setTourLabel] = useState<string | null>(null);
+  const restartFnRef = useRef<(() => void) | null>(null);
+  const tourLabelRef = useRef<string | null>(null);
 
-  // useRef para evitar que setRestart cambie de referencia en cada render,
-  // lo que causaría loops en los useEffect de los hooks de tour.
   const setRestart = useCallback((fn: (() => void) | null, label?: string) => {
+    const nextLabel = fn ? (label ?? 'Tour') : null;
+    if (restartFnRef.current === fn && tourLabelRef.current === nextLabel) {
+      return;
+    }
+
+    restartFnRef.current = fn;
+    tourLabelRef.current = nextLabel;
     setRestartFn(() => fn);
-    setTourLabel(fn ? (label ?? 'Tour') : null);
+    setTourLabel(nextLabel);
   }, []);
 
   return (

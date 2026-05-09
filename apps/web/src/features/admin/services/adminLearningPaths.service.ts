@@ -114,6 +114,22 @@ function normalizeSlug(value: string | null | undefined) {
     .replace(/^-+|-+$/g, '')
 }
 
+function isMissingLearningPathAssignmentMetadataError(error: unknown) {
+  if (!error || typeof error !== 'object') return false
+
+  const candidate = error as { code?: string; message?: string; details?: string; hint?: string }
+  const text = [candidate.message, candidate.details, candidate.hint]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  return (
+    candidate.code === '42703' ||
+    text.includes('assignment_source') ||
+    text.includes('default_rule_id')
+  )
+}
+
 function buildLearningPathMutationErrorMessage(
   error: SupabaseMutationError,
   fallbackMessage: string,
@@ -882,7 +898,7 @@ export class AdminLearningPathsService {
     organizationId: string,
   ): Promise<UserLearningPathAssignment[]> {
     const supabase = createAdminClient()
-    const { data, error } = await fromLoose<UserLearningPathAssignmentRow>(
+    let { data, error } = await fromLoose<UserLearningPathAssignmentRow>(
       supabase,
       'user_learning_path_assignments',
     )
@@ -907,6 +923,35 @@ export class AdminLearningPathsService {
       .order('assigned_at', { ascending: false })
 
     if (error) {
+      if (isMissingLearningPathAssignmentMetadataError(error)) {
+        const fallback = await fromLoose<UserLearningPathAssignmentRow>(
+          supabase,
+          'user_learning_path_assignments',
+        )
+          .select(`
+            id,
+            organization_id,
+            user_id,
+            learning_path_id,
+            assigned_at,
+            status,
+            users:user_id (
+              id,
+              email,
+              display_name,
+              first_name,
+              last_name
+            )
+          `)
+          .eq('organization_id', organizationId)
+          .order('assigned_at', { ascending: false })
+
+        data = fallback.data
+        error = fallback.error
+      }
+    }
+
+    if (error) {
       logger.error('Error fetching user learning path assignments:', error)
       throw new Error('No se pudieron cargar las asignaciones individuales')
     }
@@ -922,8 +967,8 @@ export class AdminLearningPathsService {
       learning_path_id: row.learning_path_id,
       assigned_at: row.assigned_at,
       status: row.status,
-      assignment_source: row.assignment_source,
-      default_rule_id: row.default_rule_id,
+      assignment_source: row.assignment_source || 'manual',
+      default_rule_id: row.default_rule_id || null,
       learning_path: learningPathMap.get(row.learning_path_id) || null,
       user: row.users || null,
     }))

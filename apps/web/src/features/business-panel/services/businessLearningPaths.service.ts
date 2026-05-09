@@ -85,6 +85,17 @@ interface GetBusinessLearningPathsResponse {
   hierarchyNodes: BusinessLearningPathHierarchyNode[]
 }
 
+async function readJsonResponse(response: Response, fallbackMessage: string) {
+  const contentType = response.headers.get('content-type') || ''
+
+  if (!contentType.includes('application/json')) {
+    const text = await response.text().catch(() => '')
+    throw new Error(text.includes('<!DOCTYPE') ? fallbackMessage : text || fallbackMessage)
+  }
+
+  return response.json()
+}
+
 export class BusinessLearningPathsService {
   static async getLearningPaths(
     orgSlug: string,
@@ -92,7 +103,7 @@ export class BusinessLearningPathsService {
     const response = await fetch(`/api/${orgSlug}/business/learning-paths`, {
       credentials: 'include',
     })
-    const data = await response.json()
+    const data = await readJsonResponse(response, 'Error al obtener rutas de aprendizaje')
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al obtener rutas de aprendizaje')
@@ -121,7 +132,7 @@ export class BusinessLearningPathsService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    const data = await response.json()
+    const data = await readJsonResponse(response, 'Error al asignar la ruta de aprendizaje')
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al asignar la ruta de aprendizaje')
@@ -146,7 +157,7 @@ export class BusinessLearningPathsService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    const data = await response.json()
+    const data = await readJsonResponse(response, 'Error al configurar la ruta predeterminada')
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al configurar la ruta predeterminada')
@@ -163,7 +174,7 @@ export class BusinessLearningPathsService {
         credentials: 'include',
       },
     )
-    const data = await response.json()
+    const data = await readJsonResponse(response, 'Error al desactivar la ruta predeterminada')
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al desactivar la ruta predeterminada')
@@ -179,7 +190,7 @@ export class BusinessLearningPathsService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ruleIds }),
     })
-    const data = await response.json()
+    const data = await readJsonResponse(response, 'Error al aplicar rutas predeterminadas')
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al aplicar rutas predeterminadas')
@@ -196,7 +207,7 @@ export class BusinessLearningPathsService {
         credentials: 'include',
       },
     )
-    const data = await response.json()
+    const data = await readJsonResponse(response, 'Error al revocar la ruta de aprendizaje')
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al revocar la ruta de aprendizaje')

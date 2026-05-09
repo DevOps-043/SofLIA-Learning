@@ -52,9 +52,13 @@ export function useTourProgress(tourId: string): UseTourProgressReturn {
           const data = await response.json();
           setHasSeenTour(data.hasSeenTour);
           setTourProgress(data.tourProgress);
+        } else {
+          console.error('[useTourProgress] GET failed:', await response.text());
+          setHasSeenTour(true);
         }
       } catch (err) {
         console.error('[useTourProgress] Error al verificar progreso del tour:', err);
+        setHasSeenTour(true);
       } finally {
         setIsLoading(false);
       }
