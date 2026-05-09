@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { LogOut } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '../../core/components/ThemeToggle/ThemeToggle'
+import { UserDropdown } from '../../core/components/UserDropdown'
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import {
   OnboardingChoiceScreen,
@@ -24,6 +25,11 @@ export default function DashboardPage() {
   const { status, organizationSlug, organizationName, banReason, isLoading: statusLoading, refetch } = useOnboardingStatus()
   const [view, setView] = useState<View>('choice')
   const [dismissedRejection, setDismissedRejection] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   // Dismiss the JARVIS onboarding tour so it doesn't overlay our org onboarding
   useEffect(() => {
@@ -119,24 +125,7 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            
-            {user && (
-              <div className="flex items-center gap-3 bg-gray-100 dark:bg-white/5 px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/5">
-                <div className="w-8 h-8 rounded-full bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 flex items-center justify-center text-sm font-bold">
-                  {user.first_name?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
-                </div>
-                <span className="text-gray-600 dark:text-gray-300 text-sm hidden sm:block pr-2">
-                  {user.email}
-                </span>
-              </div>
-            )}
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-red-500/10 border border-gray-200 dark:border-white/5 hover:border-red-200 dark:hover:border-red-500/20 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors text-sm"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:block">Salir</span>
-            </button>
+            <UserDropdown />
           </div>
         </div>
       </header>

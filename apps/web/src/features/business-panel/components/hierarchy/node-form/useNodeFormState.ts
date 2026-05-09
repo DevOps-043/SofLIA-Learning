@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
 import { HierarchyService } from '../../../services/hierarchy.service'
 import type { NodeManagerUser } from './node-form.utils'
@@ -60,6 +61,7 @@ export function useNodeFormState(
   parentNode?: OrganizationNode,
   nodeToEdit?: OrganizationNode,
 ): NodeFormState & NodeFormActions {
+  const { t } = useTranslation('business')
   const [name, setName] = useState('')
   const [type, setType] = useState('custom')
   const [customType, setCustomType] = useState('')
@@ -210,7 +212,7 @@ export function useNodeFormState(
       onClose()
     } catch (error) {
       console.error(error)
-      setSaveError('Error al guardar')
+      setSaveError(t('hierarchy.saveNodeError'))
     } finally {
       setLoading(false)
     }

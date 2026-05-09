@@ -370,7 +370,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ initialStructureId
                 if (!selectedStructureId) return;
                 DynamicHierarchyService.createNode({
                   structure_id: selectedStructureId,
-                  name: 'General',
+                  name: t('hierarchy.defaultRootName'),
                   type: 'root',
                   parent_id: null
                 }).then(() => loadNodes(selectedStructureId));

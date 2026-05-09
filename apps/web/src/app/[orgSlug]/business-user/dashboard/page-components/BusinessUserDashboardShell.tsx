@@ -286,7 +286,7 @@ export function BusinessUserDashboardShell({
     setVisibleCourseCount(6)
   }, [assignedCourses.length, disableHeavyEffects])
 
-  const showLearningPathCarousel = learningPaths.length > 0 && courseView === 'grid'
+  const showLearningPathCarousel = learningPaths.length > 0 && assignedCourses.length > 0 && courseView === 'grid'
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') {
@@ -616,7 +616,7 @@ export function BusinessUserDashboardShell({
                 disableHeavyEffects={disableHeavyEffects}
                 t={t}
               />
-            ) : assignedCourses.length === 0 && learningPaths.length === 0 ? (
+            ) : assignedCourses.length === 0 ? (
               <motion.div
                 initial={disableHeavyEffects ? false : { opacity: 0, scale: 0.98 }}
                 animate={disableHeavyEffects ? undefined : { opacity: 1, scale: 1 }}

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { NextResponse } from 'next/server';
 import type { BusinessAuth } from '@/lib/auth/requireBusiness';
@@ -41,6 +42,7 @@ interface CreateNodeRequest {
     type: string;
     position?: number | null;
     manager_id?: string | null;
+    properties?: Record<string, unknown> | null;
     metadata?: Record<string, unknown> | null;
 }
 
@@ -51,7 +53,7 @@ interface OrganizationNodeInsert {
     type: string;
     position?: number | null;
     manager_id?: string | null;
-    metadata?: Record<string, unknown> | null;
+    properties?: Record<string, unknown> | null;
     organization_id: string;
     path: string;
     depth: number;
@@ -90,8 +92,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    const supabase = await createClient();
-
     // Auth Check
     const auth = await requireBusiness();
     if (auth instanceof NextResponse) return auth;
@@ -103,6 +103,10 @@ export async function POST(request: Request) {
     }
 
     const body: CreateNodeRequest = await request.json();
+    const supabase = createServiceClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     if (!body.structure_id || !body.name || !body.type) {
         return NextResponse.json({ error: 'structure_id, name y type son requeridos' }, { status: 400 });
@@ -155,7 +159,7 @@ export async function POST(request: Request) {
         type: body.type,
         position: body.position ?? null,
         manager_id: body.manager_id ?? null,
-        metadata: body.metadata ?? null,
+        properties: body.properties ?? body.metadata ?? {},
         organization_id: organizationId,
         path,
         depth

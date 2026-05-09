@@ -3,7 +3,7 @@ import {
   buildOrganizationRegisterActionFormData,
   createOrganizationRegisterDefaultValues,
   getOrganizationRegisterRedirectPath,
-  getOrganizationRegisterRoleLabel,
+  getOrganizationRegisterRoleTranslationKey,
 } from '../organization-register-form/service'
 
 describe('organization register form service', () => {
@@ -50,8 +50,8 @@ describe('organization register form service', () => {
   })
 
   it('returns role labels and redirect path', () => {
-    expect(getOrganizationRegisterRoleLabel('admin')).toBe('Administrador')
-    expect(getOrganizationRegisterRoleLabel('custom-role')).toBe('custom-role')
+    expect(getOrganizationRegisterRoleTranslationKey('admin')).toBe('auth.roles.admin')
+    expect(getOrganizationRegisterRoleTranslationKey('custom-role')).toBe('custom-role')
     expect(getOrganizationRegisterRedirectPath('acme')).toBe('/auth/acme')
   })
 })

@@ -3,6 +3,7 @@
 import React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Building2, ChevronDown, Plus, Sparkles, X } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
 import { ManagerSelector } from './ManagerSelector'
@@ -28,6 +29,8 @@ export const NodeForm: React.FC<NodeFormProps> = ({
   nodeToEdit,
 }) => {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const form = useNodeFormState(isOpen, mode, onSave, onClose, parentNode, nodeToEdit)
 
   const { handleGeocode, handleReverseGeocode, isGeocoding, geocodeError } = useGeocoding(
@@ -60,11 +63,11 @@ export const NodeForm: React.FC<NodeFormProps> = ({
   }
 
   const title = mode === 'create'
-    ? `Crear dentro de "${parentNode?.name}"`
-    : 'Editar componente'
+    ? t('hierarchy.nodeForm.title.create', { parent: parentNode?.name })
+    : t('hierarchy.nodeForm.title.edit')
 
-  const sideTitle = mode === 'create' ? 'Configura tu estructura' : 'Refina el diseño'
-  const sideDescription = 'Define atributos, responsables y ubicación geográfica para este componente.'
+  const sideTitle = mode === 'create' ? t('hierarchy.nodeForm.sideTitle.create') : t('hierarchy.nodeForm.sideTitle.edit')
+  const sideDescription = t('hierarchy.nodeForm.sideDescription')
 
   const fieldClassName =
     'w-full rounded-2xl border-2 px-6 py-4 text-sm font-bold outline-none transition-all'
@@ -107,7 +110,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                     className="text-[10px] font-black uppercase tracking-[0.2em]"
                     style={{ color: theme.actionColor }}
                   >
-                    Arquitectura
+                    {t('hierarchy.nodeForm.architecture')}
                   </span>
                 </div>
                 <h2
@@ -128,7 +131,9 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 {['Datos básicos', 'Gestión SofLIA', 'Localización'].map(item => (
                   <div key={item} className="flex items-center gap-3" style={{ color: theme.inverseMutedTextColor }}>
                     <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: theme.actionColor }} />
-                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">{item}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">
+                      {t(`hierarchy.nodeForm.sections.${item === 'Datos básicos' ? 'basicData' : item === 'Gestión SofLIA' ? 'sofliaManagement' : 'location'}`)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -170,7 +175,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                   <div className="space-y-4">
                     <label className="ml-1 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
-                      Nombre comercial
+                      {t('hierarchy.nodeForm.fields.name')}
                     </label>
                     <div className="group relative">
                       <Building2
@@ -181,7 +186,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                         type="text"
                         value={form.name}
                         onChange={event => form.setName(event.target.value)}
-                        placeholder="Ej: Ventas Norte"
+                        placeholder={t('hierarchy.nodeForm.placeholders.name')}
                         className={fieldClassName}
                         style={{
                           backgroundColor: theme.inputBg,
@@ -195,7 +200,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
 
                   <div className="space-y-4">
                     <label className="ml-1 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
-                      Tipo de nivel
+                      {t('hierarchy.nodeForm.fields.type')}
                     </label>
                     <div className="relative">
                       <select
@@ -208,10 +213,10 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                           color: theme.textColor,
                         }}
                       >
-                        <option value="region">Región</option>
-                        <option value="zone">Zona</option>
-                        <option value="team">Equipo</option>
-                        <option value="custom">Otro / personalizado</option>
+                        <option value="region">{t('hierarchy.types.region')}</option>
+                        <option value="zone">{t('hierarchy.types.zone')}</option>
+                        <option value="team">{t('hierarchy.types.team')}</option>
+                        <option value="custom">{t('hierarchy.nodeForm.types.custom')}</option>
                       </select>
                       <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: theme.subtextColor }} />
                     </div>
@@ -221,13 +226,13 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 {form.type === 'custom' ? (
                   <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                     <label className="ml-1 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
-                      Especificar tipo
+                      {t('hierarchy.nodeForm.fields.specifyType')}
                     </label>
                     <input
                       type="text"
                       value={form.customType}
                       onChange={event => form.setCustomType(event.target.value)}
-                      placeholder="Ej: Squad, división..."
+                      placeholder={t('hierarchy.nodeForm.placeholders.specifyType')}
                       className={fieldClassName}
                       style={{
                         backgroundColor: theme.inputBg,
@@ -307,7 +312,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 style={{ color: theme.subtextColor }}
                 disabled={form.loading}
               >
-                Cerrar
+                {tc('actions.close')}
               </button>
               <button
                 type="button"
@@ -331,7 +336,7 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                 ) : (
                   <Plus className="h-4 w-4" strokeWidth={3} />
                 )}
-                <span>{form.loading ? 'Sincronizando...' : 'Guardar cambios'}</span>
+                <span>{form.loading ? tc('actions.saving') : tc('actions.saveChanges')}</span>
               </button>
             </div>
           </div>

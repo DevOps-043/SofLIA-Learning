@@ -135,7 +135,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
             </div>
 
             <div className="flex items-center gap-3 text-[10px] font-medium truncate" style={{ color: theme.mutedTextColor }}>
-              <span className="uppercase tracking-[0.1em] font-black">{node.type}</span>
+              <span className="uppercase tracking-[0.1em] font-black">{t(`hierarchy.types.${node.type}`)}</span>
               {node.manager ? (
                 <div className="flex items-center gap-1.5 pl-3 border-l" style={{ borderColor: theme.borderColor }}>
                   <User size={10} style={{ color: theme.primaryColor }} />

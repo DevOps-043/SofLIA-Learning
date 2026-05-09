@@ -25,12 +25,46 @@ describe('invitation-validation.service', () => {
     const runtime = createInvitationRuntimeMock({ repo })
 
     await expect(validateInvitation('a'.repeat(64), runtime)).resolves.toEqual({
+      accountExists: false,
       email: 'ada@test.com',
       organizationId: 'org-1',
       organizationName: 'SofLIA',
       organizationSlug: 'soflia',
       position: 'CTO',
       role: 'admin',
+      valid: true,
+    })
+  })
+
+  it('flags pending invitations for emails that already have an account', async () => {
+    const repo = createInvitationRepositoryMock({
+      findUserByEmail: vi.fn(async () => ({
+        cargoRol: 'Usuario',
+        id: 'user-1',
+      })),
+      getInvitationByToken: vi.fn(async () => ({
+        createdAt: null,
+        email: 'ada@test.com',
+        expiresAt: '2026-04-05T12:00:00.000Z',
+        id: 'inv-1',
+        metadata: null,
+        organization: { name: 'SofLIA', slug: 'soflia' },
+        organizationId: 'org-1',
+        role: 'member',
+        status: 'pending',
+        token: 'a'.repeat(64),
+      })),
+    })
+    const runtime = createInvitationRuntimeMock({ repo })
+
+    await expect(validateInvitation('a'.repeat(64), runtime)).resolves.toEqual({
+      accountExists: true,
+      email: 'ada@test.com',
+      organizationId: 'org-1',
+      organizationName: 'SofLIA',
+      organizationSlug: 'soflia',
+      position: undefined,
+      role: 'member',
       valid: true,
     })
   })

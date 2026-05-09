@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { Loader2, Search, X } from 'lucide-react'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import type { NodeManagerUser } from './node-form.utils'
@@ -24,11 +25,12 @@ export function ManagerSelector({
   onClearManager,
 }: ManagerSelectorProps) {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
 
   return (
     <div className="space-y-3">
       <label className="block text-sm font-medium" style={{ color: theme.textColor }}>
-        Responsable / encargado
+        {t('hierarchy.nodeForm.fields.manager')}
       </label>
 
       {selectedManager ? (
@@ -84,7 +86,7 @@ export function ManagerSelector({
               type="text"
               value={managerSearch}
               onChange={event => onSearchChange(event.target.value)}
-              placeholder="Buscar usuario..."
+              placeholder={t('hierarchy.nodeForm.placeholders.searchUser')}
               className="w-full rounded-xl border py-3 pl-9 pr-4 text-sm outline-none transition-all"
               style={{
                 backgroundColor: theme.inputBg,

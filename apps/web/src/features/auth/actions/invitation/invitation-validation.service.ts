@@ -69,7 +69,10 @@ export async function validateInvitation(
       return { valid: false, error: 'Esta invitacion ha expirado' }
     }
 
+    const existingUser = await runtime.repo.findUserByEmail(invitation.email)
+
     return {
+      accountExists: Boolean(existingUser),
       email: invitation.email,
       organizationId: invitation.organizationId,
       organizationName: invitation.organization?.name ?? undefined,

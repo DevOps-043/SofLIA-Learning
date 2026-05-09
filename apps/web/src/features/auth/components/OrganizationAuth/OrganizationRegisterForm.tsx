@@ -34,7 +34,7 @@ export function OrganizationRegisterForm(
     dialCode,
     error,
     form,
-    invitedRoleLabel,
+    invitedRoleTranslationKey,
     isPending,
     onCountryChange,
     onSubmit,
@@ -61,7 +61,7 @@ export function OrganizationRegisterForm(
           palette={palette}
           invitedEmail={props.invitedEmail}
           invitedRole={props.invitedRole}
-          invitedRoleLabel={invitedRoleLabel}
+          invitedRoleTranslationKey={invitedRoleTranslationKey}
           bulkInviteToken={bulkInviteToken}
           success={success}
         />

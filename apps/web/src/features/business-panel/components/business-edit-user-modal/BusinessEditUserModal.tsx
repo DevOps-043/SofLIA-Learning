@@ -120,7 +120,7 @@ export function BusinessEditUserModal({
       })
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error.')
+      setError(err instanceof Error ? err.message : t('users.modals.edit.errors.save'))
     } finally {
       setIsSaving(false)
     }
@@ -193,7 +193,7 @@ export function BusinessEditUserModal({
                     className="text-2xl font-black tracking-tight mb-1"
                     style={{ color: textColor }}
                   >
-                    {formData.display_name || 'Editar Usuario'}
+                    {formData.display_name || t('users.modals.edit.title')}
                   </h2>
                   <div
                     className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2"
@@ -209,6 +209,7 @@ export function BusinessEditUserModal({
                 </div>
                 <button
                   onClick={onClose}
+                  aria-label={t('users.buttons.close')}
                   className="p-3 rounded-2xl border transition-all"
                   style={{
                     backgroundColor: inputBg,
@@ -256,7 +257,7 @@ export function BusinessEditUserModal({
                       className="text-[10px] font-black uppercase tracking-widest px-1 block"
                       style={{ color: mutedText }}
                     >
-                      Perfil Personal
+                      {t('users.modals.edit.sections.personalProfile')}
                     </label>
                     <div className="grid grid-cols-2 gap-4">
                       <input
@@ -264,7 +265,7 @@ export function BusinessEditUserModal({
                         name="first_name"
                         value={formData.first_name || ''}
                         onChange={handleChange}
-                        placeholder="Nombre"
+                        placeholder={t('users.modals.add.fields.firstName')}
                         style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                       />
                       <input
@@ -272,7 +273,7 @@ export function BusinessEditUserModal({
                         name="last_name"
                         value={formData.last_name || ''}
                         onChange={handleChange}
-                        placeholder="Apellido"
+                        placeholder={t('users.modals.add.fields.lastName')}
                         style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                       />
                     </div>
@@ -281,7 +282,7 @@ export function BusinessEditUserModal({
                       name="bio"
                       value={formData.bio || ''}
                       onChange={handleChange}
-                      placeholder="Pequeña biografía..."
+                      placeholder={t('users.modals.edit.placeholders.bio')}
                       style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                     />
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -317,7 +318,7 @@ export function BusinessEditUserModal({
                       className="text-[10px] font-black uppercase tracking-widest px-1 block"
                       style={{ color: mutedText }}
                     >
-                      Contacto y Ubicación
+                      {t('users.modals.edit.sections.contactLocation')}
                     </label>
                     <div className="relative">
                       <Phone
@@ -329,7 +330,7 @@ export function BusinessEditUserModal({
                         name="phone"
                         value={formData.phone || ''}
                         onChange={handleChange}
-                        placeholder="Teléfono"
+                        placeholder={t('users.modals.edit.fields.phone')}
                         style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                       />
                     </div>
@@ -344,7 +345,7 @@ export function BusinessEditUserModal({
                           name="location"
                           value={formData.location || ''}
                           onChange={handleChange}
-                          placeholder="Ubicación"
+                          placeholder={t('users.modals.edit.fields.location')}
                           style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                         />
                       </div>
@@ -358,7 +359,7 @@ export function BusinessEditUserModal({
                           name="job_title"
                           value={formData.job_title || ''}
                           onChange={handleChange}
-                          placeholder="Cargo"
+                          placeholder={t('users.modals.edit.fields.jobTitle')}
                           style={{ backgroundColor: inputBg, borderColor, color: textColor }}
                         />
                       </div>
@@ -371,7 +372,7 @@ export function BusinessEditUserModal({
                     className="text-[10px] font-black uppercase tracking-widest px-1 block"
                     style={{ color: mutedText }}
                   >
-                    Accesos y Rol
+                    {t('users.modals.edit.sections.accessRole')}
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {(['member', 'admin', 'owner'] as const).map((role) => {
@@ -404,7 +405,7 @@ export function BusinessEditUserModal({
                               className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest truncate"
                               style={{ color: isActive ? onPrimaryColor : textColor }}
                             >
-                              {role}
+                              {t(`users.roles.${role}`)}
                             </span>
                           </div>
                         </button>
@@ -424,7 +425,7 @@ export function BusinessEditUserModal({
                     className="text-[9px] font-black uppercase tracking-widest"
                     style={{ color: textColor }}
                   >
-                    Editor de Colaboradores
+                    {t('users.modals.edit.footerLabel')}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto">

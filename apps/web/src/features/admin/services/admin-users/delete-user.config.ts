@@ -3,6 +3,12 @@ export interface DeleteTableConfig {
   column?: string
 }
 
+export const USER_REQUIRED_INSTRUCTOR_REFERENCE_TABLES = [
+  'course_lessons',
+  'course_lessons_en',
+  'course_lessons_pt',
+] as const
+
 /**
  * Tablas de las que se eliminan registros del usuario antes de borrar el usuario.
  * Verificado contra database-optimization/02-schema/NewBDStructure.sql (2026-04-04).
@@ -98,10 +104,6 @@ export const USER_SIMPLE_DELETE_TABLES: DeleteTableConfig[] = [
   { tableName: 'bulk_invite_registrations' },
   { tableName: 'user_invitations', column: 'created_by' },
 
-  // Lecciones traducidas del instructor (instructor_id NOT NULL → FK users)
-  { tableName: 'course_lessons_en', column: 'instructor_id' },
-  { tableName: 'course_lessons_pt', column: 'instructor_id' },
-
   // Enrollments (después de sus dependencias)
   { tableName: 'user_course_enrollments' },
 
@@ -119,7 +121,6 @@ export const USER_NULL_UPDATE_TABLES: DeleteTableConfig[] = [
   { tableName: 'organization_users', column: 'invited_by' },
   { tableName: 'courses', column: 'instructor_id' },
   { tableName: 'courses', column: 'approved_by' },
-  { tableName: 'course_lessons', column: 'instructor_id' },
   // content_translations.created_by → users FK (nullable)
   { tableName: 'content_translations', column: 'created_by' },
   // scorm_packages.created_by → users FK (nullable)

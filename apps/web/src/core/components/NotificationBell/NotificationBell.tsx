@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTranslation } from 'react-i18next'
 import { getNotificationIcon, getNotificationBorderColor, getNotificationBgColor, getNotificationTextColor } from '@/features/notifications/utils/notification-categories'
 import { useMotionSafe } from '../../../lib/utils/motion'
 
@@ -63,6 +64,8 @@ export function NotificationBell({
     isDropdownOpen,
     setIsDropdownOpen
   } = useNotifications()
+
+  const { t } = useTranslation('common')
 
   const { disableHeavy } = useMotionSafe()
   const router = useRouter()
@@ -443,7 +446,9 @@ export function NotificationBell({
                                         ? 'text-[#0A2540] dark:text-white' 
                                         : 'text-[#0A2540] dark:text-gray-300'
                                     } truncate`}>
-                                      {notification.title}
+                                      {notification.metadata?.is_localized 
+                                        ? t(notification.title) 
+                                        : notification.title}
                                     </p>
                                     {notification.status === 'unread' && (
                                       <motion.div
@@ -455,7 +460,9 @@ export function NotificationBell({
                                   </div>
                                   
                                   <p className="text-xs text-[#6C757D] dark:text-gray-400 mt-1 sm:mt-1.5 line-clamp-2 sm:line-clamp-2 leading-relaxed">
-                                    {notification.message}
+                                    {notification.metadata?.is_localized 
+                                      ? t(notification.message, notification.metadata as any) 
+                                      : notification.message}
                                   </p>
                                   
                                   <div className="flex items-center gap-2 mt-1.5 sm:mt-2">
@@ -531,7 +538,7 @@ export function NotificationBell({
                   onClick={() => setIsDropdownOpen(false)}
                   className="w-full text-center text-xs sm:text-sm text-[#0A2540] dark:text-[#00D4B3] hover:text-[#0d2f4d] dark:hover:text-[#00C4A3] transition-all duration-200 flex items-center justify-center gap-2 font-medium group"
                 >
-                  <span className="truncate">Ver todas las notificaciones</span>
+                  <span className="truncate">{t('actions.notificationsPage.viewAll')}</span>
                   <motion.div
                     animate={disableHeavy ? {} : { x: [0, 4, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}

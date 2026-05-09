@@ -71,6 +71,7 @@ export function BusinessPendingCoursesPage({
   const { courses, isLoading, error, approveCourse, rejectCourse, deleteCourse } =
     useAdminPendingCourses()
   const { i18n, t: tBusiness } = useTranslation('business')
+  const tReviews = (key: string) => tBusiness(`reviewsPage.${key}`)
 
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_REVIEWS_TOUR_ID,
@@ -116,7 +117,7 @@ export function BusinessPendingCoursesPage({
 
   const handleReject = async () => {
     if (!courseToReject) return
-    await rejectCourse(courseToReject, 'Rechazado desde panel de revisiones')
+    await rejectCourse(courseToReject, tReviews('rejectReason'))
     setCourseToReject(null)
   }
 
@@ -151,7 +152,7 @@ export function BusinessPendingCoursesPage({
       >
         <AlertTriangle className="w-12 h-12 mx-auto mb-3" style={{ color: panelTheme.dangerColor }} />
         <p className="font-semibold mb-2" style={{ color: panelTheme.textColor }}>
-          No fue posible cargar las revisiones
+          {tReviews('errors.loadTitle')}
         </p>
         <p style={{ color: panelTheme.subtextColor }}>{error}</p>
       </div>
@@ -164,35 +165,35 @@ export function BusinessPendingCoursesPage({
     <div className="space-y-8">
       <div id="tour-reviews-header" className="space-y-2">
         <h1 className="text-4xl font-bold tracking-tight" style={{ color: panelTheme.textColor }}>
-          Revisiones Pendientes
+          {tReviews('title')}
         </h1>
         <p className="text-base" style={{ color: panelTheme.subtextColor }}>
-          Revisa, aprueba o devuelve cursos enviados desde CourseForge.
+          {tReviews('subtitle')}
         </p>
       </div>
 
       <div id="tour-reviews-stats" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <BusinessPanelStatCard
           icon={<Clock3 className="w-5 h-5" />}
-          title="Pendientes"
+          title={tReviews('stats.pending')}
           value={counts.pending}
           iconColor={panelTheme.actionColor}
         />
         <BusinessPanelStatCard
           icon={<AlertTriangle className="w-5 h-5" />}
-          title="Rechazados"
+          title={tReviews('stats.rejected')}
           value={counts.rejected}
           iconColor={panelTheme.dangerColor}
         />
         <BusinessPanelStatCard
           icon={<RefreshCcw className="w-5 h-5" />}
-          title="Actualizaciones"
+          title={tReviews('stats.updates')}
           value={counts.updates}
           iconColor={panelTheme.brandColor}
         />
         <BusinessPanelStatCard
           icon={<Sparkles className="w-5 h-5" />}
-          title="Cursos Nuevos"
+          title={tReviews('stats.fresh')}
           value={counts.fresh}
           iconColor={panelTheme.successColor}
         />
@@ -207,8 +208,8 @@ export function BusinessPendingCoursesPage({
           }}
         >
           {[
-            { id: 'pending', label: 'Pendientes', count: counts.pending },
-            { id: 'rejected', label: 'Rechazados', count: counts.rejected },
+            { id: 'pending', label: tReviews('tabs.pending'), count: counts.pending },
+            { id: 'rejected', label: tReviews('tabs.rejected'), count: counts.rejected },
           ].map((tab) => {
             const isActive = activeTab === tab.id
 
@@ -250,7 +251,7 @@ export function BusinessPendingCoursesPage({
           <BusinessPanelSearchInput
             value={searchTerm}
             onChange={setSearchTerm}
-            placeholder="Buscar por título, instructor, categoría o nivel..."
+            placeholder={tReviews('searchPlaceholder')}
           />
         </div>
       </div>
@@ -274,11 +275,11 @@ export function BusinessPendingCoursesPage({
           </div>
           <p className="text-lg font-semibold mb-2" style={{ color: panelTheme.textColor }}>
             {activeTab === 'pending'
-              ? 'No hay cursos pendientes por revisar'
-              : 'No hay cursos rechazados para mostrar'}
+              ? tReviews('empty.pendingTitle')
+              : tReviews('empty.rejectedTitle')}
           </p>
           <p style={{ color: panelTheme.subtextColor }}>
-            Ajusta la búsqueda o espera nuevas entregas desde CourseForge.
+            {tReviews('empty.description')}
           </p>
         </div>
       ) : (
@@ -314,7 +315,7 @@ export function BusinessPendingCoursesPage({
                 />
                 <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
                   <ReviewBadge
-                    label={course.approval_status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+                    label={course.approval_status === 'rejected' ? tReviews('badges.rejected') : tReviews('badges.pending')}
                     tone={
                       course.approval_status === 'rejected'
                         ? {
@@ -330,7 +331,7 @@ export function BusinessPendingCoursesPage({
                     }
                   />
                   <ReviewBadge
-                    label={course.is_update ? 'Actualización' : 'Nuevo'}
+                    label={course.is_update ? tReviews('badges.update') : tReviews('badges.new')}
                     tone={
                       course.is_update
                         ? {
@@ -355,18 +356,18 @@ export function BusinessPendingCoursesPage({
                   </h2>
                   <div className="flex items-center gap-2 text-sm" style={{ color: panelTheme.subtextColor }}>
                     <UserCircle2 className="w-4 h-4" />
-                    <span className="line-clamp-1">{course.instructor_name || 'Instructor pendiente'}</span>
+                    <span className="line-clamp-1">{course.instructor_name || tReviews('fallbacks.pendingInstructor')}</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <InfoPill label="Fecha" value={formatDate(course.created_at, i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })} />
-                  <InfoPill label="Nivel" value={course.level || 'N/A'} />
+                  <InfoPill label={tReviews('labels.date')} value={formatDate(course.created_at, i18n.language, { day: 'numeric', month: 'short', year: 'numeric' })} />
+                  <InfoPill label={tReviews('labels.level')} value={course.level || tReviews('fallbacks.notAvailable')} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <ActionButton
-                    label={activeTab === 'rejected' ? 'Reconsiderar' : 'Aprobar'}
+                    label={activeTab === 'rejected' ? tReviews('actions.reconsider') : tReviews('actions.approve')}
                     icon={<CheckCircle2 className="w-4 h-4" />}
                     onClick={() => setCourseToApprove(course.id)}
                     backgroundColor={panelTheme.actionColor}
@@ -374,7 +375,7 @@ export function BusinessPendingCoursesPage({
                     borderColor={`${panelTheme.actionColor}22`}
                   />
                   <ActionButton
-                    label="Ver"
+                    label={tReviews('actions.view')}
                     icon={<Eye className="w-4 h-4" />}
                     onClick={() => router.push(`${basePath}/${course.id}`)}
                     backgroundColor={panelTheme.inputBg}
@@ -385,7 +386,7 @@ export function BusinessPendingCoursesPage({
 
                 {activeTab === 'pending' ? (
                   <ActionButton
-                    label="Rechazar"
+                    label={tReviews('actions.reject')}
                     icon={<AlertTriangle className="w-4 h-4" />}
                     onClick={() => setCourseToReject(course.id)}
                     backgroundColor={`${panelTheme.dangerColor}12`}
@@ -394,7 +395,7 @@ export function BusinessPendingCoursesPage({
                   />
                 ) : (
                   <ActionButton
-                    label="Eliminar definitivamente"
+                    label={tReviews('actions.deletePermanently')}
                     icon={<Trash2 className="w-4 h-4" />}
                     onClick={() => setCourseToDelete(course.id)}
                     backgroundColor={`${panelTheme.dangerColor}12`}
@@ -412,14 +413,14 @@ export function BusinessPendingCoursesPage({
         isOpen={!!courseToApprove}
         onClose={() => setCourseToApprove(null)}
         onConfirm={handleApprove}
-        title={activeTab === 'rejected' ? 'Reconsiderar curso' : 'Aprobar curso'}
+        title={activeTab === 'rejected' ? tReviews('approveModal.reconsiderTitle') : tReviews('approveModal.approveTitle')}
         message={
           activeTab === 'rejected'
-            ? 'El curso volverá al flujo activo y quedará disponible para su publicación.'
-            : 'El curso se aprobará y quedará disponible para los estudiantes.'
+            ? tReviews('approveModal.reconsiderMessage')
+            : tReviews('approveModal.approveMessage')
         }
-        confirmText={activeTab === 'rejected' ? 'Sí, reconsiderar' : 'Sí, aprobar'}
-        cancelText="Cancelar"
+        confirmText={activeTab === 'rejected' ? tReviews('approveModal.reconsiderConfirm') : tReviews('approveModal.approveConfirm')}
+        cancelText={tReviews('actions.cancel')}
         type="success"
       />
 
@@ -427,10 +428,10 @@ export function BusinessPendingCoursesPage({
         isOpen={!!courseToReject}
         onClose={() => setCourseToReject(null)}
         onConfirm={handleReject}
-        title="Rechazar curso"
-        message="El curso pasará a estado rechazado y saldrá del listado pendiente."
-        confirmText="Sí, rechazar"
-        cancelText="Cancelar"
+        title={tReviews('rejectModal.title')}
+        message={tReviews('rejectModal.message')}
+        confirmText={tReviews('rejectModal.confirm')}
+        cancelText={tReviews('actions.cancel')}
         type="danger"
       />
 
@@ -438,10 +439,10 @@ export function BusinessPendingCoursesPage({
         isOpen={!!courseToDelete}
         onClose={() => setCourseToDelete(null)}
         onConfirm={handleDelete}
-        title="Eliminar curso rechazado"
-        message="Esta acción eliminará permanentemente el curso rechazado y no se puede deshacer."
-        confirmText="Eliminar definitivamente"
-        cancelText="Cancelar"
+        title={tReviews('deleteModal.title')}
+        message={tReviews('deleteModal.message')}
+        confirmText={tReviews('deleteModal.confirm')}
+        cancelText={tReviews('actions.cancel')}
         type="danger"
       />
     </div>

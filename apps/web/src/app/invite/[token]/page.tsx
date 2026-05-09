@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import {
   Building2,
   UserPlus,
@@ -19,6 +20,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { SocialLoginButtons } from '@/features/auth/components/SocialLoginButtons/SocialLoginButtons';
+import { useLanguage } from '@/core/providers/I18nProvider';
+import {
+  getInvitationErrorTranslationKey,
+  getInvitationRoleTranslationKey,
+} from '@/features/auth/services/invitation-i18n.service';
 
 // ============================================
 // TYPES
@@ -53,15 +59,6 @@ interface InviteResponse {
 
 type PageState = 'loading' | 'valid' | 'invalid' | 'error';
 
-// ============================================
-// ROLE LABELS
-// ============================================
-const roleLabels: Record<string, string> = {
-  member: 'Miembro',
-  admin: 'Administrador',
-  owner: 'Propietario',
-};
-
 const roleColors: Record<string, string> = {
   member: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
   admin: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
@@ -74,12 +71,14 @@ const roleColors: Record<string, string> = {
 export default function InvitePage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation('common');
+  const { language } = useLanguage();
   const token = params?.token as string;
 
   const [pageState, setPageState] = useState<PageState>('loading');
   const [invite, setInvite] = useState<InviteData | null>(null);
   const [organization, setOrganization] = useState<OrganizationData | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [errorKey, setErrorKey] = useState<string>('');
   const [errorReason, setErrorReason] = useState<string>('');
   const [accepting, setAccepting] = useState(false);
   const [accepted, setAccepted] = useState(false);
@@ -89,7 +88,7 @@ export default function InvitePage() {
   useEffect(() => {
     if (!token) {
       setPageState('invalid');
-      setErrorMessage('Token de invitación no proporcionado');
+      setErrorKey('auth.invitation.errors.missingToken');
       return;
     }
 
@@ -103,12 +102,17 @@ export default function InvitePage() {
           setOrganization(data.organization);
           setPageState('valid');
         } else {
-          setErrorMessage(data.error || 'Enlace de invitación inválido');
+          setErrorKey(
+            getInvitationErrorTranslationKey({
+              error: data.error,
+              reason: data.reason,
+            }),
+          );
           setErrorReason(data.reason || 'unknown');
           setPageState('invalid');
         }
       } catch {
-        setErrorMessage('Error al verificar el enlace de invitación');
+        setErrorKey('auth.invitation.errors.verifyFailed');
         setPageState('error');
       }
     };
@@ -149,11 +153,11 @@ export default function InvitePage() {
         setAccepted(true);
         setAcceptedOrgSlug(data.organizationSlug);
       } else {
-        setErrorMessage(data.error || 'Error al aceptar la invitación');
+        setErrorKey(getInvitationErrorTranslationKey({ error: data.error }));
         setPageState('invalid');
       }
     } catch {
-      setErrorMessage('Error de conexión al aceptar la invitación');
+      setErrorKey('auth.invitation.errors.acceptConnection');
       setPageState('error');
     } finally {
       setAccepting(false);
@@ -170,7 +174,9 @@ export default function InvitePage() {
           className="flex flex-col items-center gap-4"
         >
           <Loader2 className="w-10 h-10 text-teal-400 animate-spin" />
-          <p className="text-gray-400 text-sm font-medium">Verificando invitación...</p>
+          <p className="text-gray-400 text-sm font-medium">
+            {t('auth.invitation.verifying')}
+          </p>
         </motion.div>
       </div>
     );
@@ -186,14 +192,19 @@ export default function InvitePage() {
           className="max-w-md w-full bg-[#161b22] rounded-2xl border border-white/10 p-8 text-center"
         >
           <PartyPopper className="w-14 h-14 text-teal-400 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-white mb-2">¡Te has unido exitosamente!</h1>
-          <p className="text-gray-400 mb-6">Ahora formas parte de <strong className="text-white">{organization?.name}</strong></p>
+          <h1 className="text-xl font-bold text-white mb-2">
+            {t('auth.invitation.acceptedTitle')}
+          </h1>
+          <p className="text-gray-400 mb-6">
+            {t('auth.invitation.acceptedDescriptionPrefix')}{' '}
+            <strong className="text-white">{organization?.name}</strong>
+          </p>
           <button
             onClick={() => router.push(acceptedOrgSlug ? `/${acceptedOrgSlug}/business-user/dashboard` : '/')}
             className="w-full py-3 rounded-xl font-semibold text-white transition-all"
             style={{ backgroundColor: primaryColor }}
           >
-            Ir al panel
+            {t('auth.invitation.goToDashboard')}
           </button>
         </motion.div>
       </div>
@@ -221,16 +232,16 @@ export default function InvitePage() {
             {errorIcons[errorReason] || <XCircle className="w-12 h-12 text-red-400 mx-auto" />}
           </div>
           <h1 className="text-xl font-bold text-white mb-3">
-            Enlace no disponible
+            {t('auth.invitation.unavailableTitle')}
           </h1>
           <p className="text-gray-400 mb-8">
-            {errorMessage}
+            {t(errorKey || 'auth.invitation.errors.invalid')}
           </p>
           <a
             href="/auth"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all font-medium"
           >
-            Ir al inicio de sesión
+            {t('auth.invitation.goToLogin')}
           </a>
         </motion.div>
       </div>
@@ -238,8 +249,13 @@ export default function InvitePage() {
   }
 
   // ——— VALID INVITATION ———
+  const dateLocaleByLanguage = {
+    en: 'en-US',
+    es: 'es-ES',
+    pt: 'pt-BR',
+  } as const;
   const expiresDate = invite?.expiresAt
-    ? new Date(invite.expiresAt).toLocaleDateString('es-ES', {
+    ? new Date(invite.expiresAt).toLocaleDateString(dateLocaleByLanguage[language], {
         day: '2-digit',
         month: 'long',
         year: 'numeric',
@@ -293,7 +309,7 @@ export default function InvitePage() {
                   {organization?.name}
                 </h1>
                 <p className="text-gray-400 mt-1">
-                  Te han invitado a unirte a esta organización
+                  {t('auth.invitation.organizationInviteDescription')}
                 </p>
               </div>
             </div>
@@ -302,15 +318,19 @@ export default function InvitePage() {
             <div className="bg-white/5 rounded-2xl p-5 space-y-4 border border-white/5">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-gray-300">Invitación válida</span>
+                <span className="text-sm text-gray-300">
+                  {t('auth.invitation.valid')}
+                </span>
               </div>
 
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5 text-gray-400 flex-shrink-0" />
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-300">Rol asignado:</span>
+                  <span className="text-sm text-gray-300">
+                    {t('auth.invitation.assignedRole')}
+                  </span>
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${roleColors[invite?.role || 'member']}`}>
-                    {roleLabels[invite?.role || 'member'] || invite?.role}
+                    {t(getInvitationRoleTranslationKey(invite?.role))}
                   </span>
                 </div>
               </div>
@@ -319,7 +339,9 @@ export default function InvitePage() {
                 <div className="flex items-center gap-3">
                   <Users className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   <span className="text-sm text-gray-300">
-                    {invite.remainingUses} {invite.remainingUses === 1 ? 'lugar disponible' : 'lugares disponibles'}
+                    {t('auth.invitation.remainingUses', {
+                      count: invite.remainingUses,
+                    })}
                   </span>
                 </div>
               )}
@@ -328,7 +350,7 @@ export default function InvitePage() {
                 <div className="flex items-center gap-3">
                   <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
                   <span className="text-sm text-gray-300">
-                    Válida hasta el {expiresDate}
+                    {t('auth.invitation.validUntil', { date: expiresDate })}
                   </span>
                 </div>
               )}
@@ -362,7 +384,9 @@ export default function InvitePage() {
                     ) : (
                       <CheckCircle2 className="w-5 h-5" />
                     )}
-                    {accepting ? 'Uniéndome...' : 'Aceptar invitación y unirme'}
+                    {accepting
+                      ? t('auth.invitation.joining')
+                      : t('auth.invitation.acceptAndJoin')}
                   </button>
                 </>
               ) : (
@@ -379,7 +403,7 @@ export default function InvitePage() {
                     onMouseLeave={(e) => (e.currentTarget.style.filter = 'brightness(1)')}
                   >
                     <UserPlus className="w-5 h-5" />
-                    Crear cuenta y unirme
+                    {t('auth.invitation.createAccountAndJoin')}
                   </button>
 
                   <button
@@ -387,7 +411,7 @@ export default function InvitePage() {
                     className="w-full py-3.5 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10"
                   >
                     <LogIn className="w-5 h-5 text-gray-400" />
-                    Ya tengo cuenta
+                    {t('auth.invitation.alreadyHaveAccount')}
                   </button>
 
                   {/* Social login buttons */}
@@ -406,7 +430,7 @@ export default function InvitePage() {
 
             {/* Footer */}
             <p className="text-center text-xs text-gray-500">
-              Al unirte, aceptas los términos de uso de la plataforma
+              {t('auth.invitation.termsNotice')}
             </p>
           </div>
         </div>

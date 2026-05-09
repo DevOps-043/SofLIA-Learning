@@ -22,7 +22,6 @@ import {
   Sparkles
 } from 'lucide-react';
 import { useHierarchy } from '../../hooks/useHierarchy';
-import { ROLE_LABELS } from '../../types/hierarchy.types';
 import type { HierarchyConfig } from '../../types/hierarchy.types';
 
 // ============================================
@@ -31,6 +30,7 @@ import type { HierarchyConfig } from '../../types/hierarchy.types';
 
 export function HierarchySettings() {
   const { t } = useTranslation('business');
+  const { t: tc } = useTranslation('common');
   const {
     config,
     stats,
@@ -120,7 +120,7 @@ export function HierarchySettings() {
             onClick={() => { clearError(); setActionError(null); }}
             className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded-lg hover:bg-red-500/10 transition-colors"
           >
-            Cerrar
+            {tc('actions.close')}
           </button>
         </motion.div>
       )}
@@ -139,10 +139,10 @@ export function HierarchySettings() {
               </div>
               <div>
                 <h2 className="text-xl font-black tracking-tight text-[#0A2540] dark:text-white leading-none">
-                  Estructura Jerárquica
+                  {t('hierarchy.title')}
                 </h2>
                 <p className="text-sm text-neutral-500 dark:text-white/40 mt-0.5">
-                  Organiza tu equipo en niveles para segmentar acceso y datos
+                  {t('hierarchy.subtitle')}
                 </p>
               </div>
             </div>
@@ -442,7 +442,7 @@ function RolesSection() {
             <span className="text-lg flex-shrink-0">{icon}</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                {ROLE_LABELS[role as keyof typeof ROLE_LABELS]}
+                {t(`hierarchy.roles.labels.${role}`)}
               </p>
               <p className="text-xs text-neutral-500 dark:text-white/40">
                 {scope}

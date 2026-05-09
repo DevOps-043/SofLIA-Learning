@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 import { useThemeStore } from '../../../../core/stores/themeStore';
 import { getBackgroundStyle, generateCSSVariables, hexToRgb } from '../../../business-panel/utils/styles';
@@ -31,6 +32,7 @@ export function OrganizationAuthLayout({
   isLoading = false,
   error = null,
 }: OrganizationAuthLayoutProps) {
+  const { t } = useTranslation('common');
   const resolvedTheme = useThemeStore((state) => state.resolvedTheme);
   const [mounted, setMounted] = useState(false);
   
@@ -266,7 +268,7 @@ export function OrganizationAuthLayout({
                       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     />
                     <p className="text-sm font-medium animate-pulse" style={{ color: textColor }}>
-                      Cargando...
+                      {t('actions.loading')}
                     </p>
                   </div>
                 )}

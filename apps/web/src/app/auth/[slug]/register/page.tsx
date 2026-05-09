@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { OrganizationAuthLayout } from '@/features/auth/components/OrganizationAuth/OrganizationAuthLayout';
 import { OrganizationRegisterForm } from '@/features/auth/components/OrganizationAuth/OrganizationRegisterForm';
 import { validateInvitationAction } from '@/features/auth/actions/invitation';
+import { getExistingAccountInvitationLoginPath } from '@/features/auth/services/invitation-auth-routing.service';
+import { getInvitationErrorTranslationKey } from '@/features/auth/services/invitation-i18n.service';
 import Link from 'next/link';
 
 interface Organization {
@@ -34,6 +37,8 @@ interface BulkInviteData {
 export default function OrganizationRegisterPage() {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { t } = useTranslation('common');
   const slug = params?.slug as string;
   const token = searchParams?.get('token'); // Individual invitation token
   const bulkToken = searchParams?.get('bulk_token'); // Bulk invite link token
@@ -42,12 +47,12 @@ export default function OrganizationRegisterPage() {
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
   const [bulkInvite, setBulkInvite] = useState<BulkInviteData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [orgError, setOrgError] = useState<string | null>(null); // Error de organización (crítico)
-  const [invitationError, setInvitationError] = useState<string | null>(null); // Error de invitación (no crítico)
+  const [orgErrorKey, setOrgErrorKey] = useState<string | null>(null);
+  const [invitationErrorKey, setInvitationErrorKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) {
-      setOrgError('Slug de organización no proporcionado');
+      setOrgErrorKey('auth.org.errors.missingSlug');
       setIsLoading(false);
       return;
     }
@@ -55,8 +60,8 @@ export default function OrganizationRegisterPage() {
     const fetchOrganizationAndValidateToken = async () => {
       try {
         setIsLoading(true);
-        setOrgError(null);
-        setInvitationError(null);
+        setOrgErrorKey(null);
+        setInvitationErrorKey(null);
 
         // 1. Cargar información de la organización
         const response = await fetch(`/api/organizations/${slug}`, {
@@ -66,7 +71,7 @@ export default function OrganizationRegisterPage() {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-          setOrgError(data.error || 'Organización no encontrada');
+          setOrgErrorKey('auth.org.errors.notFound');
           setIsLoading(false);
           return;
         }
@@ -79,9 +84,14 @@ export default function OrganizationRegisterPage() {
           const bulkData = await bulkResponse.json();
 
           if (!bulkData.success || !bulkData.valid) {
-            setInvitationError(bulkData.error || 'Enlace de invitación inválido');
+            setInvitationErrorKey(
+              getInvitationErrorTranslationKey({
+                error: bulkData.error,
+                reason: bulkData.reason,
+              }),
+            );
           } else if (bulkData.organization?.slug?.toLowerCase() !== slug.toLowerCase()) {
-            setInvitationError('Este enlace de invitación no es para esta organización');
+            setInvitationErrorKey('auth.invitation.errors.wrongOrganization');
           } else {
             // Bulk invite válida
             setBulkInvite({
@@ -96,12 +106,25 @@ export default function OrganizationRegisterPage() {
 
           if (!validation.valid) {
             // Error de invitación - mostrar error pero continuar mostrando el formulario
-            setInvitationError(validation.error || 'Invitación inválida o expirada');
+            setInvitationErrorKey(
+              getInvitationErrorTranslationKey({ error: validation.error }),
+            );
           } else if (validation.organizationSlug?.toLowerCase() !== slug.toLowerCase()) {
             // La invitación es para otra organización
-            setInvitationError('Esta invitación no es para esta organización');
+            setInvitationErrorKey('auth.invitation.errors.wrongOrganization');
           } else {
-            // Invitación válida - guardar datos
+            const existingAccountLoginPath = getExistingAccountInvitationLoginPath({
+              accountExists: validation.accountExists,
+              organizationSlug: slug,
+              token,
+            });
+
+            if (existingAccountLoginPath) {
+              router.replace(existingAccountLoginPath);
+              return;
+            }
+
+            // Invitación válida para una cuenta nueva - guardar datos
             setInvitation({
               email: validation.email!,
               role: validation.role!,
@@ -109,14 +132,14 @@ export default function OrganizationRegisterPage() {
           }
         }
       } catch (err) {
-        setOrgError('Error al cargar información de la organización');
+        setOrgErrorKey('auth.org.errors.loadFailed');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchOrganizationAndValidateToken();
-  }, [slug, token, bulkToken]);
+  }, [slug, token, bulkToken, router]);
 
   if (isLoading) {
     return (
@@ -128,14 +151,16 @@ export default function OrganizationRegisterPage() {
               className="absolute inset-0 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"
             />
           </div>
-          <p className="text-white/60 text-sm font-medium">Cargando...</p>
+          <p className="text-white/60 text-sm font-medium">{t('actions.loading')}</p>
         </div>
       </div>
     );
   }
 
   // Error crítico de organización - no se puede continuar
-  if (orgError || !organization) {
+  if (orgErrorKey || !organization) {
+    const orgErrorMessage = t(orgErrorKey || 'auth.org.errors.notFound');
+
     return (
       <OrganizationAuthLayout
         organization={{
@@ -143,31 +168,37 @@ export default function OrganizationRegisterPage() {
           name: 'Error',
           logo_url: '/icono.png',
         }}
-        error={orgError || 'Organización no encontrada'}
+        error={orgErrorMessage}
       >
         <div className="text-center space-y-4">
           <p className="text-text-secondary">
-            {orgError || 'No se pudo cargar la información de la organización'}
+            {orgErrorMessage}
           </p>
           <Link
             href="/auth"
             className="text-primary hover:text-primary/80 font-medium transition-colors"
           >
-            Volver al login principal
+            {t('auth.org.backToMainLogin')}
           </Link>
         </div>
       </OrganizationAuthLayout>
     );
   }
 
+  const invitationErrorMessage = invitationErrorKey
+    ? t(invitationErrorKey)
+    : null;
+
   return (
-    <OrganizationAuthLayout organization={organization} error={invitationError}>
+    <OrganizationAuthLayout organization={organization} error={invitationErrorMessage}>
       <div className="space-y-6">
         {/* Si hay error de invitación pero la organización existe, mostrar mensaje */}
-        {invitationError && (
+        {invitationErrorMessage && (
           <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
             <p className="text-amber-600 dark:text-amber-400 text-sm">
-              {invitationError}. Puedes registrarte manualmente si tienes una invitación pendiente.
+              {t('auth.invitation.registerManualFallback', {
+                error: invitationErrorMessage,
+              })}
             </p>
           </div>
         )}
@@ -175,10 +206,10 @@ export default function OrganizationRegisterPage() {
         <OrganizationRegisterForm
           organizationId={organization.id}
           organizationSlug={organization.slug || slug}
-          invitationToken={invitationError ? undefined : token}
+          invitationToken={invitationErrorKey ? undefined : token}
           invitedEmail={invitation?.email}
           invitedRole={invitation?.role || bulkInvite?.role}
-          bulkInviteToken={invitationError ? undefined : bulkInvite?.token}
+          bulkInviteToken={invitationErrorKey ? undefined : bulkInvite?.token}
           googleLoginEnabled={organization.google_login_enabled}
           microsoftLoginEnabled={organization.microsoft_login_enabled}
         />
@@ -186,4 +217,3 @@ export default function OrganizationRegisterPage() {
     </OrganizationAuthLayout>
   );
 }
-

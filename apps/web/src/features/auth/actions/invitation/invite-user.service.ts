@@ -7,6 +7,7 @@ import type {
   InvitationRuntime,
 } from './types'
 import { parseInviteUserInput } from './utils'
+import { AutoNotificationsService } from '@/features/notifications/services/auto-notifications.service'
 
 export async function inviteUser(
   input: InviteUserActionInput,
@@ -28,6 +29,16 @@ export async function inviteUser(
           success: false,
           error: 'Este usuario ya pertenece a la organizacion',
         }
+      }
+
+      // Notificar in-app si el usuario ya existe
+      const organization = await runtime.repo.getOrganizationById(data.organizationId)
+      if (organization) {
+        await AutoNotificationsService.org.notifyUserInvited(
+          existingUser.id,
+          data.organizationId,
+          organization.name
+        )
       }
     }
 

@@ -1,5 +1,6 @@
 import { logger } from '../../../../lib/logger'
 import { getServerClient } from '../auto-notifications-server-client'
+import { NOTIFICATION_SELECT } from './select'
 import {
   attachUsersToNotifications,
   buildNextNotificationCursor,
@@ -14,25 +15,6 @@ import type {
   NotificationFilters,
   NotificationQueryResult,
 } from './types'
-
-const NOTIFICATION_SELECT = `
-  notification_id,
-  user_id,
-  notification_type,
-  title,
-  message,
-  metadata,
-  priority,
-  status,
-  channels_sent,
-  channels_pending,
-  read_at,
-  expires_at,
-  organization_id,
-  group_id,
-  created_at,
-  updated_at
-`
 
 async function getUnreadCountFallback(userId: string) {
   const supabase = await getServerClient()

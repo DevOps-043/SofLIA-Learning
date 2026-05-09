@@ -1,5 +1,6 @@
 import { AnimatePresence } from 'framer-motion'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { HierarchyChatType } from '../../../types/hierarchy.types'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import { ChatHeader } from './ChatHeader'
@@ -24,6 +25,7 @@ export function HierarchyChat({
   title,
   className = '',
 }: HierarchyChatProps) {
+  const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
 
   const {
@@ -94,7 +96,7 @@ export function HierarchyChat({
         }}
       >
         <ChatHeader
-          title={title || chat?.name || 'Chat de equipo'}
+          title={title || chat?.name || t('hierarchy.chat.defaultTitle')}
           description={chat?.description || undefined}
           participantsCount={participants.length || chat?.participants_count || 0}
           onlineCount={0}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { HierarchyService } from '../../../services/hierarchy.service'
 import { DynamicHierarchyService } from '../../../services/dynamicHierarchy.service'
 import type {
@@ -21,6 +22,7 @@ function toHierarchyEntityType(value: string | undefined): HierarchyEntityType {
 
 export function useNodeDashboardState(nodeId: string) {
   const params = useParams()
+  const { t } = useTranslation('business')
   const orgSlug = params.orgSlug as string
 
   const [data, setData] = useState<NodeDetails | null>(null)
@@ -51,11 +53,11 @@ export function useNodeDashboardState(nodeId: string) {
       if (result) {
         setData(result)
       } else {
-        setError('No se pudo cargar la información del nodo')
+        setError(t('hierarchy.dashboard.errors.loadInfo'))
       }
     } catch (err) {
       console.error(err)
-      setError('Error de conexión')
+      setError(t('hierarchy.dashboard.errors.connection'))
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { MessageSquare } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import type { HierarchyChatMessage } from '../../../types/hierarchy.types'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import { ChatMessage } from './ChatMessage'
@@ -39,6 +40,7 @@ export function ChatMessages({
   messagesEndRef,
   messagesContainerRef,
 }: ChatMessagesProps) {
+  const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
 
   const getSenderName = (message: HierarchyChatMessage) => {
@@ -49,7 +51,7 @@ export function ChatMessages({
         || message.sender.email
       )
     }
-    return 'Usuario'
+    return t('hierarchy.chat.user')
   }
 
   const getSenderAvatar = (message: HierarchyChatMessage) => {
@@ -67,7 +69,7 @@ export function ChatMessages({
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString)
-    return date.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   }
 
   const formatFileSize = (bytes: number) => {
@@ -91,10 +93,10 @@ export function ChatMessages({
             <MessageSquare className="h-10 w-10" style={{ color: theme.primaryColor }} />
           </div>
           <p className="font-medium" style={{ color: theme.textColor }}>
-            No hay mensajes aun
+            {t('hierarchy.chat.empty')}
           </p>
           <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>
-            Se el primero en escribir.
+            {t('hierarchy.chat.beTheFirst')}
           </p>
         </div>
       </div>

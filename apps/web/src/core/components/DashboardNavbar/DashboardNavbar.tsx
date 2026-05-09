@@ -16,13 +16,17 @@ import { useMotionSafe } from '../../../lib/utils/motion'
 
 interface DashboardNavbarProps {
   activeItem?: string
+  showNotificationBell?: boolean
 }
 
 const navigationItems: { id: string; nameKey: string; icon: typeof GraduationCap }[] = [
   // Botón de Talleres eliminado
 ]
 
-export function DashboardNavbar({ activeItem = 'workshops' }: DashboardNavbarProps) {
+export function DashboardNavbar({ 
+  activeItem = 'workshops',
+  showNotificationBell = true
+}: DashboardNavbarProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { t } = useTranslation('common')
@@ -221,7 +225,7 @@ export function DashboardNavbar({ activeItem = 'workshops' }: DashboardNavbarPro
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             {/* Notificaciones */}
-            <NotificationBell />
+            {showNotificationBell && <NotificationBell />}
 
             {/* User Dropdown */}
             <UserDropdown />

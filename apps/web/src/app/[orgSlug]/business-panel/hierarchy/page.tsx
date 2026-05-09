@@ -2,10 +2,9 @@
 
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { useParams } from 'next/navigation';
 import { HierarchyTree } from '@/features/business-panel/components/hierarchy/HierarchyTree';
 import { HierarchySettings } from '@/features/business-panel/components/hierarchy/HierarchySettings';
-import { Network, Settings, LayoutGrid } from 'lucide-react';
+import { Network, Settings, LayoutGrid, type LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Joyride from 'react-joyride';
 import { useFeatureTour } from '@/features/tours/hooks/useFeatureTour';
@@ -14,14 +13,15 @@ import { getAdminHierarchySteps, ADMIN_HIERARCHY_TOUR_ID } from '@/features/tour
 export default function BusinessPanelHierarchyPage() {
   const [activeTab, setActiveTab] = useState<'settings' | 'tree'>('tree');
   const { t } = useTranslation('business');
+  const tabs: Array<{ id: 'tree' | 'settings'; label: string; icon: LucideIcon }> = [
+    { id: 'tree', label: t('hierarchy.tabs.treeView'), icon: LayoutGrid },
+    { id: 'settings', label: t('hierarchy.tabs.settings'), icon: Settings },
+  ];
   
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_HIERARCHY_TOUR_ID,
     steps: getAdminHierarchySteps(t),
   })
-  
-  // Design tokens aligned with the premium system
-  const accentColor = '#10B981'; // Primary Aqua/Green
 
   return (
     <>
@@ -39,27 +39,24 @@ export default function BusinessPanelHierarchyPage() {
                 <Network className="w-5 h-5 text-white" />
              </div>
              <div className="flex flex-col">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 leading-none mb-1">Estructura</span>
-                <h1 className="text-3xl font-black tracking-tight text-white leading-none">Jerarquía</h1>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 leading-none mb-1">{t('hierarchy.pageKicker')}</span>
+                <h1 className="text-3xl font-black tracking-tight text-white leading-none">{t('hierarchy.pageTitle')}</h1>
              </div>
           </div>
           <p className="text-xs font-medium text-white/40 max-w-md">
-            Gestiona los niveles organizacionales, equipos y regiones de tu empresa.
+            {t('hierarchy.pageSubtitle')}
           </p>
         </div>
 
         {/* Premium Tab Bar */}
         <div id="tour-hierarchy-tabs" className="flex p-1.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl shrink-0">
-          {[
-            { id: 'tree', label: 'VISTA DE ÁRBOL', icon: LayoutGrid },
-            { id: 'settings', label: 'CONFIGURACIÓN', icon: Settings },
-          ].map((tab) => {
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
+                onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-8 py-3.5 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${
                   isActive 
                     ? 'bg-[#0A2540] dark:bg-[#00D4B3] shadow-lg shadow-[#00D4B3]/20 !text-white dark:!text-black scale-100' 
@@ -67,7 +64,7 @@ export default function BusinessPanelHierarchyPage() {
                 }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? '!text-white dark:!text-black' : 'text-current'}`} />
-                <span>{tab.label}</span>
+                <span className="uppercase">{tab.label}</span>
               </button>
             );
           })}

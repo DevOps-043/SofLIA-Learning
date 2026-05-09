@@ -20,6 +20,7 @@ import {
   assertOrganizationUserMembership,
   getOrganizationUserById,
 } from './query.service'
+import { AutoNotificationsService } from '@/features/notifications/services/auto-notifications.service'
 import type {
   OrganizationHierarchyRow,
   OrganizationNodeRow,
@@ -174,6 +175,19 @@ export async function updateOrganizationUser(
 
     if (error) {
       throw error
+    }
+
+    // Notificar al usuario si el rol cambió
+    if (userData.org_role) {
+      try {
+        await AutoNotificationsService.org.notifyRoleUpdated(
+          userId,
+          organizationId,
+          userData.org_role
+        )
+      } catch (notifError) {
+        // No bloquear la actualización si falla la notificación
+      }
     }
   }
 

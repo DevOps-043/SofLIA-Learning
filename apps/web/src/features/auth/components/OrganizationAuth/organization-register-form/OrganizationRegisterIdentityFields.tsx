@@ -13,7 +13,7 @@ export function OrganizationRegisterIdentityFields({
   palette,
   invitedEmail,
   invitedRole,
-  invitedRoleLabel,
+  invitedRoleTranslationKey,
   bulkInviteToken,
   success,
 }: OrganizationRegisterIdentityFieldsProps) {
@@ -165,7 +165,7 @@ export function OrganizationRegisterIdentityFields({
         </div>
       </div>
 
-      {invitedRole && invitedRoleLabel ? (
+      {invitedRole && invitedRoleTranslationKey ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -175,7 +175,8 @@ export function OrganizationRegisterIdentityFields({
           <div className="flex items-center gap-3">
             <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              {t('auth.org.registeredAs')} <strong>{invitedRoleLabel}</strong>
+              {t('auth.org.registeredAs')}{' '}
+              <strong>{t(invitedRoleTranslationKey)}</strong>
               {bulkInviteToken ? (
                 <span className="ml-1 text-xs opacity-70">
                   {t('auth.org.viaInviteLink')}

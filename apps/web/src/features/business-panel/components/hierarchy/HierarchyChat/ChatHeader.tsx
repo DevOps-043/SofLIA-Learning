@@ -1,4 +1,5 @@
 import { Users } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 
 interface ChatHeaderProps {
@@ -14,10 +15,13 @@ export function ChatHeader({
   participantsCount,
   onlineCount,
 }: ChatHeaderProps) {
+  const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
 
   const participantsLabel =
-    participantsCount === 1 ? '1 participante' : `${participantsCount} participantes`
+    participantsCount === 1
+      ? t('hierarchy.chat.participants_one')
+      : t('hierarchy.chat.participants_other', { count: participantsCount })
 
   return (
     <div
@@ -61,7 +65,7 @@ export function ChatHeader({
                 className="h-1.5 w-1.5 rounded-full"
                 style={{ backgroundColor: theme.successColor }}
               />
-              <span>{onlineCount} en linea</span>
+              <span>{onlineCount} {t('hierarchy.chat.online')}</span>
             </>
           )}
         </div>

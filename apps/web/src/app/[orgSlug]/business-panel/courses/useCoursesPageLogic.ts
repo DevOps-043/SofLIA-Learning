@@ -18,6 +18,7 @@ export function useCoursesPageLogic() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterLevel, setFilterLevel] = useState('all')
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const router = useRouter()
   const params = useParams()
   const orgSlug = params?.orgSlug as string
@@ -118,5 +119,8 @@ export function useCoursesPageLogic() {
     filteredCourses,
     courseStats,
     handleCourseClick,
+    viewMode,
+    setViewMode,
+    orgSlug,
   }
 }

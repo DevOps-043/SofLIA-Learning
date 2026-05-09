@@ -557,6 +557,19 @@ CREATE TABLE public.learning_paths (
   CONSTRAINT learning_paths_pkey PRIMARY KEY (id),
   CONSTRAINT learning_paths_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id)
 );
+CREATE TABLE public.learning_preview_cache (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  organization_id uuid NOT NULL,
+  kind text NOT NULL CHECK (kind = ANY (ARRAY['course'::text, 'learning_path'::text])),
+  target_id uuid NOT NULL,
+  locale text NOT NULL CHECK (locale = ANY (ARRAY['es'::text, 'en'::text, 'pt'::text])),
+  model_name text,
+  payload jsonb NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
+  expires_at timestamp with time zone NOT NULL,
+  CONSTRAINT learning_preview_cache_pkey PRIMARY KEY (id),
+  CONSTRAINT learning_preview_cache_organization_id_fkey FOREIGN KEY (organization_id) REFERENCES public.organizations(id)
+);
 CREATE TABLE public.lesson_activities (
   activity_id uuid NOT NULL DEFAULT gen_random_uuid(),
   activity_title character varying NOT NULL,

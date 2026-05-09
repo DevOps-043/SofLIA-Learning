@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, Map } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { NotificationBell } from "@/core/components/NotificationBell";
 
 import { COURSE_LEARN_TOUR_TARGET_IDS } from "../../../../core/constants/tourTargets";
 
@@ -79,6 +80,7 @@ export function LearnPageHeader({
               />
             </div>
           </div>
+          <NotificationBell />
           <span
             className="text-xs text-[#0A2540] dark:text-[#00D4B3] font-medium bg-[#0A2540]/10 dark:bg-[#00D4B3]/15 px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
             style={{ fontFamily: "Inter, sans-serif", fontWeight: 500 }}
