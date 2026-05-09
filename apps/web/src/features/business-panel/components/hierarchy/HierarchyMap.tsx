@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ScaleControl } from 'react-leaflet'
+import { useTranslation } from 'react-i18next'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -109,9 +110,7 @@ function FullscreenControl() {
         map.invalidateSize()
       }, 100)
     }
-    
-    }
-    
+
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
