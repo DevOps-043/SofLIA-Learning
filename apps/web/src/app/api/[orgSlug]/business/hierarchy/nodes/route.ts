@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { logger } from '@/lib/utils/logger';
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>;
+}
+
+interface CreateNodeRequest {
+  structure_id: string;
+  parent_id?: string | null;
+  name: string;
+  type: string;
+  position?: number | null;
+  manager_id?: string | null;
+  properties?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 /**
@@ -64,8 +76,15 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
-    const body = await request.json();
-    const supabase = await createClient();
+    const body = (await request.json()) as CreateNodeRequest;
+    const supabase = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    if (!body.structure_id || !body.name || !body.type) {
+      return NextResponse.json({ error: 'structure_id, name y type son requeridos' }, { status: 400 });
+    }
 
     // 1. Verificar que la estructura pertenece a la organización
     const { data: structure } = await supabase
@@ -111,7 +130,13 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const { data, error } = await supabase
       .from('organization_nodes')
       .insert({
-        ...body,
+        structure_id: body.structure_id,
+        parent_id: body.parent_id ?? null,
+        name: body.name,
+        type: body.type,
+        position: body.position ?? null,
+        manager_id: body.manager_id ?? null,
+        properties: body.properties ?? body.metadata ?? {},
         organization_id: auth.organizationId,
         path,
         depth

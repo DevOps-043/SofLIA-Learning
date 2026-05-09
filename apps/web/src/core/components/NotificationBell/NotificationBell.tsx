@@ -538,7 +538,7 @@ export function NotificationBell({
                   onClick={() => setIsDropdownOpen(false)}
                   className="w-full text-center text-xs sm:text-sm text-[#0A2540] dark:text-[#00D4B3] hover:text-[#0d2f4d] dark:hover:text-[#00C4A3] transition-all duration-200 flex items-center justify-center gap-2 font-medium group"
                 >
-                  <span className="truncate">Ver todas las notificaciones</span>
+                  <span className="truncate">{t('actions.notificationsPage.viewAll')}</span>
                   <motion.div
                     animate={disableHeavy ? {} : { x: [0, 4, 0] }}
                     transition={{ duration: 1.5, repeat: Infinity }}

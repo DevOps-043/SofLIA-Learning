@@ -4,8 +4,22 @@ import {
   NotificationFilters,
   NotificationService,
 } from '@/features/notifications/services/notification.service'
-import { parseNotificationCursor } from '@/features/notifications/services/notification/utils'
+import {
+  createNotificationBodySchema,
+  notificationListQuerySchema,
+} from '@/features/notifications/services/notification/api.schemas'
 import { logger } from '@/lib/logger'
+
+function canCreateNotifications(cargoRol: string | null | undefined) {
+  return cargoRol === 'Admin'
+}
+
+function formatValidationError(error: { issues: Array<{ path: Array<string | number>; message: string }> }) {
+  return error.issues.map((issue) => ({
+    field: issue.path.join('.'),
+    message: issue.message,
+  }))
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,48 +29,26 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') as
-      | 'unread'
-      | 'read'
-      | 'archived'
-      | null
-    const notificationType = searchParams.get('type') || undefined
-    const priority = searchParams.get('priority') as
-      | 'critical'
-      | 'high'
-      | 'medium'
-      | 'low'
-      | null
-    const limit = parseInt(searchParams.get('limit') || '50', 10)
-    const offset = parseInt(searchParams.get('offset') || '0', 10)
-    const cursor = searchParams.get('cursor') || undefined
-    const orderBy = (searchParams.get('orderBy') || 'created_at') as
-      | 'created_at'
-      | 'priority'
-      | 'status'
-    const orderDirection = (searchParams.get('orderDirection') || 'desc') as
-      | 'asc'
-      | 'desc'
+    const parsedQuery = notificationListQuerySchema.safeParse(
+      Object.fromEntries(searchParams.entries()),
+    )
 
-    if (cursor && !parseNotificationCursor(cursor)) {
+    if (!parsedQuery.success) {
       return NextResponse.json(
         {
           success: false,
-          error: 'cursor invalido',
+          error: 'Parametros de consulta invalidos',
+          details: formatValidationError(parsedQuery.error),
         },
         { status: 400 },
       )
     }
 
+    const { limit, offset, ...queryFilters } = parsedQuery.data
     const filters: NotificationFilters = {
-      status: status || undefined,
-      notificationType,
-      priority: priority || undefined,
+      ...queryFilters,
       limit,
       offset,
-      cursor,
-      orderBy,
-      orderDirection,
     }
 
     const { notifications, total, hasMore, nextCursor } =
@@ -109,39 +101,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const body = await request.json()
-    const {
-      userId,
-      notificationType,
-      title,
-      message,
-      metadata,
-      priority,
-      organizationId,
-      groupId,
-    } = body
-
-    if (!userId || !notificationType || !title || !message) {
+    if (!canCreateNotifications(user.cargo_rol)) {
       return NextResponse.json(
         {
           success: false,
-          error:
-            'Faltan campos requeridos: userId, notificationType, title, message',
+          error: 'No autorizado para crear notificaciones',
+        },
+        { status: 403 },
+      )
+    }
+
+    const parsedBody = createNotificationBodySchema.safeParse(
+      await request.json(),
+    )
+
+    if (!parsedBody.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Payload de notificacion invalido',
+          details: formatValidationError(parsedBody.error),
         },
         { status: 400 },
       )
     }
 
-    const notification = await NotificationService.createNotification({
-      userId,
-      notificationType,
-      title,
-      message,
-      metadata,
-      priority,
-      organizationId,
-      groupId,
-    })
+    const notification = await NotificationService.createNotification(parsedBody.data)
 
     return NextResponse.json(
       {

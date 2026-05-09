@@ -1,11 +1,13 @@
 {
   "sidebar": {
-    "dashboard": "Dashboard",
+    "dashboard": "Panel",
     "users": "Usuarios",
     "courses": "Cursos",
     "learningPaths": "Rutas",
+    "hierarchy": "Estructura",
     "teams": "Equipos",
-    "reports": "Reportes y Analytics",
+    "reports": "Reportes y analítica",
+    "reviews": "Revisiones",
     "settings": "Configuración",
     "pinned": "Panel Fijado",
     "unpinned": "Panel Desfijado",
@@ -169,7 +171,7 @@
       },
       "reviewsHeader": {
         "title": "Revisiones Pendientes",
-        "content": "Aquí revisas los cursos enviados desde CourseForge. Puedes aprobarlos para publicación o rechazarlos con comentarios."
+        "content": "Aquí revisas los cursos enviados desde Course Engine. Puedes aprobarlos para publicación o rechazarlos con comentarios."
       },
       "reviewsStats": {
         "title": "Estado de Revisiones",
@@ -205,6 +207,70 @@
       }
     }
   },
+  "reviewsPage": {
+    "title": "Revisiones pendientes",
+    "subtitle": "Revisa, aprueba o devuelve cursos enviados desde Course Engine.",
+    "rejectReason": "Rechazado desde panel de revisiones",
+    "searchPlaceholder": "Buscar por título, instructor, categoría o nivel...",
+    "stats": {
+      "pending": "Pendientes",
+      "rejected": "Rechazados",
+      "updates": "Actualizaciones",
+      "fresh": "Cursos nuevos"
+    },
+    "tabs": {
+      "pending": "Pendientes",
+      "rejected": "Rechazados"
+    },
+    "badges": {
+      "pending": "Pendiente",
+      "rejected": "Rechazado",
+      "update": "Actualización",
+      "new": "Nuevo"
+    },
+    "labels": {
+      "date": "Fecha",
+      "level": "Nivel"
+    },
+    "fallbacks": {
+      "pendingInstructor": "Instructor pendiente",
+      "notAvailable": "N/D"
+    },
+    "empty": {
+      "pendingTitle": "No hay cursos pendientes por revisar",
+      "rejectedTitle": "No hay cursos rechazados para mostrar",
+      "description": "Ajusta la búsqueda o espera nuevas entregas desde Course Engine."
+    },
+    "actions": {
+      "approve": "Aprobar",
+      "reconsider": "Reconsiderar",
+      "view": "Ver",
+      "reject": "Rechazar",
+      "deletePermanently": "Eliminar definitivamente",
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "loadTitle": "No fue posible cargar las revisiones"
+    },
+    "approveModal": {
+      "approveTitle": "Aprobar curso",
+      "reconsiderTitle": "Reconsiderar curso",
+      "approveMessage": "El curso se aprobará y quedará disponible para los estudiantes.",
+      "reconsiderMessage": "El curso volverá al flujo activo y quedará disponible para su publicación.",
+      "approveConfirm": "Sí, aprobar",
+      "reconsiderConfirm": "Sí, reconsiderar"
+    },
+    "rejectModal": {
+      "title": "Rechazar curso",
+      "message": "El curso pasará a estado rechazado y saldrá del listado pendiente.",
+      "confirm": "Sí, rechazar"
+    },
+    "deleteModal": {
+      "title": "Eliminar curso rechazado",
+      "message": "Esta acción eliminará permanentemente el curso rechazado y no se puede deshacer.",
+      "confirm": "Eliminar definitivamente"
+    }
+  },
   "header": {
     "myOrganization": "Mi Organización",
     "userPanel": "Panel Usuario",
@@ -220,6 +286,7 @@
     "updateInfo": "Actualiza tu información",
     "exitAccount": "Salir de tu cuenta",
     "language": "Idioma / Language",
+    "administratorRole": "Panel de Empresa",
     "myTeam": "Mi Equipo",
     "viewTeammates": "Ver compañeros"
   },
@@ -726,11 +793,18 @@
         "subtitle": "Modificar información del miembro",
         "infoNote": "Los cambios realizados se guardarán y el usuario recibirá una notificación si es necesario.",
         "currentRole": "Rol actual",
+        "footerLabel": "Editor de colaboradores",
+        "sections": {
+          "personalProfile": "Perfil personal",
+          "contactLocation": "Contacto y ubicación",
+          "accessRole": "Accesos y rol"
+        },
         "fields": {
           "fullName": "Nombre Completo",
           "phone": "Teléfono",
           "location": "Ubicación",
           "bio": "Biografía",
+          "jobTitle": "Cargo",
           "status": "Estado",
           "typeRole": "Tipo de Rol"
         },
@@ -740,6 +814,9 @@
           "location": "Ciudad, País",
           "bio": "Escribe una breve biografía...",
           "typeRole": "Freelancer, Empleado, etc."
+        },
+        "errors": {
+          "save": "No se pudieron guardar los cambios."
         }
       },
       "delete": {
@@ -1393,6 +1470,15 @@
     "roles": {
       "title": "Roles y Permisos",
       "subtitle": "Cada rol determina el alcance de acceso a datos dentro de la jerarquía",
+      "labels": {
+        "owner": "Propietario",
+        "admin": "Administrador",
+        "regional_manager": "Gerente regional",
+        "zone_manager": "Gerente de zona",
+        "team_leader": "Líder de equipo",
+        "node_manager": "Gerente de nodo",
+        "member": "Miembro"
+      },
       "scope": {
         "owner": "Toda la organización",
         "admin": "Según asignación",
@@ -1424,7 +1510,198 @@
     "noRootNode": "No se encontró un nodo raíz. Cree un nodo 'General' primero.",
     "saveStructureError": "Error al crear la estructura",
     "loadStructuresError": "Error cargando estructuras",
-    "loadHierarchyError": "Error cargando jerarquía"
+    "loadHierarchyError": "Error cargando jerarquía",
+    "defaultRootName": "General",
+    "pageKicker": "Estructura",
+    "pageTitle": "Jerarquía",
+    "pageSubtitle": "Gestiona los niveles organizacionales, equipos y regiones de tu empresa.",
+    "tabs": {
+      "treeView": "Vista de árbol",
+      "settings": "Configuración"
+    },
+    "title": "Estructura Jerárquica",
+    "subtitle": "Organiza tu equipo en niveles para segmentar acceso y datos",
+    "nodeForm": {
+      "title": {
+        "create": "Crear dentro de \"{{parent}}\"",
+        "edit": "Editar componente"
+      },
+      "sideTitle": {
+        "create": "Configura tu estructura",
+        "edit": "Refina el diseño"
+      },
+      "sideDescription": "Define atributos, responsables y ubicación geográfica para este componente.",
+      "architecture": "Arquitectura",
+      "sections": {
+        "basicData": "Datos básicos",
+        "sofliaManagement": "Gestión SofLIA",
+        "location": "Localización"
+      },
+      "fields": {
+        "name": "Nombre comercial",
+        "type": "Tipo de nivel",
+        "specifyType": "Especificar tipo",
+        "manager": "Responsable / encargado"
+      },
+      "placeholders": {
+        "name": "Ej: Ventas Norte",
+        "specifyType": "Ej: Squad, división...",
+        "searchUser": "Buscar usuario..."
+      },
+      "types": {
+        "custom": "Otro / personalizado"
+      }
+    },
+    "location": {
+      "title": "Dirección",
+      "fillFromCoords": "Rellenar desde coordenadas",
+      "calculateFromFields": "Calcular coordenadas desde campos",
+      "fields": {
+        "street": "Calle / avenida",
+        "extNum": "No. ext.",
+        "intNum": "No. int.",
+        "neighborhood": "Colonia / barrio",
+        "zipCode": "C.P.",
+        "city": "Ciudad / municipio",
+        "state": "Estado",
+        "country": "País",
+        "latitude": "Latitud",
+        "longitude": "Longitud"
+      },
+      "placeholders": {
+        "street": "Ej: Av. Reforma",
+        "neighborhood": "Ej: Juárez",
+        "city": "Cuauhtémoc",
+        "state": "CDMX",
+        "country": "México"
+      }
+    },
+    "structureForm": {
+      "title": "ESTRUCTURA",
+      "sideTitle": "Nueva Estructura",
+      "sideDescription": "Crea un diseño organizacional personalizado para tu empresa.",
+      "fields": {
+        "name": "Nombre Comercial"
+      },
+      "placeholders": {
+        "name": "Ej: Organización Logística"
+      }
+    },
+    "memberModal": {
+      "title": "Asignar Miembro a {{name}}",
+      "placeholder": "Buscar por nombre o correo...",
+      "roles": {
+        "member": "Miembro",
+        "leader": "Líder"
+      },
+      "emptySearch": "No se encontraron usuarios.",
+      "startTyping": "Empieza a escribir para buscar.",
+      "submit": "Asignar Usuario",
+      "errorSearch": "Error al buscar usuarios",
+      "errorAssign": "Error al asignar usuario"
+    },
+    "map": {
+      "loading": "Cargando mapa...",
+      "initializing": "Inicializando mapa...",
+      "preparing": "Preparando iconos...",
+      "fullscreen": "Pantalla completa",
+      "exitFullscreen": "Salir de pantalla completa",
+      "bestPerformance": "Mejor Desempeño",
+      "wheelZoom": "Zoom con rueda",
+      "title": "Mapa Geográfico",
+      "topPerformer": "Mejor desempeño"
+    },
+    "dashboard": {
+      "loading": "Cargando información del nodo...",
+      "error": {
+        "title": "Error",
+        "notFound": "No se encontró el nodo"
+      },
+      "tabs": {
+        "overview": "Visión General",
+        "members": "Miembros",
+        "structure": "Estructura y Mapa",
+        "learning": "Cursos y Aprendizaje",
+        "chat": "Comunicación"
+      },
+      "manager": {
+        "title": "Responsable",
+        "subtitle": "Líder asignado a esta unidad",
+        "change": "Cambiar responsable",
+        "roleLabel": "Líder de {{type}}",
+        "notAssigned": "Sin responsable asignado",
+        "assign": "Asignar Responsable"
+      },
+      "performance": {
+        "title": "Rendimiento",
+        "subtitle": "Progreso general del {{type}}",
+        "avgProgress": "Progreso Promedio",
+        "completedCourses": "Cursos Completados",
+        "learningHours": "Tiempo de Aprendizaje",
+        "chartComingSoon": "Gráfico de actividad próximamente"
+      },
+      "details": {
+        "title": "Detalles",
+        "name": "Nombre",
+        "type": "Tipo",
+        "status": {
+          "active": "Activo",
+          "inactive": "Inactivo"
+        },
+        "location": "Ubicación",
+        "notSpecified": "No especificada",
+        "path": "Ruta Jerárquica"
+      },
+      "substructures": {
+        "title": "Sub-estructuras",
+        "empty": "No hay elementos hijos"
+      },
+      "learning": {
+        "title": "Plan de Aprendizaje",
+        "subtitle": "Cursos asignados a esta unidad organizacional",
+        "assign": "Asignar Cursos",
+        "empty": "No hay cursos con actividad en esta región.",
+        "assignNew": "Asignar Nuevo Curso",
+        "individualAssign": "Asignar a usuarios individuales"
+      },
+      "members": {
+        "title": "Miembros del Nodo",
+        "subtitle": "Gestiona los usuarios asignados directamente a este nivel.",
+        "assign": "Asignar Miembro",
+        "empty": "No hay miembros asignados directamente a este nodo.",
+        "role": {
+          "leader": "Líder",
+          "member": "Miembro"
+        }
+      },
+      "chatTitle": "Chat de {{name}}",
+      "errors": {
+        "loadInfo": "No se pudo cargar la información del nodo",
+        "connection": "Error de conexión"
+      }
+    },
+    "chat": {
+      "defaultTitle": "Chat de equipo",
+      "participants_one": "1 participante",
+      "participants_other": "{{count}} participantes",
+      "online": "en línea",
+      "inputPlaceholder": "Escribe un mensaje...",
+      "empty": "No hay mensajes aún",
+      "beTheFirst": "Sé el primero en escribir.",
+      "user": "Usuario",
+      "send": "Enviar",
+      "editing": "Editando mensaje",
+      "deleteTitle": "Eliminar mensaje",
+      "deleteConfirm": "¿Estás seguro de que deseas eliminar este mensaje?",
+      "file": "Archivo",
+      "attachment": "📎 Archivo adjunto",
+      "errors": {
+        "load": "Error al cargar el chat.",
+        "create": "No se pudo crear o cargar el chat.",
+        "send": "Error al enviar el mensaje",
+        "upload": "Error al subir el archivo"
+      }
+    }
   },
   "learningPathsPage": {
     "title": "Rutas de aprendizaje",

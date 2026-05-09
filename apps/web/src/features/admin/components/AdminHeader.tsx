@@ -11,7 +11,7 @@ import { useBusinessPanelTheme } from '../../business-panel/hooks/useBusinessPan
 import { useOrganizationStylesContext } from '../../business-panel/contexts/OrganizationStylesContext'
 import { hexToRgb } from '../../business-panel/utils/styles'
 import { NotificationBell } from '@/core/components/NotificationBell'
-import { AdminUserDropdown } from './AdminUserDropdown'
+import { UserDropdown } from '@/core/components/UserDropdown'
 
 interface AdminHeaderProps {
   onMenuClick: () => void
@@ -109,7 +109,7 @@ export function AdminHeader({ onMenuClick, title }: AdminHeaderProps) {
             {isLoading ? (
               <div className="h-9 w-9 animate-pulse rounded-full" style={{ backgroundColor: panelTheme.hoverBg }} />
             ) : user ? (
-              <AdminUserDropdown user={user} />
+              <UserDropdown user={user} />
             ) : null}
           </div>
         </div>

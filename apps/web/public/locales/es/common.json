@@ -192,6 +192,50 @@
       "hasAccount": "¿Ya tienes cuenta?",
       "login": "Iniciar sesión"
     },
+    "roles": {
+      "admin": "Administrador",
+      "member": "Miembro",
+      "owner": "Propietario"
+    },
+    "invitation": {
+      "verifying": "Verificando invitación...",
+      "acceptedTitle": "¡Te has unido exitosamente!",
+      "acceptedDescriptionPrefix": "Ahora formas parte de",
+      "goToDashboard": "Ir al panel",
+      "unavailableTitle": "Enlace no disponible",
+      "goToLogin": "Ir al inicio de sesión",
+      "organizationInviteDescription": "Te han invitado a unirte a esta organización",
+      "valid": "Invitación válida",
+      "assignedRole": "Rol asignado:",
+      "remainingUses": "{{count}} lugar disponible",
+      "remainingUses_plural": "{{count}} lugares disponibles",
+      "validUntil": "Válida hasta el {{date}}",
+      "joining": "Uniéndome...",
+      "acceptAndJoin": "Aceptar invitación y unirme",
+      "createAccountAndJoin": "Crear cuenta y unirme",
+      "alreadyHaveAccount": "Ya tengo cuenta",
+      "termsNotice": "Al unirte, aceptas los términos de uso de la plataforma",
+      "registerManualFallback": "{{error}}. Puedes registrarte manualmente si tienes una invitación pendiente.",
+      "errors": {
+        "acceptConnection": "Error de conexión al aceptar la invitación",
+        "connection": "Error de conexión. Intenta nuevamente.",
+        "emailNotInvited": "Tu correo no ha sido invitado a esta organización. Contacta al administrador para solicitar una invitación.",
+        "exhausted": "Este enlace de invitación ha alcanzado el límite de registros",
+        "expired": "Este enlace de invitación ha expirado",
+        "inactive": "Este enlace de invitación no está activo",
+        "invalid": "Invitación inválida o expirada",
+        "invalidToken": "Token inválido",
+        "missingToken": "Token de invitación no proporcionado",
+        "notFound": "Enlace de invitación no encontrado",
+        "paused": "Este enlace de invitación está temporalmente pausado",
+        "revoked": "Esta invitación fue revocada",
+        "unauthenticated": "No autenticado. Por favor inicia sesión.",
+        "unauthorized": "No autorizado.",
+        "used": "Esta invitación ya fue utilizada",
+        "verifyFailed": "Error al verificar el enlace de invitación",
+        "wrongOrganization": "Esta invitación no es para esta organización"
+      }
+    },
     "questionnaireModal": {
       "title": "Cuestionario Requerido",
       "description": "Para acceder a las comunidades, necesitas completar primero el cuestionario de perfil profesional.",
@@ -214,7 +258,13 @@
       "microsoftButton": "Continuar con Microsoft",
       "alreadyRegistered": "¿Ya estás registrado?",
       "loginLink": "Inicia sesión aquí",
-      "unexpectedError": "Error inesperado al iniciar sesión"
+      "unexpectedError": "Error inesperado al iniciar sesión",
+      "backToMainLogin": "Volver al login principal",
+      "errors": {
+        "loadFailed": "Error al cargar información de la organización",
+        "missingSlug": "Slug de organización no proporcionado",
+        "notFound": "Organización no encontrada"
+      }
     }
   },
   "aiChat": {
@@ -327,6 +377,12 @@
     "subscriptions": "Suscripciones",
     "paymentMethods": "Métodos de pago",
     "purchaseHistory": "Historial de compras",
+    "languages": {
+      "title": "Idioma",
+      "es": "Español",
+      "en": "Inglés",
+      "pt": "Portugués"
+    },
     "theme": {
       "system": "Modo sistema",
       "light": "Modo claro",
@@ -335,8 +391,11 @@
     "adminPanel": "Panel de Administración",
     "instructorPanel": "Panel de Instructor",
     "viewTour": "Ver Tour",
+    "restartTour": "Ver Tour",
+    "userPanel": "Panel Usuario",
     "logout": "Cerrar sesión",
-    "myCourses": "Mis cursos"
+    "myCourses": "Mis cursos",
+    "profile": "Editar perfil"
   },
   "notifications": {
     "title": "Notificaciones",
@@ -1092,7 +1151,34 @@
     "finish": "Finalizar",
     "skip": "Saltar",
     "show": "Mostrar",
-    "hide": "Ocultar"
+    "hide": "Ocultar",
+    "viewFullImage": "Ver imagen completa",
+    "downloadImage": "Descargar imagen",
+    "edited": "editado",
+    "refresh": "Refrescar",
+    "archive": "Archivar",
+    "markAsRead": "Marcar como leída",
+    "notificationsPage": {
+      "title": "Notificaciones",
+      "subtitle": "Gestiona tus notificaciones y mantente al día",
+      "noNotifications": "No hay notificaciones",
+      "all": "Todas",
+      "unread": "Sin leer",
+      "archived": "Archivadas",
+      "markAllRead": "Marcar todas como leídas",
+      "searchPlaceholder": "Buscar en notificaciones...",
+      "emptyTitle": "No hay notificaciones",
+      "emptySearch": "No encontramos resultados para \"{{query}}\"",
+      "emptyUnread": "¡Felicidades! Has leído todas tus notificaciones.",
+      "emptyDefault": "Aquí aparecerán las novedades sobre tus cursos, actividades y comunidad.",
+      "viewAll": "Ver todas las notificaciones",
+      "loading": "Cargando tus notificaciones...",
+      "clearSearch": "Limpiar búsqueda",
+      "priority": {
+        "critical": "Crítico",
+        "high": "Alta"
+      }
+    }
   },
   "certificates": {
     "loading": "Cargando certificados...",
@@ -1352,6 +1438,7 @@
     "userFallback": "Usuario",
     "usernameFallback": "usuario",
     "organizations": "Mis organizaciones",
+    "certificates": "Certificados",
     "viewAllOrganizations": "Ver todas",
     "theme": "Tema",
     "certificatesObtained_one": "{{count}} obtenido",

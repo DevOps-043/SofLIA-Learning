@@ -4,8 +4,10 @@
     "users": "Users",
     "courses": "Courses",
     "learningPaths": "Paths",
+    "hierarchy": "Structure",
     "teams": "Teams",
     "reports": "Reports & Analytics",
+    "reviews": "Reviews",
     "settings": "Settings",
     "pinned": "Pinned Panel",
     "unpinned": "Unpinned Panel",
@@ -169,7 +171,7 @@
       },
       "reviewsHeader": {
         "title": "Pending Reviews",
-        "content": "Here you review courses submitted from CourseForge. You can approve them for publication or reject them with feedback."
+        "content": "Here you review courses submitted from Course Engine. You can approve them for publication or reject them with feedback."
       },
       "reviewsStats": {
         "title": "Review Status",
@@ -205,6 +207,70 @@
       }
     }
   },
+  "reviewsPage": {
+    "title": "Pending reviews",
+    "subtitle": "Review, approve, or return courses submitted from Course Engine.",
+    "rejectReason": "Rejected from the reviews panel",
+    "searchPlaceholder": "Search by title, instructor, category, or level...",
+    "stats": {
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "updates": "Updates",
+      "fresh": "New courses"
+    },
+    "tabs": {
+      "pending": "Pending",
+      "rejected": "Rejected"
+    },
+    "badges": {
+      "pending": "Pending",
+      "rejected": "Rejected",
+      "update": "Update",
+      "new": "New"
+    },
+    "labels": {
+      "date": "Date",
+      "level": "Level"
+    },
+    "fallbacks": {
+      "pendingInstructor": "Pending instructor",
+      "notAvailable": "N/A"
+    },
+    "empty": {
+      "pendingTitle": "There are no pending courses to review",
+      "rejectedTitle": "There are no rejected courses to show",
+      "description": "Adjust the search or wait for new submissions from Course Engine."
+    },
+    "actions": {
+      "approve": "Approve",
+      "reconsider": "Reconsider",
+      "view": "View",
+      "reject": "Reject",
+      "deletePermanently": "Delete permanently",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "loadTitle": "Reviews could not be loaded"
+    },
+    "approveModal": {
+      "approveTitle": "Approve course",
+      "reconsiderTitle": "Reconsider course",
+      "approveMessage": "The course will be approved and made available to students.",
+      "reconsiderMessage": "The course will return to the active flow and be available for publication.",
+      "approveConfirm": "Yes, approve",
+      "reconsiderConfirm": "Yes, reconsider"
+    },
+    "rejectModal": {
+      "title": "Reject course",
+      "message": "The course will move to rejected status and leave the pending list.",
+      "confirm": "Yes, reject"
+    },
+    "deleteModal": {
+      "title": "Delete rejected course",
+      "message": "This action will permanently delete the rejected course and cannot be undone.",
+      "confirm": "Delete permanently"
+    }
+  },
   "header": {
     "myOrganization": "My Organization",
     "userPanel": "User Panel",
@@ -220,6 +286,7 @@
     "updateInfo": "Update your information",
     "exitAccount": "Exit your account",
     "language": "Language / Idioma",
+    "administratorRole": "Business Panel",
     "myTeam": "My Team",
     "viewTeammates": "View teammates"
   },
@@ -725,11 +792,18 @@
         "subtitle": "Modify member information",
         "infoNote": "Changes made will be saved and the user will receive a notification if necessary.",
         "currentRole": "Current role",
+        "footerLabel": "Collaborator editor",
+        "sections": {
+          "personalProfile": "Personal profile",
+          "contactLocation": "Contact and location",
+          "accessRole": "Access and role"
+        },
         "fields": {
           "fullName": "Full Name",
           "phone": "Phone",
           "location": "Location",
           "bio": "Biography",
+          "jobTitle": "Job title",
           "status": "Status",
           "typeRole": "Type of Role"
         },
@@ -739,6 +813,9 @@
           "location": "City, Country",
           "bio": "Write a short biography...",
           "typeRole": "Freelancer, Employee, etc."
+        },
+        "errors": {
+          "save": "Could not save changes."
         }
       },
       "delete": {
@@ -1392,6 +1469,15 @@
     "roles": {
       "title": "Roles & Permissions",
       "subtitle": "Each role determines the scope of data access within the hierarchy",
+      "labels": {
+        "owner": "Owner",
+        "admin": "Administrator",
+        "regional_manager": "Regional manager",
+        "zone_manager": "Zone manager",
+        "team_leader": "Team leader",
+        "node_manager": "Node manager",
+        "member": "Member"
+      },
       "scope": {
         "owner": "Entire organization",
         "admin": "Per assignment",
@@ -1423,7 +1509,198 @@
     "noRootNode": "No root node found. Create a 'General' node first.",
     "saveStructureError": "Error creating the structure",
     "loadStructuresError": "Error loading structures",
-    "loadHierarchyError": "Error loading hierarchy"
+    "loadHierarchyError": "Error loading hierarchy",
+    "defaultRootName": "General",
+    "pageKicker": "Structure",
+    "pageTitle": "Hierarchy",
+    "pageSubtitle": "Manage your company's organizational levels, teams, and regions.",
+    "tabs": {
+      "treeView": "Tree view",
+      "settings": "Settings"
+    },
+    "title": "Hierarchical Structure",
+    "subtitle": "Organize your team into levels to segment access and data",
+    "nodeForm": {
+      "title": {
+        "create": "Create within \"{{parent}}\"",
+        "edit": "Edit component"
+      },
+      "sideTitle": {
+        "create": "Configure your structure",
+        "edit": "Refine the design"
+      },
+      "sideDescription": "Define attributes, managers, and geographic location for this component.",
+      "architecture": "Architecture",
+      "sections": {
+        "basicData": "Basic data",
+        "sofliaManagement": "SofLIA Management",
+        "location": "Location"
+      },
+      "fields": {
+        "name": "Commercial name",
+        "type": "Level type",
+        "specifyType": "Specify type",
+        "manager": "Manager / person in charge"
+      },
+      "placeholders": {
+        "name": "Ex: North Sales",
+        "specifyType": "Ex: Squad, division...",
+        "searchUser": "Search user..."
+      },
+      "types": {
+        "custom": "Other / custom"
+      }
+    },
+    "location": {
+      "title": "Address",
+      "fillFromCoords": "Fill from coordinates",
+      "calculateFromFields": "Calculate coordinates from fields",
+      "fields": {
+        "street": "Street / avenue",
+        "extNum": "Ext. No.",
+        "intNum": "Int. No.",
+        "neighborhood": "Neighborhood / district",
+        "zipCode": "ZIP Code",
+        "city": "City / municipality",
+        "state": "State",
+        "country": "Country",
+        "latitude": "Latitude",
+        "longitude": "Longitude"
+      },
+      "placeholders": {
+        "street": "Ex: Av. Reforma",
+        "neighborhood": "Ex: Juarez",
+        "city": "Cuauhtemoc",
+        "state": "CDMX",
+        "country": "Mexico"
+      }
+    },
+    "structureForm": {
+      "title": "STRUCTURE",
+      "sideTitle": "New Structure",
+      "sideDescription": "Create a custom organizational design for your company.",
+      "fields": {
+        "name": "Commercial Name"
+      },
+      "placeholders": {
+        "name": "Ex: Logistics Organization"
+      }
+    },
+    "memberModal": {
+      "title": "Assign Member to {{name}}",
+      "placeholder": "Search by name or email...",
+      "roles": {
+        "member": "Member",
+        "leader": "Leader"
+      },
+      "emptySearch": "No users found.",
+      "startTyping": "Start typing to search.",
+      "submit": "Assign User",
+      "errorSearch": "Error searching for users",
+      "errorAssign": "Error assigning user"
+    },
+    "map": {
+      "loading": "Loading map...",
+      "initializing": "Initializing map...",
+      "preparing": "Preparing icons...",
+      "fullscreen": "Full screen",
+      "exitFullscreen": "Exit full screen",
+      "bestPerformance": "Best Performance",
+      "wheelZoom": "Scroll wheel zoom",
+      "title": "Geographic Map",
+      "topPerformer": "Top Performer"
+    },
+    "dashboard": {
+      "loading": "Loading node information...",
+      "error": {
+        "title": "Error",
+        "notFound": "Node not found"
+      },
+      "tabs": {
+        "overview": "Overview",
+        "members": "Members",
+        "structure": "Structure and Map",
+        "learning": "Courses and Learning",
+        "chat": "Communication"
+      },
+      "manager": {
+        "title": "Manager",
+        "subtitle": "Leader assigned to this unit",
+        "change": "Change manager",
+        "roleLabel": "{{type}} Leader",
+        "notAssigned": "No manager assigned",
+        "assign": "Assign Manager"
+      },
+      "performance": {
+        "title": "Performance",
+        "subtitle": "General progress for the {{type}}",
+        "avgProgress": "Average Progress",
+        "completedCourses": "Completed Courses",
+        "learningHours": "Learning Time",
+        "chartComingSoon": "Activity chart coming soon"
+      },
+      "details": {
+        "title": "Details",
+        "name": "Name",
+        "type": "Type",
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "location": "Location",
+        "notSpecified": "Not specified",
+        "path": "Hierarchical Path"
+      },
+      "substructures": {
+        "title": "Sub-structures",
+        "empty": "No child elements"
+      },
+      "learning": {
+        "title": "Learning Plan",
+        "subtitle": "Courses assigned to this organizational unit",
+        "assign": "Assign Courses",
+        "empty": "No courses with activity in this region.",
+        "assignNew": "Assign New Course",
+        "individualAssign": "Assign to individual users"
+      },
+      "members": {
+        "title": "Node Members",
+        "subtitle": "Manage users directly assigned to this level.",
+        "assign": "Assign Member",
+        "empty": "No members directly assigned to this node.",
+        "role": {
+          "leader": "Leader",
+          "member": "Member"
+        }
+      },
+      "chatTitle": "Chat for {{name}}",
+      "errors": {
+        "loadInfo": "Could not load node information",
+        "connection": "Connection error"
+      }
+    },
+    "chat": {
+      "defaultTitle": "Team Chat",
+      "participants_one": "1 participant",
+      "participants_other": "{{count}} participants",
+      "online": "online",
+      "inputPlaceholder": "Write a message...",
+      "empty": "No messages yet",
+      "beTheFirst": "Be the first to write.",
+      "user": "User",
+      "send": "Send",
+      "editing": "Editing message",
+      "deleteTitle": "Delete message",
+      "deleteConfirm": "Are you sure you want to delete this message?",
+      "file": "File",
+      "attachment": "📎 Attached file",
+      "errors": {
+        "load": "Error loading chat.",
+        "create": "Could not create or load chat.",
+        "send": "Error sending message",
+        "upload": "Error uploading file"
+      }
+    }
   },
   "learningPathsPage": {
     "title": "Learning paths",

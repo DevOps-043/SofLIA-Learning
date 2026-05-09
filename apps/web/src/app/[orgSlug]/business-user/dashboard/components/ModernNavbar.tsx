@@ -9,7 +9,7 @@ import { useLanguage } from '../../../../../core/providers/I18nProvider';
 import { useThemeStore } from '../../../../../core/stores/themeStore';
 import { BUSINESS_USER_DASHBOARD_TOUR_TARGET_IDS } from '../../../../../core/constants/tourTargets';
 import { ModernNavbarBrand } from './modern-navbar/ModernNavbarBrand';
-import { ModernNavbarDesktopMenu } from './modern-navbar/ModernNavbarDesktopMenu';
+import { UserDropdown } from '@/core/components/UserDropdown';
 import { ModernNavbarMobileMenu } from './modern-navbar/ModernNavbarMobileMenu';
 import type { ModernNavbarProps } from './modern-navbar/types';
 import { useModernNavbar } from './modern-navbar/useModernNavbar';
@@ -75,33 +75,12 @@ export function ModernNavbar({
               <NotificationBell />
 
               <div className="hidden md:block relative" ref={dropdownRef}>
-                <ModernNavbarDesktopMenu
-                  activeSubmenu={activeSubmenu}
-                  canAccessAdminPanel={canAccessAdminPanel}
-                  colors={colors}
-                  getDisplayName={getDisplayName}
-                  getInitials={getInitials}
-                  hasStudyPlan={hasStudyPlan}
-                  language={language}
-                  onClose={closeDesktopMenu}
-                  onLogout={onLogout}
-                  onProfileClick={onProfileClick}
+                <UserDropdown 
+                  user={user}
                   onRestartTour={onRestartTour}
                   onCertificatesClick={onCertificatesClick}
                   onAnalyticsClick={onAnalyticsClick}
                   certificatesCount={certificatesCount}
-                  organization={organization}
-                  resolvedTheme={resolvedTheme}
-                  router={router}
-                  setActiveSubmenu={setActiveSubmenu}
-                  setLanguage={setLanguage}
-                  setTheme={setTheme}
-                  setUserDropdownOpen={setUserDropdownOpen}
-                  t={t}
-                  theme={theme}
-                  user={user}
-                  userDropdownOpen={userDropdownOpen}
-                  showOrganizations={canSwitch}
                 />
               </div>
 

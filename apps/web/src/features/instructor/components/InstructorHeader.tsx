@@ -1,7 +1,7 @@
 'use client'
 
 import { Bars3Icon } from '@heroicons/react/24/outline'
-import { InstructorUserDropdown } from './InstructorUserDropdown'
+import { UserDropdown } from '@/core/components/UserDropdown'
 import { useInstructorUser } from '../hooks/useInstructorUser'
 
 interface InstructorHeaderProps {
@@ -49,7 +49,7 @@ export function InstructorHeader({ onMenuClick, title }: InstructorHeaderProps) 
                 </div>
               </div>
             ) : user ? (
-              <InstructorUserDropdown user={user} />
+              <UserDropdown user={user} />
             ) : (
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-purple-700/50 rounded-full"></div>

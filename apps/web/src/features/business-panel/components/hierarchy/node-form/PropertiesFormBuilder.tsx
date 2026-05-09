@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 
 interface PropertiesFormBuilderProps {
@@ -56,6 +57,7 @@ export function PropertiesFormBuilder({
   onReverseGeocode,
 }: PropertiesFormBuilderProps) {
   const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
   const isDisabled = loading || isGeocoding
 
   const inputStyle = {
@@ -70,7 +72,7 @@ export function PropertiesFormBuilder({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="flex items-center gap-2 text-sm font-bold" style={{ color: theme.textColor }}>
-          <span className="text-xl">📍</span> Dirección
+          <span className="text-xl">📍</span> {t('hierarchy.location.title')}
         </h4>
         {latitude || longitude ? (
           <button
@@ -80,25 +82,25 @@ export function PropertiesFormBuilder({
             className="text-xs underline transition-colors"
             style={{ color: theme.actionColor }}
           >
-            Rellenar desde coordenadas
+            {t('hierarchy.location.fillFromCoords')}
           </button>
         ) : null}
       </div>
 
       <div className="grid grid-cols-12 gap-3">
         <div className="col-span-12 md:col-span-6">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>Calle / avenida</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.street')}</label>
           <input
             type="text"
             value={street}
             onChange={event => onStreetChange(event.target.value)}
-            placeholder="Ej: Av. Reforma"
+            placeholder={t('hierarchy.location.placeholders.street')}
             className="w-full rounded-lg border px-3 py-2 text-sm"
             style={inputStyle}
           />
         </div>
         <div className="col-span-6 md:col-span-3">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>No. ext.</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.extNum')}</label>
           <input
             type="text"
             value={externalNumber}
@@ -109,7 +111,7 @@ export function PropertiesFormBuilder({
           />
         </div>
         <div className="col-span-6 md:col-span-3">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>No. int.</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.intNum')}</label>
           <input
             type="text"
             value={internalNumber}
@@ -123,18 +125,18 @@ export function PropertiesFormBuilder({
 
       <div className="grid grid-cols-12 gap-3">
         <div className="col-span-8">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>Colonia / barrio</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.neighborhood')}</label>
           <input
             type="text"
             value={neighborhood}
             onChange={event => onNeighborhoodChange(event.target.value)}
-            placeholder="Ej: Juárez"
+            placeholder={t('hierarchy.location.placeholders.neighborhood')}
             className="w-full rounded-lg border px-3 py-2 text-sm"
             style={inputStyle}
           />
         </div>
         <div className="col-span-4">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>C.P.</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.zipCode')}</label>
           <input
             type="text"
             value={zipCode}
@@ -148,34 +150,34 @@ export function PropertiesFormBuilder({
 
       <div className="grid grid-cols-12 gap-3">
         <div className="col-span-12 md:col-span-4">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>Ciudad / municipio</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.city')}</label>
           <input
             type="text"
             value={city}
             onChange={event => onCityChange(event.target.value)}
-            placeholder="Cuauhtémoc"
+            placeholder={t('hierarchy.location.placeholders.city')}
             className="w-full rounded-lg border px-3 py-2 text-sm"
             style={inputStyle}
           />
         </div>
         <div className="col-span-6 md:col-span-4">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>Estado</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.state')}</label>
           <input
             type="text"
             value={nodeState}
             onChange={event => onNodeStateChange(event.target.value)}
-            placeholder="CDMX"
+            placeholder={t('hierarchy.location.placeholders.state')}
             className="w-full rounded-lg border px-3 py-2 text-sm"
             style={inputStyle}
           />
         </div>
         <div className="col-span-6 md:col-span-4">
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>País</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.country')}</label>
           <input
             type="text"
             value={country}
             onChange={event => onCountryChange(event.target.value)}
-            placeholder="México"
+            placeholder={t('hierarchy.location.placeholders.country')}
             className="w-full rounded-lg border px-3 py-2 text-sm"
             style={inputStyle}
           />
@@ -192,12 +194,12 @@ export function PropertiesFormBuilder({
           color: theme.actionColor,
         }}
       >
-        🌍 Calcular coordenadas desde campos
+        🌍 {t('hierarchy.location.calculateFromFields')}
       </button>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>Latitud</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.latitude')}</label>
           <input
             type="number"
             step={0.000001}
@@ -209,7 +211,7 @@ export function PropertiesFormBuilder({
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium" style={labelStyle}>Longitud</label>
+          <label className="mb-1 block text-xs font-medium" style={labelStyle}>{t('hierarchy.location.fields.longitude')}</label>
           <input
             type="number"
             step={0.000001}

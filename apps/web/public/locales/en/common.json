@@ -192,6 +192,50 @@
       "hasAccount": "Already have an account?",
       "login": "Sign in"
     },
+    "roles": {
+      "admin": "Administrator",
+      "member": "Member",
+      "owner": "Owner"
+    },
+    "invitation": {
+      "verifying": "Verifying invitation...",
+      "acceptedTitle": "You have joined successfully!",
+      "acceptedDescriptionPrefix": "You are now part of",
+      "goToDashboard": "Go to dashboard",
+      "unavailableTitle": "Link unavailable",
+      "goToLogin": "Go to sign in",
+      "organizationInviteDescription": "You have been invited to join this organization",
+      "valid": "Valid invitation",
+      "assignedRole": "Assigned role:",
+      "remainingUses": "{{count}} spot available",
+      "remainingUses_plural": "{{count}} spots available",
+      "validUntil": "Valid until {{date}}",
+      "joining": "Joining...",
+      "acceptAndJoin": "Accept invitation and join",
+      "createAccountAndJoin": "Create account and join",
+      "alreadyHaveAccount": "I already have an account",
+      "termsNotice": "By joining, you accept the platform terms of use",
+      "registerManualFallback": "{{error}}. You can register manually if you have a pending invitation.",
+      "errors": {
+        "acceptConnection": "Connection error while accepting the invitation",
+        "connection": "Connection error. Please try again.",
+        "emailNotInvited": "Your email has not been invited to this organization. Contact the administrator to request an invitation.",
+        "exhausted": "This invitation link has reached its registration limit",
+        "expired": "This invitation link has expired",
+        "inactive": "This invitation link is not active",
+        "invalid": "Invalid or expired invitation",
+        "invalidToken": "Invalid token",
+        "missingToken": "Invitation token was not provided",
+        "notFound": "Invitation link not found",
+        "paused": "This invitation link is temporarily paused",
+        "revoked": "This invitation was revoked",
+        "unauthenticated": "Not authenticated. Please sign in.",
+        "unauthorized": "Not authorized.",
+        "used": "This invitation has already been used",
+        "verifyFailed": "Error verifying the invitation link",
+        "wrongOrganization": "This invitation is not for this organization"
+      }
+    },
     "questionnaireModal": {
       "title": "Questionnaire Required",
       "description": "To access communities, you first need to complete the professional profile questionnaire.",
@@ -214,7 +258,13 @@
       "microsoftButton": "Continue with Microsoft",
       "alreadyRegistered": "Already registered?",
       "loginLink": "Sign in here",
-      "unexpectedError": "Unexpected error when signing in"
+      "unexpectedError": "Unexpected error when signing in",
+      "backToMainLogin": "Back to main sign in",
+      "errors": {
+        "loadFailed": "Error loading organization information",
+        "missingSlug": "Organization slug was not provided",
+        "notFound": "Organization not found"
+      }
     }
   },
   "aiChat": {
@@ -327,6 +377,12 @@
     "subscriptions": "Subscriptions",
     "paymentMethods": "Payment methods",
     "purchaseHistory": "Purchase history",
+    "languages": {
+      "title": "Language",
+      "es": "Spanish",
+      "en": "English",
+      "pt": "Portuguese"
+    },
     "theme": {
       "system": "System mode",
       "light": "Light mode",
@@ -335,8 +391,11 @@
     "adminPanel": "Admin panel",
     "instructorPanel": "Instructor panel",
     "viewTour": "View Tour",
+    "restartTour": "Restart Tour",
+    "userPanel": "User Panel",
     "logout": "Sign out",
-    "myCourses": "My courses"
+    "myCourses": "My courses",
+    "profile": "Edit profile"
   },
   "notifications": {
     "title": "Notifications",
@@ -1092,7 +1151,34 @@
     "finish": "Finish",
     "skip": "Skip",
     "show": "Show",
-    "hide": "Hide"
+    "hide": "Hide",
+    "viewFullImage": "View full image",
+    "downloadImage": "Download image",
+    "edited": "edited",
+    "refresh": "Refresh",
+    "archive": "Archive",
+    "markAsRead": "Mark as read",
+    "notificationsPage": {
+      "title": "Notifications",
+      "subtitle": "Manage your notifications and stay up to date",
+      "noNotifications": "No notifications",
+      "all": "All",
+      "unread": "Unread",
+      "archived": "Archived",
+      "markAllRead": "Mark all as read",
+      "searchPlaceholder": "Search in notifications...",
+      "emptyTitle": "No notifications",
+      "emptySearch": "No results found for \"{{query}}\"",
+      "emptyUnread": "Congratulations! You've read all your notifications.",
+      "emptyDefault": "Here you'll see news about your courses, activities, and community.",
+      "viewAll": "View all notifications",
+      "loading": "Loading your notifications...",
+      "clearSearch": "Clear search",
+      "priority": {
+        "critical": "Critical",
+        "high": "High"
+      }
+    }
   },
   "certificates": {
     "loading": "Loading certificates...",
@@ -1352,6 +1438,7 @@
     "userFallback": "User",
     "usernameFallback": "user",
     "organizations": "My organizations",
+    "certificates": "Certificates",
     "viewAllOrganizations": "View all",
     "theme": "Theme",
     "certificatesObtained_one": "{{count}} earned",

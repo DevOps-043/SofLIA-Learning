@@ -137,7 +137,7 @@
   },
   "pendingCourses": {
     "title": "Revisões Pendentes",
-    "subtitle": "Revisar e aprovar cursos enviados pelo CourseForge",
+    "subtitle": "Revisar e aprovar cursos enviados pelo Course Engine",
     "tabPending": "Pendentes",
     "tabRejected": "Rejeitados",
     "searchPlaceholder": "Pesquisar por título ou instrutor...",

@@ -24,6 +24,7 @@ export interface InviteResult {
 
 export interface ValidateResult {
   valid: boolean
+  accountExists?: boolean
   email?: string
   role?: string
   position?: string
