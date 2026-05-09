@@ -1464,7 +1464,10 @@
     "messages": {
       "assignSuccess": "Path assigned successfully",
       "revokeSuccess": "Assignment revoked successfully",
-      "revokeError": "Could not revoke the assignment"
+      "revokeError": "Could not revoke the assignment",
+      "defaultSaved": "Default path configured successfully",
+      "defaultRevoked": "Default rule disabled",
+      "defaultApplied": "Default paths applied successfully"
     },
     "unnamedUser": "Unnamed user",
     "introVideos": {
@@ -1485,11 +1488,41 @@
       "errorFileTooLarge": "File exceeds the 500 MB limit",
       "unnamedCourse": "Untitled course",
       "close": "Close"
+    },
+    "defaults": {
+      "title": "Default path",
+      "badge": "{{count}} default",
+      "configure": "Default",
+      "scopeOrganization": "Whole company",
+      "scopeNode": "Structure",
+      "nodeLabel": "Structure node",
+      "selectNode": "Select a node",
+      "includeDescendants": "Include descendant nodes",
+      "saveAndApply": "Save and apply now",
+      "saving": "Saving...",
+      "activeRules": "Active rules",
+      "applyNow": "Apply now",
+      "applying": "Applying...",
+      "noRules": "This path has no active default rules.",
+      "wholeOrganization": "Whole company",
+      "nodeFallback": "Unnamed node",
+      "withDescendants": "Includes descendants",
+      "directScope": "Direct scope only",
+      "autoAssigns": "Automatically assigned to matching users.",
+      "selectNodeError": "Select a node for this rule.",
+      "saveError": "Could not save the default rule.",
+      "revokeError": "Could not disable the default rule.",
+      "applyError": "Could not apply the default rules."
     }
   },
   "assignLearningPath": {
     "title": "Assign learning path",
     "subtitle": "Select which active users in your company should receive this path.",
+    "modes": {
+      "users": "Users",
+      "all": "All",
+      "node": "Structure"
+    },
     "searchPlaceholder": "Search by name or email...",
     "selectedCount": "{{count}} selected users",
     "availableCount": "{{count}} active users available",
@@ -1501,10 +1534,16 @@
     "previewTitle": "Path summary",
     "moreItems": "And {{count}} more workshops in this path.",
     "footerNote": "Assignments will only be applied to active users in this company.",
+    "allUsersHint": "This will assign the path to {{count}} active company users.",
+    "includeDescendants": "Include descendant nodes",
+    "noNodes": "No structure nodes are available.",
+    "bulkPreviewAll": "This path will be assigned to {{count}} active users.",
+    "bulkPreviewNode": "{{count}} selected node(s). The path will be assigned to their active users.",
     "cancel": "Cancel",
     "confirm": "Assign path ({{count}})",
     "assigning": "Assigning...",
     "selectUserError": "Select at least one user to assign the path.",
+    "selectNodeError": "Select at least one node to assign the path.",
     "assignError": "Could not assign the learning path."
   },
   "common": {

@@ -72,6 +72,8 @@ interface UserLearningPathAssignmentRow extends LooseRow {
   assigned_by: string | null
   assigned_at: string
   status: 'assigned' | 'revoked'
+  assignment_source?: 'manual' | 'bulk' | 'default_rule'
+  default_rule_id?: string | null
   users?: {
     id: string
     email: string
@@ -239,7 +241,7 @@ async function ensureUniqueSlug(slug: string | null, currentPathId?: string) {
 async function syncCourseAccessForOrganization(
   organizationId: string,
   courseIds: string[],
-  adminUserId: string,
+  adminUserId: string | null,
 ) {
   if (courseIds.length === 0) return
 
@@ -250,14 +252,14 @@ async function syncCourseAccessForOrganization(
       .select('id')
       .eq('organization_id', organizationId)
       .eq('course_id', courseId)
-      .maybeSingle()
+      .limit(1)
 
     if (existing.error) {
       logger.error('Error checking hierarchy assignment for learning path:', existing.error)
       throw new Error('No se pudo sincronizar el acceso organizacional')
     }
 
-    if (!existing.data) {
+    if (!existing.data || existing.data.length === 0) {
       const { error } = await fromLoose<LooseRow>(supabase, 'hierarchy_course_assignments')
         .insert({
           organization_id: organizationId,
@@ -267,6 +269,9 @@ async function syncCourseAccessForOrganization(
         })
 
       if (error) {
+        if (error.code === '23505') {
+          continue
+        }
         logger.error('Error creating hierarchy assignment for learning path:', error)
         throw new Error('No se pudo sincronizar el acceso organizacional')
       }
@@ -278,7 +283,7 @@ async function syncCourseAccessForUser(
   organizationId: string,
   userId: string,
   courseIds: string[],
-  adminUserId: string,
+  adminUserId: string | null,
 ) {
   if (courseIds.length === 0) return
 
@@ -291,14 +296,14 @@ async function syncCourseAccessForUser(
       .eq('organization_id', organizationId)
       .eq('user_id', userId)
       .eq('course_id', courseId)
-      .maybeSingle()
+      .limit(1)
 
     if (existing.error) {
       logger.error('Error checking user course assignment for learning path:', existing.error)
-      throw new Error('No se pudo sincronizar la asignaciÃ³n individual')
+      throw new Error('No se pudo sincronizar la asignacion individual')
     }
 
-    if (!existing.data) {
+    if (!existing.data || existing.data.length === 0) {
       const assignmentInsert = await supabase
         .from('organization_course_assignments')
         .insert({
@@ -310,9 +315,19 @@ async function syncCourseAccessForUser(
         })
 
       if (assignmentInsert.error) {
-        logger.error('Error creating user course assignment for learning path:', assignmentInsert.error)
-        throw new Error('No se pudo sincronizar la asignaciÃ³n individual')
+        if (assignmentInsert.error.code !== '23505') {
+          logger.error('Error creating user course assignment for learning path:', assignmentInsert.error)
+          throw new Error('No se pudo sincronizar la asignacion individual')
+        }
       }
+    }
+
+    if (!adminUserId) {
+      logger.warn('Learning path course access was synced without an actor user id', {
+        organizationId,
+        userId,
+        courseId,
+      })
     }
 
     const enrollmentInsert = await supabase
@@ -850,6 +865,8 @@ export class AdminLearningPathsService {
         learning_path_id,
         assigned_at,
         status,
+        assignment_source,
+        default_rule_id,
         users:user_id (
           id,
           email,
@@ -877,6 +894,8 @@ export class AdminLearningPathsService {
       learning_path_id: row.learning_path_id,
       assigned_at: row.assigned_at,
       status: row.status,
+      assignment_source: row.assignment_source,
+      default_rule_id: row.default_rule_id,
       learning_path: learningPathMap.get(row.learning_path_id) || null,
       user: row.users || null,
     }))
@@ -886,7 +905,12 @@ export class AdminLearningPathsService {
     organizationId: string,
     userId: string,
     learningPathId: string,
-    adminUserId: string,
+    adminUserId: string | null,
+    options: {
+      assignmentSource?: 'manual' | 'bulk' | 'default_rule'
+      defaultRuleId?: string | null
+      reactivateRevoked?: boolean
+    } = {},
   ): Promise<UserLearningPathAssignment> {
     const path = await this.getLearningPathById(learningPathId)
     if (!path) {
@@ -906,6 +930,9 @@ export class AdminLearningPathsService {
     )
 
     const supabase = createAdminClient()
+    const assignmentSource = options.assignmentSource || 'manual'
+    const defaultRuleId = options.defaultRuleId || null
+    const reactivateRevoked = options.reactivateRevoked ?? true
     const existing = await fromLoose<UserLearningPathAssignmentRow>(
       supabase,
       'user_learning_path_assignments',
@@ -917,6 +944,8 @@ export class AdminLearningPathsService {
         learning_path_id,
         assigned_at,
         status,
+        assignment_source,
+        default_rule_id,
         users:user_id (
           id,
           email,
@@ -936,6 +965,21 @@ export class AdminLearningPathsService {
     }
 
     if (existing.data) {
+      if (existing.data.status === 'revoked' && !reactivateRevoked) {
+        return {
+          id: existing.data.id,
+          organization_id: existing.data.organization_id,
+          user_id: existing.data.user_id,
+          learning_path_id: existing.data.learning_path_id,
+          assigned_at: existing.data.assigned_at,
+          status: 'revoked',
+          assignment_source: existing.data.assignment_source,
+          default_rule_id: existing.data.default_rule_id,
+          learning_path: path,
+          user: existing.data.users || null,
+        }
+      }
+
       if (existing.data.status !== 'assigned') {
         const reactivated = await fromLoose<UserLearningPathAssignmentRow>(
           supabase,
@@ -943,6 +987,8 @@ export class AdminLearningPathsService {
         )
           .update({
             status: 'assigned',
+            assignment_source: assignmentSource,
+            default_rule_id: defaultRuleId,
             updated_at: new Date().toISOString(),
           })
           .eq('id', existing.data.id)
@@ -960,6 +1006,12 @@ export class AdminLearningPathsService {
         learning_path_id: existing.data.learning_path_id,
         assigned_at: existing.data.assigned_at,
         status: 'assigned',
+        assignment_source: existing.data.status === 'assigned'
+          ? existing.data.assignment_source
+          : assignmentSource,
+        default_rule_id: existing.data.status === 'assigned'
+          ? existing.data.default_rule_id
+          : defaultRuleId,
         learning_path: path,
         user: existing.data.users || null,
       }
@@ -975,6 +1027,8 @@ export class AdminLearningPathsService {
         learning_path_id: learningPathId,
         assigned_by: adminUserId,
         status: 'assigned',
+        assignment_source: assignmentSource,
+        default_rule_id: defaultRuleId,
       })
       .select(`
         id,
@@ -983,6 +1037,8 @@ export class AdminLearningPathsService {
         learning_path_id,
         assigned_at,
         status,
+        assignment_source,
+        default_rule_id,
         users:user_id (
           id,
           email,
@@ -1005,6 +1061,8 @@ export class AdminLearningPathsService {
       learning_path_id: data.learning_path_id,
       assigned_at: data.assigned_at,
       status: data.status,
+      assignment_source: data.assignment_source,
+      default_rule_id: data.default_rule_id,
       learning_path: path,
       user: data.users || null,
     }
@@ -1119,4 +1177,3 @@ export class AdminLearningPathsService {
     }
   }
 }
-

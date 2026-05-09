@@ -1466,7 +1466,10 @@
     "messages": {
       "assignSuccess": "Rota atribuida com sucesso",
       "revokeSuccess": "Atribuicao revogada com sucesso",
-      "revokeError": "Nao foi possivel revogar a atribuicao"
+      "revokeError": "Nao foi possivel revogar a atribuicao",
+      "defaultSaved": "Rota padrao configurada com sucesso",
+      "defaultRevoked": "Regra padrao desativada",
+      "defaultApplied": "Rotas padrao aplicadas com sucesso"
     },
     "unnamedUser": "Usuario sem nome",
     "introVideos": {
@@ -1487,11 +1490,41 @@
       "errorFileTooLarge": "O arquivo excede o limite de 500 MB",
       "unnamedCourse": "Curso sem título",
       "close": "Fechar"
+    },
+    "defaults": {
+      "title": "Rota padrao",
+      "badge": "{{count}} padrao",
+      "configure": "Padrao",
+      "scopeOrganization": "Toda a empresa",
+      "scopeNode": "Estrutura",
+      "nodeLabel": "No da estrutura",
+      "selectNode": "Selecione um no",
+      "includeDescendants": "Incluir nos descendentes",
+      "saveAndApply": "Salvar e aplicar agora",
+      "saving": "Salvando...",
+      "activeRules": "Regras ativas",
+      "applyNow": "Aplicar agora",
+      "applying": "Aplicando...",
+      "noRules": "Esta rota nao tem regras padrao ativas.",
+      "wholeOrganization": "Toda a empresa",
+      "nodeFallback": "No sem nome",
+      "withDescendants": "Inclui descendentes",
+      "directScope": "Apenas escopo direto",
+      "autoAssigns": "Atribuida automaticamente aos usuarios correspondentes.",
+      "selectNodeError": "Selecione um no para esta regra.",
+      "saveError": "Nao foi possivel salvar a regra padrao.",
+      "revokeError": "Nao foi possivel desativar a regra padrao.",
+      "applyError": "Nao foi possivel aplicar as regras padrao."
     }
   },
   "assignLearningPath": {
     "title": "Atribuir rota de aprendizagem",
     "subtitle": "Selecione quais usuarios ativos da sua empresa receberao esta rota.",
+    "modes": {
+      "users": "Usuarios",
+      "all": "Todos",
+      "node": "Estrutura"
+    },
     "searchPlaceholder": "Buscar por nome ou email...",
     "selectedCount": "{{count}} usuarios selecionados",
     "availableCount": "{{count}} usuarios ativos disponiveis",
@@ -1503,10 +1536,16 @@
     "previewTitle": "Resumo da rota",
     "moreItems": "E mais {{count}} workshops nesta rota.",
     "footerNote": "As atribuicoes serao aplicadas apenas a usuarios ativos desta empresa.",
+    "allUsersHint": "Esta rota sera atribuida a {{count}} usuarios ativos da empresa.",
+    "includeDescendants": "Incluir nos descendentes",
+    "noNodes": "Nao ha nos de estrutura disponiveis.",
+    "bulkPreviewAll": "Esta rota sera atribuida a {{count}} usuarios ativos.",
+    "bulkPreviewNode": "{{count}} no(s) selecionado(s). A rota sera atribuida aos usuarios ativos.",
     "cancel": "Cancelar",
     "confirm": "Atribuir rota ({{count}})",
     "assigning": "Atribuindo...",
     "selectUserError": "Selecione pelo menos um usuario para atribuir a rota.",
+    "selectNodeError": "Selecione pelo menos um no para atribuir a rota.",
     "assignError": "Nao foi possivel atribuir a rota de aprendizagem."
   },
   "common": {

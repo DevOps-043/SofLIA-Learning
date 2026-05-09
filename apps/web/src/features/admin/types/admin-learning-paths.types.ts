@@ -43,6 +43,8 @@ export interface UserLearningPathAssignment {
   learning_path_id: string
   assigned_at: string
   status: 'assigned' | 'revoked'
+  assignment_source?: 'manual' | 'bulk' | 'default_rule'
+  default_rule_id?: string | null
   learning_path: LearningPath | null
   user: {
     id: string

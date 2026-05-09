@@ -175,6 +175,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     width={180}
                     height={48}
                   className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
+                    style={{ width: 'auto' }}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = '/icono.png';
                     }}

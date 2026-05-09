@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Check, Route, Search, Users, X } from 'lucide-react'
+import { Building2, Check, GitBranch, Route, Search, Users, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
@@ -11,6 +11,7 @@ import {
   BusinessLearningPathsService,
   type BusinessLearningPath,
   type BusinessLearningPathAssignment,
+  type BusinessLearningPathHierarchyNode,
 } from '../services/businessLearningPaths.service'
 
 interface BusinessAssignLearningPathModalProps {
@@ -21,6 +22,7 @@ interface BusinessAssignLearningPathModalProps {
   users: BusinessUser[]
   isLoadingUsers: boolean
   existingAssignments: BusinessLearningPathAssignment[]
+  hierarchyNodes: BusinessLearningPathHierarchyNode[]
   onAssigned: () => Promise<void>
 }
 
@@ -37,17 +39,24 @@ export function BusinessAssignLearningPathModal({
   users,
   isLoadingUsers,
   existingAssignments,
+  hierarchyNodes,
   onAssigned,
 }: BusinessAssignLearningPathModalProps) {
   const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const [searchTerm, setSearchTerm] = useState('')
+  const [assignmentMode, setAssignmentMode] = useState<'users' | 'all' | 'node'>('users')
+  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set())
+  const [includeDescendants, setIncludeDescendants] = useState(true)
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
   const [isAssigning, setIsAssigning] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     setSearchTerm('')
+    setAssignmentMode('users')
+    setSelectedNodeIds(new Set())
+    setIncludeDescendants(true)
     setSelectedUserIds(new Set())
     setError(null)
   }, [isOpen, learningPath?.id])
@@ -116,12 +125,24 @@ export function BusinessAssignLearningPathModal({
     })
   }
 
+  function handleToggleNode(nodeId: string) {
+    setSelectedNodeIds((current) => {
+      const next = new Set(current)
+      if (next.has(nodeId)) {
+        next.delete(nodeId)
+      } else {
+        next.add(nodeId)
+      }
+      return next
+    })
+  }
+
   async function handleAssign() {
     if (!learningPath) {
       return
     }
 
-    if (selectedUserIds.size === 0) {
+    if (assignmentMode === 'users' && selectedUserIds.size === 0) {
       setError(
         t('assignLearningPath.selectUserError', {
           defaultValue: 'Selecciona al menos un usuario para asignar la ruta.',
@@ -130,15 +151,38 @@ export function BusinessAssignLearningPathModal({
       return
     }
 
+    if (assignmentMode === 'node' && selectedNodeIds.size === 0) {
+      setError(t('assignLearningPath.selectNodeError'))
+      return
+    }
+
     try {
       setIsAssigning(true)
       setError(null)
 
-      await BusinessLearningPathsService.assignLearningPath(
-        orgSlug,
-        learningPath.id,
-        Array.from(selectedUserIds),
-      )
+      if (assignmentMode === 'users') {
+        await BusinessLearningPathsService.assignLearningPath(
+          orgSlug,
+          learningPath.id,
+          Array.from(selectedUserIds),
+        )
+      } else if (assignmentMode === 'all') {
+        await BusinessLearningPathsService.assignLearningPath(
+          orgSlug,
+          learningPath.id,
+          { type: 'all' },
+        )
+      } else {
+        await BusinessLearningPathsService.assignLearningPath(
+          orgSlug,
+          learningPath.id,
+          {
+            type: 'node',
+            nodeIds: Array.from(selectedNodeIds),
+            includeDescendants,
+          },
+        )
+      }
 
       await onAssigned()
       onClose()
@@ -217,10 +261,7 @@ export function BusinessAssignLearningPathModal({
                     className="mt-2 max-w-2xl text-sm"
                     style={{ color: theme.subtextColor }}
                   >
-                    {t('assignLearningPath.subtitle', {
-                      defaultValue:
-                        'Selecciona que usuarios activos de tu empresa recibiran esta ruta.',
-                    })}
+                    {t('assignLearningPath.subtitle')}
                   </p>
                 </div>
               </div>
@@ -243,6 +284,33 @@ export function BusinessAssignLearningPathModal({
           <div className="grid flex-1 gap-0 overflow-hidden lg:grid-cols-[1.35fr,0.85fr]">
             <div className="flex min-h-0 flex-col border-r" style={{ borderColor: theme.borderColor }}>
               <div className="border-b px-6 py-5 sm:px-8" style={{ borderColor: theme.borderColor }}>
+                <div className="mb-4 grid gap-2 sm:grid-cols-3">
+                  {([
+                    { mode: 'users' as const, icon: Users, label: t('assignLearningPath.modes.users') },
+                    { mode: 'all' as const, icon: Building2, label: t('assignLearningPath.modes.all') },
+                    { mode: 'node' as const, icon: GitBranch, label: t('assignLearningPath.modes.node') },
+                  ]).map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <button
+                        key={item.mode}
+                        type="button"
+                        onClick={() => setAssignmentMode(item.mode)}
+                        className="flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-wider"
+                        style={{
+                          backgroundColor: assignmentMode === item.mode ? theme.actionSurface : theme.inputBg,
+                          borderColor: assignmentMode === item.mode ? theme.primaryColor : theme.borderColor,
+                          color: theme.textColor,
+                        }}
+                      >
+                        <Icon className="h-4 w-4" />
+                        {item.label}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {assignmentMode === 'users' ? (
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div className="relative flex-1">
                     <Search
@@ -284,7 +352,9 @@ export function BusinessAssignLearningPathModal({
                         })}
                   </button>
                 </div>
+                ) : null}
 
+                {assignmentMode === 'users' ? (
                 <div className="mt-4 flex flex-wrap gap-3 text-xs" style={{ color: theme.subtextColor }}>
                   <span>
                     {t('assignLearningPath.selectedCount', {
@@ -299,6 +369,50 @@ export function BusinessAssignLearningPathModal({
                     })}
                   </span>
                 </div>
+                ) : assignmentMode === 'all' ? (
+                  <div className="rounded-2xl border px-4 py-3 text-sm" style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor, color: theme.subtextColor }}>
+                    {t('assignLearningPath.allUsersHint', { count: activeUsers.length })}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 text-sm" style={{ color: theme.subtextColor }}>
+                      <input
+                        type="checkbox"
+                        checked={includeDescendants}
+                        onChange={(event) => setIncludeDescendants(event.target.checked)}
+                      />
+                      {t('assignLearningPath.includeDescendants')}
+                    </label>
+                    <div className="grid max-h-56 gap-2 overflow-y-auto rounded-2xl border p-3" style={{ borderColor: theme.borderColor }}>
+                      {hierarchyNodes.length === 0 ? (
+                        <p className="px-2 py-3 text-sm" style={{ color: theme.subtextColor }}>
+                          {t('assignLearningPath.noNodes')}
+                        </p>
+                      ) : hierarchyNodes.map((node) => {
+                        const isSelected = selectedNodeIds.has(node.id)
+                        return (
+                          <button
+                            key={node.id}
+                            type="button"
+                            onClick={() => handleToggleNode(node.id)}
+                            className="flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm"
+                            style={{
+                              marginLeft: node.depth * 12,
+                              backgroundColor: isSelected ? theme.actionSurface : theme.cardBg,
+                              borderColor: isSelected ? theme.primaryColor : theme.borderColor,
+                              color: theme.textColor,
+                            }}
+                          >
+                            <span className="truncate">{node.name}</span>
+                            <span className="text-[10px] uppercase" style={{ color: theme.subtextColor }}>
+                              {node.type}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 sm:px-8">
@@ -315,7 +429,16 @@ export function BusinessAssignLearningPathModal({
                   </div>
                 ) : null}
 
-                {isLoadingUsers ? (
+                {assignmentMode !== 'users' ? (
+                  <div
+                    className="rounded-3xl border border-dashed px-6 py-12 text-center text-sm"
+                    style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
+                  >
+                    {assignmentMode === 'all'
+                      ? t('assignLearningPath.bulkPreviewAll', { count: activeUsers.length })
+                      : t('assignLearningPath.bulkPreviewNode', { count: selectedNodeIds.size })}
+                  </div>
+                ) : isLoadingUsers ? (
                   <div
                     className="rounded-3xl border border-dashed px-6 py-12 text-center text-sm"
                     style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
@@ -585,7 +708,11 @@ export function BusinessAssignLearningPathModal({
               <button
                 type="button"
                 onClick={() => void handleAssign()}
-                disabled={isAssigning || selectedUserIds.size === 0}
+                disabled={
+                  isAssigning ||
+                  (assignmentMode === 'users' && selectedUserIds.size === 0) ||
+                  (assignmentMode === 'node' && selectedNodeIds.size === 0)
+                }
                 className="rounded-2xl px-5 py-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50"
                 style={{
                   backgroundColor: theme.primaryColor,
@@ -598,7 +725,12 @@ export function BusinessAssignLearningPathModal({
                     })
                   : t('assignLearningPath.confirm', {
                       defaultValue: 'Asignar ruta ({{count}})',
-                      count: selectedUserIds.size,
+                      count:
+                        assignmentMode === 'users'
+                          ? selectedUserIds.size
+                          : assignmentMode === 'all'
+                            ? activeUsers.length
+                            : selectedNodeIds.size,
                     })}
               </button>
             </div>

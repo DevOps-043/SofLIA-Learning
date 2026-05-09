@@ -34,6 +34,8 @@ export interface BusinessLearningPathAssignment {
   learning_path_id: string
   assigned_at: string
   status: 'assigned' | 'revoked'
+  assignment_source?: 'manual' | 'bulk' | 'default_rule'
+  default_rule_id?: string | null
   learning_path: BusinessLearningPath | null
   user: {
     id: string
@@ -44,9 +46,43 @@ export interface BusinessLearningPathAssignment {
   } | null
 }
 
+export interface BusinessLearningPathDefaultRule {
+  id: string
+  organization_id: string
+  learning_path_id: string
+  scope_type: 'organization' | 'node'
+  node_id: string | null
+  include_descendants: boolean
+  status: 'active' | 'revoked'
+  created_at: string
+  updated_at: string
+  learning_path: BusinessLearningPath | null
+  node: {
+    id: string
+    name: string
+    type: string
+    path: string
+  } | null
+}
+
+export interface BusinessLearningPathHierarchyNode {
+  id: string
+  name: string
+  type: string
+  path: string
+  parent_id: string | null
+  depth: number
+}
+
+export type BusinessLearningPathAssignTarget =
+  | { type: 'all' }
+  | { type: 'node'; nodeIds: string[]; includeDescendants: boolean }
+
 interface GetBusinessLearningPathsResponse {
   learningPaths: BusinessLearningPath[]
   assignments: BusinessLearningPathAssignment[]
+  defaultRules: BusinessLearningPathDefaultRule[]
+  hierarchyNodes: BusinessLearningPathHierarchyNode[]
 }
 
 export class BusinessLearningPathsService {
@@ -65,27 +101,88 @@ export class BusinessLearningPathsService {
     return {
       learningPaths: data.learningPaths || [],
       assignments: data.assignments || [],
+      defaultRules: data.defaultRules || [],
+      hierarchyNodes: data.hierarchyNodes || [],
     }
   }
 
   static async assignLearningPath(
     orgSlug: string,
     learningPathId: string,
-    userIds: string[],
+    userIdsOrTarget: string[] | BusinessLearningPathAssignTarget,
   ) {
+    const payload = Array.isArray(userIdsOrTarget)
+      ? { learningPathId, userIds: userIdsOrTarget }
+      : { learningPathId, target: userIdsOrTarget }
+
     const response = await fetch(`/api/${orgSlug}/business/learning-paths/assignments`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        learningPathId,
-        userIds,
-      }),
+      body: JSON.stringify(payload),
     })
     const data = await response.json()
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Error al asignar la ruta de aprendizaje')
+    }
+
+    return data
+  }
+
+  static async createDefaultRule(
+    orgSlug: string,
+    payload: {
+      learningPathId: string
+      scopeType: 'organization' | 'node'
+      nodeId?: string | null
+      includeDescendants?: boolean
+      applyNow?: boolean
+    },
+  ) {
+    const response = await fetch(`/api/${orgSlug}/business/learning-paths/defaults`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Error al configurar la ruta predeterminada')
+    }
+
+    return data
+  }
+
+  static async revokeDefaultRule(orgSlug: string, ruleId: string) {
+    const response = await fetch(
+      `/api/${orgSlug}/business/learning-paths/defaults?ruleId=${ruleId}`,
+      {
+        method: 'DELETE',
+        credentials: 'include',
+      },
+    )
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Error al desactivar la ruta predeterminada')
+    }
+
+    return data
+  }
+
+  static async applyDefaultRules(orgSlug: string, ruleIds?: string[]) {
+    const response = await fetch(`/api/${orgSlug}/business/learning-paths/defaults/apply`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ruleIds }),
+    })
+    const data = await response.json()
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || 'Error al aplicar rutas predeterminadas')
     }
 
     return data

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
+import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { logger } from '@/lib/utils/logger'
 
@@ -21,9 +22,11 @@ export async function GET(_request: Request, { params }: RouteParams) {
       )
     }
 
-    const [learningPaths, userAssignments] = await Promise.all([
+    const [learningPaths, userAssignments, defaultRules, hierarchyNodes] = await Promise.all([
       AdminLearningPathsService.listLearningPaths(),
       AdminLearningPathsService.listUserAssignments(auth.organizationId),
+      LearningPathDefaultsService.listDefaultRules(auth.organizationId),
+      LearningPathDefaultsService.listHierarchyNodeOptions(auth.organizationId),
     ])
 
     return NextResponse.json({
@@ -33,6 +36,10 @@ export async function GET(_request: Request, { params }: RouteParams) {
         (assignment) =>
           assignment.status === 'assigned' && assignment.learning_path?.is_active !== false,
       ),
+      defaultRules: defaultRules.filter(
+        (rule) => rule.status === 'active' && rule.learning_path?.is_active !== false,
+      ),
+      hierarchyNodes,
     })
   } catch (error) {
     logger.error('Error fetching business learning paths:', error)

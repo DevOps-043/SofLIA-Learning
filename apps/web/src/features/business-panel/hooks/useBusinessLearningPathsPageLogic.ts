@@ -14,7 +14,15 @@ export function useBusinessLearningPathsPageLogic() {
   const params = useParams()
   const orgSlug = params?.orgSlug as string
   const theme = useBusinessPanelTheme()
-  const { learningPaths, assignments, isLoading, error, refetch } =
+  const {
+    learningPaths,
+    assignments,
+    defaultRules,
+    hierarchyNodes,
+    isLoading,
+    error,
+    refetch,
+  } =
     useBusinessLearningPaths(orgSlug)
   const {
     users,
@@ -25,6 +33,7 @@ export function useBusinessLearningPathsPageLogic() {
   const [searchTerm, setSearchTerm] = useState('')
   const deferredSearchTerm = useDeferredValue(searchTerm)
   const [selectedLearningPathId, setSelectedLearningPathId] = useState<string | null>(null)
+  const [defaultConfigLearningPathId, setDefaultConfigLearningPathId] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<{
     type: 'success' | 'error'
     message: string
@@ -47,6 +56,20 @@ export function useBusinessLearningPathsPageLogic() {
     }, new Map())
   }, [activeAssignments])
 
+  const activeDefaultRules = useMemo(
+    () => defaultRules.filter((rule) => rule.status === 'active'),
+    [defaultRules],
+  )
+
+  const defaultRulesByPathId = useMemo(() => {
+    return activeDefaultRules.reduce<Map<string, typeof activeDefaultRules>>((map, rule) => {
+      const existing = map.get(rule.learning_path_id) || []
+      existing.push(rule)
+      map.set(rule.learning_path_id, existing)
+      return map
+    }, new Map())
+  }, [activeDefaultRules])
+
   const filteredLearningPaths = useMemo(() => {
     return learningPaths.filter((path) => {
       if (!normalizedSearchTerm) {
@@ -68,6 +91,11 @@ export function useBusinessLearningPathsPageLogic() {
   const selectedLearningPath = useMemo(
     () => learningPaths.find((path) => path.id === selectedLearningPathId) || null,
     [learningPaths, selectedLearningPathId],
+  )
+
+  const defaultConfigLearningPath = useMemo(
+    () => learningPaths.find((path) => path.id === defaultConfigLearningPathId) || null,
+    [defaultConfigLearningPathId, learningPaths],
   )
 
   const selectedPathAssignments = useMemo(() => {
@@ -93,6 +121,14 @@ export function useBusinessLearningPathsPageLogic() {
     setFeedback({
       type: 'success',
       message: t('learningPathsPage.messages.assignSuccess'),
+    })
+  }
+
+  async function handleDefaultRulesChanged(message?: string) {
+    await refetch()
+    setFeedback({
+      type: 'success',
+      message: message || t('learningPathsPage.messages.defaultSaved'),
     })
   }
 
@@ -128,7 +164,11 @@ export function useBusinessLearningPathsPageLogic() {
     filteredLearningPaths,
     assignments: activeAssignments,
     assignmentsByPathId,
+    defaultRules: activeDefaultRules,
+    defaultRulesByPathId,
+    hierarchyNodes,
     selectedLearningPath,
+    defaultConfigLearningPath,
     selectedPathAssignments,
     users,
     isLoading,
@@ -142,8 +182,11 @@ export function useBusinessLearningPathsPageLogic() {
     totalWorkshops,
     selectedLearningPathId,
     setSelectedLearningPathId,
+    defaultConfigLearningPathId,
+    setDefaultConfigLearningPathId,
     revokingAssignmentId,
     handleAssignmentCreated,
+    handleDefaultRulesChanged,
     handleRevokeAssignment,
   }
 }

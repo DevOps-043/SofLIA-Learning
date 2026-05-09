@@ -5,6 +5,7 @@ import { requireBusinessUser } from '@/lib/auth/requireBusiness'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
+import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 
 interface RouteContext {
   params: Promise<{ orgSlug: string }>
@@ -339,6 +340,13 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const supabase = createAdminClient()
+    await LearningPathDefaultsService.applyDefaultRulesForUser({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+    }).catch((err: unknown) => {
+      logger.error('Error applying default learning paths for preview:', err)
+    })
+
     const learningPaths = await loadBusinessUserLearningPaths({
       userId: auth.userId,
       organizationId: auth.organizationId,

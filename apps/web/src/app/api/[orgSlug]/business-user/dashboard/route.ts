@@ -3,6 +3,7 @@ import { logger } from '@/lib/utils/logger'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
+import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import type { AssignedLearningPathDashboard } from '@/features/learning-paths/services/learning-path-dashboard.service'
 
 interface DashboardStats {
@@ -147,6 +148,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
     // =====================================================
     // 🚀 OPTIMIZACIÓN: FASE 1 - Consultas paralelas iniciales
     // =====================================================
+    await LearningPathDefaultsService.applyDefaultRulesForUser({
+      userId,
+      organizationId,
+    }).catch((err: unknown) => {
+      logger.error('Error applying default learning paths for dashboard:', err)
+    })
+
     const [
       { data: directAssignments, error: directAssignmentsError },
       { data: certificates, error: certificatesError }

@@ -5,6 +5,8 @@ import {
   BusinessLearningPathsService,
   type BusinessLearningPath,
   type BusinessLearningPathAssignment,
+  type BusinessLearningPathDefaultRule,
+  type BusinessLearningPathHierarchyNode,
 } from '../services/businessLearningPaths.service'
 
 export function useBusinessLearningPaths(orgSlugProp?: string) {
@@ -13,6 +15,8 @@ export function useBusinessLearningPaths(orgSlugProp?: string) {
 
   const [learningPaths, setLearningPaths] = useState<BusinessLearningPath[]>([])
   const [assignments, setAssignments] = useState<BusinessLearningPathAssignment[]>([])
+  const [defaultRules, setDefaultRules] = useState<BusinessLearningPathDefaultRule[]>([])
+  const [hierarchyNodes, setHierarchyNodes] = useState<BusinessLearningPathHierarchyNode[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,6 +34,8 @@ export function useBusinessLearningPaths(orgSlugProp?: string) {
       const data = await BusinessLearningPathsService.getLearningPaths(orgSlug)
       setLearningPaths(data.learningPaths)
       setAssignments(data.assignments)
+      setDefaultRules(data.defaultRules)
+      setHierarchyNodes(data.hierarchyNodes)
     } catch (fetchError) {
       setError(
         fetchError instanceof Error
@@ -48,6 +54,8 @@ export function useBusinessLearningPaths(orgSlugProp?: string) {
   return {
     learningPaths,
     assignments,
+    defaultRules,
+    hierarchyNodes,
     isLoading,
     error,
     refetch: fetchLearningPaths,

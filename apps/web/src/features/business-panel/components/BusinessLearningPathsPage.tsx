@@ -14,11 +14,13 @@ import {
   Lock,
   Route,
   Search,
+  Sparkles,
   Trash2,
   Users,
 } from 'lucide-react'
 
 import { BusinessAssignLearningPathModal } from './BusinessAssignLearningPathModal'
+import { BusinessLearningPathDefaultModal } from './BusinessLearningPathDefaultModal'
 import { BusinessLearningPathVideosModal } from './BusinessLearningPathVideosModal'
 import { useBusinessLearningPathsPageLogic } from '../hooks/useBusinessLearningPathsPageLogic'
 import Joyride from 'react-joyride'
@@ -37,10 +39,11 @@ export function BusinessLearningPathsPage() {
   const logic = useBusinessLearningPathsPageLogic()
   const theme = logic.theme
   const [videosLearningPathId, setVideosLearningPathId] = useState<string | null>(null)
+  const tourSteps = useMemo(() => getAdminPathsSteps(t), [t])
 
   const { joyrideProps } = useFeatureTour({
     tourId: ADMIN_PATHS_TOUR_ID,
-    steps: getAdminPathsSteps(t),
+    steps: tourSteps,
     enabled: !logic.isLoading,
   })
 
@@ -202,6 +205,7 @@ export function BusinessLearningPathsPage() {
           <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
             {logic.filteredLearningPaths.map((path, index) => {
               const assignedCount = logic.assignmentsByPathId.get(path.id)?.length ?? 0
+              const defaultRulesCount = logic.defaultRulesByPathId.get(path.id)?.length ?? 0
               return (
                 <motion.article
                   key={path.id}
@@ -227,6 +231,19 @@ export function BusinessLearningPathsPage() {
                         {path.item_count} {path.item_count === 1 ? 'taller' : 'talleres'}
                       </div>
                     </div>
+                    {defaultRulesCount > 0 ? (
+                      <div
+                        className="mb-3 inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1 text-[9px] font-black uppercase tracking-wider"
+                        style={{
+                          backgroundColor: `${accentColor}14`,
+                          borderColor: `${accentColor}35`,
+                          color: accentColor,
+                        }}
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        {t('learningPathsPage.defaults.badge', { count: defaultRulesCount })}
+                      </div>
+                    ) : null}
                     <h2 className="text-base font-black leading-snug mb-1" style={{ color: textColor }}>
                       {path.title}
                     </h2>
@@ -285,6 +302,15 @@ export function BusinessLearningPathsPage() {
                       >
                         <Film className="h-3.5 w-3.5" />
                         {t('learningPathsPage.introVideos.manageVideos')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => logic.setDefaultConfigLearningPathId(path.id)}
+                        className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all hover:opacity-80"
+                        style={{ backgroundColor: panelBg, borderColor, color: mutedTextColor }}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {t('learningPathsPage.defaults.configure')}
                       </button>
                       {/* Asignar usuarios */}
                       <motion.button
@@ -397,7 +423,18 @@ export function BusinessLearningPathsPage() {
         users={logic.users}
         isLoadingUsers={logic.loadingUsers}
         existingAssignments={logic.selectedPathAssignments}
+        hierarchyNodes={logic.hierarchyNodes}
         onAssigned={logic.handleAssignmentCreated}
+      />
+
+      <BusinessLearningPathDefaultModal
+        isOpen={Boolean(logic.defaultConfigLearningPath)}
+        onClose={() => logic.setDefaultConfigLearningPathId(null)}
+        orgSlug={logic.orgSlug}
+        learningPath={logic.defaultConfigLearningPath}
+        rules={logic.defaultRules}
+        hierarchyNodes={logic.hierarchyNodes}
+        onChanged={logic.handleDefaultRulesChanged}
       />
 
       <BusinessLearningPathVideosModal

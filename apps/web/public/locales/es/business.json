@@ -1465,7 +1465,10 @@
     "messages": {
       "assignSuccess": "Ruta asignada correctamente",
       "revokeSuccess": "Asignacion revocada correctamente",
-      "revokeError": "No se pudo revocar la asignacion"
+      "revokeError": "No se pudo revocar la asignacion",
+      "defaultSaved": "Ruta predeterminada configurada correctamente",
+      "defaultRevoked": "Regla predeterminada desactivada",
+      "defaultApplied": "Rutas predeterminadas aplicadas correctamente"
     },
     "unnamedUser": "Usuario sin nombre",
     "introVideos": {
@@ -1486,11 +1489,41 @@
       "errorFileTooLarge": "El archivo excede el límite de 500 MB",
       "unnamedCourse": "Curso sin título",
       "close": "Cerrar"
+    },
+    "defaults": {
+      "title": "Ruta predeterminada",
+      "badge": "{{count}} default",
+      "configure": "Default",
+      "scopeOrganization": "Toda la empresa",
+      "scopeNode": "Estructura",
+      "nodeLabel": "Nodo de estructura",
+      "selectNode": "Selecciona un nodo",
+      "includeDescendants": "Incluir nodos descendientes",
+      "saveAndApply": "Guardar y aplicar ahora",
+      "saving": "Guardando...",
+      "activeRules": "Reglas activas",
+      "applyNow": "Aplicar ahora",
+      "applying": "Aplicando...",
+      "noRules": "Esta ruta no tiene reglas predeterminadas activas.",
+      "wholeOrganization": "Toda la empresa",
+      "nodeFallback": "Nodo sin nombre",
+      "withDescendants": "Incluye descendientes",
+      "directScope": "Solo alcance directo",
+      "autoAssigns": "Se asigna automaticamente a usuarios que coincidan.",
+      "selectNodeError": "Selecciona un nodo para esta regla.",
+      "saveError": "No se pudo guardar la regla predeterminada.",
+      "revokeError": "No se pudo desactivar la regla predeterminada.",
+      "applyError": "No se pudieron aplicar las reglas predeterminadas."
     }
   },
   "assignLearningPath": {
     "title": "Asignar ruta de aprendizaje",
     "subtitle": "Selecciona que usuarios activos de tu empresa recibiran esta ruta.",
+    "modes": {
+      "users": "Usuarios",
+      "all": "Todos",
+      "node": "Estructura"
+    },
     "searchPlaceholder": "Buscar por nombre o email...",
     "selectedCount": "{{count}} usuarios seleccionados",
     "availableCount": "{{count}} usuarios activos disponibles",
@@ -1502,10 +1535,16 @@
     "previewTitle": "Resumen de la ruta",
     "moreItems": "Y {{count}} talleres mas en la ruta.",
     "footerNote": "Las asignaciones se aplicaran solo a usuarios activos de esta empresa.",
+    "allUsersHint": "Se asignara a {{count}} usuarios activos de la empresa.",
+    "includeDescendants": "Incluir nodos descendientes",
+    "noNodes": "No hay nodos de estructura disponibles.",
+    "bulkPreviewAll": "Se asignara esta ruta a {{count}} usuarios activos.",
+    "bulkPreviewNode": "{{count}} nodo(s) seleccionados. Se asignara a sus usuarios activos.",
     "cancel": "Cancelar",
     "confirm": "Asignar ruta ({{count}})",
     "assigning": "Asignando...",
     "selectUserError": "Selecciona al menos un usuario para asignar la ruta.",
+    "selectNodeError": "Selecciona al menos un nodo para asignar la ruta.",
     "assignError": "No se pudo asignar la ruta de aprendizaje."
   },
   "common": {

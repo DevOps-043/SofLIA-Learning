@@ -2,16 +2,32 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { AdminLearningPathsService } from '@/features/admin/services/adminLearningPaths.service'
+import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 
-const assignLearningPathSchema = z.object({
-  learningPathId: z.string().uuid('LearningPathId inválido'),
-  userIds: z.array(z.string().uuid('UserId inválido')).min(1, 'Selecciona al menos un usuario'),
-})
+const userIdsSchema = z
+  .array(z.string().uuid('UserId invalido'))
+  .min(1, 'Selecciona al menos un usuario')
 
-const assignmentIdSchema = z.string().uuid('AssignmentId inválido')
+const assignLearningPathSchema = z.object({
+  learningPathId: z.string().uuid('LearningPathId invalido'),
+  userIds: z.array(z.string().uuid('UserId invalido')).optional(),
+  target: z.object({
+    type: z.enum(['all', 'node']),
+    nodeIds: z.array(z.string().uuid('NodeId invalido')).optional(),
+    includeDescendants: z.boolean().optional(),
+  }).optional(),
+}).refine(
+  (value) => (value.userIds && value.userIds.length > 0) || Boolean(value.target),
+  'Selecciona al menos un usuario o una audiencia',
+).refine(
+  (value) => value.target?.type !== 'node' || Boolean(value.target.nodeIds?.length),
+  'Selecciona al menos un nodo',
+)
+
+const assignmentIdSchema = z.string().uuid('AssignmentId invalido')
 
 interface RouteParams {
   params: Promise<{ orgSlug: string }>
@@ -25,7 +41,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!auth.organizationId) {
       return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
+        { success: false, error: 'No tienes una organizacion asignada' },
         { status: 403 },
       )
     }
@@ -34,7 +50,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         {
           success: false,
-          error: 'No tienes permisos para asignar rutas dentro de esta organización',
+          error: 'No tienes permisos para asignar rutas dentro de esta organizacion',
         },
         { status: 403 },
       )
@@ -45,12 +61,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!learningPath || !learningPath.is_active) {
       return NextResponse.json(
-        { success: false, error: 'La ruta de aprendizaje no está disponible' },
+        { success: false, error: 'La ruta de aprendizaje no esta disponible' },
         { status: 404 },
       )
     }
 
-    const uniqueUserIds = Array.from(new Set(body.userIds))
+    if (body.target) {
+      const applyResult = await LearningPathDefaultsService.assignLearningPathToTarget({
+        organizationId: auth.organizationId,
+        learningPathId: body.learningPathId,
+        target: {
+          type: body.target.type,
+          nodeIds: body.target.nodeIds,
+          includeDescendants: body.target.includeDescendants ?? true,
+        },
+        assignedBy: auth.userId,
+      })
+
+      return NextResponse.json({
+        success: true,
+        applyResult,
+        assignedCount: applyResult.assigned + applyResult.reactivated,
+      })
+    }
+
+    const uniqueUserIds = Array.from(new Set(userIdsSchema.parse(body.userIds)))
     const supabase = await createClient()
     const { data: activeMembers, error: membershipError } = await supabase
       .from('organization_users')
@@ -74,7 +109,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Algunos usuarios no pertenecen a tu organización o no están activos',
+          error: 'Algunos usuarios no pertenecen a tu organizacion o no estan activos',
         },
         { status: 400 },
       )
@@ -106,7 +141,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       {
         success: false,
         error: isValidationError
-          ? error.errors[0]?.message || 'Solicitud inválida'
+          ? error.errors[0]?.message || 'Solicitud invalida'
           : error instanceof Error
             ? error.message
             : 'Error al asignar la ruta de aprendizaje',
@@ -124,7 +159,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (!auth.organizationId) {
       return NextResponse.json(
-        { success: false, error: 'No tienes una organización asignada' },
+        { success: false, error: 'No tienes una organizacion asignada' },
         { status: 403 },
       )
     }
@@ -133,7 +168,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         {
           success: false,
-          error: 'No tienes permisos para revocar rutas dentro de esta organización',
+          error: 'No tienes permisos para revocar rutas dentro de esta organizacion',
         },
         { status: 403 },
       )
@@ -146,7 +181,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json(
         {
           success: false,
-          error: assignmentIdResult.error.errors[0]?.message || 'AssignmentId inválido',
+          error: assignmentIdResult.error.errors[0]?.message || 'AssignmentId invalido',
         },
         { status: 400 },
       )
