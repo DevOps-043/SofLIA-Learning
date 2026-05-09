@@ -1,11 +1,13 @@
 {
   "sidebar": {
-    "dashboard": "Dashboard",
+    "dashboard": "Painel",
     "users": "Usuários",
     "courses": "Cursos",
     "learningPaths": "Rotas",
+    "hierarchy": "Estrutura",
     "teams": "Equipes",
-    "reports": "Relatórios e Analytics",
+    "reports": "Relatórios e análise",
+    "reviews": "Revisões",
     "settings": "Configurações",
     "pinned": "Painel Fixado",
     "unpinned": "Painel Desafixado",
@@ -169,7 +171,7 @@
       },
       "reviewsHeader": {
         "title": "Revisões Pendentes",
-        "content": "Aqui você revisa os cursos enviados pelo CourseForge. Pode aprová-los para publicação ou rejeitá-los com comentários."
+        "content": "Aqui você revisa os cursos enviados pelo Course Engine. Pode aprová-los para publicação ou rejeitá-los com comentários."
       },
       "reviewsStats": {
         "title": "Estado das Revisões",
@@ -205,6 +207,70 @@
       }
     }
   },
+  "reviewsPage": {
+    "title": "Revisões pendentes",
+    "subtitle": "Revise, aprove ou devolva cursos enviados pelo Course Engine.",
+    "rejectReason": "Rejeitado pelo painel de revisões",
+    "searchPlaceholder": "Buscar por título, instrutor, categoria ou nível...",
+    "stats": {
+      "pending": "Pendentes",
+      "rejected": "Rejeitados",
+      "updates": "Atualizações",
+      "fresh": "Cursos novos"
+    },
+    "tabs": {
+      "pending": "Pendentes",
+      "rejected": "Rejeitados"
+    },
+    "badges": {
+      "pending": "Pendente",
+      "rejected": "Rejeitado",
+      "update": "Atualização",
+      "new": "Novo"
+    },
+    "labels": {
+      "date": "Data",
+      "level": "Nível"
+    },
+    "fallbacks": {
+      "pendingInstructor": "Instrutor pendente",
+      "notAvailable": "N/D"
+    },
+    "empty": {
+      "pendingTitle": "Não há cursos pendentes para revisar",
+      "rejectedTitle": "Não há cursos rejeitados para mostrar",
+      "description": "Ajuste a busca ou aguarde novos envios do Course Engine."
+    },
+    "actions": {
+      "approve": "Aprovar",
+      "reconsider": "Reconsiderar",
+      "view": "Ver",
+      "reject": "Rejeitar",
+      "deletePermanently": "Excluir definitivamente",
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "loadTitle": "Não foi possível carregar as revisões"
+    },
+    "approveModal": {
+      "approveTitle": "Aprovar curso",
+      "reconsiderTitle": "Reconsiderar curso",
+      "approveMessage": "O curso será aprovado e ficará disponível para os estudantes.",
+      "reconsiderMessage": "O curso voltará ao fluxo ativo e ficará disponível para publicação.",
+      "approveConfirm": "Sim, aprovar",
+      "reconsiderConfirm": "Sim, reconsiderar"
+    },
+    "rejectModal": {
+      "title": "Rejeitar curso",
+      "message": "O curso passará para o estado rejeitado e sairá da lista pendente.",
+      "confirm": "Sim, rejeitar"
+    },
+    "deleteModal": {
+      "title": "Excluir curso rejeitado",
+      "message": "Esta ação excluirá permanentemente o curso rejeitado e não poderá ser desfeita.",
+      "confirm": "Excluir definitivamente"
+    }
+  },
   "header": {
     "myOrganization": "Minha Organização",
     "userPanel": "Painel do Usuário",
@@ -220,6 +286,7 @@
     "updateInfo": "Atualize suas informações",
     "exitAccount": "Sair da sua conta",
     "language": "Idioma / Language",
+    "administratorRole": "Painel da Empresa",
     "myTeam": "Minha Equipe",
     "viewTeammates": "Ver colegas"
   },
@@ -727,11 +794,18 @@
         "subtitle": "Modificar informações do membro",
         "infoNote": "As alterações feitas serão salvas e o usuário receberá uma notificação, se necessário.",
         "currentRole": "Função atual",
+        "footerLabel": "Editor de colaboradores",
+        "sections": {
+          "personalProfile": "Perfil pessoal",
+          "contactLocation": "Contato e localização",
+          "accessRole": "Acessos e função"
+        },
         "fields": {
           "fullName": "Nome Completo",
           "phone": "Telefone",
           "location": "Localização",
           "bio": "Biografia",
+          "jobTitle": "Cargo",
           "status": "Estado",
           "typeRole": "Tipo de Cargo"
         },
@@ -741,6 +815,9 @@
           "location": "Cidade, País",
           "bio": "Escreva uma breve biografia...",
           "typeRole": "Freelancer, Funcionário, etc."
+        },
+        "errors": {
+          "save": "Não foi possível salvar as alterações."
         }
       },
       "delete": {
@@ -847,8 +924,9 @@
           "lastName": "Sobrenome do usuário"
         },
         "roleDesc": {
-          "BusinessUser": "Acesso de funcionário a cursos e conteúdo",
-          "Business": "Acesso completo ao painel de administração"
+          "member": "Acesso básico a cursos e conteúdo",
+          "admin": "Gestão de usuários e configurações",
+          "owner": "Controle total da organização"
         },
         "hints": {
           "info": "Um e-mail com o link de ativação será enviado"
@@ -874,8 +952,9 @@
           "maxUses": "Sem limite"
         },
         "roleDesc": {
-          "BusinessUser": "Acesso de funcionário",
-          "Business": "Acesso de administrador"
+          "member": "Acesso básico a cursos e conteúdo",
+          "admin": "Gestão de usuários e configurações",
+          "owner": "Controle total da organização"
         },
         "hints": {
           "unlimited": "Deixe vazio para usos ilimitados",
@@ -1392,6 +1471,15 @@
     "roles": {
       "title": "Funções e Permissões",
       "subtitle": "Cada função determina o escopo de acesso aos dados dentro da hierarquia",
+      "labels": {
+        "owner": "Proprietário",
+        "admin": "Administrador",
+        "regional_manager": "Gerente regional",
+        "zone_manager": "Gerente de zona",
+        "team_leader": "Líder de equipe",
+        "node_manager": "Gerente de nó",
+        "member": "Membro"
+      },
       "scope": {
         "owner": "Toda a organização",
         "admin": "Por atribuição",
@@ -1423,7 +1511,198 @@
     "noRootNode": "Nenhum nó raiz encontrado. Crie um nó 'Geral' primeiro.",
     "saveStructureError": "Erro ao criar a estrutura",
     "loadStructuresError": "Erro ao carregar estruturas",
-    "loadHierarchyError": "Erro ao carregar hierarquia"
+    "loadHierarchyError": "Erro ao carregar hierarquia",
+    "defaultRootName": "Geral",
+    "pageKicker": "Estrutura",
+    "pageTitle": "Hierarquia",
+    "pageSubtitle": "Gerencie os níveis organizacionais, equipes e regiões da sua empresa.",
+    "tabs": {
+      "treeView": "Vista em árvore",
+      "settings": "Configuração"
+    },
+    "title": "Estrutura Hierárquica",
+    "subtitle": "Organize sua equipe em níveis para segmentar acesso e dados",
+    "nodeForm": {
+      "title": {
+        "create": "Criar dentro de \"{{parent}}\"",
+        "edit": "Editar componente"
+      },
+      "sideTitle": {
+        "create": "Configure sua estrutura",
+        "edit": "Refine o design"
+      },
+      "sideDescription": "Defina atributos, responsáveis e localização geográfica para este componente.",
+      "architecture": "Arquitetura",
+      "sections": {
+        "basicData": "Dados básicos",
+        "sofliaManagement": "Gestão SofLIA",
+        "location": "Localização"
+      },
+      "fields": {
+        "name": "Nome comercial",
+        "type": "Tipo de nível",
+        "specifyType": "Especificar tipo",
+        "manager": "Responsável / encarregado"
+      },
+      "placeholders": {
+        "name": "Ex: Vendas Norte",
+        "specifyType": "Ex: Squad, divisão...",
+        "searchUser": "Buscar usuário..."
+      },
+      "types": {
+        "custom": "Outro / personalizado"
+      }
+    },
+    "location": {
+      "title": "Endereço",
+      "fillFromCoords": "Preencher a partir de coordenadas",
+      "calculateFromFields": "Calcular coordenadas a partir de campos",
+      "fields": {
+        "street": "Rua / avenida",
+        "extNum": "No. ext.",
+        "intNum": "No. int.",
+        "neighborhood": "Bairro",
+        "zipCode": "CEP",
+        "city": "Cidade / município",
+        "state": "Estado",
+        "country": "País",
+        "latitude": "Latitude",
+        "longitude": "Longitude"
+      },
+      "placeholders": {
+        "street": "Ex: Av. Reforma",
+        "neighborhood": "Ex: Juárez",
+        "city": "Cuauhtémoc",
+        "state": "CDMX",
+        "country": "México"
+      }
+    },
+    "structureForm": {
+      "title": "ESTRUTURA",
+      "sideTitle": "Nova Estrutura",
+      "sideDescription": "Crie um design organizacional personalizado para sua empresa.",
+      "fields": {
+        "name": "Nome Comercial"
+      },
+      "placeholders": {
+        "name": "Ex: Organização Logística"
+      }
+    },
+    "memberModal": {
+      "title": "Atribuir Membro a {{name}}",
+      "placeholder": "Buscar por nome ou e-mail...",
+      "roles": {
+        "member": "Membro",
+        "leader": "Líder"
+      },
+      "emptySearch": "Nenhum usuário encontrado.",
+      "startTyping": "Comece a digitar para buscar.",
+      "submit": "Atribuir Usuário",
+      "errorSearch": "Erro ao buscar usuários",
+      "errorAssign": "Erro ao atribuir usuário"
+    },
+    "map": {
+      "loading": "Carregando mapa...",
+      "initializing": "Inicializando mapa...",
+      "preparing": "Preparando ícones...",
+      "fullscreen": "Tela cheia",
+      "exitFullscreen": "Sair da tela cheia",
+      "bestPerformance": "Melhor Desempenho",
+      "wheelZoom": "Zoom com roda",
+      "title": "Mapa Geográfico",
+      "topPerformer": "Melhor desempenho"
+    },
+    "dashboard": {
+      "loading": "Carregando informações do nó...",
+      "error": {
+        "title": "Erro",
+        "notFound": "Nó não encontrado"
+      },
+      "tabs": {
+        "overview": "Visão Geral",
+        "members": "Membros",
+        "structure": "Estrutura e Mapa",
+        "learning": "Cursos e Aprendizagem",
+        "chat": "Comunicação"
+      },
+      "manager": {
+        "title": "Responsável",
+        "subtitle": "Líder atribuído a esta unidade",
+        "change": "Alterar responsável",
+        "roleLabel": "Líder de {{type}}",
+        "notAssigned": "Sem responsável atribuído",
+        "assign": "Atribuir Responsável"
+      },
+      "performance": {
+        "title": "Desempenho",
+        "subtitle": "Progresso geral do {{type}}",
+        "avgProgress": "Progresso Médio",
+        "completedCourses": "Cursos Concluídos",
+        "learningHours": "Tempo de Aprendizagem",
+        "chartComingSoon": "Gráfico de atividade em breve"
+      },
+      "details": {
+        "title": "Detalhes",
+        "name": "Nome",
+        "type": "Tipo",
+        "status": {
+          "active": "Ativo",
+          "inactive": "Inativo"
+        },
+        "location": "Localização",
+        "notSpecified": "Não especificada",
+        "path": "Caminho Hierárquico"
+      },
+      "substructures": {
+        "title": "Subestruturas",
+        "empty": "Não há elementos filhos"
+      },
+      "learning": {
+        "title": "Plano de Aprendizagem",
+        "subtitle": "Cursos atribuídos a esta unidade organizacional",
+        "assign": "Atribuir Cursos",
+        "empty": "Não há cursos com atividade nesta região.",
+        "assignNew": "Atribuir Novo Curso",
+        "individualAssign": "Atribuir a usuários individuais"
+      },
+      "members": {
+        "title": "Membros do Nó",
+        "subtitle": "Gerencie os usuários atribuídos diretamente a este nível.",
+        "assign": "Atribuir Membro",
+        "empty": "Não há membros atribuídos diretamente a este nó.",
+        "role": {
+          "leader": "Líder",
+          "member": "Membro"
+        }
+      },
+      "chatTitle": "Chat de {{name}}",
+      "errors": {
+        "loadInfo": "Não foi possível carregar as informações do nó",
+        "connection": "Erro de conexão"
+      }
+    },
+    "chat": {
+      "defaultTitle": "Chat de equipe",
+      "participants_one": "1 participante",
+      "participants_other": "{{count}} participantes",
+      "online": "online",
+      "inputPlaceholder": "Escreva uma mensagem...",
+      "empty": "Ainda não há mensagens",
+      "beTheFirst": "Seja o primeiro a escrever.",
+      "user": "Usuário",
+      "send": "Enviar",
+      "editing": "Editando mensagem",
+      "deleteTitle": "Excluir mensagem",
+      "deleteConfirm": "Tem certeza de que deseja excluir esta mensagem?",
+      "file": "Arquivo",
+      "attachment": "📎 Arquivo anexo",
+      "errors": {
+        "load": "Erro ao carregar o chat.",
+        "create": "Não foi possível criar ou carregar o chat.",
+        "send": "Erro ao enviar a mensagem",
+        "upload": "Erro ao fazer upload do arquivo"
+      }
+    }
   },
   "learningPathsPage": {
     "title": "Rotas de aprendizagem",

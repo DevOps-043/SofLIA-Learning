@@ -1,9 +1,9 @@
 import type { RegisterFormData } from '../../../types/auth.types'
 
-export const organizationRegisterRoleLabels: Record<string, string> = {
-  owner: 'Propietario',
-  admin: 'Administrador',
-  member: 'Miembro',
+export const organizationRegisterRoleTranslationKeys: Record<string, string> = {
+  owner: 'auth.roles.owner',
+  admin: 'auth.roles.admin',
+  member: 'auth.roles.member',
 }
 
 export function createOrganizationRegisterDefaultValues(
@@ -68,12 +68,12 @@ export function getOrganizationRegisterRedirectPath(
   return `/auth/${organizationSlug}`
 }
 
-export function getOrganizationRegisterRoleLabel(
+export function getOrganizationRegisterRoleTranslationKey(
   invitedRole?: string | null,
 ): string | null {
   if (!invitedRole) {
     return null
   }
 
-  return organizationRegisterRoleLabels[invitedRole] || invitedRole
+  return organizationRegisterRoleTranslationKeys[invitedRole] || invitedRole
 }

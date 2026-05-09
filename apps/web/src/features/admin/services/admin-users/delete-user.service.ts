@@ -2,12 +2,19 @@ import { createClient } from '../../../../lib/supabase/server'
 import { AuditLogService } from '../auditLog.service'
 import { createAdminClient } from './client'
 import {
+  USER_REQUIRED_INSTRUCTOR_REFERENCE_TABLES,
   USER_NULL_UPDATE_TABLES,
   USER_SIMPLE_DELETE_TABLES,
 } from './delete-user.config'
 import type { AdminUserRequestInfo } from './types'
 
 type AdminSupabaseClient = ReturnType<typeof createAdminClient>
+
+interface UserIdRow {
+  id: string
+}
+
+const MISSING_TABLE_ERROR_CODES = new Set(['42P01', 'PGRST204', 'PGRST116'])
 
 async function deleteFromTable(
   adminSupabase: AdminSupabaseClient,
@@ -20,7 +27,7 @@ async function deleteFromTable(
     .delete()
     .eq(column as never, userId)
 
-  if (error && error.code !== '42P01' && error.code !== 'PGRST204') {
+  if (error && !MISSING_TABLE_ERROR_CODES.has(error.code)) {
     console.warn(`Error eliminando de ${tableName}:`, error.message)
   }
 }
@@ -36,9 +43,125 @@ async function updateTableReferenceToNull(
     .update({ [column]: null } as never)
     .eq(column as never, userId)
 
-  if (error && error.code !== '42P01' && error.code !== 'PGRST204') {
+  if (error && !MISSING_TABLE_ERROR_CODES.has(error.code)) {
     console.warn(`Error actualizando ${tableName}.${column}:`, error.message)
   }
+}
+
+async function hasRequiredInstructorReferences(
+  adminSupabase: AdminSupabaseClient,
+  userId: string,
+) {
+  for (const tableName of USER_REQUIRED_INSTRUCTOR_REFERENCE_TABLES) {
+    const { data, error } = await adminSupabase
+      .from(tableName as never)
+      .select('lesson_id')
+      .eq('instructor_id' as never, userId)
+      .limit(1)
+
+    if (error) {
+      if (MISSING_TABLE_ERROR_CODES.has(error.code)) {
+        continue
+      }
+
+      throw new Error(
+        `No se pudieron validar referencias de instructor en ${tableName}: ${error.message}`,
+      )
+    }
+
+    if (data?.length) {
+      return true
+    }
+  }
+
+  return false
+}
+
+async function resolveInstructorReassignmentUserId(
+  adminSupabase: AdminSupabaseClient,
+  targetUserId: string,
+  adminUserId: string,
+) {
+  if (adminUserId !== targetUserId) {
+    const { data: adminUser } = await adminSupabase
+      .from('users')
+      .select('id')
+      .eq('id', adminUserId)
+      .maybeSingle<UserIdRow>()
+
+    if (adminUser?.id) {
+      return adminUser.id
+    }
+  }
+
+  const { data: fallbackUser, error } = await adminSupabase
+    .from('users')
+    .select('id')
+    .neq('id', targetUserId)
+    .in('cargo_rol', ['Administrador', 'Instructor'])
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle<UserIdRow>()
+
+  if (error) {
+    throw new Error(
+      `No se pudo buscar un instructor sustituto para las lecciones: ${error.message}`,
+    )
+  }
+
+  if (!fallbackUser?.id) {
+    throw new Error(
+      'No se puede eliminar el usuario porque es instructor de lecciones y no existe un administrador o instructor sustituto para reasignarlas.',
+    )
+  }
+
+  return fallbackUser.id
+}
+
+async function reassignRequiredInstructorReferences(
+  adminSupabase: AdminSupabaseClient,
+  targetUserId: string,
+  replacementUserId: string,
+) {
+  for (const tableName of USER_REQUIRED_INSTRUCTOR_REFERENCE_TABLES) {
+    const { error } = await adminSupabase
+      .from(tableName as never)
+      .update({ instructor_id: replacementUserId } as never)
+      .eq('instructor_id' as never, targetUserId)
+
+    if (error && !MISSING_TABLE_ERROR_CODES.has(error.code)) {
+      throw new Error(
+        `No se pudieron reasignar las lecciones de ${tableName}: ${error.message}`,
+      )
+    }
+  }
+}
+
+async function prepareRequiredInstructorReferencesForDelete(
+  adminSupabase: AdminSupabaseClient,
+  targetUserId: string,
+  adminUserId: string,
+) {
+  const mustReassignReferences = await hasRequiredInstructorReferences(
+    adminSupabase,
+    targetUserId,
+  )
+
+  if (!mustReassignReferences) {
+    return
+  }
+
+  const replacementUserId = await resolveInstructorReassignmentUserId(
+    adminSupabase,
+    targetUserId,
+    adminUserId,
+  )
+
+  await reassignRequiredInstructorReferences(
+    adminSupabase,
+    targetUserId,
+    replacementUserId,
+  )
 }
 
 async function deleteEnrollmentDependencies(
@@ -180,6 +303,12 @@ export async function deleteAdminUser(
   } catch {
     // Audit log failure should not block deletion
   }
+
+  await prepareRequiredInstructorReferencesForDelete(
+    adminSupabase,
+    userId,
+    adminUserId,
+  )
 
   // Intentar con la función RPC primero (más eficiente y atómica)
   const deletedViaRpc = await deleteUserViaRpc(adminSupabase, userId)

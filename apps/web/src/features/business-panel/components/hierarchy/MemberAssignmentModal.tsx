@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { Search, X, UserPlus, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useParams } from 'next/navigation'
 import { HierarchyService } from '../../services/hierarchy.service'
@@ -23,6 +24,8 @@ export function MemberAssignmentModal({
   onSuccess,
   initialRole
 }: MemberAssignmentModalProps) {
+  const { t } = useTranslation('business')
+  const { t: tc } = useTranslation('common')
   const params = useParams()
   const orgSlug = params?.orgSlug as string
   const [loading, setLoading] = useState(false)
@@ -51,7 +54,7 @@ export function MemberAssignmentModal({
         setUsers(results)
       } catch (err) {
         console.error(err)
-        setError('Error al buscar usuarios')
+        setError(t('hierarchy.memberModal.errorSearch'))
       } finally {
         setSearching(false)
       }
@@ -76,11 +79,11 @@ export function MemberAssignmentModal({
         onSuccess()
         onClose()
       } else {
-        setError(result.error || 'Error al asignar usuario')
+        setError(result.error || t('hierarchy.memberModal.errorAssign'))
       }
     } catch (err) {
       console.error(err)
-      setError('Error de conexión')
+      setError(t('hierarchy.errorConnection'))
     } finally {
       setLoading(false)
     }
@@ -110,7 +113,7 @@ export function MemberAssignmentModal({
               {/* Header */}
               <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Asignar Miembro a {nodeName}
+                  {t('hierarchy.memberModal.title', { name: nodeName })}
                 </h2>
                 <button
                   onClick={onClose}
@@ -127,7 +130,7 @@ export function MemberAssignmentModal({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <input
                     type="text"
-                    placeholder="Buscar por nombre o correo..."
+                    placeholder={t('hierarchy.memberModal.placeholder')}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-[#2A3038] border border-gray-200 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder-gray-500"
@@ -143,7 +146,7 @@ export function MemberAssignmentModal({
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       }`}
                   >
-                    Miembro
+                    {t('hierarchy.memberModal.roles.member')}
                   </button>
                   <button
                     onClick={() => setRole('leader')}
@@ -152,7 +155,7 @@ export function MemberAssignmentModal({
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                       }`}
                   >
-                    Líder
+                    {t('hierarchy.memberModal.roles.leader')}
                   </button>
                 </div>
 
@@ -164,7 +167,7 @@ export function MemberAssignmentModal({
                     </div>
                   ) : users.length === 0 ? (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400 text-sm">
-                      {searchQuery ? 'No se encontraron usuarios.' : 'Empieza a escribir para buscar.'}
+                      {searchQuery ? t('hierarchy.memberModal.emptySearch') : t('hierarchy.memberModal.startTyping')}
                     </div>
                   ) : (
                     users.map(user => (
@@ -223,7 +226,7 @@ export function MemberAssignmentModal({
                   onClick={onClose}
                   className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg transition-colors"
                 >
-                  Cancelar
+                  {tc('actions.cancel')}
                 </button>
                 <button
                   onClick={handleAssign}
@@ -231,7 +234,7 @@ export function MemberAssignmentModal({
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-blue-500/20"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Asignar Usuario
+                  {t('hierarchy.memberModal.submit')}
                 </button>
               </div>
             </motion.div>

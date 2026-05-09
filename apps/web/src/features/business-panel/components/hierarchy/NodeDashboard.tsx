@@ -69,7 +69,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
             <div className="flex h-[50vh] items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-400">Cargando información del nodo...</p>
+                    <p className="text-gray-400">{t('hierarchy.dashboard.loading')}</p>
                 </div>
             </div>
         );
@@ -80,13 +80,13 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
             <div className="flex h-[50vh] items-center justify-center">
                 <div className="text-center max-w-md mx-auto p-6 bg-red-500/10 rounded-2xl border border-red-500/20">
                     <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-bold text-white mb-2">Error</h3>
-                    <p className="text-red-300">{error || 'No se encontró el nodo'}</p>
+                    <h3 className="text-lg font-bold text-white mb-2">{t('hierarchy.dashboard.error.title')}</h3>
+                    <p className="text-red-300">{error || t('hierarchy.dashboard.error.notFound')}</p>
                     <button
                         onClick={() => window.location.reload()}
                         className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors"
                     >
-                        Reintentar
+                        {tc('actions.retry')}
                     </button>
                 </div>
             </div>
@@ -94,6 +94,11 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
     }
 
     const { node, children, courses, path } = data;
+    const nodeLocation = node.properties?.address
+        || node.properties?.city
+        || node.properties?.state
+        || node.properties?.country
+        || t('hierarchy.dashboard.details.notSpecified');
 
     // Components for tabs
     const ManagerCard = () => (
@@ -105,15 +110,15 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                         setShowMemberModal(true);
                     }}
                     className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-white/40 hover:text-white transition-colors"
-                    title="Cambiar responsable"
+                    title={t('hierarchy.dashboard.manager.change')}
                 >
                     <Edit2 className="w-4 h-4" />
                 </button>
             </div>
 
             <div className="mb-6">
-                <h3 className="text-lg font-bold text-white mb-1">Responsable</h3>
-                <p className="text-white/40 text-sm">Líder asignado a esta unidad</p>
+                <h3 className="text-lg font-bold text-white mb-1">{t('hierarchy.dashboard.manager.title')}</h3>
+                <p className="text-white/40 text-sm">{t('hierarchy.dashboard.manager.subtitle')}</p>
             </div>
 
             {node.manager ? (
@@ -139,7 +144,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     <p className="text-blue-400 text-sm font-medium mb-4">{node.manager.email}</p>
                     <div className="flex items-center gap-2 text-white/40 text-sm bg-white/5 px-3 py-1.5 rounded-full">
                         <User className="w-4 h-4" />
-                        <span>Líder de {node.type}</span>
+                        <span>{t('hierarchy.dashboard.manager.roleLabel', { type: node.type })}</span>
                     </div>
                 </div>
             ) : (
@@ -147,7 +152,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
                         <User className="w-8 h-8 text-white/20" />
                     </div>
-                    <p className="text-white/40 mb-4">Sin responsable asignado</p>
+                    <p className="text-white/40 mb-4">{t('hierarchy.dashboard.manager.notAssigned')}</p>
                     <button
                         onClick={() => {
                             setInitialRole('leader');
@@ -155,7 +160,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                         }}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors"
                     >
-                        Asignar Responsable
+                        {t('hierarchy.dashboard.manager.assign')}
                     </button>
                 </div>
             )}
@@ -166,8 +171,8 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
         <div className="bg-[#1E2329] border border-white/5 rounded-2xl p-6 h-full flex flex-col">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h3 className="text-lg font-bold text-white mb-1">Rendimiento</h3>
-                    <p className="text-white/40 text-sm">Progreso general del {node.type}</p>
+                    <h3 className="text-lg font-bold text-white mb-1">{t('hierarchy.dashboard.performance.title')}</h3>
+                    <p className="text-white/40 text-sm">{t('hierarchy.dashboard.performance.subtitle', { type: node.type })}</p>
                 </div>
                 <div className="p-2 bg-emerald-500/10 rounded-lg">
                     <TrendingUp className="w-5 h-5 text-emerald-400" />
@@ -176,20 +181,20 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-[#2A3038] p-4 rounded-xl border border-white/5">
-                    <p className="text-white/40 text-xs mb-1">Progreso Promedio</p>
+                    <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.performance.avgProgress')}</p>
                     <div className="flex items-end gap-2">
                         <span className="text-2xl font-bold text-white">{analytics?.progress || 0}%</span>
                         <span className="text-emerald-400 text-xs mb-1">+2.4%</span>
                     </div>
                 </div>
                 <div className="bg-[#2A3038] p-4 rounded-xl border border-white/5">
-                    <p className="text-white/40 text-xs mb-1">Cursos Completados</p>
+                    <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.performance.completedCourses')}</p>
                     <div className="flex items-end gap-2">
                         <span className="text-2xl font-bold text-white">{analytics?.completed_courses || 0}</span>
                     </div>
                 </div>
                 <div className="bg-[#2A3038] p-4 rounded-xl border border-white/5">
-                    <p className="text-white/40 text-xs mb-1">Tiempo de Aprendizaje</p>
+                    <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.performance.learningHours')}</p>
                     <div className="flex items-end gap-2">
                         <span className="text-2xl font-bold text-white">{analytics?.learning_hours || 0}h</span>
                     </div>
@@ -197,7 +202,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
             </div>
 
             <div className="flex-1 bg-[#2A3038] rounded-xl border border-white/5 p-4 flex items-center justify-center">
-                <p className="text-white/20 text-sm">Gráfico de actividad próximamente</p>
+                <p className="text-white/20 text-sm">{t('hierarchy.dashboard.performance.chartComingSoon')}</p>
             </div>
         </div>
     );
@@ -207,7 +212,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
             <div className="lg:col-span-1 space-y-6">
                 <div className="bg-[#1E2329] border border-white/5 rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-white font-bold">Detalles</h3>
+                        <h3 className="text-white font-bold">{t('hierarchy.dashboard.details.title')}</h3>
                         <button
                             onClick={() => setShowEditModal(true)}
                             className="p-2 hover:bg-white/5 rounded-lg text-white/40 hover:text-white transition-colors"
@@ -217,28 +222,28 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     </div>
                     <div className="space-y-4">
                         <div>
-                            <p className="text-white/40 text-xs mb-1">Nombre</p>
+                            <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.details.name')}</p>
                             <p className="text-white font-medium">{node.name}</p>
                         </div>
                         <div>
-                            <p className="text-white/40 text-xs mb-1">Tipo</p>
+                            <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.details.type')}</p>
                             <div className="flex items-center gap-2">
                                 <span className="capitalize text-white">{node.type}</span>
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${node.is_active ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
                                     }`}>
-                                    {node.is_active ? 'Activo' : 'Inactivo'}
+                                    {node.is_active ? t('hierarchy.dashboard.details.status.active') : t('hierarchy.dashboard.details.status.inactive')}
                                 </span>
                             </div>
                         </div>
                         <div>
-                            <p className="text-white/40 text-xs mb-1">Ubicación</p>
+                            <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.details.location')}</p>
                             <div className="flex items-center gap-2 text-white">
                                 <MapPin className="w-4 h-4 text-white/40" />
-                                <span>{node.metadata?.location || 'No especificada'}</span>
+                                <span>{nodeLocation}</span>
                             </div>
                         </div>
                         <div>
-                            <p className="text-white/40 text-xs mb-1">Ruta Jerárquica</p>
+                            <p className="text-white/40 text-xs mb-1">{t('hierarchy.dashboard.details.path')}</p>
                             <div className="flex items-center gap-1 text-sm text-white/60 overflow-x-auto pb-2">
                                 {path.map((p, i) => (
                                     <div key={p.id} className="flex items-center gap-1 flex-shrink-0">
@@ -255,12 +260,12 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
 
                 <div className="bg-[#1E2329] border border-white/5 rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-white font-bold">Sub-estructuras</h3>
+                        <h3 className="text-white font-bold">{t('hierarchy.dashboard.substructures.title')}</h3>
                         <span className="text-xs bg-white/10 px-2 py-1 rounded text-white/60">{children.length}</span>
                     </div>
 
                     {children.length === 0 ? (
-                        <p className="text-white/40 text-sm text-center py-4">No hay elementos hijos</p>
+                        <p className="text-white/40 text-sm text-center py-4">{t('hierarchy.dashboard.substructures.empty')}</p>
                     ) : (
                         <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                             {children.map(child => (
@@ -288,7 +293,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
             <div className="lg:col-span-2 min-h-[500px] bg-[#1E2329] border border-white/5 rounded-2xl overflow-hidden relative">
                 <div className="absolute top-4 left-4 z-10 bg-[#1E2329]/90 backdrop-blur px-3 py-1.5 rounded-lg border border-white/10 text-xs font-bold text-white flex items-center gap-2">
                     <MapIcon className="w-3 h-3 text-blue-400" />
-                    <span>Mapa Geográfico</span>
+                    <span>{t('hierarchy.map.title')}</span>
                 </div>
                 <HierarchyMapWrapper nodes={[node, ...children]} />
             </div>
@@ -299,15 +304,15 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-bold text-white">Plan de Aprendizaje</h3>
-                    <p className="text-white/40 text-sm">Cursos asignados a esta unidad organizacional</p>
+                    <h3 className="text-lg font-bold text-white">{t('hierarchy.dashboard.learning.title')}</h3>
+                    <p className="text-white/40 text-sm">{t('hierarchy.dashboard.learning.subtitle')}</p>
                 </div>
                 <button
                     onClick={() => setShowAssignmentModal(true)}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
                 >
                     <Plus className="w-4 h-4" />
-                    Asignar Cursos
+                    {t('hierarchy.dashboard.learning.assign')}
                 </button>
             </div>
 
@@ -315,7 +320,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                 {courses.length === 0 ? (
                     <div className="col-span-full py-20 bg-[#1E2329] border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
                         <BookOpen className="w-16 h-16 text-white/10 mb-4" />
-                        <p className="text-white/40 font-medium">No hay cursos con actividad en esta región.</p>
+                        <p className="text-white/40 font-medium">{t('hierarchy.dashboard.learning.empty')}</p>
                     </div>
                 ) : (
                     courses.map(course => (
@@ -333,14 +338,14 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                                 <div className="flex items-center justify-between mt-4">
                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${course.status === 'active' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/10 text-white/40'
                                         }`}>
-                                        {course.status === 'active' ? 'Activo' : 'Inactivo'}
+                                        {course.status === 'active' ? t('hierarchy.dashboard.details.status.active') : t('hierarchy.dashboard.details.status.inactive')}
                                     </span>
 
                                     {/* Botón para asignar individualmente */}
                                     <button
                                         onClick={() => setSelectedCourseForIndividual({ id: course.course_id, title: course.title })}
                                         className="p-2 hover:bg-white/10 rounded-lg text-white/40 hover:text-blue-400 transition-colors"
-                                        title="Asignar a usuarios individuales"
+                                        title={t('hierarchy.dashboard.learning.individualAssign')}
                                     >
                                         <UserCheck className="w-4 h-4" />
                                     </button>
@@ -358,7 +363,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     <div className="w-12 h-12 rounded-full bg-[#2A3038] flex items-center justify-center text-white/40 group-hover:bg-blue-600 group-hover:text-white transition-all">
                         <Plus className="w-6 h-6" />
                     </div>
-                    <span className="text-white/40 font-medium group-hover:text-white transition-colors">Asignar Nuevo Curso</span>
+                    <span className="text-white/40 font-medium group-hover:text-white transition-colors">{t('hierarchy.dashboard.learning.assignNew')}</span>
                 </button>
             </div>
         </div>
@@ -368,8 +373,8 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-lg font-bold text-white">Miembros del Nodo</h3>
-                    <p className="text-white/40 text-sm">Gestiona los usuarios asignados directamente a este nivel.</p>
+                    <h3 className="text-lg font-bold text-white">{t('hierarchy.dashboard.members.title')}</h3>
+                    <p className="text-white/40 text-sm">{t('hierarchy.dashboard.members.subtitle')}</p>
                 </div>
                 <button
                     onClick={() => {
@@ -379,7 +384,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-2"
                 >
                     <UserPlus className="w-4 h-4" />
-                    Asignar Miembro
+                    {t('hierarchy.dashboard.members.assign')}
                 </button>
             </div>
 
@@ -390,7 +395,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
             ) : members.length === 0 ? (
                 <div className="py-20 bg-[#1E2329] border border-white/5 rounded-2xl flex flex-col items-center justify-center text-center">
                     <Users className="w-16 h-16 text-white/10 mb-4" />
-                    <p className="text-white/40 font-medium">No hay miembros asignados directamente a este nodo.</p>
+                    <p className="text-white/40 font-medium">{t('hierarchy.dashboard.members.empty')}</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -413,7 +418,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                                 <div className="mt-1 flex items-center gap-2">
                                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${member.role === 'leader' ? 'bg-purple-500/10 text-purple-400' : 'bg-blue-500/10 text-blue-400'
                                         }`}>
-                                        {member.role === 'leader' ? 'Líder' : 'Miembro'}
+                                        {member.role === 'leader' ? t('hierarchy.dashboard.members.role.leader') : t('hierarchy.dashboard.members.role.member')}
                                     </span>
                                 </div>
                             </div>
@@ -451,7 +456,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                             : 'border-transparent text-white/40 hover:text-white hover:border-white/20'
                             }`}
                     >
-                        Visión General
+                        {t('hierarchy.dashboard.tabs.overview')}
                     </button>
                     <button
                         onClick={() => setActiveTab('members')}
@@ -460,7 +465,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                             : 'border-transparent text-white/40 hover:text-white hover:border-white/20'
                             }`}
                     >
-                        Miembros
+                        {t('hierarchy.dashboard.tabs.members')}
                     </button>
                     <button
                         onClick={() => setActiveTab('structure')}
@@ -469,7 +474,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                             : 'border-transparent text-white/40 hover:text-white hover:border-white/20'
                             }`}
                     >
-                        Estructura y Mapa
+                        {t('hierarchy.dashboard.tabs.structure')}
                     </button>
                     <button
                         onClick={() => setActiveTab('learning')}
@@ -478,7 +483,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                             : 'border-transparent text-white/40 hover:text-white hover:border-white/20'
                             }`}
                     >
-                        Cursos y Aprendizaje
+                        {t('hierarchy.dashboard.tabs.learning')}
                     </button>
                     <button
                         onClick={() => setActiveTab('chat')}
@@ -487,7 +492,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                             : 'border-transparent text-white/40 hover:text-white hover:border-white/20'
                             }`}
                     >
-                        Comunicación
+                        {t('hierarchy.dashboard.tabs.chat')}
                     </button>
                 </nav>
             </div>
@@ -518,7 +523,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
                             entityType="node"
                             entityId={nodeId}
                             chatType="vertical"
-                            title={`Chat de ${data?.node.name || 'Equipo'}`}
+                            title={t('hierarchy.dashboard.chatTitle', { name: data?.node.name || t('hierarchy.dashboard.members.role.member') })}
                             className="bg-[#1E2329] border border-white/5"
                         />
                     </div>

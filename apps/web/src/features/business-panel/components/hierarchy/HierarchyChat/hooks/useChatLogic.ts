@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { supabaseStorageService } from '../../../../../../core/services/supabaseStorage'
 import { useAuth } from '../../../../../auth/hooks/useAuth'
 import { HierarchyChatsService } from '../../../../services/hierarchyChats.service'
@@ -28,7 +29,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
-function toFileAttachment(metadata: HierarchyChatMessage['metadata']): FileAttachment | null {
+function toFileAttachment(metadata: HierarchyChatMessage['metadata'], fallbackName: string): FileAttachment | null {
   if (!metadata || typeof metadata !== 'object' || !('attachment' in metadata)) {
     return null
   }
@@ -55,7 +56,7 @@ function toFileAttachment(metadata: HierarchyChatMessage['metadata']): FileAttac
     name:
       typeof attachmentRecord.name === 'string' && attachmentRecord.name.trim()
         ? attachmentRecord.name
-        : 'Archivo',
+        : fallbackName,
     size: typeof attachmentRecord.size === 'number' ? attachmentRecord.size : 0,
     type: typeof attachmentRecord.type === 'string' ? attachmentRecord.type : fallbackMimeType,
     mimeType: fallbackMimeType,
@@ -64,6 +65,7 @@ function toFileAttachment(metadata: HierarchyChatMessage['metadata']): FileAttac
 
 export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicProps) => {
   const { user } = useAuth()
+  const { t } = useTranslation('business')
 
   const [chat, setChat] = useState<HierarchyChat | null>(null)
   const [messages, setMessages] = useState<HierarchyChatMessage[]>([])
@@ -145,11 +147,10 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
           await loadMessages(chatToUse.id)
           await markAsRead(chatToUse.id)
           setError(null)
-        } else {
-          setError('No se pudo crear o cargar el chat.')
+          setError(t('hierarchy.chat.errors.create'))
         }
       } catch (error: unknown) {
-        setError(getErrorMessage(error, 'Error al cargar el chat.'))
+        setError(getErrorMessage(error, t('hierarchy.chat.errors.load')))
       } finally {
         setIsLoading(false)
       }
@@ -253,7 +254,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
 
           finalContent = content
         } else {
-          throw new Error(uploadResult.error || 'Error al subir el archivo')
+          throw new Error(uploadResult.error || t('hierarchy.chat.errors.upload'))
         }
       }
 
@@ -266,7 +267,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
       removeSelectedFile()
 
       const newMessage = await HierarchyChatsService.sendMessage(chat.id, {
-        content: finalContent || (metadata ? '📎 Archivo adjunto' : ''),
+        content: finalContent || (metadata ? t('hierarchy.chat.attachment') : ''),
         message_type: selectedFile ? 'file' : 'text',
         metadata
       })
@@ -278,7 +279,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
     } catch (error) {
       console.error('Error enviando mensaje:', error)
       setMessageContent(content)
-      setError(error instanceof Error ? error.message : 'Error al enviar el mensaje')
+      setError(error instanceof Error ? error.message : t('hierarchy.chat.errors.send'))
     } finally {
       setIsSending(false)
     }
@@ -325,7 +326,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
   }
 
   const getMessageAttachment = (message: HierarchyChatMessage): FileAttachment | null => {
-    return toFileAttachment(message.metadata)
+    return toFileAttachment(message.metadata, t('hierarchy.chat.file'))
   }
 
   // Funciones wrappers para compatibilidad

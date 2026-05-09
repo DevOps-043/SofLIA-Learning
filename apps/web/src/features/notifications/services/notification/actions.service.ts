@@ -1,5 +1,6 @@
 import { logger } from '../../../../lib/logger'
 import { getServerClient } from '../auto-notifications-server-client'
+import { NOTIFICATION_SELECT } from './select'
 import { buildNotificationsActiveFilter } from './utils'
 import type { Notification } from './types'
 
@@ -76,8 +77,9 @@ export async function markNotificationAsRead(
   if (existing.status === 'read') {
     const { data } = await supabase
       .from('user_notifications')
-      .select('notification_id, user_id, type, title, message, status, priority, read_at, created_at, updated_at, expires_at, metadata, action_url')
+      .select(NOTIFICATION_SELECT)
       .eq('notification_id', notificationId)
+      .eq('user_id', userId)
       .single()
 
     return data as Notification

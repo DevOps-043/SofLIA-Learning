@@ -66,6 +66,7 @@
       "subtitle": "Faça login para continuar seu aprendizado",
       "emailOrUsernameLabel": "E-mail ou Usuário",
       "emailOrUsernamePlaceholder": "voce@email.com ou usuario123",
+      "passwordLabel": "Senha",
       "rememberMe": "Lembrar-me",
       "forgotPassword": "Esqueceu sua senha?",
       "signingIn": "Entrando...",
@@ -97,14 +98,18 @@
       "emailLabel": "E-mail",
       "emailPlaceholder": "voce@email.com",
       "confirmEmailLabel": "Confirmar E-mail",
+      "confirmEmailPlaceholder": "repita@email.com",
       "phoneLabel": "Telefone",
       "countryPlaceholder": "País",
       "phonePlaceholder": "1234567890",
       "passwordLabel": "Senha",
+      "passwordPlaceholder": "Mínimo 8 caracteres",
       "confirmPasswordLabel": "Confirmar Senha",
+      "confirmPasswordPlaceholder": "Repita sua senha",
       "acceptTerms": "Aceito os <0>termos e condições</0> e a <1>política de privacidade</1>",
       "creating": "Criando conta...",
       "create": "Criar conta",
+      "submit": "Registrar-se",
       "hasAccount": "Já tem uma conta?",
       "loginHere": "Faça login aqui",
       "validation": {
@@ -187,6 +192,50 @@
       "hasAccount": "Já tem uma conta?",
       "login": "Entrar"
     },
+    "roles": {
+      "admin": "Administrador",
+      "member": "Membro",
+      "owner": "Proprietário"
+    },
+    "invitation": {
+      "verifying": "Verificando convite...",
+      "acceptedTitle": "Você entrou com sucesso!",
+      "acceptedDescriptionPrefix": "Agora você faz parte de",
+      "goToDashboard": "Ir para o painel",
+      "unavailableTitle": "Link indisponível",
+      "goToLogin": "Ir para o login",
+      "organizationInviteDescription": "Você foi convidado para entrar nesta organização",
+      "valid": "Convite válido",
+      "assignedRole": "Função atribuída:",
+      "remainingUses": "{{count}} vaga disponível",
+      "remainingUses_plural": "{{count}} vagas disponíveis",
+      "validUntil": "Válido até {{date}}",
+      "joining": "Entrando...",
+      "acceptAndJoin": "Aceitar convite e entrar",
+      "createAccountAndJoin": "Criar conta e entrar",
+      "alreadyHaveAccount": "Já tenho uma conta",
+      "termsNotice": "Ao entrar, você aceita os termos de uso da plataforma",
+      "registerManualFallback": "{{error}}. Você pode se registrar manualmente se tiver um convite pendente.",
+      "errors": {
+        "acceptConnection": "Erro de conexão ao aceitar o convite",
+        "connection": "Erro de conexão. Tente novamente.",
+        "emailNotInvited": "Seu e-mail não foi convidado para esta organização. Entre em contato com o administrador para solicitar um convite.",
+        "exhausted": "Este link de convite atingiu o limite de registros",
+        "expired": "Este link de convite expirou",
+        "inactive": "Este link de convite não está ativo",
+        "invalid": "Convite inválido ou expirado",
+        "invalidToken": "Token inválido",
+        "missingToken": "Token de convite não fornecido",
+        "notFound": "Link de convite não encontrado",
+        "paused": "Este link de convite está temporariamente pausado",
+        "revoked": "Este convite foi revogado",
+        "unauthenticated": "Não autenticado. Faça login.",
+        "unauthorized": "Não autorizado.",
+        "used": "Este convite já foi usado",
+        "verifyFailed": "Erro ao verificar o link de convite",
+        "wrongOrganization": "Este convite não é para esta organização"
+      }
+    },
     "questionnaireModal": {
       "title": "Questionário Obrigatório",
       "description": "Para acessar as comunidades, você precisa primeiro completar o questionário de perfil profissional.",
@@ -205,7 +254,17 @@
       "registeredAs": "Você será registrado como:",
       "viaInviteLink": "(via link de convite)",
       "emailAssociatedInvite": "Este e-mail está associado ao seu convite",
-      "unexpectedError": "Erro inesperado ao entrar"
+      "googleButton": "Continuar com Google",
+      "microsoftButton": "Continuar com Microsoft",
+      "alreadyRegistered": "Já está registrado?",
+      "loginLink": "Faça login aqui",
+      "unexpectedError": "Erro inesperado ao entrar",
+      "backToMainLogin": "Voltar ao login principal",
+      "errors": {
+        "loadFailed": "Erro ao carregar informações da organização",
+        "missingSlug": "Slug da organização não fornecido",
+        "notFound": "Organização não encontrada"
+      }
     }
   },
   "aiChat": {
@@ -318,6 +377,12 @@
     "subscriptions": "Assinaturas",
     "paymentMethods": "Métodos de pagamento",
     "purchaseHistory": "Histórico de compras",
+    "languages": {
+      "title": "Idioma",
+      "es": "Espanhol",
+      "en": "Inglês",
+      "pt": "Português"
+    },
     "theme": {
       "system": "Modo do sistema",
       "light": "Modo claro",
@@ -326,8 +391,128 @@
     "adminPanel": "Painel de administração",
     "instructorPanel": "Painel do instrutor",
     "viewTour": "Ver Tour",
+    "restartTour": "Reiniciar Tour",
+    "userPanel": "Painel do Usuário",
     "logout": "Sair",
-    "myCourses": "Meus cursos"
+    "myCourses": "Meus cursos",
+    "profile": "Editar perfil"
+  },
+  "notifications": {
+    "title": "Notificações",
+    "unreadCount": "Você tem {{count}} notificações não lidas",
+    "markAllRead": "Marcar todas como lidas",
+    "noNotifications": "Você não tem notificações",
+    "viewAll": "Ver todas",
+    "types": {
+      "system_password_changed": {
+        "title": "Senha atualizada",
+        "message": "Sua senha foi atualizada com sucesso."
+      },
+      "system_login_success": {
+        "title": "Login bem-sucedido",
+        "message": "Foi detectado um login na sua conta de {{location}}."
+      },
+      "system_login_failed": {
+        "title": "Tentativa de login falhou",
+        "message": "Foi detectada uma tentativa de login falha de {{location}}."
+      },
+      "system_email_verified": {
+        "title": "E-mail verificado",
+        "message": "Seu endereço de e-mail foi verificado com sucesso."
+      },
+      "system_security_alert": {
+        "title": "Alerta de segurança",
+        "message": "{{message}}"
+      },
+      "org_invitation_received": {
+        "title": "Convite recebido",
+        "message": "Você foi convidado para se juntar a {{orgName}}."
+      },
+      "org_role_updated": {
+        "title": "Função atualizada",
+        "message": "Sua função na organización foi atualizada para: {{newRole}}."
+      },
+      "learning_path_assigned": {
+        "title": "Nova trilha atribuída",
+        "message": "A seguinte trilha foi atribuída a você: {{title}}"
+      },
+      "community_post_created": {
+        "title": "Nova postagem na comunidad",
+        "message": "{{authorName}} postou na comunidade: \"{{postTitle}}\""
+      },
+      "community_post_comment": {
+        "title": "Novo comentário",
+        "message": "{{commentAuthorName}} comentou em seu post \"{{postTitle}}\""
+      },
+      "community_post_reaction": {
+        "title": "Nova reação",
+        "message": "{{reactionAuthorName}} curtiu seu post \"{{postTitle}}\""
+      },
+      "community_member_joined": {
+        "title": "Novo membro",
+        "message": "{{newMemberName}} entrou na comunidade \"{{communityName}}\""
+      },
+      "news_published": {
+        "title": "Nova notícia",
+        "message": "Leia a nova notícia: \"{{newsTitle}}\""
+      },
+      "news_featured": {
+        "title": "Notícia em destaque",
+        "message": "Sua notícia \"{{newsTitle}}\" foi destacada. Parabéns!"
+      },
+      "reel_created": {
+        "title": "Novo reel",
+        "message": "{{authorName}} publicou um nuevo reel: \"{{reelTitle}}\""
+      },
+      "reel_liked": {
+        "title": "Curtida no seu reel",
+        "message": "{{likeAuthorName}} curtiu seu reel \"{{reelTitle}}\""
+      },
+      "reel_comment": {
+        "title": "Comentário no seu reel",
+        "message": "{{commentAuthorName}} comentou no seu reel \"{{reelTitle}}\""
+      },
+      "prompt_created": {
+        "title": "Novo prompt de IA",
+        "message": "{{authorName}} criou um novo prompt: \"{{promptTitle}}\""
+      },
+      "prompt_favorited": {
+        "title": "Prompt favorito",
+        "message": "{{favoritedByName}} marcou como favorito seu prompt \"{{promptTitle}}\""
+      },
+      "certificate_generated": {
+        "title": "Certificado disponível",
+        "message": "Seu certificado para \"{{courseTitle}}\" já está pronto para download."
+      },
+      "team_assignment": {
+        "title": "Atribuição de equipe",
+        "message": "Você foi atribuído à equipe: {{teamName}}"
+      },
+      "course_question_answered": {
+        "title": "Nova resposta",
+        "message": "{{answerAuthorName}} respondeu à sua pergunta em \"{{courseTitle}}\""
+      },
+      "course_published": {
+        "title": "Novo curso disponível",
+        "message": "O curso \"{{courseTitle}}\" foi publicado. Não perca!"
+      },
+      "course_enrolled": {
+        "title": "Inscrição bem-sucedida",
+        "message": "Você se inscreveu em \"{{courseTitle}}\". Comece agora!"
+      },
+      "course_lesson_completed": {
+        "title": "Lição concluída",
+        "message": "Você concluiu \"{{lessonTitle}}\" de \"{{courseTitle}}\"."
+      },
+      "course_completed": {
+        "title": "Curso concluído",
+        "message": "Parabéns! Você concluiu \"{{courseTitle}}\"."
+      },
+      "course_completed_with_certificate": {
+        "title": "Curso concluído",
+        "message": "Parabéns! Você concluiu \"{{courseTitle}}\". Seu certificado está disponível."
+      }
+    }
   },
   "lia": {
     "tips": [
@@ -966,7 +1151,34 @@
     "finish": "Finalizar",
     "skip": "Pular",
     "show": "Mostrar",
-    "hide": "Ocultar"
+    "hide": "Ocultar",
+    "viewFullImage": "Ver imagem completa",
+    "downloadImage": "Baixar imagem",
+    "edited": "editado",
+    "refresh": "Atualizar",
+    "archive": "Arquivar",
+    "markAsRead": "Marcar como lida",
+    "notificationsPage": {
+      "title": "Notificações",
+      "subtitle": "Gerencie suas notificações e mantenha-se atualizado",
+      "noNotifications": "Nenhuma notificação",
+      "all": "Todas",
+      "unread": "Não lidas",
+      "archived": "Arquivadas",
+      "markAllRead": "Marcar todas como lidas",
+      "searchPlaceholder": "Buscar em notificações...",
+      "emptyTitle": "Nenhuma notificação",
+      "emptySearch": "Nenhum resultado encontrado para \"{{query}}\"",
+      "emptyUnread": "Parabéns! Você leu todas as suas notificações.",
+      "emptyDefault": "Aqui aparecerão as novidades sobre seus cursos, atividades e comunidade.",
+      "viewAll": "Ver todas as notificações",
+      "loading": "Carregando suas notificações...",
+      "clearSearch": "Limpar busca",
+      "priority": {
+        "critical": "Crítico",
+        "high": "Alta"
+      }
+    }
   },
   "certificates": {
     "loading": "Carregando certificados...",
@@ -1225,7 +1437,8 @@
   "profileDropdown": {
     "userFallback": "Usuario",
     "usernameFallback": "usuario",
-    "organizations": "Minhas organizacoes",
+    "organizations": "Minhas organizações",
+    "certificates": "Certificados",
     "viewAllOrganizations": "Ver todas",
     "theme": "Tema",
     "certificatesObtained_one": "{{count}} obtido",

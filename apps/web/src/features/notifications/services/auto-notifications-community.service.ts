@@ -59,10 +59,13 @@ export class CommunityNotificationsService {
       const notifications = members.map((member) => ({
         userId: member.user_id,
         notificationType: 'community_post_created',
-        title: 'Nuevo post en la comunidad',
-        message: `${authorName} publico "${postTitle}" en la comunidad`,
+        title: 'notifications.types.community_post_created.title',
+        message: 'notifications.types.community_post_created.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          authorName,
+          postTitle,
           post_id: postId,
           community_id: communityId,
           author_id: authorId,
@@ -116,10 +119,13 @@ export class CommunityNotificationsService {
         {
           userId: postAuthorId,
           notificationType: 'community_post_comment',
-          title: 'Nuevo comentario en tu post',
-          message: `${commentAuthorName} comento en "${postTitle}": "${truncatedPreview}"`,
+          title: 'notifications.types.community_post_comment.title',
+          message: 'notifications.types.community_post_comment.message',
+          isLocalized: true,
           metadata: {
             ...metadata,
+            commentAuthorName,
+            postTitle,
             post_id: postId,
             comment_id: commentId,
             community_id: communityId,
@@ -184,10 +190,13 @@ export class CommunityNotificationsService {
         {
           userId: postAuthorId,
           notificationType: 'community_post_reaction',
-          title: 'Nueva reaccion en tu post',
-          message: `${reactionAuthorName} ${reactionVerb} "${postTitle}"`,
+          title: 'notifications.types.community_post_reaction.title',
+          message: 'notifications.types.community_post_reaction.message',
+          isLocalized: true,
           metadata: {
             ...metadata,
+            reactionAuthorName,
+            postTitle,
             post_id: postId,
             community_id: communityId,
             reaction_author_id: reactionAuthorId,
@@ -252,10 +261,13 @@ export class CommunityNotificationsService {
       const notifications = adminsAndMods.map((member) => ({
         userId: member.user_id,
         notificationType: 'community_member_joined',
-        title: 'Nuevo miembro en la comunidad',
-        message: `${newMemberName} se unio a la comunidad "${communityName}"`,
+        title: 'notifications.types.community_member_joined.title',
+        message: 'notifications.types.community_member_joined.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          newMemberName,
+          communityName,
           community_id: communityId,
           community_name: communityName,
           new_member_id: newMemberId,

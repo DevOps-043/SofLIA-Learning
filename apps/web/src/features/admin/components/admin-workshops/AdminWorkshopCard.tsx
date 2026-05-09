@@ -58,6 +58,7 @@ export function AdminWorkshopCard({
       }}
       whileHover={disableHeavy ? undefined : { y: -8, scale: 1.02 }}
       transition={disableHeavy ? safeTransition : { type: 'spring', stiffness: 300, damping: 20 }}
+      onClick={() => onView(workshop)}
       className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-500/30 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col group cursor-pointer"
     >
       <div className="h-56 bg-gradient-to-br from-primary/10 to-accent/10 dark:from-gray-900 dark:to-primary/20 relative overflow-hidden flex-shrink-0 group/image">

@@ -137,7 +137,7 @@
   },
   "pendingCourses": {
     "title": "Pending Reviews",
-    "subtitle": "Review and approve courses submitted from CourseForge",
+    "subtitle": "Review and approve courses submitted from Course Engine",
     "tabPending": "Pending",
     "tabRejected": "Rejected",
     "searchPlaceholder": "Search by title or instructor...",

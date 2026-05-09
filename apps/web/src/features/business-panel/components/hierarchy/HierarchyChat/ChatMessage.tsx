@@ -207,7 +207,7 @@ export function ChatMessage({
                           borderColor: theme.dividerColor,
                           color: theme.textColor,
                         }}
-                        title="Ver imagen completa"
+                        title={tc('actions.viewFullImage')}
                       >
                         <Maximize2 className="h-4 w-4" />
                       </button>
@@ -223,7 +223,7 @@ export function ChatMessage({
                           borderColor: theme.dividerColor,
                           color: theme.textColor,
                         }}
-                        title="Descargar imagen"
+                        title={tc('actions.downloadImage')}
                       >
                         <Download className="h-4 w-4" />
                       </button>
@@ -303,7 +303,7 @@ export function ChatMessage({
                   className="text-[10px] italic"
                   style={{ color: theme.mutedTextColor }}
                 >
-                  (editado)
+                  ({tc('actions.edited')})
                 </span>
               )}
             </div>
@@ -312,7 +312,7 @@ export function ChatMessage({
               <div className="absolute -left-32 top-1/2 flex -translate-y-1/2 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                 {pendingDelete ? (
                   <>
-                    <span className="text-xs whitespace-nowrap" style={{ color: theme.dangerColor }}>{t('chat.confirmDeleteMessage')}</span>
+                    <span className="text-xs whitespace-nowrap" style={{ color: theme.dangerColor }}>{t('hierarchy.chat.deleteConfirm')}</span>
                     <button type="button" onClick={() => setPendingDelete(false)} className="rounded-full p-1.5 transition-colors text-xs" style={{ backgroundColor: theme.hoverBg, color: theme.subtextColor }}>{tc('actions.cancel')}</button>
                     <button type="button" onClick={() => { setPendingDelete(false); onDelete(message.id) }} className="rounded-full p-1.5 transition-colors text-xs" style={{ backgroundColor: theme.hoverBg, color: theme.dangerColor }}>{tc('actions.delete')}</button>
                   </>

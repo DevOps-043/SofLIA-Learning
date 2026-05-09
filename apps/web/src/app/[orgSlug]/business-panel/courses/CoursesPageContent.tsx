@@ -11,6 +11,8 @@ import {
   LayoutGrid,
   List
 } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
 import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
 import { CourseStatCard } from './CourseStatCard'
 import { CourseCard } from './CourseCard'
@@ -43,6 +45,9 @@ export function CoursesPageContent() {
     filteredCourses,
     courseStats,
     handleCourseClick,
+    viewMode,
+    setViewMode,
+    orgSlug,
   } = useCoursesPageLogic()
 
   const { joyrideProps } = useFeatureTour({
@@ -219,7 +224,6 @@ export function CoursesPageContent() {
           />
         </div>
 
-        {/* View Mode Toggle - Matching Users Page */}
         <div
           className="flex items-center rounded-xl border-2 overflow-hidden ml-auto"
           style={{
@@ -228,18 +232,19 @@ export function CoursesPageContent() {
           }}
         >
           <button
-            onClick={() => {/* setViewMode('grid') */}}
+            onClick={() => setViewMode('grid')}
             className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-            style={{ backgroundColor: true ? `${primaryColor}30` : 'transparent' }}
+            style={{ backgroundColor: viewMode === 'grid' ? `${primaryColor}30` : 'transparent' }}
           >
-            <LayoutGrid className="w-5 h-5" style={{ color: primaryColor }} />
+            <LayoutGrid className="w-5 h-5" style={{ color: viewMode === 'grid' ? primaryColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)') }} />
           </button>
           <div className="w-px h-6" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }} />
           <button
-            onClick={() => {/* setViewMode('list') */}}
+            onClick={() => setViewMode('list')}
             className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
+            style={{ backgroundColor: viewMode === 'list' ? `${primaryColor}30` : 'transparent' }}
           >
-            <List className="w-5 h-5" style={{ color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)' }} />
+            <List className="w-5 h-5" style={{ color: viewMode === 'list' ? primaryColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)') }} />
           </button>
         </div>
       </div>
@@ -284,17 +289,73 @@ export function CoursesPageContent() {
             </p>
           </motion.div>
 
-          {/* Grid */}
-          <div id="tour-courses-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
-            {filteredCourses.map((course, index) => (
-              <CourseCard
-                key={course.id}
-                course={course}
-                index={index}
-                onClick={() => handleCourseClick(course.id)}
-              />
-            ))}
-          </div>
+          {/* Grid or List View */}
+          {viewMode === 'grid' ? (
+            <div id="tour-courses-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
+              {filteredCourses.map((course, index) => (
+                <Link
+                  key={course.id}
+                  href={`/${orgSlug}/business-panel/courses/${course.id}`}
+                  className="block h-full relative z-10"
+                >
+                  <CourseCard
+                    course={course}
+                    index={index}
+                  />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div id="tour-courses-list" className="flex flex-col gap-3">
+              {filteredCourses.map((course, index) => (
+                <Link
+                  key={course.id}
+                  href={`/${orgSlug}/business-panel/courses/${course.id}`}
+                  className="block relative z-10"
+                >
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all hover:translate-x-1 group"
+                    style={{
+                      backgroundColor: cardBg,
+                      borderColor: borderColor,
+                    }}
+                  >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
+                    {course.thumbnail_url ? (
+                      <Image
+                        src={course.thumbnail_url}
+                        alt={course.title}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `${primaryColor}20` }}>
+                        <BookOpen className="w-6 h-6" style={{ color: primaryColor }} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold truncate" style={{ color: textColor }}>{course.title}</h3>
+                    <p className="text-xs opacity-60" style={{ color: textColor }}>{course.instructor.name}</p>
+                  </div>
+                  <div className="hidden md:flex items-center gap-6 px-4">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase tracking-wider opacity-40 font-bold" style={{ color: textColor }}>{t('courses.filters.category')}</span>
+                      <span className="text-xs font-semibold" style={{ color: textColor }}>{course.category}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-[10px] uppercase tracking-wider opacity-40 font-bold" style={{ color: textColor }}>{t('courses.filters.level')}</span>
+                      <span className="text-xs font-semibold" style={{ color: textColor }}>{course.level}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+              ))}
+            </div>
+          )}
         </>
       )}
     </motion.div>

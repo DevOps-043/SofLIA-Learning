@@ -30,7 +30,9 @@ describe('notification.utils', () => {
       notification_type: 'custom',
       title: 'Alerta',
       message: 'Mensaje',
-      metadata: {},
+      metadata: {
+        is_localized: false,
+      },
       priority: 'medium',
       status: 'unread',
       channels_sent: [],

@@ -7,6 +7,7 @@ export interface CreateNotificationParams {
   priority?: 'critical' | 'high' | 'medium' | 'low'
   organizationId?: string
   groupId?: string
+  isLocalized?: boolean
 }
 
 export interface Notification {

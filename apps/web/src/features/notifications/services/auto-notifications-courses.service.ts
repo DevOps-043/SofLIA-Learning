@@ -38,10 +38,12 @@ export class CourseNotificationsService {
       const notifications = users.map(user => ({
         userId: user.id,
         notificationType: 'course_published',
-        title: 'Nuevo curso disponible',
-        message: `Se ha publicado el curso "${courseTitle}". ¡No te lo pierdas!`,
+        title: 'notifications.types.course_published.title',
+        message: 'notifications.types.course_published.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          courseTitle,
           course_id: courseId,
           timestamp: new Date().toISOString()
         },
@@ -78,10 +80,12 @@ export class CourseNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'course_enrolled',
-        title: 'Te has inscrito en un curso',
-        message: `Te has inscrito exitosamente en "${courseTitle}". ¡Comienza a aprender ahora!`,
+        title: 'notifications.types.course_enrolled.title',
+        message: 'notifications.types.course_enrolled.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          courseTitle,
           course_id: courseId,
           timestamp: new Date().toISOString()
         },
@@ -108,14 +112,15 @@ export class CourseNotificationsService {
       await NotificationService.createNotification({
         userId,
         notificationType: 'course_lesson_completed',
-        title: 'Lección completada',
-        message: `Has completado la lección "${lessonTitle}" del curso "${courseTitle}". ¡Sigue así!`,
+        title: 'notifications.types.course_lesson_completed.title',
+        message: 'notifications.types.course_lesson_completed.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
           course_id: courseId,
           lesson_id: lessonId,
-          course_title: courseTitle,
-          lesson_title: lessonTitle,
+          courseTitle,
+          lessonTitle,
           timestamp: new Date().toISOString()
         },
         priority: getNotificationPriority('course_lesson_completed')
@@ -142,19 +147,18 @@ export class CourseNotificationsService {
     metadata?: NotificationMetadata
   ): Promise<void> {
     try {
-      const message = hasCertificate
-        ? `¡Felicidades! Has completado el curso "${courseTitle}". Tu certificado está disponible.`
-        : `¡Felicidades! Has completado el curso "${courseTitle}". ¡Excelente trabajo!`
+      const type = hasCertificate ? 'course_completed_with_certificate' : 'course_completed'
 
       await NotificationService.createNotification({
         userId,
         notificationType: 'course_completed',
-        title: 'Curso completado',
-        message,
+        title: `notifications.types.${type}.title`,
+        message: `notifications.types.${type}.message`,
+        isLocalized: true,
         metadata: {
           ...metadata,
           course_id: courseId,
-          course_title: courseTitle,
+          courseTitle,
           has_certificate: hasCertificate,
           timestamp: new Date().toISOString()
         },
@@ -206,10 +210,13 @@ export class CourseNotificationsService {
       await NotificationService.createNotification({
         userId: questionAuthorId,
         notificationType: 'course_question_answered',
-        title: 'Nueva respuesta a tu pregunta',
-        message: `${answerAuthorName} respondió a tu pregunta en "${courseTitle}": "${truncatedPreview}"`,
+        title: 'notifications.types.course_question_answered.title',
+        message: 'notifications.types.course_question_answered.message',
+        isLocalized: true,
         metadata: {
           ...metadata,
+          answerAuthorName,
+          courseTitle,
           question_id: questionId,
           course_id: courseId,
           course_title: courseTitle,

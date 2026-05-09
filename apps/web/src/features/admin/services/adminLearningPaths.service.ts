@@ -1,4 +1,4 @@
-﻿import 'server-only'
+import 'server-only'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fromLoose } from '@/lib/supabase/looseQuery'
@@ -11,6 +11,7 @@ import type {
   OrganizationLearningPathAssignment,
   UserLearningPathAssignment,
 } from '../types'
+import { AutoNotificationsService } from '@/features/notifications/services/auto-notifications.service'
 
 type LooseRow = Record<string, unknown>
 type SupabaseMutationError = {
@@ -821,6 +822,33 @@ export class AdminLearningPathsService {
       throw new Error('No se pudo asignar el learning path')
     }
 
+    // Notificar a todos los usuarios activos de la organización en lotes
+    try {
+      const { data: orgUsers } = await fromLoose<{ user_id: string }>(supabase, 'organization_users')
+        .select('user_id')
+        .eq('organization_id', organizationId)
+        .eq('status', 'active')
+
+      if (orgUsers && orgUsers.length > 0) {
+        const batchSize = 50
+        for (let i = 0; i < orgUsers.length; i += batchSize) {
+          const batch = orgUsers.slice(i, i + batchSize)
+          await Promise.allSettled(
+            batch.map(u => 
+              AutoNotificationsService.learningPaths.notifyPathAssigned(
+                u.user_id,
+                organizationId,
+                learningPathId,
+                path.title
+              )
+            )
+          )
+        }
+      }
+    } catch (notifError) {
+      logger.error('Error enviando notificaciones masivas de ruta:', notifError)
+    }
+
     return {
       id: data.id,
       organization_id: data.organization_id,
@@ -1052,6 +1080,18 @@ export class AdminLearningPathsService {
     if (error || !data) {
       logger.error('Error assigning learning path to user:', error)
       throw new Error('No se pudo asignar el learning path al usuario')
+    }
+
+    // Notificar al usuario in-app
+    try {
+      await AutoNotificationsService.learningPaths.notifyPathAssigned(
+        userId,
+        organizationId,
+        learningPathId,
+        path.title
+      )
+    } catch (notifError) {
+      logger.error('Error enviando notificación de ruta asignada:', notifError)
     }
 
     return {

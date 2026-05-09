@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap, ScaleControl } from 'react-leaflet'
+import { useTranslation } from 'react-i18next'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
@@ -74,6 +75,7 @@ function ScrollWheelZoomController({ enabled }: { enabled: boolean }) {
 function FullscreenControl() {
   const map = useMap()
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const { t } = useTranslation('business')
   
   const toggleFullscreen = () => {
     const mapContainer = map.getContainer()
@@ -108,7 +110,7 @@ function FullscreenControl() {
         map.invalidateSize()
       }, 100)
     }
-    
+
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange)
@@ -123,7 +125,7 @@ function FullscreenControl() {
       <div className="leaflet-control">
         <button
           onClick={toggleFullscreen}
-          title={isFullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+          title={isFullscreen ? t('hierarchy.map.exitFullscreen') : t('hierarchy.map.fullscreen')}
           style={{
             width: '34px',
             height: '34px',
@@ -159,6 +161,7 @@ function MapMarkers({
   goldIcon: L.Icon
   defaultIcon: L.Icon 
 }) {
+  const { t } = useTranslation('business')
   return (
     <>
       {points.map((point) => (
@@ -175,12 +178,12 @@ function MapMarkers({
                 <div className="flex items-center justify-between pr-8">
                   <h3 className="font-bold text-white text-base leading-tight">{point.name}</h3>
                   {point.isTopPerformer && (
-                    <span className="text-lg" title="Top Performer">🏆</span>
+                    <span className="text-lg" title={t('hierarchy.map.topPerformer')}>🏆</span>
                   )}
                 </div>
                 {point.isTopPerformer && (
                   <div className="mt-2 bg-amber-500/30 text-amber-300 text-xs px-2.5 py-1 rounded-full inline-block font-semibold border border-amber-500/40">
-                    Mejor Desempeño
+                    {t('hierarchy.map.bestPerformance')}
                   </div>
                 )}
               </div>
@@ -203,13 +206,16 @@ function MapMarkers({
 }
 
 // Loading placeholder
-const MapLoadingState = ({ message = 'Cargando mapa...' }: { message?: string }) => (
+const MapLoadingState = ({ message }: { message?: string }) => {
+  const { t } = useTranslation('business')
+  return (
   <div className="h-[400px] w-full rounded-2xl bg-[#1E2329] border border-white/10 flex items-center justify-center">
-    <div className="text-white/40">{message}</div>
+    <div className="text-white/40">{message || t('hierarchy.map.loading')}</div>
   </div>
-)
+)}
 
 function HierarchyMap({ points, center = [23.6345, -102.5528], zoom = 5, enableScrollWheelZoom = false }: HierarchyMapProps) {
+  const { t } = useTranslation('business')
   const [isReady, setIsReady] = useState(false)
   const [scrollWheelEnabled, setScrollWheelEnabled] = useState(enableScrollWheelZoom)
 
@@ -269,11 +275,10 @@ function HierarchyMap({ points, center = [23.6345, -102.5528], zoom = 5, enableS
   }
 
   if (!isReady) {
-    return <MapLoadingState message="Inicializando mapa..." />
+    return <MapLoadingState message={t('hierarchy.map.initializing')} />
   }
-
   if (!goldIcon || !defaultIcon) {
-    return <MapLoadingState message="Preparando iconos..." />
+    return <MapLoadingState message={t('hierarchy.map.preparing')} />
   }
 
   return (
@@ -324,7 +329,7 @@ function HierarchyMap({ points, center = [23.6345, -102.5528], zoom = 5, enableS
             onChange={(e) => setScrollWheelEnabled(e.target.checked)}
             className="w-4 h-4 rounded border-white/20 bg-[#2A2F35] text-blue-500 focus:ring-2 focus:ring-blue-500"
           />
-          <span>Zoom con rueda</span>
+          <span>{t('hierarchy.map.wheelZoom')}</span>
         </label>
       </div>
     </div>

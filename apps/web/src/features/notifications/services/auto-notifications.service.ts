@@ -14,11 +14,17 @@ export { SystemNotificationsService } from './auto-notifications-system.service'
 export { CommunityNotificationsService } from './auto-notifications-community.service'
 export { CourseNotificationsService } from './auto-notifications-courses.service'
 export { ContentNotificationsService } from './auto-notifications-content.service'
+export { OrganizationNotificationsService } from './auto-notifications-org.service'
+export { LearningPathNotificationsService } from './auto-notifications-learning-paths.service'
+export { CertificateNotificationsService } from './auto-notifications-certificates.service'
 
 import { SystemNotificationsService } from './auto-notifications-system.service'
 import { CommunityNotificationsService } from './auto-notifications-community.service'
 import { CourseNotificationsService } from './auto-notifications-courses.service'
 import { ContentNotificationsService } from './auto-notifications-content.service'
+import { OrganizationNotificationsService } from './auto-notifications-org.service'
+import { LearningPathNotificationsService } from './auto-notifications-learning-paths.service'
+import { CertificateNotificationsService } from './auto-notifications-certificates.service'
 import type { NotificationMetadata } from './auto-notifications.shared'
 
 /**
@@ -193,4 +199,28 @@ export class AutoNotificationsService {
       promptId, promptAuthorId, favoritedByUserId, promptTitle, metadata
     )
   }
+
+  // ── Organizations (B2B) ──────────────────────────────────────────────────
+  static async notifyUserInvited(userId: string, organizationId: string, orgName: string, metadata?: NotificationMetadata) {
+    return OrganizationNotificationsService.notifyUserInvited(userId, organizationId, orgName, metadata)
+  }
+
+  static async notifyRoleUpdated(userId: string, organizationId: string, newRole: string, metadata?: NotificationMetadata) {
+    return OrganizationNotificationsService.notifyRoleUpdated(userId, organizationId, newRole, metadata)
+  }
+
+  static async notifyTeamAssignment(userId: string, organizationId: string, teamName: string, metadata?: NotificationMetadata) {
+    return OrganizationNotificationsService.notifyTeamAssignment(userId, organizationId, teamName, metadata)
+  }
+
+  // ── Learning Paths (B2B) ──────────────────────────────────────────────────
+  static async notifyPathAssigned(userId: string, organizationId: string | null, pathId: string, pathTitle: string, metadata?: NotificationMetadata) {
+    return LearningPathNotificationsService.notifyPathAssigned(userId, organizationId, pathId, pathTitle, metadata)
+  }
+
+  // ── Certificates ─────────────────────────────────────────────────────────
+  static async notifyCertificateGenerated(userId: string, courseTitle: string, certificateId: string, metadata?: NotificationMetadata) {
+    return CertificateNotificationsService.notifyCertificateGenerated(userId, courseTitle, certificateId, metadata)
+  }
 }
+

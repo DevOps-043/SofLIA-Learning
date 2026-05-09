@@ -1,5 +1,6 @@
 import type { ChangeEvent, RefObject } from 'react'
 import { Loader2, Paperclip, Send, Smile } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import { EmojiPicker } from './EmojiPicker'
 import type { EmojiCategory } from './types'
@@ -37,6 +38,7 @@ export function ChatInput({
   emojiPickerRef,
   onFileChange,
 }: ChatInputProps) {
+  const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const canSend = Boolean(messageContent.trim() || hasFile) && !isSending
 
@@ -80,7 +82,7 @@ export function ChatInput({
                 onSend()
               }
             }}
-            placeholder="Escribe un mensaje..."
+            placeholder={t('hierarchy.chat.inputPlaceholder')}
             className="w-full rounded-2xl border px-4 py-3 pr-12 text-sm transition-colors focus:outline-none"
             style={{
               backgroundColor: theme.inputBg,

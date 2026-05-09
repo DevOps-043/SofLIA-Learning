@@ -126,8 +126,13 @@ describe('markNotificationAsRead', () => {
     const result = await markNotificationAsRead('notif-1', 'user-1')
 
     expect(result).toMatchObject({ status: 'read' })
-    // update should NOT have been called
-    expect(selectChain.select).toHaveBeenCalled()
+    expect(selectChain.select).toHaveBeenCalledWith(
+      expect.stringContaining('notification_type'),
+    )
+    expect(selectChain.select).toHaveBeenCalledWith(
+      expect.not.stringContaining('action_url'),
+    )
+    expect(selectChain.eq).toHaveBeenCalledWith('user_id', 'user-1')
   })
 
   it('throws when notification not found or wrong user', async () => {
